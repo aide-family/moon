@@ -4656,7 +4656,13 @@ type ListMessageLogsRequest struct {
 	// 每页条数。
 	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// 任务标识。
-	TaskUid       string `protobuf:"bytes,3,opt,name=task_uid,json=taskUid,proto3" json:"task_uid,omitempty"`
+	TaskUid string `protobuf:"bytes,3,opt,name=task_uid,json=taskUid,proto3" json:"task_uid,omitempty"`
+	// 状态筛选，取值为 SENT 或 FAILED；为空表示全部。
+	Status string `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	// 创建时间起点，Unix 秒，包含；0 表示不限。
+	StartTime int64 `protobuf:"varint,5,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// 创建时间终点，Unix 秒，不包含；0 表示不限。
+	EndTime       int64 `protobuf:"varint,6,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4710,6 +4716,27 @@ func (x *ListMessageLogsRequest) GetTaskUid() string {
 		return x.TaskUid
 	}
 	return ""
+}
+
+func (x *ListMessageLogsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListMessageLogsRequest) GetStartTime() int64 {
+	if x != nil {
+		return x.StartTime
+	}
+	return 0
+}
+
+func (x *ListMessageLogsRequest) GetEndTime() int64 {
+	if x != nil {
+		return x.EndTime
+	}
+	return 0
 }
 
 // 消息日志分页结果。
@@ -5092,8 +5119,12 @@ type ListNotificationTasksRequest struct {
 	Page int32 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	// 每页条数。
 	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// 状态。
-	Status        string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	// 状态筛选，取值为 PENDING、SENDING、SENT、FAILED 或 CANCELLED；为空表示全部。
+	Status string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	// 创建时间起点，Unix 秒，包含；0 表示不限。
+	StartTime int64 `protobuf:"varint,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// 创建时间终点，Unix 秒，不包含；0 表示不限。
+	EndTime       int64 `protobuf:"varint,5,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5147,6 +5178,20 @@ func (x *ListNotificationTasksRequest) GetStatus() string {
 		return x.Status
 	}
 	return ""
+}
+
+func (x *ListNotificationTasksRequest) GetStartTime() int64 {
+	if x != nil {
+		return x.StartTime
+	}
+	return 0
+}
+
+func (x *ListNotificationTasksRequest) GetEndTime() int64 {
+	if x != nil {
+		return x.EndTime
+	}
+	return 0
 }
 
 // 通知任务分页结果。
@@ -5737,11 +5782,15 @@ const file_alioth_v1_notification_proto_rawDesc = "" +
 	"\acontent\x18\v \x01(\tR\acontent\x12\x1d\n" +
 	"\n" +
 	"group_name\x18\f \x01(\tR\tgroupName\x12+\n" +
-	"\x11subscription_name\x18\r \x01(\tR\x10subscriptionName\"x\n" +
+	"\x11subscription_name\x18\r \x01(\tR\x10subscriptionName\"\xdc\x01\n" +
 	"\x16ListMessageLogsRequest\x12\x1b\n" +
 	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04page\x12&\n" +
 	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x19\n" +
-	"\btask_uid\x18\x03 \x01(\tR\ataskUid\"\x91\x01\n" +
+	"\btask_uid\x18\x03 \x01(\tR\ataskUid\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12&\n" +
+	"\n" +
+	"start_time\x18\x05 \x01(\x03B\a\xbaH\x04\"\x02(\x00R\tstartTime\x12\"\n" +
+	"\bend_time\x18\x06 \x01(\x03B\a\xbaH\x04\"\x02(\x00R\aendTime\"\x91\x01\n" +
 	"\x17ListMessageLogsResponse\x12/\n" +
 	"\x05items\x18\x01 \x03(\v2\x19.alioth.v1.MessageLogItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
@@ -5774,11 +5823,14 @@ const file_alioth_v1_notification_proto_rawDesc = "" +
 	"group_name\x18\x10 \x01(\tR\tgroupName\x12+\n" +
 	"\x11subscription_name\x18\x11 \x01(\tR\x10subscriptionName\x12!\n" +
 	"\fchannel_name\x18\x12 \x01(\tR\vchannelName\x12#\n" +
-	"\rtemplate_name\x18\x13 \x01(\tR\ftemplateName\"{\n" +
+	"\rtemplate_name\x18\x13 \x01(\tR\ftemplateName\"\xc7\x01\n" +
 	"\x1cListNotificationTasksRequest\x12\x1b\n" +
 	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04page\x12&\n" +
 	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x16\n" +
-	"\x06status\x18\x03 \x01(\tR\x06status\"\x9d\x01\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12&\n" +
+	"\n" +
+	"start_time\x18\x04 \x01(\x03B\a\xbaH\x04\"\x02(\x00R\tstartTime\x12\"\n" +
+	"\bend_time\x18\x05 \x01(\x03B\a\xbaH\x04\"\x02(\x00R\aendTime\"\x9d\x01\n" +
 	"\x1dListNotificationTasksResponse\x125\n" +
 	"\x05items\x18\x01 \x03(\v2\x1f.alioth.v1.NotificationTaskItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +

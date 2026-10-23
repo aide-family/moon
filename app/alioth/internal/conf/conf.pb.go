@@ -520,14 +520,16 @@ func (x *Data_Redis) GetPassword() string {
 	return ""
 }
 
-// History 是历史告警分库分表的命名规则。库名 = database_prefix + 租户标识，
-// 表名 = table_prefix + 周一日期（YYYYMMDD）。
+// History 是分库分表的命名规则。租户库名 = database_prefix + 租户标识；
+// 告警周表名 = table_prefix + 周一日期（YYYYMMDD），
+// 消息日志周表名 = message_table_prefix + 周一日期（YYYYMMDD）。
 type Data_History struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	DatabasePrefix string                 `protobuf:"bytes,1,opt,name=database_prefix,json=databasePrefix,proto3" json:"database_prefix,omitempty"`
-	TablePrefix    string                 `protobuf:"bytes,2,opt,name=table_prefix,json=tablePrefix,proto3" json:"table_prefix,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	DatabasePrefix     string                 `protobuf:"bytes,1,opt,name=database_prefix,json=databasePrefix,proto3" json:"database_prefix,omitempty"`
+	TablePrefix        string                 `protobuf:"bytes,2,opt,name=table_prefix,json=tablePrefix,proto3" json:"table_prefix,omitempty"`
+	MessageTablePrefix string                 `protobuf:"bytes,3,opt,name=message_table_prefix,json=messageTablePrefix,proto3" json:"message_table_prefix,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Data_History) Reset() {
@@ -570,6 +572,13 @@ func (x *Data_History) GetDatabasePrefix() string {
 func (x *Data_History) GetTablePrefix() string {
 	if x != nil {
 		return x.TablePrefix
+	}
+	return ""
+}
+
+func (x *Data_History) GetMessageTablePrefix() string {
+	if x != nil {
+		return x.MessageTablePrefix
 	}
 	return ""
 }
@@ -781,7 +790,7 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"\x04GRPC\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x123\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xee\x02\n" +
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xa1\x03\n" +
 	"\x04Data\x126\n" +
 	"\bdatabase\x18\x01 \x01(\v2\x1a.alioth.conf.Data.DatabaseR\bdatabase\x12-\n" +
 	"\x05redis\x18\x02 \x01(\v2\x17.alioth.conf.Data.RedisR\x05redis\x123\n" +
@@ -791,10 +800,11 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"\x06source\x18\x02 \x01(\tR\x06source\x1a7\n" +
 	"\x05Redis\x12\x12\n" +
 	"\x04addr\x18\x01 \x01(\tR\x04addr\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\x1aU\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x1a\x87\x01\n" +
 	"\aHistory\x12'\n" +
 	"\x0fdatabase_prefix\x18\x01 \x01(\tR\x0edatabasePrefix\x12!\n" +
-	"\ftable_prefix\x18\x02 \x01(\tR\vtablePrefix\"\xfc\x04\n" +
+	"\ftable_prefix\x18\x02 \x01(\tR\vtablePrefix\x120\n" +
+	"\x14message_table_prefix\x18\x03 \x01(\tR\x12messageTablePrefix\"\xfc\x04\n" +
 	"\x04Auth\x12\x1d\n" +
 	"\n" +
 	"jwt_secret\x18\x01 \x01(\tR\tjwtSecret\x12,\n" +

@@ -42,12 +42,14 @@ type NotificationRepo interface {
 	ListSubscriptions(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.NotificationSubscription, int, error)
 
 	CreateTestTask(ctx context.Context, in bo.NotificationTask) (*bo.NotificationTask, error)
-	ListTasks(ctx context.Context, namespaceUID, status string, page, pageSize int) ([]bo.NotificationTask, int, error)
+	ListTasks(ctx context.Context, namespaceUID string, filter bo.NotificationTaskListFilter, page, pageSize int) ([]bo.NotificationTask, int, error)
 	RetryTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error)
 	CancelTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error)
 
-	ListMessageLogs(ctx context.Context, namespaceUID, taskUID string, page, pageSize int) ([]bo.MessageLog, int, error)
+	ListMessageLogs(ctx context.Context, namespaceUID string, filter bo.MessageLogListFilter, page, pageSize int) ([]bo.MessageLog, int, error)
 	GetMessageLog(ctx context.Context, namespaceUID, uid string) (*bo.MessageLog, error)
+	// BackfillMessageLogs 把主库里遗留的消息日志归档到租户分片库，兼容升级前的数据。
+	BackfillMessageLogs(ctx context.Context, limit int) (int, error)
 
 	ClaimPending(ctx context.Context, limit int) ([]bo.NotifySnapshot, error)
 	MarkSending(ctx context.Context, taskUID string) error

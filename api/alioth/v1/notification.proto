@@ -969,6 +969,12 @@ message ListMessageLogsRequest {
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
   // 任务标识。
   string task_uid = 3 [json_name = "taskUid"];
+  // 状态筛选，取值为 SENT 或 FAILED；为空表示全部。
+  string status = 4;
+  // 创建时间起点，Unix 秒，包含；0 表示不限。
+  int64 start_time = 5 [json_name = "startTime", (buf.validate.field).int64.gte = 0];
+  // 创建时间终点，Unix 秒，不包含；0 表示不限。
+  int64 end_time = 6 [json_name = "endTime", (buf.validate.field).int64.gte = 0];
 }
 
 // 消息日志分页结果。
@@ -1043,8 +1049,12 @@ message ListNotificationTasksRequest {
   int32 page = 1 [(buf.validate.field).int32.gte = 0];
   // 每页条数。
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
-  // 状态。
+  // 状态筛选，取值为 PENDING、SENDING、SENT、FAILED 或 CANCELLED；为空表示全部。
   string status = 3;
+  // 创建时间起点，Unix 秒，包含；0 表示不限。
+  int64 start_time = 4 [json_name = "startTime", (buf.validate.field).int64.gte = 0];
+  // 创建时间终点，Unix 秒，不包含；0 表示不限。
+  int64 end_time = 5 [json_name = "endTime", (buf.validate.field).int64.gte = 0];
 }
 
 // 通知任务分页结果。

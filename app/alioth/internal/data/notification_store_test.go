@@ -77,7 +77,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}
 
 	template, err := notify.CreateTemplate(ctx, bo.NotificationTemplate{
-		NamespaceUID: ns, Name: "tpl", Type: "EMAIL", Subject: "hi", Body: "{{.summary}}",
+		NamespaceUID: ns, Name: "tpl", Type: "EMAIL", App: "OTHER", Subject: "hi", Body: "{{.summary}}",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -113,7 +113,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	tasks, _, err := notify.ListTasks(ctx, ns, "", 1, 20)
+	tasks, _, err := notify.ListTasks(ctx, ns, bo.NotificationTaskListFilter{}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +129,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	tasks, _, err = notify.ListTasks(ctx, ns, "", 1, 20)
+	tasks, _, err = notify.ListTasks(ctx, ns, bo.NotificationTaskListFilter{}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	if err := events.RecoverSource(ctx, ns, nil, []string{"ds1"}, nil); err != nil {
 		t.Fatal(err)
 	}
-	tasks, _, err = notify.ListTasks(ctx, ns, "", 1, 20)
+	tasks, _, err = notify.ListTasks(ctx, ns, bo.NotificationTaskListFilter{}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +184,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	tasks, _, err = notify.ListTasks(ctx, ns, "", 1, 20)
+	tasks, _, err = notify.ListTasks(ctx, ns, bo.NotificationTaskListFilter{}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -320,7 +320,10 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 | `NotificationGroup`    | Moon 的通知组与收件人组                      | Namespace 内的接收方集合。邮件渠道和短信渠道各最多一个，Webhook 作为接收者可多选；每个选中渠道都绑定一个能覆盖它的模板，至少有一个接收方或 Webhook |
 | `NotificationSubscription` | Alioth 新增                       | 按标签、告警级别和数据源订阅事件，命中后发送给订阅下的通知组                                              |
 | `NotificationTask`     | Moon 发送任务的持久化形态                     | 待发送、发送中、已发送、失败、取消。状态名沿用 MessageStatus：PENDING、SENDING、SENT、FAILED、CANCELLED |
-| `MessageLog`           | Moon 的 `message_logs`               | 一次投递的结果。按时间分区。支持查看、重试、取消                                                    |
+| `MessageLog`           | Moon 的 `message_logs`               | 一次投递的结果。按租户库 + 周表分库分表。支持查看、重试、取消                                                    |
+
+
+消息日志按与历史告警一致的分片原则存储：库名为 `ALIOTH_HISTORY_DATABASE_PREFIX` + 租户标识（Namespace UID），与历史告警共用租户库；表名为 `ALIOTH_HISTORY_MESSAGE_TABLE_PREFIX` + 投递时间所在周的周一日期 `YYYYMMDD`（UTC）。投递结果先在主库 `message_logs` 的事务内落一行，提交后写入租户库周表、在主库 `message_log_shards` 记录分片索引并删除主库行。归档失败时保留主库行，列表合并主库兜底并按 UID 去重；调度器每小时把升级前遗留的日志迁移到分片。列表按状态、任务和创建时间范围查询，时间范围会裁剪需要读取的周表；详情按索引直接定位周表。
 
 
 告警摘要、描述和通知模板共用 `pkg/alerttmpl`：数据字段和展开语义在评测与投递两处保持一致，Prometheus 的 `$labels`、`$value`、`.Labels`、`.Value`、`humanize` 等写法可直接使用。`{{ . }}` 在两层都表示采样值，和 `{{ $value }}` 同值；`query` 模板函数依赖数据源，只在评测阶段可用。`$externalURL` 取数据源地址。保存模板时用同一套实现做语法校验。

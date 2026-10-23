@@ -25,6 +25,7 @@ type Scheduler struct {
 	lastCheck         time.Time
 	lastWorkerCleanup time.Time
 	lastBackfill      time.Time
+	lastLogBackfill   time.Time
 	cancel            context.CancelFunc
 	done              chan struct{}
 }
@@ -83,6 +84,7 @@ func (s *Scheduler) tick(ctx context.Context) {
 	}
 	s.maintainPartitions(ctx)
 	s.backfillHistory(ctx)
+	s.backfillMessageLogs(ctx)
 	s.cleanupWorkerInstances(ctx)
 }
 
@@ -106,6 +108,18 @@ func (s *Scheduler) backfillHistory(ctx context.Context) {
 	s.lastBackfill = time.Now()
 	if _, err := s.coordinator.BackfillHistory(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("backfill alert history: %v", err))
+	}
+}
+
+// backfillMessageLogs 每小时把主库遗留的消息日志写入租户分库分表。
+// 新日志在投递回写后立即归档，这里兜底升级前的数据和归档失败的重试。
+func (s *Scheduler) backfillMessageLogs(ctx context.Context) {
+	if time.Since(s.lastLogBackfill) < partition.MaintenanceInterval {
+		return
+	}
+	s.lastLogBackfill = time.Now()
+	if _, err := s.center.BackfillMessageLogs(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("backfill message logs: %v", err))
 	}
 }
 

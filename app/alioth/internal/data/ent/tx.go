@@ -48,6 +48,8 @@ type Tx struct {
 	MemberRole *MemberRoleClient
 	// MessageLog is the client for interacting with the MessageLog builders.
 	MessageLog *MessageLogClient
+	// MessageLogShard is the client for interacting with the MessageLogShard builders.
+	MessageLogShard *MessageLogShardClient
 	// Namespace is the client for interacting with the Namespace builders.
 	Namespace *NamespaceClient
 	// NotificationChannel is the client for interacting with the NotificationChannel builders.
@@ -233,6 +235,7 @@ func (tx *Tx) init() {
 	tx.MemberInvite = NewMemberInviteClient(tx.config)
 	tx.MemberRole = NewMemberRoleClient(tx.config)
 	tx.MessageLog = NewMessageLogClient(tx.config)
+	tx.MessageLogShard = NewMessageLogShardClient(tx.config)
 	tx.Namespace = NewNamespaceClient(tx.config)
 	tx.NotificationChannel = NewNotificationChannelClient(tx.config)
 	tx.NotificationGroup = NewNotificationGroupClient(tx.config)

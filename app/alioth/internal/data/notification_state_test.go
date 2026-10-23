@@ -26,7 +26,7 @@ func TestNotificationStateCAS(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	defer cleanup()
+	t.Cleanup(cleanup)
 	if err := store.db.PingContext(ctx); err != nil {
 		t.Skip(err)
 	}
@@ -52,14 +52,16 @@ func TestNotificationStateCAS(t *testing.T) {
 	t.Cleanup(func() {
 		_, _ = store.client.MessageLog.Delete().Where(messagelog.TaskUIDEQ(uid)).Exec(ctx)
 		_, _ = store.client.NotificationTask.Delete().Where(notificationtask.UIDEQ(uid)).Exec(ctx)
+		_ = store.shards.dropTenant(context.Background(), ns)
 	})
 
+	// 消息日志提交后会归档到租户分片库，列表/计数都按公共查询路径验证可见性。
 	logCount := func() int {
-		n, err := store.client.MessageLog.Query().Where(messagelog.TaskUIDEQ(uid)).Count(ctx)
+		_, total, err := repo.ListMessageLogs(ctx, ns, bo.MessageLogListFilter{TaskUID: uid}, 1, 100)
 		if err != nil {
 			t.Fatal(err)
 		}
-		return n
+		return total
 	}
 	setStatus := func(status notificationtask.Status) {
 		if _, err := store.db.ExecContext(ctx,
@@ -101,11 +103,11 @@ func TestNotificationStateCAS(t *testing.T) {
 	if row.Sender != "alerts@example.com" || row.Receivers != "ops@example.com" || row.Subject != "Alert: node-1" || row.Body != "{{.description}}" || row.Content != "node-1 is down" {
 		t.Fatalf("task audit fields = sender %q receivers %q subject %q body %q content %q", row.Sender, row.Receivers, row.Subject, row.Body, row.Content)
 	}
-	logs, err := store.client.MessageLog.Query().Where(messagelog.TaskUIDEQ(uid)).All(ctx)
+	logs, _, err := repo.ListMessageLogs(ctx, ns, bo.MessageLogListFilter{TaskUID: uid}, 1, 100)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(logs) != 1 || logs[0].Status != messagelog.StatusSENT || logs[0].Sender != "alerts@example.com" || logs[0].Receivers != "ops@example.com" || logs[0].Subject != "Alert: node-1" || logs[0].Content != "node-1 is down" {
+	if len(logs) != 1 || logs[0].Status != "SENT" || logs[0].Sender != "alerts@example.com" || logs[0].Receivers != "ops@example.com" || logs[0].Subject != "Alert: node-1" || logs[0].Content != "node-1 is down" {
 		t.Fatalf("message audit fields = %+v", logs)
 	}
 	if logCount() != 1 {

@@ -708,6 +708,36 @@ var (
 			},
 		},
 	}
+	// MessageLogShardsColumns holds the columns for the "message_log_shards" table.
+	MessageLogShardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "message_uid", Type: field.TypeString, Unique: true},
+		{Name: "database_name", Type: field.TypeString},
+		{Name: "table_name", Type: field.TypeString},
+		{Name: "week_start", Type: field.TypeTime},
+	}
+	// MessageLogShardsTable holds the schema information for the "message_log_shards" table.
+	MessageLogShardsTable = &schema.Table{
+		Name:       "message_log_shards",
+		Columns:    MessageLogShardsColumns,
+		PrimaryKey: []*schema.Column{MessageLogShardsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "messagelogshard_uid",
+				Unique:  true,
+				Columns: []*schema.Column{MessageLogShardsColumns[3]},
+			},
+			{
+				Name:    "messagelogshard_namespace_uid_week_start",
+				Unique:  false,
+				Columns: []*schema.Column{MessageLogShardsColumns[4], MessageLogShardsColumns[8]},
+			},
+		},
+	}
 	// NamespacesColumns holds the columns for the "namespaces" table.
 	NamespacesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1448,6 +1478,7 @@ var (
 		MemberInvitesTable,
 		MemberRolesTable,
 		MessageLogsTable,
+		MessageLogShardsTable,
 		NamespacesTable,
 		NotificationChannelsTable,
 		NotificationGroupsTable,

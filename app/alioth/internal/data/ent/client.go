@@ -32,6 +32,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
@@ -93,6 +94,8 @@ type Client struct {
 	MemberRole *MemberRoleClient
 	// MessageLog is the client for interacting with the MessageLog builders.
 	MessageLog *MessageLogClient
+	// MessageLogShard is the client for interacting with the MessageLogShard builders.
+	MessageLogShard *MessageLogShardClient
 	// Namespace is the client for interacting with the Namespace builders.
 	Namespace *NamespaceClient
 	// NotificationChannel is the client for interacting with the NotificationChannel builders.
@@ -158,6 +161,7 @@ func (c *Client) init() {
 	c.MemberInvite = NewMemberInviteClient(c.config)
 	c.MemberRole = NewMemberRoleClient(c.config)
 	c.MessageLog = NewMessageLogClient(c.config)
+	c.MessageLogShard = NewMessageLogShardClient(c.config)
 	c.Namespace = NewNamespaceClient(c.config)
 	c.NotificationChannel = NewNotificationChannelClient(c.config)
 	c.NotificationGroup = NewNotificationGroupClient(c.config)
@@ -286,6 +290,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
 		MessageLog:                    NewMessageLogClient(cfg),
+		MessageLogShard:               NewMessageLogShardClient(cfg),
 		Namespace:                     NewNamespaceClient(cfg),
 		NotificationChannel:           NewNotificationChannelClient(cfg),
 		NotificationGroup:             NewNotificationGroupClient(cfg),
@@ -341,6 +346,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
 		MessageLog:                    NewMessageLogClient(cfg),
+		MessageLogShard:               NewMessageLogShardClient(cfg),
 		Namespace:                     NewNamespaceClient(cfg),
 		NotificationChannel:           NewNotificationChannelClient(cfg),
 		NotificationGroup:             NewNotificationGroupClient(cfg),
@@ -391,8 +397,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
 		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Datasource, c.EmailLoginCode,
-		c.Member, c.MemberInvite, c.MemberRole, c.MessageLog, c.Namespace,
-		c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
+		c.Member, c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard,
+		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
 		c.NotificationSubscription, c.NotificationSubscriptionGroup,
 		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
 		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
@@ -409,8 +415,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
 		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Datasource, c.EmailLoginCode,
-		c.Member, c.MemberInvite, c.MemberRole, c.MessageLog, c.Namespace,
-		c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
+		c.Member, c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard,
+		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
 		c.NotificationSubscription, c.NotificationSubscriptionGroup,
 		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
 		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
@@ -459,6 +465,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MemberRole.mutate(ctx, m)
 	case *MessageLogMutation:
 		return c.MessageLog.mutate(ctx, m)
+	case *MessageLogShardMutation:
+		return c.MessageLogShard.mutate(ctx, m)
 	case *NamespaceMutation:
 		return c.Namespace.mutate(ctx, m)
 	case *NotificationChannelMutation:
@@ -2894,6 +2902,139 @@ func (c *MessageLogClient) mutate(ctx context.Context, m *MessageLogMutation) (V
 	}
 }
 
+// MessageLogShardClient is a client for the MessageLogShard schema.
+type MessageLogShardClient struct {
+	config
+}
+
+// NewMessageLogShardClient returns a client for the MessageLogShard from the given config.
+func NewMessageLogShardClient(c config) *MessageLogShardClient {
+	return &MessageLogShardClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messagelogshard.Hooks(f(g(h())))`.
+func (c *MessageLogShardClient) Use(hooks ...Hook) {
+	c.hooks.MessageLogShard = append(c.hooks.MessageLogShard, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagelogshard.Intercept(f(g(h())))`.
+func (c *MessageLogShardClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageLogShard = append(c.inters.MessageLogShard, interceptors...)
+}
+
+// Create returns a builder for creating a MessageLogShard entity.
+func (c *MessageLogShardClient) Create() *MessageLogShardCreate {
+	mutation := newMessageLogShardMutation(c.config, OpCreate)
+	return &MessageLogShardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MessageLogShard entities.
+func (c *MessageLogShardClient) CreateBulk(builders ...*MessageLogShardCreate) *MessageLogShardCreateBulk {
+	return &MessageLogShardCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MessageLogShardClient) MapCreateBulk(slice any, setFunc func(*MessageLogShardCreate, int)) *MessageLogShardCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MessageLogShardCreateBulk{err: fmt.Errorf("calling to MessageLogShardClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MessageLogShardCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MessageLogShardCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MessageLogShard.
+func (c *MessageLogShardClient) Update() *MessageLogShardUpdate {
+	mutation := newMessageLogShardMutation(c.config, OpUpdate)
+	return &MessageLogShardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageLogShardClient) UpdateOne(_m *MessageLogShard) *MessageLogShardUpdateOne {
+	mutation := newMessageLogShardMutation(c.config, OpUpdateOne, withMessageLogShard(_m))
+	return &MessageLogShardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageLogShardClient) UpdateOneID(id int) *MessageLogShardUpdateOne {
+	mutation := newMessageLogShardMutation(c.config, OpUpdateOne, withMessageLogShardID(id))
+	return &MessageLogShardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MessageLogShard.
+func (c *MessageLogShardClient) Delete() *MessageLogShardDelete {
+	mutation := newMessageLogShardMutation(c.config, OpDelete)
+	return &MessageLogShardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessageLogShardClient) DeleteOne(_m *MessageLogShard) *MessageLogShardDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MessageLogShardClient) DeleteOneID(id int) *MessageLogShardDeleteOne {
+	builder := c.Delete().Where(messagelogshard.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageLogShardDeleteOne{builder}
+}
+
+// Query returns a query builder for MessageLogShard.
+func (c *MessageLogShardClient) Query() *MessageLogShardQuery {
+	return &MessageLogShardQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageLogShard},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MessageLogShard entity by its id.
+func (c *MessageLogShardClient) Get(ctx context.Context, id int) (*MessageLogShard, error) {
+	return c.Query().Where(messagelogshard.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageLogShardClient) GetX(ctx context.Context, id int) *MessageLogShard {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MessageLogShardClient) Hooks() []Hook {
+	return c.hooks.MessageLogShard
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessageLogShardClient) Interceptors() []Interceptor {
+	return c.inters.MessageLogShard
+}
+
+func (c *MessageLogShardClient) mutate(ctx context.Context, m *MessageLogShardMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageLogShardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageLogShardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageLogShardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageLogShardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageLogShard mutation op: %q", m.Op())
+	}
+}
+
 // NamespaceClient is a client for the Namespace schema.
 type NamespaceClient struct {
 	config
@@ -5294,20 +5435,20 @@ type (
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
 		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, Member, MemberInvite,
-		MemberRole, MessageLog, Namespace, NotificationChannel, NotificationGroup,
-		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
-		NotificationTask, NotificationTemplate, Permission, Role, RolePermission,
-		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Hook
+		MemberRole, MessageLog, MessageLogShard, Namespace, NotificationChannel,
+		NotificationGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		Permission, Role, RolePermission, SSHCommand, SSHCommandAudit, SystemMessage,
+		User, UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
 		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, Member, MemberInvite,
-		MemberRole, MessageLog, Namespace, NotificationChannel, NotificationGroup,
-		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
-		NotificationTask, NotificationTemplate, Permission, Role, RolePermission,
-		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Interceptor
+		MemberRole, MessageLog, MessageLogShard, Namespace, NotificationChannel,
+		NotificationGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		Permission, Role, RolePermission, SSHCommand, SSHCommandAudit, SystemMessage,
+		User, UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
 	}
 )

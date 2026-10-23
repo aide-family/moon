@@ -29,6 +29,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
@@ -77,6 +78,7 @@ const (
 	TypeMemberInvite                  = "MemberInvite"
 	TypeMemberRole                    = "MemberRole"
 	TypeMessageLog                    = "MessageLog"
+	TypeMessageLogShard               = "MessageLogShard"
 	TypeNamespace                     = "Namespace"
 	TypeNotificationChannel           = "NotificationChannel"
 	TypeNotificationGroup             = "NotificationGroup"
@@ -15447,6 +15449,710 @@ func (m *MessageLogMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *MessageLogMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown MessageLog edge %s", name)
+}
+
+// MessageLogShardMutation represents an operation that mutates the MessageLogShard nodes in the graph.
+type MessageLogShardMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	uid           *string
+	namespace_uid *string
+	message_uid   *string
+	database_name *string
+	table_name    *string
+	week_start    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*MessageLogShard, error)
+	predicates    []predicate.MessageLogShard
+}
+
+var _ ent.Mutation = (*MessageLogShardMutation)(nil)
+
+// messagelogshardOption allows management of the mutation configuration using functional options.
+type messagelogshardOption func(*MessageLogShardMutation)
+
+// newMessageLogShardMutation creates new mutation for the MessageLogShard entity.
+func newMessageLogShardMutation(c config, op Op, opts ...messagelogshardOption) *MessageLogShardMutation {
+	m := &MessageLogShardMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMessageLogShard,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMessageLogShardID sets the ID field of the mutation.
+func withMessageLogShardID(id int) messagelogshardOption {
+	return func(m *MessageLogShardMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MessageLogShard
+		)
+		m.oldValue = func(ctx context.Context) (*MessageLogShard, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MessageLogShard.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMessageLogShard sets the old MessageLogShard of the mutation.
+func withMessageLogShard(node *MessageLogShard) messagelogshardOption {
+	return func(m *MessageLogShardMutation) {
+		m.oldValue = func(context.Context) (*MessageLogShard, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MessageLogShardMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MessageLogShardMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MessageLogShardMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MessageLogShardMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MessageLogShard.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *MessageLogShardMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *MessageLogShardMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the MessageLogShard entity.
+// If the MessageLogShard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogShardMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *MessageLogShardMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *MessageLogShardMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *MessageLogShardMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the MessageLogShard entity.
+// If the MessageLogShard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogShardMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *MessageLogShardMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *MessageLogShardMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *MessageLogShardMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the MessageLogShard entity.
+// If the MessageLogShard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogShardMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *MessageLogShardMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *MessageLogShardMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *MessageLogShardMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the MessageLogShard entity.
+// If the MessageLogShard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogShardMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *MessageLogShardMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetMessageUID sets the "message_uid" field.
+func (m *MessageLogShardMutation) SetMessageUID(s string) {
+	m.message_uid = &s
+}
+
+// MessageUID returns the value of the "message_uid" field in the mutation.
+func (m *MessageLogShardMutation) MessageUID() (r string, exists bool) {
+	v := m.message_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessageUID returns the old "message_uid" field's value of the MessageLogShard entity.
+// If the MessageLogShard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogShardMutation) OldMessageUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMessageUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMessageUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessageUID: %w", err)
+	}
+	return oldValue.MessageUID, nil
+}
+
+// ResetMessageUID resets all changes to the "message_uid" field.
+func (m *MessageLogShardMutation) ResetMessageUID() {
+	m.message_uid = nil
+}
+
+// SetDatabaseName sets the "database_name" field.
+func (m *MessageLogShardMutation) SetDatabaseName(s string) {
+	m.database_name = &s
+}
+
+// DatabaseName returns the value of the "database_name" field in the mutation.
+func (m *MessageLogShardMutation) DatabaseName() (r string, exists bool) {
+	v := m.database_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDatabaseName returns the old "database_name" field's value of the MessageLogShard entity.
+// If the MessageLogShard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogShardMutation) OldDatabaseName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDatabaseName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDatabaseName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDatabaseName: %w", err)
+	}
+	return oldValue.DatabaseName, nil
+}
+
+// ResetDatabaseName resets all changes to the "database_name" field.
+func (m *MessageLogShardMutation) ResetDatabaseName() {
+	m.database_name = nil
+}
+
+// SetTableName sets the "table_name" field.
+func (m *MessageLogShardMutation) SetTableName(s string) {
+	m.table_name = &s
+}
+
+// TableName returns the value of the "table_name" field in the mutation.
+func (m *MessageLogShardMutation) TableName() (r string, exists bool) {
+	v := m.table_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTableName returns the old "table_name" field's value of the MessageLogShard entity.
+// If the MessageLogShard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogShardMutation) OldTableName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTableName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTableName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTableName: %w", err)
+	}
+	return oldValue.TableName, nil
+}
+
+// ResetTableName resets all changes to the "table_name" field.
+func (m *MessageLogShardMutation) ResetTableName() {
+	m.table_name = nil
+}
+
+// SetWeekStart sets the "week_start" field.
+func (m *MessageLogShardMutation) SetWeekStart(t time.Time) {
+	m.week_start = &t
+}
+
+// WeekStart returns the value of the "week_start" field in the mutation.
+func (m *MessageLogShardMutation) WeekStart() (r time.Time, exists bool) {
+	v := m.week_start
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWeekStart returns the old "week_start" field's value of the MessageLogShard entity.
+// If the MessageLogShard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogShardMutation) OldWeekStart(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWeekStart is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWeekStart requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWeekStart: %w", err)
+	}
+	return oldValue.WeekStart, nil
+}
+
+// ResetWeekStart resets all changes to the "week_start" field.
+func (m *MessageLogShardMutation) ResetWeekStart() {
+	m.week_start = nil
+}
+
+// Where appends a list predicates to the MessageLogShardMutation builder.
+func (m *MessageLogShardMutation) Where(ps ...predicate.MessageLogShard) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MessageLogShardMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageLogShardMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageLogShard, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MessageLogShardMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageLogShardMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MessageLogShard).
+func (m *MessageLogShardMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MessageLogShardMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.created_at != nil {
+		fields = append(fields, messagelogshard.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, messagelogshard.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, messagelogshard.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, messagelogshard.FieldNamespaceUID)
+	}
+	if m.message_uid != nil {
+		fields = append(fields, messagelogshard.FieldMessageUID)
+	}
+	if m.database_name != nil {
+		fields = append(fields, messagelogshard.FieldDatabaseName)
+	}
+	if m.table_name != nil {
+		fields = append(fields, messagelogshard.FieldTableName)
+	}
+	if m.week_start != nil {
+		fields = append(fields, messagelogshard.FieldWeekStart)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MessageLogShardMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case messagelogshard.FieldCreatedAt:
+		return m.CreatedAt()
+	case messagelogshard.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case messagelogshard.FieldUID:
+		return m.UID()
+	case messagelogshard.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case messagelogshard.FieldMessageUID:
+		return m.MessageUID()
+	case messagelogshard.FieldDatabaseName:
+		return m.DatabaseName()
+	case messagelogshard.FieldTableName:
+		return m.TableName()
+	case messagelogshard.FieldWeekStart:
+		return m.WeekStart()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MessageLogShardMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case messagelogshard.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case messagelogshard.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case messagelogshard.FieldUID:
+		return m.OldUID(ctx)
+	case messagelogshard.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case messagelogshard.FieldMessageUID:
+		return m.OldMessageUID(ctx)
+	case messagelogshard.FieldDatabaseName:
+		return m.OldDatabaseName(ctx)
+	case messagelogshard.FieldTableName:
+		return m.OldTableName(ctx)
+	case messagelogshard.FieldWeekStart:
+		return m.OldWeekStart(ctx)
+	}
+	return nil, fmt.Errorf("unknown MessageLogShard field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageLogShardMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case messagelogshard.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case messagelogshard.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case messagelogshard.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case messagelogshard.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case messagelogshard.FieldMessageUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessageUID(v)
+		return nil
+	case messagelogshard.FieldDatabaseName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDatabaseName(v)
+		return nil
+	case messagelogshard.FieldTableName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTableName(v)
+		return nil
+	case messagelogshard.FieldWeekStart:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWeekStart(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MessageLogShard field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MessageLogShardMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MessageLogShardMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageLogShardMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown MessageLogShard numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MessageLogShardMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MessageLogShardMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MessageLogShardMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown MessageLogShard nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MessageLogShardMutation) ResetField(name string) error {
+	switch name {
+	case messagelogshard.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case messagelogshard.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case messagelogshard.FieldUID:
+		m.ResetUID()
+		return nil
+	case messagelogshard.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case messagelogshard.FieldMessageUID:
+		m.ResetMessageUID()
+		return nil
+	case messagelogshard.FieldDatabaseName:
+		m.ResetDatabaseName()
+		return nil
+	case messagelogshard.FieldTableName:
+		m.ResetTableName()
+		return nil
+	case messagelogshard.FieldWeekStart:
+		m.ResetWeekStart()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageLogShard field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MessageLogShardMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MessageLogShardMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MessageLogShardMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MessageLogShardMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MessageLogShardMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MessageLogShardMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MessageLogShardMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown MessageLogShard unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MessageLogShardMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown MessageLogShard edge %s", name)
 }
 
 // NamespaceMutation represents an operation that mutates the Namespace nodes in the graph.

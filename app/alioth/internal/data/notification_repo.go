@@ -10,6 +10,7 @@ import (
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
@@ -588,10 +589,16 @@ func (r *notificationRepo) CreateTestTask(ctx context.Context, in bo.Notificatio
 	return &item, nil
 }
 
-func (r *notificationRepo) ListTasks(ctx context.Context, namespaceUID, status string, page, pageSize int) ([]bo.NotificationTask, int, error) {
+func (r *notificationRepo) ListTasks(ctx context.Context, namespaceUID string, filter bo.NotificationTaskListFilter, page, pageSize int) ([]bo.NotificationTask, int, error) {
 	query := r.client.NotificationTask.Query().Where(notificationtask.NamespaceUIDEQ(namespaceUID))
-	if status != "" {
-		query = query.Where(notificationtask.StatusEQ(notificationtask.Status(status)))
+	if filter.Status != "" {
+		query = query.Where(notificationtask.StatusEQ(notificationtask.Status(filter.Status)))
+	}
+	if !filter.StartAt.IsZero() {
+		query = query.Where(notificationtask.CreatedAtGTE(filter.StartAt))
+	}
+	if !filter.EndAt.IsZero() {
+		query = query.Where(notificationtask.CreatedAtLT(filter.EndAt))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {
@@ -783,25 +790,70 @@ func (r *notificationRepo) notifyTaskConflict(ctx context.Context, namespaceUID,
 	return merr.Invalid(reason)
 }
 
-func (r *notificationRepo) ListMessageLogs(ctx context.Context, namespaceUID, taskUID string, page, pageSize int) ([]bo.MessageLog, int, error) {
+func (r *notificationRepo) ListMessageLogs(ctx context.Context, namespaceUID string, filter bo.MessageLogListFilter, page, pageSize int) ([]bo.MessageLog, int, error) {
+	// 多取到当前页末尾即可：分片库和主库兜底分别倒序返回，合并后截取当前页。
+	need := page * pageSize
+	sharded, shardedTotal, err := r.messageLogs.list(ctx, namespaceUID, filter, need)
+	if err != nil {
+		return nil, 0, err
+	}
+	fallback, fallbackTotal, err := r.listMainMessageLogs(ctx, namespaceUID, filter, need)
+	if err != nil {
+		return nil, 0, err
+	}
+	items := mergeMessageLogs(sharded, fallback, need)
+	total := shardedTotal + fallbackTotal
+	start := (page - 1) * pageSize
+	if start >= len(items) {
+		return []bo.MessageLog{}, total, nil
+	}
+	end := start + pageSize
+	if end > len(items) {
+		end = len(items)
+	}
+	items = items[start:end]
+	if err := r.fillLogSources(ctx, namespaceUID, items); err != nil {
+		return nil, 0, err
+	}
+	return items, total, nil
+}
+
+// listMainMessageLogs 读取尚未归档到租户库的主库行。
+// 新日志提交后会立即归档并删除，这里只兜底归档失败和升级前的历史数据。
+func (r *notificationRepo) listMainMessageLogs(ctx context.Context, namespaceUID string, filter bo.MessageLogListFilter, limit int) ([]bo.MessageLog, int, error) {
 	query := r.client.MessageLog.Query().Where(messagelog.NamespaceUIDEQ(namespaceUID))
-	if taskUID != "" {
-		query = query.Where(messagelog.TaskUIDEQ(taskUID))
+	if filter.TaskUID != "" {
+		query = query.Where(messagelog.TaskUIDEQ(filter.TaskUID))
+	}
+	if filter.Status != "" {
+		query = query.Where(messagelog.StatusEQ(messagelog.Status(filter.Status)))
+	}
+	if !filter.StartAt.IsZero() {
+		query = query.Where(messagelog.CreatedAtGTE(filter.StartAt))
+	}
+	if !filter.EndAt.IsZero() {
+		query = query.Where(messagelog.CreatedAtLT(filter.EndAt))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {
 		return nil, 0, r.fail(err)
 	}
-	rows, err := query.Order(ent.Desc(messagelog.FieldCreatedAt)).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if total == 0 {
+		return nil, 0, nil
+	}
+	if limit <= 0 {
+		limit = 100
+	}
+	rows, err := query.
+		Order(ent.Desc(messagelog.FieldCreatedAt), ent.Desc(messagelog.FieldUID)).
+		Limit(limit).
+		All(ctx)
 	if err != nil {
 		return nil, 0, r.fail(err)
 	}
 	items := make([]bo.MessageLog, 0, len(rows))
 	for _, row := range rows {
 		items = append(items, toMessageLog(row))
-	}
-	if err := r.fillLogSources(ctx, namespaceUID, items); err != nil {
-		return nil, 0, err
 	}
 	return items, total, nil
 }
@@ -879,12 +931,108 @@ func (r *notificationRepo) fillLogSources(ctx context.Context, namespaceUID stri
 }
 
 func (r *notificationRepo) GetMessageLog(ctx context.Context, namespaceUID, uid string) (*bo.MessageLog, error) {
+	// 归档后的日志按索引直接定位周表；索引缺失时回落到主库兜底行。
+	if r.messageLogs != nil {
+		index, err := r.client.MessageLogShard.Query().Where(
+			messagelogshard.NamespaceUIDEQ(namespaceUID),
+			messagelogshard.MessageUIDEQ(uid),
+		).Only(ctx)
+		if err == nil {
+			item, err := r.messageLogs.get(ctx, namespaceUID, index.DatabaseName, index.TableName, uid)
+			if err != nil {
+				return nil, err
+			}
+			items := []bo.MessageLog{*item}
+			if err := r.fillLogSources(ctx, namespaceUID, items); err != nil {
+				return nil, err
+			}
+			return &items[0], nil
+		}
+		if !ent.IsNotFound(err) {
+			return nil, r.fail(err)
+		}
+	}
 	row, err := r.client.MessageLog.Query().Where(messagelog.NamespaceUIDEQ(namespaceUID), messagelog.UIDEQ(uid)).Only(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
 	item := toMessageLog(row)
 	return &item, nil
+}
+
+// archiveMessageLog 把主库里的消息日志搬到租户库周表。
+// 顺序是写入周表、记录分片索引、删除主库行：任一步失败都保留主库行，
+// 列表继续从主库兜底，调度器的回填任务会重试。
+func (r *notificationRepo) archiveMessageLog(ctx context.Context, item bo.MessageLog) {
+	if r.messageLogs == nil {
+		return
+	}
+	database, table, week, err := r.messageLogs.archive(ctx, item)
+	if err != nil {
+		r.log.Error("archive message log " + item.UID + ": " + err.Error())
+		return
+	}
+	if err := recordMessageLogShard(ctx, r.client, item, database, table, week); err != nil {
+		r.log.Error("record message log shard " + item.UID + ": " + err.Error())
+		return
+	}
+	if _, err := r.client.MessageLog.Delete().
+		Where(messagelog.UIDEQ(item.UID), messagelog.NamespaceUIDEQ(item.NamespaceUID)).
+		Exec(ctx); err != nil {
+		r.log.Error("delete archived message log " + item.UID + ": " + err.Error())
+	}
+}
+
+// recordMessageLogShard 记录日志所在租户库和周表，详情按 UID 直接定位，不用扫描所有周表。
+func recordMessageLogShard(ctx context.Context, client *ent.Client, item bo.MessageLog, database, table string, week time.Time) error {
+	existing, err := client.MessageLogShard.Query().Where(messagelogshard.MessageUIDEQ(item.UID)).Only(ctx)
+	if err == nil {
+		_, err = client.MessageLogShard.Update().Where(messagelogshard.IDEQ(existing.ID)).
+			SetNamespaceUID(item.NamespaceUID).
+			SetDatabaseName(database).
+			SetTableName(table).
+			SetWeekStart(week).
+			Save(ctx)
+		return err
+	}
+	if !ent.IsNotFound(err) {
+		return err
+	}
+	_, err = client.MessageLogShard.Create().
+		SetUID(id.New()).
+		SetNamespaceUID(item.NamespaceUID).
+		SetMessageUID(item.UID).
+		SetDatabaseName(database).
+		SetTableName(table).
+		SetWeekStart(week).
+		Save(ctx)
+	return err
+}
+
+// BackfillMessageLogs 把主库里遗留的消息日志归档到租户分片库。
+// 新日志在投递回写后立即归档，这里是升级旧数据和归档失败重试的兜底。
+func (r *notificationRepo) BackfillMessageLogs(ctx context.Context, limit int) (int, error) {
+	if r.messageLogs == nil {
+		return 0, nil
+	}
+	if limit <= 0 {
+		limit = 200
+	}
+	rows, err := r.client.MessageLog.Query().
+		Order(ent.Asc(messagelog.FieldCreatedAt)).
+		Limit(limit).
+		All(ctx)
+	if err != nil {
+		return 0, r.fail(err)
+	}
+	items := make([]bo.MessageLog, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, toMessageLog(row))
+	}
+	for _, item := range items {
+		r.archiveMessageLog(ctx, item)
+	}
+	return len(items), nil
 }
 
 func (r *notificationRepo) ClaimPending(ctx context.Context, limit int) ([]bo.NotifySnapshot, error) {
@@ -1016,8 +1164,10 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 		// 状态已被其他写入者推进（重复回写或 reaper 先到）：不写消息日志，整体放弃本次回写。
 		return nil
 	}
+	logUID := id.New()
+	logAt := time.Now().UTC()
 	if err := tx.MessageLog.Create().
-		SetUID(id.New()).
+		SetUID(logUID).
 		SetNamespaceUID(row.NamespaceUID).
 		SetTaskUID(row.UID).
 		SetStatus(logStatus).
@@ -1028,12 +1178,20 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 		SetSubject(subject).
 		SetContent(content).
 		SetDetail(report.Detail).
+		SetCreatedAt(logAt).
 		Exec(ctx); err != nil {
 		return r.fail(err)
 	}
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)
 	}
+	// 事务提交后再归档，主库保留兜底行；归档失败由调度器回填重试。
+	r.archiveMessageLog(ctx, bo.MessageLog{
+		UID: logUID, NamespaceUID: row.NamespaceUID, TaskUID: row.UID, Status: string(logStatus),
+		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Sender: row.Sender,
+		Receivers: row.Receivers, Subject: subject, Content: content, Detail: report.Detail,
+		CreatedAt: logAt,
+	})
 	return nil
 }
 
@@ -1076,8 +1234,10 @@ func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Tim
 		if content == "" {
 			content = row.Body
 		}
+		logUID := id.New()
+		logAt := time.Now().UTC()
 		if err := tx.MessageLog.Create().
-			SetUID(id.New()).
+			SetUID(logUID).
 			SetNamespaceUID(row.NamespaceUID).
 			SetTaskUID(row.UID).
 			SetStatus(messagelog.StatusFAILED).
@@ -1088,6 +1248,7 @@ func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Tim
 			SetSubject(row.Subject).
 			SetContent(content).
 			SetDetail("delivery timed out").
+			SetCreatedAt(logAt).
 			Exec(ctx); err != nil {
 			_ = tx.Rollback()
 			return reaped, r.fail(err)
@@ -1095,6 +1256,12 @@ func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Tim
 		if err := tx.Commit(); err != nil {
 			return reaped, r.fail(err)
 		}
+		r.archiveMessageLog(ctx, bo.MessageLog{
+			UID: logUID, NamespaceUID: row.NamespaceUID, TaskUID: row.UID, Status: string(messagelog.StatusFAILED),
+			ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Sender: row.Sender,
+			Receivers: row.Receivers, Subject: row.Subject, Content: content,
+			Detail: "delivery timed out", CreatedAt: logAt,
+		})
 		reaped++
 	}
 	return reaped, nil

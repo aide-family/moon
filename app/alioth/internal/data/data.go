@@ -43,12 +43,14 @@ var ProviderSet = wire.NewSet(
 	NewPartitionRepo,
 )
 
-// Dependencies 持有数据层共享的数据库连接、ent 客户端、加密盒和历史库。
+// Dependencies 持有数据层共享的数据库连接、ent 客户端、加密盒和分片存储。
 type Dependencies struct {
-	db      *sql.DB
-	client  *ent.Client
-	box     *secretBox
-	history *historyStore
+	db          *sql.DB
+	client      *ent.Client
+	box         *secretBox
+	history     *historyStore
+	messageLogs *messageLogStore
+	shards      *shardStore
 }
 
 func NewDependencies(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Dependencies, func(), error) {
@@ -68,14 +70,17 @@ func NewDependencies(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Depen
 		return nil, nil, err
 	}
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
-	history := newHistoryStore(db, c.Database.Source, c.GetHistory().GetDatabasePrefix(), c.GetHistory().GetTablePrefix(), logger)
+	// 告警历史和消息日志共用租户分片库，只维护一份连接缓存。
+	shards := newShardStore(db, c.Database.Source, c.GetHistory().GetDatabasePrefix(), logger)
+	history := newHistoryStore(shards, c.GetHistory().GetTablePrefix())
+	messageLogs := newMessageLogStore(shards, c.GetHistory().GetMessageTablePrefix())
 	cleanup := func() {
-		history.close()
+		shards.close()
 		if err := client.Close(); err != nil {
 			logger.Error(fmt.Sprintf("close database: %v", err))
 		}
 	}
-	return &Dependencies{db: db, client: client, box: box, history: history}, cleanup, nil
+	return &Dependencies{db: db, client: client, box: box, history: history, messageLogs: messageLogs, shards: shards}, cleanup, nil
 }
 
 func Migrate(ctx context.Context, source string) error {

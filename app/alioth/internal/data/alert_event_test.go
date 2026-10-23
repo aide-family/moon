@@ -130,7 +130,7 @@ func TestAlertEventReport(t *testing.T) {
 		t.Fatalf("archived history = %+v", archived)
 	}
 	table, _ := store.history.tableName(archived[0].CreatedAt)
-	if table != "alert_events_"+historyWeekStart(archived[0].CreatedAt).Format("20060102") {
+	if table != "alert_events_"+shardWeekStart(archived[0].CreatedAt).Format("20060102") {
 		t.Fatalf("history table = %s", table)
 	}
 	again, _, err := events.ListEvents(ctx, ns, bo.AlertEventListFilter{View: "REALTIME"}, 1, 20)

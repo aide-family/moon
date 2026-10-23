@@ -260,7 +260,13 @@ func NewMessageLogService(center *notification.Center) *MessageLogService {
 }
 
 func (s *MessageLogService) ListMessageLogs(ctx context.Context, req *v1.ListMessageLogsRequest) (*v1.ListMessageLogsResponse, error) {
-	items, total, page, pageSize, err := s.center.ListMessageLogs(ctx, req.GetPage(), req.GetPageSize(), req.GetTaskUid())
+	filter := bo.MessageLogListFilter{
+		TaskUID: req.GetTaskUid(),
+		Status:  req.GetStatus(),
+		StartAt: unixTime(req.GetStartTime()),
+		EndAt:   unixTime(req.GetEndTime()),
+	}
+	items, total, page, pageSize, err := s.center.ListMessageLogs(ctx, req.GetPage(), req.GetPageSize(), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +282,12 @@ func (s *MessageLogService) GetMessageLog(ctx context.Context, req *v1.GetMessag
 }
 
 func (s *MessageLogService) ListNotificationTasks(ctx context.Context, req *v1.ListNotificationTasksRequest) (*v1.ListNotificationTasksResponse, error) {
-	items, total, page, pageSize, err := s.center.ListTasks(ctx, req.GetPage(), req.GetPageSize(), req.GetStatus())
+	filter := bo.NotificationTaskListFilter{
+		Status:  req.GetStatus(),
+		StartAt: unixTime(req.GetStartTime()),
+		EndAt:   unixTime(req.GetEndTime()),
+	}
+	items, total, page, pageSize, err := s.center.ListTasks(ctx, req.GetPage(), req.GetPageSize(), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -392,6 +403,14 @@ func channelInput(uid, name, kind, app, endpoint, username, password, secret, fr
 		UID: uid, Name: name, Type: kind, App: app, Endpoint: endpoint, Username: username,
 		Password: password, Secret: secret, FromAddress: from, Remark: remark,
 	}
+}
+
+// unixTime 把请求里的 Unix 秒转换为 UTC 时间；0 表示不限制。
+func unixTime(seconds int64) time.Time {
+	if seconds <= 0 {
+		return time.Time{}
+	}
+	return time.Unix(seconds, 0).UTC()
 }
 
 func channelItem(item bo.NotificationChannel) *v1.NotificationChannelItem {

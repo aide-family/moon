@@ -60,6 +60,9 @@ type MemberRole func(*sql.Selector)
 // MessageLog is the predicate function for messagelog builders.
 type MessageLog func(*sql.Selector)
 
+// MessageLogShard is the predicate function for messagelogshard builders.
+type MessageLogShard func(*sql.Selector)
+
 // Namespace is the predicate function for namespace builders.
 type Namespace func(*sql.Selector)
 

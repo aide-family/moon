@@ -482,6 +482,23 @@ type MessageLog struct {
 	SubscriptionName string
 }
 
+// NotificationTaskListFilter 是通知任务列表的筛选条件。
+// StartAt/EndAt 为零值时表示不限，EndAt 不包含。
+type NotificationTaskListFilter struct {
+	Status  string
+	StartAt time.Time
+	EndAt   time.Time
+}
+
+// MessageLogListFilter 是消息日志列表的筛选条件。
+// StartAt/EndAt 为零值时表示不限，EndAt 不包含。
+type MessageLogListFilter struct {
+	TaskUID string
+	Status  string
+	StartAt time.Time
+	EndAt   time.Time
+}
+
 // NotifyReport 是 merak 回写的投递结果。
 type NotifyReport struct {
 	TaskUID string

@@ -54,7 +54,7 @@ func TestNotificationSubscriptionFanout(t *testing.T) {
 		t.Fatal(err)
 	}
 	emailTemplate, err := notify.CreateTemplate(ctx, bo.NotificationTemplate{
-		NamespaceUID: ns, Name: "email", Type: "EMAIL", Subject: "alert", Body: "{{.summary}}",
+		NamespaceUID: ns, Name: "email", Type: "EMAIL", App: "OTHER", Subject: "alert", Body: "{{.summary}}",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -66,7 +66,7 @@ func TestNotificationSubscriptionFanout(t *testing.T) {
 		t.Fatal(err)
 	}
 	webhookTemplate, err := notify.CreateTemplate(ctx, bo.NotificationTemplate{
-		NamespaceUID: ns, Name: "hook-tpl", Type: "WEBHOOK", Body: "{{.summary}}",
+		NamespaceUID: ns, Name: "hook-tpl", Type: "WEBHOOK", App: "OTHER", Body: "{{.summary}}",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -110,7 +110,7 @@ func TestNotificationSubscriptionFanout(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	tasks, _, err := notify.ListTasks(ctx, ns, "", 1, 20)
+	tasks, _, err := notify.ListTasks(ctx, ns, bo.NotificationTaskListFilter{}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func TestNotificationSubscriptionFanout(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	tasks, _, err = notify.ListTasks(ctx, ns, "", 1, 20)
+	tasks, _, err = notify.ListTasks(ctx, ns, bo.NotificationTaskListFilter{}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
 	}

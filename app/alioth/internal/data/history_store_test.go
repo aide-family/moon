@@ -8,7 +8,7 @@ import (
 )
 
 func TestHistoryShardNames(t *testing.T) {
-	store := &historyStore{dbPrefix: "alioth_alert_", tablePrefix: "alert_events_"}
+	store := &historyStore{shardStore: &shardStore{dbPrefix: "alioth_alert_"}, tablePrefix: "alert_events_"}
 	if got := store.databaseName("1b8307a4abf29e8f783bb9c0dd651695"); got != "alioth_alert_1b8307a4abf29e8f783bb9c0dd651695" {
 		t.Fatalf("database name = %s", got)
 	}
@@ -24,37 +24,40 @@ func TestHistoryShardNames(t *testing.T) {
 }
 
 func TestHistoryPrefixLengthLimits(t *testing.T) {
-	if !validHistoryPrefix(strings.Repeat("a", maxHistoryDatabasePrefixLen), maxHistoryDatabasePrefixLen) {
+	if !validShardPrefix(strings.Repeat("a", maxShardDatabasePrefixLen), maxShardDatabasePrefixLen) {
 		t.Fatal("maximum database prefix length should be valid")
 	}
-	if validHistoryPrefix(strings.Repeat("a", maxHistoryDatabasePrefixLen+1), maxHistoryDatabasePrefixLen) {
+	if validShardPrefix(strings.Repeat("a", maxShardDatabasePrefixLen+1), maxShardDatabasePrefixLen) {
 		t.Fatal("database prefix longer than the maximum should be invalid")
 	}
-	if !validHistoryPrefix(strings.Repeat("a", maxHistoryTablePrefixLen), maxHistoryTablePrefixLen) {
+	if !validShardPrefix(strings.Repeat("a", maxShardTablePrefixLen), maxShardTablePrefixLen) {
 		t.Fatal("maximum table prefix length should be valid")
 	}
-	if validHistoryPrefix(strings.Repeat("a", maxHistoryTablePrefixLen+1), maxHistoryTablePrefixLen) {
+	if validShardPrefix(strings.Repeat("a", maxShardTablePrefixLen+1), maxShardTablePrefixLen) {
 		t.Fatal("table prefix longer than the maximum should be invalid")
 	}
 
-	store := newHistoryStore(nil, "", strings.Repeat("a", maxHistoryDatabasePrefixLen+1), strings.Repeat("b", maxHistoryTablePrefixLen+1), nil)
-	if store.dbPrefix != defaultHistoryDatabasePrefix || store.tablePrefix != defaultHistoryTablePrefix {
+	store := newHistoryStore(
+		newShardStore(nil, "", strings.Repeat("a", maxShardDatabasePrefixLen+1), nil),
+		strings.Repeat("b", maxShardTablePrefixLen+1),
+	)
+	if store.dbPrefix != defaultShardDatabasePrefix || store.tablePrefix != defaultHistoryTablePrefix {
 		t.Fatalf("invalid prefixes should fall back to defaults: db=%q table=%q", store.dbPrefix, store.tablePrefix)
 	}
 
 	namespaceUID := "1b8307a4abf29e8f783bb9c0dd651695"
-	if got := len(historyDatabaseName(strings.Repeat("a", maxHistoryDatabasePrefixLen), namespaceUID)); got != historyIdentMaxLen {
-		t.Fatalf("maximum database prefix should produce a %d-character name, got %d", historyIdentMaxLen, got)
+	if got := len(shardDatabaseName(strings.Repeat("a", maxShardDatabasePrefixLen), namespaceUID)); got != shardIdentMaxLen {
+		t.Fatalf("maximum database prefix should produce a %d-character name, got %d", shardIdentMaxLen, got)
 	}
-	store = &historyStore{tablePrefix: strings.Repeat("a", maxHistoryTablePrefixLen)}
+	store = &historyStore{shardStore: &shardStore{}, tablePrefix: strings.Repeat("a", maxShardTablePrefixLen)}
 	tableName, _ := store.tableName(time.Date(2026, 10, 22, 0, 0, 0, 0, time.UTC))
-	if got := len(tableName); got != historyIdentMaxLen {
-		t.Fatalf("maximum table prefix should produce a %d-character name, got %d", historyIdentMaxLen, got)
+	if got := len(tableName); got != shardIdentMaxLen {
+		t.Fatalf("maximum table prefix should produce a %d-character name, got %d", shardIdentMaxLen, got)
 	}
 }
 
 func TestHistoryDSN(t *testing.T) {
-	got, err := historyDSN("postgres://alioth:alioth@127.0.0.1:5432/alioth?sslmode=disable", "alioth_alert_ns")
+	got, err := shardDSN("postgres://alioth:alioth@127.0.0.1:5432/alioth?sslmode=disable", "alioth_alert_ns")
 	if err != nil {
 		t.Fatal(err)
 	}

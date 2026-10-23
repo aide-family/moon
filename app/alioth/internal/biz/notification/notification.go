@@ -465,13 +465,19 @@ func (center *Center) SelectGroups(ctx context.Context, limit int32, lastUID str
 	return items, center.access.Wrap(err)
 }
 
-func (center *Center) ListMessageLogs(ctx context.Context, pageNo, pageSize int32, taskUID string) ([]bo.MessageLog, int, int, int, error) {
+func (center *Center) ListMessageLogs(ctx context.Context, pageNo, pageSize int32, filter bo.MessageLogListFilter) ([]bo.MessageLog, int, int, int, error) {
 	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
+	if filter.Status != "" && !validMessageLogStatus(filter.Status) {
+		return nil, 0, 0, 0, merr.Invalid("invalid message log status")
+	}
+	if err := validListTimeRange(filter.StartAt, filter.EndAt); err != nil {
+		return nil, 0, 0, 0, err
+	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := center.repo.ListMessageLogs(ctx, ns, taskUID, p, s)
+	items, total, err := center.repo.ListMessageLogs(ctx, ns, filter, p, s)
 	return items, total, p, s, center.access.Wrap(err)
 }
 
@@ -484,16 +490,19 @@ func (center *Center) GetMessageLog(ctx context.Context, uid string) (*bo.Messag
 	return item, center.access.Wrap(err)
 }
 
-func (center *Center) ListTasks(ctx context.Context, pageNo, pageSize int32, status string) ([]bo.NotificationTask, int, int, int, error) {
+func (center *Center) ListTasks(ctx context.Context, pageNo, pageSize int32, filter bo.NotificationTaskListFilter) ([]bo.NotificationTask, int, int, int, error) {
 	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
-	if status != "" && !validTaskStatus(status) {
+	if filter.Status != "" && !validTaskStatus(filter.Status) {
 		return nil, 0, 0, 0, merr.Invalid("invalid task status")
 	}
+	if err := validListTimeRange(filter.StartAt, filter.EndAt); err != nil {
+		return nil, 0, 0, 0, err
+	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := center.repo.ListTasks(ctx, ns, status, p, s)
+	items, total, err := center.repo.ListTasks(ctx, ns, filter, p, s)
 	return items, total, p, s, center.access.Wrap(err)
 }
 
@@ -544,6 +553,23 @@ func validTaskStatus(status string) bool {
 	default:
 		return false
 	}
+}
+
+func validMessageLogStatus(status string) bool {
+	return status == "SENT" || status == "FAILED"
+}
+
+// validListTimeRange 校验列表的时间范围：两端都可省略，EndAt 不包含。
+func validListTimeRange(start, end time.Time) error {
+	if !start.IsZero() && !end.IsZero() && !start.Before(end) {
+		return merr.Invalid("invalid time range")
+	}
+	return nil
+}
+
+// BackfillMessageLogs 把主库遗留的消息日志归档到租户分片库。调度器每小时做一小批。
+func (center *Center) BackfillMessageLogs(ctx context.Context) (int, error) {
+	return center.repo.BackfillMessageLogs(ctx, 200)
 }
 
 func requireMerak(ctx context.Context) error {

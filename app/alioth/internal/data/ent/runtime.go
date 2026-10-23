@@ -23,6 +23,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
@@ -764,6 +765,41 @@ func init() {
 	messagelogDescDetail := messagelogFields[10].Descriptor()
 	// messagelog.DefaultDetail holds the default value on creation for the detail field.
 	messagelog.DefaultDetail = messagelogDescDetail.Default.(string)
+	messagelogshardMixin := schema.MessageLogShard{}.Mixin()
+	messagelogshardMixinFields0 := messagelogshardMixin[0].Fields()
+	_ = messagelogshardMixinFields0
+	messagelogshardFields := schema.MessageLogShard{}.Fields()
+	_ = messagelogshardFields
+	// messagelogshardDescCreatedAt is the schema descriptor for created_at field.
+	messagelogshardDescCreatedAt := messagelogshardMixinFields0[0].Descriptor()
+	// messagelogshard.DefaultCreatedAt holds the default value on creation for the created_at field.
+	messagelogshard.DefaultCreatedAt = messagelogshardDescCreatedAt.Default.(func() time.Time)
+	// messagelogshardDescUpdatedAt is the schema descriptor for updated_at field.
+	messagelogshardDescUpdatedAt := messagelogshardMixinFields0[1].Descriptor()
+	// messagelogshard.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	messagelogshard.DefaultUpdatedAt = messagelogshardDescUpdatedAt.Default.(func() time.Time)
+	// messagelogshard.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	messagelogshard.UpdateDefaultUpdatedAt = messagelogshardDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// messagelogshardDescUID is the schema descriptor for uid field.
+	messagelogshardDescUID := messagelogshardFields[0].Descriptor()
+	// messagelogshard.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	messagelogshard.UIDValidator = messagelogshardDescUID.Validators[0].(func(string) error)
+	// messagelogshardDescNamespaceUID is the schema descriptor for namespace_uid field.
+	messagelogshardDescNamespaceUID := messagelogshardFields[1].Descriptor()
+	// messagelogshard.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	messagelogshard.NamespaceUIDValidator = messagelogshardDescNamespaceUID.Validators[0].(func(string) error)
+	// messagelogshardDescMessageUID is the schema descriptor for message_uid field.
+	messagelogshardDescMessageUID := messagelogshardFields[2].Descriptor()
+	// messagelogshard.MessageUIDValidator is a validator for the "message_uid" field. It is called by the builders before save.
+	messagelogshard.MessageUIDValidator = messagelogshardDescMessageUID.Validators[0].(func(string) error)
+	// messagelogshardDescDatabaseName is the schema descriptor for database_name field.
+	messagelogshardDescDatabaseName := messagelogshardFields[3].Descriptor()
+	// messagelogshard.DatabaseNameValidator is a validator for the "database_name" field. It is called by the builders before save.
+	messagelogshard.DatabaseNameValidator = messagelogshardDescDatabaseName.Validators[0].(func(string) error)
+	// messagelogshardDescTableName is the schema descriptor for table_name field.
+	messagelogshardDescTableName := messagelogshardFields[4].Descriptor()
+	// messagelogshard.TableNameValidator is a validator for the "table_name" field. It is called by the builders before save.
+	messagelogshard.TableNameValidator = messagelogshardDescTableName.Validators[0].(func(string) error)
 	namespaceMixin := schema.Namespace{}.Mixin()
 	namespaceMixinFields0 := namespaceMixin[0].Fields()
 	_ = namespaceMixinFields0

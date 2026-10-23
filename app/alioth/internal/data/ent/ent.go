@@ -30,6 +30,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
@@ -126,6 +127,7 @@ func checkColumn(t, c string) error {
 			memberinvite.Table:                  memberinvite.ValidColumn,
 			memberrole.Table:                    memberrole.ValidColumn,
 			messagelog.Table:                    messagelog.ValidColumn,
+			messagelogshard.Table:               messagelogshard.ValidColumn,
 			namespace.Table:                     namespace.ValidColumn,
 			notificationchannel.Table:           notificationchannel.ValidColumn,
 			notificationgroup.Table:             notificationgroup.ValidColumn,
