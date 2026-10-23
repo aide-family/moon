@@ -13,8 +13,14 @@ export function listSelfNamespaces(): Promise<SelfNamespaces> {
 }
 
 /** GET /v1/self/permissions */
-export function getSelfPermissions(): Promise<SelfPermissions> {
-  return get<SelfPermissions>("/self/permissions")
+export function getSelfPermissions(
+  namespace?: string
+): Promise<SelfPermissions> {
+  return get<SelfPermissions>(
+    "/self/permissions",
+    undefined,
+    namespace ? { headers: { "X-Namespace": namespace } } : undefined
+  )
 }
 
 /** PUT /v1/self/change-remark */

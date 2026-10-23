@@ -131,7 +131,8 @@ export async function request(path: string, init: RequestInit = {}, retry = true
   if (token) {
     headers.set("Authorization", `Bearer ${token}`)
   }
-  if (namespace) {
+  // 切换租户时会显式传入目标租户，不能被 localStorage 里的旧值覆盖。
+  if (namespace && !headers.has("X-Namespace")) {
     headers.set("X-Namespace", namespace)
   }
   if (init.body && !headers.has("Content-Type")) {

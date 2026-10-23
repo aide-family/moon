@@ -1,7 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 
+import { ApiError } from "@/api/http"
 import { listSelfNamespaces, getSelfInfo, getSelfPermissions } from "@/api/self"
 import { getUnreadMessageCount } from "@/api/message"
+import i18n from "@/i18n"
 import { failureMessage } from "@/lib/form-error"
 import type { NamespaceItem } from "@/api/namespace/types"
 import type { UserItem } from "@/api/user/types"
@@ -17,10 +19,14 @@ type SessionValue = {
   unreadMessages: number
   namespaceUid: string
   loading: boolean
+  switching: boolean
+  switchingTo: string
+  switchError: string
   failed: boolean
   loadError: string
   reload: () => void
   setNamespace: (uid: string) => void
+  clearSwitchError: () => void
   can: (code: string) => boolean
   canSystem: (code: string) => boolean
   refreshUnreadMessages: () => void
@@ -38,8 +44,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [unreadMessages, setUnreadMessages] = useState(0)
   const [namespaceUid, setNamespaceUid] = useState("")
   const [loading, setLoading] = useState(true)
+  const [switching, setSwitching] = useState(false)
+  const [switchingTo, setSwitchingTo] = useState("")
+  const [switchError, setSwitchError] = useState("")
   const [failed, setFailed] = useState(false)
   const [loadError, setLoadError] = useState("")
+  const namespaceUidRef = useRef("")
+  const switchRef = useRef<{ from: string; to: string } | null>(null)
 
   const reload = useCallback(() => setAttempt((value) => value + 1), [])
 
@@ -49,6 +60,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       setFailed(false)
       setLoadError("")
+      const transition = switchRef.current
       try {
         const [info, spaces, unread] = await Promise.all([
           getSelfInfo(),
@@ -59,33 +71,61 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           return
         }
         const items = spaces.items ?? []
+        const stored = localStorage.getItem("namespace") ?? ""
+        const requested = transition?.to ?? stored
+        const next = items.some((item) => item.uid === requested)
+          ? requested
+          : (items[0]?.uid ?? "")
+        // 切换目标可能已被删除或成员身份被撤销，这时不要静默落到别的租户。
+        if (transition && next !== transition.to) {
+          throw new Error(i18n.t("namespace.switcher.missing"))
+        }
+        // 权限按目标租户读取，但不提前改 localStorage / namespaceUid：
+        // 拉起中的页面轮询仍然使用旧租户，避免新旧权限交叉。
+        let granted: string[] = []
+        if (next) {
+          const result = await getSelfPermissions(next)
+          if (!active) {
+            return
+          }
+          granted = result.permissions ?? []
+        }
+        if (!active) {
+          return
+        }
         setUser(info.user)
         setNamespaces(items)
         setSystemPermissions(info.systemPermissions ?? [])
         setSystemRole(info.systemRole ?? "USER")
         setUnreadMessages(unread)
-        const stored = localStorage.getItem("namespace") ?? ""
-        const next = items.some((item) => item.uid === stored) ? stored : (items[0]?.uid ?? "")
+        setPermissions(granted)
+        namespaceUidRef.current = next
+        setNamespaceUid(next)
         if (next) {
           localStorage.setItem("namespace", next)
         } else {
           localStorage.removeItem("namespace")
         }
-        setNamespaceUid(next)
-        if (!next) {
-          setPermissions([])
-          return
+        if (transition) {
+          switchRef.current = null
+          setSwitching(false)
+          setSwitchingTo("")
         }
-        const granted = await getSelfPermissions()
+      } catch (err) {
         if (!active) {
           return
         }
-        setPermissions(granted.permissions ?? [])
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureMessage(err, ""))
+        if (transition) {
+          switchRef.current = null
+          setSwitching(false)
+          setSwitchingTo("")
+          setSwitchError(
+            err instanceof ApiError ? err.message : i18n.t("state.failed")
+          )
+          return
         }
+        setFailed(true)
+        setLoadError(failureMessage(err, ""))
       } finally {
         if (active) {
           setLoading(false)
@@ -99,10 +139,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [attempt])
 
   const setNamespace = useCallback((uid: string) => {
-    localStorage.setItem("namespace", uid)
-    setNamespaceUid(uid)
+    if (!uid || uid === namespaceUidRef.current || switchRef.current) {
+      return
+    }
+    switchRef.current = { from: namespaceUidRef.current, to: uid }
+    setSwitchError("")
+    setSwitching(true)
+    setSwitchingTo(uid)
     setAttempt((value) => value + 1)
   }, [])
+
+  const clearSwitchError = useCallback(() => setSwitchError(""), [])
 
   const refreshUnreadMessages = useCallback(() => {
     void getUnreadMessageCount()
@@ -127,10 +174,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       unreadMessages,
       namespaceUid,
       loading,
+      switching,
+      switchingTo,
+      switchError,
       failed,
       loadError,
       reload,
       setNamespace,
+      clearSwitchError,
       can: (code: string) => permissions.includes(code),
       canSystem: (code: string) => systemPermissions.includes(code),
       refreshUnreadMessages,
@@ -144,10 +195,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       unreadMessages,
       namespaceUid,
       loading,
+      switching,
+      switchingTo,
+      switchError,
       failed,
       loadError,
       reload,
       setNamespace,
+      clearSwitchError,
       refreshUnreadMessages,
     ],
   )

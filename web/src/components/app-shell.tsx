@@ -34,6 +34,7 @@ import {
 import { SessionProvider, useSession } from "@/auth/session"
 import { GitHubIcon } from "@/components/github-icon"
 import { LocaleThemeMenu } from "@/components/locale-theme-menu"
+import { TenantSwitcher } from "@/components/tenant-switcher"
 import { Button } from "@/components/ui/button"
 import {
   Collapsible,
@@ -48,13 +49,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Sidebar,
   SidebarContent,
@@ -377,33 +371,20 @@ function ShellFrame() {
           </SidebarContent>
           <SidebarRail />
         </Sidebar>
-        <SidebarInset className="min-h-0 min-w-0 bg-transparent">
+        <SidebarInset className="relative min-h-0 min-w-0 bg-transparent">
+          {session.switching ? (
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 z-30 h-0.5 overflow-hidden bg-primary/15"
+              role="progressbar"
+              aria-label={t("namespace.switcher.switchingGeneric")}
+            >
+              <div className="h-full w-full animate-pulse bg-primary" />
+            </div>
+          ) : null}
           <header className="flex h-12 items-center gap-2 border-b border-border/60 bg-background/80 px-4 backdrop-blur-sm">
             <SidebarTrigger />
             <div className="ml-auto flex h-8 min-w-0 items-center gap-2 overflow-x-auto overflow-y-hidden">
-              <Select
-                value={session.namespaceUid || ""}
-                onValueChange={session.setNamespace}
-                disabled={session.namespaces.length === 0}
-              >
-                <SelectTrigger
-                  className="w-28 shrink-0 border-0 bg-transparent shadow-none dark:bg-transparent dark:hover:bg-transparent md:w-56"
-                  aria-label={t("namespace.switch")}
-                >
-                  <SelectValue
-                    placeholder={
-                      session.loading ? t("state.loading") : t("namespace.none")
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {session.namespaces.map((item) => (
-                    <SelectItem key={item.uid} value={item.uid}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <TenantSwitcher />
               <Button
                 variant="ghost"
                 size="icon"
@@ -466,12 +447,12 @@ function ShellFrame() {
             </div>
           </header>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 overflow-hidden bg-transparent p-4 md:p-6">
-            {session.loading ? (
+            {session.loading && !session.switching ? (
               <p className="text-sm text-muted-foreground">
                 {t("state.loading")}
               </p>
             ) : null}
-            {!session.loading ? <Outlet /> : null}
+            {!session.loading || session.switching ? <Outlet /> : null}
           </div>
         </SidebarInset>
       </SidebarProvider>
