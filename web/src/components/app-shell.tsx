@@ -9,13 +9,13 @@ import {
   Gauge,
   History,
   LayoutList,
+  LogOut,
   Mail,
   MessageSquare,
   Server,
   Settings,
   Shield,
   Terminal,
-  User,
   UserRound,
   Users,
   UsersRound,
@@ -34,6 +34,7 @@ import {
 import { SessionProvider, useSession } from "@/auth/session"
 import { GitHubIcon } from "@/components/github-icon"
 import { LocaleThemeMenu } from "@/components/locale-theme-menu"
+import { StatusBadge } from "@/components/status-badge"
 import { TenantSwitcher } from "@/components/tenant-switcher"
 import { Button } from "@/components/ui/button"
 import {
@@ -83,7 +84,12 @@ const links: {
     permission: "namespace:read",
     icon: Building2,
   },
-  { to: "/users", label: "nav.users", permission: "system:user:read", icon: Users },
+  {
+    to: "/users",
+    label: "nav.users",
+    permission: "system:user:read",
+    icon: Users,
+  },
   {
     to: "/members",
     label: "nav.members",
@@ -247,7 +253,8 @@ function NavGroup({
                     asChild
                     isActive={
                       location.pathname === link.to ||
-                      (link.to === "/ssh-commands" && location.pathname.startsWith("/ssh-commands/"))
+                      (link.to === "/ssh-commands" &&
+                        location.pathname.startsWith("/ssh-commands/"))
                     }
                     className="border-l-2 border-transparent data-active:border-primary"
                   >
@@ -266,11 +273,44 @@ function NavGroup({
   )
 }
 
+function AccountAvatar({
+  avatar,
+  name,
+  className,
+}: {
+  avatar?: string
+  name: string
+  className: string
+}) {
+  const [imageFailed, setImageFailed] = useState(false)
+  const initial = name.trim().charAt(0).toLocaleUpperCase()
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 font-semibold text-primary ring-1 ring-border/70 ${className}`}
+    >
+      {initial || "A"}
+      {avatar && !imageFailed ? (
+        <img
+          src={avatar}
+          alt=""
+          className="absolute inset-0 size-full rounded-full object-cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : null}
+    </span>
+  )
+}
+
 function ShellFrame() {
   const { t } = useTranslation()
   const session = useSession()
   const navigate = useNavigate()
   const location = useLocation()
+  const accountName = session.user?.nickname || session.user?.name || ""
+  const accountLabel = accountName || session.user?.email || t("shell.account")
+  const avatarName = accountName || session.user?.email || "Alioth"
   const visible = links.filter((link) => {
     if (link.to === "/namespaces") {
       return true
@@ -281,13 +321,13 @@ function ShellFrame() {
     return session.namespaceUid !== "" && session.can(link.permission)
   })
   const alerts = alertLinks.filter(
-    (link) => session.namespaceUid !== "" && session.can(link.permission),
+    (link) => session.namespaceUid !== "" && session.can(link.permission)
   )
   const notifies = notifyLinks.filter(
-    (link) => session.namespaceUid !== "" && session.can(link.permission),
+    (link) => session.namespaceUid !== "" && session.can(link.permission)
   )
   const edges = edgeLinks.filter(
-    (link) => session.namespaceUid !== "" && session.can(link.permission),
+    (link) => session.namespaceUid !== "" && session.can(link.permission)
   )
   const systemActive = visible.some((link) => location.pathname === link.to)
   const alertActive = alerts.some((link) => location.pathname === link.to)
@@ -295,7 +335,8 @@ function ShellFrame() {
   const edgeActive = edges.some(
     (link) =>
       location.pathname === link.to ||
-      (link.to === "/ssh-commands" && location.pathname.startsWith("/ssh-commands/")),
+      (link.to === "/ssh-commands" &&
+        location.pathname.startsWith("/ssh-commands/"))
   )
   const token = localStorage.getItem("token")
   if (!token) {
@@ -303,7 +344,9 @@ function ShellFrame() {
   }
   // 后端接口失败时直接给出标准 502 页面，而不是在内容区残留“加载失败 + 重试”。
   if (session.failed) {
-    return <ServerErrorPage detail={session.loadError} onRetry={session.reload} />
+    return (
+      <ServerErrorPage detail={session.loadError} onRetry={session.reload} />
+    )
   }
 
   function logout() {
@@ -383,7 +426,7 @@ function ShellFrame() {
           ) : null}
           <header className="flex h-12 items-center gap-2 border-b border-border/60 bg-background/80 px-4 backdrop-blur-sm">
             <SidebarTrigger />
-            <div className="ml-auto flex h-8 min-w-0 items-center gap-2 overflow-x-auto overflow-y-hidden">
+            <div className="ml-auto flex h-10 min-w-0 items-center gap-2 overflow-x-auto overflow-y-hidden">
               <TenantSwitcher />
               <Button
                 variant="ghost"
@@ -395,7 +438,9 @@ function ShellFrame() {
                 <Bell />
                 {session.unreadMessages > 0 ? (
                   <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-4 text-white">
-                    {session.unreadMessages > 99 ? "99+" : session.unreadMessages}
+                    {session.unreadMessages > 99
+                      ? "99+"
+                      : session.unreadMessages}
                   </span>
                 ) : null}
               </Button>
@@ -415,31 +460,88 @@ function ShellFrame() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label={t("shell.account")}
+                    className="size-10 shrink-0 rounded-full p-1 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset data-[state=open]:bg-accent"
+                    aria-label={
+                      accountName || session.user?.email
+                        ? `${t("shell.account")}: ${accountLabel}`
+                        : t("shell.account")
+                    }
                   >
-                    <User />
+                    <AccountAvatar
+                      avatar={session.user?.avatar}
+                      name={avatarName}
+                      className="size-8 text-xs"
+                    />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {session.user?.email ? (
-                    <DropdownMenuLabel>{session.user.email}</DropdownMenuLabel>
-                  ) : null}
-                  {session.user?.email ? <DropdownMenuSeparator /> : null}
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={8}
+                  className="max-w-[calc(100vw-1rem)] min-w-72 p-1.5"
+                >
+                  <DropdownMenuLabel className="px-2.5 py-2.5">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <AccountAvatar
+                        avatar={session.user?.avatar}
+                        name={avatarName}
+                        className="size-10 text-sm"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {session.user?.nickname ||
+                            session.user?.name ||
+                            t("shell.account")}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs font-normal text-muted-foreground">
+                          {session.user?.email || "—"}
+                        </p>
+                        <StatusBadge
+                          value={
+                            session.systemRole ||
+                            session.user?.systemRole ||
+                            "USER"
+                          }
+                          className="mt-1.5 px-1.5 py-0"
+                        />
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="my-1.5" />
+                  <DropdownMenuItem
+                    onClick={() => navigate("/profile")}
+                    className="min-h-11 gap-2.5 px-2.5"
+                  >
+                    <UserRound className="text-muted-foreground" />
                     {t("nav.profile")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/invitations")}>
+                  <DropdownMenuItem
+                    onClick={() => navigate("/invitations")}
+                    className="min-h-11 gap-2.5 px-2.5"
+                  >
+                    <Mail className="text-muted-foreground" />
                     {t("nav.invitations")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/messages")}>
+                  <DropdownMenuItem
+                    onClick={() => navigate("/messages")}
+                    className="min-h-11 gap-2.5 px-2.5"
+                  >
+                    <MessageSquare className="text-muted-foreground" />
                     {t("nav.messages")}
                     {session.unreadMessages > 0 ? (
-                      <span className="ml-auto rounded-full bg-destructive px-1.5 text-[10px] leading-4 text-white">
-                        {session.unreadMessages > 99 ? "99+" : session.unreadMessages}
+                      <span className="ml-auto min-w-5 rounded-full bg-destructive px-1.5 text-center text-[10px] leading-4 font-medium text-white tabular-nums">
+                        {session.unreadMessages > 99
+                          ? "99+"
+                          : session.unreadMessages}
                       </span>
                     ) : null}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>
+                  <DropdownMenuSeparator className="my-1.5" />
+                  <DropdownMenuItem
+                    onClick={logout}
+                    variant="destructive"
+                    className="min-h-11 gap-2.5 px-2.5"
+                  >
+                    <LogOut />
                     {t("action.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>

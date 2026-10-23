@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Building2, Search } from "lucide-react"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import { listMembers } from "@/api/member"
@@ -16,7 +17,6 @@ import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
-import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { ListFrame } from "@/components/list-frame"
@@ -37,14 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import {
   collectFieldErrors,
   hasFieldErrors,
@@ -70,6 +62,7 @@ export function NamespacePage() {
     { type: "delete" | "disable"; uid: string } | { type: "transfer" } | null
   >(null)
   const [confirmError, setConfirmError] = useState("")
+  const [search, setSearch] = useState("")
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
@@ -276,13 +269,40 @@ export function NamespacePage() {
     return actions
   }
 
+  const currentNamespace = session.namespaces.find(
+    (item) => item.uid === session.namespaceUid
+  )
+  const normalizedSearch = search.trim().toLocaleLowerCase()
+  const visibleNamespaces = normalizedSearch
+    ? session.namespaces.filter((item) =>
+        [item.name, item.ownerName, item.ownerEmail]
+          .filter(Boolean)
+          .some(
+            (value) =>
+              value?.toLocaleLowerCase().includes(normalizedSearch) ?? false
+          )
+      )
+    : session.namespaces
+  const activeCount = session.namespaces.filter(
+    (item) => item.status === "ACTIVE"
+  ).length
+  const disabledCount = session.namespaces.filter(
+    (item) => item.status === "DISABLED"
+  ).length
+
   return (
-    <section className="flex min-h-0 flex-1 flex-col gap-6">
-      <PageHeader
-        title={t("namespace.title")}
-        description={t("namespace.description")}
-      >
+    <section className="flex min-h-0 flex-1 flex-col gap-5">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">
+            {t("namespace.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("namespace.description")}
+          </p>
+        </div>
         <Button
+          className="shrink-0 self-start"
           onClick={() => {
             setName("")
             setRemark("")
@@ -291,80 +311,252 @@ export function NamespacePage() {
             setOpen(true)
           }}
         >
+          <Building2 aria-hidden="true" className="mr-2 size-4" />
           {t("namespace.create")}
         </Button>
-      </PageHeader>
+      </header>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(17rem,0.8fr)]">
+        <section
+          aria-label={t("namespace.switcher.currentSection")}
+          className="relative isolate overflow-hidden rounded-xl border border-primary/20 bg-primary/5 p-5 text-foreground shadow-sm"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-14 -right-10 size-44 rounded-full border border-primary/10"
+          >
+            <span className="absolute inset-5 rounded-full border border-primary/10" />
+            <span className="absolute inset-10 rounded-full border border-primary/10" />
+          </div>
+          <div className="relative flex min-w-0 items-center gap-4">
+            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground ring-1 ring-primary/20">
+              <Building2 aria-hidden="true" className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground">
+                {t("namespace.switcher.currentSection")}
+              </p>
+              <h2 className="mt-1 truncate font-heading text-xl font-semibold tracking-tight">
+                {currentNamespace?.name || t("namespace.none")}
+              </h2>
+              {currentNamespace ? (
+                <p className="mt-1 truncate text-sm text-muted-foreground">
+                  {currentNamespace.ownerName ||
+                    currentNamespace.ownerEmail ||
+                    currentNamespace.ownerUid}
+                </p>
+              ) : null}
+            </div>
+          </div>
+          <span
+            aria-hidden="true"
+            className="absolute top-5 right-5 size-2 rounded-full bg-primary ring-4 ring-primary/15"
+          />
+        </section>
+
+        <section
+          aria-label={t("namespace.status")}
+          className="glass-card flex min-w-0 flex-col justify-center gap-3 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-around sm:gap-5 xl:flex-col xl:items-stretch xl:gap-3"
+        >
+          <div className="min-w-0 sm:text-center xl:text-left">
+            <p className="text-xs font-medium tracking-[0.12em] text-muted-foreground uppercase">
+              {t("namespace.switcher.listLabel")}
+            </p>
+            <p className="mt-1 font-mono text-2xl font-semibold tracking-tight tabular-nums">
+              {session.loading ? "—" : session.namespaces.length}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:justify-center xl:justify-start">
+            <span className="inline-flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2">
+              <StatusBadge value="ACTIVE" />
+              <span className="font-mono text-sm font-semibold tabular-nums">
+                {session.loading ? "—" : activeCount}
+              </span>
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2">
+              <StatusBadge value="DISABLED" />
+              <span className="font-mono text-sm font-semibold tabular-nums">
+                {session.loading ? "—" : disabledCount}
+              </span>
+            </span>
+          </div>
+        </section>
+      </div>
+
       <ListFrame
-        total={session.namespaces.length}
+        total={visibleNamespaces.length}
         page={1}
-        pageSize={Math.max(session.namespaces.length, 1)}
-        showPager={!session.loading && !session.failed && session.namespaces.length > 0}
+        pageSize={Math.max(visibleNamespaces.length, 1)}
+        showPager={false}
         onPrev={() => undefined}
         onNext={() => undefined}
+        actions={
+          <div className="relative w-40 sm:w-64">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              aria-label={t("namespace.switcher.search")}
+              className="h-9 pl-9"
+              placeholder={t("namespace.switcher.searchPlaceholder")}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+        }
       >
-      {session.loading ? (
-        <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
-      ) : null}
-      {!session.loading && session.failed ? (
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-destructive">{session.loadError || t("state.failed")}</p>
-          <Button variant="outline" onClick={session.reload}>
-            {t("action.retry")}
-          </Button>
-        </div>
-      ) : null}
-      {!session.loading &&
-      !session.failed &&
-      session.namespaces.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("namespace.guide")}</p>
-      ) : null}
-      {!session.loading && !session.failed && session.namespaces.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("namespace.name")}</TableHead>
-                  <TableHead>{t("namespace.leader")}</TableHead>
-                  <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead className="text-center">{t("action.actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {session.namespaces.map((item) => (
-                  <TableRow key={item.uid}>
-                    <TableCell>
-                      <span className="flex items-center gap-2">
-                        {item.name}
-                        {item.uid === session.namespaceUid ? (
-                          <Badge>{t("namespace.current")}</Badge>
+        {session.loading ? (
+          <div
+            aria-busy="true"
+            aria-live="polite"
+            className="grid gap-3"
+            role="status"
+          >
+            <span className="sr-only">{t("state.loading")}</span>
+            {[0, 1, 2].map((item) => (
+              <div
+                aria-hidden="true"
+                className="h-[4.5rem] animate-pulse rounded-lg bg-muted/70 motion-reduce:animate-none"
+                key={item}
+              />
+            ))}
+          </div>
+        ) : null}
+        {!session.loading && session.failed ? (
+          <div
+            className="flex flex-col items-start gap-3 rounded-lg border border-destructive/25 bg-destructive/5 p-5 sm:flex-row sm:items-center sm:justify-between"
+            role="alert"
+          >
+            <p className="text-sm text-destructive">
+              {session.loadError || t("state.failed")}
+            </p>
+            <Button variant="outline" onClick={session.reload}>
+              {t("action.retry")}
+            </Button>
+          </div>
+        ) : null}
+        {!session.loading &&
+        !session.failed &&
+        session.namespaces.length === 0 ? (
+          <div className="flex min-h-44 flex-col items-center justify-center rounded-lg border border-dashed border-border px-5 py-8 text-center">
+            <span className="mb-3 grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+              <Building2 aria-hidden="true" className="size-5" />
+            </span>
+            <p className="max-w-md text-sm text-muted-foreground">
+              {t("namespace.guide")}
+            </p>
+          </div>
+        ) : null}
+        {!session.loading &&
+        !session.failed &&
+        session.namespaces.length > 0 &&
+        visibleNamespaces.length === 0 ? (
+          <div className="flex min-h-44 flex-col items-center justify-center px-5 py-8 text-center">
+            <p className="text-sm font-medium">
+              {t("namespace.switcher.noResults")}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("namespace.switcher.noResultsHint", { query: search.trim() })}
+            </p>
+          </div>
+        ) : null}
+        {!session.loading && !session.failed && visibleNamespaces.length > 0 ? (
+          <div className="min-w-0 overflow-hidden rounded-lg border border-border/70">
+            <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(9rem,0.85fr)_minmax(6.5rem,auto)_auto] items-center gap-4 bg-muted/35 px-5 py-3 text-[11px] font-medium tracking-[0.1em] text-muted-foreground uppercase md:grid">
+              <span>{t("namespace.name")}</span>
+              <span>{t("namespace.leader")}</span>
+              <span>{t("namespace.status")}</span>
+              <span className="text-right">{t("action.actions")}</span>
+            </div>
+            <ul
+              aria-label={t("namespace.switcher.listLabel")}
+              className="divide-y divide-border/70"
+            >
+              {visibleNamespaces.map((item) => {
+                const isCurrent = item.uid === session.namespaceUid
+                return (
+                  <li
+                    className={`grid min-w-0 gap-3 p-4 md:grid-cols-[minmax(0,1.5fr)_minmax(9rem,0.85fr)_minmax(6.5rem,auto)_auto] md:items-center md:gap-4 md:px-5 ${isCurrent ? "bg-primary/[0.035]" : "bg-card/30"}`}
+                    key={item.uid}
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        aria-hidden="true"
+                        className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg ring-1 ${isCurrent ? "bg-primary/10 text-primary ring-primary/20" : "bg-muted/70 text-muted-foreground ring-border/70"}`}
+                      >
+                        <Building2 className="size-4" />
+                        {item.logo ? (
+                          <img
+                            alt=""
+                            className="absolute inset-0 size-full object-cover"
+                            loading="lazy"
+                            onError={(event) => {
+                              event.currentTarget.hidden = true
+                            }}
+                            src={item.logo}
+                          />
                         ) : null}
                       </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="flex flex-col">
-                        <span className="break-all">
+                      <div className="min-w-0">
+                        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                          <h3 className="truncate text-sm font-semibold">
+                            {item.name}
+                          </h3>
+                          {isCurrent ? (
+                            <Badge
+                              variant="secondary"
+                              className="h-5 px-1.5 text-[10px]"
+                            >
+                              {t("namespace.current")}
+                            </Badge>
+                          ) : null}
+                        </div>
+                        {item.remark ? (
+                          <p className="mt-1 truncate text-xs text-muted-foreground">
+                            {item.remark}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="min-w-0 pl-[3.25rem] md:pl-0">
+                      <p className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase md:hidden">
+                        {t("namespace.leader")}
+                      </p>
+                      <span className="flex min-w-0 flex-col">
+                        <span className="text-sm break-all">
                           {item.ownerName || item.ownerEmail || item.ownerUid}
                         </span>
                         {item.ownerName && item.ownerEmail ? (
-                          <span className="break-all text-xs text-muted-foreground">
+                          <span className="text-xs break-all text-muted-foreground">
                             {item.ownerEmail}
                           </span>
                         ) : null}
                       </span>
-                    </TableCell>
-                    <TableCell><StatusBadge value={item.status} /></TableCell>
-                    <TableCell>
+                    </div>
+
+                    <div className="flex items-center gap-2 pl-[3.25rem] md:pl-0">
+                      <span className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase md:hidden">
+                        {t("namespace.status")}
+                      </span>
+                      <StatusBadge value={item.status} />
+                    </div>
+
+                    <div className="flex justify-start md:justify-end">
                       <RowActions
                         detailLabel={t("action.detail")}
                         moreLabel={t("action.more")}
                         onDetail={() => setDetail(item)}
                         actions={namespaceActions(item)}
                       />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-      ) : null}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={closeCreate}>
         <DialogContent>
@@ -491,7 +683,9 @@ export function NamespacePage() {
             label: t("namespace.leader"),
             value: (
               <span className="flex flex-col">
-                <span>{detail?.ownerName || detail?.ownerEmail || detail?.ownerUid}</span>
+                <span>
+                  {detail?.ownerName || detail?.ownerEmail || detail?.ownerUid}
+                </span>
                 {detail?.ownerName && detail?.ownerEmail ? (
                   <span className="text-xs text-muted-foreground">
                     {detail.ownerEmail}
@@ -500,7 +694,10 @@ export function NamespacePage() {
               </span>
             ),
           },
-          { label: t("namespace.status"), value: <StatusBadge value={detail?.status ?? ""} /> },
+          {
+            label: t("namespace.status"),
+            value: <StatusBadge value={detail?.status ?? ""} />,
+          },
           { label: t("namespace.remark"), value: detail?.remark ?? "" },
           { label: t("detail.uid"), value: detail?.uid ?? "" },
         ]}
