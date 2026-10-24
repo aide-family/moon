@@ -559,10 +559,19 @@ func validMessageLogStatus(status string) bool {
 	return status == "SENT" || status == "FAILED"
 }
 
+// MaxMessageQueryDays 是消息日志与通知任务单次查询允许的最大天数（含首尾）。
+// 与前端日期选择器的上限一致，避免一次查询扫过所有归档周表。
+const MaxMessageQueryDays = 30
+
 // validListTimeRange 校验列表的时间范围：两端都可省略，EndAt 不包含。
 func validListTimeRange(start, end time.Time) error {
-	if !start.IsZero() && !end.IsZero() && !start.Before(end) {
-		return merr.Invalid("invalid time range")
+	if !start.IsZero() && !end.IsZero() {
+		if !start.Before(end) {
+			return merr.Invalid("invalid time range")
+		}
+		if end.Sub(start) > MaxMessageQueryDays*24*time.Hour {
+			return merr.Invalid("time range must be within 30 days")
+		}
 	}
 	return nil
 }

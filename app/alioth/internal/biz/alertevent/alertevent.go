@@ -166,6 +166,10 @@ func (coordinator *Coordinator) Report(ctx context.Context, report bo.EvalReport
 	return nil
 }
 
+// MaxHistoryRangeDays 是历史告警单次查询允许的最大天数（含首尾）。
+// 与前端日期选择器的上限一致：界面只让选 30 天，服务端必须再挡一次。
+const MaxHistoryRangeDays = 30
+
 type ListQuery struct {
 	View           string
 	Name           string
@@ -243,8 +247,15 @@ func validateHistoryListQuery(query ListQuery) error {
 	if query.View != "HISTORY" && hasHistoryOnlyFilters {
 		return merr.Invalid("history filters require HISTORY view")
 	}
-	if query.StartsAtFrom != nil && query.StartsAtTo != nil && query.StartsAtFrom.After(*query.StartsAtTo) {
-		return merr.Invalid("invalid alert event time range")
+	if query.StartsAtFrom != nil && query.StartsAtTo != nil {
+		if query.StartsAtFrom.After(*query.StartsAtTo) {
+			return merr.Invalid("invalid alert event time range")
+		}
+		// 前端只允许选 30 天，这里必须再挡一次：手工拼 URL 或第三方调用
+		// 都能绕过界面，而一次长区间查询会扫过所有归档周表。
+		if query.StartsAtTo.Sub(*query.StartsAtFrom) > MaxHistoryRangeDays*24*time.Hour {
+			return merr.Invalid("alert event time range must be within 30 days")
+		}
 	}
 	switch query.EventStatus {
 	case "", "FIRING", "RECOVERED", "RECOVERED_BY_MANUAL":
@@ -292,7 +303,7 @@ func (coordinator *Coordinator) eventUIDsForCurrentUser(ctx context.Context, nam
 	return uids, nil
 }
 
-// Chart 用事件对应的数据源和规则表达式查询事件开始至今的原始区间数据。
+// Chart 用事件对应的数据源和规则表达式查询事件区间内的原始数据。
 // 图表是告警详情的只读部分，按告警读权限放行，不要求额外的数据源权限。
 func (coordinator *Coordinator) Chart(ctx context.Context, uid string) (*bo.AlertEventChart, error) {
 	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
@@ -313,7 +324,7 @@ func (coordinator *Coordinator) Chart(ctx context.Context, uid string) (*bo.Aler
 	if source.Type != "METRICS" && source.Driver != "LOGS_LOKI" && source.Driver != "LOGS_VLOGS" {
 		return nil, merr.Invalid("datasource does not support alert charts")
 	}
-	start, end, step := chartWindow(event.StartsAt, time.Now())
+	start, end, step := chartWindow(event.StartsAt, chartEnd(*event, time.Now()))
 	body, err := coordinator.datasources.RangeQuery(ctx, *source, event.Expr, start, end, step)
 	if err != nil {
 		return nil, coordinator.access.Wrap(err)
@@ -324,7 +335,21 @@ func (coordinator *Coordinator) Chart(ctx context.Context, uid string) (*bo.Aler
 	}, nil
 }
 
-// chartWindow 把事件开始时间到当前时间切成最多 300 个点，步长向上取整到 15 秒，
+// chartEnd 返回图表区间的右端：事件已恢复时截止到恢复时刻，
+// 仍在触发（或没有恢复时间）时才截止到当前时间。
+// 否则查看历史事件会向数据源请求一段到今天的超大区间，既慢又和事件无关。
+func chartEnd(event bo.AlertEvent, now time.Time) time.Time {
+	if event.EndsAt != nil && !event.EndsAt.IsZero() {
+		// 恢复时刻理论上不会晚于当前时间；时钟漂移时退回到当前时间，
+		// 避免向数据源请求一段未来区间。
+		if event.EndsAt.Before(now) {
+			return *event.EndsAt
+		}
+	}
+	return now
+}
+
+// chartWindow 把事件区间切成最多 300 个点，步长向上取整到 15 秒，
 // 既保持曲线细节，又避免长事件拉取过多样本。
 func chartWindow(startsAt, now time.Time) (int64, int64, int64) {
 	start := startsAt.UTC().Unix()

@@ -6,8 +6,9 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// AlertEventColumn 保存用户在实时告警某个视图上自定义的列。
-// scope 为 mine 表示「我的告警」，否则是告警页面 UID；一个用户在一个视图上只有一条配置。
+// AlertEventColumn 保存用户在实时告警或历史告警明细上自定义的列。
+// scope 为 mine 表示实时告警的「我的告警」，history 表示历史告警明细，
+// 其余是告警页面 UID；一个用户在一个视图上只有一条配置。
 type AlertEventColumn struct {
 	ent.Schema
 }

@@ -20,12 +20,22 @@ import (
 var ProviderSet = wire.NewSet(NewLayout)
 
 const (
-	tabMine  = "mine"
-	kindMine = "mine"
-	kindPage = "page"
+	tabMine = "mine"
+	// tabHistory 是历史告警明细的列配置视图。它不对应任何告警页面，
+	// 因此和 mine 一样属于不需要校验告警页面的内置视图。
+	tabHistory = "history"
+	kindMine   = "mine"
+	kindPage   = "page"
 	// MaxRealtimeTabs 是实时告警页同时显示的告警页面数量上限，不含固定的「我的告警」。
 	MaxRealtimeTabs = 10
 )
+
+// builtinColumnScopes 是不对应告警页面的列配置视图：实时告警的「我的告警」
+// 与历史告警明细。其余 scope 必须是当前用户自己的或公开的告警页面 UID。
+var builtinColumnScopes = map[string]struct{}{
+	tabMine:    {},
+	tabHistory: {},
+}
 
 // Layout 管理告警页面定义与实时 Tab 订阅。
 type Layout struct {
@@ -232,14 +242,15 @@ const (
 	maxLabelKey = 128
 )
 
-// allowedFieldColumns 是实时表格支持的内置字段列。字段名固定，前端只负责渲染。
+// allowedFieldColumns 是告警表格支持的内置字段列。字段名固定，前端只负责渲染。
+// ends_at 只用于历史告警明细（历史事件已结束，有结束时间），实时列表不提供。
 var allowedFieldColumns = map[string]struct{}{
 	"summary": {}, "datasource": {}, "level": {}, "sample_value": {}, "starts_at": {},
 	"duration": {}, "intervened": {}, "status": {}, "description": {}, "fingerprint": {},
-	"expr": {}, "rule": {},
+	"expr": {}, "rule": {}, "ends_at": {},
 }
 
-// GetColumns 读取当前用户在 mine 或某个告警页面上的列配置。
+// GetColumns 读取当前用户在 mine、history 或某个告警页面上的列配置。
 func (layout *Layout) GetColumns(ctx context.Context, scope string) ([]bo.AlertColumn, error) {
 	ns, err := layout.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
@@ -255,7 +266,7 @@ func (layout *Layout) GetColumns(ctx context.Context, scope string) ([]bo.AlertC
 	return layout.pages.GetAlertColumns(ctx, ns, userUID, scope)
 }
 
-// SetColumns 覆盖保存当前用户在 mine 或某个告警页面上的列配置。
+// SetColumns 覆盖保存当前用户在 mine、history 或某个告警页面上的列配置。
 func (layout *Layout) SetColumns(ctx context.Context, scope string, columns []bo.AlertColumn) ([]bo.AlertColumn, error) {
 	ns, err := layout.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
@@ -278,10 +289,10 @@ func (layout *Layout) SetColumns(ctx context.Context, scope string, columns []bo
 	return normalized, nil
 }
 
-// requireScope 校验视图标识。mine 固定可用；告警页面必须是当前用户自己的或公开的。
+// requireScope 校验视图标识。mine、history 固定可用；告警页面必须是当前用户自己的或公开的。
 func (layout *Layout) requireScope(ctx context.Context, namespaceUID, userUID, scope string) error {
 	scope = strings.TrimSpace(scope)
-	if scope == tabMine {
+	if _, ok := builtinColumnScopes[scope]; ok {
 		return nil
 	}
 	if scope == "" {

@@ -2,6 +2,7 @@ package notification
 
 import (
 	"testing"
+	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 )
@@ -144,5 +145,31 @@ func TestValidateReceivers(t *testing.T) {
 	}
 	if err := validateReceivers("SMS", ""); err == nil {
 		t.Fatal("empty sms receivers accepted")
+	}
+}
+
+func TestValidListTimeRange(t *testing.T) {
+	start := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)
+	cases := []struct {
+		name    string
+		start   time.Time
+		end     time.Time
+		wantErr bool
+	}{
+		{name: "unbounded", start: time.Time{}, end: time.Time{}},
+		{name: "start only", start: start},
+		{name: "one day", start: start, end: start.Add(24 * time.Hour)},
+		{name: "30 days excluded end", start: start, end: start.Add(30 * 24 * time.Hour)},
+		{name: "31 days rejected", start: start, end: start.Add(31 * 24 * time.Hour), wantErr: true},
+		{name: "reversed rejected", start: start, end: start.Add(-time.Hour), wantErr: true},
+		{name: "empty rejected", start: start, end: start, wantErr: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validListTimeRange(tc.start, tc.end)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("validListTimeRange() error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
 	}
 }

@@ -39,3 +39,34 @@ func TestNormalizeColumns(t *testing.T) {
 		t.Fatal("invalid label key should be rejected")
 	}
 }
+
+// 历史告警明细的列配置可以保存 ends_at：历史事件已经结束，结束时间是台账列；
+// 实时视图不提供这一列，但白名单是视图无关的，只要字段本身合法就允许保存。
+func TestNormalizeHistoryOnlyColumns(t *testing.T) {
+	columns, err := normalizeColumns([]bo.AlertColumn{
+		{Key: "starts_at", Type: "FIELD"},
+		{Key: "ends_at", Type: "FIELD"},
+		{Key: "duration", Type: "FIELD"},
+	})
+	if err != nil {
+		t.Fatalf("ends_at should be accepted: %v", err)
+	}
+	if len(columns) != 3 || columns[1].Key != "ends_at" {
+		t.Fatalf("columns = %+v", columns)
+	}
+}
+
+func TestBuiltinColumnScopes(t *testing.T) {
+	// 内置视图不需要告警页面就能保存列配置；空 scope 仍然必须被拒绝。
+	for _, scope := range []string{tabMine, tabHistory} {
+		if _, ok := builtinColumnScopes[scope]; !ok {
+			t.Fatalf("scope %q should be builtin", scope)
+		}
+	}
+	if _, ok := builtinColumnScopes[""]; ok {
+		t.Fatal("empty scope must not be builtin")
+	}
+	if _, ok := builtinColumnScopes["page-uid"]; ok {
+		t.Fatal("page uid must be validated against the alert page, not treated as builtin")
+	}
+}
