@@ -13,6 +13,7 @@ import {
   updateNamespaceStatus,
 } from "@/api/namespace"
 import type { NamespaceItem } from "@/api/namespace/types"
+import { TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS } from "@/lib/table-layout"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -47,6 +48,8 @@ import {
 export function NamespacePage() {
   const { t } = useTranslation()
   const session = useSession()
+  // 表头和每一行都是独立的 grid 容器，必须共用同一份列模板才能对齐。
+  const rowGrid = TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [remark, setRemark] = useState("")
@@ -398,7 +401,7 @@ export function NamespacePage() {
             />
             <Input
               aria-label={t("namespace.switcher.search")}
-              className="h-9 pl-9"
+              className="pl-9"
               placeholder={t("namespace.switcher.searchPlaceholder")}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -463,7 +466,9 @@ export function NamespacePage() {
         ) : null}
         {!session.loading && !session.failed && visibleNamespaces.length > 0 ? (
           <div className="min-w-0 overflow-hidden rounded-lg border border-border/70">
-            <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(9rem,0.85fr)_minmax(6.5rem,auto)_auto] items-center gap-4 bg-muted/35 px-5 py-3 text-[11px] font-medium tracking-[0.1em] text-muted-foreground uppercase md:grid">
+            <div
+              className={`hidden items-center gap-4 bg-muted/35 px-5 py-3 text-[11px] font-medium tracking-[0.1em] text-muted-foreground uppercase md:grid ${rowGrid}`}
+            >
               <span>{t("namespace.name")}</span>
               <span>{t("namespace.leader")}</span>
               <span>{t("namespace.status")}</span>
@@ -477,7 +482,7 @@ export function NamespacePage() {
                 const isCurrent = item.uid === session.namespaceUid
                 return (
                   <li
-                    className={`grid min-w-0 gap-3 p-4 md:grid-cols-[minmax(0,1.5fr)_minmax(9rem,0.85fr)_minmax(6.5rem,auto)_auto] md:items-center md:gap-4 md:px-5 ${isCurrent ? "bg-primary/[0.035]" : "bg-card/30"}`}
+                    className={`grid min-w-0 gap-3 p-4 md:items-center md:gap-4 md:px-5 ${rowGrid} ${isCurrent ? "bg-primary/[0.035]" : "bg-card/30"}`}
                     key={item.uid}
                   >
                     <div className="flex min-w-0 items-center gap-3">
@@ -500,7 +505,7 @@ export function NamespacePage() {
                       </span>
                       <div className="min-w-0">
                         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                          <h3 className="truncate text-sm font-semibold">
+                          <h3 className="text-sm font-semibold break-words">
                             {item.name}
                           </h3>
                           {isCurrent ? (
@@ -543,12 +548,13 @@ export function NamespacePage() {
                       <StatusBadge value={item.status} />
                     </div>
 
-                    <div className="flex justify-start md:justify-end">
+                    <div className="flex min-w-0 justify-start md:justify-end">
                       <RowActions
                         detailLabel={t("action.detail")}
                         moreLabel={t("action.more")}
                         onDetail={() => setDetail(item)}
                         actions={namespaceActions(item)}
+                        nowrap
                       />
                     </div>
                   </li>

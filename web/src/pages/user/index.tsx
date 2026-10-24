@@ -40,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 
 export function UserPage() {
   const { t } = useTranslation()
@@ -209,8 +210,8 @@ export function UserPage() {
                 <TableHead>{t("user.name")}</TableHead>
                 <TableHead>{t("login.emailLabel")}</TableHead>
                 <TableHead>{t("user.systemRole")}</TableHead>
-                <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-center">{t("action.actions")}</TableHead>
+                <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -221,7 +222,7 @@ export function UserPage() {
                   <TableCell><StatusBadge value={item.systemRole} /></TableCell>
                   <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
-                    <RowActions
+                    <RowActions nowrap
                       detailLabel={t("action.detail")}
                       moreLabel={t("action.more")}
                       onDetail={() => setDetail(item)}

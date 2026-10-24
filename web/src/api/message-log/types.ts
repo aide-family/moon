@@ -18,6 +18,11 @@ export interface ListMessageLogsParams {
   page?: number
   pageSize?: number
   taskUid?: string
+  status?: string
+  /** 创建时间起点，Unix 秒，包含。 */
+  startTime?: number
+  /** 创建时间终点，Unix 秒，不包含。 */
+  endTime?: number
 }
 
 export interface ListMessageLogsResult {
@@ -53,6 +58,10 @@ export interface ListNotificationTasksParams {
   page?: number
   pageSize?: number
   status?: string
+  /** 创建时间起点，Unix 秒，包含。 */
+  startTime?: number
+  /** 创建时间终点，Unix 秒，不包含。 */
+  endTime?: number
 }
 
 export interface ListNotificationTasksResult {

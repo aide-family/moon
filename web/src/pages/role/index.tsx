@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { runAction } from "@/lib/action"
 
 export function RolePage() {
@@ -340,8 +341,8 @@ export function RolePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("role.name")}</TableHead>
-                  <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead className="text-center">{t("action.actions")}</TableHead>
+                  <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                  <TableActionsHead>{t("action.actions")}</TableActionsHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -353,7 +354,7 @@ export function RolePage() {
                     </TableCell>
                     <TableCell><StatusBadge value={item.status} /></TableCell>
                     <TableCell>
-                      <RowActions
+                      <RowActions nowrap
                         detailLabel={t("action.detail")}
                         moreLabel={t("action.more")}
                         onDetail={() => setDetail(item)}

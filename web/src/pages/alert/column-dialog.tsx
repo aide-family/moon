@@ -26,6 +26,8 @@ import { FIELD_COLUMNS, fieldLabel } from "@/pages/alert/columns"
 interface AlertColumnDialogProps {
   open: boolean
   columns: AlertColumnItem[]
+  // 可添加的内置字段。历史明细比实时列表多 ends_at，由调用方传入。
+  fieldColumns?: Array<{ key: string; labelKey: string }>
   pending?: boolean
   error?: string
   onSave: (columns: AlertColumnItem[]) => void
@@ -35,6 +37,7 @@ interface AlertColumnDialogProps {
 export function AlertColumnDialog({
   open,
   columns,
+  fieldColumns = FIELD_COLUMNS,
   pending = false,
   error = "",
   onSave,
@@ -65,7 +68,7 @@ export function AlertColumnDialog({
     () => new Set(draft.map((item) => `${item.type}:${item.key}`)),
     [draft]
   )
-  const remainingFields = FIELD_COLUMNS.filter(
+  const remainingFields = fieldColumns.filter(
     (item) => !used.has(`FIELD:${item.key}`)
   )
   function toggleField(key: string, checked: boolean) {

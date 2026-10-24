@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 
 import { listAlertEvents } from "@/api/alert-event"
-import type { AlertEventItem } from "@/api/alert-event/types"
+import type {
+  AlertEventItem,
+  ListAlertEventsParams,
+} from "@/api/alert-event/types"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { DateRangePicker } from "@/components/date-range-picker"
 import {
   Select,
   SelectContent,
@@ -13,50 +17,64 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { formatDuration } from "@/pages/alert/format"
+import { dayEndISO, dayStartISO } from "@/lib/date-range"
+import { formatSpan } from "@/pages/alert/format"
+import {
+  HISTORY_RANGE_MAX_DAYS,
+  localDayWindow,
+} from "@/pages/alert/history-range"
 
+// 接口单页上限 100；分析在浏览器侧聚合，必须逐页读完整集合。
 const FETCH_PAGE_SIZE = 100
+// 聚合上限：50 页 = 5000 条。超过时明确提示统计被截断，而不是悄悄少算。
+const MAX_FETCH_PAGES = 50
+// 时间轴最多渲染 180 个时间桶；超出时退化为“只显示有事件的时间桶”。
+const MAX_BUCKETS = 180
 const EMPTY_EVENTS: AlertEventItem[] = []
+const EMPTY_PROGRESS = { queryKey: "", loaded: 0, total: 0 }
 
 type Granularity = "hour" | "day" | "week" | "month"
-type StatusFilter =
-  "ALL" | "FIRING" | "RECOVERED" | "RECOVERED_BY_MANUAL" | "SUPPRESSED"
+// 历史视图的事件终态只有三种：自动恢复、人工恢复、仍在触发（且被抑制）。
+// 抑制是触发阶段的属性，不是终态，因此不再作为状态选项。
+type StatusFilter = "ALL" | "RECOVERED" | "RECOVERED_BY_MANUAL" | "SUPPRESSING"
 
 interface AlertHistoryInsightsProps {
-  name: string
-  levelUid: string
   enabled: boolean
   onSelectFingerprint: (fingerprint: string) => void
 }
 
+interface AnalysisResult {
+  queryKey: string
+  events: AlertEventItem[]
+  truncated: boolean
+  error: string
+}
+
 export function AlertHistoryInsights({
-  name,
-  levelUid,
   enabled,
   onSelectFingerprint,
 }: AlertHistoryInsightsProps) {
   const { t, i18n } = useTranslation()
-  const [attempt, setAttempt] = useState(0)
-  const queryKey = `${name}|${levelUid}|${attempt}`
-  const [result, setResult] = useState<{
-    queryKey: string
-    events: AlertEventItem[]
-    error: string
-  } | null>(null)
-  const [progress, setProgress] = useState({
-    queryKey: "",
-    loaded: 0,
-    total: 0,
-  })
-  const loading = result?.queryKey !== queryKey
-  const error = loading ? "" : (result?.error ?? "")
-  const events = loading ? EMPTY_EVENTS : (result?.events ?? EMPTY_EVENTS)
   const [params, setParams] = useSearchParams()
   const from = params.get("from") || ""
   const to = params.get("to") || ""
   const status = parseStatusFilter(params.get("status"))
   const granularity = parseGranularity(params.get("interval"))
   const invalidDateRange = Boolean(from && to && from > to)
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+  const [attempt, setAttempt] = useState(0)
+  const queryKey = `${from}|${to}|${status}|${attempt}`
+  const [result, setResult] = useState<AnalysisResult | null>(null)
+  const [progress, setProgress] = useState(EMPTY_PROGRESS)
+  const requestId = useRef(0)
+  const loadedKey = useRef("")
+
+  const loading = result?.queryKey !== queryKey
+  const error = loading ? "" : (result?.error ?? "")
+  const events = loading ? EMPTY_EVENTS : (result?.events ?? EMPTY_EVENTS)
+  const truncated = !loading && (result?.truncated ?? false)
+
   const filterSignature = `${from}|${to}|${status}|${granularity}`
   const [selectedBucket, setSelectedBucket] = useState<{
     key: number
@@ -67,10 +85,7 @@ export function AlertHistoryInsights({
       ? selectedBucket.key
       : null
 
-  function updateAnalysisFilter(
-    key: "from" | "to" | "status" | "interval",
-    value: string
-  ) {
+  function updateAnalysisFilter(key: "status" | "interval", value: string) {
     setSelectedBucket(null)
     const next = new URLSearchParams(params)
     if (value) next.set(key, value)
@@ -78,51 +93,88 @@ export function AlertHistoryInsights({
     setParams(next, { replace: true })
   }
 
+  // 日期范围一次写入两个参数：选择器只提交完整区间，不会留下半个条件。
+  function updateAnalysisRange(range: { from: string; to: string }) {
+    setSelectedBucket(null)
+    const next = new URLSearchParams(params)
+    for (const key of ["from", "to"] as const) {
+      const value = range[key]
+      if (value) next.set(key, value)
+      else next.delete(key)
+    }
+    setParams(next, { replace: true })
+  }
+
+  function clearAnalysisFilters() {
+    setSelectedBucket(null)
+    const next = new URLSearchParams(params)
+    next.delete("from")
+    next.delete("to")
+    next.delete("status")
+    next.delete("interval")
+    setParams(next, { replace: true })
+  }
+
   useEffect(() => {
-    if (!enabled || result?.queryKey === queryKey) {
+    if (!enabled || invalidDateRange) {
       return
     }
+    if (loadedKey.current === queryKey) {
+      return
+    }
+    loadedKey.current = queryKey
+    const id = ++requestId.current
     let active = true
+
+    // 统计范围直接下推到列表接口：状态、时间范围在服务端合并归档记录后过滤，
+    // 前端只对已受控的结果做聚合，不再“先取全量再自己筛”。
+    const scoped: ListAlertEventsParams = {
+      view: "HISTORY",
+      pageSize: FETCH_PAGE_SIZE,
+      startsAtFrom: dayStartISO(from),
+      startsAtTo: dayEndISO(to),
+      ...statusScope(status),
+    }
 
     async function loadAllHistory() {
       try {
-        const first = await listAlertEvents({
-          page: 1,
-          pageSize: FETCH_PAGE_SIZE,
-          view: "HISTORY",
-          name,
-          levelUid: levelUid || undefined,
-        })
-        const all = [...(first.items ?? [])]
-        const total = first.total ?? all.length
-        if (active) {
-          setProgress({ queryKey, loaded: all.length, total })
-        }
-        const pageCount = Math.ceil(total / FETCH_PAGE_SIZE)
-        for (let page = 2; page <= pageCount && active; page += 1) {
-          const result = await listAlertEvents({
-            page,
-            pageSize: FETCH_PAGE_SIZE,
-            view: "HISTORY",
-            name,
-            levelUid: levelUid || undefined,
-          })
-          all.push(...(result.items ?? []))
+        const collected = new Map<string, AlertEventItem>()
+        let total = 0
+        let pages = 1
+        for (let page = 1; page <= MAX_FETCH_PAGES; page += 1) {
+          const data = await listAlertEvents({ ...scoped, page })
+          total = data.total ?? collected.size
+          for (const item of data.items ?? []) {
+            // 归档合并列表在分页期间可能有新记录写入，按 UID 去重避免重复计数。
+            collected.set(item.uid, item)
+          }
           if (active) {
-            setProgress({ queryKey, loaded: all.length, total })
+            setProgress({ queryKey, loaded: collected.size, total })
+          }
+          pages = Math.max(1, Math.ceil(total / FETCH_PAGE_SIZE))
+          if (page >= pages) {
+            break
           }
         }
-        if (active) {
-          setResult({ queryKey, events: all, error: "" })
+        if (!active || requestId.current !== id) {
+          return
         }
+        setResult({
+          queryKey,
+          events: [...collected.values()],
+          truncated: pages > MAX_FETCH_PAGES,
+          error: "",
+        })
       } catch {
-        if (active) {
-          setResult({
-            queryKey,
-            events: [],
-            error: t("alertEvent.analysisLoadFailed"),
-          })
+        if (!active || requestId.current !== id) {
+          return
         }
+        setResult({
+          queryKey,
+          events: [],
+          truncated: false,
+          error: t("alertEvent.analysisLoadFailed"),
+        })
       }
     }
 
@@ -130,47 +182,35 @@ export function AlertHistoryInsights({
     return () => {
       active = false
     }
-  }, [enabled, name, levelUid, queryKey, attempt, result, t])
+  }, [enabled, invalidDateRange, queryKey, from, to, status, t])
 
-  const filtered = useMemo(() => {
-    const fromMs = from
-      ? new Date(`${from}T00:00:00`).getTime()
-      : Number.NEGATIVE_INFINITY
-    const toMs = to
-      ? new Date(`${to}T23:59:59.999`).getTime()
-      : Number.POSITIVE_INFINITY
-    return events.filter((event) => {
-      const started = new Date(event.startsAt).getTime()
-      if (from && (!Number.isFinite(started) || started < fromMs)) return false
-      if (to && (!Number.isFinite(started) || started > toMs)) return false
-      if (status === "SUPPRESSED") return event.suppressed
-      return status === "ALL" || event.status === status
-    })
-  }, [events, from, to, status])
-
+  // 时间桶聚焦只影响统计口径，不改写明细列表的查询条件。
   const timeline = useMemo(
-    () => buildTimeline(filtered, granularity, i18n.language, from, to),
-    [filtered, granularity, i18n.language, from, to]
+    () => buildTimeline(events, granularity, i18n.language, from, to),
+    [events, granularity, i18n.language, from, to]
   )
-  const focusedBucket = timeline.points.find(
-    (point) => point.key === selectedBucketKey
-  )
+  const focusedBucket =
+    selectedBucketKey === null
+      ? null
+      : (timeline.points.find((point) => point.key === selectedBucketKey) ??
+        null)
   const scopedEvents = useMemo(
     () =>
       focusedBucket
-        ? filtered.filter(
+        ? events.filter(
             (event) =>
               bucketStart(new Date(event.startsAt), granularity).getTime() ===
               focusedBucket.key
           )
-        : filtered,
-    [filtered, focusedBucket, granularity]
+        : events,
+    [events, focusedBucket, granularity]
   )
-  const statuses = useMemo(
+
+  const statusRows = useMemo(
     () => countBy(scopedEvents, (event) => event.status),
     [scopedEvents]
   )
-  const levels = useMemo(
+  const levelRows = useMemo(
     () =>
       countBy(
         scopedEvents,
@@ -184,87 +224,62 @@ export function AlertHistoryInsights({
     [scopedEvents]
   )
   const repeatedEpisodes = recurringFingerprints.reduce(
-    (total, item) => total + item.count - 1,
+    (count, item) => count + item.count - 1,
     0
   )
-  const {
-    uniqueFingerprints,
-    suppressedCount,
-    autoRecovery,
-    manualRecovery,
-    recoveredCount,
-  } = useMemo(() => {
+  const { uniqueFingerprints, autoRecovery, manualRecovery } = useMemo(() => {
     const fingerprints = new Set(
       scopedEvents.map((event) => event.fingerprint).filter(Boolean)
     )
-    const automaticDurations = recoveryDurations(scopedEvents, "RECOVERED")
-    const manualDurations = recoveryDurations(
-      scopedEvents,
-      "RECOVERED_BY_MANUAL"
-    )
     return {
       uniqueFingerprints: fingerprints.size,
-      suppressedCount: scopedEvents.filter((event) => event.suppressed).length,
-      autoRecovery: durationSummary(automaticDurations),
-      manualRecovery: durationSummary(manualDurations),
-      recoveredCount: scopedEvents.filter(
-        (event) =>
-          event.status === "RECOVERED" || event.status === "RECOVERED_BY_MANUAL"
-      ).length,
+      autoRecovery: durationSummary(
+        recoveryDurations(scopedEvents, "RECOVERED")
+      ),
+      manualRecovery: durationSummary(
+        recoveryDurations(scopedEvents, "RECOVERED_BY_MANUAL")
+      ),
     }
   }, [scopedEvents])
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+  const scopeSummary = describeScope(t, from, to, status)
+  const hasFilters =
+    Boolean(from || to) || status !== "ALL" || granularity !== "day"
 
   return (
     <section
       className="space-y-4"
       aria-labelledby="alert-history-insights-title"
+      aria-busy={loading || undefined}
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-            {t("alertEvent.analysisEyebrow")}
-          </p>
+        <div className="min-w-0">
           <h2
             id="alert-history-insights-title"
-            className="mt-1 text-lg font-semibold tracking-tight"
+            className="text-base font-semibold tracking-tight"
           >
             {t("alertEvent.analysisTitle")}
           </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t("alertEvent.analysisTabHint")}
+          </p>
         </div>
         <div
           role="group"
           className="flex flex-wrap items-center gap-2"
           aria-label={t("alertEvent.analysisFilters")}
         >
-          <Input
-            aria-label={t("alertEvent.fromDate")}
-            className="h-11 w-[9.5rem] tabular-nums"
-            type="date"
-            max={to || undefined}
-            aria-invalid={invalidDateRange}
-            aria-describedby={
+          <DateRangePicker
+            from={from}
+            to={to}
+            maxDays={HISTORY_RANGE_MAX_DAYS}
+            invalid={invalidDateRange}
+            describedBy={
               invalidDateRange ? "alert-history-range-error" : undefined
             }
-            value={from}
-            onChange={(event) =>
-              updateAnalysisFilter("from", event.target.value)
-            }
-          />
-          <span className="text-xs text-muted-foreground">
-            {t("alertEvent.dateTo")}
-          </span>
-          <Input
-            aria-label={t("alertEvent.toDate")}
-            className="h-11 w-[9.5rem] tabular-nums"
-            type="date"
-            min={from || undefined}
-            aria-invalid={invalidDateRange}
-            aria-describedby={
-              invalidDateRange ? "alert-history-range-error" : undefined
-            }
-            value={to}
-            onChange={(event) => updateAnalysisFilter("to", event.target.value)}
+            ariaLabel={t("alertEvent.eventDateRange")}
+            onChange={updateAnalysisRange}
+            className="w-64"
           />
           <Select
             value={status}
@@ -273,24 +288,21 @@ export function AlertHistoryInsights({
             }
           >
             <SelectTrigger
-              className="h-11 w-44"
+              className="w-[10.5rem]"
               aria-label={t("alertEvent.status")}
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">{t("alertEvent.allStatuses")}</SelectItem>
-              <SelectItem value="FIRING">
-                {t("alertEvent.statusFiring")}
-              </SelectItem>
               <SelectItem value="RECOVERED">
                 {t("alertEvent.statusRecovered")}
               </SelectItem>
               <SelectItem value="RECOVERED_BY_MANUAL">
                 {t("alertEvent.statusRecoveredManual")}
               </SelectItem>
-              <SelectItem value="SUPPRESSED">
-                {t("alertEvent.suppressed")}
+              <SelectItem value="SUPPRESSING">
+                {t("alertEvent.statusSuppressing")}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -301,7 +313,7 @@ export function AlertHistoryInsights({
             }
           >
             <SelectTrigger
-              className="h-11 w-32"
+              className="w-28"
               aria-label={t("alertEvent.granularity")}
             >
               <SelectValue />
@@ -325,47 +337,67 @@ export function AlertHistoryInsights({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-11 px-3"
-            disabled={!from && !to && status === "ALL" && granularity === "day"}
-            onClick={() => {
-              setSelectedBucket(null)
-              const next = new URLSearchParams(params)
-              next.delete("from")
-              next.delete("to")
-              next.delete("status")
-              next.delete("interval")
-              setParams(next, { replace: true })
-            }}
+            className="px-3"
+            disabled={!hasFilters}
+            onClick={clearAnalysisFilters}
           >
             {t("alertEvent.clearAnalysisFilters")}
           </Button>
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span className="font-medium text-foreground">{scopeSummary}</span>
+        <span>{t("alertEvent.localTimeZone", { timeZone })}</span>
         {invalidDateRange ? (
           <span
             id="alert-history-range-error"
-            className="mr-2 text-sm text-destructive"
+            className="text-sm text-destructive"
             role="alert"
           >
             {t("alertEvent.invalidDateRange")}
           </span>
         ) : null}
-        {t("alertEvent.analysisScopeNote")}{" "}
-        {t("alertEvent.localTimeZone", { timeZone })}
-      </p>
+        {focusedBucket ? (
+          <span className="inline-flex items-center gap-2">
+            <span>
+              {t("alertEvent.focusedBucket", {
+                label: focusedBucket.label,
+                count: focusedBucket.count.toLocaleString(i18n.language),
+              })}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2"
+              onClick={() => setSelectedBucket(null)}
+            >
+              {t("alertEvent.clearBucket")}
+            </Button>
+          </span>
+        ) : null}
+        <details className="basis-full">
+          <summary className="cursor-pointer select-none hover:text-foreground">
+            {t("alertEvent.analysisScopeDetails")}
+          </summary>
+          <p className="mt-1 max-w-4xl text-xs leading-relaxed">
+            {t("alertEvent.analysisScopeNote")}
+          </p>
+        </details>
+      </div>
 
-      {loading ? (
-        <div
-          className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
-          role="status"
-        >
-          {t("alertEvent.analysisLoading", {
+      {invalidDateRange ? (
+        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {t("alertEvent.analysisRangeBlocked")}
+        </p>
+      ) : loading ? (
+        <AnalysisSkeleton
+          label={t("alertEvent.analysisLoading", {
             loaded: progress.queryKey === queryKey ? progress.loaded : 0,
             total: progress.queryKey === queryKey ? progress.total : 0,
           })}
-        </div>
+        />
       ) : error ? (
         <div
           className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3"
@@ -380,8 +412,36 @@ export function AlertHistoryInsights({
             {t("action.retry")}
           </Button>
         </div>
+      ) : events.length === 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-border/80 bg-muted/20 px-4 py-10">
+          <div>
+            <p className="text-sm font-medium">
+              {t("alertEvent.noAnalysisData")}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("alertEvent.noAnalysisDataHint")}
+            </p>
+          </div>
+          {hasFilters ? (
+            <Button variant="outline" size="sm" onClick={clearAnalysisFilters}>
+              {t("alertEvent.clearAnalysisFilters")}
+            </Button>
+          ) : null}
+        </div>
       ) : (
         <>
+          {truncated ? (
+            <p
+              className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-xs text-amber-700 dark:text-amber-300"
+              role="status"
+            >
+              {t("alertEvent.analysisTruncated", {
+                count: (MAX_FETCH_PAGES * FETCH_PAGE_SIZE).toLocaleString(
+                  i18n.language
+                ),
+              })}
+            </p>
+          ) : null}
           <div className="grid gap-px overflow-hidden rounded-xl border border-border/70 bg-border sm:grid-cols-2 xl:grid-cols-[1.35fr_repeat(3,minmax(0,1fr))]">
             <Metric
               featured
@@ -396,19 +456,33 @@ export function AlertHistoryInsights({
             <Metric
               label={t("alertEvent.uniqueFingerprints")}
               value={uniqueFingerprints.toLocaleString(i18n.language)}
-              detail={t("alertEvent.repeatEpisodes", {
-                count: repeatedEpisodes.toLocaleString(i18n.language),
+              detail={t("alertEvent.averageEpisodes", {
+                count: averageEpisodes(
+                  scopedEvents.length,
+                  uniqueFingerprints,
+                  i18n.language
+                ),
               })}
             />
             <Metric
-              label={t("alertEvent.suppressedCount")}
-              value={suppressedCount.toLocaleString(i18n.language)}
-              detail={t("alertEvent.suppressedHelp")}
+              label={t("alertEvent.repeatedEvents")}
+              value={repeatedEpisodes.toLocaleString(i18n.language)}
+              detail={t("alertEvent.recurringFingerprintCount", {
+                count: recurringFingerprints.length.toLocaleString(
+                  i18n.language
+                ),
+              })}
             />
             <Metric
-              label={t("alertEvent.recoveredCount")}
-              value={recoveredCount.toLocaleString(i18n.language)}
-              detail={t("alertEvent.recoveredHelp")}
+              label={t("alertEvent.autoRecoveryMedian")}
+              value={
+                autoRecovery.median === null
+                  ? "—"
+                  : formatSpan(autoRecovery.median)
+              }
+              detail={t("alertEvent.durationSample", {
+                count: autoRecovery.count.toLocaleString(i18n.language),
+              })}
             />
           </div>
 
@@ -417,35 +491,13 @@ export function AlertHistoryInsights({
               className="min-w-0 rounded-xl border border-border/70 bg-card p-4"
               aria-label={t("alertEvent.trendTitle")}
             >
-              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-semibold">
-                    {t("alertEvent.trendTitle")}
-                  </h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {t("alertEvent.startsAtTrend")}
-                  </p>
-                </div>
-                {focusedBucket ? (
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-muted-foreground">
-                      {t("alertEvent.focusedBucket", {
-                        label: focusedBucket.label,
-                        count: focusedBucket.count.toLocaleString(
-                          i18n.language
-                        ),
-                      })}
-                    </span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setSelectedBucket(null)}
-                    >
-                      {t("alertEvent.clearBucket")}
-                    </Button>
-                  </div>
-                ) : null}
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold">
+                  {t("alertEvent.trendTitle")}
+                </h3>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("alertEvent.startsAtTrend")}
+                </p>
               </div>
               {timeline.points.length ? (
                 <>
@@ -458,11 +510,7 @@ export function AlertHistoryInsights({
                     <div className="flex min-h-36 min-w-max items-end gap-1.5">
                       {timeline.points.map((point) => {
                         const height = point.count
-                          ? Math.max(
-                              4,
-                              (point.count / timelineMaximum(timeline.points)) *
-                                100
-                            )
+                          ? Math.max(4, (point.count / timeline.maximum) * 100)
                           : 0
                         const selected = point.key === selectedBucketKey
                         return (
@@ -523,17 +571,26 @@ export function AlertHistoryInsights({
             <Distribution
               title={t("alertEvent.statusDistribution")}
               description={t("alertEvent.statusDistributionHelp")}
-              data={statuses}
+              data={statusRows}
               labelFor={(value) => statusLabel(value, t)}
               total={scopedEvents.length}
-              selectedValue={status === "ALL" ? "" : status}
+              selectedValue={
+                status === "ALL"
+                  ? ""
+                  : status === "SUPPRESSING"
+                    ? "FIRING"
+                    : status
+              }
               onSelect={(value) =>
-                updateAnalysisFilter("status", value === status ? "" : value)
+                updateAnalysisFilter(
+                  "status",
+                  toStatusFilter(value) === status ? "" : toStatusFilter(value)
+                )
               }
             />
             <Distribution
               title={t("alertEvent.levelDistribution")}
-              data={levels}
+              data={levelRows}
               labelFor={(value) => value}
               total={scopedEvents.length}
             />
@@ -545,6 +602,88 @@ export function AlertHistoryInsights({
         </>
       )}
     </section>
+  )
+}
+
+/** 把分析用的状态值翻译成接口过滤条件；历史里 FIRING 必然是被抑制的事件。 */
+function statusScope(
+  status: StatusFilter
+): Pick<ListAlertEventsParams, "eventStatus" | "suppression"> {
+  if (status === "RECOVERED" || status === "RECOVERED_BY_MANUAL") {
+    return { eventStatus: status }
+  }
+  if (status === "SUPPRESSING") {
+    return { eventStatus: "FIRING", suppression: "SUPPRESSED" }
+  }
+  return {}
+}
+
+function toStatusFilter(value: string): StatusFilter {
+  if (value === "RECOVERED" || value === "RECOVERED_BY_MANUAL") {
+    return value
+  }
+  if (value === "FIRING" || value === "SUPPRESSED") {
+    return "SUPPRESSING"
+  }
+  return "ALL"
+}
+
+function describeScope(
+  t: TFunction,
+  from: string,
+  to: string,
+  status: StatusFilter
+) {
+  const range =
+    from || to
+      ? t("alertEvent.scopeRange", { from: from || "…", to: to || "…" })
+      : null
+  const label =
+    status === "ALL"
+      ? null
+      : t("alertEvent.scopeStatus", {
+          status:
+            status === "SUPPRESSING"
+              ? t("alertEvent.statusSuppressing")
+              : status === "RECOVERED"
+                ? t("alertEvent.statusRecovered")
+                : t("alertEvent.statusRecoveredManual"),
+        })
+  const parts = [range, label].filter(Boolean)
+  return parts.length ? parts.join(" · ") : t("alertEvent.scopeAll")
+}
+
+function averageEpisodes(
+  events: number,
+  fingerprints: number,
+  language: string
+) {
+  if (fingerprints === 0) {
+    return (0).toLocaleString(language)
+  }
+  return (events / fingerprints).toLocaleString(language, {
+    maximumFractionDigits: 1,
+  })
+}
+
+function AnalysisSkeleton({ label }: { label: string }) {
+  return (
+    <div className="space-y-3" role="status" aria-live="polite">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <div className="grid gap-px overflow-hidden rounded-xl border border-border/70 bg-border sm:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((index) => (
+          <div key={index} className="bg-card px-4 py-3">
+            <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+            <div className="mt-2 h-7 w-16 animate-pulse rounded bg-muted" />
+            <div className="mt-2 h-3 w-32 animate-pulse rounded bg-muted" />
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(17rem,1fr)]">
+        <div className="h-48 animate-pulse rounded-xl border border-border/70 bg-card" />
+        <div className="h-48 animate-pulse rounded-xl border border-border/70 bg-card" />
+      </div>
+    </div>
   )
 }
 
@@ -616,7 +755,7 @@ function RecurringFingerprints({
               <button
                 type="button"
                 className="flex min-h-11 w-full items-center gap-3 rounded-md px-2 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
-                title={item.fingerprint}
+                title={`${item.fingerprint} · ${t("alertEvent.viewFingerprintEvents")}`}
                 onClick={() => onSelect(item.fingerprint)}
               >
                 <span className="w-5 shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
@@ -713,16 +852,12 @@ function DurationRow({
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <p className="text-sm font-semibold tabular-nums">
             {t("alertEvent.medianLabel")}{" "}
-            <span className="font-mono">
-              {formatDuration("1970-01-01T00:00:00Z", stats.median)}
-            </span>
+            <span className="font-mono">{formatSpan(stats.median)}</span>
           </p>
           {showP90 && stats.p90 !== null ? (
             <p className="text-xs text-muted-foreground tabular-nums">
               {t("alertEvent.p90Label")}{" "}
-              <span className="font-mono">
-                {formatDuration("1970-01-01T00:00:00Z", stats.p90)}
-              </span>
+              <span className="font-mono">{formatSpan(stats.p90)}</span>
             </p>
           ) : null}
         </div>
@@ -826,12 +961,11 @@ function countBy(
 }
 
 function parseStatusFilter(value: string | null): StatusFilter {
-  if (
-    value === "FIRING" ||
-    value === "RECOVERED" ||
-    value === "RECOVERED_BY_MANUAL" ||
-    value === "SUPPRESSED"
-  ) {
+  // SUPPRESSED 是旧链接里的写法，含义是“仍在触发且被抑制”。
+  if (value === "SUPPRESSED" || value === "SUPPRESSING") {
+    return "SUPPRESSING"
+  }
+  if (value === "RECOVERED" || value === "RECOVERED_BY_MANUAL") {
     return value
   }
   return "ALL"
@@ -843,11 +977,17 @@ function parseGranularity(value: string | null): Granularity {
 }
 
 function statusLabel(value: string, t: (key: string) => string) {
-  if (value === "FIRING") return t("alertEvent.statusFiring")
+  if (value === "FIRING") return t("alertEvent.statusSuppressing")
   if (value === "RECOVERED") return t("alertEvent.statusRecovered")
   if (value === "RECOVERED_BY_MANUAL")
     return t("alertEvent.statusRecoveredManual")
   return value
+}
+
+interface TimelinePoint {
+  key: number
+  count: number
+  label: string
 }
 
 function buildTimeline(
@@ -856,7 +996,7 @@ function buildTimeline(
   language: string,
   from: string,
   to: string
-) {
+): { points: TimelinePoint[]; gapsOmitted: boolean; maximum: number } {
   const bins = new Map<number, number>()
   const dates: Date[] = []
   for (const item of items) {
@@ -866,30 +1006,33 @@ function buildTimeline(
     const key = bucketStart(date, granularity).getTime()
     bins.set(key, (bins.get(key) ?? 0) + 1)
   }
-  if (bins.size === 0) return { points: [], gapsOmitted: false }
+  if (bins.size === 0) return { points: [], gapsOmitted: false, maximum: 1 }
 
-  const rangeStart = from
-    ? new Date(`${from}T00:00:00`)
+  const fromWindow = from ? localDayWindow(from) : undefined
+  const toWindow = to ? localDayWindow(to) : undefined
+  const rangeStart = fromWindow
+    ? new Date(fromWindow.start)
     : dates.reduce(
         (earliest, date) => (date < earliest ? date : earliest),
         dates[0]
       )
-  const rangeEnd = to
-    ? new Date(`${to}T23:59:59.999`)
+  // 上界是下一本地午夜（排除），所以用 end - 1ms 落在最后一个自然日之内。
+  const rangeEnd = toWindow
+    ? new Date(toWindow.end - 1)
     : dates.reduce((latest, date) => (date > latest ? date : latest), dates[0])
   if (
     !Number.isFinite(rangeStart.getTime()) ||
     !Number.isFinite(rangeEnd.getTime()) ||
     rangeStart > rangeEnd
   ) {
-    return { points: [], gapsOmitted: false }
+    return { points: [], gapsOmitted: false, maximum: 1 }
   }
 
   const first = bucketStart(rangeStart, granularity)
   const last = bucketStart(rangeEnd, granularity)
   const keys: number[] = []
   let cursor = first
-  while (cursor <= last && keys.length <= 180) {
+  while (cursor <= last && keys.length < MAX_BUCKETS) {
     keys.push(cursor.getTime())
     cursor = advanceBucket(cursor, granularity)
   }
@@ -904,13 +1047,15 @@ function buildTimeline(
       : granularity === "month"
         ? { year: "numeric", month: "short" }
         : { month: "short", day: "numeric" }
+  const points = timelineKeys.map((key) => ({
+    key,
+    count: bins.get(key) ?? 0,
+    label: new Intl.DateTimeFormat(locale, options).format(new Date(key)),
+  }))
   return {
-    points: timelineKeys.map((key) => ({
-      key,
-      count: bins.get(key) ?? 0,
-      label: new Intl.DateTimeFormat(locale, options).format(new Date(key)),
-    })),
+    points,
     gapsOmitted,
+    maximum: Math.max(1, ...points.map((point) => point.count)),
   }
 }
 
@@ -990,8 +1135,4 @@ function durationSummary(values: number[]): DurationStats {
     p90: sorted[Math.max(0, Math.ceil(sorted.length * 0.9) - 1)],
     count: sorted.length,
   }
-}
-
-function timelineMaximum(points: Array<{ count: number }>) {
-  return Math.max(1, ...points.map((point) => point.count))
 }

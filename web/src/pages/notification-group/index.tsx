@@ -49,6 +49,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { firstInvalidReceiver } from "@/lib/email"
 import {
   collectFieldErrors,
@@ -496,8 +497,8 @@ export function NotificationGroupPage() {
                 <TableHead>{t("group.name")}</TableHead>
                 <TableHead>{t("group.channels")}</TableHead>
                 <TableHead>{t("group.receiversSummary")}</TableHead>
-                <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-center">{t("action.actions")}</TableHead>
+                <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -520,7 +521,7 @@ export function NotificationGroupPage() {
                   <TableCell className="max-w-md text-sm text-muted-foreground">{receiversSummary(item)}</TableCell>
                   <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
-                    <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
+                    <RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
                 </TableRow>
               ))}

@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 
 export function InvitationPage() {
   const { t } = useTranslation()
@@ -113,8 +114,8 @@ export function InvitationPage() {
               <TableHead>{t("member.role")}</TableHead>
               <TableHead>{t("invitation.inviter")}</TableHead>
               <TableHead>{t("member.expiresAt")}</TableHead>
-              <TableHead>{t("member.status")}</TableHead>
-              <TableHead className="text-center">{t("action.actions")}</TableHead>
+              <TableStatusHead>{t("member.status")}</TableStatusHead>
+              <TableActionsHead>{t("action.actions")}</TableActionsHead>
             </TableRow>
           </TableHeader>
           <TableBody>

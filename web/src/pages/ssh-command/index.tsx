@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead } from "@/components/table-heads"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Sheet,
@@ -286,7 +287,7 @@ export function SSHCommandPage() {
                 <TableHead>{t("ssh.name")}</TableHead>
                 <TableHead>{t("ssh.command")}</TableHead>
                 <TableHead>{t("ssh.reviewStatus")}</TableHead>
-                <TableHead className="text-center">{t("action.actions")}</TableHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -296,7 +297,7 @@ export function SSHCommandPage() {
                   <TableCell className="max-w-md truncate font-mono text-xs">{item.command}</TableCell>
                   <TableCell><StatusBadge value={item.reviewStatus} /></TableCell>
                   <TableCell>
-                    <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
+                    <RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
                 </TableRow>
               ))}

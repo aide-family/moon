@@ -43,6 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead, TableTypeHead } from "@/components/table-heads"
 import {
   collectFieldErrors,
   hasFieldErrors,
@@ -291,9 +292,9 @@ export function AlertDictionaryPage() {
                 <TableRow>
                   <TableHead>{t("alertDictionary.name")}</TableHead>
                   <TableHead>{t("alertDictionary.color")}</TableHead>
-                  <TableHead>{t("datasource.type")}</TableHead>
-                  <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead className="text-center">{t("action.actions")}</TableHead>
+                  <TableTypeHead>{t("datasource.type")}</TableTypeHead>
+                  <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                  <TableActionsHead>{t("action.actions")}</TableActionsHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -306,7 +307,7 @@ export function AlertDictionaryPage() {
                     <TableCell><StatusBadge value={item.type} /></TableCell>
                     <TableCell><StatusBadge value={item.status} /></TableCell>
                     <TableCell>
-                      <RowActions
+                      <RowActions nowrap
                         detailLabel={t("action.detail")}
                         moreLabel={t("action.more")}
                         onDetail={() => setDetail(item)}

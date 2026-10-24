@@ -50,6 +50,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead, TableTypeHead } from "@/components/table-heads"
 import {
   collectFieldErrors,
   hasFieldErrors,
@@ -344,11 +345,11 @@ export function NotificationTemplatePage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t("template.name")}</TableHead>
-                <TableHead>{t("template.type")}</TableHead>
+                <TableTypeHead>{t("template.type")}</TableTypeHead>
                 <TableHead>{t("template.app")}</TableHead>
                 <TableHead>{t("template.subject")}</TableHead>
-                <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-center">{t("action.actions")}</TableHead>
+                <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -370,7 +371,7 @@ export function NotificationTemplatePage() {
                   <TableCell className="max-w-xs truncate">{item.subject}</TableCell>
                   <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
-                    <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
+                    <RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
                 </TableRow>
               ))}

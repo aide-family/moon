@@ -2,6 +2,7 @@ import { BarChart3, List, Search, X } from "lucide-react"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import type { ReactNode } from "react"
+import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { formErrorMessage } from "@/lib/form-error"
 
@@ -27,8 +28,12 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { FilterChips, type FilterChip } from "@/components/filter-chips"
+import { FilterToggle } from "@/components/filter-toggle"
+import { TABLE_COLUMN_WIDTH, TABLE_MIN_WIDTH } from "@/lib/table-layout"
 import { LevelBadge, StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
+import { DateRangePicker } from "@/components/date-range-picker"
 import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import {
@@ -60,6 +65,8 @@ import {
   parseEventLabels,
 } from "@/pages/alert/columns"
 import { formatDuration, formatTime } from "@/pages/alert/format"
+import { dayEndISO, dayStartISO } from "@/lib/date-range"
+import { HISTORY_RANGE_MAX_DAYS } from "@/pages/alert/history-range"
 import { AlertEventSuppressDialog } from "@/pages/alert/suppress-dialog"
 import type { SuppressInput } from "@/pages/alert/suppress-dialog"
 
@@ -72,9 +79,9 @@ interface AlertEventListProps {
   refreshKey?: number
   // 实时页从独立统计接口取数并下发；历史页不展示实时统计。
   stats?: AlertEventStats
-  // 实时页下发的自定义列；为空时使用视图默认列。
+  // 页面下发的自定义列；为空时使用视图默认列（实时、历史各一套）。
   columns?: AlertColumnItem[]
-  // 表头右侧的图标操作，实时页用来打开自定义列。
+  // 列表工具栏右侧的图标操作，实时页和历史明细都用它打开自定义列。
   columnsAction?: ReactNode
 }
 
@@ -102,14 +109,6 @@ const HISTORY_DETAIL_QUERY_KEYS = {
   suppression: "eventSuppression",
 } as const satisfies Record<keyof HistoryDetailFilters, string>
 
-function dateBound(value: string, exclusiveEnd = false): string | undefined {
-  if (!value) return undefined
-  const date = new Date(`${value}T00:00:00.000`)
-  if (Number.isNaN(date.getTime())) return undefined
-  if (exclusiveEnd) date.setDate(date.getDate() + 1)
-  return date.toISOString()
-}
-
 function activeHistoryFilterCount(filters: HistoryDetailFilters): number {
   return [
     filters.name,
@@ -121,6 +120,61 @@ function activeHistoryFilterCount(filters: HistoryDetailFilters): number {
     filters.status,
     filters.suppression,
   ].filter(Boolean).length
+}
+
+// 已提交筛选的可移除标签。移除任何一个都回到第 1 页，
+// 并且把对应的 URL 参数删掉——筛选状态只有 URL 一处来源。
+function historyFilterChips(
+  t: TFunction,
+  filters: HistoryDetailFilters,
+  levelName: string
+): Array<{ label: string; keys: string[] }> {
+  const chips: Array<{ label: string; keys: string[] }> = []
+  const text = (label: string, value: string) =>
+    value ? `${label}: ${value}` : ""
+  const name = text(t("alertEvent.namePlaceholder"), filters.name)
+  if (name) chips.push({ label: name, keys: ["eventName"] })
+  const rule = text(t("alertEvent.rule"), filters.ruleName)
+  if (rule) chips.push({ label: rule, keys: ["eventRule"] })
+  const datasource = text(t("alertEvent.datasource"), filters.datasourceName)
+  if (datasource) chips.push({ label: datasource, keys: ["eventDatasource"] })
+  if (filters.level) {
+    chips.push({
+      label: `${t("alertEvent.level")}: ${levelName || filters.level}`,
+      keys: ["eventLevel"],
+    })
+  }
+  if (filters.status) {
+    const label =
+      filters.status === "FIRING"
+        ? t("alertEvent.statusFiring")
+        : filters.status === "RECOVERED"
+          ? t("alertEvent.statusRecovered")
+          : t("alertEvent.statusRecoveredManual")
+    chips.push({
+      label: `${t("alertEvent.eventStatusLabel")}: ${label}`,
+      keys: ["eventStatus"],
+    })
+  }
+  if (filters.suppression) {
+    const label =
+      filters.suppression === "SUPPRESSED"
+        ? t("alertEvent.suppressedOnly")
+        : t("alertEvent.unsuppressedOnly")
+    chips.push({
+      label: `${t("alertEvent.suppressionFilter")}: ${label}`,
+      keys: ["eventSuppression"],
+    })
+  }
+  if (filters.from || filters.to) {
+    chips.push({
+      label: `${t("alertEvent.eventDateRange")}: ${filters.from || "…"} ${t(
+        "alertEvent.dateTo"
+      )} ${filters.to || "…"}`,
+      keys: ["eventFrom", "eventTo"],
+    })
+  }
+  return chips
 }
 
 export function AlertEventList({
@@ -169,15 +223,56 @@ export function AlertEventList({
       filters: { ...historyDraft, [key]: value },
     })
   }
+  // 日期范围是一次选择两个值，单独走一个入口，避免两次 setState 互相覆盖。
+  const updateHistoryDraftRange = (range: { from: string; to: string }) => {
+    setHistoryDraftState({
+      signature: draftSignature,
+      filters: { ...historyDraft, from: range.from, to: range.to },
+    })
+  }
   const invalidHistoryDateRange = Boolean(
     historyDraft.from && historyDraft.to && historyDraft.from > historyDraft.to
   )
-  const historyFilterCount = activeHistoryFilterCount(historyDraft)
+  const appliedHistoryFilterCount = activeHistoryFilterCount(
+    committedHistoryFilters
+  )
+  // 筛选面板默认收起：明细列表才是主内容，不能让它常驻占掉表格高度。
+  // 首次进入（没有任何已应用筛选）时展开，保证筛选能力可被发现。
+  const [filtersOpen, setFiltersOpen] = useState(
+    appliedHistoryFilterCount === 0
+  )
+  // 实时告警同样默认展开，应用后收起；有 URL 条件时直接收起。
+  const [realtimeFiltersOpen, setRealtimeFiltersOpen] = useState(
+    () => !(query.name || analysisLevel)
+  )
+  const historyDraftDirty =
+    JSON.stringify(historyDraft) !== historyFilterSignature
   const listName =
     view === "HISTORY" ? committedHistoryFilters.name : query.name
   const listLevel =
     view === "HISTORY" ? committedHistoryFilters.level : analysisLevel
-  const [draft, setDraft] = useState(query.name)
+  // 实时告警的筛选也是先编辑后应用，和历史告警保持同一种交互。
+  // 草稿绑定在“已应用条件”的签名上：URL 变了（后退、清空、外部跳转）就回到 URL 的值。
+  const realtimeSignature = `${query.name}|${analysisLevel}`
+  const [realtimeDraftState, setRealtimeDraftState] = useState<{
+    signature: string
+    name: string
+    level: string
+  } | null>(null)
+  const realtimeDraft =
+    realtimeDraftState?.signature === realtimeSignature
+      ? realtimeDraftState
+      : null
+  const draft = realtimeDraft?.name ?? query.name
+  const draftLevel = realtimeDraft?.level ?? analysisLevel
+  const setDraft = (name: string) =>
+    setRealtimeDraftState({
+      signature: realtimeSignature,
+      name,
+      level: draftLevel,
+    })
+  const setDraftLevel = (level: string) =>
+    setRealtimeDraftState({ signature: realtimeSignature, name: draft, level })
   const [localStats, setLocalStats] = useState<AlertEventStats>({
     firing: 0,
     suppressed: 0,
@@ -207,11 +302,11 @@ export function AlertEventList({
         levelUid: listLevel || undefined,
         startsAtFrom:
           view === "HISTORY"
-            ? dateBound(committedHistoryFilters.from, false)
+            ? dayStartISO(committedHistoryFilters.from)
             : undefined,
         startsAtTo:
           view === "HISTORY"
-            ? dateBound(committedHistoryFilters.to, true)
+            ? dayEndISO(committedHistoryFilters.to)
             : undefined,
         eventStatus:
           view === "HISTORY"
@@ -284,10 +379,8 @@ export function AlertEventList({
   const pinnedCheckCell = `${pin} left-0 group-hover:bg-muted`
   const pinnedLeft = canIntervene ? checkColumnWidth : 0
   // 操作列固定在右侧：不换行，宽度跟着两个按钮走（w-px 让它缩到内容宽度）。
-  const actionsHead =
-    "sticky right-0 z-20 w-px bg-background text-center table-pin-right"
-  const actionsCell =
-    "sticky right-0 w-px bg-background text-center table-pin-right group-hover:bg-muted"
+  const actionsHead = `sticky right-0 z-20 ${TABLE_COLUMN_WIDTH.actions} bg-background text-center table-pin-right`
+  const actionsCell = `sticky right-0 ${TABLE_COLUMN_WIDTH.actions} bg-background text-center table-pin-right group-hover:bg-muted`
   const title =
     view === "HISTORY" ? t("alertEvent.historyTitle") : t("alertEvent.title")
 
@@ -459,6 +552,8 @@ export function AlertEventList({
     next.set("page", "1")
     setParams(next)
     setHistoryDraftState(null)
+    // 应用后收起面板，把垂直空间还给列表；已应用的筛选改为以标签呈现。
+    setFiltersOpen(false)
   }
 
   function clearHistoryFilters() {
@@ -471,8 +566,91 @@ export function AlertEventList({
     setHistoryDraftState(null)
   }
 
+  function removeHistoryFilter(keys: string[]) {
+    const next = new URLSearchParams(params)
+    for (const key of keys) {
+      next.delete(key)
+    }
+    next.set("page", "1")
+    setParams(next)
+    setHistoryDraftState(null)
+  }
+
+  // 实时告警只有摘要和级别两个条件：实时列表本身只包含仍在触发的事件，
+  // 再加状态、抑制、时间范围会和它重叠，所以这里有意不提供。
+  function applyRealtimeFilters() {
+    const next = new URLSearchParams(params)
+    const name = draft.trim()
+    if (name) next.set("name", name)
+    else next.delete("name")
+    if (draftLevel) next.set("level", draftLevel)
+    else next.delete("level")
+    next.set("page", "1")
+    setParams(next)
+    setRealtimeFiltersOpen(false)
+  }
+
+  function clearRealtimeFilters() {
+    const next = new URLSearchParams(params)
+    next.delete("name")
+    next.delete("level")
+    next.set("page", "1")
+    setParams(next)
+    setDraft("")
+    setDraftLevel("")
+  }
+
+  function removeRealtimeFilter(key: "name" | "level") {
+    const next = new URLSearchParams(params)
+    next.delete(key)
+    next.set("page", "1")
+    setParams(next)
+    if (key === "name") setDraft("")
+    else setDraftLevel("")
+  }
+
+  // 页码可能来自历史 URL 或被收缩后的结果集：总数更小或结果为空时回到最后一页，
+  // 否则 ListFrame 会隐藏分页控件，用户只能手改 URL 才能继续。
+  useEffect(() => {
+    if (view !== "HISTORY" || loading || failed || query.page <= 1) {
+      return
+    }
+    const lastPage = Math.max(1, Math.ceil(total / query.pageSize))
+    if (
+      lastPage !== query.page &&
+      (items.length === 0 || query.page > lastPage)
+    ) {
+      query.update({ page: lastPage })
+    }
+    // query.update 每次渲染都是新函数，这里用页码与总数做真正的依赖。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, loading, failed, items.length, total, query.page, query.pageSize])
+
   const allChecked =
     items.length > 0 && items.every((item) => selected.includes(item.uid))
+  const levelName =
+    levels.find((item) => item.uid === committedHistoryFilters.level)?.name ??
+    ""
+  const filterChips = historyFilterChips(t, committedHistoryFilters, levelName)
+  const realtimeLevelName =
+    levels.find((item) => item.uid === analysisLevel)?.name ?? ""
+  const realtimeChips: FilterChip[] = []
+  if (view === "REALTIME") {
+    if (query.name) {
+      realtimeChips.push({
+        key: "name",
+        label: `${t("alertEvent.namePlaceholder")}: ${query.name}`,
+        onRemove: () => removeRealtimeFilter("name"),
+      })
+    }
+    if (analysisLevel) {
+      realtimeChips.push({
+        key: "level",
+        label: `${t("alertEvent.level")}: ${realtimeLevelName || analysisLevel}`,
+        onRemove: () => removeRealtimeFilter("level"),
+      })
+    }
+  }
 
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
@@ -506,50 +684,39 @@ export function AlertEventList({
           <>
             <TabsList
               variant="default"
-              className="grid h-auto w-full max-w-[40rem] grid-cols-2 items-stretch gap-1.5 rounded-xl border border-border/70 bg-muted/40 p-1.5"
+              className="grid h-8 w-full max-w-[22rem] grid-cols-2 gap-0.5 rounded-lg border border-border/70 bg-muted/40 p-0.5"
             >
               <TabsTrigger
                 value="analysis"
-                className="group/tab h-auto min-h-16 justify-start gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left whitespace-normal transition-colors data-[state=active]:border-primary/25 data-[state=active]:shadow-sm sm:px-4"
+                title={t("alertEvent.analysisTabHint")}
+                className="h-7 gap-1.5 px-2 text-xs sm:text-sm"
               >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-background text-muted-foreground ring-1 ring-border/70 transition-colors group-data-[state=active]/tab:bg-primary/10 group-data-[state=active]/tab:text-primary group-data-[state=active]/tab:ring-primary/20">
-                  <BarChart3 aria-hidden="true" data-icon="inline-start" />
-                </span>
-                <span className="min-w-0 text-left">
-                  <span className="block text-sm font-semibold tracking-tight">
-                    {t("alertEvent.analysisTab")}
-                  </span>
-                  <span className="mt-1 hidden text-xs leading-tight text-muted-foreground sm:block">
-                    {t("alertEvent.analysisTabHint")}
-                  </span>
-                </span>
+                <BarChart3 aria-hidden="true" />
+                {t("alertEvent.analysisTab")}
               </TabsTrigger>
               <TabsTrigger
                 value="details"
-                className="group/tab h-auto min-h-16 justify-start gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left whitespace-normal transition-colors data-[state=active]:border-primary/25 data-[state=active]:shadow-sm sm:px-4"
+                title={t("alertEvent.detailTabHint")}
+                className="h-7 gap-1.5 px-2 text-xs sm:text-sm"
               >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-background text-muted-foreground ring-1 ring-border/70 transition-colors group-data-[state=active]/tab:bg-primary/10 group-data-[state=active]/tab:text-primary group-data-[state=active]/tab:ring-primary/20">
-                  <List aria-hidden="true" data-icon="inline-start" />
-                </span>
-                <span className="min-w-0 text-left">
-                  <span className="block text-sm font-semibold tracking-tight">
-                    {t("alertEvent.detailTab")}
-                  </span>
-                  <span className="mt-1 hidden text-xs leading-tight text-muted-foreground sm:block">
-                    {t("alertEvent.detailTabHint")}
-                  </span>
-                </span>
+                <List aria-hidden="true" />
+                {t("alertEvent.detailTab")}
               </TabsTrigger>
             </TabsList>
             <TabsContent
               value="analysis"
               forceMount
-              className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain"
+              // forceMount 让分析结果在切换标签后保留（不必重新聚合），但 Radix 在
+              // forceMount 下把面板视为常驻，不会替非激活面板加 hidden；不自己按受控
+              // 的 historyTab 隐藏，统计卡片和图表会一直堆在明细列表上方。
+              className={
+                historyTab === "analysis"
+                  ? "min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain"
+                  : "hidden"
+              }
             >
               <AlertHistoryInsights
                 key={session.namespaceUid}
-                name={query.name}
-                levelUid={analysisLevel}
                 enabled={historyTab === "analysis"}
                 onSelectFingerprint={(fingerprint) => {
                   const next = new URLSearchParams(params)
@@ -579,32 +746,58 @@ export function AlertEventList({
             className={
               view === "HISTORY"
                 ? "flex min-h-0 min-w-0 flex-1 flex-col gap-3"
-                : "min-w-0"
+                : // 操作区（筛选/统计/批量按钮）和表格之间留出间距，避免贴在一起。
+                  "min-w-0 space-y-4"
             }
           >
             {view === "HISTORY" ? (
-              <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                    {t("alertEvent.detailEyebrow")}
-                  </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
                   <h2
                     id="alert-history-details-title"
-                    className="mt-1 text-lg font-semibold tracking-tight"
+                    className="text-base font-semibold tracking-tight"
                   >
                     {t("alertEvent.detailTitle")}
                   </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {t("alertEvent.detailDescription")}
-                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    {t("alertEvent.detailSubtitle")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {historyDraftDirty ? (
+                    <span
+                      className="text-xs text-amber-600 dark:text-amber-400"
+                      role="status"
+                    >
+                      {t("alertEvent.unappliedChanges")}
+                    </span>
+                  ) : null}
+                  <FilterToggle
+                    open={filtersOpen}
+                    count={filterChips.length}
+                    controls="history-detail-filters"
+                    onClick={() => setFiltersOpen((open) => !open)}
+                  />
                 </div>
               </div>
             ) : null}
+            {view === "HISTORY" && filterChips.length > 0 ? (
+              <FilterChips
+                items={filterChips.map((chip) => ({
+                  key: chip.label,
+                  label: chip.label,
+                  onRemove: () => removeHistoryFilter(chip.keys),
+                }))}
+                onClearAll={clearHistoryFilters}
+              />
+            ) : null}
             <div
+              id={view === "HISTORY" ? "history-detail-filters" : undefined}
               className={
                 view === "HISTORY"
-                  ? "rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4"
-                  : "flex flex-wrap items-center justify-between gap-2"
+                  ? // 面板高度受限：展开筛选时也要给明细表格留出可滚动的高度。
+                    `max-h-[min(60vh,32rem)] overflow-y-auto rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4 ${filtersOpen ? "" : "hidden"}`
+                  : "flex min-w-0 flex-col gap-2"
               }
             >
               {view === "HISTORY" ? (
@@ -621,10 +814,61 @@ export function AlertEventList({
                 className={
                   view === "HISTORY"
                     ? "flex flex-wrap items-center justify-between gap-3"
-                    : "flex flex-wrap items-center justify-between gap-2"
+                    : "flex min-w-0 flex-col gap-2"
                 }
               >
+                {view === "REALTIME" ? (
+                  <>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <FilterToggle
+                        open={realtimeFiltersOpen}
+                        count={realtimeChips.length}
+                        controls="realtime-filters"
+                        onClick={() => setRealtimeFiltersOpen((open) => !open)}
+                      />
+                      <span className="shrink-0 text-sm text-muted-foreground">
+                        {t("alertEvent.stats", {
+                          firing: stats.firing,
+                          suppressed: stats.suppressed,
+                          recovered: stats.recovered,
+                        })}
+                      </span>
+                      {canIntervene ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            className="shrink-0"
+                            disabled={pending || selected.length === 0}
+                            onClick={() => void intervene(selected)}
+                          >
+                            {t("alertEvent.batchIntervene")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="shrink-0"
+                            disabled={pending || selected.length === 0}
+                            onClick={() =>
+                              setConfirm({
+                                kind: "batch-recover",
+                                uids: selected,
+                              })
+                            }
+                          >
+                            {t("alertEvent.batchRecover")}
+                          </Button>
+                        </>
+                      ) : null}
+                    </div>
+                    {realtimeChips.length > 0 ? (
+                      <FilterChips
+                        items={realtimeChips}
+                        onClearAll={clearRealtimeFilters}
+                      />
+                    ) : null}
+                  </>
+                ) : null}
                 <form
+                  id={view === "REALTIME" ? "realtime-filters" : undefined}
                   role={view === "HISTORY" ? "search" : undefined}
                   aria-label={
                     view === "HISTORY" ? t("alertEvent.detailTitle") : undefined
@@ -632,14 +876,14 @@ export function AlertEventList({
                   className={
                     view === "HISTORY"
                       ? "grid w-full min-w-0 gap-4"
-                      : "flex flex-nowrap items-center gap-2"
+                      : `flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4 ${realtimeFiltersOpen ? "" : "hidden"}`
                   }
                   onSubmit={(event) => {
                     event.preventDefault()
                     if (view === "HISTORY") {
                       if (!invalidHistoryDateRange) applyHistoryFilters()
                     } else {
-                      query.update({ name: draft })
+                      applyRealtimeFilters()
                     }
                   }}
                 >
@@ -660,7 +904,7 @@ export function AlertEventList({
                             />
                             <Input
                               id="history-detail-name"
-                              className="h-10 pl-9"
+                              className="pl-9"
                               value={historyDraft.name}
                               placeholder={t("alertEvent.namePlaceholder")}
                               onChange={(event) =>
@@ -678,7 +922,6 @@ export function AlertEventList({
                           </FieldLabel>
                           <Input
                             id="history-detail-rule"
-                            className="h-10"
                             value={historyDraft.ruleName}
                             placeholder={t("alertEvent.ruleNamePlaceholder")}
                             onChange={(event) =>
@@ -695,7 +938,6 @@ export function AlertEventList({
                           </FieldLabel>
                           <Input
                             id="history-detail-datasource"
-                            className="h-10"
                             value={historyDraft.datasourceName}
                             placeholder={t(
                               "alertEvent.datasourceNamePlaceholder"
@@ -726,7 +968,7 @@ export function AlertEventList({
                           >
                             <SelectTrigger
                               id="history-detail-level"
-                              className="h-10 w-full"
+                              className="w-full"
                             >
                               <SelectValue
                                 placeholder={t("alertEvent.allLevels")}
@@ -764,7 +1006,7 @@ export function AlertEventList({
                           >
                             <SelectTrigger
                               id="history-detail-status"
-                              className="h-10 w-full"
+                              className="w-full"
                             >
                               <SelectValue
                                 placeholder={t("alertEvent.allStatuses")}
@@ -806,7 +1048,7 @@ export function AlertEventList({
                           >
                             <SelectTrigger
                               id="history-detail-suppression"
-                              className="h-10 w-full"
+                              className="w-full"
                             >
                               <SelectValue
                                 placeholder={t("alertEvent.allSuppression")}
@@ -828,54 +1070,31 @@ export function AlertEventList({
                           </Select>
                         </Field>
                         <Field
-                          className="col-span-2 xl:col-span-2"
+                          // 和旁边其他条件一样只占一格；窄屏下独占一行，避免日期被压断。
+                          className="col-span-2 xl:col-span-1"
                           data-invalid={invalidHistoryDateRange || undefined}
                         >
                           <FieldLabel
-                            htmlFor="history-detail-from"
+                            htmlFor="history-detail-range"
                             className="text-xs text-muted-foreground"
                           >
                             {t("alertEvent.eventDateRange")}
                           </FieldLabel>
-                          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-                            <Input
-                              id="history-detail-from"
-                              type="date"
-                              className="h-10 min-w-0"
-                              aria-label={t("alertEvent.fromDate")}
-                              value={historyDraft.from}
-                              max={historyDraft.to || undefined}
-                              aria-invalid={invalidHistoryDateRange}
-                              aria-describedby={
-                                invalidHistoryDateRange
-                                  ? "history-detail-date-error"
-                                  : undefined
-                              }
-                              onChange={(event) =>
-                                updateHistoryDraft("from", event.target.value)
-                              }
-                            />
-                            <span className="text-xs text-muted-foreground">
-                              {t("alertEvent.dateTo")}
-                            </span>
-                            <Input
-                              id="history-detail-to"
-                              type="date"
-                              className="h-10 min-w-0"
-                              aria-label={t("alertEvent.toDate")}
-                              value={historyDraft.to}
-                              min={historyDraft.from || undefined}
-                              aria-invalid={invalidHistoryDateRange}
-                              aria-describedby={
-                                invalidHistoryDateRange
-                                  ? "history-detail-date-error"
-                                  : undefined
-                              }
-                              onChange={(event) =>
-                                updateHistoryDraft("to", event.target.value)
-                              }
-                            />
-                          </div>
+                          {/* 双月日历一次选完整区间，按天取值，最多 30 天。 */}
+                          <DateRangePicker
+                            id="history-detail-range"
+                            from={historyDraft.from}
+                            to={historyDraft.to}
+                            maxDays={HISTORY_RANGE_MAX_DAYS}
+                            invalid={invalidHistoryDateRange}
+                            describedBy={
+                              invalidHistoryDateRange
+                                ? "history-detail-date-error"
+                                : undefined
+                            }
+                            ariaLabel={t("alertEvent.eventDateRange")}
+                            onChange={updateHistoryDraftRange}
+                          />
                         </Field>
                       </FieldGroup>
                       <div className="flex flex-col gap-2 border-t border-border/60 pt-3 sm:flex-row sm:items-center sm:justify-between">
@@ -891,11 +1110,13 @@ export function AlertEventList({
                             </p>
                           ) : (
                             <p className="text-xs text-muted-foreground">
-                              {historyFilterCount > 0
-                                ? t("alertEvent.activeFilterCount", {
-                                    count: historyFilterCount,
-                                  })
-                                : t("alertEvent.detailSearchHint")}
+                              {historyDraftDirty
+                                ? t("alertEvent.unappliedChanges")
+                                : filterChips.length > 0
+                                  ? t("alertEvent.activeFilterCount", {
+                                      count: filterChips.length,
+                                    })
+                                  : t("alertEvent.detailSearchHint")}
                             </p>
                           )}
                         </div>
@@ -904,7 +1125,7 @@ export function AlertEventList({
                             type="button"
                             variant="ghost"
                             size="sm"
-                            disabled={historyFilterCount === 0}
+                            disabled={appliedHistoryFilterCount === 0}
                             onClick={clearHistoryFilters}
                           >
                             <X aria-hidden="true" data-icon="inline-start" />
@@ -912,104 +1133,89 @@ export function AlertEventList({
                           </Button>
                           <Button
                             type="submit"
-                            className="h-10"
                             disabled={invalidHistoryDateRange}
                           >
                             <Search
                               aria-hidden="true"
                               data-icon="inline-start"
                             />
-                            {t("action.search")}
+                            {t("alertEvent.applyFilters")}
                           </Button>
                         </div>
                       </div>
                     </>
                   ) : (
                     <>
-                      <Input
-                        className="max-w-sm min-w-0"
-                        value={draft}
-                        aria-label={t("alertEvent.namePlaceholder")}
-                        placeholder={t("alertEvent.namePlaceholder")}
-                        onChange={(event) => setDraft(event.target.value)}
-                      />
-                      <Select
-                        value={analysisLevel || "ALL"}
-                        onValueChange={(value) => {
-                          const next = new URLSearchParams(params)
-                          if (value === "ALL") next.delete("level")
-                          else next.set("level", value)
-                          next.set("page", "1")
-                          setParams(next)
-                        }}
-                      >
-                        <SelectTrigger
-                          className="w-40 shrink-0"
-                          aria-label={t("alertEvent.level")}
+                      <Field className="min-w-0 flex-1 basis-56">
+                        <FieldLabel
+                          htmlFor="realtime-name"
+                          className="text-xs text-muted-foreground"
                         >
-                          <SelectValue
-                            placeholder={t("alertEvent.allLevels")}
+                          {t("alertEvent.namePlaceholder")}
+                        </FieldLabel>
+                        <div className="relative">
+                          <Search
+                            aria-hidden="true"
+                            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
                           />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="ALL">
-                              {t("alertEvent.allLevels")}
-                            </SelectItem>
-                            {levels.map((item) => (
-                              <SelectItem key={item.uid} value={item.uid}>
-                                {item.name}
+                          <Input
+                            id="realtime-name"
+                            className="pl-9"
+                            value={draft}
+                            onChange={(event) => setDraft(event.target.value)}
+                          />
+                        </div>
+                      </Field>
+                      <Field className="w-44 shrink-0">
+                        <FieldLabel
+                          htmlFor="realtime-level"
+                          className="text-xs text-muted-foreground"
+                        >
+                          {t("alertEvent.level")}
+                        </FieldLabel>
+                        <Select
+                          value={draftLevel || "ALL"}
+                          onValueChange={(value) =>
+                            setDraftLevel(value === "ALL" ? "" : value)
+                          }
+                        >
+                          <SelectTrigger id="realtime-level" className="w-full">
+                            <SelectValue
+                              placeholder={t("alertEvent.allLevels")}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="ALL">
+                                {t("alertEvent.allLevels")}
                               </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        type="submit"
-                        variant="outline"
-                        className="shrink-0"
-                      >
-                        {t("action.search")}
-                      </Button>
+                              {levels.map((item) => (
+                                <SelectItem key={item.uid} value={item.uid}>
+                                  {item.name}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {realtimeChips.length > 0 ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={clearRealtimeFilters}
+                          >
+                            {t("filter.clear")}
+                          </Button>
+                        ) : null}
+                        <Button type="submit" variant="outline">
+                          <Search aria-hidden="true" data-icon="inline-start" />
+                          {t("alertEvent.applyFilters")}
+                        </Button>
+                      </div>
                     </>
                   )}
                 </form>
-                {view === "REALTIME" ? (
-                  <div className="flex flex-nowrap items-center justify-end gap-2">
-                    <span className="shrink-0 text-sm text-muted-foreground">
-                      {t("alertEvent.stats", {
-                        firing: stats.firing,
-                        suppressed: stats.suppressed,
-                        recovered: stats.recovered,
-                      })}
-                    </span>
-                    {canIntervene ? (
-                      <>
-                        <Button
-                          variant="outline"
-                          className="shrink-0"
-                          disabled={pending || selected.length === 0}
-                          onClick={() => void intervene(selected)}
-                        >
-                          {t("alertEvent.batchIntervene")}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="shrink-0"
-                          disabled={pending || selected.length === 0}
-                          onClick={() =>
-                            setConfirm({
-                              kind: "batch-recover",
-                              uids: selected,
-                            })
-                          }
-                        >
-                          {t("alertEvent.batchRecover")}
-                        </Button>
-                      </>
-                    ) : null}
-                  </div>
-                ) : null}
               </div>
             </div>
             {actionError ? (
@@ -1019,7 +1225,7 @@ export function AlertEventList({
               total={total}
               page={query.page}
               pageSize={query.pageSize}
-              showPager={!loading && !failed && items.length > 0}
+              showPager={!loading && !failed && total > 0}
               actions={columnsAction}
               onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
               onNext={() => query.update({ page: query.page + 1 })}
@@ -1040,8 +1246,7 @@ export function AlertEventList({
                 </div>
               ) : null}
               {!loading && !failed && items.length === 0 ? (
-                view === "HISTORY" &&
-                activeHistoryFilterCount(committedHistoryFilters) > 0 ? (
+                appliedHistoryFilterCount > 0 ? (
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-sm text-muted-foreground">
                       {t("alertEvent.emptyFilteredHistory")}
@@ -1056,13 +1261,17 @@ export function AlertEventList({
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    {t("alertEvent.empty")}
+                    {view === "HISTORY"
+                      ? t("alertEvent.emptyHistory")
+                      : t("alertEvent.empty")}
                   </p>
                 )
               ) : null}
               {!loading && !failed && items.length > 0 ? (
                 <Table
-                  className={view === "HISTORY" ? "min-w-[58rem]" : undefined}
+                  className={
+                    view === "HISTORY" ? TABLE_MIN_WIDTH.default : undefined
+                  }
                 >
                   <TableHeader>
                     <TableRow>
@@ -1122,7 +1331,7 @@ export function AlertEventList({
                               index === 0 ? { left: pinnedLeft } : undefined
                             }
                           >
-                            {eventCell(item, column, levels, now, view)}
+                            {eventCell(item, column, levels, now, view, t)}
                           </TableCell>
                         ))}
                         <TableCell className={actionsCell}>
@@ -1206,7 +1415,8 @@ function eventCell(
   column: AlertColumnItem,
   levels: AlertDictionaryItem[],
   now: number,
-  view: AlertEventView
+  view: AlertEventView,
+  t: TFunction
 ): ReactNode {
   if (column.type === "LABEL") {
     const labels = parseEventLabels(item.labels)
@@ -1258,9 +1468,23 @@ function eventCell(
       ) : (
         formatTime(item.startsAt)
       )
+    case "ends_at":
+      return view === "HISTORY" ? (
+        <span className="font-mono text-xs text-muted-foreground tabular-nums">
+          {formatTime(item.endsAt) || "—"}
+        </span>
+      ) : (
+        formatTime(item.endsAt) || "—"
+      )
     case "duration":
       return (
-        <span className="font-mono">{formatDuration(item.startsAt, now)}</span>
+        <span className="font-mono">
+          {formatDuration(
+            item.startsAt,
+            // 历史事件已结束，时长必须止于 endsAt；用 now 会让旧记录一直增长。
+            item.endsAt ? new Date(item.endsAt).getTime() : now
+          )}
+        </span>
       )
     case "intervened":
       return item.intervenedBy ? (
@@ -1272,7 +1496,24 @@ function eventCell(
         </div>
       ) : null
     case "status":
-      return <StatusBadge value={item.status} />
+      return (
+        <span className="inline-flex items-center gap-1.5">
+          <StatusBadge value={item.status} />
+          {/* 历史列表里“触发中”只可能来自仍被抑制的事件，必须标出来，
+              否则与实时告警中的触发事件无法区分。 */}
+          {item.suppressed ? (
+            <StatusBadge
+              value="SUPPRESSED"
+              tone="warning"
+              label={
+                item.status === "FIRING"
+                  ? t("alertEvent.suppressionActive")
+                  : t("alertEvent.suppressionMarked")
+              }
+            />
+          ) : null}
+        </span>
+      )
     case "description":
       return (
         <span className="block max-w-[20rem] truncate" title={item.description}>

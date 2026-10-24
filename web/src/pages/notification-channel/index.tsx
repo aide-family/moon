@@ -44,6 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead, TableTypeHead } from "@/components/table-heads"
 import { isEmail } from "@/lib/email"
 import {
   collectFieldErrors,
@@ -323,11 +324,11 @@ export function NotificationChannelPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t("channel.name")}</TableHead>
-                <TableHead>{t("channel.type")}</TableHead>
+                <TableTypeHead>{t("channel.type")}</TableTypeHead>
                 <TableHead>{t("channel.app")}</TableHead>
                 <TableHead>{t("channel.endpoint")}</TableHead>
-                <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-center">{t("action.actions")}</TableHead>
+                <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -358,7 +359,7 @@ export function NotificationChannelPage() {
                   <TableCell className="max-w-xs truncate">{item.endpoint}</TableCell>
                   <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
-                    <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
+                    <RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
                 </TableRow>
               ))}

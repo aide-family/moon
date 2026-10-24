@@ -72,6 +72,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { enumLabel } from "@/lib/enum-label"
 import {
   collectFieldErrors,
@@ -816,8 +817,8 @@ export function AlertRulePage() {
                     <TableHead>{t("alertRule.name")}</TableHead>
                     <TableHead>{t("datasource.expr")}</TableHead>
                     <TableHead>{t("datasource.driver")}</TableHead>
-                    <TableHead>{t("namespace.status")}</TableHead>
-                    <TableHead className="text-center">{t("action.actions")}</TableHead>
+                    <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                    <TableActionsHead>{t("action.actions")}</TableActionsHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -834,7 +835,7 @@ export function AlertRulePage() {
                       <TableCell><StatusBadge value={item.driver} /></TableCell>
                       <TableCell><StatusBadge value={item.status} /></TableCell>
                       <TableCell>
-                        <RowActions
+                        <RowActions nowrap
                           detailLabel={t("action.detail")}
                           moreLabel={t("action.more")}
                           onDetail={() => setDetail(item)}

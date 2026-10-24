@@ -35,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead } from "@/components/table-heads"
 import {
   collectFieldErrors,
   hasFieldErrors,
@@ -202,7 +203,7 @@ export function AlertPageManagePage() {
                 <TableHead>{t("alertPage.name")}</TableHead>
                 <TableHead>{t("alertPage.labels")}</TableHead>
                 <TableHead>{t("alertPage.visibility")}</TableHead>
-                <TableHead className="text-center">{t("action.actions")}</TableHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -217,7 +218,7 @@ export function AlertPageManagePage() {
                     />
                   </TableCell>
                   <TableCell>
-                    <RowActions
+                    <RowActions nowrap
                       detailLabel={t("action.detail")}
                       moreLabel={t("action.more")}
                       onDetail={() => setDetail(item)}

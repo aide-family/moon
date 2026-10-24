@@ -1,6 +1,7 @@
 import type { AlertColumnItem } from "@/api/alert-page/types"
 
-// 未配置列时实时告警表格使用的默认列，保持旧页面的信息密度。
+// 历史明细是事件台账：必须给出终态、结束时间和持续时长，
+// 否则“已恢复”的记录看不出什么时候结束、持续了多久。
 export const DEFAULT_HISTORY_COLUMNS: AlertColumnItem[] = [
   { key: "summary", type: "FIELD", label: "" },
   { key: "status", type: "FIELD", label: "" },
@@ -8,6 +9,8 @@ export const DEFAULT_HISTORY_COLUMNS: AlertColumnItem[] = [
   { key: "datasource", type: "FIELD", label: "" },
   { key: "sample_value", type: "FIELD", label: "" },
   { key: "starts_at", type: "FIELD", label: "" },
+  { key: "ends_at", type: "FIELD", label: "" },
+  { key: "duration", type: "FIELD", label: "" },
 ]
 
 export const DEFAULT_REALTIME_COLUMNS: AlertColumnItem[] = [
@@ -36,8 +39,27 @@ export const FIELD_COLUMNS: Array<{ key: string; labelKey: string }> = [
   { key: "rule", labelKey: "alertEvent.rule" },
 ]
 
+// 只在历史明细里出现的字段：实时列表只含仍在触发的事件，ends_at 必然为空。
+// 历史明细允许把它加回列配置，所以单独列出一份供选择器使用。
+const HISTORY_ONLY_FIELD_COLUMNS: Array<{ key: string; labelKey: string }> = [
+  { key: "ends_at", labelKey: "alertEvent.endsAt" },
+]
+
+// 历史明细列选择器可选的内置字段：内置字段 + 仅历史字段。
+export const HISTORY_FIELD_COLUMNS: Array<{ key: string; labelKey: string }> = [
+  ...FIELD_COLUMNS,
+  ...HISTORY_ONLY_FIELD_COLUMNS,
+]
+
+// 历史明细的列配置视图标识，与后端 alertpage 包的 tabHistory 一致。
+// 和实时告警的 mine 一样，配置按用户存在后端，随账号走而不是跟着浏览器。
+export const HISTORY_COLUMNS_SCOPE = "history"
+
 const fieldLabels = new Map(
-  FIELD_COLUMNS.map((item) => [item.key, item.labelKey])
+  [...FIELD_COLUMNS, ...HISTORY_ONLY_FIELD_COLUMNS].map((item) => [
+    item.key,
+    item.labelKey,
+  ])
 )
 
 // fieldLabel 返回内置字段在表格里的默认列名，未知字段回退到键。

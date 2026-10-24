@@ -54,6 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 
 type RoleOption = { uid: string; name: string }
 
@@ -313,7 +314,7 @@ export function MemberPage() {
                 <TableHead>{t("member.role")}</TableHead>
                 <TableHead>{t("member.inviter")}</TableHead>
                 <TableHead>{t("member.expiresAt")}</TableHead>
-                <TableHead className="text-center">{t("action.actions")}</TableHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -378,8 +379,8 @@ export function MemberPage() {
                 <TableRow>
                   <TableHead>{t("member.email")}</TableHead>
                   <TableHead>{t("member.role")}</TableHead>
-                  <TableHead>{t("member.status")}</TableHead>
-                  <TableHead className="text-center">{t("action.actions")}</TableHead>
+                  <TableStatusHead>{t("member.status")}</TableStatusHead>
+                  <TableActionsHead>{t("action.actions")}</TableActionsHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -395,7 +396,7 @@ export function MemberPage() {
                     </TableCell>
                     <TableCell><StatusBadge value={item.status} /></TableCell>
                     <TableCell>
-                      <RowActions
+                      <RowActions nowrap
                         detailLabel={t("action.detail")}
                         moreLabel={t("action.more")}
                         onDetail={() => setDetail(item)}

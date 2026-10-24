@@ -28,7 +28,7 @@ Before calling a UI change complete, use an authenticated local test session whe
 
 ## Regression note: historical alerts
 
-The historical analysis panel exposed two independent mistakes: the shared Tabs trigger styles checked `data-active` while Radix exposes `data-state="active"`, so the selected-tab visual state did not track the controlled tab; and the long analysis panel sat under the fixed app shell's `overflow-hidden` layout without a bounded, vertically scrollable panel. Build and lint checks did not exercise either browser behavior. The fixes must therefore be reviewed both at the shared Tabs primitive and at the route's height/overflow chain, then verified with the checks above.
+The historical analysis panel exposed two independent mistakes: the shared Tabs trigger styles checked `data-active` while Radix exposes `data-state="active"`, so the selected-tab visual state did not track the controlled tab; and the long analysis panel sat under the fixed app shell's `overflow-hidden` layout without a bounded, vertically scrollable panel. A third: `TabsContent forceMount` panels are always `present` in the primitive, so Radix renders the inactive analysis panel with `hidden={false}` and it stayed visible above the details ledger — force-mounted panels must be hidden from the controlled tab state (`className={active ? panelClasses : "hidden"}`), not left to the primitive. Build and lint checks did not exercise any of these browser behaviors. The fixes must therefore be reviewed both at the shared Tabs primitive and at the route's height/overflow chain, then verified with the checks above.
 
 ## Review checklist
 
@@ -39,9 +39,32 @@ The historical analysis panel exposed two independent mistakes: the shared Tabs 
 - [ ] Browser verification limitations are stated explicitly.
 - [ ] Typecheck, lint, and production build passed.
 
+## Form controls and filter panels
+
+- Form controls keep the primitive height (`h-8`, 32px): never override `h-9`/`h-10` on `Input`, `SelectTrigger`, `Textarea`, or `DateRangePicker`. Side-by-side controls must measure equal height; verify with the rendered rects rather than by reading class names.
+- List filter areas use the shared card + `FilterChips` + `FilterToggle` pattern. The toggle shares one row with the page's right-side actions (stats/batch buttons on realtime alerts, view tabs on message logs) so the header never breaks into an extra row, and the panel below collapses instead of disappearing.
+- Keep visible spacing between a filter/action area and the list frame (`space-y-4` on the block container or a flex `gap`); toolbars must never sit flush against the table card.
+- `FilterToggle` must point `aria-controls` at the real panel id, and the panel keeps `hidden` rather than unmounting so draft filter state survives a collapse.
+
+## Table layout standard
+
+All list tables share one width model, defined in `web/src/lib/table-layout.ts`:
+
+- Main content column (name / summary / subject): no fixed width; it takes the remaining space and wraps (`break-words`). Never make the whole column `truncate`.
+- Short enum columns (status / type / level): `TABLE_COLUMN_WIDTH.status|type|level` plus `whitespace-nowrap`.
+- Time columns: `TABLE_COLUMN_WIDTH.time`, `TABLE_NOWRAP`, `tabular-nums`.
+- Identity columns (owner / admin, name + email): `TABLE_COLUMN_WIDTH.identity`, wrap with `break-all`.
+- Actions column: render its header with `TableActionsHead` (7rem, nowrap, centered) and pass `nowrap` to `RowActions`. At most two inline actions; more collapse into the "more" menu. Action buttons must never wrap to a second line.
+- Table minimum width picks a tier from `TABLE_MIN_WIDTH.compact|default|wide` by column count. Horizontal overflow scrolls inside the Table/ListFrame viewport with a sticky header.
+- CSS-grid "tables" (tenant list style) reuse `TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS`. The header and every row must use the identical literal grid template — separate grid containers compute `fr`/`auto` tracks independently and drift apart otherwise.
+
 ## Historical alert view contract
 
 - Keep statistical analysis and historical event details as separate tab responsibilities. The details view is a searchable event ledger; do not add analysis cards, distributions, trends, or recurrence summaries there. A result total needed by pagination may remain list metadata.
 - Keep analysis URL filters separate from detail-list filters so analysis date/status selections do not silently alter event records.
 - Any condition that changes historical rows must be sent through the alert-event list API and applied across the merged history set before pagination. Never implement a history filter against only the currently visible browser page.
-- Historical detail filters cover summary/fingerprint, severity, rule name, datasource name, start-time range, status, and suppression. The start bound is inclusive and the end bound exclusive; convert the selected end date to the next local midnight before sending RFC3339 so sub-millisecond events at day end are not omitted.
+- Historical detail filters cover summary/fingerprint, severity, rule name, datasource name, start-time range, status, and suppression. The start bound is inclusive (day 00:00:00) and the end bound exclusive at the selected day's 23:59:59.999999999, so the bound never drifts into the next day and fractional-second events at day end are still matched. Dates in the future are never selectable.
+- Historical detail columns use the same per-user custom-column mechanism as realtime alerts, with `scope=history` (realtime uses `mine` or an alert page UID), so the two never overwrite each other. Column selection is rendered by the shared list frame action, and `ends_at` is offered only on the history side because realtime events have no end time.
+- Historical date conditions use the shared dual-month `DateRangePicker` (day granularity only — never add time-of-day), capped at 30 days inclusive and never past today; the cap disables out-of-range days while picking instead of silently trimming the query. Day arithmetic lives in `src/lib/date-range.ts` and must stay DST-safe (use `dayNumber`, not raw milliseconds). The same 30-day limit is enforced server-side (`alertevent.MaxHistoryRangeDays`), so a hand-edited URL must still be rejected — do not rely on the picker alone.
+- Realtime alert filters intentionally cover only summary/fingerprint and severity, in the same card layout and applied-filter chips as history. The realtime list already means "still firing", so status/suppression/time filters would duplicate its meaning; do not add them without changing that model.
+- Message-log filters follow the notification API, not the alert schema: delivery logs filter by status (`SENT`/`FAILED`), task ID and created-time range; tasks filter by status and created-time range. Both send Unix seconds (`startTime` inclusive, `endTime` exclusive), cap at 30 days (server-side `notification.MaxMessageQueryDays`), and clear their filters when switching tabs because the two views do not share conditions.

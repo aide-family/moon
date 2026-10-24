@@ -37,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Textarea } from "@/components/ui/textarea"
 import { requireTrimmed, collectFieldErrors, hasFieldErrors } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
@@ -243,8 +244,8 @@ export function AgentPage() {
                 <TableHead>{t("agent.memory")}</TableHead>
                 <TableHead>{t("agent.disk")}</TableHead>
                 <TableHead>{t("agent.online")}</TableHead>
-                <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-center">{t("action.actions")}</TableHead>
+                <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -260,7 +261,7 @@ export function AgentPage() {
                   <TableCell><StatusBadge value={item.online ? "ONLINE" : "OFFLINE"} label={item.online ? t("agent.onlineYes") : t("agent.onlineNo")} /></TableCell>
                   <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
-                    <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
+                    <RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
                 </TableRow>
               ))}
