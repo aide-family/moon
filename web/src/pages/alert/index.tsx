@@ -1,7 +1,8 @@
 import { Columns3, GripVertical } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { Fragment, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { formErrorMessage } from "@/lib/form-error"
+import { usePointerReorder } from "@/hooks/use-flip-reorder"
 
 import { alertEventRealtimeStats } from "@/api/alert-event"
 import type { AlertEventStats } from "@/api/alert-event/types"
@@ -47,6 +48,7 @@ const MINE_TAB: RealtimeAlertTab = {
   name: MINE_TAB_ID,
   kind: "mine",
 }
+type DropPosition = "before" | "after"
 
 export function AlertRealtimePage() {
   const { t } = useTranslation()
@@ -59,8 +61,6 @@ export function AlertRealtimePage() {
   const [pickerFilter, setPickerFilter] = useState("")
   const [pending, setPending] = useState(false)
   const [error, setError] = useState("")
-  const [dragging, setDragging] = useState("")
-  const [dropTarget, setDropTarget] = useState("")
   const [ordering, setOrdering] = useState(false)
   const [orderError, setOrderError] = useState("")
   const [attempt, setAttempt] = useState(0)
@@ -77,6 +77,20 @@ export function AlertRealtimePage() {
   const [columnOpen, setColumnOpen] = useState(false)
   const [columnPending, setColumnPending] = useState(false)
   const [columnError, setColumnError] = useState("")
+  const {
+    containerRef,
+    dragKey: dragging,
+    dropTarget,
+    dropPosition,
+    dragSize,
+    startDrag,
+    consumeClick,
+    capturePositions,
+  } = usePointerReorder<HTMLDivElement>(
+    tabs.map((tab) => tab.id).join("|"),
+    "x",
+    handleTabDrop
+  )
 
   useEffect(() => {
     let alive = true
@@ -151,9 +165,7 @@ export function AlertRealtimePage() {
           return
         }
         setColumns(
-          result.columns?.length
-            ? result.columns
-            : DEFAULT_REALTIME_COLUMNS
+          result.columns?.length ? result.columns : DEFAULT_REALTIME_COLUMNS
         )
       } catch {
         if (alive) {
@@ -172,7 +184,9 @@ export function AlertRealtimePage() {
     setColumnError("")
     try {
       const result = await saveMyAlertColumns(active, next)
-      setColumns(result.columns?.length ? result.columns : DEFAULT_REALTIME_COLUMNS)
+      setColumns(
+        result.columns?.length ? result.columns : DEFAULT_REALTIME_COLUMNS
+      )
       setColumnOpen(false)
     } catch (err) {
       setColumnError(formErrorMessage(err, t("state.failed")))
@@ -227,40 +241,65 @@ export function AlertRealtimePage() {
     }
   }
 
-  // 拖动只调整页面 Tab 的顺序：「我的告警」始终第一。顺序先本地生效，服务端失败再回滚。
-  async function moveTab(sourceID: string, targetID: string) {
-    if (
-      ordering ||
-      !sourceID ||
-      sourceID === MINE_TAB_ID ||
-      sourceID === targetID
-    ) {
-      return
+  function reorderTabs(
+    current: RealtimeAlertTab[],
+    sourceID: string,
+    targetID: string,
+    position: DropPosition
+  ) {
+    if (!sourceID || sourceID === MINE_TAB_ID || sourceID === targetID) {
+      return current
     }
-    const pageTabs = tabs.filter((tab) => tab.id !== MINE_TAB_ID)
+    const pageTabs = current.filter((tab) => tab.id !== MINE_TAB_ID)
     const from = pageTabs.findIndex((tab) => tab.id === sourceID)
-    const to = pageTabs.findIndex((tab) => tab.id === targetID)
-    if (from < 0 || to < 0) {
-      return
+    const target = pageTabs.findIndex((tab) => tab.id === targetID)
+    if (from < 0 || target < 0) {
+      return current
     }
     const reordered = [...pageTabs]
     const [moved] = reordered.splice(from, 1)
-    reordered.splice(to, 0, moved)
-    const previous = tabs
-    setTabs([MINE_TAB, ...reordered])
+    let insertionIndex = target + (position === "after" ? 1 : 0)
+    if (from < insertionIndex) {
+      insertionIndex -= 1
+    }
+    reordered.splice(insertionIndex, 0, moved)
+    return [MINE_TAB, ...reordered]
+  }
+
+  async function persistTabOrder(
+    next: RealtimeAlertTab[],
+    previous: RealtimeAlertTab[]
+  ) {
     setOrdering(true)
     setOrderError("")
     try {
-      const result = await setMyRealtimeTabs(reordered.map((tab) => tab.id))
+      const result = await setMyRealtimeTabs(
+        next.filter((tab) => tab.id !== MINE_TAB_ID).map((tab) => tab.id)
+      )
       if (result.tabs?.length) {
         setTabs(result.tabs)
       }
     } catch (err) {
+      capturePositions()
       setTabs(previous)
       setOrderError(formErrorMessage(err, t("state.failed")))
     } finally {
       setOrdering(false)
     }
+  }
+
+  function handleTabDrop(
+    sourceID: string,
+    targetID: string,
+    position: DropPosition
+  ) {
+    const previous = tabs
+    const next = reorderTabs(previous, sourceID, targetID, position)
+    if (next === previous) {
+      return
+    }
+    setTabs(next)
+    void persistTabOrder(next, previous)
   }
 
   function tabLabel(tab: RealtimeAlertTab) {
@@ -321,83 +360,92 @@ export function AlertRealtimePage() {
         </Button>
       </PageHeader>
       <div className="grid gap-2">
-        <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-2">
+        <div
+          ref={containerRef}
+          className={cn(
+            "relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-2",
+            dragging && "select-none"
+          )}
+        >
           {tabs.map((tab) => {
             const draggable = tab.id !== MINE_TAB_ID
             const dropping = dropTarget === tab.id && dragging !== tab.id
-            return (
-              <Button
-                key={tab.id}
-                type="button"
-                size="sm"
-                variant={active === tab.id ? "secondary" : "ghost"}
+            const label = tabLabel(tab)
+            const row = (
+              <div
+                data-flip-id={dragging === tab.id ? undefined : tab.id}
+                data-sort-key={tab.id}
                 className={cn(
-                  "gap-2",
-                  active === tab.id
-                    ? "ring-1 ring-border"
-                    : "text-muted-foreground",
-                  // 拖动只用于告警页面之间的排序，「我的告警」固定第一，不显示拖动手柄。
-                  draggable && "cursor-grab active:cursor-grabbing",
-                  dropping && "ring-2 ring-primary/60"
+                  "inline-flex max-w-full flex-wrap items-center gap-1",
+                  dragging === tab.id &&
+                    "pointer-events-none absolute opacity-0"
                 )}
                 title={draggable ? t("alertEvent.dragHint") : undefined}
-                draggable={draggable}
-                onDragStart={(event) => {
-                  if (!draggable) {
-                    return
-                  }
-                  event.dataTransfer.effectAllowed = "move"
-                  event.dataTransfer.setData("text/plain", tab.id)
-                  setDragging(tab.id)
-                  setDropTarget("")
-                }}
-                onDragOver={(event) => {
-                  // 用 dataTransfer 的 dropEffect 告诉浏览器这里可以放下；
-                  // 不依赖 dragging 状态，避免快速拖动时 React 尚未重渲染导致无法落下。
-                  if (!draggable) {
-                    return
-                  }
-                  event.preventDefault()
-                  event.dataTransfer.dropEffect = "move"
-                  setDropTarget((current) =>
-                    current === tab.id ? current : tab.id
-                  )
-                }}
-                onDragLeave={() => {
-                  setDropTarget((current) =>
-                    current === tab.id ? "" : current
-                  )
-                }}
-                onDrop={(event) => {
-                  if (!draggable) {
-                    return
-                  }
-                  event.preventDefault()
-                  const sourceID =
-                    dragging || event.dataTransfer.getData("text/plain")
-                  setDragging("")
-                  setDropTarget("")
-                  void moveTab(sourceID, tab.id)
-                }}
-                onDragEnd={() => {
-                  setDragging("")
-                  setDropTarget("")
-                }}
-                onClick={() => selectTab(tab.id)}
+                draggable={false}
               >
-                {draggable ? (
-                  <GripVertical aria-hidden className="opacity-40" />
-                ) : null}
-                <span className="max-w-[14rem] truncate">{tabLabel(tab)}</span>
-                <Badge
-                  variant={
-                    (counts[tab.id] ?? 0) > 0 ? "destructive" : "secondary"
-                  }
-                  className="font-mono tabular-nums"
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={active === tab.id ? "secondary" : "ghost"}
+                  className={cn(
+                    "gap-2",
+                    active === tab.id
+                      ? "ring-1 ring-border"
+                      : "text-muted-foreground",
+                    draggable && "cursor-grab active:cursor-grabbing",
+                    dropping && "ring-2 ring-primary/60"
+                  )}
+                  style={{ touchAction: draggable ? "none" : undefined }}
+                  onPointerDown={(event) => {
+                    if (draggable && !ordering) {
+                      startDrag(tab.id, event)
+                    }
+                  }}
+                  onClick={(event) => {
+                    if (consumeClick(tab.id)) {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      return
+                    }
+                    selectTab(tab.id)
+                  }}
                 >
-                  {counts[tab.id] ?? 0}
-                </Badge>
-              </Button>
+                  {draggable ? (
+                    <GripVertical aria-hidden className="opacity-40" />
+                  ) : null}
+                  <span className="max-w-[14rem] truncate">{label}</span>
+                  <Badge
+                    variant={
+                      (counts[tab.id] ?? 0) > 0 ? "destructive" : "secondary"
+                    }
+                    className="font-mono tabular-nums"
+                  >
+                    {counts[tab.id] ?? 0}
+                  </Badge>
+                </Button>
+              </div>
+            )
+            const showDropSlot = dropTarget === tab.id && dragging !== tab.id
+            const dropSlot = showDropSlot ? (
+              <div
+                data-drop-slot
+                data-drop-target={dropTarget}
+                data-drop-position={dropPosition}
+                aria-hidden="true"
+                className="shrink-0 rounded-lg border border-dashed border-primary/60 bg-primary/5"
+                style={{
+                  width: dragSize.width || undefined,
+                  height: dragSize.height || undefined,
+                }}
+              />
+            ) : null
+
+            return (
+              <Fragment key={tab.id}>
+                {showDropSlot && dropPosition === "before" ? dropSlot : null}
+                {row}
+                {showDropSlot && dropPosition === "after" ? dropSlot : null}
+              </Fragment>
             )
           })}
         </div>

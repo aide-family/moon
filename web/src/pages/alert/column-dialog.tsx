@@ -1,5 +1,5 @@
 import { GripVertical, Plus, Trash2 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { Fragment, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import type { AlertColumnItem } from "@/api/alert-page/types"
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/class-names"
+import { usePointerReorder } from "@/hooks/use-flip-reorder"
 import { FIELD_COLUMNS, fieldLabel } from "@/pages/alert/columns"
 
 interface AlertColumnDialogProps {
@@ -53,9 +54,19 @@ export function AlertColumnDialog({
   const [labelKey, setLabelKey] = useState("")
   const [labelAlias, setLabelAlias] = useState("")
   const [localError, setLocalError] = useState("")
-  // 拖动排序：dragIndex 是被拖动的行，dropIndex 是当前悬停的目标行。
-  const [dragIndex, setDragIndex] = useState(-1)
-  const [dropIndex, setDropIndex] = useState(-1)
+  // 拖动源脱离列表流，原位即时填补；目标位置只显示空占位。
+  const {
+    containerRef,
+    dragKey,
+    dropTarget: dropKey,
+    dropPosition,
+    dragSize,
+    startDrag,
+  } = usePointerReorder<HTMLDivElement>(
+    draft.map((item) => `${item.type}:${item.key}`).join("|"),
+    "y",
+    reorder
+  )
 
   const used = useMemo(
     () => new Set(draft.map((item) => `${item.type}:${item.key}`)),
@@ -70,16 +81,28 @@ export function AlertColumnDialog({
       ? fieldKey
       : (remainingFields[0]?.key ?? "")
 
-  function reorder(from: number, to: number) {
-    if (from === to || from < 0 || to < 0) {
+  function reorder(
+    sourceKey: string,
+    targetKey: string,
+    position: "before" | "after"
+  ) {
+    const from = draft.findIndex(
+      (item) => `${item.type}:${item.key}` === sourceKey
+    )
+    const target = draft.findIndex(
+      (item) => `${item.type}:${item.key}` === targetKey
+    )
+    if (from < 0 || target < 0 || sourceKey === targetKey) {
       return
     }
-    if (from >= draft.length || to >= draft.length) {
-      return
-    }
+
     const next = [...draft]
     const [moved] = next.splice(from, 1)
-    next.splice(to, 0, moved)
+    let insertionIndex = target + (position === "after" ? 1 : 0)
+    if (from < insertionIndex) {
+      insertionIndex -= 1
+    }
+    next.splice(insertionIndex, 0, moved)
     setDraft(next)
   }
 
@@ -127,79 +150,89 @@ export function AlertColumnDialog({
         <p className="shrink-0 text-sm text-muted-foreground">
           {t("alertEvent.columnsHint")}
         </p>
-        <div className="grid min-h-0 flex-1 content-start gap-2 overflow-y-auto pr-1">
+        <div
+          ref={containerRef}
+          className={cn(
+            "relative grid min-h-0 flex-1 content-start gap-2 overflow-y-auto pr-1",
+            dragKey && "select-none"
+          )}
+        >
           {draft.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               {t("alertEvent.columnsEmpty")}
             </p>
           ) : null}
-          {draft.map((column, index) => (
-            <div
-              key={`${column.type}:${column.key}`}
-              className={cn(
-                "flex items-center gap-2 rounded-lg border p-2",
-                dropIndex === index &&
-                  dragIndex !== index &&
-                  "border-primary/60 ring-1 ring-primary/30"
-              )}
-              draggable
-              onDragStart={(event) => {
-                event.dataTransfer.effectAllowed = "move"
-                event.dataTransfer.setData("text/plain", String(index))
-                setDragIndex(index)
-              }}
-              onDragOver={(event) => {
-                event.preventDefault()
-                event.dataTransfer.dropEffect = "move"
-                if (dropIndex !== index) {
-                  setDropIndex(index)
-                }
-              }}
-              onDrop={(event) => {
-                event.preventDefault()
-                const from = Number(event.dataTransfer.getData("text/plain"))
-                reorder(Number.isNaN(from) ? dragIndex : from, index)
-                setDragIndex(-1)
-                setDropIndex(-1)
-              }}
-              onDragEnd={() => {
-                setDragIndex(-1)
-                setDropIndex(-1)
-              }}
-            >
-              <GripVertical
-                className="size-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
-                aria-hidden
-              />
-              <span className="min-w-0 flex-1 truncate font-mono text-xs">
-                {column.type === "FIELD"
-                  ? fieldLabel(t, column.key)
-                  : column.key}
-              </span>
-              <Input
-                className="max-w-[14rem]"
-                value={column.label}
-                placeholder={
-                  column.type === "LABEL"
-                    ? column.key
-                    : t("alertEvent.columnAliasPlaceholder")
-                }
-                aria-label={t("alertEvent.columnAlias")}
-                onChange={(event) => updateAlias(index, event.target.value)}
-                // 输入框内拖动文字不应触发整行排序。
-                onDragStart={(event) => event.preventDefault()}
-              />
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                aria-label={t("action.delete")}
-                onClick={() => remove(index)}
+          {draft.map((column, index) => {
+            const itemKey = `${column.type}:${column.key}`
+            const label =
+              column.type === "FIELD" ? fieldLabel(t, column.key) : column.key
+            const row = (
+              <div
+                key={itemKey}
+                data-flip-id={dragKey === itemKey ? undefined : itemKey}
+                data-sort-key={itemKey}
+                className={cn(
+                  "flex flex-wrap items-center gap-2 rounded-lg border p-2 sm:flex-nowrap",
+                  dropKey === itemKey &&
+                    dragKey !== itemKey &&
+                    "border-primary/60 ring-1 ring-primary/30",
+                  dragKey === itemKey &&
+                    "pointer-events-none absolute opacity-0"
+                )}
+                draggable={false}
               >
-                <Trash2 aria-hidden />
-              </Button>
-            </div>
-          ))}
+                <GripVertical
+                  className="size-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+                  aria-hidden
+                  style={{ touchAction: "none" }}
+                  onPointerDown={(event) => startDrag(itemKey, event)}
+                />
+                <span className="min-w-0 flex-1 truncate font-mono text-xs">
+                  {label}
+                </span>
+                <Input
+                  className="max-w-[14rem]"
+                  value={column.label}
+                  placeholder={
+                    column.type === "LABEL"
+                      ? column.key
+                      : t("alertEvent.columnAliasPlaceholder")
+                  }
+                  aria-label={t("alertEvent.columnAlias")}
+                  onChange={(event) => updateAlias(index, event.target.value)}
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label={t("action.delete")}
+                  onClick={() => remove(index)}
+                >
+                  <Trash2 aria-hidden />
+                </Button>
+              </div>
+            )
+            const showDropSlot = dropKey === itemKey && dragKey !== itemKey
+            const dropSlot = showDropSlot ? (
+              <div
+                key={`drop-slot:${itemKey}`}
+                data-drop-slot
+                data-drop-target={dropKey}
+                data-drop-position={dropPosition}
+                aria-hidden="true"
+                className="w-full rounded-lg border border-dashed border-primary/60 bg-primary/5"
+                style={{ height: dragSize.height || undefined }}
+              />
+            ) : null
+
+            return (
+              <Fragment key={itemKey}>
+                {showDropSlot && dropPosition === "before" ? dropSlot : null}
+                {row}
+                {showDropSlot && dropPosition === "after" ? dropSlot : null}
+              </Fragment>
+            )
+          })}
         </div>
         <div className="grid shrink-0 gap-3 border-t pt-3">
           {remainingFields.length > 0 ? (
@@ -268,7 +301,11 @@ export function AlertColumnDialog({
           >
             {t("action.cancel")}
           </Button>
-          <Button type="button" disabled={pending} onClick={() => onSave(draft)}>
+          <Button
+            type="button"
+            disabled={pending}
+            onClick={() => onSave(draft)}
+          >
             {t("action.save")}
           </Button>
         </DialogFooter>
