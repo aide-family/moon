@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
+	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -84,7 +85,7 @@ func (executor *Executor) Reject(ctx context.Context, uid string) (*bo.SSHComman
 }
 
 func (executor *Executor) Delete(ctx context.Context, uid string) error {
-	ns, err := executor.access.Allow(ctx, "ssh:write")
+	ns, err := executor.access.Allow(ctx, perm.SSHDelete)
 	if err != nil {
 		return err
 	}

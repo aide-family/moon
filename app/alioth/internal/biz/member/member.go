@@ -211,7 +211,7 @@ func (membership *Membership) DeclineInvite(ctx context.Context, token, inviteUI
 }
 
 func (membership *Membership) DeleteMember(ctx context.Context, uid string) error {
-	ns, err := membership.access.Allow(ctx, perm.MemberWrite)
+	ns, err := membership.access.Allow(ctx, perm.MemberDelete)
 	if err != nil {
 		return err
 	}

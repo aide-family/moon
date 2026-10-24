@@ -51,7 +51,9 @@ type Role struct {
 	Name         string
 	Status       string
 	IsSystem     bool
-	Permissions  []string
+	// Remark 是给成员分配角色时的说明，系统角色也可以写。
+	Remark      string
+	Permissions []string
 }
 
 // Permission 是租户权限定义。系统权限由 perm.SystemCatalog 单独维护，不写入这张表。

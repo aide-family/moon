@@ -56,7 +56,7 @@ func memberItems(items []bo.Member) []*v1.MemberItem {
 func roleItem(item bo.Role) *v1.RoleItem {
 	return &v1.RoleItem{
 		Uid: item.UID, NamespaceUid: item.NamespaceUID, Name: item.Name,
-		Status: item.Status, IsSystem: item.IsSystem, Permissions: item.Permissions,
+		Status: item.Status, IsSystem: item.IsSystem, Remark: item.Remark, Permissions: item.Permissions,
 	}
 }
 

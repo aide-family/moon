@@ -96,6 +96,20 @@ func (_u *RoleUpdate) SetNillableIsSystem(v *bool) *RoleUpdate {
 	return _u
 }
 
+// SetRemark sets the "remark" field.
+func (_u *RoleUpdate) SetRemark(v string) *RoleUpdate {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *RoleUpdate) SetNillableRemark(v *string) *RoleUpdate {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *RoleUpdate) SetStatus(v role.Status) *RoleUpdate {
 	_u.mutation.SetStatus(v)
@@ -163,6 +177,11 @@ func (_u *RoleUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Role.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Remark(); ok {
+		if err := role.RemarkValidator(v); err != nil {
+			return &ValidationError{Name: "remark", err: fmt.Errorf(`ent: validator failed for field "Role.remark": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := role.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Role.status": %w`, err)}
@@ -200,6 +219,9 @@ func (_u *RoleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(role.FieldIsSystem, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(role.FieldRemark, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(role.FieldStatus, field.TypeEnum, value)
@@ -292,6 +314,20 @@ func (_u *RoleUpdateOne) SetNillableIsSystem(v *bool) *RoleUpdateOne {
 	return _u
 }
 
+// SetRemark sets the "remark" field.
+func (_u *RoleUpdateOne) SetRemark(v string) *RoleUpdateOne {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *RoleUpdateOne) SetNillableRemark(v *string) *RoleUpdateOne {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *RoleUpdateOne) SetStatus(v role.Status) *RoleUpdateOne {
 	_u.mutation.SetStatus(v)
@@ -372,6 +408,11 @@ func (_u *RoleUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Role.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Remark(); ok {
+		if err := role.RemarkValidator(v); err != nil {
+			return &ValidationError{Name: "remark", err: fmt.Errorf(`ent: validator failed for field "Role.remark": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := role.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Role.status": %w`, err)}
@@ -426,6 +467,9 @@ func (_u *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) {
 	}
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(role.FieldIsSystem, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(role.FieldRemark, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(role.FieldStatus, field.TypeEnum, value)

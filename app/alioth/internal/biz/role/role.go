@@ -26,12 +26,23 @@ func NewAuthority(roles repository.RoleRepo, checker access.Checker) *Authority 
 	return &Authority{roles: roles, access: checker}
 }
 
-func (authority *Authority) CreateRole(ctx context.Context, name string) (*bo.Role, error) {
+func (authority *Authority) CreateRole(ctx context.Context, name, remark string) (*bo.Role, error) {
 	ns, err := authority.access.Allow(ctx, perm.RoleWrite)
 	if err != nil {
 		return nil, err
 	}
-	item, err := authority.roles.CreateRole(ctx, ns, name)
+	item, err := authority.roles.CreateRole(ctx, ns, name, remark)
+	return item, authority.access.Wrap(err)
+}
+
+// UpdateRoleRemark 只改备注，系统角色也能改：备注是给人看的说明，不改变预置的权限边界。
+// 不要把 IsSystem 判断照抄进来，那会让系统角色失去唯一能解释自己的字段。
+func (authority *Authority) UpdateRoleRemark(ctx context.Context, uid, remark string) (*bo.Role, error) {
+	ns, err := authority.access.Allow(ctx, perm.RoleWrite)
+	if err != nil {
+		return nil, err
+	}
+	item, err := authority.roles.UpdateRoleRemark(ctx, ns, uid, remark)
 	return item, authority.access.Wrap(err)
 }
 
@@ -70,7 +81,7 @@ func (authority *Authority) UpdateRoleStatus(ctx context.Context, uid, status st
 
 // DeleteRole 不删除系统角色。删掉 owner 会让租户失去负责人角色。
 func (authority *Authority) DeleteRole(ctx context.Context, uid string) error {
-	ns, err := authority.access.Allow(ctx, perm.RoleWrite)
+	ns, err := authority.access.Allow(ctx, perm.RoleDelete)
 	if err != nil {
 		return err
 	}

@@ -1262,6 +1262,12 @@ func init() {
 	roleDescIsSystem := roleFields[3].Descriptor()
 	// role.DefaultIsSystem holds the default value on creation for the is_system field.
 	role.DefaultIsSystem = roleDescIsSystem.Default.(bool)
+	// roleDescRemark is the schema descriptor for remark field.
+	roleDescRemark := roleFields[4].Descriptor()
+	// role.DefaultRemark holds the default value on creation for the remark field.
+	role.DefaultRemark = roleDescRemark.Default.(string)
+	// role.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
+	role.RemarkValidator = roleDescRemark.Validators[0].(func(string) error)
 	rolepermissionMixin := schema.RolePermission{}.Mixin()
 	rolepermissionMixinFields0 := rolepermissionMixin[0].Fields()
 	_ = rolepermissionMixinFields0

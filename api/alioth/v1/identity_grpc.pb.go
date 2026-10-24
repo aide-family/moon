@@ -2224,6 +2224,7 @@ const (
 	RoleService_SelectRoles_FullMethodName           = "/alioth.v1.RoleService/SelectRoles"
 	RoleService_UpdateRolePermissions_FullMethodName = "/alioth.v1.RoleService/UpdateRolePermissions"
 	RoleService_ListPermissions_FullMethodName       = "/alioth.v1.RoleService/ListPermissions"
+	RoleService_UpdateRoleRemark_FullMethodName      = "/alioth.v1.RoleService/UpdateRoleRemark"
 )
 
 // RoleServiceClient is the client API for RoleService service.
@@ -2250,6 +2251,8 @@ type RoleServiceClient interface {
 	UpdateRolePermissions(ctx context.Context, in *UpdateRolePermissionsRequest, opts ...grpc.CallOption) (*UpdateRolePermissionsResponse, error)
 	// 列出全部权限定义。
 	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
+	// 修改角色备注。系统角色的备注也能改，它不影响预置的权限边界。
+	UpdateRoleRemark(ctx context.Context, in *UpdateRoleRemarkRequest, opts ...grpc.CallOption) (*UpdateRoleRemarkResponse, error)
 }
 
 type roleServiceClient struct {
@@ -2350,6 +2353,16 @@ func (c *roleServiceClient) ListPermissions(ctx context.Context, in *ListPermiss
 	return out, nil
 }
 
+func (c *roleServiceClient) UpdateRoleRemark(ctx context.Context, in *UpdateRoleRemarkRequest, opts ...grpc.CallOption) (*UpdateRoleRemarkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateRoleRemarkResponse)
+	err := c.cc.Invoke(ctx, RoleService_UpdateRoleRemark_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoleServiceServer is the server API for RoleService service.
 // All implementations must embed UnimplementedRoleServiceServer
 // for forward compatibility.
@@ -2374,6 +2387,8 @@ type RoleServiceServer interface {
 	UpdateRolePermissions(context.Context, *UpdateRolePermissionsRequest) (*UpdateRolePermissionsResponse, error)
 	// 列出全部权限定义。
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
+	// 修改角色备注。系统角色的备注也能改，它不影响预置的权限边界。
+	UpdateRoleRemark(context.Context, *UpdateRoleRemarkRequest) (*UpdateRoleRemarkResponse, error)
 	mustEmbedUnimplementedRoleServiceServer()
 }
 
@@ -2410,6 +2425,9 @@ func (UnimplementedRoleServiceServer) UpdateRolePermissions(context.Context, *Up
 }
 func (UnimplementedRoleServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPermissions not implemented")
+}
+func (UnimplementedRoleServiceServer) UpdateRoleRemark(context.Context, *UpdateRoleRemarkRequest) (*UpdateRoleRemarkResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateRoleRemark not implemented")
 }
 func (UnimplementedRoleServiceServer) mustEmbedUnimplementedRoleServiceServer() {}
 func (UnimplementedRoleServiceServer) testEmbeddedByValue()                     {}
@@ -2594,6 +2612,24 @@ func _RoleService_ListPermissions_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoleService_UpdateRoleRemark_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRoleRemarkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleServiceServer).UpdateRoleRemark(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleService_UpdateRoleRemark_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleServiceServer).UpdateRoleRemark(ctx, req.(*UpdateRoleRemarkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoleService_ServiceDesc is the grpc.ServiceDesc for RoleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2636,6 +2672,10 @@ var RoleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPermissions",
 			Handler:    _RoleService_ListPermissions_Handler,
+		},
+		{
+			MethodName: "UpdateRoleRemark",
+			Handler:    _RoleService_UpdateRoleRemark_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

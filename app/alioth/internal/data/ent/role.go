@@ -31,6 +31,8 @@ type Role struct {
 	Name string `json:"name,omitempty"`
 	// IsSystem holds the value of the "is_system" field.
 	IsSystem bool `json:"is_system,omitempty"`
+	// Remark holds the value of the "remark" field.
+	Remark string `json:"remark,omitempty"`
 	// Status holds the value of the "status" field.
 	Status       role.Status `json:"status,omitempty"`
 	selectValues sql.SelectValues
@@ -45,7 +47,7 @@ func (*Role) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case role.FieldID:
 			values[i] = new(sql.NullInt64)
-		case role.FieldUID, role.FieldNamespaceUID, role.FieldName, role.FieldStatus:
+		case role.FieldUID, role.FieldNamespaceUID, role.FieldName, role.FieldRemark, role.FieldStatus:
 			values[i] = new(sql.NullString)
 		case role.FieldCreatedAt, role.FieldUpdatedAt, role.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -113,6 +115,12 @@ func (_m *Role) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsSystem = value.Bool
 			}
+		case role.FieldRemark:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field remark", values[i])
+			} else if value.Valid {
+				_m.Remark = value.String
+			}
 		case role.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
@@ -177,6 +185,9 @@ func (_m *Role) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_system=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsSystem))
+	builder.WriteString(", ")
+	builder.WriteString("remark=")
+	builder.WriteString(_m.Remark)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

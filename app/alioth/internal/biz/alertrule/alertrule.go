@@ -85,7 +85,7 @@ func (rulebook *Rulebook) UpdateGroupStatus(ctx context.Context, uid, status str
 }
 
 func (rulebook *Rulebook) DeleteGroup(ctx context.Context, uid string) error {
-	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleDelete)
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func (rulebook *Rulebook) UpdateRuleStatus(ctx context.Context, uid, status stri
 }
 
 func (rulebook *Rulebook) DeleteRule(ctx context.Context, uid string) error {
-	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleDelete)
 	if err != nil {
 		return err
 	}

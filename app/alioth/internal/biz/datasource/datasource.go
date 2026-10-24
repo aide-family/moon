@@ -121,7 +121,7 @@ func (gateway *Gateway) UpdateDatasourceStatus(ctx context.Context, uid, status 
 }
 
 func (gateway *Gateway) DeleteDatasource(ctx context.Context, uid string) error {
-	ns, err := gateway.access.Allow(ctx, perm.DatasourceWrite)
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceDelete)
 	if err != nil {
 		return err
 	}

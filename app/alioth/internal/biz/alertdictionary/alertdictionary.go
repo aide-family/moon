@@ -74,7 +74,7 @@ func (catalog *Catalog) UpdateAlertDictionaryStatus(ctx context.Context, uid, st
 
 // DeleteAlertDictionary 拒绝删除仍挂在规则上的字典项，避免条件指向一条已经不存在的级别。
 func (catalog *Catalog) DeleteAlertDictionary(ctx context.Context, uid string) error {
-	ns, err := catalog.access.Allow(ctx, perm.AlertRuleWrite)
+	ns, err := catalog.access.Allow(ctx, perm.AlertRuleDelete)
 	if err != nil {
 		return err
 	}

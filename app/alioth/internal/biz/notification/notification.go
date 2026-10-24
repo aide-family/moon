@@ -128,7 +128,7 @@ func (center *Center) UpdateChannelStatus(ctx context.Context, uid, status strin
 }
 
 func (center *Center) DeleteChannel(ctx context.Context, uid string) error {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationDelete)
 	if err != nil {
 		return err
 	}
@@ -273,7 +273,7 @@ func (center *Center) UpdateTemplateStatus(ctx context.Context, uid, status stri
 }
 
 func (center *Center) DeleteTemplate(ctx context.Context, uid string) error {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationDelete)
 	if err != nil {
 		return err
 	}
@@ -430,7 +430,7 @@ func (center *Center) UpdateGroupStatus(ctx context.Context, uid, status string)
 }
 
 func (center *Center) DeleteGroup(ctx context.Context, uid string) error {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationDelete)
 	if err != nil {
 		return err
 	}

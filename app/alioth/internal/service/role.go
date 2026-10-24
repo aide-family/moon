@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/role"
@@ -17,11 +18,19 @@ func NewRoleService(authority *role.Authority) *RoleService {
 }
 
 func (s *RoleService) CreateRole(ctx context.Context, req *v1.CreateRoleRequest) (*v1.CreateRoleResponse, error) {
-	item, err := s.authority.CreateRole(ctx, req.GetName())
+	item, err := s.authority.CreateRole(ctx, strings.TrimSpace(req.GetName()), strings.TrimSpace(req.GetRemark()))
 	if err != nil {
 		return nil, err
 	}
 	return &v1.CreateRoleResponse{Role: roleItem(*item)}, nil
+}
+
+func (s *RoleService) UpdateRoleRemark(ctx context.Context, req *v1.UpdateRoleRemarkRequest) (*v1.UpdateRoleRemarkResponse, error) {
+	item, err := s.authority.UpdateRoleRemark(ctx, req.GetUid(), strings.TrimSpace(req.GetRemark()))
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateRoleRemarkResponse{Role: roleItem(*item)}, nil
 }
 
 func (s *RoleService) UpdateRole(ctx context.Context, req *v1.UpdateRoleRequest) (*v1.UpdateRoleResponse, error) {

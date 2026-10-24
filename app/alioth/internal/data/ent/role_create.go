@@ -94,6 +94,20 @@ func (_c *RoleCreate) SetNillableIsSystem(v *bool) *RoleCreate {
 	return _c
 }
 
+// SetRemark sets the "remark" field.
+func (_c *RoleCreate) SetRemark(v string) *RoleCreate {
+	_c.mutation.SetRemark(v)
+	return _c
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_c *RoleCreate) SetNillableRemark(v *string) *RoleCreate {
+	if v != nil {
+		_c.SetRemark(*v)
+	}
+	return _c
+}
+
 // SetStatus sets the "status" field.
 func (_c *RoleCreate) SetStatus(v role.Status) *RoleCreate {
 	_c.mutation.SetStatus(v)
@@ -155,6 +169,10 @@ func (_c *RoleCreate) defaults() {
 		v := role.DefaultIsSystem
 		_c.mutation.SetIsSystem(v)
 	}
+	if _, ok := _c.mutation.Remark(); !ok {
+		v := role.DefaultRemark
+		_c.mutation.SetRemark(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := role.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -195,6 +213,14 @@ func (_c *RoleCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsSystem(); !ok {
 		return &ValidationError{Name: "is_system", err: errors.New(`ent: missing required field "Role.is_system"`)}
+	}
+	if _, ok := _c.mutation.Remark(); !ok {
+		return &ValidationError{Name: "remark", err: errors.New(`ent: missing required field "Role.remark"`)}
+	}
+	if v, ok := _c.mutation.Remark(); ok {
+		if err := role.RemarkValidator(v); err != nil {
+			return &ValidationError{Name: "remark", err: fmt.Errorf(`ent: validator failed for field "Role.remark": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Role.status"`)}
@@ -257,6 +283,10 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsSystem(); ok {
 		_spec.SetField(role.FieldIsSystem, field.TypeBool, value)
 		_node.IsSystem = value
+	}
+	if value, ok := _c.mutation.Remark(); ok {
+		_spec.SetField(role.FieldRemark, field.TypeString, value)
+		_node.Remark = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(role.FieldStatus, field.TypeEnum, value)

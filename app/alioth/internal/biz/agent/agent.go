@@ -20,6 +20,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
+	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -107,7 +108,7 @@ func (registry *Registry) Revoke(ctx context.Context, uid string) (*bo.Agent, er
 }
 
 func (registry *Registry) Delete(ctx context.Context, uid string) error {
-	ns, err := registry.access.Allow(ctx, "agent:write")
+	ns, err := registry.access.Allow(ctx, perm.AgentDelete)
 	if err != nil {
 		return err
 	}

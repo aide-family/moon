@@ -61,11 +61,12 @@ func (r *roleRepo) SelectRoles(ctx context.Context, namespaceUID string, limit i
 	return items, nil
 }
 
-func (r *roleRepo) CreateRole(ctx context.Context, namespaceUID, name string) (*bo.Role, error) {
+func (r *roleRepo) CreateRole(ctx context.Context, namespaceUID, name, remark string) (*bo.Role, error) {
 	row, err := r.client.Role.Create().
 		SetUID(id.New()).
 		SetNamespaceUID(namespaceUID).
 		SetName(name).
+		SetRemark(remark).
 		SetIsSystem(false).
 		SetStatus(role.StatusACTIVE).
 		Save(ctx)
@@ -85,6 +86,22 @@ func (r *roleRepo) UpdateRole(ctx context.Context, namespaceUID, uid, name strin
 	}
 	if _, err := r.client.Role.Update().Where(role.UIDEQ(uid), role.NamespaceUIDEQ(namespaceUID), role.DeletedAtIsNil()).SetName(name).Save(ctx); err != nil {
 		return nil, r.fail(err)
+	}
+	return r.GetRole(ctx, namespaceUID, uid)
+}
+
+// UpdateRoleRemark 只改备注。这里故意不判断 IsSystem：备注是给成员分配角色时的说明，
+// 写它不改变预置角色的权限边界，而系统角色恰恰最需要解释自己是干什么的。
+func (r *roleRepo) UpdateRoleRemark(ctx context.Context, namespaceUID, uid, remark string) (*bo.Role, error) {
+	n, err := r.client.Role.Update().
+		Where(role.UIDEQ(uid), role.NamespaceUIDEQ(namespaceUID), role.DeletedAtIsNil()).
+		SetRemark(remark).
+		Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if n == 0 {
+		return nil, merr.NotFound("not found")
 	}
 	return r.GetRole(ctx, namespaceUID, uid)
 }
@@ -296,6 +313,7 @@ func (r *roleRepo) roleViews(ctx context.Context, rows []*ent.Role) ([]bo.Role, 
 			UID:          row.UID,
 			NamespaceUID: row.NamespaceUID,
 			Name:         row.Name,
+			Remark:       row.Remark,
 			Status:       string(row.Status),
 			IsSystem:     row.IsSystem,
 			Permissions:  namesByRole[row.UID],

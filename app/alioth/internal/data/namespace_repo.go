@@ -53,6 +53,7 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 			SetUID(id.New()).
 			SetNamespaceUID(ns.UID).
 			SetName(roleName).
+			SetRemark(perm.DefaultRoleRemark(roleName)).
 			SetIsSystem(true).
 			SetStatus(role.StatusACTIVE).
 			Save(ctx)

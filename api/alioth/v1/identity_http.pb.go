@@ -2031,6 +2031,7 @@ const OperationRoleServiceListRoles = "/alioth.v1.RoleService/ListRoles"
 const OperationRoleServiceSelectRoles = "/alioth.v1.RoleService/SelectRoles"
 const OperationRoleServiceUpdateRole = "/alioth.v1.RoleService/UpdateRole"
 const OperationRoleServiceUpdateRolePermissions = "/alioth.v1.RoleService/UpdateRolePermissions"
+const OperationRoleServiceUpdateRoleRemark = "/alioth.v1.RoleService/UpdateRoleRemark"
 const OperationRoleServiceUpdateRoleStatus = "/alioth.v1.RoleService/UpdateRoleStatus"
 
 type RoleServiceHTTPServer interface {
@@ -2050,6 +2051,8 @@ type RoleServiceHTTPServer interface {
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
 	// UpdateRolePermissions 替换自定义角色的权限。不能授予删除租户和移交负责人。
 	UpdateRolePermissions(context.Context, *UpdateRolePermissionsRequest) (*UpdateRolePermissionsResponse, error)
+	// UpdateRoleRemark 修改角色备注。系统角色的备注也能改，它不影响预置的权限边界。
+	UpdateRoleRemark(context.Context, *UpdateRoleRemarkRequest) (*UpdateRoleRemarkResponse, error)
 	// UpdateRoleStatus 启用或停用角色。
 	UpdateRoleStatus(context.Context, *UpdateRoleStatusRequest) (*UpdateRoleStatusResponse, error)
 }
@@ -2065,6 +2068,7 @@ func RegisterRoleServiceHTTPServer(s *http.Server, srv RoleServiceHTTPServer) {
 	r.Handle("GET", "/v1/roles/select", _RoleService_SelectRoles0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/role/{uid}/permissions", _RoleService_UpdateRolePermissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/permissions", _RoleService_ListPermissions0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/role/{uid}/remark", _RoleService_UpdateRoleRemark0_HTTP_Handler(srv))
 }
 
 func _RoleService_CreateRole0_HTTP_Handler(srv RoleServiceHTTPServer) func(ctx http.Context) error {
@@ -2253,6 +2257,28 @@ func _RoleService_ListPermissions0_HTTP_Handler(srv RoleServiceHTTPServer) func(
 	}
 }
 
+func _RoleService_UpdateRoleRemark0_HTTP_Handler(srv RoleServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateRoleRemarkRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationRoleServiceUpdateRoleRemark)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateRoleRemark(ctx, req.(*UpdateRoleRemarkRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateRoleRemarkResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type RoleServiceHTTPClient interface {
 	// CreateRole 在当前租户创建自定义角色。
 	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *CreateRoleResponse, err error)
@@ -2270,6 +2296,8 @@ type RoleServiceHTTPClient interface {
 	UpdateRole(ctx context.Context, req *UpdateRoleRequest, opts ...http.CallOption) (rsp *UpdateRoleResponse, err error)
 	// UpdateRolePermissions 替换自定义角色的权限。不能授予删除租户和移交负责人。
 	UpdateRolePermissions(ctx context.Context, req *UpdateRolePermissionsRequest, opts ...http.CallOption) (rsp *UpdateRolePermissionsResponse, err error)
+	// UpdateRoleRemark 修改角色备注。系统角色的备注也能改，它不影响预置的权限边界。
+	UpdateRoleRemark(ctx context.Context, req *UpdateRoleRemarkRequest, opts ...http.CallOption) (rsp *UpdateRoleRemarkResponse, err error)
 	// UpdateRoleStatus 启用或停用角色。
 	UpdateRoleStatus(ctx context.Context, req *UpdateRoleStatusRequest, opts ...http.CallOption) (rsp *UpdateRoleStatusResponse, err error)
 }
@@ -2412,6 +2440,24 @@ func (c *RoleServiceHTTPClientImpl) UpdateRolePermissions(ctx context.Context, i
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationRoleServiceUpdateRolePermissions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateRoleRemark 修改角色备注。系统角色的备注也能改，它不影响预置的权限边界。
+func (c *RoleServiceHTTPClientImpl) UpdateRoleRemark(ctx context.Context, in *UpdateRoleRemarkRequest, opts ...http.CallOption) (*UpdateRoleRemarkResponse, error) {
+	var out UpdateRoleRemarkResponse
+	pattern := "/v1/role/{uid}/remark"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationRoleServiceUpdateRoleRemark),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

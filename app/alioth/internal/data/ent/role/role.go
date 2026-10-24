@@ -28,6 +28,8 @@ const (
 	FieldName = "name"
 	// FieldIsSystem holds the string denoting the is_system field in the database.
 	FieldIsSystem = "is_system"
+	// FieldRemark holds the string denoting the remark field in the database.
+	FieldRemark = "remark"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// Table holds the table name of the role in the database.
@@ -44,6 +46,7 @@ var Columns = []string{
 	FieldNamespaceUID,
 	FieldName,
 	FieldIsSystem,
+	FieldRemark,
 	FieldStatus,
 }
 
@@ -72,6 +75,10 @@ var (
 	NameValidator func(string) error
 	// DefaultIsSystem holds the default value on creation for the "is_system" field.
 	DefaultIsSystem bool
+	// DefaultRemark holds the default value on creation for the "remark" field.
+	DefaultRemark string
+	// RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
+	RemarkValidator func(string) error
 )
 
 // Status defines the type for the "status" enum field.
@@ -141,6 +148,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByIsSystem orders the results by the is_system field.
 func ByIsSystem(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsSystem, opts...).ToFunc()
+}
+
+// ByRemark orders the results by the remark field.
+func ByRemark(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRemark, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

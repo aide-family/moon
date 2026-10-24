@@ -49,7 +49,7 @@ func (center *Center) UpdateSubscriptionStatus(ctx context.Context, uid, status 
 }
 
 func (center *Center) DeleteSubscription(ctx context.Context, uid string) error {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationDelete)
 	if err != nil {
 		return err
 	}

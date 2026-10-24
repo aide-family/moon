@@ -136,6 +136,17 @@ func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logge
 		return databaseErr(helper, err)
 	}
 	for _, item := range roles {
+		// 系统角色的预设备注只在空备注时补齐，管理员改过的值不覆盖。
+		if item.Remark == "" {
+			if remark := perm.DefaultRoleRemark(item.Name); remark != "" {
+				if _, err := client.Role.Update().
+					Where(role.UIDEQ(item.UID), role.RemarkEQ("")).
+					SetRemark(remark).
+					Save(ctx); err != nil {
+					return databaseErr(helper, err)
+				}
+			}
+		}
 		links, err := client.RolePermission.Query().Where(rolepermission.RoleUIDEQ(item.UID)).All(ctx)
 		if err != nil {
 			return databaseErr(helper, err)

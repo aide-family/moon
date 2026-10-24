@@ -314,6 +314,13 @@ service RoleService {
   rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
     option (google.api.http) = {get: "/v1/permissions"};
   }
+  // 修改角色备注。系统角色的备注也能改，它不影响预置的权限边界。
+  rpc UpdateRoleRemark(UpdateRoleRemarkRequest) returns (UpdateRoleRemarkResponse) {
+    option (google.api.http) = {
+      put: "/v1/role/{uid}/remark"
+      body: "*"
+    };
+  }
 }
 
 // 平台系统消息。邀请收到、同意和拒绝都会产生一条消息。
@@ -416,6 +423,8 @@ message RoleItem {
   bool is_system = 5 [json_name = "isSystem"];
   // 权限名列表。
   repeated string permissions = 6;
+  // 备注：说明这个角色能做什么、该分配给谁。
+  string remark = 7;
 }
 
 // 权限定义。
@@ -1000,6 +1009,8 @@ message UpdateUserSystemRoleResponse {
 message CreateRoleRequest {
   // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 备注，可空，最多 5000 字。
+  string remark = 2 [(buf.validate.field).string.max_len = 5000];
 }
 
 // 新建的角色。
@@ -1018,6 +1029,20 @@ message UpdateRoleRequest {
 
 // 修改后的角色。
 message UpdateRoleResponse {
+  // 角色。
+  RoleItem role = 1;
+}
+
+// 修改角色备注的参数。
+message UpdateRoleRemarkRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 备注，可空，最多 5000 字。
+  string remark = 2 [(buf.validate.field).string.max_len = 5000];
+}
+
+// 修改后的角色。
+message UpdateRoleRemarkResponse {
   // 角色。
   RoleItem role = 1;
 }

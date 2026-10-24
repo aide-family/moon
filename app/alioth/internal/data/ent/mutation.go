@@ -25072,6 +25072,7 @@ type RoleMutation struct {
 	namespace_uid *string
 	name          *string
 	is_system     *bool
+	remark        *string
 	status        *role.Status
 	clearedFields map[string]struct{}
 	done          bool
@@ -25442,6 +25443,42 @@ func (m *RoleMutation) ResetIsSystem() {
 	m.is_system = nil
 }
 
+// SetRemark sets the "remark" field.
+func (m *RoleMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *RoleMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the Role entity.
+// If the Role object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *RoleMutation) ResetRemark() {
+	m.remark = nil
+}
+
 // SetStatus sets the "status" field.
 func (m *RoleMutation) SetStatus(r role.Status) {
 	m.status = &r
@@ -25512,7 +25549,7 @@ func (m *RoleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoleMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, role.FieldCreatedAt)
 	}
@@ -25533,6 +25570,9 @@ func (m *RoleMutation) Fields() []string {
 	}
 	if m.is_system != nil {
 		fields = append(fields, role.FieldIsSystem)
+	}
+	if m.remark != nil {
+		fields = append(fields, role.FieldRemark)
 	}
 	if m.status != nil {
 		fields = append(fields, role.FieldStatus)
@@ -25559,6 +25599,8 @@ func (m *RoleMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case role.FieldIsSystem:
 		return m.IsSystem()
+	case role.FieldRemark:
+		return m.Remark()
 	case role.FieldStatus:
 		return m.Status()
 	}
@@ -25584,6 +25626,8 @@ func (m *RoleMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case role.FieldIsSystem:
 		return m.OldIsSystem(ctx)
+	case role.FieldRemark:
+		return m.OldRemark(ctx)
 	case role.FieldStatus:
 		return m.OldStatus(ctx)
 	}
@@ -25643,6 +25687,13 @@ func (m *RoleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsSystem(v)
+		return nil
+	case role.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
 		return nil
 	case role.FieldStatus:
 		v, ok := value.(role.Status)
@@ -25729,6 +25780,9 @@ func (m *RoleMutation) ResetField(name string) error {
 		return nil
 	case role.FieldIsSystem:
 		m.ResetIsSystem()
+		return nil
+	case role.FieldRemark:
+		m.ResetRemark()
 		return nil
 	case role.FieldStatus:
 		m.ResetStatus()

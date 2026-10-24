@@ -1,28 +1,40 @@
 package perm
 
 const (
-	MemberRead        = "member:read"
-	MemberWrite       = "member:write"
-	RoleRead          = "role:read"
-	RoleWrite         = "role:write"
+	MemberRead   = "member:read"
+	MemberWrite  = "member:write"
+	MemberDelete = "member:delete"
+
+	RoleRead   = "role:read"
+	RoleWrite  = "role:write"
+	RoleDelete = "role:delete"
+
 	NamespaceRead     = "namespace:read"
 	NamespaceWrite    = "namespace:write"
 	NamespaceDelete   = "namespace:delete"
 	NamespaceTransfer = "namespace:transfer"
 
-	DatasourceRead  = "datasource:read"
-	DatasourceWrite = "datasource:write"
+	DatasourceRead   = "datasource:read"
+	DatasourceWrite  = "datasource:write"
+	DatasourceDelete = "datasource:delete"
+
 	AlertRuleRead   = "alert_rule:read"
 	AlertRuleWrite  = "alert_rule:write"
+	AlertRuleDelete = "alert_rule:delete"
 
 	AlertRead      = "alert:read"
 	AlertWrite     = "alert:write"
+	AlertDelete    = "alert:delete"
 	AlertIntervene = "alert:intervene"
 
-	NotificationRead  = "notification:read"
-	NotificationWrite = "notification:write"
+	NotificationRead   = "notification:read"
+	NotificationWrite  = "notification:write"
+	NotificationDelete = "notification:delete"
 
-	SSHExec = "ssh:exec"
+	AgentDelete = "agent:delete"
+
+	SSHDelete = "ssh:delete"
+	SSHExec   = "ssh:exec"
 )
 
 // 系统权限属于平台，不写入租户的 permission 表，也不参与租户角色授权。
@@ -68,6 +80,11 @@ func Catalog() []Item {
 			Item{Name: resource + ":read", Resource: resource, Action: "read"},
 			Item{Name: resource + ":write", Resource: resource, Action: "write"},
 		)
+		// 删除普通业务数据是可以单独授予的权限；删除租户是另一回事，
+		// namespace:delete 只属于 owner，仍在下面单独列出。
+		if resource != "namespace" {
+			items = append(items, Item{Name: resource + ":delete", Resource: resource, Action: "delete"})
+		}
 	}
 	items = append(items,
 		Item{Name: AlertIntervene, Resource: "alert", Action: "intervene"},
@@ -119,6 +136,23 @@ func RolePermissions(role string) []string {
 		return readPermissions()
 	default:
 		return nil
+	}
+}
+
+// DefaultRoleRemark 返回预置角色的默认备注，是新租户建角色和 seed 补空备注的唯一来源。
+// 备注是展示给管理员看的说明，不参与鉴权判断。
+func DefaultRoleRemark(role string) string {
+	switch role {
+	case RoleOwner:
+		return "租户负责人，拥有全部权限，包括删除租户与移交负责人。"
+	case RoleAdmin:
+		return "可管理成员、角色与配置，不能删除租户或移交负责人。"
+	case RoleMember:
+		return "日常运维：查看全部资源，处理告警与 SSH 执行。"
+	case RoleViewer:
+		return "只读：可以查看但不能修改任何配置。"
+	default:
+		return ""
 	}
 }
 

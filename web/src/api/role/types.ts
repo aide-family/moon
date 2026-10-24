@@ -4,6 +4,8 @@ export type RoleItem = {
   name: string
   status: string
   isSystem: boolean
+  // 备注：说明这个角色能做什么、该分配给谁。系统角色也有备注。
+  remark?: string
   permissions?: string[]
 }
 
@@ -29,11 +31,17 @@ export type ListRolesResult = {
 
 export type CreateRoleParams = {
   name: string
+  remark?: string
 }
 
 export type UpdateRoleParams = {
   uid: string
   name: string
+}
+
+export type UpdateRoleRemarkParams = {
+  uid: string
+  remark: string
 }
 
 export type SelectRolesResult = {

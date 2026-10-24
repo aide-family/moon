@@ -98,7 +98,7 @@ func (layout *Layout) Update(ctx context.Context, in bo.AlertPage) (*bo.AlertPag
 }
 
 func (layout *Layout) Delete(ctx context.Context, uid string) error {
-	ns, err := layout.access.Allow(ctx, perm.AlertWrite)
+	ns, err := layout.access.Allow(ctx, perm.AlertDelete)
 	if err != nil {
 		return err
 	}

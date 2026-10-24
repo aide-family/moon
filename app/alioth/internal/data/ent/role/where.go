@@ -89,6 +89,11 @@ func IsSystem(v bool) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldIsSystem, v))
 }
 
+// Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
+func Remark(v string) predicate.Role {
+	return predicate.Role(sql.FieldEQ(FieldRemark, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldCreatedAt, v))
@@ -422,6 +427,71 @@ func IsSystemEQ(v bool) predicate.Role {
 // IsSystemNEQ applies the NEQ predicate on the "is_system" field.
 func IsSystemNEQ(v bool) predicate.Role {
 	return predicate.Role(sql.FieldNEQ(FieldIsSystem, v))
+}
+
+// RemarkEQ applies the EQ predicate on the "remark" field.
+func RemarkEQ(v string) predicate.Role {
+	return predicate.Role(sql.FieldEQ(FieldRemark, v))
+}
+
+// RemarkNEQ applies the NEQ predicate on the "remark" field.
+func RemarkNEQ(v string) predicate.Role {
+	return predicate.Role(sql.FieldNEQ(FieldRemark, v))
+}
+
+// RemarkIn applies the In predicate on the "remark" field.
+func RemarkIn(vs ...string) predicate.Role {
+	return predicate.Role(sql.FieldIn(FieldRemark, vs...))
+}
+
+// RemarkNotIn applies the NotIn predicate on the "remark" field.
+func RemarkNotIn(vs ...string) predicate.Role {
+	return predicate.Role(sql.FieldNotIn(FieldRemark, vs...))
+}
+
+// RemarkGT applies the GT predicate on the "remark" field.
+func RemarkGT(v string) predicate.Role {
+	return predicate.Role(sql.FieldGT(FieldRemark, v))
+}
+
+// RemarkGTE applies the GTE predicate on the "remark" field.
+func RemarkGTE(v string) predicate.Role {
+	return predicate.Role(sql.FieldGTE(FieldRemark, v))
+}
+
+// RemarkLT applies the LT predicate on the "remark" field.
+func RemarkLT(v string) predicate.Role {
+	return predicate.Role(sql.FieldLT(FieldRemark, v))
+}
+
+// RemarkLTE applies the LTE predicate on the "remark" field.
+func RemarkLTE(v string) predicate.Role {
+	return predicate.Role(sql.FieldLTE(FieldRemark, v))
+}
+
+// RemarkContains applies the Contains predicate on the "remark" field.
+func RemarkContains(v string) predicate.Role {
+	return predicate.Role(sql.FieldContains(FieldRemark, v))
+}
+
+// RemarkHasPrefix applies the HasPrefix predicate on the "remark" field.
+func RemarkHasPrefix(v string) predicate.Role {
+	return predicate.Role(sql.FieldHasPrefix(FieldRemark, v))
+}
+
+// RemarkHasSuffix applies the HasSuffix predicate on the "remark" field.
+func RemarkHasSuffix(v string) predicate.Role {
+	return predicate.Role(sql.FieldHasSuffix(FieldRemark, v))
+}
+
+// RemarkEqualFold applies the EqualFold predicate on the "remark" field.
+func RemarkEqualFold(v string) predicate.Role {
+	return predicate.Role(sql.FieldEqualFold(FieldRemark, v))
+}
+
+// RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
+func RemarkContainsFold(v string) predicate.Role {
+	return predicate.Role(sql.FieldContainsFold(FieldRemark, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

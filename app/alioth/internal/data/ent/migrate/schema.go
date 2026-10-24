@@ -1130,6 +1130,7 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "is_system", Type: field.TypeBool, Default: false},
+		{Name: "remark", Type: field.TypeString, Size: 5000, Default: ""},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
 	}
 	// RolesTable holds the schema information for the "roles" table.
