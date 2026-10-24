@@ -20,11 +20,36 @@ func NewAlertEventService(coordinator *alertevent.Coordinator) *AlertEventServic
 }
 
 func (s *AlertEventService) ListAlertEvents(ctx context.Context, req *v1.ListAlertEventsRequest) (*v1.ListAlertEventsResponse, error) {
-	items, total, page, pageSize, err := s.coordinator.List(ctx, req.GetView(), req.GetName(), req.GetMine(), req.GetPageUid(), req.GetLevelUid(), req.GetPage(), req.GetPageSize())
+	startsAtFrom, err := parseAlertEventTime(req.GetStartsAtFrom())
+	if err != nil {
+		return nil, err
+	}
+	startsAtTo, err := parseAlertEventTime(req.GetStartsAtTo())
+	if err != nil {
+		return nil, err
+	}
+	items, total, page, pageSize, err := s.coordinator.List(ctx, alertevent.ListQuery{
+		View: req.GetView(), Name: req.GetName(), Mine: req.GetMine(),
+		PageUID: req.GetPageUid(), LevelUID: req.GetLevelUid(),
+		RuleName: req.GetRuleName(), DatasourceName: req.GetDatasourceName(),
+		StartsAtFrom: startsAtFrom, StartsAtTo: startsAtTo,
+		EventStatus: req.GetEventStatus(), Suppression: req.GetSuppression(),
+	}, req.GetPage(), req.GetPageSize())
 	if err != nil {
 		return nil, err
 	}
 	return &v1.ListAlertEventsResponse{Items: eventItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
+}
+
+func parseAlertEventTime(value string) (*time.Time, error) {
+	if value == "" {
+		return nil, nil
+	}
+	parsed, err := time.Parse(time.RFC3339Nano, value)
+	if err != nil {
+		return nil, merr.Invalid("invalid alert event time")
+	}
+	return &parsed, nil
 }
 
 func (s *AlertEventService) GetAlertEvent(ctx context.Context, req *v1.GetAlertEventRequest) (*v1.GetAlertEventResponse, error) {

@@ -18,6 +18,72 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 )
 
+func TestFilterHistoryItemsAppliesDetailFiltersBeforePagination(t *testing.T) {
+	base := time.Date(2026, 10, 24, 0, 0, 0, 0, time.UTC)
+	items := []bo.AlertEvent{
+		{
+			UID: "event-auto", Summary: "API latency high", Fingerprint: "fp-api",
+			RuleName: "API latency", DatasourceName: "prod metrics", LevelUID: "critical",
+			Status: "RECOVERED", StartsAt: base.Add(10 * time.Hour), CreatedAt: base.Add(12 * time.Hour),
+		},
+		{
+			UID: "event-manual", Summary: "Disk full", Fingerprint: "fp-disk",
+			RuleName: "Disk capacity", DatasourceName: "node exporter", LevelUID: "warning",
+			Status: "RECOVERED_BY_MANUAL", Suppressed: true,
+			StartsAt: base.Add(10*time.Hour + 30*time.Minute), CreatedAt: base.Add(13 * time.Hour),
+		},
+		{
+			UID: "event-end-boundary", Summary: "Next-day boundary", Fingerprint: "fp-boundary",
+			RuleName: "Boundary", DatasourceName: "boundary", LevelUID: "warning",
+			Status: "RECOVERED", StartsAt: base.Add(11*time.Hour + 30*time.Minute),
+			CreatedAt: base.Add(15 * time.Hour),
+		},
+		{
+			UID: "event-final-fraction", Summary: "Final fractional instant", Fingerprint: "fp-final-fraction",
+			RuleName: "Boundary", DatasourceName: "boundary", LevelUID: "warning",
+			Status: "RECOVERED", Suppressed: true,
+			StartsAt:  base.Add(11*time.Hour + 30*time.Minute - 500*time.Microsecond),
+			CreatedAt: base.Add(16 * time.Hour),
+		},
+		{
+			UID: "event-firing", Summary: "API errors", Fingerprint: "fp-errors",
+			RuleName: "API latency", DatasourceName: "prod metrics", LevelUID: "critical",
+			Status: "FIRING", Suppressed: true,
+			StartsAt: base.Add(12 * time.Hour), CreatedAt: base.Add(14 * time.Hour),
+		},
+	}
+	from := base.Add(10*time.Hour + 30*time.Minute)
+	to := base.Add(11*time.Hour + 30*time.Minute)
+	cases := []struct {
+		name   string
+		filter bo.AlertEventListFilter
+		want   map[string]bool
+	}{
+		{name: "inclusive start and exclusive end", filter: bo.AlertEventListFilter{StartsAtFrom: &from, StartsAtTo: &to}, want: map[string]bool{"event-manual": true, "event-final-fraction": true}},
+		{name: "event status", filter: bo.AlertEventListFilter{EventStatus: "RECOVERED_BY_MANUAL"}, want: map[string]bool{"event-manual": true}},
+		{name: "rule name", filter: bo.AlertEventListFilter{RuleName: "API"}, want: map[string]bool{"event-auto": true, "event-firing": true}},
+		{name: "datasource name", filter: bo.AlertEventListFilter{DatasourceName: "NODE"}, want: map[string]bool{"event-manual": true}},
+		{name: "suppressed", filter: bo.AlertEventListFilter{Suppression: "SUPPRESSED"}, want: map[string]bool{"event-manual": true, "event-final-fraction": true, "event-firing": true}},
+		{name: "unsuppressed", filter: bo.AlertEventListFilter{Suppression: "UNSUPPRESSED"}, want: map[string]bool{"event-auto": true, "event-end-boundary": true}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := filterHistoryItems(items, tc.filter)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(got) != len(tc.want) {
+				t.Fatalf("got %d events, want %d: %+v", len(got), len(tc.want), got)
+			}
+			for _, item := range got {
+				if !tc.want[item.UID] {
+					t.Errorf("unexpected event %q", item.UID)
+				}
+			}
+		})
+	}
+}
+
 func TestAlertEventReport(t *testing.T) {
 	source := testDSN(t)
 	ctx := context.Background()

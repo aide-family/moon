@@ -1,3 +1,4 @@
+import { BarChart3, List, Search, X } from "lucide-react"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import type { ReactNode } from "react"
@@ -29,9 +30,11 @@ import { RowActions, type RowAction } from "@/components/row-actions"
 import { LevelBadge, StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -44,10 +47,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { AlertEventChartDialog } from "@/pages/alert/event-chart"
 import { AlertEventDetail } from "@/pages/alert/event-detail"
+import { AlertHistoryInsights } from "@/pages/alert/history-insights"
 import {
   columnTitle,
   DEFAULT_HISTORY_COLUMNS,
@@ -65,8 +70,7 @@ interface AlertEventListProps {
   hideHeader?: boolean
   // refreshKey 变化时静默刷新列表；由实时页的自动轮询驱动。
   refreshKey?: number
-  // 实时页从独立统计接口取数并下发，列表不再为统计条额外请求；
-  // 历史页不传，仍由列表自己加载。
+  // 实时页从独立统计接口取数并下发；历史页不展示实时统计。
   stats?: AlertEventStats
   // 实时页下发的自定义列；为空时使用视图默认列。
   columns?: AlertColumnItem[]
@@ -75,6 +79,49 @@ interface AlertEventListProps {
 }
 
 type ConfirmKind = "recover" | "batch-recover"
+
+type HistoryDetailFilters = {
+  name: string
+  level: string
+  ruleName: string
+  datasourceName: string
+  from: string
+  to: string
+  status: string
+  suppression: string
+}
+
+const HISTORY_DETAIL_QUERY_KEYS = {
+  name: "eventName",
+  level: "eventLevel",
+  ruleName: "eventRule",
+  datasourceName: "eventDatasource",
+  from: "eventFrom",
+  to: "eventTo",
+  status: "eventStatus",
+  suppression: "eventSuppression",
+} as const satisfies Record<keyof HistoryDetailFilters, string>
+
+function dateBound(value: string, exclusiveEnd = false): string | undefined {
+  if (!value) return undefined
+  const date = new Date(`${value}T00:00:00.000`)
+  if (Number.isNaN(date.getTime())) return undefined
+  if (exclusiveEnd) date.setDate(date.getDate() + 1)
+  return date.toISOString()
+}
+
+function activeHistoryFilterCount(filters: HistoryDetailFilters): number {
+  return [
+    filters.name,
+    filters.level,
+    filters.ruleName,
+    filters.datasourceName,
+    filters.from,
+    filters.to,
+    filters.status,
+    filters.suppression,
+  ].filter(Boolean).length
+}
 
 export function AlertEventList({
   view,
@@ -90,7 +137,46 @@ export function AlertEventList({
   const session = useSession()
   const query = useListQuery()
   const [params, setParams] = useSearchParams()
-  const level = view === "REALTIME" ? params.get("level") || "" : ""
+  const analysisLevel = params.get("level") || ""
+  const historyTab =
+    params.get("historyTab") === "analysis" ? "analysis" : "details"
+  const committedHistoryFilters: HistoryDetailFilters = {
+    name: params.get("eventName") || "",
+    level: params.get("eventLevel") || "",
+    ruleName: params.get("eventRule") || "",
+    datasourceName: params.get("eventDatasource") || "",
+    from: params.get("eventFrom") || "",
+    to: params.get("eventTo") || "",
+    status: params.get("eventStatus") || "",
+    suppression: params.get("eventSuppression") || "",
+  }
+  const historyFilterSignature = JSON.stringify(committedHistoryFilters)
+  const draftSignature = `${session.namespaceUid}|${historyFilterSignature}`
+  const [historyDraftState, setHistoryDraftState] = useState<{
+    signature: string
+    filters: HistoryDetailFilters
+  } | null>(null)
+  const historyDraft =
+    historyDraftState?.signature === draftSignature
+      ? historyDraftState.filters
+      : committedHistoryFilters
+  const updateHistoryDraft = <K extends keyof HistoryDetailFilters>(
+    key: K,
+    value: HistoryDetailFilters[K]
+  ) => {
+    setHistoryDraftState({
+      signature: draftSignature,
+      filters: { ...historyDraft, [key]: value },
+    })
+  }
+  const invalidHistoryDateRange = Boolean(
+    historyDraft.from && historyDraft.to && historyDraft.from > historyDraft.to
+  )
+  const historyFilterCount = activeHistoryFilterCount(historyDraft)
+  const listName =
+    view === "HISTORY" ? committedHistoryFilters.name : query.name
+  const listLevel =
+    view === "HISTORY" ? committedHistoryFilters.level : analysisLevel
   const [draft, setDraft] = useState(query.name)
   const [localStats, setLocalStats] = useState<AlertEventStats>({
     firing: 0,
@@ -108,17 +194,41 @@ export function AlertEventList({
   } = usePagedList<AlertEventItem>({
     page: query.page,
     pageSize: query.pageSize,
-    filterKey: `${session.namespaceUid}|${query.name}|${level}|${view}|${mine}|${pageUid}`,
+    filterKey: `${session.namespaceUid}|${listName}|${listLevel}|${historyFilterSignature}|${view}|${mine}|${pageUid}`,
     refreshKey,
     fetch: (page, pageSize) =>
       listAlertEvents({
         page,
         pageSize,
-        name: query.name,
+        name: listName,
         view,
         mine: mine || undefined,
         pageUid: pageUid || undefined,
-        levelUid: level || undefined,
+        levelUid: listLevel || undefined,
+        startsAtFrom:
+          view === "HISTORY"
+            ? dateBound(committedHistoryFilters.from, false)
+            : undefined,
+        startsAtTo:
+          view === "HISTORY"
+            ? dateBound(committedHistoryFilters.to, true)
+            : undefined,
+        eventStatus:
+          view === "HISTORY"
+            ? committedHistoryFilters.status || undefined
+            : undefined,
+        ruleName:
+          view === "HISTORY"
+            ? committedHistoryFilters.ruleName || undefined
+            : undefined,
+        datasourceName:
+          view === "HISTORY"
+            ? committedHistoryFilters.datasourceName || undefined
+            : undefined,
+        suppression:
+          view === "HISTORY"
+            ? committedHistoryFilters.suppression || undefined
+            : undefined,
       }),
     onLoaded: (data, meta) => {
       // 静默刷新时保留勾选，只丢弃已经离开实时列表的事件。
@@ -130,7 +240,7 @@ export function AlertEventList({
         const next = current.filter((uid) => visible.has(uid))
         return next.length === current.length ? current : next
       })
-      if (!sharedStats) {
+      if (!sharedStats && view === "REALTIME") {
         void alertEventStats()
           .then(setLocalStats)
           .catch(() => undefined)
@@ -182,9 +292,6 @@ export function AlertEventList({
     view === "HISTORY" ? t("alertEvent.historyTitle") : t("alertEvent.title")
 
   useEffect(() => {
-    if (view !== "REALTIME") {
-      return
-    }
     let active = true
     async function loadLevels() {
       try {
@@ -332,11 +439,43 @@ export function AlertEventList({
     )
   }
 
+  function applyHistoryFilters() {
+    const next = new URLSearchParams(params)
+    const entries = [
+      ["name", historyDraft.name],
+      ["level", historyDraft.level],
+      ["ruleName", historyDraft.ruleName],
+      ["datasourceName", historyDraft.datasourceName],
+      ["from", historyDraft.from],
+      ["to", historyDraft.to],
+      ["status", historyDraft.status],
+      ["suppression", historyDraft.suppression],
+    ] as const
+    for (const [key, value] of entries) {
+      const queryKey = HISTORY_DETAIL_QUERY_KEYS[key]
+      if (value) next.set(queryKey, value)
+      else next.delete(queryKey)
+    }
+    next.set("page", "1")
+    setParams(next)
+    setHistoryDraftState(null)
+  }
+
+  function clearHistoryFilters() {
+    const next = new URLSearchParams(params)
+    for (const queryKey of Object.values(HISTORY_DETAIL_QUERY_KEYS)) {
+      next.delete(queryKey)
+    }
+    next.set("page", "1")
+    setParams(next)
+    setHistoryDraftState(null)
+  }
+
   const allChecked =
     items.length > 0 && items.every((item) => selected.includes(item.uid))
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col gap-6">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
       {hideHeader ? null : (
         <PageHeader
           title={title}
@@ -347,189 +486,664 @@ export function AlertEventList({
           }
         />
       )}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <form
-          className="flex flex-nowrap items-center gap-2"
-          onSubmit={(event) => {
-            event.preventDefault()
-            query.update({ name: draft })
-          }}
-        >
-          <Input
-            className="max-w-sm min-w-0"
-            value={draft}
-            placeholder={t("alertEvent.namePlaceholder")}
-            onChange={(event) => setDraft(event.target.value)}
-          />
-          {view === "REALTIME" ? (
-            <Select
-              value={level || "ALL"}
-              onValueChange={(value) => {
-                const next = new URLSearchParams(params)
-                if (value === "ALL") {
-                  next.delete("level")
-                } else {
-                  next.set("level", value)
-                }
-                next.set("page", "1")
-                setParams(next)
-              }}
-            >
-              <SelectTrigger
-                className="w-40 shrink-0"
-                aria-label={t("alertEvent.level")}
-              >
-                <SelectValue placeholder={t("alertEvent.allLevels")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">{t("alertEvent.allLevels")}</SelectItem>
-                {levels.map((item) => (
-                  <SelectItem key={item.uid} value={item.uid}>
-                    {item.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : null}
-          <Button type="submit" variant="outline" className="shrink-0">
-            {t("action.search")}
-          </Button>
-        </form>
-        <div className="flex flex-nowrap items-center justify-end gap-2">
-          <span className="shrink-0 text-sm text-muted-foreground">
-            {t("alertEvent.stats", {
-              firing: stats.firing,
-              suppressed: stats.suppressed,
-              recovered: stats.recovered,
-            })}
-          </span>
-          {canIntervene ? (
-            <>
-              <Button
-                variant="outline"
-                className="shrink-0"
-                disabled={pending || selected.length === 0}
-                onClick={() => void intervene(selected)}
-              >
-                {t("alertEvent.batchIntervene")}
-              </Button>
-              <Button
-                variant="outline"
-                className="shrink-0"
-                disabled={pending || selected.length === 0}
-                onClick={() =>
-                  setConfirm({ kind: "batch-recover", uids: selected })
-                }
-              >
-                {t("alertEvent.batchRecover")}
-              </Button>
-            </>
-          ) : null}
-        </div>
-      </div>
-      {actionError ? (
-        <p className="text-sm text-destructive">{actionError}</p>
-      ) : null}
-      <ListFrame
-        total={total}
-        page={query.page}
-        pageSize={query.pageSize}
-        showPager={!loading && !failed && items.length > 0}
-        actions={columnsAction}
-        onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
-        onNext={() => query.update({ page: query.page + 1 })}
+      <Tabs
+        value={view === "HISTORY" ? historyTab : "realtime"}
+        onValueChange={(value) => {
+          if (value === "analysis" || value === "details") {
+            const next = new URLSearchParams(params)
+            if (value === "analysis") next.set("historyTab", value)
+            else next.delete("historyTab")
+            setParams(next)
+          }
+        }}
+        className={
+          view === "HISTORY"
+            ? "min-h-0 min-w-0 flex-1 gap-4 overflow-hidden"
+            : "gap-4"
+        }
       >
-        {loading ? (
-          <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
+        {view === "HISTORY" ? (
+          <>
+            <TabsList
+              variant="default"
+              className="grid h-auto w-full max-w-[40rem] grid-cols-2 items-stretch gap-1.5 rounded-xl border border-border/70 bg-muted/40 p-1.5"
+            >
+              <TabsTrigger
+                value="analysis"
+                className="group/tab h-auto min-h-16 justify-start gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left whitespace-normal transition-colors data-[state=active]:border-primary/25 data-[state=active]:shadow-sm sm:px-4"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-background text-muted-foreground ring-1 ring-border/70 transition-colors group-data-[state=active]/tab:bg-primary/10 group-data-[state=active]/tab:text-primary group-data-[state=active]/tab:ring-primary/20">
+                  <BarChart3 aria-hidden="true" data-icon="inline-start" />
+                </span>
+                <span className="min-w-0 text-left">
+                  <span className="block text-sm font-semibold tracking-tight">
+                    {t("alertEvent.analysisTab")}
+                  </span>
+                  <span className="mt-1 hidden text-xs leading-tight text-muted-foreground sm:block">
+                    {t("alertEvent.analysisTabHint")}
+                  </span>
+                </span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="details"
+                className="group/tab h-auto min-h-16 justify-start gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left whitespace-normal transition-colors data-[state=active]:border-primary/25 data-[state=active]:shadow-sm sm:px-4"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-background text-muted-foreground ring-1 ring-border/70 transition-colors group-data-[state=active]/tab:bg-primary/10 group-data-[state=active]/tab:text-primary group-data-[state=active]/tab:ring-primary/20">
+                  <List aria-hidden="true" data-icon="inline-start" />
+                </span>
+                <span className="min-w-0 text-left">
+                  <span className="block text-sm font-semibold tracking-tight">
+                    {t("alertEvent.detailTab")}
+                  </span>
+                  <span className="mt-1 hidden text-xs leading-tight text-muted-foreground sm:block">
+                    {t("alertEvent.detailTabHint")}
+                  </span>
+                </span>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent
+              value="analysis"
+              forceMount
+              className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain"
+            >
+              <AlertHistoryInsights
+                key={session.namespaceUid}
+                name={query.name}
+                levelUid={analysisLevel}
+                enabled={historyTab === "analysis"}
+                onSelectFingerprint={(fingerprint) => {
+                  const next = new URLSearchParams(params)
+                  next.set("eventName", fingerprint)
+                  next.set("page", "1")
+                  next.delete("historyTab")
+                  setHistoryDraftState(null)
+                  setParams(next)
+                }}
+              />
+            </TabsContent>
+          </>
         ) : null}
-        {!loading && failed ? (
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-destructive">
-              {loadError || t("state.failed")}
-            </p>
-            <Button variant="outline" onClick={() => reload()}>
-              {t("action.retry")}
-            </Button>
-          </div>
-        ) : null}
-        {!loading && !failed && items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {t("alertEvent.empty")}
-          </p>
-        ) : null}
-        {!loading && !failed && items.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {canIntervene ? (
-                  <TableHead
-                    ref={checkHeadRef}
-                    className={`w-10 ${pinnedCheckHead}`}
+        <TabsContent
+          value={view === "HISTORY" ? "details" : "realtime"}
+          className={
+            view === "HISTORY"
+              ? "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+              : "min-w-0"
+          }
+        >
+          <section
+            aria-labelledby={
+              view === "HISTORY" ? "alert-history-details-title" : undefined
+            }
+            aria-label={view === "REALTIME" ? title : undefined}
+            className={
+              view === "HISTORY"
+                ? "flex min-h-0 min-w-0 flex-1 flex-col gap-3"
+                : "min-w-0"
+            }
+          >
+            {view === "HISTORY" ? (
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                    {t("alertEvent.detailEyebrow")}
+                  </p>
+                  <h2
+                    id="alert-history-details-title"
+                    className="mt-1 text-lg font-semibold tracking-tight"
                   >
-                    <input
-                      type="checkbox"
-                      aria-label={t("alertEvent.batchIntervene")}
-                      checked={allChecked}
-                      onChange={() =>
-                        setSelected(
-                          allChecked ? [] : items.map((item) => item.uid)
-                        )
-                      }
-                    />
-                  </TableHead>
-                ) : null}
-                {visibleColumns.map((column, index) => (
-                  <TableHead
-                    key={`${column.type}:${column.key}`}
-                    className={index === 0 ? pinnedHead : undefined}
-                    style={index === 0 ? { left: pinnedLeft } : undefined}
-                  >
-                    {columnTitle(t, i18n.language, column)}
-                  </TableHead>
-                ))}
-                <TableHead className={actionsHead}>
-                  {t("alertEvent.actions")}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.uid} className="group">
-                  {canIntervene ? (
-                    <TableCell className={pinnedCheckCell}>
-                      <input
-                        type="checkbox"
-                        aria-label={item.summary || item.uid}
-                        checked={selected.includes(item.uid)}
-                        onChange={() => toggle(item.uid)}
+                    {t("alertEvent.detailTitle")}
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t("alertEvent.detailDescription")}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+            <div
+              className={
+                view === "HISTORY"
+                  ? "rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4"
+                  : "flex flex-wrap items-center justify-between gap-2"
+              }
+            >
+              {view === "HISTORY" ? (
+                <div className="mb-4">
+                  <p className="text-sm font-semibold tracking-tight">
+                    {t("alertEvent.detailSearchTitle")}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("alertEvent.detailSearchHint")}
+                  </p>
+                </div>
+              ) : null}
+              <div
+                className={
+                  view === "HISTORY"
+                    ? "flex flex-wrap items-center justify-between gap-3"
+                    : "flex flex-wrap items-center justify-between gap-2"
+                }
+              >
+                <form
+                  role={view === "HISTORY" ? "search" : undefined}
+                  aria-label={
+                    view === "HISTORY" ? t("alertEvent.detailTitle") : undefined
+                  }
+                  className={
+                    view === "HISTORY"
+                      ? "grid w-full min-w-0 gap-4"
+                      : "flex flex-nowrap items-center gap-2"
+                  }
+                  onSubmit={(event) => {
+                    event.preventDefault()
+                    if (view === "HISTORY") {
+                      if (!invalidHistoryDateRange) applyHistoryFilters()
+                    } else {
+                      query.update({ name: draft })
+                    }
+                  }}
+                >
+                  {view === "HISTORY" ? (
+                    <>
+                      <FieldGroup className="grid-cols-2 xl:grid-cols-4">
+                        <Field className="col-span-2 xl:col-span-2">
+                          <FieldLabel
+                            htmlFor="history-detail-name"
+                            className="text-xs text-muted-foreground"
+                          >
+                            {t("alertEvent.namePlaceholder")}
+                          </FieldLabel>
+                          <div className="relative">
+                            <Search
+                              aria-hidden="true"
+                              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                            />
+                            <Input
+                              id="history-detail-name"
+                              className="h-10 pl-9"
+                              value={historyDraft.name}
+                              placeholder={t("alertEvent.namePlaceholder")}
+                              onChange={(event) =>
+                                updateHistoryDraft("name", event.target.value)
+                              }
+                            />
+                          </div>
+                        </Field>
+                        <Field className="min-w-0">
+                          <FieldLabel
+                            htmlFor="history-detail-rule"
+                            className="text-xs text-muted-foreground"
+                          >
+                            {t("alertEvent.rule")}
+                          </FieldLabel>
+                          <Input
+                            id="history-detail-rule"
+                            className="h-10"
+                            value={historyDraft.ruleName}
+                            placeholder={t("alertEvent.ruleNamePlaceholder")}
+                            onChange={(event) =>
+                              updateHistoryDraft("ruleName", event.target.value)
+                            }
+                          />
+                        </Field>
+                        <Field className="min-w-0">
+                          <FieldLabel
+                            htmlFor="history-detail-datasource"
+                            className="text-xs text-muted-foreground"
+                          >
+                            {t("alertEvent.datasource")}
+                          </FieldLabel>
+                          <Input
+                            id="history-detail-datasource"
+                            className="h-10"
+                            value={historyDraft.datasourceName}
+                            placeholder={t(
+                              "alertEvent.datasourceNamePlaceholder"
+                            )}
+                            onChange={(event) =>
+                              updateHistoryDraft(
+                                "datasourceName",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </Field>
+                        <Field className="min-w-0">
+                          <FieldLabel
+                            htmlFor="history-detail-level"
+                            className="text-xs text-muted-foreground"
+                          >
+                            {t("alertEvent.level")}
+                          </FieldLabel>
+                          <Select
+                            value={historyDraft.level || "ALL"}
+                            onValueChange={(value) =>
+                              updateHistoryDraft(
+                                "level",
+                                value === "ALL" ? "" : value
+                              )
+                            }
+                          >
+                            <SelectTrigger
+                              id="history-detail-level"
+                              className="h-10 w-full"
+                            >
+                              <SelectValue
+                                placeholder={t("alertEvent.allLevels")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="ALL">
+                                  {t("alertEvent.allLevels")}
+                                </SelectItem>
+                                {levels.map((item) => (
+                                  <SelectItem key={item.uid} value={item.uid}>
+                                    {item.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                        <Field className="min-w-0">
+                          <FieldLabel
+                            htmlFor="history-detail-status"
+                            className="text-xs text-muted-foreground"
+                          >
+                            {t("alertEvent.eventStatusLabel")}
+                          </FieldLabel>
+                          <Select
+                            value={historyDraft.status || "ALL"}
+                            onValueChange={(value) =>
+                              updateHistoryDraft(
+                                "status",
+                                value === "ALL" ? "" : value
+                              )
+                            }
+                          >
+                            <SelectTrigger
+                              id="history-detail-status"
+                              className="h-10 w-full"
+                            >
+                              <SelectValue
+                                placeholder={t("alertEvent.allStatuses")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="ALL">
+                                  {t("alertEvent.allStatuses")}
+                                </SelectItem>
+                                <SelectItem value="FIRING">
+                                  {t("alertEvent.statusFiring")}
+                                </SelectItem>
+                                <SelectItem value="RECOVERED">
+                                  {t("alertEvent.statusRecovered")}
+                                </SelectItem>
+                                <SelectItem value="RECOVERED_BY_MANUAL">
+                                  {t("alertEvent.statusRecoveredManual")}
+                                </SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                        <Field className="min-w-0">
+                          <FieldLabel
+                            htmlFor="history-detail-suppression"
+                            className="text-xs text-muted-foreground"
+                          >
+                            {t("alertEvent.suppressionFilter")}
+                          </FieldLabel>
+                          <Select
+                            value={historyDraft.suppression || "ALL"}
+                            onValueChange={(value) =>
+                              updateHistoryDraft(
+                                "suppression",
+                                value === "ALL" ? "" : value
+                              )
+                            }
+                          >
+                            <SelectTrigger
+                              id="history-detail-suppression"
+                              className="h-10 w-full"
+                            >
+                              <SelectValue
+                                placeholder={t("alertEvent.allSuppression")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="ALL">
+                                  {t("alertEvent.allSuppression")}
+                                </SelectItem>
+                                <SelectItem value="SUPPRESSED">
+                                  {t("alertEvent.suppressedOnly")}
+                                </SelectItem>
+                                <SelectItem value="UNSUPPRESSED">
+                                  {t("alertEvent.unsuppressedOnly")}
+                                </SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                        <Field
+                          className="col-span-2 xl:col-span-2"
+                          data-invalid={invalidHistoryDateRange || undefined}
+                        >
+                          <FieldLabel
+                            htmlFor="history-detail-from"
+                            className="text-xs text-muted-foreground"
+                          >
+                            {t("alertEvent.eventDateRange")}
+                          </FieldLabel>
+                          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                            <Input
+                              id="history-detail-from"
+                              type="date"
+                              className="h-10 min-w-0"
+                              aria-label={t("alertEvent.fromDate")}
+                              value={historyDraft.from}
+                              max={historyDraft.to || undefined}
+                              aria-invalid={invalidHistoryDateRange}
+                              aria-describedby={
+                                invalidHistoryDateRange
+                                  ? "history-detail-date-error"
+                                  : undefined
+                              }
+                              onChange={(event) =>
+                                updateHistoryDraft("from", event.target.value)
+                              }
+                            />
+                            <span className="text-xs text-muted-foreground">
+                              {t("alertEvent.dateTo")}
+                            </span>
+                            <Input
+                              id="history-detail-to"
+                              type="date"
+                              className="h-10 min-w-0"
+                              aria-label={t("alertEvent.toDate")}
+                              value={historyDraft.to}
+                              min={historyDraft.from || undefined}
+                              aria-invalid={invalidHistoryDateRange}
+                              aria-describedby={
+                                invalidHistoryDateRange
+                                  ? "history-detail-date-error"
+                                  : undefined
+                              }
+                              onChange={(event) =>
+                                updateHistoryDraft("to", event.target.value)
+                              }
+                            />
+                          </div>
+                        </Field>
+                      </FieldGroup>
+                      <div className="flex flex-col gap-2 border-t border-border/60 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-h-5 flex-1">
+                          {invalidHistoryDateRange ? (
+                            <p
+                              id="history-detail-date-error"
+                              role="alert"
+                              aria-live="polite"
+                              className="text-xs text-destructive"
+                            >
+                              {t("alertEvent.invalidDateRange")}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              {historyFilterCount > 0
+                                ? t("alertEvent.activeFilterCount", {
+                                    count: historyFilterCount,
+                                  })
+                                : t("alertEvent.detailSearchHint")}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={historyFilterCount === 0}
+                            onClick={clearHistoryFilters}
+                          >
+                            <X aria-hidden="true" data-icon="inline-start" />
+                            {t("alertEvent.clearHistoryFilters")}
+                          </Button>
+                          <Button
+                            type="submit"
+                            className="h-10"
+                            disabled={invalidHistoryDateRange}
+                          >
+                            <Search
+                              aria-hidden="true"
+                              data-icon="inline-start"
+                            />
+                            {t("action.search")}
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Input
+                        className="max-w-sm min-w-0"
+                        value={draft}
+                        aria-label={t("alertEvent.namePlaceholder")}
+                        placeholder={t("alertEvent.namePlaceholder")}
+                        onChange={(event) => setDraft(event.target.value)}
                       />
-                    </TableCell>
-                  ) : null}
-                  {visibleColumns.map((column, index) => (
-                    <TableCell
-                      key={`${column.type}:${column.key}`}
-                      className={index === 0 ? pinnedCell : undefined}
-                      style={index === 0 ? { left: pinnedLeft } : undefined}
+                      <Select
+                        value={analysisLevel || "ALL"}
+                        onValueChange={(value) => {
+                          const next = new URLSearchParams(params)
+                          if (value === "ALL") next.delete("level")
+                          else next.set("level", value)
+                          next.set("page", "1")
+                          setParams(next)
+                        }}
+                      >
+                        <SelectTrigger
+                          className="w-40 shrink-0"
+                          aria-label={t("alertEvent.level")}
+                        >
+                          <SelectValue
+                            placeholder={t("alertEvent.allLevels")}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="ALL">
+                              {t("alertEvent.allLevels")}
+                            </SelectItem>
+                            {levels.map((item) => (
+                              <SelectItem key={item.uid} value={item.uid}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="submit"
+                        variant="outline"
+                        className="shrink-0"
+                      >
+                        {t("action.search")}
+                      </Button>
+                    </>
+                  )}
+                </form>
+                {view === "REALTIME" ? (
+                  <div className="flex flex-nowrap items-center justify-end gap-2">
+                    <span className="shrink-0 text-sm text-muted-foreground">
+                      {t("alertEvent.stats", {
+                        firing: stats.firing,
+                        suppressed: stats.suppressed,
+                        recovered: stats.recovered,
+                      })}
+                    </span>
+                    {canIntervene ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          className="shrink-0"
+                          disabled={pending || selected.length === 0}
+                          onClick={() => void intervene(selected)}
+                        >
+                          {t("alertEvent.batchIntervene")}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="shrink-0"
+                          disabled={pending || selected.length === 0}
+                          onClick={() =>
+                            setConfirm({
+                              kind: "batch-recover",
+                              uids: selected,
+                            })
+                          }
+                        >
+                          {t("alertEvent.batchRecover")}
+                        </Button>
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+            {actionError ? (
+              <p className="text-sm text-destructive">{actionError}</p>
+            ) : null}
+            <ListFrame
+              total={total}
+              page={query.page}
+              pageSize={query.pageSize}
+              showPager={!loading && !failed && items.length > 0}
+              actions={columnsAction}
+              onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
+              onNext={() => query.update({ page: query.page + 1 })}
+            >
+              {loading ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("state.loading")}
+                </p>
+              ) : null}
+              {!loading && failed ? (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-destructive">
+                    {loadError || t("state.failed")}
+                  </p>
+                  <Button variant="outline" onClick={() => reload()}>
+                    {t("action.retry")}
+                  </Button>
+                </div>
+              ) : null}
+              {!loading && !failed && items.length === 0 ? (
+                view === "HISTORY" &&
+                activeHistoryFilterCount(committedHistoryFilters) > 0 ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-sm text-muted-foreground">
+                      {t("alertEvent.emptyFilteredHistory")}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={clearHistoryFilters}
                     >
-                      {eventCell(item, column, levels, now)}
-                    </TableCell>
-                  ))}
-                  <TableCell className={actionsCell}>
-                    <RowActions
-                      detailLabel={t("action.detail")}
-                      moreLabel={t("action.more")}
-                      onDetail={() => setDetail(item)}
-                      actions={actions(item)}
-                      forceMenu
-                      nowrap
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : null}
-      </ListFrame>
+                      {t("alertEvent.clearHistoryFilters")}
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {t("alertEvent.empty")}
+                  </p>
+                )
+              ) : null}
+              {!loading && !failed && items.length > 0 ? (
+                <Table
+                  className={view === "HISTORY" ? "min-w-[58rem]" : undefined}
+                >
+                  <TableHeader>
+                    <TableRow>
+                      {canIntervene ? (
+                        <TableHead
+                          ref={checkHeadRef}
+                          className={`w-10 ${pinnedCheckHead}`}
+                        >
+                          <input
+                            type="checkbox"
+                            aria-label={t("alertEvent.batchIntervene")}
+                            checked={allChecked}
+                            onChange={() =>
+                              setSelected(
+                                allChecked ? [] : items.map((item) => item.uid)
+                              )
+                            }
+                          />
+                        </TableHead>
+                      ) : null}
+                      {visibleColumns.map((column, index) => (
+                        <TableHead
+                          key={`${column.type}:${column.key}`}
+                          className={
+                            index === 0
+                              ? `${pinnedHead} ${view === "HISTORY" ? "min-w-[18rem]" : ""}`
+                              : undefined
+                          }
+                          style={index === 0 ? { left: pinnedLeft } : undefined}
+                        >
+                          {columnTitle(t, i18n.language, column)}
+                        </TableHead>
+                      ))}
+                      <TableHead className={actionsHead}>
+                        {t("alertEvent.actions")}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item) => (
+                      <TableRow key={item.uid} className="group">
+                        {canIntervene ? (
+                          <TableCell className={pinnedCheckCell}>
+                            <input
+                              type="checkbox"
+                              aria-label={item.summary || item.uid}
+                              checked={selected.includes(item.uid)}
+                              onChange={() => toggle(item.uid)}
+                            />
+                          </TableCell>
+                        ) : null}
+                        {visibleColumns.map((column, index) => (
+                          <TableCell
+                            key={`${column.type}:${column.key}`}
+                            className={index === 0 ? pinnedCell : undefined}
+                            style={
+                              index === 0 ? { left: pinnedLeft } : undefined
+                            }
+                          >
+                            {eventCell(item, column, levels, now, view)}
+                          </TableCell>
+                        ))}
+                        <TableCell className={actionsCell}>
+                          <RowActions
+                            detailLabel={t("action.detail")}
+                            moreLabel={t("action.more")}
+                            onDetail={() => setDetail(item)}
+                            actions={actions(item)}
+                            forceMenu
+                            nowrap
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : null}
+            </ListFrame>
+          </section>
+        </TabsContent>
+      </Tabs>
       <AlertEventChartDialog
         event={chartEvent}
         open={chartEvent !== null}
@@ -591,7 +1205,8 @@ function eventCell(
   item: AlertEventItem,
   column: AlertColumnItem,
   levels: AlertDictionaryItem[],
-  now: number
+  now: number,
+  view: AlertEventView
 ): ReactNode {
   if (column.type === "LABEL") {
     const labels = parseEventLabels(item.labels)
@@ -605,8 +1220,19 @@ function eventCell(
     )
   }
   switch (column.key) {
-    case "summary":
-      return item.summary || item.fingerprint
+    case "summary": {
+      const summary = item.summary || item.fingerprint
+      return view === "HISTORY" ? (
+        <span
+          className="block max-w-[28rem] truncate font-medium text-foreground"
+          title={summary}
+        >
+          {summary}
+        </span>
+      ) : (
+        summary
+      )
+    }
     case "datasource":
       return (
         <span
@@ -619,9 +1245,19 @@ function eventCell(
     case "level":
       return levelCell(item.levelUid, levels)
     case "sample_value":
-      return item.sampleValue
+      return view === "HISTORY" ? (
+        <span className="font-mono tabular-nums">{item.sampleValue}</span>
+      ) : (
+        item.sampleValue
+      )
     case "starts_at":
-      return formatTime(item.startsAt)
+      return view === "HISTORY" ? (
+        <span className="font-mono text-xs text-muted-foreground tabular-nums">
+          {formatTime(item.startsAt)}
+        </span>
+      ) : (
+        formatTime(item.startsAt)
+      )
     case "duration":
       return (
         <span className="font-mono">{formatDuration(item.startsAt, now)}</span>

@@ -134,6 +134,18 @@ message ListAlertEventsRequest {
   string page_uid = 6 [json_name = "pageUid"];
   // 按告警等级过滤。空值表示全部等级。
   string level_uid = 7 [json_name = "levelUid"];
+  // 按事件开始时间筛选，RFC3339，包含下界。
+  string starts_at_from = 8 [json_name = "startsAtFrom"];
+  // RFC3339 排他上界；选择日期范围时传结束日期之后的本地午夜。
+  string starts_at_to = 9 [json_name = "startsAtTo"];
+  // 仅 HISTORY 支持：FIRING、RECOVERED 或 RECOVERED_BY_MANUAL。
+  string event_status = 10 [json_name = "eventStatus"];
+  // 仅 HISTORY 支持：按规则名称进行不区分大小写的包含查询。
+  string rule_name = 11 [json_name = "ruleName"];
+  // 仅 HISTORY 支持：按数据源名称进行不区分大小写的包含查询。
+  string datasource_name = 12 [json_name = "datasourceName"];
+  // 仅 HISTORY 支持：空值表示全部，或 SUPPRESSED / UNSUPPRESSED。
+  string suppression = 13;
 }
 
 // 告警分页结果。

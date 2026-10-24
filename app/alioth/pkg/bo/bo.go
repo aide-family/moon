@@ -319,11 +319,17 @@ type AlertColumn struct {
 
 // AlertEventListFilter 是告警事件列表的过滤条件。
 type AlertEventListFilter struct {
-	View          string
-	Name          string
-	LevelUID      string
-	RuleUIDs      []string
-	FilterByRules bool
+	View           string
+	Name           string
+	LevelUID       string
+	RuleName       string
+	DatasourceName string
+	StartsAtFrom   *time.Time // inclusive lower bound
+	StartsAtTo     *time.Time // exclusive upper bound
+	EventStatus    string
+	Suppression    string
+	RuleUIDs       []string
+	FilterByRules  bool
 	// EventUIDs 与 FilterByEvents 用于「我的告警」：只保留实际生成过
 	// 当前用户接收任务的事件，而不是整个规则下的所有事件。
 	EventUIDs      []string

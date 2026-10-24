@@ -37,6 +37,12 @@ export interface ListAlertEventsParams {
   mine?: boolean
   pageUid?: string
   levelUid?: string
+  startsAtFrom?: string
+  startsAtTo?: string
+  eventStatus?: AlertEventStatus | string
+  ruleName?: string
+  datasourceName?: string
+  suppression?: "SUPPRESSED" | "UNSUPPRESSED" | string
 }
 
 export interface ListAlertEventsResult {

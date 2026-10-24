@@ -166,25 +166,48 @@ func (coordinator *Coordinator) Report(ctx context.Context, report bo.EvalReport
 	return nil
 }
 
-func (coordinator *Coordinator) List(ctx context.Context, view, name string, mine bool, pageUID, levelUID string, pageNo, pageSize int32) ([]bo.AlertEvent, int, int, int, error) {
+type ListQuery struct {
+	View           string
+	Name           string
+	Mine           bool
+	PageUID        string
+	LevelUID       string
+	RuleName       string
+	DatasourceName string
+	StartsAtFrom   *time.Time
+	StartsAtTo     *time.Time
+	EventStatus    string
+	Suppression    string
+}
+
+func (coordinator *Coordinator) List(ctx context.Context, query ListQuery, pageNo, pageSize int32) ([]bo.AlertEvent, int, int, int, error) {
 	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
-	if mine && pageUID != "" {
+	if query.View == "" {
+		query.View = "REALTIME"
+	}
+	if query.View != "REALTIME" && query.View != "HISTORY" {
 		return nil, 0, 0, 0, merr.Invalid("invalid request")
 	}
-	if view == "" {
-		view = "REALTIME"
-	}
-	if view != "REALTIME" && view != "HISTORY" {
+	if query.Mine && query.PageUID != "" {
 		return nil, 0, 0, 0, merr.Invalid("invalid request")
 	}
-	if (mine || pageUID != "") && view != "REALTIME" {
+	if (query.Mine || query.PageUID != "") && query.View != "REALTIME" {
 		return nil, 0, 0, 0, merr.Invalid("invalid request")
 	}
-	filter := bo.AlertEventListFilter{View: view, Name: name, LevelUID: levelUID}
-	if mine {
+	if err := validateHistoryListQuery(query); err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	filter := bo.AlertEventListFilter{
+		View: query.View, Name: query.Name, LevelUID: query.LevelUID,
+		RuleName: query.RuleName, DatasourceName: query.DatasourceName,
+		StartsAtFrom: query.StartsAtFrom, StartsAtTo: query.StartsAtTo,
+		EventStatus: query.EventStatus, Suppression: query.Suppression,
+	}
+	if query.Mine {
 		eventUIDs, err := coordinator.eventUIDsForCurrentUser(ctx, ns)
 		if err != nil {
 			return nil, 0, 0, 0, err
@@ -192,12 +215,12 @@ func (coordinator *Coordinator) List(ctx context.Context, view, name string, min
 		filter.FilterByEvents = true
 		filter.EventUIDs = eventUIDs
 	}
-	if pageUID != "" {
+	if query.PageUID != "" {
 		userUID, ok := actor.UserID(ctx)
 		if !ok {
 			return nil, 0, 0, 0, merr.Unauthenticated("unauthorized")
 		}
-		pageItem, err := coordinator.pages.GetAlertPage(ctx, ns, pageUID)
+		pageItem, err := coordinator.pages.GetAlertPage(ctx, ns, query.PageUID)
 		if err != nil {
 			return nil, 0, 0, 0, coordinator.access.Wrap(err)
 		}
@@ -212,6 +235,28 @@ func (coordinator *Coordinator) List(ctx context.Context, view, name string, min
 		return nil, 0, 0, 0, coordinator.access.Wrap(err)
 	}
 	return items, total, p, s, nil
+}
+
+func validateHistoryListQuery(query ListQuery) error {
+	hasHistoryOnlyFilters := query.RuleName != "" || query.DatasourceName != "" ||
+		query.StartsAtFrom != nil || query.StartsAtTo != nil || query.EventStatus != "" || query.Suppression != ""
+	if query.View != "HISTORY" && hasHistoryOnlyFilters {
+		return merr.Invalid("history filters require HISTORY view")
+	}
+	if query.StartsAtFrom != nil && query.StartsAtTo != nil && query.StartsAtFrom.After(*query.StartsAtTo) {
+		return merr.Invalid("invalid alert event time range")
+	}
+	switch query.EventStatus {
+	case "", "FIRING", "RECOVERED", "RECOVERED_BY_MANUAL":
+	default:
+		return merr.Invalid("invalid alert event status")
+	}
+	switch query.Suppression {
+	case "", "SUPPRESSED", "UNSUPPRESSED":
+	default:
+		return merr.Invalid("invalid suppression filter")
+	}
+	return nil
 }
 
 // eventUIDsForCurrentUser 返回当前用户作为通知接收人的实时事件标识。

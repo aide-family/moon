@@ -3,8 +3,9 @@ import type { AlertColumnItem } from "@/api/alert-page/types"
 // 未配置列时实时告警表格使用的默认列，保持旧页面的信息密度。
 export const DEFAULT_HISTORY_COLUMNS: AlertColumnItem[] = [
   { key: "summary", type: "FIELD", label: "" },
-  { key: "datasource", type: "FIELD", label: "" },
   { key: "status", type: "FIELD", label: "" },
+  { key: "level", type: "FIELD", label: "" },
+  { key: "datasource", type: "FIELD", label: "" },
   { key: "sample_value", type: "FIELD", label: "" },
   { key: "starts_at", type: "FIELD", label: "" },
 ]

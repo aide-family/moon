@@ -5,6 +5,30 @@ import (
 	"time"
 )
 
+func TestValidateHistoryListQuery(t *testing.T) {
+	from := time.Date(2026, 10, 24, 12, 0, 0, 0, time.UTC)
+	to := from.Add(time.Hour)
+	cases := []struct {
+		name    string
+		query   ListQuery
+		wantErr bool
+	}{
+		{name: "history filters allowed", query: ListQuery{View: "HISTORY", StartsAtFrom: &from, StartsAtTo: &to, EventStatus: "RECOVERED", Suppression: "SUPPRESSED", RuleName: "API", DatasourceName: "prod"}},
+		{name: "history-only filter rejected in realtime", query: ListQuery{View: "REALTIME", RuleName: "API"}, wantErr: true},
+		{name: "invalid time range", query: ListQuery{View: "HISTORY", StartsAtFrom: &to, StartsAtTo: &from}, wantErr: true},
+		{name: "invalid status", query: ListQuery{View: "HISTORY", EventStatus: "UNKNOWN"}, wantErr: true},
+		{name: "invalid suppression filter", query: ListQuery{View: "HISTORY", Suppression: "MAYBE"}, wantErr: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateHistoryListQuery(tc.query)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("validateHistoryListQuery() error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
+	}
+}
+
 func TestChartWindow(t *testing.T) {
 	now := time.Date(2026, 10, 21, 12, 0, 0, 0, time.UTC)
 	start, end, step := chartWindow(now.Add(-time.Minute), now)

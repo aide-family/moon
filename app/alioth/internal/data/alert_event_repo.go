@@ -1227,6 +1227,12 @@ func (r *alertEventRepo) historyItems(ctx context.Context, namespaceUID string, 
 		if err != nil {
 			// 分库不可用时退回主库历史行，页面仍能展示升级前和归档失败的数据。
 			r.log.Error("list alert history: " + err.Error())
+			if requiresHistoryNames(filter) {
+				items, err = r.nameEvents(ctx, items)
+				if err != nil {
+					return nil, err
+				}
+			}
 			return filterHistoryItems(items, filter)
 		}
 		// 主库行优先：归档成功但删除主库失败时，主库状态仍是最新的。
@@ -1241,7 +1247,17 @@ func (r *alertEventRepo) historyItems(ctx context.Context, namespaceUID string, 
 			items = append(items, item)
 		}
 	}
+	if requiresHistoryNames(filter) {
+		items, err = r.nameEvents(ctx, items)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return filterHistoryItems(items, filter)
+}
+
+func requiresHistoryNames(filter bo.AlertEventListFilter) bool {
+	return strings.TrimSpace(filter.RuleName) != "" || strings.TrimSpace(filter.DatasourceName) != ""
 }
 
 func filterHistoryItems(items []bo.AlertEvent, filter bo.AlertEventListFilter) ([]bo.AlertEvent, error) {
@@ -1254,12 +1270,35 @@ func filterHistoryItems(items []bo.AlertEvent, filter bo.AlertEventListFilter) (
 		matchers = parsed
 	}
 	name := strings.ToLower(strings.TrimSpace(filter.Name))
+	ruleName := strings.ToLower(strings.TrimSpace(filter.RuleName))
+	datasourceName := strings.ToLower(strings.TrimSpace(filter.DatasourceName))
 	out := make([]bo.AlertEvent, 0, len(items))
 	for _, item := range items {
 		if name != "" && !strings.Contains(strings.ToLower(item.Summary), name) && !strings.Contains(strings.ToLower(item.Fingerprint), name) {
 			continue
 		}
 		if filter.LevelUID != "" && item.LevelUID != filter.LevelUID {
+			continue
+		}
+		if ruleName != "" && !strings.Contains(strings.ToLower(item.RuleName), ruleName) {
+			continue
+		}
+		if datasourceName != "" && !strings.Contains(strings.ToLower(item.DatasourceName), datasourceName) {
+			continue
+		}
+		if filter.StartsAtFrom != nil && item.StartsAt.Before(*filter.StartsAtFrom) {
+			continue
+		}
+		if filter.StartsAtTo != nil && !item.StartsAt.Before(*filter.StartsAtTo) {
+			continue
+		}
+		if filter.EventStatus != "" && item.Status != filter.EventStatus {
+			continue
+		}
+		if filter.Suppression == "SUPPRESSED" && !item.Suppressed {
+			continue
+		}
+		if filter.Suppression == "UNSUPPRESSED" && item.Suppressed {
 			continue
 		}
 		if filter.FilterByRules {
@@ -1317,11 +1356,14 @@ func (r *alertEventRepo) listHistoryEvents(ctx context.Context, namespaceUID str
 	if end > total {
 		end = total
 	}
-	items, err = r.nameEvents(ctx, items[start:end])
-	if err != nil {
-		return nil, 0, err
+	pageItems := items[start:end]
+	if !requiresHistoryNames(filter) {
+		pageItems, err = r.nameEvents(ctx, pageItems)
+		if err != nil {
+			return nil, 0, err
+		}
 	}
-	return items, total, nil
+	return pageItems, total, nil
 }
 
 func (r *alertEventRepo) getHistoryEvent(ctx context.Context, namespaceUID, uid string) (*bo.AlertEvent, error) {
