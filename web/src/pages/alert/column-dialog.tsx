@@ -1,10 +1,11 @@
-import { GripVertical, Plus, Trash2 } from "lucide-react"
+import { ChevronsUpDown, GripVertical, Plus, Trash2 } from "lucide-react"
 import { Fragment, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import type { AlertColumnItem } from "@/api/alert-page/types"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -14,12 +15,10 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { cn } from "@/lib/class-names"
 import { usePointerReorder } from "@/hooks/use-flip-reorder"
 import { FIELD_COLUMNS, fieldLabel } from "@/pages/alert/columns"
@@ -43,14 +42,8 @@ export function AlertColumnDialog({
 }: AlertColumnDialogProps) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<AlertColumnItem[]>(columns)
-  const [fieldKey, setFieldKey] = useState(
-    FIELD_COLUMNS.find(
-      (item) =>
-        !columns.some(
-          (column) => column.type === "FIELD" && column.key === item.key
-        )
-    )?.key ?? ""
-  )
+  const [fieldKeys, setFieldKeys] = useState<string[]>([])
+  const [fieldPopoverOpen, setFieldPopoverOpen] = useState(false)
   const [labelKey, setLabelKey] = useState("")
   const [labelAlias, setLabelAlias] = useState("")
   const [localError, setLocalError] = useState("")
@@ -75,11 +68,15 @@ export function AlertColumnDialog({
   const remainingFields = FIELD_COLUMNS.filter(
     (item) => !used.has(`FIELD:${item.key}`)
   )
-  // 用户选中的字段被添加或被移出后，自动回落到第一个仍可添加的字段。
-  const effectiveFieldKey =
-    fieldKey && remainingFields.some((item) => item.key === fieldKey)
-      ? fieldKey
-      : (remainingFields[0]?.key ?? "")
+  function toggleField(key: string, checked: boolean) {
+    setFieldKeys((current) =>
+      checked
+        ? current.includes(key)
+          ? current
+          : [...current, key]
+        : current.filter((item) => item !== key)
+    )
+  }
 
   function reorder(
     sourceKey: string,
@@ -107,11 +104,21 @@ export function AlertColumnDialog({
   }
 
   function addField() {
-    if (!effectiveFieldKey || used.has(`FIELD:${effectiveFieldKey}`)) {
+    const selected = new Set(fieldKeys)
+    const fieldsToAdd = remainingFields.filter((item) => selected.has(item.key))
+    if (fieldsToAdd.length === 0) {
       return
     }
-    setDraft([...draft, { key: effectiveFieldKey, type: "FIELD", label: "" }])
-    setFieldKey("")
+    setDraft([
+      ...draft,
+      ...fieldsToAdd.map((item) => ({
+        key: item.key,
+        type: "FIELD" as const,
+        label: "",
+      })),
+    ])
+    setFieldKeys([])
+    setFieldPopoverOpen(false)
     setLocalError("")
   }
 
@@ -236,56 +243,110 @@ export function AlertColumnDialog({
         </div>
         <div className="grid shrink-0 gap-3 border-t pt-3">
           {remainingFields.length > 0 ? (
-            <div className="flex flex-wrap items-end gap-2">
-              <FormField label={t("alertEvent.addFieldColumn")}>
-                <Select value={effectiveFieldKey} onValueChange={setFieldKey}>
-                  <SelectTrigger
-                    className="w-48"
-                    aria-label={t("alertEvent.addFieldColumn")}
+            <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+              <FormField
+                label={t("alertEvent.addFieldColumn")}
+                className="min-w-0"
+              >
+                <Popover
+                  open={fieldPopoverOpen}
+                  onOpenChange={setFieldPopoverOpen}
+                >
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-between font-normal"
+                      aria-label={`${t("alertEvent.addFieldColumn")}: ${
+                        fieldKeys.length > 0
+                          ? t("alertEvent.columnFieldsSelected", {
+                              count: fieldKeys.length,
+                            })
+                          : t("alertEvent.columnSelectFields")
+                      }`}
+                    >
+                      <span
+                        className={cn(
+                          "min-w-0 flex-1 truncate text-left",
+                          fieldKeys.length === 0 && "text-muted-foreground"
+                        )}
+                      >
+                        {fieldKeys.length > 0
+                          ? t("alertEvent.columnFieldsSelected", {
+                              count: fieldKeys.length,
+                            })
+                          : t("alertEvent.columnSelectFields")}
+                      </span>
+                      <ChevronsUpDown data-icon="inline-end" aria-hidden />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    className="w-[var(--radix-popover-trigger-width)] p-2"
                   >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {remainingFields.map((item) => (
-                      <SelectItem key={item.key} value={item.key}>
-                        {t(item.labelKey)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <div className="grid max-h-60 gap-1 overflow-y-auto">
+                      {remainingFields.map((item) => (
+                        <div
+                          key={item.key}
+                          className="flex min-h-9 items-center gap-2 rounded-md px-2 hover:bg-accent"
+                        >
+                          <Checkbox
+                            aria-label={fieldLabel(t, item.key)}
+                            checked={fieldKeys.includes(item.key)}
+                            onCheckedChange={(checked) =>
+                              toggleField(item.key, checked === true)
+                            }
+                          />
+                          <span className="min-w-0 truncate text-sm">
+                            {fieldLabel(t, item.key)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </FormField>
               <Button
                 type="button"
                 variant="outline"
-                disabled={!effectiveFieldKey}
+                className="shrink-0 self-end"
+                disabled={fieldKeys.length === 0}
                 onClick={addField}
               >
-                <Plus aria-hidden />
+                <Plus data-icon="inline-start" aria-hidden />
                 {t("action.add")}
               </Button>
             </div>
           ) : null}
-          <div className="flex flex-wrap items-end gap-2">
-            <FormField label={t("alertEvent.addLabelColumn")}>
+          <div className="grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2">
+            <FormField
+              label={t("alertEvent.addLabelColumn")}
+              className="min-w-0"
+            >
               <Input
-                className="w-48"
+                className="w-full"
                 value={labelKey}
                 placeholder={t("alertEvent.columnLabelKeyPlaceholder")}
                 aria-label={t("alertEvent.columnLabelKey")}
                 onChange={(event) => setLabelKey(event.target.value)}
               />
             </FormField>
-            <FormField label={t("alertEvent.columnAlias")}>
+            <FormField label={t("alertEvent.columnAlias")} className="min-w-0">
               <Input
-                className="w-48"
+                className="w-full"
                 value={labelAlias}
                 placeholder={t("alertEvent.columnAliasPlaceholder")}
                 aria-label={t("alertEvent.columnAlias")}
                 onChange={(event) => setLabelAlias(event.target.value)}
               />
             </FormField>
-            <Button type="button" variant="outline" onClick={addLabel}>
-              <Plus aria-hidden />
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 self-end"
+              onClick={addLabel}
+            >
+              <Plus data-icon="inline-start" aria-hidden />
               {t("action.add")}
             </Button>
           </div>

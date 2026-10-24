@@ -916,6 +916,8 @@ const zh = {
       "选择内置字段或标签作为表格列。标签列在中文界面显示别名（不填则显示标签键），英文界面固定显示标签键，表格展示该标签的值。",
     columnsEmpty: "还没有自定义列。保存空列表会使用默认列。",
     addFieldColumn: "添加字段列",
+    columnSelectFields: "请选择字段",
+    columnFieldsSelected: "已选择 {{count}} 项",
     addLabelColumn: "添加标签列",
     columnAlias: "列名",
     columnAliasPlaceholder: "别名（可选）",
@@ -1960,6 +1962,8 @@ const en = {
     columnsEmpty:
       "No custom columns yet. Saving an empty list falls back to defaults.",
     addFieldColumn: "Add field column",
+    columnSelectFields: "Select fields",
+    columnFieldsSelected: "{{count}} selected",
     addLabelColumn: "Add label column",
     columnAlias: "Column name",
     columnAliasPlaceholder: "Alias (optional)",
