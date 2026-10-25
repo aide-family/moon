@@ -397,3 +397,37 @@ func TestVlogsForRejectsMissingBuckets(t *testing.T) {
 		t.Fatalf("sub-second timestamp jitter must not break FOR: %+v", hits)
 	}
 }
+
+func TestMetricWindowCoversVictoriaMetricsLatencyOffset(t *testing.T) {
+	now := time.Date(2026, 10, 25, 3, 20, 7, 0, time.UTC)
+	// 15 秒窗口结束于当前时刻时 VictoriaMetrics 返回空矩阵（默认 latencyOffset=30s），
+	// FOR 10 秒和 MAX/MIN 规则都会拿不到采样；窗口至少要有两个 step。
+	for _, level := range []bo.Level{
+		{Condition: "GT", Sample: "FOR", Threshold: "10", ForSeconds: 10},
+		{Condition: "GT", Sample: "MAX", Threshold: "10"},
+		{Condition: "GT", Sample: "MIN", Threshold: "10"},
+	} {
+		start, end, step := window(bo.RuleSnapshot{Driver: "METRICS_VICTORIA_METRICS", Levels: []bo.Level{level}}, now)
+		if step != 15 || end != now.Unix() || end-start != 30 {
+			t.Fatalf("%s window = %d..%d step %d, want 30s", level.Sample, start, end, step)
+		}
+	}
+	// Prometheus 没有延迟偏移，一个 step 的窗口保持原样。
+	start, end, _ := window(bo.RuleSnapshot{Driver: "METRICS_PROMETHEUS", Levels: []bo.Level{{
+		Condition: "GT", Sample: "FOR", Threshold: "10", ForSeconds: 10,
+	}}}, now)
+	if end-start != 15 {
+		t.Fatalf("prometheus window = %d..%d, want 15s", start, end)
+	}
+}
+
+func TestMetricWindowRoundsForSecondsToStep(t *testing.T) {
+	now := time.Date(2026, 10, 25, 3, 20, 7, 0, time.UTC)
+	// 20 秒 FOR 按 15 秒步长取点只覆盖 15 秒，首末跨度小于 ForSeconds，永远不命中。
+	start, end, step := window(bo.RuleSnapshot{Driver: "METRICS_PROMETHEUS", Levels: []bo.Level{{
+		Condition: "GT", Sample: "FOR", Threshold: "1", ForSeconds: 20,
+	}}}, now)
+	if step != 15 || end-start != 30 {
+		t.Fatalf("20s FOR window = %d..%d step %d, want 30s", start, end, step)
+	}
+}

@@ -177,19 +177,30 @@ func window(rule bo.RuleSnapshot, now time.Time) (int64, int64, int64) {
 	}
 	seconds := step
 	for _, level := range rule.Levels {
-		if int64(level.ForSeconds) > seconds {
-			seconds = int64(level.ForSeconds)
+		forSeconds := int64(level.ForSeconds)
+		if forSeconds <= 0 {
+			continue
 		}
+		// query_range 只在 start + k*step 上取点。窗口不是 step 整数倍时，首末
+		// 采样点的跨度会小于 ForSeconds，FOR 永远无法满足；先向上取整到步长。
+		if remainder := forSeconds % step; remainder != 0 {
+			forSeconds += step - remainder
+		}
+		if forSeconds > seconds {
+			seconds = forSeconds
+		}
+	}
+	// VictoriaMetrics 默认 -search.latencyOffset=30s：结束时间贴近当前时刻、
+	// 宽度不足一个偏移周期的区间会返回空矩阵。指标规则至少覆盖两个 step，
+	// 保证每次评测都能拿到采样点，而不是只写一条空批次的幂等记录。
+	if rule.Driver == "METRICS_VICTORIA_METRICS" && seconds < 2*step {
+		seconds = 2 * step
 	}
 	end := now.UTC().Unix()
 	if rule.Driver == "LOGS_VLOGS" {
 		// stats_query_range 按 step 对齐时间桶。结束时间落在桶中间时，最后一个
 		// 桶只统计了部分日志，count 偏低会让 FOR / MAX 误判；先对齐到桶边界。
 		end -= end % step
-		// 起始时间也要对齐，避免第一个桶只覆盖部分时间。
-		if remainder := seconds % step; remainder != 0 {
-			seconds += step - remainder
-		}
 		// [start, end) 按 step 切出的桶数比闭区间少一个：ForSeconds 的跨度会
 		// 差一个步长。多查一个桶，让 FOR 的跨度覆盖完整窗口。
 		if hasFor {
