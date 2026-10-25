@@ -18,7 +18,7 @@ func (UserOAuth) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("uid").NotEmpty().Immutable(),
 		field.String("user_uid").NotEmpty(),
-		field.Enum("provider").Values("GITHUB", "GITEE", "FEISHU"),
+		field.Enum("provider").Values("GITHUB", "GITEE", "FEISHU", "DINGTALK"),
 		field.String("open_id").NotEmpty(),
 		field.String("email").Default(""),
 	}

@@ -555,7 +555,7 @@ message ListOAuth2ProvidersRequest {
 
 // 已经配置客户端的第三方登录来源。
 message OAuth2Provider {
-  // 第三方，取值为 GITHUB 或 GITEE。
+  // 第三方，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
   string provider = 1;
   // 展示名，例如 GitHub。
   string name = 2;
@@ -571,8 +571,8 @@ message ListOAuth2ProvidersResponse {
 
 // 第三方登录参数。
 message OAuth2LoginRequest {
-  // 第三方，取值为 GITHUB、GITEE 或 FEISHU。
-  string provider = 1 [(buf.validate.field).string = {in: ["GITHUB", "GITEE", "FEISHU"]}];
+  // 第三方，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
+  string provider = 1 [(buf.validate.field).string = {in: ["GITHUB", "GITEE", "FEISHU", "DINGTALK"]}];
   // 第三方授权码。
   string code = 2 [(buf.validate.field).string.min_len = 1];
   // 授权回调地址。

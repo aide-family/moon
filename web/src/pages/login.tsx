@@ -13,6 +13,7 @@ import {
   storeOAuthRedirect,
 } from "@/auth/oauth-redirect"
 import { CaptchaField } from "@/components/captcha-field"
+import { DingtalkIcon } from "@/components/dingtalk-icon"
 import { FeishuIcon } from "@/components/feishu-icon"
 import { FormField } from "@/components/form-field"
 import { GiteeIcon } from "@/components/gitee-icon"
@@ -318,6 +319,8 @@ export function LoginPage() {
                   <GiteeIcon className="size-4" />
                 ) : provider.provider === "FEISHU" ? (
                   <FeishuIcon className="size-4" />
+                ) : provider.provider === "DINGTALK" ? (
+                  <DingtalkIcon className="size-4" />
                 ) : null}
                 <span>{provider.name || provider.provider}</span>
               </Button>

@@ -12,7 +12,7 @@ stringData:
   MEGREZ_SERVICE_KEY: sk-megrez-replace-me
   MERAK_SERVICE_KEY: sk-merak-replace-me
   WEB_URL: http://alioth.example.com
-  # 第三方登录可选。填入真实客户端后登录页才出现 GitHub / Gitee / 飞书 入口，
+  # 第三方登录可选。填入真实客户端后登录页才出现 GitHub / Gitee / 飞书 / 钉钉 入口，
   # 回调地址填 <WEB_URL>/auth/callback。
   # GITHUB_CLIENT_ID: ""
   # GITHUB_CLIENT_SECRET: ""
@@ -21,6 +21,9 @@ stringData:
   # 飞书应用需在开放平台申请 contact:user.email:readonly，否则读不到邮箱。
   # FEISHU_CLIENT_ID: ""
   # FEISHU_CLIENT_SECRET: ""
+  # 钉钉应用需在权限管理申请「通讯录个人信息读权限」，否则读不到用户资料。
+  # DINGTALK_CLIENT_ID: ""
+  # DINGTALK_CLIENT_SECRET: ""
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -139,6 +142,18 @@ spec:
                 secretKeyRef:
                   name: alioth-auth
                   key: FEISHU_CLIENT_SECRET
+                  optional: true
+            - name: DINGTALK_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-auth
+                  key: DINGTALK_CLIENT_ID
+                  optional: true
+            - name: DINGTALK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-auth
+                  key: DINGTALK_CLIENT_SECRET
                   optional: true
           resources:
             requests:

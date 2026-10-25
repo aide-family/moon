@@ -9,6 +9,7 @@ import { ApiError } from "@/api/http"
 import {
   OAUTH_EMAIL_UNVERIFIED_MESSAGE,
   clearOAuthRedirect,
+  oauthCodeParam,
   oauthEmailSettingsUrl,
   oauthProviderName,
   readOAuthRedirect,
@@ -43,10 +44,11 @@ export function OAuthCallbackPage() {
     }
     started.current = true
     const state = params.get("state")
-    const code = params.get("code")
     const providerError = params.get("error")
     const providerErrorDescription = params.get("error_description")
     const redirect = readOAuthRedirect(state)
+    // 钉钉把授权码放在 authCode，其余平台放在 code。
+    const code = params.get(redirect ? oauthCodeParam(redirect.provider) : "code")
 
     async function exchange() {
       if (providerError) {

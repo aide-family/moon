@@ -48,3 +48,6 @@ auth:
     - provider: FEISHU
       client_id: ${FEISHU_CLIENT_ID:}
       client_secret: ${FEISHU_CLIENT_SECRET:}
+    - provider: DINGTALK
+      client_id: ${DINGTALK_CLIENT_ID:}
+      client_secret: ${DINGTALK_CLIENT_SECRET:}

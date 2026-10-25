@@ -91,6 +91,8 @@ func (authenticator *Authenticator) exchangeOAuth(ctx context.Context, provider 
 		return authenticator.exchangeGitee(ctx, client, code, redirectURI)
 	case "FEISHU":
 		return authenticator.exchangeFeishu(ctx, client, code, redirectURI)
+	case "DINGTALK":
+		return authenticator.exchangeDingTalk(ctx, client, code, redirectURI)
 	default:
 		return oauthProfile{}, merr.Client("oauth login failed")
 	}
@@ -305,6 +307,84 @@ func (authenticator *Authenticator) exchangeFeishu(ctx context.Context, client o
 	}, nil
 }
 
+// 钉钉登录端点单独声明为包级变量，测试可以指向 httptest 服务，不访问真实网络。
+var (
+	// dingtalkTokenEndpoint 钉钉登录用户的令牌地址。请求体是 JSON，参数名用小驼峰。
+	dingtalkTokenEndpoint = "https://api.dingtalk.com/v1.0/oauth2/userAccessToken"
+	// dingtalkUserInfoEndpoint 钉钉通讯录个人信息地址。路径里的 unionId 传 me 表示当前授权人。
+	dingtalkUserInfoEndpoint = "https://api.dingtalk.com/v1.0/contact/users/me"
+)
+
+// dingtalkToken 是 userAccessToken 接口的响应。失败时 HTTP 状态不是 2xx，
+// 由 doOAuth 统一按失败处理，这里只需要拿访问令牌。
+type dingtalkToken struct {
+	AccessToken string `json:"accessToken"`
+}
+
+// dingtalkUserInfo 是 contact/users/me 的响应。openId 按应用唯一，unionId 按开发者唯一；
+// 绑定账号用 openId，和飞书的 open_id 口径一致。
+type dingtalkUserInfo struct {
+	Nick      string `json:"nick"`
+	AvatarURL string `json:"avatarUrl"`
+	OpenID    string `json:"openId"`
+	UnionID   string `json:"unionId"`
+	Email     string `json:"email"`
+}
+
+// exchangeDingTalk 用授权码换用户访问令牌，再读通讯录个人信息。
+// 钉钉的令牌接口只接受 JSON 请求体，且不需要 redirect_uri（回调域名在建应用时登记），
+// 所以 redirectURI 只在授权地址里出现，这里不使用；用户信息接口的凭证走
+// x-acs-dingtalk-access-token 头，不是 Authorization: Bearer。
+// 授权码已在调用方取到：钉钉回调的查询参数名是 authCode，不是 code，由前端按来源取。
+func (authenticator *Authenticator) exchangeDingTalk(ctx context.Context, client oauthClient, code, _ string) (oauthProfile, error) {
+	payload, err := json.Marshal(struct {
+		ClientID     string `json:"clientId"`
+		ClientSecret string `json:"clientSecret"`
+		Code         string `json:"code"`
+		GrantType    string `json:"grantType"`
+	}{
+		ClientID:     client.id,
+		ClientSecret: client.secret,
+		Code:         code,
+		GrantType:    "authorization_code",
+	})
+	if err != nil {
+		return oauthProfile{}, merr.Client("oauth login failed")
+	}
+	var token dingtalkToken
+	if err := oauthJSON(ctx, http.MethodPost, dingtalkTokenEndpoint, "", payload, &token); err != nil {
+		return oauthProfile{}, err
+	}
+	if token.AccessToken == "" {
+		// 只记录“没有拿到令牌”，不把 client_secret 和授权码写进日志。
+		authenticator.log.Warn("dingtalk token exchange returned an empty access token")
+		return oauthProfile{}, merr.Client("oauth login failed")
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, dingtalkUserInfoEndpoint, nil)
+	if err != nil {
+		return oauthProfile{}, merr.Client("oauth login failed")
+	}
+	req.Header.Set("x-acs-dingtalk-access-token", token.AccessToken)
+	req.Header.Set("Accept", "application/json")
+	var info dingtalkUserInfo
+	if err := doOAuth(req, &info); err != nil {
+		return oauthProfile{}, err
+	}
+	if info.OpenID == "" {
+		authenticator.log.Warn("dingtalk user info returned no open id")
+		return oauthProfile{}, merr.Client("oauth login failed")
+	}
+	return oauthProfile{
+		openID: info.OpenID,
+		// 钉钉的邮箱是用户在个人资料里自行添加的，钉钉不确认归属，所以按未验证处理：
+		// 邮箱已经注册本地账号时拒绝自动并入，避免用别人的邮箱接管账号。
+		// 取不到邮箱时 OAuthLogin 会按 dingtalk-<open_id>@users.alioth.local 生成占位邮箱。
+		email:  info.Email,
+		name:   info.Nick,
+		avatar: info.AvatarURL,
+	}, nil
+}
+
 func oauthForm(ctx context.Context, method, endpoint string, body url.Values, accept string, dest any) error {
 	req, err := http.NewRequestWithContext(ctx, method, endpoint, strings.NewReader(body.Encode()))
 	if err != nil {
@@ -369,10 +449,12 @@ var oauthProviderCatalog = []oauthProvider{
 	{key: "GITHUB", name: "GitHub", authorizeEndpoint: "https://github.com/login/oauth/authorize"},
 	{key: "GITEE", name: "Gitee", authorizeEndpoint: "https://gitee.com/oauth/authorize"},
 	{key: "FEISHU", name: "飞书", authorizeEndpoint: "https://accounts.feishu.cn/open-apis/authen/v1/authorize"},
+	{key: "DINGTALK", name: "钉钉", authorizeEndpoint: "https://login.dingtalk.com/oauth2/auth"},
 }
 
 // authorizeURL 按来源拼出完整授权地址。各来源的查询参数不同：
-// GitHub 用 allow_signup 和空格分隔的 scope；Gitee 和飞书要 response_type=code，飞书还要邮箱权限。
+// GitHub 用 allow_signup 和空格分隔的 scope；Gitee、飞书和钉钉要 response_type=code，
+// 飞书还要邮箱权限，钉钉的 scope 只有 openid 且 prompt 必填。
 func (provider oauthProvider) authorizeURL(client oauthClient, redirectURI, state string) string {
 	params := url.Values{}
 	params.Set("client_id", client.id)
@@ -391,6 +473,12 @@ func (provider oauthProvider) authorizeURL(client oauthClient, redirectURI, stat
 		params.Set("response_type", "code")
 		// 飞书只有带上该权限才会在 user_info 里返回邮箱；没有邮箱就无法并入已有本地账号。
 		params.Set("scope", "contact:user.email:readonly")
+	case "DINGTALK":
+		params.Set("response_type", "code")
+		// 钉钉的 scope 只接受 openid（个人身份）或 openid corpid（带选组织），登录只认个人身份。
+		params.Set("scope", "openid")
+		// prompt=consent 是必填项，缺省不会进入授权确认页。
+		params.Set("prompt", "consent")
 	}
 	// url.Values 把空格编码成 "+"。Gitee 的授权页只认 %20，用 "+" 会报
 	// “请求范围无效、未知或格式不正确”，所以这里统一把空格换成 %20

@@ -50,6 +50,8 @@ func oauthProvider(provider string) (useroauth.Provider, error) {
 		return useroauth.ProviderGITEE, nil
 	case "FEISHU":
 		return useroauth.ProviderFEISHU, nil
+	case "DINGTALK":
+		return useroauth.ProviderDINGTALK, nil
 	default:
 		return "", merr.Invalid("invalid request")
 	}

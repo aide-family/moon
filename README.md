@@ -66,17 +66,18 @@ make run-alioth      # 另开终端跑其余服务
 账号没有密码，登录只有两条路径：
 
 - **邮箱验证码**：先答对数学计算图形验证码，再点「发送验证码」；验证码发到邮箱，10 分钟内有效、只能用一次。发码和最终登录都会校验图形验证码，同一邮箱 60 秒内只能发一次码。
-- **第三方登录**：GitHub、Gitee 和飞书。配置客户端后登录页才显示入口，未配置时不影响邮箱验证码登录。
+- **第三方登录**：GitHub、Gitee、飞书和钉钉。配置客户端后登录页才显示入口，未配置时不影响邮箱验证码登录。
 
 | 平台 | 环境变量 | 回调地址 |
 | --- | --- | --- |
 | GitHub | `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
 | Gitee | `GITEE_CLIENT_ID`、`GITEE_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
 | 飞书 | `FEISHU_CLIENT_ID`、`FEISHU_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
+| 钉钉 | `DINGTALK_CLIENT_ID`、`DINGTALK_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
 
 注册同样只用邮箱验证码：填邮箱、图形验证码，发送验证码后提交。第一个注册用户成为超级管理员。
 
-第三方登录的平台侧要求：GitHub 应用填授权回调地址即可（申请 `read:user user:email`）；Gitee 应用除了回调地址，还要在应用设置的权限里勾选 `emails`——授权会申请 `user_info emails`，应用没开该权限时 Gitee 授权页会报「请求范围无效、未知或格式不正确」。邮箱验证状态由后端读取 `/api/v5/emails`（state=confirmed 的主邮箱）判断；第三方没有确认邮箱已验证、而该邮箱已经注册了本地账号时，登录页会展示「去 Gitee / GitHub 完成邮箱验证」的入口，确认后重新登录即可并入已有账号，平台仍不返回验证状态时改用邮箱验证码登录。飞书应用在开放平台「安全设置」里添加同一个回调地址，在「权限管理」申请 `contact:user.email:readonly`（不申请也能登录，但 `user_info` 不返回邮箱，账号会按 `feishu-<open_id>@users.alioth.local` 生成占位邮箱），发布应用并确保登录用户有应用使用权限。飞书的邮箱由企业管理员在租户通讯录里维护、终端用户不能自行修改，且只有本企业安装的应用能完成授权，因此按企业已验证身份处理：邮箱相同的本地账号直接并入，老用户改用飞书登录不会丢账号；飞书官方说明该邮箱不经用户本人实时验证，残余风险由企业通讯录的编辑权限兜底。
+第三方登录的平台侧要求：GitHub 应用填授权回调地址即可（申请 `read:user user:email`）；Gitee 应用除了回调地址，还要在应用设置的权限里勾选 `emails`——授权会申请 `user_info emails`，应用没开该权限时 Gitee 授权页会报「请求范围无效、未知或格式不正确」。邮箱验证状态由后端读取 `/api/v5/emails`（state=confirmed 的主邮箱）判断；第三方没有确认邮箱已验证、而该邮箱已经注册了本地账号时，登录页会展示「去 Gitee / GitHub 完成邮箱验证」的入口，确认后重新登录即可并入已有账号，平台仍不返回验证状态时改用邮箱验证码登录。飞书应用在开放平台「安全设置」里添加同一个回调地址，在「权限管理」申请 `contact:user.email:readonly`（不申请也能登录，但 `user_info` 不返回邮箱，账号会按 `feishu-<open_id>@users.alioth.local` 生成占位邮箱），发布应用并确保登录用户有应用使用权限。飞书的邮箱由企业管理员在租户通讯录里维护、终端用户不能自行修改，且只有本企业安装的应用能完成授权，因此按企业已验证身份处理：邮箱相同的本地账号直接并入，老用户改用飞书登录不会丢账号；飞书官方说明该邮箱不经用户本人实时验证，残余风险由企业通讯录的编辑权限兜底。钉钉应用在开发者后台「开发配置 > 安全设置」添加同一个回调地址，在「权限管理」申请「通讯录个人信息读权限」，发布并给登录用户开通应用使用权限。钉钉用 `openId`（按应用唯一）绑定账号；`/v1.0/contact/users/me` 返回的邮箱是用户自己添加到个人资料里的，钉钉不确认归属，所以按未验证处理：邮箱已经注册本地账号时不会自动并入，改用邮箱验证码登录即可；没有邮箱时账号按 `dingtalk-<openId>@users.alioth.local` 生成占位邮箱。
 
 注册 OAuth 应用时需要的图标可以直接用 [web/public/alioth.png](web/public/alioth.png)（512×512 PNG，透明圆角）；站点图标另有 SVG 版本 [web/public/alioth.svg](web/public/alioth.svg) 和 iOS 主屏用的 `apple-touch-icon.png`。
 

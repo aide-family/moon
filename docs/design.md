@@ -165,7 +165,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | 实体               | 说明                                                                                     |
 | ---------------- | -------------------------------------------------------------------------------------- |
 | `User`           | 平台用户，不隶属于任何租户。Moon 已有 UID、名称、昵称、邮箱、头像、备注、状态（ACTIVE / BANNED）。Alioth 增加 `password_hash`、`system_role`（SUPER_ADMIN / SYSTEM_ADMIN / USER）和 `authorized_by`。数据库用部分唯一索引保证最多一个超级管理员 |
-| `UserOAuth`      | 对应 Moon 的 `user_oauth2s`：OpenID、来源应用、原始资料。来源仍是 GitHub、Gitee、飞书                         |
+| `UserOAuth`      | 对应 Moon 的 `user_oauth2s`：OpenID、来源应用、原始资料。来源为 GitHub、Gitee、飞书、钉钉                         |
 | `Namespace`      | 租户。Moon 已有 UID、名称、Secret、状态、负责人、Metadata、Logo、Banners                                  |
 | `Member`         | 用户与 Namespace 的关系。新流程只在用户确认邀请后创建 JOINED 成员；INVITED / EXPIRED 仅用于兼容历史数据                              |
 | `MemberInvite`   | 平台邀请消息。记录租户、邮箱、平台用户、角色、邀请人、令牌摘要、状态和有效期。用户确认前不创建成员                              |
@@ -208,7 +208,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 - 密码登录已移除，登录只有邮箱验证码和 OAuth2 两条路径
 - 邮箱验证码登录保留 Moon 的两步：`POST /v1/auth/email/login/code`、`POST /v1/auth/email/login`
 - 图形验证码是数学计算题（一位数加/减，结果非负），题目画在 `GET /v1/captcha` 返回的图片里，答案不回传。发码和登录/注册提交都要先通过图形验证码：发码用非消费校验，提交成功后再消费，所以一次解题就能走完整个流程，而没解验证码既拿不到邮箱验证码也登录不了。同一邮箱 60 秒内只发一次码
-- OAuth2 保留 Moon 的 `POST /v1/auth/oauth2/login`，应用仍是 GitHub、Gitee、飞书。`POST /v1/auth/oauth2/providers` 返回已配置客户端的来源和完整授权地址，管理台展示 GitHub、Gitee、飞书。只有可信任的第三方邮箱才能并入已有本地账号，避免用未验证邮箱接管账号：GitHub 看 `/user/emails` 的 verified 标记；Gitee 申请 `user_info emails`（应用需勾选 emails 权限，否则授权页报“请求范围无效”），再用 `/api/v5/emails` 里 state=confirmed 的主邮箱判断，接口不可用时按未验证处理；飞书邮箱由企业管理员在租户通讯录维护、终端用户不能自行修改，且只有本企业安装的应用能完成授权，按企业已验证身份处理（授权 scope 为 `contact:user.email:readonly`，取不到邮箱时退回占位邮箱、不并入）。GitHub / Gitee 邮箱未验证且该邮箱已被本地账号占用时，管理台给出该平台邮箱设置页的入口，引导用户确认后重新登录，并提示可改用邮箱验证码登录
+- OAuth2 保留 Moon 的 `POST /v1/auth/oauth2/login`，应用为 GitHub、Gitee、飞书、钉钉。`POST /v1/auth/oauth2/providers` 返回已配置客户端的来源和完整授权地址，管理台展示 GitHub、Gitee、飞书、钉钉。只有可信任的第三方邮箱才能并入已有本地账号，避免用未验证邮箱接管账号：GitHub 看 `/user/emails` 的 verified 标记；Gitee 申请 `user_info emails`（应用需勾选 emails 权限，否则授权页报“请求范围无效”），再用 `/api/v5/emails` 里 state=confirmed 的主邮箱判断，接口不可用时按未验证处理；飞书邮箱由企业管理员在租户通讯录维护、终端用户不能自行修改，且只有本企业安装的应用能完成授权，按企业已验证身份处理（授权 scope 为 `contact:user.email:readonly`，取不到邮箱时退回占位邮箱、不并入）。钉钉的邮箱是用户自行添加到个人资料里的，钉钉不确认归属，按未验证处理（授权 scope 为 `openid`，`prompt` 固定 `consent`）；用户信息来自 `GET /v1.0/contact/users/me`，凭证走 `x-acs-dingtalk-access-token` 头，绑定账号用按应用唯一的 `openId`，授权码在回调里叫 `authCode` 而不是 `code`。GitHub / Gitee 邮箱未验证且该邮箱已被本地账号占用时，管理台给出该平台邮箱设置页的入口，引导用户确认后重新登录，并提示可改用邮箱验证码登录
 - 访问令牌是 JWT。刷新对应 Moon 的 `GET /v1/self/refresh-token`
 - 服务间调用使用 Moon 已有的 service key，形态为 `Authorization: Bearer sk-...`，与用户 JWT 互斥
 - `alkaid` 使用独立的 Agent 令牌，只用于出站流，不能当用户令牌调用管理接口

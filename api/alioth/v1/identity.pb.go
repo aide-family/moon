@@ -1278,7 +1278,7 @@ func (x *ListOAuth2ProvidersRequest) GetState() string {
 // 已经配置客户端的第三方登录来源。
 type OAuth2Provider struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 第三方，取值为 GITHUB 或 GITEE。
+	// 第三方，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
 	Provider string `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
 	// 展示名，例如 GitHub。
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
@@ -1388,7 +1388,7 @@ func (x *ListOAuth2ProvidersResponse) GetProviders() []*OAuth2Provider {
 // 第三方登录参数。
 type OAuth2LoginRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 第三方，取值为 GITHUB、GITEE 或 FEISHU。
+	// 第三方，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
 	Provider string `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
 	// 第三方授权码。
 	Code string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -6882,9 +6882,9 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
 	"\rauthorize_url\x18\x03 \x01(\tR\fauthorizeUrl\"V\n" +
 	"\x1bListOAuth2ProvidersResponse\x127\n" +
-	"\tproviders\x18\x01 \x03(\v2\x19.alioth.v1.OAuth2ProviderR\tproviders\"\x8e\x01\n" +
-	"\x12OAuth2LoginRequest\x128\n" +
-	"\bprovider\x18\x01 \x01(\tB\x1c\xbaH\x19r\x17R\x06GITHUBR\x05GITEER\x06FEISHUR\bprovider\x12\x1b\n" +
+	"\tproviders\x18\x01 \x03(\v2\x19.alioth.v1.OAuth2ProviderR\tproviders\"\x98\x01\n" +
+	"\x12OAuth2LoginRequest\x12B\n" +
+	"\bprovider\x18\x01 \x01(\tB&\xbaH#r!R\x06GITHUBR\x05GITEER\x06FEISHUR\bDINGTALKR\bprovider\x12\x1b\n" +
 	"\x04code\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04code\x12!\n" +
 	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\"E\n" +
 	"\x13OAuth2LoginResponse\x12.\n" +

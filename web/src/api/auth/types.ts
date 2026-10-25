@@ -11,7 +11,7 @@ export type LoginResult = {
 }
 
 /** 已配置客户端的第三方登录来源，取值与 OAuth2LoginRequest 一致。 */
-export type OAuth2Provider = "GITHUB" | "GITEE" | "FEISHU"
+export type OAuth2Provider = "GITHUB" | "GITEE" | "FEISHU" | "DINGTALK"
 
 export type SendRegisterEmailCodeParams = {
   email: string

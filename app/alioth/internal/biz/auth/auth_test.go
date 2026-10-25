@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -352,6 +354,58 @@ func TestOAuthProviders(t *testing.T) {
 		}
 	})
 
+	t.Run("lists dingtalk with openid scope", func(t *testing.T) {
+		// redirect_uri 带空格，用来确认空格被编码成 %20 而不是 url.Values 默认的 "+"。
+		const dingtalkRedirectURI = "https://app.example.com/oauth2/callback?next=some page"
+		authenticator := configureBoth()
+		authenticator.oauthClients["FEISHU"] = oauthClient{id: "feishu-id", secret: "feishu-secret"}
+		authenticator.oauthClients["DINGTALK"] = oauthClient{id: "dingtalk-id", secret: "dingtalk-secret"}
+		providers, err := authenticator.OAuthProviders(dingtalkRedirectURI, state)
+		if err != nil {
+			t.Fatalf("OAuthProviders: %v", err)
+		}
+		if len(providers) != 4 {
+			t.Fatalf("providers = %d, want 4", len(providers))
+		}
+		dingtalk := providers[3]
+		if dingtalk.Provider != "DINGTALK" || dingtalk.Name != "钉钉" {
+			t.Fatalf("dingtalk = %+v", dingtalk)
+		}
+		if !strings.HasPrefix(dingtalk.AuthorizeURL, "https://login.dingtalk.com/oauth2/auth?") {
+			t.Fatalf("dingtalk authorize url = %q", dingtalk.AuthorizeURL)
+		}
+		for _, want := range []string{
+			"client_id=dingtalk-id",
+			"state=state-123456",
+			"response_type=code",
+			"scope=openid",
+			"prompt=consent",
+			"redirect_uri=https%3A%2F%2Fapp.example.com%2Foauth2%2Fcallback%3Fnext%3Dsome%20page",
+		} {
+			if !strings.Contains(dingtalk.AuthorizeURL, want) {
+				t.Fatalf("dingtalk authorize url 缺少 %q: %s", want, dingtalk.AuthorizeURL)
+			}
+		}
+		// 钉钉授权页同样不把 "+" 当空格，空格必须是 %20（见 authorizeURL 注释）。
+		if strings.Contains(dingtalk.AuthorizeURL, "+") {
+			t.Fatalf("dingtalk authorize url 不应包含 +: %s", dingtalk.AuthorizeURL)
+		}
+	})
+
+	t.Run("omits dingtalk without secret", func(t *testing.T) {
+		authenticator := configureBoth()
+		authenticator.oauthClients["DINGTALK"] = oauthClient{id: "dingtalk-id"}
+		providers, err := authenticator.OAuthProviders(redirectURI, state)
+		if err != nil {
+			t.Fatalf("OAuthProviders: %v", err)
+		}
+		for _, provider := range providers {
+			if provider.Provider == "DINGTALK" {
+				t.Fatalf("缺少 client_secret 的钉钉不应出现在来源列表: %+v", provider)
+			}
+		}
+	})
+
 	t.Run("lists only github when gitee has no secret", func(t *testing.T) {
 		authenticator := configureBoth()
 		authenticator.oauthClients["GITEE"] = oauthClient{id: "gitee-id"}
@@ -547,6 +601,207 @@ func TestExchangeFeishu(t *testing.T) {
 
 	t.Run("rejects user info without open id", func(t *testing.T) {
 		newFeishuStub(t, successToken, `{"code":0,"msg":"success","data":{"name":"张三"}}`)
+		_, err := exchange(t)
+		assertClientMessage(t, err, "oauth login failed")
+	})
+}
+
+// dingtalkReply 是钉钉桩的预设回复。status 为 0 时按 200 处理，
+// 这样可以在构造桩时就定下成功或失败，避免测试协程再改桩的字段。
+type dingtalkReply struct {
+	tokenStatus      int
+	tokenResponse    string
+	userInfoStatus   int
+	userInfoResponse string
+}
+
+// dingtalkStub 用 httptest 代替钉钉的令牌接口和通讯录个人信息接口，
+// 记录令牌请求的 JSON 请求体、用户信息请求的凭证头，并按预设回复返回。
+type dingtalkStub struct {
+	mu               sync.Mutex
+	reply            dingtalkReply
+	tokenMethod      string
+	tokenContentType string
+	tokenAuth        string
+	tokenBody        map[string]string
+	userInfoMethod   string
+	userInfoToken    string
+}
+
+func newDingtalkStub(t *testing.T, reply dingtalkReply) *dingtalkStub {
+	t.Helper()
+	stub := &dingtalkStub{reply: reply}
+	writeStatus := func(w http.ResponseWriter, status int) {
+		if status == 0 {
+			status = http.StatusOK
+		}
+		w.WriteHeader(status)
+	}
+	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		payload, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("读取钉钉令牌请求体失败: %v", err)
+		}
+		body := map[string]string{}
+		if err := json.Unmarshal(payload, &body); err != nil {
+			t.Errorf("钉钉令牌请求不是合法 JSON: %v", err)
+		}
+		stub.recordToken(r.Method, r.Header.Get("Content-Type"), r.Header.Get("Authorization"), body)
+		w.Header().Set("Content-Type", "application/json")
+		writeStatus(w, stub.reply.tokenStatus)
+		_, _ = w.Write([]byte(stub.reply.tokenResponse))
+	}))
+	t.Cleanup(tokenServer.Close)
+	userInfoServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		stub.recordUserInfo(r.Method, r.Header.Get("x-acs-dingtalk-access-token"))
+		w.Header().Set("Content-Type", "application/json")
+		writeStatus(w, stub.reply.userInfoStatus)
+		_, _ = w.Write([]byte(stub.reply.userInfoResponse))
+	}))
+	t.Cleanup(userInfoServer.Close)
+	restoreToken, restoreUserInfo := dingtalkTokenEndpoint, dingtalkUserInfoEndpoint
+	dingtalkTokenEndpoint, dingtalkUserInfoEndpoint = tokenServer.URL, userInfoServer.URL
+	t.Cleanup(func() {
+		dingtalkTokenEndpoint, dingtalkUserInfoEndpoint = restoreToken, restoreUserInfo
+	})
+	return stub
+}
+
+func (stub *dingtalkStub) recordToken(method, contentType, authorization string, body map[string]string) {
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	stub.tokenMethod = method
+	stub.tokenContentType = contentType
+	stub.tokenAuth = authorization
+	stub.tokenBody = body
+}
+
+func (stub *dingtalkStub) recordUserInfo(method, token string) {
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	stub.userInfoMethod = method
+	stub.userInfoToken = token
+}
+
+func (stub *dingtalkStub) tokenRequest() (string, string, string, map[string]string) {
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	return stub.tokenMethod, stub.tokenContentType, stub.tokenAuth, stub.tokenBody
+}
+
+func (stub *dingtalkStub) userInfoRequest() (string, string) {
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	return stub.userInfoMethod, stub.userInfoToken
+}
+
+// TestExchangeDingTalk 覆盖钉钉的令牌交换和通讯录个人信息读取，端点都指向 httptest，不访问真实钉钉。
+func TestExchangeDingTalk(t *testing.T) {
+	const (
+		dingtalkClientID     = "dingtalk-id"
+		dingtalkClientSecret = "dingtalk-secret"
+		dingtalkCode         = "auth-code"
+		dingtalkRedirectURI  = "https://app.example.com/oauth2/callback"
+		dingtalkAccessToken  = "u-dingtalk-token"
+		successToken         = `{"accessToken":"u-dingtalk-token","refreshToken":"r-dingtalk-token","expireIn":7200,"corpId":"ding123"}`
+	)
+	client := oauthClient{id: dingtalkClientID, secret: dingtalkClientSecret}
+	exchange := func(t *testing.T) (oauthProfile, error) {
+		t.Helper()
+		return newAuthFixture(t).authenticator.exchangeDingTalk(context.Background(), client, dingtalkCode, dingtalkRedirectURI)
+	}
+
+	t.Run("exchanges code and reads profile", func(t *testing.T) {
+		stub := newDingtalkStub(t, dingtalkReply{
+			tokenResponse:    successToken,
+			userInfoResponse: `{"nick":"张三","avatarUrl":"https://avatar.example.com/zhangsan.png","openId":"open-zhangsan","unionId":"union-zhangsan","email":"zhangsan@example.com","mobile":"150****9144","stateCode":"86"}`,
+		})
+		profile, err := exchange(t)
+		if err != nil {
+			t.Fatalf("exchangeDingTalk: %v", err)
+		}
+		method, contentType, authorization, body := stub.tokenRequest()
+		if method != http.MethodPost {
+			t.Fatalf("令牌请求方法 = %q, want POST", method)
+		}
+		if contentType != "application/json" {
+			t.Fatalf("令牌请求 Content-Type = %q", contentType)
+		}
+		if authorization != "" {
+			t.Fatalf("令牌请求不应该带 Authorization 头: %q", authorization)
+		}
+		wantBody := map[string]string{
+			"clientId":     dingtalkClientID,
+			"clientSecret": dingtalkClientSecret,
+			"code":         dingtalkCode,
+			"grantType":    "authorization_code",
+		}
+		if !reflect.DeepEqual(body, wantBody) {
+			t.Fatalf("令牌请求体 = %v, want %v", body, wantBody)
+		}
+		// 钉钉的令牌接口不接受 redirect_uri，回调地址只在授权地址里出现。
+		if _, ok := body["redirect_uri"]; ok {
+			t.Fatalf("令牌请求体不应包含 redirect_uri: %v", body)
+		}
+		userInfoMethod, userInfoToken := stub.userInfoRequest()
+		if userInfoMethod != http.MethodGet {
+			t.Fatalf("用户信息请求方法 = %q, want GET", userInfoMethod)
+		}
+		if userInfoToken != dingtalkAccessToken {
+			t.Fatalf("用户信息凭证头 = %q", userInfoToken)
+		}
+		if profile.openID != "open-zhangsan" || profile.name != "张三" || profile.avatar != "https://avatar.example.com/zhangsan.png" {
+			t.Fatalf("profile = %+v", profile)
+		}
+		if profile.email != "zhangsan@example.com" || profile.emailVerified {
+			t.Fatalf("email = %q, emailVerified = %v，钉钉邮箱是用户自填的，必须按未验证处理", profile.email, profile.emailVerified)
+		}
+	})
+
+	t.Run("keeps empty email unverified", func(t *testing.T) {
+		newDingtalkStub(t, dingtalkReply{
+			tokenResponse:    successToken,
+			userInfoResponse: `{"nick":"张三","openId":"open-zhangsan","unionId":"union-zhangsan"}`,
+		})
+		profile, err := exchange(t)
+		if err != nil {
+			t.Fatalf("exchangeDingTalk: %v", err)
+		}
+		if profile.email != "" || profile.emailVerified {
+			t.Fatalf("email = %q, emailVerified = %v，没有邮箱时不能视为已验证", profile.email, profile.emailVerified)
+		}
+	})
+
+	t.Run("rejects empty access token", func(t *testing.T) {
+		newDingtalkStub(t, dingtalkReply{tokenResponse: `{"accessToken":""}`})
+		_, err := exchange(t)
+		assertClientMessage(t, err, "oauth login failed")
+	})
+
+	t.Run("rejects token request failure", func(t *testing.T) {
+		newDingtalkStub(t, dingtalkReply{
+			tokenStatus:   http.StatusBadRequest,
+			tokenResponse: `{"code":"invalidParameter","message":"code is invalid","requestid":"req-1"}`,
+		})
+		_, err := exchange(t)
+		assertClientMessage(t, err, "oauth login failed")
+	})
+
+	t.Run("rejects user info failure", func(t *testing.T) {
+		newDingtalkStub(t, dingtalkReply{
+			tokenResponse:    successToken,
+			userInfoStatus:   http.StatusForbidden,
+			userInfoResponse: `{"code":"Forbidden.AccessDenied","message":"no permission"}`,
+		})
+		_, err := exchange(t)
+		assertClientMessage(t, err, "oauth login failed")
+	})
+
+	t.Run("rejects user info without open id", func(t *testing.T) {
+		newDingtalkStub(t, dingtalkReply{
+			tokenResponse:    successToken,
+			userInfoResponse: `{"nick":"张三"}`,
+		})
 		_, err := exchange(t)
 		assertClientMessage(t, err, "oauth login failed")
 	})

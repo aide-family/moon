@@ -1407,7 +1407,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "uid", Type: field.TypeString},
 		{Name: "user_uid", Type: field.TypeString},
-		{Name: "provider", Type: field.TypeEnum, Enums: []string{"GITHUB", "GITEE", "FEISHU"}},
+		{Name: "provider", Type: field.TypeEnum, Enums: []string{"GITHUB", "GITEE", "FEISHU", "DINGTALK"}},
 		{Name: "open_id", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Default: ""},
 	}

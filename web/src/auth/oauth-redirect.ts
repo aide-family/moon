@@ -19,6 +19,7 @@ const providerNames: Record<OAuth2Provider, string> = {
   GITHUB: "GitHub",
   GITEE: "Gitee",
   FEISHU: "Feishu",
+  DINGTALK: "DingTalk",
 }
 
 // 各平台完成邮箱验证的页面；没有配置的平台不展示“去验证邮箱”按钮。
@@ -49,8 +50,23 @@ function readStorage(key: string): string | null {
   }
 }
 
+// 各平台回调里授权码的查询参数名。钉钉返回的是 authCode，其余平台都是 code。
+const codeParams: Partial<Record<OAuth2Provider, string>> = {
+  DINGTALK: "authCode",
+}
+
+/** 第三方回调里授权码的查询参数名。 */
+export function oauthCodeParam(provider: OAuth2Provider): string {
+  return codeParams[provider] ?? "code"
+}
+
 function isOAuth2Provider(value: unknown): value is OAuth2Provider {
-  return value === "GITHUB" || value === "GITEE" || value === "FEISHU"
+  return (
+    value === "GITHUB" ||
+    value === "GITEE" ||
+    value === "FEISHU" ||
+    value === "DINGTALK"
+  )
 }
 
 /** 前端固定的授权回调地址，必须与后端配置的 redirect_uri 一致。 */
