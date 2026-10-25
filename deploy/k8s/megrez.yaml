@@ -31,7 +31,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: megrez
-          image: alioth/megrez:latest
+          image: ghcr.io/aide-family/alioth/megrez:sha-724d16ed08a8
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

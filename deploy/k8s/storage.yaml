@@ -1,0 +1,26 @@
+# 集群没有动态存储类（只有 es-local 这种 no-provisioner），所以 PostgreSQL 的数据卷
+# 用 hostPath PV 静态供给。单节点集群下 hostPath 足够；多节点时要换成 nodeAffinity + local 卷。
+#
+# claimRef 把 PV 预先绑定到 alioth 命名空间的 postgres-data，避免未来新增同名 PVC 抢到它。
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: alioth-postgres-pv
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 20Gi
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: postgres-data
+    namespace: alioth
+  hostPath:
+    # /mnt/disk01 是节点上的数据盘（1.1T），与 infra/monitoring 的 PV 同一块盘。
+    path: /mnt/disk01/alioth/postgres
+    type: DirectoryOrCreate

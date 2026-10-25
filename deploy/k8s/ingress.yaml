@@ -1,0 +1,26 @@
+# 对外只暴露 web:8080，由集群现有的 Kong 网关（ingressClassName: kong，LoadBalancer
+# 192.168.10.171）按域名转发。/v1 由 web 镜像内的 nginx 转给 alioth:8000，
+# 所以这里不需要再为 alioth、megrez、merak 建 Ingress。
+#
+# 客户端要在 /etc/hosts 或 DNS 里把该域名指向 Kong 的地址：
+#   192.168.10.171  alioth.moon.com
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alioth
+  namespace: alioth
+  labels:
+    app: web
+spec:
+  ingressClassName: kong
+  rules:
+    - host: alioth.moon.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 8080

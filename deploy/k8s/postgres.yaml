@@ -1,15 +1,4 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: alioth-postgres
-  namespace: alioth
-type: Opaque
-stringData:
-  POSTGRES_USER: alioth
-  POSTGRES_PASSWORD: change-me
-  POSTGRES_DB: alioth
-  DATABASE_SOURCE: postgres://alioth:change-me@postgres:5432/alioth?sslmode=disable
----
+# Secret 见 secrets.example.yaml，真实值用 kubectl create secret 生成后不要提交。
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -39,7 +28,8 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:16
+          # 节点访问不了 docker.io，沿用集群里其他组件在用的镜像站地址。
+          image: docker.m.daocloud.io/postgres:16-alpine
           ports:
             - containerPort: 5432
           envFrom:

@@ -31,7 +31,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: merak
-          image: alioth/merak:latest
+          image: ghcr.io/aide-family/alioth/merak:sha-724d16ed08a8
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

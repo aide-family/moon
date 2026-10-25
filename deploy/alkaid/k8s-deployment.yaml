@@ -1,19 +1,17 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: alkaid-token
-  namespace: alioth
-type: Opaque
-stringData:
-  ALKAID_AGENT_TOKEN: ag-replace-me
----
+# 令牌来自 Secret alkaid-token，不要内联在这里（apply 会覆盖线上真实令牌）：
+#   kubectl -n alioth create secret generic alkaid-token \
+#     --from-literal=ALKAID_AGENT_TOKEN='<控制台创建机器后复制的令牌>' \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#
+# 令牌必须先由 alioth 控制台签发：迁移 seed 之后，登录管理台 → 机器 → 新建，才能拿到。
+# 所以这里是 replicas: 0，控制台起来、拿到令牌并创建 Secret 之后再扩到 1。
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: alkaid
   namespace: alioth
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: alkaid
@@ -24,7 +22,7 @@ spec:
     spec:
       containers:
         - name: alkaid
-          image: alioth/alkaid:latest
+          image: ghcr.io/aide-family/alioth/alkaid:sha-724d16ed08a8
           ports:
             - name: http
               containerPort: 8022

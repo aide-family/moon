@@ -1,30 +1,5 @@
-# 示例 Secret。生产环境不要提交真实值：用 External Secrets / Sealed Secrets
-# 或 `kubectl create secret generic alioth-auth --from-literal=...` 覆盖后再部署。
-apiVersion: v1
-kind: Secret
-metadata:
-  name: alioth-auth
-  namespace: alioth
-type: Opaque
-stringData:
-  JWT_SECRET: replace-me-with-32-bytes-of-random
-  ENCRYPT_KEY: replace-me-with-32-bytes-of-random
-  MEGREZ_SERVICE_KEY: sk-megrez-replace-me
-  MERAK_SERVICE_KEY: sk-merak-replace-me
-  WEB_URL: http://alioth.example.com
-  # 第三方登录可选。填入真实客户端后登录页才出现 GitHub / Gitee / 飞书 / 钉钉 入口，
-  # 回调地址填 <WEB_URL>/auth/callback。
-  # GITHUB_CLIENT_ID: ""
-  # GITHUB_CLIENT_SECRET: ""
-  # GITEE_CLIENT_ID: ""
-  # GITEE_CLIENT_SECRET: ""
-  # 飞书应用需在开放平台申请 contact:user.email:readonly，否则读不到邮箱。
-  # FEISHU_CLIENT_ID: ""
-  # FEISHU_CLIENT_SECRET: ""
-  # 钉钉应用需在权限管理申请「通讯录个人信息读权限」，否则读不到用户资料。
-  # DINGTALK_CLIENT_ID: ""
-  # DINGTALK_CLIENT_SECRET: ""
----
+# Secret 见 secrets.example.yaml。真实值用 kubectl create secret 生成；
+# 清单里不再内联 Secret，避免 `kubectl apply` 用占位值覆盖掉线上真实密钥。
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -58,7 +33,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: alioth
-          image: alioth/alioth:latest
+          image: ghcr.io/aide-family/alioth/alioth:sha-724d16ed08a8
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -106,6 +81,35 @@ spec:
                 secretKeyRef:
                   name: alioth-auth
                   key: MERAK_SERVICE_KEY
+            # 登录/注册验证码只能邮件下发，SMTP 不通就完全无法登录。
+            # 实现是 net/smtp，只支持 STARTTLS（587/25），不支持 465 隐式 SSL。
+            - name: ALIOTH_SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-smtp
+                  key: ALIOTH_SMTP_HOST
+            - name: ALIOTH_SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-smtp
+                  key: ALIOTH_SMTP_PORT
+            - name: ALIOTH_SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-smtp
+                  key: ALIOTH_SMTP_USERNAME
+                  optional: true
+            - name: ALIOTH_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-smtp
+                  key: ALIOTH_SMTP_PASSWORD
+                  optional: true
+            - name: ALIOTH_SMTP_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-smtp
+                  key: ALIOTH_SMTP_FROM
             # 第三方登录可选：Secret 里没有这些键时不注入，登录页只保留邮箱验证码。
             - name: GITHUB_CLIENT_ID
               valueFrom:

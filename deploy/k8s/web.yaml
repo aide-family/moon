@@ -33,7 +33,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: web
-          image: alioth/web:latest
+          image: ghcr.io/aide-family/alioth/web:sha-724d16ed08a8
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -84,7 +84,9 @@ metadata:
   name: web
   namespace: alioth
 spec:
-  type: LoadBalancer
+  # 只走集群内域名（ingress.yaml 由 Kong 转发），不额外占用 MetalLB 的 IP。
+  # 需要绕过网关直连时再改成 LoadBalancer。
+  type: ClusterIP
   selector:
     app: web
   ports:

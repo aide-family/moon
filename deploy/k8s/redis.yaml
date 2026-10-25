@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:7
+          # 节点访问不了 docker.io，沿用集群里其他组件在用的镜像站地址。
+          image: docker.m.daocloud.io/redis:7
           args: ["redis-server", "--save", "", "--appendonly", "no"]
           ports:
             - containerPort: 6379
