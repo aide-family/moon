@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -31,7 +32,7 @@ func (authenticator *Authenticator) OAuthLogin(ctx context.Context, provider, co
 	if !ok || client.id == "" || client.secret == "" {
 		return nil, merr.Client("oauth provider is not configured")
 	}
-	profile, err := exchangeOAuth(ctx, provider, client, code, redirectURI)
+	profile, err := authenticator.exchangeOAuth(ctx, provider, client, code, redirectURI)
 	if err != nil {
 		authenticator.log.Error(fmt.Sprintf("oauth exchange failed for %s", provider))
 		return nil, merr.Client("oauth login failed")
@@ -48,6 +49,7 @@ func (authenticator *Authenticator) OAuthLogin(ctx context.Context, provider, co
 	if email != "" && !profile.emailVerified {
 		// 没有验证过的第三方邮箱不能并入已有本地账号，否则等于绕过邮箱所有权。
 		if _, err := authenticator.users.UserByEmail(ctx, email); err == nil {
+			authenticator.log.Warn(fmt.Sprintf("oauth login rejected: %s email is not verified but already registered", provider))
 			return nil, merr.Client("oauth email is not verified")
 		}
 	}
@@ -81,20 +83,20 @@ func (authenticator *Authenticator) OAuthLogin(ctx context.Context, provider, co
 	return authenticator.session(account)
 }
 
-func exchangeOAuth(ctx context.Context, provider string, client oauthClient, code, redirectURI string) (oauthProfile, error) {
+func (authenticator *Authenticator) exchangeOAuth(ctx context.Context, provider string, client oauthClient, code, redirectURI string) (oauthProfile, error) {
 	switch provider {
 	case "GITHUB":
-		return exchangeGitHub(ctx, client, code, redirectURI)
+		return authenticator.exchangeGitHub(ctx, client, code, redirectURI)
 	case "GITEE":
-		return exchangeGitee(ctx, client, code, redirectURI)
+		return authenticator.exchangeGitee(ctx, client, code, redirectURI)
 	case "FEISHU":
-		return exchangeFeishu(ctx, client, code, redirectURI)
+		return authenticator.exchangeFeishu(ctx, client, code, redirectURI)
 	default:
 		return oauthProfile{}, merr.Client("oauth login failed")
 	}
 }
 
-func exchangeGitHub(ctx context.Context, client oauthClient, code, redirectURI string) (oauthProfile, error) {
+func (authenticator *Authenticator) exchangeGitHub(ctx context.Context, client oauthClient, code, redirectURI string) (oauthProfile, error) {
 	body := url.Values{}
 	body.Set("client_id", client.id)
 	body.Set("client_secret", client.secret)
@@ -141,7 +143,7 @@ func exchangeGitHub(ctx context.Context, client oauthClient, code, redirectURI s
 	return profile, nil
 }
 
-func exchangeGitee(ctx context.Context, client oauthClient, code, redirectURI string) (oauthProfile, error) {
+func (authenticator *Authenticator) exchangeGitee(ctx context.Context, client oauthClient, code, redirectURI string) (oauthProfile, error) {
 	body := url.Values{}
 	body.Set("grant_type", "authorization_code")
 	body.Set("client_id", client.id)
@@ -168,10 +170,59 @@ func exchangeGitee(ctx context.Context, client oauthClient, code, redirectURI st
 	if name == "" {
 		name = user.Login
 	}
-	return oauthProfile{openID: fmt.Sprint(user.ID), email: user.Email, name: name, avatar: user.AvatarURL}, nil
+	profile := oauthProfile{openID: fmt.Sprint(user.ID), email: user.Email, name: name, avatar: user.AvatarURL}
+	// Gitee 的 /user 不带邮箱验证状态。/emails 里 state=confirmed 的才是已验证邮箱，
+	// 其中 scope 含 primary 的是主邮箱。接口需要 emails 权限：拿不到就退回 /user 的邮箱，按未验证处理。
+	if verified, err := authenticator.giteeVerifiedEmail(ctx, token.AccessToken); err == nil && verified != "" {
+		profile.email = verified
+		profile.emailVerified = true
+	}
+	return profile, nil
 }
 
-func exchangeFeishu(ctx context.Context, client oauthClient, code, redirectURI string) (oauthProfile, error) {
+// giteeEmail 是 Gitee 邮箱列表的一项：state=confirmed 表示已验证，scope 含 primary 表示主邮箱。
+type giteeEmail struct {
+	Email string   `json:"email"`
+	State string   `json:"state"`
+	Scope []string `json:"scope"`
+}
+
+// giteeVerifiedEmail 读取 Gitee 邮箱列表并挑一个已验证邮箱。
+// 依赖授权时申请的 emails 权限；Gitee 应用没勾选该权限时接口会拒绝访问，此时按
+// “没有已验证邮箱”处理，不阻断登录，由前端引导用户去 Gitee 完成邮箱验证或改用邮箱验证码登录。
+func (authenticator *Authenticator) giteeVerifiedEmail(ctx context.Context, accessToken string) (string, error) {
+	var emails []giteeEmail
+	endpoint := "https://gitee.com/api/v5/emails?access_token=" + url.QueryEscape(accessToken)
+	if err := oauthJSON(ctx, http.MethodGet, endpoint, "", nil, &emails); err != nil {
+		// 拿不到验证状态时只是无法并入已有账号，登录本身仍然可以继续，记一条警告便于排查权限问题。
+		authenticator.log.Warn(fmt.Sprintf("gitee emails unavailable: %v", err))
+		return "", err
+	}
+	verified := pickGiteeVerifiedEmail(emails)
+	if verified == "" {
+		authenticator.log.Warn(fmt.Sprintf("gitee emails: no confirmed primary email among %d entries", len(emails)))
+	}
+	return verified, nil
+}
+
+// pickGiteeVerifiedEmail 优先返回已验证的主邮箱，没有主邮箱时退回第一个已验证邮箱。
+func pickGiteeVerifiedEmail(emails []giteeEmail) string {
+	fallback := ""
+	for _, item := range emails {
+		if item.State != "confirmed" || item.Email == "" {
+			continue
+		}
+		if slices.Contains(item.Scope, "primary") {
+			return item.Email
+		}
+		if fallback == "" {
+			fallback = item.Email
+		}
+	}
+	return fallback
+}
+
+func (authenticator *Authenticator) exchangeFeishu(ctx context.Context, client oauthClient, code, redirectURI string) (oauthProfile, error) {
 	payload := map[string]string{
 		"grant_type":    "authorization_code",
 		"client_id":     client.id,
@@ -261,4 +312,63 @@ func doOAuth(req *http.Request, dest any) error {
 		return merr.Client("oauth login failed")
 	}
 	return nil
+}
+
+// oauthProvider 是一个可以列出授权地址的第三方来源。
+type oauthProvider struct {
+	key               string
+	name              string
+	authorizeEndpoint string
+}
+
+// oauthProviderCatalog 只包含已经实现授权码流程的来源。飞书仍可登录，但不在来源列表里。
+var oauthProviderCatalog = []oauthProvider{
+	{key: "GITHUB", name: "GitHub", authorizeEndpoint: "https://github.com/login/oauth/authorize"},
+	{key: "GITEE", name: "Gitee", authorizeEndpoint: "https://gitee.com/oauth/authorize"},
+}
+
+// authorizeURL 按来源拼出完整授权地址。GitHub 和 Gitee 的查询参数不同：
+// GitHub 用 allow_signup 和空格分隔的 scope，Gitee 要 response_type=code。
+func (provider oauthProvider) authorizeURL(client oauthClient, redirectURI, state string) string {
+	params := url.Values{}
+	params.Set("client_id", client.id)
+	params.Set("redirect_uri", redirectURI)
+	params.Set("state", state)
+	switch provider.key {
+	case "GITHUB":
+		params.Set("scope", "read:user user:email")
+		params.Set("allow_signup", "true")
+	case "GITEE":
+		params.Set("response_type", "code")
+		// emails 权限用来读 /api/v5/emails 判断邮箱是否已验证。Gitee 应用必须先在
+		// 应用设置里勾选 emails，否则授权页会报“请求范围无效、未知或格式不正确”。
+		params.Set("scope", "user_info emails")
+	}
+	// url.Values 把空格编码成 "+"。Gitee 的授权页只认 %20，用 "+" 会报
+	// “请求范围无效、未知或格式不正确”，所以这里统一把空格换成 %20
+	// （值里的字面 + 已被编码成 %2B，不会误伤）。
+	return provider.authorizeEndpoint + "?" + strings.ReplaceAll(params.Encode(), "+", "%20")
+}
+
+// OAuthProviders 只返回客户端已配置的来源：client_id 和 client_secret 都不为空才出现。
+// 前端据此决定显示哪些第三方登录按钮。redirectUri 原样写进授权地址，
+// 必须是 http(s)，否则第三方会拒绝，或者把用户带到不安全的自定义协议。
+func (authenticator *Authenticator) OAuthProviders(redirectURI, state string) ([]bo.OAuthProvider, error) {
+	redirectURI = strings.TrimSpace(redirectURI)
+	if !strings.HasPrefix(redirectURI, "http://") && !strings.HasPrefix(redirectURI, "https://") {
+		return nil, merr.Client("invalid redirect uri")
+	}
+	providers := make([]bo.OAuthProvider, 0, len(oauthProviderCatalog))
+	for _, item := range oauthProviderCatalog {
+		client, ok := authenticator.oauthClients[item.key]
+		if !ok || client.id == "" || client.secret == "" {
+			continue
+		}
+		providers = append(providers, bo.OAuthProvider{
+			Provider:     item.key,
+			Name:         item.name,
+			AuthorizeURL: item.authorizeURL(client, redirectURI, state),
+		})
+	}
+	return providers, nil
 }

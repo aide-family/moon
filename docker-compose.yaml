@@ -3,18 +3,29 @@ name: alioth
 # 本地全栈：docker compose up 即可获得 PostgreSQL、Redis、邮件沙箱、Prometheus、Loki、一次迁移，
 # 以及 alioth / megrez / merak / web。数据保存在命名卷里，down 不会丢。
 x-service-env: &service-env
-  ALIOTH_DATABASE_URL: postgres://alioth:alioth@postgres:5432/alioth?sslmode=disable
-  ALIOTH_REDIS_ADDR: redis:6379
+  # 根目录 .env 与这些默认值一一对应：留空或未设置时保持本地开发行为。
+  ALIOTH_DATABASE_URL: ${ALIOTH_DATABASE_URL:-postgres://alioth:alioth@postgres:5432/alioth?sslmode=disable}
+  ALIOTH_REDIS_ADDR: ${ALIOTH_REDIS_ADDR:-redis:6379}
+  ALIOTH_REDIS_PASSWORD: ${ALIOTH_REDIS_PASSWORD:-}
   ALIOTH_JWT_SECRET: ${ALIOTH_JWT_SECRET:-dev-only-change-me}
   ALIOTH_ENCRYPT_KEY: ${ALIOTH_ENCRYPT_KEY:-dev-only-encrypt-key}
   MEGREZ_SERVICE_KEY: ${MEGREZ_SERVICE_KEY:-sk-megrez-dev}
   MERAK_SERVICE_KEY: ${MERAK_SERVICE_KEY:-sk-merak-dev}
   ALIOTH_WEB_URL: ${ALIOTH_WEB_URL:-http://127.0.0.1:8080}
-  ALIOTH_SMTP_HOST: mailpit
-  ALIOTH_SMTP_PORT: "1025"
+  # 本地默认投递到 compose 自带的 Mailpit；.env 里填真实 SMTP 时自动改投。
+  ALIOTH_SMTP_HOST: ${ALIOTH_SMTP_HOST:-mailpit}
+  ALIOTH_SMTP_PORT: ${ALIOTH_SMTP_PORT:-1025}
+  ALIOTH_SMTP_USERNAME: ${ALIOTH_SMTP_USERNAME:-}
+  ALIOTH_SMTP_PASSWORD: ${ALIOTH_SMTP_PASSWORD:-}
+  ALIOTH_SMTP_FROM: ${ALIOTH_SMTP_FROM:-alioth@localhost}
   ALIOTH_HISTORY_DATABASE_PREFIX: ${ALIOTH_HISTORY_DATABASE_PREFIX:-alioth_alert_}
   ALIOTH_HISTORY_TABLE_PREFIX: ${ALIOTH_HISTORY_TABLE_PREFIX:-alert_events_}
   ALIOTH_HISTORY_MESSAGE_TABLE_PREFIX: ${ALIOTH_HISTORY_MESSAGE_TABLE_PREFIX:-message_logs_}
+  # 第三方登录：配置客户端后登录页才显示 GitHub / Gitee 入口，回调地址为 <web_url>/auth/callback。
+  GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+  GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+  GITEE_CLIENT_ID: ${GITEE_CLIENT_ID:-}
+  GITEE_CLIENT_SECRET: ${GITEE_CLIENT_SECRET:-}
 
 services:
   postgres:
@@ -167,7 +178,8 @@ services:
     environment:
       MEGREZ_HTTP_ADDR: 0.0.0.0:8001
       ALIOTH_GRPC_ADDR: alioth:9000
-      REDIS_ADDR: redis:6379
+      REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       MEGREZ_SERVICE_KEY: ${MEGREZ_SERVICE_KEY:-sk-megrez-dev}
     depends_on:
       alioth:
@@ -183,7 +195,8 @@ services:
     environment:
       MERAK_HTTP_ADDR: 0.0.0.0:8002
       ALIOTH_GRPC_ADDR: alioth:9000
-      REDIS_ADDR: redis:6379
+      REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       MERAK_SERVICE_KEY: ${MERAK_SERVICE_KEY:-sk-merak-dev}
     depends_on:
       alioth:

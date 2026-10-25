@@ -51,7 +51,33 @@ make migrate         # 建表 + seed + 分区
 make run-alioth      # 另开终端跑其余服务
 ```
 
-邮件沙箱在 <http://127.0.0.1:8025>，登录验证码和邀请邮件都会落到这里。
+邮件沙箱在 <http://127.0.0.1:8025>，注册验证码、登录验证码和邀请邮件都会落到这里。
+
+## 环境变量
+
+根目录的 `.env` 是唯一一份本地/部署变量表（已被 `.gitignore` 忽略，不会提交）：
+
+- `docker compose` 自动读取它；`make` 目标也会加载并导出（命令行参数仍然优先，例如 `make images VERSION=v0.1.0`）。
+- 原生运行（`make run-*`、`go run`）由 `pkg/bootstrap` 自动加载：从配置文件所在目录向上找最近的 `.env`，进程环境变量优先。
+- 文件里已按用途分好段：安全密钥、服务间 key、站点地址、OAuth2、SMTP、数据库/Redis、历史库前缀、镜像版本、边缘 Agent。凡是留空会破坏默认值的项都写成注释，需要你补充的项直接填在等号右边。
+
+## 账号与登录
+
+账号没有密码，登录只有两条路径：
+
+- **邮箱验证码**：先答对数学计算图形验证码，再点「发送验证码」；验证码发到邮箱，10 分钟内有效、只能用一次。发码和最终登录都会校验图形验证码，同一邮箱 60 秒内只能发一次码。
+- **第三方登录**：GitHub 和 Gitee。配置客户端后登录页才显示入口，未配置时不影响邮箱验证码登录。
+
+| 平台 | 环境变量 | 回调地址 |
+| --- | --- | --- |
+| GitHub | `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
+| Gitee | `GITEE_CLIENT_ID`、`GITEE_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
+
+注册同样只用邮箱验证码：填邮箱、图形验证码，发送验证码后提交。第一个注册用户成为超级管理员。
+
+第三方登录的平台侧要求：GitHub 应用填授权回调地址即可（申请 `read:user user:email`）；Gitee 应用除了回调地址，还要在应用设置的权限里勾选 `emails`——授权会申请 `user_info emails`，应用没开该权限时 Gitee 授权页会报「请求范围无效、未知或格式不正确」。邮箱验证状态由后端读取 `/api/v5/emails`（state=confirmed 的主邮箱）判断；第三方没有确认邮箱已验证、而该邮箱已经注册了本地账号时，登录页会展示「去 Gitee / GitHub 完成邮箱验证」的入口，确认后重新登录即可并入已有账号，平台仍不返回验证状态时改用邮箱验证码登录。
+
+注册 OAuth 应用时需要的图标可以直接用 [web/public/alioth.png](web/public/alioth.png)（512×512 PNG，透明圆角）；站点图标另有 SVG 版本 [web/public/alioth.svg](web/public/alioth.svg) 和 iOS 主屏用的 `apple-touch-icon.png`。
 
 ## 镜像与发布
 

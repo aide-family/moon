@@ -9,43 +9,50 @@ option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
 
 // 图形验证码。
 service CaptchaService {
-  // 获取图形验证码。答案不回传明文。
+  // 获取数学计算图形验证码。算式只出现在图片里，答案不回传明文。
   rpc GetCaptcha(GetCaptchaRequest) returns (GetCaptchaResponse) {
     option (google.api.http) = {get: "/v1/captcha"};
   }
 }
 
-// 注册和登录。
+// 注册和登录。全部走邮箱验证码，没有密码。
 service AuthService {
-  // 用邮箱、密码和验证码注册，成功后返回会话。
+  // 向未注册邮箱发送注册验证码。发码前要先通过图形验证码。
+  rpc SendRegisterEmailCode(SendRegisterEmailCodeRequest) returns (SendRegisterEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register/code"
+      body: "*"
+    };
+  }
+  // 用邮箱、邮箱验证码和图形验证码注册，成功后返回会话。
   rpc Register(RegisterRequest) returns (RegisterResponse) {
     option (google.api.http) = {
       post: "/v1/auth/register"
       body: "*"
     };
   }
-  // 用邮箱和密码登录。
-  rpc PasswordLogin(PasswordLoginRequest) returns (PasswordLoginResponse) {
-    option (google.api.http) = {
-      post: "/v1/auth/password/login"
-      body: "*"
-    };
-  }
-  // 向已注册邮箱发送登录验证码。
+  // 向已注册邮箱发送登录验证码。发码前要先通过图形验证码。
   rpc SendEmailLoginCode(SendEmailLoginCodeRequest) returns (SendEmailLoginCodeResponse) {
     option (google.api.http) = {
       post: "/v1/auth/email/login/code"
       body: "*"
     };
   }
-  // 用邮箱验证码登录。验证码只能使用一次。
+  // 用邮箱验证码和图形验证码登录。邮箱验证码只能使用一次。
   rpc EmailLogin(EmailLoginRequest) returns (EmailLoginResponse) {
     option (google.api.http) = {
       post: "/v1/auth/email/login"
       body: "*"
     };
   }
-  // 用 GitHub、Gitee 或飞书授权码登录。
+  // 列出已经配置客户端的第三方登录来源和授权地址。
+  rpc ListOAuth2Providers(ListOAuth2ProvidersRequest) returns (ListOAuth2ProvidersResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/oauth2/providers"
+      body: "*"
+    };
+  }
+  // 用 GitHub 或 Gitee 的授权码登录。
   rpc OAuth2Login(OAuth2LoginRequest) returns (OAuth2LoginResponse) {
     option (google.api.http) = {
       post: "/v1/auth/oauth2/login"
@@ -457,29 +464,35 @@ message TokenPair {
   UserItem user = 3;
 }
 
-// 获取验证码不需要参数。
+// 获取图形验证码不需要参数。
 message GetCaptchaRequest {}
 
 // 验证码标识和图片。
 message GetCaptchaResponse {
   // 验证码标识。
   string id = 1;
-  // 验证码图片，data URL。
+  // 验证码图片，data URL。题目画在图片里。
   string image = 2;
+  // 题型：NUMERIC 为随机 6 位数字码，MATH 为 100 以内四则运算。前端据此切换输入提示。
+  string kind = 3;
 }
 
 // 注册参数。
 message RegisterRequest {
   // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
-  // 密码。注册时至少 8 位。
-  string password = 2 [(buf.validate.field).string.min_len = 8];
   // 图形验证码标识。
   string captcha_id = 3 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
   // 图形验证码答案。
   string captcha_code = 4 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
-  // 名称。
-  string name = 5;
+  // 用户名：仅中英文和数字，最多 8 个字符；留空时由服务端从邮箱前缀派生。
+  // 与后端 user.usernamePattern 保持一致。
+  string name = 5 [(buf.validate.field).string = {max_len: 8, pattern: "^[\\p{L}\\p{N}]{0,8}$"}];
+  // 邮箱验证码。
+  string code = 6 [(buf.validate.field).string.min_len = 4];
+  // 密码已经移除：注册只用邮箱验证码。
+  reserved 2;
+  reserved "password";
 }
 
 // 注册结果。
@@ -488,24 +501,27 @@ message RegisterResponse {
   TokenPair session = 1;
 }
 
-// 密码登录参数。
-message PasswordLoginRequest {
+// 发送注册验证码的参数。
+message SendRegisterEmailCodeRequest {
   // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
-  // 密码。注册时至少 8 位。
-  string password = 2 [(buf.validate.field).string.min_len = 1];
+  // 图形验证码标识。
+  string captcha_id = 2 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
+  // 图形验证码答案。
+  string captcha_code = 3 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
 }
 
-// 密码登录结果。
-message PasswordLoginResponse {
-  // 登录会话。
-  TokenPair session = 1;
-}
+// 注册验证码已受理。
+message SendRegisterEmailCodeResponse {}
 
 // 发送邮箱登录码的参数。
 message SendEmailLoginCodeRequest {
   // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
+  // 图形验证码标识。
+  string captcha_id = 2 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
+  // 图形验证码答案。
+  string captcha_code = 3 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
 }
 
 // 验证码已受理。
@@ -515,8 +531,12 @@ message SendEmailLoginCodeResponse {}
 message EmailLoginRequest {
   // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
-  // 邮箱验证码或第三方授权码。
+  // 邮箱验证码。
   string code = 2 [(buf.validate.field).string.min_len = 4];
+  // 图形验证码标识。
+  string captcha_id = 3 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
+  // 图形验证码答案。
+  string captcha_code = 4 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
 }
 
 // 邮箱登录结果。
@@ -525,11 +545,35 @@ message EmailLoginResponse {
   TokenPair session = 1;
 }
 
+// 列出第三方登录来源的参数。
+message ListOAuth2ProvidersRequest {
+  // 授权回调地址，原样写进第三方授权地址。
+  string redirect_uri = 1 [(buf.validate.field).string.uri = true, json_name = "redirectUri"];
+  // 前端生成的一次性 state，原样写进第三方授权地址。
+  string state = 2 [(buf.validate.field).string.min_len = 8];
+}
+
+// 已经配置客户端的第三方登录来源。
+message OAuth2Provider {
+  // 第三方，取值为 GITHUB 或 GITEE。
+  string provider = 1;
+  // 展示名，例如 GitHub。
+  string name = 2;
+  // 完整授权地址，前端直接跳转。
+  string authorize_url = 3 [json_name = "authorizeUrl"];
+}
+
+// 第三方登录来源列表。
+message ListOAuth2ProvidersResponse {
+  // 已配置客户端的第三方。
+  repeated OAuth2Provider providers = 1;
+}
+
 // 第三方登录参数。
 message OAuth2LoginRequest {
   // 第三方，取值为 GITHUB、GITEE 或 FEISHU。
   string provider = 1 [(buf.validate.field).string = {in: ["GITHUB", "GITEE", "FEISHU"]}];
-  // 邮箱验证码或第三方授权码。
+  // 第三方授权码。
   string code = 2 [(buf.validate.field).string.min_len = 1];
   // 授权回调地址。
   string redirect_uri = 3 [json_name = "redirectUri"];

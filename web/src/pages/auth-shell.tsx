@@ -88,18 +88,28 @@ export function AuthShell({
 }) {
   return (
     <main className="relative flex min-h-svh">
-      <div className="fixed top-4 right-4 z-10">
+      {/* 品牌标识固定在左上角，与右上角的语言/主题入口同一行；
+          窄屏只保留图标，内容区多留顶部内边距，避免遮挡表单。 */}
+      <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-4 sm:p-6">
+        <div className="inline-flex items-center gap-2">
+          <img
+            src="/alioth.svg"
+            alt="Alioth"
+            className="size-9 rounded-lg sm:size-10"
+          />
+          <span
+            aria-hidden="true"
+            className="hidden font-heading text-lg font-semibold tracking-tight sm:inline"
+          >
+            Alioth
+          </span>
+        </div>
         <LocaleThemeMenu />
       </div>
       <AuthIntro />
-      <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-4 py-16 sm:px-10">
+      <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-4 pt-20 pb-12 sm:px-10">
         <Card className="glass-card w-full max-w-md rounded-2xl border-0 shadow-none">
           <CardHeader className="items-center text-center">
-            <img
-              src="/alioth.svg"
-              alt="Alioth"
-              className="mx-auto mb-2 size-12 rounded-xl"
-            />
             <CardTitle className="font-heading text-2xl">{title}</CardTitle>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </CardHeader>

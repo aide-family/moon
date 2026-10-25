@@ -11,7 +11,7 @@ Moon 是 Kratos 单仓，四个服务各自持有存储（默认 SQLite，可换
 
 | Moon          | 职责                                 | Alioth                                                |
 | ------------- | ---------------------------------- | ----------------------------------------------------- |
-| goddess（嫦娥）   | 邮箱验证码登录、OAuth2、用户、Namespace、成员角色枚举 | `alioth` 的身份与租户，并增加注册、密码登录和 RBAC                      |
+| goddess（嫦娥）   | 邮箱验证码登录、OAuth2、用户、Namespace、成员角色枚举 | `alioth` 的身份与租户，并增加注册、邮箱验证码与 OAuth2 登录、RBAC            |
 | marksman（后羿）  | 数据源、策略组、策略、级别、实时/历史告警；进程内评测指标规则    | 配置与事件在 `alioth`；评测在 `megrez`                          |
 | rabbit（玉兔）    | 邮件、Webhook、模板、收件人组、发送与消息日志         | 配置与任务在 `alioth`；投递在 `merak`                           |
 | jade_tree（玉树） | 机器信息上报、SSH 命令审核与执行                 | `alkaid`；连接方向改为 Agent 出站 |
@@ -204,10 +204,11 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 
 认证：
 
-- 注册为新增。邮箱、密码、图形验证码。图形验证码对应 Moon 的 `GET /v1/captcha`
-- 密码登录为新增
+- 账号没有密码。注册只用邮箱验证码：`POST /v1/auth/register/code` 发注册码，`POST /v1/auth/register` 提交邮箱验证码和图形验证码。邮箱已注册不能重复注册
+- 密码登录已移除，登录只有邮箱验证码和 OAuth2 两条路径
 - 邮箱验证码登录保留 Moon 的两步：`POST /v1/auth/email/login/code`、`POST /v1/auth/email/login`
-- OAuth2 保留 Moon 的 `POST /v1/auth/oauth2/login`，应用仍是 GitHub、Gitee、飞书。只有第三方确认已验证的邮箱才能并入已有本地账号，避免用未验证邮箱接管账号；Gitee、飞书没有验证标记时不会并入已有账号
+- 图形验证码是数学计算题（一位数加/减，结果非负），题目画在 `GET /v1/captcha` 返回的图片里，答案不回传。发码和登录/注册提交都要先通过图形验证码：发码用非消费校验，提交成功后再消费，所以一次解题就能走完整个流程，而没解验证码既拿不到邮箱验证码也登录不了。同一邮箱 60 秒内只发一次码
+- OAuth2 保留 Moon 的 `POST /v1/auth/oauth2/login`，应用仍是 GitHub、Gitee、飞书。`POST /v1/auth/oauth2/providers` 返回已配置客户端的来源和完整授权地址，管理台只展示 GitHub、Gitee。只有第三方确认已验证的邮箱才能并入已有本地账号，避免用未验证邮箱接管账号：GitHub 看 `/user/emails` 的 verified 标记；Gitee 申请 `user_info emails`（应用需勾选 emails 权限，否则授权页报“请求范围无效”），再用 `/api/v5/emails` 里 state=confirmed 的主邮箱判断，接口不可用时按未验证处理。邮箱未验证且该邮箱已被本地账号占用时，管理台给出该平台邮箱设置页的入口，引导用户确认后重新登录，并提示可改用邮箱验证码登录
 - 访问令牌是 JWT。刷新对应 Moon 的 `GET /v1/self/refresh-token`
 - 服务间调用使用 Moon 已有的 service key，形态为 `Authorization: Bearer sk-...`，与用户 JWT 互斥
 - `alkaid` 使用独立的 Agent 令牌，只用于出站流，不能当用户令牌调用管理接口
@@ -476,7 +477,8 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 
 | 资源            | 操作                                       |
 | ------------- | ---------------------------------------- |
-| 注册与密码登录       | 注册、密码登录                                  |
+| 注册与邮箱验证码      | 发送注册验证码、注册（邮箱验证码 + 图形验证码）；发码 60 秒节流。不再有密码登录     |
+| OAuth2 来源     | 列出已配置客户端的第三方和完整授权地址，供管理台渲染 GitHub、Gitee 登录入口          |
 | 角色与权限         | 角色的增删改查与启停；为角色分配权限；为成员分配角色；读取当前用户权限供菜单使用 |
 | Agent         | 签发与吊销令牌；列表与详情（含在线状态）。注册和心跳不走浏览器 HTTP     |
 | 告警页面          | CRUD；公开/私有；个人实时 Tab 订阅。按标签匹配过滤实时告警，标签值支持完整匹配正则。与 Moon 通知订阅无关 |
@@ -542,7 +544,7 @@ flowchart TB
 - 数据库迁移由 `alioth` 的 ent schema 执行。另外三个进程不建业务表
 - SMTP 密码、Webhook 密钥、数据源凭据、SSH 凭据以加密字段入库
 - 控制面与 `megrez`、`merak`、`alkaid` 的 gRPC 支持可选 TLS/mTLS；边缘 SSH 支持 known_hosts 校验。默认保持明文/不校验以兼容现有部署，生产按部署文档开启
-- 用户密码只保存哈希。Moon 的 `magicbox/password` 已有哈希能力，Alioth 把它用在注册和密码登录上
+- 账号没有密码。`users.password_hash` 是历史列：不再写入，也不再参与任何校验；登录只用邮箱验证码或 OAuth2
 - SSH 命令与终端操作写入审计，审计记录不可由普通成员删除
 - Agent 令牌可吊销。吊销后已建立的流在下一次心跳被 `alioth` 关闭
 - 服务间 service key 按调用方分开，可轮换

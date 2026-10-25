@@ -5,6 +5,13 @@ GOBIN := $(shell $(GO) env GOPATH)/bin
 export PATH := $(GOBIN):$(PATH)
 PROTO_INC ?= /opt/homebrew/include
 
+# 根目录 .env 与 docker compose 共用同一份变量：include 让本地开发值覆盖下面的默认值，
+# 再按 .env 里出现的键导出给各命令（命令行参数仍然优先，例如 make images VERSION=v1）。
+ifneq (,$(wildcard $(ROOT).env))
+include $(ROOT).env
+export $(shell sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' $(ROOT).env)
+endif
+
 # 镜像版本戳：注入 main.version 并作为镜像 tag，避免所有部署都用 :latest。
 VERSION ?= $(shell git -C $(ROOT) describe --tags --always --dirty 2>/dev/null || echo dev)
 IMAGE_PREFIX ?= alioth

@@ -10,26 +10,53 @@ export type LoginResult = {
   session: TokenPair
 }
 
-export type RegisterParams = {
+/** 已配置客户端的第三方登录来源，取值与 OAuth2LoginRequest 一致。 */
+export type OAuth2Provider = "GITHUB" | "GITEE" | "FEISHU"
+
+export type SendRegisterEmailCodeParams = {
   email: string
-  password: string
   captchaId: string
   captchaCode: string
-  name?: string
 }
 
-export type PasswordLoginParams = {
+export type RegisterParams = {
   email: string
-  password: string
+  code: string
+  name?: string
+  captchaId: string
+  captchaCode: string
+}
+
+export type SendEmailLoginCodeParams = {
+  email: string
+  captchaId: string
+  captchaCode: string
 }
 
 export type EmailLoginParams = {
   email: string
   code: string
+  captchaId: string
+  captchaCode: string
+}
+
+export type ListOAuth2ProvidersParams = {
+  redirectUri: string
+  state: string
+}
+
+export type OAuth2ProviderItem = {
+  provider: OAuth2Provider
+  name: string
+  authorizeUrl: string
+}
+
+export type ListOAuth2ProvidersResult = {
+  providers: OAuth2ProviderItem[]
 }
 
 export type OAuth2LoginParams = {
-  provider: "GITHUB" | "GITEE" | "FEISHU"
+  provider: OAuth2Provider
   code: string
   redirectUri?: string
 }

@@ -28,7 +28,7 @@ const (
 //
 // 图形验证码。
 type CaptchaServiceClient interface {
-	// 获取图形验证码。答案不回传明文。
+	// 获取数学计算图形验证码。算式只出现在图片里，答案不回传明文。
 	GetCaptcha(ctx context.Context, in *GetCaptchaRequest, opts ...grpc.CallOption) (*GetCaptchaResponse, error)
 }
 
@@ -56,7 +56,7 @@ func (c *captchaServiceClient) GetCaptcha(ctx context.Context, in *GetCaptchaReq
 //
 // 图形验证码。
 type CaptchaServiceServer interface {
-	// 获取图形验证码。答案不回传明文。
+	// 获取数学计算图形验证码。算式只出现在图片里，答案不回传明文。
 	GetCaptcha(context.Context, *GetCaptchaRequest) (*GetCaptchaResponse, error)
 	mustEmbedUnimplementedCaptchaServiceServer()
 }
@@ -127,28 +127,31 @@ var CaptchaService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	AuthService_Register_FullMethodName           = "/alioth.v1.AuthService/Register"
-	AuthService_PasswordLogin_FullMethodName      = "/alioth.v1.AuthService/PasswordLogin"
-	AuthService_SendEmailLoginCode_FullMethodName = "/alioth.v1.AuthService/SendEmailLoginCode"
-	AuthService_EmailLogin_FullMethodName         = "/alioth.v1.AuthService/EmailLogin"
-	AuthService_OAuth2Login_FullMethodName        = "/alioth.v1.AuthService/OAuth2Login"
+	AuthService_SendRegisterEmailCode_FullMethodName = "/alioth.v1.AuthService/SendRegisterEmailCode"
+	AuthService_Register_FullMethodName              = "/alioth.v1.AuthService/Register"
+	AuthService_SendEmailLoginCode_FullMethodName    = "/alioth.v1.AuthService/SendEmailLoginCode"
+	AuthService_EmailLogin_FullMethodName            = "/alioth.v1.AuthService/EmailLogin"
+	AuthService_ListOAuth2Providers_FullMethodName   = "/alioth.v1.AuthService/ListOAuth2Providers"
+	AuthService_OAuth2Login_FullMethodName           = "/alioth.v1.AuthService/OAuth2Login"
 )
 
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// 注册和登录。
+// 注册和登录。全部走邮箱验证码，没有密码。
 type AuthServiceClient interface {
-	// 用邮箱、密码和验证码注册，成功后返回会话。
+	// 向未注册邮箱发送注册验证码。发码前要先通过图形验证码。
+	SendRegisterEmailCode(ctx context.Context, in *SendRegisterEmailCodeRequest, opts ...grpc.CallOption) (*SendRegisterEmailCodeResponse, error)
+	// 用邮箱、邮箱验证码和图形验证码注册，成功后返回会话。
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
-	// 用邮箱和密码登录。
-	PasswordLogin(ctx context.Context, in *PasswordLoginRequest, opts ...grpc.CallOption) (*PasswordLoginResponse, error)
-	// 向已注册邮箱发送登录验证码。
+	// 向已注册邮箱发送登录验证码。发码前要先通过图形验证码。
 	SendEmailLoginCode(ctx context.Context, in *SendEmailLoginCodeRequest, opts ...grpc.CallOption) (*SendEmailLoginCodeResponse, error)
-	// 用邮箱验证码登录。验证码只能使用一次。
+	// 用邮箱验证码和图形验证码登录。邮箱验证码只能使用一次。
 	EmailLogin(ctx context.Context, in *EmailLoginRequest, opts ...grpc.CallOption) (*EmailLoginResponse, error)
-	// 用 GitHub、Gitee 或飞书授权码登录。
+	// 列出已经配置客户端的第三方登录来源和授权地址。
+	ListOAuth2Providers(ctx context.Context, in *ListOAuth2ProvidersRequest, opts ...grpc.CallOption) (*ListOAuth2ProvidersResponse, error)
+	// 用 GitHub 或 Gitee 的授权码登录。
 	OAuth2Login(ctx context.Context, in *OAuth2LoginRequest, opts ...grpc.CallOption) (*OAuth2LoginResponse, error)
 }
 
@@ -160,20 +163,20 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+func (c *authServiceClient) SendRegisterEmailCode(ctx context.Context, in *SendRegisterEmailCodeRequest, opts ...grpc.CallOption) (*SendRegisterEmailCodeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RegisterResponse)
-	err := c.cc.Invoke(ctx, AuthService_Register_FullMethodName, in, out, cOpts...)
+	out := new(SendRegisterEmailCodeResponse)
+	err := c.cc.Invoke(ctx, AuthService_SendRegisterEmailCode_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authServiceClient) PasswordLogin(ctx context.Context, in *PasswordLoginRequest, opts ...grpc.CallOption) (*PasswordLoginResponse, error) {
+func (c *authServiceClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PasswordLoginResponse)
-	err := c.cc.Invoke(ctx, AuthService_PasswordLogin_FullMethodName, in, out, cOpts...)
+	out := new(RegisterResponse)
+	err := c.cc.Invoke(ctx, AuthService_Register_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -200,6 +203,16 @@ func (c *authServiceClient) EmailLogin(ctx context.Context, in *EmailLoginReques
 	return out, nil
 }
 
+func (c *authServiceClient) ListOAuth2Providers(ctx context.Context, in *ListOAuth2ProvidersRequest, opts ...grpc.CallOption) (*ListOAuth2ProvidersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOAuth2ProvidersResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListOAuth2Providers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) OAuth2Login(ctx context.Context, in *OAuth2LoginRequest, opts ...grpc.CallOption) (*OAuth2LoginResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OAuth2LoginResponse)
@@ -214,17 +227,19 @@ func (c *authServiceClient) OAuth2Login(ctx context.Context, in *OAuth2LoginRequ
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
 //
-// 注册和登录。
+// 注册和登录。全部走邮箱验证码，没有密码。
 type AuthServiceServer interface {
-	// 用邮箱、密码和验证码注册，成功后返回会话。
+	// 向未注册邮箱发送注册验证码。发码前要先通过图形验证码。
+	SendRegisterEmailCode(context.Context, *SendRegisterEmailCodeRequest) (*SendRegisterEmailCodeResponse, error)
+	// 用邮箱、邮箱验证码和图形验证码注册，成功后返回会话。
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
-	// 用邮箱和密码登录。
-	PasswordLogin(context.Context, *PasswordLoginRequest) (*PasswordLoginResponse, error)
-	// 向已注册邮箱发送登录验证码。
+	// 向已注册邮箱发送登录验证码。发码前要先通过图形验证码。
 	SendEmailLoginCode(context.Context, *SendEmailLoginCodeRequest) (*SendEmailLoginCodeResponse, error)
-	// 用邮箱验证码登录。验证码只能使用一次。
+	// 用邮箱验证码和图形验证码登录。邮箱验证码只能使用一次。
 	EmailLogin(context.Context, *EmailLoginRequest) (*EmailLoginResponse, error)
-	// 用 GitHub、Gitee 或飞书授权码登录。
+	// 列出已经配置客户端的第三方登录来源和授权地址。
+	ListOAuth2Providers(context.Context, *ListOAuth2ProvidersRequest) (*ListOAuth2ProvidersResponse, error)
+	// 用 GitHub 或 Gitee 的授权码登录。
 	OAuth2Login(context.Context, *OAuth2LoginRequest) (*OAuth2LoginResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -236,17 +251,20 @@ type AuthServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAuthServiceServer struct{}
 
+func (UnimplementedAuthServiceServer) SendRegisterEmailCode(context.Context, *SendRegisterEmailCodeRequest) (*SendRegisterEmailCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendRegisterEmailCode not implemented")
+}
 func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Register not implemented")
-}
-func (UnimplementedAuthServiceServer) PasswordLogin(context.Context, *PasswordLoginRequest) (*PasswordLoginResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PasswordLogin not implemented")
 }
 func (UnimplementedAuthServiceServer) SendEmailLoginCode(context.Context, *SendEmailLoginCodeRequest) (*SendEmailLoginCodeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendEmailLoginCode not implemented")
 }
 func (UnimplementedAuthServiceServer) EmailLogin(context.Context, *EmailLoginRequest) (*EmailLoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method EmailLogin not implemented")
+}
+func (UnimplementedAuthServiceServer) ListOAuth2Providers(context.Context, *ListOAuth2ProvidersRequest) (*ListOAuth2ProvidersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOAuth2Providers not implemented")
 }
 func (UnimplementedAuthServiceServer) OAuth2Login(context.Context, *OAuth2LoginRequest) (*OAuth2LoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OAuth2Login not implemented")
@@ -272,6 +290,24 @@ func RegisterAuthServiceServer(s grpc.ServiceRegistrar, srv AuthServiceServer) {
 	s.RegisterService(&AuthService_ServiceDesc, srv)
 }
 
+func _AuthService_SendRegisterEmailCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendRegisterEmailCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).SendRegisterEmailCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_SendRegisterEmailCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).SendRegisterEmailCode(ctx, req.(*SendRegisterEmailCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RegisterRequest)
 	if err := dec(in); err != nil {
@@ -286,24 +322,6 @@ func _AuthService_Register_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).Register(ctx, req.(*RegisterRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthService_PasswordLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PasswordLoginRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).PasswordLogin(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_PasswordLogin_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).PasswordLogin(ctx, req.(*PasswordLoginRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -344,6 +362,24 @@ func _AuthService_EmailLogin_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_ListOAuth2Providers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOAuth2ProvidersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListOAuth2Providers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListOAuth2Providers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListOAuth2Providers(ctx, req.(*ListOAuth2ProvidersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_OAuth2Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OAuth2LoginRequest)
 	if err := dec(in); err != nil {
@@ -370,12 +406,12 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuthServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Register",
-			Handler:    _AuthService_Register_Handler,
+			MethodName: "SendRegisterEmailCode",
+			Handler:    _AuthService_SendRegisterEmailCode_Handler,
 		},
 		{
-			MethodName: "PasswordLogin",
-			Handler:    _AuthService_PasswordLogin_Handler,
+			MethodName: "Register",
+			Handler:    _AuthService_Register_Handler,
 		},
 		{
 			MethodName: "SendEmailLoginCode",
@@ -384,6 +420,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EmailLogin",
 			Handler:    _AuthService_EmailLogin_Handler,
+		},
+		{
+			MethodName: "ListOAuth2Providers",
+			Handler:    _AuthService_ListOAuth2Providers_Handler,
 		},
 		{
 			MethodName: "OAuth2Login",

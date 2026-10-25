@@ -32,7 +32,6 @@ func (r *userRepo) CreateUser(ctx context.Context, in bo.Account) (*bo.Account, 
 			SetPhone(in.Phone).
 			SetRemark(in.Remark).
 			SetStatus(status).
-			SetPasswordHash(in.PasswordHash).
 			SetSystemRole(role).
 			Save(ctx)
 	}
@@ -180,7 +179,6 @@ func toAccount(row *ent.User) bo.Account {
 		Avatar:       row.Avatar,
 		Remark:       row.Remark,
 		Status:       string(row.Status),
-		PasswordHash: row.PasswordHash,
 		SystemRole:   string(row.SystemRole),
 		AuthorizedBy: row.AuthorizedBy,
 	}

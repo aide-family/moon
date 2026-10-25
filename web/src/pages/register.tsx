@@ -1,88 +1,68 @@
-import { useEffect, useState } from "react"
+import { Loader2 } from "lucide-react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { toast } from "sonner"
 
-import { register } from "@/api/auth"
-import { getCaptcha } from "@/api/captcha"
+import { register, sendRegisterEmailCode } from "@/api/auth"
+import type { LoginResult } from "@/api/auth/types"
+import { ApiError } from "@/api/http"
+import { CaptchaField } from "@/components/captcha-field"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useCaptcha } from "@/hooks/use-captcha"
 import {
-  collectFieldErrors,
-  hasFieldErrors,
-  requireTrimmed,
-} from "@/lib/form"
+  RETRY_AFTER_SECONDS_KEY,
+  SEND_CODE_COOLDOWN_SECONDS,
+  useSendCodeCooldown,
+} from "@/hooks/use-send-code-cooldown"
+import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
+import { readNextPath } from "@/lib/redirect"
+import { USERNAME_MAX_LENGTH, usernameError } from "@/lib/username"
 import { AuthShell } from "@/pages/auth-shell"
 
-function safeNext(value: string | null): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/namespaces"
+function storeSession(result: LoginResult) {
+  localStorage.setItem("token", result.session.accessToken)
+  localStorage.setItem("refreshToken", result.session.refreshToken)
+}
+
+/** 服务端节流时返回需要等待的秒数；其他错误返回 null。 */
+function retryAfterSeconds(err: unknown): number | null {
+  if (!(err instanceof ApiError) || err.raw !== "send code too frequently") {
+    return null
   }
-  return value
+  const seconds = Number(err.metadata[RETRY_AFTER_SECONDS_KEY])
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return SEND_CODE_COOLDOWN_SECONDS
+  }
+  return Math.ceil(seconds)
 }
 
 export function RegisterPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const next = safeNext(params.get("next"))
+  const next = readNextPath(params.get("next"))
+  const captcha = useCaptcha()
   const [email, setEmail] = useState(params.get("email") ?? "")
-  const [password, setPassword] = useState("")
   const [name, setName] = useState("")
-  const [captchaId, setCaptchaId] = useState("")
-  const [captchaImage, setCaptchaImage] = useState("")
+  const [code, setCode] = useState("")
   const [captchaCode, setCaptchaCode] = useState("")
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-  const [pending, setPending] = useState(false)
+  const [sendingCode, setSendingCode] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const cooldown = useSendCodeCooldown("register")
+  const pending = sendingCode || submitting
 
-  useEffect(() => {
-    const controller = new AbortController()
-    let active = true
-    async function load() {
-      try {
-        const captcha = await getCaptcha(controller.signal)
-        if (!active) {
-          return
-        }
-        setCaptchaId(captcha.id)
-        setCaptchaImage(captcha.image)
-      } catch (err) {
-        if (!active || controller.signal.aborted) {
-          return
-        }
-        const failure = readFormError(err, t("state.failed"))
-        setFieldErrors(failure.fields)
-        setError(failure.form)
-      }
+  async function onSendCode() {
+    if (sendingCode || cooldown.remaining > 0) {
+      return
     }
-    void load()
-    return () => {
-      active = false
-      controller.abort()
-    }
-    // Initial load only; refreshCaptcha handles user-triggered reloads.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid refetch when i18n `t` identity changes
-  }, [])
-
-  async function refreshCaptcha() {
-    try {
-      const captcha = await getCaptcha()
-      setCaptchaId(captcha.id)
-      setCaptchaImage(captcha.image)
-      setCaptchaCode("")
-    } catch (err) {
-      const failure = readFormError(err, t("state.failed"))
-      setError(failure.form || t("state.failed"))
-    }
-  }
-
-  async function onSubmit(event: React.FormEvent) {
-    event.preventDefault()
     const errors = collectFieldErrors([
       ["email", requireTrimmed(email, t("form.required"))],
-      ["password", requireTrimmed(password, t("form.required"))],
       ["captchaCode", requireTrimmed(captchaCode, t("form.required"))],
     ])
     if (hasFieldErrors(errors)) {
@@ -90,119 +70,216 @@ export function RegisterPage() {
       setError("")
       return
     }
-    setPending(true)
+    if (!captcha.captchaId) {
+      setError(t("form.captchaUnavailable"))
+      setFieldErrors({})
+      return
+    }
+    setSendingCode(true)
+    setError("")
+    setFieldErrors({})
+    try {
+      await sendRegisterEmailCode({
+        email,
+        captchaId: captcha.captchaId,
+        captchaCode,
+      })
+      cooldown.start()
+      toast.success(t("login.codeSent"), {
+        description: t("login.codeSentHint"),
+      })
+    } catch (err) {
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
+      // 发码只校验图形验证码、不消费它：邮箱或节流错误时保留本题，只有答案错误才换一张。
+      if (failure.fields.captchaCode) {
+        setCaptchaCode("")
+        void captcha.refresh()
+      }
+      // 服务端限制频次时也恢复倒计时，刷新页面后仍按剩余时间继续。
+      const retryAfter = retryAfterSeconds(err)
+      if (retryAfter !== null) {
+        cooldown.start(retryAfter)
+        toast.error(t("error.sendTooFrequent"), {
+          description: t("login.resendIn", { seconds: retryAfter }),
+        })
+      } else if (failure.form) {
+        toast.error(failure.form)
+      }
+    } finally {
+      setSendingCode(false)
+    }
+  }
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    if (pending) {
+      return
+    }
+    const errors = collectFieldErrors([
+      ["email", requireTrimmed(email, t("form.required"))],
+      ["code", requireTrimmed(code, t("form.required"))],
+      ["captchaCode", requireTrimmed(captchaCode, t("form.required"))],
+      ["name", usernameError(name, t("register.usernameInvalid"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
+      setError("")
+      return
+    }
+    if (!captcha.captchaId) {
+      setError(t("form.captchaUnavailable"))
+      setFieldErrors({})
+      return
+    }
+    setSubmitting(true)
     setError("")
     setFieldErrors({})
     try {
       const result = await register({
         email,
-        password,
-        name,
-        captchaId,
+        code,
+        name: name.trim(),
+        captchaId: captcha.captchaId,
         captchaCode,
       })
-      localStorage.setItem("token", result.session.accessToken)
-      localStorage.setItem("refreshToken", result.session.refreshToken)
+      storeSession(result)
       navigate(next)
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
       setError(failure.form)
-      await refreshCaptcha()
+      // 邮箱码填错时图形验证码仍然有效，保留它让用户改正后直接重试；
+      // 只有答案错误或过期才换一张。
+      if (failure.fields.captchaCode) {
+        setCaptchaCode("")
+        void captcha.refresh()
+      }
     } finally {
-      setPending(false)
+      setSubmitting(false)
     }
   }
 
   return (
-    <AuthShell title={t("register.welcome")} subtitle={t("register.welcomeSub")}>
-          <form noValidate className="grid gap-4" onSubmit={onSubmit}>
-            <FormField label={t("register.name")} htmlFor="name" error={fieldErrors.name}>
-              <Input
-                id="name"
-                value={name}
-                placeholder={t("register.namePlaceholder")}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </FormField>
-            <FormField
-              label={t("login.emailLabel")}
-              htmlFor="email"
+    <AuthShell
+      title={t("register.welcome")}
+      subtitle={t("register.welcomeSub")}
+    >
+      <form noValidate className="grid gap-4" onSubmit={onSubmit}>
+        <FormField
+          label={t("register.name")}
+          htmlFor="name"
+          hint={t("register.nameHint")}
+          error={fieldErrors.name}
+        >
+          <Input
+            id="name"
+            value={name}
+            placeholder={t("register.namePlaceholder")}
+            autoComplete="username"
+            maxLength={USERNAME_MAX_LENGTH}
+            aria-invalid={fieldErrors.name ? true : undefined}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </FormField>
+        <FormField
+          label={t("login.emailLabel")}
+          htmlFor="email"
+          required
+          error={fieldErrors.email}
+        >
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            placeholder={t("login.emailPlaceholder")}
+            autoComplete="email"
+            aria-invalid={fieldErrors.email ? true : undefined}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+        </FormField>
+        <CaptchaField
+          value={captchaCode}
+          onChange={setCaptchaCode}
+          captcha={captcha}
+          error={fieldErrors.captchaCode}
+        />
+        <FormField
+          label={t("login.codeLabel")}
+          htmlFor="code"
+          hint={t("login.codeHint")}
+          required
+          error={fieldErrors.code}
+        >
+          <div className="flex gap-2">
+            <Input
+              id="code"
+              className="min-w-0 flex-1"
+              value={code}
+              placeholder={t("login.codePlaceholder")}
+              autoComplete="one-time-code"
+              aria-invalid={fieldErrors.code ? true : undefined}
+              onChange={(event) => setCode(event.target.value)}
               required
-              error={fieldErrors.email}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0"
+              disabled={
+                pending ||
+                cooldown.remaining > 0 ||
+                !email.trim() ||
+                !captchaCode.trim()
+              }
+              aria-busy={sendingCode || undefined}
+              onClick={() => void onSendCode()}
             >
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                placeholder={t("login.emailPlaceholder")}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-            </FormField>
-            <FormField
-              label={t("login.passwordLabel")}
-              htmlFor="password"
-              hint={t("login.passwordHint")}
-              required
-              error={fieldErrors.password}
-            >
-              <Input
-                id="password"
-                type="password"
-                minLength={8}
-                value={password}
-                placeholder={t("login.passwordPlaceholder")}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-              />
-            </FormField>
-            <FormField
-              label={t("register.captcha")}
-              htmlFor="captcha"
-              hint={t("register.captchaHint")}
-              required
-              error={fieldErrors.captchaCode}
-            >
-              <button
-                type="button"
-                onClick={() => void refreshCaptcha()}
-                className="block"
-              >
-                {captchaImage ? (
-                  <img
-                    src={captchaImage}
-                    alt={t("register.captcha")}
-                    className="h-24 w-auto rounded border"
-                  />
-                ) : (
-                  t("state.loading")
-                )}
-              </button>
-              <Input
-                id="captcha"
-                value={captchaCode}
-                placeholder={t("register.captchaPlaceholder")}
-                onChange={(event) => setCaptchaCode(event.target.value)}
-                required
-              />
-            </FormField>
-            <Button className="w-full" type="submit" disabled={pending}>
-              {t("action.register")}
+              {sendingCode ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : null}
+              {sendingCode
+                ? t("action.sendingCode")
+                : cooldown.remaining > 0
+                  ? t("login.resendIn", { seconds: cooldown.remaining })
+                  : t("action.sendCode")}
             </Button>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          </form>
-          <p className="text-sm text-muted-foreground">
-            {t("register.platformHint")}
+          </div>
+        </FormField>
+        <Button
+          className="w-full"
+          type="submit"
+          disabled={pending}
+          aria-busy={submitting || undefined}
+        >
+          {submitting ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          ) : null}
+          {submitting ? t("action.registering") : t("action.register")}
+        </Button>
+        {error ? (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
           </p>
-          <p className="text-sm">
-            <Link
-              className="text-primary underline-offset-4 hover:underline"
-              to={next === "/namespaces" ? "/login" : `/login?next=${encodeURIComponent(next)}`}
-            >
-              {t("register.hasAccount")}
-            </Link>
-          </p>
+        ) : null}
+      </form>
+      <p className="text-sm text-muted-foreground">
+        {t("register.platformHint")}
+      </p>
+      <div className="flex justify-end">
+        <Link
+          className="text-sm text-primary underline-offset-4 hover:underline"
+          to={
+            next === "/namespaces"
+              ? "/login"
+              : `/login?next=${encodeURIComponent(next)}`
+          }
+        >
+          {t("register.hasAccount")}
+        </Link>
+      </div>
     </AuthShell>
   )
 }

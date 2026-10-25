@@ -11,13 +11,40 @@ import (
 func TestProtoValidatorRejectsInvalidRequest(t *testing.T) {
 	handler := func(context.Context, any) (any, error) { return nil, nil }
 	middleware := protoValidator()
-	invalid := &v1.RegisterRequest{Email: "not-an-email", Password: "short"}
+	invalid := &v1.RegisterRequest{Email: "not-an-email", Name: "user", Code: "1234", CaptchaId: "id", CaptchaCode: "12"}
 	if _, err := middleware(handler)(context.Background(), invalid); err == nil {
 		t.Fatal("invalid register request passed validation")
 	}
-	valid := &v1.RegisterRequest{Email: "user@example.com", Password: "password1", CaptchaId: "id", CaptchaCode: "ABCD"}
+	valid := &v1.RegisterRequest{Email: "user@example.com", Name: "新用户1", Code: "1234", CaptchaId: "id", CaptchaCode: "12"}
 	if _, err := middleware(handler)(context.Background(), valid); err != nil {
 		t.Fatalf("valid register request rejected: %v", err)
+	}
+	shortCode := &v1.RegisterRequest{Email: "user@example.com", Name: "user", Code: "123", CaptchaId: "id", CaptchaCode: "12"}
+	if _, err := middleware(handler)(context.Background(), shortCode); err == nil {
+		t.Fatal("short email code passed validation")
+	}
+	missingCaptcha := &v1.RegisterRequest{Email: "user@example.com", Name: "user", Code: "1234"}
+	if _, err := middleware(handler)(context.Background(), missingCaptcha); err == nil {
+		t.Fatal("register request without captcha passed validation")
+	}
+}
+
+// TestProtoValidatorChecksUsername 确认用户名规则同时落在接口契约上：
+// 只允许中英文和数字，最多 8 个字符；留空由后端从邮箱前缀派生。
+func TestProtoValidatorChecksUsername(t *testing.T) {
+	handler := func(context.Context, any) (any, error) { return nil, nil }
+	middleware := protoValidator()
+	for _, name := range []string{"abcdefghi", "bad-name", "bad name", "名字!"} {
+		request := &v1.RegisterRequest{Email: "user@example.com", Name: name, Code: "1234", CaptchaId: "id", CaptchaCode: "12"}
+		if _, err := middleware(handler)(context.Background(), request); err == nil {
+			t.Fatalf("用户名 %q 通过了接口校验", name)
+		}
+	}
+	for _, name := range []string{"user1234", "新用户", ""} {
+		request := &v1.RegisterRequest{Email: "user@example.com", Name: name, Code: "1234", CaptchaId: "id", CaptchaCode: "12"}
+		if _, err := middleware(handler)(context.Background(), request); err != nil {
+			t.Fatalf("合法用户名 %q 被拒绝: %v", name, err)
+		}
 	}
 }
 

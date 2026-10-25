@@ -7,18 +7,20 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"math"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/wire"
-	"golang.org/x/crypto/bcrypt"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
 	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
 	"github.com/aide-family/Alioth/app/alioth/internal/mailer"
@@ -33,6 +35,15 @@ var ProviderSet = wire.NewSet(NewAuthenticator)
 
 var phonePattern = regexp.MustCompile(`^\+?[0-9]{6,20}$`)
 
+const (
+	// captchaTTL 图形验证码有效期。题目简单，过期时间短，避免被反复试答案。
+	captchaTTL = 5 * time.Minute
+	// emailCodeTTL 邮箱验证码有效期。发出去后 10 分钟内可用。
+	emailCodeTTL = 10 * time.Minute
+	// emailCodeInterval 同一邮箱两次发码的最小间隔，挡住邮件轰炸。
+	emailCodeInterval = 60 * time.Second
+)
+
 // AgentTokenLookup 用明文 Agent 令牌解析机器。只给 Connect 用。
 type AgentTokenLookup interface {
 	AuthenticateToken(ctx context.Context, token string) (*bo.Agent, error)
@@ -43,7 +54,13 @@ type oauthClient struct {
 	secret string
 }
 
+// codeMailer 发送邮箱验证码邮件。生产环境由 *mailer.Sender 实现，测试可以注入桩。
+type codeMailer interface {
+	Send(to, subject, body string) error
+}
+
 // Authenticator 负责身份凭证。租户、成员和角色的判断不放在这里。
+// 用户只通过邮箱验证码或第三方登录进入，不使用密码。
 type Authenticator struct {
 	users        repository.UserRepo
 	captchas     repository.CaptchaRepo
@@ -54,7 +71,7 @@ type Authenticator struct {
 	accessTTL    time.Duration
 	refreshTTL   time.Duration
 	serviceKeys  map[string]string
-	mail         *mailer.Sender
+	mail         codeMailer
 	oauthClients map[string]oauthClient
 	log          *slog.Logger
 }
@@ -81,6 +98,11 @@ func NewAuthenticator(users repository.UserRepo, captchas repository.CaptchaRepo
 	for _, item := range auth.GetOauth() {
 		clients[strings.ToUpper(item.GetProvider())] = oauthClient{id: item.GetClientId(), secret: item.GetClientSecret()}
 	}
+	// 注意 nil 的 *mailer.Sender 赋给接口后不是 nil，这里显式转换，测试才能用 nil 表示未配置邮件。
+	var codes codeMailer
+	if mail != nil {
+		codes = mail
+	}
 	return &Authenticator{
 		users:        users,
 		captchas:     captchas,
@@ -91,7 +113,7 @@ func NewAuthenticator(users repository.UserRepo, captchas repository.CaptchaRepo
 		accessTTL:    access,
 		refreshTTL:   refresh,
 		serviceKeys:  keys,
-		mail:         mail,
+		mail:         codes,
 		oauthClients: clients,
 		log:          logger,
 	}, nil
@@ -175,57 +197,180 @@ func (authenticator *Authenticator) Authenticate(ctx context.Context, operation,
 	return actor.WithNamespace(ctx, namespace), nil
 }
 
-// GetCaptcha 生成 4 位验证码。保存的是摘要，答案只出现在返回的图片里，5 分钟后过期。
-func (authenticator *Authenticator) GetCaptcha(ctx context.Context) (string, string, error) {
-	code, err := randomCode(4)
+// GetCaptcha 生成一道图形验证码，题型在六位数字码和 100 以内算式之间随机。
+// 保存的是答案摘要，题目只出现在返回的图片里，5 分钟后过期。kind 供前端切换输入提示。
+func (authenticator *Authenticator) GetCaptcha(ctx context.Context) (captchaID, image, kind string, err error) {
+	question, answer, kind, err := newCaptcha()
 	if err != nil {
-		return "", "", merr.Server("request failed")
+		return "", "", "", authenticator.wrap(err)
 	}
-	image, err := drawCaptcha(code)
+	image, err = drawCaptcha(question)
 	if err != nil {
-		authenticator.log.Error(fmt.Sprintf("draw captcha: %v", err))
-		return "", "", merr.Server("request failed")
+		return "", "", "", authenticator.wrap(err)
 	}
-	captchaID := id.New()
-	if err := authenticator.captchas.SaveCaptcha(ctx, captchaID, authenticator.digest(code), time.Now().Add(5*time.Minute)); err != nil {
-		return "", "", authenticator.wrap(err)
+	captchaID = id.New()
+	if err := authenticator.captchas.SaveCaptcha(ctx, captchaID, authenticator.digest(answer), time.Now().Add(captchaTTL)); err != nil {
+		return "", "", "", authenticator.wrap(err)
 	}
-	return captchaID, image, nil
+	return captchaID, image, kind, nil
 }
 
-// Register 先消费验证码，再创建用户。验证码只能成功使用一次，密码至少 8 位。
-// 邮箱已存在时返回客户端错误，不覆盖原账号。
-func (authenticator *Authenticator) Register(ctx context.Context, email, password, name, captchaID, captchaCode string) (*bo.Session, error) {
-	email = normalizeEmail(email)
-	if !strings.Contains(email, "@") || len(password) < 8 || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
-		return nil, merr.Client("invalid register request")
+// checkCaptcha 校验图形验证码但不消费。发码和提交前都调用它：
+// 一次解题可以同时走完发码和提交，但没解题的人既拿不到邮箱码也无法提交。
+func (authenticator *Authenticator) checkCaptcha(ctx context.Context, captchaID, captchaCode string) error {
+	matched, err := authenticator.captchas.CheckCaptcha(ctx, captchaID, authenticator.digest(captchaCode), time.Now())
+	if err != nil {
+		return authenticator.wrap(err)
 	}
+	if !matched {
+		return merr.Client("captcha is invalid")
+	}
+	return nil
+}
+
+// consumeCaptcha 在邮箱验证码消费成功之后再消费图形验证码。
+// 顺序很重要：邮箱码错误时图形验证码仍有效，用户可以改正后重试，不用重新解题。
+func (authenticator *Authenticator) consumeCaptcha(ctx context.Context, captchaID, captchaCode string) error {
 	ok, err := authenticator.captchas.ConsumeCaptcha(ctx, captchaID, authenticator.digest(captchaCode), time.Now())
 	if err != nil {
-		return nil, authenticator.wrap(err)
+		return authenticator.wrap(err)
 	}
 	if !ok {
-		return nil, merr.Client("captcha is invalid")
+		return merr.Client("captcha is invalid")
+	}
+	return nil
+}
+
+// checkEmailCodeInterval 限制同一邮箱 60 秒内只能发一次验证码，返回客户端错误而不是静默丢弃。
+// 错误里带上剩余秒数，前端可以据此恢复倒计时，而不是只弹一句“太频繁”。
+func (authenticator *Authenticator) checkEmailCodeInterval(ctx context.Context, email string) error {
+	issuedAt, ok, err := authenticator.emailCodes.LastEmailCodeIssuedAt(ctx, email)
+	if err != nil {
+		return authenticator.wrap(err)
+	}
+	if !ok {
+		return nil
+	}
+	wait := emailCodeInterval - time.Since(issuedAt)
+	if wait <= 0 {
+		return nil
+	}
+	seconds := int(math.Ceil(wait.Seconds()))
+	if seconds < 1 {
+		seconds = 1
+	}
+	return merr.ClientWithMetadata("send code too frequently", map[string]string{
+		"retryAfterSeconds": strconv.Itoa(seconds),
+	})
+}
+
+// SendRegisterEmailCode 给未注册邮箱发注册验证码。
+// 顺序是：图形验证码 → 邮箱是否已注册 → 60 秒节流 → 存码并发注册码邮件。
+// 先查邮箱占用再节流，已注册的邮箱不会因为反复请求就消耗掉一次发码机会。
+func (authenticator *Authenticator) SendRegisterEmailCode(ctx context.Context, email, captchaID, captchaCode string) error {
+	email = normalizeEmail(email)
+	if !strings.Contains(email, "@") || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
+		return merr.Client("invalid request")
+	}
+	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return err
+	}
+	if _, err := authenticator.users.UserByEmail(ctx, email); err == nil {
+		return merr.Client("email already exists")
+	} else if !merr.IsNotFound(err) {
+		return authenticator.wrap(err)
+	}
+	if err := authenticator.checkEmailCodeInterval(ctx, email); err != nil {
+		return err
+	}
+	return authenticator.sendEmailCode(ctx, email, "register")
+}
+
+// SendEmailLoginCode 给已注册邮箱发登录验证码。
+// 顺序是：图形验证码 → 邮箱是否已注册 → 60 秒节流 → 存码并发登录码邮件。
+func (authenticator *Authenticator) SendEmailLoginCode(ctx context.Context, email, captchaID, captchaCode string) error {
+	email = normalizeEmail(email)
+	if !strings.Contains(email, "@") || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
+		return merr.Client("invalid request")
+	}
+	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return err
+	}
+	if _, err := authenticator.users.UserByEmail(ctx, email); err != nil {
+		if merr.IsNotFound(err) {
+			return merr.Client("email is not registered")
+		}
+		return authenticator.wrap(err)
+	}
+	if err := authenticator.checkEmailCodeInterval(ctx, email); err != nil {
+		return err
+	}
+	return authenticator.sendEmailCode(ctx, email, "login")
+}
+
+// sendEmailCode 生成并保存一次性邮箱验证码，再按用途发对应主题的邮件。
+// kind 取 register 或 login，只影响邮件主题和正文，不影响码的存储和校验方式。
+func (authenticator *Authenticator) sendEmailCode(ctx context.Context, email, kind string) error {
+	code, err := randomDigits(6)
+	if err != nil {
+		return merr.Server("request failed")
+	}
+	if err := authenticator.emailCodes.SaveEmailCode(ctx, email, authenticator.digest(code), time.Now().Add(emailCodeTTL)); err != nil {
+		return authenticator.wrap(err)
+	}
+	subject := "Alioth " + kind + " code"
+	body := "Your Alioth " + kind + " code is " + code + "\r\nIt expires in 10 minutes.\r\n"
+	return authenticator.sendCodeMail(email, subject, body)
+}
+
+func (authenticator *Authenticator) sendCodeMail(to, subject, body string) error {
+	if authenticator.mail == nil {
+		return merr.Server("smtp is not configured")
+	}
+	return authenticator.mail.Send(to, subject, body)
+}
+
+// Register 用邮箱验证码注册。顺序是：入参校验 → 图形验证码非消费校验 → 邮箱是否已存在 →
+// 消费邮箱验证码 → 消费图形验证码 → 创建用户。注册没有密码，也不写任何密码字段。
+// 邮箱码消费成功后才消费图形验证码，保证邮箱码填错时这张图形验证码还能再用一次。
+// 用户名必须符合 user.ValidateUsername：仅中英文和数字，最多 8 个字符；没填时沿用旧行为，
+// 从邮箱前缀派生一个合法名称。历史上已存在的用户名不做回溯校验，避免破坏老账号。
+func (authenticator *Authenticator) Register(ctx context.Context, email, code, name, captchaID, captchaCode string) (*bo.Session, error) {
+	email = normalizeEmail(email)
+	name = strings.TrimSpace(name)
+	if !strings.Contains(email, "@") || strings.TrimSpace(code) == "" || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
+		return nil, merr.Client("invalid register request")
+	}
+	if name == "" {
+		name = user.DefaultUsername(email)
+	}
+	if err := user.ValidateUsername(name); err != nil {
+		return nil, err
+	}
+	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return nil, err
 	}
 	if _, err := authenticator.users.UserByEmail(ctx, email); err == nil {
 		return nil, merr.Client("email already exists")
 	} else if !merr.IsNotFound(err) {
 		return nil, authenticator.wrap(err)
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), time.Now())
 	if err != nil {
-		return nil, merr.Server("request failed")
+		return nil, authenticator.wrap(err)
 	}
-	if strings.TrimSpace(name) == "" {
-		name = strings.Split(email, "@")[0]
+	if !ok {
+		return nil, merr.Client("invalid email or code")
+	}
+	if err := authenticator.consumeCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return nil, err
 	}
 	account, err := authenticator.users.CreateUser(ctx, bo.Account{
-		UID:          id.New(),
-		Name:         name,
-		Nickname:     name,
-		Email:        email,
-		Status:       "ACTIVE",
-		PasswordHash: string(hash),
+		UID:      id.New(),
+		Name:     name,
+		Nickname: name,
+		Email:    email,
+		Status:   "ACTIVE",
 	})
 	if err != nil {
 		return nil, authenticator.wrap(err)
@@ -233,56 +378,31 @@ func (authenticator *Authenticator) Register(ctx context.Context, email, passwor
 	return authenticator.session(account)
 }
 
-func (authenticator *Authenticator) PasswordLogin(ctx context.Context, email, password string) (*bo.Session, error) {
-	account, err := authenticator.users.UserByEmail(ctx, normalizeEmail(email))
-	if err != nil {
-		if merr.IsNotFound(err) {
-			return nil, merr.Unauthenticated("invalid email or password")
-		}
-		return nil, authenticator.wrap(err)
-	}
-	if bcrypt.CompareHashAndPassword([]byte(account.PasswordHash), []byte(password)) != nil {
-		return nil, merr.Unauthenticated("invalid email or password")
-	}
-	return authenticator.session(account)
-}
-
-// SendEmailLoginCode 只给已注册邮箱发码。码保存为摘要，10 分钟内有效，发出去的明文不再落库。
-func (authenticator *Authenticator) SendEmailLoginCode(ctx context.Context, email string) error {
+// EmailLogin 用邮箱验证码登录。顺序是：入参校验 → 图形验证码非消费校验 →
+// 消费邮箱验证码 → 消费图形验证码 → 签发会话。同一封邮箱码不能登录两次。
+// 封禁用户仍由 session 拒绝签发令牌，这里不重复判断账号状态。
+func (authenticator *Authenticator) EmailLogin(ctx context.Context, email, code, captchaID, captchaCode string) (*bo.Session, error) {
 	email = normalizeEmail(email)
-	if _, err := authenticator.users.UserByEmail(ctx, email); err != nil {
-		if merr.IsNotFound(err) {
-			return merr.Client("email is not registered")
-		}
-		return authenticator.wrap(err)
+	if !strings.Contains(email, "@") || strings.TrimSpace(code) == "" || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
+		return nil, merr.Client("invalid login request")
 	}
-	code, err := randomDigits(6)
-	if err != nil {
-		return merr.Server("request failed")
+	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return nil, err
 	}
-	if err := authenticator.emailCodes.SaveEmailCode(ctx, email, authenticator.digest(code), time.Now().Add(10*time.Minute)); err != nil {
-		return authenticator.wrap(err)
-	}
-	if err := authenticator.sendMail(email, code); err != nil {
-		return err
-	}
-	return nil
-}
-
-// EmailLogin 消费邮箱验证码。同一封码不能登录两次。
-func (authenticator *Authenticator) EmailLogin(ctx context.Context, email, code string) (*bo.Session, error) {
-	email = normalizeEmail(email)
 	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), time.Now())
 	if err != nil {
 		return nil, authenticator.wrap(err)
 	}
 	if !ok {
-		return nil, merr.Unauthenticated("invalid email or code")
+		return nil, merr.Client("invalid email or code")
+	}
+	if err := authenticator.consumeCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return nil, err
 	}
 	account, err := authenticator.users.UserByEmail(ctx, email)
 	if err != nil {
 		if merr.IsNotFound(err) {
-			return nil, merr.Unauthenticated("invalid email or code")
+			return nil, merr.Client("invalid email or code")
 		}
 		return nil, authenticator.wrap(err)
 	}
@@ -310,8 +430,7 @@ func (authenticator *Authenticator) Self(ctx context.Context) (*bo.Account, erro
 	if err != nil {
 		return nil, authenticator.wrap(err)
 	}
-	cleaned := publicAccount(*account)
-	return &cleaned, nil
+	return account, nil
 }
 
 // SelfSystem 返回当前用户的平台角色和平台权限。它和租户权限是两套目录。
@@ -344,8 +463,7 @@ func (authenticator *Authenticator) ChangeEmail(ctx context.Context, email strin
 	if err != nil {
 		return nil, authenticator.wrap(err)
 	}
-	cleaned := publicAccount(*account)
-	return &cleaned, nil
+	return account, nil
 }
 
 func (authenticator *Authenticator) ChangeAvatar(ctx context.Context, avatar string) (*bo.Account, error) {
@@ -357,8 +475,7 @@ func (authenticator *Authenticator) ChangeAvatar(ctx context.Context, avatar str
 	if err != nil {
 		return nil, authenticator.wrap(err)
 	}
-	cleaned := publicAccount(*account)
-	return &cleaned, nil
+	return account, nil
 }
 
 func (authenticator *Authenticator) ChangeRemark(ctx context.Context, remark string) (*bo.Account, error) {
@@ -370,8 +487,7 @@ func (authenticator *Authenticator) ChangeRemark(ctx context.Context, remark str
 	if err != nil {
 		return nil, authenticator.wrap(err)
 	}
-	cleaned := publicAccount(*account)
-	return &cleaned, nil
+	return account, nil
 }
 
 func (authenticator *Authenticator) ChangePhone(ctx context.Context, phone string) (*bo.Account, error) {
@@ -387,11 +503,10 @@ func (authenticator *Authenticator) ChangePhone(ctx context.Context, phone strin
 	if err != nil {
 		return nil, authenticator.wrap(err)
 	}
-	cleaned := publicAccount(*account)
-	return &cleaned, nil
+	return account, nil
 }
 
-// session 签发访问令牌和刷新令牌。封禁用户不能拿到新会话，即使密码正确。
+// session 签发访问令牌和刷新令牌。封禁用户不能拿到新会话，即使邮箱验证码正确。
 func (authenticator *Authenticator) session(account *bo.Account) (*bo.Session, error) {
 	if account.Status != "ACTIVE" {
 		return nil, merr.Unauthenticated("user is banned")
@@ -404,7 +519,7 @@ func (authenticator *Authenticator) session(account *bo.Account) (*bo.Session, e
 	if err != nil {
 		return nil, merr.Server("request failed")
 	}
-	return &bo.Session{AccessToken: access, RefreshToken: refresh, User: publicAccount(*account)}, nil
+	return &bo.Session{AccessToken: access, RefreshToken: refresh, User: *account}, nil
 }
 
 func (authenticator *Authenticator) sign(uid, kind string, ttl time.Duration) (string, error) {
@@ -451,13 +566,6 @@ func (authenticator *Authenticator) digest(value string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-func (authenticator *Authenticator) sendMail(to, code string) error {
-	if authenticator.mail == nil {
-		return merr.Server("smtp is not configured")
-	}
-	return authenticator.mail.Send(to, "Alioth login code", "Your Alioth login code is "+code+"\r\nIt expires in 10 minutes.\r\n")
-}
-
 func (authenticator *Authenticator) wrap(err error) error {
 	if err == nil {
 		return nil
@@ -467,11 +575,6 @@ func (authenticator *Authenticator) wrap(err error) error {
 	}
 	authenticator.log.Error(fmt.Sprintf("identity: %v", err))
 	return merr.Server("request failed")
-}
-
-func publicAccount(account bo.Account) bo.Account {
-	account.PasswordHash = ""
-	return account
 }
 
 func normalizeEmail(email string) string {
@@ -505,14 +608,17 @@ func serviceOperation(operation string) (string, bool) {
 	}
 }
 
+// publicOperation 是无需登录的接口白名单。密码登录已经移除，注册、邮箱发码登录和
+// 第三方登录的来源列表都在这里，否则前端拿不到验证码或授权地址。
 func publicOperation(operation string) bool {
 	switch operation {
 	case v1.OperationHealthServiceCheck,
 		v1.OperationCaptchaServiceGetCaptcha,
+		v1.OperationAuthServiceSendRegisterEmailCode,
 		v1.OperationAuthServiceRegister,
-		v1.OperationAuthServicePasswordLogin,
 		v1.OperationAuthServiceSendEmailLoginCode,
 		v1.OperationAuthServiceEmailLogin,
+		v1.OperationAuthServiceListOAuth2Providers,
 		v1.OperationAuthServiceOAuth2Login,
 		v1.OperationInvitationServiceGetInvitation:
 		return true
@@ -549,11 +655,6 @@ func namespaceOptional(operation string) bool {
 	default:
 		return false
 	}
-}
-
-func randomCode(n int) (string, error) {
-	const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-	return randomFrom(alphabet, n)
 }
 
 func randomDigits(n int) (string, error) {

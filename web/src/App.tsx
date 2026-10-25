@@ -22,6 +22,7 @@ import { NotificationGroupPage } from "@/pages/notification-group"
 import { NotificationSubscriptionPage } from "@/pages/notification-subscription"
 import { NotificationTemplatePage } from "@/pages/notification-template"
 import { NotificationPresetPage } from "@/pages/notification-template/presets"
+import { OAuthCallbackPage } from "@/pages/oauth-callback"
 import { OverviewPage } from "@/pages/overview"
 import { ProfilePage } from "@/pages/profile"
 import { RegisterPage } from "@/pages/register"
@@ -36,6 +37,7 @@ export function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/invite/:token" element={<InvitePage />} />
       <Route element={<AppShell />}>
         <Route path="/" element={<Navigate to="/overview" replace />} />

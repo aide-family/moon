@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
 )
@@ -41,4 +42,20 @@ func (r *emailCodeRepo) ConsumeEmailCode(ctx context.Context, email, codeHash st
 		return false, r.fail(err)
 	}
 	return affected >= 1, nil
+}
+
+// LastEmailCodeIssuedAt 返回该邮箱最近一次发码时间，用于发码节流。
+// 用 created_at 判断：已使用和已过期的码也算发过，节流描述的是发码频率。
+func (r *emailCodeRepo) LastEmailCodeIssuedAt(ctx context.Context, email string) (time.Time, bool, error) {
+	record, err := r.client.EmailLoginCode.Query().
+		Where(emaillogincode.EmailEQ(email)).
+		Order(ent.Desc(emaillogincode.FieldCreatedAt)).
+		First(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return time.Time{}, false, nil
+		}
+		return time.Time{}, false, r.fail(err)
+	}
+	return record.CreatedAt, true, nil
 }

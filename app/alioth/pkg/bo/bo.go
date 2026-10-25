@@ -2,7 +2,7 @@ package bo
 
 import "time"
 
-// Account 是平台级用户。PasswordHash 只在登录校验时使用，离开用例前要清空。
+// Account 是平台级用户。用户只用邮箱验证码或第三方登录进入，不保存密码。
 // SystemRole 是平台角色，和租户内的 Member/Role 没有关系。
 type Account struct {
 	UID          string
@@ -13,7 +13,6 @@ type Account struct {
 	Avatar       string
 	Remark       string
 	Status       string
-	PasswordHash string
 	SystemRole   string
 	AuthorizedBy string
 }
@@ -112,11 +111,19 @@ type SelectItem struct {
 	Name string
 }
 
-// Session 是登录成功后交给调用方的令牌对。User 不含密码哈希。
+// Session 是登录成功后交给调用方的令牌对。User 不含任何凭证。
 type Session struct {
 	AccessToken  string
 	RefreshToken string
 	User         Account
+}
+
+// OAuthProvider 是一个已经配置客户端的第三方登录来源。
+// AuthorizeURL 由服务端拼好，前端直接跳转，不再自己拼参数。
+type OAuthProvider struct {
+	Provider     string
+	Name         string
+	AuthorizeURL string
 }
 
 // Datasource 是租户里的一条数据源。Password 和 Secret 只在用例内部是明文，离开接口前要清空。

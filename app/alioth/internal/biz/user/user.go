@@ -2,6 +2,9 @@ package user
 
 import (
 	"context"
+	"regexp"
+	"strings"
+	"unicode"
 
 	"github.com/google/wire"
 
@@ -14,6 +17,45 @@ import (
 )
 
 var ProviderSet = wire.NewSet(NewDirectory)
+
+const usernameMaxLength = 8
+
+// usernamePattern 是注册用户名的规则：只允许中英文和数字，长度 1 到 8 个字符。
+// 与 api/alioth/v1/identity.proto 上 RegisterRequest.name 的 buf.validate 注解保持一致。
+var usernamePattern = regexp.MustCompile(`^[\p{L}\p{N}]{1,8}$`)
+
+// ValidateUsername 校验注册用户名。只用于新建用户，已存在的用户名不回溯校验，
+// 避免历史账号因为规则收紧而无法登录。
+func ValidateUsername(name string) error {
+	if !usernamePattern.MatchString(name) {
+		return merr.Client("invalid username")
+	}
+	return nil
+}
+
+// DefaultUsername 在用户没填用户名时从邮箱前缀派生一个合法用户名：
+// 只保留中英文和数字，截断到 8 个字符。保留旧行为（未填名称用邮箱前缀），
+// 同时保证派生结果也符合注册规则。前缀没有可用字符时退回 user。
+func DefaultUsername(email string) string {
+	prefix := email
+	if at := strings.IndexByte(email, '@'); at >= 0 {
+		prefix = email[:at]
+	}
+	name := make([]rune, 0, usernameMaxLength)
+	for _, letter := range prefix {
+		if !unicode.IsLetter(letter) && !unicode.IsNumber(letter) {
+			continue
+		}
+		name = append(name, letter)
+		if len(name) == usernameMaxLength {
+			break
+		}
+	}
+	if len(name) == 0 {
+		return "user"
+	}
+	return string(name)
+}
 
 // Directory 管理平台用户。用户不属于租户，这里不读取 X-Namespace。
 type Directory struct {
@@ -33,8 +75,7 @@ func (directory *Directory) GetUser(ctx context.Context, uid string) (*bo.Accoun
 	if err != nil {
 		return nil, directory.access.Wrap(err)
 	}
-	cleaned := publicAccount(*account)
-	return &cleaned, nil
+	return account, nil
 }
 
 func (directory *Directory) ListUsers(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.Account, int, int, int, error) {
@@ -45,9 +86,6 @@ func (directory *Directory) ListUsers(ctx context.Context, pageNo, pageSize int3
 	items, total, err := directory.users.ListUsers(ctx, p, s, name)
 	if err != nil {
 		return nil, 0, 0, 0, directory.access.Wrap(err)
-	}
-	for i := range items {
-		items[i] = publicAccount(items[i])
 	}
 	return items, total, p, s, nil
 }
@@ -92,8 +130,7 @@ func (directory *Directory) setStatus(ctx context.Context, uid, status string) (
 	if err != nil {
 		return nil, directory.access.Wrap(err)
 	}
-	cleaned := publicAccount(*account)
-	return &cleaned, nil
+	return account, nil
 }
 
 // UpdateSystemRole 由超级管理员授权或撤销系统管理员。
@@ -120,11 +157,5 @@ func (directory *Directory) UpdateSystemRole(ctx context.Context, uid, role stri
 	if err != nil {
 		return nil, directory.access.Wrap(err)
 	}
-	cleaned := publicAccount(*account)
-	return &cleaned, nil
-}
-
-func publicAccount(account bo.Account) bo.Account {
-	account.PasswordHash = ""
-	return account
+	return account, nil
 }

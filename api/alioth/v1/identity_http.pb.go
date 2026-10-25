@@ -20,7 +20,7 @@ const _ = http.SupportPackageIsVersion3
 const OperationCaptchaServiceGetCaptcha = "/alioth.v1.CaptchaService/GetCaptcha"
 
 type CaptchaServiceHTTPServer interface {
-	// GetCaptcha 获取图形验证码。答案不回传明文。
+	// GetCaptcha 获取数学计算图形验证码。算式只出现在图片里，答案不回传明文。
 	GetCaptcha(context.Context, *GetCaptchaRequest) (*GetCaptchaResponse, error)
 }
 
@@ -49,7 +49,7 @@ func _CaptchaService_GetCaptcha0_HTTP_Handler(srv CaptchaServiceHTTPServer) func
 }
 
 type CaptchaServiceHTTPClient interface {
-	// GetCaptcha 获取图形验证码。答案不回传明文。
+	// GetCaptcha 获取数学计算图形验证码。算式只出现在图片里，答案不回传明文。
 	GetCaptcha(ctx context.Context, req *GetCaptchaRequest, opts ...http.CallOption) (rsp *GetCaptchaResponse, err error)
 }
 
@@ -61,7 +61,7 @@ func NewCaptchaServiceHTTPClient(client *http.Client) CaptchaServiceHTTPClient {
 	return &CaptchaServiceHTTPClientImpl{client}
 }
 
-// GetCaptcha 获取图形验证码。答案不回传明文。
+// GetCaptcha 获取数学计算图形验证码。算式只出现在图片里，答案不回传明文。
 func (c *CaptchaServiceHTTPClientImpl) GetCaptcha(ctx context.Context, in *GetCaptchaRequest, opts ...http.CallOption) (*GetCaptchaResponse, error) {
 	var out GetCaptchaResponse
 	pattern := "/v1/captcha"
@@ -79,31 +79,54 @@ func (c *CaptchaServiceHTTPClientImpl) GetCaptcha(ctx context.Context, in *GetCa
 }
 
 const OperationAuthServiceEmailLogin = "/alioth.v1.AuthService/EmailLogin"
+const OperationAuthServiceListOAuth2Providers = "/alioth.v1.AuthService/ListOAuth2Providers"
 const OperationAuthServiceOAuth2Login = "/alioth.v1.AuthService/OAuth2Login"
-const OperationAuthServicePasswordLogin = "/alioth.v1.AuthService/PasswordLogin"
 const OperationAuthServiceRegister = "/alioth.v1.AuthService/Register"
 const OperationAuthServiceSendEmailLoginCode = "/alioth.v1.AuthService/SendEmailLoginCode"
+const OperationAuthServiceSendRegisterEmailCode = "/alioth.v1.AuthService/SendRegisterEmailCode"
 
 type AuthServiceHTTPServer interface {
-	// EmailLogin 用邮箱验证码登录。验证码只能使用一次。
+	// EmailLogin 用邮箱验证码和图形验证码登录。邮箱验证码只能使用一次。
 	EmailLogin(context.Context, *EmailLoginRequest) (*EmailLoginResponse, error)
-	// OAuth2Login 用 GitHub、Gitee 或飞书授权码登录。
+	// ListOAuth2Providers 列出已经配置客户端的第三方登录来源和授权地址。
+	ListOAuth2Providers(context.Context, *ListOAuth2ProvidersRequest) (*ListOAuth2ProvidersResponse, error)
+	// OAuth2Login 用 GitHub 或 Gitee 的授权码登录。
 	OAuth2Login(context.Context, *OAuth2LoginRequest) (*OAuth2LoginResponse, error)
-	// PasswordLogin 用邮箱和密码登录。
-	PasswordLogin(context.Context, *PasswordLoginRequest) (*PasswordLoginResponse, error)
-	// Register 用邮箱、密码和验证码注册，成功后返回会话。
+	// Register 用邮箱、邮箱验证码和图形验证码注册，成功后返回会话。
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
-	// SendEmailLoginCode 向已注册邮箱发送登录验证码。
+	// SendEmailLoginCode 向已注册邮箱发送登录验证码。发码前要先通过图形验证码。
 	SendEmailLoginCode(context.Context, *SendEmailLoginCodeRequest) (*SendEmailLoginCodeResponse, error)
+	// SendRegisterEmailCode 向未注册邮箱发送注册验证码。发码前要先通过图形验证码。
+	SendRegisterEmailCode(context.Context, *SendRegisterEmailCodeRequest) (*SendRegisterEmailCodeResponse, error)
 }
 
 func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r := s.Route("/")
+	r.Handle("POST", "/v1/auth/register/code", _AuthService_SendRegisterEmailCode0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/auth/register", _AuthService_Register0_HTTP_Handler(srv))
-	r.Handle("POST", "/v1/auth/password/login", _AuthService_PasswordLogin0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/auth/email/login/code", _AuthService_SendEmailLoginCode0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/auth/email/login", _AuthService_EmailLogin0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/auth/oauth2/providers", _AuthService_ListOAuth2Providers0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/auth/oauth2/login", _AuthService_OAuth2Login0_HTTP_Handler(srv))
+}
+
+func _AuthService_SendRegisterEmailCode0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SendRegisterEmailCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceSendRegisterEmailCode)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SendRegisterEmailCode(ctx, req.(*SendRegisterEmailCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SendRegisterEmailCodeResponse)
+		return ctx.Result(200, reply)
+	}
 }
 
 func _AuthService_Register0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
@@ -121,25 +144,6 @@ func _AuthService_Register0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx htt
 			return err
 		}
 		reply := out.(*RegisterResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _AuthService_PasswordLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PasswordLoginRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAuthServicePasswordLogin)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.PasswordLogin(ctx, req.(*PasswordLoginRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PasswordLoginResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -182,6 +186,25 @@ func _AuthService_EmailLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx h
 	}
 }
 
+func _AuthService_ListOAuth2Providers0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListOAuth2ProvidersRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceListOAuth2Providers)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListOAuth2Providers(ctx, req.(*ListOAuth2ProvidersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListOAuth2ProvidersResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AuthService_OAuth2Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in OAuth2LoginRequest
@@ -202,16 +225,18 @@ func _AuthService_OAuth2Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx 
 }
 
 type AuthServiceHTTPClient interface {
-	// EmailLogin 用邮箱验证码登录。验证码只能使用一次。
+	// EmailLogin 用邮箱验证码和图形验证码登录。邮箱验证码只能使用一次。
 	EmailLogin(ctx context.Context, req *EmailLoginRequest, opts ...http.CallOption) (rsp *EmailLoginResponse, err error)
-	// OAuth2Login 用 GitHub、Gitee 或飞书授权码登录。
+	// ListOAuth2Providers 列出已经配置客户端的第三方登录来源和授权地址。
+	ListOAuth2Providers(ctx context.Context, req *ListOAuth2ProvidersRequest, opts ...http.CallOption) (rsp *ListOAuth2ProvidersResponse, err error)
+	// OAuth2Login 用 GitHub 或 Gitee 的授权码登录。
 	OAuth2Login(ctx context.Context, req *OAuth2LoginRequest, opts ...http.CallOption) (rsp *OAuth2LoginResponse, err error)
-	// PasswordLogin 用邮箱和密码登录。
-	PasswordLogin(ctx context.Context, req *PasswordLoginRequest, opts ...http.CallOption) (rsp *PasswordLoginResponse, err error)
-	// Register 用邮箱、密码和验证码注册，成功后返回会话。
+	// Register 用邮箱、邮箱验证码和图形验证码注册，成功后返回会话。
 	Register(ctx context.Context, req *RegisterRequest, opts ...http.CallOption) (rsp *RegisterResponse, err error)
-	// SendEmailLoginCode 向已注册邮箱发送登录验证码。
+	// SendEmailLoginCode 向已注册邮箱发送登录验证码。发码前要先通过图形验证码。
 	SendEmailLoginCode(ctx context.Context, req *SendEmailLoginCodeRequest, opts ...http.CallOption) (rsp *SendEmailLoginCodeResponse, err error)
+	// SendRegisterEmailCode 向未注册邮箱发送注册验证码。发码前要先通过图形验证码。
+	SendRegisterEmailCode(ctx context.Context, req *SendRegisterEmailCodeRequest, opts ...http.CallOption) (rsp *SendRegisterEmailCodeResponse, err error)
 }
 
 type AuthServiceHTTPClientImpl struct {
@@ -222,7 +247,7 @@ func NewAuthServiceHTTPClient(client *http.Client) AuthServiceHTTPClient {
 	return &AuthServiceHTTPClientImpl{client}
 }
 
-// EmailLogin 用邮箱验证码登录。验证码只能使用一次。
+// EmailLogin 用邮箱验证码和图形验证码登录。邮箱验证码只能使用一次。
 func (c *AuthServiceHTTPClientImpl) EmailLogin(ctx context.Context, in *EmailLoginRequest, opts ...http.CallOption) (*EmailLoginResponse, error) {
 	var out EmailLoginResponse
 	pattern := "/v1/auth/email/login"
@@ -240,7 +265,25 @@ func (c *AuthServiceHTTPClientImpl) EmailLogin(ctx context.Context, in *EmailLog
 	return &out, nil
 }
 
-// OAuth2Login 用 GitHub、Gitee 或飞书授权码登录。
+// ListOAuth2Providers 列出已经配置客户端的第三方登录来源和授权地址。
+func (c *AuthServiceHTTPClientImpl) ListOAuth2Providers(ctx context.Context, in *ListOAuth2ProvidersRequest, opts ...http.CallOption) (*ListOAuth2ProvidersResponse, error) {
+	var out ListOAuth2ProvidersResponse
+	pattern := "/v1/auth/oauth2/providers"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAuthServiceListOAuth2Providers),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// OAuth2Login 用 GitHub 或 Gitee 的授权码登录。
 func (c *AuthServiceHTTPClientImpl) OAuth2Login(ctx context.Context, in *OAuth2LoginRequest, opts ...http.CallOption) (*OAuth2LoginResponse, error) {
 	var out OAuth2LoginResponse
 	pattern := "/v1/auth/oauth2/login"
@@ -258,25 +301,7 @@ func (c *AuthServiceHTTPClientImpl) OAuth2Login(ctx context.Context, in *OAuth2L
 	return &out, nil
 }
 
-// PasswordLogin 用邮箱和密码登录。
-func (c *AuthServiceHTTPClientImpl) PasswordLogin(ctx context.Context, in *PasswordLoginRequest, opts ...http.CallOption) (*PasswordLoginResponse, error) {
-	var out PasswordLoginResponse
-	pattern := "/v1/auth/password/login"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationAuthServicePasswordLogin),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// Register 用邮箱、密码和验证码注册，成功后返回会话。
+// Register 用邮箱、邮箱验证码和图形验证码注册，成功后返回会话。
 func (c *AuthServiceHTTPClientImpl) Register(ctx context.Context, in *RegisterRequest, opts ...http.CallOption) (*RegisterResponse, error) {
 	var out RegisterResponse
 	pattern := "/v1/auth/register"
@@ -294,7 +319,7 @@ func (c *AuthServiceHTTPClientImpl) Register(ctx context.Context, in *RegisterRe
 	return &out, nil
 }
 
-// SendEmailLoginCode 向已注册邮箱发送登录验证码。
+// SendEmailLoginCode 向已注册邮箱发送登录验证码。发码前要先通过图形验证码。
 func (c *AuthServiceHTTPClientImpl) SendEmailLoginCode(ctx context.Context, in *SendEmailLoginCodeRequest, opts ...http.CallOption) (*SendEmailLoginCodeResponse, error) {
 	var out SendEmailLoginCodeResponse
 	pattern := "/v1/auth/email/login/code"
@@ -303,6 +328,24 @@ func (c *AuthServiceHTTPClientImpl) SendEmailLoginCode(ctx context.Context, in *
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationAuthServiceSendEmailLoginCode),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SendRegisterEmailCode 向未注册邮箱发送注册验证码。发码前要先通过图形验证码。
+func (c *AuthServiceHTTPClientImpl) SendRegisterEmailCode(ctx context.Context, in *SendRegisterEmailCodeRequest, opts ...http.CallOption) (*SendRegisterEmailCodeResponse, error) {
+	var out SendRegisterEmailCodeResponse
+	pattern := "/v1/auth/register/code"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAuthServiceSendRegisterEmailCode),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

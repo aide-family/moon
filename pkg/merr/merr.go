@@ -17,6 +17,11 @@ func Client(message string) error {
 	return kerrors.BadRequest(ReasonClient, message)
 }
 
+// ClientWithMetadata 是带附加信息的调用方错误。前端用它展示精确的等待时间等。
+func ClientWithMetadata(message string, metadata map[string]string) error {
+	return kerrors.BadRequest(ReasonClient, message).WithMetadata(metadata)
+}
+
 // Unauthenticated means the caller has no accepted credential.
 func Unauthenticated(message string) error {
 	return kerrors.Unauthorized(ReasonUnauthenticated, message)

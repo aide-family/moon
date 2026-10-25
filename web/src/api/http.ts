@@ -6,9 +6,13 @@ const baseURL = "/v1"
 const messageKeys: Record<string, string> = {
   "captcha is invalid": "error.captchaInvalid",
   "email already exists": "error.emailExists",
-  "invalid email or password": "error.invalidLogin",
   "invalid email or code": "error.invalidCode",
   "email is not registered": "error.emailNotRegistered",
+  "invalid username": "register.usernameInvalid",
+  "send code too frequently": "error.sendTooFrequent",
+  "oauth login failed": "error.oauthFailed",
+  "oauth provider is not configured": "error.oauthNotConfigured",
+  "oauth email is not verified": "error.oauthEmailNotVerified",
   "member already exists": "error.memberExists",
   "invitation expired": "error.invitationExpired",
   "invitation is not pending": "error.invitationHandled",
@@ -23,16 +27,29 @@ const fieldByMessage: Record<string, string> = {
   "captcha is invalid": "captchaCode",
   "email already exists": "email",
   "email is not registered": "email",
+  "invalid username": "name",
 }
 
 export class ApiError extends Error {
   status: number
   fields: Record<string, string>
+  /** 服务端原始 message（未本地化）。需要按业务含义分支时用它，不要比对本地化后的文本。 */
+  raw: string
+  /** 服务端错误携带的附加信息，例如发码节流的 retryAfterSeconds。 */
+  metadata: Record<string, string>
 
-  constructor(status: number, message: string, fields: Record<string, string> = {}) {
+  constructor(
+    status: number,
+    message: string,
+    fields: Record<string, string> = {},
+    raw = "",
+    metadata: Record<string, string> = {}
+  ) {
     super(message)
     this.status = status
     this.fields = fields
+    this.raw = raw
+    this.metadata = metadata
   }
 }
 
@@ -42,7 +59,9 @@ export function localizeMessage(message: string): string {
 }
 
 function fieldName(raw: string): string {
-  const snake = raw.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, "")
+  const snake = raw
+    .replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+    .replace(/^_/, "")
   return snake.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
 }
 
@@ -102,7 +121,9 @@ async function refreshAccessToken(): Promise<boolean> {
         if (namespace) {
           headers.set("X-Namespace", namespace)
         }
-        const response = await fetch(`${baseURL}/self/refresh-token`, { headers })
+        const response = await fetch(`${baseURL}/self/refresh-token`, {
+          headers,
+        })
         if (!response.ok) {
           return false
         }
@@ -124,7 +145,11 @@ async function refreshAccessToken(): Promise<boolean> {
   }
 }
 
-export async function request(path: string, init: RequestInit = {}, retry = true): Promise<Response> {
+export async function request(
+  path: string,
+  init: RequestInit = {},
+  retry = true
+): Promise<Response> {
   const headers = new Headers(init.headers)
   const token = localStorage.getItem("token") ?? ""
   const namespace = localStorage.getItem("namespace") ?? ""
@@ -140,7 +165,12 @@ export async function request(path: string, init: RequestInit = {}, retry = true
   }
 
   const response = await fetch(`${baseURL}${path}`, { ...init, headers })
-  if (response.status === 401 && retry && !staysOnAuthForm(path) && path !== "/self/refresh-token") {
+  if (
+    response.status === 401 &&
+    retry &&
+    !staysOnAuthForm(path) &&
+    path !== "/self/refresh-token"
+  ) {
     if (await refreshAccessToken()) {
       return request(path, init, false)
     }
@@ -161,13 +191,20 @@ export interface RequestOptions {
   silent?: boolean
 }
 
-export async function send<T>(path: string, init: RequestInit = {}, options: RequestOptions = {}): Promise<T> {
+export async function send<T>(
+  path: string,
+  init: RequestInit = {},
+  options: RequestOptions = {}
+): Promise<T> {
   const response = await request(path, init)
   const text = await response.text()
-  let data: { message?: string } = {}
+  let data: { message?: string; metadata?: Record<string, string> } = {}
   if (text) {
     try {
-      data = JSON.parse(text) as { message?: string }
+      data = JSON.parse(text) as {
+        message?: string
+        metadata?: Record<string, string>
+      }
     } catch {
       data = { message: text }
     }
@@ -176,10 +213,19 @@ export async function send<T>(path: string, init: RequestInit = {}, options: Req
     const raw = data.message || `request failed: ${response.status}`
     const message = localizeMessage(raw)
     const fields = response.status === 400 ? parseFieldErrors(raw) : {}
-    if (!options.silent && (response.status === 404 || response.status >= 500)) {
+    if (
+      !options.silent &&
+      (response.status === 404 || response.status >= 500)
+    ) {
       notifyStatus(response.status, message)
     }
-    throw new ApiError(response.status, message, fields)
+    throw new ApiError(
+      response.status,
+      message,
+      fields,
+      raw,
+      data.metadata ?? {}
+    )
   }
   return data as T
 }
@@ -188,11 +234,15 @@ export function get<T>(
   path: string,
   params?: object,
   init?: RequestInit,
-  options?: RequestOptions,
+  options?: RequestOptions
 ): Promise<T> {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params ?? {})) {
-    if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") {
+    if (
+      typeof value !== "string" &&
+      typeof value !== "number" &&
+      typeof value !== "boolean"
+    ) {
       continue
     }
     if (value === "" || value === false) {
