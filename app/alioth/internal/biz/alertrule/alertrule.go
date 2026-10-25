@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
+	"github.com/aide-family/Alioth/pkg/alerttmpl"
 	labelsutil "github.com/aide-family/Alioth/pkg/labels"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
@@ -198,9 +199,25 @@ func (rulebook *Rulebook) ListRules(ctx context.Context, pageNo, pageSize int32,
 	return items, total, p, s, rulebook.access.Wrap(err)
 }
 
+// validateRuleTemplates 在保存前用评测期同一套模板实现做语法校验。摘要和描述
+// 由 megrez 在每次评测时展开，写坏的模板不会让评测失败，而是把展开错误当成
+// 告警内容显示出来，所以在写入时就应当拦住。
+func validateRuleTemplates(in *bo.AlertRule) error {
+	if err := alerttmpl.Validate(in.Summary, "summary"); err != nil {
+		return merr.Invalid("invalid summary template")
+	}
+	if err := alerttmpl.Validate(in.Description, "description"); err != nil {
+		return merr.Invalid("invalid description template")
+	}
+	return nil
+}
+
 func (rulebook *Rulebook) prepare(ctx context.Context, namespaceUID string, in *bo.AlertRule) error {
 	if !datasource.ValidDriver(in.Driver) {
 		return merr.Invalid("invalid request")
+	}
+	if err := validateRuleTemplates(in); err != nil {
+		return err
 	}
 	if strings.TrimSpace(in.Labels) != "" && !json.Valid([]byte(in.Labels)) {
 		return merr.Invalid("invalid request")
