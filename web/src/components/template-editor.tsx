@@ -1,10 +1,11 @@
 import Editor, { loader, type Monaco, type OnMount } from "@monaco-editor/react"
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import * as monacoEditor from "monaco-editor"
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 
-import { useMonacoOverflowNode } from "@/hooks/use-monaco-overflow-node"
+import { fetchDatasourceLabelKeys } from "@/components/datasource-label-keys"
 import { useTheme } from "@/components/theme-provider"
+import { useMonacoOverflowNode } from "@/hooks/use-monaco-overflow-node"
 
 let monacoReady = false
 let templateLanguageReady = false
@@ -26,9 +27,14 @@ function ensureMonaco() {
 
 ensureMonaco()
 
-// templateFields 是投递参数里的字段。模板和告警摘要、描述共用 pkg/alerttmpl，
-// 因此这里列出的写法在试发、预览和真实投递里含义一致。
-const templateFields: Array<{ label: string; detail: string; insertText?: string }> = [
+interface TemplateField {
+  label: string
+  detail: string
+  insertText?: string
+}
+
+// notificationTemplateFields 是通知投递参数里的字段。
+const notificationTemplateFields: TemplateField[] = [
   { label: ".summary", detail: "告警摘要" },
   { label: ".description", detail: "告警描述" },
   { label: ".phase", detail: "事件阶段：FIRING / RECOVERED" },
@@ -46,6 +52,24 @@ const templateFields: Array<{ label: string; detail: string; insertText?: string
   { label: ".externalLabels", detail: "外部标签 map" },
   { label: ".ExternalLabels", detail: "外部标签 map（Prometheus 写法）" },
   { label: "$labels", detail: "事件标签 map" },
+  { label: "$value", detail: "采样值" },
+  { label: "$externalURL", detail: "数据源外部地址" },
+  { label: "$externalLabels", detail: "外部标签 map" },
+  { label: "{{ . }}", detail: "采样值快捷写法", insertText: "{{ . }}" },
+]
+
+// alertTemplateFields 是告警规则摘要/描述在评测期能拿到的全部数据（megrez 展开），
+// 没有事件字段。两套模板的补全清单必须分开，否则用户会写出评测时永远为空的模板。
+const alertTemplateFields: TemplateField[] = [
+  { label: ".labels", detail: "采样标签 JSON 字符串" },
+  { label: ".Labels", detail: "采样标签 map（Prometheus 写法）" },
+  { label: ".value", detail: "采样值" },
+  { label: ".Value", detail: "采样值（Prometheus 写法）" },
+  { label: ".externalURL", detail: "数据源外部地址" },
+  { label: ".ExternalURL", detail: "数据源外部地址（Prometheus 写法）" },
+  { label: ".externalLabels", detail: "外部标签 map" },
+  { label: ".ExternalLabels", detail: "外部标签 map（Prometheus 写法）" },
+  { label: "$labels", detail: "采样标签 map" },
   { label: "$value", detail: "采样值" },
   { label: "$externalURL", detail: "数据源外部地址" },
   { label: "$externalLabels", detail: "外部标签 map" },
@@ -93,6 +117,17 @@ const templateFunctions: Array<{ label: string; detail: string }> = [
   { label: "query", detail: "即时查询（仅评测阶段）" },
   { label: "range", detail: "自定义数字范围" },
 ]
+
+export type TemplateScope = "notification" | "alert"
+
+interface TemplateContext {
+  scope: TemplateScope
+  labelKeys: string[]
+}
+
+// 补全 provider 全局只注册一次，按 model URI 查当前编辑器的上下文。弹窗里可能同时
+// 存在摘要和描述两个编辑器，按实例各注册 provider 会出现重复补全项。
+const editorContexts = new Map<string, TemplateContext>()
 
 function setupTemplateLanguage(monaco: Monaco) {
   if (templateLanguageReady) {
@@ -156,21 +191,27 @@ function setupTemplateLanguage(monaco: Monaco) {
         endLineNumber: position.lineNumber,
         endColumn: position.column,
       }
+      const context = editorContexts.get(model.uri.toString())
+      const scope = context?.scope ?? "notification"
+      const labelKeys = context?.labelKeys ?? templateLabelKeys
+      const fields =
+        scope === "alert" ? alertTemplateFields : notificationTemplateFields
       const suggestions: monacoEditor.languages.CompletionItem[] = []
       const insideTemplate = lastOpen > lastClose
       if (!insideTemplate) {
+        const snippet = scope === "alert" ? "{{ $labels.instance }}" : "{{ .summary }}"
         suggestions.push({
-          label: "{{ .summary }}",
+          label: snippet,
           kind: monaco.languages.CompletionItemKind.Snippet,
           detail: "插入模板表达式",
-          insertText: "{{ .summary }}",
+          insertText: snippet,
           range,
         })
         return { suggestions }
       }
       const labelPrefix = word.match(/^(?:\$labels|\.Labels)\.(\w*)$/)
       if (labelPrefix) {
-        for (const key of templateLabelKeys) {
+        for (const key of labelKeys) {
           if (!key.startsWith(labelPrefix[1])) {
             continue
           }
@@ -178,14 +219,14 @@ function setupTemplateLanguage(monaco: Monaco) {
           suggestions.push({
             label: key,
             kind: monaco.languages.CompletionItemKind.Field,
-            detail: "事件标签",
+            detail: scope === "alert" ? "采样标签" : "事件标签",
             insertText: `${prefix}${key}`,
             range,
           })
         }
         return { suggestions }
       }
-      for (const field of templateFields) {
+      for (const field of fields) {
         if (word && !field.label.startsWith(word)) {
           continue
         }
@@ -221,11 +262,20 @@ interface TemplateEditorProps {
   singleLine?: boolean
   placeholder?: string
   ariaLabel?: string
+  /** 模板作用域：通知投递包含事件字段，告警规则的摘要/描述只有评测期数据。 */
+  scope?: TemplateScope
+  /** 探测标签用的数据源；留空只用内置标签键。 */
+  datasourceUid?: string
+  datasourceDriver?: string
+  expression?: string
+  /** 规则自身标签的键，评测时会并入采样标签。 */
+  labelKeys?: string[]
 }
 
 /**
- * 通知模板编辑器：Go template + Prometheus 模板函数的补全和语法高亮，
- * 用于邮件主题、正文和预设页。补全列表里的字段与 pkg/alerttmpl 保持一致。
+ * 模板编辑器：Go template + Prometheus 模板函数的补全和语法高亮。通知模板、
+ * 告警规则的摘要和描述共用；告警作用域只提示评测期真实存在的字段，并按数据源
+ * 查询到的标签键补全 $labels。
  */
 export function TemplateEditor({
   value,
@@ -234,15 +284,89 @@ export function TemplateEditor({
   singleLine = false,
   placeholder,
   ariaLabel,
+  scope = "notification",
+  datasourceUid = "",
+  datasourceDriver = "",
+  expression = "",
+  labelKeys,
 }: TemplateEditorProps) {
   const { theme } = useTheme()
   const onChangeRef = useRef(onChange)
   const overflowWidgetsDomNode = useMonacoOverflowNode()
   const editorHeight = singleLine ? 40 : height
+  const modelUriRef = useRef<string | null>(null)
+  const [probedLabels, setProbedLabels] = useState<{
+    query: string
+    keys: string[]
+  }>({ query: "", keys: [] })
+  const labelQuery = datasourceUid
+    ? `${datasourceUid}|${datasourceDriver}|${expression}`
+    : ""
+  // 查询串变了就不再使用旧结果，避免上一个表达式的标签短暂出现在补全里。
+  const fetchedLabelKeys = useMemo(
+    () => (probedLabels.query === labelQuery ? probedLabels.keys : []),
+    [probedLabels, labelQuery]
+  )
+
+  const mergedLabelKeys = useMemo(() => {
+    const keys = new Set<string>([
+      ...templateLabelKeys,
+      ...(labelKeys ?? []),
+      ...fetchedLabelKeys,
+    ])
+    return [...keys]
+  }, [labelKeys, fetchedLabelKeys])
+
+  const contextRef = useRef<TemplateContext>({
+    scope,
+    labelKeys: mergedLabelKeys,
+  })
 
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
+
+  // 数据源标签是异步查询的：防抖后探测一次，失败或没有数据源时只用内置键。
+  useEffect(() => {
+    if (!labelQuery) {
+      return
+    }
+    let active = true
+    const timer = window.setTimeout(() => {
+      void fetchDatasourceLabelKeys({
+        datasourceUid,
+        driver: datasourceDriver,
+        expression,
+      }).then((keys) => {
+        if (active) {
+          setProbedLabels({ query: labelQuery, keys })
+        }
+      })
+    }, 400)
+    return () => {
+      active = false
+      window.clearTimeout(timer)
+    }
+  }, [labelQuery, datasourceUid, datasourceDriver, expression])
+
+  useEffect(() => {
+    contextRef.current = { scope, labelKeys: mergedLabelKeys }
+    const uri = modelUriRef.current
+    if (uri) {
+      editorContexts.set(uri, contextRef.current)
+    }
+  }, [scope, mergedLabelKeys])
+
+  useEffect(
+    () => () => {
+      const uri = modelUriRef.current
+      if (uri) {
+        editorContexts.delete(uri)
+        modelUriRef.current = null
+      }
+    },
+    []
+  )
 
   const dark =
     theme === "dark" ||
@@ -250,6 +374,11 @@ export function TemplateEditor({
   const editorTheme = dark ? "vs-dark" : "vs"
 
   const onMount: OnMount = (editor, monaco) => {
+    const uri = editor.getModel()?.uri.toString()
+    if (uri) {
+      modelUriRef.current = uri
+      editorContexts.set(uri, contextRef.current)
+    }
     editor.addCommand(monaco.KeyCode.Enter, () => {
       if (singleLine) {
         return
@@ -266,6 +395,7 @@ export function TemplateEditor({
 
   return (
     <div
+      data-slot="template-editor"
       className="relative overflow-hidden rounded-md border border-input bg-background px-2.5 [&_.margin]:!bg-background [&_.monaco-editor]:!bg-background [&_.monaco-editor-background]:!bg-background"
       style={{ height: editorHeight }}
     >

@@ -242,7 +242,8 @@
 [data-slot="form-field"][data-invalid="true"] :is(
   input:not([type="checkbox"]):not([type="radio"]),
   textarea,
-  [data-slot="select-trigger"]
+  [data-slot="select-trigger"],
+  [data-slot="template-editor"]
 ) {
   border-color: var(--destructive);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 15%, transparent);
@@ -251,7 +252,8 @@
 [data-slot="form-field"][data-invalid="true"] :is(
   input:not([type="checkbox"]):not([type="radio"]),
   textarea,
-  [data-slot="select-trigger"]
+  [data-slot="select-trigger"],
+  [data-slot="template-editor"]
 ):focus-visible {
   border-color: var(--destructive);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 25%, transparent);

@@ -580,6 +580,12 @@ const zh = {
     summaryPlaceholder: "告警标题，可用 {{ $labels.job }} 等模板",
     descriptionField: "描述",
     descriptionPlaceholder: "告警内容，可用 {{ $labels.instance }} 等模板",
+    summaryHint:
+      "模板，评测时展开。输入 $ 触发补全，$labels. 会补全数据源返回的标签。",
+    descriptionHint:
+      "模板，评测时展开。输入 $ 触发补全，$labels. 会补全数据源返回的标签。",
+    templateTooLong: "摘要和描述最多 2000 个字符",
+    templateInvalid: "模板语法有误，请检查 $labels、$value 和函数调用",
     levels: "级别条件",
     levelsHint:
       "为同一规则添加多个告警级别。每条条件需选择告警级别并填写阈值；表达式采样值满足比较条件并持续指定秒数后触发。",
@@ -592,6 +598,15 @@ const zh = {
     removeLevel: "删除条件",
     levelPlaceholder: "选择告警级别",
     addLevel: "添加条件",
+    detail: {
+      allDatasources: "该驱动下全部启用数据源",
+      matchedDatasources: "匹配的数据源",
+      matchedCount: "将匹配 {{count}} 个启用数据源",
+      noDatasource: "当前没有匹配的启用数据源，规则不会被调度",
+      templateHint:
+        "摘要和描述在评测时展开，可用 $labels、$value、$externalURL 和内置函数。",
+      legacyDatasource: "旧版数据源绑定（已废弃）",
+    },
   },
   alertDictionary: {
     title: "告警字典",
@@ -1812,6 +1827,13 @@ const en = {
     descriptionField: "Description",
     descriptionPlaceholder:
       "Alert body; templates like {{ $labels.instance }} are supported",
+    summaryHint:
+      "Template expanded at evaluation time. Type $ to trigger completion; $labels. lists label keys returned by the datasource.",
+    descriptionHint:
+      "Template expanded at evaluation time. Type $ to trigger completion; $labels. lists label keys returned by the datasource.",
+    templateTooLong: "Summary and description are limited to 2000 characters",
+    templateInvalid:
+      "Template syntax is invalid; check $labels, $value and function calls",
     levels: "Level conditions",
     levelsHint:
       "Add one or more alert levels to this rule. Each condition needs an alert level and a threshold; the rule fires after the comparison holds for the configured duration.",
@@ -1824,6 +1846,15 @@ const en = {
     removeLevel: "Remove condition",
     levelPlaceholder: "Choose an alert level",
     addLevel: "Add condition",
+    detail: {
+      allDatasources: "All active datasources of this driver",
+      matchedDatasources: "Matched datasources",
+      matchedCount: "Will match {{count}} active datasource(s)",
+      noDatasource: "No active datasource matches this rule; it will not be scheduled",
+      templateHint:
+        "Summary and description are expanded at evaluation time; $labels, $value, $externalURL and built-in functions are available.",
+      legacyDatasource: "Legacy datasource binding (deprecated)",
+    },
   },
   alertDictionary: {
     title: "Alert dictionaries",

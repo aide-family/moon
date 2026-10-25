@@ -1,5 +1,5 @@
 import { EllipsisVertical, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 
@@ -22,7 +22,6 @@ import type {
   AlertRuleGroupItem,
   AlertRuleItem,
   AlertRuleLevelInput,
-  AlertRuleLevelItem,
 } from "@/api/alert-rule/types"
 import { listDatasources } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
@@ -40,6 +39,7 @@ import { RowActions, type RowAction } from "@/components/row-actions"
 import { ListFrame } from "@/components/list-frame"
 import { StatusBadge } from "@/components/status-badge"
 import { StepForm } from "@/components/step-form"
+import { TemplateEditor } from "@/components/template-editor"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -56,7 +56,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -83,13 +82,16 @@ import {
   type FieldErrors,
 } from "@/lib/form"
 import { failureMessage, readFormError } from "@/lib/form-error"
-import {
-  labelMatchersMatch,
-  parseLabelPairs,
-  serializeLabelPairs,
-  type LabelPair,
-} from "@/lib/labels"
+import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { useListQuery } from "@/hooks/use-list-query"
+
+import { AlertRuleDetailSheet } from "./detail"
+import {
+  matchDatasourceCount,
+  matchedDatasourceUid,
+  ruleLabelKeys,
+} from "./matching"
+import { AlertRuleExpr } from "./rule-expr"
 
 // 规则不再保存类型，只保存驱动；数据源匹配也只按驱动。
 const drivers = [
@@ -133,67 +135,6 @@ const emptyRule: RuleDraft = {
   levels: [{ ...emptyLevel }],
 }
 
-function parseDatasourceLabels(raw: string): Record<string, string> | null {
-  try {
-    return JSON.parse(raw || "{}") as Record<string, string>
-  } catch {
-    return null
-  }
-}
-
-// datasourceMatchLabels 与后端保持一致：数据源自身标签之外，
-// datasource_level 和 datasource 也可以被规则匹配。
-function datasourceMatchLabels(
-  item: DatasourceItem
-): Record<string, string> | null {
-  const labels = parseDatasourceLabels(item.labels)
-  if (labels === null) {
-    return null
-  }
-  return {
-    ...labels,
-    datasource: item.name,
-    ...(item.levelName ? { datasource_level: item.levelName } : {}),
-  }
-}
-
-function matchDatasourceCount(
-  sources: DatasourceItem[],
-  driver: string,
-  matchers: LabelPair[]
-): number {
-  return sources.filter((item) => {
-    if (item.driver !== driver || item.status !== "ACTIVE") {
-      return false
-    }
-    const labels = datasourceMatchLabels(item)
-    return labels !== null && labelMatchersMatch(matchers, labels)
-  }).length
-}
-
-function matchedDatasourceUid(
-  sources: DatasourceItem[],
-  driver: string,
-  matchers: LabelPair[]
-): string {
-  if (
-    !driver.startsWith("METRICS_") &&
-    driver !== "LOGS_LOKI" &&
-    driver !== "LOGS_VLOGS"
-  ) {
-    return ""
-  }
-  return (
-    sources.find((item) => {
-      if (item.driver !== driver || item.status !== "ACTIVE") {
-        return false
-      }
-      const labels = datasourceMatchLabels(item)
-      return labels !== null && labelMatchersMatch(matchers, labels)
-    })?.uid ?? ""
-  )
-}
-
 export function AlertRulePage() {
   const { t } = useTranslation()
   const session = useSession()
@@ -231,6 +172,7 @@ export function AlertRulePage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<AlertRuleItem | null>(null)
+  const [failedRuleUid, setFailedRuleUid] = useState("")
   const [confirm, setConfirm] = useState<{
     kind: "group" | "rule"
     action: "disable" | "delete"
@@ -241,6 +183,15 @@ export function AlertRulePage() {
     "disable"
   )
   const canWrite = session.can("alert_rule:write")
+  // 深链规则打不开时（已删除、无权限）仍然按默认规则组展示列表。
+  const deepLinkFailed = ruleUid !== "" && failedRuleUid === ruleUid
+  // 表达式编辑器和模板补全共用同一个数据源选择；规则标签会并入评测标签。
+  const matchedUid = matchedDatasourceUid(
+    sources,
+    form.driver,
+    form.datasourceLabels
+  )
+  const labelKeys = useMemo(() => ruleLabelKeys(form.labels), [form.labels])
 
   function askConfirm(
     kind: "group" | "rule",
@@ -329,7 +280,8 @@ export function AlertRulePage() {
     session.namespaceUid,
   ])
 
-  // 实时告警详情的规则名称链接带上 ruleUid，进入本页后直接打开规则详情。
+  // 实时告警详情的规则名称链接带上 ruleUid，进入本页后直接打开规则详情，
+  // 并把左侧选中对齐到规则所属分组；打不开时交给默认选中逻辑选第一组。
   useEffect(() => {
     if (!ruleUid) {
       return
@@ -342,15 +294,53 @@ export function AlertRulePage() {
           return
         }
         setDetail(result.rule)
+        setFailedRuleUid("")
+        setParams(
+          (prev) => {
+            if (prev.get("groupUid")) {
+              return prev
+            }
+            const next = new URLSearchParams(prev)
+            next.set("groupUid", result.rule.groupUid)
+            return next
+          },
+          { replace: true }
+        )
       } catch {
-        // 规则已删除或无权访问时保持列表，不打开空详情。
+        // 规则已删除或无权访问时保持列表，仍按默认规则组展示。
+        if (active) {
+          setFailedRuleUid(ruleUid)
+        }
       }
     }
     void load()
     return () => {
       active = false
     }
-  }, [ruleUid, session.namespaceUid])
+  }, [ruleUid, session.namespaceUid, setParams])
+
+  // 未指定规则组时默认选中第一组：规则列表、新建规则都依赖 groupUid。
+  // 用 replace 写 URL，避免把默认选中记进浏览器历史。
+  useEffect(() => {
+    if (loading || failed || groupUid || groups.length === 0) {
+      return
+    }
+    if (ruleUid && !deepLinkFailed) {
+      return
+    }
+    const next = new URLSearchParams(params)
+    next.set("groupUid", groups[0].uid)
+    setParams(next, { replace: true })
+  }, [
+    loading,
+    failed,
+    groupUid,
+    groups,
+    ruleUid,
+    deepLinkFailed,
+    params,
+    setParams,
+  ])
 
   useEffect(() => {
     let active = true
@@ -378,14 +368,19 @@ export function AlertRulePage() {
     }
   }, [session.namespaceUid, attempt])
 
-  function setParam(key: string, value: string) {
-    const next = new URLSearchParams(params)
-    if (value) {
-      next.set(key, value)
-    } else {
-      next.delete(key)
-    }
-    setParams(next)
+  function setParam(key: string, value: string, replace = false) {
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (value) {
+          next.set(key, value)
+        } else {
+          next.delete(key)
+        }
+        return next
+      },
+      { replace }
+    )
   }
 
   function openRule(item?: AlertRuleItem) {
@@ -416,6 +411,17 @@ export function AlertRulePage() {
     setFieldErrors({})
     setFormStep(0)
     setRuleOpen(true)
+  }
+
+  // 打开详情时先用列表快照立即出内容，再用单条接口刷新；切换规则时不覆盖新详情。
+  async function openDetail(item: AlertRuleItem) {
+    setDetail(item)
+    try {
+      const result = await getAlertRule(item.uid)
+      setDetail((current) => (current?.uid === item.uid ? result.rule : current))
+    } catch {
+      // 单条刷新失败时保留列表快照，避免抽屉变成空白。
+    }
   }
 
   async function onSaveGroup(event: React.FormEvent) {
@@ -457,11 +463,19 @@ export function AlertRulePage() {
         ["name", requireTrimmed(form.name, t("form.required"))],
         ["name", maxLength(form.name, 64, t("form.nameTooLong"))],
         ["driver", requireTrimmed(form.driver, t("form.required"))],
+        ["expr", requireTrimmed(form.expr, t("form.required"))],
       ])
     }
     if (step === 1) {
       return collectFieldErrors([
-        ["expr", requireTrimmed(form.expr, t("form.required"))],
+        [
+          "summary",
+          maxLength(form.summary, 2000, t("alertRule.templateTooLong")),
+        ],
+        [
+          "description",
+          maxLength(form.description, 2000, t("alertRule.templateTooLong")),
+        ],
       ])
     }
     if (step === 2) {
@@ -538,6 +552,18 @@ export function AlertRulePage() {
       setAttempt((value) => value + 1)
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
+      // 服务端模板语法校验只返回整体错误，映射到第二步对应字段。
+      const templateField = failure.form.includes("summary template")
+        ? "summary"
+        : failure.form.includes("description template")
+          ? "description"
+          : ""
+      if (templateField) {
+        setFieldErrors({ [templateField]: t("alertRule.templateInvalid") })
+        setError("")
+        setFormStep(1)
+        return
+      }
       setFieldErrors(failure.fields)
       setError(failure.form)
     } finally {
@@ -826,7 +852,7 @@ export function AlertRulePage() {
                     <TableRow key={item.uid}>
                       <TableCell>{item.name}</TableCell>
                       <TableCell className="max-w-[28rem] min-w-[16rem] align-top">
-                        <RuleExpr
+                        <AlertRuleExpr
                           expr={item.expr}
                           levels={item.levels}
                           maxHeightClass="max-h-24"
@@ -838,7 +864,7 @@ export function AlertRulePage() {
                         <RowActions nowrap
                           detailLabel={t("action.detail")}
                           moreLabel={t("action.more")}
-                          onDetail={() => setDetail(item)}
+                          onDetail={() => void openDetail(item)}
                           actions={ruleActions(item)}
                         />
                       </TableCell>
@@ -1021,38 +1047,6 @@ export function AlertRulePage() {
                   </p>
                 </div>
                 <FormField
-                  label={t("alertRule.summary")}
-                  htmlFor="rule-summary"
-                  className="sm:col-span-full"
-                >
-                  <Textarea
-                    id="rule-summary"
-                    value={form.summary}
-                    placeholder={t("alertRule.summaryPlaceholder")}
-                    onChange={(event) =>
-                      setForm({ ...form, summary: event.target.value })
-                    }
-                  />
-                </FormField>
-                <FormField
-                  label={t("alertRule.descriptionField")}
-                  htmlFor="rule-description"
-                  className="sm:col-span-full"
-                >
-                  <Textarea
-                    id="rule-description"
-                    value={form.description}
-                    placeholder={t("alertRule.descriptionPlaceholder")}
-                    onChange={(event) =>
-                      setForm({ ...form, description: event.target.value })
-                    }
-                  />
-                </FormField>
-              </>
-            ) : null}
-            {formStep === 1 ? (
-              <>
-                <FormField
                   label={t("datasource.expr")}
                   htmlFor="rule-expr"
                   hint={
@@ -1072,21 +1066,13 @@ export function AlertRulePage() {
                   {form.driver === "LOGS_LOKI" ? (
                     <LogQLEditor
                       value={form.expr}
-                      datasourceUid={matchedDatasourceUid(
-                        sources,
-                        form.driver,
-                        form.datasourceLabels
-                      )}
+                      datasourceUid={matchedUid}
                       onChange={(value) => setForm({ ...form, expr: value })}
                     />
                   ) : form.driver === "LOGS_VLOGS" ? (
                     <LogsQLEditor
                       value={form.expr}
-                      datasourceUid={matchedDatasourceUid(
-                        sources,
-                        form.driver,
-                        form.datasourceLabels
-                      )}
+                      datasourceUid={matchedUid}
                       onChange={(value) => setForm({ ...form, expr: value })}
                     />
                   ) : (
@@ -1095,11 +1081,7 @@ export function AlertRulePage() {
                       variant={
                         form.driver === "LOGS_ELASTICSEARCH" ? "json" : "promql"
                       }
-                      datasourceUid={matchedDatasourceUid(
-                        sources,
-                        form.driver,
-                        form.datasourceLabels
-                      )}
+                      datasourceUid={matchedUid}
                       onChange={(value) => setForm({ ...form, expr: value })}
                     />
                   )}
@@ -1116,6 +1098,50 @@ export function AlertRulePage() {
                     placeholder='{"job":"api"}'
                     onChange={(event) =>
                       setForm({ ...form, labels: event.target.value })
+                    }
+                  />
+                </FormField>
+              </>
+            ) : null}
+            {formStep === 1 ? (
+              <>
+                <FormField
+                  label={t("alertRule.summary")}
+                  hint={t("alertRule.summaryHint")}
+                  className="sm:col-span-full"
+                  error={fieldErrors.summary}
+                >
+                  <TemplateEditor
+                    value={form.summary}
+                    singleLine
+                    scope="alert"
+                    datasourceUid={matchedUid}
+                    datasourceDriver={form.driver}
+                    expression={form.expr}
+                    labelKeys={labelKeys}
+                    placeholder={t("alertRule.summaryPlaceholder")}
+                    ariaLabel={t("alertRule.summary")}
+                    onChange={(value) => setForm({ ...form, summary: value })}
+                  />
+                </FormField>
+                <FormField
+                  label={t("alertRule.descriptionField")}
+                  hint={t("alertRule.descriptionHint")}
+                  className="sm:col-span-full"
+                  error={fieldErrors.description}
+                >
+                  <TemplateEditor
+                    value={form.description}
+                    height={160}
+                    scope="alert"
+                    datasourceUid={matchedUid}
+                    datasourceDriver={form.driver}
+                    expression={form.expr}
+                    labelKeys={labelKeys}
+                    placeholder={t("alertRule.descriptionPlaceholder")}
+                    ariaLabel={t("alertRule.descriptionField")}
+                    onChange={(value) =>
+                      setForm({ ...form, description: value })
                     }
                   />
                 </FormField>
@@ -1324,9 +1350,10 @@ export function AlertRulePage() {
           </StepForm>
         </DialogContent>
       </Dialog>
-      <DetailSheet
-        open={detail !== null}
-        title={detail?.name ?? ""}
+      <AlertRuleDetailSheet
+        detail={detail}
+        groups={groups}
+        sources={sources}
         onOpenChange={(value) => {
           if (!value) {
             setDetail(null)
@@ -1335,34 +1362,6 @@ export function AlertRulePage() {
             }
           }
         }}
-        fields={
-          detail
-            ? [
-                { label: t("detail.uid"), value: detail.uid },
-                {
-                  label: t("datasource.driver"),
-                  value: <StatusBadge value={detail.driver} />,
-                },
-                {
-                  label: t("namespace.status"),
-                  value: <StatusBadge value={detail.status} />,
-                },
-                {
-                  label: t("datasource.expr"),
-                  value: <RuleExpr expr={detail.expr} levels={detail.levels} />,
-                },
-                {
-                  label: t("alertRule.datasourceLabels"),
-                  value: detail.datasourceLabels || "{}",
-                },
-                { label: t("alertRule.summary"), value: detail.summary },
-                {
-                  label: t("alertRule.forSeconds"),
-                  value: String(detail.levels[0]?.forSeconds ?? 0),
-                },
-              ]
-            : []
-        }
       />
       <DetailSheet
         open={groupDetail !== null}
@@ -1404,45 +1403,5 @@ export function AlertRulePage() {
         }}
       />
     </section>
-  )
-}
-
-/**
- * 告警规则的表达式展示：不加边框或底色容器，先展示原始表达式，
- * 再逐行展示级别条件。列表和详情共用，避免两处排版不一致。
- */
-function RuleExpr({
-  expr,
-  levels,
-  maxHeightClass = "max-h-64",
-}: {
-  expr: string
-  levels: AlertRuleLevelItem[]
-  maxHeightClass?: string
-}) {
-  const { t } = useTranslation()
-  return (
-    <div className="grid min-w-0 gap-2">
-      <pre
-        className={`overflow-x-hidden overflow-y-auto font-mono text-xs break-words whitespace-pre-wrap ${maxHeightClass}`}
-      >
-        {expr || "—"}
-      </pre>
-      {levels.length > 0 ? (
-        <div className="grid min-w-0 gap-0.5 font-mono text-xs text-muted-foreground">
-          {levels.map((level, index) => (
-            <span key={level.uid || index} className="min-w-0 break-words">
-              {t("alertEvent.conditionSummary", {
-                level: level.levelName || level.levelUid,
-                sample: enumLabel(t, level.sample),
-                condition: enumLabel(t, level.condition),
-                threshold: level.threshold || "—",
-                forSeconds: level.forSeconds,
-              })}
-            </span>
-          ))}
-        </div>
-      ) : null}
-    </div>
   )
 }
