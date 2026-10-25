@@ -8,6 +8,7 @@ import { getDatasourceStatus } from "@/api/datasource"
 import { proxyQuery, queryMetric, queryMetricRange } from "@/api/metric-query"
 import type { DatasourceItem } from "@/api/datasource/types"
 import { FormField } from "@/components/form-field"
+import { useQueryDraft, useQueryLibrary } from "@/hooks/use-query-store"
 import { MetricGraph } from "@/components/metric-graph"
 import { PromQLEditor } from "@/components/query-expression-editor"
 import { useTheme } from "@/components/theme-provider"
@@ -24,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/class-names"
 import { failureMessage } from "@/lib/form-error"
+import type { QuerySnapshot } from "@/lib/query-store"
 import {
   collectLabelKeys,
   extractPrometheusResultData,
@@ -33,6 +35,12 @@ import {
 } from "@/pages/datasource/prometheus"
 import { ElasticsearchPanel } from "@/pages/datasource/elasticsearch-panel"
 import { LokiPanel } from "@/pages/datasource/loki-panel"
+import { DatasourceQueryToolbar } from "@/pages/datasource/components/query-toolbar"
+import {
+  defaultSnapshot,
+  queryStatement,
+  restoreSnapshot,
+} from "@/pages/datasource/query-dialect"
 import { resolveRange, type RangePreset } from "@/pages/datasource/range"
 import { VlogsPanel } from "@/pages/datasource/vlogs-panel"
 
@@ -215,12 +223,33 @@ function ResultJson({
 }
 
 export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
+  if (datasource.type === "LOGS" && datasource.driver === "LOGS_LOKI") {
+    return <LokiPanel datasource={datasource} />
+  }
+
+  if (datasource.type === "LOGS" && datasource.driver === "LOGS_VLOGS") {
+    return <VlogsPanel datasource={datasource} />
+  }
+
+  if (datasource.type === "LOGS" && datasource.driver === "LOGS_ELASTICSEARCH") {
+    return <ElasticsearchPanel datasource={datasource} />
+  }
+
+  if (datasource.type !== "METRICS") {
+    return <ProxyQueryPanel datasource={datasource} />
+  }
+
+  return <MetricsQueryPanel datasource={datasource} />
+}
+
+function MetricsQueryPanel({ datasource }: { datasource: DatasourceItem }) {
   const { t } = useTranslation()
-  const [expr, setExpr] = useState("up")
-  const [rangePreset, setRangePreset] = useState<RangePreset>("1h")
+  const defaults = useMemo(() => defaultSnapshot("promql"), [])
+  const draft = useQueryDraft(datasource.uid, "promql", defaults)
+  const library = useQueryLibrary(datasource.uid, "promql")
+  const { expr, rangePreset, step } = draft.state
   const [customStart, setCustomStart] = useState("")
   const [customEnd, setCustomEnd] = useState("")
-  const [step, setStep] = useState("60")
   const [pending, setPending] = useState(false)
   const [queryError, setQueryError] = useState("")
   const [exprError, setExprError] = useState("")
@@ -228,10 +257,6 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
   const [instantBody, setInstantBody] = useState("")
   const [rangeBody, setRangeBody] = useState("")
   const [resultTab, setResultTab] = useState<ResultTab>("table")
-  const [proxyMethod, setProxyMethod] = useState("GET")
-  const [proxyPath, setProxyPath] = useState("/")
-  const [proxyBody, setProxyBody] = useState("")
-  const [proxyResult, setProxyResult] = useState("")
 
   const instantResponse = useMemo(() => parsePrometheusBody(instantBody), [instantBody])
   const rangeResponse = useMemo(() => parsePrometheusBody(rangeBody), [rangeBody])
@@ -242,20 +267,24 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
       ? t("datasource.vmExprHint")
       : t("datasource.exprHint")
 
-  function resolveQueryRange(): { start: number; end: number } {
-    return resolveRange(rangePreset, customStart, customEnd)
+  function restore(snapshot: QuerySnapshot) {
+    draft.replace(restoreSnapshot(snapshot))
   }
 
-  async function runMetricsQuery() {
-    const trimmed = expr.trim()
+  async function runMetricsQuery(overrides?: QuerySnapshot) {
+    const active = overrides ? restoreSnapshot(overrides) : draft.state
+    if (overrides) {
+      draft.replace(active)
+    }
+    const trimmed = active.expr.trim()
     if (!trimmed) {
       setExprError(t("form.required"))
       setQueryError("")
       return
     }
     setExprError("")
-    const range = resolveQueryRange()
-    const stepSeconds = Number(step)
+    const range = resolveRange(active.rangePreset as RangePreset, customStart, customEnd)
+    const stepSeconds = Number(active.step)
     if (!Number.isFinite(range.start) || !Number.isFinite(range.end) || range.end <= range.start) {
       setQueryError(t("datasource.rangeInvalid"))
       return
@@ -267,6 +296,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
     setPending(true)
     setQueryError("")
     setStatusText("")
+    const startedAt = Date.now()
     try {
       const [instant, ranged] = await Promise.all([
         queryMetric({ datasourceUid: datasource.uid, expr: trimmed, time: 0 }),
@@ -281,10 +311,26 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
       setInstantBody(instant.body)
       setRangeBody(ranged.body)
       setResultTab("table")
+      draft.markUsed(active)
+      library.record({
+        statement: trimmed,
+        snapshot: active,
+        ok: true,
+        durationMs: Date.now() - startedAt,
+      })
     } catch (err) {
+      const message = failureMessage(err, t("state.failed"))
       setInstantBody("")
       setRangeBody("")
-      setQueryError(failureMessage(err, t("state.failed")))
+      setQueryError(message)
+      draft.markUsed(active)
+      library.record({
+        statement: trimmed,
+        snapshot: active,
+        ok: false,
+        durationMs: Date.now() - startedAt,
+        error: message,
+      })
     } finally {
       setPending(false)
     }
@@ -304,75 +350,6 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
     }
   }
 
-  async function runProxy() {
-    setPending(true)
-    setQueryError("")
-    try {
-      const response = await proxyQuery({
-        datasourceUid: datasource.uid,
-        method: proxyMethod,
-        path: proxyPath,
-        body: proxyBody,
-      })
-      setProxyResult(response.body)
-    } catch (err) {
-      setProxyResult("")
-      setQueryError(failureMessage(err, t("state.failed")))
-    } finally {
-      setPending(false)
-    }
-  }
-
-  if (datasource.type === "LOGS" && datasource.driver === "LOGS_LOKI") {
-    return <LokiPanel datasource={datasource} />
-  }
-
-  if (datasource.type === "LOGS" && datasource.driver === "LOGS_VLOGS") {
-    return <VlogsPanel datasource={datasource} />
-  }
-
-  if (datasource.type === "LOGS" && datasource.driver === "LOGS_ELASTICSEARCH") {
-    return <ElasticsearchPanel datasource={datasource} />
-  }
-
-  if (datasource.type !== "METRICS") {
-    return (
-      <div className="grid gap-4">
-        <div className="flex flex-wrap gap-2">
-          <Select value={proxyMethod} onValueChange={setProxyMethod}>
-            <SelectTrigger className="w-28" aria-label={t("datasource.method")}>
-              <SelectValue placeholder={t("datasource.method")} />
-            </SelectTrigger>
-            <SelectContent>
-              {["GET", "POST", "PUT"].map((item) => (
-                <SelectItem key={item} value={item}>
-                  {item}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            className="max-w-sm"
-            value={proxyPath}
-            placeholder={t("datasource.pathPlaceholder")}
-            onChange={(event) => setProxyPath(event.target.value)}
-          />
-          <Button type="button" disabled={pending} onClick={() => void runProxy()}>
-            {t("datasource.proxy")}
-          </Button>
-        </div>
-        <textarea
-          className={areaClass}
-          value={proxyBody}
-          placeholder={t("datasource.bodyPlaceholder")}
-          onChange={(event) => setProxyBody(event.target.value)}
-        />
-        {queryError ? <p className="text-sm text-destructive">{queryError}</p> : null}
-        {proxyResult ? <pre className="overflow-auto rounded-lg border p-3 text-sm">{proxyResult}</pre> : null}
-      </div>
-    )
-  }
-
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
       <div className="shrink-0">
@@ -382,12 +359,24 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
           hint={exprHint}
           required
           error={exprError}
+          actions={
+            <DatasourceQueryToolbar
+              dialect="promql"
+              library={library}
+              snapshot={draft.state}
+              defaultSnapshot={defaults}
+              lastUsedAt={draft.lastUsedAt}
+              pending={pending}
+              onFill={restore}
+              onRun={(snapshot) => void runMetricsQuery(snapshot)}
+            />
+          }
         >
           <PromQLEditor
             value={expr}
             datasourceUid={datasource.uid}
             onChange={(value) => {
-              setExpr(value)
+              draft.patch({ expr: value })
               if (exprError) {
                 setExprError("")
               }
@@ -403,7 +392,10 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
       >
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
           <div className="flex flex-nowrap items-center gap-2">
-            <Select value={rangePreset} onValueChange={(value) => setRangePreset(value as RangePreset)}>
+            <Select
+              value={rangePreset}
+              onValueChange={(value) => draft.patch({ rangePreset: value })}
+            >
               <SelectTrigger className="w-36 shrink-0" aria-label={t("datasource.rangePreset")}>
                 <SelectValue placeholder={t("datasource.rangePreset")} />
               </SelectTrigger>
@@ -435,7 +427,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
               className="max-w-28"
               value={step}
               placeholder={t("datasource.step")}
-              onChange={(event) => setStep(event.target.value)}
+              onChange={(event) => draft.patch({ step: event.target.value })}
             />
             <Button type="button" className="shrink-0" disabled={pending} onClick={() => void runMetricsQuery()}>
               {t("datasource.runQuery")}
@@ -472,6 +464,116 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
           ) : null}
         </TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+function ProxyQueryPanel({ datasource }: { datasource: DatasourceItem }) {
+  const { t } = useTranslation()
+  const defaults = useMemo(() => defaultSnapshot("http"), [])
+  const draft = useQueryDraft(datasource.uid, "http", defaults)
+  const library = useQueryLibrary(datasource.uid, "http")
+  const { method, path, body } = draft.state
+  const [pending, setPending] = useState(false)
+  const [queryError, setQueryError] = useState("")
+  const [proxyResult, setProxyResult] = useState("")
+
+  async function runProxy(overrides?: QuerySnapshot) {
+    const active = overrides ?? draft.state
+    if (overrides) {
+      draft.replace(overrides)
+    }
+    setPending(true)
+    setQueryError("")
+    const startedAt = Date.now()
+    const statement = queryStatement("http", active)
+    try {
+      const response = await proxyQuery({
+        datasourceUid: datasource.uid,
+        method: active.method,
+        path: active.path,
+        body: active.body,
+      })
+      setProxyResult(response.body)
+      draft.markUsed(active)
+      library.record({
+        statement,
+        snapshot: active,
+        ok: true,
+        durationMs: Date.now() - startedAt,
+      })
+    } catch (err) {
+      const message = failureMessage(err, t("state.failed"))
+      setProxyResult("")
+      setQueryError(message)
+      draft.markUsed(active)
+      library.record({
+        statement,
+        snapshot: active,
+        ok: false,
+        durationMs: Date.now() - startedAt,
+        error: message,
+      })
+    } finally {
+      setPending(false)
+    }
+  }
+
+  return (
+    <div className="grid gap-4">
+      <div className="flex flex-wrap gap-2">
+        <Select
+          value={method}
+          onValueChange={(value) => draft.patch({ method: value })}
+        >
+          <SelectTrigger className="w-28" aria-label={t("datasource.method")}>
+            <SelectValue placeholder={t("datasource.method")} />
+          </SelectTrigger>
+          <SelectContent>
+            {["GET", "POST", "PUT"].map((item) => (
+              <SelectItem key={item} value={item}>
+                {item}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          className="max-w-sm"
+          value={path}
+          placeholder={t("datasource.pathPlaceholder")}
+          onChange={(event) => draft.patch({ path: event.target.value })}
+        />
+        <Button type="button" disabled={pending} onClick={() => void runProxy()}>
+          {t("datasource.proxy")}
+        </Button>
+      </div>
+      <FormField
+        label={t("datasource.requestBody")}
+        htmlFor="proxy-body"
+        hint={t("datasource.query.httpHint")}
+        actions={
+          <DatasourceQueryToolbar
+            dialect="http"
+            library={library}
+            snapshot={draft.state}
+            defaultSnapshot={defaults}
+            lastUsedAt={draft.lastUsedAt}
+            pending={pending}
+            onFill={(snapshot) => draft.replace(snapshot)}
+            onRun={(snapshot) => void runProxy(snapshot)}
+          />
+        }
+      >
+        <textarea
+          id="proxy-body"
+          className={areaClass}
+          value={body}
+          placeholder={t("datasource.bodyPlaceholder")}
+          onChange={(event) => draft.patch({ body: event.target.value })}
+        />
+      </FormField>
+      {queryError ? <p className="text-sm text-destructive">{queryError}</p> : null}
+      {proxyResult ? <pre className="overflow-auto rounded-lg border p-3 text-sm">{proxyResult}</pre> : null}
     </div>
   )
 }

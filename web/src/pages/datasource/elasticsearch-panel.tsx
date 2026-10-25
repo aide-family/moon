@@ -6,6 +6,7 @@ import type { DatasourceItem } from "@/api/datasource/types"
 import { queryLogs } from "@/api/logs-query"
 import { FormField } from "@/components/form-field"
 import { PromQLEditor } from "@/components/query-expression-editor"
+import { useQueryDraft, useQueryLibrary } from "@/hooks/use-query-store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -25,6 +26,12 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { failureMessage } from "@/lib/form-error"
+import type { QuerySnapshot } from "@/lib/query-store"
+import { DatasourceQueryToolbar } from "@/pages/datasource/components/query-toolbar"
+import {
+  defaultSnapshot,
+  restoreSnapshot,
+} from "@/pages/datasource/query-dialect"
 import { formatResultTimestamp } from "@/pages/datasource/result-data"
 import {
   LogResultTable,
@@ -45,7 +52,6 @@ type LogDirection = "backward" | "forward"
 type ResultTab = "logs" | "json"
 
 const MAX_LOG_LIMIT = 5000
-const DEFAULT_QUERY = '{\n  "match_all": {}\n}'
 
 function elasticsearchLogRows(rows: ElasticsearchLogRow[]): ResultLogRow[] {
   return rows.map((row) => ({
@@ -133,12 +139,12 @@ export function ElasticsearchPanel({
   datasource: DatasourceItem
 }) {
   const { t } = useTranslation()
-  const [expr, setExpr] = useState(DEFAULT_QUERY)
-  const [rangePreset, setRangePreset] = useState<RangePreset>("1h")
+  const defaults = useMemo(() => defaultSnapshot("dsl"), [])
+  const draft = useQueryDraft(datasource.uid, "dsl", defaults)
+  const library = useQueryLibrary(datasource.uid, "dsl")
+  const { expr, rangePreset, limit, direction } = draft.state
   const [customStart, setCustomStart] = useState("")
   const [customEnd, setCustomEnd] = useState("")
-  const [limit, setLimit] = useState("100")
-  const [direction, setDirection] = useState<LogDirection>("backward")
   const [pending, setPending] = useState(false)
   const [queryError, setQueryError] = useState("")
   const [exprError, setExprError] = useState("")
@@ -183,8 +189,12 @@ export function ElasticsearchPanel({
         ? t("datasource.resultTable")
         : t("enum.LOGS")
 
-  async function runQuery() {
-    const trimmed = expr.trim()
+  async function runQuery(overrides?: QuerySnapshot) {
+    const active = overrides ? restoreSnapshot(overrides) : draft.state
+    if (overrides) {
+      draft.replace(active)
+    }
+    const trimmed = active.expr.trim()
     if (!trimmed) {
       setExprError(t("form.required"))
       setQueryError("")
@@ -196,7 +206,11 @@ export function ElasticsearchPanel({
       return
     }
     setExprError("")
-    const range = resolveRange(rangePreset, customStart, customEnd)
+    const range = resolveRange(
+      active.rangePreset as RangePreset,
+      customStart,
+      customEnd
+    )
     if (
       !Number.isFinite(range.start) ||
       !Number.isFinite(range.end) ||
@@ -205,7 +219,7 @@ export function ElasticsearchPanel({
       setQueryError(t("datasource.rangeInvalid"))
       return
     }
-    const size = Number(limit)
+    const size = Number(active.limit)
     if (!Number.isInteger(size) || size < 1 || size > MAX_LOG_LIMIT) {
       setQueryError(t("datasource.logsLimitInvalid"))
       return
@@ -213,6 +227,7 @@ export function ElasticsearchPanel({
     setPending(true)
     setQueryError("")
     setStatusText("")
+    const startedAt = Date.now()
     try {
       const response = await queryLogs({
         datasourceUid: datasource.uid,
@@ -220,13 +235,29 @@ export function ElasticsearchPanel({
         start: range.start,
         end: range.end,
         limit: size,
-        direction,
+        direction: active.direction,
       })
       setBody(response.body)
       setResultTab("logs")
+      draft.markUsed(active)
+      library.record({
+        statement: trimmed,
+        snapshot: active,
+        ok: true,
+        durationMs: Date.now() - startedAt,
+      })
     } catch (err) {
+      const message = failureMessage(err, t("state.failed"))
       setBody("")
-      setQueryError(failureMessage(err, t("state.failed")))
+      setQueryError(message)
+      draft.markUsed(active)
+      library.record({
+        statement: trimmed,
+        snapshot: active,
+        ok: false,
+        durationMs: Date.now() - startedAt,
+        error: message,
+      })
     } finally {
       setPending(false)
     }
@@ -255,13 +286,25 @@ export function ElasticsearchPanel({
           hint={t("datasource.esExprHint")}
           required
           error={exprError}
+          actions={
+            <DatasourceQueryToolbar
+              dialect="dsl"
+              library={library}
+              snapshot={draft.state}
+              defaultSnapshot={defaults}
+              lastUsedAt={draft.lastUsedAt}
+              pending={pending}
+              onFill={(snapshot) => draft.replace(snapshot)}
+              onRun={(snapshot) => void runQuery(snapshot)}
+            />
+          }
         >
           <PromQLEditor
             value={expr}
             variant="json"
             datasourceUid={datasource.uid}
             onChange={(value) => {
-              setExpr(value)
+              draft.patch({ expr: value })
               if (exprError) {
                 setExprError("")
               }
@@ -284,7 +327,7 @@ export function ElasticsearchPanel({
           <div className="flex flex-nowrap items-center gap-2">
             <Select
               value={rangePreset}
-              onValueChange={(value) => setRangePreset(value as RangePreset)}
+              onValueChange={(value) => draft.patch({ rangePreset: value })}
             >
               <SelectTrigger
                 className="w-36 shrink-0"
@@ -331,11 +374,13 @@ export function ElasticsearchPanel({
               value={limit}
               aria-label={t("datasource.logsLimit")}
               placeholder={t("datasource.logsLimit")}
-              onChange={(event) => setLimit(event.target.value)}
+              onChange={(event) => draft.patch({ limit: event.target.value })}
             />
             <Select
               value={direction}
-              onValueChange={(value) => setDirection(value as LogDirection)}
+              onValueChange={(value) =>
+                draft.patch({ direction: value as LogDirection })
+              }
             >
               <SelectTrigger
                 className="w-32 shrink-0"

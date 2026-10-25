@@ -16,6 +16,8 @@ interface FormFieldProps {
   error?: string
   required?: boolean
   className?: string
+  /** label 行右侧的次要操作（例如查询模板与历史入口），不额外占用纵向空间。 */
+  actions?: ReactNode
   children: ReactNode
 }
 
@@ -27,6 +29,7 @@ export function FormField({
   error,
   required = false,
   className,
+  actions,
   children,
 }: FormFieldProps) {
   return (
@@ -35,7 +38,7 @@ export function FormField({
       data-invalid={error ? "true" : undefined}
       className={cn("grid min-w-0 gap-2 [&_[data-slot=select-trigger]]:w-full", className)}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Label htmlFor={htmlFor} aria-required={required || undefined}>
           <span className="inline-flex items-center gap-1">
             {required ? (
@@ -60,6 +63,7 @@ export function FormField({
             <TooltipContent>{hint}</TooltipContent>
           </Tooltip>
         ) : null}
+        {actions}
       </div>
       {children}
       {error ? (
