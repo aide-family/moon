@@ -2,7 +2,26 @@
 
 alkaid 只出站连接 `alioth:9000`。控制面不回拨 Agent。8022 / 9022 仅供本机或集群内健康检查，不要发布到集群外，也不要写进 Web nginx。
 
-## systemd
+## 一键部署包（systemd）
+
+每个 `v*` tag 的 GitHub Release 附带 linux/amd64 与 linux/arm64 的裸二进制
+（`alkaid_<版本>_linux_<架构>`）和一键部署包，包内是 `alkaid` 二进制、`alkaid.service`、
+`alkaid.yaml`、`alkaid.env.example`、`install.sh`、`VERSION` 和本说明：
+
+```bash
+sha256sum -c SHA256SUMS          # macOS 用 shasum -a 256 -c SHA256SUMS
+tar -xzf alkaid_v0.1.0_linux_amd64.tar.gz
+cd alkaid_v0.1.0_linux_amd64
+sudo ./install.sh                # 加 --no-start 只安装并 enable
+```
+
+`install.sh` 会把二进制装到 `/usr/local/bin/alkaid`、配置写到 `/etc/alioth/`、单元写到
+`/etc/systemd/system/alkaid.service`，然后 `daemon-reload` 并 `enable`。`alkaid.env` 已存在时不会被覆盖；
+令牌为空或仍是占位值时不会启动服务，填好后 `systemctl restart alkaid`。
+
+本地打同一个包：`make package-alkaid VERSION=v0.1.0`（产物在 `dist/`，`ARCHES=arm64` 可只打一个架构）。
+
+## 手工 systemd 安装
 
 1. 把 `alkaid` 二进制放到 `/usr/local/bin/alkaid`。
 2. 安装配置：

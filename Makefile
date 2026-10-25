@@ -8,9 +8,11 @@ PROTO_INC ?= /opt/homebrew/include
 # 镜像版本戳：注入 main.version 并作为镜像 tag，避免所有部署都用 :latest。
 VERSION ?= $(shell git -C $(ROOT) describe --tags --always --dirty 2>/dev/null || echo dev)
 IMAGE_PREFIX ?= alioth
+# 摇光部署包的目标架构；本地验证时可只跑一个，例如 ARCHES=arm64。
+ARCHES ?= amd64 arm64
 
 .PHONY: tools api conf vet lint build build-alioth build-megrez build-merak build-alkaid build-alkaid-linux build-web \
-	image-alioth image-megrez image-merak image-alkaid image-web images \
+	image-alioth image-megrez image-merak image-alkaid image-web images package-alkaid \
 	run-alioth run-megrez run-merak run-alkaid run-web \
 	test test-pkg test-race migrate migrate-in-docker compose-images compose-up compose-down compose-alkaid dev-up dev-down loki-demo loki-demo-stop vlogs-demo vlogs-demo-stop tidy wire
 
@@ -79,6 +81,10 @@ build-alkaid:
 
 build-alkaid-linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -C $(ROOT)app/alkaid -ldflags "$(version_ldflags)" -o $(BIN)/alkaid-linux ./cmd/alkaid
+
+# 摇光 systemd 一键部署包（二进制 + 单元 + install.sh）。release.yml 调用的也是这一条。
+package-alkaid:
+	OUT=$(ROOT)dist VERSION=$(VERSION) ARCHES="$(ARCHES)" $(ROOT)scripts/package-alkaid.sh
 
 build-web:
 	npm --prefix $(ROOT)web ci

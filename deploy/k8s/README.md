@@ -4,6 +4,9 @@
 `alioth/<service>:latest`；发版时用 `kubectl -n alioth set image deploy/<service> <service>=alioth/<service>:<version>`
 把四个 Deployment 换成带版本戳的镜像，不要长期停留在 `latest`。
 
+CI 在 `v*` tag 上把同样的镜像推到 GHCR（`ghcr.io/aide-family/alioth/<service>:<version>`，多架构），
+集群能拉 GHCR 时也可以直接把清单换成该地址；私有仓库需要先配 imagePullSecret。
+
 ## 部署顺序
 
 ```bash

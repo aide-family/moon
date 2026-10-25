@@ -64,6 +64,21 @@ make images VERSION=v0.1.0 IMAGE_PREFIX=alioth
 镜像内注入 `main.version`，可用 `docker run --rm alioth/alioth:v0.1.0 version` 核对；Kubernetes
 部署顺序、迁移 Job、PDB 与网络策略见 [deploy/k8s/README.md](deploy/k8s/README.md)。
 
+`.github/workflows/release.yml` 在 `main` 和 `v*` tag 上构建并推送镜像，tag 上同时发布摇光部署包：
+
+| 服务 | GHCR 镜像 |
+| --- | --- |
+| 玉衡 | `ghcr.io/aide-family/alioth/alioth` |
+| 天权 | `ghcr.io/aide-family/alioth/megrez` |
+| 天璇 | `ghcr.io/aide-family/alioth/merak` |
+| 摇光 | `ghcr.io/aide-family/alioth/alkaid` |
+| Web | `ghcr.io/aide-family/alioth/web` |
+
+- `v0.1.0` 这类 tag 产出 `v0.1.0`、`0.1.0`、`0.1`、`0`、`latest` 和 `sha-<12 位>` 标签，镜像为 amd64 + arm64 多架构；`main` 只出 amd64，标签是 `main` 与 `sha-<12 位>`。
+- 镜像带 `org.opencontainers.image.source` 等 OCI 标签，GHCR 包因此关联本仓库；构建来源证明（provenance）与 SBOM 随镜像推送。
+- tag 的 Release 附带摇光 `alkaid` 的 linux/amd64、linux/arm64 裸二进制，以及含 systemd 单元、配置模板和 `install.sh` 的部署包，外加 `SHA256SUMS`，并用 GitHub Artifact Attestation 记录产物来源。安装见 [deploy/alkaid/README.md](deploy/alkaid/README.md)。
+- 本地可以先跑同一条打包命令验证产物：`make package-alkaid VERSION=v0.1.0`（`ARCHES=amd64` 只打一个架构），输出在 `dist/`。
+
 ## 健康检查
 
 | 服务 | liveness | readiness |
