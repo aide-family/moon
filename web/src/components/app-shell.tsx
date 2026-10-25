@@ -346,10 +346,14 @@ function ShellFrame() {
   if (!token) {
     return <Navigate to="/login" replace />
   }
-  // 后端接口失败时直接给出标准 502 页面，而不是在内容区残留“加载失败 + 重试”。
+  // 后端接口失败时直接给出标准错误页（502/503），而不是在内容区残留“加载失败 + 重试”。
   if (session.failed) {
     return (
-      <ServerErrorPage detail={session.loadError} onRetry={session.reload} />
+      <ServerErrorPage
+        status={session.loadStatus === 503 ? 503 : 502}
+        detail={session.loadError}
+        onRetry={session.reload}
+      />
     )
   }
 

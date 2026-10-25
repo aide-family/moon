@@ -1,6 +1,6 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Building2, Search } from "lucide-react"
+import { Building2 } from "lucide-react"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import { listMembers } from "@/api/member"
@@ -8,6 +8,7 @@ import type { MemberItem } from "@/api/member/types"
 import {
   createNamespace,
   deleteNamespace,
+  listNamespaces,
   transferNamespaceOwner,
   updateNamespace,
   updateNamespaceStatus,
@@ -44,12 +45,16 @@ import {
   requireSelected,
   requireTrimmed,
 } from "@/lib/form"
+import { useListQuery } from "@/hooks/use-list-query"
+import { usePagedList } from "@/hooks/use-paged-list"
 
 export function NamespacePage() {
   const { t } = useTranslation()
   const session = useSession()
+  const query = useListQuery()
   // 表头和每一行都是独立的 grid 容器，必须共用同一份列模板才能对齐。
   const rowGrid = TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS
+  const [draft, setDraft] = useState(query.name)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [remark, setRemark] = useState("")
@@ -65,7 +70,49 @@ export function NamespacePage() {
     { type: "delete" | "disable"; uid: string } | { type: "transfer" } | null
   >(null)
   const [confirmError, setConfirmError] = useState("")
-  const [search, setSearch] = useState("")
+
+  // 列表走服务端分页：page / name 来自 URL，和成员、角色等列表页同一套约定。
+  // 还没选定租户时没有 X-Namespace 可带，接口必然 401，所以直接给空列表，
+  // 让「创建第一个租户」这条路仍然可用。
+  const {
+    items,
+    total,
+    loading,
+    failed,
+    error: loadError,
+    reload,
+  } = usePagedList<NamespaceItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: query.name,
+    fetch: (page, pageSize) =>
+      session.namespaceUid
+        ? listNamespaces({ page, pageSize, name: query.name })
+        : Promise.resolve({ items: [], total: 0 }),
+  })
+
+  // 页码可能来自历史 URL，或被删除、筛选后的结果集收缩：越界时回到最后一页，
+  // 否则列表空着但分页控件已被隐藏，用户只能手改 URL。
+  useEffect(() => {
+    if (loading || failed || query.page <= 1) {
+      return
+    }
+    const lastPage = Math.max(1, Math.ceil(total / query.pageSize))
+    if (
+      lastPage !== query.page &&
+      (items.length === 0 || query.page > lastPage)
+    ) {
+      query.update({ page: lastPage })
+    }
+    // query.update 每次渲染都是新函数，这里用页码与总数做真正的依赖。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, failed, items.length, total, query.page, query.pageSize])
+
+  // 租户写操作既影响分页列表，也影响会话里的租户集（切换器、统计和权限），两处都要刷新。
+  function refresh() {
+    reload()
+    session.reload()
+  }
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
@@ -85,7 +132,7 @@ export function NamespacePage() {
       setOpen(false)
       setName("")
       setRemark("")
-      session.reload()
+      refresh()
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
@@ -114,7 +161,7 @@ export function NamespacePage() {
       localStorage.setItem("namespace", editing)
       await updateNamespace({ uid: editing, name: name.trim(), remark })
       setEditing(null)
-      session.reload()
+      refresh()
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
@@ -127,7 +174,7 @@ export function NamespacePage() {
   async function onStatus(uid: string) {
     localStorage.setItem("namespace", uid)
     await updateNamespaceStatus(uid, "ACTIVE")
-    session.reload()
+    refresh()
   }
 
   async function runConfirm() {
@@ -151,7 +198,7 @@ export function NamespacePage() {
         setTarget("")
       }
       setConfirm(null)
-      session.reload()
+      refresh()
     } catch (err) {
       setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
@@ -275,17 +322,7 @@ export function NamespacePage() {
   const currentNamespace = session.namespaces.find(
     (item) => item.uid === session.namespaceUid
   )
-  const normalizedSearch = search.trim().toLocaleLowerCase()
-  const visibleNamespaces = normalizedSearch
-    ? session.namespaces.filter((item) =>
-        [item.name, item.ownerName, item.ownerEmail]
-          .filter(Boolean)
-          .some(
-            (value) =>
-              value?.toLocaleLowerCase().includes(normalizedSearch) ?? false
-          )
-      )
-    : session.namespaces
+  // 统计口径跟着会话里的完整租户集走，不受列表筛选与分页影响。
   const activeCount = session.namespaces.filter(
     (item) => item.status === "ACTIVE"
   ).length
@@ -386,30 +423,34 @@ export function NamespacePage() {
         </section>
       </div>
 
-      <ListFrame
-        total={visibleNamespaces.length}
-        page={1}
-        pageSize={Math.max(visibleNamespaces.length, 1)}
-        showPager={false}
-        onPrev={() => undefined}
-        onNext={() => undefined}
-        actions={
-          <div className="relative w-40 sm:w-64">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              aria-label={t("namespace.switcher.search")}
-              className="pl-9"
-              placeholder={t("namespace.switcher.searchPlaceholder")}
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </div>
-        }
+      <form
+        className="flex gap-2"
+        onSubmit={(event) => {
+          event.preventDefault()
+          query.update({ name: draft })
+        }}
       >
-        {session.loading ? (
+        <Input
+          className="max-w-sm"
+          aria-label={t("namespace.switcher.search")}
+          placeholder={t("namespace.switcher.searchPlaceholder")}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+        />
+        <Button type="submit" variant="outline">
+          {t("action.search")}
+        </Button>
+      </form>
+
+      <ListFrame
+        total={total}
+        page={query.page}
+        pageSize={query.pageSize}
+        showPager={!loading && !failed && items.length > 0}
+        onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
+        onNext={() => query.update({ page: query.page + 1 })}
+      >
+        {loading ? (
           <div
             aria-busy="true"
             aria-live="polite"
@@ -426,22 +467,30 @@ export function NamespacePage() {
             ))}
           </div>
         ) : null}
-        {!session.loading && session.failed ? (
+        {!loading && failed ? (
           <div
             className="flex flex-col items-start gap-3 rounded-lg border border-destructive/25 bg-destructive/5 p-5 sm:flex-row sm:items-center sm:justify-between"
             role="alert"
           >
             <p className="text-sm text-destructive">
-              {session.loadError || t("state.failed")}
+              {loadError || t("state.failed")}
             </p>
-            <Button variant="outline" onClick={session.reload}>
+            <Button variant="outline" onClick={() => reload()}>
               {t("action.retry")}
             </Button>
           </div>
         ) : null}
-        {!session.loading &&
-        !session.failed &&
-        session.namespaces.length === 0 ? (
+        {!loading && !failed && items.length === 0 && query.name ? (
+          <div className="flex min-h-44 flex-col items-center justify-center px-5 py-8 text-center">
+            <p className="text-sm font-medium">
+              {t("namespace.switcher.noResults")}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("namespace.switcher.noResultsHint", { query: query.name })}
+            </p>
+          </div>
+        ) : null}
+        {!loading && !failed && items.length === 0 && !query.name ? (
           <div className="flex min-h-44 flex-col items-center justify-center rounded-lg border border-dashed border-border px-5 py-8 text-center">
             <span className="mb-3 grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
               <Building2 aria-hidden="true" className="size-5" />
@@ -451,116 +500,106 @@ export function NamespacePage() {
             </p>
           </div>
         ) : null}
-        {!session.loading &&
-        !session.failed &&
-        session.namespaces.length > 0 &&
-        visibleNamespaces.length === 0 ? (
-          <div className="flex min-h-44 flex-col items-center justify-center px-5 py-8 text-center">
-            <p className="text-sm font-medium">
-              {t("namespace.switcher.noResults")}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t("namespace.switcher.noResultsHint", { query: search.trim() })}
-            </p>
-          </div>
-        ) : null}
-        {!session.loading && !session.failed && visibleNamespaces.length > 0 ? (
-          <div className="min-w-0 overflow-hidden rounded-lg border border-border/70">
+        {!loading && !failed && items.length > 0 ? (
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70">
             <div
-              className={`hidden items-center gap-4 bg-muted/35 px-5 py-3 text-[11px] font-medium tracking-[0.1em] text-muted-foreground uppercase md:grid ${rowGrid}`}
+              className={`hidden shrink-0 items-center gap-4 bg-muted/35 px-5 py-3 text-[11px] font-medium tracking-[0.1em] text-muted-foreground uppercase md:grid ${rowGrid}`}
             >
               <span>{t("namespace.name")}</span>
               <span>{t("namespace.leader")}</span>
               <span>{t("namespace.status")}</span>
               <span className="text-right">{t("action.actions")}</span>
             </div>
-            <ul
-              aria-label={t("namespace.switcher.listLabel")}
-              className="divide-y divide-border/70"
-            >
-              {visibleNamespaces.map((item) => {
-                const isCurrent = item.uid === session.namespaceUid
-                return (
-                  <li
-                    className={`grid min-w-0 gap-3 p-4 md:items-center md:gap-4 md:px-5 ${rowGrid} ${isCurrent ? "bg-primary/[0.035]" : "bg-card/30"}`}
-                    key={item.uid}
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span
-                        aria-hidden="true"
-                        className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg ring-1 ${isCurrent ? "bg-primary/10 text-primary ring-primary/20" : "bg-muted/70 text-muted-foreground ring-border/70"}`}
-                      >
-                        <Building2 className="size-4" />
-                        {item.logo ? (
-                          <img
-                            alt=""
-                            className="absolute inset-0 size-full object-cover"
-                            loading="lazy"
-                            onError={(event) => {
-                              event.currentTarget.hidden = true
-                            }}
-                            src={item.logo}
-                          />
-                        ) : null}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                          <h3 className="text-sm font-semibold break-words">
-                            {item.name}
-                          </h3>
-                          {isCurrent ? (
-                            <Badge
-                              variant="secondary"
-                              className="h-5 px-1.5 text-[10px]"
-                            >
-                              {t("namespace.current")}
-                            </Badge>
+            {/* 表体独立滚动，表头留在滚动区外：长列表不会再被 ListFrame 的 overflow-hidden 裁掉。 */}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <ul
+                aria-label={t("namespace.switcher.listLabel")}
+                className="divide-y divide-border/70"
+              >
+                {items.map((item) => {
+                  const isCurrent = item.uid === session.namespaceUid
+                  return (
+                    <li
+                      className={`grid min-w-0 gap-3 p-4 md:items-center md:gap-4 md:px-5 ${rowGrid} ${isCurrent ? "bg-primary/[0.035]" : "bg-card/30"}`}
+                      key={item.uid}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span
+                          aria-hidden="true"
+                          className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg ring-1 ${isCurrent ? "bg-primary/10 text-primary ring-primary/20" : "bg-muted/70 text-muted-foreground ring-border/70"}`}
+                        >
+                          <Building2 className="size-4" />
+                          {item.logo ? (
+                            <img
+                              alt=""
+                              className="absolute inset-0 size-full object-cover"
+                              loading="lazy"
+                              onError={(event) => {
+                                event.currentTarget.hidden = true
+                              }}
+                              src={item.logo}
+                            />
+                          ) : null}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                            <h3 className="text-sm font-semibold break-words">
+                              {item.name}
+                            </h3>
+                            {isCurrent ? (
+                              <Badge
+                                variant="secondary"
+                                className="h-5 px-1.5 text-[10px]"
+                              >
+                                {t("namespace.current")}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          {item.remark ? (
+                            <p className="mt-1 truncate text-xs text-muted-foreground">
+                              {item.remark}
+                            </p>
                           ) : null}
                         </div>
-                        {item.remark ? (
-                          <p className="mt-1 truncate text-xs text-muted-foreground">
-                            {item.remark}
-                          </p>
-                        ) : null}
                       </div>
-                    </div>
 
-                    <div className="min-w-0 pl-[3.25rem] md:pl-0">
-                      <p className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase md:hidden">
-                        {t("namespace.leader")}
-                      </p>
-                      <span className="flex min-w-0 flex-col">
-                        <span className="text-sm break-all">
-                          {item.ownerName || item.ownerEmail || item.ownerUid}
-                        </span>
-                        {item.ownerName && item.ownerEmail ? (
-                          <span className="text-xs break-all text-muted-foreground">
-                            {item.ownerEmail}
+                      <div className="min-w-0 pl-[3.25rem] md:pl-0">
+                        <p className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase md:hidden">
+                          {t("namespace.leader")}
+                        </p>
+                        <span className="flex min-w-0 flex-col">
+                          <span className="text-sm break-all">
+                            {item.ownerName || item.ownerEmail || item.ownerUid}
                           </span>
-                        ) : null}
-                      </span>
-                    </div>
+                          {item.ownerName && item.ownerEmail ? (
+                            <span className="text-xs break-all text-muted-foreground">
+                              {item.ownerEmail}
+                            </span>
+                          ) : null}
+                        </span>
+                      </div>
 
-                    <div className="flex items-center gap-2 pl-[3.25rem] md:pl-0">
-                      <span className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase md:hidden">
-                        {t("namespace.status")}
-                      </span>
-                      <StatusBadge value={item.status} />
-                    </div>
+                      <div className="flex items-center gap-2 pl-[3.25rem] md:pl-0">
+                        <span className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase md:hidden">
+                          {t("namespace.status")}
+                        </span>
+                        <StatusBadge value={item.status} />
+                      </div>
 
-                    <div className="flex min-w-0 justify-start md:justify-end">
-                      <RowActions
-                        detailLabel={t("action.detail")}
-                        moreLabel={t("action.more")}
-                        onDetail={() => setDetail(item)}
-                        actions={namespaceActions(item)}
-                        nowrap
-                      />
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
+                      <div className="flex min-w-0 justify-start md:justify-end">
+                        <RowActions
+                          detailLabel={t("action.detail")}
+                          moreLabel={t("action.more")}
+                          onDetail={() => setDetail(item)}
+                          actions={namespaceActions(item)}
+                          nowrap
+                        />
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
           </div>
         ) : null}
       </ListFrame>

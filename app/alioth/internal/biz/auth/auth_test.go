@@ -3,9 +3,13 @@ package auth
 import (
 	"context"
 	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -298,6 +302,56 @@ func TestOAuthProviders(t *testing.T) {
 		}
 	})
 
+	t.Run("lists feishu with email scope", func(t *testing.T) {
+		// redirect_uri 带空格，用来确认空格被编码成 %20 而不是 url.Values 默认的 "+"。
+		const feishuRedirectURI = "https://app.example.com/oauth2/callback?next=some page"
+		authenticator := configureBoth()
+		authenticator.oauthClients["FEISHU"] = oauthClient{id: "feishu-id", secret: "feishu-secret"}
+		providers, err := authenticator.OAuthProviders(feishuRedirectURI, state)
+		if err != nil {
+			t.Fatalf("OAuthProviders: %v", err)
+		}
+		if len(providers) != 3 {
+			t.Fatalf("providers = %d, want 3", len(providers))
+		}
+		feishu := providers[2]
+		if feishu.Provider != "FEISHU" || feishu.Name != "飞书" {
+			t.Fatalf("feishu = %+v", feishu)
+		}
+		if !strings.HasPrefix(feishu.AuthorizeURL, "https://accounts.feishu.cn/open-apis/authen/v1/authorize?") {
+			t.Fatalf("feishu authorize url = %q", feishu.AuthorizeURL)
+		}
+		for _, want := range []string{
+			"client_id=feishu-id",
+			"state=state-123456",
+			"response_type=code",
+			"scope=contact%3Auser.email%3Areadonly",
+			"redirect_uri=https%3A%2F%2Fapp.example.com%2Foauth2%2Fcallback%3Fnext%3Dsome%20page",
+		} {
+			if !strings.Contains(feishu.AuthorizeURL, want) {
+				t.Fatalf("feishu authorize url 缺少 %q: %s", want, feishu.AuthorizeURL)
+			}
+		}
+		// 飞书授权页不把 "+" 当空格，空格必须是 %20（见 authorizeURL 注释）。
+		if strings.Contains(feishu.AuthorizeURL, "+") {
+			t.Fatalf("feishu authorize url 不应包含 +: %s", feishu.AuthorizeURL)
+		}
+	})
+
+	t.Run("omits feishu without secret", func(t *testing.T) {
+		authenticator := configureBoth()
+		authenticator.oauthClients["FEISHU"] = oauthClient{id: "feishu-id"}
+		providers, err := authenticator.OAuthProviders(redirectURI, state)
+		if err != nil {
+			t.Fatalf("OAuthProviders: %v", err)
+		}
+		for _, provider := range providers {
+			if provider.Provider == "FEISHU" {
+				t.Fatalf("缺少 client_secret 的飞书不应出现在来源列表: %+v", provider)
+			}
+		}
+	})
+
 	t.Run("lists only github when gitee has no secret", func(t *testing.T) {
 		authenticator := configureBoth()
 		authenticator.oauthClients["GITEE"] = oauthClient{id: "gitee-id"}
@@ -324,6 +378,177 @@ func TestOAuthProviders(t *testing.T) {
 	t.Run("rejects non http redirect uri", func(t *testing.T) {
 		_, err := configureBoth().OAuthProviders("app://callback", state)
 		assertClientMessage(t, err, "invalid redirect uri")
+	})
+}
+
+// feishuStub 用 httptest 代替飞书 v3 令牌接口和 user_info 接口，记录收到的请求并按预设 JSON 回复。
+// 两个端点变量在 Cleanup 里恢复，测试不访问真实飞书。
+type feishuStub struct {
+	mu               sync.Mutex
+	tokenResponse    string
+	userInfoResponse string
+	tokenMethod      string
+	tokenContentType string
+	tokenForm        url.Values
+	userInfoMethod   string
+	userInfoAuth     string
+}
+
+func newFeishuStub(t *testing.T, tokenResponse, userInfoResponse string) *feishuStub {
+	t.Helper()
+	stub := &feishuStub{tokenResponse: tokenResponse, userInfoResponse: userInfoResponse}
+	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			t.Errorf("飞书令牌请求不是合法表单: %v", err)
+		}
+		stub.recordToken(r.Method, r.Header.Get("Content-Type"), r.PostForm)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(stub.tokenResponse))
+	}))
+	t.Cleanup(tokenServer.Close)
+	userInfoServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		stub.recordUserInfo(r.Method, r.Header.Get("Authorization"))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(stub.userInfoResponse))
+	}))
+	t.Cleanup(userInfoServer.Close)
+	restoreToken, restoreUserInfo := feishuTokenEndpoint, feishuUserInfoEndpoint
+	feishuTokenEndpoint, feishuUserInfoEndpoint = tokenServer.URL, userInfoServer.URL
+	t.Cleanup(func() {
+		feishuTokenEndpoint, feishuUserInfoEndpoint = restoreToken, restoreUserInfo
+	})
+	return stub
+}
+
+func (stub *feishuStub) recordToken(method, contentType string, form url.Values) {
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	stub.tokenMethod = method
+	stub.tokenContentType = contentType
+	stub.tokenForm = form
+}
+
+func (stub *feishuStub) recordUserInfo(method, authorization string) {
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	stub.userInfoMethod = method
+	stub.userInfoAuth = authorization
+}
+
+func (stub *feishuStub) tokenRequest() (string, string, url.Values) {
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	return stub.tokenMethod, stub.tokenContentType, stub.tokenForm
+}
+
+func (stub *feishuStub) userInfoRequest() (string, string) {
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	return stub.userInfoMethod, stub.userInfoAuth
+}
+
+// TestExchangeFeishu 覆盖飞书 v3 令牌交换和 user_info 读取，端点都指向 httptest，不访问真实飞书。
+func TestExchangeFeishu(t *testing.T) {
+	const (
+		feishuClientID     = "feishu-id"
+		feishuClientSecret = "feishu-secret"
+		feishuCode         = "auth-code"
+		feishuRedirectURI  = "https://app.example.com/oauth2/callback"
+		feishuAccessToken  = "u-feishu-token"
+		successToken       = `{"code":0,"msg":"success","access_token":"u-feishu-token","token_type":"Bearer"}`
+	)
+	client := oauthClient{id: feishuClientID, secret: feishuClientSecret}
+	exchange := func(t *testing.T) (oauthProfile, error) {
+		t.Helper()
+		return newAuthFixture(t).authenticator.exchangeFeishu(context.Background(), client, feishuCode, feishuRedirectURI)
+	}
+
+	t.Run("exchanges code and reads profile", func(t *testing.T) {
+		stub := newFeishuStub(t, successToken, `{"code":0,"msg":"success","data":{"name":"张三","en_name":"Zhang San","avatar_url":"https://avatar.example.com/zhangsan.png","open_id":"ou_zhangsan","union_id":"on_zhangsan","email":"zhangsan@example.com","enterprise_email":"zhangsan@corp.example.com"}}`)
+		profile, err := exchange(t)
+		if err != nil {
+			t.Fatalf("exchangeFeishu: %v", err)
+		}
+		method, contentType, form := stub.tokenRequest()
+		if method != http.MethodPost {
+			t.Fatalf("令牌请求方法 = %q, want POST", method)
+		}
+		if contentType != "application/x-www-form-urlencoded" {
+			t.Fatalf("令牌请求 Content-Type = %q", contentType)
+		}
+		for field, want := range map[string]string{
+			"grant_type":    "authorization_code",
+			"client_id":     feishuClientID,
+			"client_secret": feishuClientSecret,
+			"code":          feishuCode,
+			"redirect_uri":  feishuRedirectURI,
+		} {
+			if got := form.Get(field); got != want {
+				t.Fatalf("令牌请求 %s = %q, want %q", field, got, want)
+			}
+		}
+		userInfoMethod, authorization := stub.userInfoRequest()
+		if userInfoMethod != http.MethodGet {
+			t.Fatalf("user_info 请求方法 = %q, want GET", userInfoMethod)
+		}
+		if authorization != "Bearer "+feishuAccessToken {
+			t.Fatalf("user_info Authorization = %q", authorization)
+		}
+		if profile.openID != "ou_zhangsan" || profile.email != "zhangsan@example.com" || !profile.emailVerified {
+			t.Fatalf("profile = %+v", profile)
+		}
+		if profile.name != "张三" || profile.avatar != "https://avatar.example.com/zhangsan.png" {
+			t.Fatalf("profile = %+v", profile)
+		}
+	})
+
+	t.Run("falls back to enterprise email and english name", func(t *testing.T) {
+		newFeishuStub(t, successToken, `{"code":0,"msg":"success","data":{"en_name":"Zhang San","open_id":"ou_zhangsan","email":"","enterprise_email":"zhangsan@corp.example.com"}}`)
+		profile, err := exchange(t)
+		if err != nil {
+			t.Fatalf("exchangeFeishu: %v", err)
+		}
+		if profile.email != "zhangsan@corp.example.com" || !profile.emailVerified {
+			t.Fatalf("email = %q, emailVerified = %v，应退回 enterprise_email 并视为已确认", profile.email, profile.emailVerified)
+		}
+		if profile.name != "Zhang San" {
+			t.Fatalf("name = %q，应退回 en_name", profile.name)
+		}
+	})
+
+	t.Run("treats empty email as unverified", func(t *testing.T) {
+		newFeishuStub(t, successToken, `{"code":0,"msg":"success","data":{"name":"张三","open_id":"ou_zhangsan"}}`)
+		profile, err := exchange(t)
+		if err != nil {
+			t.Fatalf("exchangeFeishu: %v", err)
+		}
+		if profile.email != "" || profile.emailVerified {
+			t.Fatalf("email = %q, emailVerified = %v，没有邮箱时不能视为已验证", profile.email, profile.emailVerified)
+		}
+	})
+
+	t.Run("rejects token error code", func(t *testing.T) {
+		newFeishuStub(t, `{"code":20002,"error":"invalid_grant","error_description":"code is invalid"}`, `{}`)
+		_, err := exchange(t)
+		assertClientMessage(t, err, "oauth login failed")
+	})
+
+	t.Run("rejects empty access token", func(t *testing.T) {
+		newFeishuStub(t, `{"code":0,"msg":"success","access_token":""}`, `{}`)
+		_, err := exchange(t)
+		assertClientMessage(t, err, "oauth login failed")
+	})
+
+	t.Run("rejects user info error code", func(t *testing.T) {
+		newFeishuStub(t, successToken, `{"code":99991663,"msg":"tenant access token is invalid"}`)
+		_, err := exchange(t)
+		assertClientMessage(t, err, "oauth login failed")
+	})
+
+	t.Run("rejects user info without open id", func(t *testing.T) {
+		newFeishuStub(t, successToken, `{"code":0,"msg":"success","data":{"name":"张三"}}`)
+		_, err := exchange(t)
+		assertClientMessage(t, err, "oauth login failed")
 	})
 }
 

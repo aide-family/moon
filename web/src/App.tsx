@@ -17,6 +17,7 @@ import { MemberPage } from "@/pages/member"
 import { MessagePage } from "@/pages/message"
 import { MessageLogPage } from "@/pages/message-log"
 import { NamespacePage } from "@/pages/namespace"
+import { NotFoundPage } from "@/pages/not-found"
 import { NotificationChannelPage } from "@/pages/notification-channel"
 import { NotificationGroupPage } from "@/pages/notification-group"
 import { NotificationSubscriptionPage } from "@/pages/notification-subscription"
@@ -57,16 +58,35 @@ export function App() {
         <Route path="/alert-pages" element={<AlertPageManagePage />} />
         <Route path="/alerts" element={<AlertRealtimePage />} />
         <Route path="/alert-history" element={<AlertHistoryPage />} />
-        <Route path="/notification-channels" element={<NotificationChannelPage />} />
-        <Route path="/notification-templates" element={<NotificationTemplatePage />} />
-        <Route path="/notification-templates/presets" element={<NotificationPresetPage />} />
-        <Route path="/notification-groups" element={<NotificationGroupPage />} />
-        <Route path="/notification-subscriptions" element={<NotificationSubscriptionPage />} />
+        <Route
+          path="/notification-channels"
+          element={<NotificationChannelPage />}
+        />
+        <Route
+          path="/notification-templates"
+          element={<NotificationTemplatePage />}
+        />
+        <Route
+          path="/notification-templates/presets"
+          element={<NotificationPresetPage />}
+        />
+        <Route
+          path="/notification-groups"
+          element={<NotificationGroupPage />}
+        />
+        <Route
+          path="/notification-subscriptions"
+          element={<NotificationSubscriptionPage />}
+        />
         <Route path="/message-logs" element={<MessageLogPage />} />
         <Route path="/agents" element={<AgentPage />} />
         <Route path="/agents/:uid/shell" element={<AgentShellPage />} />
         <Route path="/ssh-commands" element={<SSHCommandPage />} />
-        <Route path="/ssh-commands/:uid/results" element={<SSHCommandResultsPage />} />
+        <Route
+          path="/ssh-commands/:uid/results"
+          element={<SSHCommandResultsPage />}
+        />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   )

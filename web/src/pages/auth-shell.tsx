@@ -1,9 +1,16 @@
 import { useEffect, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 
-import banner1 from "@/assets/banner/banner1.svg"
-import banner2 from "@/assets/banner/banner2.svg"
-import banner3 from "@/assets/banner/banner3.svg"
+import alertRulesIllustration from "@/assets/undraw/alert-rules.svg"
+import auditSearchIllustration from "@/assets/undraw/audit-search.svg"
+import dashboardIllustration from "@/assets/undraw/dashboard.svg"
+import dataSourcesIllustration from "@/assets/undraw/data-sources.svg"
+import deployGloballyIllustration from "@/assets/undraw/deploy-globally.svg"
+import identityPermissionsIllustration from "@/assets/undraw/identity-permissions.svg"
+import notificationsIllustration from "@/assets/undraw/notifications.svg"
+import serviceHealthIllustration from "@/assets/undraw/service-health.svg"
+import sshWebShellIllustration from "@/assets/undraw/ssh-web-shell.svg"
+import teamPermissionsIllustration from "@/assets/undraw/team-permissions.svg"
 import { LocaleThemeMenu } from "@/components/locale-theme-menu"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -15,19 +22,54 @@ import {
 
 const slides = [
   {
-    image: banner1,
+    image: dashboardIllustration,
     titleKey: "login.intro.title1",
     descKey: "login.intro.desc1",
   },
   {
-    image: banner2,
+    image: teamPermissionsIllustration,
     titleKey: "login.intro.title2",
     descKey: "login.intro.desc2",
   },
   {
-    image: banner3,
+    image: deployGloballyIllustration,
     titleKey: "login.intro.title3",
     descKey: "login.intro.desc3",
+  },
+  {
+    image: dataSourcesIllustration,
+    titleKey: "login.intro.title4",
+    descKey: "login.intro.desc4",
+  },
+  {
+    image: alertRulesIllustration,
+    titleKey: "login.intro.title5",
+    descKey: "login.intro.desc5",
+  },
+  {
+    image: notificationsIllustration,
+    titleKey: "login.intro.title6",
+    descKey: "login.intro.desc6",
+  },
+  {
+    image: identityPermissionsIllustration,
+    titleKey: "login.intro.title7",
+    descKey: "login.intro.desc7",
+  },
+  {
+    image: sshWebShellIllustration,
+    titleKey: "login.intro.title8",
+    descKey: "login.intro.desc8",
+  },
+  {
+    image: auditSearchIllustration,
+    titleKey: "login.intro.title9",
+    descKey: "login.intro.desc9",
+  },
+  {
+    image: serviceHealthIllustration,
+    titleKey: "login.intro.title10",
+    descKey: "login.intro.desc10",
   },
 ]
 

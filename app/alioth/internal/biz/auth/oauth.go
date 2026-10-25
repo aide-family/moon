@@ -222,44 +222,87 @@ func pickGiteeVerifiedEmail(emails []giteeEmail) string {
 	return fallback
 }
 
+// 飞书 OAuth 端点单独声明为包级变量，测试可以指向 httptest 服务，不访问真实网络。
+var (
+	// feishuTokenEndpoint 飞书 v3 的令牌地址。v2 的 open-apis/authen/v2/oauth/token 已官方废弃。
+	feishuTokenEndpoint = "https://accounts.feishu.cn/oauth/v3/token"
+	// feishuUserInfoEndpoint 飞书用户信息地址，需要携带用户访问令牌。
+	feishuUserInfoEndpoint = "https://open.feishu.cn/open-apis/authen/v1/user_info"
+)
+
+// feishuToken 是飞书 v3 令牌接口的响应。code=0 表示成功，失败时错误详情在 error / error_description。
+type feishuToken struct {
+	Code             int    `json:"code"`
+	Msg              string `json:"msg"`
+	Error            string `json:"error"`
+	ErrorDescription string `json:"error_description"`
+	AccessToken      string `json:"access_token"`
+	TokenType        string `json:"token_type"`
+}
+
+// feishuUserInfo 是 user_info 接口 data 里的用户字段，飞书的 JSON 使用下划线命名。
+type feishuUserInfo struct {
+	Name            string `json:"name"`
+	EnName          string `json:"en_name"`
+	AvatarURL       string `json:"avatar_url"`
+	OpenID          string `json:"open_id"`
+	UnionID         string `json:"union_id"`
+	Email           string `json:"email"`
+	EnterpriseEmail string `json:"enterprise_email"`
+}
+
+// feishuUserInfoResponse 是 user_info 接口的完整响应，code 非 0 时 data 不可信。
+type feishuUserInfoResponse struct {
+	Code int            `json:"code"`
+	Msg  string         `json:"msg"`
+	Data feishuUserInfo `json:"data"`
+}
+
+// exchangeFeishu 用授权码换用户访问令牌，再读取用户信息。飞书 v3 接受表单请求，
+// 两个接口都用 code 表示业务错误：非 0 时必须按失败处理，不能把缺失字段当空值继续登录。
 func (authenticator *Authenticator) exchangeFeishu(ctx context.Context, client oauthClient, code, redirectURI string) (oauthProfile, error) {
-	payload := map[string]string{
-		"grant_type":    "authorization_code",
-		"client_id":     client.id,
-		"client_secret": client.secret,
-		"code":          code,
-		"redirect_uri":  redirectURI,
-	}
-	raw, err := json.Marshal(payload)
-	if err != nil {
-		return oauthProfile{}, merr.Client("oauth login failed")
-	}
-	var token map[string]any
-	if err := oauthJSON(ctx, http.MethodPost, "https://open.feishu.cn/open-apis/authen/v2/oauth/token", "", raw, &token); err != nil {
+	body := url.Values{}
+	body.Set("grant_type", "authorization_code")
+	body.Set("client_id", client.id)
+	body.Set("client_secret", client.secret)
+	body.Set("code", code)
+	body.Set("redirect_uri", redirectURI)
+	var token feishuToken
+	if err := oauthForm(ctx, http.MethodPost, feishuTokenEndpoint, body, "application/json", &token); err != nil {
 		return oauthProfile{}, err
 	}
-	access, _ := token["access_token"].(string)
-	if access == "" {
-		if data, ok := token["data"].(map[string]any); ok {
-			access, _ = data["access_token"].(string)
-		}
-	}
-	if access == "" {
+	if token.Code != 0 || token.AccessToken == "" {
+		// 只记录返回码和错误描述，访问令牌和 client_secret 不能进日志。
+		authenticator.log.Warn(fmt.Sprintf("feishu token exchange failed: code=%d error=%s error_description=%s", token.Code, token.Error, token.ErrorDescription))
 		return oauthProfile{}, merr.Client("oauth login failed")
 	}
-	var info map[string]any
-	if err := oauthJSON(ctx, http.MethodGet, "https://open.feishu.cn/open-apis/authen/v1/user_info", access, nil, &info); err != nil {
+	var info feishuUserInfoResponse
+	if err := oauthJSON(ctx, http.MethodGet, feishuUserInfoEndpoint, token.AccessToken, nil, &info); err != nil {
 		return oauthProfile{}, err
 	}
-	data, _ := info["data"].(map[string]any)
-	if data == nil {
-		data = info
+	if info.Code != 0 || info.Data.OpenID == "" {
+		authenticator.log.Warn(fmt.Sprintf("feishu user info failed: code=%d msg=%s", info.Code, info.Msg))
+		return oauthProfile{}, merr.Client("oauth login failed")
 	}
-	openID, _ := data["open_id"].(string)
-	name, _ := data["name"].(string)
-	email, _ := data["email"].(string)
-	avatar, _ := data["avatar_url"].(string)
-	return oauthProfile{openID: openID, email: email, name: name, avatar: avatar}, nil
+	email := info.Data.Email
+	if email == "" {
+		email = info.Data.EnterpriseEmail
+	}
+	name := info.Data.Name
+	if name == "" {
+		name = info.Data.EnName
+	}
+	return oauthProfile{
+		openID: info.Data.OpenID,
+		// 飞书邮箱由企业管理员在租户通讯录中维护，普通用户不能自行修改，且只有装在该租户下的应用才能走完授权，
+		// 所以带邮箱的飞书账号可以并入同名本地账号，emailVerified 置 true。这是产品确认过的、对 GitHub/Gitee
+		// “自报邮箱必须验证”规则的例外。残余风险：飞书文档说明邮箱由管理员导入、并非用户实时验证，
+		// 缓解手段是收紧租户通讯录的编辑权限。
+		email:         email,
+		emailVerified: email != "",
+		name:          name,
+		avatar:        info.Data.AvatarURL,
+	}, nil
 }
 
 func oauthForm(ctx context.Context, method, endpoint string, body url.Values, accept string, dest any) error {
@@ -321,14 +364,15 @@ type oauthProvider struct {
 	authorizeEndpoint string
 }
 
-// oauthProviderCatalog 只包含已经实现授权码流程的来源。飞书仍可登录，但不在来源列表里。
+// oauthProviderCatalog 按展示顺序列出已实现授权码流程的来源，前端据此显示第三方登录按钮。
 var oauthProviderCatalog = []oauthProvider{
 	{key: "GITHUB", name: "GitHub", authorizeEndpoint: "https://github.com/login/oauth/authorize"},
 	{key: "GITEE", name: "Gitee", authorizeEndpoint: "https://gitee.com/oauth/authorize"},
+	{key: "FEISHU", name: "飞书", authorizeEndpoint: "https://accounts.feishu.cn/open-apis/authen/v1/authorize"},
 }
 
-// authorizeURL 按来源拼出完整授权地址。GitHub 和 Gitee 的查询参数不同：
-// GitHub 用 allow_signup 和空格分隔的 scope，Gitee 要 response_type=code。
+// authorizeURL 按来源拼出完整授权地址。各来源的查询参数不同：
+// GitHub 用 allow_signup 和空格分隔的 scope；Gitee 和飞书要 response_type=code，飞书还要邮箱权限。
 func (provider oauthProvider) authorizeURL(client oauthClient, redirectURI, state string) string {
 	params := url.Values{}
 	params.Set("client_id", client.id)
@@ -343,6 +387,10 @@ func (provider oauthProvider) authorizeURL(client oauthClient, redirectURI, stat
 		// emails 权限用来读 /api/v5/emails 判断邮箱是否已验证。Gitee 应用必须先在
 		// 应用设置里勾选 emails，否则授权页会报“请求范围无效、未知或格式不正确”。
 		params.Set("scope", "user_info emails")
+	case "FEISHU":
+		params.Set("response_type", "code")
+		// 飞书只有带上该权限才会在 user_info 里返回邮箱；没有邮箱就无法并入已有本地账号。
+		params.Set("scope", "contact:user.email:readonly")
 	}
 	// url.Values 把空格编码成 "+"。Gitee 的授权页只认 %20，用 "+" 会报
 	// “请求范围无效、未知或格式不正确”，所以这里统一把空格换成 %20

@@ -21,11 +21,13 @@ x-service-env: &service-env
   ALIOTH_HISTORY_DATABASE_PREFIX: ${ALIOTH_HISTORY_DATABASE_PREFIX:-alioth_alert_}
   ALIOTH_HISTORY_TABLE_PREFIX: ${ALIOTH_HISTORY_TABLE_PREFIX:-alert_events_}
   ALIOTH_HISTORY_MESSAGE_TABLE_PREFIX: ${ALIOTH_HISTORY_MESSAGE_TABLE_PREFIX:-message_logs_}
-  # 第三方登录：配置客户端后登录页才显示 GitHub / Gitee 入口，回调地址为 <web_url>/auth/callback。
+  # 第三方登录：配置客户端后登录页才显示 GitHub / Gitee / 飞书 入口，回调地址为 <web_url>/auth/callback。
   GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
   GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
   GITEE_CLIENT_ID: ${GITEE_CLIENT_ID:-}
   GITEE_CLIENT_SECRET: ${GITEE_CLIENT_SECRET:-}
+  FEISHU_CLIENT_ID: ${FEISHU_CLIENT_ID:-}
+  FEISHU_CLIENT_SECRET: ${FEISHU_CLIENT_SECRET:-}
 
 services:
   postgres:

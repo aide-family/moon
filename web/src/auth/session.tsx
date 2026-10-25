@@ -1,4 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
 
 import { ApiError } from "@/api/http"
 import { listSelfNamespaces, getSelfInfo, getSelfPermissions } from "@/api/self"
@@ -24,6 +33,7 @@ type SessionValue = {
   switchError: string
   failed: boolean
   loadError: string
+  loadStatus: number
   reload: () => void
   setNamespace: (uid: string) => void
   clearSwitchError: () => void
@@ -49,6 +59,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [switchError, setSwitchError] = useState("")
   const [failed, setFailed] = useState(false)
   const [loadError, setLoadError] = useState("")
+  const [loadStatus, setLoadStatus] = useState(0)
   const namespaceUidRef = useRef("")
   const switchRef = useRef<{ from: string; to: string } | null>(null)
 
@@ -60,12 +71,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       setFailed(false)
       setLoadError("")
+      setLoadStatus(0)
       const transition = switchRef.current
       try {
         const [info, spaces, unread] = await Promise.all([
-          getSelfInfo(),
-          listSelfNamespaces(),
-          getUnreadMessageCount().then((result) => result.count ?? 0).catch(() => 0),
+          getSelfInfo({ silent: true }),
+          listSelfNamespaces({ silent: true }),
+          getUnreadMessageCount()
+            .then((result) => result.count ?? 0)
+            .catch(() => 0),
         ])
         if (!active) {
           return
@@ -84,7 +98,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         // 拉起中的页面轮询仍然使用旧租户，避免新旧权限交叉。
         let granted: string[] = []
         if (next) {
-          const result = await getSelfPermissions(next)
+          const result = await getSelfPermissions(next, { silent: true })
           if (!active) {
             return
           }
@@ -125,6 +139,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           return
         }
         setFailed(true)
+        // 会话加载失败时保留状态码，外壳据此区分 502（网关）与 503（维护）。
+        setLoadStatus(err instanceof ApiError ? err.status : 502)
         setLoadError(failureMessage(err, ""))
       } finally {
         if (active) {
@@ -169,7 +185,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       permissions,
       systemPermissions,
       systemRole,
-      isSystemAdmin: systemRole === "SUPER_ADMIN" || systemRole === "SYSTEM_ADMIN",
+      isSystemAdmin:
+        systemRole === "SUPER_ADMIN" || systemRole === "SYSTEM_ADMIN",
       isSuperAdmin: systemRole === "SUPER_ADMIN",
       unreadMessages,
       namespaceUid,
@@ -179,6 +196,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       switchError,
       failed,
       loadError,
+      loadStatus,
       reload,
       setNamespace,
       clearSwitchError,
@@ -200,14 +218,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       switchError,
       failed,
       loadError,
+      loadStatus,
       reload,
       setNamespace,
       clearSwitchError,
       refreshUnreadMessages,
-    ],
+    ]
   )
 
-  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  return (
+    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  )
 }
 
 export function useSession() {

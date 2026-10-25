@@ -1,25 +1,29 @@
-import { get, put } from "@/api/http"
+import { get, put, type RequestOptions } from "@/api/http"
 
 import type { SelfInfo, SelfNamespaces, SelfPermissions } from "./types"
 
 /** GET /v1/self/info */
-export function getSelfInfo(): Promise<SelfInfo> {
-  return get<SelfInfo>("/self/info")
+export function getSelfInfo(options?: RequestOptions): Promise<SelfInfo> {
+  return get<SelfInfo>("/self/info", undefined, undefined, options)
 }
 
 /** GET /v1/self/namespaces */
-export function listSelfNamespaces(): Promise<SelfNamespaces> {
-  return get<SelfNamespaces>("/self/namespaces")
+export function listSelfNamespaces(
+  options?: RequestOptions
+): Promise<SelfNamespaces> {
+  return get<SelfNamespaces>("/self/namespaces", undefined, undefined, options)
 }
 
 /** GET /v1/self/permissions */
 export function getSelfPermissions(
-  namespace?: string
+  namespace?: string,
+  options?: RequestOptions
 ): Promise<SelfPermissions> {
   return get<SelfPermissions>(
     "/self/permissions",
     undefined,
-    namespace ? { headers: { "X-Namespace": namespace } } : undefined
+    namespace ? { headers: { "X-Namespace": namespace } } : undefined,
+    options
   )
 }
 

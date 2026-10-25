@@ -83,7 +83,8 @@ func (tenancy *Tenancy) GetNamespace(ctx context.Context, uid string) (*bo.Names
 }
 
 func (tenancy *Tenancy) ListNamespaces(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.Namespace, int, int, int, error) {
-	if err := tenancy.access.Require(ctx, perm.NamespaceRead); err != nil {
+	// 列表属于租户自身的查看：当前租户停用后仍要能列出来，否则页面上没有入口再启用它。
+	if _, err := tenancy.access.AllowAnyStatus(ctx, perm.NamespaceRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	uid, _ := actor.UserID(ctx)

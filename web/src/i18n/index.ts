@@ -58,6 +58,7 @@ const zh = {
     prev: "上一页",
     next: "下一页",
     retry: "重试",
+    goBack: "返回上一页",
     detail: "详情",
     more: "更多",
     actions: "操作",
@@ -105,10 +106,15 @@ const zh = {
   },
   error: {
     notFound: "没有找到请求的资源",
+    notFoundTitle: "页面不存在",
+    notFoundDescription: "你访问的地址没有对应的页面，可能已被移动或删除。",
     server: "服务暂时不可用",
     badGatewayTitle: "网关无法连接后端服务",
     badGatewayDescription:
       "后端接口暂时不可用，页面无法加载。请稍后重试；如果持续出现，请联系运维检查后端服务与网关状态。",
+    serviceUnavailableTitle: "服务正在维护",
+    serviceUnavailableDescription:
+      "服务暂时不可用，可能正在升级或维护。请稍后重试；如果持续出现，请联系运维确认恢复时间。",
     forbiddenTitle: "没有权限",
     forbiddenDescription: "当前账号不能访问这个页面。",
     captchaInvalid: "验证码不正确",
@@ -160,6 +166,20 @@ const zh = {
       desc2: "按 Namespace 隔离成员、角色与资源。",
       title3: "边缘接入",
       desc3: "Agent 出站接入，统一管理机器与通道。",
+      title4: "数据源接入",
+      desc4: "统一接入 Prometheus、Loki 与 VictoriaLogs，指标和日志一处查询。",
+      title5: "告警规则",
+      desc5: "指标与日志表达式都能配置规则，命中阈值立即产生告警。",
+      title6: "通知触达",
+      desc6: "渠道、模板、分组与订阅自由组合，告警送到对的人。",
+      title7: "身份与权限",
+      desc7: "角色按需授权，成员、租户与操作边界清晰。",
+      title8: "SSH 与 Web Shell",
+      desc8: "批量下发命令，审核后执行，终端输出全程留痕。",
+      title9: "审计与检索",
+      desc9: "命令与终端操作写入审计，按人、时间与对象快速回溯。",
+      title10: "运行状态",
+      desc10: "后台工作进程在线、忙碌与空闲状态一屏掌握，沉默不等于健康。",
     },
     emailLabel: "邮箱",
     codeLabel: "验证码",
@@ -1490,6 +1510,7 @@ const en = {
     prev: "Previous",
     next: "Next",
     retry: "Retry",
+    goBack: "Go back",
     detail: "Details",
     more: "More",
     actions: "Actions",
@@ -1537,10 +1558,16 @@ const en = {
   },
   error: {
     notFound: "The requested resource was not found",
+    notFoundTitle: "Page not found",
+    notFoundDescription:
+      "This address has no matching page. It may have been moved or deleted.",
     server: "The service is temporarily unavailable",
     badGatewayTitle: "The gateway cannot reach the backend",
     badGatewayDescription:
       "The backend API is temporarily unavailable, so this page cannot load. Try again shortly; if it persists, ask operations to check the backend and gateway.",
+    serviceUnavailableTitle: "Service unavailable",
+    serviceUnavailableDescription:
+      "The service is temporarily unavailable, possibly during an upgrade or maintenance. Try again shortly; if it persists, ask operations when it will be back.",
     forbiddenTitle: "No permission",
     forbiddenDescription: "This account cannot open this page.",
     captchaInvalid: "The captcha is incorrect",
@@ -1590,6 +1617,27 @@ const en = {
       desc2: "Isolate members, roles, and resources by namespace.",
       title3: "Edge access",
       desc3: "Agents connect outbound so machines stay under one console.",
+      title4: "Data sources",
+      desc4:
+        "Prometheus, Loki, and VictoriaLogs share one query surface for metrics and logs.",
+      title5: "Alert rules",
+      desc5:
+        "Rules on metric or log expressions fire as soon as a threshold is crossed.",
+      title6: "Notifications",
+      desc6:
+        "Channels, templates, groups, and subscriptions put alerts in front of the right people.",
+      title7: "Identity and roles",
+      desc7:
+        "Roles grant only what a member needs, keeping tenants and operations inside clear boundaries.",
+      title8: "SSH and Web Shell",
+      desc8:
+        "Batch commands, reviewed before execution, with terminal output kept in the audit trail.",
+      title9: "Audit and search",
+      desc9:
+        "Command and terminal actions land in the audit log, searchable by person, time, and target.",
+      title10: "Service health",
+      desc10:
+        "Worker heartbeats show what is online, busy, or idle, because silence does not mean healthy.",
     },
     emailLabel: "Email",
     codeLabel: "Code",
