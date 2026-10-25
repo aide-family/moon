@@ -79,6 +79,8 @@ type AlertEventRepo interface {
 	// RecoverSource 把仍在触发的事件记为恢复。规则、数据源、级别都为空时不处理。
 	RecoverSource(ctx context.Context, namespaceUID string, ruleUIDs, datasourceUIDs, levelUIDs []string) error
 	Stats(ctx context.Context, namespaceUID string) (bo.AlertStats, error)
+	// Insight 按本地自然日聚合区间内的告警：新增、恢复、级别分布与闭环时长分位数。
+	Insight(ctx context.Context, namespaceUID string, from, to time.Time, loc *time.Location) (bo.AlertInsight, error)
 	// BackfillHistory 把主库里遗留的已恢复事件迁移到历史分片，兼容升级前的数据。
 	BackfillHistory(ctx context.Context, limit int) (int, error)
 }

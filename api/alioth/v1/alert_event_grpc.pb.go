@@ -24,6 +24,7 @@ const (
 	AlertEventService_GetAlertEventChart_FullMethodName      = "/alioth.v1.AlertEventService/GetAlertEventChart"
 	AlertEventService_AlertEventStats_FullMethodName         = "/alioth.v1.AlertEventService/AlertEventStats"
 	AlertEventService_AlertEventRealtimeStats_FullMethodName = "/alioth.v1.AlertEventService/AlertEventRealtimeStats"
+	AlertEventService_GetAlertInsight_FullMethodName         = "/alioth.v1.AlertEventService/GetAlertInsight"
 	AlertEventService_InterveneAlertEvent_FullMethodName     = "/alioth.v1.AlertEventService/InterveneAlertEvent"
 	AlertEventService_InterveneAlertEvents_FullMethodName    = "/alioth.v1.AlertEventService/InterveneAlertEvents"
 	AlertEventService_SuppressAlertEvent_FullMethodName      = "/alioth.v1.AlertEventService/SuppressAlertEvent"
@@ -47,6 +48,9 @@ type AlertEventServiceClient interface {
 	AlertEventStats(ctx context.Context, in *AlertEventStatsRequest, opts ...grpc.CallOption) (*AlertEventStatsResponse, error)
 	// 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
 	AlertEventRealtimeStats(ctx context.Context, in *AlertEventRealtimeStatsRequest, opts ...grpc.CallOption) (*AlertEventRealtimeStatsResponse, error)
+	// 概览页的区间聚合：按本地自然日的新增/恢复、级别分布与闭环时长。
+	// 服务端一次算完，前端不再翻历史明细自行聚合。
+	GetAlertInsight(ctx context.Context, in *GetAlertInsightRequest, opts ...grpc.CallOption) (*GetAlertInsightResponse, error)
 	// 介入一条实时告警。
 	InterveneAlertEvent(ctx context.Context, in *InterveneAlertEventRequest, opts ...grpc.CallOption) (*InterveneAlertEventResponse, error)
 	// 批量介入实时告警。
@@ -111,6 +115,16 @@ func (c *alertEventServiceClient) AlertEventRealtimeStats(ctx context.Context, i
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AlertEventRealtimeStatsResponse)
 	err := c.cc.Invoke(ctx, AlertEventService_AlertEventRealtimeStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertEventServiceClient) GetAlertInsight(ctx context.Context, in *GetAlertInsightRequest, opts ...grpc.CallOption) (*GetAlertInsightResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAlertInsightResponse)
+	err := c.cc.Invoke(ctx, AlertEventService_GetAlertInsight_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -183,6 +197,9 @@ type AlertEventServiceServer interface {
 	AlertEventStats(context.Context, *AlertEventStatsRequest) (*AlertEventStatsResponse, error)
 	// 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
 	AlertEventRealtimeStats(context.Context, *AlertEventRealtimeStatsRequest) (*AlertEventRealtimeStatsResponse, error)
+	// 概览页的区间聚合：按本地自然日的新增/恢复、级别分布与闭环时长。
+	// 服务端一次算完，前端不再翻历史明细自行聚合。
+	GetAlertInsight(context.Context, *GetAlertInsightRequest) (*GetAlertInsightResponse, error)
 	// 介入一条实时告警。
 	InterveneAlertEvent(context.Context, *InterveneAlertEventRequest) (*InterveneAlertEventResponse, error)
 	// 批量介入实时告警。
@@ -217,6 +234,9 @@ func (UnimplementedAlertEventServiceServer) AlertEventStats(context.Context, *Al
 }
 func (UnimplementedAlertEventServiceServer) AlertEventRealtimeStats(context.Context, *AlertEventRealtimeStatsRequest) (*AlertEventRealtimeStatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AlertEventRealtimeStats not implemented")
+}
+func (UnimplementedAlertEventServiceServer) GetAlertInsight(context.Context, *GetAlertInsightRequest) (*GetAlertInsightResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAlertInsight not implemented")
 }
 func (UnimplementedAlertEventServiceServer) InterveneAlertEvent(context.Context, *InterveneAlertEventRequest) (*InterveneAlertEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InterveneAlertEvent not implemented")
@@ -344,6 +364,24 @@ func _AlertEventService_AlertEventRealtimeStats_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertEventService_GetAlertInsight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAlertInsightRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertEventServiceServer).GetAlertInsight(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertEventService_GetAlertInsight_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertEventServiceServer).GetAlertInsight(ctx, req.(*GetAlertInsightRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AlertEventService_InterveneAlertEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InterveneAlertEventRequest)
 	if err := dec(in); err != nil {
@@ -460,6 +498,10 @@ var AlertEventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AlertEventRealtimeStats",
 			Handler:    _AlertEventService_AlertEventRealtimeStats_Handler,
+		},
+		{
+			MethodName: "GetAlertInsight",
+			Handler:    _AlertEventService_GetAlertInsight_Handler,
 		},
 		{
 			MethodName: "InterveneAlertEvent",

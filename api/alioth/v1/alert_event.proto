@@ -29,6 +29,11 @@ service AlertEventService {
   rpc AlertEventRealtimeStats(AlertEventRealtimeStatsRequest) returns (AlertEventRealtimeStatsResponse) {
     option (google.api.http) = {get: "/v1/alert-event-realtime-stats"};
   }
+  // 概览页的区间聚合：按本地自然日的新增/恢复、级别分布与闭环时长。
+  // 服务端一次算完，前端不再翻历史明细自行聚合。
+  rpc GetAlertInsight(GetAlertInsightRequest) returns (GetAlertInsightResponse) {
+    option (google.api.http) = {get: "/v1/alert-insight"};
+  }
   // 介入一条实时告警。
   rpc InterveneAlertEvent(InterveneAlertEventRequest) returns (InterveneAlertEventResponse) {
     option (google.api.http) = {
@@ -281,3 +286,67 @@ message RecoverAlertEventsRequest {
 
 // 批量手工恢复已记录。
 message RecoverAlertEventsResponse {}
+
+// 概览区间聚合的查询条件。
+message GetAlertInsightRequest {
+  // 统计天数，取值 1..30，0 表示默认 7 天（含今天）。
+  int32 days = 1 [(buf.validate.field).int32 = {gte: 0, lte: 30}];
+  // IANA 时区名，用于本地自然日分桶；空值使用 UTC。
+  string time_zone = 2 [json_name = "timeZone"];
+}
+
+// 一天的聚合结果。
+// 新增按 starts_at 分桶、闭环按 ends_at 分桶：同一天的两根柱不是同一批事件，
+// 当天闭环的事件通常是前几天触发的，所以两根柱不构成合计。
+message AlertInsightBucket {
+  // 本地自然日零点，RFC3339。
+  string start = 1;
+  // 当天新增事件数（starts_at 落在当天）。
+  int32 events = 2;
+  // 当天闭环数（ends_at 落在当天）。
+  int32 closed = 3;
+  // 其中人工闭环的数量。
+  int32 closed_by_manual = 4 [json_name = "closedByManual"];
+  // 当天闭环事件的闭环时长中位数，秒；没有样本时为 0。
+  double p50_seconds = 5 [json_name = "p50Seconds"];
+  // 当天闭环事件的闭环时长 P90，秒；最近秩口径，与历史分析页一致。
+  double p90_seconds = 6 [json_name = "p90Seconds"];
+  // 参与分位数的闭环事件数。
+  int32 recovery_samples = 7 [json_name = "recoverySamples"];
+}
+
+// 按告警级别的分布。
+message AlertInsightLevel {
+  // 级别标识。
+  string level_uid = 1 [json_name = "levelUid"];
+  // 该级别的事件数。
+  int32 events = 2;
+  // 其中仍未恢复的数量。
+  int32 firing = 3;
+}
+
+// 概览区间聚合结果。
+message GetAlertInsightResponse {
+  // 实际使用的时区。
+  string time_zone = 1 [json_name = "timeZone"];
+  // 统计起始时间（含），RFC3339。
+  string from = 2;
+  // 统计结束时间（不含），RFC3339。
+  string to = 3;
+  // 每日聚合，按日期升序，缺失的日期补零。
+  repeated AlertInsightBucket buckets = 4;
+  // 级别分布，按事件数降序。
+  repeated AlertInsightLevel levels = 5;
+  // 区间内闭环事件的闭环时长中位数，秒。
+  double p50_seconds = 6 [json_name = "p50Seconds"];
+  // 区间内闭环事件的闭环时长 P90，秒。
+  double p90_seconds = 7 [json_name = "p90Seconds"];
+  // 参与分位数的闭环事件数。
+  int32 recovery_samples = 8 [json_name = "recoverySamples"];
+  // 区间内新增事件总数。
+  int32 events_total = 9 [json_name = "eventsTotal"];
+  // 区间内闭环事件总数。
+  int32 closed_total = 10 [json_name = "closedTotal"];
+  // 为假表示历史分库不可用，结果只含实时表数据。
+  bool complete = 11;
+}

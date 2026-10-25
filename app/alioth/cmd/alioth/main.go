@@ -6,6 +6,9 @@ import (
 	"log/slog"
 	"os"
 	"time"
+	// 运行时镜像是 distroless，没有 /usr/share/zoneinfo；
+	// 概览页按 IANA 时区分桶，必须把时区库编进二进制。
+	_ "time/tzdata"
 
 	"github.com/go-kratos/kratos/v3"
 	"github.com/go-kratos/kratos/v3/log"

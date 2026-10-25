@@ -22,6 +22,7 @@ import { NotificationGroupPage } from "@/pages/notification-group"
 import { NotificationSubscriptionPage } from "@/pages/notification-subscription"
 import { NotificationTemplatePage } from "@/pages/notification-template"
 import { NotificationPresetPage } from "@/pages/notification-template/presets"
+import { OverviewPage } from "@/pages/overview"
 import { ProfilePage } from "@/pages/profile"
 import { RegisterPage } from "@/pages/register"
 import { RolePage } from "@/pages/role"
@@ -37,7 +38,8 @@ export function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/invite/:token" element={<InvitePage />} />
       <Route element={<AppShell />}>
-        <Route path="/" element={<Navigate to="/profile" replace />} />
+        <Route path="/" element={<Navigate to="/overview" replace />} />
+        <Route path="/overview" element={<OverviewPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/forbidden" element={<ForbiddenPage />} />
         <Route path="/namespaces" element={<NamespacePage />} />

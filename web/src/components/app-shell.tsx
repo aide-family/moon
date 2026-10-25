@@ -8,6 +8,7 @@ import {
   FileText,
   Gauge,
   History,
+  LayoutDashboard,
   LayoutList,
   LogOut,
   Mail,
@@ -338,6 +339,9 @@ function ShellFrame() {
       (link.to === "/ssh-commands" &&
         location.pathname.startsWith("/ssh-commands/"))
   )
+  // 概览是唯一不带领域前缀的一级入口：它是值班着陆页，不属于某个资源域。
+  const overviewActive = location.pathname === "/overview"
+  const canOverview = session.namespaceUid !== "" && session.can("alert:read")
   const token = localStorage.getItem("token")
   if (!token) {
     return <Navigate to="/login" replace />
@@ -380,6 +384,21 @@ function ShellFrame() {
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
+                  {canOverview ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={overviewActive}
+                        tooltip={t("nav.overview")}
+                        className="border-l-2 border-transparent data-active:border-primary"
+                      >
+                        <NavLink to="/overview">
+                          <LayoutDashboard />
+                          <span>{t("nav.overview")}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ) : null}
                   <NavGroup
                     key={`alert-${alertActive}`}
                     label="nav.alert"

@@ -41,6 +41,46 @@ func (s *AlertEventService) ListAlertEvents(ctx context.Context, req *v1.ListAle
 	return &v1.ListAlertEventsResponse{Items: eventItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
 }
 
+func (s *AlertEventService) GetAlertInsight(ctx context.Context, req *v1.GetAlertInsightRequest) (*v1.GetAlertInsightResponse, error) {
+	insight, err := s.coordinator.Insight(ctx, req.GetDays(), req.GetTimeZone())
+	if err != nil {
+		return nil, err
+	}
+	buckets := make([]*v1.AlertInsightBucket, 0, len(insight.Days))
+	for _, day := range insight.Days {
+		buckets = append(buckets, &v1.AlertInsightBucket{
+			Start:           day.Start.Format(time.RFC3339),
+			Events:          int32(day.Events),
+			Closed:          int32(day.Closed),
+			ClosedByManual:  int32(day.ClosedByManual),
+			P50Seconds:      day.P50Seconds,
+			P90Seconds:      day.P90Seconds,
+			RecoverySamples: int32(day.RecoverySamples),
+		})
+	}
+	levels := make([]*v1.AlertInsightLevel, 0, len(insight.Levels))
+	for _, level := range insight.Levels {
+		levels = append(levels, &v1.AlertInsightLevel{
+			LevelUid: level.LevelUID,
+			Events:   int32(level.Events),
+			Firing:   int32(level.Firing),
+		})
+	}
+	return &v1.GetAlertInsightResponse{
+		TimeZone:        insight.TimeZone,
+		From:            insight.From.Format(time.RFC3339),
+		To:              insight.To.Format(time.RFC3339),
+		Buckets:         buckets,
+		Levels:          levels,
+		P50Seconds:      insight.P50Seconds,
+		P90Seconds:      insight.P90Seconds,
+		RecoverySamples: int32(insight.RecoverySamples),
+		EventsTotal:     int32(insight.EventsTotal),
+		ClosedTotal:     int32(insight.ClosedTotal),
+		Complete:        insight.Complete,
+	}, nil
+}
+
 func parseAlertEventTime(value string) (*time.Time, error) {
 	if value == "" {
 		return nil, nil

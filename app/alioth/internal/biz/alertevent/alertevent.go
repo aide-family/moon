@@ -170,6 +170,52 @@ func (coordinator *Coordinator) Report(ctx context.Context, report bo.EvalReport
 // 与前端日期选择器的上限一致：界面只让选 30 天，服务端必须再挡一次。
 const MaxHistoryRangeDays = 30
 
+// InsightDefaultDays 是概览默认统计天数（含今天）。
+const InsightDefaultDays int32 = 7
+
+// InsightMaxDays 是概览聚合允许的最大天数，与历史周表的裁剪成本对齐。
+const InsightMaxDays int32 = 30
+
+// Insight 返回概览页的区间聚合。
+// 区间是「N 天前的本地零点」到「当前时刻」，所以今天那个桶是进行中的部分数据。
+func (coordinator *Coordinator) Insight(ctx context.Context, days int32, timeZone string) (bo.AlertInsight, error) {
+	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	if err != nil {
+		return bo.AlertInsight{}, err
+	}
+	from, to, loc, err := insightRange(days, timeZone, time.Now())
+	if err != nil {
+		return bo.AlertInsight{}, err
+	}
+	insight, err := coordinator.events.Insight(ctx, ns, from, to, loc)
+	if err != nil {
+		return bo.AlertInsight{}, coordinator.access.Wrap(err)
+	}
+	return insight, nil
+}
+
+// insightRange 计算概览的统计区间。
+// 用本地自然日而不是固定 24 小时做减法，跨夏令时的那一天也是完整的一天。
+func insightRange(days int32, timeZone string, now time.Time) (time.Time, time.Time, *time.Location, error) {
+	if days == 0 {
+		days = InsightDefaultDays
+	}
+	if days < 1 || days > InsightMaxDays {
+		return time.Time{}, time.Time{}, nil, merr.Invalid("invalid request")
+	}
+	loc := time.UTC
+	if timeZone != "" {
+		parsed, err := time.LoadLocation(timeZone)
+		if err != nil {
+			return time.Time{}, time.Time{}, nil, merr.Invalid("invalid time zone")
+		}
+		loc = parsed
+	}
+	local := now.In(loc)
+	today := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc)
+	return today.AddDate(0, 0, -int(days-1)), local, loc, nil
+}
+
 type ListQuery struct {
 	View           string
 	Name           string

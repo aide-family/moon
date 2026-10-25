@@ -21,6 +21,7 @@ const OperationAlertEventServiceAlertEventRealtimeStats = "/alioth.v1.AlertEvent
 const OperationAlertEventServiceAlertEventStats = "/alioth.v1.AlertEventService/AlertEventStats"
 const OperationAlertEventServiceGetAlertEvent = "/alioth.v1.AlertEventService/GetAlertEvent"
 const OperationAlertEventServiceGetAlertEventChart = "/alioth.v1.AlertEventService/GetAlertEventChart"
+const OperationAlertEventServiceGetAlertInsight = "/alioth.v1.AlertEventService/GetAlertInsight"
 const OperationAlertEventServiceInterveneAlertEvent = "/alioth.v1.AlertEventService/InterveneAlertEvent"
 const OperationAlertEventServiceInterveneAlertEvents = "/alioth.v1.AlertEventService/InterveneAlertEvents"
 const OperationAlertEventServiceListAlertEvents = "/alioth.v1.AlertEventService/ListAlertEvents"
@@ -37,6 +38,9 @@ type AlertEventServiceHTTPServer interface {
 	GetAlertEvent(context.Context, *GetAlertEventRequest) (*GetAlertEventResponse, error)
 	// GetAlertEventChart 查询事件开始至今的原始区间数据，用于事件图表。
 	GetAlertEventChart(context.Context, *GetAlertEventChartRequest) (*GetAlertEventChartResponse, error)
+	// GetAlertInsight 概览页的区间聚合：按本地自然日的新增/恢复、级别分布与闭环时长。
+	// 服务端一次算完，前端不再翻历史明细自行聚合。
+	GetAlertInsight(context.Context, *GetAlertInsightRequest) (*GetAlertInsightResponse, error)
 	// InterveneAlertEvent 介入一条实时告警。
 	InterveneAlertEvent(context.Context, *InterveneAlertEventRequest) (*InterveneAlertEventResponse, error)
 	// InterveneAlertEvents 批量介入实时告警。
@@ -58,6 +62,7 @@ func RegisterAlertEventServiceHTTPServer(s *http.Server, srv AlertEventServiceHT
 	r.Handle("GET", "/v1/alert-events/{uid}/chart", _AlertEventService_GetAlertEventChart0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/alert-event-stats", _AlertEventService_AlertEventStats0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/alert-event-realtime-stats", _AlertEventService_AlertEventRealtimeStats0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-insight", _AlertEventService_GetAlertInsight0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/{uid}/intervene", _AlertEventService_InterveneAlertEvent0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/intervene", _AlertEventService_InterveneAlertEvents0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/{uid}/suppress", _AlertEventService_SuppressAlertEvent0_HTTP_Handler(srv))
@@ -162,6 +167,25 @@ func _AlertEventService_AlertEventRealtimeStats0_HTTP_Handler(srv AlertEventServ
 			return err
 		}
 		reply := out.(*AlertEventRealtimeStatsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertEventService_GetAlertInsight0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAlertInsightRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceGetAlertInsight)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAlertInsight(ctx, req.(*GetAlertInsightRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAlertInsightResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -279,6 +303,9 @@ type AlertEventServiceHTTPClient interface {
 	GetAlertEvent(ctx context.Context, req *GetAlertEventRequest, opts ...http.CallOption) (rsp *GetAlertEventResponse, err error)
 	// GetAlertEventChart 查询事件开始至今的原始区间数据，用于事件图表。
 	GetAlertEventChart(ctx context.Context, req *GetAlertEventChartRequest, opts ...http.CallOption) (rsp *GetAlertEventChartResponse, err error)
+	// GetAlertInsight 概览页的区间聚合：按本地自然日的新增/恢复、级别分布与闭环时长。
+	// 服务端一次算完，前端不再翻历史明细自行聚合。
+	GetAlertInsight(ctx context.Context, req *GetAlertInsightRequest, opts ...http.CallOption) (rsp *GetAlertInsightResponse, err error)
 	// InterveneAlertEvent 介入一条实时告警。
 	InterveneAlertEvent(ctx context.Context, req *InterveneAlertEventRequest, opts ...http.CallOption) (rsp *InterveneAlertEventResponse, err error)
 	// InterveneAlertEvents 批量介入实时告警。
@@ -360,6 +387,24 @@ func (c *AlertEventServiceHTTPClientImpl) GetAlertEventChart(ctx context.Context
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationAlertEventServiceGetAlertEventChart),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAlertInsight 概览页的区间聚合：按本地自然日的新增/恢复、级别分布与闭环时长。
+// 服务端一次算完，前端不再翻历史明细自行聚合。
+func (c *AlertEventServiceHTTPClientImpl) GetAlertInsight(ctx context.Context, in *GetAlertInsightRequest, opts ...http.CallOption) (*GetAlertInsightResponse, error) {
+	var out GetAlertInsightResponse
+	pattern := "/v1/alert-insight"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceGetAlertInsight),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

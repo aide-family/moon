@@ -2,6 +2,8 @@ import { get, post } from "@/api/http"
 
 import type {
   AlertEventChart,
+  AlertInsight,
+  AlertInsightParams,
   AlertEventItem,
   AlertEventRealtimeStats,
   AlertEventStats,
@@ -36,6 +38,67 @@ export function alertEventStats(): Promise<AlertEventStats> {
 /** GET /v1/alert-event-realtime-stats */
 export function alertEventRealtimeStats(): Promise<AlertEventRealtimeStats> {
   return get<AlertEventRealtimeStats>("/alert-event-realtime-stats")
+}
+
+/** 浏览器时区；取不到时退回 UTC，不能因为环境异常把分桶算错。 */
+function localTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+  } catch {
+    return "UTC"
+  }
+}
+
+/**
+ * 计数字段按 number 声明（proto 里是 int32），但 protojson 对 int64/double
+ * 的编码习惯在不同版本里不一致，这里统一兜底成有限数字，避免 NaN 穿透到图表。
+ */
+function toNumber(value: unknown): number {
+  const parsed = typeof value === "string" ? Number(value) : value
+  return typeof parsed === "number" && Number.isFinite(parsed) ? parsed : 0
+}
+
+/**
+ * GET /v1/alert-insight
+ * 概览用的区间聚合：每日新增与闭环（两条独立时间轴）、区间闭环时长分位数与级别分布。
+ * 分桶与分位数都由服务端算好（P90 是最近秩口径），前端只做展示与归一化。
+ */
+export function getAlertInsight(
+  params: AlertInsightParams = {}
+): Promise<AlertInsight> {
+  const query: AlertInsightParams = {
+    timeZone: params.timeZone ?? localTimeZone(),
+  }
+  if (params.days && params.days > 0) {
+    query.days = params.days
+  }
+  return get<AlertInsight>("/alert-insight", query, undefined, {
+    silent: true,
+  }).then((data) => ({
+    timeZone: data.timeZone || query.timeZone || "UTC",
+    from: data.from ?? "",
+    to: data.to ?? "",
+    buckets: (data.buckets ?? []).map((bucket) => ({
+      start: bucket.start ?? "",
+      events: toNumber(bucket.events),
+      closed: toNumber(bucket.closed),
+      closedByManual: toNumber(bucket.closedByManual),
+      p50Seconds: toNumber(bucket.p50Seconds),
+      p90Seconds: toNumber(bucket.p90Seconds),
+      recoverySamples: toNumber(bucket.recoverySamples),
+    })),
+    levels: (data.levels ?? []).map((level) => ({
+      levelUid: level.levelUid ?? "",
+      events: toNumber(level.events),
+      firing: toNumber(level.firing),
+    })),
+    p50Seconds: toNumber(data.p50Seconds),
+    p90Seconds: toNumber(data.p90Seconds),
+    recoverySamples: toNumber(data.recoverySamples),
+    eventsTotal: toNumber(data.eventsTotal),
+    closedTotal: toNumber(data.closedTotal),
+    complete: data.complete !== false,
+  }))
 }
 
 /** POST /v1/alert-events/{uid}/intervene */
@@ -79,6 +142,10 @@ export function recoverAlertEvents(
 
 export type {
   AlertEventChart,
+  AlertInsight,
+  AlertInsightBucket,
+  AlertInsightLevel,
+  AlertInsightParams,
   AlertEventItem,
   AlertEventRealtimeStats,
   AlertEventStats,

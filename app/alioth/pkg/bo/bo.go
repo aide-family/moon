@@ -278,6 +278,45 @@ type AlertStats struct {
 	Recovered  int
 }
 
+// AlertInsightDay 是概览页某一天的聚合。Start 为该本地自然日的零点。
+// Events 按 starts_at 计（当日新增），Closed 按 ends_at 计（当日闭环），两者不是同一批事件。
+type AlertInsightDay struct {
+	Start          time.Time
+	Events         int
+	Closed         int
+	ClosedByManual int
+	// P50Seconds 和 P90Seconds 只统计已结束（有 ends_at）的事件；
+	// P90 用最近秩口径，与历史分析页一致。
+	P50Seconds      float64
+	P90Seconds      float64
+	RecoverySamples int
+}
+
+// AlertInsightLevel 是区间内按告警级别的分布。
+type AlertInsightLevel struct {
+	LevelUID string
+	Events   int
+	// Firing 是该级别下仍未恢复的数量。
+	Firing int
+}
+
+// AlertInsight 是概览页的区间聚合。
+// 计数合并实时表与归档周表；分位数只取自已闭环事件，主库兜底行不计入。
+type AlertInsight struct {
+	TimeZone        string
+	From            time.Time
+	To              time.Time
+	Days            []AlertInsightDay
+	Levels          []AlertInsightLevel
+	P50Seconds      float64
+	P90Seconds      float64
+	RecoverySamples int
+	EventsTotal     int
+	ClosedTotal     int
+	// Complete 为假表示历史分库不可用，结果只含实时表数据。
+	Complete bool
+}
+
 // RealtimeAlertTabCount 是一个实时 Tab 的告警数量。
 type RealtimeAlertTabCount struct {
 	ID    string
