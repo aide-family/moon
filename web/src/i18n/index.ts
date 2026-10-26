@@ -1749,6 +1749,7 @@ const en = {
       "The email binding has expired. Please start third-party sign-in again.",
     oauthAccountBound:
       "This third-party account is already bound. Please return to login.",
+    groupAlreadyBound: "This notification group is already bound to this OnCall.",
   },
   list: {
     total: "{{count}} total",
