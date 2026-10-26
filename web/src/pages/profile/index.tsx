@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { changePhone, changeRemark, getSelfInfo } from "@/api/self"
 import type { UserItem } from "@/api/user/types"
 import { useSession } from "@/auth/session"
+import { ChangeEmailDialog } from "@/components/change-email-dialog"
 import { FormField } from "@/components/form-field"
 import { OAuthAccountsCard } from "@/components/oauth-accounts-card"
 import { PageHeader } from "@/components/page-header"
@@ -46,6 +47,7 @@ export function ProfilePage() {
   const [saved, setSaved] = useState(false)
   const [pending, setPending] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  const [changeEmailOpen, setChangeEmailOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -162,6 +164,16 @@ export function ProfilePage() {
               <CardDescription className="break-all">
                 {profile?.email || "—"}
               </CardDescription>
+              <div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setChangeEmailOpen(true)}
+                >
+                  {t("profile.changeEmailAction")}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="grid gap-6">
               <dl className="grid gap-4 sm:grid-cols-2">
@@ -274,6 +286,15 @@ export function ProfilePage() {
           <OAuthAccountsCard key={oauthReload} />
         </div>
       </div>
+      {/* 每次打开都重新挂载：清空输入并重新加载图形验证码，不靠 effect 改 state。 */}
+      {changeEmailOpen ? (
+        <ChangeEmailDialog
+          open
+          onOpenChange={setChangeEmailOpen}
+          currentEmail={profile?.email ?? ""}
+          onChanged={() => setAttempt((value) => value + 1)}
+        />
+      ) : null}
     </section>
   )
 }

@@ -499,12 +499,60 @@ func (authenticator *Authenticator) SelfSystem(ctx context.Context) (string, []s
 	return account.SystemRole, perm.SystemPermissions(account.SystemRole), nil
 }
 
-func (authenticator *Authenticator) ChangeEmail(ctx context.Context, email string) (*bo.Account, error) {
+// SendSelfChangeEmailCode 给当前用户要换绑的新邮箱发验证码。
+// 顺序：登录态 → 邮箱是否已被他人占用 → 图形验证码 → 邮箱级锁定 → 60 秒节流 → 发码。
+// 新邮箱可以是尚未注册的地址，验证码本身就是所有权证明。
+func (authenticator *Authenticator) SendSelfChangeEmailCode(ctx context.Context, email, captchaID, captchaCode string) error {
+	uid, ok := actor.UserID(ctx)
+	if !ok {
+		return merr.Unauthenticated("missing token")
+	}
+	email = normalizeEmail(email)
+	if !strings.Contains(email, "@") || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
+		return merr.Client("invalid request")
+	}
+	if existing, err := authenticator.users.UserByEmail(ctx, email); err == nil && existing.UID != uid {
+		return merr.Client("email already exists")
+	} else if err != nil && !merr.IsNotFound(err) {
+		return authenticator.wrap(err)
+	}
+	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return err
+	}
+	if err := authenticator.checkEmailCodeLockout(ctx, email); err != nil {
+		return err
+	}
+	if err := authenticator.checkEmailCodeInterval(ctx, email); err != nil {
+		return err
+	}
+	return authenticator.sendEmailCode(ctx, email, "change_email")
+}
+
+// ChangeEmail 修改当前用户邮箱。必须先给新邮箱发验证码并提交，验证通过才写入：
+// 邮箱是 OAuth 登录的账号身份锚点，未验证的地址不能直接占用，否则他人可以先抢注，
+// 再让受害者用第三方登录并入错误账号。顺序与注册一致：图形验证码 → 邮箱码 → 消费图形验证码 → 写库。
+func (authenticator *Authenticator) ChangeEmail(ctx context.Context, email, code, captchaID, captchaCode string) (*bo.Account, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
 	}
 	email = normalizeEmail(email)
+	if !strings.Contains(email, "@") || strings.TrimSpace(code) == "" || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
+		return nil, merr.Client("invalid request")
+	}
+	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return nil, err
+	}
+	verified, err := authenticator.consumeEmailCode(ctx, email, code, "change_email")
+	if err != nil {
+		return nil, err
+	}
+	if !verified {
+		return nil, merr.Client("invalid email or code")
+	}
+	if err := authenticator.consumeCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return nil, err
+	}
 	existing, err := authenticator.users.UserByEmail(ctx, email)
 	if err == nil && existing.UID != uid {
 		return nil, merr.Client("email already exists")

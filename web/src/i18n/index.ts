@@ -252,6 +252,17 @@ const zh = {
     remarkHint: "可选。平台管理员可在用户详情中看到这条备注，最多 200 个字符。",
     status: "状态",
     saved: "已保存",
+    changeEmailAction: "修改邮箱",
+    changeEmailTitle: "修改邮箱",
+    changeEmailDescription:
+      "验证码会发到新邮箱（当前：{{email}}）。验证通过后旧邮箱立即失效。",
+    changeEmailNew: "新邮箱",
+    changeEmailCode: "邮箱验证码",
+    changeEmailSend: "发送验证码",
+    changeEmailSending: "发送中…",
+    changeEmailResendIn: "{{seconds}} 秒后重发",
+    changeEmailSent: "验证码已发送，请查收新邮箱。",
+    changeEmailChanged: "邮箱已更新。",
     oauth: {
       title: "第三方账号",
       description:
@@ -1870,6 +1881,17 @@ const en = {
       "Optional. Platform admins can see this remark in your user details. Up to 200 characters.",
     status: "Status",
     saved: "Saved",
+    changeEmailAction: "Change email",
+    changeEmailTitle: "Change email",
+    changeEmailDescription:
+      "The code goes to the new address (current: {{email}}). The old address stops working once verified.",
+    changeEmailNew: "New email",
+    changeEmailCode: "Email code",
+    changeEmailSend: "Send code",
+    changeEmailSending: "Sending…",
+    changeEmailResendIn: "Resend in {{seconds}}s",
+    changeEmailSent: "Code sent. Check the new inbox.",
+    changeEmailChanged: "Email updated.",
     oauth: {
       title: "Linked accounts",
       description:

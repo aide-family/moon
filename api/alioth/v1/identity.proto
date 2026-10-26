@@ -91,7 +91,14 @@ service SelfService {
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
     option (google.api.http) = {get: "/v1/self/refresh-token"};
   }
-  // 修改当前用户的邮箱。
+  // 给当前用户要换绑的新邮箱发送验证码。先通过图形验证码，同一邮箱 60 秒内只能发一次。
+  rpc SendSelfChangeEmailCode(SendSelfChangeEmailCodeRequest) returns (SendSelfChangeEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/v1/self/change-email/code"
+      body: "*"
+    };
+  }
+  // 修改当前用户的邮箱。必须提供新邮箱收到的验证码和图形验证码，验证通过才生效。
   rpc ChangeEmail(ChangeEmailRequest) returns (ChangeEmailResponse) {
     option (google.api.http) = {
       put: "/v1/self/change-email"
@@ -692,6 +699,12 @@ message RefreshTokenResponse {
 message ChangeEmailRequest {
   // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
+  // 新邮箱收到的验证码。
+  string code = 2 [(buf.validate.field).string.min_len = 4];
+  // 图形验证码标识。
+  string captcha_id = 3 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
+  // 图形验证码答案。
+  string captcha_code = 4 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
 }
 
 // 修改后的用户资料。
@@ -699,6 +712,19 @@ message ChangeEmailResponse {
   // 用户资料。
   UserItem user = 1;
 }
+
+// 修改邮箱前发送验证码。
+message SendSelfChangeEmailCodeRequest {
+  // 新邮箱。
+  string email = 1 [(buf.validate.field).string.email = true];
+  // 图形验证码标识。
+  string captcha_id = 2 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
+  // 图形验证码答案。
+  string captcha_code = 3 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
+}
+
+// 验证码已受理。
+message SendSelfChangeEmailCodeResponse {}
 
 // 新头像地址。
 message ChangeAvatarRequest {

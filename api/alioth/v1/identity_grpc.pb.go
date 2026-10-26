@@ -519,17 +519,18 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	SelfService_GetSelfInfo_FullMethodName        = "/alioth.v1.SelfService/GetSelfInfo"
-	SelfService_ListSelfNamespaces_FullMethodName = "/alioth.v1.SelfService/ListSelfNamespaces"
-	SelfService_RefreshToken_FullMethodName       = "/alioth.v1.SelfService/RefreshToken"
-	SelfService_ChangeEmail_FullMethodName        = "/alioth.v1.SelfService/ChangeEmail"
-	SelfService_ChangeAvatar_FullMethodName       = "/alioth.v1.SelfService/ChangeAvatar"
-	SelfService_ChangeRemark_FullMethodName       = "/alioth.v1.SelfService/ChangeRemark"
-	SelfService_ChangePhone_FullMethodName        = "/alioth.v1.SelfService/ChangePhone"
-	SelfService_GetSelfPermissions_FullMethodName = "/alioth.v1.SelfService/GetSelfPermissions"
-	SelfService_ListSelfOAuthLinks_FullMethodName = "/alioth.v1.SelfService/ListSelfOAuthLinks"
-	SelfService_BindSelfOAuth_FullMethodName      = "/alioth.v1.SelfService/BindSelfOAuth"
-	SelfService_UnbindSelfOAuth_FullMethodName    = "/alioth.v1.SelfService/UnbindSelfOAuth"
+	SelfService_GetSelfInfo_FullMethodName             = "/alioth.v1.SelfService/GetSelfInfo"
+	SelfService_ListSelfNamespaces_FullMethodName      = "/alioth.v1.SelfService/ListSelfNamespaces"
+	SelfService_RefreshToken_FullMethodName            = "/alioth.v1.SelfService/RefreshToken"
+	SelfService_SendSelfChangeEmailCode_FullMethodName = "/alioth.v1.SelfService/SendSelfChangeEmailCode"
+	SelfService_ChangeEmail_FullMethodName             = "/alioth.v1.SelfService/ChangeEmail"
+	SelfService_ChangeAvatar_FullMethodName            = "/alioth.v1.SelfService/ChangeAvatar"
+	SelfService_ChangeRemark_FullMethodName            = "/alioth.v1.SelfService/ChangeRemark"
+	SelfService_ChangePhone_FullMethodName             = "/alioth.v1.SelfService/ChangePhone"
+	SelfService_GetSelfPermissions_FullMethodName      = "/alioth.v1.SelfService/GetSelfPermissions"
+	SelfService_ListSelfOAuthLinks_FullMethodName      = "/alioth.v1.SelfService/ListSelfOAuthLinks"
+	SelfService_BindSelfOAuth_FullMethodName           = "/alioth.v1.SelfService/BindSelfOAuth"
+	SelfService_UnbindSelfOAuth_FullMethodName         = "/alioth.v1.SelfService/UnbindSelfOAuth"
 )
 
 // SelfServiceClient is the client API for SelfService service.
@@ -544,7 +545,9 @@ type SelfServiceClient interface {
 	ListSelfNamespaces(ctx context.Context, in *ListSelfNamespacesRequest, opts ...grpc.CallOption) (*ListSelfNamespacesResponse, error)
 	// 用刷新令牌换取新的访问令牌。
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
-	// 修改当前用户的邮箱。
+	// 给当前用户要换绑的新邮箱发送验证码。先通过图形验证码，同一邮箱 60 秒内只能发一次。
+	SendSelfChangeEmailCode(ctx context.Context, in *SendSelfChangeEmailCodeRequest, opts ...grpc.CallOption) (*SendSelfChangeEmailCodeResponse, error)
+	// 修改当前用户的邮箱。必须提供新邮箱收到的验证码和图形验证码，验证通过才生效。
 	ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...grpc.CallOption) (*ChangeEmailResponse, error)
 	// 修改当前用户的头像。
 	ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*ChangeAvatarResponse, error)
@@ -594,6 +597,16 @@ func (c *selfServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RefreshTokenResponse)
 	err := c.cc.Invoke(ctx, SelfService_RefreshToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *selfServiceClient) SendSelfChangeEmailCode(ctx context.Context, in *SendSelfChangeEmailCodeRequest, opts ...grpc.CallOption) (*SendSelfChangeEmailCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendSelfChangeEmailCodeResponse)
+	err := c.cc.Invoke(ctx, SelfService_SendSelfChangeEmailCode_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -692,7 +705,9 @@ type SelfServiceServer interface {
 	ListSelfNamespaces(context.Context, *ListSelfNamespacesRequest) (*ListSelfNamespacesResponse, error)
 	// 用刷新令牌换取新的访问令牌。
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
-	// 修改当前用户的邮箱。
+	// 给当前用户要换绑的新邮箱发送验证码。先通过图形验证码，同一邮箱 60 秒内只能发一次。
+	SendSelfChangeEmailCode(context.Context, *SendSelfChangeEmailCodeRequest) (*SendSelfChangeEmailCodeResponse, error)
+	// 修改当前用户的邮箱。必须提供新邮箱收到的验证码和图形验证码，验证通过才生效。
 	ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeEmailResponse, error)
 	// 修改当前用户的头像。
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarResponse, error)
@@ -726,6 +741,9 @@ func (UnimplementedSelfServiceServer) ListSelfNamespaces(context.Context, *ListS
 }
 func (UnimplementedSelfServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RefreshToken not implemented")
+}
+func (UnimplementedSelfServiceServer) SendSelfChangeEmailCode(context.Context, *SendSelfChangeEmailCodeRequest) (*SendSelfChangeEmailCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendSelfChangeEmailCode not implemented")
 }
 func (UnimplementedSelfServiceServer) ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeEmailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ChangeEmail not implemented")
@@ -822,6 +840,24 @@ func _SelfService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SelfServiceServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SelfService_SendSelfChangeEmailCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendSelfChangeEmailCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SelfServiceServer).SendSelfChangeEmailCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SelfService_SendSelfChangeEmailCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SelfServiceServer).SendSelfChangeEmailCode(ctx, req.(*SendSelfChangeEmailCodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -988,6 +1024,10 @@ var SelfService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshToken",
 			Handler:    _SelfService_RefreshToken_Handler,
+		},
+		{
+			MethodName: "SendSelfChangeEmailCode",
+			Handler:    _SelfService_SendSelfChangeEmailCode_Handler,
 		},
 		{
 			MethodName: "ChangeEmail",

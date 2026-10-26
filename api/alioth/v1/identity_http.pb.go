@@ -457,6 +457,7 @@ const OperationSelfServiceGetSelfPermissions = "/alioth.v1.SelfService/GetSelfPe
 const OperationSelfServiceListSelfNamespaces = "/alioth.v1.SelfService/ListSelfNamespaces"
 const OperationSelfServiceListSelfOAuthLinks = "/alioth.v1.SelfService/ListSelfOAuthLinks"
 const OperationSelfServiceRefreshToken = "/alioth.v1.SelfService/RefreshToken"
+const OperationSelfServiceSendSelfChangeEmailCode = "/alioth.v1.SelfService/SendSelfChangeEmailCode"
 const OperationSelfServiceUnbindSelfOAuth = "/alioth.v1.SelfService/UnbindSelfOAuth"
 
 type SelfServiceHTTPServer interface {
@@ -464,7 +465,7 @@ type SelfServiceHTTPServer interface {
 	BindSelfOAuth(context.Context, *BindSelfOAuthRequest) (*BindSelfOAuthResponse, error)
 	// ChangeAvatar 修改当前用户的头像。
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarResponse, error)
-	// ChangeEmail 修改当前用户的邮箱。
+	// ChangeEmail 修改当前用户的邮箱。必须提供新邮箱收到的验证码和图形验证码，验证通过才生效。
 	ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeEmailResponse, error)
 	// ChangePhone 修改当前用户的手机号。短信通知使用该号码。
 	ChangePhone(context.Context, *ChangePhoneRequest) (*ChangePhoneResponse, error)
@@ -480,6 +481,8 @@ type SelfServiceHTTPServer interface {
 	ListSelfOAuthLinks(context.Context, *ListSelfOAuthLinksRequest) (*ListSelfOAuthLinksResponse, error)
 	// RefreshToken 用刷新令牌换取新的访问令牌。
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
+	// SendSelfChangeEmailCode 给当前用户要换绑的新邮箱发送验证码。先通过图形验证码，同一邮箱 60 秒内只能发一次。
+	SendSelfChangeEmailCode(context.Context, *SendSelfChangeEmailCodeRequest) (*SendSelfChangeEmailCodeResponse, error)
 	// UnbindSelfOAuth 解绑当前账号的一条第三方身份。最后一个登录方式不能解绑。
 	UnbindSelfOAuth(context.Context, *UnbindSelfOAuthRequest) (*UnbindSelfOAuthResponse, error)
 }
@@ -489,6 +492,7 @@ func RegisterSelfServiceHTTPServer(s *http.Server, srv SelfServiceHTTPServer) {
 	r.Handle("GET", "/v1/self/info", _SelfService_GetSelfInfo0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/self/namespaces", _SelfService_ListSelfNamespaces0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/self/refresh-token", _SelfService_RefreshToken0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/self/change-email/code", _SelfService_SendSelfChangeEmailCode0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/self/change-email", _SelfService_ChangeEmail0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/self/change-avatar", _SelfService_ChangeAvatar0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/self/change-remark", _SelfService_ChangeRemark0_HTTP_Handler(srv))
@@ -552,6 +556,25 @@ func _SelfService_RefreshToken0_HTTP_Handler(srv SelfServiceHTTPServer) func(ctx
 			return err
 		}
 		reply := out.(*RefreshTokenResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SelfService_SendSelfChangeEmailCode0_HTTP_Handler(srv SelfServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SendSelfChangeEmailCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSelfServiceSendSelfChangeEmailCode)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SendSelfChangeEmailCode(ctx, req.(*SendSelfChangeEmailCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SendSelfChangeEmailCodeResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -716,7 +739,7 @@ type SelfServiceHTTPClient interface {
 	BindSelfOAuth(ctx context.Context, req *BindSelfOAuthRequest, opts ...http.CallOption) (rsp *BindSelfOAuthResponse, err error)
 	// ChangeAvatar 修改当前用户的头像。
 	ChangeAvatar(ctx context.Context, req *ChangeAvatarRequest, opts ...http.CallOption) (rsp *ChangeAvatarResponse, err error)
-	// ChangeEmail 修改当前用户的邮箱。
+	// ChangeEmail 修改当前用户的邮箱。必须提供新邮箱收到的验证码和图形验证码，验证通过才生效。
 	ChangeEmail(ctx context.Context, req *ChangeEmailRequest, opts ...http.CallOption) (rsp *ChangeEmailResponse, err error)
 	// ChangePhone 修改当前用户的手机号。短信通知使用该号码。
 	ChangePhone(ctx context.Context, req *ChangePhoneRequest, opts ...http.CallOption) (rsp *ChangePhoneResponse, err error)
@@ -732,6 +755,8 @@ type SelfServiceHTTPClient interface {
 	ListSelfOAuthLinks(ctx context.Context, req *ListSelfOAuthLinksRequest, opts ...http.CallOption) (rsp *ListSelfOAuthLinksResponse, err error)
 	// RefreshToken 用刷新令牌换取新的访问令牌。
 	RefreshToken(ctx context.Context, req *RefreshTokenRequest, opts ...http.CallOption) (rsp *RefreshTokenResponse, err error)
+	// SendSelfChangeEmailCode 给当前用户要换绑的新邮箱发送验证码。先通过图形验证码，同一邮箱 60 秒内只能发一次。
+	SendSelfChangeEmailCode(ctx context.Context, req *SendSelfChangeEmailCodeRequest, opts ...http.CallOption) (rsp *SendSelfChangeEmailCodeResponse, err error)
 	// UnbindSelfOAuth 解绑当前账号的一条第三方身份。最后一个登录方式不能解绑。
 	UnbindSelfOAuth(ctx context.Context, req *UnbindSelfOAuthRequest, opts ...http.CallOption) (rsp *UnbindSelfOAuthResponse, err error)
 }
@@ -780,7 +805,7 @@ func (c *SelfServiceHTTPClientImpl) ChangeAvatar(ctx context.Context, in *Change
 	return &out, nil
 }
 
-// ChangeEmail 修改当前用户的邮箱。
+// ChangeEmail 修改当前用户的邮箱。必须提供新邮箱收到的验证码和图形验证码，验证通过才生效。
 func (c *SelfServiceHTTPClientImpl) ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...http.CallOption) (*ChangeEmailResponse, error) {
 	var out ChangeEmailResponse
 	pattern := "/v1/self/change-email"
@@ -913,6 +938,24 @@ func (c *SelfServiceHTTPClientImpl) RefreshToken(ctx context.Context, in *Refres
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SendSelfChangeEmailCode 给当前用户要换绑的新邮箱发送验证码。先通过图形验证码，同一邮箱 60 秒内只能发一次。
+func (c *SelfServiceHTTPClientImpl) SendSelfChangeEmailCode(ctx context.Context, in *SendSelfChangeEmailCodeRequest, opts ...http.CallOption) (*SendSelfChangeEmailCodeResponse, error) {
+	var out SendSelfChangeEmailCodeResponse
+	pattern := "/v1/self/change-email/code"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSelfServiceSendSelfChangeEmailCode),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

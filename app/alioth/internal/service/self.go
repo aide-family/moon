@@ -54,8 +54,15 @@ func (s *SelfService) RefreshToken(ctx context.Context, _ *v1.RefreshTokenReques
 	return &v1.RefreshTokenResponse{AccessToken: token}, nil
 }
 
+func (s *SelfService) SendSelfChangeEmailCode(ctx context.Context, req *v1.SendSelfChangeEmailCodeRequest) (*v1.SendSelfChangeEmailCodeResponse, error) {
+	if err := s.authenticator.SendSelfChangeEmailCode(ctx, req.GetEmail(), req.GetCaptchaId(), req.GetCaptchaCode()); err != nil {
+		return nil, err
+	}
+	return &v1.SendSelfChangeEmailCodeResponse{}, nil
+}
+
 func (s *SelfService) ChangeEmail(ctx context.Context, req *v1.ChangeEmailRequest) (*v1.ChangeEmailResponse, error) {
-	account, err := s.authenticator.ChangeEmail(ctx, req.GetEmail())
+	account, err := s.authenticator.ChangeEmail(ctx, req.GetEmail(), req.GetCode(), req.GetCaptchaId(), req.GetCaptchaCode())
 	if err != nil {
 		return nil, err
 	}

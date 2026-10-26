@@ -44,9 +44,23 @@ export function changePhone(phone: string): Promise<SelfInfo> {
   return put<SelfInfo>("/self/change-phone", { phone })
 }
 
+/** POST /v1/self/change-email/code */
+export function sendSelfChangeEmailCode(params: {
+  email: string
+  captchaId: string
+  captchaCode: string
+}): Promise<void> {
+  return post<void>("/self/change-email/code", params)
+}
+
 /** PUT /v1/self/change-email */
-export function changeEmail(email: string): Promise<SelfInfo> {
-  return put<SelfInfo>("/self/change-email", { email })
+export function changeEmail(params: {
+  email: string
+  code: string
+  captchaId: string
+  captchaCode: string
+}): Promise<SelfInfo> {
+  return put<SelfInfo>("/self/change-email", params)
 }
 
 /** PUT /v1/self/change-avatar */
