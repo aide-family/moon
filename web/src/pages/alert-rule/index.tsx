@@ -36,6 +36,7 @@ import {
   PromQLEditor,
 } from "@/components/query-expression-editor"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { SearchableSelect } from "@/components/searchable-select"
 import { ListFrame } from "@/components/list-frame"
 import { StatusBadge } from "@/components/status-badge"
 import { StepForm } from "@/components/step-form"
@@ -87,6 +88,8 @@ import { useListQuery } from "@/hooks/use-list-query"
 
 import { AlertRuleDetailSheet } from "./detail"
 import {
+  datasourceMatchKeys,
+  datasourceMatchValues,
   matchDatasourceCount,
   matchedDatasourceUid,
   ruleLabelKeys,
@@ -192,6 +195,25 @@ export function AlertRulePage() {
     form.datasourceLabels
   )
   const labelKeys = useMemo(() => ruleLabelKeys(form.labels), [form.labels])
+  // 表达式编辑器为空时按驱动给出对应语言的示例，避免占位文案和查询语言不匹配。
+  const exprPlaceholder =
+    form.driver === "LOGS_LOKI"
+      ? t("alertRule.exprPlaceholderLoki")
+      : form.driver === "LOGS_VLOGS"
+        ? t("alertRule.exprPlaceholderVlogs")
+        : form.driver === "LOGS_ELASTICSEARCH"
+          ? t("alertRule.exprPlaceholderEs")
+          : t("alertRule.exprPlaceholderMetrics")
+  // 「数据源类型」就是规则驱动：匹配键 = 系统键 + 同驱动启用数据源的自定义标签键。
+  // 具体的值在渲染每个匹配标签时按当前键推导。
+  const datasourceMatchKeyOptions = useMemo(
+    () =>
+      datasourceMatchKeys(sources, form.driver).map((key) => ({
+        value: key,
+        label: key,
+      })),
+    [sources, form.driver]
+  )
 
   function askConfirm(
     kind: "group" | "rule",
@@ -411,6 +433,13 @@ export function AlertRulePage() {
     setFieldErrors({})
     setFormStep(0)
     setRuleOpen(true)
+  }
+
+  function updateDatasourceLabel(index: number, patch: Partial<LabelPair>) {
+    const datasourceLabels = form.datasourceLabels.map((pair, current) =>
+      current === index ? { ...pair, ...patch } : pair
+    )
+    setForm({ ...form, datasourceLabels })
   }
 
   // 打开详情时先用列表快照立即出内容，再用单条接口刷新；切换规则时不覆盖新详情。
@@ -1004,38 +1033,89 @@ export function AlertRulePage() {
                   <p className="text-xs text-muted-foreground">
                     {t("alertRule.datasourceLabelsHint")}
                   </p>
-                  {form.datasourceLabels.map((pair, index) => (
-                    <div key={index} className="grid gap-2 sm:grid-cols-2">
-                      <Input
-                        value={pair.key}
-                        placeholder={t(
-                          "alertRule.datasourceLabelKeyPlaceholder"
-                        )}
-                        onChange={(event) => {
-                          const datasourceLabels = [...form.datasourceLabels]
-                          datasourceLabels[index] = {
-                            ...pair,
-                            key: event.target.value,
+                  {form.datasourceLabels.map((pair, index) => {
+                    // 编辑旧规则时，历史键/值可能已不在当前候选里；保留为可选项，保存时不会丢数据。
+                    const keyOptions =
+                      pair.key === "" ||
+                      datasourceMatchKeyOptions.some(
+                        (option) => option.value === pair.key
+                      )
+                        ? datasourceMatchKeyOptions
+                        : [
+                            ...datasourceMatchKeyOptions,
+                            { value: pair.key, label: pair.key },
+                          ]
+                    const values = datasourceMatchValues(
+                      sources,
+                      form.driver,
+                      pair.key
+                    )
+                    const valueOptions = values.map((value) => ({
+                      value,
+                      label: value,
+                    }))
+                    if (pair.value !== "" && !values.includes(pair.value)) {
+                      valueOptions.push({
+                        value: pair.value,
+                        label: pair.value,
+                      })
+                    }
+                    return (
+                      <div key={index} className="grid gap-2 sm:grid-cols-2">
+                        <SearchableSelect
+                          ariaLabel={t("alertRule.datasourceLabelKeyAria")}
+                          value={pair.key}
+                          options={keyOptions}
+                          placeholder={t(
+                            "alertRule.datasourceLabelKeyPlaceholder"
+                          )}
+                          searchPlaceholder={t(
+                            "alertRule.datasourceLabelKeySearch"
+                          )}
+                          emptyText={t("alertRule.datasourceLabelKeyEmpty")}
+                          clearLabel={t("alertRule.datasourceLabelClear")}
+                          onChange={(key) => {
+                            // 重新选中同一个键不算变更，避免丢掉编辑态里保留的值。
+                            if (key === pair.key) {
+                              return
+                            }
+                            const nextValues = datasourceMatchValues(
+                              sources,
+                              form.driver,
+                              key
+                            )
+                            updateDatasourceLabel(index, {
+                              key,
+                              value: nextValues.includes(pair.value)
+                                ? pair.value
+                                : "",
+                            })
+                          }}
+                        />
+                        <SearchableSelect
+                          ariaLabel={t("alertRule.datasourceLabelValueAria")}
+                          value={pair.value}
+                          options={valueOptions}
+                          allowCustom
+                          customLabel={(value) =>
+                            t("alertRule.datasourceLabelCustomValue", { value })
                           }
-                          setForm({ ...form, datasourceLabels })
-                        }}
-                      />
-                      <Input
-                        value={pair.value}
-                        placeholder={t(
-                          "alertRule.datasourceLabelValuePlaceholder"
-                        )}
-                        onChange={(event) => {
-                          const datasourceLabels = [...form.datasourceLabels]
-                          datasourceLabels[index] = {
-                            ...pair,
-                            value: event.target.value,
+                          customHint={t("alertRule.datasourceLabelCustomHint")}
+                          placeholder={t(
+                            "alertRule.datasourceLabelValuePlaceholder"
+                          )}
+                          searchPlaceholder={t(
+                            "alertRule.datasourceLabelValueSearch"
+                          )}
+                          emptyText={t("alertRule.datasourceLabelValueEmpty")}
+                          clearLabel={t("alertRule.datasourceLabelClear")}
+                          onChange={(value) =>
+                            updateDatasourceLabel(index, { value })
                           }
-                          setForm({ ...form, datasourceLabels })
-                        }}
-                      />
-                    </div>
-                  ))}
+                        />
+                      </div>
+                    )
+                  })}
                   <p className="text-xs text-muted-foreground">
                     {t("alertRule.datasourceMatchPreview", {
                       count: matchDatasourceCount(
@@ -1067,12 +1147,14 @@ export function AlertRulePage() {
                     <LogQLEditor
                       value={form.expr}
                       datasourceUid={matchedUid}
+                      placeholder={exprPlaceholder}
                       onChange={(value) => setForm({ ...form, expr: value })}
                     />
                   ) : form.driver === "LOGS_VLOGS" ? (
                     <LogsQLEditor
                       value={form.expr}
                       datasourceUid={matchedUid}
+                      placeholder={exprPlaceholder}
                       onChange={(value) => setForm({ ...form, expr: value })}
                     />
                   ) : (
@@ -1082,6 +1164,7 @@ export function AlertRulePage() {
                         form.driver === "LOGS_ELASTICSEARCH" ? "json" : "promql"
                       }
                       datasourceUid={matchedUid}
+                      placeholder={exprPlaceholder}
                       onChange={(value) => setForm({ ...form, expr: value })}
                     />
                   )}

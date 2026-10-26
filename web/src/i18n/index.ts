@@ -709,7 +709,23 @@ const zh = {
     addDatasourceLabel: "添加匹配标签",
     datasourceLabelKeyPlaceholder: "匹配键",
     datasourceLabelValuePlaceholder: "匹配值（支持正则）",
+    datasourceLabelKeyAria: "数据源匹配键",
+    datasourceLabelValueAria: "数据源匹配值",
+    datasourceLabelKeySearch: "搜索匹配键",
+    datasourceLabelValueSearch: "搜索匹配值",
+    datasourceLabelKeyEmpty: "当前数据源类型没有可选的匹配键",
+    datasourceLabelValueEmpty: "没有可选值，可直接输入自定义值",
+    datasourceLabelCustomValue: "使用自定义值“{{value}}”",
+    datasourceLabelCustomHint:
+      "匹配值是完整匹配的正则表达式，列表里没有的值可直接输入。",
+    datasourceLabelClear: "清除",
     datasourceMatchPreview: "将匹配 {{count}} 个启用数据源",
+    exprPlaceholderMetrics: "例如 up、rate(http_requests_total[5m])",
+    exprPlaceholderLoki:
+      '例如 sum by (app) (count_over_time({app="api"} |= "error" [5m]))',
+    exprPlaceholderVlogs:
+      "例如 level:error | stats by (app, level) count() as value",
+    exprPlaceholderEs: '例如 {"match": {"level": "error"}}',
     summary: "摘要",
     summaryPlaceholder: "告警标题，可用 {{ $labels.job }} 等模板",
     descriptionField: "描述",
@@ -2300,7 +2316,24 @@ const en = {
     addDatasourceLabel: "Add matcher",
     datasourceLabelKeyPlaceholder: "Matcher key",
     datasourceLabelValuePlaceholder: "Matcher value (regex)",
+    datasourceLabelKeyAria: "Datasource matcher key",
+    datasourceLabelValueAria: "Datasource matcher value",
+    datasourceLabelKeySearch: "Search matcher keys",
+    datasourceLabelValueSearch: "Search matcher values",
+    datasourceLabelKeyEmpty: "No matcher keys for this datasource driver",
+    datasourceLabelValueEmpty: "No values available; type a custom value",
+    datasourceLabelCustomValue: "Use custom value “{{value}}”",
+    datasourceLabelCustomHint:
+      "Matcher values are full-match regular expressions; type any value not listed above.",
+    datasourceLabelClear: "Clear",
     datasourceMatchPreview: "Will match {{count}} active datasource(s)",
+    exprPlaceholderMetrics:
+      "For example up or rate(http_requests_total[5m])",
+    exprPlaceholderLoki:
+      'For example sum by (app) (count_over_time({app="api"} |= "error" [5m]))',
+    exprPlaceholderVlogs:
+      "For example level:error | stats by (app, level) count() as value",
+    exprPlaceholderEs: 'For example {"match": {"level": "error"}}',
     summary: "Summary",
     summaryPlaceholder:
       "Alert title; templates like {{ $labels.job }} are supported",

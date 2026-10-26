@@ -28,6 +28,91 @@ export function datasourceMatchLabels(
   }
 }
 
+/** 数据源标签匹配的系统键：数据源名称和等级名称由后端在评测时并入标签。 */
+export const DATASOURCE_MATCH_SYSTEM_KEYS = [
+  "datasource",
+  "datasource_level",
+] as const
+
+// 匹配键和值的候选集合只来自同一驱动、启用状态的数据源，
+// 和 matchedDatasources/matchedDatasourceCount 使用的集合保持一致。
+function matchableDatasources(
+  sources: DatasourceItem[],
+  driver: string
+): DatasourceItem[] {
+  return sources.filter(
+    (item) => item.driver === driver && item.status === "ACTIVE"
+  )
+}
+
+function compareText(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
+}
+
+/**
+ * 规则可选的匹配键：系统键固定在前，其后是启用数据源里出现的自定义标签键。
+ * 自定义键去重并排序；与系统键同名的标签键不重复出现。
+ */
+export function datasourceMatchKeys(
+  sources: DatasourceItem[],
+  driver: string
+): string[] {
+  const customKeys = new Set<string>()
+  for (const item of matchableDatasources(sources, driver)) {
+    const labels = parseDatasourceLabels(item.labels)
+    if (labels === null) {
+      continue
+    }
+    for (const rawKey of Object.keys(labels)) {
+      const key = rawKey.trim()
+      if (
+        key !== "" &&
+        !(DATASOURCE_MATCH_SYSTEM_KEYS as readonly string[]).includes(key)
+      ) {
+        customKeys.add(key)
+      }
+    }
+  }
+  return [...DATASOURCE_MATCH_SYSTEM_KEYS, ...[...customKeys].sort(compareText)]
+}
+
+/**
+ * 选中匹配键后可以带出的值：
+ * datasource -> 数据源名称，datasource_level -> 等级名称，其余键 -> 数据源同名标签值。
+ * 值保留原始内容（匹配按完整正则比较，去掉空白会改变语义），只去掉空值并去重排序。
+ */
+export function datasourceMatchValues(
+  sources: DatasourceItem[],
+  driver: string,
+  key: string
+): string[] {
+  const matchKey = key.trim()
+  if (matchKey === "") {
+    return []
+  }
+  const values = new Set<string>()
+  for (const item of matchableDatasources(sources, driver)) {
+    if (matchKey === "datasource") {
+      if (item.name.trim() !== "") {
+        values.add(item.name)
+      }
+      continue
+    }
+    if (matchKey === "datasource_level") {
+      if (item.levelName.trim() !== "") {
+        values.add(item.levelName)
+      }
+      continue
+    }
+    const labels = parseDatasourceLabels(item.labels)
+    const value = labels?.[matchKey]
+    if (typeof value === "string" && value.trim() !== "") {
+      values.add(value)
+    }
+  }
+  return [...values].sort(compareText)
+}
+
 /** 规则会命中哪些启用数据源：驱动一致且标签匹配器全部命中。 */
 export function matchedDatasources(
   sources: DatasourceItem[],
