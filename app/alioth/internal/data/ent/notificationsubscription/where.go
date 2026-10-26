@@ -89,6 +89,11 @@ func Labels(v string) predicate.NotificationSubscription {
 	return predicate.NotificationSubscription(sql.FieldEQ(FieldLabels, v))
 }
 
+// RepeatIntervalSeconds applies equality check predicate on the "repeat_interval_seconds" field. It's identical to RepeatIntervalSecondsEQ.
+func RepeatIntervalSeconds(v int) predicate.NotificationSubscription {
+	return predicate.NotificationSubscription(sql.FieldEQ(FieldRepeatIntervalSeconds, v))
+}
+
 // Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
 func Remark(v string) predicate.NotificationSubscription {
 	return predicate.NotificationSubscription(sql.FieldEQ(FieldRemark, v))
@@ -502,6 +507,46 @@ func LabelsEqualFold(v string) predicate.NotificationSubscription {
 // LabelsContainsFold applies the ContainsFold predicate on the "labels" field.
 func LabelsContainsFold(v string) predicate.NotificationSubscription {
 	return predicate.NotificationSubscription(sql.FieldContainsFold(FieldLabels, v))
+}
+
+// RepeatIntervalSecondsEQ applies the EQ predicate on the "repeat_interval_seconds" field.
+func RepeatIntervalSecondsEQ(v int) predicate.NotificationSubscription {
+	return predicate.NotificationSubscription(sql.FieldEQ(FieldRepeatIntervalSeconds, v))
+}
+
+// RepeatIntervalSecondsNEQ applies the NEQ predicate on the "repeat_interval_seconds" field.
+func RepeatIntervalSecondsNEQ(v int) predicate.NotificationSubscription {
+	return predicate.NotificationSubscription(sql.FieldNEQ(FieldRepeatIntervalSeconds, v))
+}
+
+// RepeatIntervalSecondsIn applies the In predicate on the "repeat_interval_seconds" field.
+func RepeatIntervalSecondsIn(vs ...int) predicate.NotificationSubscription {
+	return predicate.NotificationSubscription(sql.FieldIn(FieldRepeatIntervalSeconds, vs...))
+}
+
+// RepeatIntervalSecondsNotIn applies the NotIn predicate on the "repeat_interval_seconds" field.
+func RepeatIntervalSecondsNotIn(vs ...int) predicate.NotificationSubscription {
+	return predicate.NotificationSubscription(sql.FieldNotIn(FieldRepeatIntervalSeconds, vs...))
+}
+
+// RepeatIntervalSecondsGT applies the GT predicate on the "repeat_interval_seconds" field.
+func RepeatIntervalSecondsGT(v int) predicate.NotificationSubscription {
+	return predicate.NotificationSubscription(sql.FieldGT(FieldRepeatIntervalSeconds, v))
+}
+
+// RepeatIntervalSecondsGTE applies the GTE predicate on the "repeat_interval_seconds" field.
+func RepeatIntervalSecondsGTE(v int) predicate.NotificationSubscription {
+	return predicate.NotificationSubscription(sql.FieldGTE(FieldRepeatIntervalSeconds, v))
+}
+
+// RepeatIntervalSecondsLT applies the LT predicate on the "repeat_interval_seconds" field.
+func RepeatIntervalSecondsLT(v int) predicate.NotificationSubscription {
+	return predicate.NotificationSubscription(sql.FieldLT(FieldRepeatIntervalSeconds, v))
+}
+
+// RepeatIntervalSecondsLTE applies the LTE predicate on the "repeat_interval_seconds" field.
+func RepeatIntervalSecondsLTE(v int) predicate.NotificationSubscription {
+	return predicate.NotificationSubscription(sql.FieldLTE(FieldRepeatIntervalSeconds, v))
 }
 
 // RemarkEQ applies the EQ predicate on the "remark" field.

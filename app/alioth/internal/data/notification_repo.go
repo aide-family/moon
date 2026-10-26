@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationoncallgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
@@ -486,6 +487,17 @@ func (r *notificationRepo) DeleteGroup(ctx context.Context, namespaceUID, uid st
 	}
 	if used {
 		return merr.Conflict("group is bound to a notification subscription")
+	}
+	usedByOnCall, err := r.client.NotificationOnCallGroup.Query().Where(
+		notificationoncallgroup.NamespaceUIDEQ(namespaceUID),
+		notificationoncallgroup.GroupUIDEQ(uid),
+		notificationoncallgroup.DeletedAtIsNil(),
+	).Exist(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if usedByOnCall {
+		return merr.Conflict("group is bound to a notification on-call")
 	}
 	n, err := r.client.NotificationGroup.Update().Where(
 		notificationgroup.NamespaceUIDEQ(namespaceUID),
@@ -1388,6 +1400,7 @@ func toNotificationTask(row *ent.NotificationTask) bo.NotificationTask {
 	return bo.NotificationTask{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, EventUID: row.EventUID,
 		Phase: string(row.Phase), Status: string(row.Status), RuleUID: row.RuleUID,
+		Fingerprint:     row.Fingerprint,
 		SubscriptionUID: row.SubscriptionUID, GroupUID: row.GroupUID,
 		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Sender: row.Sender, Receivers: row.Receivers,
 		Subject: row.Subject, Body: row.Body, Content: row.Content, Params: row.Params, RetriesLeft: row.RetriesLeft, LastError: row.LastError,

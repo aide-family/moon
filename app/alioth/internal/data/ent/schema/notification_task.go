@@ -26,6 +26,8 @@ func (NotificationTask) Fields() []ent.Field {
 		field.Enum("phase").Values("FIRING", "RECOVERED", "TEST").Default("TEST"),
 		field.Enum("status").Values("PENDING", "SENDING", "SENT", "FAILED", "CANCELLED").Default("PENDING"),
 		field.String("rule_uid").Default(""),
+		// fingerprint 是事件指纹，用于同一告警的重复通知间隔判断。
+		field.String("fingerprint").Default(""),
 		field.String("subscription_uid").Default(""),
 		field.String("group_uid").Default(""),
 		field.String("channel_uid").NotEmpty(),
@@ -52,5 +54,7 @@ func (NotificationTask) Indexes() []ent.Index {
 		index.Fields("status"),
 		index.Fields("status", "next_attempt_at"),
 		index.Fields("namespace_uid", "status"),
+		// 同一指纹的重复通知间隔判断和恢复前的已发送检查都按这三个字段查询。
+		index.Fields("namespace_uid", "fingerprint", "phase"),
 	}
 }

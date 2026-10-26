@@ -52,10 +52,26 @@ service AuthService {
       body: "*"
     };
   }
-  // 用 GitHub 或 Gitee 的授权码登录。
+  // 用第三方授权码登录。第三方没有可用邮箱时返回待绑定凭证，前端引导用户补充并验证邮箱。
   rpc OAuth2Login(OAuth2LoginRequest) returns (OAuth2LoginResponse) {
     option (google.api.http) = {
       post: "/v1/auth/oauth2/login"
+      body: "*"
+    };
+  }
+  // 给待绑定的第三方账号发送邮箱验证码。bind_token 来自 OAuth2Login 的待绑定响应，
+  // 发码前先通过图形验证码，同一邮箱 60 秒内只能发一次。
+  rpc SendOAuthBindEmailCode(SendOAuthBindEmailCodeRequest) returns (SendOAuthBindEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/oauth2/bind/code"
+      body: "*"
+    };
+  }
+  // 校验邮箱验证码，把第三方身份绑定到该邮箱并返回登录会话。
+  // 邮箱已经属于本地账号时直接并入该账号；验证通过前不签发令牌。
+  rpc BindOAuthEmail(BindOAuthEmailRequest) returns (BindOAuthEmailResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/oauth2/bind"
       body: "*"
     };
   }
@@ -581,6 +597,47 @@ message OAuth2LoginRequest {
 
 // 第三方登录结果。
 message OAuth2LoginResponse {
+  // 登录会话。第三方返回可用邮箱，或该第三方账号已经绑定时返回。
+  TokenPair session = 1;
+  // 是否需要用户补充并验证邮箱。为 true 时 session 为空，前端展示邮箱绑定表单。
+  bool email_binding_required = 2 [json_name = "emailBindingRequired"];
+  // 待绑定凭证，15 分钟内有效，只用于发送绑定验证码和完成绑定。
+  string bind_token = 3 [json_name = "bindToken"];
+  // 第三方返回的未验证邮箱，用于预填表单；平台没有返回邮箱时为空。
+  string suggested_email = 4 [json_name = "suggestedEmail"];
+}
+
+// 发送第三方登录邮箱绑定验证码的参数。
+message SendOAuthBindEmailCodeRequest {
+  // 待绑定凭证。
+  string bind_token = 1 [(buf.validate.field).string.min_len = 1, json_name = "bindToken"];
+  // 用户填写或确认的邮箱，验证码发到这个地址。
+  string email = 2 [(buf.validate.field).string.email = true];
+  // 图形验证码标识。
+  string captcha_id = 3 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
+  // 图形验证码答案。
+  string captcha_code = 4 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
+}
+
+// 绑定验证码已受理。
+message SendOAuthBindEmailCodeResponse {}
+
+// 完成第三方登录邮箱绑定的参数。
+message BindOAuthEmailRequest {
+  // 待绑定凭证。
+  string bind_token = 1 [(buf.validate.field).string.min_len = 1, json_name = "bindToken"];
+  // 完成验证的邮箱。
+  string email = 2 [(buf.validate.field).string.email = true];
+  // 邮箱验证码。
+  string code = 3 [(buf.validate.field).string.min_len = 4];
+  // 图形验证码标识。
+  string captcha_id = 4 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
+  // 图形验证码答案。
+  string captcha_code = 5 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
+}
+
+// 第三方登录邮箱绑定结果。
+message BindOAuthEmailResponse {
   // 登录会话。
   TokenPair session = 1;
 }

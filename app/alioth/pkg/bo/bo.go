@@ -126,6 +126,14 @@ type OAuthProvider struct {
 	AuthorizeURL string
 }
 
+// OAuthBinding 是第三方身份缺少可用邮箱时返回的待绑定凭证。
+// Token 由服务端签名，只用于发绑定验证码和完成绑定；SuggestedEmail 是第三方返回的
+// 未验证邮箱，仅用于预填表单，平台没有返回时为空。
+type OAuthBinding struct {
+	Token          string
+	SuggestedEmail string
+}
+
 // Datasource 是租户里的一条数据源。Password 和 Secret 只在用例内部是明文，离开接口前要清空。
 type Datasource struct {
 	UID          string
@@ -476,7 +484,7 @@ type NotificationGroup struct {
 	WebhookTemplateUID string
 }
 
-// NotificationSubscription 按标签、告警级别和数据源订阅事件。
+// NotificationSubscription 按标签、告警级别、数据源和数据源级别订阅事件。
 type NotificationSubscription struct {
 	UID            string
 	NamespaceUID   string
@@ -485,19 +493,60 @@ type NotificationSubscription struct {
 	Labels         string
 	LevelUIDs      []string
 	DatasourceUIDs []string
-	GroupUIDs      []string
-	Remark         string
-	CreatedAt      time.Time
+	// DatasourceLevelUIDs 按数据源级别过滤；为空表示不限制。
+	DatasourceLevelUIDs []string
+	// RepeatIntervalSeconds 是同一告警重复通知的最小间隔，0 表示不限制，最大 12 小时。
+	RepeatIntervalSeconds int
+	GroupUIDs             []string
+	Remark                string
+	CreatedAt             time.Time
+}
+
+// NotificationOnCall 按标签、告警级别、数据源和数据源级别订阅事件，并按时段把事件投递给不同通知组。
+// Groups 中每个通知组带自己的时间窗口；没有窗口表示全天候接收。
+type NotificationOnCall struct {
+	UID            string
+	NamespaceUID   string
+	Name           string
+	Status         string
+	Labels         string
+	LevelUIDs      []string
+	DatasourceUIDs []string
+	// DatasourceLevelUIDs 按数据源级别过滤；为空表示不限制。
+	DatasourceLevelUIDs []string
+	// RepeatIntervalSeconds 是同一告警重复通知的最小间隔，0 表示不限制，最大 12 小时。
+	RepeatIntervalSeconds int
+	Timezone              string
+	Groups                []NotificationOnCallGroup
+	Remark                string
+	CreatedAt             time.Time
+}
+
+// NotificationOnCallGroup 是 OnCall 与通知组的绑定，以及该组的时间窗口。
+type NotificationOnCallGroup struct {
+	GroupUID  string
+	GroupName string
+	Windows   []NotificationOnCallWindow
+}
+
+// NotificationOnCallWindow 是通知组的接收时段。Weekdays 取 MONDAY 到 SUNDAY，
+// Start/End 取 HH:mm；Start 晚于 End 表示跨午夜，星期几归属于开始那天。
+type NotificationOnCallWindow struct {
+	Weekdays []string
+	Start    string
+	End      string
 }
 
 // NotificationTask 是一条投递任务。
 type NotificationTask struct {
-	UID             string
-	NamespaceUID    string
-	EventUID        string
-	Phase           string
-	Status          string
-	RuleUID         string
+	UID          string
+	NamespaceUID string
+	EventUID     string
+	Phase        string
+	Status       string
+	RuleUID      string
+	// Fingerprint 是事件指纹，用于同一告警的重复通知间隔判断。
+	Fingerprint     string
 	SubscriptionUID string
 	GroupUID        string
 	ChannelUID      string

@@ -868,6 +868,93 @@ var (
 			},
 		},
 	}
+	// NotificationOnCallsColumns holds the columns for the "notification_on_calls" table.
+	NotificationOnCallsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "labels", Type: field.TypeString, Default: "{}"},
+		{Name: "level_uids", Type: field.TypeJSON},
+		{Name: "datasource_uids", Type: field.TypeJSON},
+		{Name: "datasource_level_uids", Type: field.TypeJSON},
+		{Name: "repeat_interval_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "timezone", Type: field.TypeString, Default: ""},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// NotificationOnCallsTable holds the schema information for the "notification_on_calls" table.
+	NotificationOnCallsTable = &schema.Table{
+		Name:       "notification_on_calls",
+		Columns:    NotificationOnCallsColumns,
+		PrimaryKey: []*schema.Column{NotificationOnCallsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationoncall_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationOnCallsColumns[4]},
+			},
+			{
+				Name:    "notificationoncall_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationOnCallsColumns[5], NotificationOnCallsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "notificationoncall_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationOnCallsColumns[5], NotificationOnCallsColumns[7]},
+			},
+		},
+	}
+	// NotificationOnCallGroupsColumns holds the columns for the "notification_on_call_groups" table.
+	NotificationOnCallGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "oncall_uid", Type: field.TypeString},
+		{Name: "group_uid", Type: field.TypeString},
+		{Name: "time_windows", Type: field.TypeString, Default: "[]"},
+	}
+	// NotificationOnCallGroupsTable holds the schema information for the "notification_on_call_groups" table.
+	NotificationOnCallGroupsTable = &schema.Table{
+		Name:       "notification_on_call_groups",
+		Columns:    NotificationOnCallGroupsColumns,
+		PrimaryKey: []*schema.Column{NotificationOnCallGroupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationoncallgroup_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationOnCallGroupsColumns[4]},
+			},
+			{
+				Name:    "notificationoncallgroup_oncall_uid_group_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationOnCallGroupsColumns[6], NotificationOnCallGroupsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "notificationoncallgroup_oncall_uid",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationOnCallGroupsColumns[6]},
+			},
+			{
+				Name:    "notificationoncallgroup_group_uid",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationOnCallGroupsColumns[7]},
+			},
+		},
+	}
 	// NotificationPresetsColumns holds the columns for the "notification_presets" table.
 	NotificationPresetsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -919,6 +1006,8 @@ var (
 		{Name: "labels", Type: field.TypeString, Default: "{}"},
 		{Name: "level_uids", Type: field.TypeJSON},
 		{Name: "datasource_uids", Type: field.TypeJSON},
+		{Name: "datasource_level_uids", Type: field.TypeJSON},
+		{Name: "repeat_interval_seconds", Type: field.TypeInt, Default: 0},
 		{Name: "remark", Type: field.TypeString, Default: ""},
 	}
 	// NotificationSubscriptionsTable holds the schema information for the "notification_subscriptions" table.
@@ -1000,6 +1089,7 @@ var (
 		{Name: "phase", Type: field.TypeEnum, Enums: []string{"FIRING", "RECOVERED", "TEST"}, Default: "TEST"},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "SENDING", "SENT", "FAILED", "CANCELLED"}, Default: "PENDING"},
 		{Name: "rule_uid", Type: field.TypeString, Default: ""},
+		{Name: "fingerprint", Type: field.TypeString, Default: ""},
 		{Name: "subscription_uid", Type: field.TypeString, Default: ""},
 		{Name: "group_uid", Type: field.TypeString, Default: ""},
 		{Name: "channel_uid", Type: field.TypeString},
@@ -1028,7 +1118,7 @@ var (
 			{
 				Name:    "notificationtask_event_uid_phase_group_uid_channel_uid",
 				Unique:  true,
-				Columns: []*schema.Column{NotificationTasksColumns[5], NotificationTasksColumns[6], NotificationTasksColumns[10], NotificationTasksColumns[11]},
+				Columns: []*schema.Column{NotificationTasksColumns[5], NotificationTasksColumns[6], NotificationTasksColumns[11], NotificationTasksColumns[12]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "event_uid <> ''",
 				},
@@ -1041,12 +1131,17 @@ var (
 			{
 				Name:    "notificationtask_status_next_attempt_at",
 				Unique:  false,
-				Columns: []*schema.Column{NotificationTasksColumns[7], NotificationTasksColumns[20]},
+				Columns: []*schema.Column{NotificationTasksColumns[7], NotificationTasksColumns[21]},
 			},
 			{
 				Name:    "notificationtask_namespace_uid_status",
 				Unique:  false,
 				Columns: []*schema.Column{NotificationTasksColumns[4], NotificationTasksColumns[7]},
+			},
+			{
+				Name:    "notificationtask_namespace_uid_fingerprint_phase",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationTasksColumns[4], NotificationTasksColumns[9], NotificationTasksColumns[6]},
 			},
 		},
 	}
@@ -1483,6 +1578,8 @@ var (
 		NamespacesTable,
 		NotificationChannelsTable,
 		NotificationGroupsTable,
+		NotificationOnCallsTable,
+		NotificationOnCallGroupsTable,
 		NotificationPresetsTable,
 		NotificationSubscriptionsTable,
 		NotificationSubscriptionGroupsTable,

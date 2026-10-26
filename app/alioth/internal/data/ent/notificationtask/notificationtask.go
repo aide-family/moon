@@ -30,6 +30,8 @@ const (
 	FieldStatus = "status"
 	// FieldRuleUID holds the string denoting the rule_uid field in the database.
 	FieldRuleUID = "rule_uid"
+	// FieldFingerprint holds the string denoting the fingerprint field in the database.
+	FieldFingerprint = "fingerprint"
 	// FieldSubscriptionUID holds the string denoting the subscription_uid field in the database.
 	FieldSubscriptionUID = "subscription_uid"
 	// FieldGroupUID holds the string denoting the group_uid field in the database.
@@ -71,6 +73,7 @@ var Columns = []string{
 	FieldPhase,
 	FieldStatus,
 	FieldRuleUID,
+	FieldFingerprint,
 	FieldSubscriptionUID,
 	FieldGroupUID,
 	FieldChannelUID,
@@ -111,6 +114,8 @@ var (
 	DefaultEventUID string
 	// DefaultRuleUID holds the default value on creation for the "rule_uid" field.
 	DefaultRuleUID string
+	// DefaultFingerprint holds the default value on creation for the "fingerprint" field.
+	DefaultFingerprint string
 	// DefaultSubscriptionUID holds the default value on creation for the "subscription_uid" field.
 	DefaultSubscriptionUID string
 	// DefaultGroupUID holds the default value on creation for the "group_uid" field.
@@ -239,6 +244,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByRuleUID orders the results by the rule_uid field.
 func ByRuleUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRuleUID, opts...).ToFunc()
+}
+
+// ByFingerprint orders the results by the fingerprint field.
+func ByFingerprint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFingerprint, opts...).ToFunc()
 }
 
 // BySubscriptionUID orders the results by the subscription_uid field.

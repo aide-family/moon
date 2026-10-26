@@ -34,11 +34,14 @@ func (userStub) UserByUID(context.Context, string) (*bo.Account, error) {
 	return &bo.Account{UID: "user-1", Status: "ACTIVE"}, nil
 }
 
-// userRepoStub 用内存账号表代替数据库，记录创建过的用户。
+// userRepoStub 用内存账号表代替数据库，记录创建过的用户、改过的资料和合并调用。
 type userRepoStub struct {
 	repository.UserRepo
 	byEmail map[string]bo.Account
+	byUID   map[string]bo.Account
 	created []bo.Account
+	// merged 记录 MergeAccounts 的调用参数，测试据此断言占位账号被并进了邮箱账号。
+	merged [][2]string
 }
 
 func (stub *userRepoStub) UserByEmail(_ context.Context, email string) (*bo.Account, error) {
@@ -50,11 +53,52 @@ func (stub *userRepoStub) UserByEmail(_ context.Context, email string) (*bo.Acco
 	return &copied, nil
 }
 
+func (stub *userRepoStub) UserByUID(_ context.Context, uid string) (*bo.Account, error) {
+	account, ok := stub.byUID[uid]
+	if !ok {
+		return nil, merr.NotFound("not found")
+	}
+	copied := account
+	return &copied, nil
+}
+
 func (stub *userRepoStub) CreateUser(_ context.Context, in bo.Account) (*bo.Account, error) {
 	stub.created = append(stub.created, in)
 	stub.byEmail[in.Email] = in
+	stub.byUID[in.UID] = in
 	copied := in
 	return &copied, nil
+}
+
+// UpdateUserProfile 模拟改资料；邮箱变了就同步邮箱索引，保持 UserByEmail 一致。
+func (stub *userRepoStub) UpdateUserProfile(_ context.Context, uid string, email, phone, avatar, remark *string) (*bo.Account, error) {
+	account, ok := stub.byUID[uid]
+	if !ok {
+		return nil, merr.NotFound("not found")
+	}
+	if email != nil {
+		delete(stub.byEmail, account.Email)
+		account.Email = *email
+	}
+	if phone != nil {
+		account.Phone = *phone
+	}
+	if avatar != nil {
+		account.Avatar = *avatar
+	}
+	if remark != nil {
+		account.Remark = *remark
+	}
+	stub.byEmail[account.Email] = account
+	stub.byUID[uid] = account
+	copied := account
+	return &copied, nil
+}
+
+// MergeAccounts 只记录调用参数；事务细节不在这里断言，用例层只关心调用时机和参数。
+func (stub *userRepoStub) MergeAccounts(_ context.Context, fromUID, toUID string) error {
+	stub.merged = append(stub.merged, [2]string{fromUID, toUID})
+	return nil
 }
 
 // captchaRepoStub 用内存表保存图形验证码答案摘要，并记录校验和消费次数。
@@ -146,21 +190,23 @@ type authFixture struct {
 	users         *userRepoStub
 	captchas      *captchaRepoStub
 	emailCodes    *emailCodeRepoStub
+	oauth         *oauthRepoStub
 	mail          *codeMailerStub
 }
 
 func newAuthFixture(t *testing.T) *authFixture {
 	t.Helper()
-	users := &userRepoStub{byEmail: map[string]bo.Account{}}
+	users := &userRepoStub{byEmail: map[string]bo.Account{}, byUID: map[string]bo.Account{}}
 	captchas := newCaptchaRepoStub()
 	emailCodes := newEmailCodeRepoStub()
 	mail := &codeMailerStub{}
-	authenticator, err := NewAuthenticator(users, captchas, emailCodes, nil, nil, nil, &conf.Auth{JwtSecret: "test-secret"}, slog.Default())
+	oauth := newOAuthRepoStub(users)
+	authenticator, err := NewAuthenticator(users, captchas, emailCodes, oauth, nil, nil, &conf.Auth{JwtSecret: "test-secret"}, slog.Default())
 	if err != nil {
 		t.Fatalf("NewAuthenticator: %v", err)
 	}
 	authenticator.mail = mail
-	return &authFixture{authenticator: authenticator, users: users, captchas: captchas, emailCodes: emailCodes, mail: mail}
+	return &authFixture{authenticator: authenticator, users: users, captchas: captchas, emailCodes: emailCodes, oauth: oauth, mail: mail}
 }
 
 // solveCaptcha 模拟用户解题：把图形验证码答案摘要写进桩仓储。
@@ -172,7 +218,14 @@ func (fixture *authFixture) solveCaptcha(t *testing.T, captchaID, answer string)
 }
 
 func (fixture *authFixture) addUser(email string) {
-	fixture.users.byEmail[email] = bo.Account{UID: "user-1", Email: email, Status: "ACTIVE"}
+	fixture.addAccount("user-1", email)
+}
+
+// addAccount 往桩账号表里放一个指定 UID 的账号，用于占位账号和邮箱已被占用等场景。
+func (fixture *authFixture) addAccount(uid, email string) {
+	account := bo.Account{UID: uid, Email: email, Status: "ACTIVE"}
+	fixture.users.byEmail[email] = account
+	fixture.users.byUID[uid] = account
 }
 
 func assertClientMessage(t *testing.T, err error, message string) {
@@ -1128,6 +1181,8 @@ func TestPublicOperation(t *testing.T) {
 		v1.OperationAuthServiceEmailLogin,
 		v1.OperationAuthServiceListOAuth2Providers,
 		v1.OperationAuthServiceOAuth2Login,
+		v1.OperationAuthServiceSendOAuthBindEmailCode,
+		v1.OperationAuthServiceBindOAuthEmail,
 	}
 	for _, operation := range public {
 		if !publicOperation(operation) {

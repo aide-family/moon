@@ -75,19 +75,33 @@ func (center *Center) ListSubscriptions(ctx context.Context, pageNo, pageSize in
 	return items, total, p, s, center.access.Wrap(err)
 }
 
-func (center *Center) normalizeSubscription(ctx context.Context, in *bo.NotificationSubscription) error {
+// normalizeSubscriptionFields 校验并规整订阅的名称、过滤条件和重复通知间隔。
+// 只做纯校验和规范化，不访问仓储和权限，便于单测；
+// 通知组是否存在由 normalizeSubscription 依赖当前 Namespace 校验。
+func normalizeSubscriptionFields(in *bo.NotificationSubscription) error {
 	if strings.TrimSpace(in.Name) == "" {
 		return merr.Invalid("name is required")
 	}
 	in.Name = strings.TrimSpace(in.Name)
 	in.LevelUIDs = uniqueStrings(in.LevelUIDs)
 	in.DatasourceUIDs = uniqueStrings(in.DatasourceUIDs)
+	in.DatasourceLevelUIDs = uniqueStrings(in.DatasourceLevelUIDs)
 	in.GroupUIDs = uniqueStrings(in.GroupUIDs)
-	if len(in.LevelUIDs) > maxSubscriptionFilterValues || len(in.DatasourceUIDs) > maxSubscriptionFilterValues {
+	if len(in.LevelUIDs) > maxSubscriptionFilterValues || len(in.DatasourceUIDs) > maxSubscriptionFilterValues || len(in.DatasourceLevelUIDs) > maxSubscriptionFilterValues {
 		return merr.Invalid("too many subscription filters")
+	}
+	if err := validateRepeatInterval(in.RepeatIntervalSeconds); err != nil {
+		return err
 	}
 	if len(in.GroupUIDs) == 0 {
 		return merr.Invalid("notification group is required")
+	}
+	return nil
+}
+
+func (center *Center) normalizeSubscription(ctx context.Context, in *bo.NotificationSubscription) error {
+	if err := normalizeSubscriptionFields(in); err != nil {
+		return err
 	}
 	for _, groupUID := range in.GroupUIDs {
 		if _, err := center.repo.GetGroup(ctx, in.NamespaceUID, groupUID); err != nil {

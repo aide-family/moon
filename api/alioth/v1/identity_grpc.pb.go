@@ -127,12 +127,14 @@ var CaptchaService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	AuthService_SendRegisterEmailCode_FullMethodName = "/alioth.v1.AuthService/SendRegisterEmailCode"
-	AuthService_Register_FullMethodName              = "/alioth.v1.AuthService/Register"
-	AuthService_SendEmailLoginCode_FullMethodName    = "/alioth.v1.AuthService/SendEmailLoginCode"
-	AuthService_EmailLogin_FullMethodName            = "/alioth.v1.AuthService/EmailLogin"
-	AuthService_ListOAuth2Providers_FullMethodName   = "/alioth.v1.AuthService/ListOAuth2Providers"
-	AuthService_OAuth2Login_FullMethodName           = "/alioth.v1.AuthService/OAuth2Login"
+	AuthService_SendRegisterEmailCode_FullMethodName  = "/alioth.v1.AuthService/SendRegisterEmailCode"
+	AuthService_Register_FullMethodName               = "/alioth.v1.AuthService/Register"
+	AuthService_SendEmailLoginCode_FullMethodName     = "/alioth.v1.AuthService/SendEmailLoginCode"
+	AuthService_EmailLogin_FullMethodName             = "/alioth.v1.AuthService/EmailLogin"
+	AuthService_ListOAuth2Providers_FullMethodName    = "/alioth.v1.AuthService/ListOAuth2Providers"
+	AuthService_OAuth2Login_FullMethodName            = "/alioth.v1.AuthService/OAuth2Login"
+	AuthService_SendOAuthBindEmailCode_FullMethodName = "/alioth.v1.AuthService/SendOAuthBindEmailCode"
+	AuthService_BindOAuthEmail_FullMethodName         = "/alioth.v1.AuthService/BindOAuthEmail"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -151,8 +153,14 @@ type AuthServiceClient interface {
 	EmailLogin(ctx context.Context, in *EmailLoginRequest, opts ...grpc.CallOption) (*EmailLoginResponse, error)
 	// 列出已经配置客户端的第三方登录来源和授权地址。
 	ListOAuth2Providers(ctx context.Context, in *ListOAuth2ProvidersRequest, opts ...grpc.CallOption) (*ListOAuth2ProvidersResponse, error)
-	// 用 GitHub 或 Gitee 的授权码登录。
+	// 用第三方授权码登录。第三方没有可用邮箱时返回待绑定凭证，前端引导用户补充并验证邮箱。
 	OAuth2Login(ctx context.Context, in *OAuth2LoginRequest, opts ...grpc.CallOption) (*OAuth2LoginResponse, error)
+	// 给待绑定的第三方账号发送邮箱验证码。bind_token 来自 OAuth2Login 的待绑定响应，
+	// 发码前先通过图形验证码，同一邮箱 60 秒内只能发一次。
+	SendOAuthBindEmailCode(ctx context.Context, in *SendOAuthBindEmailCodeRequest, opts ...grpc.CallOption) (*SendOAuthBindEmailCodeResponse, error)
+	// 校验邮箱验证码，把第三方身份绑定到该邮箱并返回登录会话。
+	// 邮箱已经属于本地账号时直接并入该账号；验证通过前不签发令牌。
+	BindOAuthEmail(ctx context.Context, in *BindOAuthEmailRequest, opts ...grpc.CallOption) (*BindOAuthEmailResponse, error)
 }
 
 type authServiceClient struct {
@@ -223,6 +231,26 @@ func (c *authServiceClient) OAuth2Login(ctx context.Context, in *OAuth2LoginRequ
 	return out, nil
 }
 
+func (c *authServiceClient) SendOAuthBindEmailCode(ctx context.Context, in *SendOAuthBindEmailCodeRequest, opts ...grpc.CallOption) (*SendOAuthBindEmailCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendOAuthBindEmailCodeResponse)
+	err := c.cc.Invoke(ctx, AuthService_SendOAuthBindEmailCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) BindOAuthEmail(ctx context.Context, in *BindOAuthEmailRequest, opts ...grpc.CallOption) (*BindOAuthEmailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BindOAuthEmailResponse)
+	err := c.cc.Invoke(ctx, AuthService_BindOAuthEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -239,8 +267,14 @@ type AuthServiceServer interface {
 	EmailLogin(context.Context, *EmailLoginRequest) (*EmailLoginResponse, error)
 	// 列出已经配置客户端的第三方登录来源和授权地址。
 	ListOAuth2Providers(context.Context, *ListOAuth2ProvidersRequest) (*ListOAuth2ProvidersResponse, error)
-	// 用 GitHub 或 Gitee 的授权码登录。
+	// 用第三方授权码登录。第三方没有可用邮箱时返回待绑定凭证，前端引导用户补充并验证邮箱。
 	OAuth2Login(context.Context, *OAuth2LoginRequest) (*OAuth2LoginResponse, error)
+	// 给待绑定的第三方账号发送邮箱验证码。bind_token 来自 OAuth2Login 的待绑定响应，
+	// 发码前先通过图形验证码，同一邮箱 60 秒内只能发一次。
+	SendOAuthBindEmailCode(context.Context, *SendOAuthBindEmailCodeRequest) (*SendOAuthBindEmailCodeResponse, error)
+	// 校验邮箱验证码，把第三方身份绑定到该邮箱并返回登录会话。
+	// 邮箱已经属于本地账号时直接并入该账号；验证通过前不签发令牌。
+	BindOAuthEmail(context.Context, *BindOAuthEmailRequest) (*BindOAuthEmailResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -268,6 +302,12 @@ func (UnimplementedAuthServiceServer) ListOAuth2Providers(context.Context, *List
 }
 func (UnimplementedAuthServiceServer) OAuth2Login(context.Context, *OAuth2LoginRequest) (*OAuth2LoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OAuth2Login not implemented")
+}
+func (UnimplementedAuthServiceServer) SendOAuthBindEmailCode(context.Context, *SendOAuthBindEmailCodeRequest) (*SendOAuthBindEmailCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendOAuthBindEmailCode not implemented")
+}
+func (UnimplementedAuthServiceServer) BindOAuthEmail(context.Context, *BindOAuthEmailRequest) (*BindOAuthEmailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BindOAuthEmail not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -398,6 +438,42 @@ func _AuthService_OAuth2Login_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_SendOAuthBindEmailCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendOAuthBindEmailCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).SendOAuthBindEmailCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_SendOAuthBindEmailCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).SendOAuthBindEmailCode(ctx, req.(*SendOAuthBindEmailCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_BindOAuthEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BindOAuthEmailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).BindOAuthEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_BindOAuthEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).BindOAuthEmail(ctx, req.(*BindOAuthEmailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -428,6 +504,14 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OAuth2Login",
 			Handler:    _AuthService_OAuth2Login_Handler,
+		},
+		{
+			MethodName: "SendOAuthBindEmailCode",
+			Handler:    _AuthService_SendOAuthBindEmailCode_Handler,
+		},
+		{
+			MethodName: "BindOAuthEmail",
+			Handler:    _AuthService_BindOAuthEmail_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

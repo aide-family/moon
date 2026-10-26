@@ -1464,6 +1464,292 @@ func (c *NotificationSubscriptionServiceHTTPClientImpl) UpdateNotificationSubscr
 	return &out, nil
 }
 
+const OperationNotificationOnCallServiceCreateNotificationOnCall = "/alioth.v1.NotificationOnCallService/CreateNotificationOnCall"
+const OperationNotificationOnCallServiceDeleteNotificationOnCall = "/alioth.v1.NotificationOnCallService/DeleteNotificationOnCall"
+const OperationNotificationOnCallServiceGetNotificationOnCall = "/alioth.v1.NotificationOnCallService/GetNotificationOnCall"
+const OperationNotificationOnCallServiceListNotificationOnCalls = "/alioth.v1.NotificationOnCallService/ListNotificationOnCalls"
+const OperationNotificationOnCallServiceUpdateNotificationOnCall = "/alioth.v1.NotificationOnCallService/UpdateNotificationOnCall"
+const OperationNotificationOnCallServiceUpdateNotificationOnCallStatus = "/alioth.v1.NotificationOnCallService/UpdateNotificationOnCallStatus"
+
+type NotificationOnCallServiceHTTPServer interface {
+	// CreateNotificationOnCall 创建值班路由。
+	CreateNotificationOnCall(context.Context, *CreateNotificationOnCallRequest) (*CreateNotificationOnCallResponse, error)
+	// DeleteNotificationOnCall 删除值班路由。
+	DeleteNotificationOnCall(context.Context, *DeleteNotificationOnCallRequest) (*DeleteNotificationOnCallResponse, error)
+	// GetNotificationOnCall 获取值班路由详情。
+	GetNotificationOnCall(context.Context, *GetNotificationOnCallRequest) (*GetNotificationOnCallResponse, error)
+	// ListNotificationOnCalls 分页列出值班路由。
+	ListNotificationOnCalls(context.Context, *ListNotificationOnCallsRequest) (*ListNotificationOnCallsResponse, error)
+	// UpdateNotificationOnCall 更新值班路由。通知组绑定保存时整体替换。
+	UpdateNotificationOnCall(context.Context, *UpdateNotificationOnCallRequest) (*UpdateNotificationOnCallResponse, error)
+	// UpdateNotificationOnCallStatus 启用或停用值班路由。
+	UpdateNotificationOnCallStatus(context.Context, *UpdateNotificationOnCallStatusRequest) (*UpdateNotificationOnCallStatusResponse, error)
+}
+
+func RegisterNotificationOnCallServiceHTTPServer(s *http.Server, srv NotificationOnCallServiceHTTPServer) {
+	r := s.Route("/")
+	r.Handle("POST", "/v1/notification-oncall", _NotificationOnCallService_CreateNotificationOnCall0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/notification-oncall/{uid}", _NotificationOnCallService_UpdateNotificationOnCall0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/notification-oncall/{uid}/status", _NotificationOnCallService_UpdateNotificationOnCallStatus0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/notification-oncall/{uid}", _NotificationOnCallService_DeleteNotificationOnCall0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/notification-oncall/{uid}", _NotificationOnCallService_GetNotificationOnCall0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/notification-oncalls", _NotificationOnCallService_ListNotificationOnCalls0_HTTP_Handler(srv))
+}
+
+func _NotificationOnCallService_CreateNotificationOnCall0_HTTP_Handler(srv NotificationOnCallServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateNotificationOnCallRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationOnCallServiceCreateNotificationOnCall)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateNotificationOnCall(ctx, req.(*CreateNotificationOnCallRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateNotificationOnCallResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationOnCallService_UpdateNotificationOnCall0_HTTP_Handler(srv NotificationOnCallServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateNotificationOnCallRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationOnCallServiceUpdateNotificationOnCall)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateNotificationOnCall(ctx, req.(*UpdateNotificationOnCallRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateNotificationOnCallResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationOnCallService_UpdateNotificationOnCallStatus0_HTTP_Handler(srv NotificationOnCallServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateNotificationOnCallStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationOnCallServiceUpdateNotificationOnCallStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateNotificationOnCallStatus(ctx, req.(*UpdateNotificationOnCallStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateNotificationOnCallStatusResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationOnCallService_DeleteNotificationOnCall0_HTTP_Handler(srv NotificationOnCallServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteNotificationOnCallRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationOnCallServiceDeleteNotificationOnCall)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteNotificationOnCall(ctx, req.(*DeleteNotificationOnCallRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteNotificationOnCallResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationOnCallService_GetNotificationOnCall0_HTTP_Handler(srv NotificationOnCallServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetNotificationOnCallRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationOnCallServiceGetNotificationOnCall)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetNotificationOnCall(ctx, req.(*GetNotificationOnCallRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetNotificationOnCallResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationOnCallService_ListNotificationOnCalls0_HTTP_Handler(srv NotificationOnCallServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListNotificationOnCallsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationOnCallServiceListNotificationOnCalls)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListNotificationOnCalls(ctx, req.(*ListNotificationOnCallsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListNotificationOnCallsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+type NotificationOnCallServiceHTTPClient interface {
+	// CreateNotificationOnCall 创建值班路由。
+	CreateNotificationOnCall(ctx context.Context, req *CreateNotificationOnCallRequest, opts ...http.CallOption) (rsp *CreateNotificationOnCallResponse, err error)
+	// DeleteNotificationOnCall 删除值班路由。
+	DeleteNotificationOnCall(ctx context.Context, req *DeleteNotificationOnCallRequest, opts ...http.CallOption) (rsp *DeleteNotificationOnCallResponse, err error)
+	// GetNotificationOnCall 获取值班路由详情。
+	GetNotificationOnCall(ctx context.Context, req *GetNotificationOnCallRequest, opts ...http.CallOption) (rsp *GetNotificationOnCallResponse, err error)
+	// ListNotificationOnCalls 分页列出值班路由。
+	ListNotificationOnCalls(ctx context.Context, req *ListNotificationOnCallsRequest, opts ...http.CallOption) (rsp *ListNotificationOnCallsResponse, err error)
+	// UpdateNotificationOnCall 更新值班路由。通知组绑定保存时整体替换。
+	UpdateNotificationOnCall(ctx context.Context, req *UpdateNotificationOnCallRequest, opts ...http.CallOption) (rsp *UpdateNotificationOnCallResponse, err error)
+	// UpdateNotificationOnCallStatus 启用或停用值班路由。
+	UpdateNotificationOnCallStatus(ctx context.Context, req *UpdateNotificationOnCallStatusRequest, opts ...http.CallOption) (rsp *UpdateNotificationOnCallStatusResponse, err error)
+}
+
+type NotificationOnCallServiceHTTPClientImpl struct {
+	cc *http.Client
+}
+
+func NewNotificationOnCallServiceHTTPClient(client *http.Client) NotificationOnCallServiceHTTPClient {
+	return &NotificationOnCallServiceHTTPClientImpl{client}
+}
+
+// CreateNotificationOnCall 创建值班路由。
+func (c *NotificationOnCallServiceHTTPClientImpl) CreateNotificationOnCall(ctx context.Context, in *CreateNotificationOnCallRequest, opts ...http.CallOption) (*CreateNotificationOnCallResponse, error) {
+	var out CreateNotificationOnCallResponse
+	pattern := "/v1/notification-oncall"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNotificationOnCallServiceCreateNotificationOnCall),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteNotificationOnCall 删除值班路由。
+func (c *NotificationOnCallServiceHTTPClientImpl) DeleteNotificationOnCall(ctx context.Context, in *DeleteNotificationOnCallRequest, opts ...http.CallOption) (*DeleteNotificationOnCallResponse, error) {
+	var out DeleteNotificationOnCallResponse
+	pattern := "/v1/notification-oncall/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNotificationOnCallServiceDeleteNotificationOnCall),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetNotificationOnCall 获取值班路由详情。
+func (c *NotificationOnCallServiceHTTPClientImpl) GetNotificationOnCall(ctx context.Context, in *GetNotificationOnCallRequest, opts ...http.CallOption) (*GetNotificationOnCallResponse, error) {
+	var out GetNotificationOnCallResponse
+	pattern := "/v1/notification-oncall/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNotificationOnCallServiceGetNotificationOnCall),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListNotificationOnCalls 分页列出值班路由。
+func (c *NotificationOnCallServiceHTTPClientImpl) ListNotificationOnCalls(ctx context.Context, in *ListNotificationOnCallsRequest, opts ...http.CallOption) (*ListNotificationOnCallsResponse, error) {
+	var out ListNotificationOnCallsResponse
+	pattern := "/v1/notification-oncalls"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNotificationOnCallServiceListNotificationOnCalls),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateNotificationOnCall 更新值班路由。通知组绑定保存时整体替换。
+func (c *NotificationOnCallServiceHTTPClientImpl) UpdateNotificationOnCall(ctx context.Context, in *UpdateNotificationOnCallRequest, opts ...http.CallOption) (*UpdateNotificationOnCallResponse, error) {
+	var out UpdateNotificationOnCallResponse
+	pattern := "/v1/notification-oncall/{uid}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNotificationOnCallServiceUpdateNotificationOnCall),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateNotificationOnCallStatus 启用或停用值班路由。
+func (c *NotificationOnCallServiceHTTPClientImpl) UpdateNotificationOnCallStatus(ctx context.Context, in *UpdateNotificationOnCallStatusRequest, opts ...http.CallOption) (*UpdateNotificationOnCallStatusResponse, error) {
+	var out UpdateNotificationOnCallStatusResponse
+	pattern := "/v1/notification-oncall/{uid}/status"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNotificationOnCallServiceUpdateNotificationOnCallStatus),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 const OperationMessageLogServiceCancelNotificationTask = "/alioth.v1.MessageLogService/CancelNotificationTask"
 const OperationMessageLogServiceGetMessageLog = "/alioth.v1.MessageLogService/GetMessageLog"
 const OperationMessageLogServiceListMessageLogs = "/alioth.v1.MessageLogService/ListMessageLogs"

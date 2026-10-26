@@ -38,6 +38,10 @@ type NotificationSubscription struct {
 	LevelUids []string `json:"level_uids,omitempty"`
 	// DatasourceUids holds the value of the "datasource_uids" field.
 	DatasourceUids []string `json:"datasource_uids,omitempty"`
+	// DatasourceLevelUids holds the value of the "datasource_level_uids" field.
+	DatasourceLevelUids []string `json:"datasource_level_uids,omitempty"`
+	// RepeatIntervalSeconds holds the value of the "repeat_interval_seconds" field.
+	RepeatIntervalSeconds int `json:"repeat_interval_seconds,omitempty"`
 	// Remark holds the value of the "remark" field.
 	Remark       string `json:"remark,omitempty"`
 	selectValues sql.SelectValues
@@ -48,9 +52,9 @@ func (*NotificationSubscription) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case notificationsubscription.FieldLevelUids, notificationsubscription.FieldDatasourceUids:
+		case notificationsubscription.FieldLevelUids, notificationsubscription.FieldDatasourceUids, notificationsubscription.FieldDatasourceLevelUids:
 			values[i] = new([]byte)
-		case notificationsubscription.FieldID:
+		case notificationsubscription.FieldID, notificationsubscription.FieldRepeatIntervalSeconds:
 			values[i] = new(sql.NullInt64)
 		case notificationsubscription.FieldUID, notificationsubscription.FieldNamespaceUID, notificationsubscription.FieldName, notificationsubscription.FieldStatus, notificationsubscription.FieldLabels, notificationsubscription.FieldRemark:
 			values[i] = new(sql.NullString)
@@ -142,6 +146,20 @@ func (_m *NotificationSubscription) assignValues(columns []string, values []any)
 					return fmt.Errorf("unmarshal field datasource_uids: %w", err)
 				}
 			}
+		case notificationsubscription.FieldDatasourceLevelUids:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field datasource_level_uids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.DatasourceLevelUids); err != nil {
+					return fmt.Errorf("unmarshal field datasource_level_uids: %w", err)
+				}
+			}
+		case notificationsubscription.FieldRepeatIntervalSeconds:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field repeat_interval_seconds", values[i])
+			} else if value.Valid {
+				_m.RepeatIntervalSeconds = int(value.Int64)
+			}
 		case notificationsubscription.FieldRemark:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field remark", values[i])
@@ -215,6 +233,12 @@ func (_m *NotificationSubscription) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("datasource_uids=")
 	builder.WriteString(fmt.Sprintf("%v", _m.DatasourceUids))
+	builder.WriteString(", ")
+	builder.WriteString("datasource_level_uids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DatasourceLevelUids))
+	builder.WriteString(", ")
+	builder.WriteString("repeat_interval_seconds=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RepeatIntervalSeconds))
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
 	builder.WriteString(_m.Remark)

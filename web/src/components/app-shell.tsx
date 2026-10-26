@@ -3,6 +3,7 @@ import {
   Bell,
   BellRing,
   Building2,
+  CalendarClock,
   ChevronRight,
   Database,
   FileText,
@@ -179,6 +180,12 @@ const notifyLinks: {
     label: "nav.subscriptions",
     permission: "notification:read",
     icon: BellRing,
+  },
+  {
+    to: "/notification-oncalls",
+    label: "nav.onCalls",
+    permission: "notification:read",
+    icon: CalendarClock,
   },
   {
     to: "/message-logs",

@@ -41,6 +41,13 @@ type NotificationRepo interface {
 	GetSubscription(ctx context.Context, namespaceUID, uid string) (*bo.NotificationSubscription, error)
 	ListSubscriptions(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.NotificationSubscription, int, error)
 
+	CreateOnCall(ctx context.Context, in bo.NotificationOnCall) (*bo.NotificationOnCall, error)
+	UpdateOnCall(ctx context.Context, in bo.NotificationOnCall) (*bo.NotificationOnCall, error)
+	UpdateOnCallStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.NotificationOnCall, error)
+	DeleteOnCall(ctx context.Context, namespaceUID, uid string) error
+	GetOnCall(ctx context.Context, namespaceUID, uid string) (*bo.NotificationOnCall, error)
+	ListOnCalls(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.NotificationOnCall, int, error)
+
 	CreateTestTask(ctx context.Context, in bo.NotificationTask) (*bo.NotificationTask, error)
 	ListTasks(ctx context.Context, namespaceUID string, filter bo.NotificationTaskListFilter, page, pageSize int) ([]bo.NotificationTask, int, error)
 	RetryTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error)

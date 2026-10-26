@@ -29,7 +29,7 @@ func TestNotificationSubscriptionFanout(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	defer cleanup()
+	t.Cleanup(cleanup)
 	if err := ApplySchema(ctx, store.client, store.db); err != nil {
 		t.Fatal(err)
 	}

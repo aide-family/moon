@@ -40,6 +40,7 @@ func NewGRPCServer(
 	templates *service.NotificationTemplateService,
 	groups *service.NotificationGroupService,
 	subscriptions *service.NotificationSubscriptionService,
+	onCalls *service.NotificationOnCallService,
 	logs *service.MessageLogService,
 	workers *service.WorkerService,
 	notify *service.NotifyService,
@@ -92,6 +93,7 @@ func NewGRPCServer(
 	v1.RegisterNotificationTemplateServiceServer(srv, templates)
 	v1.RegisterNotificationGroupServiceServer(srv, groups)
 	v1.RegisterNotificationSubscriptionServiceServer(srv, subscriptions)
+	v1.RegisterNotificationOnCallServiceServer(srv, onCalls)
 	v1.RegisterMessageLogServiceServer(srv, logs)
 	v1.RegisterWorkerServiceServer(srv, workers)
 	megrezv1.RegisterEvalServiceServer(srv, eval)

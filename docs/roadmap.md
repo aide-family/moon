@@ -1,6 +1,6 @@
 # Alioth 迭代与验收
 
-本文把 [设计文档](design.md) 拆成十一个可独立验收的里程碑。M9 是在 M1 身份模型上的平台化调整；M10 在现有指标告警基础上补齐 Loki LogQL 数值型告警闭环；M11 为 VictoriaLogs 增加 LogsQL 数值型告警、专属查询编辑器和同样的通知闭环。后一步只叠加能力，不把业务数据从玉衡挪走，也不把 Redis 改成缓存或队列。不估工期。
+本文把 [设计文档](design.md) 拆成十二个可独立验收的里程碑。M9 是在 M1 身份模型上的平台化调整；M10 在现有指标告警基础上补齐 Loki LogQL 数值型告警闭环；M11 为 VictoriaLogs 增加 LogsQL 数值型告警、专属查询编辑器和同样的通知闭环；M13 在通知订阅之上增加按通知组时段投递的 OnCall。后一步只叠加能力，不把业务数据从玉衡挪走，也不把 Redis 改成缓存或队列。不估工期。
 
 通用规范见 [iterations/conventions.md](iterations/conventions.md)。每步的开发细则和可勾选验收：
 
@@ -15,6 +15,7 @@
 - [M9 平台用户与邀请确认](iterations/m9.md)
 - [M10 Loki LogQL 告警闭环](iterations/m10-loki-alerts.md)
 - [M11 VictoriaLogs LogsQL 告警闭环](iterations/m11-vlogs-alerts.md)
+- [M13 OnCall 值班路由](iterations/m13-oncall.md)
 
 端口以设计文档第 2.1 节为准：
 
@@ -47,6 +48,7 @@ flowchart LR
   m9[M9 平台用户与邀请确认]
   m10[M10 Loki LogQL 告警]
   m11[M11 VictoriaLogs LogsQL 告警]
+  m13[M13 OnCall 值班路由]
   m0 --> m1 --> m2 --> m3 --> m4
   m1 --> m5
   m1 --> m9
@@ -57,9 +59,11 @@ flowchart LR
   m4 --> m10
   m3 --> m11
   m4 --> m11
+  m4 --> m13
+  m8 --> m13
 ```
 
-M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台用户和邀请确认模型。M7 在 M3、M4、M5 都通过之后做整平台的多副本验收。M10 在 M3 的评测事件和 M4 的通知投递基础上补齐 Loki 专属求值与告警处置闭环。M11 用同一套事件与通知机制补齐 VictoriaLogs 的 LogsQL 数值型评测、专属编辑器和接收闭环。
+M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台用户和邀请确认模型。M7 在 M3、M4、M5 都通过之后做整平台的多副本验收。M10 在 M3 的评测事件和 M4 的通知投递基础上补齐 Loki 专属求值与告警处置闭环。M11 用同一套事件与通知机制补齐 VictoriaLogs 的 LogsQL 数值型评测、专属编辑器和接收闭环。M13 在 M4 的任务投递和 M8 的订阅路由之上增加按通知组时段投递的 OnCall。
 
 ## M0 骨架
 
@@ -271,6 +275,14 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台
 
 交付与验收细则见 [iterations/m11-vlogs-alerts.md](iterations/m11-vlogs-alerts.md)。
 
+## M13 OnCall 值班路由
+
+目标：通知下新增 OnCall，按标签、告警级别和数据源订阅事件，绑定多个通知组，并让每个组只在星期与时刻窗口内接收；管理台可以维护 OnCall 和时段。
+
+依赖：M4、M8。
+
+交付与验收细则见 [iterations/m13-oncall.md](iterations/m13-oncall.md)。
+
 ## 完成标准
 
-各里程碑的验收全部通过，并且没有把本期不做的能力做进主干。此时平台满足设计文档：浏览器只访问 Web，业务数据在玉衡，天权评测，天璇按告警订阅路由并投递，摇光出站执行 SSH 与 Web Shell，多副本互斥用 Redis 锁。
+各里程碑的验收全部通过，并且没有把本期不做的能力做进主干。此时平台满足设计文档：浏览器只访问 Web，业务数据在玉衡，天权评测，天璇按告警订阅和 OnCall 路由并投递，摇光出站执行 SSH 与 Web Shell，多副本互斥用 Redis 锁。

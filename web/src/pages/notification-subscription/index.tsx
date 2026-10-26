@@ -15,12 +15,16 @@ import {
   updateNotificationSubscription,
   updateNotificationSubscriptionStatus,
 } from "@/api/notification-subscription"
-import type { NotificationSubscriptionItem } from "@/api/notification-subscription/types"
+import type {
+  CreateNotificationSubscriptionParams,
+  NotificationSubscriptionItem,
+} from "@/api/notification-subscription/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
+import { MultiSelect } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
@@ -53,6 +57,18 @@ import { useListQuery } from "@/hooks/use-list-query"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { runAction } from "@/lib/action"
 
+/** 重复发送间隔按分钟编辑，后端按秒保存；0 表示不限制。 */
+const MAX_REPEAT_INTERVAL_MINUTES = 720
+
+function toOptions(items: Array<{ uid: string; name: string }>) {
+  return items.map((item) => ({ value: item.uid, label: item.name }))
+}
+
+/** 把后端返回的秒数换算成分钟展示，非整分钟按四舍五入。 */
+function toMinutes(seconds: number | undefined): number {
+  return Math.round((seconds ?? 0) / 60)
+}
+
 export function NotificationSubscriptionPage() {
   const { t } = useTranslation()
   const session = useSession()
@@ -60,6 +76,7 @@ export function NotificationSubscriptionPage() {
   const [draft, setDraft] = useState(query.name)
   const [groups, setGroups] = useState<GroupOption[]>([])
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
+  const [datasourceLevels, setDatasourceLevels] = useState<AlertDictionaryItem[]>([])
   const [datasources, setDatasources] = useState<DatasourceOption[]>([])
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<NotificationSubscriptionItem | null>(null)
@@ -67,7 +84,9 @@ export function NotificationSubscriptionPage() {
   const [labels, setLabels] = useState<LabelPair[]>([{ key: "", value: "" }])
   const [levelUids, setLevelUids] = useState<string[]>([])
   const [datasourceUids, setDatasourceUids] = useState<string[]>([])
+  const [datasourceLevelUids, setDatasourceLevelUids] = useState<string[]>([])
   const [groupUids, setGroupUids] = useState<string[]>([])
+  const [repeatIntervalMinutes, setRepeatIntervalMinutes] = useState("0")
   const [remark, setRemark] = useState("")
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
@@ -88,12 +107,14 @@ export function NotificationSubscriptionPage() {
     void Promise.all([
       selectNotificationGroups({ limit: 100 }),
       listAlertDictionaries({ page: 1, pageSize: 100, type: "ALERT" }),
+      listAlertDictionaries({ page: 1, pageSize: 100, type: "DATASOURCE" }),
       selectDatasources({ limit: 100 }),
     ])
-      .then(([groupResult, levelResult, datasourceResult]) => {
+      .then(([groupResult, levelResult, datasourceLevelResult, datasourceResult]) => {
         if (active) {
           setGroups(groupResult.items ?? [])
           setLevels(levelResult.items ?? [])
+          setDatasourceLevels(datasourceLevelResult.items ?? [])
           setDatasources(datasourceResult.items ?? [])
         }
       })
@@ -101,6 +122,7 @@ export function NotificationSubscriptionPage() {
         if (active) {
           setGroups([])
           setLevels([])
+          setDatasourceLevels([])
           setDatasources([])
         }
       })
@@ -109,13 +131,41 @@ export function NotificationSubscriptionPage() {
     }
   }, [session.namespaceUid])
 
+  function selectionSummary(selected: number, total: number): string {
+    return selected >= total && total > 0
+      ? t("multiSelect.allSelected", { count: selected })
+      : t("multiSelect.summary", { count: selected, total })
+  }
+
+  function intervalError(): string | null {
+    const trimmed = repeatIntervalMinutes.trim()
+    if (!/^\d+$/.test(trimmed)) {
+      return t("subscription.repeatIntervalInvalid")
+    }
+    const minutes = Number(trimmed)
+    if (minutes > MAX_REPEAT_INTERVAL_MINUTES) {
+      return t("subscription.repeatIntervalInvalid")
+    }
+    return null
+  }
+
+  /** 列表和详情把秒数展示为分钟；0 表示该告警不限制重复通知。 */
+  function intervalSummary(seconds: number | undefined): string {
+    const minutes = toMinutes(seconds)
+    return minutes > 0
+      ? t("subscription.repeatIntervalValue", { minutes })
+      : t("subscription.repeatIntervalOff")
+  }
+
   function openCreate() {
     setEditing(null)
     setName("")
     setLabels([{ key: "", value: "" }])
     setLevelUids([])
     setDatasourceUids([])
+    setDatasourceLevelUids([])
     setGroupUids([])
+    setRepeatIntervalMinutes("0")
     setRemark("")
     setError("")
     setFieldErrors({})
@@ -128,15 +178,13 @@ export function NotificationSubscriptionPage() {
     setLabels(parseLabelPairs(item.labels))
     setLevelUids(item.levelUids ?? [])
     setDatasourceUids(item.datasourceUids ?? [])
+    setDatasourceLevelUids(item.datasourceLevelUids ?? [])
     setGroupUids(item.groupUids ?? [])
+    setRepeatIntervalMinutes(String(toMinutes(item.repeatIntervalSeconds)))
     setRemark(item.remark)
     setError("")
     setFieldErrors({})
     setOpen(true)
-  }
-
-  function toggle(values: string[], uid: string): string[] {
-    return values.includes(uid) ? values.filter((value) => value !== uid) : [...values, uid]
   }
 
   async function onSave(event: React.FormEvent) {
@@ -152,6 +200,7 @@ export function NotificationSubscriptionPage() {
           ? t("form.required")
           : null,
       ],
+      ["repeatIntervalSeconds", intervalError()],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -161,12 +210,14 @@ export function NotificationSubscriptionPage() {
     setError("")
     setFieldErrors({})
     try {
-      const payload = {
+      const payload: CreateNotificationSubscriptionParams = {
         name: name.trim(),
         labels: serializeLabelPairs(labels),
         levelUids,
         datasourceUids,
+        datasourceLevelUids,
         groupUids,
+        repeatIntervalSeconds: Number(repeatIntervalMinutes.trim()) * 60,
         remark,
       }
       if (editing) {
@@ -232,6 +283,10 @@ export function NotificationSubscriptionPage() {
     const datasourceNames = (item.datasourceUids ?? []).map((uid) => datasources.find((datasource) => datasource.uid === uid)?.name ?? uid)
     if (datasourceNames.length > 0) {
       parts.push(`${t("subscription.datasources")}: ${datasourceNames.join(", ")}`)
+    }
+    const datasourceLevelNames = (item.datasourceLevelUids ?? []).map((uid) => datasourceLevels.find((level) => level.uid === uid)?.name ?? uid)
+    if (datasourceLevelNames.length > 0) {
+      parts.push(`${t("subscription.datasourceLevels")}: ${datasourceLevelNames.join(", ")}`)
     }
     return parts.length > 0 ? parts.join(" · ") : t("subscription.anyEvent")
   }
@@ -306,117 +361,146 @@ export function NotificationSubscriptionPage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
+          <DialogHeader className="shrink-0 border-b px-4 py-3 pr-12">
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onSave}>
-            <FormField
-              label={t("subscription.name")}
-              htmlFor="subscription-name"
-              required
-              error={fieldErrors.name}
-            >
-              <Input id="subscription-name" value={name} placeholder={t("subscription.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
-            </FormField>
-            <FormField
-              label={t("subscription.groups")}
-              hint={t("subscription.groupsHint")}
-              required
-              error={fieldErrors.groups}
-            >
-              <div
-                className={`flex flex-wrap gap-2 rounded-md ${fieldErrors.groups ? "border border-destructive p-2" : ""}`}
+          <form noValidate className="flex min-h-0 flex-1 flex-col" onSubmit={onSave}>
+            <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto px-4 py-4">
+              <FormField
+                label={t("subscription.name")}
+                htmlFor="subscription-name"
+                required
+                error={fieldErrors.name}
               >
-                {groups.map((item) => (
-                  <label
-                    key={item.uid}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={groupUids.includes(item.uid)}
-                      onChange={() => setGroupUids(toggle(groupUids, item.uid))}
-                    />
-                    {item.name}
-                  </label>
-                ))}
-                {groups.length === 0 ? <p className="text-sm text-muted-foreground">{t("subscription.noGroups")}</p> : null}
-              </div>
-            </FormField>
-            <FormField label={t("subscription.labels")} hint={t("subscription.labelsHint")} error={fieldErrors.labels}>
-              <div className="grid gap-2">
-                {labels.map((pair, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Input
-                      value={pair.key}
-                      placeholder={t("subscription.labelKey")}
-                      onChange={(event) => {
-                        const next = [...labels]
-                        next[index] = { ...pair, key: event.target.value }
-                        setLabels(next)
-                      }}
-                    />
-                    <Input
-                      value={pair.value}
-                      placeholder={t("subscription.labelValue")}
-                      onChange={(event) => {
-                        const next = [...labels]
-                        next[index] = { ...pair, value: event.target.value }
-                        setLabels(next)
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setLabels(labels.filter((_, current) => current !== index))}
-                    >
-                      {t("action.delete")}
-                    </Button>
-                  </div>
-                ))}
-                <Button type="button" variant="outline" onClick={() => setLabels([...labels, { key: "", value: "" }])}>
-                  {t("subscription.addLabel")}
-                </Button>
-              </div>
-            </FormField>
-            <FormField label={t("subscription.levels")} hint={t("subscription.levelsHint")}>
-              <div className="flex flex-wrap gap-2 rounded-md">
-                {levels.map((item) => (
-                  <label
-                    key={item.uid}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
-                  >
-                    <input type="checkbox" checked={levelUids.includes(item.uid)} onChange={() => setLevelUids(toggle(levelUids, item.uid))} />
-                    {item.name}
-                  </label>
-                ))}
-                {levels.length === 0 ? <p className="text-sm text-muted-foreground">{t("subscription.noLevels")}</p> : null}
-              </div>
-            </FormField>
-            <FormField label={t("subscription.datasources")} hint={t("subscription.datasourcesHint")}>
-              <div className="flex flex-wrap gap-2 rounded-md">
-                {datasources.map((item) => (
-                  <label
-                    key={item.uid}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={datasourceUids.includes(item.uid)}
-                      onChange={() => setDatasourceUids(toggle(datasourceUids, item.uid))}
-                    />
-                    {item.name}
-                  </label>
-                ))}
-                {datasources.length === 0 ? <p className="text-sm text-muted-foreground">{t("subscription.noDatasources")}</p> : null}
-              </div>
-            </FormField>
-            <FormField label={t("subscription.remark")} htmlFor="subscription-remark">
-              <Input id="subscription-remark" value={remark} placeholder={t("subscription.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
-            </FormField>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
+                <Input id="subscription-name" value={name} placeholder={t("subscription.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
+              </FormField>
+              <FormField
+                label={t("subscription.groups")}
+                htmlFor="subscription-groups"
+                hint={t("subscription.groupsHint")}
+                required
+                error={fieldErrors.groups}
+              >
+                <MultiSelect
+                  id="subscription-groups"
+                  values={groupUids}
+                  options={toOptions(groups)}
+                  onChange={setGroupUids}
+                  placeholder={t("multiSelect.placeholder")}
+                  searchPlaceholder={t("multiSelect.searchPlaceholder")}
+                  emptyText={t("subscription.noGroups")}
+                  allLabel={t("multiSelect.all")}
+                  clearLabel={t("multiSelect.clear")}
+                  selectedLabel={selectionSummary}
+                />
+              </FormField>
+              <FormField label={t("subscription.labels")} hint={t("subscription.labelsHint")} error={fieldErrors.labels}>
+                <div className="grid gap-2">
+                  {labels.map((pair, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        value={pair.key}
+                        placeholder={t("subscription.labelKey")}
+                        onChange={(event) => {
+                          const next = [...labels]
+                          next[index] = { ...pair, key: event.target.value }
+                          setLabels(next)
+                        }}
+                      />
+                      <Input
+                        value={pair.value}
+                        placeholder={t("subscription.labelValue")}
+                        onChange={(event) => {
+                          const next = [...labels]
+                          next[index] = { ...pair, value: event.target.value }
+                          setLabels(next)
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setLabels(labels.filter((_, current) => current !== index))}
+                      >
+                        {t("action.delete")}
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" onClick={() => setLabels([...labels, { key: "", value: "" }])}>
+                    {t("subscription.addLabel")}
+                  </Button>
+                </div>
+              </FormField>
+              <FormField label={t("subscription.levels")} htmlFor="subscription-levels" hint={t("subscription.levelsHint")}>
+                <MultiSelect
+                  id="subscription-levels"
+                  values={levelUids}
+                  options={toOptions(levels)}
+                  onChange={setLevelUids}
+                  placeholder={t("multiSelect.placeholder")}
+                  searchPlaceholder={t("multiSelect.searchPlaceholder")}
+                  emptyText={t("subscription.noLevels")}
+                  allLabel={t("multiSelect.all")}
+                  clearLabel={t("multiSelect.clear")}
+                  selectedLabel={selectionSummary}
+                />
+              </FormField>
+              <FormField label={t("subscription.datasources")} htmlFor="subscription-datasources" hint={t("subscription.datasourcesHint")}>
+                <MultiSelect
+                  id="subscription-datasources"
+                  values={datasourceUids}
+                  options={toOptions(datasources)}
+                  onChange={setDatasourceUids}
+                  placeholder={t("multiSelect.placeholder")}
+                  searchPlaceholder={t("multiSelect.searchPlaceholder")}
+                  emptyText={t("subscription.noDatasources")}
+                  allLabel={t("multiSelect.all")}
+                  clearLabel={t("multiSelect.clear")}
+                  selectedLabel={selectionSummary}
+                />
+              </FormField>
+              <FormField
+                label={t("subscription.datasourceLevels")}
+                htmlFor="subscription-datasource-levels"
+                hint={t("subscription.datasourceLevelsHint")}
+              >
+                <MultiSelect
+                  id="subscription-datasource-levels"
+                  values={datasourceLevelUids}
+                  options={toOptions(datasourceLevels)}
+                  onChange={setDatasourceLevelUids}
+                  placeholder={t("multiSelect.placeholder")}
+                  searchPlaceholder={t("multiSelect.searchPlaceholder")}
+                  emptyText={t("subscription.noDatasourceLevels")}
+                  allLabel={t("multiSelect.all")}
+                  clearLabel={t("multiSelect.clear")}
+                  selectedLabel={selectionSummary}
+                />
+              </FormField>
+              <FormField
+                label={t("subscription.repeatInterval")}
+                htmlFor="subscription-repeat-interval"
+                hint={t("subscription.repeatIntervalHint")}
+                error={fieldErrors.repeatIntervalSeconds}
+              >
+                <Input
+                  id="subscription-repeat-interval"
+                  type="number"
+                  min={0}
+                  max={MAX_REPEAT_INTERVAL_MINUTES}
+                  step={1}
+                  inputMode="numeric"
+                  className="max-w-40"
+                  value={repeatIntervalMinutes}
+                  onChange={(event) => setRepeatIntervalMinutes(event.target.value)}
+                />
+              </FormField>
+              <FormField label={t("subscription.remark")} htmlFor="subscription-remark">
+                <Input id="subscription-remark" value={remark} placeholder={t("subscription.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
+              </FormField>
+              {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            </div>
+            <DialogFooter className="mx-0 mb-0 shrink-0 border-t px-4 py-3">
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>
@@ -437,6 +521,7 @@ export function NotificationSubscriptionPage() {
             ? [
                 { label: t("detail.uid"), value: detail.uid },
                 { label: t("subscription.conditions"), value: conditionSummary(detail) },
+                { label: t("subscription.repeatInterval"), value: intervalSummary(detail.repeatIntervalSeconds) },
                 {
                   label: t("subscription.groups"),
                   value: (detail.groupUids ?? []).map((uid) => groups.find((group) => group.uid === uid)?.name ?? uid).join(", "),

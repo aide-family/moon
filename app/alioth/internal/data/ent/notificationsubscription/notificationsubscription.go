@@ -34,6 +34,10 @@ const (
 	FieldLevelUids = "level_uids"
 	// FieldDatasourceUids holds the string denoting the datasource_uids field in the database.
 	FieldDatasourceUids = "datasource_uids"
+	// FieldDatasourceLevelUids holds the string denoting the datasource_level_uids field in the database.
+	FieldDatasourceLevelUids = "datasource_level_uids"
+	// FieldRepeatIntervalSeconds holds the string denoting the repeat_interval_seconds field in the database.
+	FieldRepeatIntervalSeconds = "repeat_interval_seconds"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
 	// Table holds the table name of the notificationsubscription in the database.
@@ -53,6 +57,8 @@ var Columns = []string{
 	FieldLabels,
 	FieldLevelUids,
 	FieldDatasourceUids,
+	FieldDatasourceLevelUids,
+	FieldRepeatIntervalSeconds,
 	FieldRemark,
 }
 
@@ -85,6 +91,10 @@ var (
 	DefaultLevelUids []string
 	// DefaultDatasourceUids holds the default value on creation for the "datasource_uids" field.
 	DefaultDatasourceUids []string
+	// DefaultDatasourceLevelUids holds the default value on creation for the "datasource_level_uids" field.
+	DefaultDatasourceLevelUids []string
+	// DefaultRepeatIntervalSeconds holds the default value on creation for the "repeat_interval_seconds" field.
+	DefaultRepeatIntervalSeconds int
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
 )
@@ -161,6 +171,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByLabels orders the results by the labels field.
 func ByLabels(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLabels, opts...).ToFunc()
+}
+
+// ByRepeatIntervalSeconds orders the results by the repeat_interval_seconds field.
+func ByRepeatIntervalSeconds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRepeatIntervalSeconds, opts...).ToFunc()
 }
 
 // ByRemark orders the results by the remark field.

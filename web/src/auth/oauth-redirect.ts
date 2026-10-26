@@ -11,9 +11,6 @@ export type OAuthRedirect = {
 
 const storagePrefix = "alioth.oauth."
 
-/** 后端在“第三方邮箱未验证且邮箱已注册本地账号”时返回的 message，回调页据此展示验证邮箱的引导。 */
-export const OAUTH_EMAIL_UNVERIFIED_MESSAGE = "oauth email is not verified"
-
 // 第三方展示名。飞书后端支持但管理台不展示，保留名称以便回调页兜底。
 const providerNames: Record<OAuth2Provider, string> = {
   GITHUB: "GitHub",
@@ -22,20 +19,9 @@ const providerNames: Record<OAuth2Provider, string> = {
   DINGTALK: "DingTalk",
 }
 
-// 各平台完成邮箱验证的页面；没有配置的平台不展示“去验证邮箱”按钮。
-const emailSettingsUrls: Partial<Record<OAuth2Provider, string>> = {
-  GITHUB: "https://github.com/settings/emails",
-  GITEE: "https://gitee.com/profile/emails",
-}
-
 /** 第三方展示名，用于提示文案。 */
 export function oauthProviderName(provider: OAuth2Provider): string {
   return providerNames[provider]
-}
-
-/** 第三方平台的邮箱设置页；平台没有对应页面时返回 null。 */
-export function oauthEmailSettingsUrl(provider: OAuth2Provider): string | null {
-  return emailSettingsUrls[provider] ?? null
 }
 
 function storageKey(state: string): string {
@@ -108,7 +94,8 @@ export function readOAuthRedirect(state: string | null): OAuthRedirect | null {
     return {
       state,
       provider: parsed.provider,
-      redirectUri: typeof parsed.redirectUri === "string" ? parsed.redirectUri : "",
+      redirectUri:
+        typeof parsed.redirectUri === "string" ? parsed.redirectUri : "",
       next: typeof parsed.next === "string" ? parsed.next : "",
     }
   } catch {

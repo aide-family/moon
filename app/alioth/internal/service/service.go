@@ -25,6 +25,7 @@ var ProviderSet = wire.NewSet(
 	NewNotificationTemplateService,
 	NewNotificationGroupService,
 	NewNotificationSubscriptionService,
+	NewNotificationOnCallService,
 	NewMessageLogService,
 	NewNotifyService,
 	NewAgentService,

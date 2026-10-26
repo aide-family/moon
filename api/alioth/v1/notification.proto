@@ -193,6 +193,44 @@ service NotificationSubscriptionService {
   }
 }
 
+// 值班路由的创建、查询和启停。按标签、告警级别和数据源匹配事件，
+// 每个绑定的通知组只在配置的接收时段内接收。
+service NotificationOnCallService {
+  // 创建值班路由。
+  rpc CreateNotificationOnCall(CreateNotificationOnCallRequest) returns (CreateNotificationOnCallResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-oncall"
+      body: "*"
+    };
+  }
+  // 更新值班路由。通知组绑定保存时整体替换。
+  rpc UpdateNotificationOnCall(UpdateNotificationOnCallRequest) returns (UpdateNotificationOnCallResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-oncall/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用值班路由。
+  rpc UpdateNotificationOnCallStatus(UpdateNotificationOnCallStatusRequest) returns (UpdateNotificationOnCallStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-oncall/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除值班路由。
+  rpc DeleteNotificationOnCall(DeleteNotificationOnCallRequest) returns (DeleteNotificationOnCallResponse) {
+    option (google.api.http) = {delete: "/v1/notification-oncall/{uid}"};
+  }
+  // 获取值班路由详情。
+  rpc GetNotificationOnCall(GetNotificationOnCallRequest) returns (GetNotificationOnCallResponse) {
+    option (google.api.http) = {get: "/v1/notification-oncall/{uid}"};
+  }
+  // 分页列出值班路由。
+  rpc ListNotificationOnCalls(ListNotificationOnCallsRequest) returns (ListNotificationOnCallsResponse) {
+    option (google.api.http) = {get: "/v1/notification-oncalls"};
+  }
+}
+
 // 消息日志与任务的查看、重试和取消。
 service MessageLogService {
   // 分页列出消息日志。
@@ -826,6 +864,10 @@ message NotificationSubscriptionItem {
   string remark = 8;
   // 创建时间，RFC3339。
   string created_at = 9 [json_name = "createdAt"];
+  // 数据源级别标识。为空表示不限制。
+  repeated string datasource_level_uids = 10 [json_name = "datasourceLevelUids"];
+  // 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+  int32 repeat_interval_seconds = 11 [json_name = "repeatIntervalSeconds"];
 }
 
 // 创建订阅。
@@ -842,6 +884,10 @@ message CreateNotificationSubscriptionRequest {
   repeated string group_uids = 5 [json_name = "groupUids", (buf.validate.field).repeated.min_items = 1];
   // 备注。
   string remark = 6 [(buf.validate.field).string.max_len = 200];
+  // 数据源级别标识。为空表示不限制。
+  repeated string datasource_level_uids = 7 [json_name = "datasourceLevelUids"];
+  // 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+  int32 repeat_interval_seconds = 8 [json_name = "repeatIntervalSeconds", (buf.validate.field).int32 = {gte: 0, lte: 43200}];
 }
 
 // 创建订阅的结果。
@@ -866,6 +912,10 @@ message UpdateNotificationSubscriptionRequest {
   repeated string group_uids = 6 [json_name = "groupUids", (buf.validate.field).repeated.min_items = 1];
   // 备注。
   string remark = 7 [(buf.validate.field).string.max_len = 200];
+  // 数据源级别标识。为空表示不限制。
+  repeated string datasource_level_uids = 8 [json_name = "datasourceLevelUids"];
+  // 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+  int32 repeat_interval_seconds = 9 [json_name = "repeatIntervalSeconds", (buf.validate.field).int32 = {gte: 0, lte: 43200}];
 }
 
 // 更新订阅的结果。
@@ -923,6 +973,177 @@ message ListNotificationSubscriptionsRequest {
 message ListNotificationSubscriptionsResponse {
   // 当前页数据。
   repeated NotificationSubscriptionItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 一条值班路由。条件全部满足时，事件会按通知组的接收时段投递。
+message NotificationOnCallItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 3;
+  // 标签匹配器 JSON 对象。所有键值都必须命中事件标签，值按完整匹配正则解释。
+  string labels = 4;
+  // 告警级别标识。为空表示不限制。
+  repeated string level_uids = 5 [json_name = "levelUids"];
+  // 数据源标识。为空表示不限制。
+  repeated string datasource_uids = 6 [json_name = "datasourceUids"];
+  // IANA 时区。空值按 Asia/Shanghai 处理。
+  string timezone = 7;
+  // 绑定的通知组及各自的接收时段。至少一个。
+  repeated NotificationOnCallGroupItem groups = 8;
+  // 备注。
+  string remark = 9;
+  // 创建时间，RFC3339。
+  string created_at = 10 [json_name = "createdAt"];
+  // 数据源级别标识。为空表示不限制。
+  repeated string datasource_level_uids = 11 [json_name = "datasourceLevelUids"];
+  // 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+  int32 repeat_interval_seconds = 12 [json_name = "repeatIntervalSeconds"];
+}
+
+// 值班路由绑定的通知组，以及该组的接收时段。
+message NotificationOnCallGroupItem {
+  // 通知组标识。
+  string group_uid = 1 [json_name = "groupUid"];
+  // 通知组名称，只读。
+  string group_name = 2 [json_name = "groupName"];
+  // 接收时段。为空表示全天候接收。
+  repeated NotificationOnCallWindow windows = 3;
+}
+
+// 一个接收时段。星期几归属于开始那天，Start 晚于 End 表示跨午夜。
+message NotificationOnCallWindow {
+  // 星期几，取值为 MONDAY 到 SUNDAY。
+  repeated string weekdays = 1;
+  // 开始时间，HH:mm，包含该时刻。
+  string start = 2;
+  // 结束时间，HH:mm，不包含该时刻。
+  string end = 3;
+}
+
+// 创建或更新值班路由时选择的通知组和时段。
+message NotificationOnCallGroupInput {
+  // 通知组标识。
+  string group_uid = 1 [json_name = "groupUid", (buf.validate.field).string.min_len = 1];
+  // 接收时段。为空表示全天候接收。
+  repeated NotificationOnCallWindow windows = 2;
+}
+
+// 创建值班路由。
+message CreateNotificationOnCallRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 标签匹配器 JSON 对象，值按完整匹配正则解释。
+  string labels = 2 [(buf.validate.field).string.max_len = 4096];
+  // 告警级别标识。为空表示不限制。
+  repeated string level_uids = 3 [json_name = "levelUids"];
+  // 数据源标识。为空表示不限制。
+  repeated string datasource_uids = 4 [json_name = "datasourceUids"];
+  // IANA 时区，留空按 Asia/Shanghai 处理。
+  string timezone = 5;
+  // 通知组，至少一个。
+  repeated NotificationOnCallGroupInput groups = 6 [(buf.validate.field).repeated.min_items = 1];
+  // 备注。
+  string remark = 7 [(buf.validate.field).string.max_len = 200];
+  // 数据源级别标识。为空表示不限制。
+  repeated string datasource_level_uids = 8 [json_name = "datasourceLevelUids"];
+  // 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+  int32 repeat_interval_seconds = 9 [json_name = "repeatIntervalSeconds", (buf.validate.field).int32 = {gte: 0, lte: 43200}];
+}
+
+// 创建值班路由的结果。
+message CreateNotificationOnCallResponse {
+  // 值班路由。
+  NotificationOnCallItem on_call = 1 [json_name = "onCall"];
+}
+
+// 更新值班路由。
+message UpdateNotificationOnCallRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 标签匹配器 JSON 对象，值按完整匹配正则解释。
+  string labels = 3 [(buf.validate.field).string.max_len = 4096];
+  // 告警级别标识。为空表示不限制。
+  repeated string level_uids = 4 [json_name = "levelUids"];
+  // 数据源标识。为空表示不限制。
+  repeated string datasource_uids = 5 [json_name = "datasourceUids"];
+  // IANA 时区，留空按 Asia/Shanghai 处理。
+  string timezone = 6;
+  // 通知组，至少一个。保存时替换原有绑定。
+  repeated NotificationOnCallGroupInput groups = 7 [(buf.validate.field).repeated.min_items = 1];
+  // 备注。
+  string remark = 8 [(buf.validate.field).string.max_len = 200];
+  // 数据源级别标识。为空表示不限制。
+  repeated string datasource_level_uids = 9 [json_name = "datasourceLevelUids"];
+  // 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+  int32 repeat_interval_seconds = 10 [json_name = "repeatIntervalSeconds", (buf.validate.field).int32 = {gte: 0, lte: 43200}];
+}
+
+// 更新值班路由的结果。
+message UpdateNotificationOnCallResponse {
+  // 值班路由。
+  NotificationOnCallItem on_call = 1 [json_name = "onCall"];
+}
+
+// 更新值班路由状态。
+message UpdateNotificationOnCallStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 更新值班路由状态的结果。
+message UpdateNotificationOnCallStatusResponse {
+  // 值班路由。
+  NotificationOnCallItem on_call = 1 [json_name = "onCall"];
+}
+
+// 要删除的值班路由。
+message DeleteNotificationOnCallRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 值班路由已删除。
+message DeleteNotificationOnCallResponse {}
+
+// 要查询的值班路由。
+message GetNotificationOnCallRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 值班路由详情。
+message GetNotificationOnCallResponse {
+  // 值班路由。
+  NotificationOnCallItem on_call = 1 [json_name = "onCall"];
+}
+
+// 值班路由分页查询。
+message ListNotificationOnCallsRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+}
+
+// 值班路由分页结果。
+message ListNotificationOnCallsResponse {
+  // 当前页数据。
+  repeated NotificationOnCallItem items = 1;
   // 总数。
   int32 total = 2;
   // 页码。

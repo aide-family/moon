@@ -84,6 +84,11 @@ func RuleUID(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldRuleUID, v))
 }
 
+// Fingerprint applies equality check predicate on the "fingerprint" field. It's identical to FingerprintEQ.
+func Fingerprint(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldFingerprint, v))
+}
+
 // SubscriptionUID applies equality check predicate on the "subscription_uid" field. It's identical to SubscriptionUIDEQ.
 func SubscriptionUID(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldSubscriptionUID, v))
@@ -527,6 +532,71 @@ func RuleUIDEqualFold(v string) predicate.NotificationTask {
 // RuleUIDContainsFold applies the ContainsFold predicate on the "rule_uid" field.
 func RuleUIDContainsFold(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldContainsFold(FieldRuleUID, v))
+}
+
+// FingerprintEQ applies the EQ predicate on the "fingerprint" field.
+func FingerprintEQ(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldFingerprint, v))
+}
+
+// FingerprintNEQ applies the NEQ predicate on the "fingerprint" field.
+func FingerprintNEQ(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNEQ(FieldFingerprint, v))
+}
+
+// FingerprintIn applies the In predicate on the "fingerprint" field.
+func FingerprintIn(vs ...string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldIn(FieldFingerprint, vs...))
+}
+
+// FingerprintNotIn applies the NotIn predicate on the "fingerprint" field.
+func FingerprintNotIn(vs ...string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNotIn(FieldFingerprint, vs...))
+}
+
+// FingerprintGT applies the GT predicate on the "fingerprint" field.
+func FingerprintGT(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGT(FieldFingerprint, v))
+}
+
+// FingerprintGTE applies the GTE predicate on the "fingerprint" field.
+func FingerprintGTE(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGTE(FieldFingerprint, v))
+}
+
+// FingerprintLT applies the LT predicate on the "fingerprint" field.
+func FingerprintLT(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLT(FieldFingerprint, v))
+}
+
+// FingerprintLTE applies the LTE predicate on the "fingerprint" field.
+func FingerprintLTE(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLTE(FieldFingerprint, v))
+}
+
+// FingerprintContains applies the Contains predicate on the "fingerprint" field.
+func FingerprintContains(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldContains(FieldFingerprint, v))
+}
+
+// FingerprintHasPrefix applies the HasPrefix predicate on the "fingerprint" field.
+func FingerprintHasPrefix(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldHasPrefix(FieldFingerprint, v))
+}
+
+// FingerprintHasSuffix applies the HasSuffix predicate on the "fingerprint" field.
+func FingerprintHasSuffix(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldHasSuffix(FieldFingerprint, v))
+}
+
+// FingerprintEqualFold applies the EqualFold predicate on the "fingerprint" field.
+func FingerprintEqualFold(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEqualFold(FieldFingerprint, v))
+}
+
+// FingerprintContainsFold applies the ContainsFold predicate on the "fingerprint" field.
+func FingerprintContainsFold(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldContainsFold(FieldFingerprint, v))
 }
 
 // SubscriptionUIDEQ applies the EQ predicate on the "subscription_uid" field.

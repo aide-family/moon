@@ -56,6 +56,10 @@ type Tx struct {
 	NotificationChannel *NotificationChannelClient
 	// NotificationGroup is the client for interacting with the NotificationGroup builders.
 	NotificationGroup *NotificationGroupClient
+	// NotificationOnCall is the client for interacting with the NotificationOnCall builders.
+	NotificationOnCall *NotificationOnCallClient
+	// NotificationOnCallGroup is the client for interacting with the NotificationOnCallGroup builders.
+	NotificationOnCallGroup *NotificationOnCallGroupClient
 	// NotificationPreset is the client for interacting with the NotificationPreset builders.
 	NotificationPreset *NotificationPresetClient
 	// NotificationSubscription is the client for interacting with the NotificationSubscription builders.
@@ -239,6 +243,8 @@ func (tx *Tx) init() {
 	tx.Namespace = NewNamespaceClient(tx.config)
 	tx.NotificationChannel = NewNotificationChannelClient(tx.config)
 	tx.NotificationGroup = NewNotificationGroupClient(tx.config)
+	tx.NotificationOnCall = NewNotificationOnCallClient(tx.config)
+	tx.NotificationOnCallGroup = NewNotificationOnCallGroupClient(tx.config)
 	tx.NotificationPreset = NewNotificationPresetClient(tx.config)
 	tx.NotificationSubscription = NewNotificationSubscriptionClient(tx.config)
 	tx.NotificationSubscriptionGroup = NewNotificationSubscriptionGroupClient(tx.config)

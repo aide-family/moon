@@ -27,6 +27,8 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationoncall"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationoncallgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
@@ -969,6 +971,96 @@ func init() {
 	notificationgroupDescWebhookTemplateUID := notificationgroupFields[16].Descriptor()
 	// notificationgroup.DefaultWebhookTemplateUID holds the default value on creation for the webhook_template_uid field.
 	notificationgroup.DefaultWebhookTemplateUID = notificationgroupDescWebhookTemplateUID.Default.(string)
+	notificationoncallMixin := schema.NotificationOnCall{}.Mixin()
+	notificationoncallMixinFields0 := notificationoncallMixin[0].Fields()
+	_ = notificationoncallMixinFields0
+	notificationoncallFields := schema.NotificationOnCall{}.Fields()
+	_ = notificationoncallFields
+	// notificationoncallDescCreatedAt is the schema descriptor for created_at field.
+	notificationoncallDescCreatedAt := notificationoncallMixinFields0[0].Descriptor()
+	// notificationoncall.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notificationoncall.DefaultCreatedAt = notificationoncallDescCreatedAt.Default.(func() time.Time)
+	// notificationoncallDescUpdatedAt is the schema descriptor for updated_at field.
+	notificationoncallDescUpdatedAt := notificationoncallMixinFields0[1].Descriptor()
+	// notificationoncall.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notificationoncall.DefaultUpdatedAt = notificationoncallDescUpdatedAt.Default.(func() time.Time)
+	// notificationoncall.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notificationoncall.UpdateDefaultUpdatedAt = notificationoncallDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// notificationoncallDescUID is the schema descriptor for uid field.
+	notificationoncallDescUID := notificationoncallFields[0].Descriptor()
+	// notificationoncall.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	notificationoncall.UIDValidator = notificationoncallDescUID.Validators[0].(func(string) error)
+	// notificationoncallDescNamespaceUID is the schema descriptor for namespace_uid field.
+	notificationoncallDescNamespaceUID := notificationoncallFields[1].Descriptor()
+	// notificationoncall.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	notificationoncall.NamespaceUIDValidator = notificationoncallDescNamespaceUID.Validators[0].(func(string) error)
+	// notificationoncallDescName is the schema descriptor for name field.
+	notificationoncallDescName := notificationoncallFields[2].Descriptor()
+	// notificationoncall.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	notificationoncall.NameValidator = notificationoncallDescName.Validators[0].(func(string) error)
+	// notificationoncallDescLabels is the schema descriptor for labels field.
+	notificationoncallDescLabels := notificationoncallFields[4].Descriptor()
+	// notificationoncall.DefaultLabels holds the default value on creation for the labels field.
+	notificationoncall.DefaultLabels = notificationoncallDescLabels.Default.(string)
+	// notificationoncallDescLevelUids is the schema descriptor for level_uids field.
+	notificationoncallDescLevelUids := notificationoncallFields[5].Descriptor()
+	// notificationoncall.DefaultLevelUids holds the default value on creation for the level_uids field.
+	notificationoncall.DefaultLevelUids = notificationoncallDescLevelUids.Default.([]string)
+	// notificationoncallDescDatasourceUids is the schema descriptor for datasource_uids field.
+	notificationoncallDescDatasourceUids := notificationoncallFields[6].Descriptor()
+	// notificationoncall.DefaultDatasourceUids holds the default value on creation for the datasource_uids field.
+	notificationoncall.DefaultDatasourceUids = notificationoncallDescDatasourceUids.Default.([]string)
+	// notificationoncallDescDatasourceLevelUids is the schema descriptor for datasource_level_uids field.
+	notificationoncallDescDatasourceLevelUids := notificationoncallFields[7].Descriptor()
+	// notificationoncall.DefaultDatasourceLevelUids holds the default value on creation for the datasource_level_uids field.
+	notificationoncall.DefaultDatasourceLevelUids = notificationoncallDescDatasourceLevelUids.Default.([]string)
+	// notificationoncallDescRepeatIntervalSeconds is the schema descriptor for repeat_interval_seconds field.
+	notificationoncallDescRepeatIntervalSeconds := notificationoncallFields[8].Descriptor()
+	// notificationoncall.DefaultRepeatIntervalSeconds holds the default value on creation for the repeat_interval_seconds field.
+	notificationoncall.DefaultRepeatIntervalSeconds = notificationoncallDescRepeatIntervalSeconds.Default.(int)
+	// notificationoncallDescTimezone is the schema descriptor for timezone field.
+	notificationoncallDescTimezone := notificationoncallFields[9].Descriptor()
+	// notificationoncall.DefaultTimezone holds the default value on creation for the timezone field.
+	notificationoncall.DefaultTimezone = notificationoncallDescTimezone.Default.(string)
+	// notificationoncallDescRemark is the schema descriptor for remark field.
+	notificationoncallDescRemark := notificationoncallFields[10].Descriptor()
+	// notificationoncall.DefaultRemark holds the default value on creation for the remark field.
+	notificationoncall.DefaultRemark = notificationoncallDescRemark.Default.(string)
+	notificationoncallgroupMixin := schema.NotificationOnCallGroup{}.Mixin()
+	notificationoncallgroupMixinFields0 := notificationoncallgroupMixin[0].Fields()
+	_ = notificationoncallgroupMixinFields0
+	notificationoncallgroupFields := schema.NotificationOnCallGroup{}.Fields()
+	_ = notificationoncallgroupFields
+	// notificationoncallgroupDescCreatedAt is the schema descriptor for created_at field.
+	notificationoncallgroupDescCreatedAt := notificationoncallgroupMixinFields0[0].Descriptor()
+	// notificationoncallgroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notificationoncallgroup.DefaultCreatedAt = notificationoncallgroupDescCreatedAt.Default.(func() time.Time)
+	// notificationoncallgroupDescUpdatedAt is the schema descriptor for updated_at field.
+	notificationoncallgroupDescUpdatedAt := notificationoncallgroupMixinFields0[1].Descriptor()
+	// notificationoncallgroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notificationoncallgroup.DefaultUpdatedAt = notificationoncallgroupDescUpdatedAt.Default.(func() time.Time)
+	// notificationoncallgroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notificationoncallgroup.UpdateDefaultUpdatedAt = notificationoncallgroupDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// notificationoncallgroupDescUID is the schema descriptor for uid field.
+	notificationoncallgroupDescUID := notificationoncallgroupFields[0].Descriptor()
+	// notificationoncallgroup.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	notificationoncallgroup.UIDValidator = notificationoncallgroupDescUID.Validators[0].(func(string) error)
+	// notificationoncallgroupDescNamespaceUID is the schema descriptor for namespace_uid field.
+	notificationoncallgroupDescNamespaceUID := notificationoncallgroupFields[1].Descriptor()
+	// notificationoncallgroup.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	notificationoncallgroup.NamespaceUIDValidator = notificationoncallgroupDescNamespaceUID.Validators[0].(func(string) error)
+	// notificationoncallgroupDescOncallUID is the schema descriptor for oncall_uid field.
+	notificationoncallgroupDescOncallUID := notificationoncallgroupFields[2].Descriptor()
+	// notificationoncallgroup.OncallUIDValidator is a validator for the "oncall_uid" field. It is called by the builders before save.
+	notificationoncallgroup.OncallUIDValidator = notificationoncallgroupDescOncallUID.Validators[0].(func(string) error)
+	// notificationoncallgroupDescGroupUID is the schema descriptor for group_uid field.
+	notificationoncallgroupDescGroupUID := notificationoncallgroupFields[3].Descriptor()
+	// notificationoncallgroup.GroupUIDValidator is a validator for the "group_uid" field. It is called by the builders before save.
+	notificationoncallgroup.GroupUIDValidator = notificationoncallgroupDescGroupUID.Validators[0].(func(string) error)
+	// notificationoncallgroupDescTimeWindows is the schema descriptor for time_windows field.
+	notificationoncallgroupDescTimeWindows := notificationoncallgroupFields[4].Descriptor()
+	// notificationoncallgroup.DefaultTimeWindows holds the default value on creation for the time_windows field.
+	notificationoncallgroup.DefaultTimeWindows = notificationoncallgroupDescTimeWindows.Default.(string)
 	notificationpresetMixin := schema.NotificationPreset{}.Mixin()
 	notificationpresetMixinFields0 := notificationpresetMixin[0].Fields()
 	_ = notificationpresetMixinFields0
@@ -1047,8 +1139,16 @@ func init() {
 	notificationsubscriptionDescDatasourceUids := notificationsubscriptionFields[6].Descriptor()
 	// notificationsubscription.DefaultDatasourceUids holds the default value on creation for the datasource_uids field.
 	notificationsubscription.DefaultDatasourceUids = notificationsubscriptionDescDatasourceUids.Default.([]string)
+	// notificationsubscriptionDescDatasourceLevelUids is the schema descriptor for datasource_level_uids field.
+	notificationsubscriptionDescDatasourceLevelUids := notificationsubscriptionFields[7].Descriptor()
+	// notificationsubscription.DefaultDatasourceLevelUids holds the default value on creation for the datasource_level_uids field.
+	notificationsubscription.DefaultDatasourceLevelUids = notificationsubscriptionDescDatasourceLevelUids.Default.([]string)
+	// notificationsubscriptionDescRepeatIntervalSeconds is the schema descriptor for repeat_interval_seconds field.
+	notificationsubscriptionDescRepeatIntervalSeconds := notificationsubscriptionFields[8].Descriptor()
+	// notificationsubscription.DefaultRepeatIntervalSeconds holds the default value on creation for the repeat_interval_seconds field.
+	notificationsubscription.DefaultRepeatIntervalSeconds = notificationsubscriptionDescRepeatIntervalSeconds.Default.(int)
 	// notificationsubscriptionDescRemark is the schema descriptor for remark field.
-	notificationsubscriptionDescRemark := notificationsubscriptionFields[7].Descriptor()
+	notificationsubscriptionDescRemark := notificationsubscriptionFields[9].Descriptor()
 	// notificationsubscription.DefaultRemark holds the default value on creation for the remark field.
 	notificationsubscription.DefaultRemark = notificationsubscriptionDescRemark.Default.(string)
 	notificationsubscriptiongroupMixin := schema.NotificationSubscriptionGroup{}.Mixin()
@@ -1113,52 +1213,56 @@ func init() {
 	notificationtaskDescRuleUID := notificationtaskFields[5].Descriptor()
 	// notificationtask.DefaultRuleUID holds the default value on creation for the rule_uid field.
 	notificationtask.DefaultRuleUID = notificationtaskDescRuleUID.Default.(string)
+	// notificationtaskDescFingerprint is the schema descriptor for fingerprint field.
+	notificationtaskDescFingerprint := notificationtaskFields[6].Descriptor()
+	// notificationtask.DefaultFingerprint holds the default value on creation for the fingerprint field.
+	notificationtask.DefaultFingerprint = notificationtaskDescFingerprint.Default.(string)
 	// notificationtaskDescSubscriptionUID is the schema descriptor for subscription_uid field.
-	notificationtaskDescSubscriptionUID := notificationtaskFields[6].Descriptor()
+	notificationtaskDescSubscriptionUID := notificationtaskFields[7].Descriptor()
 	// notificationtask.DefaultSubscriptionUID holds the default value on creation for the subscription_uid field.
 	notificationtask.DefaultSubscriptionUID = notificationtaskDescSubscriptionUID.Default.(string)
 	// notificationtaskDescGroupUID is the schema descriptor for group_uid field.
-	notificationtaskDescGroupUID := notificationtaskFields[7].Descriptor()
+	notificationtaskDescGroupUID := notificationtaskFields[8].Descriptor()
 	// notificationtask.DefaultGroupUID holds the default value on creation for the group_uid field.
 	notificationtask.DefaultGroupUID = notificationtaskDescGroupUID.Default.(string)
 	// notificationtaskDescChannelUID is the schema descriptor for channel_uid field.
-	notificationtaskDescChannelUID := notificationtaskFields[8].Descriptor()
+	notificationtaskDescChannelUID := notificationtaskFields[9].Descriptor()
 	// notificationtask.ChannelUIDValidator is a validator for the "channel_uid" field. It is called by the builders before save.
 	notificationtask.ChannelUIDValidator = notificationtaskDescChannelUID.Validators[0].(func(string) error)
 	// notificationtaskDescTemplateUID is the schema descriptor for template_uid field.
-	notificationtaskDescTemplateUID := notificationtaskFields[9].Descriptor()
+	notificationtaskDescTemplateUID := notificationtaskFields[10].Descriptor()
 	// notificationtask.DefaultTemplateUID holds the default value on creation for the template_uid field.
 	notificationtask.DefaultTemplateUID = notificationtaskDescTemplateUID.Default.(string)
 	// notificationtaskDescSender is the schema descriptor for sender field.
-	notificationtaskDescSender := notificationtaskFields[10].Descriptor()
+	notificationtaskDescSender := notificationtaskFields[11].Descriptor()
 	// notificationtask.DefaultSender holds the default value on creation for the sender field.
 	notificationtask.DefaultSender = notificationtaskDescSender.Default.(string)
 	// notificationtaskDescReceivers is the schema descriptor for receivers field.
-	notificationtaskDescReceivers := notificationtaskFields[11].Descriptor()
+	notificationtaskDescReceivers := notificationtaskFields[12].Descriptor()
 	// notificationtask.DefaultReceivers holds the default value on creation for the receivers field.
 	notificationtask.DefaultReceivers = notificationtaskDescReceivers.Default.(string)
 	// notificationtaskDescSubject is the schema descriptor for subject field.
-	notificationtaskDescSubject := notificationtaskFields[12].Descriptor()
+	notificationtaskDescSubject := notificationtaskFields[13].Descriptor()
 	// notificationtask.DefaultSubject holds the default value on creation for the subject field.
 	notificationtask.DefaultSubject = notificationtaskDescSubject.Default.(string)
 	// notificationtaskDescBody is the schema descriptor for body field.
-	notificationtaskDescBody := notificationtaskFields[13].Descriptor()
+	notificationtaskDescBody := notificationtaskFields[14].Descriptor()
 	// notificationtask.DefaultBody holds the default value on creation for the body field.
 	notificationtask.DefaultBody = notificationtaskDescBody.Default.(string)
 	// notificationtaskDescContent is the schema descriptor for content field.
-	notificationtaskDescContent := notificationtaskFields[14].Descriptor()
+	notificationtaskDescContent := notificationtaskFields[15].Descriptor()
 	// notificationtask.DefaultContent holds the default value on creation for the content field.
 	notificationtask.DefaultContent = notificationtaskDescContent.Default.(string)
 	// notificationtaskDescParams is the schema descriptor for params field.
-	notificationtaskDescParams := notificationtaskFields[15].Descriptor()
+	notificationtaskDescParams := notificationtaskFields[16].Descriptor()
 	// notificationtask.DefaultParams holds the default value on creation for the params field.
 	notificationtask.DefaultParams = notificationtaskDescParams.Default.(string)
 	// notificationtaskDescRetriesLeft is the schema descriptor for retries_left field.
-	notificationtaskDescRetriesLeft := notificationtaskFields[16].Descriptor()
+	notificationtaskDescRetriesLeft := notificationtaskFields[17].Descriptor()
 	// notificationtask.DefaultRetriesLeft holds the default value on creation for the retries_left field.
 	notificationtask.DefaultRetriesLeft = notificationtaskDescRetriesLeft.Default.(int)
 	// notificationtaskDescLastError is the schema descriptor for last_error field.
-	notificationtaskDescLastError := notificationtaskFields[18].Descriptor()
+	notificationtaskDescLastError := notificationtaskFields[19].Descriptor()
 	// notificationtask.DefaultLastError holds the default value on creation for the last_error field.
 	notificationtask.DefaultLastError = notificationtaskDescLastError.Default.(string)
 	notificationtemplateMixin := schema.NotificationTemplate{}.Mixin()

@@ -40,6 +40,7 @@ func NewHTTPServer(
 	templates *service.NotificationTemplateService,
 	groups *service.NotificationGroupService,
 	subscriptions *service.NotificationSubscriptionService,
+	onCalls *service.NotificationOnCallService,
 	logs *service.MessageLogService,
 	workers *service.WorkerService,
 	agents *service.AgentService,
@@ -105,6 +106,7 @@ func NewHTTPServer(
 	v1.RegisterNotificationTemplateServiceHTTPServer(srv, templates)
 	v1.RegisterNotificationGroupServiceHTTPServer(srv, groups)
 	v1.RegisterNotificationSubscriptionServiceHTTPServer(srv, subscriptions)
+	v1.RegisterNotificationOnCallServiceHTTPServer(srv, onCalls)
 	v1.RegisterMessageLogServiceHTTPServer(srv, logs)
 	v1.RegisterWorkerServiceHTTPServer(srv, workers)
 	v1.RegisterAgentServiceHTTPServer(srv, agents)

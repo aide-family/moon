@@ -72,6 +72,12 @@ type NotificationChannel func(*sql.Selector)
 // NotificationGroup is the predicate function for notificationgroup builders.
 type NotificationGroup func(*sql.Selector)
 
+// NotificationOnCall is the predicate function for notificationoncall builders.
+type NotificationOnCall func(*sql.Selector)
+
+// NotificationOnCallGroup is the predicate function for notificationoncallgroup builders.
+type NotificationOnCallGroup func(*sql.Selector)
+
 // NotificationPreset is the predicate function for notificationpreset builders.
 type NotificationPreset func(*sql.Selector)
 

@@ -81,11 +81,34 @@ func (s *AuthService) ListOAuth2Providers(ctx context.Context, req *v1.ListOAuth
 }
 
 func (s *AuthService) OAuth2Login(ctx context.Context, req *v1.OAuth2LoginRequest) (*v1.OAuth2LoginResponse, error) {
-	session, err := s.authenticator.OAuthLogin(ctx, req.GetProvider(), req.GetCode(), req.GetRedirectUri())
+	session, binding, err := s.authenticator.OAuthLogin(ctx, req.GetProvider(), req.GetCode(), req.GetRedirectUri())
 	if err != nil {
 		return nil, err
 	}
+	if binding != nil {
+		// 第三方没有可用邮箱：不下发会话，前端据 bind_token 引导用户补充并验证邮箱。
+		return &v1.OAuth2LoginResponse{
+			EmailBindingRequired: true,
+			BindToken:            binding.Token,
+			SuggestedEmail:       binding.SuggestedEmail,
+		}, nil
+	}
 	return &v1.OAuth2LoginResponse{Session: tokenPair(session)}, nil
+}
+
+func (s *AuthService) SendOAuthBindEmailCode(ctx context.Context, req *v1.SendOAuthBindEmailCodeRequest) (*v1.SendOAuthBindEmailCodeResponse, error) {
+	if err := s.authenticator.SendOAuthBindEmailCode(ctx, req.GetBindToken(), req.GetEmail(), req.GetCaptchaId(), req.GetCaptchaCode()); err != nil {
+		return nil, err
+	}
+	return &v1.SendOAuthBindEmailCodeResponse{}, nil
+}
+
+func (s *AuthService) BindOAuthEmail(ctx context.Context, req *v1.BindOAuthEmailRequest) (*v1.BindOAuthEmailResponse, error) {
+	session, err := s.authenticator.BindOAuthEmail(ctx, req.GetBindToken(), req.GetEmail(), req.GetCode(), req.GetCaptchaId(), req.GetCaptchaCode())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.BindOAuthEmailResponse{Session: tokenPair(session)}, nil
 }
 
 func tokenPair(session *bo.Session) *v1.TokenPair {

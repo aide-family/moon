@@ -26,6 +26,8 @@ func (r *notificationRepo) CreateSubscription(ctx context.Context, in bo.Notific
 		SetLabels(in.Labels).
 		SetLevelUids(in.LevelUIDs).
 		SetDatasourceUids(in.DatasourceUIDs).
+		SetDatasourceLevelUids(in.DatasourceLevelUIDs).
+		SetRepeatIntervalSeconds(in.RepeatIntervalSeconds).
 		SetRemark(in.Remark).
 		Save(ctx)
 	if err != nil {
@@ -55,6 +57,8 @@ func (r *notificationRepo) UpdateSubscription(ctx context.Context, in bo.Notific
 		SetLabels(in.Labels).
 		SetLevelUids(in.LevelUIDs).
 		SetDatasourceUids(in.DatasourceUIDs).
+		SetDatasourceLevelUids(in.DatasourceLevelUIDs).
+		SetRepeatIntervalSeconds(in.RepeatIntervalSeconds).
 		SetRemark(in.Remark).
 		Save(ctx)
 	if err != nil {
@@ -227,6 +231,7 @@ func toNotificationSubscription(row *ent.NotificationSubscription, groupUIDs []s
 	return bo.NotificationSubscription{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, Status: string(row.Status),
 		Labels: row.Labels, LevelUIDs: row.LevelUids, DatasourceUIDs: row.DatasourceUids,
+		DatasourceLevelUIDs: row.DatasourceLevelUids, RepeatIntervalSeconds: row.RepeatIntervalSeconds,
 		GroupUIDs: groupUIDs, Remark: row.Remark, CreatedAt: row.CreatedAt,
 	}
 }

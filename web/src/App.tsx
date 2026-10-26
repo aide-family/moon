@@ -20,6 +20,7 @@ import { NamespacePage } from "@/pages/namespace"
 import { NotFoundPage } from "@/pages/not-found"
 import { NotificationChannelPage } from "@/pages/notification-channel"
 import { NotificationGroupPage } from "@/pages/notification-group"
+import { NotificationOnCallPage } from "@/pages/notification-oncall"
 import { NotificationSubscriptionPage } from "@/pages/notification-subscription"
 import { NotificationTemplatePage } from "@/pages/notification-template"
 import { NotificationPresetPage } from "@/pages/notification-template/presets"
@@ -77,6 +78,10 @@ export function App() {
         <Route
           path="/notification-subscriptions"
           element={<NotificationSubscriptionPage />}
+        />
+        <Route
+          path="/notification-oncalls"
+          element={<NotificationOnCallPage />}
         />
         <Route path="/message-logs" element={<MessageLogPage />} />
         <Route path="/agents" element={<AgentPage />} />

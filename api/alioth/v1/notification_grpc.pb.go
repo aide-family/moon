@@ -1535,6 +1535,317 @@ var NotificationSubscriptionService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	NotificationOnCallService_CreateNotificationOnCall_FullMethodName       = "/alioth.v1.NotificationOnCallService/CreateNotificationOnCall"
+	NotificationOnCallService_UpdateNotificationOnCall_FullMethodName       = "/alioth.v1.NotificationOnCallService/UpdateNotificationOnCall"
+	NotificationOnCallService_UpdateNotificationOnCallStatus_FullMethodName = "/alioth.v1.NotificationOnCallService/UpdateNotificationOnCallStatus"
+	NotificationOnCallService_DeleteNotificationOnCall_FullMethodName       = "/alioth.v1.NotificationOnCallService/DeleteNotificationOnCall"
+	NotificationOnCallService_GetNotificationOnCall_FullMethodName          = "/alioth.v1.NotificationOnCallService/GetNotificationOnCall"
+	NotificationOnCallService_ListNotificationOnCalls_FullMethodName        = "/alioth.v1.NotificationOnCallService/ListNotificationOnCalls"
+)
+
+// NotificationOnCallServiceClient is the client API for NotificationOnCallService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// 值班路由的创建、查询和启停。按标签、告警级别和数据源匹配事件，
+// 每个绑定的通知组只在配置的接收时段内接收。
+type NotificationOnCallServiceClient interface {
+	// 创建值班路由。
+	CreateNotificationOnCall(ctx context.Context, in *CreateNotificationOnCallRequest, opts ...grpc.CallOption) (*CreateNotificationOnCallResponse, error)
+	// 更新值班路由。通知组绑定保存时整体替换。
+	UpdateNotificationOnCall(ctx context.Context, in *UpdateNotificationOnCallRequest, opts ...grpc.CallOption) (*UpdateNotificationOnCallResponse, error)
+	// 启用或停用值班路由。
+	UpdateNotificationOnCallStatus(ctx context.Context, in *UpdateNotificationOnCallStatusRequest, opts ...grpc.CallOption) (*UpdateNotificationOnCallStatusResponse, error)
+	// 删除值班路由。
+	DeleteNotificationOnCall(ctx context.Context, in *DeleteNotificationOnCallRequest, opts ...grpc.CallOption) (*DeleteNotificationOnCallResponse, error)
+	// 获取值班路由详情。
+	GetNotificationOnCall(ctx context.Context, in *GetNotificationOnCallRequest, opts ...grpc.CallOption) (*GetNotificationOnCallResponse, error)
+	// 分页列出值班路由。
+	ListNotificationOnCalls(ctx context.Context, in *ListNotificationOnCallsRequest, opts ...grpc.CallOption) (*ListNotificationOnCallsResponse, error)
+}
+
+type notificationOnCallServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewNotificationOnCallServiceClient(cc grpc.ClientConnInterface) NotificationOnCallServiceClient {
+	return &notificationOnCallServiceClient{cc}
+}
+
+func (c *notificationOnCallServiceClient) CreateNotificationOnCall(ctx context.Context, in *CreateNotificationOnCallRequest, opts ...grpc.CallOption) (*CreateNotificationOnCallResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateNotificationOnCallResponse)
+	err := c.cc.Invoke(ctx, NotificationOnCallService_CreateNotificationOnCall_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *notificationOnCallServiceClient) UpdateNotificationOnCall(ctx context.Context, in *UpdateNotificationOnCallRequest, opts ...grpc.CallOption) (*UpdateNotificationOnCallResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateNotificationOnCallResponse)
+	err := c.cc.Invoke(ctx, NotificationOnCallService_UpdateNotificationOnCall_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *notificationOnCallServiceClient) UpdateNotificationOnCallStatus(ctx context.Context, in *UpdateNotificationOnCallStatusRequest, opts ...grpc.CallOption) (*UpdateNotificationOnCallStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateNotificationOnCallStatusResponse)
+	err := c.cc.Invoke(ctx, NotificationOnCallService_UpdateNotificationOnCallStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *notificationOnCallServiceClient) DeleteNotificationOnCall(ctx context.Context, in *DeleteNotificationOnCallRequest, opts ...grpc.CallOption) (*DeleteNotificationOnCallResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteNotificationOnCallResponse)
+	err := c.cc.Invoke(ctx, NotificationOnCallService_DeleteNotificationOnCall_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *notificationOnCallServiceClient) GetNotificationOnCall(ctx context.Context, in *GetNotificationOnCallRequest, opts ...grpc.CallOption) (*GetNotificationOnCallResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetNotificationOnCallResponse)
+	err := c.cc.Invoke(ctx, NotificationOnCallService_GetNotificationOnCall_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *notificationOnCallServiceClient) ListNotificationOnCalls(ctx context.Context, in *ListNotificationOnCallsRequest, opts ...grpc.CallOption) (*ListNotificationOnCallsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNotificationOnCallsResponse)
+	err := c.cc.Invoke(ctx, NotificationOnCallService_ListNotificationOnCalls_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// NotificationOnCallServiceServer is the server API for NotificationOnCallService service.
+// All implementations must embed UnimplementedNotificationOnCallServiceServer
+// for forward compatibility.
+//
+// 值班路由的创建、查询和启停。按标签、告警级别和数据源匹配事件，
+// 每个绑定的通知组只在配置的接收时段内接收。
+type NotificationOnCallServiceServer interface {
+	// 创建值班路由。
+	CreateNotificationOnCall(context.Context, *CreateNotificationOnCallRequest) (*CreateNotificationOnCallResponse, error)
+	// 更新值班路由。通知组绑定保存时整体替换。
+	UpdateNotificationOnCall(context.Context, *UpdateNotificationOnCallRequest) (*UpdateNotificationOnCallResponse, error)
+	// 启用或停用值班路由。
+	UpdateNotificationOnCallStatus(context.Context, *UpdateNotificationOnCallStatusRequest) (*UpdateNotificationOnCallStatusResponse, error)
+	// 删除值班路由。
+	DeleteNotificationOnCall(context.Context, *DeleteNotificationOnCallRequest) (*DeleteNotificationOnCallResponse, error)
+	// 获取值班路由详情。
+	GetNotificationOnCall(context.Context, *GetNotificationOnCallRequest) (*GetNotificationOnCallResponse, error)
+	// 分页列出值班路由。
+	ListNotificationOnCalls(context.Context, *ListNotificationOnCallsRequest) (*ListNotificationOnCallsResponse, error)
+	mustEmbedUnimplementedNotificationOnCallServiceServer()
+}
+
+// UnimplementedNotificationOnCallServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedNotificationOnCallServiceServer struct{}
+
+func (UnimplementedNotificationOnCallServiceServer) CreateNotificationOnCall(context.Context, *CreateNotificationOnCallRequest) (*CreateNotificationOnCallResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateNotificationOnCall not implemented")
+}
+func (UnimplementedNotificationOnCallServiceServer) UpdateNotificationOnCall(context.Context, *UpdateNotificationOnCallRequest) (*UpdateNotificationOnCallResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateNotificationOnCall not implemented")
+}
+func (UnimplementedNotificationOnCallServiceServer) UpdateNotificationOnCallStatus(context.Context, *UpdateNotificationOnCallStatusRequest) (*UpdateNotificationOnCallStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateNotificationOnCallStatus not implemented")
+}
+func (UnimplementedNotificationOnCallServiceServer) DeleteNotificationOnCall(context.Context, *DeleteNotificationOnCallRequest) (*DeleteNotificationOnCallResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteNotificationOnCall not implemented")
+}
+func (UnimplementedNotificationOnCallServiceServer) GetNotificationOnCall(context.Context, *GetNotificationOnCallRequest) (*GetNotificationOnCallResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetNotificationOnCall not implemented")
+}
+func (UnimplementedNotificationOnCallServiceServer) ListNotificationOnCalls(context.Context, *ListNotificationOnCallsRequest) (*ListNotificationOnCallsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListNotificationOnCalls not implemented")
+}
+func (UnimplementedNotificationOnCallServiceServer) mustEmbedUnimplementedNotificationOnCallServiceServer() {
+}
+func (UnimplementedNotificationOnCallServiceServer) testEmbeddedByValue() {}
+
+// UnsafeNotificationOnCallServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to NotificationOnCallServiceServer will
+// result in compilation errors.
+type UnsafeNotificationOnCallServiceServer interface {
+	mustEmbedUnimplementedNotificationOnCallServiceServer()
+}
+
+func RegisterNotificationOnCallServiceServer(s grpc.ServiceRegistrar, srv NotificationOnCallServiceServer) {
+	// If the following call panics, it indicates UnimplementedNotificationOnCallServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&NotificationOnCallService_ServiceDesc, srv)
+}
+
+func _NotificationOnCallService_CreateNotificationOnCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateNotificationOnCallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationOnCallServiceServer).CreateNotificationOnCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationOnCallService_CreateNotificationOnCall_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationOnCallServiceServer).CreateNotificationOnCall(ctx, req.(*CreateNotificationOnCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NotificationOnCallService_UpdateNotificationOnCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateNotificationOnCallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationOnCallServiceServer).UpdateNotificationOnCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationOnCallService_UpdateNotificationOnCall_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationOnCallServiceServer).UpdateNotificationOnCall(ctx, req.(*UpdateNotificationOnCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NotificationOnCallService_UpdateNotificationOnCallStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateNotificationOnCallStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationOnCallServiceServer).UpdateNotificationOnCallStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationOnCallService_UpdateNotificationOnCallStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationOnCallServiceServer).UpdateNotificationOnCallStatus(ctx, req.(*UpdateNotificationOnCallStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NotificationOnCallService_DeleteNotificationOnCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteNotificationOnCallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationOnCallServiceServer).DeleteNotificationOnCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationOnCallService_DeleteNotificationOnCall_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationOnCallServiceServer).DeleteNotificationOnCall(ctx, req.(*DeleteNotificationOnCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NotificationOnCallService_GetNotificationOnCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNotificationOnCallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationOnCallServiceServer).GetNotificationOnCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationOnCallService_GetNotificationOnCall_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationOnCallServiceServer).GetNotificationOnCall(ctx, req.(*GetNotificationOnCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NotificationOnCallService_ListNotificationOnCalls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNotificationOnCallsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationOnCallServiceServer).ListNotificationOnCalls(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationOnCallService_ListNotificationOnCalls_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationOnCallServiceServer).ListNotificationOnCalls(ctx, req.(*ListNotificationOnCallsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// NotificationOnCallService_ServiceDesc is the grpc.ServiceDesc for NotificationOnCallService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var NotificationOnCallService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "alioth.v1.NotificationOnCallService",
+	HandlerType: (*NotificationOnCallServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateNotificationOnCall",
+			Handler:    _NotificationOnCallService_CreateNotificationOnCall_Handler,
+		},
+		{
+			MethodName: "UpdateNotificationOnCall",
+			Handler:    _NotificationOnCallService_UpdateNotificationOnCall_Handler,
+		},
+		{
+			MethodName: "UpdateNotificationOnCallStatus",
+			Handler:    _NotificationOnCallService_UpdateNotificationOnCallStatus_Handler,
+		},
+		{
+			MethodName: "DeleteNotificationOnCall",
+			Handler:    _NotificationOnCallService_DeleteNotificationOnCall_Handler,
+		},
+		{
+			MethodName: "GetNotificationOnCall",
+			Handler:    _NotificationOnCallService_GetNotificationOnCall_Handler,
+		},
+		{
+			MethodName: "ListNotificationOnCalls",
+			Handler:    _NotificationOnCallService_ListNotificationOnCalls_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "alioth/v1/notification.proto",
+}
+
+const (
 	MessageLogService_ListMessageLogs_FullMethodName        = "/alioth.v1.MessageLogService/ListMessageLogs"
 	MessageLogService_GetMessageLog_FullMethodName          = "/alioth.v1.MessageLogService/GetMessageLog"
 	MessageLogService_ListNotificationTasks_FullMethodName  = "/alioth.v1.MessageLogService/ListNotificationTasks"

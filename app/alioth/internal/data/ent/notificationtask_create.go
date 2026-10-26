@@ -116,6 +116,20 @@ func (_c *NotificationTaskCreate) SetNillableRuleUID(v *string) *NotificationTas
 	return _c
 }
 
+// SetFingerprint sets the "fingerprint" field.
+func (_c *NotificationTaskCreate) SetFingerprint(v string) *NotificationTaskCreate {
+	_c.mutation.SetFingerprint(v)
+	return _c
+}
+
+// SetNillableFingerprint sets the "fingerprint" field if the given value is not nil.
+func (_c *NotificationTaskCreate) SetNillableFingerprint(v *string) *NotificationTaskCreate {
+	if v != nil {
+		_c.SetFingerprint(*v)
+	}
+	return _c
+}
+
 // SetSubscriptionUID sets the "subscription_uid" field.
 func (_c *NotificationTaskCreate) SetSubscriptionUID(v string) *NotificationTaskCreate {
 	_c.mutation.SetSubscriptionUID(v)
@@ -349,6 +363,10 @@ func (_c *NotificationTaskCreate) defaults() {
 		v := notificationtask.DefaultRuleUID
 		_c.mutation.SetRuleUID(v)
 	}
+	if _, ok := _c.mutation.Fingerprint(); !ok {
+		v := notificationtask.DefaultFingerprint
+		_c.mutation.SetFingerprint(v)
+	}
 	if _, ok := _c.mutation.SubscriptionUID(); !ok {
 		v := notificationtask.DefaultSubscriptionUID
 		_c.mutation.SetSubscriptionUID(v)
@@ -440,6 +458,9 @@ func (_c *NotificationTaskCreate) check() error {
 	}
 	if _, ok := _c.mutation.RuleUID(); !ok {
 		return &ValidationError{Name: "rule_uid", err: errors.New(`ent: missing required field "NotificationTask.rule_uid"`)}
+	}
+	if _, ok := _c.mutation.Fingerprint(); !ok {
+		return &ValidationError{Name: "fingerprint", err: errors.New(`ent: missing required field "NotificationTask.fingerprint"`)}
 	}
 	if _, ok := _c.mutation.SubscriptionUID(); !ok {
 		return &ValidationError{Name: "subscription_uid", err: errors.New(`ent: missing required field "NotificationTask.subscription_uid"`)}
@@ -539,6 +560,10 @@ func (_c *NotificationTaskCreate) createSpec() (*NotificationTask, *sqlgraph.Cre
 	if value, ok := _c.mutation.RuleUID(); ok {
 		_spec.SetField(notificationtask.FieldRuleUID, field.TypeString, value)
 		_node.RuleUID = value
+	}
+	if value, ok := _c.mutation.Fingerprint(); ok {
+		_spec.SetField(notificationtask.FieldFingerprint, field.TypeString, value)
+		_node.Fingerprint = value
 	}
 	if value, ok := _c.mutation.SubscriptionUID(); ok {
 		_spec.SetField(notificationtask.FieldSubscriptionUID, field.TypeString, value)

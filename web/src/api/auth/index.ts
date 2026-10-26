@@ -1,11 +1,14 @@
 import { post, send } from "@/api/http"
 
 import type {
+  BindOAuthEmailParams,
   EmailLoginParams,
   ListOAuth2ProvidersParams,
   ListOAuth2ProvidersResult,
   LoginResult,
   OAuth2LoginParams,
+  OAuth2LoginResult,
+  OAuthBindEmailCodeParams,
   RegisterParams,
   SendEmailLoginCodeParams,
   SendRegisterEmailCodeParams,
@@ -46,7 +49,23 @@ export function listOAuth2Providers(
   )
 }
 
-/** POST /v1/auth/oauth2/login */
-export function oauth2Login(body: OAuth2LoginParams): Promise<LoginResult> {
-  return post<LoginResult>("/auth/oauth2/login", body)
+/** POST /v1/auth/oauth2/login。第三方没有可用邮箱时返回待绑定凭证，不签发会话。 */
+export function oauth2Login(
+  body: OAuth2LoginParams
+): Promise<OAuth2LoginResult> {
+  return post<OAuth2LoginResult>("/auth/oauth2/login", body)
+}
+
+/** POST /v1/auth/oauth2/bind/code。给待绑定的第三方账号发送邮箱验证码。 */
+export function sendOAuthBindEmailCode(
+  body: OAuthBindEmailCodeParams
+): Promise<Record<string, never>> {
+  return post<Record<string, never>>("/auth/oauth2/bind/code", body)
+}
+
+/** POST /v1/auth/oauth2/bind。校验邮箱验证码，完成绑定并返回登录会话。 */
+export function bindOAuthEmail(
+  body: BindOAuthEmailParams
+): Promise<LoginResult> {
+  return post<LoginResult>("/auth/oauth2/bind", body)
 }

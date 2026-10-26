@@ -120,6 +120,26 @@ func (_c *NotificationSubscriptionCreate) SetDatasourceUids(v []string) *Notific
 	return _c
 }
 
+// SetDatasourceLevelUids sets the "datasource_level_uids" field.
+func (_c *NotificationSubscriptionCreate) SetDatasourceLevelUids(v []string) *NotificationSubscriptionCreate {
+	_c.mutation.SetDatasourceLevelUids(v)
+	return _c
+}
+
+// SetRepeatIntervalSeconds sets the "repeat_interval_seconds" field.
+func (_c *NotificationSubscriptionCreate) SetRepeatIntervalSeconds(v int) *NotificationSubscriptionCreate {
+	_c.mutation.SetRepeatIntervalSeconds(v)
+	return _c
+}
+
+// SetNillableRepeatIntervalSeconds sets the "repeat_interval_seconds" field if the given value is not nil.
+func (_c *NotificationSubscriptionCreate) SetNillableRepeatIntervalSeconds(v *int) *NotificationSubscriptionCreate {
+	if v != nil {
+		_c.SetRepeatIntervalSeconds(*v)
+	}
+	return _c
+}
+
 // SetRemark sets the "remark" field.
 func (_c *NotificationSubscriptionCreate) SetRemark(v string) *NotificationSubscriptionCreate {
 	_c.mutation.SetRemark(v)
@@ -193,6 +213,14 @@ func (_c *NotificationSubscriptionCreate) defaults() {
 		v := notificationsubscription.DefaultDatasourceUids
 		_c.mutation.SetDatasourceUids(v)
 	}
+	if _, ok := _c.mutation.DatasourceLevelUids(); !ok {
+		v := notificationsubscription.DefaultDatasourceLevelUids
+		_c.mutation.SetDatasourceLevelUids(v)
+	}
+	if _, ok := _c.mutation.RepeatIntervalSeconds(); !ok {
+		v := notificationsubscription.DefaultRepeatIntervalSeconds
+		_c.mutation.SetRepeatIntervalSeconds(v)
+	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		v := notificationsubscription.DefaultRemark
 		_c.mutation.SetRemark(v)
@@ -247,6 +275,12 @@ func (_c *NotificationSubscriptionCreate) check() error {
 	}
 	if _, ok := _c.mutation.DatasourceUids(); !ok {
 		return &ValidationError{Name: "datasource_uids", err: errors.New(`ent: missing required field "NotificationSubscription.datasource_uids"`)}
+	}
+	if _, ok := _c.mutation.DatasourceLevelUids(); !ok {
+		return &ValidationError{Name: "datasource_level_uids", err: errors.New(`ent: missing required field "NotificationSubscription.datasource_level_uids"`)}
+	}
+	if _, ok := _c.mutation.RepeatIntervalSeconds(); !ok {
+		return &ValidationError{Name: "repeat_interval_seconds", err: errors.New(`ent: missing required field "NotificationSubscription.repeat_interval_seconds"`)}
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		return &ValidationError{Name: "remark", err: errors.New(`ent: missing required field "NotificationSubscription.remark"`)}
@@ -316,6 +350,14 @@ func (_c *NotificationSubscriptionCreate) createSpec() (*NotificationSubscriptio
 	if value, ok := _c.mutation.DatasourceUids(); ok {
 		_spec.SetField(notificationsubscription.FieldDatasourceUids, field.TypeJSON, value)
 		_node.DatasourceUids = value
+	}
+	if value, ok := _c.mutation.DatasourceLevelUids(); ok {
+		_spec.SetField(notificationsubscription.FieldDatasourceLevelUids, field.TypeJSON, value)
+		_node.DatasourceLevelUids = value
+	}
+	if value, ok := _c.mutation.RepeatIntervalSeconds(); ok {
+		_spec.SetField(notificationsubscription.FieldRepeatIntervalSeconds, field.TypeInt, value)
+		_node.RepeatIntervalSeconds = value
 	}
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(notificationsubscription.FieldRemark, field.TypeString, value)

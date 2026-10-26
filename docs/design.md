@@ -208,7 +208,9 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 - 密码登录已移除，登录只有邮箱验证码和 OAuth2 两条路径
 - 邮箱验证码登录保留 Moon 的两步：`POST /v1/auth/email/login/code`、`POST /v1/auth/email/login`
 - 图形验证码是数学计算题（一位数加/减，结果非负），题目画在 `GET /v1/captcha` 返回的图片里，答案不回传。发码和登录/注册提交都要先通过图形验证码：发码用非消费校验，提交成功后再消费，所以一次解题就能走完整个流程，而没解验证码既拿不到邮箱验证码也登录不了。同一邮箱 60 秒内只发一次码
-- OAuth2 保留 Moon 的 `POST /v1/auth/oauth2/login`，应用为 GitHub、Gitee、飞书、钉钉。`POST /v1/auth/oauth2/providers` 返回已配置客户端的来源和完整授权地址，管理台展示 GitHub、Gitee、飞书、钉钉。只有可信任的第三方邮箱才能并入已有本地账号，避免用未验证邮箱接管账号：GitHub 看 `/user/emails` 的 verified 标记；Gitee 申请 `user_info emails`（应用需勾选 emails 权限，否则授权页报“请求范围无效”），再用 `/api/v5/emails` 里 state=confirmed 的主邮箱判断，接口不可用时按未验证处理；飞书邮箱由企业管理员在租户通讯录维护、终端用户不能自行修改，且只有本企业安装的应用能完成授权，按企业已验证身份处理（授权 scope 为 `contact:user.email:readonly`，取不到邮箱时退回占位邮箱、不并入）。钉钉的邮箱是用户自行添加到个人资料里的，钉钉不确认归属，按未验证处理（授权 scope 为 `openid`，`prompt` 固定 `consent`）；用户信息来自 `GET /v1.0/contact/users/me`，凭证走 `x-acs-dingtalk-access-token` 头，绑定账号用按应用唯一的 `openId`，授权码在回调里叫 `authCode` 而不是 `code`。GitHub / Gitee 邮箱未验证且该邮箱已被本地账号占用时，管理台给出该平台邮箱设置页的入口，引导用户确认后重新登录，并提示可改用邮箱验证码登录
+- OAuth2 保留 Moon 的 `POST /v1/auth/oauth2/login`，应用为 GitHub、Gitee、飞书、钉钉。`POST /v1/auth/oauth2/providers` 返回已配置客户端的来源和完整授权地址，管理台展示 GitHub、Gitee、飞书、钉钉。只有平台已验证的邮箱才能直接登录并并入已有本地账号，避免用未验证邮箱接管账号：GitHub 看 `/user/emails` 的 verified 标记；Gitee 申请 `user_info emails`（应用需勾选 emails 权限，否则授权页报“请求范围无效”），再用 `/api/v5/emails` 里 state=confirmed 的主邮箱判断，接口不可用时按未验证处理；飞书邮箱由企业管理员在租户通讯录维护、终端用户不能自行修改，且只有本企业安装的应用能完成授权，按企业已验证身份处理（授权 scope 为 `contact:user.email:readonly`）。钉钉的邮箱是用户自行添加到个人资料里的，钉钉不确认归属，按未验证处理（授权 scope 为 `openid`，`prompt` 固定 `consent`）；用户信息来自 `GET /v1.0/contact/users/me`，凭证走 `x-acs-dingtalk-access-token` 头，绑定账号用按应用唯一的 `openId`，授权码在回调里叫 `authCode` 而不是 `code`
+- 第三方没有可用邮箱（平台没有返回，或邮箱未经平台确认）时，`OAuth2Login` 不签发会话，而是返回 15 分钟有效的 `bindToken` 和待验证邮箱提示。用户补充邮箱后走 `POST /v1/auth/oauth2/bind/code`（图形验证码 + 60 秒节流）与 `POST /v1/auth/oauth2/bind`（邮箱验证码 + 图形验证码）完成验证，才签发会话并把 OAuth2 身份绑定到该邮箱账号；同一个邮箱可以绑定多个 OAuth2 账号。不再自动创建占位邮箱账号，也不再返回“邮箱未验证”错误
+- 历史占位邮箱账号（`@users.alioth.local`）下次 OAuth2 登录同样要求补真实邮箱：邮箱未被占用就把该账号邮箱改成验证邮箱并保留成员/角色/资料；邮箱已被占用则把占位账号的租户成员和角色迁移到邮箱账号（同租户角色取并集，租户负责人同步迁移），OAuth2 绑定改绑到邮箱账号。个人偏好和系统消息不迁移
 - 访问令牌是 JWT。刷新对应 Moon 的 `GET /v1/self/refresh-token`
 - 服务间调用使用 Moon 已有的 service key，形态为 `Authorization: Bearer sk-...`，与用户 JWT 互斥
 - `alkaid` 使用独立的 Agent 令牌，只用于出站流，不能当用户令牌调用管理接口
@@ -337,7 +339,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 ## 5. 通知
 
-渠道、模板、通知组、任务和日志都在 `alioth`。`merak` 只负责把任务发出去。
+渠道、模板、通知组、订阅、OnCall、任务和日志都在 `alioth`。`merak` 只负责把任务发出去。
 
 
 | 实体                     | 来源                                  | 说明                                                                          |
@@ -346,8 +348,10 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 | `NotificationTemplate` | Moon 的 `templates`                  | 按消息类型和应用存模板。类型为 EMAIL、WEBHOOK、SMS_ALICLOUD；WEBHOOK 模板的 app 区分 OTHER、DINGTALK、WECHAT、FEISHU，OTHER 是通用模板。EMAIL 和 SMS_ALICLOUD 固定 OTHER |
 | `NotificationPreset`   | Alioth 新增                           | 系统预置模板，只读、不属于租户。预设页支持预览，编辑后保存为当前 Namespace 的副本                                          |
 | `NotificationGroup`    | Moon 的通知组与收件人组                      | Namespace 内的接收方集合。邮件渠道和短信渠道各最多一个，Webhook 作为接收者可多选；每个选中渠道都绑定一个能覆盖它的模板，至少有一个接收方或 Webhook |
-| `NotificationSubscription` | Alioth 新增                       | 按标签、告警级别和数据源订阅事件，命中后发送给订阅下的通知组                                              |
-| `NotificationTask`     | Moon 发送任务的持久化形态                     | 待发送、发送中、已发送、失败、取消。状态名沿用 MessageStatus：PENDING、SENDING、SENT、FAILED、CANCELLED |
+| `NotificationSubscription` | Alioth 新增                       | 按标签、告警级别、数据源和数据源级别订阅事件，命中后发送给订阅下的通知组；可配置同一告警的重复通知间隔 |
+| `NotificationOnCall`   | Alioth 新增                           | 按标签、告警级别、数据源和数据源级别订阅事件，绑定多个通知组；每个绑定带自己的接收时段，只在该时段内投递；可配置重复通知间隔 |
+| `NotificationOnCallGroup` | Alioth 新增                        | OnCall 到通知组的绑定，保存 `time_windows` 时段 JSON。同一 OnCall 内一个通知组只绑定一次 |
+| `NotificationTask`     | Moon 发送任务的持久化形态                     | 待发送、发送中、已发送、失败、取消。状态名沿用 MessageStatus：PENDING、SENDING、SENT、FAILED、CANCELLED。保存事件指纹，供重复通知间隔判断 |
 | `MessageLog`           | Moon 的 `message_logs`               | 一次投递的结果。按租户库 + 周表分库分表。支持查看、重试、取消                                                    |
 
 
@@ -359,6 +363,12 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 人工试发也生成 `NotificationTask`，仍由 `merak` 投递。对应 Moon 发送台的直发和按模板发送，不在 `merak` 进程里同步等待 SMTP。投递失败按剩余次数退避后回到 PENDING，避免失败任务在轮询周期内反复重试。
 
 渠道、模板和通知组必须满足类型矩阵：SMTP 渠道只能绑定 EMAIL 模板；SMS 渠道只能绑定 SMS_ALICLOUD 模板；WEBHOOK 渠道只能绑定 WEBHOOK 模板，且模板 app 必须等于渠道 app 或为 OTHER。通知组保存 `channel_uids` 与 `template_uids` 两个一一对应的数组：邮件渠道、短信渠道和每个 Webhook 接收者各占一项，邮件和短信同类型最多一个。邮件接收方由手填邮箱和成员邮箱合并，短信接收方由手填手机号和成员手机号合并；选择邮件/短信渠道后必须至少有一个接收方，选择 Webhook 时 Webhook 本身算接收方。通知组没有任何渠道、或邮件/短信渠道没有接收方时拒绝保存。保存、试发和建立通知组时都在服务端校验。成员手机号来自用户资料，短信发送实现尚未接入，短信任务会以明确原因失败。
+
+`NotificationOnCall` 和 `NotificationSubscription` 是两套独立的路由：订阅始终按条件投递，OnCall 在此基础上按通知组的时间窗口投递。两套路由都按标签、告警级别、数据源和数据源级别过滤，条件之间是 AND，空条件表示不限制；标签值按完整匹配正则命中。数据源级别取事件数据源自身的 `level_uid`，数据源缺失或没有级别时不匹配非空级别条件。每个 OnCall 通知组的 `time_windows` 保存 `[{weekdays,start,end}]`，星期取 MONDAY 到 SUNDAY，时间为 `HH:mm`，边界左闭右开；起始晚于结束表示跨午夜，星期几归属于开始那天，例如 `FRIDAY 22:00-06:00` 覆盖周五晚到周六凌晨。空数组表示该组全天候接收。保存时校验星期、时间和 IANA 时区；判断时先把当前时刻转换到 OnCall 的时区。FIRING 和恢复各自按事件发生时的时刻判断，恢复不会回溯 FIRING 命中过的通知组。时间语义沿用 Moon `magicbox/timer` 的星期与时刻范围匹配思路，实现在 `app/alioth/pkg/oncall`。
+
+同一事件同时命中订阅和 OnCall 时，两套路由先合并通知组，再按接收方去重：同一邮箱或手机号最多生成一条任务，同一个 Webhook 渠道最多安排一次；订阅命中的通知组先处理，接收方重叠时订阅的模板优先。`NotificationTask` 仍保留 `(event_uid, phase, group_uid, channel_uid)` 唯一约束作为最后一道兜底。
+
+订阅和 OnCall 各自保存 `repeat_interval_seconds`，取值 0 到 43200（0 表示不限制，最大 12 小时）。FIRING 事件命中多个来源时取其中最大的间隔：同一 `fingerprint` 在最大间隔内已经存在 PENDING、SENDING 或 SENT 的 FIRING 任务，整条事件不再生成任务；不同指纹互不影响。恢复通知不受间隔限制，但只有同一指纹存在仍在投递链路上的 FIRING 任务（PENDING、SENDING、SENT）时才发送，避免被间隔抑制或彻底失败的告警在恢复时补发孤立通知。任务保存 `fingerprint`，升级前的旧任务没有指纹时按 `event_uid` 兜底判断恢复是否发送。
 
 `merak` 按渠道应用选择发送器：
 
@@ -432,7 +442,7 @@ Web 页面还必须遵守 `web/AGENTS.md` 的交互与布局回归约束：尤�
 | 账号    | 登录、注册、个人资料                      |
 | 租户与权限 | Namespace、用户、成员、角色与权限           |
 | 告警    | 数据源、规则组与规则、告警字典、告警页面、实时告警、历史告警 |
-| 通知    | 通知渠道、模板、通知组、告警订阅、消息日志            |
+| 通知    | 通知渠道、模板、通知组、告警订阅、OnCall、消息日志            |
 | 边缘    | 机器、SSH 命令与审计、Web Shell |
 
 
@@ -471,6 +481,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | 实时与历史告警    | `/v1/alert/realtime-alerts`、`/v1/alert/history-alerts`、介入、抑制、恢复、统计                      |
 | 通知组        | `/v1/notification-groups`                                                               |
 | 告警订阅       | `/v1/notification-subscription`、`/v1/notification-subscriptions`                          |
+| OnCall      | `/v1/notification-oncall`、`/v1/notification-oncalls`、启停与时段编辑                          |
 | 邮件渠道       | `/v1/email/config`、`/v1/email/configs`                                                  |
 | Webhook 渠道 | `/v1/webhook/config`、`/v1/webhook/configs`                                              |
 | 模板         | `/v1/template`、`/v1/templates`                                                          |
@@ -490,10 +501,12 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | ------------- | ---------------------------------------- |
 | 注册与邮箱验证码      | 发送注册验证码、注册（邮箱验证码 + 图形验证码）；发码 60 秒节流。不再有密码登录     |
 | OAuth2 来源     | 列出已配置客户端的第三方和完整授权地址，供管理台渲染 GitHub、Gitee、飞书登录入口          |
+| 第三方邮箱绑定      | 第三方没有可用邮箱时登录返回 bindToken；发送绑定邮箱验证码、验证后把 OAuth2 身份绑定到邮箱账号（60 秒节流，同一邮箱可绑多个 OAuth2 账号，本地账号已存在时直接并入） |
 | 角色与权限         | 角色的增删改查与启停；为角色分配权限；为成员分配角色；读取当前用户权限供菜单使用 |
 | Agent         | 签发与吊销令牌；列表与详情（含在线状态）。注册和心跳不走浏览器 HTTP     |
 | 告警页面          | CRUD；公开/私有；个人实时 Tab 订阅。按标签匹配过滤实时告警，标签值支持完整匹配正则。与 Moon 通知订阅无关 |
 | 我的告警          | 实时列表筛选：按实际生成的 `NotificationTask` 事件标识过滤。通知组包含当前成员，或任务 `receivers` 含当前用户邮箱/手机号/UID 时，该事件才算当前用户的告警；不能按规则放行整条规则下的事件 |
+| OnCall        | 按标签、告警级别、数据源和数据源级别订阅事件；绑定多个通知组，每个组配置星期与时刻窗口，只在该时段内投递。与订阅并行，同一接收方同一事件只发送一次；重复通知间隔按指纹取多个命中来源的最大值，恢复通知不受间隔限制 |
 
 
 明确不迁入的 Moon HTTP：`/v1/probe-tasks`、`/v1/ssh-command-actions/dispatch`（由在线 Agent 替代）、rabbit 的 `POST /v1/alerts/prometheus/webhook`（评测结果改走内部回写）。告警订阅由 Alioth 的 `NotificationSubscription` 提供，不复用 Moon 的 `/v1/alert-subscriptions`。

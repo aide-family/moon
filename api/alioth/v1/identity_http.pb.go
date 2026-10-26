@@ -78,24 +78,32 @@ func (c *CaptchaServiceHTTPClientImpl) GetCaptcha(ctx context.Context, in *GetCa
 	return &out, nil
 }
 
+const OperationAuthServiceBindOAuthEmail = "/alioth.v1.AuthService/BindOAuthEmail"
 const OperationAuthServiceEmailLogin = "/alioth.v1.AuthService/EmailLogin"
 const OperationAuthServiceListOAuth2Providers = "/alioth.v1.AuthService/ListOAuth2Providers"
 const OperationAuthServiceOAuth2Login = "/alioth.v1.AuthService/OAuth2Login"
 const OperationAuthServiceRegister = "/alioth.v1.AuthService/Register"
 const OperationAuthServiceSendEmailLoginCode = "/alioth.v1.AuthService/SendEmailLoginCode"
+const OperationAuthServiceSendOAuthBindEmailCode = "/alioth.v1.AuthService/SendOAuthBindEmailCode"
 const OperationAuthServiceSendRegisterEmailCode = "/alioth.v1.AuthService/SendRegisterEmailCode"
 
 type AuthServiceHTTPServer interface {
+	// BindOAuthEmail 校验邮箱验证码，把第三方身份绑定到该邮箱并返回登录会话。
+	// 邮箱已经属于本地账号时直接并入该账号；验证通过前不签发令牌。
+	BindOAuthEmail(context.Context, *BindOAuthEmailRequest) (*BindOAuthEmailResponse, error)
 	// EmailLogin 用邮箱验证码和图形验证码登录。邮箱验证码只能使用一次。
 	EmailLogin(context.Context, *EmailLoginRequest) (*EmailLoginResponse, error)
 	// ListOAuth2Providers 列出已经配置客户端的第三方登录来源和授权地址。
 	ListOAuth2Providers(context.Context, *ListOAuth2ProvidersRequest) (*ListOAuth2ProvidersResponse, error)
-	// OAuth2Login 用 GitHub 或 Gitee 的授权码登录。
+	// OAuth2Login 用第三方授权码登录。第三方没有可用邮箱时返回待绑定凭证，前端引导用户补充并验证邮箱。
 	OAuth2Login(context.Context, *OAuth2LoginRequest) (*OAuth2LoginResponse, error)
 	// Register 用邮箱、邮箱验证码和图形验证码注册，成功后返回会话。
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	// SendEmailLoginCode 向已注册邮箱发送登录验证码。发码前要先通过图形验证码。
 	SendEmailLoginCode(context.Context, *SendEmailLoginCodeRequest) (*SendEmailLoginCodeResponse, error)
+	// SendOAuthBindEmailCode 给待绑定的第三方账号发送邮箱验证码。bind_token 来自 OAuth2Login 的待绑定响应，
+	// 发码前先通过图形验证码，同一邮箱 60 秒内只能发一次。
+	SendOAuthBindEmailCode(context.Context, *SendOAuthBindEmailCodeRequest) (*SendOAuthBindEmailCodeResponse, error)
 	// SendRegisterEmailCode 向未注册邮箱发送注册验证码。发码前要先通过图形验证码。
 	SendRegisterEmailCode(context.Context, *SendRegisterEmailCodeRequest) (*SendRegisterEmailCodeResponse, error)
 }
@@ -108,6 +116,8 @@ func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r.Handle("POST", "/v1/auth/email/login", _AuthService_EmailLogin0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/auth/oauth2/providers", _AuthService_ListOAuth2Providers0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/auth/oauth2/login", _AuthService_OAuth2Login0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/auth/oauth2/bind/code", _AuthService_SendOAuthBindEmailCode0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/auth/oauth2/bind", _AuthService_BindOAuthEmail0_HTTP_Handler(srv))
 }
 
 func _AuthService_SendRegisterEmailCode0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
@@ -224,17 +234,61 @@ func _AuthService_OAuth2Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx 
 	}
 }
 
+func _AuthService_SendOAuthBindEmailCode0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SendOAuthBindEmailCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceSendOAuthBindEmailCode)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SendOAuthBindEmailCode(ctx, req.(*SendOAuthBindEmailCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SendOAuthBindEmailCodeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_BindOAuthEmail0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BindOAuthEmailRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceBindOAuthEmail)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BindOAuthEmail(ctx, req.(*BindOAuthEmailRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BindOAuthEmailResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AuthServiceHTTPClient interface {
+	// BindOAuthEmail 校验邮箱验证码，把第三方身份绑定到该邮箱并返回登录会话。
+	// 邮箱已经属于本地账号时直接并入该账号；验证通过前不签发令牌。
+	BindOAuthEmail(ctx context.Context, req *BindOAuthEmailRequest, opts ...http.CallOption) (rsp *BindOAuthEmailResponse, err error)
 	// EmailLogin 用邮箱验证码和图形验证码登录。邮箱验证码只能使用一次。
 	EmailLogin(ctx context.Context, req *EmailLoginRequest, opts ...http.CallOption) (rsp *EmailLoginResponse, err error)
 	// ListOAuth2Providers 列出已经配置客户端的第三方登录来源和授权地址。
 	ListOAuth2Providers(ctx context.Context, req *ListOAuth2ProvidersRequest, opts ...http.CallOption) (rsp *ListOAuth2ProvidersResponse, err error)
-	// OAuth2Login 用 GitHub 或 Gitee 的授权码登录。
+	// OAuth2Login 用第三方授权码登录。第三方没有可用邮箱时返回待绑定凭证，前端引导用户补充并验证邮箱。
 	OAuth2Login(ctx context.Context, req *OAuth2LoginRequest, opts ...http.CallOption) (rsp *OAuth2LoginResponse, err error)
 	// Register 用邮箱、邮箱验证码和图形验证码注册，成功后返回会话。
 	Register(ctx context.Context, req *RegisterRequest, opts ...http.CallOption) (rsp *RegisterResponse, err error)
 	// SendEmailLoginCode 向已注册邮箱发送登录验证码。发码前要先通过图形验证码。
 	SendEmailLoginCode(ctx context.Context, req *SendEmailLoginCodeRequest, opts ...http.CallOption) (rsp *SendEmailLoginCodeResponse, err error)
+	// SendOAuthBindEmailCode 给待绑定的第三方账号发送邮箱验证码。bind_token 来自 OAuth2Login 的待绑定响应，
+	// 发码前先通过图形验证码，同一邮箱 60 秒内只能发一次。
+	SendOAuthBindEmailCode(ctx context.Context, req *SendOAuthBindEmailCodeRequest, opts ...http.CallOption) (rsp *SendOAuthBindEmailCodeResponse, err error)
 	// SendRegisterEmailCode 向未注册邮箱发送注册验证码。发码前要先通过图形验证码。
 	SendRegisterEmailCode(ctx context.Context, req *SendRegisterEmailCodeRequest, opts ...http.CallOption) (rsp *SendRegisterEmailCodeResponse, err error)
 }
@@ -245,6 +299,25 @@ type AuthServiceHTTPClientImpl struct {
 
 func NewAuthServiceHTTPClient(client *http.Client) AuthServiceHTTPClient {
 	return &AuthServiceHTTPClientImpl{client}
+}
+
+// BindOAuthEmail 校验邮箱验证码，把第三方身份绑定到该邮箱并返回登录会话。
+// 邮箱已经属于本地账号时直接并入该账号；验证通过前不签发令牌。
+func (c *AuthServiceHTTPClientImpl) BindOAuthEmail(ctx context.Context, in *BindOAuthEmailRequest, opts ...http.CallOption) (*BindOAuthEmailResponse, error) {
+	var out BindOAuthEmailResponse
+	pattern := "/v1/auth/oauth2/bind"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAuthServiceBindOAuthEmail),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // EmailLogin 用邮箱验证码和图形验证码登录。邮箱验证码只能使用一次。
@@ -283,7 +356,7 @@ func (c *AuthServiceHTTPClientImpl) ListOAuth2Providers(ctx context.Context, in 
 	return &out, nil
 }
 
-// OAuth2Login 用 GitHub 或 Gitee 的授权码登录。
+// OAuth2Login 用第三方授权码登录。第三方没有可用邮箱时返回待绑定凭证，前端引导用户补充并验证邮箱。
 func (c *AuthServiceHTTPClientImpl) OAuth2Login(ctx context.Context, in *OAuth2LoginRequest, opts ...http.CallOption) (*OAuth2LoginResponse, error) {
 	var out OAuth2LoginResponse
 	pattern := "/v1/auth/oauth2/login"
@@ -328,6 +401,25 @@ func (c *AuthServiceHTTPClientImpl) SendEmailLoginCode(ctx context.Context, in *
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationAuthServiceSendEmailLoginCode),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SendOAuthBindEmailCode 给待绑定的第三方账号发送邮箱验证码。bind_token 来自 OAuth2Login 的待绑定响应，
+// 发码前先通过图形验证码，同一邮箱 60 秒内只能发一次。
+func (c *AuthServiceHTTPClientImpl) SendOAuthBindEmailCode(ctx context.Context, in *SendOAuthBindEmailCodeRequest, opts ...http.CallOption) (*SendOAuthBindEmailCodeResponse, error) {
+	var out SendOAuthBindEmailCodeResponse
+	pattern := "/v1/auth/oauth2/bind/code"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAuthServiceSendOAuthBindEmailCode),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

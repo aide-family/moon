@@ -36,6 +36,8 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationoncall"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationoncallgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
@@ -102,6 +104,10 @@ type Client struct {
 	NotificationChannel *NotificationChannelClient
 	// NotificationGroup is the client for interacting with the NotificationGroup builders.
 	NotificationGroup *NotificationGroupClient
+	// NotificationOnCall is the client for interacting with the NotificationOnCall builders.
+	NotificationOnCall *NotificationOnCallClient
+	// NotificationOnCallGroup is the client for interacting with the NotificationOnCallGroup builders.
+	NotificationOnCallGroup *NotificationOnCallGroupClient
 	// NotificationPreset is the client for interacting with the NotificationPreset builders.
 	NotificationPreset *NotificationPresetClient
 	// NotificationSubscription is the client for interacting with the NotificationSubscription builders.
@@ -165,6 +171,8 @@ func (c *Client) init() {
 	c.Namespace = NewNamespaceClient(c.config)
 	c.NotificationChannel = NewNotificationChannelClient(c.config)
 	c.NotificationGroup = NewNotificationGroupClient(c.config)
+	c.NotificationOnCall = NewNotificationOnCallClient(c.config)
+	c.NotificationOnCallGroup = NewNotificationOnCallGroupClient(c.config)
 	c.NotificationPreset = NewNotificationPresetClient(c.config)
 	c.NotificationSubscription = NewNotificationSubscriptionClient(c.config)
 	c.NotificationSubscriptionGroup = NewNotificationSubscriptionGroupClient(c.config)
@@ -294,6 +302,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Namespace:                     NewNamespaceClient(cfg),
 		NotificationChannel:           NewNotificationChannelClient(cfg),
 		NotificationGroup:             NewNotificationGroupClient(cfg),
+		NotificationOnCall:            NewNotificationOnCallClient(cfg),
+		NotificationOnCallGroup:       NewNotificationOnCallGroupClient(cfg),
 		NotificationPreset:            NewNotificationPresetClient(cfg),
 		NotificationSubscription:      NewNotificationSubscriptionClient(cfg),
 		NotificationSubscriptionGroup: NewNotificationSubscriptionGroupClient(cfg),
@@ -350,6 +360,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Namespace:                     NewNamespaceClient(cfg),
 		NotificationChannel:           NewNotificationChannelClient(cfg),
 		NotificationGroup:             NewNotificationGroupClient(cfg),
+		NotificationOnCall:            NewNotificationOnCallClient(cfg),
+		NotificationOnCallGroup:       NewNotificationOnCallGroupClient(cfg),
 		NotificationPreset:            NewNotificationPresetClient(cfg),
 		NotificationSubscription:      NewNotificationSubscriptionClient(cfg),
 		NotificationSubscriptionGroup: NewNotificationSubscriptionGroupClient(cfg),
@@ -398,11 +410,11 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Datasource, c.EmailLoginCode,
 		c.Member, c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard,
-		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
-		c.NotificationSubscription, c.NotificationSubscriptionGroup,
-		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
-		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
-		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
+		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
+		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
+		c.Permission, c.Role, c.RolePermission, c.SSHCommand, c.SSHCommandAudit,
+		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -416,11 +428,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Datasource, c.EmailLoginCode,
 		c.Member, c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard,
-		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
-		c.NotificationSubscription, c.NotificationSubscriptionGroup,
-		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
-		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
-		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
+		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
+		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
+		c.Permission, c.Role, c.RolePermission, c.SSHCommand, c.SSHCommandAudit,
+		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -473,6 +485,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NotificationChannel.mutate(ctx, m)
 	case *NotificationGroupMutation:
 		return c.NotificationGroup.mutate(ctx, m)
+	case *NotificationOnCallMutation:
+		return c.NotificationOnCall.mutate(ctx, m)
+	case *NotificationOnCallGroupMutation:
+		return c.NotificationOnCallGroup.mutate(ctx, m)
 	case *NotificationPresetMutation:
 		return c.NotificationPreset.mutate(ctx, m)
 	case *NotificationSubscriptionMutation:
@@ -3434,6 +3450,272 @@ func (c *NotificationGroupClient) mutate(ctx context.Context, m *NotificationGro
 	}
 }
 
+// NotificationOnCallClient is a client for the NotificationOnCall schema.
+type NotificationOnCallClient struct {
+	config
+}
+
+// NewNotificationOnCallClient returns a client for the NotificationOnCall from the given config.
+func NewNotificationOnCallClient(c config) *NotificationOnCallClient {
+	return &NotificationOnCallClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notificationoncall.Hooks(f(g(h())))`.
+func (c *NotificationOnCallClient) Use(hooks ...Hook) {
+	c.hooks.NotificationOnCall = append(c.hooks.NotificationOnCall, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notificationoncall.Intercept(f(g(h())))`.
+func (c *NotificationOnCallClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NotificationOnCall = append(c.inters.NotificationOnCall, interceptors...)
+}
+
+// Create returns a builder for creating a NotificationOnCall entity.
+func (c *NotificationOnCallClient) Create() *NotificationOnCallCreate {
+	mutation := newNotificationOnCallMutation(c.config, OpCreate)
+	return &NotificationOnCallCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NotificationOnCall entities.
+func (c *NotificationOnCallClient) CreateBulk(builders ...*NotificationOnCallCreate) *NotificationOnCallCreateBulk {
+	return &NotificationOnCallCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NotificationOnCallClient) MapCreateBulk(slice any, setFunc func(*NotificationOnCallCreate, int)) *NotificationOnCallCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NotificationOnCallCreateBulk{err: fmt.Errorf("calling to NotificationOnCallClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NotificationOnCallCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NotificationOnCallCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NotificationOnCall.
+func (c *NotificationOnCallClient) Update() *NotificationOnCallUpdate {
+	mutation := newNotificationOnCallMutation(c.config, OpUpdate)
+	return &NotificationOnCallUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotificationOnCallClient) UpdateOne(_m *NotificationOnCall) *NotificationOnCallUpdateOne {
+	mutation := newNotificationOnCallMutation(c.config, OpUpdateOne, withNotificationOnCall(_m))
+	return &NotificationOnCallUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotificationOnCallClient) UpdateOneID(id int) *NotificationOnCallUpdateOne {
+	mutation := newNotificationOnCallMutation(c.config, OpUpdateOne, withNotificationOnCallID(id))
+	return &NotificationOnCallUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NotificationOnCall.
+func (c *NotificationOnCallClient) Delete() *NotificationOnCallDelete {
+	mutation := newNotificationOnCallMutation(c.config, OpDelete)
+	return &NotificationOnCallDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotificationOnCallClient) DeleteOne(_m *NotificationOnCall) *NotificationOnCallDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotificationOnCallClient) DeleteOneID(id int) *NotificationOnCallDeleteOne {
+	builder := c.Delete().Where(notificationoncall.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotificationOnCallDeleteOne{builder}
+}
+
+// Query returns a query builder for NotificationOnCall.
+func (c *NotificationOnCallClient) Query() *NotificationOnCallQuery {
+	return &NotificationOnCallQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotificationOnCall},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NotificationOnCall entity by its id.
+func (c *NotificationOnCallClient) Get(ctx context.Context, id int) (*NotificationOnCall, error) {
+	return c.Query().Where(notificationoncall.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotificationOnCallClient) GetX(ctx context.Context, id int) *NotificationOnCall {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NotificationOnCallClient) Hooks() []Hook {
+	return c.hooks.NotificationOnCall
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotificationOnCallClient) Interceptors() []Interceptor {
+	return c.inters.NotificationOnCall
+}
+
+func (c *NotificationOnCallClient) mutate(ctx context.Context, m *NotificationOnCallMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotificationOnCallCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotificationOnCallUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotificationOnCallUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotificationOnCallDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NotificationOnCall mutation op: %q", m.Op())
+	}
+}
+
+// NotificationOnCallGroupClient is a client for the NotificationOnCallGroup schema.
+type NotificationOnCallGroupClient struct {
+	config
+}
+
+// NewNotificationOnCallGroupClient returns a client for the NotificationOnCallGroup from the given config.
+func NewNotificationOnCallGroupClient(c config) *NotificationOnCallGroupClient {
+	return &NotificationOnCallGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notificationoncallgroup.Hooks(f(g(h())))`.
+func (c *NotificationOnCallGroupClient) Use(hooks ...Hook) {
+	c.hooks.NotificationOnCallGroup = append(c.hooks.NotificationOnCallGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notificationoncallgroup.Intercept(f(g(h())))`.
+func (c *NotificationOnCallGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NotificationOnCallGroup = append(c.inters.NotificationOnCallGroup, interceptors...)
+}
+
+// Create returns a builder for creating a NotificationOnCallGroup entity.
+func (c *NotificationOnCallGroupClient) Create() *NotificationOnCallGroupCreate {
+	mutation := newNotificationOnCallGroupMutation(c.config, OpCreate)
+	return &NotificationOnCallGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NotificationOnCallGroup entities.
+func (c *NotificationOnCallGroupClient) CreateBulk(builders ...*NotificationOnCallGroupCreate) *NotificationOnCallGroupCreateBulk {
+	return &NotificationOnCallGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NotificationOnCallGroupClient) MapCreateBulk(slice any, setFunc func(*NotificationOnCallGroupCreate, int)) *NotificationOnCallGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NotificationOnCallGroupCreateBulk{err: fmt.Errorf("calling to NotificationOnCallGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NotificationOnCallGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NotificationOnCallGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NotificationOnCallGroup.
+func (c *NotificationOnCallGroupClient) Update() *NotificationOnCallGroupUpdate {
+	mutation := newNotificationOnCallGroupMutation(c.config, OpUpdate)
+	return &NotificationOnCallGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotificationOnCallGroupClient) UpdateOne(_m *NotificationOnCallGroup) *NotificationOnCallGroupUpdateOne {
+	mutation := newNotificationOnCallGroupMutation(c.config, OpUpdateOne, withNotificationOnCallGroup(_m))
+	return &NotificationOnCallGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotificationOnCallGroupClient) UpdateOneID(id int) *NotificationOnCallGroupUpdateOne {
+	mutation := newNotificationOnCallGroupMutation(c.config, OpUpdateOne, withNotificationOnCallGroupID(id))
+	return &NotificationOnCallGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NotificationOnCallGroup.
+func (c *NotificationOnCallGroupClient) Delete() *NotificationOnCallGroupDelete {
+	mutation := newNotificationOnCallGroupMutation(c.config, OpDelete)
+	return &NotificationOnCallGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotificationOnCallGroupClient) DeleteOne(_m *NotificationOnCallGroup) *NotificationOnCallGroupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotificationOnCallGroupClient) DeleteOneID(id int) *NotificationOnCallGroupDeleteOne {
+	builder := c.Delete().Where(notificationoncallgroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotificationOnCallGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for NotificationOnCallGroup.
+func (c *NotificationOnCallGroupClient) Query() *NotificationOnCallGroupQuery {
+	return &NotificationOnCallGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotificationOnCallGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NotificationOnCallGroup entity by its id.
+func (c *NotificationOnCallGroupClient) Get(ctx context.Context, id int) (*NotificationOnCallGroup, error) {
+	return c.Query().Where(notificationoncallgroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotificationOnCallGroupClient) GetX(ctx context.Context, id int) *NotificationOnCallGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NotificationOnCallGroupClient) Hooks() []Hook {
+	return c.hooks.NotificationOnCallGroup
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotificationOnCallGroupClient) Interceptors() []Interceptor {
+	return c.inters.NotificationOnCallGroup
+}
+
+func (c *NotificationOnCallGroupClient) mutate(ctx context.Context, m *NotificationOnCallGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotificationOnCallGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotificationOnCallGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotificationOnCallGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotificationOnCallGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NotificationOnCallGroup mutation op: %q", m.Op())
+	}
+}
+
 // NotificationPresetClient is a client for the NotificationPreset schema.
 type NotificationPresetClient struct {
 	config
@@ -5436,19 +5718,21 @@ type (
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
 		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, Member, MemberInvite,
 		MemberRole, MessageLog, MessageLogShard, Namespace, NotificationChannel,
-		NotificationGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, Role, RolePermission, SSHCommand, SSHCommandAudit, SystemMessage,
-		User, UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
+		NotificationGroup, NotificationOnCall, NotificationOnCallGroup,
+		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
+		NotificationTask, NotificationTemplate, Permission, Role, RolePermission,
+		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
 		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, Member, MemberInvite,
 		MemberRole, MessageLog, MessageLogShard, Namespace, NotificationChannel,
-		NotificationGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, Role, RolePermission, SSHCommand, SSHCommandAudit, SystemMessage,
-		User, UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
+		NotificationGroup, NotificationOnCall, NotificationOnCallGroup,
+		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
+		NotificationTask, NotificationTemplate, Permission, Role, RolePermission,
+		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Interceptor
 	}
 )

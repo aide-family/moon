@@ -26,6 +26,10 @@ func (NotificationSubscription) Fields() []ent.Field {
 		field.String("labels").Default("{}"),
 		field.Strings("level_uids").Default([]string{}),
 		field.Strings("datasource_uids").Default([]string{}),
+		// datasource_level_uids 按数据源级别过滤；为空表示不限制。
+		field.Strings("datasource_level_uids").Default([]string{}),
+		// repeat_interval_seconds 是同一告警重复通知的最小间隔，0 表示不限制。
+		field.Int("repeat_interval_seconds").Default(0),
 		field.String("remark").Default(""),
 	}
 }

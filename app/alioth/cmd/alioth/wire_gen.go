@@ -35,6 +35,10 @@ import (
 	"log/slog"
 )
 
+import (
+	_ "time/tzdata"
+)
+
 // Injectors from wire.go:
 
 func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, logger *slog.Logger) (*kratos.App, func(), error) {
@@ -107,6 +111,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	notificationTemplateService := service.NewNotificationTemplateService(center)
 	notificationGroupService := service.NewNotificationGroupService(center)
 	notificationSubscriptionService := service.NewNotificationSubscriptionService(center)
+	notificationOnCallService := service.NewNotificationOnCallService(center)
 	messageLogService := service.NewMessageLogService(center)
 	workerRepo := data.NewWorkerRepo(dependencies, logger)
 	roster := worker.NewRoster(workerRepo, accessChecker)
@@ -115,7 +120,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	sshCommandRepo := data.NewSSHCommandRepo(dependencies, logger)
 	executor := ssh.NewExecutor(sshCommandRepo, agentRepo, hub, accessChecker)
 	sshCommandService := service.NewSSHCommandService(executor)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, workerService, agentService, sshCommandService, authenticator, logger)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, messageLogService, workerService, agentService, sshCommandService, authenticator, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
@@ -123,7 +128,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	}
 	evalService := service.NewEvalService(coordinator, roster)
 	notifyService := service.NewNotifyService(center, roster)
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, workerService, notifyService, agentService, sshCommandService, authenticator, logger)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, messageLogService, workerService, notifyService, agentService, sshCommandService, authenticator, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()

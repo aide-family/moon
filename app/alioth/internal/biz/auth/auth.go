@@ -608,8 +608,8 @@ func serviceOperation(operation string) (string, bool) {
 	}
 }
 
-// publicOperation 是无需登录的接口白名单。密码登录已经移除，注册、邮箱发码登录和
-// 第三方登录的来源列表都在这里，否则前端拿不到验证码或授权地址。
+// publicOperation 是无需登录的接口白名单。密码登录已经移除，注册、邮箱发码登录、
+// 第三方登录和第三方邮箱绑定都在这里，否则前端拿不到验证码或授权地址。
 func publicOperation(operation string) bool {
 	switch operation {
 	case v1.OperationHealthServiceCheck,
@@ -620,6 +620,8 @@ func publicOperation(operation string) bool {
 		v1.OperationAuthServiceEmailLogin,
 		v1.OperationAuthServiceListOAuth2Providers,
 		v1.OperationAuthServiceOAuth2Login,
+		v1.OperationAuthServiceSendOAuthBindEmailCode,
+		v1.OperationAuthServiceBindOAuthEmail,
 		v1.OperationInvitationServiceGetInvitation:
 		return true
 	default:

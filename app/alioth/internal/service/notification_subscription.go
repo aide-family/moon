@@ -19,7 +19,7 @@ func NewNotificationSubscriptionService(center *notification.Center) *Notificati
 }
 
 func (s *NotificationSubscriptionService) CreateNotificationSubscription(ctx context.Context, req *v1.CreateNotificationSubscriptionRequest) (*v1.CreateNotificationSubscriptionResponse, error) {
-	item, err := s.center.CreateSubscription(ctx, subscriptionInput("", req.GetName(), req.GetLabels(), req.GetLevelUids(), req.GetDatasourceUids(), req.GetGroupUids(), req.GetRemark()))
+	item, err := s.center.CreateSubscription(ctx, subscriptionInput("", req.GetName(), req.GetLabels(), req.GetLevelUids(), req.GetDatasourceUids(), req.GetDatasourceLevelUids(), req.GetGroupUids(), req.GetRepeatIntervalSeconds(), req.GetRemark()))
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (s *NotificationSubscriptionService) CreateNotificationSubscription(ctx con
 }
 
 func (s *NotificationSubscriptionService) UpdateNotificationSubscription(ctx context.Context, req *v1.UpdateNotificationSubscriptionRequest) (*v1.UpdateNotificationSubscriptionResponse, error) {
-	item, err := s.center.UpdateSubscription(ctx, subscriptionInput(req.GetUid(), req.GetName(), req.GetLabels(), req.GetLevelUids(), req.GetDatasourceUids(), req.GetGroupUids(), req.GetRemark()))
+	item, err := s.center.UpdateSubscription(ctx, subscriptionInput(req.GetUid(), req.GetName(), req.GetLabels(), req.GetLevelUids(), req.GetDatasourceUids(), req.GetDatasourceLevelUids(), req.GetGroupUids(), req.GetRepeatIntervalSeconds(), req.GetRemark()))
 	if err != nil {
 		return nil, err
 	}
@@ -69,10 +69,11 @@ func (s *NotificationSubscriptionService) ListNotificationSubscriptions(ctx cont
 	return &v1.ListNotificationSubscriptionsResponse{Items: out, Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
 }
 
-func subscriptionInput(uid, name, labels string, levelUIDs, datasourceUIDs, groupUIDs []string, remark string) bo.NotificationSubscription {
+func subscriptionInput(uid, name, labels string, levelUIDs, datasourceUIDs, datasourceLevelUIDs, groupUIDs []string, repeatIntervalSeconds int32, remark string) bo.NotificationSubscription {
 	return bo.NotificationSubscription{
 		UID: uid, Name: name, Labels: labels, LevelUIDs: levelUIDs,
-		DatasourceUIDs: datasourceUIDs, GroupUIDs: groupUIDs, Remark: remark,
+		DatasourceUIDs: datasourceUIDs, DatasourceLevelUIDs: datasourceLevelUIDs,
+		GroupUIDs: groupUIDs, RepeatIntervalSeconds: int(repeatIntervalSeconds), Remark: remark,
 	}
 }
 
@@ -80,6 +81,7 @@ func subscriptionItem(item bo.NotificationSubscription) *v1.NotificationSubscrip
 	return &v1.NotificationSubscriptionItem{
 		Uid: item.UID, Name: item.Name, Status: item.Status, Labels: item.Labels,
 		LevelUids: item.LevelUIDs, DatasourceUids: item.DatasourceUIDs, GroupUids: item.GroupUIDs,
+		DatasourceLevelUids: item.DatasourceLevelUIDs, RepeatIntervalSeconds: int32(item.RepeatIntervalSeconds),
 		Remark: item.Remark, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339),
 	}
 }

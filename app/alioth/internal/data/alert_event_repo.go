@@ -181,7 +181,8 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 		}
 		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
 			NamespaceUID: rule.NamespaceUID, EventUID: eventUID, RuleUID: rule.UID,
-			DatasourceUID: report.DatasourceUID, LevelUID: hit.LevelUID, Phase: "FIRING",
+			DatasourceUID: report.DatasourceUID, DatasourceLevelUID: source.LevelUID,
+			LevelUID: hit.LevelUID, Phase: "FIRING",
 			Summary: textOr(hit.Summary, rule.Summary), Description: textOr(hit.Description, rule.Description),
 			Labels: labels, Value: hit.Value, ExternalURL: source.Endpoint, Fingerprint: fingerprint,
 		}); err != nil {
@@ -209,7 +210,8 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 		recovered = append(recovered, recoveredItem)
 		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
 			NamespaceUID: rule.NamespaceUID, EventUID: ref.event.UID, RuleUID: rule.UID,
-			DatasourceUID: ref.event.DatasourceUID, LevelUID: ref.event.LevelUID, Phase: "RECOVERED",
+			DatasourceUID: ref.event.DatasourceUID, DatasourceLevelUID: source.LevelUID,
+			LevelUID: ref.event.LevelUID, Phase: "RECOVERED",
 			Summary: ref.event.Summary, Description: ref.event.Description, Labels: ref.event.Labels,
 			Value: ref.event.SampleValue, ExternalURL: source.Endpoint, Fingerprint: fingerprint,
 		}); err != nil {
@@ -1042,11 +1044,13 @@ func (r *alertEventRepo) RecoverSource(ctx context.Context, namespaceUID string,
 		item.Status = string(alertevent.StatusRECOVERED)
 		item.EndsAt = &now
 		recovered = append(recovered, item)
+		// 恢复通知和 FIRING 使用同一份数据源元数据，让数据源级别条件继续生效。
+		meta := r.datasourceMeta(ctx, tx, row.DatasourceUID)
 		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
 			NamespaceUID: namespaceUID, EventUID: row.UID, RuleUID: row.RuleUID,
-			DatasourceUID: row.DatasourceUID, LevelUID: row.LevelUID, Phase: "RECOVERED",
+			DatasourceUID: row.DatasourceUID, DatasourceLevelUID: meta.LevelUID, LevelUID: row.LevelUID, Phase: "RECOVERED",
 			Summary: row.Summary, Description: row.Description, Labels: row.Labels,
-			Value: row.SampleValue, ExternalURL: r.datasourceEndpoint(ctx, tx, row.DatasourceUID),
+			Value: row.SampleValue, ExternalURL: meta.Endpoint,
 			Fingerprint: row.Fingerprint,
 		}); err != nil {
 			return err
@@ -1057,21 +1061,6 @@ func (r *alertEventRepo) RecoverSource(ctx context.Context, namespaceUID string,
 	}
 	r.archiveEvents(ctx, namespaceUID, recovered)
 	return nil
-}
-
-// datasourceEndpoint 返回数据源地址，作为模板里的 $externalURL，和 megrez 评测时一致。
-func (r *alertEventRepo) datasourceEndpoint(ctx context.Context, tx *ent.Tx, datasourceUID string) string {
-	if datasourceUID == "" {
-		return ""
-	}
-	row, err := tx.Datasource.Query().Where(
-		datasource.UIDEQ(datasourceUID),
-		datasource.DeletedAtIsNil(),
-	).Only(ctx)
-	if err != nil {
-		return ""
-	}
-	return row.Endpoint
 }
 
 func textOr(value, fallback string) string {

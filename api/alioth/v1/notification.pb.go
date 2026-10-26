@@ -3700,9 +3700,13 @@ type NotificationSubscriptionItem struct {
 	// 备注。
 	Remark string `protobuf:"bytes,8,opt,name=remark,proto3" json:"remark,omitempty"`
 	// 创建时间，RFC3339。
-	CreatedAt     string `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	CreatedAt string `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 数据源级别标识。为空表示不限制。
+	DatasourceLevelUids []string `protobuf:"bytes,10,rep,name=datasource_level_uids,json=datasourceLevelUids,proto3" json:"datasource_level_uids,omitempty"`
+	// 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+	RepeatIntervalSeconds int32 `protobuf:"varint,11,opt,name=repeat_interval_seconds,json=repeatIntervalSeconds,proto3" json:"repeat_interval_seconds,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *NotificationSubscriptionItem) Reset() {
@@ -3798,6 +3802,20 @@ func (x *NotificationSubscriptionItem) GetCreatedAt() string {
 	return ""
 }
 
+func (x *NotificationSubscriptionItem) GetDatasourceLevelUids() []string {
+	if x != nil {
+		return x.DatasourceLevelUids
+	}
+	return nil
+}
+
+func (x *NotificationSubscriptionItem) GetRepeatIntervalSeconds() int32 {
+	if x != nil {
+		return x.RepeatIntervalSeconds
+	}
+	return 0
+}
+
 // 创建订阅。
 type CreateNotificationSubscriptionRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -3812,9 +3830,13 @@ type CreateNotificationSubscriptionRequest struct {
 	// 通知组标识。
 	GroupUids []string `protobuf:"bytes,5,rep,name=group_uids,json=groupUids,proto3" json:"group_uids,omitempty"`
 	// 备注。
-	Remark        string `protobuf:"bytes,6,opt,name=remark,proto3" json:"remark,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Remark string `protobuf:"bytes,6,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 数据源级别标识。为空表示不限制。
+	DatasourceLevelUids []string `protobuf:"bytes,7,rep,name=datasource_level_uids,json=datasourceLevelUids,proto3" json:"datasource_level_uids,omitempty"`
+	// 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+	RepeatIntervalSeconds int32 `protobuf:"varint,8,opt,name=repeat_interval_seconds,json=repeatIntervalSeconds,proto3" json:"repeat_interval_seconds,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *CreateNotificationSubscriptionRequest) Reset() {
@@ -3889,6 +3911,20 @@ func (x *CreateNotificationSubscriptionRequest) GetRemark() string {
 	return ""
 }
 
+func (x *CreateNotificationSubscriptionRequest) GetDatasourceLevelUids() []string {
+	if x != nil {
+		return x.DatasourceLevelUids
+	}
+	return nil
+}
+
+func (x *CreateNotificationSubscriptionRequest) GetRepeatIntervalSeconds() int32 {
+	if x != nil {
+		return x.RepeatIntervalSeconds
+	}
+	return 0
+}
+
 // 创建订阅的结果。
 type CreateNotificationSubscriptionResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -3951,9 +3987,13 @@ type UpdateNotificationSubscriptionRequest struct {
 	// 通知组标识。保存时替换原有绑定。
 	GroupUids []string `protobuf:"bytes,6,rep,name=group_uids,json=groupUids,proto3" json:"group_uids,omitempty"`
 	// 备注。
-	Remark        string `protobuf:"bytes,7,opt,name=remark,proto3" json:"remark,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Remark string `protobuf:"bytes,7,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 数据源级别标识。为空表示不限制。
+	DatasourceLevelUids []string `protobuf:"bytes,8,rep,name=datasource_level_uids,json=datasourceLevelUids,proto3" json:"datasource_level_uids,omitempty"`
+	// 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+	RepeatIntervalSeconds int32 `protobuf:"varint,9,opt,name=repeat_interval_seconds,json=repeatIntervalSeconds,proto3" json:"repeat_interval_seconds,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *UpdateNotificationSubscriptionRequest) Reset() {
@@ -4033,6 +4073,20 @@ func (x *UpdateNotificationSubscriptionRequest) GetRemark() string {
 		return x.Remark
 	}
 	return ""
+}
+
+func (x *UpdateNotificationSubscriptionRequest) GetDatasourceLevelUids() []string {
+	if x != nil {
+		return x.DatasourceLevelUids
+	}
+	return nil
+}
+
+func (x *UpdateNotificationSubscriptionRequest) GetRepeatIntervalSeconds() int32 {
+	if x != nil {
+		return x.RepeatIntervalSeconds
+	}
+	return 0
 }
 
 // 更新订阅的结果。
@@ -4494,6 +4548,1084 @@ func (x *ListNotificationSubscriptionsResponse) GetPageSize() int32 {
 	return 0
 }
 
+// 一条值班路由。条件全部满足时，事件会按通知组的接收时段投递。
+type NotificationOnCallItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 状态，取值为 ACTIVE 或 DISABLED。
+	Status string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	// 标签匹配器 JSON 对象。所有键值都必须命中事件标签，值按完整匹配正则解释。
+	Labels string `protobuf:"bytes,4,opt,name=labels,proto3" json:"labels,omitempty"`
+	// 告警级别标识。为空表示不限制。
+	LevelUids []string `protobuf:"bytes,5,rep,name=level_uids,json=levelUids,proto3" json:"level_uids,omitempty"`
+	// 数据源标识。为空表示不限制。
+	DatasourceUids []string `protobuf:"bytes,6,rep,name=datasource_uids,json=datasourceUids,proto3" json:"datasource_uids,omitempty"`
+	// IANA 时区。空值按 Asia/Shanghai 处理。
+	Timezone string `protobuf:"bytes,7,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	// 绑定的通知组及各自的接收时段。至少一个。
+	Groups []*NotificationOnCallGroupItem `protobuf:"bytes,8,rep,name=groups,proto3" json:"groups,omitempty"`
+	// 备注。
+	Remark string `protobuf:"bytes,9,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 创建时间，RFC3339。
+	CreatedAt string `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 数据源级别标识。为空表示不限制。
+	DatasourceLevelUids []string `protobuf:"bytes,11,rep,name=datasource_level_uids,json=datasourceLevelUids,proto3" json:"datasource_level_uids,omitempty"`
+	// 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+	RepeatIntervalSeconds int32 `protobuf:"varint,12,opt,name=repeat_interval_seconds,json=repeatIntervalSeconds,proto3" json:"repeat_interval_seconds,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *NotificationOnCallItem) Reset() {
+	*x = NotificationOnCallItem{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationOnCallItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationOnCallItem) ProtoMessage() {}
+
+func (x *NotificationOnCallItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationOnCallItem.ProtoReflect.Descriptor instead.
+func (*NotificationOnCallItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{67}
+}
+
+func (x *NotificationOnCallItem) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *NotificationOnCallItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NotificationOnCallItem) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *NotificationOnCallItem) GetLabels() string {
+	if x != nil {
+		return x.Labels
+	}
+	return ""
+}
+
+func (x *NotificationOnCallItem) GetLevelUids() []string {
+	if x != nil {
+		return x.LevelUids
+	}
+	return nil
+}
+
+func (x *NotificationOnCallItem) GetDatasourceUids() []string {
+	if x != nil {
+		return x.DatasourceUids
+	}
+	return nil
+}
+
+func (x *NotificationOnCallItem) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+func (x *NotificationOnCallItem) GetGroups() []*NotificationOnCallGroupItem {
+	if x != nil {
+		return x.Groups
+	}
+	return nil
+}
+
+func (x *NotificationOnCallItem) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
+func (x *NotificationOnCallItem) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *NotificationOnCallItem) GetDatasourceLevelUids() []string {
+	if x != nil {
+		return x.DatasourceLevelUids
+	}
+	return nil
+}
+
+func (x *NotificationOnCallItem) GetRepeatIntervalSeconds() int32 {
+	if x != nil {
+		return x.RepeatIntervalSeconds
+	}
+	return 0
+}
+
+// 值班路由绑定的通知组，以及该组的接收时段。
+type NotificationOnCallGroupItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 通知组标识。
+	GroupUid string `protobuf:"bytes,1,opt,name=group_uid,json=groupUid,proto3" json:"group_uid,omitempty"`
+	// 通知组名称，只读。
+	GroupName string `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	// 接收时段。为空表示全天候接收。
+	Windows       []*NotificationOnCallWindow `protobuf:"bytes,3,rep,name=windows,proto3" json:"windows,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NotificationOnCallGroupItem) Reset() {
+	*x = NotificationOnCallGroupItem{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[68]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationOnCallGroupItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationOnCallGroupItem) ProtoMessage() {}
+
+func (x *NotificationOnCallGroupItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[68]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationOnCallGroupItem.ProtoReflect.Descriptor instead.
+func (*NotificationOnCallGroupItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{68}
+}
+
+func (x *NotificationOnCallGroupItem) GetGroupUid() string {
+	if x != nil {
+		return x.GroupUid
+	}
+	return ""
+}
+
+func (x *NotificationOnCallGroupItem) GetGroupName() string {
+	if x != nil {
+		return x.GroupName
+	}
+	return ""
+}
+
+func (x *NotificationOnCallGroupItem) GetWindows() []*NotificationOnCallWindow {
+	if x != nil {
+		return x.Windows
+	}
+	return nil
+}
+
+// 一个接收时段。星期几归属于开始那天，Start 晚于 End 表示跨午夜。
+type NotificationOnCallWindow struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 星期几，取值为 MONDAY 到 SUNDAY。
+	Weekdays []string `protobuf:"bytes,1,rep,name=weekdays,proto3" json:"weekdays,omitempty"`
+	// 开始时间，HH:mm，包含该时刻。
+	Start string `protobuf:"bytes,2,opt,name=start,proto3" json:"start,omitempty"`
+	// 结束时间，HH:mm，不包含该时刻。
+	End           string `protobuf:"bytes,3,opt,name=end,proto3" json:"end,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NotificationOnCallWindow) Reset() {
+	*x = NotificationOnCallWindow{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[69]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationOnCallWindow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationOnCallWindow) ProtoMessage() {}
+
+func (x *NotificationOnCallWindow) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[69]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationOnCallWindow.ProtoReflect.Descriptor instead.
+func (*NotificationOnCallWindow) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{69}
+}
+
+func (x *NotificationOnCallWindow) GetWeekdays() []string {
+	if x != nil {
+		return x.Weekdays
+	}
+	return nil
+}
+
+func (x *NotificationOnCallWindow) GetStart() string {
+	if x != nil {
+		return x.Start
+	}
+	return ""
+}
+
+func (x *NotificationOnCallWindow) GetEnd() string {
+	if x != nil {
+		return x.End
+	}
+	return ""
+}
+
+// 创建或更新值班路由时选择的通知组和时段。
+type NotificationOnCallGroupInput struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 通知组标识。
+	GroupUid string `protobuf:"bytes,1,opt,name=group_uid,json=groupUid,proto3" json:"group_uid,omitempty"`
+	// 接收时段。为空表示全天候接收。
+	Windows       []*NotificationOnCallWindow `protobuf:"bytes,2,rep,name=windows,proto3" json:"windows,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NotificationOnCallGroupInput) Reset() {
+	*x = NotificationOnCallGroupInput{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[70]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationOnCallGroupInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationOnCallGroupInput) ProtoMessage() {}
+
+func (x *NotificationOnCallGroupInput) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[70]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationOnCallGroupInput.ProtoReflect.Descriptor instead.
+func (*NotificationOnCallGroupInput) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{70}
+}
+
+func (x *NotificationOnCallGroupInput) GetGroupUid() string {
+	if x != nil {
+		return x.GroupUid
+	}
+	return ""
+}
+
+func (x *NotificationOnCallGroupInput) GetWindows() []*NotificationOnCallWindow {
+	if x != nil {
+		return x.Windows
+	}
+	return nil
+}
+
+// 创建值班路由。
+type CreateNotificationOnCallRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 名称。
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 标签匹配器 JSON 对象，值按完整匹配正则解释。
+	Labels string `protobuf:"bytes,2,opt,name=labels,proto3" json:"labels,omitempty"`
+	// 告警级别标识。为空表示不限制。
+	LevelUids []string `protobuf:"bytes,3,rep,name=level_uids,json=levelUids,proto3" json:"level_uids,omitempty"`
+	// 数据源标识。为空表示不限制。
+	DatasourceUids []string `protobuf:"bytes,4,rep,name=datasource_uids,json=datasourceUids,proto3" json:"datasource_uids,omitempty"`
+	// IANA 时区，留空按 Asia/Shanghai 处理。
+	Timezone string `protobuf:"bytes,5,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	// 通知组，至少一个。
+	Groups []*NotificationOnCallGroupInput `protobuf:"bytes,6,rep,name=groups,proto3" json:"groups,omitempty"`
+	// 备注。
+	Remark string `protobuf:"bytes,7,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 数据源级别标识。为空表示不限制。
+	DatasourceLevelUids []string `protobuf:"bytes,8,rep,name=datasource_level_uids,json=datasourceLevelUids,proto3" json:"datasource_level_uids,omitempty"`
+	// 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+	RepeatIntervalSeconds int32 `protobuf:"varint,9,opt,name=repeat_interval_seconds,json=repeatIntervalSeconds,proto3" json:"repeat_interval_seconds,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *CreateNotificationOnCallRequest) Reset() {
+	*x = CreateNotificationOnCallRequest{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[71]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateNotificationOnCallRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateNotificationOnCallRequest) ProtoMessage() {}
+
+func (x *CreateNotificationOnCallRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[71]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateNotificationOnCallRequest.ProtoReflect.Descriptor instead.
+func (*CreateNotificationOnCallRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{71}
+}
+
+func (x *CreateNotificationOnCallRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateNotificationOnCallRequest) GetLabels() string {
+	if x != nil {
+		return x.Labels
+	}
+	return ""
+}
+
+func (x *CreateNotificationOnCallRequest) GetLevelUids() []string {
+	if x != nil {
+		return x.LevelUids
+	}
+	return nil
+}
+
+func (x *CreateNotificationOnCallRequest) GetDatasourceUids() []string {
+	if x != nil {
+		return x.DatasourceUids
+	}
+	return nil
+}
+
+func (x *CreateNotificationOnCallRequest) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+func (x *CreateNotificationOnCallRequest) GetGroups() []*NotificationOnCallGroupInput {
+	if x != nil {
+		return x.Groups
+	}
+	return nil
+}
+
+func (x *CreateNotificationOnCallRequest) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
+func (x *CreateNotificationOnCallRequest) GetDatasourceLevelUids() []string {
+	if x != nil {
+		return x.DatasourceLevelUids
+	}
+	return nil
+}
+
+func (x *CreateNotificationOnCallRequest) GetRepeatIntervalSeconds() int32 {
+	if x != nil {
+		return x.RepeatIntervalSeconds
+	}
+	return 0
+}
+
+// 创建值班路由的结果。
+type CreateNotificationOnCallResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 值班路由。
+	OnCall        *NotificationOnCallItem `protobuf:"bytes,1,opt,name=on_call,json=onCall,proto3" json:"on_call,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateNotificationOnCallResponse) Reset() {
+	*x = CreateNotificationOnCallResponse{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[72]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateNotificationOnCallResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateNotificationOnCallResponse) ProtoMessage() {}
+
+func (x *CreateNotificationOnCallResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[72]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateNotificationOnCallResponse.ProtoReflect.Descriptor instead.
+func (*CreateNotificationOnCallResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{72}
+}
+
+func (x *CreateNotificationOnCallResponse) GetOnCall() *NotificationOnCallItem {
+	if x != nil {
+		return x.OnCall
+	}
+	return nil
+}
+
+// 更新值班路由。
+type UpdateNotificationOnCallRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 标签匹配器 JSON 对象，值按完整匹配正则解释。
+	Labels string `protobuf:"bytes,3,opt,name=labels,proto3" json:"labels,omitempty"`
+	// 告警级别标识。为空表示不限制。
+	LevelUids []string `protobuf:"bytes,4,rep,name=level_uids,json=levelUids,proto3" json:"level_uids,omitempty"`
+	// 数据源标识。为空表示不限制。
+	DatasourceUids []string `protobuf:"bytes,5,rep,name=datasource_uids,json=datasourceUids,proto3" json:"datasource_uids,omitempty"`
+	// IANA 时区，留空按 Asia/Shanghai 处理。
+	Timezone string `protobuf:"bytes,6,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	// 通知组，至少一个。保存时替换原有绑定。
+	Groups []*NotificationOnCallGroupInput `protobuf:"bytes,7,rep,name=groups,proto3" json:"groups,omitempty"`
+	// 备注。
+	Remark string `protobuf:"bytes,8,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 数据源级别标识。为空表示不限制。
+	DatasourceLevelUids []string `protobuf:"bytes,9,rep,name=datasource_level_uids,json=datasourceLevelUids,proto3" json:"datasource_level_uids,omitempty"`
+	// 同一告警重复通知的最小间隔秒数，0 表示不限制，最大 43200（12 小时）。
+	RepeatIntervalSeconds int32 `protobuf:"varint,10,opt,name=repeat_interval_seconds,json=repeatIntervalSeconds,proto3" json:"repeat_interval_seconds,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *UpdateNotificationOnCallRequest) Reset() {
+	*x = UpdateNotificationOnCallRequest{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[73]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNotificationOnCallRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNotificationOnCallRequest) ProtoMessage() {}
+
+func (x *UpdateNotificationOnCallRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[73]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNotificationOnCallRequest.ProtoReflect.Descriptor instead.
+func (*UpdateNotificationOnCallRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{73}
+}
+
+func (x *UpdateNotificationOnCallRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *UpdateNotificationOnCallRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateNotificationOnCallRequest) GetLabels() string {
+	if x != nil {
+		return x.Labels
+	}
+	return ""
+}
+
+func (x *UpdateNotificationOnCallRequest) GetLevelUids() []string {
+	if x != nil {
+		return x.LevelUids
+	}
+	return nil
+}
+
+func (x *UpdateNotificationOnCallRequest) GetDatasourceUids() []string {
+	if x != nil {
+		return x.DatasourceUids
+	}
+	return nil
+}
+
+func (x *UpdateNotificationOnCallRequest) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+func (x *UpdateNotificationOnCallRequest) GetGroups() []*NotificationOnCallGroupInput {
+	if x != nil {
+		return x.Groups
+	}
+	return nil
+}
+
+func (x *UpdateNotificationOnCallRequest) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
+func (x *UpdateNotificationOnCallRequest) GetDatasourceLevelUids() []string {
+	if x != nil {
+		return x.DatasourceLevelUids
+	}
+	return nil
+}
+
+func (x *UpdateNotificationOnCallRequest) GetRepeatIntervalSeconds() int32 {
+	if x != nil {
+		return x.RepeatIntervalSeconds
+	}
+	return 0
+}
+
+// 更新值班路由的结果。
+type UpdateNotificationOnCallResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 值班路由。
+	OnCall        *NotificationOnCallItem `protobuf:"bytes,1,opt,name=on_call,json=onCall,proto3" json:"on_call,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateNotificationOnCallResponse) Reset() {
+	*x = UpdateNotificationOnCallResponse{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[74]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNotificationOnCallResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNotificationOnCallResponse) ProtoMessage() {}
+
+func (x *UpdateNotificationOnCallResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[74]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNotificationOnCallResponse.ProtoReflect.Descriptor instead.
+func (*UpdateNotificationOnCallResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{74}
+}
+
+func (x *UpdateNotificationOnCallResponse) GetOnCall() *NotificationOnCallItem {
+	if x != nil {
+		return x.OnCall
+	}
+	return nil
+}
+
+// 更新值班路由状态。
+type UpdateNotificationOnCallStatusRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 状态，取值为 ACTIVE 或 DISABLED。
+	Status        string `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateNotificationOnCallStatusRequest) Reset() {
+	*x = UpdateNotificationOnCallStatusRequest{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[75]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNotificationOnCallStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNotificationOnCallStatusRequest) ProtoMessage() {}
+
+func (x *UpdateNotificationOnCallStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[75]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNotificationOnCallStatusRequest.ProtoReflect.Descriptor instead.
+func (*UpdateNotificationOnCallStatusRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{75}
+}
+
+func (x *UpdateNotificationOnCallStatusRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *UpdateNotificationOnCallStatusRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+// 更新值班路由状态的结果。
+type UpdateNotificationOnCallStatusResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 值班路由。
+	OnCall        *NotificationOnCallItem `protobuf:"bytes,1,opt,name=on_call,json=onCall,proto3" json:"on_call,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateNotificationOnCallStatusResponse) Reset() {
+	*x = UpdateNotificationOnCallStatusResponse{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[76]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNotificationOnCallStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNotificationOnCallStatusResponse) ProtoMessage() {}
+
+func (x *UpdateNotificationOnCallStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[76]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNotificationOnCallStatusResponse.ProtoReflect.Descriptor instead.
+func (*UpdateNotificationOnCallStatusResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{76}
+}
+
+func (x *UpdateNotificationOnCallStatusResponse) GetOnCall() *NotificationOnCallItem {
+	if x != nil {
+		return x.OnCall
+	}
+	return nil
+}
+
+// 要删除的值班路由。
+type DeleteNotificationOnCallRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteNotificationOnCallRequest) Reset() {
+	*x = DeleteNotificationOnCallRequest{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[77]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteNotificationOnCallRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteNotificationOnCallRequest) ProtoMessage() {}
+
+func (x *DeleteNotificationOnCallRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[77]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteNotificationOnCallRequest.ProtoReflect.Descriptor instead.
+func (*DeleteNotificationOnCallRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{77}
+}
+
+func (x *DeleteNotificationOnCallRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 值班路由已删除。
+type DeleteNotificationOnCallResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteNotificationOnCallResponse) Reset() {
+	*x = DeleteNotificationOnCallResponse{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[78]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteNotificationOnCallResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteNotificationOnCallResponse) ProtoMessage() {}
+
+func (x *DeleteNotificationOnCallResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[78]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteNotificationOnCallResponse.ProtoReflect.Descriptor instead.
+func (*DeleteNotificationOnCallResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{78}
+}
+
+// 要查询的值班路由。
+type GetNotificationOnCallRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNotificationOnCallRequest) Reset() {
+	*x = GetNotificationOnCallRequest{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[79]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNotificationOnCallRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNotificationOnCallRequest) ProtoMessage() {}
+
+func (x *GetNotificationOnCallRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[79]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNotificationOnCallRequest.ProtoReflect.Descriptor instead.
+func (*GetNotificationOnCallRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{79}
+}
+
+func (x *GetNotificationOnCallRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 值班路由详情。
+type GetNotificationOnCallResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 值班路由。
+	OnCall        *NotificationOnCallItem `protobuf:"bytes,1,opt,name=on_call,json=onCall,proto3" json:"on_call,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNotificationOnCallResponse) Reset() {
+	*x = GetNotificationOnCallResponse{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[80]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNotificationOnCallResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNotificationOnCallResponse) ProtoMessage() {}
+
+func (x *GetNotificationOnCallResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[80]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNotificationOnCallResponse.ProtoReflect.Descriptor instead.
+func (*GetNotificationOnCallResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{80}
+}
+
+func (x *GetNotificationOnCallResponse) GetOnCall() *NotificationOnCallItem {
+	if x != nil {
+		return x.OnCall
+	}
+	return nil
+}
+
+// 值班路由分页查询。
+type ListNotificationOnCallsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页码。
+	Page int32 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数。
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 名称。
+	Name          string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListNotificationOnCallsRequest) Reset() {
+	*x = ListNotificationOnCallsRequest{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[81]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListNotificationOnCallsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListNotificationOnCallsRequest) ProtoMessage() {}
+
+func (x *ListNotificationOnCallsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[81]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListNotificationOnCallsRequest.ProtoReflect.Descriptor instead.
+func (*ListNotificationOnCallsRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{81}
+}
+
+func (x *ListNotificationOnCallsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListNotificationOnCallsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListNotificationOnCallsRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// 值班路由分页结果。
+type ListNotificationOnCallsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*NotificationOnCallItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 总数。
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// 页码。
+	Page int32 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数。
+	PageSize      int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListNotificationOnCallsResponse) Reset() {
+	*x = ListNotificationOnCallsResponse{}
+	mi := &file_alioth_v1_notification_proto_msgTypes[82]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListNotificationOnCallsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListNotificationOnCallsResponse) ProtoMessage() {}
+
+func (x *ListNotificationOnCallsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_proto_msgTypes[82]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListNotificationOnCallsResponse.ProtoReflect.Descriptor instead.
+func (*ListNotificationOnCallsResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{82}
+}
+
+func (x *ListNotificationOnCallsResponse) GetItems() []*NotificationOnCallItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *ListNotificationOnCallsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListNotificationOnCallsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListNotificationOnCallsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 // 一条消息日志。
 type MessageLogItem struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -4529,7 +5661,7 @@ type MessageLogItem struct {
 
 func (x *MessageLogItem) Reset() {
 	*x = MessageLogItem{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[67]
+	mi := &file_alioth_v1_notification_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4541,7 +5673,7 @@ func (x *MessageLogItem) String() string {
 func (*MessageLogItem) ProtoMessage() {}
 
 func (x *MessageLogItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[67]
+	mi := &file_alioth_v1_notification_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4554,7 +5686,7 @@ func (x *MessageLogItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MessageLogItem.ProtoReflect.Descriptor instead.
 func (*MessageLogItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{67}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *MessageLogItem) GetUid() string {
@@ -4669,7 +5801,7 @@ type ListMessageLogsRequest struct {
 
 func (x *ListMessageLogsRequest) Reset() {
 	*x = ListMessageLogsRequest{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[68]
+	mi := &file_alioth_v1_notification_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4681,7 +5813,7 @@ func (x *ListMessageLogsRequest) String() string {
 func (*ListMessageLogsRequest) ProtoMessage() {}
 
 func (x *ListMessageLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[68]
+	mi := &file_alioth_v1_notification_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4694,7 +5826,7 @@ func (x *ListMessageLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMessageLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListMessageLogsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{68}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *ListMessageLogsRequest) GetPage() int32 {
@@ -4756,7 +5888,7 @@ type ListMessageLogsResponse struct {
 
 func (x *ListMessageLogsResponse) Reset() {
 	*x = ListMessageLogsResponse{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[69]
+	mi := &file_alioth_v1_notification_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4768,7 +5900,7 @@ func (x *ListMessageLogsResponse) String() string {
 func (*ListMessageLogsResponse) ProtoMessage() {}
 
 func (x *ListMessageLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[69]
+	mi := &file_alioth_v1_notification_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4781,7 +5913,7 @@ func (x *ListMessageLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMessageLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListMessageLogsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{69}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *ListMessageLogsResponse) GetItems() []*MessageLogItem {
@@ -4823,7 +5955,7 @@ type GetMessageLogRequest struct {
 
 func (x *GetMessageLogRequest) Reset() {
 	*x = GetMessageLogRequest{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[70]
+	mi := &file_alioth_v1_notification_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4835,7 +5967,7 @@ func (x *GetMessageLogRequest) String() string {
 func (*GetMessageLogRequest) ProtoMessage() {}
 
 func (x *GetMessageLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[70]
+	mi := &file_alioth_v1_notification_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4848,7 +5980,7 @@ func (x *GetMessageLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMessageLogRequest.ProtoReflect.Descriptor instead.
 func (*GetMessageLogRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{70}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *GetMessageLogRequest) GetUid() string {
@@ -4869,7 +6001,7 @@ type GetMessageLogResponse struct {
 
 func (x *GetMessageLogResponse) Reset() {
 	*x = GetMessageLogResponse{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[71]
+	mi := &file_alioth_v1_notification_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4881,7 +6013,7 @@ func (x *GetMessageLogResponse) String() string {
 func (*GetMessageLogResponse) ProtoMessage() {}
 
 func (x *GetMessageLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[71]
+	mi := &file_alioth_v1_notification_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4894,7 +6026,7 @@ func (x *GetMessageLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMessageLogResponse.ProtoReflect.Descriptor instead.
 func (*GetMessageLogResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{71}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *GetMessageLogResponse) GetLog() *MessageLogItem {
@@ -4951,7 +6083,7 @@ type NotificationTaskItem struct {
 
 func (x *NotificationTaskItem) Reset() {
 	*x = NotificationTaskItem{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[72]
+	mi := &file_alioth_v1_notification_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4963,7 +6095,7 @@ func (x *NotificationTaskItem) String() string {
 func (*NotificationTaskItem) ProtoMessage() {}
 
 func (x *NotificationTaskItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[72]
+	mi := &file_alioth_v1_notification_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4976,7 +6108,7 @@ func (x *NotificationTaskItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NotificationTaskItem.ProtoReflect.Descriptor instead.
 func (*NotificationTaskItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{72}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *NotificationTaskItem) GetUid() string {
@@ -5131,7 +6263,7 @@ type ListNotificationTasksRequest struct {
 
 func (x *ListNotificationTasksRequest) Reset() {
 	*x = ListNotificationTasksRequest{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[73]
+	mi := &file_alioth_v1_notification_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5143,7 +6275,7 @@ func (x *ListNotificationTasksRequest) String() string {
 func (*ListNotificationTasksRequest) ProtoMessage() {}
 
 func (x *ListNotificationTasksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[73]
+	mi := &file_alioth_v1_notification_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5156,7 +6288,7 @@ func (x *ListNotificationTasksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNotificationTasksRequest.ProtoReflect.Descriptor instead.
 func (*ListNotificationTasksRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{73}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *ListNotificationTasksRequest) GetPage() int32 {
@@ -5211,7 +6343,7 @@ type ListNotificationTasksResponse struct {
 
 func (x *ListNotificationTasksResponse) Reset() {
 	*x = ListNotificationTasksResponse{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[74]
+	mi := &file_alioth_v1_notification_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5223,7 +6355,7 @@ func (x *ListNotificationTasksResponse) String() string {
 func (*ListNotificationTasksResponse) ProtoMessage() {}
 
 func (x *ListNotificationTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[74]
+	mi := &file_alioth_v1_notification_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5236,7 +6368,7 @@ func (x *ListNotificationTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNotificationTasksResponse.ProtoReflect.Descriptor instead.
 func (*ListNotificationTasksResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{74}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *ListNotificationTasksResponse) GetItems() []*NotificationTaskItem {
@@ -5278,7 +6410,7 @@ type RetryNotificationTaskRequest struct {
 
 func (x *RetryNotificationTaskRequest) Reset() {
 	*x = RetryNotificationTaskRequest{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[75]
+	mi := &file_alioth_v1_notification_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5290,7 +6422,7 @@ func (x *RetryNotificationTaskRequest) String() string {
 func (*RetryNotificationTaskRequest) ProtoMessage() {}
 
 func (x *RetryNotificationTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[75]
+	mi := &file_alioth_v1_notification_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5303,7 +6435,7 @@ func (x *RetryNotificationTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetryNotificationTaskRequest.ProtoReflect.Descriptor instead.
 func (*RetryNotificationTaskRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{75}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *RetryNotificationTaskRequest) GetUid() string {
@@ -5324,7 +6456,7 @@ type RetryNotificationTaskResponse struct {
 
 func (x *RetryNotificationTaskResponse) Reset() {
 	*x = RetryNotificationTaskResponse{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[76]
+	mi := &file_alioth_v1_notification_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5336,7 +6468,7 @@ func (x *RetryNotificationTaskResponse) String() string {
 func (*RetryNotificationTaskResponse) ProtoMessage() {}
 
 func (x *RetryNotificationTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[76]
+	mi := &file_alioth_v1_notification_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5349,7 +6481,7 @@ func (x *RetryNotificationTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetryNotificationTaskResponse.ProtoReflect.Descriptor instead.
 func (*RetryNotificationTaskResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{76}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *RetryNotificationTaskResponse) GetTask() *NotificationTaskItem {
@@ -5370,7 +6502,7 @@ type CancelNotificationTaskRequest struct {
 
 func (x *CancelNotificationTaskRequest) Reset() {
 	*x = CancelNotificationTaskRequest{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[77]
+	mi := &file_alioth_v1_notification_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5382,7 +6514,7 @@ func (x *CancelNotificationTaskRequest) String() string {
 func (*CancelNotificationTaskRequest) ProtoMessage() {}
 
 func (x *CancelNotificationTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[77]
+	mi := &file_alioth_v1_notification_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5395,7 +6527,7 @@ func (x *CancelNotificationTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelNotificationTaskRequest.ProtoReflect.Descriptor instead.
 func (*CancelNotificationTaskRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{77}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *CancelNotificationTaskRequest) GetUid() string {
@@ -5416,7 +6548,7 @@ type CancelNotificationTaskResponse struct {
 
 func (x *CancelNotificationTaskResponse) Reset() {
 	*x = CancelNotificationTaskResponse{}
-	mi := &file_alioth_v1_notification_proto_msgTypes[78]
+	mi := &file_alioth_v1_notification_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5428,7 +6560,7 @@ func (x *CancelNotificationTaskResponse) String() string {
 func (*CancelNotificationTaskResponse) ProtoMessage() {}
 
 func (x *CancelNotificationTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_notification_proto_msgTypes[78]
+	mi := &file_alioth_v1_notification_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5441,7 +6573,7 @@ func (x *CancelNotificationTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelNotificationTaskResponse.ProtoReflect.Descriptor instead.
 func (*CancelNotificationTaskResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{78}
+	return file_alioth_v1_notification_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *CancelNotificationTaskResponse) GetTask() *NotificationTaskItem {
@@ -5707,7 +6839,7 @@ const file_alioth_v1_notification_proto_rawDesc = "" +
 	"activeOnly\"j\n" +
 	" SelectNotificationGroupsResponse\x12+\n" +
 	"\x05items\x18\x01 \x03(\v2\x15.alioth.v1.SelectItemR\x05items\x12\x19\n" +
-	"\blast_uid\x18\x02 \x01(\tR\alastUid\"\x92\x02\n" +
+	"\blast_uid\x18\x02 \x01(\tR\alastUid\"\xfe\x02\n" +
 	"\x1cNotificationSubscriptionItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
@@ -5720,7 +6852,10 @@ const file_alioth_v1_notification_proto_rawDesc = "" +
 	"group_uids\x18\a \x03(\tR\tgroupUids\x12\x16\n" +
 	"\x06remark\x18\b \x01(\tR\x06remark\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\t \x01(\tR\tcreatedAt\"\xfb\x01\n" +
+	"created_at\x18\t \x01(\tR\tcreatedAt\x122\n" +
+	"\x15datasource_level_uids\x18\n" +
+	" \x03(\tR\x13datasourceLevelUids\x126\n" +
+	"\x17repeat_interval_seconds\x18\v \x01(\x05R\x15repeatIntervalSeconds\"\xf4\x02\n" +
 	"%CreateNotificationSubscriptionRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12 \n" +
 	"\x06labels\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x12\x1d\n" +
@@ -5729,9 +6864,11 @@ const file_alioth_v1_notification_proto_rawDesc = "" +
 	"\x0fdatasource_uids\x18\x04 \x03(\tR\x0edatasourceUids\x12'\n" +
 	"\n" +
 	"group_uids\x18\x05 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x01R\tgroupUids\x12 \n" +
-	"\x06remark\x18\x06 \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\"u\n" +
+	"\x06remark\x18\x06 \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\x122\n" +
+	"\x15datasource_level_uids\x18\a \x03(\tR\x13datasourceLevelUids\x12C\n" +
+	"\x17repeat_interval_seconds\x18\b \x01(\x05B\v\xbaH\b\x1a\x06\x18\xc0\xd1\x02(\x00R\x15repeatIntervalSeconds\"u\n" +
 	"&CreateNotificationSubscriptionResponse\x12K\n" +
-	"\fsubscription\x18\x01 \x01(\v2'.alioth.v1.NotificationSubscriptionItemR\fsubscription\"\x96\x02\n" +
+	"\fsubscription\x18\x01 \x01(\v2'.alioth.v1.NotificationSubscriptionItemR\fsubscription\"\x8f\x03\n" +
 	"%UpdateNotificationSubscriptionRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12 \n" +
@@ -5741,7 +6878,9 @@ const file_alioth_v1_notification_proto_rawDesc = "" +
 	"\x0fdatasource_uids\x18\x05 \x03(\tR\x0edatasourceUids\x12'\n" +
 	"\n" +
 	"group_uids\x18\x06 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x01R\tgroupUids\x12 \n" +
-	"\x06remark\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\"u\n" +
+	"\x06remark\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\x122\n" +
+	"\x15datasource_level_uids\x18\b \x03(\tR\x13datasourceLevelUids\x12C\n" +
+	"\x17repeat_interval_seconds\x18\t \x01(\x05B\v\xbaH\b\x1a\x06\x18\xc0\xd1\x02(\x00R\x15repeatIntervalSeconds\"u\n" +
 	"&UpdateNotificationSubscriptionResponse\x12K\n" +
 	"\fsubscription\x18\x01 \x01(\v2'.alioth.v1.NotificationSubscriptionItemR\fsubscription\"y\n" +
 	"+UpdateNotificationSubscriptionStatusRequest\x12\x19\n" +
@@ -5762,6 +6901,83 @@ const file_alioth_v1_notification_proto_rawDesc = "" +
 	"\x04name\x18\x03 \x01(\tR\x04name\"\xad\x01\n" +
 	"%ListNotificationSubscriptionsResponse\x12=\n" +
 	"\x05items\x18\x01 \x03(\v2'.alioth.v1.NotificationSubscriptionItemR\x05items\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xb5\x03\n" +
+	"\x16NotificationOnCallItem\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x16\n" +
+	"\x06labels\x18\x04 \x01(\tR\x06labels\x12\x1d\n" +
+	"\n" +
+	"level_uids\x18\x05 \x03(\tR\tlevelUids\x12'\n" +
+	"\x0fdatasource_uids\x18\x06 \x03(\tR\x0edatasourceUids\x12\x1a\n" +
+	"\btimezone\x18\a \x01(\tR\btimezone\x12>\n" +
+	"\x06groups\x18\b \x03(\v2&.alioth.v1.NotificationOnCallGroupItemR\x06groups\x12\x16\n" +
+	"\x06remark\x18\t \x01(\tR\x06remark\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\n" +
+	" \x01(\tR\tcreatedAt\x122\n" +
+	"\x15datasource_level_uids\x18\v \x03(\tR\x13datasourceLevelUids\x126\n" +
+	"\x17repeat_interval_seconds\x18\f \x01(\x05R\x15repeatIntervalSeconds\"\x98\x01\n" +
+	"\x1bNotificationOnCallGroupItem\x12\x1b\n" +
+	"\tgroup_uid\x18\x01 \x01(\tR\bgroupUid\x12\x1d\n" +
+	"\n" +
+	"group_name\x18\x02 \x01(\tR\tgroupName\x12=\n" +
+	"\awindows\x18\x03 \x03(\v2#.alioth.v1.NotificationOnCallWindowR\awindows\"^\n" +
+	"\x18NotificationOnCallWindow\x12\x1a\n" +
+	"\bweekdays\x18\x01 \x03(\tR\bweekdays\x12\x14\n" +
+	"\x05start\x18\x02 \x01(\tR\x05start\x12\x10\n" +
+	"\x03end\x18\x03 \x01(\tR\x03end\"\x83\x01\n" +
+	"\x1cNotificationOnCallGroupInput\x12$\n" +
+	"\tgroup_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12=\n" +
+	"\awindows\x18\x02 \x03(\v2#.alioth.v1.NotificationOnCallWindowR\awindows\"\xac\x03\n" +
+	"\x1fCreateNotificationOnCallRequest\x12\x1d\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12 \n" +
+	"\x06labels\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x12\x1d\n" +
+	"\n" +
+	"level_uids\x18\x03 \x03(\tR\tlevelUids\x12'\n" +
+	"\x0fdatasource_uids\x18\x04 \x03(\tR\x0edatasourceUids\x12\x1a\n" +
+	"\btimezone\x18\x05 \x01(\tR\btimezone\x12I\n" +
+	"\x06groups\x18\x06 \x03(\v2'.alioth.v1.NotificationOnCallGroupInputB\b\xbaH\x05\x92\x01\x02\b\x01R\x06groups\x12 \n" +
+	"\x06remark\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\x122\n" +
+	"\x15datasource_level_uids\x18\b \x03(\tR\x13datasourceLevelUids\x12C\n" +
+	"\x17repeat_interval_seconds\x18\t \x01(\x05B\v\xbaH\b\x1a\x06\x18\xc0\xd1\x02(\x00R\x15repeatIntervalSeconds\"^\n" +
+	" CreateNotificationOnCallResponse\x12:\n" +
+	"\aon_call\x18\x01 \x01(\v2!.alioth.v1.NotificationOnCallItemR\x06onCall\"\xc7\x03\n" +
+	"\x1fUpdateNotificationOnCallRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12 \n" +
+	"\x06labels\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x12\x1d\n" +
+	"\n" +
+	"level_uids\x18\x04 \x03(\tR\tlevelUids\x12'\n" +
+	"\x0fdatasource_uids\x18\x05 \x03(\tR\x0edatasourceUids\x12\x1a\n" +
+	"\btimezone\x18\x06 \x01(\tR\btimezone\x12I\n" +
+	"\x06groups\x18\a \x03(\v2'.alioth.v1.NotificationOnCallGroupInputB\b\xbaH\x05\x92\x01\x02\b\x01R\x06groups\x12 \n" +
+	"\x06remark\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\x122\n" +
+	"\x15datasource_level_uids\x18\t \x03(\tR\x13datasourceLevelUids\x12C\n" +
+	"\x17repeat_interval_seconds\x18\n" +
+	" \x01(\x05B\v\xbaH\b\x1a\x06\x18\xc0\xd1\x02(\x00R\x15repeatIntervalSeconds\"^\n" +
+	" UpdateNotificationOnCallResponse\x12:\n" +
+	"\aon_call\x18\x01 \x01(\v2!.alioth.v1.NotificationOnCallItemR\x06onCall\"s\n" +
+	"%UpdateNotificationOnCallStatusRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12/\n" +
+	"\x06status\x18\x02 \x01(\tB\x17\xbaH\x14r\x12R\x06ACTIVER\bDISABLEDR\x06status\"d\n" +
+	"&UpdateNotificationOnCallStatusResponse\x12:\n" +
+	"\aon_call\x18\x01 \x01(\v2!.alioth.v1.NotificationOnCallItemR\x06onCall\"<\n" +
+	"\x1fDeleteNotificationOnCallRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"\"\n" +
+	" DeleteNotificationOnCallResponse\"9\n" +
+	"\x1cGetNotificationOnCallRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"[\n" +
+	"\x1dGetNotificationOnCallResponse\x12:\n" +
+	"\aon_call\x18\x01 \x01(\v2!.alioth.v1.NotificationOnCallItemR\x06onCall\"y\n" +
+	"\x1eListNotificationOnCallsRequest\x12\x1b\n" +
+	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04page\x12&\n" +
+	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"\xa1\x01\n" +
+	"\x1fListNotificationOnCallsResponse\x127\n" +
+	"\x05items\x18\x01 \x03(\v2!.alioth.v1.NotificationOnCallItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x86\x03\n" +
@@ -5879,7 +7095,14 @@ const file_alioth_v1_notification_proto_rawDesc = "" +
 	"$UpdateNotificationSubscriptionStatus\x126.alioth.v1.UpdateNotificationSubscriptionStatusRequest\x1a7.alioth.v1.UpdateNotificationSubscriptionStatusResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\x1a*/v1/notification-subscription/{uid}/status\x12\xb2\x01\n" +
 	"\x1eDeleteNotificationSubscription\x120.alioth.v1.DeleteNotificationSubscriptionRequest\x1a1.alioth.v1.DeleteNotificationSubscriptionResponse\"+\x82\xd3\xe4\x93\x02%*#/v1/notification-subscription/{uid}\x12\xa9\x01\n" +
 	"\x1bGetNotificationSubscription\x12-.alioth.v1.GetNotificationSubscriptionRequest\x1a..alioth.v1.GetNotificationSubscriptionResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/notification-subscription/{uid}\x12\xaa\x01\n" +
-	"\x1dListNotificationSubscriptions\x12/.alioth.v1.ListNotificationSubscriptionsRequest\x1a0.alioth.v1.ListNotificationSubscriptionsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/notification-subscriptions2\xc1\x05\n" +
+	"\x1dListNotificationSubscriptions\x12/.alioth.v1.ListNotificationSubscriptionsRequest\x1a0.alioth.v1.ListNotificationSubscriptionsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/notification-subscriptions2\xd4\a\n" +
+	"\x19NotificationOnCallService\x12\x97\x01\n" +
+	"\x18CreateNotificationOnCall\x12*.alioth.v1.CreateNotificationOnCallRequest\x1a+.alioth.v1.CreateNotificationOnCallResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/v1/notification-oncall\x12\x9d\x01\n" +
+	"\x18UpdateNotificationOnCall\x12*.alioth.v1.UpdateNotificationOnCallRequest\x1a+.alioth.v1.UpdateNotificationOnCallResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\x1a\x1d/v1/notification-oncall/{uid}\x12\xb6\x01\n" +
+	"\x1eUpdateNotificationOnCallStatus\x120.alioth.v1.UpdateNotificationOnCallStatusRequest\x1a1.alioth.v1.UpdateNotificationOnCallStatusResponse\"/\x82\xd3\xe4\x93\x02):\x01*\x1a$/v1/notification-oncall/{uid}/status\x12\x9a\x01\n" +
+	"\x18DeleteNotificationOnCall\x12*.alioth.v1.DeleteNotificationOnCallRequest\x1a+.alioth.v1.DeleteNotificationOnCallResponse\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/v1/notification-oncall/{uid}\x12\x91\x01\n" +
+	"\x15GetNotificationOnCall\x12'.alioth.v1.GetNotificationOnCallRequest\x1a(.alioth.v1.GetNotificationOnCallResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/notification-oncall/{uid}\x12\x92\x01\n" +
+	"\x17ListNotificationOnCalls\x12).alioth.v1.ListNotificationOnCallsRequest\x1a*.alioth.v1.ListNotificationOnCallsResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/notification-oncalls2\xc1\x05\n" +
 	"\x11MessageLogService\x12r\n" +
 	"\x0fListMessageLogs\x12!.alioth.v1.ListMessageLogsRequest\x1a\".alioth.v1.ListMessageLogsResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/v1/message-logs\x12q\n" +
 	"\rGetMessageLog\x12\x1f.alioth.v1.GetMessageLogRequest\x1a .alioth.v1.GetMessageLogResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/v1/message-log/{uid}\x12\x8a\x01\n" +
@@ -5899,7 +7122,7 @@ func file_alioth_v1_notification_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_notification_proto_rawDescData
 }
 
-var file_alioth_v1_notification_proto_msgTypes = make([]protoimpl.MessageInfo, 79)
+var file_alioth_v1_notification_proto_msgTypes = make([]protoimpl.MessageInfo, 95)
 var file_alioth_v1_notification_proto_goTypes = []any{
 	(*NotificationChannelItem)(nil),                      // 0: alioth.v1.NotificationChannelItem
 	(*CreateNotificationChannelRequest)(nil),             // 1: alioth.v1.CreateNotificationChannelRequest
@@ -5968,19 +7191,35 @@ var file_alioth_v1_notification_proto_goTypes = []any{
 	(*GetNotificationSubscriptionResponse)(nil),          // 64: alioth.v1.GetNotificationSubscriptionResponse
 	(*ListNotificationSubscriptionsRequest)(nil),         // 65: alioth.v1.ListNotificationSubscriptionsRequest
 	(*ListNotificationSubscriptionsResponse)(nil),        // 66: alioth.v1.ListNotificationSubscriptionsResponse
-	(*MessageLogItem)(nil),                               // 67: alioth.v1.MessageLogItem
-	(*ListMessageLogsRequest)(nil),                       // 68: alioth.v1.ListMessageLogsRequest
-	(*ListMessageLogsResponse)(nil),                      // 69: alioth.v1.ListMessageLogsResponse
-	(*GetMessageLogRequest)(nil),                         // 70: alioth.v1.GetMessageLogRequest
-	(*GetMessageLogResponse)(nil),                        // 71: alioth.v1.GetMessageLogResponse
-	(*NotificationTaskItem)(nil),                         // 72: alioth.v1.NotificationTaskItem
-	(*ListNotificationTasksRequest)(nil),                 // 73: alioth.v1.ListNotificationTasksRequest
-	(*ListNotificationTasksResponse)(nil),                // 74: alioth.v1.ListNotificationTasksResponse
-	(*RetryNotificationTaskRequest)(nil),                 // 75: alioth.v1.RetryNotificationTaskRequest
-	(*RetryNotificationTaskResponse)(nil),                // 76: alioth.v1.RetryNotificationTaskResponse
-	(*CancelNotificationTaskRequest)(nil),                // 77: alioth.v1.CancelNotificationTaskRequest
-	(*CancelNotificationTaskResponse)(nil),               // 78: alioth.v1.CancelNotificationTaskResponse
-	(*SelectItem)(nil),                                   // 79: alioth.v1.SelectItem
+	(*NotificationOnCallItem)(nil),                       // 67: alioth.v1.NotificationOnCallItem
+	(*NotificationOnCallGroupItem)(nil),                  // 68: alioth.v1.NotificationOnCallGroupItem
+	(*NotificationOnCallWindow)(nil),                     // 69: alioth.v1.NotificationOnCallWindow
+	(*NotificationOnCallGroupInput)(nil),                 // 70: alioth.v1.NotificationOnCallGroupInput
+	(*CreateNotificationOnCallRequest)(nil),              // 71: alioth.v1.CreateNotificationOnCallRequest
+	(*CreateNotificationOnCallResponse)(nil),             // 72: alioth.v1.CreateNotificationOnCallResponse
+	(*UpdateNotificationOnCallRequest)(nil),              // 73: alioth.v1.UpdateNotificationOnCallRequest
+	(*UpdateNotificationOnCallResponse)(nil),             // 74: alioth.v1.UpdateNotificationOnCallResponse
+	(*UpdateNotificationOnCallStatusRequest)(nil),        // 75: alioth.v1.UpdateNotificationOnCallStatusRequest
+	(*UpdateNotificationOnCallStatusResponse)(nil),       // 76: alioth.v1.UpdateNotificationOnCallStatusResponse
+	(*DeleteNotificationOnCallRequest)(nil),              // 77: alioth.v1.DeleteNotificationOnCallRequest
+	(*DeleteNotificationOnCallResponse)(nil),             // 78: alioth.v1.DeleteNotificationOnCallResponse
+	(*GetNotificationOnCallRequest)(nil),                 // 79: alioth.v1.GetNotificationOnCallRequest
+	(*GetNotificationOnCallResponse)(nil),                // 80: alioth.v1.GetNotificationOnCallResponse
+	(*ListNotificationOnCallsRequest)(nil),               // 81: alioth.v1.ListNotificationOnCallsRequest
+	(*ListNotificationOnCallsResponse)(nil),              // 82: alioth.v1.ListNotificationOnCallsResponse
+	(*MessageLogItem)(nil),                               // 83: alioth.v1.MessageLogItem
+	(*ListMessageLogsRequest)(nil),                       // 84: alioth.v1.ListMessageLogsRequest
+	(*ListMessageLogsResponse)(nil),                      // 85: alioth.v1.ListMessageLogsResponse
+	(*GetMessageLogRequest)(nil),                         // 86: alioth.v1.GetMessageLogRequest
+	(*GetMessageLogResponse)(nil),                        // 87: alioth.v1.GetMessageLogResponse
+	(*NotificationTaskItem)(nil),                         // 88: alioth.v1.NotificationTaskItem
+	(*ListNotificationTasksRequest)(nil),                 // 89: alioth.v1.ListNotificationTasksRequest
+	(*ListNotificationTasksResponse)(nil),                // 90: alioth.v1.ListNotificationTasksResponse
+	(*RetryNotificationTaskRequest)(nil),                 // 91: alioth.v1.RetryNotificationTaskRequest
+	(*RetryNotificationTaskResponse)(nil),                // 92: alioth.v1.RetryNotificationTaskResponse
+	(*CancelNotificationTaskRequest)(nil),                // 93: alioth.v1.CancelNotificationTaskRequest
+	(*CancelNotificationTaskResponse)(nil),               // 94: alioth.v1.CancelNotificationTaskResponse
+	(*SelectItem)(nil),                                   // 95: alioth.v1.SelectItem
 }
 var file_alioth_v1_notification_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.CreateNotificationChannelResponse.channel:type_name -> alioth.v1.NotificationChannelItem
@@ -5988,107 +7227,129 @@ var file_alioth_v1_notification_proto_depIdxs = []int32{
 	0,  // 2: alioth.v1.UpdateNotificationChannelStatusResponse.channel:type_name -> alioth.v1.NotificationChannelItem
 	0,  // 3: alioth.v1.GetNotificationChannelResponse.channel:type_name -> alioth.v1.NotificationChannelItem
 	0,  // 4: alioth.v1.ListNotificationChannelsResponse.items:type_name -> alioth.v1.NotificationChannelItem
-	79, // 5: alioth.v1.SelectNotificationChannelsResponse.items:type_name -> alioth.v1.SelectItem
+	95, // 5: alioth.v1.SelectNotificationChannelsResponse.items:type_name -> alioth.v1.SelectItem
 	17, // 6: alioth.v1.CreateNotificationTemplateResponse.template:type_name -> alioth.v1.NotificationTemplateItem
 	17, // 7: alioth.v1.UpdateNotificationTemplateResponse.template:type_name -> alioth.v1.NotificationTemplateItem
 	17, // 8: alioth.v1.UpdateNotificationTemplateStatusResponse.template:type_name -> alioth.v1.NotificationTemplateItem
 	17, // 9: alioth.v1.GetNotificationTemplateResponse.template:type_name -> alioth.v1.NotificationTemplateItem
 	17, // 10: alioth.v1.ListNotificationTemplatesResponse.items:type_name -> alioth.v1.NotificationTemplateItem
-	79, // 11: alioth.v1.SelectNotificationTemplatesResponse.items:type_name -> alioth.v1.SelectItem
+	95, // 11: alioth.v1.SelectNotificationTemplatesResponse.items:type_name -> alioth.v1.SelectItem
 	32, // 12: alioth.v1.ListNotificationPresetsResponse.items:type_name -> alioth.v1.NotificationPresetItem
 	39, // 13: alioth.v1.CreateNotificationGroupResponse.group:type_name -> alioth.v1.NotificationGroupItem
 	39, // 14: alioth.v1.UpdateNotificationGroupResponse.group:type_name -> alioth.v1.NotificationGroupItem
 	39, // 15: alioth.v1.UpdateNotificationGroupStatusResponse.group:type_name -> alioth.v1.NotificationGroupItem
 	39, // 16: alioth.v1.GetNotificationGroupResponse.group:type_name -> alioth.v1.NotificationGroupItem
 	39, // 17: alioth.v1.ListNotificationGroupsResponse.items:type_name -> alioth.v1.NotificationGroupItem
-	79, // 18: alioth.v1.SelectNotificationGroupsResponse.items:type_name -> alioth.v1.SelectItem
+	95, // 18: alioth.v1.SelectNotificationGroupsResponse.items:type_name -> alioth.v1.SelectItem
 	54, // 19: alioth.v1.CreateNotificationSubscriptionResponse.subscription:type_name -> alioth.v1.NotificationSubscriptionItem
 	54, // 20: alioth.v1.UpdateNotificationSubscriptionResponse.subscription:type_name -> alioth.v1.NotificationSubscriptionItem
 	54, // 21: alioth.v1.UpdateNotificationSubscriptionStatusResponse.subscription:type_name -> alioth.v1.NotificationSubscriptionItem
 	54, // 22: alioth.v1.GetNotificationSubscriptionResponse.subscription:type_name -> alioth.v1.NotificationSubscriptionItem
 	54, // 23: alioth.v1.ListNotificationSubscriptionsResponse.items:type_name -> alioth.v1.NotificationSubscriptionItem
-	67, // 24: alioth.v1.ListMessageLogsResponse.items:type_name -> alioth.v1.MessageLogItem
-	67, // 25: alioth.v1.GetMessageLogResponse.log:type_name -> alioth.v1.MessageLogItem
-	72, // 26: alioth.v1.ListNotificationTasksResponse.items:type_name -> alioth.v1.NotificationTaskItem
-	72, // 27: alioth.v1.RetryNotificationTaskResponse.task:type_name -> alioth.v1.NotificationTaskItem
-	72, // 28: alioth.v1.CancelNotificationTaskResponse.task:type_name -> alioth.v1.NotificationTaskItem
-	1,  // 29: alioth.v1.NotificationChannelService.CreateNotificationChannel:input_type -> alioth.v1.CreateNotificationChannelRequest
-	3,  // 30: alioth.v1.NotificationChannelService.UpdateNotificationChannel:input_type -> alioth.v1.UpdateNotificationChannelRequest
-	5,  // 31: alioth.v1.NotificationChannelService.UpdateNotificationChannelStatus:input_type -> alioth.v1.UpdateNotificationChannelStatusRequest
-	7,  // 32: alioth.v1.NotificationChannelService.DeleteNotificationChannel:input_type -> alioth.v1.DeleteNotificationChannelRequest
-	9,  // 33: alioth.v1.NotificationChannelService.GetNotificationChannel:input_type -> alioth.v1.GetNotificationChannelRequest
-	11, // 34: alioth.v1.NotificationChannelService.ListNotificationChannels:input_type -> alioth.v1.ListNotificationChannelsRequest
-	13, // 35: alioth.v1.NotificationChannelService.SelectNotificationChannels:input_type -> alioth.v1.SelectNotificationChannelsRequest
-	15, // 36: alioth.v1.NotificationChannelService.TestNotificationChannel:input_type -> alioth.v1.TestNotificationChannelRequest
-	18, // 37: alioth.v1.NotificationTemplateService.CreateNotificationTemplate:input_type -> alioth.v1.CreateNotificationTemplateRequest
-	20, // 38: alioth.v1.NotificationTemplateService.UpdateNotificationTemplate:input_type -> alioth.v1.UpdateNotificationTemplateRequest
-	22, // 39: alioth.v1.NotificationTemplateService.UpdateNotificationTemplateStatus:input_type -> alioth.v1.UpdateNotificationTemplateStatusRequest
-	24, // 40: alioth.v1.NotificationTemplateService.DeleteNotificationTemplate:input_type -> alioth.v1.DeleteNotificationTemplateRequest
-	26, // 41: alioth.v1.NotificationTemplateService.GetNotificationTemplate:input_type -> alioth.v1.GetNotificationTemplateRequest
-	28, // 42: alioth.v1.NotificationTemplateService.ListNotificationTemplates:input_type -> alioth.v1.ListNotificationTemplatesRequest
-	30, // 43: alioth.v1.NotificationTemplateService.SelectNotificationTemplates:input_type -> alioth.v1.SelectNotificationTemplatesRequest
-	35, // 44: alioth.v1.NotificationTemplateService.TestNotificationTemplate:input_type -> alioth.v1.TestNotificationTemplateRequest
-	37, // 45: alioth.v1.NotificationTemplateService.PreviewNotificationTemplate:input_type -> alioth.v1.PreviewNotificationTemplateRequest
-	33, // 46: alioth.v1.NotificationTemplateService.ListNotificationPresets:input_type -> alioth.v1.ListNotificationPresetsRequest
-	40, // 47: alioth.v1.NotificationGroupService.CreateNotificationGroup:input_type -> alioth.v1.CreateNotificationGroupRequest
-	42, // 48: alioth.v1.NotificationGroupService.UpdateNotificationGroup:input_type -> alioth.v1.UpdateNotificationGroupRequest
-	44, // 49: alioth.v1.NotificationGroupService.UpdateNotificationGroupStatus:input_type -> alioth.v1.UpdateNotificationGroupStatusRequest
-	46, // 50: alioth.v1.NotificationGroupService.DeleteNotificationGroup:input_type -> alioth.v1.DeleteNotificationGroupRequest
-	48, // 51: alioth.v1.NotificationGroupService.GetNotificationGroup:input_type -> alioth.v1.GetNotificationGroupRequest
-	50, // 52: alioth.v1.NotificationGroupService.ListNotificationGroups:input_type -> alioth.v1.ListNotificationGroupsRequest
-	52, // 53: alioth.v1.NotificationGroupService.SelectNotificationGroups:input_type -> alioth.v1.SelectNotificationGroupsRequest
-	55, // 54: alioth.v1.NotificationSubscriptionService.CreateNotificationSubscription:input_type -> alioth.v1.CreateNotificationSubscriptionRequest
-	57, // 55: alioth.v1.NotificationSubscriptionService.UpdateNotificationSubscription:input_type -> alioth.v1.UpdateNotificationSubscriptionRequest
-	59, // 56: alioth.v1.NotificationSubscriptionService.UpdateNotificationSubscriptionStatus:input_type -> alioth.v1.UpdateNotificationSubscriptionStatusRequest
-	61, // 57: alioth.v1.NotificationSubscriptionService.DeleteNotificationSubscription:input_type -> alioth.v1.DeleteNotificationSubscriptionRequest
-	63, // 58: alioth.v1.NotificationSubscriptionService.GetNotificationSubscription:input_type -> alioth.v1.GetNotificationSubscriptionRequest
-	65, // 59: alioth.v1.NotificationSubscriptionService.ListNotificationSubscriptions:input_type -> alioth.v1.ListNotificationSubscriptionsRequest
-	68, // 60: alioth.v1.MessageLogService.ListMessageLogs:input_type -> alioth.v1.ListMessageLogsRequest
-	70, // 61: alioth.v1.MessageLogService.GetMessageLog:input_type -> alioth.v1.GetMessageLogRequest
-	73, // 62: alioth.v1.MessageLogService.ListNotificationTasks:input_type -> alioth.v1.ListNotificationTasksRequest
-	75, // 63: alioth.v1.MessageLogService.RetryNotificationTask:input_type -> alioth.v1.RetryNotificationTaskRequest
-	77, // 64: alioth.v1.MessageLogService.CancelNotificationTask:input_type -> alioth.v1.CancelNotificationTaskRequest
-	2,  // 65: alioth.v1.NotificationChannelService.CreateNotificationChannel:output_type -> alioth.v1.CreateNotificationChannelResponse
-	4,  // 66: alioth.v1.NotificationChannelService.UpdateNotificationChannel:output_type -> alioth.v1.UpdateNotificationChannelResponse
-	6,  // 67: alioth.v1.NotificationChannelService.UpdateNotificationChannelStatus:output_type -> alioth.v1.UpdateNotificationChannelStatusResponse
-	8,  // 68: alioth.v1.NotificationChannelService.DeleteNotificationChannel:output_type -> alioth.v1.DeleteNotificationChannelResponse
-	10, // 69: alioth.v1.NotificationChannelService.GetNotificationChannel:output_type -> alioth.v1.GetNotificationChannelResponse
-	12, // 70: alioth.v1.NotificationChannelService.ListNotificationChannels:output_type -> alioth.v1.ListNotificationChannelsResponse
-	14, // 71: alioth.v1.NotificationChannelService.SelectNotificationChannels:output_type -> alioth.v1.SelectNotificationChannelsResponse
-	16, // 72: alioth.v1.NotificationChannelService.TestNotificationChannel:output_type -> alioth.v1.TestNotificationChannelResponse
-	19, // 73: alioth.v1.NotificationTemplateService.CreateNotificationTemplate:output_type -> alioth.v1.CreateNotificationTemplateResponse
-	21, // 74: alioth.v1.NotificationTemplateService.UpdateNotificationTemplate:output_type -> alioth.v1.UpdateNotificationTemplateResponse
-	23, // 75: alioth.v1.NotificationTemplateService.UpdateNotificationTemplateStatus:output_type -> alioth.v1.UpdateNotificationTemplateStatusResponse
-	25, // 76: alioth.v1.NotificationTemplateService.DeleteNotificationTemplate:output_type -> alioth.v1.DeleteNotificationTemplateResponse
-	27, // 77: alioth.v1.NotificationTemplateService.GetNotificationTemplate:output_type -> alioth.v1.GetNotificationTemplateResponse
-	29, // 78: alioth.v1.NotificationTemplateService.ListNotificationTemplates:output_type -> alioth.v1.ListNotificationTemplatesResponse
-	31, // 79: alioth.v1.NotificationTemplateService.SelectNotificationTemplates:output_type -> alioth.v1.SelectNotificationTemplatesResponse
-	36, // 80: alioth.v1.NotificationTemplateService.TestNotificationTemplate:output_type -> alioth.v1.TestNotificationTemplateResponse
-	38, // 81: alioth.v1.NotificationTemplateService.PreviewNotificationTemplate:output_type -> alioth.v1.PreviewNotificationTemplateResponse
-	34, // 82: alioth.v1.NotificationTemplateService.ListNotificationPresets:output_type -> alioth.v1.ListNotificationPresetsResponse
-	41, // 83: alioth.v1.NotificationGroupService.CreateNotificationGroup:output_type -> alioth.v1.CreateNotificationGroupResponse
-	43, // 84: alioth.v1.NotificationGroupService.UpdateNotificationGroup:output_type -> alioth.v1.UpdateNotificationGroupResponse
-	45, // 85: alioth.v1.NotificationGroupService.UpdateNotificationGroupStatus:output_type -> alioth.v1.UpdateNotificationGroupStatusResponse
-	47, // 86: alioth.v1.NotificationGroupService.DeleteNotificationGroup:output_type -> alioth.v1.DeleteNotificationGroupResponse
-	49, // 87: alioth.v1.NotificationGroupService.GetNotificationGroup:output_type -> alioth.v1.GetNotificationGroupResponse
-	51, // 88: alioth.v1.NotificationGroupService.ListNotificationGroups:output_type -> alioth.v1.ListNotificationGroupsResponse
-	53, // 89: alioth.v1.NotificationGroupService.SelectNotificationGroups:output_type -> alioth.v1.SelectNotificationGroupsResponse
-	56, // 90: alioth.v1.NotificationSubscriptionService.CreateNotificationSubscription:output_type -> alioth.v1.CreateNotificationSubscriptionResponse
-	58, // 91: alioth.v1.NotificationSubscriptionService.UpdateNotificationSubscription:output_type -> alioth.v1.UpdateNotificationSubscriptionResponse
-	60, // 92: alioth.v1.NotificationSubscriptionService.UpdateNotificationSubscriptionStatus:output_type -> alioth.v1.UpdateNotificationSubscriptionStatusResponse
-	62, // 93: alioth.v1.NotificationSubscriptionService.DeleteNotificationSubscription:output_type -> alioth.v1.DeleteNotificationSubscriptionResponse
-	64, // 94: alioth.v1.NotificationSubscriptionService.GetNotificationSubscription:output_type -> alioth.v1.GetNotificationSubscriptionResponse
-	66, // 95: alioth.v1.NotificationSubscriptionService.ListNotificationSubscriptions:output_type -> alioth.v1.ListNotificationSubscriptionsResponse
-	69, // 96: alioth.v1.MessageLogService.ListMessageLogs:output_type -> alioth.v1.ListMessageLogsResponse
-	71, // 97: alioth.v1.MessageLogService.GetMessageLog:output_type -> alioth.v1.GetMessageLogResponse
-	74, // 98: alioth.v1.MessageLogService.ListNotificationTasks:output_type -> alioth.v1.ListNotificationTasksResponse
-	76, // 99: alioth.v1.MessageLogService.RetryNotificationTask:output_type -> alioth.v1.RetryNotificationTaskResponse
-	78, // 100: alioth.v1.MessageLogService.CancelNotificationTask:output_type -> alioth.v1.CancelNotificationTaskResponse
-	65, // [65:101] is the sub-list for method output_type
-	29, // [29:65] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	68, // 24: alioth.v1.NotificationOnCallItem.groups:type_name -> alioth.v1.NotificationOnCallGroupItem
+	69, // 25: alioth.v1.NotificationOnCallGroupItem.windows:type_name -> alioth.v1.NotificationOnCallWindow
+	69, // 26: alioth.v1.NotificationOnCallGroupInput.windows:type_name -> alioth.v1.NotificationOnCallWindow
+	70, // 27: alioth.v1.CreateNotificationOnCallRequest.groups:type_name -> alioth.v1.NotificationOnCallGroupInput
+	67, // 28: alioth.v1.CreateNotificationOnCallResponse.on_call:type_name -> alioth.v1.NotificationOnCallItem
+	70, // 29: alioth.v1.UpdateNotificationOnCallRequest.groups:type_name -> alioth.v1.NotificationOnCallGroupInput
+	67, // 30: alioth.v1.UpdateNotificationOnCallResponse.on_call:type_name -> alioth.v1.NotificationOnCallItem
+	67, // 31: alioth.v1.UpdateNotificationOnCallStatusResponse.on_call:type_name -> alioth.v1.NotificationOnCallItem
+	67, // 32: alioth.v1.GetNotificationOnCallResponse.on_call:type_name -> alioth.v1.NotificationOnCallItem
+	67, // 33: alioth.v1.ListNotificationOnCallsResponse.items:type_name -> alioth.v1.NotificationOnCallItem
+	83, // 34: alioth.v1.ListMessageLogsResponse.items:type_name -> alioth.v1.MessageLogItem
+	83, // 35: alioth.v1.GetMessageLogResponse.log:type_name -> alioth.v1.MessageLogItem
+	88, // 36: alioth.v1.ListNotificationTasksResponse.items:type_name -> alioth.v1.NotificationTaskItem
+	88, // 37: alioth.v1.RetryNotificationTaskResponse.task:type_name -> alioth.v1.NotificationTaskItem
+	88, // 38: alioth.v1.CancelNotificationTaskResponse.task:type_name -> alioth.v1.NotificationTaskItem
+	1,  // 39: alioth.v1.NotificationChannelService.CreateNotificationChannel:input_type -> alioth.v1.CreateNotificationChannelRequest
+	3,  // 40: alioth.v1.NotificationChannelService.UpdateNotificationChannel:input_type -> alioth.v1.UpdateNotificationChannelRequest
+	5,  // 41: alioth.v1.NotificationChannelService.UpdateNotificationChannelStatus:input_type -> alioth.v1.UpdateNotificationChannelStatusRequest
+	7,  // 42: alioth.v1.NotificationChannelService.DeleteNotificationChannel:input_type -> alioth.v1.DeleteNotificationChannelRequest
+	9,  // 43: alioth.v1.NotificationChannelService.GetNotificationChannel:input_type -> alioth.v1.GetNotificationChannelRequest
+	11, // 44: alioth.v1.NotificationChannelService.ListNotificationChannels:input_type -> alioth.v1.ListNotificationChannelsRequest
+	13, // 45: alioth.v1.NotificationChannelService.SelectNotificationChannels:input_type -> alioth.v1.SelectNotificationChannelsRequest
+	15, // 46: alioth.v1.NotificationChannelService.TestNotificationChannel:input_type -> alioth.v1.TestNotificationChannelRequest
+	18, // 47: alioth.v1.NotificationTemplateService.CreateNotificationTemplate:input_type -> alioth.v1.CreateNotificationTemplateRequest
+	20, // 48: alioth.v1.NotificationTemplateService.UpdateNotificationTemplate:input_type -> alioth.v1.UpdateNotificationTemplateRequest
+	22, // 49: alioth.v1.NotificationTemplateService.UpdateNotificationTemplateStatus:input_type -> alioth.v1.UpdateNotificationTemplateStatusRequest
+	24, // 50: alioth.v1.NotificationTemplateService.DeleteNotificationTemplate:input_type -> alioth.v1.DeleteNotificationTemplateRequest
+	26, // 51: alioth.v1.NotificationTemplateService.GetNotificationTemplate:input_type -> alioth.v1.GetNotificationTemplateRequest
+	28, // 52: alioth.v1.NotificationTemplateService.ListNotificationTemplates:input_type -> alioth.v1.ListNotificationTemplatesRequest
+	30, // 53: alioth.v1.NotificationTemplateService.SelectNotificationTemplates:input_type -> alioth.v1.SelectNotificationTemplatesRequest
+	35, // 54: alioth.v1.NotificationTemplateService.TestNotificationTemplate:input_type -> alioth.v1.TestNotificationTemplateRequest
+	37, // 55: alioth.v1.NotificationTemplateService.PreviewNotificationTemplate:input_type -> alioth.v1.PreviewNotificationTemplateRequest
+	33, // 56: alioth.v1.NotificationTemplateService.ListNotificationPresets:input_type -> alioth.v1.ListNotificationPresetsRequest
+	40, // 57: alioth.v1.NotificationGroupService.CreateNotificationGroup:input_type -> alioth.v1.CreateNotificationGroupRequest
+	42, // 58: alioth.v1.NotificationGroupService.UpdateNotificationGroup:input_type -> alioth.v1.UpdateNotificationGroupRequest
+	44, // 59: alioth.v1.NotificationGroupService.UpdateNotificationGroupStatus:input_type -> alioth.v1.UpdateNotificationGroupStatusRequest
+	46, // 60: alioth.v1.NotificationGroupService.DeleteNotificationGroup:input_type -> alioth.v1.DeleteNotificationGroupRequest
+	48, // 61: alioth.v1.NotificationGroupService.GetNotificationGroup:input_type -> alioth.v1.GetNotificationGroupRequest
+	50, // 62: alioth.v1.NotificationGroupService.ListNotificationGroups:input_type -> alioth.v1.ListNotificationGroupsRequest
+	52, // 63: alioth.v1.NotificationGroupService.SelectNotificationGroups:input_type -> alioth.v1.SelectNotificationGroupsRequest
+	55, // 64: alioth.v1.NotificationSubscriptionService.CreateNotificationSubscription:input_type -> alioth.v1.CreateNotificationSubscriptionRequest
+	57, // 65: alioth.v1.NotificationSubscriptionService.UpdateNotificationSubscription:input_type -> alioth.v1.UpdateNotificationSubscriptionRequest
+	59, // 66: alioth.v1.NotificationSubscriptionService.UpdateNotificationSubscriptionStatus:input_type -> alioth.v1.UpdateNotificationSubscriptionStatusRequest
+	61, // 67: alioth.v1.NotificationSubscriptionService.DeleteNotificationSubscription:input_type -> alioth.v1.DeleteNotificationSubscriptionRequest
+	63, // 68: alioth.v1.NotificationSubscriptionService.GetNotificationSubscription:input_type -> alioth.v1.GetNotificationSubscriptionRequest
+	65, // 69: alioth.v1.NotificationSubscriptionService.ListNotificationSubscriptions:input_type -> alioth.v1.ListNotificationSubscriptionsRequest
+	71, // 70: alioth.v1.NotificationOnCallService.CreateNotificationOnCall:input_type -> alioth.v1.CreateNotificationOnCallRequest
+	73, // 71: alioth.v1.NotificationOnCallService.UpdateNotificationOnCall:input_type -> alioth.v1.UpdateNotificationOnCallRequest
+	75, // 72: alioth.v1.NotificationOnCallService.UpdateNotificationOnCallStatus:input_type -> alioth.v1.UpdateNotificationOnCallStatusRequest
+	77, // 73: alioth.v1.NotificationOnCallService.DeleteNotificationOnCall:input_type -> alioth.v1.DeleteNotificationOnCallRequest
+	79, // 74: alioth.v1.NotificationOnCallService.GetNotificationOnCall:input_type -> alioth.v1.GetNotificationOnCallRequest
+	81, // 75: alioth.v1.NotificationOnCallService.ListNotificationOnCalls:input_type -> alioth.v1.ListNotificationOnCallsRequest
+	84, // 76: alioth.v1.MessageLogService.ListMessageLogs:input_type -> alioth.v1.ListMessageLogsRequest
+	86, // 77: alioth.v1.MessageLogService.GetMessageLog:input_type -> alioth.v1.GetMessageLogRequest
+	89, // 78: alioth.v1.MessageLogService.ListNotificationTasks:input_type -> alioth.v1.ListNotificationTasksRequest
+	91, // 79: alioth.v1.MessageLogService.RetryNotificationTask:input_type -> alioth.v1.RetryNotificationTaskRequest
+	93, // 80: alioth.v1.MessageLogService.CancelNotificationTask:input_type -> alioth.v1.CancelNotificationTaskRequest
+	2,  // 81: alioth.v1.NotificationChannelService.CreateNotificationChannel:output_type -> alioth.v1.CreateNotificationChannelResponse
+	4,  // 82: alioth.v1.NotificationChannelService.UpdateNotificationChannel:output_type -> alioth.v1.UpdateNotificationChannelResponse
+	6,  // 83: alioth.v1.NotificationChannelService.UpdateNotificationChannelStatus:output_type -> alioth.v1.UpdateNotificationChannelStatusResponse
+	8,  // 84: alioth.v1.NotificationChannelService.DeleteNotificationChannel:output_type -> alioth.v1.DeleteNotificationChannelResponse
+	10, // 85: alioth.v1.NotificationChannelService.GetNotificationChannel:output_type -> alioth.v1.GetNotificationChannelResponse
+	12, // 86: alioth.v1.NotificationChannelService.ListNotificationChannels:output_type -> alioth.v1.ListNotificationChannelsResponse
+	14, // 87: alioth.v1.NotificationChannelService.SelectNotificationChannels:output_type -> alioth.v1.SelectNotificationChannelsResponse
+	16, // 88: alioth.v1.NotificationChannelService.TestNotificationChannel:output_type -> alioth.v1.TestNotificationChannelResponse
+	19, // 89: alioth.v1.NotificationTemplateService.CreateNotificationTemplate:output_type -> alioth.v1.CreateNotificationTemplateResponse
+	21, // 90: alioth.v1.NotificationTemplateService.UpdateNotificationTemplate:output_type -> alioth.v1.UpdateNotificationTemplateResponse
+	23, // 91: alioth.v1.NotificationTemplateService.UpdateNotificationTemplateStatus:output_type -> alioth.v1.UpdateNotificationTemplateStatusResponse
+	25, // 92: alioth.v1.NotificationTemplateService.DeleteNotificationTemplate:output_type -> alioth.v1.DeleteNotificationTemplateResponse
+	27, // 93: alioth.v1.NotificationTemplateService.GetNotificationTemplate:output_type -> alioth.v1.GetNotificationTemplateResponse
+	29, // 94: alioth.v1.NotificationTemplateService.ListNotificationTemplates:output_type -> alioth.v1.ListNotificationTemplatesResponse
+	31, // 95: alioth.v1.NotificationTemplateService.SelectNotificationTemplates:output_type -> alioth.v1.SelectNotificationTemplatesResponse
+	36, // 96: alioth.v1.NotificationTemplateService.TestNotificationTemplate:output_type -> alioth.v1.TestNotificationTemplateResponse
+	38, // 97: alioth.v1.NotificationTemplateService.PreviewNotificationTemplate:output_type -> alioth.v1.PreviewNotificationTemplateResponse
+	34, // 98: alioth.v1.NotificationTemplateService.ListNotificationPresets:output_type -> alioth.v1.ListNotificationPresetsResponse
+	41, // 99: alioth.v1.NotificationGroupService.CreateNotificationGroup:output_type -> alioth.v1.CreateNotificationGroupResponse
+	43, // 100: alioth.v1.NotificationGroupService.UpdateNotificationGroup:output_type -> alioth.v1.UpdateNotificationGroupResponse
+	45, // 101: alioth.v1.NotificationGroupService.UpdateNotificationGroupStatus:output_type -> alioth.v1.UpdateNotificationGroupStatusResponse
+	47, // 102: alioth.v1.NotificationGroupService.DeleteNotificationGroup:output_type -> alioth.v1.DeleteNotificationGroupResponse
+	49, // 103: alioth.v1.NotificationGroupService.GetNotificationGroup:output_type -> alioth.v1.GetNotificationGroupResponse
+	51, // 104: alioth.v1.NotificationGroupService.ListNotificationGroups:output_type -> alioth.v1.ListNotificationGroupsResponse
+	53, // 105: alioth.v1.NotificationGroupService.SelectNotificationGroups:output_type -> alioth.v1.SelectNotificationGroupsResponse
+	56, // 106: alioth.v1.NotificationSubscriptionService.CreateNotificationSubscription:output_type -> alioth.v1.CreateNotificationSubscriptionResponse
+	58, // 107: alioth.v1.NotificationSubscriptionService.UpdateNotificationSubscription:output_type -> alioth.v1.UpdateNotificationSubscriptionResponse
+	60, // 108: alioth.v1.NotificationSubscriptionService.UpdateNotificationSubscriptionStatus:output_type -> alioth.v1.UpdateNotificationSubscriptionStatusResponse
+	62, // 109: alioth.v1.NotificationSubscriptionService.DeleteNotificationSubscription:output_type -> alioth.v1.DeleteNotificationSubscriptionResponse
+	64, // 110: alioth.v1.NotificationSubscriptionService.GetNotificationSubscription:output_type -> alioth.v1.GetNotificationSubscriptionResponse
+	66, // 111: alioth.v1.NotificationSubscriptionService.ListNotificationSubscriptions:output_type -> alioth.v1.ListNotificationSubscriptionsResponse
+	72, // 112: alioth.v1.NotificationOnCallService.CreateNotificationOnCall:output_type -> alioth.v1.CreateNotificationOnCallResponse
+	74, // 113: alioth.v1.NotificationOnCallService.UpdateNotificationOnCall:output_type -> alioth.v1.UpdateNotificationOnCallResponse
+	76, // 114: alioth.v1.NotificationOnCallService.UpdateNotificationOnCallStatus:output_type -> alioth.v1.UpdateNotificationOnCallStatusResponse
+	78, // 115: alioth.v1.NotificationOnCallService.DeleteNotificationOnCall:output_type -> alioth.v1.DeleteNotificationOnCallResponse
+	80, // 116: alioth.v1.NotificationOnCallService.GetNotificationOnCall:output_type -> alioth.v1.GetNotificationOnCallResponse
+	82, // 117: alioth.v1.NotificationOnCallService.ListNotificationOnCalls:output_type -> alioth.v1.ListNotificationOnCallsResponse
+	85, // 118: alioth.v1.MessageLogService.ListMessageLogs:output_type -> alioth.v1.ListMessageLogsResponse
+	87, // 119: alioth.v1.MessageLogService.GetMessageLog:output_type -> alioth.v1.GetMessageLogResponse
+	90, // 120: alioth.v1.MessageLogService.ListNotificationTasks:output_type -> alioth.v1.ListNotificationTasksResponse
+	92, // 121: alioth.v1.MessageLogService.RetryNotificationTask:output_type -> alioth.v1.RetryNotificationTaskResponse
+	94, // 122: alioth.v1.MessageLogService.CancelNotificationTask:output_type -> alioth.v1.CancelNotificationTaskResponse
+	81, // [81:123] is the sub-list for method output_type
+	39, // [39:81] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_notification_proto_init() }
@@ -6103,9 +7364,9 @@ func file_alioth_v1_notification_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_notification_proto_rawDesc), len(file_alioth_v1_notification_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   79,
+			NumMessages:   95,
 			NumExtensions: 0,
-			NumServices:   5,
+			NumServices:   6,
 		},
 		GoTypes:           file_alioth_v1_notification_proto_goTypes,
 		DependencyIndexes: file_alioth_v1_notification_proto_depIdxs,

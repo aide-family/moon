@@ -58,6 +58,7 @@
 }
 
 :root {
+    color-scheme: light;
     --background: #f8fafc;
     --foreground: #0f172a;
     --card: rgba(255, 255, 255, 0.85);
@@ -103,6 +104,7 @@
 }
 
 .dark {
+    color-scheme: dark;
     --background: #0b1120;
     --foreground: #e2e8f0;
     --card: rgba(17, 24, 39, 0.75);
@@ -268,4 +270,63 @@
 
 [data-slot="form-field"][data-invalid="true"] [role="radiogroup"] input[type="radio"] {
   accent-color: var(--destructive);
+}
+
+/* 登录页第三方登录主按钮：品牌色只落在描边、底色与图标上，按钮文字始终用前景色，
+   这样浅色模式下白底、深色模式下深底两种情况都能靠 token 保证 AA 对比度。
+   品牌色按平台给出两套取值——深色模式需要提亮，官方浅色值在深色卡片上分辨不出来。 */
+.oauth-provider {
+  --oauth-brand: var(--primary);
+  border-color: color-mix(in oklab, var(--oauth-brand) 24%, var(--border));
+  background-color: color-mix(in oklab, var(--oauth-brand) 7%, transparent);
+}
+
+.oauth-provider:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--oauth-brand) 42%, var(--border));
+  background-color: color-mix(in oklab, var(--oauth-brand) 12%, transparent);
+}
+
+.oauth-provider:active:not(:disabled) {
+  background-color: color-mix(in oklab, var(--oauth-brand) 17%, transparent);
+}
+
+/* 图标容器：给品牌色，内联图标用 currentColor 时自动跟随；等待跳转时换成同尺寸的旋转图标。 */
+.oauth-provider-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--oauth-brand);
+}
+
+.oauth-provider[data-provider="GITHUB"] {
+  --oauth-brand: #24292f;
+}
+
+.oauth-provider[data-provider="GITEE"] {
+  --oauth-brand: #c71d23;
+}
+
+.oauth-provider[data-provider="FEISHU"] {
+  --oauth-brand: #3370ff;
+}
+
+.oauth-provider[data-provider="DINGTALK"] {
+  --oauth-brand: #1677ff;
+}
+
+.dark .oauth-provider[data-provider="GITHUB"] {
+  --oauth-brand: #e6edf3;
+}
+
+.dark .oauth-provider[data-provider="GITEE"] {
+  --oauth-brand: #ff7875;
+}
+
+.dark .oauth-provider[data-provider="FEISHU"] {
+  --oauth-brand: #7aa2ff;
+}
+
+.dark .oauth-provider[data-provider="DINGTALK"] {
+  --oauth-brand: #69b1ff;
 }

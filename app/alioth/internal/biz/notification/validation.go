@@ -15,6 +15,9 @@ import (
 	pkgnotify "github.com/aide-family/Alioth/pkg/notify"
 )
 
+// maxRepeatIntervalSeconds 是同一告警重复通知间隔的上限，12 小时。
+const maxRepeatIntervalSeconds = 43200
+
 const (
 	maxSubjectRunes    = 200
 	maxBodyRunes       = 20000
@@ -40,6 +43,14 @@ var channelApps = map[string]map[string]bool{
 var webhookApps = map[string]bool{"OTHER": true, "DINGTALK": true, "WECHAT": true, "FEISHU": true}
 
 var phonePattern = regexp.MustCompile(`^\+?[0-9]{6,20}$`)
+
+// validateRepeatInterval 校验重复通知间隔，0 表示不限制，上限 12 小时。
+func validateRepeatInterval(seconds int) error {
+	if seconds < 0 || seconds > maxRepeatIntervalSeconds {
+		return merr.Invalid("repeat interval seconds is out of range")
+	}
+	return nil
+}
 
 // validateChannel 校验渠道类型、应用、地址和发件人。
 func validateChannel(in bo.NotificationChannel) error {

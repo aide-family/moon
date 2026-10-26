@@ -135,6 +135,39 @@ func (_u *NotificationSubscriptionUpdate) AppendDatasourceUids(v []string) *Noti
 	return _u
 }
 
+// SetDatasourceLevelUids sets the "datasource_level_uids" field.
+func (_u *NotificationSubscriptionUpdate) SetDatasourceLevelUids(v []string) *NotificationSubscriptionUpdate {
+	_u.mutation.SetDatasourceLevelUids(v)
+	return _u
+}
+
+// AppendDatasourceLevelUids appends value to the "datasource_level_uids" field.
+func (_u *NotificationSubscriptionUpdate) AppendDatasourceLevelUids(v []string) *NotificationSubscriptionUpdate {
+	_u.mutation.AppendDatasourceLevelUids(v)
+	return _u
+}
+
+// SetRepeatIntervalSeconds sets the "repeat_interval_seconds" field.
+func (_u *NotificationSubscriptionUpdate) SetRepeatIntervalSeconds(v int) *NotificationSubscriptionUpdate {
+	_u.mutation.ResetRepeatIntervalSeconds()
+	_u.mutation.SetRepeatIntervalSeconds(v)
+	return _u
+}
+
+// SetNillableRepeatIntervalSeconds sets the "repeat_interval_seconds" field if the given value is not nil.
+func (_u *NotificationSubscriptionUpdate) SetNillableRepeatIntervalSeconds(v *int) *NotificationSubscriptionUpdate {
+	if v != nil {
+		_u.SetRepeatIntervalSeconds(*v)
+	}
+	return _u
+}
+
+// AddRepeatIntervalSeconds adds value to the "repeat_interval_seconds" field.
+func (_u *NotificationSubscriptionUpdate) AddRepeatIntervalSeconds(v int) *NotificationSubscriptionUpdate {
+	_u.mutation.AddRepeatIntervalSeconds(v)
+	return _u
+}
+
 // SetRemark sets the "remark" field.
 func (_u *NotificationSubscriptionUpdate) SetRemark(v string) *NotificationSubscriptionUpdate {
 	_u.mutation.SetRemark(v)
@@ -258,6 +291,20 @@ func (_u *NotificationSubscriptionUpdate) sqlSave(ctx context.Context) (_node in
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, notificationsubscription.FieldDatasourceUids, value)
 		})
+	}
+	if value, ok := _u.mutation.DatasourceLevelUids(); ok {
+		_spec.SetField(notificationsubscription.FieldDatasourceLevelUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedDatasourceLevelUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationsubscription.FieldDatasourceLevelUids, value)
+		})
+	}
+	if value, ok := _u.mutation.RepeatIntervalSeconds(); ok {
+		_spec.SetField(notificationsubscription.FieldRepeatIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRepeatIntervalSeconds(); ok {
+		_spec.AddField(notificationsubscription.FieldRepeatIntervalSeconds, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(notificationsubscription.FieldRemark, field.TypeString, value)
@@ -385,6 +432,39 @@ func (_u *NotificationSubscriptionUpdateOne) SetDatasourceUids(v []string) *Noti
 // AppendDatasourceUids appends value to the "datasource_uids" field.
 func (_u *NotificationSubscriptionUpdateOne) AppendDatasourceUids(v []string) *NotificationSubscriptionUpdateOne {
 	_u.mutation.AppendDatasourceUids(v)
+	return _u
+}
+
+// SetDatasourceLevelUids sets the "datasource_level_uids" field.
+func (_u *NotificationSubscriptionUpdateOne) SetDatasourceLevelUids(v []string) *NotificationSubscriptionUpdateOne {
+	_u.mutation.SetDatasourceLevelUids(v)
+	return _u
+}
+
+// AppendDatasourceLevelUids appends value to the "datasource_level_uids" field.
+func (_u *NotificationSubscriptionUpdateOne) AppendDatasourceLevelUids(v []string) *NotificationSubscriptionUpdateOne {
+	_u.mutation.AppendDatasourceLevelUids(v)
+	return _u
+}
+
+// SetRepeatIntervalSeconds sets the "repeat_interval_seconds" field.
+func (_u *NotificationSubscriptionUpdateOne) SetRepeatIntervalSeconds(v int) *NotificationSubscriptionUpdateOne {
+	_u.mutation.ResetRepeatIntervalSeconds()
+	_u.mutation.SetRepeatIntervalSeconds(v)
+	return _u
+}
+
+// SetNillableRepeatIntervalSeconds sets the "repeat_interval_seconds" field if the given value is not nil.
+func (_u *NotificationSubscriptionUpdateOne) SetNillableRepeatIntervalSeconds(v *int) *NotificationSubscriptionUpdateOne {
+	if v != nil {
+		_u.SetRepeatIntervalSeconds(*v)
+	}
+	return _u
+}
+
+// AddRepeatIntervalSeconds adds value to the "repeat_interval_seconds" field.
+func (_u *NotificationSubscriptionUpdateOne) AddRepeatIntervalSeconds(v int) *NotificationSubscriptionUpdateOne {
+	_u.mutation.AddRepeatIntervalSeconds(v)
 	return _u
 }
 
@@ -541,6 +621,20 @@ func (_u *NotificationSubscriptionUpdateOne) sqlSave(ctx context.Context) (_node
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, notificationsubscription.FieldDatasourceUids, value)
 		})
+	}
+	if value, ok := _u.mutation.DatasourceLevelUids(); ok {
+		_spec.SetField(notificationsubscription.FieldDatasourceLevelUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedDatasourceLevelUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationsubscription.FieldDatasourceLevelUids, value)
+		})
+	}
+	if value, ok := _u.mutation.RepeatIntervalSeconds(); ok {
+		_spec.SetField(notificationsubscription.FieldRepeatIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRepeatIntervalSeconds(); ok {
+		_spec.AddField(notificationsubscription.FieldRepeatIntervalSeconds, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(notificationsubscription.FieldRemark, field.TypeString, value)

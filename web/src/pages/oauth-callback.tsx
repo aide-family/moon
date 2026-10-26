@@ -1,41 +1,47 @@
+import { Loader2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { Loader2, MailCheck } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 
 import { oauth2Login } from "@/api/auth"
-import type { LoginResult, OAuth2Provider } from "@/api/auth/types"
-import { ApiError } from "@/api/http"
+import type { LoginResult, TokenPair } from "@/api/auth/types"
 import {
-  OAUTH_EMAIL_UNVERIFIED_MESSAGE,
   clearOAuthRedirect,
   oauthCodeParam,
-  oauthEmailSettingsUrl,
   oauthProviderName,
   readOAuthRedirect,
+  type OAuthRedirect,
 } from "@/auth/oauth-redirect"
+import { OAuthEmailBinding } from "@/components/oauth-email-binding"
 import { Button } from "@/components/ui/button"
 import { formErrorMessage } from "@/lib/form-error"
 import { readNextPath } from "@/lib/redirect"
 import { AuthShell } from "@/pages/auth-shell"
 
-function storeSession(result: LoginResult) {
-  localStorage.setItem("token", result.session.accessToken)
-  localStorage.setItem("refreshToken", result.session.refreshToken)
+function storeSession(session: TokenPair) {
+  localStorage.setItem("token", session.accessToken)
+  localStorage.setItem("refreshToken", session.refreshToken)
 }
 
-// 回调失败现场。邮箱未验证单独一类，用来给出去平台验证邮箱的引导。
-// detail 是第三方返回的错误描述（例如 invalid_scope），用于排查授权配置。
-type OAuthFailure =
-  | { kind: "emailUnverified"; provider: OAuth2Provider }
-  | { kind: "message"; message: string; detail?: string }
+// 回调失败现场。detail 是第三方返回的错误描述（例如 invalid_scope），用于排查授权配置。
+type OAuthFailure = { message: string; detail?: string }
+
+// 授权码换取后需要补充邮箱的待绑定现场；redirect 用于绑定成功后清理本轮 OAuth 现场并回跳。
+type OAuthEmailBindingState = {
+  redirect: OAuthRedirect
+  bindToken: string
+  suggestedEmail: string
+}
 
 // 第三方授权回调页：校验本轮 state 现场，用授权码换会话，成功后回到 next。
+// 第三方没有可用邮箱时留在本页补充并验证邮箱，验证通过后才签发会话。
 export function OAuthCallbackPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const [failure, setFailure] = useState<OAuthFailure | null>(null)
+  const [emailBinding, setEmailBinding] =
+    useState<OAuthEmailBindingState | null>(null)
   const started = useRef(false)
 
   useEffect(() => {
@@ -48,7 +54,9 @@ export function OAuthCallbackPage() {
     const providerErrorDescription = params.get("error_description")
     const redirect = readOAuthRedirect(state)
     // 钉钉把授权码放在 authCode，其余平台放在 code。
-    const code = params.get(redirect ? oauthCodeParam(redirect.provider) : "code")
+    const code = params.get(
+      redirect ? oauthCodeParam(redirect.provider) : "code"
+    )
 
     async function exchange() {
       if (providerError) {
@@ -56,7 +64,6 @@ export function OAuthCallbackPage() {
           clearOAuthRedirect(redirect.state)
         }
         setFailure({
-          kind: "message",
           message: t("oauthCallback.providerError"),
           detail: providerErrorDescription || providerError,
         })
@@ -66,11 +73,11 @@ export function OAuthCallbackPage() {
         if (redirect) {
           clearOAuthRedirect(redirect.state)
         }
-        setFailure({ kind: "message", message: t("oauthCallback.missingCode") })
+        setFailure({ message: t("oauthCallback.missingCode") })
         return
       }
       if (!redirect) {
-        setFailure({ kind: "message", message: t("oauthCallback.stateMismatch") })
+        setFailure({ message: t("oauthCallback.stateMismatch") })
         return
       }
       try {
@@ -79,44 +86,79 @@ export function OAuthCallbackPage() {
           code,
           redirectUri: redirect.redirectUri,
         })
-        storeSession(result)
-        clearOAuthRedirect(redirect.state)
-        navigate(readNextPath(redirect.next), { replace: true })
-      } catch (err) {
-        clearOAuthRedirect(redirect.state)
-        if (err instanceof ApiError && err.raw === OAUTH_EMAIL_UNVERIFIED_MESSAGE) {
-          setFailure({ kind: "emailUnverified", provider: redirect.provider })
+        if (result.session) {
+          storeSession(result.session)
+          clearOAuthRedirect(redirect.state)
+          navigate(readNextPath(redirect.next), { replace: true })
           return
         }
-        setFailure({ kind: "message", message: formErrorMessage(err, t("error.oauthFailed")) })
+        // 第三方没有可用邮箱：留在回调页补充并验证邮箱，验证通过前不签发会话。
+        if (result.emailBindingRequired && result.bindToken) {
+          setEmailBinding({
+            redirect,
+            bindToken: result.bindToken,
+            suggestedEmail: result.suggestedEmail ?? "",
+          })
+          return
+        }
+        clearOAuthRedirect(redirect.state)
+        setFailure({ message: t("error.oauthFailed") })
+      } catch (err) {
+        clearOAuthRedirect(redirect.state)
+        setFailure({ message: formErrorMessage(err, t("error.oauthFailed")) })
       }
     }
     void exchange()
   }, [navigate, params, t])
 
+  // 绑定并登录成功：保存会话、清理本轮 OAuth 现场，回到登录前要去的页面。
+  function onSignedIn(result: LoginResult) {
+    if (!emailBinding) {
+      return
+    }
+    storeSession(result.session)
+    clearOAuthRedirect(emailBinding.redirect.state)
+    navigate(readNextPath(emailBinding.redirect.next), { replace: true })
+  }
+
   return (
     <AuthShell
-      title={t("oauthCallback.title")}
+      title={
+        emailBinding
+          ? t("oauthCallback.bindingTitle")
+          : t("oauthCallback.title")
+      }
       subtitle={
-        failure?.kind === "emailUnverified"
-          ? t("oauthCallback.emailUnverifiedSubtitle")
+        emailBinding
+          ? t("oauthCallback.bindingSubtitle", {
+              provider: oauthProviderName(emailBinding.redirect.provider),
+            })
           : t("oauthCallback.subtitle")
       }
     >
-      {failure === null ? (
-        <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+      {emailBinding ? (
+        <OAuthEmailBinding
+          bindToken={emailBinding.bindToken}
+          suggestedEmail={emailBinding.suggestedEmail}
+          onSignedIn={onSignedIn}
+        />
+      ) : failure === null ? (
+        <p
+          role="status"
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+        >
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
           {t("oauthCallback.processing")}
         </p>
-      ) : failure.kind === "emailUnverified" ? (
-        <OAuthEmailUnverified provider={failure.provider} />
       ) : (
         <div className="grid gap-4">
           <p role="alert" className="text-sm text-destructive">
             {failure.message}
           </p>
           {failure.detail ? (
-            <p className="text-xs break-all text-muted-foreground">{failure.detail}</p>
+            <p className="text-xs break-all text-muted-foreground">
+              {failure.detail}
+            </p>
           ) : null}
           <Button asChild variant="outline" className="w-full">
             <Link to="/login">{t("oauthCallback.backToLogin")}</Link>
@@ -124,44 +166,5 @@ export function OAuthCallbackPage() {
         </div>
       )}
     </AuthShell>
-  )
-}
-
-// 第三方邮箱未验证且邮箱已被本地账号占用：给出“去平台验证邮箱”和“重新登录”的出口，
-// 而不是只显示一句错误。验证完成后重新发起第三方登录即可并入已有账号。
-function OAuthEmailUnverified({ provider }: { provider: OAuth2Provider }) {
-  const { t } = useTranslation()
-  const providerName = oauthProviderName(provider)
-  const settingsUrl = oauthEmailSettingsUrl(provider)
-
-  return (
-    <div className="grid gap-4">
-      <div className="flex items-start gap-3 rounded-lg border bg-muted/40 p-3">
-        <MailCheck className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
-        <div className="grid gap-1">
-          <p role="alert" className="text-sm font-medium">
-            {t("oauthCallback.emailUnverifiedTitle")}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {t("oauthCallback.emailUnverifiedDescription", { provider: providerName })}
-          </p>
-        </div>
-      </div>
-      <div className="grid gap-2">
-        {settingsUrl ? (
-          <Button asChild className="w-full">
-            <a href={settingsUrl} target="_blank" rel="noreferrer">
-              {t("oauthCallback.verifyEmail", { provider: providerName })}
-            </a>
-          </Button>
-        ) : null}
-        <Button asChild variant="outline" className="w-full">
-          <Link to="/login">{t("oauthCallback.retryLogin")}</Link>
-        </Button>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        {t("oauthCallback.emailUnverifiedHint", { provider: providerName })}
-      </p>
-    </div>
   )
 }
