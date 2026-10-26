@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useId, useMemo, useState, type KeyboardEvent } from "react"
 import { Check, ChevronDown, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -57,6 +57,8 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
+  const [activeIndex, setActiveIndex] = useState(0)
+  const listboxId = useId()
 
   const selected = useMemo(() => new Set(values), [values])
   const filtered = useMemo(() => {
@@ -72,6 +74,10 @@ export function MultiSelect({
   const filteredValues = filtered.map((option) => option.value)
   const allFilteredSelected =
     filteredValues.length > 0 && filteredValues.every((value) => selected.has(value))
+  // 过滤后数量会变，渲染时钳制高亮下标，避免额外 effect 改 state。
+  const activeOption =
+    filtered.length === 0 ? -1 : Math.min(activeIndex, filtered.length - 1)
+  const optionId = (index: number) => `${listboxId}-option-${index}`
 
   const selectedLabels = values
     .map((value) => options.find((option) => option.value === value)?.label ?? value)
@@ -106,6 +112,38 @@ export function MultiSelect({
     onChange([...next])
   }
 
+  function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (filtered.length === 0) {
+      return
+    }
+    const last = filtered.length - 1
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault()
+        setActiveIndex(activeOption >= last ? 0 : activeOption + 1)
+        break
+      case "ArrowUp":
+        event.preventDefault()
+        setActiveIndex(activeOption <= 0 ? last : activeOption - 1)
+        break
+      case "Home":
+        event.preventDefault()
+        setActiveIndex(0)
+        break
+      case "End":
+        event.preventDefault()
+        setActiveIndex(last)
+        break
+      case "Enter":
+        // 搜索框里回车只切换高亮项，不能把外层表单提交掉。
+        event.preventDefault()
+        if (activeOption >= 0) {
+          toggle(filtered[activeOption].value)
+        }
+        break
+    }
+  }
+
   return (
     <Popover
       open={open}
@@ -125,6 +163,8 @@ export function MultiSelect({
           data-slot="select-trigger"
           aria-expanded={open}
           aria-invalid={invalid || undefined}
+          aria-haspopup="listbox"
+          aria-controls={open ? listboxId : undefined}
           aria-describedby={ariaDescribedBy}
           disabled={disabled}
           className={cn(
@@ -154,8 +194,15 @@ export function MultiSelect({
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={onSearchKeyDown}
             placeholder={searchPlaceholder}
             aria-label={searchPlaceholder}
+            aria-autocomplete="list"
+            aria-controls={listboxId}
+            aria-activedescendant={
+              activeOption >= 0 ? optionId(activeOption) : undefined
+            }
+            autoComplete="off"
             className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
           />
         </div>
@@ -196,8 +243,10 @@ export function MultiSelect({
           ) : null}
         </div>
         <div
+          id={listboxId}
           className="max-h-64 overflow-y-auto p-1"
           role="listbox"
+          aria-label={searchPlaceholder}
           aria-multiselectable
         >
           {filtered.length === 0 ? (
@@ -205,16 +254,22 @@ export function MultiSelect({
               {emptyText}
             </p>
           ) : (
-            filtered.map((option) => {
+            filtered.map((option, index) => {
               const checked = selected.has(option.value)
               return (
                 <button
                   key={option.value}
+                  id={optionId(index)}
                   type="button"
                   role="option"
+                  tabIndex={-1}
                   aria-selected={checked}
                   onClick={() => toggle(option.value)}
-                  className="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                  onMouseEnter={() => setActiveIndex(index)}
+                  className={cn(
+                    "flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm",
+                    index === activeOption ? "bg-muted" : "hover:bg-muted"
+                  )}
                 >
                   <span
                     className={cn(

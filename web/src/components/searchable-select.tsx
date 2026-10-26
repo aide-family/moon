@@ -277,6 +277,7 @@ export function SearchableSelect({
                   id={row.id}
                   type="button"
                   role="option"
+                  tabIndex={-1}
                   aria-selected={isSelected}
                   data-active={index === safeActiveIndex}
                   title={row.value}
