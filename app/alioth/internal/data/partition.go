@@ -107,11 +107,8 @@ func prepareNotificationColumns(ctx context.Context, db *sql.DB) error {
 		},
 		"notification_subscriptions": {
 			`ALTER TABLE notification_subscriptions ADD COLUMN IF NOT EXISTS datasource_level_uids jsonb NOT NULL DEFAULT '[]'::jsonb`,
-			`ALTER TABLE notification_subscriptions ADD COLUMN IF NOT EXISTS repeat_interval_seconds integer NOT NULL DEFAULT 0`,
-		},
-		"notification_on_calls": {
-			`ALTER TABLE notification_on_calls ADD COLUMN IF NOT EXISTS datasource_level_uids jsonb NOT NULL DEFAULT '[]'::jsonb`,
-			`ALTER TABLE notification_on_calls ADD COLUMN IF NOT EXISTS repeat_interval_seconds integer NOT NULL DEFAULT 0`,
+			// bigint 与 ent 的 field.Int 对齐：写成 integer 会让后续 Schema.Create 再发一次 ALTER TYPE。
+			`ALTER TABLE notification_subscriptions ADD COLUMN IF NOT EXISTS repeat_interval_seconds bigint NOT NULL DEFAULT 0`,
 		},
 		"notification_tasks": {
 			`ALTER TABLE notification_tasks ADD COLUMN IF NOT EXISTS fingerprint character varying NOT NULL DEFAULT ''`,
