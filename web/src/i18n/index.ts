@@ -138,6 +138,46 @@ const zh = {
   list: {
     total: "共 {{count}} 条",
   },
+  oncallTimeView: {
+    otherGroups: "其他 {{count}} 组",
+    bucketGap: "{{weekday}} {{clock}}，空档：没有通知组覆盖",
+    bucketCovered: "{{weekday}} {{clock}}，{{count}} 个通知组覆盖：{{names}}",
+    hourUnit: "小时",
+    minuteUnit: "分",
+    empty: "还没有值班项，无法绘制时间视图。",
+    rangeLabel: "时间范围",
+    week: "周视图",
+    day: "日视图",
+    scopeLabel: "值班项",
+    scopeAll: "全部值班项",
+    disabled: "已停用",
+    dayLabel: "选择星期",
+    includeDisabled: "包含已停用（{{count}}）",
+    timezone: "时区 {{zone}}",
+    timezoneMixed: "时区混合",
+    coverageSummary: "覆盖 {{covered}} / 168h",
+    mixedTimezoneHint:
+      "所选值班项使用了多个时区（{{zones}}）。时间轴按各时区的本地时间叠加显示，只用于查看各自的排班，不代表同一时刻的真实覆盖；覆盖率与空档也按叠加结果计算。",
+    disabledHint:
+      "该值班项已停用：下面画的是它的排班时段，但实际不会投递通知。",
+    gridLabel: "通知组时段覆盖图（行是星期，列是小时）",
+    timeAxis: "时间",
+    tooltipGap: "空档：该时段没有通知组覆盖",
+    scrollHint: "时间轴可左右滑动查看整天；键盘可用方向键逐格移动。",
+    legendGap: "空档（无覆盖）",
+    laneLimit:
+      "格子内最多并排 {{lanes}} 条泳道，更多的组合并为「其他」；选择单个值班项可看到全部。",
+    detailTitle: "时段明细",
+    detailGap: "空档：该时段没有通知组覆盖",
+    detailCovered: "{{count}} 组覆盖本时段内的 {{duration}}",
+    detailHint: "点击格子，或用方向键选中一个时段，查看该时段的覆盖明细。",
+    gapTitle: "空档 {{count}} 段 · {{duration}}",
+    noGap: "整周都有通知组覆盖。",
+    gapMore: "还有 {{count}} 段未列出",
+    screenReaderSummary:
+      "本周共 {{total}}，覆盖 {{covered}}，空档 {{count}} 段共 {{duration}}。",
+  },
+
   multiSelect: {
     placeholder: "请选择",
     searchPlaceholder: "搜索选项",
@@ -1754,6 +1794,50 @@ const en = {
   list: {
     total: "{{count}} total",
   },
+  oncallTimeView: {
+    otherGroups: "Other {{count}} groups",
+    bucketGap: "{{weekday}} {{clock}}, gap: no group on call",
+    bucketCovered:
+      "{{weekday}} {{clock}}, covered by {{count}} group(s): {{names}}",
+    hourUnit: "h",
+    minuteUnit: "m",
+    empty: "No on-call entries yet, nothing to plot.",
+    rangeLabel: "Time range",
+    week: "Week",
+    day: "Day",
+    scopeLabel: "On-call entry",
+    scopeAll: "All on-call entries",
+    disabled: "disabled",
+    dayLabel: "Pick a weekday",
+    includeDisabled: "Include disabled ({{count}})",
+    timezone: "Timezone {{zone}}",
+    timezoneMixed: "Mixed timezones",
+    coverageSummary: "Covered {{covered}} / 168h",
+    mixedTimezoneHint:
+      "Selected entries use different timezones ({{zones}}). Local wall-clock times are overlaid for reviewing each schedule; this is not coverage at the same instant, and the coverage/gap figures follow the overlay.",
+    disabledHint:
+      "This entry is disabled: the schedule below is drawn, but no notifications are delivered.",
+    gridLabel:
+      "Notification group coverage grid (rows = weekdays, columns = hours)",
+    timeAxis: "Time",
+    tooltipGap: "Gap: nobody on call",
+    scrollHint:
+      "Scroll sideways or use the arrow keys to move hour by hour.",
+    legendGap: "Gap (no coverage)",
+    laneLimit:
+      "At most {{lanes}} lanes per cell; extra groups are merged. Pick a single entry to see all.",
+    detailTitle: "Hour detail",
+    detailGap: "Gap: no group covers this hour",
+    detailCovered: "{{count}} group(s) cover {{duration}} of this hour",
+    detailHint:
+      "Click a cell or use the arrow keys to inspect an hour.",
+    gapTitle: "{{count}} gap(s) · {{duration}}",
+    noGap: "Full coverage all week.",
+    gapMore: "{{count}} more not listed",
+    screenReaderSummary:
+      "Week total {{total}}, covered {{covered}}, {{count}} gap(s) totaling {{duration}}.",
+  },
+
   multiSelect: {
     placeholder: "Select",
     searchPlaceholder: "Search options",

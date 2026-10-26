@@ -403,18 +403,49 @@ function stepBucket(bucket: BucketPos, delta: number): BucketPos {
   }
 }
 
-/**
- * 组件文案：优先用 i18next 里的 oncallTimeView.* 词条；词条还没补进语言包时
- * 回落到内置的中英文字面量，保证组件可以独立接入、且两种语言都不串。
- */
+type OnCallTimeViewCopyKey =
+  | "otherGroups"
+  | "bucketGap"
+  | "bucketCovered"
+  | "hourUnit"
+  | "minuteUnit"
+  | "empty"
+  | "rangeLabel"
+  | "week"
+  | "day"
+  | "scopeLabel"
+  | "scopeAll"
+  | "disabled"
+  | "dayLabel"
+  | "includeDisabled"
+  | "timezone"
+  | "timezoneMixed"
+  | "coverageSummary"
+  | "mixedTimezoneHint"
+  | "disabledHint"
+  | "gridLabel"
+  | "timeAxis"
+  | "tooltipGap"
+  | "scrollHint"
+  | "legendGap"
+  | "laneLimit"
+  | "detailTitle"
+  | "detailGap"
+  | "detailCovered"
+  | "detailHint"
+  | "gapTitle"
+  | "noGap"
+  | "gapMore"
+  | "screenReaderSummary"
+
+/** 时间视图文案：词条在 i18n 的 oncallTimeView 下，插值参数由调用方传入。 */
 function useCopy() {
-  const { t, i18n } = useTranslation()
-  const language = i18n.resolvedLanguage ?? i18n.language ?? "zh"
-  return useMemo(() => {
-    const zh = language.toLowerCase().startsWith("zh")
-    return (key: string, zhText: string, enText: string): string =>
-      t(`oncallTimeView.${key}`, { defaultValue: zh ? zhText : enText })
-  }, [t, language])
+  const { t } = useTranslation()
+  return useCallback(
+    (key: OnCallTimeViewCopyKey, params?: Record<string, unknown>): string =>
+      t(`oncallTimeView.${key}`, params),
+    [t]
+  )
 }
 
 export interface OnCallTimeViewProps {
@@ -435,8 +466,14 @@ export function OnCallTimeView({
   emptyText,
   className,
 }: OnCallTimeViewProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const copy = useCopy()
+  // 「多个时区」提示里的分隔符跟当前语言走，避免英文界面出现中文顿号。
+  const zoneSeparator = (i18n.resolvedLanguage ?? i18n.language ?? "zh")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "、"
+    : ", "
   const [scopeUid, setScopeUid] = useState("ALL")
   const [range, setRange] = useState<"week" | "day">("week")
   const [day, setDay] = useState(0)
@@ -580,11 +617,7 @@ export function OnCallTimeView({
       ...head,
       {
         key: "__other__",
-        name: copy(
-          "otherGroups",
-          `其他 ${rest.length} 组`,
-          `Other ${rest.length} groups`
-        ),
+        name: copy("otherGroups", { count: rest.length }),
         spans: mergeSpans(rest.flatMap((lane) => lane.spans)),
         minutes: 0,
         windows: [],
@@ -763,28 +796,20 @@ export function OnCallTimeView({
     const weekday = weekdayName(bucket.day)
     const clock = `${formatClock(bucket.hour * 60)}–${formatClock(bucket.hour * 60 + 60)}`
     if (bucket.groups === 0) {
-      return copy(
-        "bucketGap",
-        `${weekday} ${clock}，空档：没有通知组覆盖`,
-        `${weekday} ${clock}, gap: no group on call`
-      )
+      return copy("bucketGap", { weekday, clock })
     }
     const names = bucket.segments
       .map((segment) => gridLanes[segment.lane]?.name)
       .filter(Boolean)
       .join("、")
-    return copy(
-      "bucketCovered",
-      `${weekday} ${clock}，${bucket.groups} 个通知组覆盖：${names}`,
-      `${weekday} ${clock}, covered by ${bucket.groups} group(s): ${names}`
-    )
+    return copy("bucketCovered", { weekday, clock, count: bucket.groups, names })
   }
 
   function duration(minutes: number): string {
     const hours = Math.floor(minutes / 60)
     const rest = minutes % 60
-    const hourUnit = copy("hourUnit", "小时", "h")
-    const minuteUnit = copy("minuteUnit", "分", "m")
+    const hourUnit = copy("hourUnit")
+    const minuteUnit = copy("minuteUnit")
     if (hours > 0 && rest > 0) {
       return `${hours} ${hourUnit} ${rest} ${minuteUnit}`
     }
@@ -812,11 +837,7 @@ export function OnCallTimeView({
       <div className={cardClasses}>
         <p className="text-sm text-muted-foreground">
           {emptyText ??
-            copy(
-              "empty",
-              "还没有值班项，无法绘制时间视图。",
-              "No on-call entries yet, nothing to plot."
-            )}
+            copy("empty")}
         </p>
       </div>
     )
@@ -838,7 +859,7 @@ export function OnCallTimeView({
       <div className="flex flex-wrap items-center gap-2">
         <div
           role="group"
-          aria-label={copy("rangeLabel", "时间范围", "Time range")}
+          aria-label={copy("rangeLabel")}
           className="inline-flex items-center gap-0.5 rounded-lg border bg-muted/40 p-0.5"
         >
           <Button
@@ -847,7 +868,7 @@ export function OnCallTimeView({
             aria-pressed={range === "week"}
             onClick={() => changeRange("week")}
           >
-            {copy("week", "周视图", "Week")}
+            {copy("week")}
           </Button>
           <Button
             size="xs"
@@ -855,7 +876,7 @@ export function OnCallTimeView({
             aria-pressed={range === "day"}
             onClick={() => changeRange("day")}
           >
-            {copy("day", "日视图", "Day")}
+            {copy("day")}
           </Button>
         </div>
 
@@ -863,19 +884,19 @@ export function OnCallTimeView({
           <SelectTrigger
             size="sm"
             className="min-w-40"
-            aria-label={copy("scopeLabel", "值班项", "On-call entry")}
+            aria-label={copy("scopeLabel")}
           >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">
-              {copy("scopeAll", "全部值班项", "All on-call entries")}
+              {copy("scopeAll")}
             </SelectItem>
             {items.map((item) => (
               <SelectItem key={item.uid} value={item.uid}>
                 {item.status === "ACTIVE"
                   ? item.name
-                  : `${item.name}（${copy("disabled", "已停用", "disabled")}）`}
+                  : `${item.name}（${copy("disabled")}）`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -884,7 +905,7 @@ export function OnCallTimeView({
         {range === "day" ? (
           <div
             role="group"
-            aria-label={copy("dayLabel", "选择星期", "Pick a weekday")}
+            aria-label={copy("dayLabel")}
             className="inline-flex flex-wrap items-center gap-0.5 rounded-lg border bg-muted/40 p-0.5"
           >
             {WEEK.map((index) => (
@@ -908,51 +929,31 @@ export function OnCallTimeView({
             aria-pressed={includeDisabled}
             onClick={() => setIncludeDisabled((current) => !current)}
           >
-            {copy(
-              "includeDisabled",
-              `包含已停用（${disabledCount}）`,
-              `Include disabled (${disabledCount})`
-            )}
+            {copy("includeDisabled", { count: disabledCount })}
           </Button>
         ) : null}
 
         <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>
             {timezones.length === 1
-              ? copy(
-                  "timezone",
-                  `时区 ${timezones[0]}`,
-                  `Timezone ${timezones[0]}`
-                )
-              : copy("timezoneMixed", "时区混合", "Mixed timezones")}
+              ? copy("timezone", { zone: timezones[0] })
+              : copy("timezoneMixed")}
           </span>
           <span className="font-mono">
-            {copy(
-              "coverageSummary",
-              `覆盖 ${formatHours(coveredMinutes)} / 168h`,
-              `Covered ${formatHours(coveredMinutes)} / 168h`
-            )}
+            {copy("coverageSummary", { covered: formatHours(coveredMinutes) })}
           </span>
         </div>
       </div>
 
       {timezones.length > 1 ? (
         <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-700 dark:text-amber-300">
-          {copy(
-            "mixedTimezoneHint",
-            `所选值班项使用了多个时区（${timezones.join("、")}）。时间轴按各时区的本地时间叠加显示，只用于查看各自的排班，不代表同一时刻的真实覆盖；覆盖率与空档也按叠加结果计算。`,
-            `Selected entries use different timezones (${timezones.join(", ")}). Local wall-clock times are overlaid for reviewing each schedule; this is not coverage at the same instant, and the coverage/gap figures follow the overlay.`
-          )}
+          {copy("mixedTimezoneHint", { zones: timezones.join(zoneSeparator) })}
         </p>
       ) : null}
 
       {singleDisabled ? (
         <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-700 dark:text-amber-300">
-          {copy(
-            "disabledHint",
-            "该值班项已停用：下面画的是它的排班时段，但实际不会投递通知。",
-            "This entry is disabled: the schedule below is drawn, but no notifications are delivered."
-          )}
+          {copy("disabledHint")}
         </p>
       ) : null}
 
@@ -966,11 +967,7 @@ export function OnCallTimeView({
               <div className="min-w-[44rem] p-2">
                 <div
                   role="grid"
-                  aria-label={copy(
-                    "gridLabel",
-                    "通知组时段覆盖图（行是星期，列是小时）",
-                    "Notification group coverage grid (rows = weekdays, columns = hours)"
-                  )}
+                  aria-label={copy("gridLabel")}
                   aria-readonly="true"
                   onKeyDown={handleKeyDown}
                   onMouseLeave={() => setHover(null)}
@@ -983,10 +980,10 @@ export function OnCallTimeView({
                   >
                     <div
                       role="columnheader"
-                      aria-label={copy("timeAxis", "时间", "Time")}
+                      aria-label={copy("timeAxis")}
                       className="pb-1 text-[10px] text-muted-foreground"
                     >
-                      {copy("timeAxis", "时间", "Time")}
+                      {copy("timeAxis")}
                     </div>
                     {HOURS.map((hour) => (
                       <div
@@ -1124,11 +1121,7 @@ export function OnCallTimeView({
                 </p>
                 {hoverBucket.groups === 0 ? (
                   <p className="mt-1 text-muted-foreground">
-                    {copy(
-                      "tooltipGap",
-                      "空档：该时段没有通知组覆盖",
-                      "Gap: nobody on call"
-                    )}
+                    {copy("tooltipGap")}
                   </p>
                 ) : (
                   <ul className="mt-1 flex flex-col gap-1">
@@ -1161,11 +1154,7 @@ export function OnCallTimeView({
 
           {/* 窄屏上 24 列放不下，告知可以横向滑动，避免误以为只画了半天。 */}
           <p className="mt-1 text-[10px] text-muted-foreground lg:hidden">
-            {copy(
-              "scrollHint",
-              "时间轴可左右滑动查看整天；键盘可用方向键逐格移动。",
-              "Scroll sideways or use the arrow keys to move hour by hour."
-            )}
+            {copy("scrollHint")}
           </p>
 
           {/* 图例：颜色 + 纹路 + 名称 + 本组覆盖时长，点按可隐藏/显示某组（剔除后的并集就是新空档）。 */}
@@ -1176,7 +1165,7 @@ export function OnCallTimeView({
                 className="size-3 shrink-0 rounded-[3px]"
                 style={GAP_FILL}
               />
-              {copy("legendGap", "空档（无覆盖）", "Gap (no coverage)")}
+              {copy("legendGap")}
             </span>
             {lanes.map((lane) => {
               const on = !hidden.includes(lane.key)
@@ -1211,11 +1200,7 @@ export function OnCallTimeView({
             })}
             {gridLanes.some((lane) => lane.other) ? (
               <span className="text-[10px] text-muted-foreground">
-                {copy(
-                  "laneLimit",
-                  `格子内最多并排 ${MAX_LANES} 条泳道，更多的组合并为「其他」；选择单个值班项可看到全部。`,
-                  `At most ${MAX_LANES} lanes per cell; extra groups are merged. Pick a single entry to see all.`
-                )}
+                {copy("laneLimit", { lanes: MAX_LANES })}
               </span>
             ) : null}
           </div>
@@ -1223,7 +1208,7 @@ export function OnCallTimeView({
 
         <aside className="flex min-w-0 flex-col gap-2 rounded-lg border bg-muted/20 p-2.5">
           <p className="text-xs font-medium text-muted-foreground">
-            {copy("detailTitle", "时段明细", "Hour detail")}
+            {copy("detailTitle")}
           </p>
           {/* 只把「选中的时段 + 覆盖情况」放进 live region，
               切换格子时读屏不会连空档列表一起念一遍。 */}
@@ -1244,16 +1229,8 @@ export function OnCallTimeView({
                   )}
                 >
                   {activeBucket.groups === 0
-                    ? copy(
-                        "detailGap",
-                        "空档：该时段没有通知组覆盖",
-                        "Gap: no group covers this hour"
-                      )
-                    : copy(
-                        "detailCovered",
-                        `${activeBucket.groups} 组覆盖本时段内的 ${duration(activeBucket.covered)}`,
-                        `${activeBucket.groups} group(s) cover ${duration(activeBucket.covered)} of this hour`
-                      )}
+                    ? copy("detailGap")
+                    : copy("detailCovered", { count: activeBucket.groups, duration: duration(activeBucket.covered) })}
                 </p>
                 <ul className="flex flex-col gap-1.5">
                   {activeBucket.segments.map((segment, index) => {
@@ -1302,30 +1279,18 @@ export function OnCallTimeView({
               </>
             ) : (
               <p className="text-xs text-muted-foreground">
-                {copy(
-                  "detailHint",
-                  "点击格子，或用方向键选中一个时段，查看该时段的覆盖明细。",
-                  "Click a cell or use the arrow keys to inspect an hour."
-                )}
+                {copy("detailHint")}
               </p>
             )}
           </div>
 
           <div className="mt-1 flex flex-col gap-1 border-t pt-2">
             <p className="text-xs font-medium text-muted-foreground">
-              {copy(
-                "gapTitle",
-                `空档 ${gaps.length} 段 · ${duration(gapMinutes)}`,
-                `${gaps.length} gap(s) · ${duration(gapMinutes)}`
-              )}
+              {copy("gapTitle", { count: gaps.length, duration: duration(gapMinutes) })}
             </p>
             {gaps.length === 0 ? (
               <p className="text-[10px] text-muted-foreground">
-                {copy(
-                  "noGap",
-                  "整周都有通知组覆盖。",
-                  "Full coverage all week."
-                )}
+                {copy("noGap")}
               </p>
             ) : (
               <ul className="flex flex-col gap-1">
@@ -1353,11 +1318,7 @@ export function OnCallTimeView({
                 })}
                 {sortedGaps.length > GAP_CHIP_LIMIT ? (
                   <li className="text-[10px] text-muted-foreground">
-                    {copy(
-                      "gapMore",
-                      `还有 ${sortedGaps.length - GAP_CHIP_LIMIT} 段未列出`,
-                      `${sortedGaps.length - GAP_CHIP_LIMIT} more not listed`
-                    )}
+                    {copy("gapMore", { count: sortedGaps.length - GAP_CHIP_LIMIT })}
                   </li>
                 ) : null}
               </ul>
@@ -1368,11 +1329,7 @@ export function OnCallTimeView({
 
       {/* 读屏摘要：把「一周覆盖多少、空档在哪」讲成一句话，避免只能逐个读格子。 */}
       <p className="sr-only">
-        {copy(
-          "screenReaderSummary",
-          `本周共 ${formatHours(MINUTES_PER_WEEK)}，覆盖 ${formatHours(coveredMinutes)}，空档 ${gaps.length} 段共 ${duration(gapMinutes)}。`,
-          `Week total ${formatHours(MINUTES_PER_WEEK)}, covered ${formatHours(coveredMinutes)}, ${gaps.length} gap(s) totalling ${duration(gapMinutes)}.`
-        )}
+        {copy("screenReaderSummary", { total: formatHours(MINUTES_PER_WEEK), covered: formatHours(coveredMinutes), count: gaps.length, duration: duration(gapMinutes) })}
       </p>
     </div>
   )
