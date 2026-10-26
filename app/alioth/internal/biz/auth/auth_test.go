@@ -143,6 +143,8 @@ type emailCodeRepoStub struct {
 	repository.EmailCodeRepo
 	codes       map[string]string
 	purposes    map[string]string
+	attempts    map[string]int
+	exhausted   map[string]int
 	issuedAt    map[string]time.Time
 	issuedCalls int
 	consumed    int
@@ -150,15 +152,18 @@ type emailCodeRepoStub struct {
 
 func newEmailCodeRepoStub() *emailCodeRepoStub {
 	return &emailCodeRepoStub{
-		codes:    map[string]string{},
-		purposes: map[string]string{},
-		issuedAt: map[string]time.Time{},
+		codes:     map[string]string{},
+		purposes:  map[string]string{},
+		attempts:  map[string]int{},
+		exhausted: map[string]int{},
+		issuedAt:  map[string]time.Time{},
 	}
 }
 
 func (stub *emailCodeRepoStub) SaveEmailCode(_ context.Context, email, codeHash, purpose string, _ time.Time) error {
 	stub.codes[email] = codeHash
 	stub.purposes[email] = purpose
+	stub.attempts[email] = 0
 	return nil
 }
 
@@ -172,8 +177,24 @@ func (stub *emailCodeRepoStub) ConsumeEmailCode(_ context.Context, email, codeHa
 	}
 	delete(stub.codes, email)
 	delete(stub.purposes, email)
+	stub.attempts[email] = 0
 	stub.consumed++
 	return true, nil
+}
+
+func (stub *emailCodeRepoStub) IncrementEmailCodeAttempts(_ context.Context, email, _ string, _ time.Time, maxAttempts int) error {
+	stub.attempts[email]++
+	if maxAttempts > 0 && stub.attempts[email] >= maxAttempts {
+		delete(stub.codes, email)
+		delete(stub.purposes, email)
+		stub.attempts[email] = 0
+		stub.exhausted[email]++
+	}
+	return nil
+}
+
+func (stub *emailCodeRepoStub) RecentExhaustedEmailCodes(_ context.Context, email string, _ time.Time, _ int) (int, error) {
+	return stub.exhausted[email], nil
 }
 
 func (stub *emailCodeRepoStub) LastEmailCodeIssuedAt(_ context.Context, email string) (time.Time, bool, error) {

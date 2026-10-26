@@ -11613,6 +11613,8 @@ type EmailLoginCodeMutation struct {
 	expires_at    *time.Time
 	used_at       *time.Time
 	purpose       *string
+	attempts      *int
+	addattempts   *int
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*EmailLoginCode, error)
@@ -12018,6 +12020,62 @@ func (m *EmailLoginCodeMutation) ResetPurpose() {
 	m.purpose = nil
 }
 
+// SetAttempts sets the "attempts" field.
+func (m *EmailLoginCodeMutation) SetAttempts(i int) {
+	m.attempts = &i
+	m.addattempts = nil
+}
+
+// Attempts returns the value of the "attempts" field in the mutation.
+func (m *EmailLoginCodeMutation) Attempts() (r int, exists bool) {
+	v := m.attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttempts returns the old "attempts" field's value of the EmailLoginCode entity.
+// If the EmailLoginCode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailLoginCodeMutation) OldAttempts(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttempts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttempts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttempts: %w", err)
+	}
+	return oldValue.Attempts, nil
+}
+
+// AddAttempts adds i to the "attempts" field.
+func (m *EmailLoginCodeMutation) AddAttempts(i int) {
+	if m.addattempts != nil {
+		*m.addattempts += i
+	} else {
+		m.addattempts = &i
+	}
+}
+
+// AddedAttempts returns the value that was added to the "attempts" field in this mutation.
+func (m *EmailLoginCodeMutation) AddedAttempts() (r int, exists bool) {
+	v := m.addattempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAttempts resets all changes to the "attempts" field.
+func (m *EmailLoginCodeMutation) ResetAttempts() {
+	m.attempts = nil
+	m.addattempts = nil
+}
+
 // Where appends a list predicates to the EmailLoginCodeMutation builder.
 func (m *EmailLoginCodeMutation) Where(ps ...predicate.EmailLoginCode) {
 	m.predicates = append(m.predicates, ps...)
@@ -12052,7 +12110,7 @@ func (m *EmailLoginCodeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EmailLoginCodeMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, emaillogincode.FieldCreatedAt)
 	}
@@ -12076,6 +12134,9 @@ func (m *EmailLoginCodeMutation) Fields() []string {
 	}
 	if m.purpose != nil {
 		fields = append(fields, emaillogincode.FieldPurpose)
+	}
+	if m.attempts != nil {
+		fields = append(fields, emaillogincode.FieldAttempts)
 	}
 	return fields
 }
@@ -12101,6 +12162,8 @@ func (m *EmailLoginCodeMutation) Field(name string) (ent.Value, bool) {
 		return m.UsedAt()
 	case emaillogincode.FieldPurpose:
 		return m.Purpose()
+	case emaillogincode.FieldAttempts:
+		return m.Attempts()
 	}
 	return nil, false
 }
@@ -12126,6 +12189,8 @@ func (m *EmailLoginCodeMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldUsedAt(ctx)
 	case emaillogincode.FieldPurpose:
 		return m.OldPurpose(ctx)
+	case emaillogincode.FieldAttempts:
+		return m.OldAttempts(ctx)
 	}
 	return nil, fmt.Errorf("unknown EmailLoginCode field %s", name)
 }
@@ -12191,6 +12256,13 @@ func (m *EmailLoginCodeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPurpose(v)
 		return nil
+	case emaillogincode.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttempts(v)
+		return nil
 	}
 	return fmt.Errorf("unknown EmailLoginCode field %s", name)
 }
@@ -12198,13 +12270,21 @@ func (m *EmailLoginCodeMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *EmailLoginCodeMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addattempts != nil {
+		fields = append(fields, emaillogincode.FieldAttempts)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *EmailLoginCodeMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case emaillogincode.FieldAttempts:
+		return m.AddedAttempts()
+	}
 	return nil, false
 }
 
@@ -12213,6 +12293,13 @@ func (m *EmailLoginCodeMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *EmailLoginCodeMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case emaillogincode.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAttempts(v)
+		return nil
 	}
 	return fmt.Errorf("unknown EmailLoginCode numeric field %s", name)
 }
@@ -12272,6 +12359,9 @@ func (m *EmailLoginCodeMutation) ResetField(name string) error {
 		return nil
 	case emaillogincode.FieldPurpose:
 		m.ResetPurpose()
+		return nil
+	case emaillogincode.FieldAttempts:
+		m.ResetAttempts()
 		return nil
 	}
 	return fmt.Errorf("unknown EmailLoginCode field %s", name)

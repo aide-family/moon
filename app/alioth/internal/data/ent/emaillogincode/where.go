@@ -94,6 +94,11 @@ func Purpose(v string) predicate.EmailLoginCode {
 	return predicate.EmailLoginCode(sql.FieldEQ(FieldPurpose, v))
 }
 
+// Attempts applies equality check predicate on the "attempts" field. It's identical to AttemptsEQ.
+func Attempts(v int) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldEQ(FieldAttempts, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.EmailLoginCode {
 	return predicate.EmailLoginCode(sql.FieldEQ(FieldCreatedAt, v))
@@ -522,6 +527,46 @@ func PurposeEqualFold(v string) predicate.EmailLoginCode {
 // PurposeContainsFold applies the ContainsFold predicate on the "purpose" field.
 func PurposeContainsFold(v string) predicate.EmailLoginCode {
 	return predicate.EmailLoginCode(sql.FieldContainsFold(FieldPurpose, v))
+}
+
+// AttemptsEQ applies the EQ predicate on the "attempts" field.
+func AttemptsEQ(v int) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldEQ(FieldAttempts, v))
+}
+
+// AttemptsNEQ applies the NEQ predicate on the "attempts" field.
+func AttemptsNEQ(v int) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldNEQ(FieldAttempts, v))
+}
+
+// AttemptsIn applies the In predicate on the "attempts" field.
+func AttemptsIn(vs ...int) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldIn(FieldAttempts, vs...))
+}
+
+// AttemptsNotIn applies the NotIn predicate on the "attempts" field.
+func AttemptsNotIn(vs ...int) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldNotIn(FieldAttempts, vs...))
+}
+
+// AttemptsGT applies the GT predicate on the "attempts" field.
+func AttemptsGT(v int) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldGT(FieldAttempts, v))
+}
+
+// AttemptsGTE applies the GTE predicate on the "attempts" field.
+func AttemptsGTE(v int) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldGTE(FieldAttempts, v))
+}
+
+// AttemptsLT applies the LT predicate on the "attempts" field.
+func AttemptsLT(v int) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldLT(FieldAttempts, v))
+}
+
+// AttemptsLTE applies the LTE predicate on the "attempts" field.
+func AttemptsLTE(v int) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldLTE(FieldAttempts, v))
 }
 
 // And groups predicates with the AND operator between them.

@@ -11,6 +11,7 @@ const messageKeys: Record<string, string> = {
   "invalid email address": "error.invalidEmail",
   "invalid username": "register.usernameInvalid",
   "send code too frequently": "error.sendTooFrequent",
+  "too many verification attempts": "error.tooManyAttempts",
   "oauth login failed": "error.oauthFailed",
   // 绑定失败走回调页的失败块，这里补一条本地化映射，避免直接露英文原文。
   "oauth bind failed": "profile.oauth.linkFailed",

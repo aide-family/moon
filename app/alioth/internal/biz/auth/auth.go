@@ -42,6 +42,12 @@ const (
 	emailCodeTTL = 10 * time.Minute
 	// emailCodeInterval 同一邮箱两次发码的最小间隔，挡住邮件轰炸。
 	emailCodeInterval = 60 * time.Second
+	// emailCodeMaxAttempts 是单个验证码允许的错误次数；用尽后立即作废，必须重新发码。
+	emailCodeMaxAttempts = 5
+	// emailCodeFailureWindow 与 emailCodeFailureLimit 是邮箱级锁定：窗口内被作废的码达到上限后，
+	// 暂停该邮箱的验证码校验与发码，避免 6 位码被持续枚举。
+	emailCodeFailureWindow = 15 * time.Minute
+	emailCodeFailureLimit  = 3
 )
 
 // AgentTokenLookup 用明文 Agent 令牌解析机器。只给 Connect 用。
@@ -264,6 +270,37 @@ func (authenticator *Authenticator) checkEmailCodeInterval(ctx context.Context, 
 	})
 }
 
+// checkEmailCodeLockout 在同一邮箱短时间内多次把验证码试到作废时暂停校验。
+// 锁定随失败窗口滑动自动解除，不额外存储状态。
+func (authenticator *Authenticator) checkEmailCodeLockout(ctx context.Context, email string) error {
+	failures, err := authenticator.emailCodes.RecentExhaustedEmailCodes(ctx, email, time.Now().Add(-emailCodeFailureWindow), emailCodeMaxAttempts)
+	if err != nil {
+		return authenticator.wrap(err)
+	}
+	if failures >= emailCodeFailureLimit {
+		return merr.Client("too many verification attempts")
+	}
+	return nil
+}
+
+// consumeEmailCode 消费邮箱验证码，并把错误尝试记到当前码上。
+// 同一个码达到 emailCodeMaxAttempts 次错误后立即作废，避免在有效期内被无限枚举。
+func (authenticator *Authenticator) consumeEmailCode(ctx context.Context, email, code, purpose string) (bool, error) {
+	if err := authenticator.checkEmailCodeLockout(ctx, email); err != nil {
+		return false, err
+	}
+	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), purpose, time.Now())
+	if err != nil {
+		return false, authenticator.wrap(err)
+	}
+	if !ok {
+		if err := authenticator.emailCodes.IncrementEmailCodeAttempts(ctx, email, purpose, time.Now(), emailCodeMaxAttempts); err != nil {
+			return false, authenticator.wrap(err)
+		}
+	}
+	return ok, nil
+}
+
 // SendRegisterEmailCode 给未注册邮箱发注册验证码。
 // 顺序是：图形验证码 → 邮箱是否已注册 → 60 秒节流 → 存码并发注册码邮件。
 // 先查邮箱占用再节流，已注册的邮箱不会因为反复请求就消耗掉一次发码机会。
@@ -273,6 +310,9 @@ func (authenticator *Authenticator) SendRegisterEmailCode(ctx context.Context, e
 		return merr.Client("invalid request")
 	}
 	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return err
+	}
+	if err := authenticator.checkEmailCodeLockout(ctx, email); err != nil {
 		return err
 	}
 	if _, err := authenticator.users.UserByEmail(ctx, email); err == nil {
@@ -294,6 +334,9 @@ func (authenticator *Authenticator) SendEmailLoginCode(ctx context.Context, emai
 		return merr.Client("invalid request")
 	}
 	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
+		return err
+	}
+	if err := authenticator.checkEmailCodeLockout(ctx, email); err != nil {
 		return err
 	}
 	if _, err := authenticator.users.UserByEmail(ctx, email); err != nil {
@@ -355,9 +398,9 @@ func (authenticator *Authenticator) Register(ctx context.Context, email, code, n
 	} else if !merr.IsNotFound(err) {
 		return nil, authenticator.wrap(err)
 	}
-	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), "register", time.Now())
+	ok, err := authenticator.consumeEmailCode(ctx, email, code, "register")
 	if err != nil {
-		return nil, authenticator.wrap(err)
+		return nil, err
 	}
 	if !ok {
 		return nil, merr.Client("invalid email or code")
@@ -389,9 +432,9 @@ func (authenticator *Authenticator) EmailLogin(ctx context.Context, email, code,
 	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
 		return nil, err
 	}
-	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), "login", time.Now())
+	ok, err := authenticator.consumeEmailCode(ctx, email, code, "login")
 	if err != nil {
-		return nil, authenticator.wrap(err)
+		return nil, err
 	}
 	if !ok {
 		return nil, merr.Client("invalid email or code")

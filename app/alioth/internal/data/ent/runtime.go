@@ -615,6 +615,10 @@ func init() {
 	emaillogincodeDescPurpose := emaillogincodeFields[5].Descriptor()
 	// emaillogincode.DefaultPurpose holds the default value on creation for the purpose field.
 	emaillogincode.DefaultPurpose = emaillogincodeDescPurpose.Default.(string)
+	// emaillogincodeDescAttempts is the schema descriptor for attempts field.
+	emaillogincodeDescAttempts := emaillogincodeFields[6].Descriptor()
+	// emaillogincode.DefaultAttempts holds the default value on creation for the attempts field.
+	emaillogincode.DefaultAttempts = emaillogincodeDescAttempts.Default.(int)
 	memberMixin := schema.Member{}.Mixin()
 	memberMixinFields0 := memberMixin[0].Fields()
 	_ = memberMixinFields0

@@ -29,6 +29,8 @@ const (
 	FieldUsedAt = "used_at"
 	// FieldPurpose holds the string denoting the purpose field in the database.
 	FieldPurpose = "purpose"
+	// FieldAttempts holds the string denoting the attempts field in the database.
+	FieldAttempts = "attempts"
 	// Table holds the table name of the emaillogincode in the database.
 	Table = "email_login_codes"
 )
@@ -44,6 +46,7 @@ var Columns = []string{
 	FieldExpiresAt,
 	FieldUsedAt,
 	FieldPurpose,
+	FieldAttempts,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -71,6 +74,8 @@ var (
 	CodeHashValidator func(string) error
 	// DefaultPurpose holds the default value on creation for the "purpose" field.
 	DefaultPurpose string
+	// DefaultAttempts holds the default value on creation for the "attempts" field.
+	DefaultAttempts int
 )
 
 // OrderOption defines the ordering options for the EmailLoginCode queries.
@@ -119,4 +124,9 @@ func ByUsedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByPurpose orders the results by the purpose field.
 func ByPurpose(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPurpose, opts...).ToFunc()
+}
+
+// ByAttempts orders the results by the attempts field.
+func ByAttempts(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAttempts, opts...).ToFunc()
 }

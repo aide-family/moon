@@ -231,6 +231,9 @@ func (authenticator *Authenticator) SendOAuthBindEmailCode(ctx context.Context, 
 	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
 		return err
 	}
+	if err := authenticator.checkEmailCodeLockout(ctx, email); err != nil {
+		return err
+	}
 	if err := authenticator.checkEmailCodeInterval(ctx, email); err != nil {
 		return err
 	}
@@ -253,9 +256,9 @@ func (authenticator *Authenticator) BindOAuthEmail(ctx context.Context, bindToke
 	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
 		return nil, err
 	}
-	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), "bind", time.Now())
+	ok, err := authenticator.consumeEmailCode(ctx, email, code, "bind")
 	if err != nil {
-		return nil, authenticator.wrap(err)
+		return nil, err
 	}
 	if !ok {
 		return nil, merr.Client("invalid email or code")

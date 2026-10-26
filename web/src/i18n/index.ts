@@ -123,6 +123,7 @@ const zh = {
     invalidCode: "邮箱或验证码不正确",
     emailNotRegistered: "邮箱未注册",
     sendTooFrequent: "验证码发送太频繁，请稍后再试。",
+    tooManyAttempts: "验证码尝试次数过多，请稍后再试。",
     oauthFailed: "第三方登录失败，请重试。",
     oauthNotConfigured: "该第三方登录尚未配置。",
     oauthBindingExpired: "邮箱绑定已过期，请重新发起第三方登录。",
@@ -1725,6 +1726,7 @@ const en = {
     invalidCode: "Incorrect email or code",
     emailNotRegistered: "This email is not registered",
     sendTooFrequent: "Please wait before requesting another code.",
+    tooManyAttempts: "Too many verification attempts. Please try again later.",
     oauthFailed: "Third-party login failed. Please try again.",
     oauthNotConfigured: "This third-party login is not configured.",
     oauthBindingExpired:

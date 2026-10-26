@@ -110,6 +110,27 @@ func (_u *EmailLoginCodeUpdate) SetNillablePurpose(v *string) *EmailLoginCodeUpd
 	return _u
 }
 
+// SetAttempts sets the "attempts" field.
+func (_u *EmailLoginCodeUpdate) SetAttempts(v int) *EmailLoginCodeUpdate {
+	_u.mutation.ResetAttempts()
+	_u.mutation.SetAttempts(v)
+	return _u
+}
+
+// SetNillableAttempts sets the "attempts" field if the given value is not nil.
+func (_u *EmailLoginCodeUpdate) SetNillableAttempts(v *int) *EmailLoginCodeUpdate {
+	if v != nil {
+		_u.SetAttempts(*v)
+	}
+	return _u
+}
+
+// AddAttempts adds value to the "attempts" field.
+func (_u *EmailLoginCodeUpdate) AddAttempts(v int) *EmailLoginCodeUpdate {
+	_u.mutation.AddAttempts(v)
+	return _u
+}
+
 // Mutation returns the EmailLoginCodeMutation object of the builder.
 func (_u *EmailLoginCodeUpdate) Mutation() *EmailLoginCodeMutation {
 	return _u.mutation
@@ -198,6 +219,12 @@ func (_u *EmailLoginCodeUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.Purpose(); ok {
 		_spec.SetField(emaillogincode.FieldPurpose, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Attempts(); ok {
+		_spec.SetField(emaillogincode.FieldAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAttempts(); ok {
+		_spec.AddField(emaillogincode.FieldAttempts, field.TypeInt, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -298,6 +325,27 @@ func (_u *EmailLoginCodeUpdateOne) SetNillablePurpose(v *string) *EmailLoginCode
 	if v != nil {
 		_u.SetPurpose(*v)
 	}
+	return _u
+}
+
+// SetAttempts sets the "attempts" field.
+func (_u *EmailLoginCodeUpdateOne) SetAttempts(v int) *EmailLoginCodeUpdateOne {
+	_u.mutation.ResetAttempts()
+	_u.mutation.SetAttempts(v)
+	return _u
+}
+
+// SetNillableAttempts sets the "attempts" field if the given value is not nil.
+func (_u *EmailLoginCodeUpdateOne) SetNillableAttempts(v *int) *EmailLoginCodeUpdateOne {
+	if v != nil {
+		_u.SetAttempts(*v)
+	}
+	return _u
+}
+
+// AddAttempts adds value to the "attempts" field.
+func (_u *EmailLoginCodeUpdateOne) AddAttempts(v int) *EmailLoginCodeUpdateOne {
+	_u.mutation.AddAttempts(v)
 	return _u
 }
 
@@ -419,6 +467,12 @@ func (_u *EmailLoginCodeUpdateOne) sqlSave(ctx context.Context) (_node *EmailLog
 	}
 	if value, ok := _u.mutation.Purpose(); ok {
 		_spec.SetField(emaillogincode.FieldPurpose, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Attempts(); ok {
+		_spec.SetField(emaillogincode.FieldAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAttempts(); ok {
+		_spec.AddField(emaillogincode.FieldAttempts, field.TypeInt, value)
 	}
 	_node = &EmailLoginCode{config: _u.config}
 	_spec.Assign = _node.assignValues

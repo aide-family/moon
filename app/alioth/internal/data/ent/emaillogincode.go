@@ -32,7 +32,9 @@ type EmailLoginCode struct {
 	// UsedAt holds the value of the "used_at" field.
 	UsedAt *time.Time `json:"used_at,omitempty"`
 	// Purpose holds the value of the "purpose" field.
-	Purpose      string `json:"purpose,omitempty"`
+	Purpose string `json:"purpose,omitempty"`
+	// Attempts holds the value of the "attempts" field.
+	Attempts     int `json:"attempts,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -41,7 +43,7 @@ func (*EmailLoginCode) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case emaillogincode.FieldID:
+		case emaillogincode.FieldID, emaillogincode.FieldAttempts:
 			values[i] = new(sql.NullInt64)
 		case emaillogincode.FieldUID, emaillogincode.FieldEmail, emaillogincode.FieldCodeHash, emaillogincode.FieldPurpose:
 			values[i] = new(sql.NullString)
@@ -117,6 +119,12 @@ func (_m *EmailLoginCode) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Purpose = value.String
 			}
+		case emaillogincode.FieldAttempts:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field attempts", values[i])
+			} else if value.Valid {
+				_m.Attempts = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -177,6 +185,9 @@ func (_m *EmailLoginCode) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("purpose=")
 	builder.WriteString(_m.Purpose)
+	builder.WriteString(", ")
+	builder.WriteString("attempts=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Attempts))
 	builder.WriteByte(')')
 	return builder.String()
 }
