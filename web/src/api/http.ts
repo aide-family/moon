@@ -12,9 +12,16 @@ const messageKeys: Record<string, string> = {
   "invalid username": "register.usernameInvalid",
   "send code too frequently": "error.sendTooFrequent",
   "oauth login failed": "error.oauthFailed",
+  // 绑定失败走回调页的失败块，这里补一条本地化映射，避免直接露英文原文。
+  "oauth bind failed": "profile.oauth.linkFailed",
   "oauth provider is not configured": "error.oauthNotConfigured",
   "oauth binding is invalid or expired": "error.oauthBindingExpired",
+  // 登录链路（补邮箱）也用这句原文，必须保留无插值的 key；绑定冲突的 409
+  // 由个人资料页与回调页按 status 自己提示 profile.oauth.alreadyBound。
   "oauth account is already bound": "error.oauthAccountBound",
+  // 解绑的 404 按「已经解绑」处理，复用页面通用的未找到文案。
+  "oauth link not found": "error.notFound",
+  "cannot unlink the last login method": "profile.oauth.unbindLastCredential",
   "member already exists": "error.memberExists",
   "invitation expired": "error.invitationExpired",
   "invitation is not pending": "error.invitationHandled",
@@ -264,6 +271,6 @@ export function put<T>(path: string, body?: unknown): Promise<T> {
   return send<T>(path, { method: "PUT", body: JSON.stringify(body ?? {}) })
 }
 
-export function del<T>(path: string): Promise<T> {
-  return send<T>(path, { method: "DELETE" })
+export function del<T>(path: string, options?: RequestOptions): Promise<T> {
+  return send<T>(path, { method: "DELETE" }, options)
 }

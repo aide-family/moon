@@ -638,6 +638,11 @@ func namespaceOptional(operation string) bool {
 		v1.OperationSelfServiceChangeEmail,
 		v1.OperationSelfServiceChangeAvatar,
 		v1.OperationSelfServiceChangeRemark,
+		// 第三方账号关联只要求登录态：个人资料页在未选租户时也要能读取和绑定，
+		// 这些接口不做租户级权限判断。
+		v1.OperationSelfServiceListSelfOAuthLinks,
+		v1.OperationSelfServiceBindSelfOAuth,
+		v1.OperationSelfServiceUnbindSelfOAuth,
 		v1.OperationNamespaceServiceCreateNamespace,
 		v1.OperationInvitationServiceListSelfInvitations,
 		v1.OperationInvitationServiceAcceptInvitation,

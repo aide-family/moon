@@ -447,6 +447,7 @@ func (c *AuthServiceHTTPClientImpl) SendRegisterEmailCode(ctx context.Context, i
 	return &out, nil
 }
 
+const OperationSelfServiceBindSelfOAuth = "/alioth.v1.SelfService/BindSelfOAuth"
 const OperationSelfServiceChangeAvatar = "/alioth.v1.SelfService/ChangeAvatar"
 const OperationSelfServiceChangeEmail = "/alioth.v1.SelfService/ChangeEmail"
 const OperationSelfServiceChangePhone = "/alioth.v1.SelfService/ChangePhone"
@@ -454,9 +455,13 @@ const OperationSelfServiceChangeRemark = "/alioth.v1.SelfService/ChangeRemark"
 const OperationSelfServiceGetSelfInfo = "/alioth.v1.SelfService/GetSelfInfo"
 const OperationSelfServiceGetSelfPermissions = "/alioth.v1.SelfService/GetSelfPermissions"
 const OperationSelfServiceListSelfNamespaces = "/alioth.v1.SelfService/ListSelfNamespaces"
+const OperationSelfServiceListSelfOAuthLinks = "/alioth.v1.SelfService/ListSelfOAuthLinks"
 const OperationSelfServiceRefreshToken = "/alioth.v1.SelfService/RefreshToken"
+const OperationSelfServiceUnbindSelfOAuth = "/alioth.v1.SelfService/UnbindSelfOAuth"
 
 type SelfServiceHTTPServer interface {
+	// BindSelfOAuth 用第三方授权码把身份绑定到当前账号。不签发会话，不改变登录身份。
+	BindSelfOAuth(context.Context, *BindSelfOAuthRequest) (*BindSelfOAuthResponse, error)
 	// ChangeAvatar 修改当前用户的头像。
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarResponse, error)
 	// ChangeEmail 修改当前用户的邮箱。
@@ -471,8 +476,12 @@ type SelfServiceHTTPServer interface {
 	GetSelfPermissions(context.Context, *GetSelfPermissionsRequest) (*GetSelfPermissionsResponse, error)
 	// ListSelfNamespaces 列出当前用户加入的租户。
 	ListSelfNamespaces(context.Context, *ListSelfNamespacesRequest) (*ListSelfNamespacesResponse, error)
+	// ListSelfOAuthLinks 列出当前账号已绑定的第三方身份。
+	ListSelfOAuthLinks(context.Context, *ListSelfOAuthLinksRequest) (*ListSelfOAuthLinksResponse, error)
 	// RefreshToken 用刷新令牌换取新的访问令牌。
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
+	// UnbindSelfOAuth 解绑当前账号的一条第三方身份。最后一个登录方式不能解绑。
+	UnbindSelfOAuth(context.Context, *UnbindSelfOAuthRequest) (*UnbindSelfOAuthResponse, error)
 }
 
 func RegisterSelfServiceHTTPServer(s *http.Server, srv SelfServiceHTTPServer) {
@@ -485,6 +494,9 @@ func RegisterSelfServiceHTTPServer(s *http.Server, srv SelfServiceHTTPServer) {
 	r.Handle("PUT", "/v1/self/change-remark", _SelfService_ChangeRemark0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/self/change-phone", _SelfService_ChangePhone0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/self/permissions", _SelfService_GetSelfPermissions0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/self/oauth/links", _SelfService_ListSelfOAuthLinks0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/self/oauth/bind", _SelfService_BindSelfOAuth0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/self/oauth/links/{uid}", _SelfService_UnbindSelfOAuth0_HTTP_Handler(srv))
 }
 
 func _SelfService_GetSelfInfo0_HTTP_Handler(srv SelfServiceHTTPServer) func(ctx http.Context) error {
@@ -639,7 +651,69 @@ func _SelfService_GetSelfPermissions0_HTTP_Handler(srv SelfServiceHTTPServer) fu
 	}
 }
 
+func _SelfService_ListSelfOAuthLinks0_HTTP_Handler(srv SelfServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListSelfOAuthLinksRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSelfServiceListSelfOAuthLinks)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSelfOAuthLinks(ctx, req.(*ListSelfOAuthLinksRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSelfOAuthLinksResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SelfService_BindSelfOAuth0_HTTP_Handler(srv SelfServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BindSelfOAuthRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSelfServiceBindSelfOAuth)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BindSelfOAuth(ctx, req.(*BindSelfOAuthRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BindSelfOAuthResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SelfService_UnbindSelfOAuth0_HTTP_Handler(srv SelfServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UnbindSelfOAuthRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSelfServiceUnbindSelfOAuth)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UnbindSelfOAuth(ctx, req.(*UnbindSelfOAuthRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UnbindSelfOAuthResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SelfServiceHTTPClient interface {
+	// BindSelfOAuth 用第三方授权码把身份绑定到当前账号。不签发会话，不改变登录身份。
+	BindSelfOAuth(ctx context.Context, req *BindSelfOAuthRequest, opts ...http.CallOption) (rsp *BindSelfOAuthResponse, err error)
 	// ChangeAvatar 修改当前用户的头像。
 	ChangeAvatar(ctx context.Context, req *ChangeAvatarRequest, opts ...http.CallOption) (rsp *ChangeAvatarResponse, err error)
 	// ChangeEmail 修改当前用户的邮箱。
@@ -654,8 +728,12 @@ type SelfServiceHTTPClient interface {
 	GetSelfPermissions(ctx context.Context, req *GetSelfPermissionsRequest, opts ...http.CallOption) (rsp *GetSelfPermissionsResponse, err error)
 	// ListSelfNamespaces 列出当前用户加入的租户。
 	ListSelfNamespaces(ctx context.Context, req *ListSelfNamespacesRequest, opts ...http.CallOption) (rsp *ListSelfNamespacesResponse, err error)
+	// ListSelfOAuthLinks 列出当前账号已绑定的第三方身份。
+	ListSelfOAuthLinks(ctx context.Context, req *ListSelfOAuthLinksRequest, opts ...http.CallOption) (rsp *ListSelfOAuthLinksResponse, err error)
 	// RefreshToken 用刷新令牌换取新的访问令牌。
 	RefreshToken(ctx context.Context, req *RefreshTokenRequest, opts ...http.CallOption) (rsp *RefreshTokenResponse, err error)
+	// UnbindSelfOAuth 解绑当前账号的一条第三方身份。最后一个登录方式不能解绑。
+	UnbindSelfOAuth(ctx context.Context, req *UnbindSelfOAuthRequest, opts ...http.CallOption) (rsp *UnbindSelfOAuthResponse, err error)
 }
 
 type SelfServiceHTTPClientImpl struct {
@@ -664,6 +742,24 @@ type SelfServiceHTTPClientImpl struct {
 
 func NewSelfServiceHTTPClient(client *http.Client) SelfServiceHTTPClient {
 	return &SelfServiceHTTPClientImpl{client}
+}
+
+// BindSelfOAuth 用第三方授权码把身份绑定到当前账号。不签发会话，不改变登录身份。
+func (c *SelfServiceHTTPClientImpl) BindSelfOAuth(ctx context.Context, in *BindSelfOAuthRequest, opts ...http.CallOption) (*BindSelfOAuthResponse, error) {
+	var out BindSelfOAuthResponse
+	pattern := "/v1/self/oauth/bind"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSelfServiceBindSelfOAuth),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // ChangeAvatar 修改当前用户的头像。
@@ -789,6 +885,23 @@ func (c *SelfServiceHTTPClientImpl) ListSelfNamespaces(ctx context.Context, in *
 	return &out, nil
 }
 
+// ListSelfOAuthLinks 列出当前账号已绑定的第三方身份。
+func (c *SelfServiceHTTPClientImpl) ListSelfOAuthLinks(ctx context.Context, in *ListSelfOAuthLinksRequest, opts ...http.CallOption) (*ListSelfOAuthLinksResponse, error) {
+	var out ListSelfOAuthLinksResponse
+	pattern := "/v1/self/oauth/links"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSelfServiceListSelfOAuthLinks),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // RefreshToken 用刷新令牌换取新的访问令牌。
 func (c *SelfServiceHTTPClientImpl) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...http.CallOption) (*RefreshTokenResponse, error) {
 	var out RefreshTokenResponse
@@ -800,6 +913,23 @@ func (c *SelfServiceHTTPClientImpl) RefreshToken(ctx context.Context, in *Refres
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UnbindSelfOAuth 解绑当前账号的一条第三方身份。最后一个登录方式不能解绑。
+func (c *SelfServiceHTTPClientImpl) UnbindSelfOAuth(ctx context.Context, in *UnbindSelfOAuthRequest, opts ...http.CallOption) (*UnbindSelfOAuthResponse, error) {
+	var out UnbindSelfOAuthResponse
+	pattern := "/v1/self/oauth/links/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSelfServiceUnbindSelfOAuth),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

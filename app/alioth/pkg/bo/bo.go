@@ -134,6 +134,16 @@ type OAuthBinding struct {
 	SuggestedEmail string
 }
 
+// OAuthLink 是账号已经绑定的一条第三方身份。BoundAt 取 user_oauth.created_at，
+// 由接口层格式化成 RFC3339 返回。
+type OAuthLink struct {
+	UID      string
+	Provider string
+	OpenID   string
+	Email    string
+	BoundAt  time.Time
+}
+
 // Datasource 是租户里的一条数据源。Password 和 Secret 只在用例内部是明文，离开接口前要清空。
 type Datasource struct {
 	UID          string

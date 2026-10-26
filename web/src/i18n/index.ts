@@ -220,12 +220,15 @@ const zh = {
   },
   oauthCallback: {
     title: "第三方登录",
+    linkedTitle: "正在绑定第三方账号",
     subtitle: "正在完成第三方账号授权。",
     processing: "正在完成登录，请稍候…",
+    linking: "正在绑定 {{provider}}…",
     missingCode: "第三方没有返回授权码，请重新登录。",
     stateMismatch: "登录状态已失效，请重新发起第三方登录。",
     providerError: "第三方授权失败，请重新登录。",
     backToLogin: "返回登录",
+    backToProfile: "返回个人资料",
     bindingTitle: "补充邮箱",
     bindingSubtitle: "{{provider}} 没有返回可用邮箱，验证一个邮箱后即可登录。",
     bindingDescription:
@@ -247,6 +250,38 @@ const zh = {
     remarkHint: "可选。平台管理员可在用户详情中看到这条备注，最多 200 个字符。",
     status: "状态",
     saved: "已保存",
+    oauth: {
+      title: "第三方账号",
+      description:
+        "绑定第三方账号后可以用它直接登录 Alioth；解绑后该账号不能再用于登录。",
+      summary: "已绑定 {{bound}} / {{total}}",
+      bound: "已绑定",
+      notBound: "未绑定",
+      bind: "绑定",
+      binding: "正在跳转…",
+      unbind: "解绑",
+      unbinding: "解绑中…",
+      accountLabel: "第三方账号",
+      accountUnknown: "平台未返回账号信息",
+      boundAt: "绑定于 {{time}}",
+      emptyTitle: "没有可绑定的第三方登录",
+      emptyHint:
+        "平台还没有配置任何第三方登录来源。请联系管理员在服务端配置后再绑定。",
+      forbiddenHint: "当前账号不能管理第三方账号关联。",
+      linkSuccess: "已绑定 {{provider}}",
+      unlinkSuccess: "已解绑 {{provider}}",
+      linkFailed: "绑定失败，请重试。",
+      unlinkFailed: "解绑失败，请重试。",
+      alreadyBound: "该 {{provider}} 账号已绑定到其他账号。",
+      unbindLastCredential:
+        "这可能是你最后的登录方式，不能解绑。请先确认邮箱可以正常登录。",
+      authorizeUnavailable:
+        "暂时无法获取 {{provider}} 的授权地址，请稍后重试。",
+      sessionExpired: "登录状态已失效，请重新登录后再绑定。",
+      confirmTitle: "解绑 {{provider}}？",
+      confirmDescription:
+        "解绑后该第三方账号不能再直接登录 Alioth。已有邮箱仍可正常登录。",
+    },
   },
   namespace: {
     title: "租户",
@@ -1795,14 +1830,17 @@ const en = {
   },
   oauthCallback: {
     title: "Third-party login",
+    linkedTitle: "Linking a third-party account",
     subtitle: "Completing the third-party authorization.",
     processing: "Completing sign-in, please wait…",
+    linking: "Linking {{provider}}…",
     missingCode:
       "The provider did not return an authorization code. Please sign in again.",
     stateMismatch:
       "This sign-in state is no longer valid. Please start third-party sign-in again.",
     providerError: "Third-party authorization failed. Please sign in again.",
     backToLogin: "Back to login",
+    backToProfile: "Back to profile",
     bindingTitle: "Add your email",
     bindingSubtitle:
       "{{provider}} did not return a usable email. Verify one to continue.",
@@ -1827,6 +1865,39 @@ const en = {
       "Optional. Platform admins can see this remark in your user details. Up to 200 characters.",
     status: "Status",
     saved: "Saved",
+    oauth: {
+      title: "Linked accounts",
+      description:
+        "Link a GitHub, Gitee, Feishu, or DingTalk account to sign in directly. Unlinking removes that sign-in method.",
+      summary: "{{bound}} of {{total}} linked",
+      bound: "Linked",
+      notBound: "Not linked",
+      bind: "Link",
+      binding: "Redirecting…",
+      unbind: "Unlink",
+      unbinding: "Unlinking…",
+      accountLabel: "Third-party account",
+      accountUnknown: "The provider returned no account details",
+      boundAt: "Linked {{time}}",
+      emptyTitle: "No third-party sign-in available",
+      emptyHint:
+        "No provider is configured on the server yet. Ask an administrator to configure one before linking.",
+      forbiddenHint: "Your account cannot manage linked accounts.",
+      linkSuccess: "{{provider}} linked",
+      unlinkSuccess: "{{provider}} unlinked",
+      linkFailed: "Linking failed. Please try again.",
+      unlinkFailed: "Unlinking failed. Please try again.",
+      alreadyBound:
+        "That {{provider}} account is already linked to another account.",
+      unbindLastCredential:
+        "This may be your only sign-in method, so it cannot be unlinked. Make sure email sign-in works first.",
+      authorizeUnavailable:
+        "Cannot get the {{provider}} authorization URL right now. Please try again later.",
+      sessionExpired: "Your session expired. Sign in again before linking.",
+      confirmTitle: "Unlink {{provider}}?",
+      confirmDescription:
+        "After unlinking, this account can no longer sign in to Alioth. Email sign-in still works.",
+    },
   },
   namespace: {
     title: "Namespaces",

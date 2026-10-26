@@ -272,11 +272,16 @@
   accent-color: var(--destructive);
 }
 
+/* 品牌色 token：登录页第三方登录按钮与资料页图标块共用。
+   未匹配到具体平台时回落到主题主色，未知来源也不会渲染出空位。 */
+.oauth-brand {
+  --oauth-brand: var(--primary);
+}
+
 /* 登录页第三方登录主按钮：品牌色只落在描边、底色与图标上，按钮文字始终用前景色，
    这样浅色模式下白底、深色模式下深底两种情况都能靠 token 保证 AA 对比度。
    品牌色按平台给出两套取值——深色模式需要提亮，官方浅色值在深色卡片上分辨不出来。 */
 .oauth-provider {
-  --oauth-brand: var(--primary);
   border-color: color-mix(in oklab, var(--oauth-brand) 24%, var(--border));
   background-color: color-mix(in oklab, var(--oauth-brand) 7%, transparent);
 }
@@ -299,34 +304,34 @@
   color: var(--oauth-brand);
 }
 
-.oauth-provider[data-provider="GITHUB"] {
+.oauth-brand[data-provider="GITHUB"] {
   --oauth-brand: #24292f;
 }
 
-.oauth-provider[data-provider="GITEE"] {
+.oauth-brand[data-provider="GITEE"] {
   --oauth-brand: #c71d23;
 }
 
-.oauth-provider[data-provider="FEISHU"] {
+.oauth-brand[data-provider="FEISHU"] {
   --oauth-brand: #3370ff;
 }
 
-.oauth-provider[data-provider="DINGTALK"] {
+.oauth-brand[data-provider="DINGTALK"] {
   --oauth-brand: #1677ff;
 }
 
-.dark .oauth-provider[data-provider="GITHUB"] {
+.dark .oauth-brand[data-provider="GITHUB"] {
   --oauth-brand: #e6edf3;
 }
 
-.dark .oauth-provider[data-provider="GITEE"] {
+.dark .oauth-brand[data-provider="GITEE"] {
   --oauth-brand: #ff7875;
 }
 
-.dark .oauth-provider[data-provider="FEISHU"] {
+.dark .oauth-brand[data-provider="FEISHU"] {
   --oauth-brand: #7aa2ff;
 }
 
-.dark .oauth-provider[data-provider="DINGTALK"] {
+.dark .oauth-brand[data-provider="DINGTALK"] {
   --oauth-brand: #69b1ff;
 }

@@ -14,6 +14,8 @@ interface ConfirmActionProps {
   title: string
   description: string
   confirmLabel: string
+  /** 确认操作进行中的按钮文案；缺省沿用 confirmLabel。 */
+  pendingLabel?: string
   cancelLabel: string
   pending?: boolean
   error?: string
@@ -26,6 +28,7 @@ export function ConfirmAction({
   title,
   description,
   confirmLabel,
+  pendingLabel,
   cancelLabel,
   pending = false,
   error,
@@ -52,7 +55,7 @@ export function ConfirmAction({
               onConfirm()
             }}
           >
-            {confirmLabel}
+            {pending ? (pendingLabel ?? confirmLabel) : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

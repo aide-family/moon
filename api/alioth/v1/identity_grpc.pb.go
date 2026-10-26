@@ -527,6 +527,9 @@ const (
 	SelfService_ChangeRemark_FullMethodName       = "/alioth.v1.SelfService/ChangeRemark"
 	SelfService_ChangePhone_FullMethodName        = "/alioth.v1.SelfService/ChangePhone"
 	SelfService_GetSelfPermissions_FullMethodName = "/alioth.v1.SelfService/GetSelfPermissions"
+	SelfService_ListSelfOAuthLinks_FullMethodName = "/alioth.v1.SelfService/ListSelfOAuthLinks"
+	SelfService_BindSelfOAuth_FullMethodName      = "/alioth.v1.SelfService/BindSelfOAuth"
+	SelfService_UnbindSelfOAuth_FullMethodName    = "/alioth.v1.SelfService/UnbindSelfOAuth"
 )
 
 // SelfServiceClient is the client API for SelfService service.
@@ -551,6 +554,12 @@ type SelfServiceClient interface {
 	ChangePhone(ctx context.Context, in *ChangePhoneRequest, opts ...grpc.CallOption) (*ChangePhoneResponse, error)
 	// 获取当前用户在当前租户的权限名。未选租户时为空。
 	GetSelfPermissions(ctx context.Context, in *GetSelfPermissionsRequest, opts ...grpc.CallOption) (*GetSelfPermissionsResponse, error)
+	// 列出当前账号已绑定的第三方身份。
+	ListSelfOAuthLinks(ctx context.Context, in *ListSelfOAuthLinksRequest, opts ...grpc.CallOption) (*ListSelfOAuthLinksResponse, error)
+	// 用第三方授权码把身份绑定到当前账号。不签发会话，不改变登录身份。
+	BindSelfOAuth(ctx context.Context, in *BindSelfOAuthRequest, opts ...grpc.CallOption) (*BindSelfOAuthResponse, error)
+	// 解绑当前账号的一条第三方身份。最后一个登录方式不能解绑。
+	UnbindSelfOAuth(ctx context.Context, in *UnbindSelfOAuthRequest, opts ...grpc.CallOption) (*UnbindSelfOAuthResponse, error)
 }
 
 type selfServiceClient struct {
@@ -641,6 +650,36 @@ func (c *selfServiceClient) GetSelfPermissions(ctx context.Context, in *GetSelfP
 	return out, nil
 }
 
+func (c *selfServiceClient) ListSelfOAuthLinks(ctx context.Context, in *ListSelfOAuthLinksRequest, opts ...grpc.CallOption) (*ListSelfOAuthLinksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSelfOAuthLinksResponse)
+	err := c.cc.Invoke(ctx, SelfService_ListSelfOAuthLinks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *selfServiceClient) BindSelfOAuth(ctx context.Context, in *BindSelfOAuthRequest, opts ...grpc.CallOption) (*BindSelfOAuthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BindSelfOAuthResponse)
+	err := c.cc.Invoke(ctx, SelfService_BindSelfOAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *selfServiceClient) UnbindSelfOAuth(ctx context.Context, in *UnbindSelfOAuthRequest, opts ...grpc.CallOption) (*UnbindSelfOAuthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnbindSelfOAuthResponse)
+	err := c.cc.Invoke(ctx, SelfService_UnbindSelfOAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SelfServiceServer is the server API for SelfService service.
 // All implementations must embed UnimplementedSelfServiceServer
 // for forward compatibility.
@@ -663,6 +702,12 @@ type SelfServiceServer interface {
 	ChangePhone(context.Context, *ChangePhoneRequest) (*ChangePhoneResponse, error)
 	// 获取当前用户在当前租户的权限名。未选租户时为空。
 	GetSelfPermissions(context.Context, *GetSelfPermissionsRequest) (*GetSelfPermissionsResponse, error)
+	// 列出当前账号已绑定的第三方身份。
+	ListSelfOAuthLinks(context.Context, *ListSelfOAuthLinksRequest) (*ListSelfOAuthLinksResponse, error)
+	// 用第三方授权码把身份绑定到当前账号。不签发会话，不改变登录身份。
+	BindSelfOAuth(context.Context, *BindSelfOAuthRequest) (*BindSelfOAuthResponse, error)
+	// 解绑当前账号的一条第三方身份。最后一个登录方式不能解绑。
+	UnbindSelfOAuth(context.Context, *UnbindSelfOAuthRequest) (*UnbindSelfOAuthResponse, error)
 	mustEmbedUnimplementedSelfServiceServer()
 }
 
@@ -696,6 +741,15 @@ func (UnimplementedSelfServiceServer) ChangePhone(context.Context, *ChangePhoneR
 }
 func (UnimplementedSelfServiceServer) GetSelfPermissions(context.Context, *GetSelfPermissionsRequest) (*GetSelfPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSelfPermissions not implemented")
+}
+func (UnimplementedSelfServiceServer) ListSelfOAuthLinks(context.Context, *ListSelfOAuthLinksRequest) (*ListSelfOAuthLinksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSelfOAuthLinks not implemented")
+}
+func (UnimplementedSelfServiceServer) BindSelfOAuth(context.Context, *BindSelfOAuthRequest) (*BindSelfOAuthResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BindSelfOAuth not implemented")
+}
+func (UnimplementedSelfServiceServer) UnbindSelfOAuth(context.Context, *UnbindSelfOAuthRequest) (*UnbindSelfOAuthResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnbindSelfOAuth not implemented")
 }
 func (UnimplementedSelfServiceServer) mustEmbedUnimplementedSelfServiceServer() {}
 func (UnimplementedSelfServiceServer) testEmbeddedByValue()                     {}
@@ -862,6 +916,60 @@ func _SelfService_GetSelfPermissions_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SelfService_ListSelfOAuthLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSelfOAuthLinksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SelfServiceServer).ListSelfOAuthLinks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SelfService_ListSelfOAuthLinks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SelfServiceServer).ListSelfOAuthLinks(ctx, req.(*ListSelfOAuthLinksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SelfService_BindSelfOAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BindSelfOAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SelfServiceServer).BindSelfOAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SelfService_BindSelfOAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SelfServiceServer).BindSelfOAuth(ctx, req.(*BindSelfOAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SelfService_UnbindSelfOAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnbindSelfOAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SelfServiceServer).UnbindSelfOAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SelfService_UnbindSelfOAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SelfServiceServer).UnbindSelfOAuth(ctx, req.(*UnbindSelfOAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SelfService_ServiceDesc is the grpc.ServiceDesc for SelfService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -900,6 +1008,18 @@ var SelfService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSelfPermissions",
 			Handler:    _SelfService_GetSelfPermissions_Handler,
+		},
+		{
+			MethodName: "ListSelfOAuthLinks",
+			Handler:    _SelfService_ListSelfOAuthLinks_Handler,
+		},
+		{
+			MethodName: "BindSelfOAuth",
+			Handler:    _SelfService_BindSelfOAuth_Handler,
+		},
+		{
+			MethodName: "UnbindSelfOAuth",
+			Handler:    _SelfService_UnbindSelfOAuth_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { toast } from "sonner"
 
 import { changePhone, changeRemark, getSelfInfo } from "@/api/self"
 import type { UserItem } from "@/api/user/types"
 import { useSession } from "@/auth/session"
 import { FormField } from "@/components/form-field"
+import { OAuthAccountsCard } from "@/components/oauth-accounts-card"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { StatusBadge } from "@/components/status-badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import { enumLabel } from "@/lib/enum-label"
 import { failureMessage, readFormError } from "@/lib/form-error"
 
 // 备注上限以后端 ChangeRemark 的 buf.validate 为准。
@@ -27,6 +31,10 @@ const remarkLimit = 200
 export function ProfilePage() {
   const { t } = useTranslation()
   const session = useSession()
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const [oauthReload, setOauthReload] = useState(0)
+  const handledOAuthQuery = useRef("")
   const [user, setUser] = useState<UserItem | null>(null)
   const [remark, setRemark] = useState("")
   const [phone, setPhone] = useState("")
@@ -72,6 +80,38 @@ export function ProfilePage() {
     }
   }, [attempt])
 
+  // 从第三方绑定回调回到资料页：提示结果、清掉 query，并让账号卡片重新拉一次列表。
+  useEffect(() => {
+    const status = params.get("oauth")
+    if (status !== "linked" && status !== "conflict" && status !== "failed") {
+      return
+    }
+    const provider = params.get("provider") ?? ""
+    const signature = `${status}:${provider}`
+    // StrictMode 会重复执行 effect：同一组参数只提示一次。
+    if (handledOAuthQuery.current === signature) {
+      return
+    }
+    handledOAuthQuery.current = signature
+    if (status === "linked" && provider) {
+      toast.success(
+        t("profile.oauth.linkSuccess", {
+          provider: enumLabel(t, provider),
+        })
+      )
+    } else if (status === "conflict" && provider) {
+      toast.error(
+        t("profile.oauth.alreadyBound", {
+          provider: enumLabel(t, provider),
+        })
+      )
+    } else if (status === "failed") {
+      toast.error(t("profile.oauth.linkFailed"))
+    }
+    setOauthReload((value) => value + 1)
+    navigate("/profile", { replace: true })
+  }, [navigate, params, t])
+
   const profile = user ?? session.user
   const phoneDirty = !!user && phone !== (user.phone ?? "")
   const dirty = !!user && (remark !== user.remark || phoneDirty)
@@ -115,121 +155,124 @@ export function ProfilePage() {
         description={t("profile.description")}
       />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <Card className="glass-card max-w-2xl">
-          <CardHeader>
-            <CardTitle>{displayName}</CardTitle>
-            <CardDescription className="break-all">
-              {profile?.email || "—"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-1">
-                <dt className="text-sm text-muted-foreground">
-                  {t("user.systemRole")}
-                </dt>
-                <dd><StatusBadge value={profile?.systemRole ?? ""} /></dd>
-              </div>
-              <div className="grid gap-1">
-                <dt className="text-sm text-muted-foreground">
-                  {t("profile.status")}
-                </dt>
-                <dd><StatusBadge value={profile?.status ?? ""} /></dd>
-              </div>
-            </dl>
-            <Separator />
-            {loading ? (
-              <div className="grid gap-2">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-8 w-full" />
-              </div>
-            ) : failed ? (
-              <div className="grid gap-3">
-                <p className="text-sm text-destructive">
-                  {loadError || t("state.failed")}
+        <div className="grid max-w-2xl gap-6 pb-2">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>{displayName}</CardTitle>
+              <CardDescription className="break-all">
+                {profile?.email || "—"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-1">
+                  <dt className="text-sm text-muted-foreground">
+                    {t("user.systemRole")}
+                  </dt>
+                  <dd><StatusBadge value={profile?.systemRole ?? ""} /></dd>
+                </div>
+                <div className="grid gap-1">
+                  <dt className="text-sm text-muted-foreground">
+                    {t("profile.status")}
+                  </dt>
+                  <dd><StatusBadge value={profile?.status ?? ""} /></dd>
+                </div>
+              </dl>
+              <Separator />
+              {loading ? (
+                <div className="grid gap-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+              ) : failed ? (
+                <div className="grid gap-3">
+                  <p className="text-sm text-destructive">
+                    {loadError || t("state.failed")}
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="justify-self-start"
+                    onClick={() => setAttempt((value) => value + 1)}
+                  >
+                    {t("action.retry")}
+                  </Button>
+                </div>
+              ) : (
+                <form
+                  id="profile-form"
+                  className="grid gap-4"
+                  noValidate
+                  onSubmit={onSubmit}
+                >
+                  <FormField
+                    label={t("profile.phone")}
+                    htmlFor="profile-phone"
+                    hint={t("profile.phoneHint")}
+                    error={fieldErrors.phone}
+                  >
+                    <Input
+                      id="profile-phone"
+                      value={phone}
+                      placeholder={t("profile.phonePlaceholder")}
+                      aria-invalid={fieldErrors.phone ? true : undefined}
+                      onChange={(event) => {
+                        setPhone(event.target.value)
+                        setSaved(false)
+                        setFormError("")
+                        setFieldErrors({})
+                      }}
+                    />
+                  </FormField>
+                  <FormField
+                    label={t("profile.remark")}
+                    htmlFor="profile-remark"
+                    hint={t("profile.remarkHint")}
+                    error={fieldErrors.remark}
+                  >
+                    <Input
+                      id="profile-remark"
+                      value={remark}
+                      maxLength={remarkLimit}
+                      placeholder={t("profile.remarkPlaceholder")}
+                      aria-invalid={fieldErrors.remark ? true : undefined}
+                      onChange={(event) => {
+                        setRemark(event.target.value)
+                        setSaved(false)
+                        setFormError("")
+                        setFieldErrors({})
+                      }}
+                    />
+                  </FormField>
+                  {formError ? (
+                    <p role="alert" className="text-sm text-destructive">
+                      {formError}
+                    </p>
+                  ) : null}
+                </form>
+              )}
+            </CardContent>
+            {!loading && !failed ? (
+              <CardFooter className="justify-end gap-2">
+                <p
+                  role="status"
+                  aria-live="polite"
+                  className="mr-auto text-sm text-muted-foreground"
+                >
+                  {saved ? t("profile.saved") : null}
                 </p>
                 <Button
-                  variant="outline"
-                  className="justify-self-start"
-                  onClick={() => setAttempt((value) => value + 1)}
+                  type="submit"
+                  form="profile-form"
+                  aria-busy={pending || undefined}
+                  disabled={pending || !dirty}
                 >
-                  {t("action.retry")}
+                  {pending ? t("action.saving") : t("action.save")}
                 </Button>
-              </div>
-            ) : (
-              <form
-                id="profile-form"
-                className="grid gap-4"
-                noValidate
-                onSubmit={onSubmit}
-              >
-                <FormField
-                  label={t("profile.phone")}
-                  htmlFor="profile-phone"
-                  hint={t("profile.phoneHint")}
-                  error={fieldErrors.phone}
-                >
-                  <Input
-                    id="profile-phone"
-                    value={phone}
-                    placeholder={t("profile.phonePlaceholder")}
-                    aria-invalid={fieldErrors.phone ? true : undefined}
-                    onChange={(event) => {
-                      setPhone(event.target.value)
-                      setSaved(false)
-                      setFormError("")
-                      setFieldErrors({})
-                    }}
-                  />
-                </FormField>
-                <FormField
-                  label={t("profile.remark")}
-                  htmlFor="profile-remark"
-                  hint={t("profile.remarkHint")}
-                  error={fieldErrors.remark}
-                >
-                  <Input
-                    id="profile-remark"
-                    value={remark}
-                    maxLength={remarkLimit}
-                    placeholder={t("profile.remarkPlaceholder")}
-                    aria-invalid={fieldErrors.remark ? true : undefined}
-                    onChange={(event) => {
-                      setRemark(event.target.value)
-                      setSaved(false)
-                      setFormError("")
-                      setFieldErrors({})
-                    }}
-                  />
-                </FormField>
-                {formError ? (
-                  <p role="alert" className="text-sm text-destructive">
-                    {formError}
-                  </p>
-                ) : null}
-              </form>
-            )}
-          </CardContent>
-          {!loading && !failed ? (
-            <CardFooter className="justify-end gap-2">
-              <p
-                role="status"
-                aria-live="polite"
-                className="mr-auto text-sm text-muted-foreground"
-              >
-                {saved ? t("profile.saved") : null}
-              </p>
-              <Button
-                type="submit"
-                form="profile-form"
-                aria-busy={pending || undefined}
-                disabled={pending || !dirty}
-              >
-                {pending ? t("action.saving") : t("action.save")}
-              </Button>
-            </CardFooter>
-          ) : null}
-        </Card>
+              </CardFooter>
+            ) : null}
+          </Card>
+          <OAuthAccountsCard key={oauthReload} />
+        </div>
       </div>
     </section>
   )

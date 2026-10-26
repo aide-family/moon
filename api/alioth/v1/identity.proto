@@ -123,6 +123,21 @@ service SelfService {
   rpc GetSelfPermissions(GetSelfPermissionsRequest) returns (GetSelfPermissionsResponse) {
     option (google.api.http) = {get: "/v1/self/permissions"};
   }
+  // 列出当前账号已绑定的第三方身份。
+  rpc ListSelfOAuthLinks(ListSelfOAuthLinksRequest) returns (ListSelfOAuthLinksResponse) {
+    option (google.api.http) = {get: "/v1/self/oauth/links"};
+  }
+  // 用第三方授权码把身份绑定到当前账号。不签发会话，不改变登录身份。
+  rpc BindSelfOAuth(BindSelfOAuthRequest) returns (BindSelfOAuthResponse) {
+    option (google.api.http) = {
+      post: "/v1/self/oauth/bind"
+      body: "*"
+    };
+  }
+  // 解绑当前账号的一条第三方身份。最后一个登录方式不能解绑。
+  rpc UnbindSelfOAuth(UnbindSelfOAuthRequest) returns (UnbindSelfOAuthResponse) {
+    option (google.api.http) = {delete: "/v1/self/oauth/links/{uid}"};
+  }
 }
 
 // 租户管理。
@@ -729,6 +744,54 @@ message GetSelfPermissionsResponse {
   // 权限名列表。
   repeated string permissions = 1;
 }
+
+// 当前账号绑定的一条第三方身份。
+message OAuthLink {
+  // 绑定标识，对应 user_oauth.uid。
+  string uid = 1;
+  // 第三方，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
+  string provider = 2;
+  // 第三方身份标识。
+  string open_id = 3 [json_name = "openId"];
+  // 绑定时第三方返回的邮箱，可能为空。
+  string email = 4;
+  // 绑定时间，RFC3339。
+  string bound_at = 5 [json_name = "boundAt"];
+}
+
+// 列出当前账号的第三方绑定不需要参数。
+message ListSelfOAuthLinksRequest {}
+
+// 当前账号的第三方绑定。
+message ListSelfOAuthLinksResponse {
+  // 绑定列表，按绑定时间倒序。
+  repeated OAuthLink items = 1;
+}
+
+// 用第三方授权码绑定当前账号的参数。
+message BindSelfOAuthRequest {
+  // 第三方，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
+  string provider = 1 [(buf.validate.field).string = {in: ["GITHUB", "GITEE", "FEISHU", "DINGTALK"]}];
+  // 第三方授权码。
+  string code = 2 [(buf.validate.field).string.min_len = 1];
+  // 授权回调地址，与授权时一致。
+  string redirect_uri = 3 [json_name = "redirectUri"];
+}
+
+// 绑定后的第三方身份。
+message BindSelfOAuthResponse {
+  // 绑定。
+  OAuthLink item = 1;
+}
+
+// 要解绑的第三方绑定。
+message UnbindSelfOAuthRequest {
+  // 绑定标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 解绑成功。
+message UnbindSelfOAuthResponse {}
 
 // 创建租户的参数。
 message CreateNamespaceRequest {

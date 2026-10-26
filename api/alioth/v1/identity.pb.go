@@ -2478,6 +2478,364 @@ func (x *GetSelfPermissionsResponse) GetPermissions() []string {
 	return nil
 }
 
+// 当前账号绑定的一条第三方身份。
+type OAuthLink struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 绑定标识，对应 user_oauth.uid。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 第三方，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
+	Provider string `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
+	// 第三方身份标识。
+	OpenId string `protobuf:"bytes,3,opt,name=open_id,json=openId,proto3" json:"open_id,omitempty"`
+	// 绑定时第三方返回的邮箱，可能为空。
+	Email string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	// 绑定时间，RFC3339。
+	BoundAt       string `protobuf:"bytes,5,opt,name=bound_at,json=boundAt,proto3" json:"bound_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OAuthLink) Reset() {
+	*x = OAuthLink{}
+	mi := &file_alioth_v1_identity_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OAuthLink) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OAuthLink) ProtoMessage() {}
+
+func (x *OAuthLink) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_identity_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OAuthLink.ProtoReflect.Descriptor instead.
+func (*OAuthLink) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *OAuthLink) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *OAuthLink) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *OAuthLink) GetOpenId() string {
+	if x != nil {
+		return x.OpenId
+	}
+	return ""
+}
+
+func (x *OAuthLink) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *OAuthLink) GetBoundAt() string {
+	if x != nil {
+		return x.BoundAt
+	}
+	return ""
+}
+
+// 列出当前账号的第三方绑定不需要参数。
+type ListSelfOAuthLinksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSelfOAuthLinksRequest) Reset() {
+	*x = ListSelfOAuthLinksRequest{}
+	mi := &file_alioth_v1_identity_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSelfOAuthLinksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSelfOAuthLinksRequest) ProtoMessage() {}
+
+func (x *ListSelfOAuthLinksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_identity_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSelfOAuthLinksRequest.ProtoReflect.Descriptor instead.
+func (*ListSelfOAuthLinksRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{43}
+}
+
+// 当前账号的第三方绑定。
+type ListSelfOAuthLinksResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 绑定列表，按绑定时间倒序。
+	Items         []*OAuthLink `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSelfOAuthLinksResponse) Reset() {
+	*x = ListSelfOAuthLinksResponse{}
+	mi := &file_alioth_v1_identity_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSelfOAuthLinksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSelfOAuthLinksResponse) ProtoMessage() {}
+
+func (x *ListSelfOAuthLinksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_identity_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSelfOAuthLinksResponse.ProtoReflect.Descriptor instead.
+func (*ListSelfOAuthLinksResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *ListSelfOAuthLinksResponse) GetItems() []*OAuthLink {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+// 用第三方授权码绑定当前账号的参数。
+type BindSelfOAuthRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 第三方，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
+	Provider string `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	// 第三方授权码。
+	Code string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	// 授权回调地址，与授权时一致。
+	RedirectUri   string `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BindSelfOAuthRequest) Reset() {
+	*x = BindSelfOAuthRequest{}
+	mi := &file_alioth_v1_identity_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BindSelfOAuthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BindSelfOAuthRequest) ProtoMessage() {}
+
+func (x *BindSelfOAuthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_identity_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BindSelfOAuthRequest.ProtoReflect.Descriptor instead.
+func (*BindSelfOAuthRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *BindSelfOAuthRequest) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *BindSelfOAuthRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *BindSelfOAuthRequest) GetRedirectUri() string {
+	if x != nil {
+		return x.RedirectUri
+	}
+	return ""
+}
+
+// 绑定后的第三方身份。
+type BindSelfOAuthResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 绑定。
+	Item          *OAuthLink `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BindSelfOAuthResponse) Reset() {
+	*x = BindSelfOAuthResponse{}
+	mi := &file_alioth_v1_identity_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BindSelfOAuthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BindSelfOAuthResponse) ProtoMessage() {}
+
+func (x *BindSelfOAuthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_identity_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BindSelfOAuthResponse.ProtoReflect.Descriptor instead.
+func (*BindSelfOAuthResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *BindSelfOAuthResponse) GetItem() *OAuthLink {
+	if x != nil {
+		return x.Item
+	}
+	return nil
+}
+
+// 要解绑的第三方绑定。
+type UnbindSelfOAuthRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 绑定标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnbindSelfOAuthRequest) Reset() {
+	*x = UnbindSelfOAuthRequest{}
+	mi := &file_alioth_v1_identity_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnbindSelfOAuthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnbindSelfOAuthRequest) ProtoMessage() {}
+
+func (x *UnbindSelfOAuthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_identity_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnbindSelfOAuthRequest.ProtoReflect.Descriptor instead.
+func (*UnbindSelfOAuthRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *UnbindSelfOAuthRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 解绑成功。
+type UnbindSelfOAuthResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnbindSelfOAuthResponse) Reset() {
+	*x = UnbindSelfOAuthResponse{}
+	mi := &file_alioth_v1_identity_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnbindSelfOAuthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnbindSelfOAuthResponse) ProtoMessage() {}
+
+func (x *UnbindSelfOAuthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_identity_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnbindSelfOAuthResponse.ProtoReflect.Descriptor instead.
+func (*UnbindSelfOAuthResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{48}
+}
+
 // 创建租户的参数。
 type CreateNamespaceRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2491,7 +2849,7 @@ type CreateNamespaceRequest struct {
 
 func (x *CreateNamespaceRequest) Reset() {
 	*x = CreateNamespaceRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[42]
+	mi := &file_alioth_v1_identity_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2503,7 +2861,7 @@ func (x *CreateNamespaceRequest) String() string {
 func (*CreateNamespaceRequest) ProtoMessage() {}
 
 func (x *CreateNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[42]
+	mi := &file_alioth_v1_identity_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2516,7 +2874,7 @@ func (x *CreateNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*CreateNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{42}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *CreateNamespaceRequest) GetName() string {
@@ -2544,7 +2902,7 @@ type CreateNamespaceResponse struct {
 
 func (x *CreateNamespaceResponse) Reset() {
 	*x = CreateNamespaceResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[43]
+	mi := &file_alioth_v1_identity_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2556,7 +2914,7 @@ func (x *CreateNamespaceResponse) String() string {
 func (*CreateNamespaceResponse) ProtoMessage() {}
 
 func (x *CreateNamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[43]
+	mi := &file_alioth_v1_identity_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2569,7 +2927,7 @@ func (x *CreateNamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNamespaceResponse.ProtoReflect.Descriptor instead.
 func (*CreateNamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{43}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *CreateNamespaceResponse) GetNamespace() *NamespaceItem {
@@ -2596,7 +2954,7 @@ type UpdateNamespaceRequest struct {
 
 func (x *UpdateNamespaceRequest) Reset() {
 	*x = UpdateNamespaceRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[44]
+	mi := &file_alioth_v1_identity_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2608,7 +2966,7 @@ func (x *UpdateNamespaceRequest) String() string {
 func (*UpdateNamespaceRequest) ProtoMessage() {}
 
 func (x *UpdateNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[44]
+	mi := &file_alioth_v1_identity_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2621,7 +2979,7 @@ func (x *UpdateNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{44}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *UpdateNamespaceRequest) GetUid() string {
@@ -2663,7 +3021,7 @@ type UpdateNamespaceResponse struct {
 
 func (x *UpdateNamespaceResponse) Reset() {
 	*x = UpdateNamespaceResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[45]
+	mi := &file_alioth_v1_identity_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2675,7 +3033,7 @@ func (x *UpdateNamespaceResponse) String() string {
 func (*UpdateNamespaceResponse) ProtoMessage() {}
 
 func (x *UpdateNamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[45]
+	mi := &file_alioth_v1_identity_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2688,7 +3046,7 @@ func (x *UpdateNamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNamespaceResponse.ProtoReflect.Descriptor instead.
 func (*UpdateNamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{45}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *UpdateNamespaceResponse) GetNamespace() *NamespaceItem {
@@ -2711,7 +3069,7 @@ type UpdateNamespaceStatusRequest struct {
 
 func (x *UpdateNamespaceStatusRequest) Reset() {
 	*x = UpdateNamespaceStatusRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[46]
+	mi := &file_alioth_v1_identity_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2723,7 +3081,7 @@ func (x *UpdateNamespaceStatusRequest) String() string {
 func (*UpdateNamespaceStatusRequest) ProtoMessage() {}
 
 func (x *UpdateNamespaceStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[46]
+	mi := &file_alioth_v1_identity_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2736,7 +3094,7 @@ func (x *UpdateNamespaceStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNamespaceStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNamespaceStatusRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{46}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *UpdateNamespaceStatusRequest) GetUid() string {
@@ -2764,7 +3122,7 @@ type UpdateNamespaceStatusResponse struct {
 
 func (x *UpdateNamespaceStatusResponse) Reset() {
 	*x = UpdateNamespaceStatusResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[47]
+	mi := &file_alioth_v1_identity_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2776,7 +3134,7 @@ func (x *UpdateNamespaceStatusResponse) String() string {
 func (*UpdateNamespaceStatusResponse) ProtoMessage() {}
 
 func (x *UpdateNamespaceStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[47]
+	mi := &file_alioth_v1_identity_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2789,7 +3147,7 @@ func (x *UpdateNamespaceStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNamespaceStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateNamespaceStatusResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{47}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *UpdateNamespaceStatusResponse) GetNamespace() *NamespaceItem {
@@ -2810,7 +3168,7 @@ type DeleteNamespaceRequest struct {
 
 func (x *DeleteNamespaceRequest) Reset() {
 	*x = DeleteNamespaceRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[48]
+	mi := &file_alioth_v1_identity_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2822,7 +3180,7 @@ func (x *DeleteNamespaceRequest) String() string {
 func (*DeleteNamespaceRequest) ProtoMessage() {}
 
 func (x *DeleteNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[48]
+	mi := &file_alioth_v1_identity_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2835,7 +3193,7 @@ func (x *DeleteNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{48}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *DeleteNamespaceRequest) GetUid() string {
@@ -2854,7 +3212,7 @@ type DeleteNamespaceResponse struct {
 
 func (x *DeleteNamespaceResponse) Reset() {
 	*x = DeleteNamespaceResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[49]
+	mi := &file_alioth_v1_identity_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2866,7 +3224,7 @@ func (x *DeleteNamespaceResponse) String() string {
 func (*DeleteNamespaceResponse) ProtoMessage() {}
 
 func (x *DeleteNamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[49]
+	mi := &file_alioth_v1_identity_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2879,7 +3237,7 @@ func (x *DeleteNamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNamespaceResponse.ProtoReflect.Descriptor instead.
 func (*DeleteNamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{49}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{56}
 }
 
 // 要查询的租户。
@@ -2893,7 +3251,7 @@ type GetNamespaceRequest struct {
 
 func (x *GetNamespaceRequest) Reset() {
 	*x = GetNamespaceRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[50]
+	mi := &file_alioth_v1_identity_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2905,7 +3263,7 @@ func (x *GetNamespaceRequest) String() string {
 func (*GetNamespaceRequest) ProtoMessage() {}
 
 func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[50]
+	mi := &file_alioth_v1_identity_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2918,7 +3276,7 @@ func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*GetNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{50}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GetNamespaceRequest) GetUid() string {
@@ -2939,7 +3297,7 @@ type GetNamespaceResponse struct {
 
 func (x *GetNamespaceResponse) Reset() {
 	*x = GetNamespaceResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[51]
+	mi := &file_alioth_v1_identity_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2951,7 +3309,7 @@ func (x *GetNamespaceResponse) String() string {
 func (*GetNamespaceResponse) ProtoMessage() {}
 
 func (x *GetNamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[51]
+	mi := &file_alioth_v1_identity_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2964,7 +3322,7 @@ func (x *GetNamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceResponse.ProtoReflect.Descriptor instead.
 func (*GetNamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{51}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *GetNamespaceResponse) GetNamespace() *NamespaceItem {
@@ -2989,7 +3347,7 @@ type ListNamespacesRequest struct {
 
 func (x *ListNamespacesRequest) Reset() {
 	*x = ListNamespacesRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[52]
+	mi := &file_alioth_v1_identity_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3001,7 +3359,7 @@ func (x *ListNamespacesRequest) String() string {
 func (*ListNamespacesRequest) ProtoMessage() {}
 
 func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[52]
+	mi := &file_alioth_v1_identity_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3014,7 +3372,7 @@ func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*ListNamespacesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{52}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *ListNamespacesRequest) GetPage() int32 {
@@ -3055,7 +3413,7 @@ type ListNamespacesResponse struct {
 
 func (x *ListNamespacesResponse) Reset() {
 	*x = ListNamespacesResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[53]
+	mi := &file_alioth_v1_identity_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3067,7 +3425,7 @@ func (x *ListNamespacesResponse) String() string {
 func (*ListNamespacesResponse) ProtoMessage() {}
 
 func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[53]
+	mi := &file_alioth_v1_identity_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3080,7 +3438,7 @@ func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesResponse.ProtoReflect.Descriptor instead.
 func (*ListNamespacesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{53}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *ListNamespacesResponse) GetItems() []*NamespaceItem {
@@ -3124,7 +3482,7 @@ type SelectNamespacesRequest struct {
 
 func (x *SelectNamespacesRequest) Reset() {
 	*x = SelectNamespacesRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[54]
+	mi := &file_alioth_v1_identity_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3136,7 +3494,7 @@ func (x *SelectNamespacesRequest) String() string {
 func (*SelectNamespacesRequest) ProtoMessage() {}
 
 func (x *SelectNamespacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[54]
+	mi := &file_alioth_v1_identity_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3149,7 +3507,7 @@ func (x *SelectNamespacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*SelectNamespacesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{54}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *SelectNamespacesRequest) GetLimit() int32 {
@@ -3179,7 +3537,7 @@ type SelectNamespacesResponse struct {
 
 func (x *SelectNamespacesResponse) Reset() {
 	*x = SelectNamespacesResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[55]
+	mi := &file_alioth_v1_identity_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3191,7 +3549,7 @@ func (x *SelectNamespacesResponse) String() string {
 func (*SelectNamespacesResponse) ProtoMessage() {}
 
 func (x *SelectNamespacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[55]
+	mi := &file_alioth_v1_identity_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3204,7 +3562,7 @@ func (x *SelectNamespacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectNamespacesResponse.ProtoReflect.Descriptor instead.
 func (*SelectNamespacesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{55}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *SelectNamespacesResponse) GetItems() []*SelectItem {
@@ -3234,7 +3592,7 @@ type ListSimpleNamespacesRequest struct {
 
 func (x *ListSimpleNamespacesRequest) Reset() {
 	*x = ListSimpleNamespacesRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[56]
+	mi := &file_alioth_v1_identity_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3246,7 +3604,7 @@ func (x *ListSimpleNamespacesRequest) String() string {
 func (*ListSimpleNamespacesRequest) ProtoMessage() {}
 
 func (x *ListSimpleNamespacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[56]
+	mi := &file_alioth_v1_identity_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3259,7 +3617,7 @@ func (x *ListSimpleNamespacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSimpleNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*ListSimpleNamespacesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{56}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ListSimpleNamespacesRequest) GetPage() int32 {
@@ -3289,7 +3647,7 @@ type ListSimpleNamespacesResponse struct {
 
 func (x *ListSimpleNamespacesResponse) Reset() {
 	*x = ListSimpleNamespacesResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[57]
+	mi := &file_alioth_v1_identity_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3301,7 +3659,7 @@ func (x *ListSimpleNamespacesResponse) String() string {
 func (*ListSimpleNamespacesResponse) ProtoMessage() {}
 
 func (x *ListSimpleNamespacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[57]
+	mi := &file_alioth_v1_identity_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3314,7 +3672,7 @@ func (x *ListSimpleNamespacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSimpleNamespacesResponse.ProtoReflect.Descriptor instead.
 func (*ListSimpleNamespacesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{57}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *ListSimpleNamespacesResponse) GetItems() []*NamespaceItem {
@@ -3344,7 +3702,7 @@ type TransferNamespaceOwnerRequest struct {
 
 func (x *TransferNamespaceOwnerRequest) Reset() {
 	*x = TransferNamespaceOwnerRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[58]
+	mi := &file_alioth_v1_identity_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3356,7 +3714,7 @@ func (x *TransferNamespaceOwnerRequest) String() string {
 func (*TransferNamespaceOwnerRequest) ProtoMessage() {}
 
 func (x *TransferNamespaceOwnerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[58]
+	mi := &file_alioth_v1_identity_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3369,7 +3727,7 @@ func (x *TransferNamespaceOwnerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransferNamespaceOwnerRequest.ProtoReflect.Descriptor instead.
 func (*TransferNamespaceOwnerRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{58}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *TransferNamespaceOwnerRequest) GetUid() string {
@@ -3397,7 +3755,7 @@ type TransferNamespaceOwnerResponse struct {
 
 func (x *TransferNamespaceOwnerResponse) Reset() {
 	*x = TransferNamespaceOwnerResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[59]
+	mi := &file_alioth_v1_identity_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3409,7 +3767,7 @@ func (x *TransferNamespaceOwnerResponse) String() string {
 func (*TransferNamespaceOwnerResponse) ProtoMessage() {}
 
 func (x *TransferNamespaceOwnerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[59]
+	mi := &file_alioth_v1_identity_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3422,7 +3780,7 @@ func (x *TransferNamespaceOwnerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransferNamespaceOwnerResponse.ProtoReflect.Descriptor instead.
 func (*TransferNamespaceOwnerResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{59}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *TransferNamespaceOwnerResponse) GetNamespace() *NamespaceItem {
@@ -3447,7 +3805,7 @@ type ListMembersRequest struct {
 
 func (x *ListMembersRequest) Reset() {
 	*x = ListMembersRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[60]
+	mi := &file_alioth_v1_identity_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3459,7 +3817,7 @@ func (x *ListMembersRequest) String() string {
 func (*ListMembersRequest) ProtoMessage() {}
 
 func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[60]
+	mi := &file_alioth_v1_identity_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3472,7 +3830,7 @@ func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembersRequest.ProtoReflect.Descriptor instead.
 func (*ListMembersRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{60}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ListMembersRequest) GetPage() int32 {
@@ -3513,7 +3871,7 @@ type ListMembersResponse struct {
 
 func (x *ListMembersResponse) Reset() {
 	*x = ListMembersResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[61]
+	mi := &file_alioth_v1_identity_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3525,7 +3883,7 @@ func (x *ListMembersResponse) String() string {
 func (*ListMembersResponse) ProtoMessage() {}
 
 func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[61]
+	mi := &file_alioth_v1_identity_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3538,7 +3896,7 @@ func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembersResponse.ProtoReflect.Descriptor instead.
 func (*ListMembersResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{61}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *ListMembersResponse) GetItems() []*MemberItem {
@@ -3580,7 +3938,7 @@ type GetMemberRequest struct {
 
 func (x *GetMemberRequest) Reset() {
 	*x = GetMemberRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[62]
+	mi := &file_alioth_v1_identity_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3592,7 +3950,7 @@ func (x *GetMemberRequest) String() string {
 func (*GetMemberRequest) ProtoMessage() {}
 
 func (x *GetMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[62]
+	mi := &file_alioth_v1_identity_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3605,7 +3963,7 @@ func (x *GetMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberRequest.ProtoReflect.Descriptor instead.
 func (*GetMemberRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{62}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *GetMemberRequest) GetUid() string {
@@ -3626,7 +3984,7 @@ type GetMemberResponse struct {
 
 func (x *GetMemberResponse) Reset() {
 	*x = GetMemberResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[63]
+	mi := &file_alioth_v1_identity_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3638,7 +3996,7 @@ func (x *GetMemberResponse) String() string {
 func (*GetMemberResponse) ProtoMessage() {}
 
 func (x *GetMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[63]
+	mi := &file_alioth_v1_identity_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3651,7 +4009,7 @@ func (x *GetMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberResponse.ProtoReflect.Descriptor instead.
 func (*GetMemberResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{63}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *GetMemberResponse) GetMember() *MemberItem {
@@ -3672,7 +4030,7 @@ type ListUserMembersRequest struct {
 
 func (x *ListUserMembersRequest) Reset() {
 	*x = ListUserMembersRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[64]
+	mi := &file_alioth_v1_identity_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3684,7 +4042,7 @@ func (x *ListUserMembersRequest) String() string {
 func (*ListUserMembersRequest) ProtoMessage() {}
 
 func (x *ListUserMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[64]
+	mi := &file_alioth_v1_identity_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3697,7 +4055,7 @@ func (x *ListUserMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserMembersRequest.ProtoReflect.Descriptor instead.
 func (*ListUserMembersRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{64}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *ListUserMembersRequest) GetUserUid() string {
@@ -3718,7 +4076,7 @@ type ListUserMembersResponse struct {
 
 func (x *ListUserMembersResponse) Reset() {
 	*x = ListUserMembersResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[65]
+	mi := &file_alioth_v1_identity_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3730,7 +4088,7 @@ func (x *ListUserMembersResponse) String() string {
 func (*ListUserMembersResponse) ProtoMessage() {}
 
 func (x *ListUserMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[65]
+	mi := &file_alioth_v1_identity_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3743,7 +4101,7 @@ func (x *ListUserMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserMembersResponse.ProtoReflect.Descriptor instead.
 func (*ListUserMembersResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{65}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *ListUserMembersResponse) GetItems() []*MemberItem {
@@ -3766,7 +4124,7 @@ type SelectMembersRequest struct {
 
 func (x *SelectMembersRequest) Reset() {
 	*x = SelectMembersRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[66]
+	mi := &file_alioth_v1_identity_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3778,7 +4136,7 @@ func (x *SelectMembersRequest) String() string {
 func (*SelectMembersRequest) ProtoMessage() {}
 
 func (x *SelectMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[66]
+	mi := &file_alioth_v1_identity_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3791,7 +4149,7 @@ func (x *SelectMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectMembersRequest.ProtoReflect.Descriptor instead.
 func (*SelectMembersRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{66}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *SelectMembersRequest) GetLimit() int32 {
@@ -3821,7 +4179,7 @@ type SelectMembersResponse struct {
 
 func (x *SelectMembersResponse) Reset() {
 	*x = SelectMembersResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[67]
+	mi := &file_alioth_v1_identity_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3833,7 +4191,7 @@ func (x *SelectMembersResponse) String() string {
 func (*SelectMembersResponse) ProtoMessage() {}
 
 func (x *SelectMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[67]
+	mi := &file_alioth_v1_identity_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3846,7 +4204,7 @@ func (x *SelectMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectMembersResponse.ProtoReflect.Descriptor instead.
 func (*SelectMembersResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{67}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *SelectMembersResponse) GetItems() []*SelectItem {
@@ -3876,7 +4234,7 @@ type InviteMemberRequest struct {
 
 func (x *InviteMemberRequest) Reset() {
 	*x = InviteMemberRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[68]
+	mi := &file_alioth_v1_identity_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3888,7 +4246,7 @@ func (x *InviteMemberRequest) String() string {
 func (*InviteMemberRequest) ProtoMessage() {}
 
 func (x *InviteMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[68]
+	mi := &file_alioth_v1_identity_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3901,7 +4259,7 @@ func (x *InviteMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InviteMemberRequest.ProtoReflect.Descriptor instead.
 func (*InviteMemberRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{68}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *InviteMemberRequest) GetEmail() string {
@@ -3931,7 +4289,7 @@ type InviteMemberResponse struct {
 
 func (x *InviteMemberResponse) Reset() {
 	*x = InviteMemberResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[69]
+	mi := &file_alioth_v1_identity_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3943,7 +4301,7 @@ func (x *InviteMemberResponse) String() string {
 func (*InviteMemberResponse) ProtoMessage() {}
 
 func (x *InviteMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[69]
+	mi := &file_alioth_v1_identity_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3956,7 +4314,7 @@ func (x *InviteMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InviteMemberResponse.ProtoReflect.Descriptor instead.
 func (*InviteMemberResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{69}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *InviteMemberResponse) GetInvitation() *MemberInviteItem {
@@ -4004,7 +4362,7 @@ type MemberInviteItem struct {
 
 func (x *MemberInviteItem) Reset() {
 	*x = MemberInviteItem{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[70]
+	mi := &file_alioth_v1_identity_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4016,7 +4374,7 @@ func (x *MemberInviteItem) String() string {
 func (*MemberInviteItem) ProtoMessage() {}
 
 func (x *MemberInviteItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[70]
+	mi := &file_alioth_v1_identity_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4029,7 +4387,7 @@ func (x *MemberInviteItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemberInviteItem.ProtoReflect.Descriptor instead.
 func (*MemberInviteItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{70}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *MemberInviteItem) GetUid() string {
@@ -4118,7 +4476,7 @@ type ListMemberInvitesRequest struct {
 
 func (x *ListMemberInvitesRequest) Reset() {
 	*x = ListMemberInvitesRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[71]
+	mi := &file_alioth_v1_identity_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4130,7 +4488,7 @@ func (x *ListMemberInvitesRequest) String() string {
 func (*ListMemberInvitesRequest) ProtoMessage() {}
 
 func (x *ListMemberInvitesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[71]
+	mi := &file_alioth_v1_identity_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4143,7 +4501,7 @@ func (x *ListMemberInvitesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemberInvitesRequest.ProtoReflect.Descriptor instead.
 func (*ListMemberInvitesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{71}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{78}
 }
 
 type ListMemberInvitesResponse struct {
@@ -4156,7 +4514,7 @@ type ListMemberInvitesResponse struct {
 
 func (x *ListMemberInvitesResponse) Reset() {
 	*x = ListMemberInvitesResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[72]
+	mi := &file_alioth_v1_identity_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4168,7 +4526,7 @@ func (x *ListMemberInvitesResponse) String() string {
 func (*ListMemberInvitesResponse) ProtoMessage() {}
 
 func (x *ListMemberInvitesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[72]
+	mi := &file_alioth_v1_identity_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4181,7 +4539,7 @@ func (x *ListMemberInvitesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemberInvitesResponse.ProtoReflect.Descriptor instead.
 func (*ListMemberInvitesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{72}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *ListMemberInvitesResponse) GetItems() []*MemberInviteItem {
@@ -4202,7 +4560,7 @@ type RevokeMemberInviteRequest struct {
 
 func (x *RevokeMemberInviteRequest) Reset() {
 	*x = RevokeMemberInviteRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[73]
+	mi := &file_alioth_v1_identity_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4214,7 +4572,7 @@ func (x *RevokeMemberInviteRequest) String() string {
 func (*RevokeMemberInviteRequest) ProtoMessage() {}
 
 func (x *RevokeMemberInviteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[73]
+	mi := &file_alioth_v1_identity_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4227,7 +4585,7 @@ func (x *RevokeMemberInviteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeMemberInviteRequest.ProtoReflect.Descriptor instead.
 func (*RevokeMemberInviteRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{73}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *RevokeMemberInviteRequest) GetUid() string {
@@ -4245,7 +4603,7 @@ type RevokeMemberInviteResponse struct {
 
 func (x *RevokeMemberInviteResponse) Reset() {
 	*x = RevokeMemberInviteResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[74]
+	mi := &file_alioth_v1_identity_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4257,7 +4615,7 @@ func (x *RevokeMemberInviteResponse) String() string {
 func (*RevokeMemberInviteResponse) ProtoMessage() {}
 
 func (x *RevokeMemberInviteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[74]
+	mi := &file_alioth_v1_identity_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4270,7 +4628,7 @@ func (x *RevokeMemberInviteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeMemberInviteResponse.ProtoReflect.Descriptor instead.
 func (*RevokeMemberInviteResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{74}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{81}
 }
 
 // 要移出的成员。
@@ -4284,7 +4642,7 @@ type DeleteMemberRequest struct {
 
 func (x *DeleteMemberRequest) Reset() {
 	*x = DeleteMemberRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[75]
+	mi := &file_alioth_v1_identity_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4296,7 +4654,7 @@ func (x *DeleteMemberRequest) String() string {
 func (*DeleteMemberRequest) ProtoMessage() {}
 
 func (x *DeleteMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[75]
+	mi := &file_alioth_v1_identity_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4309,7 +4667,7 @@ func (x *DeleteMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMemberRequest.ProtoReflect.Descriptor instead.
 func (*DeleteMemberRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{75}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *DeleteMemberRequest) GetUid() string {
@@ -4328,7 +4686,7 @@ type DeleteMemberResponse struct {
 
 func (x *DeleteMemberResponse) Reset() {
 	*x = DeleteMemberResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[76]
+	mi := &file_alioth_v1_identity_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4340,7 +4698,7 @@ func (x *DeleteMemberResponse) String() string {
 func (*DeleteMemberResponse) ProtoMessage() {}
 
 func (x *DeleteMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[76]
+	mi := &file_alioth_v1_identity_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4353,7 +4711,7 @@ func (x *DeleteMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMemberResponse.ProtoReflect.Descriptor instead.
 func (*DeleteMemberResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{76}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{83}
 }
 
 // 修改成员状态的参数。
@@ -4369,7 +4727,7 @@ type UpdateMemberStatusRequest struct {
 
 func (x *UpdateMemberStatusRequest) Reset() {
 	*x = UpdateMemberStatusRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[77]
+	mi := &file_alioth_v1_identity_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4381,7 +4739,7 @@ func (x *UpdateMemberStatusRequest) String() string {
 func (*UpdateMemberStatusRequest) ProtoMessage() {}
 
 func (x *UpdateMemberStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[77]
+	mi := &file_alioth_v1_identity_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4394,7 +4752,7 @@ func (x *UpdateMemberStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMemberStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMemberStatusRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{77}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *UpdateMemberStatusRequest) GetUid() string {
@@ -4422,7 +4780,7 @@ type UpdateMemberStatusResponse struct {
 
 func (x *UpdateMemberStatusResponse) Reset() {
 	*x = UpdateMemberStatusResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[78]
+	mi := &file_alioth_v1_identity_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4434,7 +4792,7 @@ func (x *UpdateMemberStatusResponse) String() string {
 func (*UpdateMemberStatusResponse) ProtoMessage() {}
 
 func (x *UpdateMemberStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[78]
+	mi := &file_alioth_v1_identity_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4447,7 +4805,7 @@ func (x *UpdateMemberStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMemberStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateMemberStatusResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{78}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *UpdateMemberStatusResponse) GetMember() *MemberItem {
@@ -4470,7 +4828,7 @@ type UpdateMemberRolesRequest struct {
 
 func (x *UpdateMemberRolesRequest) Reset() {
 	*x = UpdateMemberRolesRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[79]
+	mi := &file_alioth_v1_identity_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4482,7 +4840,7 @@ func (x *UpdateMemberRolesRequest) String() string {
 func (*UpdateMemberRolesRequest) ProtoMessage() {}
 
 func (x *UpdateMemberRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[79]
+	mi := &file_alioth_v1_identity_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4495,7 +4853,7 @@ func (x *UpdateMemberRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMemberRolesRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMemberRolesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{79}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *UpdateMemberRolesRequest) GetUid() string {
@@ -4523,7 +4881,7 @@ type UpdateMemberRolesResponse struct {
 
 func (x *UpdateMemberRolesResponse) Reset() {
 	*x = UpdateMemberRolesResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[80]
+	mi := &file_alioth_v1_identity_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4535,7 +4893,7 @@ func (x *UpdateMemberRolesResponse) String() string {
 func (*UpdateMemberRolesResponse) ProtoMessage() {}
 
 func (x *UpdateMemberRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[80]
+	mi := &file_alioth_v1_identity_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4548,7 +4906,7 @@ func (x *UpdateMemberRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMemberRolesResponse.ProtoReflect.Descriptor instead.
 func (*UpdateMemberRolesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{80}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *UpdateMemberRolesResponse) GetMember() *MemberItem {
@@ -4569,7 +4927,7 @@ type GetUserRequest struct {
 
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[81]
+	mi := &file_alioth_v1_identity_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4581,7 +4939,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[81]
+	mi := &file_alioth_v1_identity_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4594,7 +4952,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{81}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *GetUserRequest) GetUid() string {
@@ -4615,7 +4973,7 @@ type GetUserResponse struct {
 
 func (x *GetUserResponse) Reset() {
 	*x = GetUserResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[82]
+	mi := &file_alioth_v1_identity_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4627,7 +4985,7 @@ func (x *GetUserResponse) String() string {
 func (*GetUserResponse) ProtoMessage() {}
 
 func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[82]
+	mi := &file_alioth_v1_identity_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4640,7 +4998,7 @@ func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{82}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *GetUserResponse) GetUser() *UserItem {
@@ -4665,7 +5023,7 @@ type ListUsersRequest struct {
 
 func (x *ListUsersRequest) Reset() {
 	*x = ListUsersRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[83]
+	mi := &file_alioth_v1_identity_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4677,7 +5035,7 @@ func (x *ListUsersRequest) String() string {
 func (*ListUsersRequest) ProtoMessage() {}
 
 func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[83]
+	mi := &file_alioth_v1_identity_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4690,7 +5048,7 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{83}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *ListUsersRequest) GetPage() int32 {
@@ -4731,7 +5089,7 @@ type ListUsersResponse struct {
 
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[84]
+	mi := &file_alioth_v1_identity_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4743,7 +5101,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[84]
+	mi := &file_alioth_v1_identity_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4756,7 +5114,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{84}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *ListUsersResponse) GetItems() []*UserItem {
@@ -4800,7 +5158,7 @@ type SelectUsersRequest struct {
 
 func (x *SelectUsersRequest) Reset() {
 	*x = SelectUsersRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[85]
+	mi := &file_alioth_v1_identity_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4812,7 +5170,7 @@ func (x *SelectUsersRequest) String() string {
 func (*SelectUsersRequest) ProtoMessage() {}
 
 func (x *SelectUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[85]
+	mi := &file_alioth_v1_identity_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4825,7 +5183,7 @@ func (x *SelectUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectUsersRequest.ProtoReflect.Descriptor instead.
 func (*SelectUsersRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{85}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *SelectUsersRequest) GetLimit() int32 {
@@ -4855,7 +5213,7 @@ type SelectUsersResponse struct {
 
 func (x *SelectUsersResponse) Reset() {
 	*x = SelectUsersResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[86]
+	mi := &file_alioth_v1_identity_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4867,7 +5225,7 @@ func (x *SelectUsersResponse) String() string {
 func (*SelectUsersResponse) ProtoMessage() {}
 
 func (x *SelectUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[86]
+	mi := &file_alioth_v1_identity_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4880,7 +5238,7 @@ func (x *SelectUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectUsersResponse.ProtoReflect.Descriptor instead.
 func (*SelectUsersResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{86}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *SelectUsersResponse) GetItems() []*SelectItem {
@@ -4908,7 +5266,7 @@ type BanUserRequest struct {
 
 func (x *BanUserRequest) Reset() {
 	*x = BanUserRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[87]
+	mi := &file_alioth_v1_identity_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4920,7 +5278,7 @@ func (x *BanUserRequest) String() string {
 func (*BanUserRequest) ProtoMessage() {}
 
 func (x *BanUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[87]
+	mi := &file_alioth_v1_identity_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4933,7 +5291,7 @@ func (x *BanUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BanUserRequest.ProtoReflect.Descriptor instead.
 func (*BanUserRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{87}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *BanUserRequest) GetUid() string {
@@ -4954,7 +5312,7 @@ type BanUserResponse struct {
 
 func (x *BanUserResponse) Reset() {
 	*x = BanUserResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[88]
+	mi := &file_alioth_v1_identity_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4966,7 +5324,7 @@ func (x *BanUserResponse) String() string {
 func (*BanUserResponse) ProtoMessage() {}
 
 func (x *BanUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[88]
+	mi := &file_alioth_v1_identity_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4979,7 +5337,7 @@ func (x *BanUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BanUserResponse.ProtoReflect.Descriptor instead.
 func (*BanUserResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{88}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *BanUserResponse) GetUser() *UserItem {
@@ -5000,7 +5358,7 @@ type PermitUserRequest struct {
 
 func (x *PermitUserRequest) Reset() {
 	*x = PermitUserRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[89]
+	mi := &file_alioth_v1_identity_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5012,7 +5370,7 @@ func (x *PermitUserRequest) String() string {
 func (*PermitUserRequest) ProtoMessage() {}
 
 func (x *PermitUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[89]
+	mi := &file_alioth_v1_identity_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5025,7 +5383,7 @@ func (x *PermitUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermitUserRequest.ProtoReflect.Descriptor instead.
 func (*PermitUserRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{89}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *PermitUserRequest) GetUid() string {
@@ -5046,7 +5404,7 @@ type PermitUserResponse struct {
 
 func (x *PermitUserResponse) Reset() {
 	*x = PermitUserResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[90]
+	mi := &file_alioth_v1_identity_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5058,7 +5416,7 @@ func (x *PermitUserResponse) String() string {
 func (*PermitUserResponse) ProtoMessage() {}
 
 func (x *PermitUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[90]
+	mi := &file_alioth_v1_identity_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5071,7 +5429,7 @@ func (x *PermitUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermitUserResponse.ProtoReflect.Descriptor instead.
 func (*PermitUserResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{90}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *PermitUserResponse) GetUser() *UserItem {
@@ -5094,7 +5452,7 @@ type UpdateUserSystemRoleRequest struct {
 
 func (x *UpdateUserSystemRoleRequest) Reset() {
 	*x = UpdateUserSystemRoleRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[91]
+	mi := &file_alioth_v1_identity_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5106,7 +5464,7 @@ func (x *UpdateUserSystemRoleRequest) String() string {
 func (*UpdateUserSystemRoleRequest) ProtoMessage() {}
 
 func (x *UpdateUserSystemRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[91]
+	mi := &file_alioth_v1_identity_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5119,7 +5477,7 @@ func (x *UpdateUserSystemRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserSystemRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserSystemRoleRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{91}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *UpdateUserSystemRoleRequest) GetUid() string {
@@ -5146,7 +5504,7 @@ type UpdateUserSystemRoleResponse struct {
 
 func (x *UpdateUserSystemRoleResponse) Reset() {
 	*x = UpdateUserSystemRoleResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[92]
+	mi := &file_alioth_v1_identity_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5158,7 +5516,7 @@ func (x *UpdateUserSystemRoleResponse) String() string {
 func (*UpdateUserSystemRoleResponse) ProtoMessage() {}
 
 func (x *UpdateUserSystemRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[92]
+	mi := &file_alioth_v1_identity_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5171,7 +5529,7 @@ func (x *UpdateUserSystemRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserSystemRoleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserSystemRoleResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{92}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *UpdateUserSystemRoleResponse) GetUser() *UserItem {
@@ -5194,7 +5552,7 @@ type CreateRoleRequest struct {
 
 func (x *CreateRoleRequest) Reset() {
 	*x = CreateRoleRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[93]
+	mi := &file_alioth_v1_identity_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5206,7 +5564,7 @@ func (x *CreateRoleRequest) String() string {
 func (*CreateRoleRequest) ProtoMessage() {}
 
 func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[93]
+	mi := &file_alioth_v1_identity_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5219,7 +5577,7 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{93}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *CreateRoleRequest) GetName() string {
@@ -5247,7 +5605,7 @@ type CreateRoleResponse struct {
 
 func (x *CreateRoleResponse) Reset() {
 	*x = CreateRoleResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[94]
+	mi := &file_alioth_v1_identity_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5259,7 +5617,7 @@ func (x *CreateRoleResponse) String() string {
 func (*CreateRoleResponse) ProtoMessage() {}
 
 func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[94]
+	mi := &file_alioth_v1_identity_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5272,7 +5630,7 @@ func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{94}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *CreateRoleResponse) GetRole() *RoleItem {
@@ -5295,7 +5653,7 @@ type UpdateRoleRequest struct {
 
 func (x *UpdateRoleRequest) Reset() {
 	*x = UpdateRoleRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[95]
+	mi := &file_alioth_v1_identity_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5307,7 +5665,7 @@ func (x *UpdateRoleRequest) String() string {
 func (*UpdateRoleRequest) ProtoMessage() {}
 
 func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[95]
+	mi := &file_alioth_v1_identity_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5320,7 +5678,7 @@ func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{95}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *UpdateRoleRequest) GetUid() string {
@@ -5348,7 +5706,7 @@ type UpdateRoleResponse struct {
 
 func (x *UpdateRoleResponse) Reset() {
 	*x = UpdateRoleResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[96]
+	mi := &file_alioth_v1_identity_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5360,7 +5718,7 @@ func (x *UpdateRoleResponse) String() string {
 func (*UpdateRoleResponse) ProtoMessage() {}
 
 func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[96]
+	mi := &file_alioth_v1_identity_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5373,7 +5731,7 @@ func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{96}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *UpdateRoleResponse) GetRole() *RoleItem {
@@ -5396,7 +5754,7 @@ type UpdateRoleRemarkRequest struct {
 
 func (x *UpdateRoleRemarkRequest) Reset() {
 	*x = UpdateRoleRemarkRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[97]
+	mi := &file_alioth_v1_identity_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5408,7 +5766,7 @@ func (x *UpdateRoleRemarkRequest) String() string {
 func (*UpdateRoleRemarkRequest) ProtoMessage() {}
 
 func (x *UpdateRoleRemarkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[97]
+	mi := &file_alioth_v1_identity_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5421,7 +5779,7 @@ func (x *UpdateRoleRemarkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleRemarkRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoleRemarkRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{97}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *UpdateRoleRemarkRequest) GetUid() string {
@@ -5449,7 +5807,7 @@ type UpdateRoleRemarkResponse struct {
 
 func (x *UpdateRoleRemarkResponse) Reset() {
 	*x = UpdateRoleRemarkResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[98]
+	mi := &file_alioth_v1_identity_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5461,7 +5819,7 @@ func (x *UpdateRoleRemarkResponse) String() string {
 func (*UpdateRoleRemarkResponse) ProtoMessage() {}
 
 func (x *UpdateRoleRemarkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[98]
+	mi := &file_alioth_v1_identity_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5474,7 +5832,7 @@ func (x *UpdateRoleRemarkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleRemarkResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRoleRemarkResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{98}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *UpdateRoleRemarkResponse) GetRole() *RoleItem {
@@ -5497,7 +5855,7 @@ type UpdateRoleStatusRequest struct {
 
 func (x *UpdateRoleStatusRequest) Reset() {
 	*x = UpdateRoleStatusRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[99]
+	mi := &file_alioth_v1_identity_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5509,7 +5867,7 @@ func (x *UpdateRoleStatusRequest) String() string {
 func (*UpdateRoleStatusRequest) ProtoMessage() {}
 
 func (x *UpdateRoleStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[99]
+	mi := &file_alioth_v1_identity_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5522,7 +5880,7 @@ func (x *UpdateRoleStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoleStatusRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{99}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *UpdateRoleStatusRequest) GetUid() string {
@@ -5550,7 +5908,7 @@ type UpdateRoleStatusResponse struct {
 
 func (x *UpdateRoleStatusResponse) Reset() {
 	*x = UpdateRoleStatusResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[100]
+	mi := &file_alioth_v1_identity_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5562,7 +5920,7 @@ func (x *UpdateRoleStatusResponse) String() string {
 func (*UpdateRoleStatusResponse) ProtoMessage() {}
 
 func (x *UpdateRoleStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[100]
+	mi := &file_alioth_v1_identity_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5575,7 +5933,7 @@ func (x *UpdateRoleStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRoleStatusResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{100}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *UpdateRoleStatusResponse) GetRole() *RoleItem {
@@ -5596,7 +5954,7 @@ type DeleteRoleRequest struct {
 
 func (x *DeleteRoleRequest) Reset() {
 	*x = DeleteRoleRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[101]
+	mi := &file_alioth_v1_identity_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5608,7 +5966,7 @@ func (x *DeleteRoleRequest) String() string {
 func (*DeleteRoleRequest) ProtoMessage() {}
 
 func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[101]
+	mi := &file_alioth_v1_identity_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5621,7 +5979,7 @@ func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRoleRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{101}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *DeleteRoleRequest) GetUid() string {
@@ -5640,7 +5998,7 @@ type DeleteRoleResponse struct {
 
 func (x *DeleteRoleResponse) Reset() {
 	*x = DeleteRoleResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[102]
+	mi := &file_alioth_v1_identity_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5652,7 +6010,7 @@ func (x *DeleteRoleResponse) String() string {
 func (*DeleteRoleResponse) ProtoMessage() {}
 
 func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[102]
+	mi := &file_alioth_v1_identity_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5665,7 +6023,7 @@ func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRoleResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{102}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{109}
 }
 
 // 要查询的角色。
@@ -5679,7 +6037,7 @@ type GetRoleRequest struct {
 
 func (x *GetRoleRequest) Reset() {
 	*x = GetRoleRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[103]
+	mi := &file_alioth_v1_identity_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5691,7 +6049,7 @@ func (x *GetRoleRequest) String() string {
 func (*GetRoleRequest) ProtoMessage() {}
 
 func (x *GetRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[103]
+	mi := &file_alioth_v1_identity_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5704,7 +6062,7 @@ func (x *GetRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleRequest.ProtoReflect.Descriptor instead.
 func (*GetRoleRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{103}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *GetRoleRequest) GetUid() string {
@@ -5725,7 +6083,7 @@ type GetRoleResponse struct {
 
 func (x *GetRoleResponse) Reset() {
 	*x = GetRoleResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[104]
+	mi := &file_alioth_v1_identity_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5737,7 +6095,7 @@ func (x *GetRoleResponse) String() string {
 func (*GetRoleResponse) ProtoMessage() {}
 
 func (x *GetRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[104]
+	mi := &file_alioth_v1_identity_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5750,7 +6108,7 @@ func (x *GetRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleResponse.ProtoReflect.Descriptor instead.
 func (*GetRoleResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{104}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *GetRoleResponse) GetRole() *RoleItem {
@@ -5775,7 +6133,7 @@ type ListRolesRequest struct {
 
 func (x *ListRolesRequest) Reset() {
 	*x = ListRolesRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[105]
+	mi := &file_alioth_v1_identity_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5787,7 +6145,7 @@ func (x *ListRolesRequest) String() string {
 func (*ListRolesRequest) ProtoMessage() {}
 
 func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[105]
+	mi := &file_alioth_v1_identity_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5800,7 +6158,7 @@ func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListRolesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{105}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *ListRolesRequest) GetPage() int32 {
@@ -5841,7 +6199,7 @@ type ListRolesResponse struct {
 
 func (x *ListRolesResponse) Reset() {
 	*x = ListRolesResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[106]
+	mi := &file_alioth_v1_identity_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5853,7 +6211,7 @@ func (x *ListRolesResponse) String() string {
 func (*ListRolesResponse) ProtoMessage() {}
 
 func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[106]
+	mi := &file_alioth_v1_identity_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5866,7 +6224,7 @@ func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListRolesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{106}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *ListRolesResponse) GetItems() []*RoleItem {
@@ -5910,7 +6268,7 @@ type SelectRolesRequest struct {
 
 func (x *SelectRolesRequest) Reset() {
 	*x = SelectRolesRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[107]
+	mi := &file_alioth_v1_identity_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5922,7 +6280,7 @@ func (x *SelectRolesRequest) String() string {
 func (*SelectRolesRequest) ProtoMessage() {}
 
 func (x *SelectRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[107]
+	mi := &file_alioth_v1_identity_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5935,7 +6293,7 @@ func (x *SelectRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectRolesRequest.ProtoReflect.Descriptor instead.
 func (*SelectRolesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{107}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *SelectRolesRequest) GetLimit() int32 {
@@ -5965,7 +6323,7 @@ type SelectRolesResponse struct {
 
 func (x *SelectRolesResponse) Reset() {
 	*x = SelectRolesResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[108]
+	mi := &file_alioth_v1_identity_proto_msgTypes[115]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5977,7 +6335,7 @@ func (x *SelectRolesResponse) String() string {
 func (*SelectRolesResponse) ProtoMessage() {}
 
 func (x *SelectRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[108]
+	mi := &file_alioth_v1_identity_proto_msgTypes[115]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5990,7 +6348,7 @@ func (x *SelectRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectRolesResponse.ProtoReflect.Descriptor instead.
 func (*SelectRolesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{108}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{115}
 }
 
 func (x *SelectRolesResponse) GetItems() []*SelectItem {
@@ -6020,7 +6378,7 @@ type UpdateRolePermissionsRequest struct {
 
 func (x *UpdateRolePermissionsRequest) Reset() {
 	*x = UpdateRolePermissionsRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[109]
+	mi := &file_alioth_v1_identity_proto_msgTypes[116]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6032,7 +6390,7 @@ func (x *UpdateRolePermissionsRequest) String() string {
 func (*UpdateRolePermissionsRequest) ProtoMessage() {}
 
 func (x *UpdateRolePermissionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[109]
+	mi := &file_alioth_v1_identity_proto_msgTypes[116]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6045,7 +6403,7 @@ func (x *UpdateRolePermissionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRolePermissionsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRolePermissionsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{109}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *UpdateRolePermissionsRequest) GetUid() string {
@@ -6073,7 +6431,7 @@ type UpdateRolePermissionsResponse struct {
 
 func (x *UpdateRolePermissionsResponse) Reset() {
 	*x = UpdateRolePermissionsResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[110]
+	mi := &file_alioth_v1_identity_proto_msgTypes[117]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6085,7 +6443,7 @@ func (x *UpdateRolePermissionsResponse) String() string {
 func (*UpdateRolePermissionsResponse) ProtoMessage() {}
 
 func (x *UpdateRolePermissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[110]
+	mi := &file_alioth_v1_identity_proto_msgTypes[117]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6098,7 +6456,7 @@ func (x *UpdateRolePermissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRolePermissionsResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRolePermissionsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{110}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{117}
 }
 
 func (x *UpdateRolePermissionsResponse) GetRole() *RoleItem {
@@ -6117,7 +6475,7 @@ type ListPermissionsRequest struct {
 
 func (x *ListPermissionsRequest) Reset() {
 	*x = ListPermissionsRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[111]
+	mi := &file_alioth_v1_identity_proto_msgTypes[118]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6129,7 +6487,7 @@ func (x *ListPermissionsRequest) String() string {
 func (*ListPermissionsRequest) ProtoMessage() {}
 
 func (x *ListPermissionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[111]
+	mi := &file_alioth_v1_identity_proto_msgTypes[118]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6142,7 +6500,7 @@ func (x *ListPermissionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPermissionsRequest.ProtoReflect.Descriptor instead.
 func (*ListPermissionsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{111}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{118}
 }
 
 // 全部权限。
@@ -6156,7 +6514,7 @@ type ListPermissionsResponse struct {
 
 func (x *ListPermissionsResponse) Reset() {
 	*x = ListPermissionsResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[112]
+	mi := &file_alioth_v1_identity_proto_msgTypes[119]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6168,7 +6526,7 @@ func (x *ListPermissionsResponse) String() string {
 func (*ListPermissionsResponse) ProtoMessage() {}
 
 func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[112]
+	mi := &file_alioth_v1_identity_proto_msgTypes[119]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6181,7 +6539,7 @@ func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPermissionsResponse.ProtoReflect.Descriptor instead.
 func (*ListPermissionsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{112}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{119}
 }
 
 func (x *ListPermissionsResponse) GetItems() []*PermissionItem {
@@ -6200,7 +6558,7 @@ type ListSelfInvitationsRequest struct {
 
 func (x *ListSelfInvitationsRequest) Reset() {
 	*x = ListSelfInvitationsRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[113]
+	mi := &file_alioth_v1_identity_proto_msgTypes[120]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6212,7 +6570,7 @@ func (x *ListSelfInvitationsRequest) String() string {
 func (*ListSelfInvitationsRequest) ProtoMessage() {}
 
 func (x *ListSelfInvitationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[113]
+	mi := &file_alioth_v1_identity_proto_msgTypes[120]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6225,7 +6583,7 @@ func (x *ListSelfInvitationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSelfInvitationsRequest.ProtoReflect.Descriptor instead.
 func (*ListSelfInvitationsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{113}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{120}
 }
 
 type ListSelfInvitationsResponse struct {
@@ -6238,7 +6596,7 @@ type ListSelfInvitationsResponse struct {
 
 func (x *ListSelfInvitationsResponse) Reset() {
 	*x = ListSelfInvitationsResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[114]
+	mi := &file_alioth_v1_identity_proto_msgTypes[121]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6250,7 +6608,7 @@ func (x *ListSelfInvitationsResponse) String() string {
 func (*ListSelfInvitationsResponse) ProtoMessage() {}
 
 func (x *ListSelfInvitationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[114]
+	mi := &file_alioth_v1_identity_proto_msgTypes[121]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6263,7 +6621,7 @@ func (x *ListSelfInvitationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSelfInvitationsResponse.ProtoReflect.Descriptor instead.
 func (*ListSelfInvitationsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{114}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{121}
 }
 
 func (x *ListSelfInvitationsResponse) GetItems() []*MemberInviteItem {
@@ -6284,7 +6642,7 @@ type GetInvitationRequest struct {
 
 func (x *GetInvitationRequest) Reset() {
 	*x = GetInvitationRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[115]
+	mi := &file_alioth_v1_identity_proto_msgTypes[122]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6296,7 +6654,7 @@ func (x *GetInvitationRequest) String() string {
 func (*GetInvitationRequest) ProtoMessage() {}
 
 func (x *GetInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[115]
+	mi := &file_alioth_v1_identity_proto_msgTypes[122]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6309,7 +6667,7 @@ func (x *GetInvitationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInvitationRequest.ProtoReflect.Descriptor instead.
 func (*GetInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{115}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{122}
 }
 
 func (x *GetInvitationRequest) GetToken() string {
@@ -6329,7 +6687,7 @@ type GetInvitationResponse struct {
 
 func (x *GetInvitationResponse) Reset() {
 	*x = GetInvitationResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[116]
+	mi := &file_alioth_v1_identity_proto_msgTypes[123]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6341,7 +6699,7 @@ func (x *GetInvitationResponse) String() string {
 func (*GetInvitationResponse) ProtoMessage() {}
 
 func (x *GetInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[116]
+	mi := &file_alioth_v1_identity_proto_msgTypes[123]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6354,7 +6712,7 @@ func (x *GetInvitationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInvitationResponse.ProtoReflect.Descriptor instead.
 func (*GetInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{116}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{123}
 }
 
 func (x *GetInvitationResponse) GetInvitation() *MemberInviteItem {
@@ -6377,7 +6735,7 @@ type AcceptInvitationRequest struct {
 
 func (x *AcceptInvitationRequest) Reset() {
 	*x = AcceptInvitationRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[117]
+	mi := &file_alioth_v1_identity_proto_msgTypes[124]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6389,7 +6747,7 @@ func (x *AcceptInvitationRequest) String() string {
 func (*AcceptInvitationRequest) ProtoMessage() {}
 
 func (x *AcceptInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[117]
+	mi := &file_alioth_v1_identity_proto_msgTypes[124]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6402,7 +6760,7 @@ func (x *AcceptInvitationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptInvitationRequest.ProtoReflect.Descriptor instead.
 func (*AcceptInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{117}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{124}
 }
 
 func (x *AcceptInvitationRequest) GetToken() string {
@@ -6429,7 +6787,7 @@ type AcceptInvitationResponse struct {
 
 func (x *AcceptInvitationResponse) Reset() {
 	*x = AcceptInvitationResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[118]
+	mi := &file_alioth_v1_identity_proto_msgTypes[125]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6441,7 +6799,7 @@ func (x *AcceptInvitationResponse) String() string {
 func (*AcceptInvitationResponse) ProtoMessage() {}
 
 func (x *AcceptInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[118]
+	mi := &file_alioth_v1_identity_proto_msgTypes[125]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6454,7 +6812,7 @@ func (x *AcceptInvitationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptInvitationResponse.ProtoReflect.Descriptor instead.
 func (*AcceptInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{118}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{125}
 }
 
 func (x *AcceptInvitationResponse) GetMember() *MemberItem {
@@ -6477,7 +6835,7 @@ type DeclineInvitationRequest struct {
 
 func (x *DeclineInvitationRequest) Reset() {
 	*x = DeclineInvitationRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[119]
+	mi := &file_alioth_v1_identity_proto_msgTypes[126]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6489,7 +6847,7 @@ func (x *DeclineInvitationRequest) String() string {
 func (*DeclineInvitationRequest) ProtoMessage() {}
 
 func (x *DeclineInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[119]
+	mi := &file_alioth_v1_identity_proto_msgTypes[126]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6502,7 +6860,7 @@ func (x *DeclineInvitationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeclineInvitationRequest.ProtoReflect.Descriptor instead.
 func (*DeclineInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{119}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{126}
 }
 
 func (x *DeclineInvitationRequest) GetToken() string {
@@ -6527,7 +6885,7 @@ type DeclineInvitationResponse struct {
 
 func (x *DeclineInvitationResponse) Reset() {
 	*x = DeclineInvitationResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[120]
+	mi := &file_alioth_v1_identity_proto_msgTypes[127]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6539,7 +6897,7 @@ func (x *DeclineInvitationResponse) String() string {
 func (*DeclineInvitationResponse) ProtoMessage() {}
 
 func (x *DeclineInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[120]
+	mi := &file_alioth_v1_identity_proto_msgTypes[127]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6552,7 +6910,7 @@ func (x *DeclineInvitationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeclineInvitationResponse.ProtoReflect.Descriptor instead.
 func (*DeclineInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{120}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{127}
 }
 
 // 系统消息。
@@ -6580,7 +6938,7 @@ type SystemMessageItem struct {
 
 func (x *SystemMessageItem) Reset() {
 	*x = SystemMessageItem{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[121]
+	mi := &file_alioth_v1_identity_proto_msgTypes[128]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6592,7 +6950,7 @@ func (x *SystemMessageItem) String() string {
 func (*SystemMessageItem) ProtoMessage() {}
 
 func (x *SystemMessageItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[121]
+	mi := &file_alioth_v1_identity_proto_msgTypes[128]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6605,7 +6963,7 @@ func (x *SystemMessageItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemMessageItem.ProtoReflect.Descriptor instead.
 func (*SystemMessageItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{121}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{128}
 }
 
 func (x *SystemMessageItem) GetUid() string {
@@ -6679,7 +7037,7 @@ type ListSelfMessagesRequest struct {
 
 func (x *ListSelfMessagesRequest) Reset() {
 	*x = ListSelfMessagesRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[122]
+	mi := &file_alioth_v1_identity_proto_msgTypes[129]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6691,7 +7049,7 @@ func (x *ListSelfMessagesRequest) String() string {
 func (*ListSelfMessagesRequest) ProtoMessage() {}
 
 func (x *ListSelfMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[122]
+	mi := &file_alioth_v1_identity_proto_msgTypes[129]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6704,7 +7062,7 @@ func (x *ListSelfMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSelfMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListSelfMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{122}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{129}
 }
 
 func (x *ListSelfMessagesRequest) GetPage() int32 {
@@ -6746,7 +7104,7 @@ type ListSelfMessagesResponse struct {
 
 func (x *ListSelfMessagesResponse) Reset() {
 	*x = ListSelfMessagesResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[123]
+	mi := &file_alioth_v1_identity_proto_msgTypes[130]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6758,7 +7116,7 @@ func (x *ListSelfMessagesResponse) String() string {
 func (*ListSelfMessagesResponse) ProtoMessage() {}
 
 func (x *ListSelfMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[123]
+	mi := &file_alioth_v1_identity_proto_msgTypes[130]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6771,7 +7129,7 @@ func (x *ListSelfMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSelfMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListSelfMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{123}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{130}
 }
 
 func (x *ListSelfMessagesResponse) GetItems() []*SystemMessageItem {
@@ -6817,7 +7175,7 @@ type GetUnreadMessageCountRequest struct {
 
 func (x *GetUnreadMessageCountRequest) Reset() {
 	*x = GetUnreadMessageCountRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[124]
+	mi := &file_alioth_v1_identity_proto_msgTypes[131]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6829,7 +7187,7 @@ func (x *GetUnreadMessageCountRequest) String() string {
 func (*GetUnreadMessageCountRequest) ProtoMessage() {}
 
 func (x *GetUnreadMessageCountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[124]
+	mi := &file_alioth_v1_identity_proto_msgTypes[131]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6842,7 +7200,7 @@ func (x *GetUnreadMessageCountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUnreadMessageCountRequest.ProtoReflect.Descriptor instead.
 func (*GetUnreadMessageCountRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{124}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{131}
 }
 
 type GetUnreadMessageCountResponse struct {
@@ -6855,7 +7213,7 @@ type GetUnreadMessageCountResponse struct {
 
 func (x *GetUnreadMessageCountResponse) Reset() {
 	*x = GetUnreadMessageCountResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[125]
+	mi := &file_alioth_v1_identity_proto_msgTypes[132]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6867,7 +7225,7 @@ func (x *GetUnreadMessageCountResponse) String() string {
 func (*GetUnreadMessageCountResponse) ProtoMessage() {}
 
 func (x *GetUnreadMessageCountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[125]
+	mi := &file_alioth_v1_identity_proto_msgTypes[132]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6880,7 +7238,7 @@ func (x *GetUnreadMessageCountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUnreadMessageCountResponse.ProtoReflect.Descriptor instead.
 func (*GetUnreadMessageCountResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{125}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{132}
 }
 
 func (x *GetUnreadMessageCountResponse) GetCount() int32 {
@@ -6900,7 +7258,7 @@ type MarkMessageReadRequest struct {
 
 func (x *MarkMessageReadRequest) Reset() {
 	*x = MarkMessageReadRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[126]
+	mi := &file_alioth_v1_identity_proto_msgTypes[133]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6912,7 +7270,7 @@ func (x *MarkMessageReadRequest) String() string {
 func (*MarkMessageReadRequest) ProtoMessage() {}
 
 func (x *MarkMessageReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[126]
+	mi := &file_alioth_v1_identity_proto_msgTypes[133]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6925,7 +7283,7 @@ func (x *MarkMessageReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkMessageReadRequest.ProtoReflect.Descriptor instead.
 func (*MarkMessageReadRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{126}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{133}
 }
 
 func (x *MarkMessageReadRequest) GetUid() string {
@@ -6943,7 +7301,7 @@ type MarkMessageReadResponse struct {
 
 func (x *MarkMessageReadResponse) Reset() {
 	*x = MarkMessageReadResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[127]
+	mi := &file_alioth_v1_identity_proto_msgTypes[134]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6955,7 +7313,7 @@ func (x *MarkMessageReadResponse) String() string {
 func (*MarkMessageReadResponse) ProtoMessage() {}
 
 func (x *MarkMessageReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[127]
+	mi := &file_alioth_v1_identity_proto_msgTypes[134]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6968,7 +7326,7 @@ func (x *MarkMessageReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkMessageReadResponse.ProtoReflect.Descriptor instead.
 func (*MarkMessageReadResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{127}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{134}
 }
 
 type MarkAllMessagesReadRequest struct {
@@ -6979,7 +7337,7 @@ type MarkAllMessagesReadRequest struct {
 
 func (x *MarkAllMessagesReadRequest) Reset() {
 	*x = MarkAllMessagesReadRequest{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[128]
+	mi := &file_alioth_v1_identity_proto_msgTypes[135]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6991,7 +7349,7 @@ func (x *MarkAllMessagesReadRequest) String() string {
 func (*MarkAllMessagesReadRequest) ProtoMessage() {}
 
 func (x *MarkAllMessagesReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[128]
+	mi := &file_alioth_v1_identity_proto_msgTypes[135]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7004,7 +7362,7 @@ func (x *MarkAllMessagesReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkAllMessagesReadRequest.ProtoReflect.Descriptor instead.
 func (*MarkAllMessagesReadRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{128}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{135}
 }
 
 type MarkAllMessagesReadResponse struct {
@@ -7015,7 +7373,7 @@ type MarkAllMessagesReadResponse struct {
 
 func (x *MarkAllMessagesReadResponse) Reset() {
 	*x = MarkAllMessagesReadResponse{}
-	mi := &file_alioth_v1_identity_proto_msgTypes[129]
+	mi := &file_alioth_v1_identity_proto_msgTypes[136]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7027,7 +7385,7 @@ func (x *MarkAllMessagesReadResponse) String() string {
 func (*MarkAllMessagesReadResponse) ProtoMessage() {}
 
 func (x *MarkAllMessagesReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_identity_proto_msgTypes[129]
+	mi := &file_alioth_v1_identity_proto_msgTypes[136]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7040,7 +7398,7 @@ func (x *MarkAllMessagesReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkAllMessagesReadResponse.ProtoReflect.Descriptor instead.
 func (*MarkAllMessagesReadResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{129}
+	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{136}
 }
 
 var File_alioth_v1_identity_proto protoreflect.FileDescriptor
@@ -7206,7 +7564,25 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\x04user\x18\x01 \x01(\v2\x13.alioth.v1.UserItemR\x04user\"\x1b\n" +
 	"\x19GetSelfPermissionsRequest\">\n" +
 	"\x1aGetSelfPermissionsResponse\x12 \n" +
-	"\vpermissions\x18\x01 \x03(\tR\vpermissions\"Y\n" +
+	"\vpermissions\x18\x01 \x03(\tR\vpermissions\"\x83\x01\n" +
+	"\tOAuthLink\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x1a\n" +
+	"\bprovider\x18\x02 \x01(\tR\bprovider\x12\x17\n" +
+	"\aopen_id\x18\x03 \x01(\tR\x06openId\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x12\x19\n" +
+	"\bbound_at\x18\x05 \x01(\tR\aboundAt\"\x1b\n" +
+	"\x19ListSelfOAuthLinksRequest\"H\n" +
+	"\x1aListSelfOAuthLinksResponse\x12*\n" +
+	"\x05items\x18\x01 \x03(\v2\x14.alioth.v1.OAuthLinkR\x05items\"\x9a\x01\n" +
+	"\x14BindSelfOAuthRequest\x12B\n" +
+	"\bprovider\x18\x01 \x01(\tB&\xbaH#r!R\x06GITHUBR\x05GITEER\x06FEISHUR\bDINGTALKR\bprovider\x12\x1b\n" +
+	"\x04code\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04code\x12!\n" +
+	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\"A\n" +
+	"\x15BindSelfOAuthResponse\x12(\n" +
+	"\x04item\x18\x01 \x01(\v2\x14.alioth.v1.OAuthLinkR\x04item\"3\n" +
+	"\x16UnbindSelfOAuthRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"\x19\n" +
+	"\x17UnbindSelfOAuthResponse\"Y\n" +
 	"\x16CreateNamespaceRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12 \n" +
 	"\x06remark\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\"Q\n" +
@@ -7467,7 +7843,8 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\x13ListOAuth2Providers\x12%.alioth.v1.ListOAuth2ProvidersRequest\x1a&.alioth.v1.ListOAuth2ProvidersResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/v1/auth/oauth2/providers\x12n\n" +
 	"\vOAuth2Login\x12\x1d.alioth.v1.OAuth2LoginRequest\x1a\x1e.alioth.v1.OAuth2LoginResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/auth/oauth2/login\x12\x93\x01\n" +
 	"\x16SendOAuthBindEmailCode\x12(.alioth.v1.SendOAuthBindEmailCodeRequest\x1a).alioth.v1.SendOAuthBindEmailCodeResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/v1/auth/oauth2/bind/code\x12v\n" +
-	"\x0eBindOAuthEmail\x12 .alioth.v1.BindOAuthEmailRequest\x1a!.alioth.v1.BindOAuthEmailResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/auth/oauth2/bind2\xac\a\n" +
+	"\x0eBindOAuthEmail\x12 .alioth.v1.BindOAuthEmailRequest\x1a!.alioth.v1.BindOAuthEmailResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/auth/oauth2/bind2\x9f\n" +
+	"\n" +
 	"\vSelfService\x12c\n" +
 	"\vGetSelfInfo\x12\x1d.alioth.v1.GetSelfInfoRequest\x1a\x1e.alioth.v1.GetSelfInfoResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/v1/self/info\x12~\n" +
 	"\x12ListSelfNamespaces\x12$.alioth.v1.ListSelfNamespacesRequest\x1a%.alioth.v1.ListSelfNamespacesResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/self/namespaces\x12o\n" +
@@ -7476,7 +7853,10 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\fChangeAvatar\x12\x1e.alioth.v1.ChangeAvatarRequest\x1a\x1f.alioth.v1.ChangeAvatarResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\x1a\x16/v1/self/change-avatar\x12r\n" +
 	"\fChangeRemark\x12\x1e.alioth.v1.ChangeRemarkRequest\x1a\x1f.alioth.v1.ChangeRemarkResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\x1a\x16/v1/self/change-remark\x12n\n" +
 	"\vChangePhone\x12\x1d.alioth.v1.ChangePhoneRequest\x1a\x1e.alioth.v1.ChangePhoneResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/v1/self/change-phone\x12\x7f\n" +
-	"\x12GetSelfPermissions\x12$.alioth.v1.GetSelfPermissionsRequest\x1a%.alioth.v1.GetSelfPermissionsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/self/permissions2\x83\t\n" +
+	"\x12GetSelfPermissions\x12$.alioth.v1.GetSelfPermissionsRequest\x1a%.alioth.v1.GetSelfPermissionsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/self/permissions\x12\x7f\n" +
+	"\x12ListSelfOAuthLinks\x12$.alioth.v1.ListSelfOAuthLinksRequest\x1a%.alioth.v1.ListSelfOAuthLinksResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/self/oauth/links\x12r\n" +
+	"\rBindSelfOAuth\x12\x1f.alioth.v1.BindSelfOAuthRequest\x1a .alioth.v1.BindSelfOAuthResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/v1/self/oauth/bind\x12|\n" +
+	"\x0fUnbindSelfOAuth\x12!.alioth.v1.UnbindSelfOAuthRequest\x1a\".alioth.v1.UnbindSelfOAuthResponse\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/v1/self/oauth/links/{uid}2\x83\t\n" +
 	"\x10NamespaceService\x12r\n" +
 	"\x0fCreateNamespace\x12!.alioth.v1.CreateNamespaceRequest\x1a\".alioth.v1.CreateNamespaceResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/v1/namespace\x12x\n" +
 	"\x0fUpdateNamespace\x12!.alioth.v1.UpdateNamespaceRequest\x1a\".alioth.v1.UpdateNamespaceResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/v1/namespace/{uid}\x12\x91\x01\n" +
@@ -7543,7 +7923,7 @@ func file_alioth_v1_identity_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_identity_proto_rawDescData
 }
 
-var file_alioth_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 130)
+var file_alioth_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 137)
 var file_alioth_v1_identity_proto_goTypes = []any{
 	(*UserItem)(nil),                       // 0: alioth.v1.UserItem
 	(*NamespaceItem)(nil),                  // 1: alioth.v1.NamespaceItem
@@ -7587,94 +7967,101 @@ var file_alioth_v1_identity_proto_goTypes = []any{
 	(*ChangePhoneResponse)(nil),            // 39: alioth.v1.ChangePhoneResponse
 	(*GetSelfPermissionsRequest)(nil),      // 40: alioth.v1.GetSelfPermissionsRequest
 	(*GetSelfPermissionsResponse)(nil),     // 41: alioth.v1.GetSelfPermissionsResponse
-	(*CreateNamespaceRequest)(nil),         // 42: alioth.v1.CreateNamespaceRequest
-	(*CreateNamespaceResponse)(nil),        // 43: alioth.v1.CreateNamespaceResponse
-	(*UpdateNamespaceRequest)(nil),         // 44: alioth.v1.UpdateNamespaceRequest
-	(*UpdateNamespaceResponse)(nil),        // 45: alioth.v1.UpdateNamespaceResponse
-	(*UpdateNamespaceStatusRequest)(nil),   // 46: alioth.v1.UpdateNamespaceStatusRequest
-	(*UpdateNamespaceStatusResponse)(nil),  // 47: alioth.v1.UpdateNamespaceStatusResponse
-	(*DeleteNamespaceRequest)(nil),         // 48: alioth.v1.DeleteNamespaceRequest
-	(*DeleteNamespaceResponse)(nil),        // 49: alioth.v1.DeleteNamespaceResponse
-	(*GetNamespaceRequest)(nil),            // 50: alioth.v1.GetNamespaceRequest
-	(*GetNamespaceResponse)(nil),           // 51: alioth.v1.GetNamespaceResponse
-	(*ListNamespacesRequest)(nil),          // 52: alioth.v1.ListNamespacesRequest
-	(*ListNamespacesResponse)(nil),         // 53: alioth.v1.ListNamespacesResponse
-	(*SelectNamespacesRequest)(nil),        // 54: alioth.v1.SelectNamespacesRequest
-	(*SelectNamespacesResponse)(nil),       // 55: alioth.v1.SelectNamespacesResponse
-	(*ListSimpleNamespacesRequest)(nil),    // 56: alioth.v1.ListSimpleNamespacesRequest
-	(*ListSimpleNamespacesResponse)(nil),   // 57: alioth.v1.ListSimpleNamespacesResponse
-	(*TransferNamespaceOwnerRequest)(nil),  // 58: alioth.v1.TransferNamespaceOwnerRequest
-	(*TransferNamespaceOwnerResponse)(nil), // 59: alioth.v1.TransferNamespaceOwnerResponse
-	(*ListMembersRequest)(nil),             // 60: alioth.v1.ListMembersRequest
-	(*ListMembersResponse)(nil),            // 61: alioth.v1.ListMembersResponse
-	(*GetMemberRequest)(nil),               // 62: alioth.v1.GetMemberRequest
-	(*GetMemberResponse)(nil),              // 63: alioth.v1.GetMemberResponse
-	(*ListUserMembersRequest)(nil),         // 64: alioth.v1.ListUserMembersRequest
-	(*ListUserMembersResponse)(nil),        // 65: alioth.v1.ListUserMembersResponse
-	(*SelectMembersRequest)(nil),           // 66: alioth.v1.SelectMembersRequest
-	(*SelectMembersResponse)(nil),          // 67: alioth.v1.SelectMembersResponse
-	(*InviteMemberRequest)(nil),            // 68: alioth.v1.InviteMemberRequest
-	(*InviteMemberResponse)(nil),           // 69: alioth.v1.InviteMemberResponse
-	(*MemberInviteItem)(nil),               // 70: alioth.v1.MemberInviteItem
-	(*ListMemberInvitesRequest)(nil),       // 71: alioth.v1.ListMemberInvitesRequest
-	(*ListMemberInvitesResponse)(nil),      // 72: alioth.v1.ListMemberInvitesResponse
-	(*RevokeMemberInviteRequest)(nil),      // 73: alioth.v1.RevokeMemberInviteRequest
-	(*RevokeMemberInviteResponse)(nil),     // 74: alioth.v1.RevokeMemberInviteResponse
-	(*DeleteMemberRequest)(nil),            // 75: alioth.v1.DeleteMemberRequest
-	(*DeleteMemberResponse)(nil),           // 76: alioth.v1.DeleteMemberResponse
-	(*UpdateMemberStatusRequest)(nil),      // 77: alioth.v1.UpdateMemberStatusRequest
-	(*UpdateMemberStatusResponse)(nil),     // 78: alioth.v1.UpdateMemberStatusResponse
-	(*UpdateMemberRolesRequest)(nil),       // 79: alioth.v1.UpdateMemberRolesRequest
-	(*UpdateMemberRolesResponse)(nil),      // 80: alioth.v1.UpdateMemberRolesResponse
-	(*GetUserRequest)(nil),                 // 81: alioth.v1.GetUserRequest
-	(*GetUserResponse)(nil),                // 82: alioth.v1.GetUserResponse
-	(*ListUsersRequest)(nil),               // 83: alioth.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),              // 84: alioth.v1.ListUsersResponse
-	(*SelectUsersRequest)(nil),             // 85: alioth.v1.SelectUsersRequest
-	(*SelectUsersResponse)(nil),            // 86: alioth.v1.SelectUsersResponse
-	(*BanUserRequest)(nil),                 // 87: alioth.v1.BanUserRequest
-	(*BanUserResponse)(nil),                // 88: alioth.v1.BanUserResponse
-	(*PermitUserRequest)(nil),              // 89: alioth.v1.PermitUserRequest
-	(*PermitUserResponse)(nil),             // 90: alioth.v1.PermitUserResponse
-	(*UpdateUserSystemRoleRequest)(nil),    // 91: alioth.v1.UpdateUserSystemRoleRequest
-	(*UpdateUserSystemRoleResponse)(nil),   // 92: alioth.v1.UpdateUserSystemRoleResponse
-	(*CreateRoleRequest)(nil),              // 93: alioth.v1.CreateRoleRequest
-	(*CreateRoleResponse)(nil),             // 94: alioth.v1.CreateRoleResponse
-	(*UpdateRoleRequest)(nil),              // 95: alioth.v1.UpdateRoleRequest
-	(*UpdateRoleResponse)(nil),             // 96: alioth.v1.UpdateRoleResponse
-	(*UpdateRoleRemarkRequest)(nil),        // 97: alioth.v1.UpdateRoleRemarkRequest
-	(*UpdateRoleRemarkResponse)(nil),       // 98: alioth.v1.UpdateRoleRemarkResponse
-	(*UpdateRoleStatusRequest)(nil),        // 99: alioth.v1.UpdateRoleStatusRequest
-	(*UpdateRoleStatusResponse)(nil),       // 100: alioth.v1.UpdateRoleStatusResponse
-	(*DeleteRoleRequest)(nil),              // 101: alioth.v1.DeleteRoleRequest
-	(*DeleteRoleResponse)(nil),             // 102: alioth.v1.DeleteRoleResponse
-	(*GetRoleRequest)(nil),                 // 103: alioth.v1.GetRoleRequest
-	(*GetRoleResponse)(nil),                // 104: alioth.v1.GetRoleResponse
-	(*ListRolesRequest)(nil),               // 105: alioth.v1.ListRolesRequest
-	(*ListRolesResponse)(nil),              // 106: alioth.v1.ListRolesResponse
-	(*SelectRolesRequest)(nil),             // 107: alioth.v1.SelectRolesRequest
-	(*SelectRolesResponse)(nil),            // 108: alioth.v1.SelectRolesResponse
-	(*UpdateRolePermissionsRequest)(nil),   // 109: alioth.v1.UpdateRolePermissionsRequest
-	(*UpdateRolePermissionsResponse)(nil),  // 110: alioth.v1.UpdateRolePermissionsResponse
-	(*ListPermissionsRequest)(nil),         // 111: alioth.v1.ListPermissionsRequest
-	(*ListPermissionsResponse)(nil),        // 112: alioth.v1.ListPermissionsResponse
-	(*ListSelfInvitationsRequest)(nil),     // 113: alioth.v1.ListSelfInvitationsRequest
-	(*ListSelfInvitationsResponse)(nil),    // 114: alioth.v1.ListSelfInvitationsResponse
-	(*GetInvitationRequest)(nil),           // 115: alioth.v1.GetInvitationRequest
-	(*GetInvitationResponse)(nil),          // 116: alioth.v1.GetInvitationResponse
-	(*AcceptInvitationRequest)(nil),        // 117: alioth.v1.AcceptInvitationRequest
-	(*AcceptInvitationResponse)(nil),       // 118: alioth.v1.AcceptInvitationResponse
-	(*DeclineInvitationRequest)(nil),       // 119: alioth.v1.DeclineInvitationRequest
-	(*DeclineInvitationResponse)(nil),      // 120: alioth.v1.DeclineInvitationResponse
-	(*SystemMessageItem)(nil),              // 121: alioth.v1.SystemMessageItem
-	(*ListSelfMessagesRequest)(nil),        // 122: alioth.v1.ListSelfMessagesRequest
-	(*ListSelfMessagesResponse)(nil),       // 123: alioth.v1.ListSelfMessagesResponse
-	(*GetUnreadMessageCountRequest)(nil),   // 124: alioth.v1.GetUnreadMessageCountRequest
-	(*GetUnreadMessageCountResponse)(nil),  // 125: alioth.v1.GetUnreadMessageCountResponse
-	(*MarkMessageReadRequest)(nil),         // 126: alioth.v1.MarkMessageReadRequest
-	(*MarkMessageReadResponse)(nil),        // 127: alioth.v1.MarkMessageReadResponse
-	(*MarkAllMessagesReadRequest)(nil),     // 128: alioth.v1.MarkAllMessagesReadRequest
-	(*MarkAllMessagesReadResponse)(nil),    // 129: alioth.v1.MarkAllMessagesReadResponse
+	(*OAuthLink)(nil),                      // 42: alioth.v1.OAuthLink
+	(*ListSelfOAuthLinksRequest)(nil),      // 43: alioth.v1.ListSelfOAuthLinksRequest
+	(*ListSelfOAuthLinksResponse)(nil),     // 44: alioth.v1.ListSelfOAuthLinksResponse
+	(*BindSelfOAuthRequest)(nil),           // 45: alioth.v1.BindSelfOAuthRequest
+	(*BindSelfOAuthResponse)(nil),          // 46: alioth.v1.BindSelfOAuthResponse
+	(*UnbindSelfOAuthRequest)(nil),         // 47: alioth.v1.UnbindSelfOAuthRequest
+	(*UnbindSelfOAuthResponse)(nil),        // 48: alioth.v1.UnbindSelfOAuthResponse
+	(*CreateNamespaceRequest)(nil),         // 49: alioth.v1.CreateNamespaceRequest
+	(*CreateNamespaceResponse)(nil),        // 50: alioth.v1.CreateNamespaceResponse
+	(*UpdateNamespaceRequest)(nil),         // 51: alioth.v1.UpdateNamespaceRequest
+	(*UpdateNamespaceResponse)(nil),        // 52: alioth.v1.UpdateNamespaceResponse
+	(*UpdateNamespaceStatusRequest)(nil),   // 53: alioth.v1.UpdateNamespaceStatusRequest
+	(*UpdateNamespaceStatusResponse)(nil),  // 54: alioth.v1.UpdateNamespaceStatusResponse
+	(*DeleteNamespaceRequest)(nil),         // 55: alioth.v1.DeleteNamespaceRequest
+	(*DeleteNamespaceResponse)(nil),        // 56: alioth.v1.DeleteNamespaceResponse
+	(*GetNamespaceRequest)(nil),            // 57: alioth.v1.GetNamespaceRequest
+	(*GetNamespaceResponse)(nil),           // 58: alioth.v1.GetNamespaceResponse
+	(*ListNamespacesRequest)(nil),          // 59: alioth.v1.ListNamespacesRequest
+	(*ListNamespacesResponse)(nil),         // 60: alioth.v1.ListNamespacesResponse
+	(*SelectNamespacesRequest)(nil),        // 61: alioth.v1.SelectNamespacesRequest
+	(*SelectNamespacesResponse)(nil),       // 62: alioth.v1.SelectNamespacesResponse
+	(*ListSimpleNamespacesRequest)(nil),    // 63: alioth.v1.ListSimpleNamespacesRequest
+	(*ListSimpleNamespacesResponse)(nil),   // 64: alioth.v1.ListSimpleNamespacesResponse
+	(*TransferNamespaceOwnerRequest)(nil),  // 65: alioth.v1.TransferNamespaceOwnerRequest
+	(*TransferNamespaceOwnerResponse)(nil), // 66: alioth.v1.TransferNamespaceOwnerResponse
+	(*ListMembersRequest)(nil),             // 67: alioth.v1.ListMembersRequest
+	(*ListMembersResponse)(nil),            // 68: alioth.v1.ListMembersResponse
+	(*GetMemberRequest)(nil),               // 69: alioth.v1.GetMemberRequest
+	(*GetMemberResponse)(nil),              // 70: alioth.v1.GetMemberResponse
+	(*ListUserMembersRequest)(nil),         // 71: alioth.v1.ListUserMembersRequest
+	(*ListUserMembersResponse)(nil),        // 72: alioth.v1.ListUserMembersResponse
+	(*SelectMembersRequest)(nil),           // 73: alioth.v1.SelectMembersRequest
+	(*SelectMembersResponse)(nil),          // 74: alioth.v1.SelectMembersResponse
+	(*InviteMemberRequest)(nil),            // 75: alioth.v1.InviteMemberRequest
+	(*InviteMemberResponse)(nil),           // 76: alioth.v1.InviteMemberResponse
+	(*MemberInviteItem)(nil),               // 77: alioth.v1.MemberInviteItem
+	(*ListMemberInvitesRequest)(nil),       // 78: alioth.v1.ListMemberInvitesRequest
+	(*ListMemberInvitesResponse)(nil),      // 79: alioth.v1.ListMemberInvitesResponse
+	(*RevokeMemberInviteRequest)(nil),      // 80: alioth.v1.RevokeMemberInviteRequest
+	(*RevokeMemberInviteResponse)(nil),     // 81: alioth.v1.RevokeMemberInviteResponse
+	(*DeleteMemberRequest)(nil),            // 82: alioth.v1.DeleteMemberRequest
+	(*DeleteMemberResponse)(nil),           // 83: alioth.v1.DeleteMemberResponse
+	(*UpdateMemberStatusRequest)(nil),      // 84: alioth.v1.UpdateMemberStatusRequest
+	(*UpdateMemberStatusResponse)(nil),     // 85: alioth.v1.UpdateMemberStatusResponse
+	(*UpdateMemberRolesRequest)(nil),       // 86: alioth.v1.UpdateMemberRolesRequest
+	(*UpdateMemberRolesResponse)(nil),      // 87: alioth.v1.UpdateMemberRolesResponse
+	(*GetUserRequest)(nil),                 // 88: alioth.v1.GetUserRequest
+	(*GetUserResponse)(nil),                // 89: alioth.v1.GetUserResponse
+	(*ListUsersRequest)(nil),               // 90: alioth.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),              // 91: alioth.v1.ListUsersResponse
+	(*SelectUsersRequest)(nil),             // 92: alioth.v1.SelectUsersRequest
+	(*SelectUsersResponse)(nil),            // 93: alioth.v1.SelectUsersResponse
+	(*BanUserRequest)(nil),                 // 94: alioth.v1.BanUserRequest
+	(*BanUserResponse)(nil),                // 95: alioth.v1.BanUserResponse
+	(*PermitUserRequest)(nil),              // 96: alioth.v1.PermitUserRequest
+	(*PermitUserResponse)(nil),             // 97: alioth.v1.PermitUserResponse
+	(*UpdateUserSystemRoleRequest)(nil),    // 98: alioth.v1.UpdateUserSystemRoleRequest
+	(*UpdateUserSystemRoleResponse)(nil),   // 99: alioth.v1.UpdateUserSystemRoleResponse
+	(*CreateRoleRequest)(nil),              // 100: alioth.v1.CreateRoleRequest
+	(*CreateRoleResponse)(nil),             // 101: alioth.v1.CreateRoleResponse
+	(*UpdateRoleRequest)(nil),              // 102: alioth.v1.UpdateRoleRequest
+	(*UpdateRoleResponse)(nil),             // 103: alioth.v1.UpdateRoleResponse
+	(*UpdateRoleRemarkRequest)(nil),        // 104: alioth.v1.UpdateRoleRemarkRequest
+	(*UpdateRoleRemarkResponse)(nil),       // 105: alioth.v1.UpdateRoleRemarkResponse
+	(*UpdateRoleStatusRequest)(nil),        // 106: alioth.v1.UpdateRoleStatusRequest
+	(*UpdateRoleStatusResponse)(nil),       // 107: alioth.v1.UpdateRoleStatusResponse
+	(*DeleteRoleRequest)(nil),              // 108: alioth.v1.DeleteRoleRequest
+	(*DeleteRoleResponse)(nil),             // 109: alioth.v1.DeleteRoleResponse
+	(*GetRoleRequest)(nil),                 // 110: alioth.v1.GetRoleRequest
+	(*GetRoleResponse)(nil),                // 111: alioth.v1.GetRoleResponse
+	(*ListRolesRequest)(nil),               // 112: alioth.v1.ListRolesRequest
+	(*ListRolesResponse)(nil),              // 113: alioth.v1.ListRolesResponse
+	(*SelectRolesRequest)(nil),             // 114: alioth.v1.SelectRolesRequest
+	(*SelectRolesResponse)(nil),            // 115: alioth.v1.SelectRolesResponse
+	(*UpdateRolePermissionsRequest)(nil),   // 116: alioth.v1.UpdateRolePermissionsRequest
+	(*UpdateRolePermissionsResponse)(nil),  // 117: alioth.v1.UpdateRolePermissionsResponse
+	(*ListPermissionsRequest)(nil),         // 118: alioth.v1.ListPermissionsRequest
+	(*ListPermissionsResponse)(nil),        // 119: alioth.v1.ListPermissionsResponse
+	(*ListSelfInvitationsRequest)(nil),     // 120: alioth.v1.ListSelfInvitationsRequest
+	(*ListSelfInvitationsResponse)(nil),    // 121: alioth.v1.ListSelfInvitationsResponse
+	(*GetInvitationRequest)(nil),           // 122: alioth.v1.GetInvitationRequest
+	(*GetInvitationResponse)(nil),          // 123: alioth.v1.GetInvitationResponse
+	(*AcceptInvitationRequest)(nil),        // 124: alioth.v1.AcceptInvitationRequest
+	(*AcceptInvitationResponse)(nil),       // 125: alioth.v1.AcceptInvitationResponse
+	(*DeclineInvitationRequest)(nil),       // 126: alioth.v1.DeclineInvitationRequest
+	(*DeclineInvitationResponse)(nil),      // 127: alioth.v1.DeclineInvitationResponse
+	(*SystemMessageItem)(nil),              // 128: alioth.v1.SystemMessageItem
+	(*ListSelfMessagesRequest)(nil),        // 129: alioth.v1.ListSelfMessagesRequest
+	(*ListSelfMessagesResponse)(nil),       // 130: alioth.v1.ListSelfMessagesResponse
+	(*GetUnreadMessageCountRequest)(nil),   // 131: alioth.v1.GetUnreadMessageCountRequest
+	(*GetUnreadMessageCountResponse)(nil),  // 132: alioth.v1.GetUnreadMessageCountResponse
+	(*MarkMessageReadRequest)(nil),         // 133: alioth.v1.MarkMessageReadRequest
+	(*MarkMessageReadResponse)(nil),        // 134: alioth.v1.MarkMessageReadResponse
+	(*MarkAllMessagesReadRequest)(nil),     // 135: alioth.v1.MarkAllMessagesReadRequest
+	(*MarkAllMessagesReadResponse)(nil),    // 136: alioth.v1.MarkAllMessagesReadResponse
 }
 var file_alioth_v1_identity_proto_depIdxs = []int32{
 	0,   // 0: alioth.v1.TokenPair.user:type_name -> alioth.v1.UserItem
@@ -7689,166 +8076,174 @@ var file_alioth_v1_identity_proto_depIdxs = []int32{
 	0,   // 9: alioth.v1.ChangeAvatarResponse.user:type_name -> alioth.v1.UserItem
 	0,   // 10: alioth.v1.ChangeRemarkResponse.user:type_name -> alioth.v1.UserItem
 	0,   // 11: alioth.v1.ChangePhoneResponse.user:type_name -> alioth.v1.UserItem
-	1,   // 12: alioth.v1.CreateNamespaceResponse.namespace:type_name -> alioth.v1.NamespaceItem
-	1,   // 13: alioth.v1.UpdateNamespaceResponse.namespace:type_name -> alioth.v1.NamespaceItem
-	1,   // 14: alioth.v1.UpdateNamespaceStatusResponse.namespace:type_name -> alioth.v1.NamespaceItem
-	1,   // 15: alioth.v1.GetNamespaceResponse.namespace:type_name -> alioth.v1.NamespaceItem
-	1,   // 16: alioth.v1.ListNamespacesResponse.items:type_name -> alioth.v1.NamespaceItem
-	5,   // 17: alioth.v1.SelectNamespacesResponse.items:type_name -> alioth.v1.SelectItem
-	1,   // 18: alioth.v1.ListSimpleNamespacesResponse.items:type_name -> alioth.v1.NamespaceItem
-	1,   // 19: alioth.v1.TransferNamespaceOwnerResponse.namespace:type_name -> alioth.v1.NamespaceItem
-	2,   // 20: alioth.v1.ListMembersResponse.items:type_name -> alioth.v1.MemberItem
-	2,   // 21: alioth.v1.GetMemberResponse.member:type_name -> alioth.v1.MemberItem
-	2,   // 22: alioth.v1.ListUserMembersResponse.items:type_name -> alioth.v1.MemberItem
-	5,   // 23: alioth.v1.SelectMembersResponse.items:type_name -> alioth.v1.SelectItem
-	70,  // 24: alioth.v1.InviteMemberResponse.invitation:type_name -> alioth.v1.MemberInviteItem
-	70,  // 25: alioth.v1.ListMemberInvitesResponse.items:type_name -> alioth.v1.MemberInviteItem
-	2,   // 26: alioth.v1.UpdateMemberStatusResponse.member:type_name -> alioth.v1.MemberItem
-	2,   // 27: alioth.v1.UpdateMemberRolesResponse.member:type_name -> alioth.v1.MemberItem
-	0,   // 28: alioth.v1.GetUserResponse.user:type_name -> alioth.v1.UserItem
-	0,   // 29: alioth.v1.ListUsersResponse.items:type_name -> alioth.v1.UserItem
-	5,   // 30: alioth.v1.SelectUsersResponse.items:type_name -> alioth.v1.SelectItem
-	0,   // 31: alioth.v1.BanUserResponse.user:type_name -> alioth.v1.UserItem
-	0,   // 32: alioth.v1.PermitUserResponse.user:type_name -> alioth.v1.UserItem
-	0,   // 33: alioth.v1.UpdateUserSystemRoleResponse.user:type_name -> alioth.v1.UserItem
-	3,   // 34: alioth.v1.CreateRoleResponse.role:type_name -> alioth.v1.RoleItem
-	3,   // 35: alioth.v1.UpdateRoleResponse.role:type_name -> alioth.v1.RoleItem
-	3,   // 36: alioth.v1.UpdateRoleRemarkResponse.role:type_name -> alioth.v1.RoleItem
-	3,   // 37: alioth.v1.UpdateRoleStatusResponse.role:type_name -> alioth.v1.RoleItem
-	3,   // 38: alioth.v1.GetRoleResponse.role:type_name -> alioth.v1.RoleItem
-	3,   // 39: alioth.v1.ListRolesResponse.items:type_name -> alioth.v1.RoleItem
-	5,   // 40: alioth.v1.SelectRolesResponse.items:type_name -> alioth.v1.SelectItem
-	3,   // 41: alioth.v1.UpdateRolePermissionsResponse.role:type_name -> alioth.v1.RoleItem
-	4,   // 42: alioth.v1.ListPermissionsResponse.items:type_name -> alioth.v1.PermissionItem
-	70,  // 43: alioth.v1.ListSelfInvitationsResponse.items:type_name -> alioth.v1.MemberInviteItem
-	70,  // 44: alioth.v1.GetInvitationResponse.invitation:type_name -> alioth.v1.MemberInviteItem
-	2,   // 45: alioth.v1.AcceptInvitationResponse.member:type_name -> alioth.v1.MemberItem
-	121, // 46: alioth.v1.ListSelfMessagesResponse.items:type_name -> alioth.v1.SystemMessageItem
-	7,   // 47: alioth.v1.CaptchaService.GetCaptcha:input_type -> alioth.v1.GetCaptchaRequest
-	11,  // 48: alioth.v1.AuthService.SendRegisterEmailCode:input_type -> alioth.v1.SendRegisterEmailCodeRequest
-	9,   // 49: alioth.v1.AuthService.Register:input_type -> alioth.v1.RegisterRequest
-	13,  // 50: alioth.v1.AuthService.SendEmailLoginCode:input_type -> alioth.v1.SendEmailLoginCodeRequest
-	15,  // 51: alioth.v1.AuthService.EmailLogin:input_type -> alioth.v1.EmailLoginRequest
-	17,  // 52: alioth.v1.AuthService.ListOAuth2Providers:input_type -> alioth.v1.ListOAuth2ProvidersRequest
-	20,  // 53: alioth.v1.AuthService.OAuth2Login:input_type -> alioth.v1.OAuth2LoginRequest
-	22,  // 54: alioth.v1.AuthService.SendOAuthBindEmailCode:input_type -> alioth.v1.SendOAuthBindEmailCodeRequest
-	24,  // 55: alioth.v1.AuthService.BindOAuthEmail:input_type -> alioth.v1.BindOAuthEmailRequest
-	26,  // 56: alioth.v1.SelfService.GetSelfInfo:input_type -> alioth.v1.GetSelfInfoRequest
-	28,  // 57: alioth.v1.SelfService.ListSelfNamespaces:input_type -> alioth.v1.ListSelfNamespacesRequest
-	30,  // 58: alioth.v1.SelfService.RefreshToken:input_type -> alioth.v1.RefreshTokenRequest
-	32,  // 59: alioth.v1.SelfService.ChangeEmail:input_type -> alioth.v1.ChangeEmailRequest
-	34,  // 60: alioth.v1.SelfService.ChangeAvatar:input_type -> alioth.v1.ChangeAvatarRequest
-	36,  // 61: alioth.v1.SelfService.ChangeRemark:input_type -> alioth.v1.ChangeRemarkRequest
-	38,  // 62: alioth.v1.SelfService.ChangePhone:input_type -> alioth.v1.ChangePhoneRequest
-	40,  // 63: alioth.v1.SelfService.GetSelfPermissions:input_type -> alioth.v1.GetSelfPermissionsRequest
-	42,  // 64: alioth.v1.NamespaceService.CreateNamespace:input_type -> alioth.v1.CreateNamespaceRequest
-	44,  // 65: alioth.v1.NamespaceService.UpdateNamespace:input_type -> alioth.v1.UpdateNamespaceRequest
-	46,  // 66: alioth.v1.NamespaceService.UpdateNamespaceStatus:input_type -> alioth.v1.UpdateNamespaceStatusRequest
-	48,  // 67: alioth.v1.NamespaceService.DeleteNamespace:input_type -> alioth.v1.DeleteNamespaceRequest
-	50,  // 68: alioth.v1.NamespaceService.GetNamespace:input_type -> alioth.v1.GetNamespaceRequest
-	52,  // 69: alioth.v1.NamespaceService.ListNamespaces:input_type -> alioth.v1.ListNamespacesRequest
-	54,  // 70: alioth.v1.NamespaceService.SelectNamespaces:input_type -> alioth.v1.SelectNamespacesRequest
-	56,  // 71: alioth.v1.NamespaceService.ListSimpleNamespaces:input_type -> alioth.v1.ListSimpleNamespacesRequest
-	58,  // 72: alioth.v1.NamespaceService.TransferNamespaceOwner:input_type -> alioth.v1.TransferNamespaceOwnerRequest
-	60,  // 73: alioth.v1.MemberService.ListMembers:input_type -> alioth.v1.ListMembersRequest
-	62,  // 74: alioth.v1.MemberService.GetMember:input_type -> alioth.v1.GetMemberRequest
-	64,  // 75: alioth.v1.MemberService.ListUserMembers:input_type -> alioth.v1.ListUserMembersRequest
-	66,  // 76: alioth.v1.MemberService.SelectMembers:input_type -> alioth.v1.SelectMembersRequest
-	68,  // 77: alioth.v1.MemberService.InviteMember:input_type -> alioth.v1.InviteMemberRequest
-	71,  // 78: alioth.v1.MemberService.ListMemberInvites:input_type -> alioth.v1.ListMemberInvitesRequest
-	73,  // 79: alioth.v1.MemberService.RevokeMemberInvite:input_type -> alioth.v1.RevokeMemberInviteRequest
-	75,  // 80: alioth.v1.MemberService.DeleteMember:input_type -> alioth.v1.DeleteMemberRequest
-	77,  // 81: alioth.v1.MemberService.UpdateMemberStatus:input_type -> alioth.v1.UpdateMemberStatusRequest
-	79,  // 82: alioth.v1.MemberService.UpdateMemberRoles:input_type -> alioth.v1.UpdateMemberRolesRequest
-	81,  // 83: alioth.v1.UserService.GetUser:input_type -> alioth.v1.GetUserRequest
-	83,  // 84: alioth.v1.UserService.ListUsers:input_type -> alioth.v1.ListUsersRequest
-	85,  // 85: alioth.v1.UserService.SelectUsers:input_type -> alioth.v1.SelectUsersRequest
-	87,  // 86: alioth.v1.UserService.BanUser:input_type -> alioth.v1.BanUserRequest
-	89,  // 87: alioth.v1.UserService.PermitUser:input_type -> alioth.v1.PermitUserRequest
-	91,  // 88: alioth.v1.UserService.UpdateUserSystemRole:input_type -> alioth.v1.UpdateUserSystemRoleRequest
-	113, // 89: alioth.v1.InvitationService.ListSelfInvitations:input_type -> alioth.v1.ListSelfInvitationsRequest
-	115, // 90: alioth.v1.InvitationService.GetInvitation:input_type -> alioth.v1.GetInvitationRequest
-	117, // 91: alioth.v1.InvitationService.AcceptInvitation:input_type -> alioth.v1.AcceptInvitationRequest
-	119, // 92: alioth.v1.InvitationService.DeclineInvitation:input_type -> alioth.v1.DeclineInvitationRequest
-	93,  // 93: alioth.v1.RoleService.CreateRole:input_type -> alioth.v1.CreateRoleRequest
-	95,  // 94: alioth.v1.RoleService.UpdateRole:input_type -> alioth.v1.UpdateRoleRequest
-	99,  // 95: alioth.v1.RoleService.UpdateRoleStatus:input_type -> alioth.v1.UpdateRoleStatusRequest
-	101, // 96: alioth.v1.RoleService.DeleteRole:input_type -> alioth.v1.DeleteRoleRequest
-	103, // 97: alioth.v1.RoleService.GetRole:input_type -> alioth.v1.GetRoleRequest
-	105, // 98: alioth.v1.RoleService.ListRoles:input_type -> alioth.v1.ListRolesRequest
-	107, // 99: alioth.v1.RoleService.SelectRoles:input_type -> alioth.v1.SelectRolesRequest
-	109, // 100: alioth.v1.RoleService.UpdateRolePermissions:input_type -> alioth.v1.UpdateRolePermissionsRequest
-	111, // 101: alioth.v1.RoleService.ListPermissions:input_type -> alioth.v1.ListPermissionsRequest
-	97,  // 102: alioth.v1.RoleService.UpdateRoleRemark:input_type -> alioth.v1.UpdateRoleRemarkRequest
-	122, // 103: alioth.v1.SystemMessageService.ListSelfMessages:input_type -> alioth.v1.ListSelfMessagesRequest
-	124, // 104: alioth.v1.SystemMessageService.GetUnreadMessageCount:input_type -> alioth.v1.GetUnreadMessageCountRequest
-	126, // 105: alioth.v1.SystemMessageService.MarkMessageRead:input_type -> alioth.v1.MarkMessageReadRequest
-	128, // 106: alioth.v1.SystemMessageService.MarkAllMessagesRead:input_type -> alioth.v1.MarkAllMessagesReadRequest
-	8,   // 107: alioth.v1.CaptchaService.GetCaptcha:output_type -> alioth.v1.GetCaptchaResponse
-	12,  // 108: alioth.v1.AuthService.SendRegisterEmailCode:output_type -> alioth.v1.SendRegisterEmailCodeResponse
-	10,  // 109: alioth.v1.AuthService.Register:output_type -> alioth.v1.RegisterResponse
-	14,  // 110: alioth.v1.AuthService.SendEmailLoginCode:output_type -> alioth.v1.SendEmailLoginCodeResponse
-	16,  // 111: alioth.v1.AuthService.EmailLogin:output_type -> alioth.v1.EmailLoginResponse
-	19,  // 112: alioth.v1.AuthService.ListOAuth2Providers:output_type -> alioth.v1.ListOAuth2ProvidersResponse
-	21,  // 113: alioth.v1.AuthService.OAuth2Login:output_type -> alioth.v1.OAuth2LoginResponse
-	23,  // 114: alioth.v1.AuthService.SendOAuthBindEmailCode:output_type -> alioth.v1.SendOAuthBindEmailCodeResponse
-	25,  // 115: alioth.v1.AuthService.BindOAuthEmail:output_type -> alioth.v1.BindOAuthEmailResponse
-	27,  // 116: alioth.v1.SelfService.GetSelfInfo:output_type -> alioth.v1.GetSelfInfoResponse
-	29,  // 117: alioth.v1.SelfService.ListSelfNamespaces:output_type -> alioth.v1.ListSelfNamespacesResponse
-	31,  // 118: alioth.v1.SelfService.RefreshToken:output_type -> alioth.v1.RefreshTokenResponse
-	33,  // 119: alioth.v1.SelfService.ChangeEmail:output_type -> alioth.v1.ChangeEmailResponse
-	35,  // 120: alioth.v1.SelfService.ChangeAvatar:output_type -> alioth.v1.ChangeAvatarResponse
-	37,  // 121: alioth.v1.SelfService.ChangeRemark:output_type -> alioth.v1.ChangeRemarkResponse
-	39,  // 122: alioth.v1.SelfService.ChangePhone:output_type -> alioth.v1.ChangePhoneResponse
-	41,  // 123: alioth.v1.SelfService.GetSelfPermissions:output_type -> alioth.v1.GetSelfPermissionsResponse
-	43,  // 124: alioth.v1.NamespaceService.CreateNamespace:output_type -> alioth.v1.CreateNamespaceResponse
-	45,  // 125: alioth.v1.NamespaceService.UpdateNamespace:output_type -> alioth.v1.UpdateNamespaceResponse
-	47,  // 126: alioth.v1.NamespaceService.UpdateNamespaceStatus:output_type -> alioth.v1.UpdateNamespaceStatusResponse
-	49,  // 127: alioth.v1.NamespaceService.DeleteNamespace:output_type -> alioth.v1.DeleteNamespaceResponse
-	51,  // 128: alioth.v1.NamespaceService.GetNamespace:output_type -> alioth.v1.GetNamespaceResponse
-	53,  // 129: alioth.v1.NamespaceService.ListNamespaces:output_type -> alioth.v1.ListNamespacesResponse
-	55,  // 130: alioth.v1.NamespaceService.SelectNamespaces:output_type -> alioth.v1.SelectNamespacesResponse
-	57,  // 131: alioth.v1.NamespaceService.ListSimpleNamespaces:output_type -> alioth.v1.ListSimpleNamespacesResponse
-	59,  // 132: alioth.v1.NamespaceService.TransferNamespaceOwner:output_type -> alioth.v1.TransferNamespaceOwnerResponse
-	61,  // 133: alioth.v1.MemberService.ListMembers:output_type -> alioth.v1.ListMembersResponse
-	63,  // 134: alioth.v1.MemberService.GetMember:output_type -> alioth.v1.GetMemberResponse
-	65,  // 135: alioth.v1.MemberService.ListUserMembers:output_type -> alioth.v1.ListUserMembersResponse
-	67,  // 136: alioth.v1.MemberService.SelectMembers:output_type -> alioth.v1.SelectMembersResponse
-	69,  // 137: alioth.v1.MemberService.InviteMember:output_type -> alioth.v1.InviteMemberResponse
-	72,  // 138: alioth.v1.MemberService.ListMemberInvites:output_type -> alioth.v1.ListMemberInvitesResponse
-	74,  // 139: alioth.v1.MemberService.RevokeMemberInvite:output_type -> alioth.v1.RevokeMemberInviteResponse
-	76,  // 140: alioth.v1.MemberService.DeleteMember:output_type -> alioth.v1.DeleteMemberResponse
-	78,  // 141: alioth.v1.MemberService.UpdateMemberStatus:output_type -> alioth.v1.UpdateMemberStatusResponse
-	80,  // 142: alioth.v1.MemberService.UpdateMemberRoles:output_type -> alioth.v1.UpdateMemberRolesResponse
-	82,  // 143: alioth.v1.UserService.GetUser:output_type -> alioth.v1.GetUserResponse
-	84,  // 144: alioth.v1.UserService.ListUsers:output_type -> alioth.v1.ListUsersResponse
-	86,  // 145: alioth.v1.UserService.SelectUsers:output_type -> alioth.v1.SelectUsersResponse
-	88,  // 146: alioth.v1.UserService.BanUser:output_type -> alioth.v1.BanUserResponse
-	90,  // 147: alioth.v1.UserService.PermitUser:output_type -> alioth.v1.PermitUserResponse
-	92,  // 148: alioth.v1.UserService.UpdateUserSystemRole:output_type -> alioth.v1.UpdateUserSystemRoleResponse
-	114, // 149: alioth.v1.InvitationService.ListSelfInvitations:output_type -> alioth.v1.ListSelfInvitationsResponse
-	116, // 150: alioth.v1.InvitationService.GetInvitation:output_type -> alioth.v1.GetInvitationResponse
-	118, // 151: alioth.v1.InvitationService.AcceptInvitation:output_type -> alioth.v1.AcceptInvitationResponse
-	120, // 152: alioth.v1.InvitationService.DeclineInvitation:output_type -> alioth.v1.DeclineInvitationResponse
-	94,  // 153: alioth.v1.RoleService.CreateRole:output_type -> alioth.v1.CreateRoleResponse
-	96,  // 154: alioth.v1.RoleService.UpdateRole:output_type -> alioth.v1.UpdateRoleResponse
-	100, // 155: alioth.v1.RoleService.UpdateRoleStatus:output_type -> alioth.v1.UpdateRoleStatusResponse
-	102, // 156: alioth.v1.RoleService.DeleteRole:output_type -> alioth.v1.DeleteRoleResponse
-	104, // 157: alioth.v1.RoleService.GetRole:output_type -> alioth.v1.GetRoleResponse
-	106, // 158: alioth.v1.RoleService.ListRoles:output_type -> alioth.v1.ListRolesResponse
-	108, // 159: alioth.v1.RoleService.SelectRoles:output_type -> alioth.v1.SelectRolesResponse
-	110, // 160: alioth.v1.RoleService.UpdateRolePermissions:output_type -> alioth.v1.UpdateRolePermissionsResponse
-	112, // 161: alioth.v1.RoleService.ListPermissions:output_type -> alioth.v1.ListPermissionsResponse
-	98,  // 162: alioth.v1.RoleService.UpdateRoleRemark:output_type -> alioth.v1.UpdateRoleRemarkResponse
-	123, // 163: alioth.v1.SystemMessageService.ListSelfMessages:output_type -> alioth.v1.ListSelfMessagesResponse
-	125, // 164: alioth.v1.SystemMessageService.GetUnreadMessageCount:output_type -> alioth.v1.GetUnreadMessageCountResponse
-	127, // 165: alioth.v1.SystemMessageService.MarkMessageRead:output_type -> alioth.v1.MarkMessageReadResponse
-	129, // 166: alioth.v1.SystemMessageService.MarkAllMessagesRead:output_type -> alioth.v1.MarkAllMessagesReadResponse
-	107, // [107:167] is the sub-list for method output_type
-	47,  // [47:107] is the sub-list for method input_type
-	47,  // [47:47] is the sub-list for extension type_name
-	47,  // [47:47] is the sub-list for extension extendee
-	0,   // [0:47] is the sub-list for field type_name
+	42,  // 12: alioth.v1.ListSelfOAuthLinksResponse.items:type_name -> alioth.v1.OAuthLink
+	42,  // 13: alioth.v1.BindSelfOAuthResponse.item:type_name -> alioth.v1.OAuthLink
+	1,   // 14: alioth.v1.CreateNamespaceResponse.namespace:type_name -> alioth.v1.NamespaceItem
+	1,   // 15: alioth.v1.UpdateNamespaceResponse.namespace:type_name -> alioth.v1.NamespaceItem
+	1,   // 16: alioth.v1.UpdateNamespaceStatusResponse.namespace:type_name -> alioth.v1.NamespaceItem
+	1,   // 17: alioth.v1.GetNamespaceResponse.namespace:type_name -> alioth.v1.NamespaceItem
+	1,   // 18: alioth.v1.ListNamespacesResponse.items:type_name -> alioth.v1.NamespaceItem
+	5,   // 19: alioth.v1.SelectNamespacesResponse.items:type_name -> alioth.v1.SelectItem
+	1,   // 20: alioth.v1.ListSimpleNamespacesResponse.items:type_name -> alioth.v1.NamespaceItem
+	1,   // 21: alioth.v1.TransferNamespaceOwnerResponse.namespace:type_name -> alioth.v1.NamespaceItem
+	2,   // 22: alioth.v1.ListMembersResponse.items:type_name -> alioth.v1.MemberItem
+	2,   // 23: alioth.v1.GetMemberResponse.member:type_name -> alioth.v1.MemberItem
+	2,   // 24: alioth.v1.ListUserMembersResponse.items:type_name -> alioth.v1.MemberItem
+	5,   // 25: alioth.v1.SelectMembersResponse.items:type_name -> alioth.v1.SelectItem
+	77,  // 26: alioth.v1.InviteMemberResponse.invitation:type_name -> alioth.v1.MemberInviteItem
+	77,  // 27: alioth.v1.ListMemberInvitesResponse.items:type_name -> alioth.v1.MemberInviteItem
+	2,   // 28: alioth.v1.UpdateMemberStatusResponse.member:type_name -> alioth.v1.MemberItem
+	2,   // 29: alioth.v1.UpdateMemberRolesResponse.member:type_name -> alioth.v1.MemberItem
+	0,   // 30: alioth.v1.GetUserResponse.user:type_name -> alioth.v1.UserItem
+	0,   // 31: alioth.v1.ListUsersResponse.items:type_name -> alioth.v1.UserItem
+	5,   // 32: alioth.v1.SelectUsersResponse.items:type_name -> alioth.v1.SelectItem
+	0,   // 33: alioth.v1.BanUserResponse.user:type_name -> alioth.v1.UserItem
+	0,   // 34: alioth.v1.PermitUserResponse.user:type_name -> alioth.v1.UserItem
+	0,   // 35: alioth.v1.UpdateUserSystemRoleResponse.user:type_name -> alioth.v1.UserItem
+	3,   // 36: alioth.v1.CreateRoleResponse.role:type_name -> alioth.v1.RoleItem
+	3,   // 37: alioth.v1.UpdateRoleResponse.role:type_name -> alioth.v1.RoleItem
+	3,   // 38: alioth.v1.UpdateRoleRemarkResponse.role:type_name -> alioth.v1.RoleItem
+	3,   // 39: alioth.v1.UpdateRoleStatusResponse.role:type_name -> alioth.v1.RoleItem
+	3,   // 40: alioth.v1.GetRoleResponse.role:type_name -> alioth.v1.RoleItem
+	3,   // 41: alioth.v1.ListRolesResponse.items:type_name -> alioth.v1.RoleItem
+	5,   // 42: alioth.v1.SelectRolesResponse.items:type_name -> alioth.v1.SelectItem
+	3,   // 43: alioth.v1.UpdateRolePermissionsResponse.role:type_name -> alioth.v1.RoleItem
+	4,   // 44: alioth.v1.ListPermissionsResponse.items:type_name -> alioth.v1.PermissionItem
+	77,  // 45: alioth.v1.ListSelfInvitationsResponse.items:type_name -> alioth.v1.MemberInviteItem
+	77,  // 46: alioth.v1.GetInvitationResponse.invitation:type_name -> alioth.v1.MemberInviteItem
+	2,   // 47: alioth.v1.AcceptInvitationResponse.member:type_name -> alioth.v1.MemberItem
+	128, // 48: alioth.v1.ListSelfMessagesResponse.items:type_name -> alioth.v1.SystemMessageItem
+	7,   // 49: alioth.v1.CaptchaService.GetCaptcha:input_type -> alioth.v1.GetCaptchaRequest
+	11,  // 50: alioth.v1.AuthService.SendRegisterEmailCode:input_type -> alioth.v1.SendRegisterEmailCodeRequest
+	9,   // 51: alioth.v1.AuthService.Register:input_type -> alioth.v1.RegisterRequest
+	13,  // 52: alioth.v1.AuthService.SendEmailLoginCode:input_type -> alioth.v1.SendEmailLoginCodeRequest
+	15,  // 53: alioth.v1.AuthService.EmailLogin:input_type -> alioth.v1.EmailLoginRequest
+	17,  // 54: alioth.v1.AuthService.ListOAuth2Providers:input_type -> alioth.v1.ListOAuth2ProvidersRequest
+	20,  // 55: alioth.v1.AuthService.OAuth2Login:input_type -> alioth.v1.OAuth2LoginRequest
+	22,  // 56: alioth.v1.AuthService.SendOAuthBindEmailCode:input_type -> alioth.v1.SendOAuthBindEmailCodeRequest
+	24,  // 57: alioth.v1.AuthService.BindOAuthEmail:input_type -> alioth.v1.BindOAuthEmailRequest
+	26,  // 58: alioth.v1.SelfService.GetSelfInfo:input_type -> alioth.v1.GetSelfInfoRequest
+	28,  // 59: alioth.v1.SelfService.ListSelfNamespaces:input_type -> alioth.v1.ListSelfNamespacesRequest
+	30,  // 60: alioth.v1.SelfService.RefreshToken:input_type -> alioth.v1.RefreshTokenRequest
+	32,  // 61: alioth.v1.SelfService.ChangeEmail:input_type -> alioth.v1.ChangeEmailRequest
+	34,  // 62: alioth.v1.SelfService.ChangeAvatar:input_type -> alioth.v1.ChangeAvatarRequest
+	36,  // 63: alioth.v1.SelfService.ChangeRemark:input_type -> alioth.v1.ChangeRemarkRequest
+	38,  // 64: alioth.v1.SelfService.ChangePhone:input_type -> alioth.v1.ChangePhoneRequest
+	40,  // 65: alioth.v1.SelfService.GetSelfPermissions:input_type -> alioth.v1.GetSelfPermissionsRequest
+	43,  // 66: alioth.v1.SelfService.ListSelfOAuthLinks:input_type -> alioth.v1.ListSelfOAuthLinksRequest
+	45,  // 67: alioth.v1.SelfService.BindSelfOAuth:input_type -> alioth.v1.BindSelfOAuthRequest
+	47,  // 68: alioth.v1.SelfService.UnbindSelfOAuth:input_type -> alioth.v1.UnbindSelfOAuthRequest
+	49,  // 69: alioth.v1.NamespaceService.CreateNamespace:input_type -> alioth.v1.CreateNamespaceRequest
+	51,  // 70: alioth.v1.NamespaceService.UpdateNamespace:input_type -> alioth.v1.UpdateNamespaceRequest
+	53,  // 71: alioth.v1.NamespaceService.UpdateNamespaceStatus:input_type -> alioth.v1.UpdateNamespaceStatusRequest
+	55,  // 72: alioth.v1.NamespaceService.DeleteNamespace:input_type -> alioth.v1.DeleteNamespaceRequest
+	57,  // 73: alioth.v1.NamespaceService.GetNamespace:input_type -> alioth.v1.GetNamespaceRequest
+	59,  // 74: alioth.v1.NamespaceService.ListNamespaces:input_type -> alioth.v1.ListNamespacesRequest
+	61,  // 75: alioth.v1.NamespaceService.SelectNamespaces:input_type -> alioth.v1.SelectNamespacesRequest
+	63,  // 76: alioth.v1.NamespaceService.ListSimpleNamespaces:input_type -> alioth.v1.ListSimpleNamespacesRequest
+	65,  // 77: alioth.v1.NamespaceService.TransferNamespaceOwner:input_type -> alioth.v1.TransferNamespaceOwnerRequest
+	67,  // 78: alioth.v1.MemberService.ListMembers:input_type -> alioth.v1.ListMembersRequest
+	69,  // 79: alioth.v1.MemberService.GetMember:input_type -> alioth.v1.GetMemberRequest
+	71,  // 80: alioth.v1.MemberService.ListUserMembers:input_type -> alioth.v1.ListUserMembersRequest
+	73,  // 81: alioth.v1.MemberService.SelectMembers:input_type -> alioth.v1.SelectMembersRequest
+	75,  // 82: alioth.v1.MemberService.InviteMember:input_type -> alioth.v1.InviteMemberRequest
+	78,  // 83: alioth.v1.MemberService.ListMemberInvites:input_type -> alioth.v1.ListMemberInvitesRequest
+	80,  // 84: alioth.v1.MemberService.RevokeMemberInvite:input_type -> alioth.v1.RevokeMemberInviteRequest
+	82,  // 85: alioth.v1.MemberService.DeleteMember:input_type -> alioth.v1.DeleteMemberRequest
+	84,  // 86: alioth.v1.MemberService.UpdateMemberStatus:input_type -> alioth.v1.UpdateMemberStatusRequest
+	86,  // 87: alioth.v1.MemberService.UpdateMemberRoles:input_type -> alioth.v1.UpdateMemberRolesRequest
+	88,  // 88: alioth.v1.UserService.GetUser:input_type -> alioth.v1.GetUserRequest
+	90,  // 89: alioth.v1.UserService.ListUsers:input_type -> alioth.v1.ListUsersRequest
+	92,  // 90: alioth.v1.UserService.SelectUsers:input_type -> alioth.v1.SelectUsersRequest
+	94,  // 91: alioth.v1.UserService.BanUser:input_type -> alioth.v1.BanUserRequest
+	96,  // 92: alioth.v1.UserService.PermitUser:input_type -> alioth.v1.PermitUserRequest
+	98,  // 93: alioth.v1.UserService.UpdateUserSystemRole:input_type -> alioth.v1.UpdateUserSystemRoleRequest
+	120, // 94: alioth.v1.InvitationService.ListSelfInvitations:input_type -> alioth.v1.ListSelfInvitationsRequest
+	122, // 95: alioth.v1.InvitationService.GetInvitation:input_type -> alioth.v1.GetInvitationRequest
+	124, // 96: alioth.v1.InvitationService.AcceptInvitation:input_type -> alioth.v1.AcceptInvitationRequest
+	126, // 97: alioth.v1.InvitationService.DeclineInvitation:input_type -> alioth.v1.DeclineInvitationRequest
+	100, // 98: alioth.v1.RoleService.CreateRole:input_type -> alioth.v1.CreateRoleRequest
+	102, // 99: alioth.v1.RoleService.UpdateRole:input_type -> alioth.v1.UpdateRoleRequest
+	106, // 100: alioth.v1.RoleService.UpdateRoleStatus:input_type -> alioth.v1.UpdateRoleStatusRequest
+	108, // 101: alioth.v1.RoleService.DeleteRole:input_type -> alioth.v1.DeleteRoleRequest
+	110, // 102: alioth.v1.RoleService.GetRole:input_type -> alioth.v1.GetRoleRequest
+	112, // 103: alioth.v1.RoleService.ListRoles:input_type -> alioth.v1.ListRolesRequest
+	114, // 104: alioth.v1.RoleService.SelectRoles:input_type -> alioth.v1.SelectRolesRequest
+	116, // 105: alioth.v1.RoleService.UpdateRolePermissions:input_type -> alioth.v1.UpdateRolePermissionsRequest
+	118, // 106: alioth.v1.RoleService.ListPermissions:input_type -> alioth.v1.ListPermissionsRequest
+	104, // 107: alioth.v1.RoleService.UpdateRoleRemark:input_type -> alioth.v1.UpdateRoleRemarkRequest
+	129, // 108: alioth.v1.SystemMessageService.ListSelfMessages:input_type -> alioth.v1.ListSelfMessagesRequest
+	131, // 109: alioth.v1.SystemMessageService.GetUnreadMessageCount:input_type -> alioth.v1.GetUnreadMessageCountRequest
+	133, // 110: alioth.v1.SystemMessageService.MarkMessageRead:input_type -> alioth.v1.MarkMessageReadRequest
+	135, // 111: alioth.v1.SystemMessageService.MarkAllMessagesRead:input_type -> alioth.v1.MarkAllMessagesReadRequest
+	8,   // 112: alioth.v1.CaptchaService.GetCaptcha:output_type -> alioth.v1.GetCaptchaResponse
+	12,  // 113: alioth.v1.AuthService.SendRegisterEmailCode:output_type -> alioth.v1.SendRegisterEmailCodeResponse
+	10,  // 114: alioth.v1.AuthService.Register:output_type -> alioth.v1.RegisterResponse
+	14,  // 115: alioth.v1.AuthService.SendEmailLoginCode:output_type -> alioth.v1.SendEmailLoginCodeResponse
+	16,  // 116: alioth.v1.AuthService.EmailLogin:output_type -> alioth.v1.EmailLoginResponse
+	19,  // 117: alioth.v1.AuthService.ListOAuth2Providers:output_type -> alioth.v1.ListOAuth2ProvidersResponse
+	21,  // 118: alioth.v1.AuthService.OAuth2Login:output_type -> alioth.v1.OAuth2LoginResponse
+	23,  // 119: alioth.v1.AuthService.SendOAuthBindEmailCode:output_type -> alioth.v1.SendOAuthBindEmailCodeResponse
+	25,  // 120: alioth.v1.AuthService.BindOAuthEmail:output_type -> alioth.v1.BindOAuthEmailResponse
+	27,  // 121: alioth.v1.SelfService.GetSelfInfo:output_type -> alioth.v1.GetSelfInfoResponse
+	29,  // 122: alioth.v1.SelfService.ListSelfNamespaces:output_type -> alioth.v1.ListSelfNamespacesResponse
+	31,  // 123: alioth.v1.SelfService.RefreshToken:output_type -> alioth.v1.RefreshTokenResponse
+	33,  // 124: alioth.v1.SelfService.ChangeEmail:output_type -> alioth.v1.ChangeEmailResponse
+	35,  // 125: alioth.v1.SelfService.ChangeAvatar:output_type -> alioth.v1.ChangeAvatarResponse
+	37,  // 126: alioth.v1.SelfService.ChangeRemark:output_type -> alioth.v1.ChangeRemarkResponse
+	39,  // 127: alioth.v1.SelfService.ChangePhone:output_type -> alioth.v1.ChangePhoneResponse
+	41,  // 128: alioth.v1.SelfService.GetSelfPermissions:output_type -> alioth.v1.GetSelfPermissionsResponse
+	44,  // 129: alioth.v1.SelfService.ListSelfOAuthLinks:output_type -> alioth.v1.ListSelfOAuthLinksResponse
+	46,  // 130: alioth.v1.SelfService.BindSelfOAuth:output_type -> alioth.v1.BindSelfOAuthResponse
+	48,  // 131: alioth.v1.SelfService.UnbindSelfOAuth:output_type -> alioth.v1.UnbindSelfOAuthResponse
+	50,  // 132: alioth.v1.NamespaceService.CreateNamespace:output_type -> alioth.v1.CreateNamespaceResponse
+	52,  // 133: alioth.v1.NamespaceService.UpdateNamespace:output_type -> alioth.v1.UpdateNamespaceResponse
+	54,  // 134: alioth.v1.NamespaceService.UpdateNamespaceStatus:output_type -> alioth.v1.UpdateNamespaceStatusResponse
+	56,  // 135: alioth.v1.NamespaceService.DeleteNamespace:output_type -> alioth.v1.DeleteNamespaceResponse
+	58,  // 136: alioth.v1.NamespaceService.GetNamespace:output_type -> alioth.v1.GetNamespaceResponse
+	60,  // 137: alioth.v1.NamespaceService.ListNamespaces:output_type -> alioth.v1.ListNamespacesResponse
+	62,  // 138: alioth.v1.NamespaceService.SelectNamespaces:output_type -> alioth.v1.SelectNamespacesResponse
+	64,  // 139: alioth.v1.NamespaceService.ListSimpleNamespaces:output_type -> alioth.v1.ListSimpleNamespacesResponse
+	66,  // 140: alioth.v1.NamespaceService.TransferNamespaceOwner:output_type -> alioth.v1.TransferNamespaceOwnerResponse
+	68,  // 141: alioth.v1.MemberService.ListMembers:output_type -> alioth.v1.ListMembersResponse
+	70,  // 142: alioth.v1.MemberService.GetMember:output_type -> alioth.v1.GetMemberResponse
+	72,  // 143: alioth.v1.MemberService.ListUserMembers:output_type -> alioth.v1.ListUserMembersResponse
+	74,  // 144: alioth.v1.MemberService.SelectMembers:output_type -> alioth.v1.SelectMembersResponse
+	76,  // 145: alioth.v1.MemberService.InviteMember:output_type -> alioth.v1.InviteMemberResponse
+	79,  // 146: alioth.v1.MemberService.ListMemberInvites:output_type -> alioth.v1.ListMemberInvitesResponse
+	81,  // 147: alioth.v1.MemberService.RevokeMemberInvite:output_type -> alioth.v1.RevokeMemberInviteResponse
+	83,  // 148: alioth.v1.MemberService.DeleteMember:output_type -> alioth.v1.DeleteMemberResponse
+	85,  // 149: alioth.v1.MemberService.UpdateMemberStatus:output_type -> alioth.v1.UpdateMemberStatusResponse
+	87,  // 150: alioth.v1.MemberService.UpdateMemberRoles:output_type -> alioth.v1.UpdateMemberRolesResponse
+	89,  // 151: alioth.v1.UserService.GetUser:output_type -> alioth.v1.GetUserResponse
+	91,  // 152: alioth.v1.UserService.ListUsers:output_type -> alioth.v1.ListUsersResponse
+	93,  // 153: alioth.v1.UserService.SelectUsers:output_type -> alioth.v1.SelectUsersResponse
+	95,  // 154: alioth.v1.UserService.BanUser:output_type -> alioth.v1.BanUserResponse
+	97,  // 155: alioth.v1.UserService.PermitUser:output_type -> alioth.v1.PermitUserResponse
+	99,  // 156: alioth.v1.UserService.UpdateUserSystemRole:output_type -> alioth.v1.UpdateUserSystemRoleResponse
+	121, // 157: alioth.v1.InvitationService.ListSelfInvitations:output_type -> alioth.v1.ListSelfInvitationsResponse
+	123, // 158: alioth.v1.InvitationService.GetInvitation:output_type -> alioth.v1.GetInvitationResponse
+	125, // 159: alioth.v1.InvitationService.AcceptInvitation:output_type -> alioth.v1.AcceptInvitationResponse
+	127, // 160: alioth.v1.InvitationService.DeclineInvitation:output_type -> alioth.v1.DeclineInvitationResponse
+	101, // 161: alioth.v1.RoleService.CreateRole:output_type -> alioth.v1.CreateRoleResponse
+	103, // 162: alioth.v1.RoleService.UpdateRole:output_type -> alioth.v1.UpdateRoleResponse
+	107, // 163: alioth.v1.RoleService.UpdateRoleStatus:output_type -> alioth.v1.UpdateRoleStatusResponse
+	109, // 164: alioth.v1.RoleService.DeleteRole:output_type -> alioth.v1.DeleteRoleResponse
+	111, // 165: alioth.v1.RoleService.GetRole:output_type -> alioth.v1.GetRoleResponse
+	113, // 166: alioth.v1.RoleService.ListRoles:output_type -> alioth.v1.ListRolesResponse
+	115, // 167: alioth.v1.RoleService.SelectRoles:output_type -> alioth.v1.SelectRolesResponse
+	117, // 168: alioth.v1.RoleService.UpdateRolePermissions:output_type -> alioth.v1.UpdateRolePermissionsResponse
+	119, // 169: alioth.v1.RoleService.ListPermissions:output_type -> alioth.v1.ListPermissionsResponse
+	105, // 170: alioth.v1.RoleService.UpdateRoleRemark:output_type -> alioth.v1.UpdateRoleRemarkResponse
+	130, // 171: alioth.v1.SystemMessageService.ListSelfMessages:output_type -> alioth.v1.ListSelfMessagesResponse
+	132, // 172: alioth.v1.SystemMessageService.GetUnreadMessageCount:output_type -> alioth.v1.GetUnreadMessageCountResponse
+	134, // 173: alioth.v1.SystemMessageService.MarkMessageRead:output_type -> alioth.v1.MarkMessageReadResponse
+	136, // 174: alioth.v1.SystemMessageService.MarkAllMessagesRead:output_type -> alioth.v1.MarkAllMessagesReadResponse
+	112, // [112:175] is the sub-list for method output_type
+	49,  // [49:112] is the sub-list for method input_type
+	49,  // [49:49] is the sub-list for extension type_name
+	49,  // [49:49] is the sub-list for extension extendee
+	0,   // [0:49] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_identity_proto_init() }
@@ -7862,7 +8257,7 @@ func file_alioth_v1_identity_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_identity_proto_rawDesc), len(file_alioth_v1_identity_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   130,
+			NumMessages:   137,
 			NumExtensions: 0,
 			NumServices:   9,
 		},

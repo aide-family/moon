@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"time"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/role"
+	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 )
 
 type SelfService struct {
@@ -90,4 +92,47 @@ func (s *SelfService) GetSelfPermissions(ctx context.Context, _ *v1.GetSelfPermi
 		return nil, err
 	}
 	return &v1.GetSelfPermissionsResponse{Permissions: names}, nil
+}
+
+func (s *SelfService) ListSelfOAuthLinks(ctx context.Context, _ *v1.ListSelfOAuthLinksRequest) (*v1.ListSelfOAuthLinksResponse, error) {
+	links, err := s.authenticator.SelfOAuthLinks(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListSelfOAuthLinksResponse{Items: oauthLinkItems(links)}, nil
+}
+
+func (s *SelfService) BindSelfOAuth(ctx context.Context, req *v1.BindSelfOAuthRequest) (*v1.BindSelfOAuthResponse, error) {
+	link, err := s.authenticator.BindSelfOAuth(ctx, req.GetProvider(), req.GetCode(), req.GetRedirectUri())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.BindSelfOAuthResponse{Item: oauthLinkItem(*link)}, nil
+}
+
+func (s *SelfService) UnbindSelfOAuth(ctx context.Context, req *v1.UnbindSelfOAuthRequest) (*v1.UnbindSelfOAuthResponse, error) {
+	if err := s.authenticator.UnbindSelfOAuth(ctx, req.GetUid()); err != nil {
+		return nil, err
+	}
+	return &v1.UnbindSelfOAuthResponse{}, nil
+}
+
+// oauthLinkItem 把第三方绑定映射成接口返回。BoundAt 是绑定时间，按 RFC3339 输出；
+// 时间为零时留空，避免前端渲染成 0001-01-01。
+func oauthLinkItem(link bo.OAuthLink) *v1.OAuthLink {
+	boundAt := ""
+	if !link.BoundAt.IsZero() {
+		boundAt = link.BoundAt.UTC().Format(time.RFC3339)
+	}
+	return &v1.OAuthLink{
+		Uid: link.UID, Provider: link.Provider, OpenId: link.OpenID, Email: link.Email, BoundAt: boundAt,
+	}
+}
+
+func oauthLinkItems(items []bo.OAuthLink) []*v1.OAuthLink {
+	out := make([]*v1.OAuthLink, 0, len(items))
+	for _, item := range items {
+		out = append(out, oauthLinkItem(item))
+	}
+	return out
 }

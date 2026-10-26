@@ -1,6 +1,13 @@
-import { get, put, type RequestOptions } from "@/api/http"
+import { del, get, post, put, type RequestOptions } from "@/api/http"
 
-import type { SelfInfo, SelfNamespaces, SelfPermissions } from "./types"
+import type {
+  BindSelfOAuthParams,
+  SelfInfo,
+  SelfNamespaces,
+  SelfOAuthBindingResult,
+  SelfOAuthLinks,
+  SelfPermissions,
+} from "./types"
 
 /** GET /v1/self/info */
 export function getSelfInfo(options?: RequestOptions): Promise<SelfInfo> {
@@ -45,4 +52,32 @@ export function changeEmail(email: string): Promise<SelfInfo> {
 /** PUT /v1/self/change-avatar */
 export function changeAvatar(avatar: string): Promise<SelfInfo> {
   return put<SelfInfo>("/self/change-avatar", { avatar })
+}
+
+/**
+ * GET /v1/self/oauth/links
+ * 后端未部署时返回 404，页面据此整块隐藏关联卡片，因此固定 silent，避免弹全局错误 toast。
+ */
+export function listSelfOAuthLinks(
+  options?: RequestOptions
+): Promise<SelfOAuthLinks> {
+  return get<SelfOAuthLinks>("/self/oauth/links", undefined, undefined, {
+    ...options,
+    silent: true,
+  })
+}
+
+/** POST /v1/self/oauth/bind。用授权码把第三方身份绑到当前账号，不签发会话。 */
+export function bindSelfOAuth(
+  body: BindSelfOAuthParams
+): Promise<SelfOAuthBindingResult> {
+  return post<SelfOAuthBindingResult>("/self/oauth/bind", body)
+}
+
+/** DELETE /v1/self/oauth/links/{uid}。404 表示已经解绑，调用方按成功处理。 */
+export function unbindSelfOAuth(
+  uid: string,
+  options?: RequestOptions
+): Promise<Record<string, never>> {
+  return del<Record<string, never>>(`/self/oauth/links/${uid}`, options)
 }

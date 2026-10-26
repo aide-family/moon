@@ -7,6 +7,9 @@ export type OAuthRedirect = {
   provider: OAuth2Provider
   redirectUri: string
   next: string
+  // 授权完成后的用途：登录（缺省）或绑定到当前账号。
+  // bind 现场只由个人资料页写入，历史现场没有该字段时按 login 处理。
+  intent?: "login" | "bind"
 }
 
 const storagePrefix = "alioth.oauth."
@@ -97,6 +100,8 @@ export function readOAuthRedirect(state: string | null): OAuthRedirect | null {
       redirectUri:
         typeof parsed.redirectUri === "string" ? parsed.redirectUri : "",
       next: typeof parsed.next === "string" ? parsed.next : "",
+      // 历史现场没有 intent：归一化为 login，登录链路行为不变。
+      intent: parsed.intent === "bind" ? "bind" : "login",
     }
   } catch {
     return null
