@@ -24,7 +24,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: migrate
-          image: ghcr.io/aide-family/alioth/alioth:sha-724d16ed08a8
+          image: ghcr.io/aide-family/alioth/alioth:sha-310475cced9f
           imagePullPolicy: IfNotPresent
           command: ["/app/alioth", "migrate", "--conf", "/app/configs/config.yaml"]
           env:
