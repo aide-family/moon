@@ -341,8 +341,8 @@ export function NotificationSubscriptionPage() {
               {items.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
-                  <TableCell className="max-w-md text-sm text-muted-foreground">{conditionSummary(item)}</TableCell>
-                  <TableCell>
+                  <TableCell className="max-w-md whitespace-normal text-sm break-words text-muted-foreground">{conditionSummary(item)}</TableCell>
+                  <TableCell className="whitespace-normal break-words">
                     {(item.groupUids ?? []).map((uid) => groups.find((group) => group.uid === uid)?.name ?? uid).join(", ")}
                   </TableCell>
                   <TableCell><StatusBadge value={item.status} /></TableCell>
