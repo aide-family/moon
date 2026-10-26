@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
@@ -339,6 +340,11 @@ func (r *userRepo) mergeMember(ctx context.Context, tx *ent.Tx, source *ent.Memb
 	if _, err := tx.MemberRole.Delete().Where(memberrole.MemberUIDEQ(source.UID)).Exec(ctx); err != nil {
 		return r.fail(err)
 	}
+	// 通知组按成员 UID 保存收件人，源成员马上被软删；把引用改到目标成员，
+	// 否则 resolveGroupReceivers 会把它们过滤掉，收件人静默消失。
+	if err := remapGroupMemberUIDs(ctx, tx, source.NamespaceUID, source.UID, target.UID); err != nil {
+		return r.fail(err)
+	}
 	if _, err := tx.Member.Update().
 		Where(member.UIDEQ(source.UID), member.DeletedAtIsNil()).
 		SetDeletedAt(time.Now()).
@@ -346,6 +352,64 @@ func (r *userRepo) mergeMember(ctx context.Context, tx *ent.Tx, source *ent.Memb
 		return r.fail(err)
 	}
 	return nil
+}
+
+// remapGroupMemberUIDs 把通知组里引用的源成员 UID 换成目标成员 UID。
+// 三个数组都要处理：email_member_uids、sms_member_uids，以及旧版 member_uids。
+func remapGroupMemberUIDs(ctx context.Context, tx *ent.Tx, namespaceUID, fromUID, toUID string) error {
+	groups, err := tx.NotificationGroup.Query().
+		Where(
+			notificationgroup.NamespaceUIDEQ(namespaceUID),
+			notificationgroup.DeletedAtIsNil(),
+		).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, group := range groups {
+		emailUIDs, emailChanged := replaceMemberUID(group.EmailMemberUids, fromUID, toUID)
+		smsUIDs, smsChanged := replaceMemberUID(group.SmsMemberUids, fromUID, toUID)
+		legacyUIDs, legacyChanged := replaceMemberUID(group.MemberUids, fromUID, toUID)
+		if !emailChanged && !smsChanged && !legacyChanged {
+			continue
+		}
+		update := tx.NotificationGroup.UpdateOne(group)
+		if emailChanged {
+			update.SetEmailMemberUids(emailUIDs)
+		}
+		if smsChanged {
+			update.SetSmsMemberUids(smsUIDs)
+		}
+		if legacyChanged {
+			update.SetMemberUids(legacyUIDs)
+		}
+		if _, err := update.Save(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// replaceMemberUID 返回替换后的数组以及是否发生变化；发生变化时顺带去重。
+func replaceMemberUID(values []string, from, to string) ([]string, bool) {
+	changed := false
+	seen := make(map[string]struct{}, len(values))
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		if value == from {
+			value = to
+			changed = true
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	if !changed {
+		return values, false
+	}
+	return out, true
 }
 
 // moveNamespaceOwner 把租户负责人改到目标账号。改之前先保证目标在该租户有未删除成员并持有 owner 角色，
