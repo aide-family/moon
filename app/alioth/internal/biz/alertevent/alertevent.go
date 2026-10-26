@@ -367,7 +367,7 @@ func (coordinator *Coordinator) Chart(ctx context.Context, uid string) (*bo.Aler
 	if err != nil {
 		return nil, coordinator.access.Wrap(err)
 	}
-	if source.Type != "METRICS" && source.Driver != "LOGS_LOKI" && source.Driver != "LOGS_VLOGS" {
+	if source.Type != "METRICS" && source.Driver != "LOGS_LOKI" && source.Driver != "LOGS_VLOGS" && source.Driver != "LOGS_ELASTICSEARCH" {
 		return nil, merr.Invalid("datasource does not support alert charts")
 	}
 	start, end, step := chartWindow(event.StartsAt, chartEnd(*event, time.Now()))

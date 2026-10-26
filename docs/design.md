@@ -32,7 +32,7 @@ Moon 是 Kratos 单仓，四个服务各自持有存储（默认 SQLite，可换
 - 每个服务一块业务库
 - 把 Redis 当作缓存、会话或消息队列
 - 短信的完整发送链路。Moon 有 `MessageType_SMS_ALICLOUD` 和 `pkg/message/sms/alicloud`，告警主路径是邮件和 Webhook。Alioth 保留该枚举，不设计阿里云短信参数
-- 除 Loki LogQL 与 VictoriaLogs LogsQL 数值型告警外的日志与链路规则评测。数据源可以创建，查询可以代理；评测器按类型扩展，Elasticsearch 与 Jaeger 仍未实现
+- 链路（TRACE_JAEGER）规则评测。数据源可以创建，查询可以代理；评测器按类型扩展，Jaeger 仍未实现
 
 Moon 里已有、Alioth 改变边界的事实：
 
@@ -267,7 +267,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 规则不再直接绑定通知组。告警事件统一由 `NotificationSubscription` 按标签、告警级别和数据源匹配，再路由到订阅下的通知组。
 
-日志和链路规则可以保存。`megrez` 对尚未实现的驱动跳过，并在回写里标明未评测，不产生 FIRING。Loki 和 VictoriaLogs 是例外：它们使用独立的数值型规则评测路径，不能走 Prometheus API；原始日志结果不是可比较的采样值，不会被当成空结果或恢复信号。
+日志和链路规则可以保存。`megrez` 对尚未实现的驱动跳过，并在回写里标明未评测，不产生 FIRING。Loki、VictoriaLogs 和 Elasticsearch 是例外：它们使用独立的规则评测路径，不能走 Prometheus API；原始日志结果不是可比较的采样值，不会被当成空结果或恢复信号。
 
 #### Loki LogQL 告警扩展
 
@@ -287,9 +287,20 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 - FIRING 与恢复进入共用 `AlertEvent` 与 `NotificationSubscription` 路由，之后由 `merak` 投递；实时/历史列表、通知收件、介入、抑制、手工恢复均使用现有公共流程。事件详情图表调用同一个 `stats_query_range` 并按事件标签收敛 matrix 序列。
 - VictoriaLogs 告警只匹配 ACTIVE 的 `LOGS_VLOGS` 数据源。Elasticsearch 与 Jaeger 仍未实现；Prometheus / VictoriaMetrics / Loki 查询路径保持不变。
 
+#### Elasticsearch 时间桶告警扩展
+
+- 规则表达式就是日志查询页面用的那份输入：Query DSL 对象（例如 `{"match":{"level":"error"}}`）或普通检索语句。普通语句包装成 `query_string`，DSL 原样作为 `bool.must`。
+- Elasticsearch 没有 Prometheus 兼容的数值矩阵接口，因此由 Megrez 自己把命中数变成采样值：`_search` 带 `size: 0`、`track_total_hits: false`，聚合为时间字段上的 `date_histogram`（`fixed_interval` 取规则的 step）。每个桶的 `doc_count` 就是一个采样点，步长记录在 `Sample.Step`。
+- `min_doc_count` 取 0、`extended_bounds` 覆盖整个窗口，空桶返回 0 而不是缺席。这样 FOR 能看到「这段时间一直没有命中」，与 Loki `count_over_time` 的语义一致；桶缺失会让 FOR 误判为持续命中。
+- 时间范围用半开区间 `[start, end)`，结束时间向下对齐到桶边界。FOR 规则多查一个桶，使采样点跨度覆盖配置的持续秒数（与 VictoriaLogs 相同）。
+- 索引模式和时间字段由数据源提供，随内部规则快照下发（`datasource_index_pattern` / `datasource_time_field`）；空值分别表示全部索引和 `@timestamp`。索引模式只允许索引名字符与通配符，避免把额外路径拼到上游。
+- 响应里没有聚合结果（索引不存在、查询语法错误、上游 4xx）一律按评测失败处理且不回写，不会把故障误判成「零命中」去恢复事件。
+- FIRING 与恢复进入共用 `AlertEvent` 与 `NotificationSubscription` 路由，由 `merak` 投递；事件详情图表用同一套时间桶计数编码成 Prometheus matrix，前端复用指标图表。
+- Elasticsearch 告警只匹配 ACTIVE 的 `LOGS_ELASTICSEARCH` 数据源；`TRACE_JAEGER` 仍按未实现驱动跳过。
+
 ### 4.3 评测
 
-`alioth` 在 `alioth:lock:schedule:eval` 下扫描 `next_eval_at <= now` 的已启用指标、Loki LogQL 与 VictoriaLogs LogsQL 数值规则，写下一次评测时间，然后释放调度锁。`megrez` 向 `alioth` 领取这批规则的快照。
+`alioth` 在 `alioth:lock:schedule:eval` 下扫描 `next_eval_at <= now` 的已启用指标、Loki LogQL、VictoriaLogs LogsQL 与 Elasticsearch 时间桶规则，写下一次评测时间，然后释放调度锁。`megrez` 向 `alioth` 领取这批规则的快照。
 
 规则只保存驱动，不再保存类型。规则用驱动 + `datasource_labels` 匹配 ACTIVE 数据源：匹配器优先读数据源 labels，`datasource_level` 匹配数据源等级名称、`datasource` 匹配数据源名称，值按完整匹配正则命中；空匹配器 = 该驱动下全部 ACTIVE 数据源。这样 Loki、VictoriaLogs 和 Elasticsearch 不会再被同一条日志规则混在一起评测。Claim 对每个匹配数据源各发一条快照；无匹配则不发。fingerprint 为 `Of(rule_uid, datasource_uid, rule_labels + labels)`，规则标签修改后旧事件恢复、新指纹建立新事件。
 

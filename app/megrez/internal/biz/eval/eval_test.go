@@ -198,7 +198,7 @@ func TestUnimplementedDriverReportsSkipped(t *testing.T) {
 	gateway := &fakeGateway{}
 	worker := &Worker{gateway: gateway, query: fakeQuery{}, log: slog.Default(), now: time.Now}
 	slot := time.Now().UTC().Truncate(time.Second)
-	for _, driver := range []string{"LOGS_ELASTICSEARCH", "TRACE_JAEGER"} {
+	for _, driver := range []string{"TRACE_JAEGER"} {
 		gateway.reports = nil
 		if err := worker.finish(context.Background(), fakeHold{}, bo.RuleSnapshot{UID: "rule-1", Driver: driver, EvalSlot: slot}); err != nil {
 			t.Fatal(err)
@@ -429,5 +429,55 @@ func TestMetricWindowRoundsForSecondsToStep(t *testing.T) {
 	}}}, now)
 	if step != 15 || end-start != 30 {
 		t.Fatalf("20s FOR window = %d..%d step %d, want 30s", start, end, step)
+	}
+}
+
+func TestElasticsearchDriverEvaluatesCountSamples(t *testing.T) {
+	gateway := &fakeGateway{}
+	now := time.Now()
+	query := &recordingQuery{samples: []bo.Sample{{
+		Points: []bo.Point{
+			{At: now.Add(-15 * time.Second), Value: 0, Raw: "0"},
+			{At: now, Value: 7, Raw: "7"},
+		},
+		Step: 15,
+	}}}
+	worker := &Worker{gateway: gateway, query: query, log: slog.Default(), now: time.Now}
+	rule := bo.RuleSnapshot{
+		UID: "es-rule", Driver: "LOGS_ELASTICSEARCH", DatasourceUID: "es-ds", EvalSlot: now.UTC(),
+		Expr:   `{"match":{"level":"error"}}`,
+		Levels: []bo.Level{{Condition: "GT", Sample: "MAX", Threshold: "0", LevelUID: "high"}},
+	}
+	if err := worker.finish(context.Background(), fakeHold{}, rule); err != nil {
+		t.Fatal(err)
+	}
+	if query.driver != "LOGS_ELASTICSEARCH" {
+		t.Fatalf("query driver = %q", query.driver)
+	}
+	if len(gateway.reports) != 1 || gateway.reports[0].Skipped || len(gateway.reports[0].Hits) != 1 {
+		t.Fatalf("Elasticsearch eval report = %+v", gateway.reports)
+	}
+	hit := gateway.reports[0].Hits[0]
+	if hit.Value != "7" || hit.LevelUID != "high" {
+		t.Fatalf("Elasticsearch hit = %+v", hit)
+	}
+}
+
+func TestElasticsearchWindowAlignsToBucketBoundary(t *testing.T) {
+	now := time.Date(2026, 10, 25, 12, 0, 7, 0, time.UTC)
+	aligned := now.Truncate(15 * time.Second).Unix()
+
+	start, end, step := window(bo.RuleSnapshot{Driver: "LOGS_ELASTICSEARCH"}, now)
+	if step != 15 || end != aligned || end-start != 15 {
+		t.Fatalf("window = %d..%d step %d, want aligned 15s window", start, end, step)
+	}
+
+	// FOR 需要覆盖完整窗口：桶数是 seconds/step，跨度要再补一个桶。
+	start, end, step = window(bo.RuleSnapshot{
+		Driver: "LOGS_ELASTICSEARCH",
+		Levels: []bo.Level{{Condition: "GT", Sample: "FOR", Threshold: "0", ForSeconds: 30}},
+	}, now)
+	if step != 15 || end != aligned || end-start != 45 {
+		t.Fatalf("30s FOR window = %d..%d step %d, want aligned 45s window", start, end, step)
 	}
 }

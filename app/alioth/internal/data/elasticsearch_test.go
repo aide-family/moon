@@ -136,3 +136,69 @@ func TestQueryElasticsearchLogsRejectsInvalidInput(t *testing.T) {
 		t.Fatalf("empty DSL error = %v", err)
 	}
 }
+
+func TestRangeQueryElasticsearchBuildsMatrix(t *testing.T) {
+	var gotPath string
+	var gotBody map[string]any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		payload, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := json.Unmarshal(payload, &gotBody); err != nil {
+			t.Fatalf("request body = %s", payload)
+		}
+		_, _ = w.Write([]byte(`{"aggregations":{"buckets":{"buckets":[
+{"key":1792935600000,"doc_count":3},{"key":1792935615000,"doc_count":0}]}}}`))
+	}))
+	defer srv.Close()
+
+	repo := newLogTestRepo()
+	body, err := repo.RangeQuery(context.Background(), bo.Datasource{
+		UID: "ds-es", Driver: "LOGS_ELASTICSEARCH", Endpoint: srv.URL,
+		IndexPattern: "alioth-smoke*", TimeField: "@timestamp",
+	}, `{"match":{"level":"error"}}`, 1792935600, 1792935630, 15)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotPath != "/alioth-smoke*/_search" {
+		t.Fatalf("path = %q", gotPath)
+	}
+	if gotBody["size"] != float64(0) {
+		t.Fatalf("size = %v", gotBody["size"])
+	}
+	var matrix struct {
+		Status string `json:"status"`
+		Data   struct {
+			ResultType string `json:"resultType"`
+			Result     []struct {
+				Values [][]any `json:"values"`
+			} `json:"result"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(body), &matrix); err != nil {
+		t.Fatalf("matrix body = %s", body)
+	}
+	if matrix.Status != "success" || matrix.Data.ResultType != "matrix" || len(matrix.Data.Result) != 1 {
+		t.Fatalf("matrix = %s", body)
+	}
+	values := matrix.Data.Result[0].Values
+	if len(values) != 2 || values[0][1] != "3" || values[1][1] != "0" {
+		t.Fatalf("values = %v", values)
+	}
+}
+
+func TestRangeQueryElasticsearchRejectsBadResponse(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"error":{"type":"index_not_found_exception"}}`))
+	}))
+	defer srv.Close()
+
+	repo := newLogTestRepo()
+	if _, err := repo.RangeQuery(context.Background(), bo.Datasource{
+		UID: "ds-es", Driver: "LOGS_ELASTICSEARCH", Endpoint: srv.URL, IndexPattern: "missing-*",
+	}, "level:error", 0, 30, 15); err == nil {
+		t.Fatal("bad response should fail")
+	}
+}

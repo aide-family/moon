@@ -138,9 +138,13 @@ type RuleSnapshot struct {
 	// 数据源标识。
 	DatasourceUid string `protobuf:"bytes,16,opt,name=datasource_uid,json=datasourceUid,proto3" json:"datasource_uid,omitempty"`
 	// 规则名称。
-	Name          string `protobuf:"bytes,17,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Name string `protobuf:"bytes,17,opt,name=name,proto3" json:"name,omitempty"`
+	// 数据源索引模式。Elasticsearch 用，空表示搜索全部索引。
+	DatasourceIndexPattern string `protobuf:"bytes,18,opt,name=datasource_index_pattern,json=datasourceIndexPattern,proto3" json:"datasource_index_pattern,omitempty"`
+	// 数据源时间字段。Elasticsearch 用，空表示 @timestamp。
+	DatasourceTimeField string `protobuf:"bytes,19,opt,name=datasource_time_field,json=datasourceTimeField,proto3" json:"datasource_time_field,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *RuleSnapshot) Reset() {
@@ -281,6 +285,20 @@ func (x *RuleSnapshot) GetDatasourceUid() string {
 func (x *RuleSnapshot) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *RuleSnapshot) GetDatasourceIndexPattern() string {
+	if x != nil {
+		return x.DatasourceIndexPattern
+	}
+	return ""
+}
+
+func (x *RuleSnapshot) GetDatasourceTimeField() string {
+	if x != nil {
+		return x.DatasourceTimeField
 	}
 	return ""
 }
@@ -712,7 +730,7 @@ const file_megrez_v1_eval_proto_rawDesc = "" +
 	"\x14megrez/v1/eval.proto\x12\tmegrez.v1\"\x13\n" +
 	"\x11ClaimRulesRequest\"C\n" +
 	"\x12ClaimRulesResponse\x12-\n" +
-	"\x05rules\x18\x01 \x03(\v2\x17.megrez.v1.RuleSnapshotR\x05rules\"\xcd\x04\n" +
+	"\x05rules\x18\x01 \x03(\v2\x17.megrez.v1.RuleSnapshotR\x05rules\"\xbb\x05\n" +
 	"\fRuleSnapshot\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12#\n" +
 	"\rnamespace_uid\x18\x02 \x01(\tR\fnamespaceUid\x12\x16\n" +
@@ -730,7 +748,9 @@ const file_megrez_v1_eval_proto_rawDesc = "" +
 	"\x06levels\x18\x0e \x03(\v2\x19.megrez.v1.LevelConditionR\x06levels\x12/\n" +
 	"\x13firing_fingerprints\x18\x0f \x03(\tR\x12firingFingerprints\x12%\n" +
 	"\x0edatasource_uid\x18\x10 \x01(\tR\rdatasourceUid\x12\x12\n" +
-	"\x04name\x18\x11 \x01(\tR\x04nameJ\x04\b\x03\x10\x04R\x04type\"\xa2\x01\n" +
+	"\x04name\x18\x11 \x01(\tR\x04name\x128\n" +
+	"\x18datasource_index_pattern\x18\x12 \x01(\tR\x16datasourceIndexPattern\x122\n" +
+	"\x15datasource_time_field\x18\x13 \x01(\tR\x13datasourceTimeFieldJ\x04\b\x03\x10\x04R\x04type\"\xa2\x01\n" +
 	"\x0eLevelCondition\x12\x1c\n" +
 	"\tcondition\x18\x01 \x01(\tR\tcondition\x12\x16\n" +
 	"\x06sample\x18\x02 \x01(\tR\x06sample\x12\x1c\n" +

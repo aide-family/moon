@@ -3,11 +3,13 @@ package data
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/Alioth/pkg/esagg"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -104,4 +106,37 @@ func esSearchPath(indexPattern string) (string, error) {
 		}
 	}
 	return "/" + indexPattern + "/_search", nil
+}
+
+// rangeQueryElasticsearch 执行告警详情图表的区间查询：把命中数按 step 切成时间桶，
+// 再编码成 Prometheus matrix，前端和指标图表共用同一套解析。
+func (r *datasourceRepo) rangeQueryElasticsearch(ctx context.Context, item bo.Datasource, expr string, start, end, step int64) (string, error) {
+	if step <= 0 {
+		step = esagg.DefaultStep
+	}
+	path, err := esagg.SearchPath(item.IndexPattern)
+	if err != nil {
+		return "", merr.Invalid("invalid request")
+	}
+	body, err := esagg.Body(esagg.Query{
+		Expr: expr, IndexPattern: item.IndexPattern, TimeField: item.TimeField,
+		Start: start, End: end, Step: step,
+	})
+	if err != nil {
+		return "", merr.Invalid("invalid request")
+	}
+	payload, err := r.callUpstream(ctx, item, http.MethodPost, path, string(body))
+	if err != nil {
+		return "", err
+	}
+	buckets, err := esagg.ParseBuckets([]byte(payload))
+	if err != nil {
+		r.log.Error(fmt.Sprintf("datasource %s elasticsearch: %v", item.UID, err))
+		return "", merr.Server("upstream query failed")
+	}
+	matrix, err := esagg.Matrix(buckets, nil)
+	if err != nil {
+		return "", merr.Server("upstream query failed")
+	}
+	return string(matrix), nil
 }

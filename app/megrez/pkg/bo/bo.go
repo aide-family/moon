@@ -18,8 +18,12 @@ type RuleSnapshot struct {
 	Username      string
 	Password      string
 	Secret        string
-	Levels        []Level
-	Firing        []string
+	// IndexPattern 和 TimeField 只对 Elasticsearch 有意义：索引模式决定搜哪些索引，
+	// 时间字段决定 date_histogram 按哪个字段切桶。空值分别表示全部索引和 @timestamp。
+	IndexPattern string
+	TimeField    string
+	Levels       []Level
+	Firing       []string
 }
 
 // Level 是一条级别条件。

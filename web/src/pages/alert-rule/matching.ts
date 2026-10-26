@@ -60,7 +60,8 @@ export function matchedDatasourceUid(
   if (
     !driver.startsWith("METRICS_") &&
     driver !== "LOGS_LOKI" &&
-    driver !== "LOGS_VLOGS"
+    driver !== "LOGS_VLOGS" &&
+    driver !== "LOGS_ELASTICSEARCH"
   ) {
     return ""
   }

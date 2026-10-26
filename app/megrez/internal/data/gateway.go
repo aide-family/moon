@@ -60,6 +60,7 @@ func (g *gateway) Claim(ctx context.Context) ([]bo.RuleSnapshot, error) {
 			Description: rule.GetDescription(), EvalSlot: slot.UTC(), DatasourceUID: rule.GetDatasourceUid(),
 			Endpoint: rule.GetDatasourceEndpoint(), Username: rule.GetDatasourceUsername(),
 			Password: rule.GetDatasourcePassword(), Secret: rule.GetDatasourceSecret(),
+			IndexPattern: rule.GetDatasourceIndexPattern(), TimeField: rule.GetDatasourceTimeField(),
 			Levels: levels, Firing: rule.GetFiringFingerprints(),
 		})
 	}

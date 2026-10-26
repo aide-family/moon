@@ -49,8 +49,12 @@ func (r *datasourceRepo) InstantQuery(ctx context.Context, item bo.Datasource, e
 }
 
 // RangeQuery 执行告警详情图表的区间查询。指标与 Loki 走各自的 query_range，
-// VictoriaLogs 走 stats_query_range：返回 Prometheus matrix，时间桶由 step 决定。
+// VictoriaLogs 走 stats_query_range，Elasticsearch 走 date_histogram 计数：
+// 都返回 Prometheus matrix，时间桶由 step 决定。
 func (r *datasourceRepo) RangeQuery(ctx context.Context, item bo.Datasource, expr string, start, end, step int64) (string, error) {
+	if item.Driver == driverLogsElasticsearch {
+		return r.rangeQueryElasticsearch(ctx, item, expr, start, end, step)
+	}
 	path := "/api/v1/query_range"
 	values := url.Values{}
 	values.Set("query", expr)

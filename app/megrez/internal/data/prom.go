@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -18,7 +19,10 @@ import (
 	"github.com/aide-family/Alioth/pkg/upstream"
 )
 
-var datasourceQueryClient = &http.Client{Timeout: 10 * time.Second}
+// datasourceQueryTimeout 是单次数据源查询的上限，与事件图表的预期响应时间对齐。
+const datasourceQueryTimeout = 10 * time.Second
+
+var datasourceQueryClient = &http.Client{Timeout: datasourceQueryTimeout}
 
 type promQuery struct{}
 
@@ -34,6 +38,8 @@ func (q rangeQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start,
 		return lokiQuery{}.QueryRange(ctx, item, start, end, step)
 	case "LOGS_VLOGS":
 		return vlogsQuery{}.QueryRange(ctx, item, start, end, step)
+	case "LOGS_ELASTICSEARCH":
+		return esQuery{}.QueryRange(ctx, item, start, end, step)
 	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS":
 		return promQuery{}.QueryRange(ctx, item, start, end, step)
 	default:
@@ -47,6 +53,8 @@ func (q rangeQuery) QueryInstant(ctx context.Context, item bo.RuleSnapshot, expr
 		return lokiQuery{}.QueryInstant(ctx, item, expr, at)
 	case "LOGS_VLOGS":
 		return vlogsQuery{}.QueryInstant(ctx, item, expr, at)
+	case "LOGS_ELASTICSEARCH":
+		return esQuery{}.QueryInstant(ctx, item, expr, at)
 	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS":
 		return promQuery{}.QueryInstant(ctx, item, expr, at)
 	default:
@@ -89,11 +97,24 @@ func (p promQuery) QueryInstant(ctx context.Context, item bo.RuleSnapshot, expr 
 }
 
 func requestDatasource(ctx context.Context, item bo.RuleSnapshot, target string) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	return requestDatasourceBody(ctx, item, http.MethodGet, target, nil)
+}
+
+// requestDatasourceBody 是数据源请求的公共实现。Prometheus 兼容接口用 GET，
+// Elasticsearch 的 _search 用 POST + JSON 请求体。
+func requestDatasourceBody(ctx context.Context, item bo.RuleSnapshot, method, target string, body []byte) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, datasourceQueryTimeout)
 	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
+	var reader io.Reader
+	if len(body) > 0 {
+		reader = bytes.NewReader(body)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, target, reader)
 	if err != nil {
 		return nil, merr.Server("upstream query failed")
+	}
+	if len(body) > 0 {
+		req.Header.Set("Content-Type", "application/json")
 	}
 	if item.Username != "" {
 		req.SetBasicAuth(item.Username, item.Password)

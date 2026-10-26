@@ -88,6 +88,8 @@ func snapshotItem(item bo.RuleSnapshot) *megrezv1.RuleSnapshot {
 		Expr: item.Rule.Expr, Labels: item.Rule.Labels, Summary: item.Rule.Summary, Description: item.Rule.Description,
 		EvalSlot: slot, DatasourceEndpoint: item.Datasource.Endpoint, DatasourceUsername: item.Datasource.Username,
 		DatasourcePassword: item.Datasource.Password, DatasourceSecret: item.Datasource.Secret,
+		// Elasticsearch 的评测需要知道搜哪些索引、按哪个字段切时间桶。
+		DatasourceIndexPattern: item.Datasource.IndexPattern, DatasourceTimeField: item.Datasource.TimeField,
 		Levels: levels, FiringFingerprints: item.FiringFingerprints, DatasourceUid: item.Rule.DatasourceUID, Name: item.Rule.Name,
 	}
 }

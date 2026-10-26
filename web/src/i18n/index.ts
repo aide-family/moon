@@ -576,7 +576,7 @@ const zh = {
     vlogsExprHint:
       '使用 LogsQL 查询，例如 error、_stream:{app="api"} 或 level:error；输入字段名和字段值时会从 VictoriaLogs 补全。告警规则需要 stats 查询，例如 level:error | stats by (app, level) count() as value。',
     esExprHint:
-      '使用 Elasticsearch Query DSL，例如 {"match": {"level": "error"}}；也可以直接输入检索语句。',
+      '使用 Elasticsearch Query DSL，例如 {"match": {"level": "error"}}；也可以直接输入检索语句。告警规则按时间桶统计命中条数，阈值比较的是条数。',
     esQueryInvalid: "请填写有效的 Query DSL JSON 对象",
     esDocument: "索引 / 文档",
     esSource: "文档内容",
@@ -2065,7 +2065,7 @@ const en = {
     vlogsExprHint:
       'Query with LogsQL, for example error, _stream:{app="api"}, or level:error. Field names and values complete from VictoriaLogs. Alerts need a stats query, for example level:error | stats by (app, level) count() as value.',
     esExprHint:
-      'Use an Elasticsearch Query DSL object, for example {"match": {"level": "error"}}, or enter a plain search expression.',
+      'Use an Elasticsearch Query DSL object, for example {"match": {"level": "error"}}, or enter a plain search expression. Alert rules count matching documents per time bucket; the threshold compares that count.',
     esQueryInvalid: "Enter a valid Query DSL JSON object",
     esDocument: "Index / document",
     esSource: "Document",

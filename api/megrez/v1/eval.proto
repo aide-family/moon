@@ -59,6 +59,10 @@ message RuleSnapshot {
   string datasource_uid = 16;
   // 规则名称。
   string name = 17;
+  // 数据源索引模式。Elasticsearch 用，空表示搜索全部索引。
+  string datasource_index_pattern = 18;
+  // 数据源时间字段。Elasticsearch 用，空表示 @timestamp。
+  string datasource_time_field = 19;
 }
 
 // 一条级别条件。

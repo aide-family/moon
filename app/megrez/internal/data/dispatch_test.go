@@ -19,7 +19,7 @@ func TestRangeQueryDoesNotRouteOtherDriversToPrometheus(t *testing.T) {
 	defer srv.Close()
 
 	query := NewRangeQuery()
-	for _, driver := range []string{"LOGS_ELASTICSEARCH", "TRACE_JAEGER", "UNKNOWN"} {
+	for _, driver := range []string{"TRACE_JAEGER", "UNKNOWN"} {
 		if _, err := query.QueryRange(context.Background(), bo.RuleSnapshot{Driver: driver, Endpoint: srv.URL}, 1, 2, 1); !merr.IsInvalid(err) {
 			t.Fatalf("driver %s error = %v, want unsupported-driver error", driver, err)
 		}

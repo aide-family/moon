@@ -170,7 +170,10 @@ func window(rule bo.RuleSnapshot, now time.Time) (int64, int64, int64) {
 			}
 		}
 	}
-	if rule.Driver == "LOGS_VLOGS" && shortestFor > 0 && shortestFor < step {
+	// bucketDriver 表示按时间桶返回数据的驱动：桶边界由 step 决定，窗口必须先对齐，
+	// 否则最后一个桶只统计了部分数据，count 偏低会让 FOR / MAX 误判。
+	bucketDriver := rule.Driver == "LOGS_VLOGS" || rule.Driver == "LOGS_ELASTICSEARCH"
+	if bucketDriver && shortestFor > 0 && shortestFor < step {
 		// 持续 10 秒的规则若仍按 15 秒切桶，至少需要两个满桶（30 秒）才能命中，
 		// 与配置语义相差一个量级。短窗口改用与 FOR 相同的桶宽，两个桶即可覆盖。
 		step = shortestFor
@@ -197,9 +200,9 @@ func window(rule bo.RuleSnapshot, now time.Time) (int64, int64, int64) {
 		seconds = 2 * step
 	}
 	end := now.UTC().Unix()
-	if rule.Driver == "LOGS_VLOGS" {
-		// stats_query_range 按 step 对齐时间桶。结束时间落在桶中间时，最后一个
-		// 桶只统计了部分日志，count 偏低会让 FOR / MAX 误判；先对齐到桶边界。
+	if bucketDriver {
+		// stats_query_range 和 date_histogram 都按 step 对齐时间桶。结束时间落在
+		// 桶中间时最后一个桶只统计了部分数据；先对齐到桶边界。
 		end -= end % step
 		// [start, end) 按 step 切出的桶数比闭区间少一个：ForSeconds 的跨度会
 		// 差一个步长。多查一个桶，让 FOR 的跨度覆盖完整窗口。
@@ -256,8 +259,8 @@ func metricsDriver(driver string) bool {
 	return driver == "METRICS_PROMETHEUS" || driver == "METRICS_VICTORIA_METRICS"
 }
 
-// numericDriver 返回会产出数值采样的驱动。Loki 的数值型 LogQL 与
-// VictoriaLogs 的 stats 查询各有独立查询路径，但都复用同一套阈值判定。
+// numericDriver 返回会产出数值采样的驱动。Loki 的数值型 LogQL、VictoriaLogs 的
+// stats 查询和 Elasticsearch 的时间桶计数各有独立查询路径，但都复用同一套阈值判定。
 func numericDriver(driver string) bool {
-	return metricsDriver(driver) || driver == "LOGS_LOKI" || driver == "LOGS_VLOGS"
+	return metricsDriver(driver) || driver == "LOGS_LOKI" || driver == "LOGS_VLOGS" || driver == "LOGS_ELASTICSEARCH"
 }
