@@ -27,6 +27,8 @@ const (
 	FieldExpiresAt = "expires_at"
 	// FieldUsedAt holds the string denoting the used_at field in the database.
 	FieldUsedAt = "used_at"
+	// FieldPurpose holds the string denoting the purpose field in the database.
+	FieldPurpose = "purpose"
 	// Table holds the table name of the emaillogincode in the database.
 	Table = "email_login_codes"
 )
@@ -41,6 +43,7 @@ var Columns = []string{
 	FieldCodeHash,
 	FieldExpiresAt,
 	FieldUsedAt,
+	FieldPurpose,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -66,6 +69,8 @@ var (
 	EmailValidator func(string) error
 	// CodeHashValidator is a validator for the "code_hash" field. It is called by the builders before save.
 	CodeHashValidator func(string) error
+	// DefaultPurpose holds the default value on creation for the "purpose" field.
+	DefaultPurpose string
 )
 
 // OrderOption defines the ordering options for the EmailLoginCode queries.
@@ -109,4 +114,9 @@ func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUsedAt orders the results by the used_at field.
 func ByUsedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsedAt, opts...).ToFunc()
+}
+
+// ByPurpose orders the results by the purpose field.
+func ByPurpose(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPurpose, opts...).ToFunc()
 }

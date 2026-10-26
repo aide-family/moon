@@ -532,6 +532,7 @@ var (
 		{Name: "code_hash", Type: field.TypeString},
 		{Name: "expires_at", Type: field.TypeTime},
 		{Name: "used_at", Type: field.TypeTime, Nullable: true},
+		{Name: "purpose", Type: field.TypeString, Default: ""},
 	}
 	// EmailLoginCodesTable holds the schema information for the "email_login_codes" table.
 	EmailLoginCodesTable = &schema.Table{

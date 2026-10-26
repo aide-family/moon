@@ -125,6 +125,9 @@ func prepareNotificationColumns(ctx context.Context, db *sql.DB) error {
 		"users": {
 			`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone character varying NOT NULL DEFAULT ''`,
 		},
+		"email_login_codes": {
+			`ALTER TABLE email_login_codes ADD COLUMN IF NOT EXISTS purpose character varying NOT NULL DEFAULT ''`,
+		},
 	}
 	for table, statements := range columns {
 		var exists bool

@@ -86,6 +86,20 @@ func (_c *EmailLoginCodeCreate) SetNillableUsedAt(v *time.Time) *EmailLoginCodeC
 	return _c
 }
 
+// SetPurpose sets the "purpose" field.
+func (_c *EmailLoginCodeCreate) SetPurpose(v string) *EmailLoginCodeCreate {
+	_c.mutation.SetPurpose(v)
+	return _c
+}
+
+// SetNillablePurpose sets the "purpose" field if the given value is not nil.
+func (_c *EmailLoginCodeCreate) SetNillablePurpose(v *string) *EmailLoginCodeCreate {
+	if v != nil {
+		_c.SetPurpose(*v)
+	}
+	return _c
+}
+
 // Mutation returns the EmailLoginCodeMutation object of the builder.
 func (_c *EmailLoginCodeCreate) Mutation() *EmailLoginCodeMutation {
 	return _c.mutation
@@ -129,6 +143,10 @@ func (_c *EmailLoginCodeCreate) defaults() {
 		v := emaillogincode.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Purpose(); !ok {
+		v := emaillogincode.DefaultPurpose
+		_c.mutation.SetPurpose(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -165,6 +183,9 @@ func (_c *EmailLoginCodeCreate) check() error {
 	}
 	if _, ok := _c.mutation.ExpiresAt(); !ok {
 		return &ValidationError{Name: "expires_at", err: errors.New(`ent: missing required field "EmailLoginCode.expires_at"`)}
+	}
+	if _, ok := _c.mutation.Purpose(); !ok {
+		return &ValidationError{Name: "purpose", err: errors.New(`ent: missing required field "EmailLoginCode.purpose"`)}
 	}
 	return nil
 }
@@ -219,6 +240,10 @@ func (_c *EmailLoginCodeCreate) createSpec() (*EmailLoginCode, *sqlgraph.CreateS
 	if value, ok := _c.mutation.UsedAt(); ok {
 		_spec.SetField(emaillogincode.FieldUsedAt, field.TypeTime, value)
 		_node.UsedAt = &value
+	}
+	if value, ok := _c.mutation.Purpose(); ok {
+		_spec.SetField(emaillogincode.FieldPurpose, field.TypeString, value)
+		_node.Purpose = value
 	}
 	return _node, _spec
 }

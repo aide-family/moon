@@ -21,6 +21,9 @@ func (EmailLoginCode) Fields() []ent.Field {
 		field.String("code_hash").Sensitive().NotEmpty(),
 		field.Time("expires_at"),
 		field.Time("used_at").Optional().Nillable(),
+		// purpose 区分验证码用途（login/register/bind/change_email）。
+		// 消费时必须匹配，避免绑定码被拿去登录；升级前的历史行是空串，按通配处理。
+		field.String("purpose").Default(""),
 	}
 }
 

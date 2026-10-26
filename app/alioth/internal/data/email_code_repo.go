@@ -9,10 +9,18 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
 )
 
-func (r *emailCodeRepo) SaveEmailCode(ctx context.Context, email, codeHash string, expiresAt time.Time) error {
+func (r *emailCodeRepo) SaveEmailCode(ctx context.Context, email, codeHash, purpose string, expiresAt time.Time) error {
 	now := time.Now()
 	if _, err := r.client.EmailLoginCode.Update().
-		Where(emaillogincode.EmailEQ(email), emaillogincode.UsedAtIsNil()).
+		Where(
+			emaillogincode.EmailEQ(email),
+			emaillogincode.UsedAtIsNil(),
+			// 只作废同用途的旧码：换绑邮箱的码不应该顶掉还没用的登录码。
+			emaillogincode.Or(
+				emaillogincode.PurposeEQ(purpose),
+				emaillogincode.PurposeEQ(""),
+			),
+		).
 		SetUsedAt(now).
 		Save(ctx); err != nil {
 		return r.fail(err)
@@ -21,20 +29,26 @@ func (r *emailCodeRepo) SaveEmailCode(ctx context.Context, email, codeHash strin
 		SetUID(id.New()).
 		SetEmail(email).
 		SetCodeHash(codeHash).
+		SetPurpose(purpose).
 		SetExpiresAt(expiresAt).
 		Save(ctx)
 	return r.fail(err)
 }
 
-// ConsumeEmailCode 原子消费邮箱登录码。
+// ConsumeEmailCode 原子消费邮箱验证码。
 // 与图形验证码同理：条件全部放进 UPDATE，避免并发下同一个码被用两次。
-func (r *emailCodeRepo) ConsumeEmailCode(ctx context.Context, email, codeHash string, now time.Time) (bool, error) {
+// 空 purpose 的行是升级前的历史数据，按通配处理，避免部署时把 10 分钟内有效的码全部作废。
+func (r *emailCodeRepo) ConsumeEmailCode(ctx context.Context, email, codeHash, purpose string, now time.Time) (bool, error) {
 	affected, err := r.client.EmailLoginCode.Update().
 		Where(
 			emaillogincode.EmailEQ(email),
 			emaillogincode.UsedAtIsNil(),
 			emaillogincode.ExpiresAtGT(now),
 			emaillogincode.CodeHashEQ(codeHash),
+			emaillogincode.Or(
+				emaillogincode.PurposeEQ(purpose),
+				emaillogincode.PurposeEQ(""),
+			),
 		).
 		SetUsedAt(now).
 		Save(ctx)

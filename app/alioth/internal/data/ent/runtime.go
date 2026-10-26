@@ -611,6 +611,10 @@ func init() {
 	emaillogincodeDescCodeHash := emaillogincodeFields[2].Descriptor()
 	// emaillogincode.CodeHashValidator is a validator for the "code_hash" field. It is called by the builders before save.
 	emaillogincode.CodeHashValidator = emaillogincodeDescCodeHash.Validators[0].(func(string) error)
+	// emaillogincodeDescPurpose is the schema descriptor for purpose field.
+	emaillogincodeDescPurpose := emaillogincodeFields[5].Descriptor()
+	// emaillogincode.DefaultPurpose holds the default value on creation for the purpose field.
+	emaillogincode.DefaultPurpose = emaillogincodeDescPurpose.Default.(string)
 	memberMixin := schema.Member{}.Mixin()
 	memberMixinFields0 := memberMixin[0].Fields()
 	_ = memberMixinFields0

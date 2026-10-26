@@ -309,13 +309,13 @@ func (authenticator *Authenticator) SendEmailLoginCode(ctx context.Context, emai
 }
 
 // sendEmailCode 生成并保存一次性邮箱验证码，再按用途发对应主题的邮件。
-// kind 取 register 或 login，只影响邮件主题和正文，不影响码的存储和校验方式。
+// kind 同时写入码的 purpose（login/register/bind/change_email），消费时必须匹配。
 func (authenticator *Authenticator) sendEmailCode(ctx context.Context, email, kind string) error {
 	code, err := randomDigits(6)
 	if err != nil {
 		return merr.Server("request failed")
 	}
-	if err := authenticator.emailCodes.SaveEmailCode(ctx, email, authenticator.digest(code), time.Now().Add(emailCodeTTL)); err != nil {
+	if err := authenticator.emailCodes.SaveEmailCode(ctx, email, authenticator.digest(code), kind, time.Now().Add(emailCodeTTL)); err != nil {
 		return authenticator.wrap(err)
 	}
 	subject := "Alioth " + kind + " code"
@@ -355,7 +355,7 @@ func (authenticator *Authenticator) Register(ctx context.Context, email, code, n
 	} else if !merr.IsNotFound(err) {
 		return nil, authenticator.wrap(err)
 	}
-	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), time.Now())
+	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), "register", time.Now())
 	if err != nil {
 		return nil, authenticator.wrap(err)
 	}
@@ -389,7 +389,7 @@ func (authenticator *Authenticator) EmailLogin(ctx context.Context, email, code,
 	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
 		return nil, err
 	}
-	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), time.Now())
+	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), "login", time.Now())
 	if err != nil {
 		return nil, authenticator.wrap(err)
 	}

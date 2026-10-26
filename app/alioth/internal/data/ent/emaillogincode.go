@@ -30,7 +30,9 @@ type EmailLoginCode struct {
 	// ExpiresAt holds the value of the "expires_at" field.
 	ExpiresAt time.Time `json:"expires_at,omitempty"`
 	// UsedAt holds the value of the "used_at" field.
-	UsedAt       *time.Time `json:"used_at,omitempty"`
+	UsedAt *time.Time `json:"used_at,omitempty"`
+	// Purpose holds the value of the "purpose" field.
+	Purpose      string `json:"purpose,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -41,7 +43,7 @@ func (*EmailLoginCode) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case emaillogincode.FieldID:
 			values[i] = new(sql.NullInt64)
-		case emaillogincode.FieldUID, emaillogincode.FieldEmail, emaillogincode.FieldCodeHash:
+		case emaillogincode.FieldUID, emaillogincode.FieldEmail, emaillogincode.FieldCodeHash, emaillogincode.FieldPurpose:
 			values[i] = new(sql.NullString)
 		case emaillogincode.FieldCreatedAt, emaillogincode.FieldUpdatedAt, emaillogincode.FieldExpiresAt, emaillogincode.FieldUsedAt:
 			values[i] = new(sql.NullTime)
@@ -109,6 +111,12 @@ func (_m *EmailLoginCode) assignValues(columns []string, values []any) error {
 				_m.UsedAt = new(time.Time)
 				*_m.UsedAt = value.Time
 			}
+		case emaillogincode.FieldPurpose:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field purpose", values[i])
+			} else if value.Valid {
+				_m.Purpose = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -166,6 +174,9 @@ func (_m *EmailLoginCode) String() string {
 		builder.WriteString("used_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("purpose=")
+	builder.WriteString(_m.Purpose)
 	builder.WriteByte(')')
 	return builder.String()
 }

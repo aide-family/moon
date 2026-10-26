@@ -89,6 +89,11 @@ func UsedAt(v time.Time) predicate.EmailLoginCode {
 	return predicate.EmailLoginCode(sql.FieldEQ(FieldUsedAt, v))
 }
 
+// Purpose applies equality check predicate on the "purpose" field. It's identical to PurposeEQ.
+func Purpose(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldEQ(FieldPurpose, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.EmailLoginCode {
 	return predicate.EmailLoginCode(sql.FieldEQ(FieldCreatedAt, v))
@@ -452,6 +457,71 @@ func UsedAtIsNil() predicate.EmailLoginCode {
 // UsedAtNotNil applies the NotNil predicate on the "used_at" field.
 func UsedAtNotNil() predicate.EmailLoginCode {
 	return predicate.EmailLoginCode(sql.FieldNotNull(FieldUsedAt))
+}
+
+// PurposeEQ applies the EQ predicate on the "purpose" field.
+func PurposeEQ(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldEQ(FieldPurpose, v))
+}
+
+// PurposeNEQ applies the NEQ predicate on the "purpose" field.
+func PurposeNEQ(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldNEQ(FieldPurpose, v))
+}
+
+// PurposeIn applies the In predicate on the "purpose" field.
+func PurposeIn(vs ...string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldIn(FieldPurpose, vs...))
+}
+
+// PurposeNotIn applies the NotIn predicate on the "purpose" field.
+func PurposeNotIn(vs ...string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldNotIn(FieldPurpose, vs...))
+}
+
+// PurposeGT applies the GT predicate on the "purpose" field.
+func PurposeGT(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldGT(FieldPurpose, v))
+}
+
+// PurposeGTE applies the GTE predicate on the "purpose" field.
+func PurposeGTE(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldGTE(FieldPurpose, v))
+}
+
+// PurposeLT applies the LT predicate on the "purpose" field.
+func PurposeLT(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldLT(FieldPurpose, v))
+}
+
+// PurposeLTE applies the LTE predicate on the "purpose" field.
+func PurposeLTE(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldLTE(FieldPurpose, v))
+}
+
+// PurposeContains applies the Contains predicate on the "purpose" field.
+func PurposeContains(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldContains(FieldPurpose, v))
+}
+
+// PurposeHasPrefix applies the HasPrefix predicate on the "purpose" field.
+func PurposeHasPrefix(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldHasPrefix(FieldPurpose, v))
+}
+
+// PurposeHasSuffix applies the HasSuffix predicate on the "purpose" field.
+func PurposeHasSuffix(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldHasSuffix(FieldPurpose, v))
+}
+
+// PurposeEqualFold applies the EqualFold predicate on the "purpose" field.
+func PurposeEqualFold(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldEqualFold(FieldPurpose, v))
+}
+
+// PurposeContainsFold applies the ContainsFold predicate on the "purpose" field.
+func PurposeContainsFold(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldContainsFold(FieldPurpose, v))
 }
 
 // And groups predicates with the AND operator between them.

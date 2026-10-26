@@ -11612,6 +11612,7 @@ type EmailLoginCodeMutation struct {
 	code_hash     *string
 	expires_at    *time.Time
 	used_at       *time.Time
+	purpose       *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*EmailLoginCode, error)
@@ -11981,6 +11982,42 @@ func (m *EmailLoginCodeMutation) ResetUsedAt() {
 	delete(m.clearedFields, emaillogincode.FieldUsedAt)
 }
 
+// SetPurpose sets the "purpose" field.
+func (m *EmailLoginCodeMutation) SetPurpose(s string) {
+	m.purpose = &s
+}
+
+// Purpose returns the value of the "purpose" field in the mutation.
+func (m *EmailLoginCodeMutation) Purpose() (r string, exists bool) {
+	v := m.purpose
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPurpose returns the old "purpose" field's value of the EmailLoginCode entity.
+// If the EmailLoginCode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailLoginCodeMutation) OldPurpose(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPurpose is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPurpose requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPurpose: %w", err)
+	}
+	return oldValue.Purpose, nil
+}
+
+// ResetPurpose resets all changes to the "purpose" field.
+func (m *EmailLoginCodeMutation) ResetPurpose() {
+	m.purpose = nil
+}
+
 // Where appends a list predicates to the EmailLoginCodeMutation builder.
 func (m *EmailLoginCodeMutation) Where(ps ...predicate.EmailLoginCode) {
 	m.predicates = append(m.predicates, ps...)
@@ -12015,7 +12052,7 @@ func (m *EmailLoginCodeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EmailLoginCodeMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, emaillogincode.FieldCreatedAt)
 	}
@@ -12036,6 +12073,9 @@ func (m *EmailLoginCodeMutation) Fields() []string {
 	}
 	if m.used_at != nil {
 		fields = append(fields, emaillogincode.FieldUsedAt)
+	}
+	if m.purpose != nil {
+		fields = append(fields, emaillogincode.FieldPurpose)
 	}
 	return fields
 }
@@ -12059,6 +12099,8 @@ func (m *EmailLoginCodeMutation) Field(name string) (ent.Value, bool) {
 		return m.ExpiresAt()
 	case emaillogincode.FieldUsedAt:
 		return m.UsedAt()
+	case emaillogincode.FieldPurpose:
+		return m.Purpose()
 	}
 	return nil, false
 }
@@ -12082,6 +12124,8 @@ func (m *EmailLoginCodeMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldExpiresAt(ctx)
 	case emaillogincode.FieldUsedAt:
 		return m.OldUsedAt(ctx)
+	case emaillogincode.FieldPurpose:
+		return m.OldPurpose(ctx)
 	}
 	return nil, fmt.Errorf("unknown EmailLoginCode field %s", name)
 }
@@ -12139,6 +12183,13 @@ func (m *EmailLoginCodeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUsedAt(v)
+		return nil
+	case emaillogincode.FieldPurpose:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPurpose(v)
 		return nil
 	}
 	return fmt.Errorf("unknown EmailLoginCode field %s", name)
@@ -12218,6 +12269,9 @@ func (m *EmailLoginCodeMutation) ResetField(name string) error {
 		return nil
 	case emaillogincode.FieldUsedAt:
 		m.ResetUsedAt()
+		return nil
+	case emaillogincode.FieldPurpose:
+		m.ResetPurpose()
 		return nil
 	}
 	return fmt.Errorf("unknown EmailLoginCode field %s", name)

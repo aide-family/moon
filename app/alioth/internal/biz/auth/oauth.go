@@ -253,7 +253,7 @@ func (authenticator *Authenticator) BindOAuthEmail(ctx context.Context, bindToke
 	if err := authenticator.checkCaptcha(ctx, captchaID, captchaCode); err != nil {
 		return nil, err
 	}
-	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), time.Now())
+	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), "bind", time.Now())
 	if err != nil {
 		return nil, authenticator.wrap(err)
 	}

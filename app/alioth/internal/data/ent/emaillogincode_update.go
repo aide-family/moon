@@ -96,6 +96,20 @@ func (_u *EmailLoginCodeUpdate) ClearUsedAt() *EmailLoginCodeUpdate {
 	return _u
 }
 
+// SetPurpose sets the "purpose" field.
+func (_u *EmailLoginCodeUpdate) SetPurpose(v string) *EmailLoginCodeUpdate {
+	_u.mutation.SetPurpose(v)
+	return _u
+}
+
+// SetNillablePurpose sets the "purpose" field if the given value is not nil.
+func (_u *EmailLoginCodeUpdate) SetNillablePurpose(v *string) *EmailLoginCodeUpdate {
+	if v != nil {
+		_u.SetPurpose(*v)
+	}
+	return _u
+}
+
 // Mutation returns the EmailLoginCodeMutation object of the builder.
 func (_u *EmailLoginCodeUpdate) Mutation() *EmailLoginCodeMutation {
 	return _u.mutation
@@ -182,6 +196,9 @@ func (_u *EmailLoginCodeUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if _u.mutation.UsedAtCleared() {
 		_spec.ClearField(emaillogincode.FieldUsedAt, field.TypeTime)
 	}
+	if value, ok := _u.mutation.Purpose(); ok {
+		_spec.SetField(emaillogincode.FieldPurpose, field.TypeString, value)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{emaillogincode.Label}
@@ -267,6 +284,20 @@ func (_u *EmailLoginCodeUpdateOne) SetNillableUsedAt(v *time.Time) *EmailLoginCo
 // ClearUsedAt clears the value of the "used_at" field.
 func (_u *EmailLoginCodeUpdateOne) ClearUsedAt() *EmailLoginCodeUpdateOne {
 	_u.mutation.ClearUsedAt()
+	return _u
+}
+
+// SetPurpose sets the "purpose" field.
+func (_u *EmailLoginCodeUpdateOne) SetPurpose(v string) *EmailLoginCodeUpdateOne {
+	_u.mutation.SetPurpose(v)
+	return _u
+}
+
+// SetNillablePurpose sets the "purpose" field if the given value is not nil.
+func (_u *EmailLoginCodeUpdateOne) SetNillablePurpose(v *string) *EmailLoginCodeUpdateOne {
+	if v != nil {
+		_u.SetPurpose(*v)
+	}
 	return _u
 }
 
@@ -385,6 +416,9 @@ func (_u *EmailLoginCodeUpdateOne) sqlSave(ctx context.Context) (_node *EmailLog
 	}
 	if _u.mutation.UsedAtCleared() {
 		_spec.ClearField(emaillogincode.FieldUsedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Purpose(); ok {
+		_spec.SetField(emaillogincode.FieldPurpose, field.TypeString, value)
 	}
 	_node = &EmailLoginCode{config: _u.config}
 	_spec.Assign = _node.assignValues

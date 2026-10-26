@@ -142,25 +142,36 @@ func (stub *captchaRepoStub) ConsumeCaptcha(_ context.Context, id, answerHash st
 type emailCodeRepoStub struct {
 	repository.EmailCodeRepo
 	codes       map[string]string
+	purposes    map[string]string
 	issuedAt    map[string]time.Time
 	issuedCalls int
 	consumed    int
 }
 
 func newEmailCodeRepoStub() *emailCodeRepoStub {
-	return &emailCodeRepoStub{codes: map[string]string{}, issuedAt: map[string]time.Time{}}
+	return &emailCodeRepoStub{
+		codes:    map[string]string{},
+		purposes: map[string]string{},
+		issuedAt: map[string]time.Time{},
+	}
 }
 
-func (stub *emailCodeRepoStub) SaveEmailCode(_ context.Context, email, codeHash string, _ time.Time) error {
+func (stub *emailCodeRepoStub) SaveEmailCode(_ context.Context, email, codeHash, purpose string, _ time.Time) error {
 	stub.codes[email] = codeHash
+	stub.purposes[email] = purpose
 	return nil
 }
 
-func (stub *emailCodeRepoStub) ConsumeEmailCode(_ context.Context, email, codeHash string, _ time.Time) (bool, error) {
+func (stub *emailCodeRepoStub) ConsumeEmailCode(_ context.Context, email, codeHash, purpose string, _ time.Time) (bool, error) {
 	if stub.codes[email] != codeHash {
 		return false, nil
 	}
+	// 与生产实现一致：空 purpose 是升级前的历史行，按通配处理。
+	if got := stub.purposes[email]; got != "" && got != purpose {
+		return false, nil
+	}
 	delete(stub.codes, email)
+	delete(stub.purposes, email)
 	stub.consumed++
 	return true, nil
 }
