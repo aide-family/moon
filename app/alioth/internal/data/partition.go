@@ -128,6 +128,7 @@ func prepareNotificationColumns(ctx context.Context, db *sql.DB) error {
 		"email_login_codes": {
 			`ALTER TABLE email_login_codes ADD COLUMN IF NOT EXISTS purpose character varying NOT NULL DEFAULT ''`,
 			`ALTER TABLE email_login_codes ADD COLUMN IF NOT EXISTS attempts bigint NOT NULL DEFAULT 0`,
+			`ALTER TABLE email_login_codes ADD COLUMN IF NOT EXISTS bind_token_hash character varying NOT NULL DEFAULT ''`,
 		},
 	}
 	for table, statements := range columns {

@@ -31,6 +31,8 @@ const (
 	FieldPurpose = "purpose"
 	// FieldAttempts holds the string denoting the attempts field in the database.
 	FieldAttempts = "attempts"
+	// FieldBindTokenHash holds the string denoting the bind_token_hash field in the database.
+	FieldBindTokenHash = "bind_token_hash"
 	// Table holds the table name of the emaillogincode in the database.
 	Table = "email_login_codes"
 )
@@ -47,6 +49,7 @@ var Columns = []string{
 	FieldUsedAt,
 	FieldPurpose,
 	FieldAttempts,
+	FieldBindTokenHash,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -76,6 +79,8 @@ var (
 	DefaultPurpose string
 	// DefaultAttempts holds the default value on creation for the "attempts" field.
 	DefaultAttempts int
+	// DefaultBindTokenHash holds the default value on creation for the "bind_token_hash" field.
+	DefaultBindTokenHash string
 )
 
 // OrderOption defines the ordering options for the EmailLoginCode queries.
@@ -129,4 +134,9 @@ func ByPurpose(opts ...sql.OrderTermOption) OrderOption {
 // ByAttempts orders the results by the attempts field.
 func ByAttempts(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttempts, opts...).ToFunc()
+}
+
+// ByBindTokenHash orders the results by the bind_token_hash field.
+func ByBindTokenHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBindTokenHash, opts...).ToFunc()
 }

@@ -26,6 +26,9 @@ func (EmailLoginCode) Fields() []ent.Field {
 		field.String("purpose").Default(""),
 		// attempts 记录该码已经验证失败的次数；达到阈值后立即作废，必须重新发码。
 		field.Int("attempts").Default(0),
+		// bind_token_hash 是发码时使用的第三方登录绑定凭证摘要，
+		// 用于限制同一凭证可发往的不同邮箱数量，避免绑定发码被当成邮件轰炸入口。
+		field.String("bind_token_hash").Default(""),
 	}
 }
 

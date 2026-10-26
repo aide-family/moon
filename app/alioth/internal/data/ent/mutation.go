@@ -11602,23 +11602,24 @@ func (m *DatasourceMutation) ResetEdge(name string) error {
 // EmailLoginCodeMutation represents an operation that mutates the EmailLoginCode nodes in the graph.
 type EmailLoginCodeMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	created_at    *time.Time
-	updated_at    *time.Time
-	uid           *string
-	email         *string
-	code_hash     *string
-	expires_at    *time.Time
-	used_at       *time.Time
-	purpose       *string
-	attempts      *int
-	addattempts   *int
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*EmailLoginCode, error)
-	predicates    []predicate.EmailLoginCode
+	op              Op
+	typ             string
+	id              *int
+	created_at      *time.Time
+	updated_at      *time.Time
+	uid             *string
+	email           *string
+	code_hash       *string
+	expires_at      *time.Time
+	used_at         *time.Time
+	purpose         *string
+	attempts        *int
+	addattempts     *int
+	bind_token_hash *string
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*EmailLoginCode, error)
+	predicates      []predicate.EmailLoginCode
 }
 
 var _ ent.Mutation = (*EmailLoginCodeMutation)(nil)
@@ -12076,6 +12077,42 @@ func (m *EmailLoginCodeMutation) ResetAttempts() {
 	m.addattempts = nil
 }
 
+// SetBindTokenHash sets the "bind_token_hash" field.
+func (m *EmailLoginCodeMutation) SetBindTokenHash(s string) {
+	m.bind_token_hash = &s
+}
+
+// BindTokenHash returns the value of the "bind_token_hash" field in the mutation.
+func (m *EmailLoginCodeMutation) BindTokenHash() (r string, exists bool) {
+	v := m.bind_token_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBindTokenHash returns the old "bind_token_hash" field's value of the EmailLoginCode entity.
+// If the EmailLoginCode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailLoginCodeMutation) OldBindTokenHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBindTokenHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBindTokenHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBindTokenHash: %w", err)
+	}
+	return oldValue.BindTokenHash, nil
+}
+
+// ResetBindTokenHash resets all changes to the "bind_token_hash" field.
+func (m *EmailLoginCodeMutation) ResetBindTokenHash() {
+	m.bind_token_hash = nil
+}
+
 // Where appends a list predicates to the EmailLoginCodeMutation builder.
 func (m *EmailLoginCodeMutation) Where(ps ...predicate.EmailLoginCode) {
 	m.predicates = append(m.predicates, ps...)
@@ -12110,7 +12147,7 @@ func (m *EmailLoginCodeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EmailLoginCodeMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, emaillogincode.FieldCreatedAt)
 	}
@@ -12138,6 +12175,9 @@ func (m *EmailLoginCodeMutation) Fields() []string {
 	if m.attempts != nil {
 		fields = append(fields, emaillogincode.FieldAttempts)
 	}
+	if m.bind_token_hash != nil {
+		fields = append(fields, emaillogincode.FieldBindTokenHash)
+	}
 	return fields
 }
 
@@ -12164,6 +12204,8 @@ func (m *EmailLoginCodeMutation) Field(name string) (ent.Value, bool) {
 		return m.Purpose()
 	case emaillogincode.FieldAttempts:
 		return m.Attempts()
+	case emaillogincode.FieldBindTokenHash:
+		return m.BindTokenHash()
 	}
 	return nil, false
 }
@@ -12191,6 +12233,8 @@ func (m *EmailLoginCodeMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldPurpose(ctx)
 	case emaillogincode.FieldAttempts:
 		return m.OldAttempts(ctx)
+	case emaillogincode.FieldBindTokenHash:
+		return m.OldBindTokenHash(ctx)
 	}
 	return nil, fmt.Errorf("unknown EmailLoginCode field %s", name)
 }
@@ -12262,6 +12306,13 @@ func (m *EmailLoginCodeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAttempts(v)
+		return nil
+	case emaillogincode.FieldBindTokenHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBindTokenHash(v)
 		return nil
 	}
 	return fmt.Errorf("unknown EmailLoginCode field %s", name)
@@ -12362,6 +12413,9 @@ func (m *EmailLoginCodeMutation) ResetField(name string) error {
 		return nil
 	case emaillogincode.FieldAttempts:
 		m.ResetAttempts()
+		return nil
+	case emaillogincode.FieldBindTokenHash:
+		m.ResetBindTokenHash()
 		return nil
 	}
 	return fmt.Errorf("unknown EmailLoginCode field %s", name)

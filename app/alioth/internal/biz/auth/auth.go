@@ -48,6 +48,10 @@ const (
 	// 暂停该邮箱的验证码校验与发码，避免 6 位码被持续枚举。
 	emailCodeFailureWindow = 15 * time.Minute
 	emailCodeFailureLimit  = 3
+	// bindEmailLimit 与 bindEmailWindow 限制同一个第三方绑定凭证可以发码的不同邮箱数量，
+	// 避免拿一个 bindToken 给大量地址发码做邮件轰炸。
+	bindEmailLimit  = 5
+	bindEmailWindow = time.Hour
 )
 
 // AgentTokenLookup 用明文 Agent 令牌解析机器。只给 Connect 用。
@@ -354,11 +358,17 @@ func (authenticator *Authenticator) SendEmailLoginCode(ctx context.Context, emai
 // sendEmailCode 生成并保存一次性邮箱验证码，再按用途发对应主题的邮件。
 // kind 同时写入码的 purpose（login/register/bind/change_email），消费时必须匹配。
 func (authenticator *Authenticator) sendEmailCode(ctx context.Context, email, kind string) error {
+	return authenticator.sendEmailCodeWithBinding(ctx, email, kind, "")
+}
+
+// sendEmailCodeWithBinding 同 sendEmailCode，额外记录第三方绑定凭证摘要；
+// SendOAuthBindEmailCode 用它限制同一凭证可以发往的不同邮箱数量。
+func (authenticator *Authenticator) sendEmailCodeWithBinding(ctx context.Context, email, kind, bindTokenHash string) error {
 	code, err := randomDigits(6)
 	if err != nil {
 		return merr.Server("request failed")
 	}
-	if err := authenticator.emailCodes.SaveEmailCode(ctx, email, authenticator.digest(code), kind, time.Now().Add(emailCodeTTL)); err != nil {
+	if err := authenticator.emailCodes.SaveEmailCodeWithBinding(ctx, email, authenticator.digest(code), kind, bindTokenHash, time.Now().Add(emailCodeTTL)); err != nil {
 		return authenticator.wrap(err)
 	}
 	subject := "Alioth " + kind + " code"
@@ -606,6 +616,13 @@ func (authenticator *Authenticator) parseToken(raw string) (string, string, erro
 
 func (authenticator *Authenticator) digest(value string) string {
 	sum := sha256.Sum256([]byte(authenticator.secret + ":" + strings.ToLower(strings.TrimSpace(value))))
+	return hex.EncodeToString(sum[:])
+}
+
+// tokenHash 是第三方绑定凭证的计数键。凭证是签名 JWT、原文不落库，
+// 这里只保存加盐摘要，用于统计同一凭证发码的不同邮箱数量。
+func (authenticator *Authenticator) tokenHash(value string) string {
+	sum := sha256.Sum256([]byte(authenticator.secret + ":token:" + value))
 	return hex.EncodeToString(sum[:])
 }
 

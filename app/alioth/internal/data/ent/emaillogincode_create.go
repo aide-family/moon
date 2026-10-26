@@ -114,6 +114,20 @@ func (_c *EmailLoginCodeCreate) SetNillableAttempts(v *int) *EmailLoginCodeCreat
 	return _c
 }
 
+// SetBindTokenHash sets the "bind_token_hash" field.
+func (_c *EmailLoginCodeCreate) SetBindTokenHash(v string) *EmailLoginCodeCreate {
+	_c.mutation.SetBindTokenHash(v)
+	return _c
+}
+
+// SetNillableBindTokenHash sets the "bind_token_hash" field if the given value is not nil.
+func (_c *EmailLoginCodeCreate) SetNillableBindTokenHash(v *string) *EmailLoginCodeCreate {
+	if v != nil {
+		_c.SetBindTokenHash(*v)
+	}
+	return _c
+}
+
 // Mutation returns the EmailLoginCodeMutation object of the builder.
 func (_c *EmailLoginCodeCreate) Mutation() *EmailLoginCodeMutation {
 	return _c.mutation
@@ -165,6 +179,10 @@ func (_c *EmailLoginCodeCreate) defaults() {
 		v := emaillogincode.DefaultAttempts
 		_c.mutation.SetAttempts(v)
 	}
+	if _, ok := _c.mutation.BindTokenHash(); !ok {
+		v := emaillogincode.DefaultBindTokenHash
+		_c.mutation.SetBindTokenHash(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -207,6 +225,9 @@ func (_c *EmailLoginCodeCreate) check() error {
 	}
 	if _, ok := _c.mutation.Attempts(); !ok {
 		return &ValidationError{Name: "attempts", err: errors.New(`ent: missing required field "EmailLoginCode.attempts"`)}
+	}
+	if _, ok := _c.mutation.BindTokenHash(); !ok {
+		return &ValidationError{Name: "bind_token_hash", err: errors.New(`ent: missing required field "EmailLoginCode.bind_token_hash"`)}
 	}
 	return nil
 }
@@ -269,6 +290,10 @@ func (_c *EmailLoginCodeCreate) createSpec() (*EmailLoginCode, *sqlgraph.CreateS
 	if value, ok := _c.mutation.Attempts(); ok {
 		_spec.SetField(emaillogincode.FieldAttempts, field.TypeInt, value)
 		_node.Attempts = value
+	}
+	if value, ok := _c.mutation.BindTokenHash(); ok {
+		_spec.SetField(emaillogincode.FieldBindTokenHash, field.TypeString, value)
+		_node.BindTokenHash = value
 	}
 	return _node, _spec
 }

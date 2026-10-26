@@ -10,6 +10,14 @@ import (
 )
 
 func (r *emailCodeRepo) SaveEmailCode(ctx context.Context, email, codeHash, purpose string, expiresAt time.Time) error {
+	return r.saveEmailCode(ctx, email, codeHash, purpose, "", expiresAt)
+}
+
+func (r *emailCodeRepo) SaveEmailCodeWithBinding(ctx context.Context, email, codeHash, purpose, bindTokenHash string, expiresAt time.Time) error {
+	return r.saveEmailCode(ctx, email, codeHash, purpose, bindTokenHash, expiresAt)
+}
+
+func (r *emailCodeRepo) saveEmailCode(ctx context.Context, email, codeHash, purpose, bindTokenHash string, expiresAt time.Time) error {
 	now := time.Now()
 	if _, err := r.client.EmailLoginCode.Update().
 		Where(
@@ -30,9 +38,33 @@ func (r *emailCodeRepo) SaveEmailCode(ctx context.Context, email, codeHash, purp
 		SetEmail(email).
 		SetCodeHash(codeHash).
 		SetPurpose(purpose).
+		SetBindTokenHash(bindTokenHash).
 		SetExpiresAt(expiresAt).
 		Save(ctx)
 	return r.fail(err)
+}
+
+// CountBindSendEmails 统计同一绑定凭证在窗口内已发过码的不同邮箱数量。
+// 同一邮箱重复请求只算一个地址。
+func (r *emailCodeRepo) CountBindSendEmails(ctx context.Context, bindTokenHash string, since time.Time) (int, error) {
+	if bindTokenHash == "" {
+		return 0, nil
+	}
+	rows, err := r.client.EmailLoginCode.Query().
+		Where(
+			emaillogincode.BindTokenHashEQ(bindTokenHash),
+			emaillogincode.CreatedAtGTE(since),
+		).
+		Select(emaillogincode.FieldEmail).
+		All(ctx)
+	if err != nil {
+		return 0, r.fail(err)
+	}
+	seen := make(map[string]struct{}, len(rows))
+	for _, row := range rows {
+		seen[row.Email] = struct{}{}
+	}
+	return len(seen), nil
 }
 
 // ConsumeEmailCode 原子消费邮箱验证码。

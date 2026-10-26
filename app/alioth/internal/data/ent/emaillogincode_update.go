@@ -131,6 +131,20 @@ func (_u *EmailLoginCodeUpdate) AddAttempts(v int) *EmailLoginCodeUpdate {
 	return _u
 }
 
+// SetBindTokenHash sets the "bind_token_hash" field.
+func (_u *EmailLoginCodeUpdate) SetBindTokenHash(v string) *EmailLoginCodeUpdate {
+	_u.mutation.SetBindTokenHash(v)
+	return _u
+}
+
+// SetNillableBindTokenHash sets the "bind_token_hash" field if the given value is not nil.
+func (_u *EmailLoginCodeUpdate) SetNillableBindTokenHash(v *string) *EmailLoginCodeUpdate {
+	if v != nil {
+		_u.SetBindTokenHash(*v)
+	}
+	return _u
+}
+
 // Mutation returns the EmailLoginCodeMutation object of the builder.
 func (_u *EmailLoginCodeUpdate) Mutation() *EmailLoginCodeMutation {
 	return _u.mutation
@@ -225,6 +239,9 @@ func (_u *EmailLoginCodeUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.AddedAttempts(); ok {
 		_spec.AddField(emaillogincode.FieldAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.BindTokenHash(); ok {
+		_spec.SetField(emaillogincode.FieldBindTokenHash, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -346,6 +363,20 @@ func (_u *EmailLoginCodeUpdateOne) SetNillableAttempts(v *int) *EmailLoginCodeUp
 // AddAttempts adds value to the "attempts" field.
 func (_u *EmailLoginCodeUpdateOne) AddAttempts(v int) *EmailLoginCodeUpdateOne {
 	_u.mutation.AddAttempts(v)
+	return _u
+}
+
+// SetBindTokenHash sets the "bind_token_hash" field.
+func (_u *EmailLoginCodeUpdateOne) SetBindTokenHash(v string) *EmailLoginCodeUpdateOne {
+	_u.mutation.SetBindTokenHash(v)
+	return _u
+}
+
+// SetNillableBindTokenHash sets the "bind_token_hash" field if the given value is not nil.
+func (_u *EmailLoginCodeUpdateOne) SetNillableBindTokenHash(v *string) *EmailLoginCodeUpdateOne {
+	if v != nil {
+		_u.SetBindTokenHash(*v)
+	}
 	return _u
 }
 
@@ -473,6 +504,9 @@ func (_u *EmailLoginCodeUpdateOne) sqlSave(ctx context.Context) (_node *EmailLog
 	}
 	if value, ok := _u.mutation.AddedAttempts(); ok {
 		_spec.AddField(emaillogincode.FieldAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.BindTokenHash(); ok {
+		_spec.SetField(emaillogincode.FieldBindTokenHash, field.TypeString, value)
 	}
 	_node = &EmailLoginCode{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -534,6 +534,7 @@ var (
 		{Name: "used_at", Type: field.TypeTime, Nullable: true},
 		{Name: "purpose", Type: field.TypeString, Default: ""},
 		{Name: "attempts", Type: field.TypeInt, Default: 0},
+		{Name: "bind_token_hash", Type: field.TypeString, Default: ""},
 	}
 	// EmailLoginCodesTable holds the schema information for the "email_login_codes" table.
 	EmailLoginCodesTable = &schema.Table{

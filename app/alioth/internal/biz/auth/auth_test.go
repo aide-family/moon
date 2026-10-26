@@ -145,6 +145,7 @@ type emailCodeRepoStub struct {
 	purposes    map[string]string
 	attempts    map[string]int
 	exhausted   map[string]int
+	bindSends   []bindSend
 	issuedAt    map[string]time.Time
 	issuedCalls int
 	consumed    int
@@ -195,6 +196,32 @@ func (stub *emailCodeRepoStub) IncrementEmailCodeAttempts(_ context.Context, ema
 
 func (stub *emailCodeRepoStub) RecentExhaustedEmailCodes(_ context.Context, email string, _ time.Time, _ int) (int, error) {
 	return stub.exhausted[email], nil
+}
+
+// bindSends 记录带第三方绑定凭证的发码，用于验证每个凭证的地址数上限。
+type bindSend struct {
+	tokenHash string
+	email     string
+}
+
+func (stub *emailCodeRepoStub) SaveEmailCodeWithBinding(_ context.Context, email, codeHash, purpose, bindTokenHash string, _ time.Time) error {
+	if err := stub.SaveEmailCode(context.Background(), email, codeHash, purpose, time.Time{}); err != nil {
+		return err
+	}
+	if bindTokenHash != "" {
+		stub.bindSends = append(stub.bindSends, bindSend{tokenHash: bindTokenHash, email: email})
+	}
+	return nil
+}
+
+func (stub *emailCodeRepoStub) CountBindSendEmails(_ context.Context, bindTokenHash string, _ time.Time) (int, error) {
+	seen := map[string]struct{}{}
+	for _, send := range stub.bindSends {
+		if send.tokenHash == bindTokenHash {
+			seen[send.email] = struct{}{}
+		}
+	}
+	return len(seen), nil
 }
 
 func (stub *emailCodeRepoStub) LastEmailCodeIssuedAt(_ context.Context, email string) (time.Time, bool, error) {

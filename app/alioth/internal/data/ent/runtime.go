@@ -619,6 +619,10 @@ func init() {
 	emaillogincodeDescAttempts := emaillogincodeFields[6].Descriptor()
 	// emaillogincode.DefaultAttempts holds the default value on creation for the attempts field.
 	emaillogincode.DefaultAttempts = emaillogincodeDescAttempts.Default.(int)
+	// emaillogincodeDescBindTokenHash is the schema descriptor for bind_token_hash field.
+	emaillogincodeDescBindTokenHash := emaillogincodeFields[7].Descriptor()
+	// emaillogincode.DefaultBindTokenHash holds the default value on creation for the bind_token_hash field.
+	emaillogincode.DefaultBindTokenHash = emaillogincodeDescBindTokenHash.Default.(string)
 	memberMixin := schema.Member{}.Mixin()
 	memberMixinFields0 := memberMixin[0].Fields()
 	_ = memberMixinFields0

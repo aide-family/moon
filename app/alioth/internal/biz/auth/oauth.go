@@ -237,7 +237,15 @@ func (authenticator *Authenticator) SendOAuthBindEmailCode(ctx context.Context, 
 	if err := authenticator.checkEmailCodeInterval(ctx, email); err != nil {
 		return err
 	}
-	return authenticator.sendEmailCode(ctx, email, "bind")
+	tokenHash := authenticator.tokenHash(bindToken)
+	sent, err := authenticator.emailCodes.CountBindSendEmails(ctx, tokenHash, time.Now().Add(-bindEmailWindow))
+	if err != nil {
+		return authenticator.wrap(err)
+	}
+	if sent >= bindEmailLimit {
+		return merr.Client("too many bind email addresses")
+	}
+	return authenticator.sendEmailCodeWithBinding(ctx, email, "bind", tokenHash)
 }
 
 // BindOAuthEmail 完成第三方登录的邮箱绑定：验证通过前不签发会话。

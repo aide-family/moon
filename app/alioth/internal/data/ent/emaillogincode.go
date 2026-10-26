@@ -34,8 +34,10 @@ type EmailLoginCode struct {
 	// Purpose holds the value of the "purpose" field.
 	Purpose string `json:"purpose,omitempty"`
 	// Attempts holds the value of the "attempts" field.
-	Attempts     int `json:"attempts,omitempty"`
-	selectValues sql.SelectValues
+	Attempts int `json:"attempts,omitempty"`
+	// BindTokenHash holds the value of the "bind_token_hash" field.
+	BindTokenHash string `json:"bind_token_hash,omitempty"`
+	selectValues  sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -45,7 +47,7 @@ func (*EmailLoginCode) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case emaillogincode.FieldID, emaillogincode.FieldAttempts:
 			values[i] = new(sql.NullInt64)
-		case emaillogincode.FieldUID, emaillogincode.FieldEmail, emaillogincode.FieldCodeHash, emaillogincode.FieldPurpose:
+		case emaillogincode.FieldUID, emaillogincode.FieldEmail, emaillogincode.FieldCodeHash, emaillogincode.FieldPurpose, emaillogincode.FieldBindTokenHash:
 			values[i] = new(sql.NullString)
 		case emaillogincode.FieldCreatedAt, emaillogincode.FieldUpdatedAt, emaillogincode.FieldExpiresAt, emaillogincode.FieldUsedAt:
 			values[i] = new(sql.NullTime)
@@ -125,6 +127,12 @@ func (_m *EmailLoginCode) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Attempts = int(value.Int64)
 			}
+		case emaillogincode.FieldBindTokenHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bind_token_hash", values[i])
+			} else if value.Valid {
+				_m.BindTokenHash = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -188,6 +196,9 @@ func (_m *EmailLoginCode) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attempts=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Attempts))
+	builder.WriteString(", ")
+	builder.WriteString("bind_token_hash=")
+	builder.WriteString(_m.BindTokenHash)
 	builder.WriteByte(')')
 	return builder.String()
 }

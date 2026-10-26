@@ -99,6 +99,11 @@ func Attempts(v int) predicate.EmailLoginCode {
 	return predicate.EmailLoginCode(sql.FieldEQ(FieldAttempts, v))
 }
 
+// BindTokenHash applies equality check predicate on the "bind_token_hash" field. It's identical to BindTokenHashEQ.
+func BindTokenHash(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldEQ(FieldBindTokenHash, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.EmailLoginCode {
 	return predicate.EmailLoginCode(sql.FieldEQ(FieldCreatedAt, v))
@@ -567,6 +572,71 @@ func AttemptsLT(v int) predicate.EmailLoginCode {
 // AttemptsLTE applies the LTE predicate on the "attempts" field.
 func AttemptsLTE(v int) predicate.EmailLoginCode {
 	return predicate.EmailLoginCode(sql.FieldLTE(FieldAttempts, v))
+}
+
+// BindTokenHashEQ applies the EQ predicate on the "bind_token_hash" field.
+func BindTokenHashEQ(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldEQ(FieldBindTokenHash, v))
+}
+
+// BindTokenHashNEQ applies the NEQ predicate on the "bind_token_hash" field.
+func BindTokenHashNEQ(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldNEQ(FieldBindTokenHash, v))
+}
+
+// BindTokenHashIn applies the In predicate on the "bind_token_hash" field.
+func BindTokenHashIn(vs ...string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldIn(FieldBindTokenHash, vs...))
+}
+
+// BindTokenHashNotIn applies the NotIn predicate on the "bind_token_hash" field.
+func BindTokenHashNotIn(vs ...string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldNotIn(FieldBindTokenHash, vs...))
+}
+
+// BindTokenHashGT applies the GT predicate on the "bind_token_hash" field.
+func BindTokenHashGT(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldGT(FieldBindTokenHash, v))
+}
+
+// BindTokenHashGTE applies the GTE predicate on the "bind_token_hash" field.
+func BindTokenHashGTE(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldGTE(FieldBindTokenHash, v))
+}
+
+// BindTokenHashLT applies the LT predicate on the "bind_token_hash" field.
+func BindTokenHashLT(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldLT(FieldBindTokenHash, v))
+}
+
+// BindTokenHashLTE applies the LTE predicate on the "bind_token_hash" field.
+func BindTokenHashLTE(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldLTE(FieldBindTokenHash, v))
+}
+
+// BindTokenHashContains applies the Contains predicate on the "bind_token_hash" field.
+func BindTokenHashContains(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldContains(FieldBindTokenHash, v))
+}
+
+// BindTokenHashHasPrefix applies the HasPrefix predicate on the "bind_token_hash" field.
+func BindTokenHashHasPrefix(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldHasPrefix(FieldBindTokenHash, v))
+}
+
+// BindTokenHashHasSuffix applies the HasSuffix predicate on the "bind_token_hash" field.
+func BindTokenHashHasSuffix(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldHasSuffix(FieldBindTokenHash, v))
+}
+
+// BindTokenHashEqualFold applies the EqualFold predicate on the "bind_token_hash" field.
+func BindTokenHashEqualFold(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldEqualFold(FieldBindTokenHash, v))
+}
+
+// BindTokenHashContainsFold applies the ContainsFold predicate on the "bind_token_hash" field.
+func BindTokenHashContainsFold(v string) predicate.EmailLoginCode {
+	return predicate.EmailLoginCode(sql.FieldContainsFold(FieldBindTokenHash, v))
 }
 
 // And groups predicates with the AND operator between them.
