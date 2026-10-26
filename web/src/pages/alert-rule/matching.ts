@@ -21,11 +21,15 @@ export function datasourceMatchLabels(
   if (labels === null) {
     return null
   }
-  return {
-    ...labels,
-    datasource: item.name,
-    ...(item.levelName ? { datasource_level: item.levelName } : {}),
+  const merged: Record<string, string> = { ...labels, datasource: item.name }
+  if (item.levelName) {
+    merged.datasource_level = item.levelName
+  } else {
+    // 与后端一致：数据源没有等级时不并入 datasource_level，
+    // 即使数据源自己的标签里带了这个键（后端也会在评测前删掉）。
+    delete merged.datasource_level
   }
+  return merged
 }
 
 /** 数据源标签匹配的系统键：数据源名称和等级名称由后端在评测时并入标签。 */
