@@ -15,8 +15,13 @@ let promqlLanguageReady = false
 let logqlLanguageReady = false
 let logsqlLanguageReady = false
 
+// 编辑器文字与 placeholder 覆盖层共用这套字体/字号/行高/内边距，保证两者像素级对齐。
+const FONT_FAMILY = 'JetBrains Mono, Menlo, Monaco, "Courier New", monospace'
+const FONT_SIZE = 13
 const LINE_HEIGHT = 20
 const EDITOR_PADDING_Y = 8
+// 与容器上的 px-2.5 一致（0.625rem）；Monaco 内容区从容器内边距内侧开始。
+const EDITOR_PADDING_X = "0.625rem"
 const MIN_HEIGHT = LINE_HEIGHT + EDITOR_PADDING_Y * 2
 const MAX_HEIGHT = 180
 
@@ -682,6 +687,8 @@ interface QueryExpressionEditorProps {
   onSubmit?: () => void
   /** LogQL 使用 Loki 标签补全，LogsQL 使用 VictoriaLogs 字段补全，json 用于 Elasticsearch Query DSL。 */
   variant?: "promql" | "logql" | "logsql" | "json"
+  /** 表达式为空时显示的提示；文案需与当前查询语言一致。 */
+  placeholder?: string
 }
 
 export function QueryExpressionEditor({
@@ -690,6 +697,7 @@ export function QueryExpressionEditor({
   datasourceUid = "",
   onSubmit,
   variant = "promql",
+  placeholder,
 }: QueryExpressionEditorProps) {
   const { theme } = useTheme()
   const overflowWidgetsDomNode = useMonacoOverflowNode()
@@ -759,9 +767,25 @@ export function QueryExpressionEditor({
 
   return (
     <div
-      className="overflow-hidden rounded-md border border-input bg-background px-2.5 [&_.margin]:!bg-background [&_.monaco-editor]:!bg-background [&_.monaco-editor-background]:!bg-background"
+      className="relative overflow-hidden rounded-md border border-input bg-background px-2.5 [&_.margin]:!bg-background [&_.monaco-editor]:!bg-background [&_.monaco-editor-background]:!bg-background"
       style={{ height }}
     >
+      {value === "" && placeholder ? (
+        // 覆盖层不参与命中测试：鼠标点击、拖选仍落在 Monaco 上；输入任意字符后卸载。
+        <span
+          className="pointer-events-none absolute z-10 select-none whitespace-pre-wrap text-muted-foreground"
+          style={{
+            top: EDITOR_PADDING_Y,
+            left: EDITOR_PADDING_X,
+            right: EDITOR_PADDING_X,
+            fontFamily: FONT_FAMILY,
+            fontSize: FONT_SIZE,
+            lineHeight: `${LINE_HEIGHT}px`,
+          }}
+        >
+          {placeholder}
+        </span>
+      ) : null}
       <Editor
         height={height}
         language={
@@ -782,8 +806,8 @@ export function QueryExpressionEditor({
           fixedOverflowWidgets: true,
           overflowWidgetsDomNode: overflowWidgetsDomNode ?? undefined,
           minimap: { enabled: false },
-          fontSize: 13,
-          fontFamily: 'JetBrains Mono, Menlo, Monaco, "Courier New", monospace',
+          fontSize: FONT_SIZE,
+          fontFamily: FONT_FAMILY,
           lineNumbers: "off",
           glyphMargin: false,
           folding: false,

@@ -175,6 +175,23 @@ export function DatasourcePage() {
     }
   }, [selected, version, session.namespaceUid])
 
+  // 进入数据源菜单时如果 URL 没有 uid，默认选中列表里的第一个数据源，
+  // 让右侧详情面板直接可用，而不是停在“从左侧选择一个数据源”的空态。
+  // 已有 uid（深链、上一页选择）优先，创建流程保存后写入的 uid 也不会被覆盖；
+  // 列表为空（含筛选后无结果）、加载中或加载失败时保持原来的占位提示。
+  // 条件是幂等的：选中一旦写入 URL，selected 非空，本 effect 不再动作。
+  useEffect(() => {
+    if (selected || loading || failed || items.length === 0) {
+      return
+    }
+    // 自动补选不写历史记录：否则用户在无 uid 的地址上点后退，本 effect 会
+    // 立刻把 uid 写回去，后退看起来永远停在同一页。
+    setParam("uid", items[0].uid, { replace: true })
+    // setParam 每次渲染都是新函数；只依赖“是否已有选中项 + 列表状态”，
+    // 写入 uid 后 selected 非空，本 effect 自然停下，不会重复触发。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, loading, failed, items])
+
   useEffect(() => {
     let active = true
     async function load() {
@@ -202,7 +219,11 @@ export function DatasourcePage() {
     }
   }, [canWrite, session.namespaceUid, version])
 
-  function setParam(key: string, value: string) {
+  function setParam(
+    key: string,
+    value: string,
+    options: { replace?: boolean } = {}
+  ) {
     const next = new URLSearchParams(params)
     if (value) {
       next.set(key, value)
@@ -212,7 +233,7 @@ export function DatasourcePage() {
     if (key !== "uid") {
       next.set("page", "1")
     }
-    setParams(next)
+    setParams(next, { replace: options.replace })
   }
 
   function openCreate() {

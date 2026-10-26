@@ -352,6 +352,7 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
           <LogsQLEditor
             value={expr}
             datasourceUid={datasource.uid}
+            placeholder={t("datasource.vlogsQueryExprPlaceholder")}
             onChange={(value) => {
               draft.patch({ expr: value })
               if (exprError) {

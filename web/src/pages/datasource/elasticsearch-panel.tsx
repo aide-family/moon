@@ -303,6 +303,7 @@ export function ElasticsearchPanel({
             value={expr}
             variant="json"
             datasourceUid={datasource.uid}
+            placeholder={t("datasource.esQueryExprPlaceholder")}
             onChange={(value) => {
               draft.patch({ expr: value })
               if (exprError) {

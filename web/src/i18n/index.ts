@@ -505,6 +505,10 @@ const zh = {
     pick: "从左侧选择一个数据源。",
     expr: "表达式",
     exprPlaceholder: "up",
+    queryExprPlaceholder: "例如 up、rate(http_requests_total[5m])",
+    lokiQueryExprPlaceholder: '例如 {app="api"} |= "error"',
+    vlogsQueryExprPlaceholder: "例如 app:api level:error",
+    esQueryExprPlaceholder: '例如 {"match": {"level": "error"}}',
     exprHint: "即时查询和区间查询都使用这条表达式。",
     vmExprHint: "使用 MetricsQL 查询，兼容 PromQL，例如 up、rate(foo[5m])。",
     instant: "即时查询",
@@ -2085,6 +2089,11 @@ const en = {
     pick: "Select a datasource from the list.",
     expr: "Expression",
     exprPlaceholder: "up",
+    queryExprPlaceholder:
+      "For example up or rate(http_requests_total[5m])",
+    lokiQueryExprPlaceholder: 'For example {app="api"} |= "error"',
+    vlogsQueryExprPlaceholder: "For example app:api level:error",
+    esQueryExprPlaceholder: 'For example {"match": {"level": "error"}}',
     exprHint: "Instant and range queries both use this expression.",
     vmExprHint:
       "Query with MetricsQL. PromQL expressions such as up or rate(foo[5m]) work too.",

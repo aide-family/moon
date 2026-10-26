@@ -286,6 +286,7 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
           <LogQLEditor
             value={expr}
             datasourceUid={datasource.uid}
+            placeholder={t("datasource.lokiQueryExprPlaceholder")}
             onChange={(value) => {
               draft.patch({ expr: value })
               if (exprError) {

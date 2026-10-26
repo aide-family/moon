@@ -375,6 +375,7 @@ function MetricsQueryPanel({ datasource }: { datasource: DatasourceItem }) {
           <PromQLEditor
             value={expr}
             datasourceUid={datasource.uid}
+            placeholder={t("datasource.queryExprPlaceholder")}
             onChange={(value) => {
               draft.patch({ expr: value })
               if (exprError) {
