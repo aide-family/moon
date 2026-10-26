@@ -58,6 +58,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
+import { loadAllPagedItems, loadAllSelectItems } from "@/lib/select-pages"
 import {
   collectFieldErrors,
   hasFieldErrors,
@@ -279,10 +280,20 @@ export function NotificationOnCallPage() {
   useEffect(() => {
     let active = true
     void Promise.all([
-      selectNotificationGroups({ limit: 100 }),
-      listAlertDictionaries({ page: 1, pageSize: 100, type: "ALERT" }),
-      listAlertDictionaries({ page: 1, pageSize: 100, type: "DATASOURCE" }),
-      selectDatasources({ limit: 100 }),
+      loadAllSelectItems(
+        (lastUid) => selectNotificationGroups({ limit: 100, lastUid }),
+        100
+      ),
+      loadAllPagedItems((page, pageSize) =>
+        listAlertDictionaries({ page, pageSize, type: "ALERT" })
+      ),
+      loadAllPagedItems((page, pageSize) =>
+        listAlertDictionaries({ page, pageSize, type: "DATASOURCE" })
+      ),
+      loadAllSelectItems(
+        (lastUid) => selectDatasources({ limit: 100, lastUid }),
+        100
+      ),
     ])
       .then(
         ([
@@ -292,10 +303,10 @@ export function NotificationOnCallPage() {
           datasourceResult,
         ]) => {
           if (active) {
-            setGroups(groupResult.items ?? [])
-            setLevels(levelResult.items ?? [])
-            setDatasourceLevels(datasourceLevelResult.items ?? [])
-            setDatasources(datasourceResult.items ?? [])
+            setGroups(groupResult)
+            setLevels(levelResult)
+            setDatasourceLevels(datasourceLevelResult)
+            setDatasources(datasourceResult)
           }
         }
       )

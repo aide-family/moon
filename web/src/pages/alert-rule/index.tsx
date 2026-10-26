@@ -85,6 +85,7 @@ import {
 } from "@/lib/form"
 import { failureMessage, readFormError } from "@/lib/form-error"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
+import { loadAllPagedItems } from "@/lib/select-pages"
 import { useListQuery } from "@/hooks/use-list-query"
 
 import { AlertRuleDetailSheet } from "./detail"
@@ -370,14 +371,18 @@ export function AlertRulePage() {
     async function load() {
       try {
         const [levelResult, sourceResult] = await Promise.all([
-          listAlertDictionaries({ page: 1, pageSize: 100, type: "ALERT" }),
-          listDatasources({ page: 1, pageSize: 100 }),
+          loadAllPagedItems((page, pageSize) =>
+            listAlertDictionaries({ page, pageSize, type: "ALERT" })
+          ),
+          loadAllPagedItems((page, pageSize) =>
+            listDatasources({ page, pageSize })
+          ),
         ])
         if (!active) {
           return
         }
-        setLevels(levelResult.items ?? [])
-        setSources(sourceResult.items ?? [])
+        setLevels(levelResult)
+        setSources(sourceResult)
       } catch {
         if (active) {
           setLevels([])

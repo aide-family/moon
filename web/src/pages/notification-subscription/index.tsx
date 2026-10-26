@@ -55,6 +55,7 @@ import {
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
+import { loadAllPagedItems, loadAllSelectItems } from "@/lib/select-pages"
 import { runAction } from "@/lib/action"
 
 /** 重复发送间隔按分钟编辑，后端按秒保存；0 表示不限制。 */
@@ -105,17 +106,27 @@ export function NotificationSubscriptionPage() {
   useEffect(() => {
     let active = true
     void Promise.all([
-      selectNotificationGroups({ limit: 100 }),
-      listAlertDictionaries({ page: 1, pageSize: 100, type: "ALERT" }),
-      listAlertDictionaries({ page: 1, pageSize: 100, type: "DATASOURCE" }),
-      selectDatasources({ limit: 100 }),
+      loadAllSelectItems(
+        (lastUid) => selectNotificationGroups({ limit: 100, lastUid }),
+        100
+      ),
+      loadAllPagedItems((page, pageSize) =>
+        listAlertDictionaries({ page, pageSize, type: "ALERT" })
+      ),
+      loadAllPagedItems((page, pageSize) =>
+        listAlertDictionaries({ page, pageSize, type: "DATASOURCE" })
+      ),
+      loadAllSelectItems(
+        (lastUid) => selectDatasources({ limit: 100, lastUid }),
+        100
+      ),
     ])
       .then(([groupResult, levelResult, datasourceLevelResult, datasourceResult]) => {
         if (active) {
-          setGroups(groupResult.items ?? [])
-          setLevels(levelResult.items ?? [])
-          setDatasourceLevels(datasourceLevelResult.items ?? [])
-          setDatasources(datasourceResult.items ?? [])
+          setGroups(groupResult)
+          setLevels(levelResult)
+          setDatasourceLevels(datasourceLevelResult)
+          setDatasources(datasourceResult)
         }
       })
       .catch(() => {
