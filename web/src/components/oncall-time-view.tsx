@@ -940,8 +940,8 @@ export function OnCallTimeView({
         <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-700 dark:text-amber-300">
           {copy(
             "mixedTimezoneHint",
-            `所选值班项使用了多个时区（${timezones.join("、")}）。时间轴按各自时区的本地时间直接叠加，未做跨时区换算。`,
-            `Selected entries use different timezones (${timezones.join(", ")}). Local wall-clock times are overlaid as-is, without cross-timezone conversion.`
+            `所选值班项使用了多个时区（${timezones.join("、")}）。时间轴按各时区的本地时间叠加显示，只用于查看各自的排班，不代表同一时刻的真实覆盖；覆盖率与空档也按叠加结果计算。`,
+            `Selected entries use different timezones (${timezones.join(", ")}). Local wall-clock times are overlaid for reviewing each schedule; this is not coverage at the same instant, and the coverage/gap figures follow the overlay.`
           )}
         </p>
       ) : null}
