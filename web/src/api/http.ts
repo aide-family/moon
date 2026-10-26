@@ -25,6 +25,7 @@ const messageKeys: Record<string, string> = {
   "oauth link not found": "error.notFound",
   "cannot unlink the last login method": "profile.oauth.unbindLastCredential",
   "member already exists": "error.memberExists",
+  "notification group is already bound to this on-call": "error.groupAlreadyBound",
   "invitation expired": "error.invitationExpired",
   "invitation is not pending": "error.invitationHandled",
   "invitation belongs to another user": "error.invitationNotYours",

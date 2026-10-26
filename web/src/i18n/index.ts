@@ -130,6 +130,7 @@ const zh = {
     oauthBindingExpired: "邮箱绑定已过期，请重新发起第三方登录。",
     oauthAccountBound: "该第三方账号已经绑定，请返回登录。",
     memberExists: "该用户已经是租户成员。",
+    groupAlreadyBound: "该通知组已经绑定到这条 OnCall。",
     invitationExpired: "邀请已过期。",
     invitationHandled: "邀请已经处理过了。",
     invitationNotYours: "这条邀请不属于当前登录账号。",
