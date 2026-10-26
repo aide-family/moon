@@ -129,7 +129,7 @@ func Body(q Query) ([]byte, error) {
 		"aggs": map[string]any{
 			aggName: map[string]any{
 				"date_histogram": map[string]any{
-					"field":          field,
+					"field": field,
 					// empty 桶也返回，语义与 Loki 的 count_over_time 一致：
 					// FOR 条件需要看到「这段时间一直是 0」而不是「没有点」。
 					"min_doc_count":   0,

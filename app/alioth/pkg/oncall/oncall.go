@@ -47,11 +47,11 @@ func Normalize(specs []Spec) ([]Spec, error) {
 		}
 		start, err := parseClock(spec.Start)
 		if err != nil {
-			return nil, fmt.Errorf("window %d: %w", index+1, err)
+			return nil, merr.Invalid(fmt.Sprintf("window %d: %v", index+1, err))
 		}
 		end, err := parseClock(spec.End)
 		if err != nil {
-			return nil, fmt.Errorf("window %d: %w", index+1, err)
+			return nil, merr.Invalid(fmt.Sprintf("window %d: %v", index+1, err))
 		}
 		if start == end {
 			return nil, merr.Invalid("on-call window start and end must differ")
@@ -117,6 +117,10 @@ func LoadLocation(name string) (*time.Location, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		name = DefaultTimezone
+	}
+	// Local 依赖进程所在主机的时区，多副本会各算各的；它不是 IANA 时区名，必须显式拒绝。
+	if strings.EqualFold(name, "Local") || strings.EqualFold(name, "localtime") {
+		return nil, merr.Invalid("invalid on-call timezone")
 	}
 	location, err := time.LoadLocation(name)
 	if err != nil {
