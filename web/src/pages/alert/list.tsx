@@ -192,8 +192,11 @@ export function AlertEventList({
   const query = useListQuery()
   const [params, setParams] = useSearchParams()
   const analysisLevel = params.get("level") || ""
+  // 历史告警默认打开统计分析：URL 没有 historyTab 或值无法识别时都落到 analysis。
+  // analysis 是默认值，URL 上可以省略该参数；明细必须显式写 historyTab=details，
+  // 这样受控 value、aria-selected、选中指示器和可见面板始终由同一个值决定。
   const historyTab =
-    params.get("historyTab") === "analysis" ? "analysis" : "details"
+    params.get("historyTab") === "details" ? "details" : "analysis"
   const committedHistoryFilters: HistoryDetailFilters = {
     name: params.get("eventName") || "",
     level: params.get("eventLevel") || "",
@@ -237,10 +240,9 @@ export function AlertEventList({
     committedHistoryFilters
   )
   // 筛选面板默认收起：明细列表才是主内容，不能让它常驻占掉表格高度。
-  // 首次进入（没有任何已应用筛选）时展开，保证筛选能力可被发现。
-  const [filtersOpen, setFiltersOpen] = useState(
-    appliedHistoryFilterCount === 0
-  )
+  // 已应用的筛选以标签形式展示，需要时再展开；收起只是加 hidden，面板不卸载，
+  // 所以展开过又收起的草稿输入不会丢失。
+  const [filtersOpen, setFiltersOpen] = useState(false)
   // 实时告警同样默认展开，应用后收起；有 URL 条件时直接收起。
   const [realtimeFiltersOpen, setRealtimeFiltersOpen] = useState(
     () => !(query.name || analysisLevel)
@@ -669,7 +671,9 @@ export function AlertEventList({
         onValueChange={(value) => {
           if (value === "analysis" || value === "details") {
             const next = new URLSearchParams(params)
-            if (value === "analysis") next.set("historyTab", value)
+            // analysis 是默认标签：删掉参数即可，重新进入页面仍是 analysis；
+            // details 是非默认标签，必须显式写入，否则受控值会落回 analysis。
+            if (value === "details") next.set("historyTab", value)
             else next.delete("historyTab")
             setParams(next)
           }
@@ -722,7 +726,10 @@ export function AlertEventList({
                   const next = new URLSearchParams(params)
                   next.set("eventName", fingerprint)
                   next.set("page", "1")
-                  next.delete("historyTab")
+                  // 点分析里的指纹要落到明细列表查看事件：明细是非默认标签，
+                  // 必须显式写入 historyTab=details，否则受控值仍是 analysis，
+                  // 筛选后的明细面板会被隐藏，用户看不到任何结果。
+                  next.set("historyTab", "details")
                   setHistoryDraftState(null)
                   setParams(next)
                 }}
