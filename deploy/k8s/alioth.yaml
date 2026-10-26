@@ -171,6 +171,13 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+          lifecycle:
+            # 收到 SIGTERM 后先停 5 秒再退出：kube-proxy/iPtables 摘除 endpoint 有延迟，
+            # 进程立刻关监听会让仍被调度过来的新连接被拒，nginx 就会回 502。
+            # 这里是 k8s 1.30+ 的 preStop.sleep，distroless 镜像里没有 sleep 二进制也能用。
+            preStop:
+              sleep:
+                seconds: 5
           startupProbe:
             httpGet:
               path: /livez
@@ -190,6 +197,18 @@ spec:
               port: http
             periodSeconds: 10
             timeoutSeconds: 3
+          volumeMounts:
+            # 集群里的 ECK Elasticsearch 用自签证书，而数据源客户端走 Go 默认信任库。
+            # 这里把「系统 CA + 集群 ES CA」的合成包盖到默认路径上，让 ES 数据源可用；
+            # Secret 不存在时（没接 ES）卷是可选的，镜像自带信任库不受影响。
+            - name: ca-bundle
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              subPath: ca-certificates.crt
+      volumes:
+        - name: ca-bundle
+          secret:
+            secretName: alioth-ca-bundle
+            optional: true
 ---
 apiVersion: v1
 kind: Service

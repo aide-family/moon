@@ -1,0 +1,81 @@
+# 告警验证用的 Webhook 接收端：Vector 的 http_server source 收下 POST，
+# 再把事件打到 stdout，用 kubectl logs 就能看到实际投递的 subject/body。
+# 镜像用节点上已缓存的 Vector（避免 ghcr/docker.io 拉取不稳定）。
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webhook-sink-config
+  namespace: alioth
+data:
+  vector.yaml: |
+    data_dir: /var/lib/vector
+    sources:
+      hook:
+        type: http_server
+        address: 0.0.0.0:8080
+        decoding:
+          codec: bytes
+    sinks:
+      out:
+        type: console
+        inputs: [hook]
+        encoding:
+          codec: json
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-sink
+  namespace: alioth
+  labels:
+    app: webhook-sink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-sink
+  template:
+    metadata:
+      labels:
+        app: webhook-sink
+    spec:
+      containers:
+        - name: vector
+          image: docker.m.daocloud.io/timberio/vector:0.42.0-debian
+          args: ["--config", "/etc/vector/vector.yaml"]
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /etc/vector
+            - name: data
+              mountPath: /var/lib/vector
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: webhook-sink-config
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-sink
+  namespace: alioth
+  labels:
+    app: webhook-sink
+spec:
+  selector:
+    app: webhook-sink
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

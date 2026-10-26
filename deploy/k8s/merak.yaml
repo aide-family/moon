@@ -60,6 +60,13 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+          lifecycle:
+            # 收到 SIGTERM 后先停 5 秒再退出：kube-proxy/iPtables 摘除 endpoint 有延迟，
+            # 进程立刻关监听会让仍被调度过来的新连接被拒，nginx 就会回 502。
+            # 这里是 k8s 1.30+ 的 preStop.sleep，distroless 镜像里没有 sleep 二进制也能用。
+            preStop:
+              sleep:
+                seconds: 5
           startupProbe:
             httpGet:
               path: /livez

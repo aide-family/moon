@@ -55,6 +55,23 @@ PostgreSQL 使用 `postgres-data` PVC，Pod 重建不丢业务数据。Redis 只
 capabilities）、`terminationGracePeriodSeconds` 和 `maxUnavailable: 0` 的滚动策略；`pdb.yaml`
 保证节点 drain 时至少留一个副本。
 
+## 排空（preStop）
+
+四个应用 Deployment 都带 `lifecycle.preStop.sleep.seconds: 5`。这不是保险丝，是必需的：
+删除 Pod 时 kubelet 立刻发 SIGTERM，而 kube-proxy/iPtables 摘除该 endpoint 还有几百毫秒到
+两秒的延迟；`alioth` 收到 SIGTERM 后 kratos 会马上关闭监听，落在这段窗口里的新连接会被拒绝，
+`web` 的 nginx 就回 502。
+
+实测数据（700 次 `GET /v1/captcha` 经 Kong，期间滚动重启 alioth + web）：
+
+| 配置 | 结果 |
+| --- | --- |
+| 无 preStop | 398×200 + 2×502（502 精确出现在两个旧 Pod 退出的时刻） |
+| preStop.sleep 5s | 700×200，0 个非 2xx |
+
+用 `sleep` 动作而不是 `exec: ["sleep","5"]`，因为 `alioth` 镜像是 distroless，里面没有
+`sleep` 二进制；`preStop.sleep` 是 k8s 1.30+ 的原生能力，不依赖容器内任何命令。
+
 `networkpolicy.yaml` 只收口 PostgreSQL/Redis 的入向（分别只允许 alioth 与 alioth/megrez/merak），
 应用 HTTP/gRPC 端口不限制，避免不同 CNI 对 kubelet 探针流量的处理差异把 Pod 摘掉。
 
@@ -88,6 +105,24 @@ kubectl -n alioth create secret generic alioth-auth \
 
 `ENCRYPT_KEY` 是数据源密码/Webhook/SSH 凭据的 AES-GCM 主密钥（内部先做 sha256），
 **一旦换了就无法解密历史密文**，务必留着备份。
+
+## 私有 CA（Elasticsearch）
+
+集群里的 ECK Elasticsearch 走 TLS，证书由集群内 CA 签发，而数据源客户端用 Go 默认信任库、
+没有跳过校验的开关。要接这类自签 HTTPS 数据源，把「系统 CA + 该 CA」合成为一个 bundle，
+建 Secret `alioth-ca-bundle`，`alioth.yaml` 会把它挂到 `/etc/ssl/certs/ca-certificates.crt`：
+
+```bash
+kubectl -n alioth exec deploy/webhook-sink -- cat /etc/ssl/certs/ca-certificates.crt > sys-ca.crt
+kubectl -n es get secret es-es-http-certs-public -o jsonpath='{.data.ca\.crt}' | base64 -d > es-ca.crt
+cat sys-ca.crt es-ca.crt > ca-bundle.crt
+kubectl -n alioth create secret generic alioth-ca-bundle --from-file=ca-certificates.crt=ca-bundle.crt
+kubectl -n alioth rollout restart deploy/alioth
+```
+
+Secret 不存在时这个卷是 `optional` 的，镜像自带信任库不受影响。另外 ECK 证书的 SAN 是
+`es-es-http.es.svc`，**不含** `.cluster.local`，端点要写成 `https://es-es-http.es.svc:9200`。
+
 
 ## SMTP
 

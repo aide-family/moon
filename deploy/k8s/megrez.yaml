@@ -60,6 +60,13 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+          lifecycle:
+            # 收到 SIGTERM 后先停 5 秒再退出：kube-proxy/iPtables 摘除 endpoint 有延迟，
+            # 进程立刻关监听会让仍被调度过来的新连接被拒，nginx 就会回 502。
+            # 这里是 k8s 1.30+ 的 preStop.sleep，distroless 镜像里没有 sleep 二进制也能用。
+            preStop:
+              sleep:
+                seconds: 5
           startupProbe:
             httpGet:
               path: /livez
@@ -78,6 +85,17 @@ spec:
               port: http
             periodSeconds: 10
             timeoutSeconds: 3
+          volumeMounts:
+            # 评测进程直连数据源：接自签 HTTPS 数据源（例如 ECK Elasticsearch）时，
+            # 信任库必须注入到这里，只给 alioth 挂是不够的。
+            - name: ca-bundle
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              subPath: ca-certificates.crt
+      volumes:
+        - name: ca-bundle
+          secret:
+            secretName: alioth-ca-bundle
+            optional: true
 ---
 apiVersion: v1
 kind: Service

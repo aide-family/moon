@@ -50,6 +50,12 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+          lifecycle:
+            # 收到 SIGTERM 后先停 5 秒再退出：kube-proxy 摘除 endpoint 有延迟，
+            # 进程立刻关监听会让仍被调度过来的连接被重置。
+            preStop:
+              sleep:
+                seconds: 5
           volumeMounts:
             # nginx 需要可写的临时目录与 pid 文件；根文件系统保持只读。
             - name: nginx-cache
