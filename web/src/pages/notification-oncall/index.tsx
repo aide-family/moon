@@ -241,13 +241,14 @@ export function NotificationOnCallPage() {
   } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const canWrite = session.can("notification:write")
-  // 列表与时间视图是同一份数据（同一套筛选），只是呈现方式不同；用 ?tab= 记住选择。
+  // 列表与时间视图是同一份数据（同一套筛选），只是呈现方式不同。
+  // 时间视图是默认视图，URL 只记录非默认的列表视图（?tab=list），地址栏保持干净。
   const [searchParams, setSearchParams] = useSearchParams()
-  const view = searchParams.get("tab") === "time" ? "time" : "list"
+  const view = searchParams.get("tab") === "list" ? "list" : "time"
   function setView(next: "list" | "time") {
     const params = new URLSearchParams(searchParams)
-    if (next === "time") {
-      params.set("tab", "time")
+    if (next === "list") {
+      params.set("tab", "list")
     } else {
       params.delete("tab")
     }
@@ -780,31 +781,33 @@ export function NotificationOnCallPage() {
           <Button onClick={openCreate}>{t("action.create")}</Button>
         ) : null}
       </PageHeader>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* 搜索框与按钮固定一行：输入框可缩、按钮不缩，窄屏时整组（而不是按钮）换行。 */}
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <form
-          className="flex flex-wrap gap-2"
+          className="flex min-w-0 flex-1 items-center gap-2"
           onSubmit={(event) => {
             event.preventDefault()
             query.update({ name: draft })
           }}
         >
           <Input
-            className="max-w-sm"
+            className="min-w-0 flex-1 sm:max-w-72"
             value={draft}
             placeholder={t("oncall.namePlaceholder")}
             onChange={(event) => setDraft(event.target.value)}
           />
-          <Button type="submit" variant="outline">
+          <Button type="submit" variant="outline" className="shrink-0">
             {t("action.search")}
           </Button>
         </form>
         <Tabs
+          className="w-full shrink-0 sm:w-auto"
           value={view}
           onValueChange={(value) => setView(value as "list" | "time")}
         >
           <TabsList>
-            <TabsTrigger value="list">{t("oncall.viewList")}</TabsTrigger>
             <TabsTrigger value="time">{t("oncall.viewTime")}</TabsTrigger>
+            <TabsTrigger value="list">{t("oncall.viewList")}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
