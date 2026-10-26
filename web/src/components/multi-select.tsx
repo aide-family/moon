@@ -178,7 +178,11 @@ export function MultiSelect({
             >
               {allFilteredSelected ? <Check className="size-3" /> : null}
             </span>
-            <span className="truncate font-medium">{allLabel}</span>
+            <span className="truncate font-medium">
+              {query.trim() === ""
+                ? allLabel
+                : `${allLabel} (${filteredValues.length})`}
+            </span>
           </button>
           {clearLabel && values.length > 0 ? (
             <Button
