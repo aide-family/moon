@@ -675,6 +675,12 @@ export function AlertEventList({
             // details 是非默认标签，必须显式写入，否则受控值会落回 analysis。
             if (value === "details") next.set("historyTab", value)
             else next.delete("historyTab")
+            // Radix Tabs 的 onFocus 与 onMouseDown 会各触发一次 onValueChange，
+            // 且两次都在同一次渲染内，闭包里的 params 仍是旧值；用同步更新的
+            // window.location 判断目标参数是否已经生效，避免 push 两条相同记录。
+            if (next.toString() === window.location.search.replace(/^\?/, "")) {
+              return
+            }
             setParams(next)
           }
         }}

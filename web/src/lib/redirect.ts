@@ -8,5 +8,21 @@ export function readNextPath(value: string | null): string {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
     return "/"
   }
-  return value
+  // 反斜杠和控制字符会被 URL 解析成跨站地址（例如 "/\evil.com" 解析为 https://evil.com/）。
+  // 路由层虽然会拦截并抛错，但用户此时已登录、却会卡在登录页看到英文报错，这里直接拒绝。
+  for (const char of value) {
+    const code = char.codePointAt(0) ?? 0
+    if (char === "\\" || code < 0x20 || code === 0x7f) {
+      return "/"
+    }
+  }
+  try {
+    const url = new URL(value, window.location.origin)
+    if (url.origin !== window.location.origin) {
+      return "/"
+    }
+    return `${url.pathname}${url.search}${url.hash}`
+  } catch {
+    return "/"
+  }
 }

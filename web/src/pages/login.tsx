@@ -229,7 +229,12 @@ export function LoginPage() {
         captchaCode,
       })
       storeSession(result)
-      navigate(next)
+      // readNextPath 已过滤跨站目标；这里再兜一层，避免路由拦截把已登录用户卡在登录页。
+      try {
+        navigate(next)
+      } catch {
+        navigate("/", { replace: true })
+      }
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)

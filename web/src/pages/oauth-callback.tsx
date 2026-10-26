@@ -154,7 +154,12 @@ export function OAuthCallbackPage() {
         if (result.session) {
           storeSession(result.session)
           clearOAuthRedirect(redirect.state)
-          navigate(readNextPath(redirect.next), { replace: true })
+          // readNextPath 已过滤跨站目标；再兜一层，避免路由拦截把已登录用户留在回调页。
+          try {
+            navigate(readNextPath(redirect.next), { replace: true })
+          } catch {
+            navigate("/", { replace: true })
+          }
           return
         }
         // 第三方没有可用邮箱：留在回调页补充并验证邮箱，验证通过前不签发会话。
@@ -183,7 +188,12 @@ export function OAuthCallbackPage() {
     }
     storeSession(result.session)
     clearOAuthRedirect(emailBinding.redirect.state)
-    navigate(readNextPath(emailBinding.redirect.next), { replace: true })
+    // 同 exchange 的成功路径：路由拒绝跨站目标时回落到站内首页，不能停在回调页。
+    try {
+      navigate(readNextPath(emailBinding.redirect.next), { replace: true })
+    } catch {
+      navigate("/", { replace: true })
+    }
   }
 
   return (

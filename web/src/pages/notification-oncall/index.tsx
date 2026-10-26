@@ -23,6 +23,7 @@ import type {
   OnCallGroupItem,
   OnCallWindow,
 } from "@/api/notification-oncall/types"
+import { ApiError } from "@/api/http"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet, type DetailSection } from "@/components/detail-sheet"
@@ -56,7 +57,6 @@ import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { runAction } from "@/lib/action"
 import { formatDateTime } from "@/lib/date-time"
 import {
   collectFieldErrors,
@@ -251,6 +251,12 @@ export function NotificationOnCallPage() {
       params.set("tab", "list")
     } else {
       params.delete("tab")
+    }
+    // Radix Tabs 在 onMouseDown 里先 focus 再激活，onFocus 与 onMouseDown 各触发一次
+    // onValueChange；两次回调发生在同一次渲染内，闭包里的 searchParams 仍是旧值。
+    // 只有 window.location 被 pushState 同步更新，用它判断目标是否已经生效。
+    if (params.toString() === window.location.search.replace(/^\?/, "")) {
+      return
     }
     setSearchParams(params)
   }
@@ -754,13 +760,24 @@ export function NotificationOnCallPage() {
         : {
             key: "enable",
             label: t("action.enable"),
-            onSelect: () =>
-              runAction(
-                updateNotificationOnCallStatus(item.uid, "ACTIVE").then(() =>
-                  reload()
-                ),
-                setError
-              ),
+            onSelect: () => {
+              // 启停是行内直接生效的操作，没有打开中的弹窗可以显示错误。
+              // 403 由 http 层跳 /forbidden，404/5xx 已由 http 层全局 toast；
+              // 这里只补它没覆盖的失败（400/409/网络错误），避免重复提示。
+              void updateNotificationOnCallStatus(item.uid, "ACTIVE")
+                .then(() => reload())
+                .catch((err) => {
+                  if (
+                    err instanceof ApiError &&
+                    (err.status === 403 ||
+                      err.status === 404 ||
+                      err.status >= 500)
+                  ) {
+                    return
+                  }
+                  toast.error(formErrorMessage(err, t("state.failed")))
+                })
+            },
           },
       {
         key: "delete",

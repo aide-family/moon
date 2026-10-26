@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
-import type { QueryLibrary } from "@/hooks/use-query-store"
+import type { QueryLibrary } from "@/hooks/use-query-library"
 import {
   normalizeSnapshot,
   type QueryDialect,
