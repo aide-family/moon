@@ -755,6 +755,7 @@ const zh = {
     datasourceLabelsHint:
       "每个标签值按正则完整匹配数据源标签；也可以用 datasource_level 匹配数据源等级名称、datasource 匹配数据源名称。全部命中才算匹配，留空表示匹配该驱动下全部启用数据源。",
     addDatasourceLabel: "添加匹配标签",
+    datasourceLabelsCleared: "已切换驱动，并清空旧驱动下的匹配标签。",
     datasourceLabelKeyPlaceholder: "匹配键",
     datasourceLabelValuePlaceholder: "匹配值（支持正则）",
     datasourceLabelKeyAria: "数据源匹配键",
@@ -2416,6 +2417,8 @@ const en = {
     datasourceLabelsHint:
       "Each value is a regular expression matched against the datasource label in full. You can also use datasource_level for the datasource level name and datasource for the datasource name. All matchers must match; leave empty to match all active datasources of this driver.",
     addDatasourceLabel: "Add matcher",
+    datasourceLabelsCleared:
+      "Driver changed; matchers from the previous driver were cleared.",
     datasourceLabelKeyPlaceholder: "Matcher key",
     datasourceLabelValuePlaceholder: "Matcher value (regex)",
     datasourceLabelKeyAria: "Datasource matcher key",

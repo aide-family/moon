@@ -2,6 +2,7 @@ import { EllipsisVertical, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
+import { toast } from "sonner"
 
 import { listAlertDictionaries } from "@/api/alert-dictionary"
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
@@ -990,9 +991,23 @@ export function AlertRulePage() {
                 >
                   <Select
                     value={form.driver}
-                    onValueChange={(value) =>
-                      setForm({ ...form, driver: value })
-                    }
+                    onValueChange={(value) => {
+                      if (value === form.driver) {
+                        return
+                      }
+                      // 切换驱动后旧匹配键/值可能不再被任何数据源上报，继续保留会保存出永不命中的条件。
+                      const clearsMatchers = form.datasourceLabels.length > 0
+                      setForm({
+                        ...form,
+                        driver: value,
+                        datasourceLabels: clearsMatchers
+                          ? []
+                          : form.datasourceLabels,
+                      })
+                      if (clearsMatchers) {
+                        toast(t("alertRule.datasourceLabelsCleared"))
+                      }
+                    }}
                   >
                     <SelectTrigger aria-label={t("datasource.driver")}>
                       <SelectValue
