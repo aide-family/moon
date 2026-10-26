@@ -23,7 +23,7 @@ import {
   UsersRound,
   type LucideIcon,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   NavLink,
@@ -70,9 +70,25 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import {
+  isKnownAppPath,
+  normalizeAppPath,
+  rememberLastPath,
+} from "@/lib/last-page"
 import { ServerErrorPage } from "@/pages/server-error"
 
 const repositoryURL = "https://github.com/aide-family/Alioth"
+
+// 这些页面不依赖当前租户，没有租户也可以直接打开；其余登录内页面会被送回租户页。
+const tenantFreePaths = new Set([
+  "/namespaces",
+  "/users",
+  "/workers",
+  "/invitations",
+  "/messages",
+  "/profile",
+  "/forbidden",
+])
 
 const links: {
   to: string
@@ -316,6 +332,12 @@ function ShellFrame() {
   const session = useSession()
   const navigate = useNavigate()
   const location = useLocation()
+  const userUid = session.user?.uid ?? ""
+  // 每次实际落在某个页面就记一下，供下次登录的 "/" 着陆页回放。
+  // "/" 是着陆页本身、/forbidden 是权限结果页，二者由 last-page 过滤，不覆盖有效记录。
+  useEffect(() => {
+    rememberLastPath(userUid, location.pathname)
+  }, [userUid, location.pathname])
   const accountName = session.user?.nickname || session.user?.name || ""
   const accountLabel = accountName || session.user?.email || t("shell.account")
   const avatarName = accountName || session.user?.email || "Alioth"
@@ -363,11 +385,25 @@ function ShellFrame() {
       />
     )
   }
+  // 会话加载完仍没有租户时，租户相关页面统一回到租户页（选择/创建）。
+  // 租户无关页面（用户、边缘节点、消息、个人中心等）和 "/" 着陆页不受此守卫影响，
+  // 因此不会与 LandingRedirect 互相跳转。路径先归一化，尾斜杠地址不会误判。
+  const appPath = normalizeAppPath(location.pathname)
+  if (
+    !session.loading &&
+    !session.switching &&
+    session.namespaceUid === "" &&
+    isKnownAppPath(appPath) &&
+    !tenantFreePaths.has(appPath)
+  ) {
+    return <Navigate to="/namespaces" replace />
+  }
 
   function logout() {
     localStorage.removeItem("token")
     localStorage.removeItem("refreshToken")
-    localStorage.removeItem("namespace")
+    // 不清理 namespace：下次登录继续进入离开时的租户（不存在时会回落到第一个租户）。
+    // 也不清理 lastPath：下次登录回到离开时的页面。
     navigate("/login")
   }
 

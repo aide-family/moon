@@ -417,7 +417,7 @@ export function LoginPage() {
           <Link
             className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             to={
-              next === "/namespaces"
+              next === "/"
                 ? "/register"
                 : `/register?next=${encodeURIComponent(next)}`
             }

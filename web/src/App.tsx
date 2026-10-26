@@ -1,6 +1,7 @@
-import { Navigate, Route, Routes } from "react-router-dom"
+import { Route, Routes } from "react-router-dom"
 
 import { AppShell } from "@/components/app-shell"
+import { LandingRedirect } from "@/components/landing-redirect"
 import { AgentPage } from "@/pages/agent"
 import { AgentShellPage } from "@/pages/agent/shell"
 import { AlertHistoryPage } from "@/pages/alert/history"
@@ -42,7 +43,8 @@ export function App() {
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/invite/:token" element={<InvitePage />} />
       <Route element={<AppShell />}>
-        <Route path="/" element={<Navigate to="/overview" replace />} />
+        {/* 登录后的着陆页：没有租户去租户页，否则回放上次访问的页面。 */}
+        <Route path="/" element={<LandingRedirect />} />
         <Route path="/overview" element={<OverviewPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/forbidden" element={<ForbiddenPage />} />
