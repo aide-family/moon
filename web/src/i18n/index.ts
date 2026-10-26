@@ -965,6 +965,10 @@ const zh = {
       "按标签、告警级别、数据源和数据源级别匹配事件，并让每个通知组只在配置的时段内接收。",
     name: "名称",
     namePlaceholder: "OnCall 名称",
+    viewList: "列表",
+    viewTime: "时间视图",
+    timeViewTruncated:
+      "时间视图按前 {{shown}} 条值班项绘制（共 {{total}} 条），请用搜索缩小范围。",
     labels: "标签",
     labelsHint:
       "标签值支持正则（完整匹配）；所有标签都命中才算匹配。留空表示不限制。",
@@ -2589,6 +2593,10 @@ const en = {
       "Match events by labels, alert level, datasource, and datasource level, then let each notification group receive alerts only during its configured windows.",
     name: "Name",
     namePlaceholder: "On-call name",
+    viewList: "List",
+    viewTime: "Time view",
+    timeViewTruncated:
+      "The time view plots the first {{shown}} on-call entries (of {{total}}). Narrow the search to see the rest.",
     labels: "Labels",
     labelsHint:
       "Label values are regular expressions matched in full. All labels must match. Leave empty for no label restriction.",
