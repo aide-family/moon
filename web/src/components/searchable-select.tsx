@@ -41,6 +41,8 @@ interface SearchableSelectProps {
   customHint?: string
   clearLabel?: string
   disabled?: boolean
+  /** 校验失败：给触发器加 aria-invalid 与红框。 */
+  invalid?: boolean
   id?: string
   className?: string
   ariaLabel?: string
@@ -63,6 +65,7 @@ export function SearchableSelect({
   customHint,
   clearLabel,
   disabled = false,
+  invalid = false,
   id,
   className,
   ariaLabel,
@@ -204,7 +207,9 @@ export function SearchableSelect({
           type="button"
           variant="outline"
           role="combobox"
+          data-slot="select-trigger"
           aria-expanded={open}
+          aria-invalid={invalid || undefined}
           aria-controls={open ? listboxId : undefined}
           aria-label={ariaLabel}
           aria-describedby={ariaDescribedBy}

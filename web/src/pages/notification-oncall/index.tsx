@@ -1077,6 +1077,7 @@ export function NotificationOnCallPage() {
               >
                 <MultiSelect
                   id="oncall-groups"
+                  invalid={Boolean(fieldErrors.groups)}
                   values={bindings.map((binding) => binding.groupUid)}
                   options={toOptions(groups)}
                   onChange={changeGroups}

@@ -28,6 +28,8 @@ interface MultiSelectProps {
   /** 自定义触发器上的摘要；不传时展示前两个名称。 */
   selectedLabel?: (selected: number, total: number, labels: string[]) => string
   disabled?: boolean
+  /** 校验失败：给触发器加 aria-invalid 与红框（FormField 已把字段标记为 invalid）。 */
+  invalid?: boolean
   id?: string
   className?: string
   "aria-describedby"?: string
@@ -48,6 +50,7 @@ export function MultiSelect({
   clearLabel,
   selectedLabel,
   disabled = false,
+  invalid = false,
   id,
   className,
   "aria-describedby": ariaDescribedBy,
@@ -119,7 +122,9 @@ export function MultiSelect({
           type="button"
           variant="outline"
           role="combobox"
+          data-slot="select-trigger"
           aria-expanded={open}
+          aria-invalid={invalid || undefined}
           aria-describedby={ariaDescribedBy}
           disabled={disabled}
           className={cn(

@@ -384,6 +384,7 @@ export function NotificationSubscriptionPage() {
               >
                 <MultiSelect
                   id="subscription-groups"
+                  invalid={Boolean(fieldErrors.groups)}
                   values={groupUids}
                   options={toOptions(groups)}
                   onChange={setGroupUids}
