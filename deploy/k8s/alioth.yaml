@@ -33,7 +33,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: alioth
-          image: ghcr.io/aide-family/alioth/alioth:sha-310475cced9f
+          image: ghcr.io/aide-family/alioth/alioth:sha-fdb4ca32699a
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
