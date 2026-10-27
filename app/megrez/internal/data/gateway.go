@@ -54,6 +54,12 @@ func (g *gateway) Claim(ctx context.Context) ([]bo.RuleSnapshot, error) {
 				ForSeconds: int(level.GetForSeconds()), LevelUID: level.GetLevelUid(),
 			})
 		}
+		variables := make([]bo.Variable, 0, len(rule.GetVariables()))
+		for _, variable := range rule.GetVariables() {
+			variables = append(variables, bo.Variable{
+				Name: variable.GetName(), Expr: variable.GetExpr(), Description: variable.GetDescription(),
+			})
+		}
 		items = append(items, bo.RuleSnapshot{
 			UID: rule.GetUid(), NamespaceUID: rule.GetNamespaceUid(), Name: rule.GetName(),
 			Driver: rule.GetDriver(), Expr: rule.GetExpr(), Labels: rule.GetLabels(), Summary: rule.GetSummary(),
@@ -61,7 +67,7 @@ func (g *gateway) Claim(ctx context.Context) ([]bo.RuleSnapshot, error) {
 			Endpoint: rule.GetDatasourceEndpoint(), Username: rule.GetDatasourceUsername(),
 			Password: rule.GetDatasourcePassword(), Secret: rule.GetDatasourceSecret(),
 			IndexPattern: rule.GetDatasourceIndexPattern(), TimeField: rule.GetDatasourceTimeField(),
-			Levels: levels, Firing: rule.GetFiringFingerprints(),
+			Levels: levels, Firing: rule.GetFiringFingerprints(), Variables: variables,
 		})
 	}
 	return items, nil

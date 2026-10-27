@@ -1,0 +1,854 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// Kubernetes 基础资源管理。所有接口都按 cluster_uid 定位已接入的集群，
+// 服务端用保存的 kubeconfig 直接访问该集群的 API Server。
+service KubernetesService {
+  // 列出集群的 Namespace，供页面筛选使用。
+  rpc ListKubernetesNamespaces(ListKubernetesNamespacesRequest) returns (ListKubernetesNamespacesResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/namespaces"};
+  }
+  // 列出节点及其状态和容量。
+  rpc ListKubernetesNodes(ListKubernetesNodesRequest) returns (ListKubernetesNodesResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/nodes"};
+  }
+  // 设置节点是否可调度（cordon / uncordon）。
+  rpc SetKubernetesNodeUnschedulable(SetKubernetesNodeUnschedulableRequest) returns (SetKubernetesNodeUnschedulableResponse) {
+    option (google.api.http) = {
+      put: "/v1/cluster/{cluster_uid}/node/{name}/unschedulable"
+      body: "*"
+    };
+  }
+  // 列出 Deployment、StatefulSet 和 DaemonSet。
+  rpc ListKubernetesWorkloads(ListKubernetesWorkloadsRequest) returns (ListKubernetesWorkloadsResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/workloads"};
+  }
+  // 调整工作负载副本数。DaemonSet 不支持改副本数，会返回客户端错误。
+  rpc ScaleKubernetesWorkload(ScaleKubernetesWorkloadRequest) returns (ScaleKubernetesWorkloadResponse) {
+    option (google.api.http) = {
+      put: "/v1/cluster/{cluster_uid}/workload/scale"
+      body: "*"
+    };
+  }
+  // 滚动重启工作负载，等价于给 Pod 模板打上重启时间注解。
+  rpc RestartKubernetesWorkload(RestartKubernetesWorkloadRequest) returns (RestartKubernetesWorkloadResponse) {
+    option (google.api.http) = {
+      post: "/v1/cluster/{cluster_uid}/workload/restart"
+      body: "*"
+    };
+  }
+  // 列出 Pod，可按命名空间、工作负载和名称过滤。
+  rpc ListKubernetesPods(ListKubernetesPodsRequest) returns (ListKubernetesPodsResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/pods"};
+  }
+  // 删除一个 Pod。由工作负载管理的 Pod 会被控制器重新创建。
+  rpc DeleteKubernetesPod(DeleteKubernetesPodRequest) returns (DeleteKubernetesPodResponse) {
+    option (google.api.http) = {delete: "/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}"};
+  }
+  // 读取一个 Pod 的日志尾部。
+  rpc GetKubernetesPodLogs(GetKubernetesPodLogsRequest) returns (GetKubernetesPodLogsResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/logs"};
+  }
+  // 列出 Ingress 及其规则。
+  rpc ListKubernetesIngresses(ListKubernetesIngressesRequest) returns (ListKubernetesIngressesResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/ingresses"};
+  }
+  // 列出 Service 及其端口和选择器。
+  rpc ListKubernetesServices(ListKubernetesServicesRequest) returns (ListKubernetesServicesResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/services"};
+  }
+  // 列出 ConfigMap。只返回键名，不返回值。
+  rpc ListKubernetesConfigMaps(ListKubernetesConfigMapsRequest) returns (ListKubernetesConfigMapsResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/configmaps"};
+  }
+  // 列出 Secret。只返回类型和键名，绝不返回值。
+  rpc ListKubernetesSecrets(ListKubernetesSecretsRequest) returns (ListKubernetesSecretsResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/secrets"};
+  }
+  // 列出 PersistentVolume。集群级资源，不接受命名空间过滤。
+  rpc ListKubernetesPersistentVolumes(ListKubernetesPersistentVolumesRequest) returns (ListKubernetesPersistentVolumesResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/persistentvolumes"};
+  }
+  // 列出 PersistentVolumeClaim。
+  rpc ListKubernetesPersistentVolumeClaims(ListKubernetesPersistentVolumeClaimsRequest) returns (ListKubernetesPersistentVolumeClaimsResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/persistentvolumeclaims"};
+  }
+  // 读取单个资源的 YAML。Secret 与 ConfigMap 的值会被隐藏，只保留键名。
+  rpc GetKubernetesResourceYAML(GetKubernetesResourceYAMLRequest) returns (GetKubernetesResourceYAMLResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/yaml"};
+  }
+  // 工作负载详情：基础信息、副本集和 Pod 列表。
+  rpc GetKubernetesWorkloadDetail(GetKubernetesWorkloadDetailRequest) returns (GetKubernetesWorkloadDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/workload-detail"};
+  }
+  // Ingress 详情：规则和关联的 Service。
+  rpc GetKubernetesIngressDetail(GetKubernetesIngressDetailRequest) returns (GetKubernetesIngressDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/ingress-detail"};
+  }
+  // Service 详情：基础信息和 Endpoints。
+  rpc GetKubernetesServiceDetail(GetKubernetesServiceDetailRequest) returns (GetKubernetesServiceDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/service-detail"};
+  }
+  // ConfigMap 详情：基础信息和引用它的工作负载。
+  rpc GetKubernetesConfigMapDetail(GetKubernetesConfigMapDetailRequest) returns (GetKubernetesConfigMapDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/configmap-detail"};
+  }
+  // Secret 详情：基础信息和引用它的工作负载。
+  rpc GetKubernetesSecretDetail(GetKubernetesSecretDetailRequest) returns (GetKubernetesSecretDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/secret-detail"};
+  }
+  // PVC 详情：基础信息和挂载它的工作负载。
+  rpc GetKubernetesPersistentVolumeClaimDetail(GetKubernetesPersistentVolumeClaimDetailRequest) returns (GetKubernetesPersistentVolumeClaimDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/persistentvolumeclaim-detail"};
+  }
+}
+
+// 节点。
+message KubernetesNodeItem {
+  // 节点名。
+  string name = 1;
+  // 状态，取值为 Ready、NotReady 或 Unknown。
+  string status = 2;
+  // 是否允许调度。cordon 后为 false。
+  bool schedulable = 3;
+  // 节点角色，例如 control-plane、worker。
+  repeated string roles = 4;
+  // 内网 IP。
+  string internal_ip = 5 [json_name = "internalIp"];
+  // kubelet 版本。
+  string kubelet_version = 6 [json_name = "kubeletVersion"];
+  // 操作系统镜像。
+  string os_image = 7 [json_name = "osImage"];
+  // CPU 容量，例如 8。
+  string cpu_capacity = 8 [json_name = "cpuCapacity"];
+  // 内存容量，例如 16384Mi。
+  string memory_capacity = 9 [json_name = "memoryCapacity"];
+  // 该节点上的 Pod 数量。
+  int32 pod_count = 10 [json_name = "podCount"];
+  // 创建时间，Unix 秒。
+  int64 created_at = 11 [json_name = "createdAt"];
+}
+
+// 列出节点。
+message ListKubernetesNodesRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 按节点名过滤。
+  string name = 2;
+}
+
+// 节点列表。
+message ListKubernetesNodesResponse {
+  // 节点。
+  repeated KubernetesNodeItem items = 1;
+  // 总数。
+  int32 total = 2;
+}
+
+// 设置节点调度状态。
+message SetKubernetesNodeUnschedulableRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 节点名。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // true 为 cordon，false 为 uncordon。
+  bool unschedulable = 3;
+}
+
+// 设置结果。
+message SetKubernetesNodeUnschedulableResponse {}
+
+// 工作负载。
+message KubernetesWorkloadItem {
+  // 命名空间。
+  string namespace = 1;
+  // 类型，取值为 Deployment、StatefulSet 或 DaemonSet。
+  string kind = 2;
+  // 名称。
+  string name = 3;
+  // 期望副本数。DaemonSet 取应调度的节点数。
+  int32 desired_replicas = 4 [json_name = "desiredReplicas"];
+  // 就绪副本数。
+  int32 ready_replicas = 5 [json_name = "readyReplicas"];
+  // 已更新副本数。
+  int32 updated_replicas = 6 [json_name = "updatedReplicas"];
+  // 可用副本数。
+  int32 available_replicas = 7 [json_name = "availableReplicas"];
+  // 容器镜像。
+  repeated string images = 8;
+  // 创建时间，Unix 秒。
+  int64 created_at = 9 [json_name = "createdAt"];
+}
+
+// 列出工作负载。
+message ListKubernetesWorkloadsRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间。
+  string namespace = 2;
+  // 类型。留空表示全部三种。
+  string kind = 3 [(buf.validate.field).string = {
+    in: ["", "Deployment", "StatefulSet", "DaemonSet"]
+  }];
+  // 按名称过滤。
+  string name = 4;
+}
+
+// 工作负载列表。
+message ListKubernetesWorkloadsResponse {
+  // 工作负载。
+  repeated KubernetesWorkloadItem items = 1;
+  // 总数。
+  int32 total = 2;
+}
+
+// 调整副本数。
+message ScaleKubernetesWorkloadRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 类型，只能是 Deployment 或 StatefulSet。
+  string kind = 3 [(buf.validate.field).string = {
+    in: ["Deployment", "StatefulSet"]
+  }];
+  // 名称。
+  string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 目标副本数。
+  int32 replicas = 5 [(buf.validate.field).int32 = {gte: 0, lte: 10000}];
+}
+
+// 调整结果。
+message ScaleKubernetesWorkloadResponse {
+  // 更新后的工作负载。
+  KubernetesWorkloadItem workload = 1;
+}
+
+// 滚动重启。
+message RestartKubernetesWorkloadRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 类型。
+  string kind = 3 [(buf.validate.field).string = {
+    in: ["Deployment", "StatefulSet", "DaemonSet"]
+  }];
+  // 名称。
+  string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 重启结果。
+message RestartKubernetesWorkloadResponse {
+  // 更新后的工作负载。
+  KubernetesWorkloadItem workload = 1;
+}
+
+// Pod 中的容器。
+message KubernetesContainerItem {
+  // 容器名。
+  string name = 1;
+  // 是否就绪。
+  bool ready = 2;
+  // 重启次数。
+  int32 restarts = 3;
+  // 镜像。
+  string image = 4;
+}
+
+// Pod。
+message KubernetesPodItem {
+  // 命名空间。
+  string namespace = 1;
+  // 名称。
+  string name = 2;
+  // 阶段，例如 Running、Pending、Succeeded、Failed。
+  string phase = 3;
+  // 就绪摘要，例如 1/2。
+  string ready = 4;
+  // 所有容器的重启次数合计。
+  int32 restarts = 5;
+  // 所在节点。
+  string node_name = 6 [json_name = "nodeName"];
+  // Pod IP。
+  string pod_ip = 7 [json_name = "podIp"];
+  // 直接所属控制器的类型，例如 Deployment、StatefulSet、DaemonSet、Job。
+  string owner_kind = 8 [json_name = "ownerKind"];
+  // 直接所属控制器的名称。
+  string owner_name = 9 [json_name = "ownerName"];
+  // 容器。
+  repeated KubernetesContainerItem containers = 10;
+  // 创建时间，Unix 秒。
+  int64 created_at = 11 [json_name = "createdAt"];
+}
+
+// 列出 Pod。
+message ListKubernetesPodsRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间。
+  string namespace = 2;
+  // 按名称过滤。
+  string name = 3;
+  // 按工作负载类型过滤，例如 Deployment。
+  string owner_kind = 4 [json_name = "ownerKind"];
+  // 按工作负载名称过滤。
+  string owner_name = 5 [json_name = "ownerName"];
+  // 页码，从 1 开始。
+  int32 page = 6 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 7 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// Pod 列表。
+message ListKubernetesPodsResponse {
+  // Pod。
+  repeated KubernetesPodItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 删除 Pod。
+message DeleteKubernetesPodRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 删除结果。
+message DeleteKubernetesPodResponse {}
+
+// 读取 Pod 日志。
+message GetKubernetesPodLogsRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 容器名。留空表示 Pod 的第一个容器。
+  string container = 4;
+  // 读取最后多少行。0 表示默认 200 行，最大 2000。
+  int32 tail_lines = 5 [json_name = "tailLines", (buf.validate.field).int32 = {gte: 0, lte: 2000}];
+  // 是否读取上一个已退出的容器实例。
+  bool previous = 6;
+}
+
+// Pod 日志。
+message GetKubernetesPodLogsResponse {
+  // 日志文本，最多 512 KiB。
+  string content = 1;
+  // 实际读取的容器名。
+  string container = 2;
+}
+
+// Ingress 规则。
+message KubernetesIngressPathItem {
+  // 主机名。为空表示不限制主机。
+  string host = 1;
+  // 路径。
+  string path = 2;
+  // 路径类型，例如 Prefix、Exact、ImplementationSpecific。
+  string path_type = 3 [json_name = "pathType"];
+  // 后端服务名。
+  string service_name = 4 [json_name = "serviceName"];
+  // 后端服务端口。
+  string service_port = 5 [json_name = "servicePort"];
+}
+
+// Ingress。
+message KubernetesIngressItem {
+  // 命名空间。
+  string namespace = 1;
+  // 名称。
+  string name = 2;
+  // IngressClass 名称。
+  string class_name = 3 [json_name = "className"];
+  // 主机名。
+  repeated string hosts = 4;
+  // 规则。
+  repeated KubernetesIngressPathItem paths = 5;
+  // TLS 的 Secret 名称。
+  repeated string tls = 6;
+  // 创建时间，Unix 秒。
+  int64 created_at = 7 [json_name = "createdAt"];
+}
+
+// 列出 Ingress。
+message ListKubernetesIngressesRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间。
+  string namespace = 2;
+  // 按名称过滤。
+  string name = 3;
+  // 页码，从 1 开始。
+  int32 page = 4 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 5 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// Ingress 列表。
+message ListKubernetesIngressesResponse {
+  // Ingress。
+  repeated KubernetesIngressItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 列出 Namespace。
+message ListKubernetesNamespacesRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+}
+
+// Namespace 列表。
+message ListKubernetesNamespacesResponse {
+  // 命名空间名称。
+  repeated string items = 1;
+}
+
+// Service 的一个端口。
+message KubernetesServicePortItem {
+  // 端口名。
+  string name = 1;
+  // 协议，例如 TCP、UDP。
+  string protocol = 2;
+  // Service 端口。
+  int32 port = 3;
+  // 容器端口，可能是名称或数字。
+  string target_port = 4 [json_name = "targetPort"];
+  // NodePort。ClusterIP 类型时为 0。
+  int32 node_port = 5 [json_name = "nodePort"];
+}
+
+// Service。
+message KubernetesServiceItem {
+  // 命名空间。
+  string namespace = 1;
+  // 名称。
+  string name = 2;
+  // 类型，例如 ClusterIP、NodePort、LoadBalancer、ExternalName。
+  string type = 3;
+  // ClusterIP。
+  string cluster_ip = 4 [json_name = "clusterIp"];
+  // 额外外部 IP。
+  repeated string external_ips = 5 [json_name = "externalIps"];
+  // LoadBalancer 的入口 IP。
+  string load_balancer_ip = 6 [json_name = "loadBalancerIp"];
+  // 端口。
+  repeated KubernetesServicePortItem ports = 7;
+  // 选择器，JSON 对象。
+  string selector = 8;
+  // 创建时间，Unix 秒。
+  int64 created_at = 9 [json_name = "createdAt"];
+}
+
+// 列出 Service。
+message ListKubernetesServicesRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间。
+  string namespace = 2;
+  // 按名称过滤。
+  string name = 3;
+  // 页码，从 1 开始。
+  int32 page = 4 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 5 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// Service 列表。
+message ListKubernetesServicesResponse {
+  // Service。
+  repeated KubernetesServiceItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// ConfigMap。
+message KubernetesConfigMapItem {
+  // 命名空间。
+  string namespace = 1;
+  // 名称。
+  string name = 2;
+  // data 的键名，按字母序。值不返回。
+  repeated string data_keys = 3 [json_name = "dataKeys"];
+  // binaryData 的键名，按字母序。值不返回。
+  repeated string binary_data_keys = 4 [json_name = "binaryDataKeys"];
+  // 是否不可变。
+  bool immutable = 5;
+  // 创建时间，Unix 秒。
+  int64 created_at = 6 [json_name = "createdAt"];
+}
+
+// 列出 ConfigMap。
+message ListKubernetesConfigMapsRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间。
+  string namespace = 2;
+  // 按名称过滤。
+  string name = 3;
+  // 页码，从 1 开始。
+  int32 page = 4 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 5 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// ConfigMap 列表。
+message ListKubernetesConfigMapsResponse {
+  // ConfigMap。
+  repeated KubernetesConfigMapItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// Secret。只返回键名和类型，值永远不出现在响应里。
+message KubernetesSecretItem {
+  // 命名空间。
+  string namespace = 1;
+  // 名称。
+  string name = 2;
+  // 类型，例如 Opaque、kubernetes.io/tls。
+  string type = 3;
+  // data 的键名，按字母序。值不返回。
+  repeated string data_keys = 4 [json_name = "dataKeys"];
+  // 是否不可变。
+  bool immutable = 5;
+  // 创建时间，Unix 秒。
+  int64 created_at = 6 [json_name = "createdAt"];
+}
+
+// 列出 Secret。
+message ListKubernetesSecretsRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间。
+  string namespace = 2;
+  // 按名称过滤。
+  string name = 3;
+  // 页码，从 1 开始。
+  int32 page = 4 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 5 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// Secret 列表。
+message ListKubernetesSecretsResponse {
+  // Secret。
+  repeated KubernetesSecretItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// PersistentVolume。集群级资源。
+message KubernetesPersistentVolumeItem {
+  // 名称。
+  string name = 1;
+  // 容量，例如 10Gi。
+  string capacity = 2;
+  // StorageClass 名称。
+  string storage_class = 3 [json_name = "storageClass"];
+  // 访问模式，例如 ReadWriteOnce。
+  repeated string access_modes = 4 [json_name = "accessModes"];
+  // 绑定的 PVC，格式为 namespace/name；未绑定时为空。
+  string claim = 5;
+  // 阶段，例如 Available、Bound、Released。
+  string phase = 6;
+  // 回收策略，例如 Retain、Delete。
+  string reclaim_policy = 7 [json_name = "reclaimPolicy"];
+  // 创建时间，Unix 秒。
+  int64 created_at = 8 [json_name = "createdAt"];
+}
+
+// 列出 PersistentVolume。
+message ListKubernetesPersistentVolumesRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 按名称过滤。
+  string name = 2;
+  // 页码，从 1 开始。
+  int32 page = 3 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 4 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// PersistentVolume 列表。
+message ListKubernetesPersistentVolumesResponse {
+  // PersistentVolume。
+  repeated KubernetesPersistentVolumeItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// PersistentVolumeClaim。
+message KubernetesPersistentVolumeClaimItem {
+  // 命名空间。
+  string namespace = 1;
+  // 名称。
+  string name = 2;
+  // 容量，例如 10Gi。
+  string capacity = 3;
+  // StorageClass 名称。
+  string storage_class = 4 [json_name = "storageClass"];
+  // 访问模式，例如 ReadWriteOnce。
+  repeated string access_modes = 5 [json_name = "accessModes"];
+  // 绑定的 PV 名称；未绑定时为空。
+  string volume_name = 6 [json_name = "volumeName"];
+  // 阶段，例如 Pending、Bound、Lost。
+  string phase = 7;
+  // 创建时间，Unix 秒。
+  int64 created_at = 8 [json_name = "createdAt"];
+}
+
+// 列出 PersistentVolumeClaim。
+message ListKubernetesPersistentVolumeClaimsRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间。
+  string namespace = 2;
+  // 按名称过滤。
+  string name = 3;
+  // 页码，从 1 开始。
+  int32 page = 4 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 5 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// PersistentVolumeClaim 列表。
+message ListKubernetesPersistentVolumeClaimsResponse {
+  // PersistentVolumeClaim。
+  repeated KubernetesPersistentVolumeClaimItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 读取单个资源的 YAML。
+message GetKubernetesResourceYAMLRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 资源类型。
+  string kind = 2 [(buf.validate.field).string = {
+    in: ["Node", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Service", "ConfigMap", "Secret", "PersistentVolume", "PersistentVolumeClaim"]
+  }];
+  // 命名空间。Node 与 PersistentVolume 忽略该字段，其余资源必填。
+  string namespace = 3 [(buf.validate.field).string.max_len = 253];
+  // 资源名称。
+  string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 资源的 YAML 预览。
+message GetKubernetesResourceYAMLResponse {
+  // YAML 文本。Secret / ConfigMap 的 data、stringData 与 binaryData 值会被替换。
+  string yaml = 1;
+  // 是否隐藏了敏感值。
+  bool redacted = 2;
+}
+
+// 副本集。
+message KubernetesReplicaSetItem {
+  // 命名空间。
+  string namespace = 1;
+  // 名称。
+  string name = 2;
+  // 期望副本数。
+  int32 desired_replicas = 3 [json_name = "desiredReplicas"];
+  // 就绪副本数。
+  int32 ready_replicas = 4 [json_name = "readyReplicas"];
+  // 当前副本数。
+  int32 current_replicas = 5 [json_name = "currentReplicas"];
+  // 容器镜像。
+  repeated string images = 6;
+  // 创建时间，Unix 秒。
+  int64 created_at = 7 [json_name = "createdAt"];
+}
+
+// 工作负载详情。
+message GetKubernetesWorkloadDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 工作负载类型，只能是 Deployment、StatefulSet 或 DaemonSet。
+  string kind = 2 [(buf.validate.field).string = {
+    in: ["Deployment", "StatefulSet", "DaemonSet"]
+  }];
+  // 命名空间。
+  string namespace = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 工作负载详情结果。
+message GetKubernetesWorkloadDetailResponse {
+  // 工作负载。
+  KubernetesWorkloadItem workload = 1;
+  // 副本集。StatefulSet 和 DaemonSet 通常为空。
+  repeated KubernetesReplicaSetItem replicasets = 2;
+  // 该工作负载的 Pod。
+  repeated KubernetesPodItem pods = 3;
+}
+
+// Ingress 详情。
+message GetKubernetesIngressDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// Ingress 详情结果。
+message GetKubernetesIngressDetailResponse {
+  // Ingress。
+  KubernetesIngressItem ingress = 1;
+  // 规则中引用的 Service，按名称去重。
+  repeated KubernetesServiceItem services = 2;
+}
+
+// Endpoint 端口。
+message KubernetesEndpointPortItem {
+  // 端口名。
+  string name = 1;
+  // 端口号。
+  int32 port = 2;
+  // 协议。
+  string protocol = 3;
+}
+
+// Service 的一个 Endpoint。
+message KubernetesEndpointItem {
+  // 地址。
+  string address = 1;
+  // 主机名。
+  string hostname = 2;
+  // 节点名。
+  string node_name = 3 [json_name = "nodeName"];
+  // 目标对象类型，例如 Pod。
+  string target_kind = 4 [json_name = "targetKind"];
+  // 目标对象名称。
+  string target_name = 5 [json_name = "targetName"];
+  // 是否就绪。
+  bool ready = 6;
+  // 端口。
+  repeated KubernetesEndpointPortItem ports = 7;
+}
+
+// Service 详情。
+message GetKubernetesServiceDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// Service 详情结果。
+message GetKubernetesServiceDetailResponse {
+  // Service。
+  KubernetesServiceItem service = 1;
+  // Endpoints。
+  repeated KubernetesEndpointItem endpoints = 2;
+}
+
+// 引用资源的工作负载。
+message KubernetesWorkloadRefItem {
+  // 类型，例如 Deployment、StatefulSet、DaemonSet。
+  string kind = 1;
+  // 命名空间。
+  string namespace = 2;
+  // 名称。
+  string name = 3;
+}
+
+// ConfigMap 详情。
+message GetKubernetesConfigMapDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// ConfigMap 详情结果。
+message GetKubernetesConfigMapDetailResponse {
+  // ConfigMap。
+  KubernetesConfigMapItem configmap = 1;
+  // 引用该 ConfigMap 的工作负载。
+  repeated KubernetesWorkloadRefItem related_workloads = 2 [json_name = "relatedWorkloads"];
+}
+
+// Secret 详情。
+message GetKubernetesSecretDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// Secret 详情结果。
+message GetKubernetesSecretDetailResponse {
+  // Secret。
+  KubernetesSecretItem secret = 1;
+  // 引用该 Secret 的工作负载。
+  repeated KubernetesWorkloadRefItem related_workloads = 2 [json_name = "relatedWorkloads"];
+}
+
+// PVC 详情。
+message GetKubernetesPersistentVolumeClaimDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// PVC 详情结果。
+message GetKubernetesPersistentVolumeClaimDetailResponse {
+  // PersistentVolumeClaim。
+  KubernetesPersistentVolumeClaimItem claim = 1;
+  // 挂载该 PVC 的工作负载。
+  repeated KubernetesWorkloadRefItem related_workloads = 2 [json_name = "relatedWorkloads"];
+}

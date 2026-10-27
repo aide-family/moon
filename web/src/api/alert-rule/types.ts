@@ -22,6 +22,16 @@ export interface AlertRuleLevelInput {
   levelUid: string
 }
 
+/**
+ * 规则上的自定义查询变量：告警触发时用主查询命中的标签展开 expr，查到的值
+ * 以变量名注入摘要/描述模板。name 是 ASCII 模板标识符，规则内唯一。
+ */
+export interface AlertRuleVariable {
+  name: string
+  expr: string
+  description: string
+}
+
 export interface AlertRuleItem {
   uid: string
   groupUid: string
@@ -34,6 +44,7 @@ export interface AlertRuleItem {
   datasourceLabels: string
   summary: string
   description: string
+  variables: AlertRuleVariable[]
   levels: AlertRuleLevelItem[]
 }
 
@@ -75,5 +86,6 @@ export interface SaveAlertRuleParams {
   datasourceLabels?: string
   summary?: string
   description?: string
+  variables?: AlertRuleVariable[]
   levels: AlertRuleLevelInput[]
 }

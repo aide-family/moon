@@ -1,0 +1,208 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// Kubernetes 集群的接入与管理。一个租户可以接入多个集群。
+// kubeconfig 只在接入、替换和连通性探测时提交，任何响应都不回传原文。
+service ClusterService {
+  // 用 kubeconfig 一键接入集群。保存前会解析凭据并探测一次 API Server 连通性。
+  rpc CreateCluster(CreateClusterRequest) returns (CreateClusterResponse) {
+    option (google.api.http) = {
+      post: "/v1/cluster"
+      body: "*"
+    };
+  }
+  // 更新集群名称和备注，或替换 kubeconfig。kubeconfig 为空表示保持原值。
+  rpc UpdateCluster(UpdateClusterRequest) returns (UpdateClusterResponse) {
+    option (google.api.http) = {
+      put: "/v1/cluster/{uid}"
+      body: "*"
+    };
+  }
+  // 删除集群。记录软删除，同时清空保存的 kubeconfig。
+  rpc DeleteCluster(DeleteClusterRequest) returns (DeleteClusterResponse) {
+    option (google.api.http) = {delete: "/v1/cluster/{uid}"};
+  }
+  // 获取集群详情。不返回 kubeconfig。
+  rpc GetCluster(GetClusterRequest) returns (GetClusterResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{uid}"};
+  }
+  // 分页列出当前租户接入的集群。
+  rpc ListClusters(ListClustersRequest) returns (ListClustersResponse) {
+    option (google.api.http) = {get: "/v1/clusters"};
+  }
+  // 用已保存的凭据测试连通性，并刷新最近检测时间和最近错误。
+  rpc TestCluster(TestClusterRequest) returns (TestClusterResponse) {
+    option (google.api.http) = {
+      post: "/v1/cluster/{uid}/test"
+      body: "*"
+    };
+  }
+  // 用尚未保存的 kubeconfig 测试连通性，供接入表单在保存前校验。
+  rpc ProbeKubeconfig(ProbeKubeconfigRequest) returns (ProbeKubeconfigResponse) {
+    option (google.api.http) = {
+      post: "/v1/cluster/probe"
+      body: "*"
+    };
+  }
+}
+
+// 集群列表项。只有元数据，kubeconfig 原文不进入任何响应。
+message ClusterItem {
+  // 标识。
+  string uid = 1;
+  // 名称，同一租户内唯一。
+  string name = 2;
+  // API Server 地址。
+  string server = 3;
+  // 探测到的 Kubernetes 版本，例如 v1.35.5。尚未探测成功时为空。
+  string version = 4;
+  // kubeconfig 中当前 context 指向的集群名。
+  string cluster_name = 5 [json_name = "clusterName"];
+  // kubeconfig 中使用的 context 名。
+  string context_name = 6 [json_name = "contextName"];
+  // 备注。
+  string remark = 7;
+  // 最近一次连通性检测时间，Unix 秒。从未检测时为 0。
+  int64 last_checked_at = 8 [json_name = "lastCheckedAt"];
+  // 最近一次连通性检测的失败原因。为空表示最近一次检测成功。
+  string last_error = 9 [json_name = "lastError"];
+  // 创建时间，Unix 秒。
+  int64 created_at = 10 [json_name = "createdAt"];
+}
+
+// 连通性探测结果。
+message ClusterProbe {
+  // API Server 地址。
+  string server = 1;
+  // Kubernetes 版本。
+  string version = 2;
+  // kubeconfig 中当前 context 指向的集群名。
+  string cluster_name = 3 [json_name = "clusterName"];
+  // kubeconfig 中使用的 context 名。
+  string context_name = 4 [json_name = "contextName"];
+  // 探测到的节点数量。没有节点读取权限时为 0。
+  int32 node_count = 5 [json_name = "nodeCount"];
+}
+
+// 接入集群。
+message CreateClusterRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // kubeconfig YAML 原文。
+  string kubeconfig = 2 [
+    (buf.validate.field).string = {min_len: 1, max_len: 2097152},
+    (buf.validate.field).cel = {
+      id: "cluster.kubeconfig.yaml"
+      message: "kubeconfig 必须是 YAML 或 JSON 文本"
+      expression: "this.contains('apiVersion') && this.contains('clusters')"
+    }
+  ];
+  // 备注。
+  string remark = 3 [(buf.validate.field).string.max_len = 256];
+}
+
+// 接入结果。
+message CreateClusterResponse {
+  // 集群。
+  ClusterItem cluster = 1;
+}
+
+// 更新集群。
+message UpdateClusterRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 新的 kubeconfig。留空表示保持原值。
+  string kubeconfig = 3 [(buf.validate.field).string.max_len = 2097152];
+  // 备注。
+  string remark = 4 [(buf.validate.field).string.max_len = 256];
+}
+
+// 更新结果。
+message UpdateClusterResponse {
+  // 集群。
+  ClusterItem cluster = 1;
+}
+
+// 删除集群。
+message DeleteClusterRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除结果。
+message DeleteClusterResponse {}
+
+// 获取集群。
+message GetClusterRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 集群详情。
+message GetClusterResponse {
+  // 集群。
+  ClusterItem cluster = 1;
+}
+
+// 分页列出集群。
+message ListClustersRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 按名称过滤。
+  string name = 3;
+}
+
+// 集群列表。
+message ListClustersResponse {
+  // 集群。
+  repeated ClusterItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 测试已保存集群的连通性。
+message TestClusterRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 测试结果。
+message TestClusterResponse {
+  // 探测结果。
+  ClusterProbe probe = 1;
+  // 刷新后的集群元数据。
+  ClusterItem cluster = 2;
+}
+
+// 用尚未保存的 kubeconfig 测试连通性。
+message ProbeKubeconfigRequest {
+  // kubeconfig YAML 原文。
+  string kubeconfig = 1 [
+    (buf.validate.field).string = {min_len: 1, max_len: 2097152},
+    (buf.validate.field).cel = {
+      id: "cluster.probe_kubeconfig.yaml"
+      message: "kubeconfig 必须是 YAML 或 JSON 文本"
+      expression: "this.contains('apiVersion') && this.contains('clusters')"
+    }
+  ];
+}
+
+// 探测结果。
+message ProbeKubeconfigResponse {
+  // 探测结果。
+  ClusterProbe probe = 1;
+}

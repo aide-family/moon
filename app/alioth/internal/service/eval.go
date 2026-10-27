@@ -83,6 +83,12 @@ func snapshotItem(item bo.RuleSnapshot) *megrezv1.RuleSnapshot {
 	if item.Rule.ScheduledSlot != nil {
 		slot = item.Rule.ScheduledSlot.UTC().Format(time.RFC3339Nano)
 	}
+	variables := make([]*megrezv1.RuleVariable, 0, len(item.Rule.Variables))
+	for _, variable := range item.Rule.Variables {
+		variables = append(variables, &megrezv1.RuleVariable{
+			Name: variable.Name, Expr: variable.Expr, Description: variable.Description,
+		})
+	}
 	return &megrezv1.RuleSnapshot{
 		Uid: item.Rule.UID, NamespaceUid: item.Rule.NamespaceUID, Driver: item.Rule.Driver,
 		Expr: item.Rule.Expr, Labels: item.Rule.Labels, Summary: item.Rule.Summary, Description: item.Rule.Description,
@@ -91,5 +97,6 @@ func snapshotItem(item bo.RuleSnapshot) *megrezv1.RuleSnapshot {
 		// Elasticsearch 的评测需要知道搜哪些索引、按哪个字段切时间桶。
 		DatasourceIndexPattern: item.Datasource.IndexPattern, DatasourceTimeField: item.Datasource.TimeField,
 		Levels: levels, FiringFingerprints: item.FiringFingerprints, DatasourceUid: item.Rule.DatasourceUID, Name: item.Rule.Name,
+		Variables: variables,
 	}
 }

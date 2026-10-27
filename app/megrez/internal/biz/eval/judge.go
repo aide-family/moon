@@ -41,13 +41,17 @@ func HitsWithQuery(ctx context.Context, rule bo.RuleSnapshot, samples []bo.Sampl
 			if err != nil {
 				encoded = []byte("{}")
 			}
+			labelsJSON := string(encoded)
+			// 变量只影响文案：先按命中标签求值，再注入摘要/描述模板；
+			// fingerprint、级别判定和恢复路径都不使用变量。
+			variables := resolveVariables(ctx, rule, value, labels, labelsJSON, at, query)
 			hits = append(hits, bo.EvalHit{
 				Fingerprint: fingerprint.Of(rule.UID, rule.DatasourceUID, labels),
-				Labels:      string(encoded),
+				Labels:      labelsJSON,
 				Value:       raw,
 				LevelUID:    level.LevelUID,
-				Summary:     renderAlert(ctx, rule, rule.Summary, value, labels, string(encoded), at, query),
-				Description: renderAlert(ctx, rule, rule.Description, value, labels, string(encoded), at, query),
+				Summary:     renderAlert(ctx, rule, rule.Summary, value, labels, labelsJSON, at, query, variables),
+				Description: renderAlert(ctx, rule, rule.Description, value, labels, labelsJSON, at, query, variables),
 			})
 			break
 		}
@@ -236,19 +240,121 @@ func mergeRuleLabels(raw string, sample map[string]string) map[string]string {
 	return labels
 }
 
-// renderAlert 用 pkg/alerttmpl 展开摘要和描述。数据、快捷变量和函数与通知
-// 模板共用一份实现，保证 {{ $labels }}、{{ $value }}、{{ . }} 在两处一致。
-func renderAlert(ctx context.Context, rule bo.RuleSnapshot, raw string, value float64, labels map[string]string, labelsJSON string, at time.Time, query alerttmpl.QueryFunc) string {
-	if raw == "" || !strings.Contains(raw, "{{") {
-		return raw
+// variableValues 是一次命中里自定义变量的求值结果。names 包含规则声明的
+// 全部变量名，用于生成 $name 快捷变量；values/labels 只包含求值成功的变量，
+// 查询失败或空结果时不写键，模板里显示为 <no value>。
+type variableValues struct {
+	names  []string
+	values map[string]any
+	labels map[string]map[string]string
+}
+
+// resolveVariables 只对摘要或描述里实际引用的变量求值：模板里出现 $name，
+// 或整体引用了 .Vars（此时无法静态判断键，全部求值）。变量查询语句先用同一
+// 份告警数据展开，从而继承主查询命中的 $labels/$value；再用评测期的即时查询
+// 取第一条序列。任何一步失败都只丢弃该变量，不影响命中。
+func resolveVariables(ctx context.Context, rule bo.RuleSnapshot, value float64, labels map[string]string, labelsJSON string, at time.Time, query TemplateQuery) *variableValues {
+	if len(rule.Variables) == 0 {
+		return nil
 	}
+	externalURL := alertExternalURL(rule)
+	data := alerttmpl.NewData(labels, labelsJSON, value, externalURL.String(), nil)
+	allReferenced := referencesVarTable(rule.Summary) || referencesVarTable(rule.Description)
+	resolved := &variableValues{
+		names:  make([]string, 0, len(rule.Variables)),
+		values: make(map[string]any, len(rule.Variables)),
+		labels: make(map[string]map[string]string, len(rule.Variables)),
+	}
+	for _, variable := range rule.Variables {
+		name := strings.TrimSpace(variable.Name)
+		if name == "" {
+			continue
+		}
+		resolved.names = append(resolved.names, name)
+		if !allReferenced && !referencesVariable(rule.Summary, name) && !referencesVariable(rule.Description, name) {
+			continue
+		}
+		expr := variable.Expr
+		if strings.Contains(expr, "{{") {
+			rendered, err := alerttmpl.Render(ctx, expr, data, "__alert_var_"+rule.Name+"_"+name, at, nil, externalURL)
+			if err != nil {
+				continue
+			}
+			expr = rendered
+		}
+		expr = strings.TrimSpace(expr)
+		if expr == "" || query == nil {
+			continue
+		}
+		samples, err := query(ctx, expr, at)
+		if err != nil || len(samples) == 0 {
+			continue
+		}
+		resolved.values[name] = samples[0].Value
+		resolved.labels[name] = samples[0].Labels
+	}
+	return resolved
+}
+
+// referencesVarTable 判断模板是否整体引用了变量表。
+func referencesVarTable(raw string) bool {
+	return strings.Contains(raw, ".Vars") || strings.Contains(raw, ".VarLabels")
+}
+
+// referencesVariable 判断模板里是否写了 $name。变量名后面必须是非标识符
+// 字符，避免 $disk_free 误命中 $disk_free_ratio。
+func referencesVariable(raw, name string) bool {
+	if raw == "" || name == "" {
+		return false
+	}
+	needle := "$" + name
+	for offset := 0; offset < len(raw); {
+		index := strings.Index(raw[offset:], needle)
+		if index < 0 {
+			return false
+		}
+		end := offset + index + len(needle)
+		if end >= len(raw) || !isVariableNameByte(raw[end]) {
+			return true
+		}
+		offset = end
+	}
+	return false
+}
+
+func isVariableNameByte(char byte) bool {
+	return char == '_' ||
+		(char >= '0' && char <= '9') ||
+		(char >= 'A' && char <= 'Z') ||
+		(char >= 'a' && char <= 'z')
+}
+
+// alertExternalURL 解析规则配置的外部地址。凭据不参与模板展开。
+func alertExternalURL(rule bo.RuleSnapshot) *url.URL {
 	externalURL, _ := url.Parse(rule.Endpoint)
 	if externalURL == nil {
 		externalURL = &url.URL{}
 	}
 	externalURL.User = nil
-	data := alerttmpl.NewData(labels, labelsJSON, value, externalURL.String(), nil)
-	result, err := alerttmpl.Render(ctx, raw, data, "__alert_"+rule.Name, at, query, externalURL)
+	return externalURL
+}
+
+// renderAlert 用 pkg/alerttmpl 展开摘要和描述。数据、快捷变量和函数与通知
+// 模板共用一份实现，保证 {{ $labels }}、{{ $value }}、{{ . }} 在两处一致。
+// variables 为 nil 时走与通知完全相同的 Render 路径。
+func renderAlert(ctx context.Context, rule bo.RuleSnapshot, raw string, value float64, labels map[string]string, labelsJSON string, at time.Time, query alerttmpl.QueryFunc, variables *variableValues) string {
+	if raw == "" || !strings.Contains(raw, "{{") {
+		return raw
+	}
+	externalURL := alertExternalURL(rule)
+	var extra map[string]any
+	var names []string
+	if variables != nil {
+		extra = map[string]any{"Vars": variables.values, "VarLabels": variables.labels}
+		names = variables.names
+	}
+	data := alerttmpl.NewData(labels, labelsJSON, value, externalURL.String(), extra)
+	result, err := alerttmpl.RenderWithVars(ctx, raw, data, "__alert_"+rule.Name, at, query, externalURL, names)
 	if err != nil {
 		return fmt.Sprintf("<error expanding template: %s>", err)
 	}

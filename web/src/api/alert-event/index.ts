@@ -140,6 +140,34 @@ export function recoverAlertEvents(
   return post<Record<string, never>>("/alert-events/recover", body)
 }
 
+export {
+  getAlertAnalysisFingerprints,
+  getAlertAnalysisLevel,
+  getAlertAnalysisRecovery,
+  getAlertAnalysisStatus,
+  getAlertAnalysisSummary,
+  getAlertAnalysisTrend,
+} from "./history-analysis"
+
+export type {
+  AlertAnalysisFingerprints,
+  AlertAnalysisFingerprintItem,
+  AlertAnalysisFocusParams,
+  AlertAnalysisGranularity,
+  AlertAnalysisLevel,
+  AlertAnalysisLevelItem,
+  AlertAnalysisRangeParams,
+  AlertAnalysisRecovery,
+  AlertAnalysisRecoveryStats,
+  AlertAnalysisStatus,
+  AlertAnalysisStatusFilter,
+  AlertAnalysisStatusItem,
+  AlertAnalysisSummary,
+  AlertAnalysisTrend,
+  AlertAnalysisTrendBucket,
+  AlertAnalysisTrendParams,
+} from "./history-analysis"
+
 export type {
   AlertEventChart,
   AlertInsight,

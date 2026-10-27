@@ -24,6 +24,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
@@ -123,6 +124,7 @@ func checkColumn(t, c string) error {
 			alertrulegroup.Table:                alertrulegroup.ValidColumn,
 			alertrulelevel.Table:                alertrulelevel.ValidColumn,
 			captcha.Table:                       captcha.ValidColumn,
+			cluster.Table:                       cluster.ValidColumn,
 			datasource.Table:                    datasource.ValidColumn,
 			emaillogincode.Table:                emaillogincode.ValidColumn,
 			member.Table:                        member.ValidColumn,

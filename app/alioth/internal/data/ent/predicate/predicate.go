@@ -42,6 +42,9 @@ type AlertRuleLevel func(*sql.Selector)
 // Captcha is the predicate function for captcha builders.
 type Captcha func(*sql.Selector)
 
+// Cluster is the predicate function for cluster builders.
+type Cluster func(*sql.Selector)
+
 // Datasource is the predicate function for datasource builders.
 type Datasource func(*sql.Selector)
 

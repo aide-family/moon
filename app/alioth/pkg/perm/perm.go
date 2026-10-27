@@ -31,6 +31,10 @@ const (
 	NotificationWrite  = "notification:write"
 	NotificationDelete = "notification:delete"
 
+	ClusterRead   = "cluster:read"
+	ClusterWrite  = "cluster:write"
+	ClusterDelete = "cluster:delete"
+
 	AgentDelete = "agent:delete"
 
 	SSHDelete = "ssh:delete"
@@ -63,7 +67,7 @@ const (
 // resources 只包含租户资源。user 是平台资源，不在租户权限目录里。
 var resources = []string{
 	"member", "role", "namespace", "datasource", "alert_rule",
-	"alert", "notification", "agent", "ssh",
+	"alert", "notification", "cluster", "agent", "ssh",
 }
 
 type Item struct {

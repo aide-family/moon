@@ -69,6 +69,7 @@ export type {
   AlertRuleGroupItem,
   AlertRuleItem,
   AlertRuleLevelInput,
+  AlertRuleVariable,
   ListAlertRuleGroupsParams,
   ListAlertRulesParams,
   SaveAlertRuleParams,

@@ -1,5 +1,8 @@
 import type { ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 
+import { CopyIconButton } from "@/components/copy-button"
+import { DetailEmpty } from "@/components/detail-values"
 import {
   Sheet,
   SheetContent,
@@ -30,9 +33,11 @@ export interface DetailSection {
 
 export type DetailSheetSize = "default" | "wide" | "40vw"
 
-interface DetailSheetProps {
+export interface DetailSheetProps {
   open: boolean
   title: string
+  // 标题右侧的复制入口；只给资源名这类需要直接取用的标识。
+  titleCopy?: { value: string; label: string }
   // 标题下的行内说明，通常放状态标签和 UID，只使用行内元素。
   description?: ReactNode
   // 头部操作按钮，空间不足时整行换行，不挤压标题。
@@ -47,6 +52,14 @@ interface DetailSheetProps {
   wide?: boolean
   // 底部固定操作区。
   footer?: ReactNode
+  // 自定义整个内容区，用于分组 Tabs 这类不能拆成多个 section 的布局。
+  children?: ReactNode
+  /**
+   * 内容区的滚动归属：
+   * scroll（默认）由抽屉内容区整体滚动；
+   * fill 把内容区固定为剩余高度，交给 children 自行划分滚动区域（例如 Tabs 里的 YAML 代码块）。
+   */
+  contentMode?: "scroll" | "fill"
   onOpenChange: (open: boolean) => void
 }
 
@@ -67,6 +80,7 @@ const sizeClassNames: Record<DetailSheetSize, string> = {
 export function DetailSheet({
   open,
   title,
+  titleCopy,
   description,
   actions,
   summary,
@@ -75,8 +89,11 @@ export function DetailSheet({
   size,
   wide = false,
   footer,
+  children,
+  contentMode = "scroll",
   onOpenChange,
 }: DetailSheetProps) {
+  const { t } = useTranslation()
   const resolvedSize: DetailSheetSize = size ?? (wide ? "wide" : "default")
   const sectionList = sections ?? []
   const fieldList = fields ?? []
@@ -89,10 +106,21 @@ export function DetailSheet({
       >
         {/* 头部不参与滚动：外层是固定高度的 flex 列，只有下面的内容区滚动，
             所以头部天然「粘」在顶部，不需要 sticky/z-index（否则会盖住右上角关闭按钮）。 */}
-        <SheetHeader className="shrink-0 gap-2 border-b bg-popover px-4 py-3 pr-14 sm:px-5">
-          <SheetTitle className="font-heading text-base leading-snug break-words">
-            {title}
-          </SheetTitle>
+        <SheetHeader className="shrink-0 gap-2 border-b bg-popover px-4 py-3 pr-14 sm:px-5 sm:pr-14">
+          <div className="flex min-w-0 items-start gap-2">
+            <SheetTitle className="min-w-0 flex-1 font-heading text-base leading-snug break-words">
+              {title}
+            </SheetTitle>
+            {titleCopy ? (
+              <CopyIconButton
+                value={titleCopy.value}
+                label={t("detail.copyField", { label: titleCopy.label })}
+                copiedLabel={t("action.copied")}
+                errorLabel={t("action.copyFailed")}
+                className="mt-0.5 size-6 opacity-60 hover:opacity-100 focus-visible:opacity-100"
+              />
+            ) : null}
+          </div>
           {description ? (
             <SheetDescription className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
               {description}
@@ -104,20 +132,38 @@ export function DetailSheet({
             </div>
           ) : null}
         </SheetHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          {/* @container 让字段栅格跟随抽屉实际宽度，而不是浏览器视口宽度。 */}
-          <div className="@container grid gap-5 px-4 py-4 sm:px-5">
-            {summary ? (
-              <div className="rounded-lg border bg-muted/30 p-3">{summary}</div>
-            ) : null}
-            {sectionList.length > 0 ? (
-              sectionList.map((section) => (
-                <DetailSectionBlock key={section.title} section={section} />
-              ))
-            ) : fieldList.length > 0 ? (
-              <DetailFields fields={fieldList} />
-            ) : null}
-          </div>
+        <div
+          className={cn(
+            "min-h-0 flex-1",
+            contentMode === "scroll"
+              ? "overflow-y-auto overscroll-contain"
+              : "flex flex-col overflow-hidden"
+          )}
+        >
+          {children ? (
+            <div
+              className={cn(
+                "flex min-w-0 flex-col",
+                contentMode === "scroll"
+                  ? "@container min-h-full px-4 py-4 sm:px-5"
+                  : "@container min-h-0 flex-1"
+              )}
+            >
+              {children}
+            </div>
+          ) : (
+            // @container 让字段栅格跟随抽屉实际宽度，而不是浏览器视口宽度。
+            <div className="@container grid gap-5 px-4 py-4 sm:px-5">
+              {summary ? (
+                <div className="rounded-lg border bg-muted/30 p-3">{summary}</div>
+              ) : null}
+              {sectionList.length > 0 ? (
+                <DetailSectionList sections={sectionList} />
+              ) : fieldList.length > 0 ? (
+                <DetailFields fields={fieldList} />
+              ) : null}
+            </div>
+          )}
         </div>
         {footer ? (
           <div className="shrink-0 border-t bg-popover px-4 py-3 sm:px-5">
@@ -126,6 +172,17 @@ export function DetailSheet({
         ) : null}
       </SheetContent>
     </Sheet>
+  )
+}
+
+/** 渲染一组详情分组；详情抽屉和分组 Tabs 共用同一套字段排版。 */
+export function DetailSectionList({ sections }: { sections: DetailSection[] }) {
+  return (
+    <div className="grid gap-5">
+      {sections.map((section) => (
+        <DetailSectionBlock key={section.title} section={section} />
+      ))}
+    </div>
   )
 }
 
@@ -169,7 +226,7 @@ function DetailFields({
     <dl
       className={cn(
         "grid",
-        inline ? "gap-2" : "gap-x-5 gap-y-3 @md:grid-cols-2"
+        inline ? "gap-2" : "gap-x-6 gap-y-3 @md:grid-cols-2"
       )}
     >
       {fields.map((field) => (
@@ -183,13 +240,11 @@ function DetailFields({
             !inline && field.span === 2 && "@md:col-span-2"
           )}
         >
-          <dt className="text-xs text-muted-foreground">{field.label}</dt>
+          <dt className="text-[11px] leading-4 font-medium tracking-wide text-muted-foreground">
+            {field.label}
+          </dt>
           <dd className="min-w-0 text-sm leading-relaxed break-words">
-            {isEmptyValue(field.value) ? (
-              <span className="text-muted-foreground">—</span>
-            ) : (
-              field.value
-            )}
+            {isEmptyValue(field.value) ? <DetailEmpty /> : field.value}
           </dd>
         </div>
       ))}

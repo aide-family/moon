@@ -1,13 +1,24 @@
+import type { ReactNode } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 
-import { listAlertEvents } from "@/api/alert-event"
+import { listAlertDictionaries } from "@/api/alert-dictionary"
+import {
+  getAlertAnalysisFingerprints,
+  getAlertAnalysisLevel,
+  getAlertAnalysisRecovery,
+  getAlertAnalysisStatus,
+  getAlertAnalysisSummary,
+  getAlertAnalysisTrend,
+} from "@/api/alert-event"
 import type {
-  AlertEventItem,
-  ListAlertEventsParams,
-} from "@/api/alert-event/types"
+  AlertAnalysisGranularity,
+  AlertAnalysisRecoveryStats,
+  AlertAnalysisStatusFilter,
+  AlertAnalysisTrendBucket,
+} from "@/api/alert-event"
 import { Button } from "@/components/ui/button"
 import { DateRangePicker } from "@/components/date-range-picker"
 import {
@@ -17,37 +28,57 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { dayEndISO, dayStartISO } from "@/lib/date-range"
+import { addDays, formatDateValue } from "@/lib/date-range"
 import { formatSpan } from "@/pages/alert/format"
+import {
+  analysisBlockData,
+  analysisBlockIncomplete,
+  ANALYSIS_BLOCK_ORDER,
+  useAlertAnalysisBlocks,
+} from "@/pages/alert/history-analysis-loader"
+import type {
+  AnalysisBlockStatus,
+  AnalysisRequests,
+  AnalysisSignatures,
+} from "@/pages/alert/history-analysis-loader"
 import {
   HISTORY_RANGE_MAX_DAYS,
   localDayWindow,
 } from "@/pages/alert/history-range"
 
-// 接口单页上限 100；分析在浏览器侧聚合，必须逐页读完整集合。
-const FETCH_PAGE_SIZE = 100
-// 聚合上限：50 页 = 5000 条。超过时明确提示统计被截断，而不是悄悄少算。
-const MAX_FETCH_PAGES = 50
 // 时间轴最多渲染 180 个时间桶；超出时退化为“只显示有事件的时间桶”。
 const MAX_BUCKETS = 180
-const EMPTY_EVENTS: AlertEventItem[] = []
-const EMPTY_PROGRESS = { queryKey: "", loaded: 0, total: 0 }
+// 重复指纹接口固定取前 5 个；服务端已按事件数降序排好。
+const FINGERPRINT_LIMIT = 5
 
-type Granularity = "hour" | "day" | "week" | "month"
+type Granularity = AlertAnalysisGranularity
 // 历史视图的事件终态只有三种：自动恢复、人工恢复、仍在触发（且被抑制）。
 // 抑制是触发阶段的属性，不是终态，因此不再作为状态选项。
-type StatusFilter = "ALL" | "RECOVERED" | "RECOVERED_BY_MANUAL" | "SUPPRESSING"
+type StatusFilter = "ALL" | AlertAnalysisStatusFilter
 
 interface AlertHistoryInsightsProps {
   enabled: boolean
   onSelectFingerprint: (fingerprint: string) => void
 }
 
-interface AnalysisResult {
-  queryKey: string
-  events: AlertEventItem[]
-  truncated: boolean
-  error: string
+interface FingerprintCount {
+  fingerprint: string
+  ruleName: string
+  count: number
+}
+
+interface DurationStats {
+  median: number | null
+  p90: number | null
+  count: number
+}
+
+function localTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+  } catch {
+    return "UTC"
+  }
 }
 
 export function AlertHistoryInsights({
@@ -56,34 +87,205 @@ export function AlertHistoryInsights({
 }: AlertHistoryInsightsProps) {
   const { t, i18n } = useTranslation()
   const [params, setParams] = useSearchParams()
-  const from = params.get("from") || ""
-  const to = params.get("to") || ""
+  const urlFrom = params.get("from") || ""
+  const urlTo = params.get("to") || ""
   const status = parseStatusFilter(params.get("status"))
   const granularity = parseGranularity(params.get("interval"))
-  const invalidDateRange = Boolean(from && to && from > to)
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-  const [attempt, setAttempt] = useState(0)
-  const queryKey = `${from}|${to}|${status}|${attempt}`
-  const [result, setResult] = useState<AnalysisResult | null>(null)
-  const [progress, setProgress] = useState(EMPTY_PROGRESS)
-  const requestId = useRef(0)
-  const loadedKey = useRef("")
-
-  const loading = result?.queryKey !== queryKey
-  const error = loading ? "" : (result?.error ?? "")
-  const events = loading ? EMPTY_EVENTS : (result?.events ?? EMPTY_EVENTS)
-  const truncated = !loading && (result?.truncated ?? false)
+  // 分析页永远有明确区间：URL 没写 from/to 时，有效区间是最近 30 天（含今天）。
+  // 清空筛选会删掉 URL 参数，于是回到这里算出的默认区间，不再有“全部历史”。
+  const today = formatDateValue(new Date())
+  const defaultFrom = formatDateValue(
+    addDays(new Date(), -(HISTORY_RANGE_MAX_DAYS - 1))
+  )
+  const from = urlFrom || defaultFrom
+  const to = urlTo || today
+  const invalidDateRange = from > to
+  const defaultRange = !urlFrom && !urlTo
+  const timeZone = useMemo(() => localTimeZone(), [])
+  const statusParam: AlertAnalysisStatusFilter | "" =
+    status === "ALL" ? "" : status
 
   const filterSignature = `${from}|${to}|${status}|${granularity}`
   const [selectedBucket, setSelectedBucket] = useState<{
     key: number
     filterSignature: string
   } | null>(null)
-  const selectedBucketKey =
+  const candidateBucketKey =
     selectedBucket?.filterSignature === filterSignature
       ? selectedBucket.key
       : null
+
+  // 聚焦窗口 = 所选时间桶与统计区间的交集：周/月桶的起点可能早于 from，
+  // 直接拿桶边界会被服务端判成“不在 from/to 窗口内”。
+  const focus = useMemo(() => {
+    if (candidateBucketKey === null) {
+      return null
+    }
+    const fromWindow = localDayWindow(from)
+    const toWindow = localDayWindow(to)
+    if (!fromWindow || !toWindow) {
+      return null
+    }
+    const start = Math.max(candidateBucketKey, fromWindow.start)
+    const end = Math.min(
+      advanceBucket(new Date(candidateBucketKey), granularity).getTime(),
+      toWindow.end
+    )
+    if (!(end > start)) {
+      return null
+    }
+    return {
+      start: new Date(start).toISOString(),
+      end: new Date(end).toISOString(),
+    }
+  }, [candidateBucketKey, from, to, granularity])
+
+  const requests = useMemo<AnalysisRequests>(() => {
+    const base = { from, to, timeZone, status: statusParam }
+    const scoped = focus
+      ? { ...base, focusStart: focus.start, focusEnd: focus.end }
+      : base
+    return {
+      // 聚焦时 KPI 也要走聚焦口径：summary 与其余 4 块一样带 focusStart/focusEnd，
+      // 只有趋势图（signature 不含聚焦）继续用整段区间。
+      summary: () => getAlertAnalysisSummary(scoped),
+      status: () => getAlertAnalysisStatus(scoped),
+      level: () => getAlertAnalysisLevel(scoped),
+      trend: () => getAlertAnalysisTrend({ ...base, granularity }),
+      fingerprints: () =>
+        getAlertAnalysisFingerprints({ ...scoped, limit: FINGERPRINT_LIMIT }),
+      recovery: () => getAlertAnalysisRecovery(scoped),
+    }
+  }, [from, to, timeZone, statusParam, granularity, focus])
+
+  // 聚焦只改变趋势图以外的 5 个块，因此 trend 的 signature 不含聚焦窗口：
+  // 点击时间桶时不重发 trend，只重跑其余块。
+  const signatures = useMemo<AnalysisSignatures>(() => {
+    const base = `${from}|${to}|${statusParam}|${granularity}|${timeZone}`
+    const scoped = focus ? `${base}|${focus.start}|${focus.end}` : `${base}|`
+    return {
+      summary: scoped,
+      status: scoped,
+      level: scoped,
+      trend: base,
+      fingerprints: scoped,
+      recovery: scoped,
+    }
+  }, [from, to, statusParam, granularity, timeZone, focus])
+
+  const { blocks, retry } = useAlertAnalysisBlocks({
+    // 分析 tab 未激活或区间非法时一个请求都不发。
+    enabled: enabled && !invalidDateRange,
+    signatures,
+    requests,
+  })
+
+  const summary = analysisBlockData(blocks.summary)
+  const events = summary?.events ?? 0
+  const allReady = ANALYSIS_BLOCK_ORDER.every(
+    (block) => blocks[block].status === "ready"
+  )
+  const anyPending = ANALYSIS_BLOCK_ORDER.some(
+    (block) =>
+      blocks[block].status === "idle" || blocks[block].status === "loading"
+  )
+  const busy = enabled && !invalidDateRange && anyPending
+  const empty = allReady && events === 0
+  // 任意一个接口报告归档不可用时，统一在页面顶部降级提示。
+  const degraded = ANALYSIS_BLOCK_ORDER.some((block) =>
+    analysisBlockIncomplete(blocks[block])
+  )
+
+  const trend = analysisBlockData(blocks.trend)
+  const timeline = useMemo(
+    () =>
+      buildTimeline(trend?.buckets ?? [], granularity, i18n.language, from, to),
+    [trend, granularity, i18n.language, from, to]
+  )
+  // 聚焦徽标只显示当前趋势图里真实存在的时间桶；趋势重新加载后桶集合变化时，
+  // 徽标自动消失，但筛选条件本身仍由 filterSignature 控制。
+  const focusedPoint =
+    candidateBucketKey === null
+      ? null
+      : (timeline.points.find((point) => point.key === candidateBucketKey) ??
+        null)
+
+  const statusTotal = analysisBlockData(blocks.status)?.total ?? 0
+  const levelTotal = analysisBlockData(blocks.level)?.total ?? 0
+
+  const statusRows = useMemo(() => {
+    const data = analysisBlockData(blocks.status)
+    if (!data) {
+      return null
+    }
+    return new Map(data.items.map((item) => [item.status, item.events]))
+  }, [blocks.status])
+
+  const levelRows = useMemo(() => {
+    const data = analysisBlockData(blocks.level)
+    if (!data) {
+      return null
+    }
+    return new Map(data.items.map((item) => [item.levelUid, item.events]))
+  }, [blocks.level])
+
+  // 级别分布要显示级别名而不是 UID：分析 tab 自己懒加载一次告警字典（很小的请求），
+  // 只在分析 tab 激活时发。请求用 ref 缓存成 Promise：StrictMode 会把 effect 跑两遍，
+  // 复用的 Promise 既保证只发一次，又不会像「已请求」布尔标记那样把结果丢掉。
+  const [levelNames, setLevelNames] = useState<Map<string, string>>(
+    () => new Map()
+  )
+  const levelDictionary = useRef<Promise<Map<string, string>> | null>(null)
+  useEffect(() => {
+    if (!enabled) {
+      return
+    }
+    if (!levelDictionary.current) {
+      levelDictionary.current = listAlertDictionaries({
+        type: "ALERT",
+        page: 1,
+        pageSize: 100,
+      }).then(
+        (result) =>
+          new Map((result.items ?? []).map((item) => [item.uid, item.name])),
+        () => {
+          // 字典取不到时退回显示级别 UID；允许下次切回分析 tab 时再试。
+          levelDictionary.current = null
+          return new Map<string, string>()
+        }
+      )
+    }
+    let active = true
+    void levelDictionary.current.then((names) => {
+      if (active) {
+        setLevelNames(names)
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [enabled])
+
+  const fingerprints = useMemo(() => {
+    const data = analysisBlockData(blocks.fingerprints)
+    if (!data) {
+      return null
+    }
+    return data.items.map((item): FingerprintCount => ({
+      fingerprint: item.fingerprint,
+      ruleName: item.ruleName,
+      count: item.events,
+    }))
+  }, [blocks.fingerprints])
+
+  const recovery = analysisBlockData(blocks.recovery)
+  const autoRecovery = durationStats(recovery?.auto)
+  const manualRecovery = durationStats(recovery?.manual)
+
+  const scopeSummary = describeScope(t, from, to, status)
+  const hasFilters =
+    Boolean(urlFrom || urlTo) || status !== "ALL" || granularity !== "day"
 
   function updateAnalysisFilter(key: "status" | "interval", value: string) {
     setSelectedBucket(null)
@@ -115,143 +317,21 @@ export function AlertHistoryInsights({
     setParams(next, { replace: true })
   }
 
-  useEffect(() => {
-    if (!enabled || invalidDateRange) {
-      return
-    }
-    if (loadedKey.current === queryKey) {
-      return
-    }
-    loadedKey.current = queryKey
-    const id = ++requestId.current
-    let active = true
-
-    // 统计范围直接下推到列表接口：状态、时间范围在服务端合并归档记录后过滤，
-    // 前端只对已受控的结果做聚合，不再“先取全量再自己筛”。
-    const scoped: ListAlertEventsParams = {
-      view: "HISTORY",
-      pageSize: FETCH_PAGE_SIZE,
-      startsAtFrom: dayStartISO(from),
-      startsAtTo: dayEndISO(to),
-      ...statusScope(status),
-    }
-
-    async function loadAllHistory() {
-      try {
-        const collected = new Map<string, AlertEventItem>()
-        let total = 0
-        let pages = 1
-        for (let page = 1; page <= MAX_FETCH_PAGES; page += 1) {
-          const data = await listAlertEvents({ ...scoped, page })
-          total = data.total ?? collected.size
-          for (const item of data.items ?? []) {
-            // 归档合并列表在分页期间可能有新记录写入，按 UID 去重避免重复计数。
-            collected.set(item.uid, item)
-          }
-          if (active) {
-            setProgress({ queryKey, loaded: collected.size, total })
-          }
-          pages = Math.max(1, Math.ceil(total / FETCH_PAGE_SIZE))
-          if (page >= pages) {
-            break
-          }
-        }
-        if (!active || requestId.current !== id) {
-          return
-        }
-        setResult({
-          queryKey,
-          events: [...collected.values()],
-          truncated: pages > MAX_FETCH_PAGES,
-          error: "",
-        })
-      } catch {
-        if (!active || requestId.current !== id) {
-          return
-        }
-        setResult({
-          queryKey,
-          events: [],
-          truncated: false,
-          error: t("alertEvent.analysisLoadFailed"),
-        })
-      }
-    }
-
-    void loadAllHistory()
-    return () => {
-      active = false
-    }
-  }, [enabled, invalidDateRange, queryKey, from, to, status, t])
-
-  // 时间桶聚焦只影响统计口径，不改写明细列表的查询条件。
-  const timeline = useMemo(
-    () => buildTimeline(events, granularity, i18n.language, from, to),
-    [events, granularity, i18n.language, from, to]
-  )
-  const focusedBucket =
-    selectedBucketKey === null
-      ? null
-      : (timeline.points.find((point) => point.key === selectedBucketKey) ??
-        null)
-  const scopedEvents = useMemo(
-    () =>
-      focusedBucket
-        ? events.filter(
-            (event) =>
-              bucketStart(new Date(event.startsAt), granularity).getTime() ===
-              focusedBucket.key
-          )
-        : events,
-    [events, focusedBucket, granularity]
-  )
-
-  const statusRows = useMemo(
-    () => countBy(scopedEvents, (event) => event.status),
-    [scopedEvents]
-  )
-  const levelRows = useMemo(
-    () =>
-      countBy(
-        scopedEvents,
-        (event) =>
-          event.levelName || event.levelUid || t("alertEvent.unsetLevel")
-      ),
-    [scopedEvents, t]
-  )
-  const recurringFingerprints = useMemo(
-    () => buildRecurringFingerprints(scopedEvents),
-    [scopedEvents]
-  )
-  const repeatedEpisodes = recurringFingerprints.reduce(
-    (count, item) => count + item.count - 1,
-    0
-  )
-  const { uniqueFingerprints, autoRecovery, manualRecovery } = useMemo(() => {
-    const fingerprints = new Set(
-      scopedEvents.map((event) => event.fingerprint).filter(Boolean)
-    )
-    return {
-      uniqueFingerprints: fingerprints.size,
-      autoRecovery: durationSummary(
-        recoveryDurations(scopedEvents, "RECOVERED")
-      ),
-      manualRecovery: durationSummary(
-        recoveryDurations(scopedEvents, "RECOVERED_BY_MANUAL")
-      ),
-    }
-  }, [scopedEvents])
-
-  const scopeSummary = describeScope(t, from, to, status)
-  const hasFilters =
-    Boolean(from || to) || status !== "ALL" || granularity !== "day"
+  function clearFocusedBucket() {
+    setSelectedBucket(null)
+  }
 
   return (
     <section
       className="space-y-4"
       aria-labelledby="alert-history-insights-title"
-      aria-busy={loading || undefined}
+      aria-busy={busy || undefined}
     >
+      <span className="sr-only" role="status" aria-live="polite">
+        {busy
+          ? t("alertEvent.analysisLoading")
+          : t("alertEvent.analysisLoaded")}
+      </span>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <h2
@@ -348,6 +428,13 @@ export function AlertHistoryInsights({
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
         <span className="font-medium text-foreground">{scopeSummary}</span>
+        {defaultRange ? (
+          <span>
+            {t("alertEvent.defaultRangeHint", {
+              count: HISTORY_RANGE_MAX_DAYS,
+            })}
+          </span>
+        ) : null}
         <span>{t("alertEvent.localTimeZone", { timeZone })}</span>
         {invalidDateRange ? (
           <span
@@ -358,12 +445,12 @@ export function AlertHistoryInsights({
             {t("alertEvent.invalidDateRange")}
           </span>
         ) : null}
-        {focusedBucket ? (
+        {focusedPoint ? (
           <span className="inline-flex items-center gap-2">
             <span>
               {t("alertEvent.focusedBucket", {
-                label: focusedBucket.label,
-                count: focusedBucket.count.toLocaleString(i18n.language),
+                label: focusedPoint.label,
+                count: focusedPoint.count.toLocaleString(i18n.language),
               })}
             </span>
             <Button
@@ -371,7 +458,7 @@ export function AlertHistoryInsights({
               size="sm"
               variant="ghost"
               className="h-7 px-2"
-              onClick={() => setSelectedBucket(null)}
+              onClick={clearFocusedBucket}
             >
               {t("alertEvent.clearBucket")}
             </Button>
@@ -387,32 +474,20 @@ export function AlertHistoryInsights({
         </details>
       </div>
 
+      {degraded ? (
+        <p
+          className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-xs text-amber-700 dark:text-amber-300"
+          role="status"
+        >
+          {t("alertEvent.analysisArchiveDegraded")}
+        </p>
+      ) : null}
+
       {invalidDateRange ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {t("alertEvent.analysisRangeBlocked")}
         </p>
-      ) : loading ? (
-        <AnalysisSkeleton
-          label={t("alertEvent.analysisLoading", {
-            loaded: progress.queryKey === queryKey ? progress.loaded : 0,
-            total: progress.queryKey === queryKey ? progress.total : 0,
-          })}
-        />
-      ) : error ? (
-        <div
-          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3"
-          role="alert"
-        >
-          <p className="text-sm text-destructive">{error}</p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAttempt((value) => value + 1)}
-          >
-            {t("action.retry")}
-          </Button>
-        </div>
-      ) : events.length === 0 ? (
+      ) : empty ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-border/80 bg-muted/20 px-4 py-10">
           <div>
             <p className="text-sm font-medium">
@@ -430,51 +505,42 @@ export function AlertHistoryInsights({
         </div>
       ) : (
         <>
-          {truncated ? (
-            <p
-              className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-xs text-amber-700 dark:text-amber-300"
-              role="status"
-            >
-              {t("alertEvent.analysisTruncated", {
-                count: (MAX_FETCH_PAGES * FETCH_PAGE_SIZE).toLocaleString(
-                  i18n.language
-                ),
-              })}
-            </p>
-          ) : null}
           <div className="grid gap-px overflow-hidden rounded-xl border border-border/70 bg-border sm:grid-cols-2 xl:grid-cols-[1.35fr_repeat(3,minmax(0,1fr))]">
             <Metric
               featured
               label={t("alertEvent.eventsInScope")}
-              value={scopedEvents.length.toLocaleString(i18n.language)}
+              status={blocks.summary.status}
+              value={events.toLocaleString(i18n.language)}
               detail={
-                focusedBucket
+                focus
                   ? t("alertEvent.focusedRecordsMatching")
                   : t("alertEvent.recordsMatching")
               }
+              onRetry={retrySummary(blocks.summary.status, retry)}
             />
             <Metric
               label={t("alertEvent.uniqueFingerprints")}
-              value={uniqueFingerprints.toLocaleString(i18n.language)}
+              status={blocks.summary.status}
+              value={(summary?.uniqueFingerprints ?? 0).toLocaleString(
+                i18n.language
+              )}
               detail={t("alertEvent.averageEpisodes", {
                 count: averageEpisodes(
-                  scopedEvents.length,
-                  uniqueFingerprints,
+                  events,
+                  summary?.uniqueFingerprints ?? 0,
                   i18n.language
                 ),
               })}
             />
             <Metric
               label={t("alertEvent.repeatedEvents")}
-              value={repeatedEpisodes.toLocaleString(i18n.language)}
-              detail={t("alertEvent.recurringFingerprintCount", {
-                count: recurringFingerprints.length.toLocaleString(
-                  i18n.language
-                ),
-              })}
+              status={blocks.summary.status}
+              value={(summary?.repeated ?? 0).toLocaleString(i18n.language)}
+              detail={t("alertEvent.repeatedEventsHelp")}
             />
             <Metric
               label={t("alertEvent.autoRecoveryMedian")}
+              status={blocks.recovery.status}
               value={
                 autoRecovery.median === null
                   ? "—"
@@ -483,22 +549,22 @@ export function AlertHistoryInsights({
               detail={t("alertEvent.durationSample", {
                 count: autoRecovery.count.toLocaleString(i18n.language),
               })}
+              onRetry={
+                blocks.recovery.status === "error"
+                  ? () => retry("recovery")
+                  : undefined
+              }
             />
           </div>
 
           <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(17rem,1fr)]">
-            <section
-              className="min-w-0 rounded-xl border border-border/70 bg-card p-4"
-              aria-label={t("alertEvent.trendTitle")}
+            <AnalysisPanel
+              title={t("alertEvent.trendTitle")}
+              description={t("alertEvent.startsAtTrend")}
+              status={blocks.trend.status}
+              onRetry={() => retry("trend")}
+              skeleton={<ChartSkeleton />}
             >
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold">
-                  {t("alertEvent.trendTitle")}
-                </h3>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t("alertEvent.startsAtTrend")}
-                </p>
-              </div>
               {timeline.points.length ? (
                 <>
                   {timeline.gapsOmitted ? (
@@ -512,7 +578,7 @@ export function AlertHistoryInsights({
                         const height = point.count
                           ? Math.max(4, (point.count / timeline.maximum) * 100)
                           : 0
-                        const selected = point.key === selectedBucketKey
+                        const selected = point.key === candidateBucketKey
                         return (
                           <button
                             key={point.key}
@@ -559,45 +625,89 @@ export function AlertHistoryInsights({
                   {t("alertEvent.noAnalysisData")}
                 </p>
               )}
-            </section>
+            </AnalysisPanel>
 
-            <RecurringFingerprints
-              items={recurringFingerprints.slice(0, 5)}
-              onSelect={onSelectFingerprint}
-            />
+            <AnalysisPanel
+              title={t("alertEvent.topRecurringFingerprints")}
+              description={t("alertEvent.recurrenceHelp")}
+              status={blocks.fingerprints.status}
+              onRetry={() => retry("fingerprints")}
+              skeleton={<RowsSkeleton rows={4} />}
+            >
+              <RecurringFingerprintList
+                items={fingerprints ?? []}
+                onSelect={onSelectFingerprint}
+              />
+            </AnalysisPanel>
           </div>
 
           <div className="grid gap-3 lg:grid-cols-3">
-            <Distribution
+            <AnalysisPanel
               title={t("alertEvent.statusDistribution")}
               description={t("alertEvent.statusDistributionHelp")}
-              data={statusRows}
-              labelFor={(value) => statusLabel(value, t)}
-              total={scopedEvents.length}
-              selectedValue={
-                status === "ALL"
-                  ? ""
-                  : status === "SUPPRESSING"
-                    ? "FIRING"
-                    : status
+              aside={
+                <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                  {statusRows ? statusTotal.toLocaleString() : ""}
+                </span>
               }
-              onSelect={(value) =>
-                updateAnalysisFilter(
-                  "status",
-                  toStatusFilter(value) === status ? "" : toStatusFilter(value)
-                )
-              }
-            />
-            <Distribution
+              status={blocks.status.status}
+              onRetry={() => retry("status")}
+              skeleton={<RowsSkeleton rows={3} />}
+            >
+              <DistributionRows
+                data={statusRows ?? new Map()}
+                labelFor={(value) => statusLabel(value, t)}
+                total={statusTotal}
+                selectedValue={
+                  status === "ALL"
+                    ? ""
+                    : status === "SUPPRESSING"
+                      ? "FIRING"
+                      : status
+                }
+                onSelect={(value) => {
+                  const next = toStatusFilter(value)
+                  updateAnalysisFilter(
+                    "status",
+                    next === status ? "" : next === "ALL" ? "" : next
+                  )
+                }}
+              />
+            </AnalysisPanel>
+            <AnalysisPanel
               title={t("alertEvent.levelDistribution")}
-              data={levelRows}
-              labelFor={(value) => value}
-              total={scopedEvents.length}
-            />
-            <RecoverySummary
-              autoRecovery={autoRecovery}
-              manualRecovery={manualRecovery}
-            />
+              description={t("alertEvent.levelDistributionHelp")}
+              aside={
+                <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                  {levelRows ? levelTotal.toLocaleString() : ""}
+                </span>
+              }
+              status={blocks.level.status}
+              onRetry={() => retry("level")}
+              skeleton={<RowsSkeleton rows={3} />}
+            >
+              <DistributionRows
+                data={levelRows ?? new Map()}
+                labelFor={(value) =>
+                  levelNames.get(value) ||
+                  value ||
+                  t("alertEvent.unsetLevel")
+                }
+                total={levelTotal}
+              />
+            </AnalysisPanel>
+            <AnalysisPanel
+              title={t("alertEvent.recoveryDuration")}
+              description={t("alertEvent.recoveryDurationHelp")}
+              status={blocks.recovery.status}
+              onRetry={() => retry("recovery")}
+              skeleton={<RowsSkeleton rows={3} />}
+            >
+              <RecoveryDurations
+                autoRecovery={autoRecovery}
+                manualRecovery={manualRecovery}
+              />
+            </AnalysisPanel>
           </div>
         </>
       )}
@@ -605,83 +715,105 @@ export function AlertHistoryInsights({
   )
 }
 
-/** 把分析用的状态值翻译成接口过滤条件；历史里 FIRING 必然是被抑制的事件。 */
-function statusScope(
-  status: StatusFilter
-): Pick<ListAlertEventsParams, "eventStatus" | "suppression"> {
-  if (status === "RECOVERED" || status === "RECOVERED_BY_MANUAL") {
-    return { eventStatus: status }
-  }
-  if (status === "SUPPRESSING") {
-    return { eventStatus: "FIRING", suppression: "SUPPRESSED" }
-  }
-  return {}
-}
-
-function toStatusFilter(value: string): StatusFilter {
-  if (value === "RECOVERED" || value === "RECOVERED_BY_MANUAL") {
-    return value
-  }
-  if (value === "FIRING" || value === "SUPPRESSED") {
-    return "SUPPRESSING"
-  }
-  return "ALL"
-}
-
-function describeScope(
-  t: TFunction,
-  from: string,
-  to: string,
-  status: StatusFilter
+function retrySummary(
+  status: AnalysisBlockStatus,
+  retry: (block: "summary") => void
 ) {
-  const range =
-    from || to
-      ? t("alertEvent.scopeRange", { from: from || "…", to: to || "…" })
-      : null
-  const label =
-    status === "ALL"
-      ? null
-      : t("alertEvent.scopeStatus", {
-          status:
-            status === "SUPPRESSING"
-              ? t("alertEvent.statusSuppressing")
-              : status === "RECOVERED"
-                ? t("alertEvent.statusRecovered")
-                : t("alertEvent.statusRecoveredManual"),
-        })
-  const parts = [range, label].filter(Boolean)
-  return parts.length ? parts.join(" · ") : t("alertEvent.scopeAll")
+  return status === "error" ? () => retry("summary") : undefined
 }
 
-function averageEpisodes(
-  events: number,
-  fingerprints: number,
-  language: string
-) {
-  if (fingerprints === 0) {
-    return (0).toLocaleString(language)
+function durationStats(stats: AlertAnalysisRecoveryStats | undefined) {
+  if (!stats || stats.samples <= 0) {
+    return { median: null, p90: null, count: 0 }
   }
-  return (events / fingerprints).toLocaleString(language, {
-    maximumFractionDigits: 1,
-  })
+  return {
+    median: stats.medianSeconds * 1000,
+    p90: stats.p90Seconds * 1000,
+    count: stats.samples,
+  }
 }
 
-function AnalysisSkeleton({ label }: { label: string }) {
+function AnalysisPanel({
+  title,
+  description,
+  aside,
+  status,
+  onRetry,
+  skeleton,
+  children,
+}: {
+  title: string
+  description?: string
+  aside?: ReactNode
+  status: AnalysisBlockStatus
+  onRetry: () => void
+  skeleton: ReactNode
+  children: ReactNode
+}) {
+  const { t } = useTranslation()
+  const pending = status === "idle" || status === "loading"
   return (
-    <div className="space-y-3" role="status" aria-live="polite">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <div className="grid gap-px overflow-hidden rounded-xl border border-border/70 bg-border sm:grid-cols-2 xl:grid-cols-4">
-        {[0, 1, 2, 3].map((index) => (
-          <div key={index} className="bg-card px-4 py-3">
-            <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-            <div className="mt-2 h-7 w-16 animate-pulse rounded bg-muted" />
-            <div className="mt-2 h-3 w-32 animate-pulse rounded bg-muted" />
-          </div>
-        ))}
+    <section
+      className="min-w-0 rounded-xl border border-border/70 bg-card p-4"
+      aria-label={title}
+      aria-busy={pending || undefined}
+    >
+      <div className="mb-4">
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className="text-sm font-semibold">{title}</h3>
+          {aside}
+        </div>
+        {description ? (
+          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+        ) : null}
       </div>
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(17rem,1fr)]">
-        <div className="h-48 animate-pulse rounded-xl border border-border/70 bg-card" />
-        <div className="h-48 animate-pulse rounded-xl border border-border/70 bg-card" />
+      {pending ? (
+        skeleton
+      ) : status === "error" ? (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2"
+        >
+          <p className="text-xs text-destructive">
+            {t("alertEvent.analysisLoadFailed")}
+          </p>
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            {t("action.retry")}
+          </Button>
+        </div>
+      ) : (
+        children
+      )}
+    </section>
+  )
+}
+
+/** 块内骨架：只占该卡片自己的空间，不移动其他块。 */
+function RowsSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="space-y-2" aria-hidden="true">
+      {Array.from({ length: rows }, (_, index) => (
+        <div key={index} className="space-y-1.5">
+          <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
+          <div className="h-1.5 w-full animate-pulse rounded-full bg-muted" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ChartSkeleton() {
+  return (
+    <div className="space-y-3" aria-hidden="true">
+      <div className="h-3 w-40 animate-pulse rounded bg-muted" />
+      <div className="flex h-36 items-end gap-1.5">
+        {[38, 62, 44, 78, 52, 88, 66, 72, 48, 58].map((height, index) => (
+          <div
+            key={index}
+            className="w-8 animate-pulse rounded-sm bg-muted"
+            style={{ height: `${height}%` }}
+          />
+        ))}
       </div>
     </div>
   )
@@ -692,42 +824,67 @@ function Metric({
   value,
   detail,
   featured = false,
+  status,
+  onRetry,
 }: {
   label: string
   value: string
   detail: string
   featured?: boolean
+  status: AnalysisBlockStatus
+  onRetry?: () => void
 }) {
+  const { t } = useTranslation()
+  const pending = status === "idle" || status === "loading"
+  const failed = status === "error"
   return (
     <div
       className={`min-w-0 bg-card px-4 py-3 ${featured ? "sm:col-span-2 xl:col-span-1" : ""}`}
+      aria-busy={pending || undefined}
     >
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p
-        className={`mt-1 font-semibold tracking-tight tabular-nums ${featured ? "text-3xl" : "text-2xl"}`}
-      >
-        {value}
-      </p>
-      <p className="mt-1 truncate text-xs text-muted-foreground" title={detail}>
-        {detail}
-      </p>
+      {pending ? (
+        <div aria-hidden="true">
+          <div className="mt-1 h-8 w-24 animate-pulse rounded bg-muted" />
+          <div className="mt-2 h-3 w-32 animate-pulse rounded bg-muted" />
+        </div>
+      ) : failed ? (
+        <>
+          <p className="mt-1 text-2xl font-semibold tracking-tight">—</p>
+          <p className="mt-1 flex items-center gap-2 text-xs text-destructive">
+            <span>{t("alertEvent.metricLoadFailed")}</span>
+            {onRetry ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+                onClick={onRetry}
+              >
+                {t("action.retry")}
+              </Button>
+            ) : null}
+          </p>
+        </>
+      ) : (
+        <>
+          <p
+            className={`mt-1 font-semibold tracking-tight tabular-nums ${featured ? "text-3xl" : "text-2xl"}`}
+          >
+            {value}
+          </p>
+          <p
+            className="mt-1 truncate text-xs text-muted-foreground"
+            title={detail}
+          >
+            {detail}
+          </p>
+        </>
+      )}
     </div>
   )
 }
 
-interface FingerprintCount {
-  fingerprint: string
-  ruleName: string
-  count: number
-}
-
-interface DurationStats {
-  median: number | null
-  p90: number | null
-  count: number
-}
-
-function RecurringFingerprints({
+function RecurringFingerprintList({
   items,
   onSelect,
 }: {
@@ -735,61 +892,49 @@ function RecurringFingerprints({
   onSelect: (fingerprint: string) => void
 }) {
   const { t, i18n } = useTranslation()
+  if (!items.length) {
+    return (
+      <p className="py-8 text-center text-sm text-muted-foreground">
+        {t("alertEvent.noRecurringFingerprints")}
+      </p>
+    )
+  }
   return (
-    <section
-      className="min-w-0 rounded-xl border border-border/70 bg-card p-4"
-      aria-label={t("alertEvent.topRecurringFingerprints")}
-    >
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold">
-          {t("alertEvent.topRecurringFingerprints")}
-        </h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t("alertEvent.recurrenceHelp")}
-        </p>
-      </div>
-      {items.length ? (
-        <ol className="space-y-1">
-          {items.map((item, index) => (
-            <li key={item.fingerprint}>
-              <button
-                type="button"
-                className="flex min-h-11 w-full items-center gap-3 rounded-md px-2 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
-                title={`${item.fingerprint} · ${t("alertEvent.viewFingerprintEvents")}`}
-                onClick={() => onSelect(item.fingerprint)}
-              >
-                <span className="w-5 shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-                  {String(index + 1).padStart(2, "0")}
+    <ol className="space-y-1">
+      {items.map((item, index) => (
+        <li key={item.fingerprint}>
+          <button
+            type="button"
+            className="flex min-h-11 w-full items-center gap-3 rounded-md px-2 text-left transition-colors outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
+            title={`${item.fingerprint} · ${t("alertEvent.viewFingerprintEvents")}`}
+            onClick={() => onSelect(item.fingerprint)}
+          >
+            <span className="w-5 shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-mono text-xs">
+                {item.fingerprint}
+              </span>
+              {item.ruleName ? (
+                <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                  {item.ruleName}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-mono text-xs">
-                    {item.fingerprint}
-                  </span>
-                  {item.ruleName ? (
-                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                      {item.ruleName}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="shrink-0 rounded bg-muted px-2 py-1 font-mono text-xs tabular-nums">
-                  {t("alertEvent.episodeCount", {
-                    count: item.count.toLocaleString(i18n.language),
-                  })}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          {t("alertEvent.noRecurringFingerprints")}
-        </p>
-      )}
-    </section>
+              ) : null}
+            </span>
+            <span className="shrink-0 rounded bg-muted px-2 py-1 font-mono text-xs tabular-nums">
+              {t("alertEvent.episodeCount", {
+                count: item.count.toLocaleString(i18n.language),
+              })}
+            </span>
+          </button>
+        </li>
+      ))}
+    </ol>
   )
 }
 
-function RecoverySummary({
+function RecoveryDurations({
   autoRecovery,
   manualRecovery,
 }: {
@@ -798,18 +943,7 @@ function RecoverySummary({
 }) {
   const { t } = useTranslation()
   return (
-    <section
-      className="min-w-0 rounded-xl border border-border/70 bg-card p-4"
-      aria-label={t("alertEvent.recoveryDuration")}
-    >
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold">
-          {t("alertEvent.recoveryDuration")}
-        </h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t("alertEvent.recoveryDurationHelp")}
-        </p>
-      </div>
+    <>
       <DurationRow
         label={t("alertEvent.statusRecovered")}
         stats={autoRecovery}
@@ -820,7 +954,7 @@ function RecoverySummary({
         label={t("alertEvent.statusRecoveredManual")}
         stats={manualRecovery}
       />
-    </section>
+    </>
   )
 }
 
@@ -866,98 +1000,115 @@ function DurationRow({
   )
 }
 
-function Distribution({
-  title,
-  description,
+function DistributionRows({
   data,
   labelFor,
   total,
   selectedValue = "",
   onSelect,
 }: {
-  title: string
-  description?: string
   data: Map<string, number>
   labelFor: (value: string) => string
   total: number
   selectedValue?: string
   onSelect?: (value: string) => void
 }) {
+  const { t, i18n } = useTranslation()
   const rows = [...data.entries()].sort((a, b) => b[1] - a[1])
   const max = Math.max(1, ...rows.map(([, count]) => count))
+  if (!rows.length) {
+    return (
+      <p className="py-8 text-center text-sm text-muted-foreground">
+        {t("alertEvent.noAnalysisData")}
+      </p>
+    )
+  }
   return (
-    <section
-      className="min-w-0 rounded-xl border border-border/70 bg-card p-4"
-      aria-label={title}
-    >
-      <div className="mb-4">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className="text-sm font-semibold">{title}</h3>
-          <span className="font-mono text-xs text-muted-foreground tabular-nums">
-            {total.toLocaleString()}
-          </span>
-        </div>
-        {description ? (
-          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
-        ) : null}
-      </div>
-      {rows.length ? (
-        <ul className="space-y-2">
-          {rows.map(([value, count]) => {
-            const content = (
-              <>
-                <span className="mb-1 flex items-center justify-between gap-2 text-xs">
-                  <span className="min-w-0 truncate" title={labelFor(value)}>
-                    {labelFor(value)}
-                  </span>
-                  <span className="shrink-0 font-mono text-muted-foreground tabular-nums">
-                    {count.toLocaleString()} ·{" "}
-                    {total ? Math.round((count / total) * 100) : 0}%
-                  </span>
-                </span>
-                <span className="block h-1.5 overflow-hidden rounded-full bg-muted">
-                  <span
-                    className="block h-full rounded-full bg-primary/70"
-                    style={{ width: `${(count / max) * 100}%` }}
-                  />
-                </span>
-              </>
-            )
-            return (
-              <li key={value}>
-                {onSelect ? (
-                  <button
-                    type="button"
-                    aria-pressed={selectedValue === value}
-                    className={`w-full rounded-sm p-1 text-left transition-colors outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring ${selectedValue === value ? "bg-muted/70" : ""}`}
-                    onClick={() => onSelect(value)}
-                  >
-                    {content}
-                  </button>
-                ) : (
-                  <div className="p-1">{content}</div>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      ) : (
-        <p className="py-8 text-center text-sm text-muted-foreground">—</p>
-      )}
-    </section>
+    <ul className="space-y-2">
+      {rows.map(([value, count]) => {
+        const content = (
+          <>
+            <span className="mb-1 flex items-center justify-between gap-2 text-xs">
+              <span className="min-w-0 truncate" title={labelFor(value)}>
+                {labelFor(value)}
+              </span>
+              <span className="shrink-0 font-mono text-muted-foreground tabular-nums">
+                {count.toLocaleString(i18n.language)} ·{" "}
+                {total ? Math.round((count / total) * 100) : 0}%
+              </span>
+            </span>
+            <span className="block h-1.5 overflow-hidden rounded-full bg-muted">
+              <span
+                className="block h-full rounded-full bg-primary/70"
+                style={{ width: `${(count / max) * 100}%` }}
+              />
+            </span>
+          </>
+        )
+        return (
+          <li key={value}>
+            {onSelect ? (
+              <button
+                type="button"
+                aria-pressed={selectedValue === value}
+                className={`w-full rounded-sm p-1 text-left transition-colors outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring ${selectedValue === value ? "bg-muted/70" : ""}`}
+                onClick={() => onSelect(value)}
+              >
+                {content}
+              </button>
+            ) : (
+              <div className="p-1">{content}</div>
+            )}
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
-function countBy(
-  items: AlertEventItem[],
-  key: (item: AlertEventItem) => string
-) {
-  const counts = new Map<string, number>()
-  for (const item of items) {
-    const value = key(item) || "UNKNOWN"
-    counts.set(value, (counts.get(value) ?? 0) + 1)
+function toStatusFilter(value: string): StatusFilter {
+  if (value === "RECOVERED" || value === "RECOVERED_BY_MANUAL") {
+    return value
   }
-  return counts
+  if (value === "FIRING" || value === "SUPPRESSED" || value === "SUPPRESSING") {
+    return "SUPPRESSING"
+  }
+  return "ALL"
+}
+
+function describeScope(
+  t: TFunction,
+  from: string,
+  to: string,
+  status: StatusFilter
+) {
+  // 区间永远有效（URL 缺省时由最近 30 天兜底），所以摘要始终能给出明确范围。
+  const range = t("alertEvent.scopeRange", { from, to })
+  const label =
+    status === "ALL"
+      ? null
+      : t("alertEvent.scopeStatus", {
+          status:
+            status === "SUPPRESSING"
+              ? t("alertEvent.statusSuppressing")
+              : status === "RECOVERED"
+                ? t("alertEvent.statusRecovered")
+                : t("alertEvent.statusRecoveredManual"),
+        })
+  return [range, label].filter(Boolean).join(" · ")
+}
+
+function averageEpisodes(
+  events: number,
+  fingerprints: number,
+  language: string
+) {
+  if (fingerprints === 0) {
+    return (0).toLocaleString(language)
+  }
+  return (events / fingerprints).toLocaleString(language, {
+    maximumFractionDigits: 1,
+  })
 }
 
 function parseStatusFilter(value: string | null): StatusFilter {
@@ -977,11 +1128,13 @@ function parseGranularity(value: string | null): Granularity {
 }
 
 function statusLabel(value: string, t: (key: string) => string) {
-  if (value === "FIRING") return t("alertEvent.statusSuppressing")
+  if (value === "FIRING" || value === "SUPPRESSED" || value === "SUPPRESSING") {
+    return t("alertEvent.statusSuppressing")
+  }
   if (value === "RECOVERED") return t("alertEvent.statusRecovered")
   if (value === "RECOVERED_BY_MANUAL")
     return t("alertEvent.statusRecoveredManual")
-  return value
+  return value || t("alertEvent.unsetLevel")
 }
 
 interface TimelinePoint {
@@ -990,36 +1143,34 @@ interface TimelinePoint {
   label: string
 }
 
+/**
+ * 趋势图的时间轴：输入是服务端返回的非空桶（start 为本地时区桶起，RFC3339）。
+ * 仍然在前端做零填充与 MAX_BUCKETS 退化，标签/占位口径与改造前一致。
+ */
 function buildTimeline(
-  items: AlertEventItem[],
+  buckets: AlertAnalysisTrendBucket[],
   granularity: Granularity,
   language: string,
   from: string,
   to: string
 ): { points: TimelinePoint[]; gapsOmitted: boolean; maximum: number } {
   const bins = new Map<number, number>()
-  const dates: Date[] = []
-  for (const item of items) {
-    const date = new Date(item.startsAt)
+  for (const bucket of buckets) {
+    const date = new Date(bucket.start)
     if (!Number.isFinite(date.getTime())) continue
-    dates.push(date)
     const key = bucketStart(date, granularity).getTime()
-    bins.set(key, (bins.get(key) ?? 0) + 1)
+    bins.set(key, (bins.get(key) ?? 0) + bucket.events)
   }
   if (bins.size === 0) return { points: [], gapsOmitted: false, maximum: 1 }
 
-  const fromWindow = from ? localDayWindow(from) : undefined
-  const toWindow = to ? localDayWindow(to) : undefined
-  const rangeStart = fromWindow
-    ? new Date(fromWindow.start)
-    : dates.reduce(
-        (earliest, date) => (date < earliest ? date : earliest),
-        dates[0]
-      )
+  const fromWindow = localDayWindow(from)
+  const toWindow = localDayWindow(to)
+  if (!fromWindow || !toWindow) {
+    return { points: [], gapsOmitted: false, maximum: 1 }
+  }
+  const rangeStart = new Date(fromWindow.start)
   // 上界是下一本地午夜（排除），所以用 end - 1ms 落在最后一个自然日之内。
-  const rangeEnd = toWindow
-    ? new Date(toWindow.end - 1)
-    : dates.reduce((latest, date) => (date > latest ? date : latest), dates[0])
+  const rangeEnd = new Date(toWindow.end - 1)
   if (
     !Number.isFinite(rangeStart.getTime()) ||
     !Number.isFinite(rangeEnd.getTime()) ||
@@ -1081,58 +1232,4 @@ function advanceBucket(date: Date, granularity: Granularity) {
   if (granularity === "week") next.setDate(next.getDate() + 7)
   if (granularity === "month") next.setMonth(next.getMonth() + 1)
   return next
-}
-
-function buildRecurringFingerprints(
-  items: AlertEventItem[]
-): FingerprintCount[] {
-  const counts = new Map<string, FingerprintCount>()
-  for (const event of items) {
-    if (!event.fingerprint) continue
-    const existing = counts.get(event.fingerprint)
-    if (existing) {
-      existing.count += 1
-      if (!existing.ruleName && event.ruleName)
-        existing.ruleName = event.ruleName
-    } else {
-      counts.set(event.fingerprint, {
-        fingerprint: event.fingerprint,
-        ruleName: event.ruleName,
-        count: 1,
-      })
-    }
-  }
-  return [...counts.values()]
-    .filter((item) => item.count > 1)
-    .sort(
-      (a, b) => b.count - a.count || a.fingerprint.localeCompare(b.fingerprint)
-    )
-}
-
-function recoveryDurations(
-  items: AlertEventItem[],
-  status: "RECOVERED" | "RECOVERED_BY_MANUAL"
-) {
-  return items
-    .filter((event) => event.status === status)
-    .map(
-      (event) =>
-        new Date(event.endsAt).getTime() - new Date(event.startsAt).getTime()
-    )
-    .filter((duration) => Number.isFinite(duration) && duration > 0)
-}
-
-function durationSummary(values: number[]): DurationStats {
-  if (!values.length) return { median: null, p90: null, count: 0 }
-  const sorted = [...values].sort((a, b) => a - b)
-  const middle = Math.floor(sorted.length / 2)
-  const median =
-    sorted.length % 2 === 0
-      ? (sorted[middle - 1] + sorted[middle]) / 2
-      : sorted[middle]
-  return {
-    median,
-    p90: sorted[Math.max(0, Math.ceil(sorted.length * 0.9) - 1)],
-    count: sorted.length,
-  }
 }

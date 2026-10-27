@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
+import { CodeBlock } from "@/components/code-block"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
@@ -100,14 +101,14 @@ export function SaveTemplateDialog({
               onChange={(event) => setDescription(event.target.value)}
             />
           </FormField>
-          <div className="grid gap-2">
-            <p className="text-sm text-muted-foreground">
-              {t("datasource.query.statement")}
-            </p>
-            <pre className="max-h-32 overflow-auto rounded-lg border bg-muted/40 p-2 font-mono text-xs whitespace-pre-wrap break-all">
-              {statement}
-            </pre>
-          </div>
+          <CodeBlock
+            code={statement}
+            language="text"
+            label={t("datasource.query.statement")}
+            copyable
+            wrap
+            maxHeightClass="max-h-32"
+          />
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={close}>

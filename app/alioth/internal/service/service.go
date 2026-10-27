@@ -31,4 +31,6 @@ var ProviderSet = wire.NewSet(
 	NewAgentService,
 	NewSSHCommandService,
 	NewWorkerService,
+	NewClusterService,
+	NewKubernetesService,
 )

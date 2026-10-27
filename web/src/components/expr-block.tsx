@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 
+import { CodeBlock } from "@/components/code-block"
 import { cn } from "@/lib/class-names"
 
 interface ExprBlockProps {
@@ -30,14 +31,13 @@ export function ExprBlock({
         className
       )}
     >
-      <pre
-        className={cn(
-          "overflow-x-hidden overflow-y-auto font-mono text-xs break-words whitespace-pre-wrap",
-          maxHeightClass
-        )}
-      >
-        {expr || "—"}
-      </pre>
+      <CodeBlock
+        variant="plain"
+        code={expr}
+        language="text"
+        wrap
+        maxHeightClass={maxHeightClass}
+      />
       {footer}
     </div>
   )

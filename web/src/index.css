@@ -101,6 +101,9 @@
         radial-gradient(ellipse 60% 40% at 100% 0%, rgba(56, 189, 248, 0.06), transparent);
     --error: hsl(0 84.2% 60.2%);
     --info: hsl(198.63 88.66% 48.43%);
+    /* 代码块用 GitHub light 主题的底色与正文色（github-light）。 */
+    --code-bg: #ffffff;
+    --code-fg: #24292e;
 }
 
 .dark {
@@ -146,6 +149,9 @@
         radial-gradient(ellipse 60% 40% at 100% 0%, rgba(56, 189, 248, 0.05), transparent);
     --error: hsl(0 84.2% 60.2%);
     --info: hsl(198.63 88.66% 48.43%);
+    /* 深色模式换成 GitHub dark 主题的底色与正文色（github-dark）。 */
+    --code-bg: #24292e;
+    --code-fg: #e1e4e8;
 }
 
 @layer base {
@@ -334,4 +340,18 @@
 
 .dark .oauth-brand[data-provider="DINGTALK"] {
   --oauth-brand: #69b1ff;
+}
+
+/* 代码块（Shiki）语法配色：高亮 HTML 只写 --shiki-light / --shiki-dark 变量，
+   实际颜色由这里按 `.dark` 切换，所以主题变化不需要重新高亮。 */
+.code-block {
+  color: var(--code-fg);
+}
+
+.code-block pre span {
+  color: var(--shiki-light, inherit);
+}
+
+.dark .code-block pre span {
+  color: var(--shiki-dark, inherit);
 }

@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +23,10 @@ import (
 
 // Defs 注入 Prometheus 告警模板约定的小写快捷变量。
 const Defs = "{{$labels := .Labels}}{{$externalLabels := .ExternalLabels}}{{$externalURL := .ExternalURL}}{{$value := .Value}}"
+
+// varNamePattern 与规则变量的名字校验保持一致：模板快捷变量只能是标识符，
+// 不能带引号、短横线或中文。defs 会拼接进模板文本，因此这里再过滤一次。
+var varNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]{0,31}$`)
 
 // Data 是模板数据。大写字段是 Prometheus 原生写法，小写字段是 Alioth 消息
 // 字段：labels 是事件里保存的标签 JSON 字符串，Labels 是解析后的标签 map。
@@ -128,6 +133,24 @@ type QueryFunc func(ctx context.Context, expr string, at time.Time) ([]Sample, e
 
 // Render 按 Prometheus 告警模板的语义展开 raw。
 func Render(ctx context.Context, raw string, data Data, name string, at time.Time, query QueryFunc, externalURL *url.URL) (string, error) {
+	return render(ctx, "", raw, data, name, at, query, externalURL)
+}
+
+// RenderWithVars 额外把规则声明的自定义变量注入模板：在固定的 Defs 之后追加
+// {{$<name> := index .Vars "<name>"}}，摘要和描述里就能写 {{ $disk_free }}。
+// 变量名来自规则配置，非法名字会被跳过，避免破坏模板文本；没有声明变量时
+// 行为与 Render 完全一致。Vars/VarLabels 由调用方放进 Data，变量求值失败时
+// 这里补空 map，让 {{ $disk_free }} 渲染成 <no value> 而不是执行报错。
+func RenderWithVars(ctx context.Context, raw string, data Data, name string, at time.Time, query QueryFunc, externalURL *url.URL, vars []string) (string, error) {
+	if len(vars) == 0 {
+		return Render(ctx, raw, data, name, at, query, externalURL)
+	}
+	return render(ctx, varDefs(vars), raw, ensureVarData(data), name, at, query, externalURL)
+}
+
+// render 是 Render 和 RenderWithVars 的公共实现。defs 只包含额外注入的变量
+// 定义，始终排在固定 Defs 之后。
+func render(ctx context.Context, defs string, raw string, data Data, name string, at time.Time, query QueryFunc, externalURL *url.URL) (string, error) {
 	var queryFunc promtemplate.QueryFunc
 	if query != nil {
 		queryFunc = func(ctx context.Context, expr string, queryAt time.Time) (promql.Vector, error) {
@@ -148,7 +171,7 @@ func Render(ctx context.Context, raw string, data Data, name string, at time.Tim
 	// 外部地址用于 $externalURL 和 graphLink 一类函数，不能带出数据源凭据。
 	externalURL.User = nil
 	return promtemplate.NewTemplateExpander(
-		ctx, Defs+raw, name, data,
+		ctx, Defs+defs+raw, name, data,
 		model.Time(at.UnixMilli()), queryFunc, externalURL, nil,
 	).Expand()
 }
@@ -158,4 +181,50 @@ func Validate(raw, name string) error {
 	return promtemplate.NewTemplateExpander(
 		context.Background(), Defs+raw, name, nil, 0, nil, &url.URL{}, nil,
 	).ParseTest()
+}
+
+// ValidateWithVars 与 Validate 相同，只是先把规则声明的变量注入模板。
+// 保存带 {{ $disk_free }} 的摘要时必须走这里，否则会被判为未定义变量。
+func ValidateWithVars(raw, name string, vars []string) error {
+	return promtemplate.NewTemplateExpander(
+		context.Background(), Defs+varDefs(vars)+raw, name, nil, 0, nil, &url.URL{}, nil,
+	).ParseTest()
+}
+
+// varDefs 为合法且不重复的变量名生成快捷变量定义。
+func varDefs(vars []string) string {
+	seen := make(map[string]struct{}, len(vars))
+	var builder strings.Builder
+	for _, raw := range vars {
+		name := strings.TrimSpace(raw)
+		if !varNamePattern.MatchString(name) {
+			continue
+		}
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		builder.WriteString("{{$")
+		builder.WriteString(name)
+		builder.WriteString(` := index .Vars "`)
+		builder.WriteString(name)
+		builder.WriteString(`"}}`)
+	}
+	return builder.String()
+}
+
+// ensureVarData 保证声明了变量时 Data 里有非 nil 的 Vars 和 VarLabels。
+// eval 在变量查询失败时不会写对应键，模板里的 index .Vars 碰到 nil map 会
+// 执行失败，因此统一在这里兜底。data 为 nil 时返回一份新的空数据。
+func ensureVarData(data Data) Data {
+	if data == nil {
+		data = Data{}
+	}
+	if data["Vars"] == nil {
+		data["Vars"] = map[string]any{}
+	}
+	if data["VarLabels"] == nil {
+		data["VarLabels"] = map[string]map[string]string{}
+	}
+	return data
 }

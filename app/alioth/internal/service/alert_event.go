@@ -81,6 +81,114 @@ func (s *AlertEventService) GetAlertInsight(ctx context.Context, req *v1.GetAler
 	}, nil
 }
 
+func (s *AlertEventService) GetAlertAnalysisSummary(ctx context.Context, req *v1.GetAlertAnalysisSummaryRequest) (*v1.GetAlertAnalysisSummaryResponse, error) {
+	summary, err := s.coordinator.AnalysisSummary(ctx, alertevent.AnalysisQuery{
+		From: req.GetFrom(), To: req.GetTo(), TimeZone: req.GetTimeZone(), Status: req.GetStatus(),
+		FocusStart: req.GetFocusStart(), FocusEnd: req.GetFocusEnd(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetAlertAnalysisSummaryResponse{
+		From:               summary.From.Format(time.RFC3339),
+		To:                 summary.To.Format(time.RFC3339),
+		TimeZone:           summary.TimeZone,
+		Complete:           summary.Complete,
+		Events:             summary.Events,
+		UniqueFingerprints: summary.UniqueFingerprints,
+		Repeated:           summary.Repeated,
+	}, nil
+}
+
+func (s *AlertEventService) GetAlertAnalysisTrend(ctx context.Context, req *v1.GetAlertAnalysisTrendRequest) (*v1.GetAlertAnalysisTrendResponse, error) {
+	trend, err := s.coordinator.AnalysisTrend(ctx, alertevent.AnalysisQuery{
+		From: req.GetFrom(), To: req.GetTo(), TimeZone: req.GetTimeZone(), Status: req.GetStatus(),
+		Granularity: req.GetGranularity(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	buckets := make([]*v1.AlertAnalysisBucket, 0, len(trend.Buckets))
+	for _, bucket := range trend.Buckets {
+		buckets = append(buckets, &v1.AlertAnalysisBucket{Start: bucket.Start.Format(time.RFC3339), Events: bucket.Events})
+	}
+	return &v1.GetAlertAnalysisTrendResponse{
+		From: trend.From.Format(time.RFC3339), To: trend.To.Format(time.RFC3339),
+		TimeZone: trend.TimeZone, Complete: trend.Complete, Buckets: buckets,
+	}, nil
+}
+
+func (s *AlertEventService) GetAlertAnalysisStatus(ctx context.Context, req *v1.GetAlertAnalysisStatusRequest) (*v1.GetAlertAnalysisStatusResponse, error) {
+	status, err := s.coordinator.AnalysisStatus(ctx, alertevent.AnalysisQuery{
+		From: req.GetFrom(), To: req.GetTo(), TimeZone: req.GetTimeZone(), Status: req.GetStatus(),
+		FocusStart: req.GetFocusStart(), FocusEnd: req.GetFocusEnd(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*v1.AlertAnalysisStatusItem, 0, len(status.Items))
+	for _, item := range status.Items {
+		items = append(items, &v1.AlertAnalysisStatusItem{Status: item.Status, Events: item.Events})
+	}
+	return &v1.GetAlertAnalysisStatusResponse{Complete: status.Complete, Total: status.Total, Items: items}, nil
+}
+
+func (s *AlertEventService) GetAlertAnalysisLevel(ctx context.Context, req *v1.GetAlertAnalysisLevelRequest) (*v1.GetAlertAnalysisLevelResponse, error) {
+	level, err := s.coordinator.AnalysisLevel(ctx, alertevent.AnalysisQuery{
+		From: req.GetFrom(), To: req.GetTo(), TimeZone: req.GetTimeZone(), Status: req.GetStatus(),
+		FocusStart: req.GetFocusStart(), FocusEnd: req.GetFocusEnd(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*v1.AlertAnalysisLevelItem, 0, len(level.Items))
+	for _, item := range level.Items {
+		items = append(items, &v1.AlertAnalysisLevelItem{LevelUid: item.LevelUID, Events: item.Events})
+	}
+	return &v1.GetAlertAnalysisLevelResponse{Complete: level.Complete, Total: level.Total, Items: items}, nil
+}
+
+func (s *AlertEventService) GetAlertAnalysisFingerprints(ctx context.Context, req *v1.GetAlertAnalysisFingerprintsRequest) (*v1.GetAlertAnalysisFingerprintsResponse, error) {
+	fingerprints, err := s.coordinator.AnalysisFingerprints(ctx, alertevent.AnalysisQuery{
+		From: req.GetFrom(), To: req.GetTo(), TimeZone: req.GetTimeZone(), Status: req.GetStatus(),
+		FocusStart: req.GetFocusStart(), FocusEnd: req.GetFocusEnd(), Limit: req.GetLimit(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*v1.AlertAnalysisFingerprintItem, 0, len(fingerprints.Items))
+	for _, item := range fingerprints.Items {
+		items = append(items, &v1.AlertAnalysisFingerprintItem{
+			Fingerprint: item.Fingerprint, RuleUid: item.RuleUID, RuleName: item.RuleName, Events: item.Events,
+		})
+	}
+	return &v1.GetAlertAnalysisFingerprintsResponse{Complete: fingerprints.Complete, Items: items}, nil
+}
+
+func (s *AlertEventService) GetAlertAnalysisRecovery(ctx context.Context, req *v1.GetAlertAnalysisRecoveryRequest) (*v1.GetAlertAnalysisRecoveryResponse, error) {
+	recovery, err := s.coordinator.AnalysisRecovery(ctx, alertevent.AnalysisQuery{
+		From: req.GetFrom(), To: req.GetTo(), TimeZone: req.GetTimeZone(), Status: req.GetStatus(),
+		FocusStart: req.GetFocusStart(), FocusEnd: req.GetFocusEnd(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetAlertAnalysisRecoveryResponse{
+		Complete: recovery.Complete,
+		Auto:     alertAnalysisRecoveryStats(recovery.Auto),
+		Manual:   alertAnalysisRecoveryStats(recovery.Manual),
+	}, nil
+}
+
+// alertAnalysisRecoveryStats 把闭环时长统计转换成接口结构。
+func alertAnalysisRecoveryStats(stats bo.AlertAnalysisRecoveryStats) *v1.AlertAnalysisRecoveryStats {
+	return &v1.AlertAnalysisRecoveryStats{
+		MedianSeconds: stats.MedianSeconds,
+		P90Seconds:    stats.P90Seconds,
+		Samples:       stats.Samples,
+	}
+}
+
 func parseAlertEventTime(value string) (*time.Time, error) {
 	if value == "" {
 		return nil, nil

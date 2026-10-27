@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { getDatasourceStatus } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
 import { queryLogs } from "@/api/logs-query"
+import { CodeBlock } from "@/components/code-block"
 import { FormField } from "@/components/form-field"
 import { MetricGraph } from "@/components/metric-graph"
 import { useQueryDraft } from "@/hooks/use-query-draft"
@@ -448,9 +449,13 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
           className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
         >
           {jsonText ? (
-            <pre className="min-h-0 flex-1 overflow-auto rounded-lg border bg-background p-3 font-mono text-xs">
-              {jsonText}
-            </pre>
+            <CodeBlock
+              fill
+              code={jsonText}
+              language="json"
+              label={t("datasource.resultJson")}
+              copyable
+            />
           ) : null}
         </TabsContent>
       </Tabs>

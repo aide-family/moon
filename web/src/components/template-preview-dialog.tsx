@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { previewNotificationTemplate } from "@/api/notification-template"
+import { CodeBlock } from "@/components/code-block"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -80,10 +81,15 @@ export function TemplatePreviewDialog({ open, onClose, type, app, subject, body 
               </div>
             ) : null}
             <div className="grid gap-1">
-              <p className="text-sm font-medium">{t("template.previewBody")}</p>
-              <pre className="max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded-md border bg-muted/40 p-3 font-mono text-sm">
-                {renderedBody || t("messageLog.notProvided")}
-              </pre>
+              <CodeBlock
+                code={renderedBody}
+                language="text"
+                label={t("template.previewBody")}
+                copyable
+                wrap
+                maxHeightClass="max-h-[40vh]"
+                placeholder={t("messageLog.notProvided")}
+              />
             </div>
           </div>
         ) : null}

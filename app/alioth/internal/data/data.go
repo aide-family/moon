@@ -38,12 +38,15 @@ var ProviderSet = wire.NewSet(
 	NewWorkerRepo,
 	NewAgentRepo,
 	NewSSHCommandRepo,
+	NewClusterRepo,
+	NewKubernetesRepo,
 	NewLockClient,
 	NewReadinessChecker,
 	NewPartitionRepo,
 )
 
-// Dependencies 持有数据层共享的数据库连接、ent 客户端、加密盒和分片存储。
+// Dependencies 持有数据层共享的数据库连接、ent 客户端、加密盒、分片存储
+// 和 Kubernetes 客户端缓存。
 type Dependencies struct {
 	db          *sql.DB
 	client      *ent.Client
@@ -51,6 +54,7 @@ type Dependencies struct {
 	history     *historyStore
 	messageLogs *messageLogStore
 	shards      *shardStore
+	clients     *clusterClients
 }
 
 func NewDependencies(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Dependencies, func(), error) {
@@ -80,7 +84,10 @@ func NewDependencies(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Depen
 			logger.Error(fmt.Sprintf("close database: %v", err))
 		}
 	}
-	return &Dependencies{db: db, client: client, box: box, history: history, messageLogs: messageLogs, shards: shards}, cleanup, nil
+	deps := &Dependencies{db: db, client: client, box: box, history: history, messageLogs: messageLogs, shards: shards}
+	// 集群客户端缓存按集群 UID 共享，集群仓储和资源仓储共用同一份。
+	deps.clients = newClusterClients(deps, logger)
+	return deps, cleanup, nil
 }
 
 func Migrate(ctx context.Context, source string) error {

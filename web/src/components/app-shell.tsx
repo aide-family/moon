@@ -2,6 +2,7 @@ import {
   Activity,
   Bell,
   BellRing,
+  Boxes,
   Building2,
   CalendarClock,
   ChevronRight,
@@ -211,6 +212,20 @@ const notifyLinks: {
   },
 ]
 
+const kubeLinks: {
+  to: string
+  label: string
+  permission: string
+  icon: LucideIcon
+}[] = [
+  {
+    to: "/clusters",
+    label: "nav.clusters",
+    permission: "cluster:read",
+    icon: Boxes,
+  },
+]
+
 const edgeLinks: {
   to: string
   label: string
@@ -277,8 +292,7 @@ function NavGroup({
                     asChild
                     isActive={
                       location.pathname === link.to ||
-                      (link.to === "/ssh-commands" &&
-                        location.pathname.startsWith("/ssh-commands/"))
+                      location.pathname.startsWith(`${link.to}/`)
                     }
                     className="border-l-2 border-transparent data-active:border-primary"
                   >
@@ -356,17 +370,24 @@ function ShellFrame() {
   const notifies = notifyLinks.filter(
     (link) => session.namespaceUid !== "" && session.can(link.permission)
   )
+  const kubes = kubeLinks.filter(
+    (link) => session.namespaceUid !== "" && session.can(link.permission)
+  )
   const edges = edgeLinks.filter(
     (link) => session.namespaceUid !== "" && session.can(link.permission)
   )
   const systemActive = visible.some((link) => location.pathname === link.to)
   const alertActive = alerts.some((link) => location.pathname === link.to)
   const notifyActive = notifies.some((link) => location.pathname === link.to)
+  const kubeActive = kubes.some(
+    (link) =>
+      location.pathname === link.to ||
+      location.pathname.startsWith(`${link.to}/`)
+  )
   const edgeActive = edges.some(
     (link) =>
       location.pathname === link.to ||
-      (link.to === "/ssh-commands" &&
-        location.pathname.startsWith("/ssh-commands/"))
+      location.pathname.startsWith(`${link.to}/`)
   )
   // 概览是唯一不带领域前缀的一级入口：它是值班着陆页，不属于某个资源域。
   const overviewActive = location.pathname === "/overview"
@@ -410,7 +431,11 @@ function ShellFrame() {
   return (
     <TooltipProvider>
       <SidebarProvider className="h-svh overflow-hidden">
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar
+          collapsible="icon"
+          variant="sidebar"
+          className="md:border-r md:border-border/60"
+        >
           <SidebarHeader>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -459,6 +484,13 @@ function ShellFrame() {
                     icon={Mail}
                     active={notifyActive}
                     links={notifies}
+                  />
+                  <NavGroup
+                    key={`kube-${kubeActive}`}
+                    label="nav.kubernetes"
+                    icon={Boxes}
+                    active={kubeActive}
+                    links={kubes}
                   />
                   <NavGroup
                     key={`edge-${edgeActive}`}

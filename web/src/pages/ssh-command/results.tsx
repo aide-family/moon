@@ -7,6 +7,7 @@ import { listAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
 import { getSSHCommand, listSSHCommandAudits } from "@/api/ssh-command"
 import type { SSHCommandAuditItem, SSHCommandItem } from "@/api/ssh-command/types"
+import { CodeBlock } from "@/components/code-block"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 
@@ -186,7 +187,14 @@ export function SSHCommandResultsPage() {
                   <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("ssh.command")}</h3>
                   <div className="flex items-start gap-3 rounded-md border bg-muted/30 p-3">
                     <Terminal className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <pre className="min-w-0 whitespace-pre-wrap break-words font-mono text-sm leading-6">{selectedAudit.command || command?.command || "—"}</pre>
+                    <div className="min-w-0 flex-1">
+                      <CodeBlock
+                        variant="plain"
+                        code={selectedAudit.command || command?.command || ""}
+                        language="bash"
+                        wrap
+                      />
+                    </div>
                   </div>
                 </section>
 
@@ -195,7 +203,15 @@ export function SSHCommandResultsPage() {
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("ssh.output")}</h3>
                     <span className="font-mono text-xs text-muted-foreground">{t("ssh.exitCode")}: <span className={selectedAudit.exitCode === 0 ? "text-foreground" : "text-destructive"}>{selectedAudit.exitCode}</span></span>
                   </div>
-                  <pre className="min-h-36 overflow-auto rounded-md border bg-muted/30 p-4 font-mono text-xs leading-6 whitespace-pre-wrap break-words">{selectedAudit.output || selectedAudit.detail || t("ssh.noOutput")}</pre>
+                  <CodeBlock
+                    code={selectedAudit.output || selectedAudit.detail || ""}
+                    language="text"
+                    label={t("ssh.output")}
+                    copyable
+                    wrap
+                    maxHeightClass="max-h-[60vh]"
+                    placeholder={t("ssh.noOutput")}
+                  />
                   {selectedAudit.truncated ? <p className="text-xs text-muted-foreground">{t("ssh.outputTruncated")}</p> : null}
                 </section>
                 {selectedAudit.detail && selectedAudit.output ? (

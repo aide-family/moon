@@ -630,6 +630,27 @@ message AlertRuleLevelInput {
   string level_uid = 5 [json_name = "levelUid", (buf.validate.field).string.min_len = 1];
 }
 
+// 规则上的自定义查询变量。表达式在评测时按主查询命中序列的标签展开，
+// 结果写进摘要和描述模板里以变量名命名的快捷变量。
+message AlertRuleVariableItem {
+  // 模板变量名，^[A-Za-z_][A-Za-z0-9_]{0,31}$。
+  string name = 1;
+  // 查询模板，可用 {{ $labels.xxx }} 继承主查询标签。
+  string expr = 2;
+  // 说明，只用于展示。
+  string description = 3;
+}
+
+// 保存规则时提交的自定义查询变量，校验规则与 AlertRuleVariableItem 相同。
+message AlertRuleVariableInput {
+  // 模板变量名，^[A-Za-z_][A-Za-z0-9_]{0,31}$。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 32, pattern: "^[A-Za-z_][A-Za-z0-9_]{0,31}$"}];
+  // 查询模板，可用 {{ $labels.xxx }} 继承主查询标签。
+  string expr = 2 [(buf.validate.field).string = {min_len: 1, max_len: 4096}];
+  // 说明，只用于展示。
+  string description = 3 [(buf.validate.field).string.max_len = 200];
+}
+
 // 规则。
 message AlertRuleItem {
   // 标识。
@@ -658,6 +679,8 @@ message AlertRuleItem {
   repeated AlertRuleLevelItem levels = 12;
   // 数据源标签匹配器 JSON 对象，值按完整匹配正则命中。空对象表示该类型下全部 ACTIVE 数据源。
   string datasource_labels = 14 [json_name = "datasourceLabels"];
+  // 自定义查询变量，按保存顺序返回。
+  repeated AlertRuleVariableItem variables = 15;
 
   reserved 13;
   reserved "notification_group_uids";
@@ -687,6 +710,8 @@ message CreateAlertRuleRequest {
   repeated AlertRuleLevelInput levels = 10;
   // 数据源标签匹配器 JSON 对象，值按完整匹配正则命中。
   string datasource_labels = 12 [json_name = "datasourceLabels", (buf.validate.field).string.max_len = 4096];
+  // 自定义查询变量，最多 20 个，保存时替换原有变量。
+  repeated AlertRuleVariableInput variables = 13 [(buf.validate.field).repeated.max_items = 20];
 
   reserved 11;
   reserved "notification_group_uids";
@@ -724,6 +749,8 @@ message UpdateAlertRuleRequest {
   repeated AlertRuleLevelInput levels = 11;
   // 数据源标签匹配器 JSON 对象，值按完整匹配正则命中。
   string datasource_labels = 13 [json_name = "datasourceLabels", (buf.validate.field).string.max_len = 4096];
+  // 自定义查询变量，最多 20 个，保存时替换原有变量。
+  repeated AlertRuleVariableInput variables = 14 [(buf.validate.field).repeated.max_items = 20];
 
   reserved 12;
   reserved "notification_group_uids";

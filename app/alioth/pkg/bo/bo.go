@@ -246,6 +246,16 @@ type AlertRule struct {
 	NextEvalAt       *time.Time
 	ScheduledSlot    *time.Time
 	Levels           []AlertRuleLevel
+	// Variables 是摘要和描述模板里可用的自定义查询变量。
+	Variables []AlertRuleVariable
+}
+
+// AlertRuleVariable 是规则上的一条自定义查询变量。名字是模板标识符，
+// 表达式本身也是模板，可以用 {{ $labels.xxx }} 继承主查询命中序列的标签。
+type AlertRuleVariable struct {
+	Name        string
+	Expr        string
+	Description string
 }
 
 // Due 判断规则此刻是否该被调度。停用规则不进入候选。日志和链路规则可以进入候选，由评测方标明未评测。
@@ -340,6 +350,98 @@ type AlertInsight struct {
 	ClosedTotal     int
 	// Complete 为假表示历史分库不可用，结果只含实时表数据。
 	Complete bool
+}
+
+// AlertAnalysisScope 是历史分析接口的公共统计口径。
+// From/To 是统计窗口的边界：From 为本地自然日零点（含），To 为结束日次日的本地零点（不含）。
+// 聚焦时间桶时 From/To 直接换成聚焦窗口。
+type AlertAnalysisScope struct {
+	From     time.Time
+	To       time.Time
+	Location *time.Location
+	// Status 是 SQL 状态过滤值：空值表示全部历史事件；SUPPRESSING 已在 biz 层换算成 FIRING。
+	Status string
+}
+
+// AlertAnalysisSummary 是历史分析页顶部的汇总指标。
+// Repeated 是同一指纹第 2 次及以后的出现次数，不是指纹个数。
+type AlertAnalysisSummary struct {
+	TimeZone           string
+	From               time.Time
+	To                 time.Time
+	Complete           bool
+	Events             int64
+	UniqueFingerprints int64
+	Repeated           int64
+}
+
+// AlertAnalysisBucket 是趋势图的一个非空时间桶。Start 为该桶在本地时区的起点。
+type AlertAnalysisBucket struct {
+	Start  time.Time
+	Events int64
+}
+
+// AlertAnalysisTrend 是趋势图的分桶结果，只包含非空桶，按桶起点升序。
+type AlertAnalysisTrend struct {
+	TimeZone string
+	From     time.Time
+	To       time.Time
+	Complete bool
+	Buckets  []AlertAnalysisBucket
+}
+
+// AlertAnalysisStatusCount 是一种事件状态的事件数。
+type AlertAnalysisStatusCount struct {
+	Status string
+	Events int64
+}
+
+// AlertAnalysisStatus 是事件状态分布。Total 是各项之和。
+type AlertAnalysisStatus struct {
+	Complete bool
+	Total    int64
+	Items    []AlertAnalysisStatusCount
+}
+
+// AlertAnalysisLevelCount 是一个告警级别的事件数。LevelUID 为空表示事件没有级别。
+type AlertAnalysisLevelCount struct {
+	LevelUID string
+	Events   int64
+}
+
+// AlertAnalysisLevel 是告警级别分布。Total 是各项之和。
+type AlertAnalysisLevel struct {
+	Complete bool
+	Total    int64
+	Items    []AlertAnalysisLevelCount
+}
+
+// AlertAnalysisFingerprint 是一个重复出现的事件指纹。Events 只统计大于 1 的指纹。
+type AlertAnalysisFingerprint struct {
+	Fingerprint string
+	RuleUID     string
+	RuleName    string
+	Events      int64
+}
+
+// AlertAnalysisFingerprints 是重复指纹列表，按事件数降序。
+type AlertAnalysisFingerprints struct {
+	Complete bool
+	Items    []AlertAnalysisFingerprint
+}
+
+// AlertAnalysisRecoveryStats 是一类恢复方式的闭环时长统计，只统计 ends_at 非空的事件。
+type AlertAnalysisRecoveryStats struct {
+	MedianSeconds float64
+	P90Seconds    float64
+	Samples       int64
+}
+
+// AlertAnalysisRecovery 是自动恢复与人工恢复的闭环时长。
+type AlertAnalysisRecovery struct {
+	Complete bool
+	Auto     AlertAnalysisRecoveryStats
+	Manual   AlertAnalysisRecoveryStats
 }
 
 // RealtimeAlertTabCount 是一个实时 Tab 的告警数量。

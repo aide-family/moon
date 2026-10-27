@@ -19,6 +19,12 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationAlertEventServiceAlertEventRealtimeStats = "/alioth.v1.AlertEventService/AlertEventRealtimeStats"
 const OperationAlertEventServiceAlertEventStats = "/alioth.v1.AlertEventService/AlertEventStats"
+const OperationAlertEventServiceGetAlertAnalysisFingerprints = "/alioth.v1.AlertEventService/GetAlertAnalysisFingerprints"
+const OperationAlertEventServiceGetAlertAnalysisLevel = "/alioth.v1.AlertEventService/GetAlertAnalysisLevel"
+const OperationAlertEventServiceGetAlertAnalysisRecovery = "/alioth.v1.AlertEventService/GetAlertAnalysisRecovery"
+const OperationAlertEventServiceGetAlertAnalysisStatus = "/alioth.v1.AlertEventService/GetAlertAnalysisStatus"
+const OperationAlertEventServiceGetAlertAnalysisSummary = "/alioth.v1.AlertEventService/GetAlertAnalysisSummary"
+const OperationAlertEventServiceGetAlertAnalysisTrend = "/alioth.v1.AlertEventService/GetAlertAnalysisTrend"
 const OperationAlertEventServiceGetAlertEvent = "/alioth.v1.AlertEventService/GetAlertEvent"
 const OperationAlertEventServiceGetAlertEventChart = "/alioth.v1.AlertEventService/GetAlertEventChart"
 const OperationAlertEventServiceGetAlertInsight = "/alioth.v1.AlertEventService/GetAlertInsight"
@@ -34,6 +40,18 @@ type AlertEventServiceHTTPServer interface {
 	AlertEventRealtimeStats(context.Context, *AlertEventRealtimeStatsRequest) (*AlertEventRealtimeStatsResponse, error)
 	// AlertEventStats 统计当前租户的实时、抑制和已恢复数量。
 	AlertEventStats(context.Context, *AlertEventStatsRequest) (*AlertEventStatsResponse, error)
+	// GetAlertAnalysisFingerprints 历史分析页的重复指纹：出现两次及以上的指纹、所属规则与事件数。
+	GetAlertAnalysisFingerprints(context.Context, *GetAlertAnalysisFingerprintsRequest) (*GetAlertAnalysisFingerprintsResponse, error)
+	// GetAlertAnalysisLevel 历史分析页的级别分布：按告警级别统计事件数。
+	GetAlertAnalysisLevel(context.Context, *GetAlertAnalysisLevelRequest) (*GetAlertAnalysisLevelResponse, error)
+	// GetAlertAnalysisRecovery 历史分析页的恢复时长：自动恢复与人工恢复的闭环时长中位数和 P90。
+	GetAlertAnalysisRecovery(context.Context, *GetAlertAnalysisRecoveryRequest) (*GetAlertAnalysisRecoveryResponse, error)
+	// GetAlertAnalysisStatus 历史分析页的状态分布：按事件状态统计事件数。
+	GetAlertAnalysisStatus(context.Context, *GetAlertAnalysisStatusRequest) (*GetAlertAnalysisStatusResponse, error)
+	// GetAlertAnalysisSummary 历史分析页的顶部汇总：事件总数、去重指纹数与重复事件数。
+	GetAlertAnalysisSummary(context.Context, *GetAlertAnalysisSummaryRequest) (*GetAlertAnalysisSummaryResponse, error)
+	// GetAlertAnalysisTrend 历史分析页的趋势：按小时、天、周或月分桶统计事件数，只返回非空桶。
+	GetAlertAnalysisTrend(context.Context, *GetAlertAnalysisTrendRequest) (*GetAlertAnalysisTrendResponse, error)
 	// GetAlertEvent 获取一条告警事件。
 	GetAlertEvent(context.Context, *GetAlertEventRequest) (*GetAlertEventResponse, error)
 	// GetAlertEventChart 查询事件开始至今的原始区间数据，用于事件图表。
@@ -63,6 +81,12 @@ func RegisterAlertEventServiceHTTPServer(s *http.Server, srv AlertEventServiceHT
 	r.Handle("GET", "/v1/alert-event-stats", _AlertEventService_AlertEventStats0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/alert-event-realtime-stats", _AlertEventService_AlertEventRealtimeStats0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/alert-insight", _AlertEventService_GetAlertInsight0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-analysis/summary", _AlertEventService_GetAlertAnalysisSummary0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-analysis/trend", _AlertEventService_GetAlertAnalysisTrend0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-analysis/status", _AlertEventService_GetAlertAnalysisStatus0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-analysis/level", _AlertEventService_GetAlertAnalysisLevel0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-analysis/fingerprints", _AlertEventService_GetAlertAnalysisFingerprints0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-analysis/recovery", _AlertEventService_GetAlertAnalysisRecovery0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/{uid}/intervene", _AlertEventService_InterveneAlertEvent0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/intervene", _AlertEventService_InterveneAlertEvents0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/{uid}/suppress", _AlertEventService_SuppressAlertEvent0_HTTP_Handler(srv))
@@ -190,6 +214,120 @@ func _AlertEventService_GetAlertInsight0_HTTP_Handler(srv AlertEventServiceHTTPS
 	}
 }
 
+func _AlertEventService_GetAlertAnalysisSummary0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAlertAnalysisSummaryRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceGetAlertAnalysisSummary)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAlertAnalysisSummary(ctx, req.(*GetAlertAnalysisSummaryRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAlertAnalysisSummaryResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertEventService_GetAlertAnalysisTrend0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAlertAnalysisTrendRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceGetAlertAnalysisTrend)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAlertAnalysisTrend(ctx, req.(*GetAlertAnalysisTrendRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAlertAnalysisTrendResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertEventService_GetAlertAnalysisStatus0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAlertAnalysisStatusRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceGetAlertAnalysisStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAlertAnalysisStatus(ctx, req.(*GetAlertAnalysisStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAlertAnalysisStatusResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertEventService_GetAlertAnalysisLevel0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAlertAnalysisLevelRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceGetAlertAnalysisLevel)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAlertAnalysisLevel(ctx, req.(*GetAlertAnalysisLevelRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAlertAnalysisLevelResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertEventService_GetAlertAnalysisFingerprints0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAlertAnalysisFingerprintsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceGetAlertAnalysisFingerprints)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAlertAnalysisFingerprints(ctx, req.(*GetAlertAnalysisFingerprintsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAlertAnalysisFingerprintsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertEventService_GetAlertAnalysisRecovery0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAlertAnalysisRecoveryRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceGetAlertAnalysisRecovery)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAlertAnalysisRecovery(ctx, req.(*GetAlertAnalysisRecoveryRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAlertAnalysisRecoveryResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AlertEventService_InterveneAlertEvent0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in InterveneAlertEventRequest
@@ -299,6 +437,18 @@ type AlertEventServiceHTTPClient interface {
 	AlertEventRealtimeStats(ctx context.Context, req *AlertEventRealtimeStatsRequest, opts ...http.CallOption) (rsp *AlertEventRealtimeStatsResponse, err error)
 	// AlertEventStats 统计当前租户的实时、抑制和已恢复数量。
 	AlertEventStats(ctx context.Context, req *AlertEventStatsRequest, opts ...http.CallOption) (rsp *AlertEventStatsResponse, err error)
+	// GetAlertAnalysisFingerprints 历史分析页的重复指纹：出现两次及以上的指纹、所属规则与事件数。
+	GetAlertAnalysisFingerprints(ctx context.Context, req *GetAlertAnalysisFingerprintsRequest, opts ...http.CallOption) (rsp *GetAlertAnalysisFingerprintsResponse, err error)
+	// GetAlertAnalysisLevel 历史分析页的级别分布：按告警级别统计事件数。
+	GetAlertAnalysisLevel(ctx context.Context, req *GetAlertAnalysisLevelRequest, opts ...http.CallOption) (rsp *GetAlertAnalysisLevelResponse, err error)
+	// GetAlertAnalysisRecovery 历史分析页的恢复时长：自动恢复与人工恢复的闭环时长中位数和 P90。
+	GetAlertAnalysisRecovery(ctx context.Context, req *GetAlertAnalysisRecoveryRequest, opts ...http.CallOption) (rsp *GetAlertAnalysisRecoveryResponse, err error)
+	// GetAlertAnalysisStatus 历史分析页的状态分布：按事件状态统计事件数。
+	GetAlertAnalysisStatus(ctx context.Context, req *GetAlertAnalysisStatusRequest, opts ...http.CallOption) (rsp *GetAlertAnalysisStatusResponse, err error)
+	// GetAlertAnalysisSummary 历史分析页的顶部汇总：事件总数、去重指纹数与重复事件数。
+	GetAlertAnalysisSummary(ctx context.Context, req *GetAlertAnalysisSummaryRequest, opts ...http.CallOption) (rsp *GetAlertAnalysisSummaryResponse, err error)
+	// GetAlertAnalysisTrend 历史分析页的趋势：按小时、天、周或月分桶统计事件数，只返回非空桶。
+	GetAlertAnalysisTrend(ctx context.Context, req *GetAlertAnalysisTrendRequest, opts ...http.CallOption) (rsp *GetAlertAnalysisTrendResponse, err error)
 	// GetAlertEvent 获取一条告警事件。
 	GetAlertEvent(ctx context.Context, req *GetAlertEventRequest, opts ...http.CallOption) (rsp *GetAlertEventResponse, err error)
 	// GetAlertEventChart 查询事件开始至今的原始区间数据，用于事件图表。
@@ -353,6 +503,108 @@ func (c *AlertEventServiceHTTPClientImpl) AlertEventStats(ctx context.Context, i
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationAlertEventServiceAlertEventStats),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAlertAnalysisFingerprints 历史分析页的重复指纹：出现两次及以上的指纹、所属规则与事件数。
+func (c *AlertEventServiceHTTPClientImpl) GetAlertAnalysisFingerprints(ctx context.Context, in *GetAlertAnalysisFingerprintsRequest, opts ...http.CallOption) (*GetAlertAnalysisFingerprintsResponse, error) {
+	var out GetAlertAnalysisFingerprintsResponse
+	pattern := "/v1/alert-analysis/fingerprints"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceGetAlertAnalysisFingerprints),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAlertAnalysisLevel 历史分析页的级别分布：按告警级别统计事件数。
+func (c *AlertEventServiceHTTPClientImpl) GetAlertAnalysisLevel(ctx context.Context, in *GetAlertAnalysisLevelRequest, opts ...http.CallOption) (*GetAlertAnalysisLevelResponse, error) {
+	var out GetAlertAnalysisLevelResponse
+	pattern := "/v1/alert-analysis/level"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceGetAlertAnalysisLevel),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAlertAnalysisRecovery 历史分析页的恢复时长：自动恢复与人工恢复的闭环时长中位数和 P90。
+func (c *AlertEventServiceHTTPClientImpl) GetAlertAnalysisRecovery(ctx context.Context, in *GetAlertAnalysisRecoveryRequest, opts ...http.CallOption) (*GetAlertAnalysisRecoveryResponse, error) {
+	var out GetAlertAnalysisRecoveryResponse
+	pattern := "/v1/alert-analysis/recovery"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceGetAlertAnalysisRecovery),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAlertAnalysisStatus 历史分析页的状态分布：按事件状态统计事件数。
+func (c *AlertEventServiceHTTPClientImpl) GetAlertAnalysisStatus(ctx context.Context, in *GetAlertAnalysisStatusRequest, opts ...http.CallOption) (*GetAlertAnalysisStatusResponse, error) {
+	var out GetAlertAnalysisStatusResponse
+	pattern := "/v1/alert-analysis/status"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceGetAlertAnalysisStatus),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAlertAnalysisSummary 历史分析页的顶部汇总：事件总数、去重指纹数与重复事件数。
+func (c *AlertEventServiceHTTPClientImpl) GetAlertAnalysisSummary(ctx context.Context, in *GetAlertAnalysisSummaryRequest, opts ...http.CallOption) (*GetAlertAnalysisSummaryResponse, error) {
+	var out GetAlertAnalysisSummaryResponse
+	pattern := "/v1/alert-analysis/summary"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceGetAlertAnalysisSummary),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAlertAnalysisTrend 历史分析页的趋势：按小时、天、周或月分桶统计事件数，只返回非空桶。
+func (c *AlertEventServiceHTTPClientImpl) GetAlertAnalysisTrend(ctx context.Context, in *GetAlertAnalysisTrendRequest, opts ...http.CallOption) (*GetAlertAnalysisTrendResponse, error) {
+	var out GetAlertAnalysisTrendResponse
+	pattern := "/v1/alert-analysis/trend"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceGetAlertAnalysisTrend),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

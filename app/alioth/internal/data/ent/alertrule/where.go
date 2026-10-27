@@ -119,6 +119,11 @@ func Description(v string) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldEQ(FieldDescription, v))
 }
 
+// Variables applies equality check predicate on the "variables" field. It's identical to VariablesEQ.
+func Variables(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldVariables, v))
+}
+
 // NextEvalAt applies equality check predicate on the "next_eval_at" field. It's identical to NextEvalAtEQ.
 func NextEvalAt(v time.Time) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldEQ(FieldNextEvalAt, v))
@@ -947,6 +952,71 @@ func DescriptionEqualFold(v string) predicate.AlertRule {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// VariablesEQ applies the EQ predicate on the "variables" field.
+func VariablesEQ(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldVariables, v))
+}
+
+// VariablesNEQ applies the NEQ predicate on the "variables" field.
+func VariablesNEQ(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNEQ(FieldVariables, v))
+}
+
+// VariablesIn applies the In predicate on the "variables" field.
+func VariablesIn(vs ...string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldIn(FieldVariables, vs...))
+}
+
+// VariablesNotIn applies the NotIn predicate on the "variables" field.
+func VariablesNotIn(vs ...string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNotIn(FieldVariables, vs...))
+}
+
+// VariablesGT applies the GT predicate on the "variables" field.
+func VariablesGT(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGT(FieldVariables, v))
+}
+
+// VariablesGTE applies the GTE predicate on the "variables" field.
+func VariablesGTE(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGTE(FieldVariables, v))
+}
+
+// VariablesLT applies the LT predicate on the "variables" field.
+func VariablesLT(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLT(FieldVariables, v))
+}
+
+// VariablesLTE applies the LTE predicate on the "variables" field.
+func VariablesLTE(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLTE(FieldVariables, v))
+}
+
+// VariablesContains applies the Contains predicate on the "variables" field.
+func VariablesContains(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldContains(FieldVariables, v))
+}
+
+// VariablesHasPrefix applies the HasPrefix predicate on the "variables" field.
+func VariablesHasPrefix(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldHasPrefix(FieldVariables, v))
+}
+
+// VariablesHasSuffix applies the HasSuffix predicate on the "variables" field.
+func VariablesHasSuffix(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldHasSuffix(FieldVariables, v))
+}
+
+// VariablesEqualFold applies the EqualFold predicate on the "variables" field.
+func VariablesEqualFold(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEqualFold(FieldVariables, v))
+}
+
+// VariablesContainsFold applies the ContainsFold predicate on the "variables" field.
+func VariablesContainsFold(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldContainsFold(FieldVariables, v))
 }
 
 // NextEvalAtEQ applies the EQ predicate on the "next_eval_at" field.

@@ -34,12 +34,14 @@ const knownPaths = new Set([
   "/notification-subscriptions",
   "/notification-oncalls",
   "/message-logs",
+  "/clusters",
   "/agents",
   "/ssh-commands",
 ])
 
 // 带 uid 的详情页无法穷举，用模式匹配。
 const knownPatterns = [
+  /^\/clusters\/[^/]+$/,
   /^\/agents\/[^/]+\/shell$/,
   /^\/ssh-commands\/[^/]+\/results$/,
 ]

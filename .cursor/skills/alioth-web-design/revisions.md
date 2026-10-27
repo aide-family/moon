@@ -1,3 +1,28 @@
+## 2026-10-27 壳层分割线、资料页第三方账号与登录备案
+
+适用：全局壳、个人资料页、登录/注册/OAuth 回调页。
+
+- 主内容区不再用 inset 卡片：`Sidebar` 改回默认 `variant="sidebar"`，`SidebarInset` 不保留外边距、圆角或阴影，内容区与视口齐平；菜单与内容之间只用一条 1px 竖线分隔，不再出现圆角浮层和投影。
+- 菜单右侧分割线与顶栏下边框保持同一颜色，统一用 `border-border/60`；不要另造更亮的分割线 token（试过 `--sidebar-divider`，用户反馈太亮已回退）。
+- 个人资料页 `xl` 及以上两栏：个人资料卡在左、第三方账号卡在右，容器 `xl:max-w-5xl xl:grid-cols-2`；更窄屏幕保持单栏 `max-w-2xl`。已绑定的第三方账号必须逐项展示明细（第三方账号、OpenID、绑定时间），不能只拼一行。
+- 登录页底部居中放备案号链接，外链 `https://beian.miit.gov.cn/`；目前没有真实备案号，先用占位号（`login.icp`），拿到后只改文案。
+
+## 2026-10-27 Kubernetes 集群详情默认视图、筛选框与命名空间选择
+
+适用：Kubernetes 集群列表，以及集群详情页的资源导航、筛选条和命名空间选择。
+
+- 从集群列表点「详情」进入时默认落在「集群概况」，URL 不写 `tab`；其他资源视图一律显式写 `tab`，没有 `tab` 的旧链接也按概况处理。
+- 清单筛选只保留输入框与 placeholder，不再渲染可见 label；无障碍名称改由 `aria-label` 承担。节点、Pod、工作负载等所有资源视图共用同一套无 label 筛选条，集群列表的名称搜索同样处理。
+- 命名空间选择使用共享 `SearchableSelect`：弹出面板提供「搜索命名空间」输入框和可勾选选项，第一项为「全部命名空间」（空值）；选中后写回 URL 的 `namespace`，窄屏下弹层必须完整落在视口内。
+
+## 2026-10-27 对话框固定头尾与 GitHub 代码块编辑器
+
+适用：全局新建/编辑对话框，以及需要编辑 kubeconfig、YAML/JSON 等配置的字段。
+
+- 对话框固定三段式：`DialogContent` 保持 `flex max-h-[80vh] flex-col overflow-hidden`；`DialogHeader` / `DialogFooter` 加 `shrink-0` 固定，只有中间内容区 `min-h-0 flex-1 overflow-y-auto` 纵向滚动。页脚操作按钮不随内容滚动，内容再多也不能把「取消/保存」挤出视口。
+- 表单级提交错误放在滚动区之外、页脚之上；字段级错误仍留在对应字段下方（滚动区内）。
+- 可编辑配置（kubeconfig、YAML/JSON 等）不用 `Textarea`，用共享 `CodeEditor`：GitHub light/dark 配色（与 `CodeBlock` 同一套 `--code-bg` / `--code-fg`）、等宽字体、无行号、无行高亮、无 overview/glyph/folding，内容超出时在编辑器内部滚动；外框沿用 `CodeBlock` 卡片样式（`rounded-lg border border-border/70` + 语言标题栏）。编辑器放 `sm:col-span-full`，随内容区一起滚动。
+
 ## 2026-10-22 顶栏租户切换与项目仓库入口
 
 适用：全局顶栏。

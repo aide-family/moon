@@ -24,6 +24,16 @@ type RuleSnapshot struct {
 	TimeField    string
 	Levels       []Level
 	Firing       []string
+	// Variables 是摘要和描述模板里可用的自定义查询变量。
+	Variables []Variable
+}
+
+// Variable 是一条自定义查询变量。Expr 是查询模板，展开时可用主查询命中
+// 序列的标签（{{ $labels.xxx }}），再按数据源做即时查询。
+type Variable struct {
+	Name        string
+	Expr        string
+	Description string
 }
 
 // Level 是一条级别条件。

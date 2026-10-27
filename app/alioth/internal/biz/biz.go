@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/cluster"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/health"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/member"
@@ -42,5 +43,6 @@ var ProviderSet = wire.NewSet(
 	agent.ProviderSet,
 	ssh.ProviderSet,
 	partition.ProviderSet,
+	cluster.ProviderSet,
 	wire.Bind(new(auth.AgentTokenLookup), new(*agent.Registry)),
 )

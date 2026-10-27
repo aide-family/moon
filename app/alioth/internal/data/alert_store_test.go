@@ -136,9 +136,25 @@ func TestAlertStore(t *testing.T) {
 	}
 	enabled, err := rules.CreateAlertRule(ctx, bo.AlertRule{
 		NamespaceUID: ns, GroupUID: group.UID, Name: "cpu", Driver: "METRICS_PROMETHEUS", Expr: "up",
+		Variables: []bo.AlertRuleVariable{{Name: "disk_free", Expr: "1 + 1", Description: "剩余容量"}},
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+	// 变量写入后要能原样读回，字段和顺序都不能变。
+	if len(enabled.Variables) != 1 || enabled.Variables[0] != (bo.AlertRuleVariable{Name: "disk_free", Expr: "1 + 1", Description: "剩余容量"}) {
+		t.Fatalf("created variables = %+v", enabled.Variables)
+	}
+	updated, err := rules.UpdateAlertRule(ctx, bo.AlertRule{
+		UID: enabled.UID, NamespaceUID: ns, GroupUID: group.UID, Name: "cpu", Driver: "METRICS_PROMETHEUS", Expr: "up",
+		Variables: []bo.AlertRuleVariable{{Name: "load", Expr: "2 + 2"}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 保存时整列替换：旧变量不能残留，空说明也按空字符串读回。
+	if len(updated.Variables) != 1 || updated.Variables[0] != (bo.AlertRuleVariable{Name: "load", Expr: "2 + 2"}) {
+		t.Fatalf("updated variables = %+v", updated.Variables)
 	}
 	disabled, err := rules.CreateAlertRule(ctx, bo.AlertRule{
 		NamespaceUID: ns, GroupUID: group.UID, Name: "mem", Driver: "METRICS_PROMETHEUS", Expr: "up",

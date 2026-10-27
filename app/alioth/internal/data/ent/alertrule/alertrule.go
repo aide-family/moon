@@ -44,6 +44,8 @@ const (
 	FieldSummary = "summary"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldVariables holds the string denoting the variables field in the database.
+	FieldVariables = "variables"
 	// FieldNextEvalAt holds the string denoting the next_eval_at field in the database.
 	FieldNextEvalAt = "next_eval_at"
 	// FieldScheduledSlot holds the string denoting the scheduled_slot field in the database.
@@ -70,6 +72,7 @@ var Columns = []string{
 	FieldDatasourceLabels,
 	FieldSummary,
 	FieldDescription,
+	FieldVariables,
 	FieldNextEvalAt,
 	FieldScheduledSlot,
 }
@@ -111,6 +114,8 @@ var (
 	DefaultSummary string
 	// DefaultDescription holds the default value on creation for the "description" field.
 	DefaultDescription string
+	// DefaultVariables holds the default value on creation for the "variables" field.
+	DefaultVariables string
 )
 
 // Driver defines the type for the "driver" enum field.
@@ -247,6 +252,11 @@ func BySummary(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByVariables orders the results by the variables field.
+func ByVariables(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVariables, opts...).ToFunc()
 }
 
 // ByNextEvalAt orders the results by the next_eval_at field.

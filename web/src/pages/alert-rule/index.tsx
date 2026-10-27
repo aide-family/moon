@@ -23,9 +23,11 @@ import type {
   AlertRuleGroupItem,
   AlertRuleItem,
   AlertRuleLevelInput,
+  AlertRuleVariable,
 } from "@/api/alert-rule/types"
 import { listDatasources } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
+import { ApiError } from "@/api/http"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -110,6 +112,52 @@ const drivers = [
 const conditions = ["EQ", "NE", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN"]
 const samples = ["FOR", "MAX", "MIN"]
 
+// 自定义变量的前端约束与后端 alertrule.prepare 保持一致：
+// 名字是 ASCII 模板标识符且在规则内唯一，数量/长度有上限，保留名不能再定义。
+const maxRuleVariables = 20
+const ruleVariableNameMax = 32
+const ruleVariableExprMax = 4096
+const ruleVariableDescriptionMax = 200
+const ruleVariableNamePattern = /^[A-Za-z_][A-Za-z0-9_]{0,31}$/
+const reservedRuleVariableNames = new Set([
+  "labels",
+  "value",
+  "externalURL",
+  "externalLabels",
+])
+
+// 后端 validateRuleVariables 的固定错误原文 → 变量区的 i18n key。原文变化时
+// 退回通用提示，不会把英文原文直接显示在中文界面里。
+const ruleVariableErrorKeys: Record<string, string> = {
+  "too many variables": "alertRule.variableCountExceeded",
+  "invalid variable name": "alertRule.variableNameInvalid",
+  "reserved variable name": "alertRule.variableNameReserved",
+  "duplicate variable name": "alertRule.variableNameDuplicate",
+  "empty variable expr": "alertRule.variableExprRequired",
+  "variable expr is too long": "alertRule.variableExprTooLong",
+  "variable description is too long": "alertRule.variableDescriptionTooLong",
+  "invalid variable template": "alertRule.variableExprInvalid",
+}
+
+const emptyVariable: AlertRuleVariable = { name: "", expr: "", description: "" }
+
+// 变量查询语句的语言跟随规则驱动：不同数据源的示例不能混用，链路规则尚未
+// 参与评测，因此不展示任何查询示例。返回 i18n key 的后缀。
+function variableDriverKey(driver: string): "Metrics" | "Loki" | "Vlogs" | "Es" | "Trace" {
+  switch (driver) {
+    case "LOGS_LOKI":
+      return "Loki"
+    case "LOGS_VLOGS":
+      return "Vlogs"
+    case "LOGS_ELASTICSEARCH":
+      return "Es"
+    case "TRACE_JAEGER":
+      return "Trace"
+    default:
+      return "Metrics"
+  }
+}
+
 interface RuleDraft {
   name: string
   driver: string
@@ -118,6 +166,7 @@ interface RuleDraft {
   datasourceLabels: LabelPair[]
   summary: string
   description: string
+  variables: AlertRuleVariable[]
   levels: AlertRuleLevelInput[]
 }
 
@@ -137,6 +186,7 @@ const emptyRule: RuleDraft = {
   datasourceLabels: [{ key: "", value: "" }],
   summary: "",
   description: "",
+  variables: [],
   levels: [{ ...emptyLevel }],
 }
 
@@ -197,6 +247,14 @@ export function AlertRulePage() {
     form.datasourceLabels
   )
   const labelKeys = useMemo(() => ruleLabelKeys(form.labels), [form.labels])
+  // 摘要/描述模板补全用：已声明且格式合法的变量名（空行和非法名字不参与补全）。
+  const variableNames = useMemo(
+    () =>
+      form.variables
+        .map((variable) => variable.name.trim())
+        .filter((name) => ruleVariableNamePattern.test(name)),
+    [form.variables]
+  )
   // 表达式编辑器为空时按驱动给出对应语言的示例，避免占位文案和查询语言不匹配。
   const exprPlaceholder =
     form.driver === "LOGS_LOKI"
@@ -206,6 +264,16 @@ export function AlertRulePage() {
         : form.driver === "LOGS_ELASTICSEARCH"
           ? t("alertRule.exprPlaceholderEs")
           : t("alertRule.exprPlaceholderMetrics")
+  // 自定义变量的示例、占位和说明按驱动选择，避免在 Loki/ES 规则里出现 PromQL。
+  const variableDriver = variableDriverKey(form.driver)
+  const variableExprPlaceholder = t(
+    `alertRule.variableExprPlaceholder${variableDriver}`
+  )
+  const variableExprHint = t(`alertRule.variableExprHint${variableDriver}`)
+  const variableExample =
+    variableDriver === "Trace"
+      ? ""
+      : t(`alertRule.variableExample${variableDriver}`)
   // 「数据源类型」就是规则驱动：匹配键 = 系统键 + 同驱动启用数据源的自定义标签键。
   // 具体的值在渲染每个匹配标签时按当前键推导。
   const datasourceMatchKeyOptions = useMemo(
@@ -423,6 +491,11 @@ export function AlertRulePage() {
             datasourceLabels: parseLabelPairs(item.datasourceLabels),
             summary: item.summary,
             description: item.description,
+            variables: (item.variables ?? []).map((variable) => ({
+              name: variable.name,
+              expr: variable.expr,
+              description: variable.description ?? "",
+            })),
             levels: item.levels.length
               ? item.levels.map((level) => ({
                   condition: level.condition,
@@ -446,6 +519,15 @@ export function AlertRulePage() {
       current === index ? { ...pair, ...patch } : pair
     )
     setForm({ ...form, datasourceLabels })
+  }
+
+  function updateVariable(index: number, patch: Partial<AlertRuleVariable>) {
+    setForm({
+      ...form,
+      variables: form.variables.map((variable, current) =>
+        current === index ? { ...variable, ...patch } : variable
+      ),
+    })
   }
 
   // 打开详情时先用列表快照立即出内容，再用单条接口刷新；切换规则时不覆盖新详情。
@@ -502,7 +584,7 @@ export function AlertRulePage() {
       ])
     }
     if (step === 1) {
-      return collectFieldErrors([
+      const checks: Array<[string, string | null]> = [
         [
           "summary",
           maxLength(form.summary, 2000, t("alertRule.templateTooLong")),
@@ -511,7 +593,66 @@ export function AlertRulePage() {
           "description",
           maxLength(form.description, 2000, t("alertRule.templateTooLong")),
         ],
-      ])
+      ]
+      if (form.variables.length > maxRuleVariables) {
+        checks.push([
+          "variables",
+          t("alertRule.variableCountExceeded", { max: maxRuleVariables }),
+        ])
+      }
+      // 重名只标后出现的那一行；name 为空时交给 required 报错。
+      const seenNames = new Set<string>()
+      form.variables.forEach((variable, index) => {
+        const name = variable.name.trim()
+        const invalidName = name !== "" && !ruleVariableNamePattern.test(name)
+        const reservedName =
+          name !== "" && reservedRuleVariableNames.has(name)
+        const duplicateName = name !== "" && seenNames.has(name)
+        if (name !== "" && !duplicateName) {
+          seenNames.add(name)
+        }
+        checks.push(
+          [
+            `variable.${index}.name`,
+            requireTrimmed(variable.name, t("form.required")),
+          ],
+          [
+            `variable.${index}.name`,
+            invalidName ? t("alertRule.variableNameInvalid") : null,
+          ],
+          [
+            `variable.${index}.name`,
+            reservedName ? t("alertRule.variableNameReserved") : null,
+          ],
+          [
+            `variable.${index}.name`,
+            duplicateName ? t("alertRule.variableNameDuplicate") : null,
+          ],
+          [
+            `variable.${index}.expr`,
+            requireTrimmed(variable.expr, t("form.required")),
+          ],
+          [
+            `variable.${index}.expr`,
+            maxLength(
+              variable.expr,
+              ruleVariableExprMax,
+              t("alertRule.variableExprTooLong", { max: ruleVariableExprMax })
+            ),
+          ],
+          [
+            `variable.${index}.description`,
+            maxLength(
+              variable.description,
+              ruleVariableDescriptionMax,
+              t("alertRule.variableDescriptionTooLong", {
+                max: ruleVariableDescriptionMax,
+              })
+            ),
+          ]
+        )
+      })
+      return collectFieldErrors(checks)
     }
     if (step === 2) {
       if (form.levels.length === 0) {
@@ -549,6 +690,34 @@ export function AlertRulePage() {
     return {}
   }
 
+  // 后端的变量校验（名字、保留名、重名、数量、语句长度、模板语法）以 400 错误
+  // 原文返回，字段路径不固定是 variables[0].name 这种形状。统一识别后落到第二步
+  // 的「自定义变量」区域，避免用户只看到一条全局报错却不知道改哪。
+  function variableFailureMessage(err: unknown): string {
+    if (!(err instanceof ApiError) || err.status !== 400) {
+      return ""
+    }
+    const key = ruleVariableErrorKeys[err.raw.trim()]
+    if (key) {
+      const vars: Record<string, number> = {}
+      if (key === "alertRule.variableCountExceeded") {
+        vars.max = maxRuleVariables
+      } else if (key === "alertRule.variableExprTooLong") {
+        vars.max = ruleVariableExprMax
+      } else if (key === "alertRule.variableDescriptionTooLong") {
+        vars.max = ruleVariableDescriptionMax
+      }
+      return t(key, vars)
+    }
+    const hasVariableField = Object.keys(err.fields).some((key) =>
+      key.toLowerCase().includes("variable")
+    )
+    if (hasVariableField || err.raw.toLowerCase().includes("variable")) {
+      return t("alertRule.variablesInvalid")
+    }
+    return ""
+  }
+
   async function onSaveRule(event: React.FormEvent) {
     event.preventDefault()
     if (!groupUid) {
@@ -577,6 +746,11 @@ export function AlertRulePage() {
         name: form.name.trim(),
         groupUid,
         datasourceLabels: serializeLabelPairs(form.datasourceLabels),
+        variables: form.variables.map((variable) => ({
+          name: variable.name.trim(),
+          expr: variable.expr.trim(),
+          description: variable.description.trim(),
+        })),
       }
       if (editingRule) {
         await updateAlertRule({ ...body, uid: editingRule.uid })
@@ -595,6 +769,13 @@ export function AlertRulePage() {
           : ""
       if (templateField) {
         setFieldErrors({ [templateField]: t("alertRule.templateInvalid") })
+        setError("")
+        setFormStep(1)
+        return
+      }
+      const variableError = variableFailureMessage(err)
+      if (variableError) {
+        setFieldErrors({ variables: variableError })
         setError("")
         setFormStep(1)
         return
@@ -1222,6 +1403,7 @@ export function AlertRulePage() {
                     datasourceDriver={form.driver}
                     expression={form.expr}
                     labelKeys={labelKeys}
+                    variableNames={variableNames}
                     placeholder={t("alertRule.summaryPlaceholder")}
                     ariaLabel={t("alertRule.summary")}
                     onChange={(value) => setForm({ ...form, summary: value })}
@@ -1241,6 +1423,7 @@ export function AlertRulePage() {
                     datasourceDriver={form.driver}
                     expression={form.expr}
                     labelKeys={labelKeys}
+                    variableNames={variableNames}
                     placeholder={t("alertRule.descriptionPlaceholder")}
                     ariaLabel={t("alertRule.descriptionField")}
                     onChange={(value) =>
@@ -1248,6 +1431,139 @@ export function AlertRulePage() {
                     }
                   />
                 </FormField>
+                <div className="grid min-w-0 gap-2 sm:col-span-full">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium">
+                      {t("alertRule.variables")}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={form.variables.length >= maxRuleVariables}
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          variables: [
+                            ...form.variables,
+                            { ...emptyVariable },
+                          ],
+                        })
+                      }
+                    >
+                      {t("alertRule.addVariable")}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("alertRule.variablesHint")}
+                  </p>
+                  {variableExample ? (
+                    <p className="font-mono text-xs break-all text-muted-foreground">
+                      {variableExample}
+                    </p>
+                  ) : null}
+                  {fieldErrors.variables ? (
+                    <p role="alert" className="text-sm text-destructive">
+                      {fieldErrors.variables}
+                    </p>
+                  ) : null}
+                  {form.variables.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      {t("alertRule.variablesEmpty")}
+                    </p>
+                  ) : null}
+                  {form.variables.map((variable, index) => (
+                    <div
+                      key={index}
+                      className="grid min-w-0 gap-3 rounded-lg border p-3"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
+                          <FormField
+                            label={t("alertRule.variableName")}
+                            htmlFor={`rule-variable-name-${index}`}
+                            hint={t("alertRule.variableNameHint")}
+                            required
+                            error={fieldErrors[`variable.${index}.name`]}
+                          >
+                            <Input
+                              id={`rule-variable-name-${index}`}
+                              value={variable.name}
+                              maxLength={ruleVariableNameMax}
+                              placeholder={t(
+                                "alertRule.variableNamePlaceholder"
+                              )}
+                              onChange={(event) =>
+                                updateVariable(index, {
+                                  name: event.target.value,
+                                })
+                              }
+                            />
+                          </FormField>
+                          <FormField
+                            label={t("alertRule.variableDescription")}
+                            htmlFor={`rule-variable-description-${index}`}
+                            error={
+                              fieldErrors[`variable.${index}.description`]
+                            }
+                          >
+                            <Input
+                              id={`rule-variable-description-${index}`}
+                              value={variable.description}
+                              maxLength={ruleVariableDescriptionMax}
+                              placeholder={t(
+                                "alertRule.variableDescriptionPlaceholder"
+                              )}
+                              onChange={(event) =>
+                                updateVariable(index, {
+                                  description: event.target.value,
+                                })
+                              }
+                            />
+                          </FormField>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="mt-6 shrink-0"
+                          aria-label={t("alertRule.removeVariable")}
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              variables: form.variables.filter(
+                                (_, current) => current !== index
+                              ),
+                            })
+                          }
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                      <FormField
+                        label={t("alertRule.variableExpr")}
+                        hint={variableExprHint}
+                        required
+                        error={fieldErrors[`variable.${index}.expr`]}
+                      >
+                        <TemplateEditor
+                          value={variable.expr}
+                          height={96}
+                          scope="alert"
+                          datasourceUid={matchedUid}
+                          datasourceDriver={form.driver}
+                          expression={form.expr}
+                          labelKeys={labelKeys}
+                          placeholder={variableExprPlaceholder}
+                          ariaLabel={t("alertRule.variableExpr")}
+                          onChange={(value) =>
+                            updateVariable(index, { expr: value })
+                          }
+                        />
+                      </FormField>
+                    </div>
+                  ))}
+                </div>
               </>
             ) : null}
             {formStep === 2 ? (

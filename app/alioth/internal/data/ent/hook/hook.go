@@ -153,6 +153,18 @@ func (f CaptchaFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CaptchaMutation", m)
 }
 
+// The ClusterFunc type is an adapter to allow the use of ordinary
+// function as Cluster mutator.
+type ClusterFunc func(context.Context, *ent.ClusterMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ClusterFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ClusterMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ClusterMutation", m)
+}
+
 // The DatasourceFunc type is an adapter to allow the use of ordinary
 // function as Datasource mutator.
 type DatasourceFunc func(context.Context, *ent.DatasourceMutation) (ent.Value, error)

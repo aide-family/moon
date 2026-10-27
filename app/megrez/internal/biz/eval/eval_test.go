@@ -2,6 +2,7 @@ package eval
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"slices"
 	"strings"
@@ -479,5 +480,166 @@ func TestElasticsearchWindowAlignsToBucketBoundary(t *testing.T) {
 	}, now)
 	if step != 15 || end != aligned || end-start != 45 {
 		t.Fatalf("30s FOR window = %d..%d step %d, want aligned 45s window", start, end, step)
+	}
+}
+
+// 磁盘场景：变量查询语句先用主查询命中的 instance/mountpoint 展开，取回的
+// 42.5 再填进摘要和描述；变量结果标签也能读到。
+func TestHitsWithQueryEvaluatesRuleVariables(t *testing.T) {
+	now := time.Date(2026, 10, 27, 8, 0, 0, 0, time.UTC)
+	samples := []bo.Sample{{
+		Labels: map[string]string{"instance": "a", "mountpoint": "/data"},
+		Points: []bo.Point{{At: now, Value: 91.5, Raw: "91.5"}},
+	}}
+	rule := bo.RuleSnapshot{
+		UID: "disk-rule", DatasourceUID: "prom-1", Name: "disk", Endpoint: "https://prometheus.example",
+		Summary:     `磁盘使用率超过 90%，当前 {{ $value | printf "%.1f" }}%，剩余 {{ $disk_free | printf "%.1f" }} GiB`,
+		Description: `挂载点 {{ index (index .VarLabels "disk_free") "mountpoint" }}，剩余 {{ index .Vars "disk_free" }} GiB，humanize {{ $disk_free | humanize }}`,
+		Levels:      []bo.Level{{Condition: "GT", Sample: "MAX", Threshold: "90", LevelUID: "high"}},
+		Variables: []bo.Variable{{
+			Name: "disk_free",
+			Expr: `node_filesystem_avail_bytes{instance="{{ $labels.instance }}",mountpoint="{{ $labels.mountpoint }}"} / 1024 / 1024 / 1024`,
+		}},
+	}
+	var exprs []string
+	var queryTimes []time.Time
+	query := func(_ context.Context, expr string, at time.Time) ([]alerttmpl.Sample, error) {
+		exprs = append(exprs, expr)
+		queryTimes = append(queryTimes, at)
+		return []alerttmpl.Sample{{
+			Labels: map[string]string{"instance": "a", "mountpoint": "/data"}, Value: 42.5,
+		}}, nil
+	}
+	hits := HitsWithQuery(context.Background(), rule, samples, now, query)
+	if len(hits) != 1 {
+		t.Fatalf("hits = %+v", hits)
+	}
+	if len(exprs) != 1 {
+		t.Fatalf("variable queries = %q, want exactly one", exprs)
+	}
+	if strings.Contains(exprs[0], "{{") || !strings.Contains(exprs[0], `instance="a"`) || !strings.Contains(exprs[0], `mountpoint="/data"`) {
+		t.Fatalf("variable query did not inherit hit labels: %q", exprs[0])
+	}
+	if !queryTimes[0].Equal(now) {
+		t.Fatalf("variable query time = %s, want eval time %s", queryTimes[0], now)
+	}
+	wantSummary := "磁盘使用率超过 90%，当前 91.5%，剩余 42.5 GiB"
+	if hits[0].Summary != wantSummary {
+		t.Fatalf("summary = %q, want %q", hits[0].Summary, wantSummary)
+	}
+	wantDescription := "挂载点 /data，剩余 42.5 GiB，humanize 42.5"
+	if hits[0].Description != wantDescription {
+		t.Fatalf("description = %q, want %q", hits[0].Description, wantDescription)
+	}
+	// 变量只影响文案，不参与 fingerprint、级别判定和采样值。
+	plain := rule
+	plain.Variables = nil
+	baseline := HitsWithQuery(context.Background(), plain, samples, now, nil)
+	if len(baseline) != 1 || baseline[0].Fingerprint != hits[0].Fingerprint ||
+		baseline[0].LevelUID != hits[0].LevelUID || baseline[0].Value != hits[0].Value {
+		t.Fatalf("variables changed hit identity: baseline=%+v vars=%+v", baseline, hits)
+	}
+}
+
+// 摘要/描述没有引用的变量不能触发即时查询。
+func TestHitsWithQuerySkipsUnreferencedVariables(t *testing.T) {
+	now := time.Date(2026, 10, 27, 8, 0, 0, 0, time.UTC)
+	samples := []bo.Sample{{
+		Labels: map[string]string{"instance": "a"},
+		Points: []bo.Point{{At: now, Value: 3, Raw: "3"}},
+	}}
+	rule := bo.RuleSnapshot{
+		Summary: `当前 {{ $disk_free }} GiB`,
+		Levels:  []bo.Level{{Condition: "GT", Sample: "MAX", Threshold: "1"}},
+		Variables: []bo.Variable{
+			{Name: "disk_free", Expr: `avail{instance="{{ $labels.instance }}"}`},
+			// disk 是 $disk_free 的前缀，不能因此误判为已引用。
+			{Name: "disk", Expr: `prefix{instance="{{ $labels.instance }}"}`},
+			{Name: "disk_total", Expr: `size{instance="{{ $labels.instance }}"}`},
+		},
+	}
+	var exprs []string
+	query := func(_ context.Context, expr string, _ time.Time) ([]alerttmpl.Sample, error) {
+		exprs = append(exprs, expr)
+		return []alerttmpl.Sample{{Value: 42.5}}, nil
+	}
+	hits := HitsWithQuery(context.Background(), rule, samples, now, query)
+	if len(hits) != 1 || hits[0].Summary != "当前 42.5 GiB" {
+		t.Fatalf("hits = %+v", hits)
+	}
+	if len(exprs) != 1 || !strings.Contains(exprs[0], "avail") {
+		t.Fatalf("unreferenced variable was queried: %q", exprs)
+	}
+}
+
+// 变量查询报错、空结果、没有查询函数或语句渲染失败时，只丢弃该变量，
+// 摘要仍然展开，不能出现 <error expanding template 前缀。
+func TestHitsWithQueryVariableFailuresKeepSummary(t *testing.T) {
+	now := time.Date(2026, 10, 27, 8, 0, 0, 0, time.UTC)
+	samples := []bo.Sample{{
+		Labels: map[string]string{"instance": "a"},
+		Points: []bo.Point{{At: now, Value: 91.5, Raw: "91.5"}},
+	}}
+	rule := bo.RuleSnapshot{
+		Summary:   `当前 {{ $value }}，剩余 {{ $disk_free }} GiB`,
+		Levels:    []bo.Level{{Condition: "GT", Sample: "MAX", Threshold: "1"}},
+		Variables: []bo.Variable{{Name: "disk_free", Expr: `avail{instance="{{ $labels.instance }}"}`}},
+	}
+	cases := []struct {
+		name  string
+		query alerttmpl.QueryFunc
+	}{
+		{"query error", func(context.Context, string, time.Time) ([]alerttmpl.Sample, error) {
+			return nil, errors.New("datasource unavailable")
+		}},
+		{"empty result", func(context.Context, string, time.Time) ([]alerttmpl.Sample, error) {
+			return nil, nil
+		}},
+		{"nil query", nil},
+	}
+	for _, testCase := range cases {
+		hits := HitsWithQuery(context.Background(), rule, samples, now, testCase.query)
+		if len(hits) != 1 {
+			t.Fatalf("%s: hits = %+v", testCase.name, hits)
+		}
+		if hits[0].Summary != "当前 91.5，剩余 <no value> GiB" {
+			t.Fatalf("%s: summary = %q", testCase.name, hits[0].Summary)
+		}
+		if strings.Contains(hits[0].Summary, "error expanding template") {
+			t.Fatalf("%s: variable failure leaked into summary: %q", testCase.name, hits[0].Summary)
+		}
+	}
+	// 变量语句本身渲染失败同样只丢弃变量。
+	broken := rule
+	broken.Variables = []bo.Variable{{Name: "disk_free", Expr: `{{ .Nope`}}
+	hits := HitsWithQuery(context.Background(), broken, samples, now, cases[0].query)
+	if len(hits) != 1 || hits[0].Summary != "当前 91.5，剩余 <no value> GiB" {
+		t.Fatalf("broken variable expression = %+v", hits)
+	}
+}
+
+// 模板整体引用 .Vars 时也要求值，即使没有写 $name 快捷变量。
+func TestHitsWithQueryEvaluatesVarsTableReference(t *testing.T) {
+	now := time.Date(2026, 10, 27, 8, 0, 0, 0, time.UTC)
+	samples := []bo.Sample{{
+		Labels: map[string]string{"instance": "a"},
+		Points: []bo.Point{{At: now, Value: 3, Raw: "3"}},
+	}}
+	rule := bo.RuleSnapshot{
+		Summary:   `剩余 {{ index .Vars "disk_free" }} GiB`,
+		Levels:    []bo.Level{{Condition: "GT", Sample: "MAX", Threshold: "1"}},
+		Variables: []bo.Variable{{Name: "disk_free", Expr: `avail{instance="{{ $labels.instance }}"}`}},
+	}
+	var exprs []string
+	query := func(_ context.Context, expr string, _ time.Time) ([]alerttmpl.Sample, error) {
+		exprs = append(exprs, expr)
+		return []alerttmpl.Sample{{Value: 42.5}}, nil
+	}
+	hits := HitsWithQuery(context.Background(), rule, samples, now, query)
+	if len(hits) != 1 || hits[0].Summary != "剩余 42.5 GiB" {
+		t.Fatalf("hits = %+v", hits)
+	}
+	if len(exprs) != 1 || !strings.Contains(exprs[0], `instance="a"`) {
+		t.Fatalf("vars table reference did not query expanded expression: %q", exprs)
 	}
 }

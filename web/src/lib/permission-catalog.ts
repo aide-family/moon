@@ -14,6 +14,7 @@ const RESOURCE_LABELS: Record<string, LocalizedLabel> = {
   alert_rule: { zh: "告警规则", en: "Alert rules" },
   alert: { zh: "告警", en: "Alerts" },
   notification: { zh: "通知", en: "Notifications" },
+  cluster: { zh: "Kubernetes 集群", en: "Kubernetes clusters" },
   agent: { zh: "机器", en: "Agents" },
   ssh: { zh: "SSH 命令", en: "SSH commands" },
 }
@@ -39,6 +40,7 @@ const RESOURCE_ORDER = [
   "alert_rule",
   "alert",
   "notification",
+  "cluster",
   "agent",
   "ssh",
 ]

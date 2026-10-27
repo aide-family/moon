@@ -63,6 +63,18 @@ message RuleSnapshot {
   string datasource_index_pattern = 18;
   // 数据源时间字段。Elasticsearch 用，空表示 @timestamp。
   string datasource_time_field = 19;
+  // 自定义查询变量，按保存顺序。
+  repeated RuleVariable variables = 20;
+}
+
+// 一条自定义查询变量。expr 是查询模板，展开时可用主查询命中序列的标签。
+message RuleVariable {
+  // 模板变量名。
+  string name = 1;
+  // 查询模板，可用 {{ $labels.xxx }} 继承主查询标签。
+  string expr = 2;
+  // 说明，只用于展示。
+  string description = 3;
 }
 
 // 一条级别条件。

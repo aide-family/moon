@@ -128,6 +128,7 @@ export function AuthShell({
   subtitle: string
   children: ReactNode
 }) {
+  const { t } = useTranslation()
   return (
     <main className="relative flex min-h-svh">
       {/* 品牌标识固定在左上角，与右上角的语言/主题入口同一行；
@@ -158,6 +159,17 @@ export function AuthShell({
           <CardContent className="grid gap-4">{children}</CardContent>
         </Card>
       </div>
+      {/* 备案号暂时是占位值（见 i18n 的 login.icp），接入真实备案后只需改文案。 */}
+      <footer className="absolute inset-x-0 bottom-4 z-20 flex justify-center px-4">
+        <a
+          href="https://beian.miit.gov.cn/"
+          target="_blank"
+          rel="noreferrer"
+          className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          {t("login.icp")}
+        </a>
+      </footer>
     </main>
   )
 }

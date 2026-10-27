@@ -334,6 +334,7 @@ var (
 		{Name: "datasource_labels", Type: field.TypeString, Default: "{}"},
 		{Name: "summary", Type: field.TypeString, Default: ""},
 		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "variables", Type: field.TypeString, Default: "[]"},
 		{Name: "next_eval_at", Type: field.TypeTime, Nullable: true},
 		{Name: "scheduled_slot", Type: field.TypeTime, Nullable: true},
 	}
@@ -463,6 +464,50 @@ var (
 				Name:    "captcha_uid",
 				Unique:  true,
 				Columns: []*schema.Column{CaptchasColumns[3]},
+			},
+		},
+	}
+	// ClustersColumns holds the columns for the "clusters" table.
+	ClustersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "server", Type: field.TypeString, Default: ""},
+		{Name: "version", Type: field.TypeString, Default: ""},
+		{Name: "cluster_name", Type: field.TypeString, Default: ""},
+		{Name: "context_name", Type: field.TypeString, Default: ""},
+		{Name: "kubeconfig_cipher", Type: field.TypeString, Default: ""},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+		{Name: "last_checked_at", Type: field.TypeInt64, Default: 0},
+		{Name: "last_error", Type: field.TypeString, Default: ""},
+	}
+	// ClustersTable holds the schema information for the "clusters" table.
+	ClustersTable = &schema.Table{
+		Name:       "clusters",
+		Columns:    ClustersColumns,
+		PrimaryKey: []*schema.Column{ClustersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "cluster_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ClustersColumns[4]},
+			},
+			{
+				Name:    "cluster_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{ClustersColumns[5], ClustersColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "cluster_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ClustersColumns[5]},
 			},
 		},
 	}
@@ -1571,6 +1616,7 @@ var (
 		AlertRuleGroupsTable,
 		AlertRuleLevelsTable,
 		CaptchasTable,
+		ClustersTable,
 		DatasourcesTable,
 		EmailLoginCodesTable,
 		MembersTable,

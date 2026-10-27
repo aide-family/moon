@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
@@ -428,6 +429,10 @@ func init() {
 	alertruleDescDescription := alertruleFields[11].Descriptor()
 	// alertrule.DefaultDescription holds the default value on creation for the description field.
 	alertrule.DefaultDescription = alertruleDescDescription.Default.(string)
+	// alertruleDescVariables is the schema descriptor for variables field.
+	alertruleDescVariables := alertruleFields[12].Descriptor()
+	// alertrule.DefaultVariables holds the default value on creation for the variables field.
+	alertrule.DefaultVariables = alertruleDescVariables.Default.(string)
 	alertrulegroupMixin := schema.AlertRuleGroup{}.Mixin()
 	alertrulegroupMixinFields0 := alertrulegroupMixin[0].Fields()
 	_ = alertrulegroupMixinFields0
@@ -521,6 +526,65 @@ func init() {
 	captchaDescAnswerHash := captchaFields[1].Descriptor()
 	// captcha.AnswerHashValidator is a validator for the "answer_hash" field. It is called by the builders before save.
 	captcha.AnswerHashValidator = captchaDescAnswerHash.Validators[0].(func(string) error)
+	clusterMixin := schema.Cluster{}.Mixin()
+	clusterMixinFields0 := clusterMixin[0].Fields()
+	_ = clusterMixinFields0
+	clusterFields := schema.Cluster{}.Fields()
+	_ = clusterFields
+	// clusterDescCreatedAt is the schema descriptor for created_at field.
+	clusterDescCreatedAt := clusterMixinFields0[0].Descriptor()
+	// cluster.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cluster.DefaultCreatedAt = clusterDescCreatedAt.Default.(func() time.Time)
+	// clusterDescUpdatedAt is the schema descriptor for updated_at field.
+	clusterDescUpdatedAt := clusterMixinFields0[1].Descriptor()
+	// cluster.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cluster.DefaultUpdatedAt = clusterDescUpdatedAt.Default.(func() time.Time)
+	// cluster.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cluster.UpdateDefaultUpdatedAt = clusterDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// clusterDescUID is the schema descriptor for uid field.
+	clusterDescUID := clusterFields[0].Descriptor()
+	// cluster.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	cluster.UIDValidator = clusterDescUID.Validators[0].(func(string) error)
+	// clusterDescNamespaceUID is the schema descriptor for namespace_uid field.
+	clusterDescNamespaceUID := clusterFields[1].Descriptor()
+	// cluster.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	cluster.NamespaceUIDValidator = clusterDescNamespaceUID.Validators[0].(func(string) error)
+	// clusterDescName is the schema descriptor for name field.
+	clusterDescName := clusterFields[2].Descriptor()
+	// cluster.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	cluster.NameValidator = clusterDescName.Validators[0].(func(string) error)
+	// clusterDescServer is the schema descriptor for server field.
+	clusterDescServer := clusterFields[3].Descriptor()
+	// cluster.DefaultServer holds the default value on creation for the server field.
+	cluster.DefaultServer = clusterDescServer.Default.(string)
+	// clusterDescVersion is the schema descriptor for version field.
+	clusterDescVersion := clusterFields[4].Descriptor()
+	// cluster.DefaultVersion holds the default value on creation for the version field.
+	cluster.DefaultVersion = clusterDescVersion.Default.(string)
+	// clusterDescClusterName is the schema descriptor for cluster_name field.
+	clusterDescClusterName := clusterFields[5].Descriptor()
+	// cluster.DefaultClusterName holds the default value on creation for the cluster_name field.
+	cluster.DefaultClusterName = clusterDescClusterName.Default.(string)
+	// clusterDescContextName is the schema descriptor for context_name field.
+	clusterDescContextName := clusterFields[6].Descriptor()
+	// cluster.DefaultContextName holds the default value on creation for the context_name field.
+	cluster.DefaultContextName = clusterDescContextName.Default.(string)
+	// clusterDescKubeconfigCipher is the schema descriptor for kubeconfig_cipher field.
+	clusterDescKubeconfigCipher := clusterFields[7].Descriptor()
+	// cluster.DefaultKubeconfigCipher holds the default value on creation for the kubeconfig_cipher field.
+	cluster.DefaultKubeconfigCipher = clusterDescKubeconfigCipher.Default.(string)
+	// clusterDescRemark is the schema descriptor for remark field.
+	clusterDescRemark := clusterFields[8].Descriptor()
+	// cluster.DefaultRemark holds the default value on creation for the remark field.
+	cluster.DefaultRemark = clusterDescRemark.Default.(string)
+	// clusterDescLastCheckedAt is the schema descriptor for last_checked_at field.
+	clusterDescLastCheckedAt := clusterFields[9].Descriptor()
+	// cluster.DefaultLastCheckedAt holds the default value on creation for the last_checked_at field.
+	cluster.DefaultLastCheckedAt = clusterDescLastCheckedAt.Default.(int64)
+	// clusterDescLastError is the schema descriptor for last_error field.
+	clusterDescLastError := clusterFields[10].Descriptor()
+	// cluster.DefaultLastError holds the default value on creation for the last_error field.
+	cluster.DefaultLastError = clusterDescLastError.Default.(string)
 	datasourceMixin := schema.Datasource{}.Mixin()
 	datasourceMixinFields0 := datasourceMixin[0].Fields()
 	_ = datasourceMixinFields0

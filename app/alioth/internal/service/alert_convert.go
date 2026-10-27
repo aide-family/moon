@@ -42,11 +42,17 @@ func ruleItem(item bo.AlertRule) *v1.AlertRuleItem {
 			ForSeconds: int32(level.ForSeconds), LevelUid: level.LevelUID, LevelName: level.LevelName,
 		})
 	}
+	variables := make([]*v1.AlertRuleVariableItem, 0, len(item.Variables))
+	for _, variable := range item.Variables {
+		variables = append(variables, &v1.AlertRuleVariableItem{
+			Name: variable.Name, Expr: variable.Expr, Description: variable.Description,
+		})
+	}
 	return &v1.AlertRuleItem{
 		Uid: item.UID, GroupUid: item.GroupUID, Name: item.Name, Driver: item.Driver,
 		Status: item.Status, Expr: item.Expr, Labels: item.Labels, DatasourceUid: item.DatasourceUID,
 		DatasourceLabels: item.DatasourceLabels,
-		Summary:          item.Summary, Description: item.Description, Levels: levels,
+		Summary:          item.Summary, Description: item.Description, Levels: levels, Variables: variables,
 	}
 }
 
@@ -64,6 +70,16 @@ func levelInputs(items []*v1.AlertRuleLevelInput) []bo.AlertRuleLevel {
 		out = append(out, bo.AlertRuleLevel{
 			Condition: item.GetCondition(), Sample: item.GetSample(), Threshold: item.GetThreshold(),
 			ForSeconds: int(item.GetForSeconds()), LevelUID: item.GetLevelUid(),
+		})
+	}
+	return out
+}
+
+func variableInputs(items []*v1.AlertRuleVariableInput) []bo.AlertRuleVariable {
+	out := make([]bo.AlertRuleVariable, 0, len(items))
+	for _, item := range items {
+		out = append(out, bo.AlertRuleVariable{
+			Name: item.GetName(), Expr: item.GetExpr(), Description: item.GetDescription(),
 		})
 	}
 	return out

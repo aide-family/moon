@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { getAlertEventChart } from "@/api/alert-event"
 import type { AlertEventChart, AlertEventItem } from "@/api/alert-event/types"
 import type { AlertRuleLevelItem } from "@/api/alert-rule/types"
+import { CodeBlock } from "@/components/code-block"
 import { MetricGraph } from "@/components/metric-graph"
 import { Button } from "@/components/ui/button"
 import {
@@ -260,15 +261,14 @@ export function AlertEventChartBody({
             )}
           </TabsContent>
           <TabsContent value="raw" className="flex min-h-0 flex-1 flex-col">
-            <pre
-              className={
-                compact
-                  ? "max-h-56 overflow-auto rounded-lg border bg-muted/20 p-3 font-mono text-xs"
-                  : "min-h-0 flex-1 overflow-auto rounded-lg border bg-muted/20 p-3 font-mono text-xs"
-              }
-            >
-              {raw}
-            </pre>
+            <CodeBlock
+              code={raw}
+              language="json"
+              label={t("alertEvent.chartRaw")}
+              copyable
+              fill={!compact}
+              maxHeightClass={compact ? "max-h-56" : undefined}
+            />
           </TabsContent>
         </Tabs>
       ) : null}

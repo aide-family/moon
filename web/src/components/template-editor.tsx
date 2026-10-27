@@ -66,6 +66,8 @@ const notificationTemplateFields: TemplateField[] = [
 
 // alertTemplateFields 是告警规则摘要/描述在评测期能拿到的全部数据（megrez 展开），
 // 没有事件字段。两套模板的补全清单必须分开，否则用户会写出评测时永远为空的模板。
+// 自定义变量的结果（.Vars / .VarLabels 和 $变量名）由 variableNames 动态补全：
+// 变量查询语句在变量求值前展开，拿不到 .Vars，所以只在声明了变量时才提示。
 const alertTemplateFields: TemplateField[] = [
   { label: ".labels", detail: "采样标签 JSON 字符串" },
   { label: ".Labels", detail: "采样标签 map（Prometheus 写法）" },
@@ -80,6 +82,11 @@ const alertTemplateFields: TemplateField[] = [
   { label: "$externalURL", detail: "数据源外部地址" },
   { label: "$externalLabels", detail: "外部标签 map" },
   { label: "{{ . }}", detail: "采样值快捷写法", insertText: "{{ . }}" },
+]
+
+const alertVariableResultFields: TemplateField[] = [
+  { label: ".Vars", detail: "自定义变量结果 map" },
+  { label: ".VarLabels", detail: "自定义变量结果的标签 map" },
 ]
 
 const templateLabelKeys = [
@@ -129,6 +136,8 @@ export type TemplateScope = "notification" | "alert"
 interface TemplateContext {
   scope: TemplateScope
   labelKeys: string[]
+  /** 告警规则已声明的自定义变量名，摘要/描述里用 $name 引用。 */
+  variableNames: string[]
 }
 
 // 补全 provider 全局只注册一次，按 model URI 查当前编辑器的上下文。弹窗里可能同时
@@ -200,8 +209,14 @@ function setupTemplateLanguage(monaco: Monaco) {
       const context = editorContexts.get(model.uri.toString())
       const scope = context?.scope ?? "notification"
       const labelKeys = context?.labelKeys ?? templateLabelKeys
+      const variableNames =
+        scope === "alert" ? (context?.variableNames ?? []) : []
       const fields =
-        scope === "alert" ? alertTemplateFields : notificationTemplateFields
+        scope === "alert"
+          ? variableNames.length > 0
+            ? [...alertTemplateFields, ...alertVariableResultFields]
+            : alertTemplateFields
+          : notificationTemplateFields
       const suggestions: monacoEditor.languages.CompletionItem[] = []
       const insideTemplate = lastOpen > lastClose
       if (!insideTemplate) {
@@ -231,6 +246,18 @@ function setupTemplateLanguage(monaco: Monaco) {
           })
         }
         return { suggestions }
+      }
+      for (const name of variableNames) {
+        if (word && !`$${name}`.startsWith(word)) {
+          continue
+        }
+        suggestions.push({
+          label: `$${name}`,
+          kind: monaco.languages.CompletionItemKind.Variable,
+          detail: "自定义变量（评测时查询）",
+          insertText: `$${name}`,
+          range,
+        })
       }
       for (const field of fields) {
         if (word && !field.label.startsWith(word)) {
@@ -276,6 +303,11 @@ interface TemplateEditorProps {
   expression?: string
   /** 规则自身标签的键，评测时会并入采样标签。 */
   labelKeys?: string[]
+  /**
+   * 告警规则已声明的自定义变量名（只在 scope="alert" 生效）。摘要/描述编辑器
+   * 会补全 `$name` 和 `.Vars`；变量查询语句编辑器不传，避免写出求值前不存在的引用。
+   */
+  variableNames?: string[]
 }
 
 /**
@@ -295,6 +327,7 @@ export function TemplateEditor({
   datasourceDriver = "",
   expression = "",
   labelKeys,
+  variableNames,
 }: TemplateEditorProps) {
   const { theme } = useTheme()
   const onChangeRef = useRef(onChange)
@@ -323,9 +356,22 @@ export function TemplateEditor({
     return [...keys]
   }, [labelKeys, fetchedLabelKeys])
 
+  // 只保留非空且去重后的变量名，避免空行把 `$` 补全塞满。
+  const mergedVariableNames = useMemo(() => {
+    const names = new Set<string>()
+    for (const name of variableNames ?? []) {
+      const trimmed = name.trim()
+      if (trimmed) {
+        names.add(trimmed)
+      }
+    }
+    return [...names]
+  }, [variableNames])
+
   const contextRef = useRef<TemplateContext>({
     scope,
     labelKeys: mergedLabelKeys,
+    variableNames: mergedVariableNames,
   })
 
   useEffect(() => {
@@ -356,12 +402,16 @@ export function TemplateEditor({
   }, [labelQuery, datasourceUid, datasourceDriver, expression])
 
   useEffect(() => {
-    contextRef.current = { scope, labelKeys: mergedLabelKeys }
+    contextRef.current = {
+      scope,
+      labelKeys: mergedLabelKeys,
+      variableNames: mergedVariableNames,
+    }
     const uri = modelUriRef.current
     if (uri) {
       editorContexts.set(uri, contextRef.current)
     }
-  }, [scope, mergedLabelKeys])
+  }, [scope, mergedLabelKeys, mergedVariableNames])
 
   useEffect(
     () => () => {

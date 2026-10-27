@@ -36,6 +36,8 @@ type Tx struct {
 	AlertRuleLevel *AlertRuleLevelClient
 	// Captcha is the client for interacting with the Captcha builders.
 	Captcha *CaptchaClient
+	// Cluster is the client for interacting with the Cluster builders.
+	Cluster *ClusterClient
 	// Datasource is the client for interacting with the Datasource builders.
 	Datasource *DatasourceClient
 	// EmailLoginCode is the client for interacting with the EmailLoginCode builders.
@@ -233,6 +235,7 @@ func (tx *Tx) init() {
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
 	tx.AlertRuleLevel = NewAlertRuleLevelClient(tx.config)
 	tx.Captcha = NewCaptchaClient(tx.config)
+	tx.Cluster = NewClusterClient(tx.config)
 	tx.Datasource = NewDatasourceClient(tx.config)
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)

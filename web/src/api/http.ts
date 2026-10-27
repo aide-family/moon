@@ -25,7 +25,8 @@ const messageKeys: Record<string, string> = {
   "oauth link not found": "error.notFound",
   "cannot unlink the last login method": "profile.oauth.unbindLastCredential",
   "member already exists": "error.memberExists",
-  "notification group is already bound to this on-call": "error.groupAlreadyBound",
+  "notification group is already bound to this on-call":
+    "error.groupAlreadyBound",
   "invitation expired": "error.invitationExpired",
   "invitation is not pending": "error.invitationHandled",
   "invitation belongs to another user": "error.invitationNotYours",
@@ -33,6 +34,24 @@ const messageKeys: Record<string, string> = {
   "invalid datasource endpoint": "form.invalidUrl",
   "datasource connection already exists": "datasource.connectionExists",
   "name is too long": "form.nameTooLong",
+  // Kubernetes 集群接口的后端错误原文，避免中文界面直接露英文。
+  "invalid kubeconfig": "error.invalidKubeconfig",
+  "kubeconfig is empty": "error.invalidKubeconfig",
+  "kubeconfig is required": "error.invalidKubeconfig",
+  "kubeconfig must embed credentials; exec, auth-provider, tokenFile and certificate files are not supported":
+    "error.clusterUnsupportedKubeconfig",
+  "kubeconfig proxy-url is not supported": "error.clusterUnsupportedKubeconfig",
+  "kubeconfig must embed the certificate authority; certificate-authority file paths are not supported":
+    "error.clusterUnsupportedKubeconfig",
+  "cluster is unreachable": "error.clusterUnreachable",
+  "cluster credential is not allowed to perform this operation":
+    "error.clusterForbidden",
+  "kubeconfig credential was rejected by the cluster":
+    "error.clusterCredentialRejected",
+  "cluster resource conflict": "error.clusterConflict",
+  "cluster is rate limited": "error.clusterRateLimited",
+  "cluster is unavailable": "error.clusterUnavailable",
+  "pod has no containers": "error.podNoContainers",
 }
 
 const fieldByMessage: Record<string, string> = {
@@ -176,7 +195,23 @@ export async function request(
     headers.set("Content-Type", "application/json")
   }
 
-  const response = await fetch(`${baseURL}${path}`, { ...init, headers })
+  let response: Response
+  try {
+    response = await fetch(`${baseURL}${path}`, { ...init, headers })
+  } catch (err) {
+    // 浏览器取消请求（页面切换、输入防抖）继续向上抛，避免误报成网关错误。
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw err
+    }
+    // 后端不可达时 fetch 只给出浏览器原文（Failed to fetch）。统一包装成 502，
+    // 列表页才能真正渲染标准错误页，而不是把英文原文塞在内容区。
+    throw new ApiError(
+      502,
+      i18n.t("error.badGatewayTitle"),
+      {},
+      err instanceof Error ? err.message : ""
+    )
+  }
   if (
     response.status === 401 &&
     retry &&
@@ -242,6 +277,16 @@ export async function send<T>(
   return data as T
 }
 
+// 同一份 GET 的并发请求共享已解析结果：React StrictMode 会让 effect 执行两次，
+// 这里把重复请求合并成一次网络调用。promise settle 后立即从表里移除，
+// 不做结果缓存——之后的重试、刷新、轮询仍然会真正访问网络。
+const inFlightGets = new Map<string, Promise<unknown>>()
+
+function requestNamespace(init?: RequestInit): string {
+  const headers = new Headers(init?.headers)
+  return headers.get("X-Namespace") ?? localStorage.getItem("namespace") ?? ""
+}
+
 export function get<T>(
   path: string,
   params?: object,
@@ -263,7 +308,28 @@ export function get<T>(
     query.set(key, String(value))
   }
   const suffix = query.size > 0 ? `?${query.toString()}` : ""
-  return send<T>(`${path}${suffix}`, init, options)
+  const pathWithQuery = `${path}${suffix}`
+  // AbortSignal 有独立的取消语义（验证码刷新），不能与其它调用共享同一个请求。
+  const shareable = !init?.signal
+  const key = `${pathWithQuery}|${requestNamespace(init)}|${options?.silent ? "silent" : "loud"}`
+  if (shareable) {
+    const pending = inFlightGets.get(key)
+    if (pending) {
+      return pending as Promise<T>
+    }
+  }
+  const promise = send<T>(pathWithQuery, init, options)
+  if (shareable) {
+    inFlightGets.set(key, promise)
+    const clear = () => {
+      // 只清理自己这一笔；已被新请求替换时不能误删后来者。
+      if (inFlightGets.get(key) === promise) {
+        inFlightGets.delete(key)
+      }
+    }
+    void promise.then(clear, clear)
+  }
+  return promise
 }
 
 export function post<T>(path: string, body?: unknown): Promise<T> {

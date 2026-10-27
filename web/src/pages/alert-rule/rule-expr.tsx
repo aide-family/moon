@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 
 import type { AlertRuleLevelItem } from "@/api/alert-rule/types"
+import { CodeBlock } from "@/components/code-block"
 import { enumLabel } from "@/lib/enum-label"
 
 /**
@@ -19,11 +20,13 @@ export function AlertRuleExpr({
   const { t } = useTranslation()
   return (
     <div className="grid min-w-0 gap-2">
-      <pre
-        className={`overflow-x-hidden overflow-y-auto font-mono text-xs break-words whitespace-pre-wrap ${maxHeightClass}`}
-      >
-        {expr || "—"}
-      </pre>
+      <CodeBlock
+        variant="plain"
+        code={expr}
+        language="text"
+        wrap
+        maxHeightClass={maxHeightClass}
+      />
       {levels.length > 0 ? (
         <div className="grid min-w-0 gap-0.5 font-mono text-xs text-muted-foreground">
           {levels.map((level, index) => (

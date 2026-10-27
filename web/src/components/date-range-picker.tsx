@@ -72,8 +72,9 @@ export function DateRangePicker({
   const [draftTo, setDraftTo] = useState<Date | null>(null)
   const [hovered, setHovered] = useState<Date | null>(null)
   const [focused, setFocused] = useState<Date | null>(null)
+  // 右侧月历固定为当前时间月，左侧为上一个月：打开时不再跟随已选起始日所在月份。
   const [viewMonth, setViewMonth] = useState<Date>(() =>
-    startOfMonth(parseDateValue(from) ?? new Date())
+    addMonths(startOfMonth(new Date()), -1)
   )
   // 内容在 Portal 里延迟挂载，用状态接住节点，节点到位后焦点才能落到日期上。
   const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null)
@@ -127,13 +128,73 @@ export function DateRangePicker({
     setDraftFrom(start ?? null)
     setDraftTo(start && end ? end : null)
     setHovered(null)
-    const base = start ?? new Date()
-    setViewMonth(startOfMonth(base))
-    setFocused(start ?? base)
+    // 打开时总是回到「上月 + 本月」，不再跟随已选起始日跳月。
+    const initialMonth = addMonths(startOfMonth(new Date()), -1)
+    setViewMonth(initialMonth)
+    // 键盘落点必须是可见且可选的日期：优先选中起点，否则今天。
+    setFocused(
+      focusableDay(
+        initialMonth,
+        start ?? new Date(),
+        start ?? null,
+        start && end ? end : null
+      )
+    )
   }
 
   // 默认最多选到今天：历史告警和消息日志都不存在未来数据。
   const latestDay = dayNumber(parseDateValue(maxDate ?? "") ?? new Date())
+
+  // 可见两个月是 [viewMonth 的第一天, 右月最后一天]。
+  function visibleBounds(month: Date) {
+    const first = dayNumber(startOfMonth(month))
+    const last = dayNumber(addDays(addMonths(startOfMonth(month), 2), -1))
+    return { first, last }
+  }
+
+  // 打开/翻月时的键盘落点：优先用 preferred（选中起点或今天），但它必须落在
+  // 可见两个月内且可选；否则退到可见范围内最晚的可选日，保证空格/方向键
+  // 永远落在真实可选的日期上，而不是禁用或不存在的格子。
+  // start/end 是打开后将要生效的草稿区间，用来判断 maxDays 造成的禁用。
+  function focusableDay(
+    month: Date,
+    preferred: Date,
+    start: Date | null,
+    end: Date | null
+  ): Date {
+    const { first, last } = visibleBounds(month)
+    const value = dayNumber(preferred)
+    const selectable = (day: Date) => {
+      if (dayNumber(day) > latestDay) {
+        return false
+      }
+      if (start && !end) {
+        return Math.abs(dayNumber(day) - dayNumber(start)) + 1 <= maxDays
+      }
+      return true
+    }
+    if (value >= first && value <= last && selectable(preferred)) {
+      return preferred
+    }
+    // 可见范围内最晚的可选日：受 maxDate 限制；只选起点时还受 maxDays 限制。
+    let latestSelectable = latestDay
+    if (start && !end) {
+      latestSelectable = Math.min(
+        latestSelectable,
+        dayNumber(addDays(start, maxDays - 1))
+      )
+    }
+    if (latestSelectable >= first) {
+      const fallback = addDays(
+        startOfMonth(month),
+        Math.min(latestSelectable, last) - first
+      )
+      if (selectable(fallback)) {
+        return fallback
+      }
+    }
+    return preferred
+  }
 
   function isDayDisabled(day: Date) {
     if (dayNumber(day) > latestDay) {
@@ -218,8 +279,8 @@ export function DateRangePicker({
   function shiftMonth(months: number) {
     const next = addMonths(viewMonth, months)
     setViewMonth(next)
-    // 翻月后让新月份的第一天可聚焦，否则键盘用户会失去落点。
-    setFocused(next)
+    // 翻月后把落点放到新可见范围内的可选日期，否则键盘用户会失去落点。
+    setFocused(focusableDay(next, next, draftFrom, draftTo))
   }
 
   function renderMonth(month: Date, align: "left" | "right") {

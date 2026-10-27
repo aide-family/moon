@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 
 import type { AlertRuleGroupItem, AlertRuleItem } from "@/api/alert-rule/types"
 import type { DatasourceItem } from "@/api/datasource/types"
+import { CodeBlock } from "@/components/code-block"
 import { DetailSheet } from "@/components/detail-sheet"
 import { LabelTags } from "@/components/label-tags"
 import { StatusBadge } from "@/components/status-badge"
@@ -92,9 +93,12 @@ export function AlertRuleDetailSheet({
       {
         label: t("alertRule.summary"),
         value: (
-          <pre className="overflow-x-hidden overflow-y-auto font-mono text-xs break-words whitespace-pre-wrap">
-            {detail.summary || "—"}
-          </pre>
+          <CodeBlock
+            variant="plain"
+            code={detail.summary}
+            language="text"
+            wrap
+          />
         ),
         span: 2,
       },
@@ -102,28 +106,66 @@ export function AlertRuleDetailSheet({
         label: t("alertRule.descriptionField"),
         value: (
           <div className="grid gap-2">
-            <pre className="overflow-x-hidden overflow-y-auto font-mono text-xs break-words whitespace-pre-wrap">
-              {detail.description || "—"}
-            </pre>
+            <CodeBlock
+              variant="plain"
+              code={detail.description}
+              language="text"
+              wrap
+            />
             <p className="text-xs text-muted-foreground">
               {t("alertRule.detail.templateHint")}
             </p>
           </div>
         ),
         span: 2,
-      },
-      {
-        label: t("alertRule.levels"),
-        value: (
-          <AlertRuleExpr
-            expr={detail.expr}
-            levels={detail.levels}
-            maxHeightClass="max-h-96"
-          />
-        ),
-        span: 2,
       }
     )
+
+    // 自定义变量在编辑时和摘要/描述同一步，详情里也放在它们后面、级别条件之前。
+    const variables = detail.variables ?? []
+    if (variables.length > 0) {
+      fields.push({
+        label: t("alertRule.variables"),
+        value: (
+          <div className="grid min-w-0 gap-2">
+            {variables.map((variable, index) => (
+              <div
+                key={`${variable.name}-${index}`}
+                className="grid min-w-0 gap-1 rounded-md border p-2"
+              >
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <code className="font-mono text-xs text-foreground">
+                    {"$" + variable.name}
+                  </code>
+                  <span className="min-w-0 text-xs break-words text-muted-foreground">
+                    {variable.description || "—"}
+                  </span>
+                </div>
+                <CodeBlock
+                  variant="plain"
+                  code={variable.expr}
+                  language="text"
+                  wrap
+                />
+              </div>
+            ))}
+          </div>
+        ),
+        span: 2,
+      })
+    }
+
+    fields.push({
+      label: t("alertRule.levels"),
+      value: (
+        <AlertRuleExpr
+          expr={detail.expr}
+          levels={detail.levels}
+          maxHeightClass="max-h-96"
+        />
+      ),
+      span: 2,
+    })
 
     if (detail.datasourceUid) {
       fields.push({

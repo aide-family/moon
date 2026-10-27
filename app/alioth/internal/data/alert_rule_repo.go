@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
@@ -144,6 +145,7 @@ func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		SetDatasourceLabels(in.DatasourceLabels).
 		SetSummary(in.Summary).
 		SetDescription(in.Description).
+		SetVariables(encodeRuleVariables(in.Variables)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -184,6 +186,7 @@ func (r *alertRuleRepo) UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		SetDatasourceLabels(in.DatasourceLabels).
 		SetSummary(in.Summary).
 		SetDescription(in.Description).
+		SetVariables(encodeRuleVariables(in.Variables)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -500,8 +503,45 @@ func toRule(row *ent.AlertRule, levels []bo.AlertRuleLevel) bo.AlertRule {
 		Driver: string(row.Driver), Status: string(row.Status),
 		Expr: row.Expr, Labels: row.Labels, DatasourceUID: row.DatasourceUID, DatasourceLabels: row.DatasourceLabels,
 		Summary: row.Summary, Description: row.Description, NextEvalAt: row.NextEvalAt,
-		ScheduledSlot: row.ScheduledSlot, Levels: levels,
+		ScheduledSlot: row.ScheduledSlot, Levels: levels, Variables: decodeRuleVariables(row.Variables),
 	}
+}
+
+// ruleVariableJSON 是自定义查询变量的存储格式。键用小写，与设计文档约定的
+// [{"name":"disk_free","expr":"...","description":"..."}] 一致。
+type ruleVariableJSON struct {
+	Name        string `json:"name"`
+	Expr        string `json:"expr"`
+	Description string `json:"description"`
+}
+
+// encodeRuleVariables 把变量列表编码成 JSON 文本。空列表写成 []，避免列值
+// 为空字符串后 JSON 解析失败。字段都是字符串，编码不会失败，仍兜底返回 []
+// 让写入路径不因为这一列报错。
+func encodeRuleVariables(items []bo.AlertRuleVariable) string {
+	rows := make([]ruleVariableJSON, 0, len(items))
+	for _, item := range items {
+		rows = append(rows, ruleVariableJSON{Name: item.Name, Expr: item.Expr, Description: item.Description})
+	}
+	encoded, err := json.Marshal(rows)
+	if err != nil {
+		return "[]"
+	}
+	return string(encoded)
+}
+
+// decodeRuleVariables 解析存储的变量 JSON。历史规则或损坏的配置都按没有变量
+// 处理，读取规则不能因为这一列失败。
+func decodeRuleVariables(raw string) []bo.AlertRuleVariable {
+	rows := make([]ruleVariableJSON, 0)
+	if err := json.Unmarshal([]byte(raw), &rows); err != nil {
+		return []bo.AlertRuleVariable{}
+	}
+	items := make([]bo.AlertRuleVariable, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, bo.AlertRuleVariable{Name: row.Name, Expr: row.Expr, Description: row.Description})
+	}
+	return items
 }
 
 func groupStatus(status string) (alertrulegroup.Status, error) {

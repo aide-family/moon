@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/cluster"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/health"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/member"
@@ -120,7 +121,14 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	sshCommandRepo := data.NewSSHCommandRepo(dependencies, logger)
 	executor := ssh.NewExecutor(sshCommandRepo, agentRepo, hub, accessChecker)
 	sshCommandService := service.NewSSHCommandService(executor)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, messageLogService, workerService, agentService, sshCommandService, authenticator, logger)
+	clusterRepo := data.NewClusterRepo(dependencies, logger)
+	clusterRegistry := cluster.NewRegistry(clusterRepo, accessChecker)
+	clusterService := service.NewClusterService(clusterRegistry)
+	kubernetesRepo := data.NewKubernetesRepo(dependencies, logger)
+	explorer := cluster.NewExplorer(clusterRepo, kubernetesRepo, accessChecker)
+	operator := cluster.NewOperator(clusterRepo, kubernetesRepo, accessChecker)
+	kubernetesService := service.NewKubernetesService(explorer, operator)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, messageLogService, workerService, agentService, sshCommandService, clusterService, kubernetesService, authenticator, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()

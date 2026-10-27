@@ -208,6 +208,20 @@ func (_u *AlertRuleUpdate) SetNillableDescription(v *string) *AlertRuleUpdate {
 	return _u
 }
 
+// SetVariables sets the "variables" field.
+func (_u *AlertRuleUpdate) SetVariables(v string) *AlertRuleUpdate {
+	_u.mutation.SetVariables(v)
+	return _u
+}
+
+// SetNillableVariables sets the "variables" field if the given value is not nil.
+func (_u *AlertRuleUpdate) SetNillableVariables(v *string) *AlertRuleUpdate {
+	if v != nil {
+		_u.SetVariables(*v)
+	}
+	return _u
+}
+
 // SetNextEvalAt sets the "next_eval_at" field.
 func (_u *AlertRuleUpdate) SetNextEvalAt(v time.Time) *AlertRuleUpdate {
 	_u.mutation.SetNextEvalAt(v)
@@ -372,6 +386,9 @@ func (_u *AlertRuleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(alertrule.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Variables(); ok {
+		_spec.SetField(alertrule.FieldVariables, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.NextEvalAt(); ok {
 		_spec.SetField(alertrule.FieldNextEvalAt, field.TypeTime, value)
@@ -585,6 +602,20 @@ func (_u *AlertRuleUpdateOne) SetNillableDescription(v *string) *AlertRuleUpdate
 	return _u
 }
 
+// SetVariables sets the "variables" field.
+func (_u *AlertRuleUpdateOne) SetVariables(v string) *AlertRuleUpdateOne {
+	_u.mutation.SetVariables(v)
+	return _u
+}
+
+// SetNillableVariables sets the "variables" field if the given value is not nil.
+func (_u *AlertRuleUpdateOne) SetNillableVariables(v *string) *AlertRuleUpdateOne {
+	if v != nil {
+		_u.SetVariables(*v)
+	}
+	return _u
+}
+
 // SetNextEvalAt sets the "next_eval_at" field.
 func (_u *AlertRuleUpdateOne) SetNextEvalAt(v time.Time) *AlertRuleUpdateOne {
 	_u.mutation.SetNextEvalAt(v)
@@ -779,6 +810,9 @@ func (_u *AlertRuleUpdateOne) sqlSave(ctx context.Context) (_node *AlertRule, er
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(alertrule.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Variables(); ok {
+		_spec.SetField(alertrule.FieldVariables, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.NextEvalAt(); ok {
 		_spec.SetField(alertrule.FieldNextEvalAt, field.TypeTime, value)

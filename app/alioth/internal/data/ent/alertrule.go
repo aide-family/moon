@@ -47,6 +47,8 @@ type AlertRule struct {
 	Summary string `json:"summary,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Variables holds the value of the "variables" field.
+	Variables string `json:"variables,omitempty"`
 	// NextEvalAt holds the value of the "next_eval_at" field.
 	NextEvalAt *time.Time `json:"next_eval_at,omitempty"`
 	// ScheduledSlot holds the value of the "scheduled_slot" field.
@@ -61,7 +63,7 @@ func (*AlertRule) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case alertrule.FieldID:
 			values[i] = new(sql.NullInt64)
-		case alertrule.FieldUID, alertrule.FieldNamespaceUID, alertrule.FieldGroupUID, alertrule.FieldName, alertrule.FieldDriver, alertrule.FieldStatus, alertrule.FieldExpr, alertrule.FieldLabels, alertrule.FieldDatasourceUID, alertrule.FieldDatasourceLabels, alertrule.FieldSummary, alertrule.FieldDescription:
+		case alertrule.FieldUID, alertrule.FieldNamespaceUID, alertrule.FieldGroupUID, alertrule.FieldName, alertrule.FieldDriver, alertrule.FieldStatus, alertrule.FieldExpr, alertrule.FieldLabels, alertrule.FieldDatasourceUID, alertrule.FieldDatasourceLabels, alertrule.FieldSummary, alertrule.FieldDescription, alertrule.FieldVariables:
 			values[i] = new(sql.NullString)
 		case alertrule.FieldCreatedAt, alertrule.FieldUpdatedAt, alertrule.FieldDeletedAt, alertrule.FieldNextEvalAt, alertrule.FieldScheduledSlot:
 			values[i] = new(sql.NullTime)
@@ -177,6 +179,12 @@ func (_m *AlertRule) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Description = value.String
 			}
+		case alertrule.FieldVariables:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field variables", values[i])
+			} else if value.Valid {
+				_m.Variables = value.String
+			}
 		case alertrule.FieldNextEvalAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field next_eval_at", values[i])
@@ -273,6 +281,9 @@ func (_m *AlertRule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("variables=")
+	builder.WriteString(_m.Variables)
 	builder.WriteString(", ")
 	if v := _m.NextEvalAt; v != nil {
 		builder.WriteString("next_eval_at=")

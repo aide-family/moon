@@ -196,42 +196,10 @@ func (r *alertEventRepo) insightHotUIDs(ctx context.Context, namespaceUID string
 // tableFrom 决定扫哪些周表（周表按创建周命名，闭环序列要往前多看一段），
 // from/to 决定取哪些行（按 column 对应的时刻裁剪）。
 func (s *historyStore) insight(ctx context.Context, namespaceUID string, tableFrom, from, to time.Time, loc *time.Location, exclude []string, column string) ([]insightRow, error) {
-	exists, err := s.tenantExists(ctx, namespaceUID)
+	conn, tables, err := s.historyTables(ctx, namespaceUID, tableFrom, to)
 	if err != nil {
 		return nil, err
 	}
-	if !exists {
-		return []insightRow{}, nil
-	}
-	conn, _, err := s.ensureTenant(ctx, namespaceUID)
-	if err != nil {
-		return nil, err
-	}
-	rows, err := conn.QueryContext(ctx, `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename LIKE $1 ORDER BY tablename`, s.tablePrefix+"%")
-	if err != nil {
-		s.log.Error(fmt.Sprintf("history tables %s: %v", s.databaseName(namespaceUID), err))
-		return nil, merr.Server("history storage is unavailable")
-	}
-	tables := make([]string, 0, 8)
-	for rows.Next() {
-		var table string
-		if err := rows.Scan(&table); err != nil {
-			_ = rows.Close()
-			return nil, merr.Server("history storage is unavailable")
-		}
-		if !shardIdentPattern.MatchString(table) {
-			continue
-		}
-		if !historyTableOverlaps(table, s.tablePrefix, tableFrom, to) {
-			continue
-		}
-		tables = append(tables, table)
-	}
-	if err := rows.Err(); err != nil {
-		_ = rows.Close()
-		return nil, merr.Server("history storage is unavailable")
-	}
-	_ = rows.Close()
 	if len(tables) == 0 {
 		return []insightRow{}, nil
 	}
@@ -256,6 +224,48 @@ func (s *historyStore) insight(ctx context.Context, namespaceUID string, tableFr
 		return nil, merr.Server("history storage is unavailable")
 	}
 	return items, nil
+}
+
+// historyTables 返回租户库中覆盖 [from, to) 的周表，同时返回租户库连接。
+// 没有租户库时返回空列表，不创建空库。概览聚合与历史分析共用这份周表裁剪逻辑。
+func (s *historyStore) historyTables(ctx context.Context, namespaceUID string, from, to time.Time) (*sql.DB, []string, error) {
+	exists, err := s.tenantExists(ctx, namespaceUID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !exists {
+		return nil, nil, nil
+	}
+	conn, _, err := s.ensureTenant(ctx, namespaceUID)
+	if err != nil {
+		return nil, nil, err
+	}
+	rows, err := conn.QueryContext(ctx, `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename LIKE $1 ORDER BY tablename`, s.tablePrefix+"%")
+	if err != nil {
+		s.log.Error(fmt.Sprintf("history tables %s: %v", s.databaseName(namespaceUID), err))
+		return nil, nil, merr.Server("history storage is unavailable")
+	}
+	tables := make([]string, 0, 8)
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			_ = rows.Close()
+			return nil, nil, merr.Server("history storage is unavailable")
+		}
+		if !shardIdentPattern.MatchString(table) {
+			continue
+		}
+		if !historyTableOverlaps(table, s.tablePrefix, from, to) {
+			continue
+		}
+		tables = append(tables, table)
+	}
+	if err := rows.Err(); err != nil {
+		_ = rows.Close()
+		return nil, nil, merr.Server("history storage is unavailable")
+	}
+	_ = rows.Close()
+	return conn, tables, nil
 }
 
 // historyTableOverlaps 判断某张周表是否覆盖 [from, to) 中的任意时刻。

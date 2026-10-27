@@ -1,18 +1,15 @@
-import { editor as monacoEditor } from "monaco-editor"
-import { Check, Copy } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
 
 import { getDatasourceStatus } from "@/api/datasource"
 import { proxyQuery, queryMetric, queryMetricRange } from "@/api/metric-query"
 import type { DatasourceItem } from "@/api/datasource/types"
+import { CodeBlock } from "@/components/code-block"
 import { FormField } from "@/components/form-field"
 import { useQueryDraft } from "@/hooks/use-query-draft"
 import { useQueryLibrary } from "@/hooks/use-query-library"
 import { MetricGraph } from "@/components/metric-graph"
 import { PromQLEditor } from "@/components/query-expression-editor"
-import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -49,6 +46,16 @@ const areaClass =
   "min-h-24 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 
 type ResultTab = "table" | "graph" | "json"
+
+/** 代理响应可能是 JSON 也可能是纯文本，只有能解析时才按 JSON 高亮。 */
+function isJsonText(value: string): boolean {
+  try {
+    JSON.parse(value)
+    return true
+  } catch {
+    return false
+  }
+}
 
 function formatTime(ts: number): string {
   if (!ts) {
@@ -136,14 +143,11 @@ function ResultTable({ response }: { response: PrometheusApiResponse | null }) {
 function ResultJson({
   response,
   raw,
-  active,
 }: {
   response: PrometheusApiResponse | null
   raw: string
-  active: boolean
 }) {
   const { t } = useTranslation()
-  const { theme } = useTheme()
   const content = useMemo(() => {
     if (response) {
       return JSON.stringify(extractPrometheusResultData(response), null, 2)
@@ -151,75 +155,18 @@ function ResultJson({
     return raw
   }, [raw, response])
 
-  const [copied, setCopied] = useState(false)
-  const [html, setHtml] = useState("")
-  const copiedTimer = useRef<number | null>(null)
-  const editorTheme =
-    theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
-      ? "vs-dark"
-      : "vs"
-
-  useEffect(() => {
-    let active = true
-    async function paint() {
-      if (!content) {
-        if (active) {
-          setHtml("")
-        }
-        return
-      }
-      monacoEditor.setTheme(editorTheme)
-      const colored = await monacoEditor.colorize(content, "json", { tabSize: 2 })
-      if (active) {
-        setHtml(colored)
-      }
-    }
-    void paint()
-    return () => {
-      active = false
-    }
-  }, [content, editorTheme])
-
-  useEffect(() => {
-    return () => {
-      if (copiedTimer.current !== null) {
-        window.clearTimeout(copiedTimer.current)
-      }
-    }
-  }, [])
-
-  async function copyJson() {
-    if (!content) {
-      return
-    }
-    try {
-      await navigator.clipboard.writeText(content)
-      setCopied(true)
-      if (copiedTimer.current !== null) {
-        window.clearTimeout(copiedTimer.current)
-      }
-      copiedTimer.current = window.setTimeout(() => setCopied(false), 2000)
-      toast.success(t("action.copied"))
-    } catch {
-      toast.error(t("action.copyFailed"))
-    }
-  }
-
   if (!content) {
     return <p className="text-sm text-muted-foreground">{t("datasource.queryEmpty")}</p>
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border">
-      <div className="flex shrink-0 items-center justify-end border-b px-2 py-1.5">
-        <Button type="button" variant="outline" size="icon" aria-label={t("action.copy")} onClick={() => void copyJson()}>
-          {copied ? <Check /> : <Copy />}
-        </Button>
-      </div>
-      <pre className="min-h-0 flex-1 overflow-auto bg-background p-3 font-mono text-xs">
-        <code dangerouslySetInnerHTML={{ __html: active ? html : "" }} />
-      </pre>
-    </div>
+    <CodeBlock
+      fill
+      code={content}
+      language="json"
+      label={t("datasource.resultJson")}
+      copyable
+    />
   )
 }
 
@@ -461,7 +408,6 @@ function MetricsQueryPanel({ datasource }: { datasource: DatasourceItem }) {
             <ResultJson
               response={rangeResponse ?? instantResponse}
               raw={rangeBody || instantBody}
-              active={resultTab === "json"}
             />
           ) : null}
         </TabsContent>
@@ -575,7 +521,16 @@ function ProxyQueryPanel({ datasource }: { datasource: DatasourceItem }) {
         />
       </FormField>
       {queryError ? <p className="text-sm text-destructive">{queryError}</p> : null}
-      {proxyResult ? <pre className="overflow-auto rounded-lg border p-3 text-sm">{proxyResult}</pre> : null}
+      {proxyResult ? (
+        <CodeBlock
+          code={proxyResult}
+          language={isJsonText(proxyResult) ? "json" : "text"}
+          label="HTTP"
+          copyable
+          wrap
+          maxHeightClass="max-h-96"
+        />
+      ) : null}
     </div>
   )
 }

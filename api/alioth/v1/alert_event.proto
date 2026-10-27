@@ -34,6 +34,30 @@ service AlertEventService {
   rpc GetAlertInsight(GetAlertInsightRequest) returns (GetAlertInsightResponse) {
     option (google.api.http) = {get: "/v1/alert-insight"};
   }
+  // 历史分析页的顶部汇总：事件总数、去重指纹数与重复事件数。
+  rpc GetAlertAnalysisSummary(GetAlertAnalysisSummaryRequest) returns (GetAlertAnalysisSummaryResponse) {
+    option (google.api.http) = {get: "/v1/alert-analysis/summary"};
+  }
+  // 历史分析页的趋势：按小时、天、周或月分桶统计事件数，只返回非空桶。
+  rpc GetAlertAnalysisTrend(GetAlertAnalysisTrendRequest) returns (GetAlertAnalysisTrendResponse) {
+    option (google.api.http) = {get: "/v1/alert-analysis/trend"};
+  }
+  // 历史分析页的状态分布：按事件状态统计事件数。
+  rpc GetAlertAnalysisStatus(GetAlertAnalysisStatusRequest) returns (GetAlertAnalysisStatusResponse) {
+    option (google.api.http) = {get: "/v1/alert-analysis/status"};
+  }
+  // 历史分析页的级别分布：按告警级别统计事件数。
+  rpc GetAlertAnalysisLevel(GetAlertAnalysisLevelRequest) returns (GetAlertAnalysisLevelResponse) {
+    option (google.api.http) = {get: "/v1/alert-analysis/level"};
+  }
+  // 历史分析页的重复指纹：出现两次及以上的指纹、所属规则与事件数。
+  rpc GetAlertAnalysisFingerprints(GetAlertAnalysisFingerprintsRequest) returns (GetAlertAnalysisFingerprintsResponse) {
+    option (google.api.http) = {get: "/v1/alert-analysis/fingerprints"};
+  }
+  // 历史分析页的恢复时长：自动恢复与人工恢复的闭环时长中位数和 P90。
+  rpc GetAlertAnalysisRecovery(GetAlertAnalysisRecoveryRequest) returns (GetAlertAnalysisRecoveryResponse) {
+    option (google.api.http) = {get: "/v1/alert-analysis/recovery"};
+  }
   // 介入一条实时告警。
   rpc InterveneAlertEvent(InterveneAlertEventRequest) returns (InterveneAlertEventResponse) {
     option (google.api.http) = {
@@ -349,4 +373,220 @@ message GetAlertInsightResponse {
   int32 closed_total = 10 [json_name = "closedTotal"];
   // 为假表示历史分库不可用，结果只含实时表数据。
   bool complete = 11;
+}
+
+// 历史告警分析的公共查询条件。
+// from/to 是本地自然日，含首尾；统计窗口为 from 当天零点到 to 次日的本地零点（不含）。
+// focus_start/focus_end 可选，成对出现时把整段聚合换成聚焦窗口。
+// 各分析接口的请求按这些说明重复声明字段，因为 GET 查询参数需要平铺在请求上。
+message GetAlertAnalysisSummaryRequest {
+  // 起始本地自然日，格式 YYYY-MM-DD，含当天。
+  string from = 1;
+  // 结束本地自然日，格式 YYYY-MM-DD，含当天，不得晚于时区下的今天。
+  string to = 2;
+  // IANA 时区名，用于本地自然日与趋势分桶；空值使用 UTC。
+  string time_zone = 3 [json_name = "timeZone"];
+  // 事件状态过滤：空值表示全部历史事件，或 RECOVERED、RECOVERED_BY_MANUAL、SUPPRESSING。
+  string status = 4;
+  // 聚焦窗口起点，RFC3339；与 focus_end 成对出现，并且落在 from/to 窗口内。
+  string focus_start = 5 [json_name = "focusStart"];
+  // 聚焦窗口终点，RFC3339；必须晚于 focus_start。
+  string focus_end = 6 [json_name = "focusEnd"];
+}
+
+// 历史告警分析的汇总指标。
+message GetAlertAnalysisSummaryResponse {
+  // 实际使用的统计窗口起点，本地时区 RFC3339；聚焦时是聚焦窗口起点。
+  string from = 1;
+  // 实际使用的统计窗口终点（不含），本地时区 RFC3339。
+  string to = 2;
+  // 实际使用的时区。
+  string time_zone = 3 [json_name = "timeZone"];
+  // 为假表示历史分库不可用，结果只含实时表数据。
+  bool complete = 4;
+  // 窗口内的事件总数。
+  int64 events = 5;
+  // 窗口内出现过的去重指纹数，空指纹不计入。
+  int64 unique_fingerprints = 6 [json_name = "uniqueFingerprints"];
+  // 重复事件数：同一指纹第 2 次及以后的出现次数。
+  int64 repeated = 7;
+}
+
+// 历史告警趋势的查询条件。
+message GetAlertAnalysisTrendRequest {
+  // 起始本地自然日，格式 YYYY-MM-DD，含当天。
+  string from = 1;
+  // 结束本地自然日，格式 YYYY-MM-DD，含当天，不得晚于时区下的今天。
+  string to = 2;
+  // IANA 时区名，用于本地自然日与趋势分桶；空值使用 UTC。
+  string time_zone = 3 [json_name = "timeZone"];
+  // 事件状态过滤：空值表示全部历史事件，或 RECOVERED、RECOVERED_BY_MANUAL、SUPPRESSING。
+  string status = 4;
+  // 分桶粒度，取值为 hour、day、week 或 month；空值表示 day。
+  // 周桶以周一为起点（PostgreSQL 的 ISO 周），趋势忽略 focusStart/focusEnd。
+  string granularity = 5;
+}
+
+// 趋势的一个非空时间桶。
+message AlertAnalysisBucket {
+  // 桶起点，本地时区 RFC3339。周桶是周一零点，月桶是当月一日零点。
+  string start = 1;
+  // 桶内事件数。
+  int64 events = 2;
+}
+
+// 历史告警趋势结果，按桶起点升序，只包含非空桶。
+message GetAlertAnalysisTrendResponse {
+  // 统计窗口起点，本地时区 RFC3339。
+  string from = 1;
+  // 统计窗口终点（不含），本地时区 RFC3339。
+  string to = 2;
+  // 实际使用的时区。
+  string time_zone = 3 [json_name = "timeZone"];
+  // 为假表示历史分库不可用，结果只含实时表数据。
+  bool complete = 4;
+  // 非空时间桶。
+  repeated AlertAnalysisBucket buckets = 5;
+}
+
+// 历史告警状态分布的查询条件。
+message GetAlertAnalysisStatusRequest {
+  // 起始本地自然日，格式 YYYY-MM-DD，含当天。
+  string from = 1;
+  // 结束本地自然日，格式 YYYY-MM-DD，含当天，不得晚于时区下的今天。
+  string to = 2;
+  // IANA 时区名；空值使用 UTC。
+  string time_zone = 3 [json_name = "timeZone"];
+  // 事件状态过滤：空值表示全部历史事件，或 RECOVERED、RECOVERED_BY_MANUAL、SUPPRESSING。
+  string status = 4;
+  // 聚焦窗口起点，RFC3339；与 focus_end 成对出现，并且落在 from/to 窗口内。
+  string focus_start = 5 [json_name = "focusStart"];
+  // 聚焦窗口终点，RFC3339；必须晚于 focus_start。
+  string focus_end = 6 [json_name = "focusEnd"];
+}
+
+// 一种状态的事件数。
+message AlertAnalysisStatusItem {
+  // 事件状态，取值为 FIRING、RECOVERED 或 RECOVERED_BY_MANUAL。
+  string status = 1;
+  // 该状态的事件数。
+  int64 events = 2;
+}
+
+// 历史告警状态分布结果。
+message GetAlertAnalysisStatusResponse {
+  // 为假表示历史分库不可用，结果只含实时表数据。
+  bool complete = 1;
+  // 各状态事件数之和。
+  int64 total = 2;
+  // 状态分布，按事件数降序，事件数相同时按状态升序。
+  repeated AlertAnalysisStatusItem items = 3;
+}
+
+// 历史告警级别分布的查询条件。
+message GetAlertAnalysisLevelRequest {
+  // 起始本地自然日，格式 YYYY-MM-DD，含当天。
+  string from = 1;
+  // 结束本地自然日，格式 YYYY-MM-DD，含当天，不得晚于时区下的今天。
+  string to = 2;
+  // IANA 时区名；空值使用 UTC。
+  string time_zone = 3 [json_name = "timeZone"];
+  // 事件状态过滤：空值表示全部历史事件，或 RECOVERED、RECOVERED_BY_MANUAL、SUPPRESSING。
+  string status = 4;
+  // 聚焦窗口起点，RFC3339；与 focus_end 成对出现，并且落在 from/to 窗口内。
+  string focus_start = 5 [json_name = "focusStart"];
+  // 聚焦窗口终点，RFC3339；必须晚于 focus_start。
+  string focus_end = 6 [json_name = "focusEnd"];
+}
+
+// 一个告警级别的事件数。
+message AlertAnalysisLevelItem {
+  // 告警级别标识；空表示事件没有级别。
+  string level_uid = 1 [json_name = "levelUid"];
+  // 该级别的事件数。
+  int64 events = 2;
+}
+
+// 历史告警级别分布结果。
+message GetAlertAnalysisLevelResponse {
+  // 为假表示历史分库不可用，结果只含实时表数据。
+  bool complete = 1;
+  // 各等级事件数之和。
+  int64 total = 2;
+  // 级别分布，按事件数降序，事件数相同时按级别标识升序。
+  repeated AlertAnalysisLevelItem items = 3;
+}
+
+// 历史告警重复指纹的查询条件。
+message GetAlertAnalysisFingerprintsRequest {
+  // 起始本地自然日，格式 YYYY-MM-DD，含当天。
+  string from = 1;
+  // 结束本地自然日，格式 YYYY-MM-DD，含当天，不得晚于时区下的今天。
+  string to = 2;
+  // IANA 时区名；空值使用 UTC。
+  string time_zone = 3 [json_name = "timeZone"];
+  // 事件状态过滤：空值表示全部历史事件，或 RECOVERED、RECOVERED_BY_MANUAL、SUPPRESSING。
+  string status = 4;
+  // 聚焦窗口起点，RFC3339；与 focus_end 成对出现，并且落在 from/to 窗口内。
+  string focus_start = 5 [json_name = "focusStart"];
+  // 聚焦窗口终点，RFC3339；必须晚于 focus_start。
+  string focus_end = 6 [json_name = "focusEnd"];
+  // 返回条数，默认 5，取值 1..20。
+  int32 limit = 7;
+}
+
+// 一个重复出现的指纹。
+message AlertAnalysisFingerprintItem {
+  // 事件指纹。
+  string fingerprint = 1;
+  // 指纹所属规则标识。
+  string rule_uid = 2 [json_name = "ruleUid"];
+  // 指纹所属规则名称；规则被删除后仍返回历史名称。
+  string rule_name = 3 [json_name = "ruleName"];
+  // 该指纹的事件数，只返回大于 1 的指纹。
+  int64 events = 4;
+}
+
+// 历史告警重复指纹结果。
+message GetAlertAnalysisFingerprintsResponse {
+  // 为假表示历史分库不可用，结果只含实时表数据。
+  bool complete = 1;
+  // 重复指纹，按事件数降序，事件数相同时按指纹升序。
+  repeated AlertAnalysisFingerprintItem items = 2;
+}
+
+// 历史告警恢复时长的查询条件。
+message GetAlertAnalysisRecoveryRequest {
+  // 起始本地自然日，格式 YYYY-MM-DD，含当天。
+  string from = 1;
+  // 结束本地自然日，格式 YYYY-MM-DD，含当天，不得晚于时区下的今天。
+  string to = 2;
+  // IANA 时区名；空值使用 UTC。
+  string time_zone = 3 [json_name = "timeZone"];
+  // 事件状态过滤：空值表示全部历史事件，或 RECOVERED、RECOVERED_BY_MANUAL、SUPPRESSING。
+  string status = 4;
+  // 聚焦窗口起点，RFC3339；与 focus_end 成对出现，并且落在 from/to 窗口内。
+  string focus_start = 5 [json_name = "focusStart"];
+  // 聚焦窗口终点，RFC3339；必须晚于 focus_start。
+  string focus_end = 6 [json_name = "focusEnd"];
+}
+
+// 一类恢复方式的闭环时长统计。
+message AlertAnalysisRecoveryStats {
+  // 闭环时长中位数，秒；没有样本时为 0。
+  double median_seconds = 1 [json_name = "medianSeconds"];
+  // 闭环时长 P90，秒；最近秩口径，没有样本时为 0。
+  double p90_seconds = 2 [json_name = "p90Seconds"];
+  // 参与统计的闭环事件数，只统计 ends_at 非空的事件。
+  int64 samples = 3;
+}
+
+// 历史告警恢复时长结果。
+message GetAlertAnalysisRecoveryResponse {
+  // 为假表示历史分库不可用，结果只含实时表数据。
+  bool complete = 1;
+  // 自动恢复（RECOVERED）的闭环时长。
+  AlertAnalysisRecoveryStats auto = 2;
+  // 人工恢复（RECOVERED_BY_MANUAL）的闭环时长。
+  AlertAnalysisRecoveryStats manual = 3;
 }

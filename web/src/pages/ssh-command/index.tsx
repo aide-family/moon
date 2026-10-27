@@ -17,6 +17,7 @@ import {
 } from "@/api/ssh-command"
 import type { SSHCommandAuditItem, SSHCommandItem } from "@/api/ssh-command/types"
 import { useSession } from "@/auth/session"
+import { CodeBlock } from "@/components/code-block"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
@@ -458,7 +459,17 @@ export function SSHCommandPage() {
                           </Link>
                         ) : (
                           <>
-                            {audit.command ? <pre className="mt-3 whitespace-pre-wrap break-words rounded-md bg-muted/50 p-3 font-mono text-xs leading-5">$ {audit.command}</pre> : null}
+                            {audit.command ? (
+                              <CodeBlock
+                                className="mt-3"
+                                code={`$ ${audit.command}`}
+                                language="bash"
+                                label={t("ssh.command")}
+                                copyable
+                                wrap
+                                maxHeightClass="max-h-40"
+                              />
+                            ) : null}
                             {audit.detail ? <p className="mt-3 text-sm text-muted-foreground">{audit.detail}</p> : null}
                           </>
                         )}

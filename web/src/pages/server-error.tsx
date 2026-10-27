@@ -11,6 +11,8 @@ interface ServerErrorPageProps {
   // 后端返回的错误摘要，只用于辅助定位，不替代标准文案。
   detail?: string
   onRetry?: () => void
+  // 默认整页展示（会话加载失败）；在应用外壳内容区展示时传 false。
+  fullPage?: boolean
 }
 
 /**
@@ -21,13 +23,14 @@ export function ServerErrorPage({
   status = 502,
   detail,
   onRetry,
+  fullPage = true,
 }: ServerErrorPageProps) {
   const { t } = useTranslation()
   const unavailable = status === 503
 
   return (
     <ErrorPage
-      fullPage
+      fullPage={fullPage}
       status={status}
       label={unavailable ? "Service Unavailable" : "Bad Gateway"}
       title={t(

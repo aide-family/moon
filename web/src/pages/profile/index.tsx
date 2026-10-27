@@ -157,7 +157,7 @@ export function ProfilePage() {
         description={t("profile.description")}
       />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="grid max-w-2xl gap-6 pb-2">
+        <div className="grid max-w-2xl gap-6 pb-2 xl:max-w-5xl xl:grid-cols-2 xl:items-start">
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>{displayName}</CardTitle>

@@ -190,6 +190,20 @@ func (_c *AlertRuleCreate) SetNillableDescription(v *string) *AlertRuleCreate {
 	return _c
 }
 
+// SetVariables sets the "variables" field.
+func (_c *AlertRuleCreate) SetVariables(v string) *AlertRuleCreate {
+	_c.mutation.SetVariables(v)
+	return _c
+}
+
+// SetNillableVariables sets the "variables" field if the given value is not nil.
+func (_c *AlertRuleCreate) SetNillableVariables(v *string) *AlertRuleCreate {
+	if v != nil {
+		_c.SetVariables(*v)
+	}
+	return _c
+}
+
 // SetNextEvalAt sets the "next_eval_at" field.
 func (_c *AlertRuleCreate) SetNextEvalAt(v time.Time) *AlertRuleCreate {
 	_c.mutation.SetNextEvalAt(v)
@@ -289,6 +303,10 @@ func (_c *AlertRuleCreate) defaults() {
 		v := alertrule.DefaultDescription
 		_c.mutation.SetDescription(v)
 	}
+	if _, ok := _c.mutation.Variables(); !ok {
+		v := alertrule.DefaultVariables
+		_c.mutation.SetVariables(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -364,6 +382,9 @@ func (_c *AlertRuleCreate) check() error {
 	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "AlertRule.description"`)}
+	}
+	if _, ok := _c.mutation.Variables(); !ok {
+		return &ValidationError{Name: "variables", err: errors.New(`ent: missing required field "AlertRule.variables"`)}
 	}
 	return nil
 }
@@ -450,6 +471,10 @@ func (_c *AlertRuleCreate) createSpec() (*AlertRule, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(alertrule.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := _c.mutation.Variables(); ok {
+		_spec.SetField(alertrule.FieldVariables, field.TypeString, value)
+		_node.Variables = value
 	}
 	if value, ok := _c.mutation.NextEvalAt(); ok {
 		_spec.SetField(alertrule.FieldNextEvalAt, field.TypeTime, value)

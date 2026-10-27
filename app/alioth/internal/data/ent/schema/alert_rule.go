@@ -29,6 +29,8 @@ func (AlertRule) Fields() []ent.Field {
 		field.String("datasource_labels").Default("{}"),
 		field.String("summary").Default(""),
 		field.String("description").Default(""),
+		// variables 是自定义查询变量的 JSON 数组文本，默认空数组。
+		field.String("variables").Default("[]"),
 		field.Time("next_eval_at").Optional().Nillable(),
 		field.Time("scheduled_slot").Optional().Nillable(),
 	}

@@ -45,6 +45,8 @@ func NewHTTPServer(
 	workers *service.WorkerService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
+	clusters *service.ClusterService,
+	kubeResources *service.KubernetesService,
 	authenticator *auth.Authenticator,
 	logger *slog.Logger,
 ) (*khttp.Server, error) {
@@ -111,6 +113,8 @@ func NewHTTPServer(
 	v1.RegisterWorkerServiceHTTPServer(srv, workers)
 	v1.RegisterAgentServiceHTTPServer(srv, agents)
 	v1.RegisterSSHCommandServiceHTTPServer(srv, sshCommands)
+	v1.RegisterClusterServiceHTTPServer(srv, clusters)
+	v1.RegisterKubernetesServiceHTTPServer(srv, kubeResources)
 	srv.HandleFunc("/v1/agent/{uid}/shell", agents.ServeShell)
 	return srv, nil
 }

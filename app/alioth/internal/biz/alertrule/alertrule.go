@@ -3,6 +3,7 @@ package alertrule
 import (
 	"context"
 	"encoding/json"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -24,6 +25,24 @@ var ProviderSet = wire.NewSet(NewRulebook)
 
 // maxGroupName 与 proto 校验保持一致，避免绕过 HTTP 的调用写入超长名称。
 const maxGroupName = 64
+
+// 自定义查询变量的限制，与 proto 校验和设计文档保持一致。名字的长度和字符
+// 集由 variableNamePattern 覆盖。
+const (
+	maxRuleVariables   = 20
+	maxVariableExprLen = 4096
+	maxVariableDescLen = 200
+)
+
+// variableNamePattern 是模板标识符规则：字母或下划线开头，后接最多 31 个
+// 字母、数字或下划线。中文和短横线不能当模板标识符，应写进说明。
+var variableNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]{0,31}$`)
+
+// reservedVariableNames 是模板里已有的固定快捷变量。自定义变量同名会遮蔽
+// 主查询标签、采样值等基础数据，因此不允许。
+var reservedVariableNames = map[string]struct{}{
+	"labels": {}, "value": {}, "externalURL": {}, "externalLabels": {},
+}
 
 // Rulebook 管理告警规则与规则分组。
 type Rulebook struct {
@@ -201,13 +220,54 @@ func (rulebook *Rulebook) ListRules(ctx context.Context, pageNo, pageSize int32,
 
 // validateRuleTemplates 在保存前用评测期同一套模板实现做语法校验。摘要和描述
 // 由 megrez 在每次评测时展开，写坏的模板不会让评测失败，而是把展开错误当成
-// 告警内容显示出来，所以在写入时就应当拦住。
+// 告警内容显示出来，所以在写入时就应当拦住。已声明的变量名要注入模板，否则
+// {{ $disk_free }} 会被判成未定义变量。
 func validateRuleTemplates(in *bo.AlertRule) error {
-	if err := alerttmpl.Validate(in.Summary, "summary"); err != nil {
+	names := make([]string, 0, len(in.Variables))
+	for _, variable := range in.Variables {
+		names = append(names, variable.Name)
+	}
+	if err := alerttmpl.ValidateWithVars(in.Summary, "summary", names); err != nil {
 		return merr.Invalid("invalid summary template")
 	}
-	if err := alerttmpl.Validate(in.Description, "description"); err != nil {
+	if err := alerttmpl.ValidateWithVars(in.Description, "description", names); err != nil {
 		return merr.Invalid("invalid description template")
+	}
+	return nil
+}
+
+// validateRuleVariables 在保存前校验自定义查询变量：数量、名字格式与唯一性、
+// 保留名、长度，以及变量查询语句本身的模板语法。变量语句只能用主查询标签、
+// 采样值等基础字段，不能引用其它变量，否则求值顺序无法确定。
+func validateRuleVariables(in *bo.AlertRule) error {
+	if len(in.Variables) > maxRuleVariables {
+		return merr.Invalid("too many variables")
+	}
+	seen := make(map[string]struct{}, len(in.Variables))
+	for _, variable := range in.Variables {
+		if !variableNamePattern.MatchString(variable.Name) {
+			return merr.Invalid("invalid variable name")
+		}
+		if _, reserved := reservedVariableNames[variable.Name]; reserved {
+			return merr.Invalid("reserved variable name")
+		}
+		if _, exists := seen[variable.Name]; exists {
+			return merr.Invalid("duplicate variable name")
+		}
+		seen[variable.Name] = struct{}{}
+		// 查询语句是模板，空白模板展开后没有可执行语句，保存时就拒绝。
+		if strings.TrimSpace(variable.Expr) == "" {
+			return merr.Invalid("empty variable expr")
+		}
+		if utf8.RuneCountInString(variable.Expr) > maxVariableExprLen {
+			return merr.Invalid("variable expr is too long")
+		}
+		if utf8.RuneCountInString(variable.Description) > maxVariableDescLen {
+			return merr.Invalid("variable description is too long")
+		}
+		if err := alerttmpl.Validate(variable.Expr, variable.Name); err != nil {
+			return merr.Invalid("invalid variable template")
+		}
 	}
 	return nil
 }
@@ -215,6 +275,9 @@ func validateRuleTemplates(in *bo.AlertRule) error {
 func (rulebook *Rulebook) prepare(ctx context.Context, namespaceUID string, in *bo.AlertRule) error {
 	if !datasource.ValidDriver(in.Driver) {
 		return merr.Invalid("invalid request")
+	}
+	if err := validateRuleVariables(in); err != nil {
+		return err
 	}
 	if err := validateRuleTemplates(in); err != nil {
 		return err

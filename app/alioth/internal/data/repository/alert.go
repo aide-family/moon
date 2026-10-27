@@ -81,6 +81,18 @@ type AlertEventRepo interface {
 	Stats(ctx context.Context, namespaceUID string) (bo.AlertStats, error)
 	// Insight 按本地自然日聚合区间内的告警：新增、恢复、级别分布与闭环时长分位数。
 	Insight(ctx context.Context, namespaceUID string, from, to time.Time, loc *time.Location) (bo.AlertInsight, error)
+	// AnalysisSummary 统计分析窗口内的事件总数、去重指纹数和重复事件数。
+	AnalysisSummary(ctx context.Context, namespaceUID string, scope bo.AlertAnalysisScope) (bo.AlertAnalysisSummary, error)
+	// AnalysisTrend 按本地时区的小时、天、周或月分桶统计事件数。
+	AnalysisTrend(ctx context.Context, namespaceUID string, scope bo.AlertAnalysisScope, granularity string) (bo.AlertAnalysisTrend, error)
+	// AnalysisStatus 统计分析窗口内按事件状态分布的事件数。
+	AnalysisStatus(ctx context.Context, namespaceUID string, scope bo.AlertAnalysisScope) (bo.AlertAnalysisStatus, error)
+	// AnalysisLevel 统计分析窗口内按告警级别分布的事件数。
+	AnalysisLevel(ctx context.Context, namespaceUID string, scope bo.AlertAnalysisScope) (bo.AlertAnalysisLevel, error)
+	// AnalysisFingerprints 统计出现 2 次及以上的指纹，按事件数降序取前 limit 个。
+	AnalysisFingerprints(ctx context.Context, namespaceUID string, scope bo.AlertAnalysisScope, limit int) (bo.AlertAnalysisFingerprints, error)
+	// AnalysisRecovery 统计自动恢复与人工恢复的闭环时长中位数和 P90。
+	AnalysisRecovery(ctx context.Context, namespaceUID string, scope bo.AlertAnalysisScope) (bo.AlertAnalysisRecovery, error)
 	// BackfillHistory 把主库里遗留的已恢复事件迁移到历史分片，兼容升级前的数据。
 	BackfillHistory(ctx context.Context, limit int) (int, error)
 }

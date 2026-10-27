@@ -293,6 +293,9 @@ export function AlertEventList({
     pageSize: query.pageSize,
     filterKey: `${session.namespaceUid}|${listName}|${listLevel}|${historyFilterSignature}|${view}|${mine}|${pageUid}`,
     refreshKey,
+    // 分析 tab 激活时不发明细请求：明细接口会合并归档表，代价很高。明细面板
+    // 切回来时数据保留（见 usePagedList 的 loadedSignature），不会重复请求。
+    enabled: view !== "HISTORY" || historyTab === "details",
     fetch: (page, pageSize) =>
       listAlertEvents({
         page,
@@ -386,8 +389,21 @@ export function AlertEventList({
   const title =
     view === "HISTORY" ? t("alertEvent.historyTitle") : t("alertEvent.title")
 
+  // 级别字典只在真会用到它的视图加载：实时列表始终需要；历史告警切到明细
+  // tab 才需要（分析 tab 自带独立的级别字典，这里不为它兜底）。
+  // 用键记住已加载的租户/视图，切回明细 tab 时复用，不重复请求字典。
+  const levelsLoadedKey = useRef("")
   useEffect(() => {
-    let active = true
+    const active = view === "REALTIME" || historyTab === "details"
+    if (!active) {
+      return
+    }
+    const key = `${session.namespaceUid}|${view}`
+    if (levelsLoadedKey.current === key) {
+      return
+    }
+    levelsLoadedKey.current = key
+    let cancelled = false
     async function loadLevels() {
       try {
         const result = await listAlertDictionaries({
@@ -395,20 +411,22 @@ export function AlertEventList({
           page: 1,
           pageSize: 100,
         })
-        if (active) {
+        if (!cancelled) {
           setLevels(result.items ?? [])
         }
       } catch {
-        if (active) {
+        if (!cancelled) {
           setLevels([])
+          // 失败不缓存，离开再回来时允许重试。
+          levelsLoadedKey.current = ""
         }
       }
     }
     void loadLevels()
     return () => {
-      active = false
+      cancelled = true
     }
-  }, [view, session.namespaceUid])
+  }, [view, historyTab, session.namespaceUid])
 
   useLayoutEffect(() => {
     const node = checkHeadRef.current

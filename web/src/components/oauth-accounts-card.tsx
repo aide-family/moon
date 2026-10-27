@@ -94,10 +94,9 @@ function OAuthAccountRow({
 }: OAuthAccountRowProps) {
   const { t } = useTranslation()
   const link = row.link
-  const account = link ? linkAccount(link) : ""
 
   return (
-    <li className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:flex-nowrap">
+    <li className="flex flex-wrap items-start gap-x-3 gap-y-2 py-3 sm:flex-nowrap">
       <OAuthProviderMark provider={row.provider} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -118,15 +117,26 @@ function OAuthAccountRow({
             />
           )}
         </div>
+        {/* 已绑定的来源逐项列出明细：账号、OpenID 与绑定时间，便于核对是哪一条身份。 */}
         {link ? (
-          <p className="mt-1 text-xs break-all text-muted-foreground">
-            {account || t("profile.oauth.accountUnknown")}
-            {link.boundAt
-              ? ` · ${t("profile.oauth.boundAt", {
-                  time: formatDateTime(link.boundAt),
-                })}`
-              : null}
-          </p>
+          <dl className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 text-xs">
+            <dt className="text-muted-foreground">
+              {t("profile.oauth.accountLabel")}
+            </dt>
+            <dd className="break-all">{link.email || "—"}</dd>
+            <dt className="text-muted-foreground">
+              {t("profile.oauth.openIdLabel")}
+            </dt>
+            <dd className="font-mono break-all">
+              {maskOpenId(link.openId) || "—"}
+            </dd>
+            <dt className="text-muted-foreground">
+              {t("profile.oauth.boundTimeLabel")}
+            </dt>
+            <dd className="tabular-nums">
+              {link.boundAt ? formatDateTime(link.boundAt) : "—"}
+            </dd>
+          </dl>
         ) : null}
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-2">
