@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func TestSlicePage(t *testing.T) {

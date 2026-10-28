@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
 )
 
 // TestPartitionRepoEnsuresUpcomingWeeks 验证分区维护任务会提前建出未来周的分区。

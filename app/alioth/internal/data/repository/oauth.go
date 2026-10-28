@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // OAuthRepo 按第三方身份查找或绑定本地用户。

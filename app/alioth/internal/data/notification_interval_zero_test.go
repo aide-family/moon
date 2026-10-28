@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // TestFiringSuppressedHonoursZeroInterval 间隔 0 表示不限制：

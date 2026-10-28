@@ -79,7 +79,7 @@ import {
 } from "@/lib/last-page"
 import { ServerErrorPage } from "@/pages/server-error"
 
-const repositoryURL = "https://github.com/aide-family/Alioth"
+const repositoryURL = "https://github.com/aide-family/moon"
 
 // 这些页面不依赖当前租户，没有租户也可以直接打开；其余登录内页面会被送回租户页。
 const tenantFreePaths = new Set([

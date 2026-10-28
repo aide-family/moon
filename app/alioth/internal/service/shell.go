@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
 )
 
 func (s *AgentService) IssueShellTicket(ctx context.Context, req *v1.IssueShellTicketRequest) (*v1.IssueShellTicketResponse, error) {

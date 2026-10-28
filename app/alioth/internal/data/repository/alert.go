@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // DatasourceRepo 读写数据源，并向对应驱动发起查询。接口不暴露 ent。

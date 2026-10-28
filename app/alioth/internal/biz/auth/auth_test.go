@@ -17,15 +17,15 @@ import (
 
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
-	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/user"
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
-	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	megrezv1 "github.com/aide-family/moon/api/megrez/v1"
+	merakv1 "github.com/aide-family/moon/api/merak/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/user"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/pkg/actor"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 type userStub struct{ repository.UserRepo }

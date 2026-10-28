@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/config"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // Load 读取 Bootstrap YAML 并展开环境变量。各服务只保留自己的 conf 类型。

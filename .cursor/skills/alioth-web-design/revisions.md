@@ -39,7 +39,7 @@
 适用：全局顶栏。
 
 - 顶栏的租户切换下拉触发器不加边框，背景与顶栏一致：`border-0 bg-transparent shadow-none dark:bg-transparent dark:hover:bg-transparent`，不要独立底色或描边。
-- 顶栏右上角固定放项目 GitHub 图标链接，新窗口打开 `https://github.com/aide-family/Alioth`，图标颜色跟随文字颜色。
+- 顶栏右上角固定放项目 GitHub 图标链接，新窗口打开 `https://github.com/aide-family/moon`，图标颜色跟随文字颜色。
 
 ## 2026-10-22 通知页与全局操作列
 

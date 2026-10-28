@@ -6,10 +6,10 @@ import (
 
 	khttp "github.com/go-kratos/kratos/v3/transport/http"
 
-	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
-	"github.com/aide-family/Alioth/app/alkaid/internal/service"
-	"github.com/aide-family/Alioth/pkg/healthserver"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alkaid/internal/conf"
+	"github.com/aide-family/moon/app/alkaid/internal/service"
+	"github.com/aide-family/moon/pkg/healthserver"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewHTTPServer(c *conf.Server, health *service.HealthService, logger *slog.Logger) (*khttp.Server, error) {

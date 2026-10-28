@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // ParseObject 把 JSON 对象解析成 map。空串视为空对象。

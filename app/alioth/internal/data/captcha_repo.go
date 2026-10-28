@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
 )
 
 func (r *captchaRepo) SaveCaptcha(ctx context.Context, id, answerHash string, expiresAt time.Time) error {

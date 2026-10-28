@@ -1,4 +1,4 @@
-module github.com/aide-family/Alioth/api
+module github.com/aide-family/moon/api
 
 go 1.26.0
 

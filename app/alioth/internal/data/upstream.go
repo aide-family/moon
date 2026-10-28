@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
-	"github.com/aide-family/Alioth/pkg/upstream"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/upstream"
 )
 
 var upstreamClient = &http.Client{Timeout: 10 * time.Second}

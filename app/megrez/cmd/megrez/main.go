@@ -11,9 +11,9 @@ import (
 	"github.com/go-kratos/kratos/v3/transport/http"
 	"github.com/spf13/cobra"
 
-	"github.com/aide-family/Alioth/app/megrez/internal/biz/eval"
-	"github.com/aide-family/Alioth/app/megrez/internal/conf"
-	"github.com/aide-family/Alioth/pkg/bootstrap"
+	"github.com/aide-family/moon/app/megrez/internal/biz/eval"
+	"github.com/aide-family/moon/app/megrez/internal/conf"
+	"github.com/aide-family/moon/pkg/bootstrap"
 )
 
 // version 由构建注入：-ldflags "-X main.version=v1.2.3"。

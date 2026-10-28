@@ -10,11 +10,11 @@ import (
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
 	khttp "github.com/go-kratos/kratos/v3/transport/http"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/service"
-	"github.com/aide-family/Alioth/pkg/merr"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/auth"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/service"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewHTTPServer(

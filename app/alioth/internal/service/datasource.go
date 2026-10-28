@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/datasource"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/datasource"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 type DatasourceService struct {

@@ -3,7 +3,7 @@ package data
 import (
 	"testing"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // TestRuleVariablesStorage 校验变量的存储格式与设计文档一致，并且历史规则或

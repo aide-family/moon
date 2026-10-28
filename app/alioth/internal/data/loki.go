@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // lokiQueryRangePath 是 Loki 的日志区间查询接口。

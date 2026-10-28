@@ -10,7 +10,7 @@
   },
   "go.formatTool": "default",
   "gopls": {
-    "formatting.local": "github.com/aide-family/Alioth",
+    "formatting.local": "github.com/aide-family/moon",
     "ui.diagnostic.staticcheck": true,
     "build.directoryFilters": ["-web", "-bin", "-dist", "-tmp"]
   },

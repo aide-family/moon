@@ -4,7 +4,7 @@ package alioth.v1;
 
 import "google/api/annotations.proto";
 
-option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
 
 // 健康检查。
 service HealthService {

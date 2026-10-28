@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
 )
 
 // TestDatasourceConnectionMigration 保证已有部署里同地址的多个启用数据源会被停用，

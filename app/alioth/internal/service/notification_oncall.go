@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 type NotificationOnCallService struct {

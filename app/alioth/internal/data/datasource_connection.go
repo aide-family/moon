@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
-	"github.com/aide-family/Alioth/app/alioth/pkg/endpoint"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
+	"github.com/aide-family/moon/app/alioth/pkg/endpoint"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // prepareDatasourceConnections 在创建唯一索引前清理历史数据：

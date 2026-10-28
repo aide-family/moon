@@ -7,15 +7,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerthistoryevent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerthistoryevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 func TestFilterHistoryItemsAppliesDetailFiltersBeforePagination(t *testing.T) {

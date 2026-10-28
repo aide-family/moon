@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/access"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/page"
-	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/access"
+	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/page"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 var ProviderSet = wire.NewSet(NewRegistry, NewExplorer, NewOperator)

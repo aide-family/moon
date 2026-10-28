@@ -12,8 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationoncall"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
 
 // NotificationOnCallUpdate is the builder for updating NotificationOnCall entities.

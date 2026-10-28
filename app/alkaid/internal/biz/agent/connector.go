@@ -22,10 +22,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alkaid/internal/data"
-	"github.com/aide-family/Alioth/pkg/grpctls"
-	"github.com/aide-family/Alioth/pkg/merr"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alkaid/internal/data"
+	"github.com/aide-family/moon/pkg/grpctls"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 const maxOutputBytes = 64 * 1024

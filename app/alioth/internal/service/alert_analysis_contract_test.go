@@ -6,10 +6,11 @@ import (
 	"sort"
 	"testing"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	"github.com/go-kratos/kratos/v3/encoding/form"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+
+	v1 "github.com/aide-family/moon/api/alioth/v1"
 )
 
 // 分析接口的查询参数名与前端冻结的 camelCase 一致：HTTP 层 BindQuery 走 form codec，

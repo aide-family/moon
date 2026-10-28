@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func analysisTestLocation(t *testing.T, name string) *time.Location {

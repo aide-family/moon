@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func TestAlertStore(t *testing.T) {

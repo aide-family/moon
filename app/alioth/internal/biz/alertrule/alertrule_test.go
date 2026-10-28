@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/alerttmpl"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/alerttmpl"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // TestChangedLevelUIDs 校验阈值调整也会被视为级别变化。否则旧 FIRING 事件

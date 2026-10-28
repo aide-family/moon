@@ -9,7 +9,7 @@ import (
 
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 func TestCallUpstreamReportsRejectionReason(t *testing.T) {

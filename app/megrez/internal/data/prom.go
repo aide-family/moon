@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
-	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
-	"github.com/aide-family/Alioth/pkg/upstream"
+	"github.com/aide-family/moon/app/megrez/internal/data/repository"
+	"github.com/aide-family/moon/app/megrez/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/upstream"
 )
 
 // datasourceQueryTimeout 是单次数据源查询的上限，与事件图表的预期响应时间对齐。

@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/role"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/role"
 )
 
 type RoleService struct {

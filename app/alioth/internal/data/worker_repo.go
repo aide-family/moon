@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 var _ repository.WorkerRepo = (*workerRepo)(nil)

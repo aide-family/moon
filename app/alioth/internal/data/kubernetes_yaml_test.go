@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // fakeYAMLObjectMeta 带上服务端记账字段和 kubectl 旧配置注解，用于验证它们会被去掉。

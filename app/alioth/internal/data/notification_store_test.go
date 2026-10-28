@@ -6,17 +6,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationsubscription"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationsubscriptiongroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 func TestNotificationTaskDedup(t *testing.T) {

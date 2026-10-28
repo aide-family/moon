@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/cluster"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/cluster"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // ClusterService 把集群管理请求转成用例入参。kubeconfig 只作为入参出现，

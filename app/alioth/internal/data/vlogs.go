@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // vlogsQueryPath 是 VictoriaLogs 的 LogsQL 查询接口。

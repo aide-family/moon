@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
+	"github.com/aide-family/moon/app/megrez/pkg/bo"
 )
 
 func TestElasticsearchQueryRangeCountsDocumentsPerBucket(t *testing.T) {

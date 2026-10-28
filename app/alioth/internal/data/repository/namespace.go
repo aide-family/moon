@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // NamespaceRepo 读写租户，以及用户加入过的租户。

@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
-	pkgnotify "github.com/aide-family/Alioth/pkg/notify"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
+	pkgnotify "github.com/aide-family/moon/pkg/notify"
 )
 
 const (

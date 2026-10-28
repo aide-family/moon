@@ -11,8 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
 
 // MemberInviteQuery is the builder for querying MemberInvite entities.

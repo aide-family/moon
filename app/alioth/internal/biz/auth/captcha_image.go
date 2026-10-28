@@ -17,7 +17,7 @@ import (
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 const (

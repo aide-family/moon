@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"log/slog"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/repository"
 )
 
 type repoBase struct {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/aide-family/Alioth/pkg/healthcheck"
+	"github.com/aide-family/moon/pkg/healthcheck"
 )
 
 var ProviderSet = wire.NewSet(NewProber)

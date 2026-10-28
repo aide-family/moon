@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/alerttmpl"
-	"github.com/aide-family/Alioth/pkg/fingerprint"
+	"github.com/aide-family/moon/app/megrez/pkg/bo"
+	"github.com/aide-family/moon/pkg/alerttmpl"
+	"github.com/aide-family/moon/pkg/fingerprint"
 )
 
 // TemplateQuery executes an instant query for Prometheus' query template function.

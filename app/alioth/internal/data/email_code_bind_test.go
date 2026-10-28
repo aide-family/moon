@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 )
 
 // TestBindSendAddressCap 同一绑定凭证只统计不同邮箱；重复地址不增加计数，其他凭证互不影响。

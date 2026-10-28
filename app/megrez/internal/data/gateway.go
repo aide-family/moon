@@ -7,12 +7,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
-	"github.com/aide-family/Alioth/app/megrez/internal/conf"
-	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
-	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/grpctls"
-	"github.com/aide-family/Alioth/pkg/merr"
+	megrezv1 "github.com/aide-family/moon/api/megrez/v1"
+	"github.com/aide-family/moon/app/megrez/internal/conf"
+	"github.com/aide-family/moon/app/megrez/internal/data/repository"
+	"github.com/aide-family/moon/app/megrez/pkg/bo"
+	"github.com/aide-family/moon/pkg/grpctls"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 type gateway struct {

@@ -13,9 +13,9 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/wire"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 var ProviderSet = wire.NewSet(

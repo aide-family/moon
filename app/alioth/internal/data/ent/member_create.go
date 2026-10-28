@@ -10,7 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 )
 
 // MemberCreate is the builder for creating a Member entity.

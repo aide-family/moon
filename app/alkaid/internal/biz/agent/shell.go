@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
 )
 
 type liveShell struct {

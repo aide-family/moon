@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aide-family/Alioth/app/merak/pkg/bo"
+	"github.com/aide-family/moon/app/merak/pkg/bo"
 )
 
 func TestDeliverReturnsRenderedContentForAudit(t *testing.T) {

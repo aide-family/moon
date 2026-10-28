@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"strings"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 type secretBox struct {

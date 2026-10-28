@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/rolepermission"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
-	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationpreset"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
 )
 
 func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {

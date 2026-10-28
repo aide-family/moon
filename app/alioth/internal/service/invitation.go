@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/member"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/member"
 )
 
 // InvitationService 是平台邀请消息入口。查看邀请函不需要登录，确认需要登录。

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // ListMetrics 按指标驱动读取指标名。Prometheus 读元数据接口；

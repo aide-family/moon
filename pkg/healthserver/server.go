@@ -11,7 +11,7 @@ import (
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
 	khttp "github.com/go-kratos/kratos/v3/transport/http"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // Health 是各服务健康服务的最小接口。

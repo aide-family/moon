@@ -10,7 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 )
 
 // NamespaceCreate is the builder for creating a Namespace entity.

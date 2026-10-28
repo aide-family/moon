@@ -829,7 +829,7 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"\x04port\x18\x02 \x01(\x05R\x04port\x12\x1a\n" +
 	"\busername\x18\x03 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x04 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04from\x18\x05 \x01(\tR\x04fromB=Z;github.com/aide-family/Alioth/app/alioth/internal/conf;confb\x06proto3"
+	"\x04from\x18\x05 \x01(\tR\x04fromB;Z9github.com/aide-family/moon/app/alioth/internal/conf;confb\x06proto3"
 
 var (
 	file_internal_conf_conf_proto_rawDescOnce sync.Once

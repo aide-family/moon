@@ -13,9 +13,9 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // placeholderEmailSuffix 是历史版本给没有可用邮箱的第三方账号生成的占位邮箱后缀。

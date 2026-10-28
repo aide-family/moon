@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 )
 
 // TestEmailCodePurposeIsolation 验证码按用途隔离：绑定码不能用于登录，登录码不能用于绑定；

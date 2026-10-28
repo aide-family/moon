@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
-	"github.com/aide-family/Alioth/pkg/bootstrap"
+	"github.com/aide-family/moon/app/alkaid/internal/conf"
+	"github.com/aide-family/moon/pkg/bootstrap"
 )
 
 func TestLoadConfig(t *testing.T) {

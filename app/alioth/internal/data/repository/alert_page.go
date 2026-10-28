@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // AlertPageRepo 读写告警页面与个人 Tab 订阅。

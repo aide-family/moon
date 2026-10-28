@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
 )
 
 func (r *emailCodeRepo) SaveEmailCode(ctx context.Context, email, codeHash, purpose string, expiresAt time.Time) error {

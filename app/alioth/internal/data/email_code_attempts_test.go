@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 )
 
 // TestEmailCodeAttemptsExhaustAndLockout 验证错误次数达到上限后码立即作废，

@@ -1,12 +1,12 @@
-module github.com/aide-family/Alioth/app/alioth
+module github.com/aide-family/moon/app/alioth
 
 go 1.26.0
 
 require (
 	buf.build/go/protovalidate v1.4.0
 	entgo.io/ent v0.14.6
-	github.com/aide-family/Alioth/api v0.0.0
-	github.com/aide-family/Alioth/pkg v0.0.0
+	github.com/aide-family/moon/api v0.0.0
+	github.com/aide-family/moon/pkg v0.0.0
 	github.com/go-kratos/kratos/contrib/encoding/json/v3 v3.0.0-20260626125723-668db92c2c00
 	github.com/go-kratos/kratos/v3 v3.0.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
@@ -106,6 +106,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
 )
 
-replace github.com/aide-family/Alioth/api => ../../api
+replace github.com/aide-family/moon/api => ../../api
 
-replace github.com/aide-family/Alioth/pkg => ../../pkg
+replace github.com/aide-family/moon/pkg => ../../pkg

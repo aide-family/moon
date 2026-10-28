@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
 )
 
 func TestExecRunsLocallyWithoutSSHCredentials(t *testing.T) {

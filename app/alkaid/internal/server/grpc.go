@@ -6,8 +6,8 @@ import (
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
 	kgrpc "github.com/go-kratos/kratos/v3/transport/grpc"
 
-	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alkaid/internal/conf"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewGRPCServer(c *conf.Server, logger *slog.Logger) (*kgrpc.Server, error) {

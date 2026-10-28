@@ -5,14 +5,14 @@
 <p align="center">自建、多租户的运维平台：数据源评测、告警、通知与值班处置在同一条链路上完成。</p>
 
 <p align="center">
-  <a href="https://github.com/aide-family/Alioth/actions/workflows/ci.yml"><img src="https://github.com/aide-family/Alioth/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
-  <a href="https://github.com/aide-family/Alioth/releases"><img src="https://img.shields.io/github/v/release/aide-family/Alioth?style=flat-square" alt="Release" /></a>
-  <a href="https://github.com/aide-family/Alioth/stargazers"><img src="https://img.shields.io/github/stars/aide-family/Alioth?style=flat-square" alt="Stars" /></a>
-  <a href="https://github.com/aide-family/Alioth/forks"><img src="https://img.shields.io/github/forks/aide-family/Alioth?style=flat-square" alt="Forks" /></a>
-  <a href="https://github.com/aide-family/Alioth/issues"><img src="https://img.shields.io/github/issues/aide-family/Alioth?style=flat-square" alt="Issues" /></a>
-  <a href="https://github.com/aide-family/Alioth/pulls"><img src="https://img.shields.io/github/issues-pr/aide-family/Alioth?style=flat-square" alt="Pull requests" /></a>
-  <a href="https://github.com/aide-family/Alioth/commits/main"><img src="https://img.shields.io/github/last-commit/aide-family/Alioth?style=flat-square" alt="Last commit" /></a>
-  <a href="https://github.com/aide-family/Alioth/graphs/contributors"><img src="https://img.shields.io/github/contributors/aide-family/Alioth?style=flat-square" alt="Contributors" /></a>
+  <a href="https://github.com/aide-family/moon/actions/workflows/ci.yml"><img src="https://github.com/aide-family/moon/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+  <a href="https://github.com/aide-family/moon/releases"><img src="https://img.shields.io/github/v/release/aide-family/moon?style=flat-square" alt="Release" /></a>
+  <a href="https://github.com/aide-family/moon/stargazers"><img src="https://img.shields.io/github/stars/aide-family/moon?style=flat-square" alt="Stars" /></a>
+  <a href="https://github.com/aide-family/moon/forks"><img src="https://img.shields.io/github/forks/aide-family/moon?style=flat-square" alt="Forks" /></a>
+  <a href="https://github.com/aide-family/moon/issues"><img src="https://img.shields.io/github/issues/aide-family/moon?style=flat-square" alt="Issues" /></a>
+  <a href="https://github.com/aide-family/moon/pulls"><img src="https://img.shields.io/github/issues-pr/aide-family/moon?style=flat-square" alt="Pull requests" /></a>
+  <a href="https://github.com/aide-family/moon/commits/main"><img src="https://img.shields.io/github/last-commit/aide-family/moon?style=flat-square" alt="Last commit" /></a>
+  <a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://img.shields.io/github/contributors/aide-family/moon?style=flat-square" alt="Contributors" /></a>
   <img src="https://img.shields.io/badge/Go-1.26-00ADD8?style=flat-square" alt="Go 1.26" />
   <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square" alt="PostgreSQL 16" />
 </p>
@@ -103,7 +103,7 @@ SSH 命令走审核流：提交新建或更新生成待审核审计，通过后�
 ## 快速开始
 
 ```bash
-git clone https://github.com/aide-family/Alioth.git && cd Alioth
+git clone https://github.com/aide-family/moon.git && cd moon
 make dev-up
 open http://127.0.0.1:8080
 ```
@@ -120,5 +120,5 @@ open http://127.0.0.1:8080
 ## Star 趋势
 
 <p align="center">
-  <a href="https://star-history.com/#aide-family/Alioth&Date"><img src="https://api.star-history.com/svg?repos=aide-family/Alioth&type=Date" alt="Star 趋势" width="760" /></a>
+  <a href="https://star-history.com/#aide-family/moon&Date"><img src="https://api.star-history.com/svg?repos=aide-family/moon&type=Date" alt="Star 趋势" width="760" /></a>
 </p>

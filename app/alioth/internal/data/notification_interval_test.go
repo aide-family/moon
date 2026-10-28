@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
+	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // TestNotificationFilterDatasourceLevel 校验订阅和 OnCall 的数据源级别过滤：

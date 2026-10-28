@@ -12,7 +12,7 @@ import (
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 var (

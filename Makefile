@@ -54,7 +54,7 @@ conf:
 conf-app:
 	protoc --proto_path=$(ROOT)app/$(APP) \
 		--proto_path=$(PROTO_INC) \
-		--go_out=$(ROOT)app/$(APP) --go_opt=module=github.com/aide-family/Alioth/app/$(APP) \
+		--go_out=$(ROOT)app/$(APP) --go_opt=module=github.com/aide-family/moon/app/$(APP) \
 		$(ROOT)app/$(APP)/internal/conf/conf.proto
 
 vet:

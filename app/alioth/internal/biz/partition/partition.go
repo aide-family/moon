@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
-	"github.com/aide-family/Alioth/pkg/lock"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/pkg/lock"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 const (

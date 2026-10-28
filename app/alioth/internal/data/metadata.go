@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // esClusterHealthPath 和 esAllocationPath 是元数据页读取的 Elasticsearch 接口。

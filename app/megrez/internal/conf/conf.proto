@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package megrez.conf;
 
-option go_package = "github.com/aide-family/Alioth/app/megrez/internal/conf;conf";
+option go_package = "github.com/aide-family/moon/app/megrez/internal/conf;conf";
 
 import "google/protobuf/duration.proto";
 

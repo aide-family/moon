@@ -43,7 +43,7 @@ Alioth/
 
 每个手写包提供 `doc.go`，用包注释说明这个包做什么。`ent` 生成的子包不加。
 
-手写 Go 文件的 import 分成四组，组之间空一行：空白导入、标准库、第三方、本仓库（`github.com/aide-family/Alioth`）。`ent`、`*.pb.go`、`wire_gen.go` 由生成器维护，不手改。
+手写 Go 文件的 import 分成四组，组之间空一行：空白导入、标准库、第三方、本仓库（`github.com/aide-family/moon`）。`ent`、`*.pb.go`、`wire_gen.go` 由生成器维护，不手改。
 
 proto 的 service、rpc、message 和字段都写中文注释。
 

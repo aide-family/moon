@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // UserRepo 读写平台级用户。用户不属于任何租户。

@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"sort"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // listPrometheusMetrics 读取 Prometheus 的指标元数据。

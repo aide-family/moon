@@ -7,13 +7,12 @@
 package conf
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -376,7 +375,7 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"\x04addr\x18\x01 \x01(\tR\x04addr\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"=\n" +
 	"\x06Notify\x123\n" +
-	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeoutB<Z:github.com/aide-family/Alioth/app/merak/internal/conf;confb\x06proto3"
+	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeoutB:Z8github.com/aide-family/moon/app/merak/internal/conf;confb\x06proto3"
 
 var (
 	file_internal_conf_conf_proto_rawDescOnce sync.Once

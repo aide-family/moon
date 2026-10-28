@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // MemberRepo 读写租户成员及其角色绑定。

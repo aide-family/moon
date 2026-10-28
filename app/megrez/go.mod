@@ -1,13 +1,11 @@
-module github.com/aide-family/Alioth/app/megrez
+module github.com/aide-family/moon/app/megrez
 
 go 1.26.0
 
 require (
-	github.com/aide-family/Alioth/pkg v0.0.0
+	github.com/aide-family/moon/pkg v0.0.0
 	github.com/go-kratos/kratos/v3 v3.0.0
 	github.com/google/wire v0.7.0
-	github.com/prometheus/common v0.63.0
-	github.com/prometheus/prometheus v0.304.1
 	github.com/redis/go-redis/v9 v9.23.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.10.2
@@ -28,7 +26,9 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
+	github.com/prometheus/common v0.63.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
+	github.com/prometheus/prometheus v0.304.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
@@ -40,7 +40,7 @@ require (
 )
 
 require (
-	github.com/aide-family/Alioth/api v0.0.0
+	github.com/aide-family/moon/api v0.0.0
 	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
@@ -53,6 +53,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/aide-family/Alioth/pkg => ../../pkg
+replace github.com/aide-family/moon/pkg => ../../pkg
 
-replace github.com/aide-family/Alioth/api => ../../api
+replace github.com/aide-family/moon/api => ../../api

@@ -13,10 +13,10 @@ import (
 	"github.com/go-kratos/kratos/v3/transport/http"
 	"github.com/spf13/cobra"
 
-	agentbiz "github.com/aide-family/Alioth/app/alkaid/internal/biz/agent"
-	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
-	"github.com/aide-family/Alioth/app/alkaid/internal/data"
-	"github.com/aide-family/Alioth/pkg/bootstrap"
+	agentbiz "github.com/aide-family/moon/app/alkaid/internal/biz/agent"
+	"github.com/aide-family/moon/app/alkaid/internal/conf"
+	"github.com/aide-family/moon/app/alkaid/internal/data"
+	"github.com/aide-family/moon/pkg/bootstrap"
 )
 
 // version 由构建注入：-ldflags "-X main.version=v1.2.3"。

@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

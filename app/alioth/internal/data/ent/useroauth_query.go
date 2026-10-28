@@ -11,8 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/useroauth"
 )
 
 // UserOAuthQuery is the builder for querying UserOAuth entities.

@@ -7,13 +7,12 @@
 package conf
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -378,7 +377,7 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"agentToken\x12H\n" +
 	"\x12heartbeat_interval\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\x11heartbeatInterval\x1a\x1a\n" +
 	"\x04GRPC\x12\x12\n" +
-	"\x04addr\x18\x01 \x01(\tR\x04addrB=Z;github.com/aide-family/Alioth/app/alkaid/internal/conf;confb\x06proto3"
+	"\x04addr\x18\x01 \x01(\tR\x04addrB;Z9github.com/aide-family/moon/app/alkaid/internal/conf;confb\x06proto3"
 
 var (
 	file_internal_conf_conf_proto_rawDescOnce sync.Once

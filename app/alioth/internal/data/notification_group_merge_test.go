@@ -5,11 +5,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
-	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
 )
 
 // TestReplaceMemberUID 替换并去重；没命中时原样返回，避免无意义写库。

@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func (r *sshCommandRepo) CreateCommand(ctx context.Context, in bo.SSHCommand, operatorUID string) (*bo.SSHCommand, error) {

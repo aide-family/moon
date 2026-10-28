@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/internal/data/repository"
 )
 
 // partitionRepo 只做分区维护，不参与业务读写。

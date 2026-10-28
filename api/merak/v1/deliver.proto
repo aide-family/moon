@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package merak.v1;
 
-option go_package = "github.com/aide-family/Alioth/api/merak/v1;v1";
+option go_package = "github.com/aide-family/moon/api/merak/v1;v1";
 
 // 通知任务领取和回写。只提供 gRPC，由玉衡实现，天璇持 service key 调用。
 service NotifyService {

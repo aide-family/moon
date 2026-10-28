@@ -6,7 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v3/middleware"
 	"github.com/go-kratos/kratos/v3/transport"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
+	"github.com/aide-family/moon/app/alioth/internal/biz/auth"
 )
 
 func authenticate(authenticator *auth.Authenticator) middleware.Middleware {

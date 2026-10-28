@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/megrez/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func TestQueryRangeKeepsEndpointPrefix(t *testing.T) {

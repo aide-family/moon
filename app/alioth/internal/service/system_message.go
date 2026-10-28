@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/message"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/message"
 )
 
 // SystemMessageService 是平台系统消息入口。

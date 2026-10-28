@@ -5,7 +5,7 @@ package alioth.v1;
 import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
 
 // Kubernetes 集群的接入与管理。一个租户可以接入多个集群。
 // kubeconfig 只在接入、替换和连通性探测时提交，任何响应都不回传原文。

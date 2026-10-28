@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/worker"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	megrezv1 "github.com/aide-family/moon/api/megrez/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/biz/worker"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 type EvalService struct {

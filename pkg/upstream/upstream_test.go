@@ -5,7 +5,7 @@ import (
 
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func TestResolveKeepsEndpointPathPrefix(t *testing.T) {

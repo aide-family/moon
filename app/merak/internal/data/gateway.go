@@ -7,12 +7,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
-	"github.com/aide-family/Alioth/app/merak/internal/conf"
-	"github.com/aide-family/Alioth/app/merak/internal/data/repository"
-	"github.com/aide-family/Alioth/app/merak/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/grpctls"
-	"github.com/aide-family/Alioth/pkg/merr"
+	merakv1 "github.com/aide-family/moon/api/merak/v1"
+	"github.com/aide-family/moon/app/merak/internal/conf"
+	"github.com/aide-family/moon/app/merak/internal/data/repository"
+	"github.com/aide-family/moon/app/merak/pkg/bo"
+	"github.com/aide-family/moon/pkg/grpctls"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 type gateway struct {

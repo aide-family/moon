@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // ClientFromEnv 读取 <prefix>_CA、<prefix>_CERT、<prefix>_KEY、<prefix>_SERVER_NAME、<prefix>_INSECURE。

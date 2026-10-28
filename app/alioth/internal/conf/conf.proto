@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package alioth.conf;
 
-option go_package = "github.com/aide-family/Alioth/app/alioth/internal/conf;conf";
+option go_package = "github.com/aide-family/moon/app/alioth/internal/conf;conf";
 
 import "google/protobuf/duration.proto";
 

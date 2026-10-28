@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"time"
+
 	// 运行时镜像是 distroless，没有 /usr/share/zoneinfo；
 	// 概览页按 IANA 时区分桶，必须把时区库编进二进制。
 	_ "time/tzdata"
@@ -16,12 +17,12 @@ import (
 	"github.com/go-kratos/kratos/v3/transport/http"
 	"github.com/spf13/cobra"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/agenthub"
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data"
-	"github.com/aide-family/Alioth/app/alioth/internal/server"
-	"github.com/aide-family/Alioth/pkg/bootstrap"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/biz/agenthub"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data"
+	"github.com/aide-family/moon/app/alioth/internal/server"
+	"github.com/aide-family/moon/pkg/bootstrap"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // version 由构建注入：-ldflags "-X main.version=v1.2.3"。

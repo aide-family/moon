@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/esagg"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/esagg"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // esDefaultTimeField 是 Elasticsearch 日志索引常用的时间字段。

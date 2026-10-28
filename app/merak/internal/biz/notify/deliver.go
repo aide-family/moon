@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/aide-family/Alioth/app/merak/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/alerttmpl"
+	"github.com/aide-family/moon/app/merak/pkg/bo"
+	"github.com/aide-family/moon/pkg/alerttmpl"
 )
 
 // sender 是某一类渠道的投递实现。每种 Webhook 应用有自己的签名和响应格式。

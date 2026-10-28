@@ -9,7 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 )
 
 // EmailLoginCode is the model entity for the EmailLoginCode schema.

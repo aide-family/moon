@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/merak/pkg/bo"
+	"github.com/aide-family/moon/app/merak/pkg/bo"
 )
 
 // NotifyGateway 调用玉衡领取和回写。

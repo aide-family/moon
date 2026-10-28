@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/pkg/lock"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/pkg/lock"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewLockClient(c *conf.Data, logger *slog.Logger) (*lock.Client, func(), error) {

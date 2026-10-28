@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // NotificationRepo 读写渠道、模板、通知组、任务和消息日志。

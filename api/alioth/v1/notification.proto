@@ -6,7 +6,7 @@ import "alioth/v1/identity.proto";
 import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
 
 // 通知渠道的创建、查询和启停。
 service NotificationChannelService {

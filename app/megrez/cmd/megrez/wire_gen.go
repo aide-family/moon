@@ -7,14 +7,16 @@
 package main
 
 import (
-	"github.com/aide-family/Alioth/app/megrez/internal/biz"
-	"github.com/aide-family/Alioth/app/megrez/internal/biz/eval"
-	"github.com/aide-family/Alioth/app/megrez/internal/conf"
-	"github.com/aide-family/Alioth/app/megrez/internal/data"
-	"github.com/aide-family/Alioth/app/megrez/internal/server"
-	"github.com/aide-family/Alioth/app/megrez/internal/service"
-	"github.com/go-kratos/kratos/v3"
 	"log/slog"
+
+	"github.com/go-kratos/kratos/v3"
+
+	"github.com/aide-family/moon/app/megrez/internal/biz"
+	"github.com/aide-family/moon/app/megrez/internal/biz/eval"
+	"github.com/aide-family/moon/app/megrez/internal/conf"
+	"github.com/aide-family/moon/app/megrez/internal/data"
+	"github.com/aide-family/moon/app/megrez/internal/server"
+	"github.com/aide-family/moon/app/megrez/internal/service"
 )
 
 // Injectors from wire.go:

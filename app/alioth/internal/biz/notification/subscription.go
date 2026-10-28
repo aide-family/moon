@@ -4,11 +4,11 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/page"
-	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
-	labelsutil "github.com/aide-family/Alioth/pkg/labels"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/page"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
+	labelsutil "github.com/aide-family/moon/pkg/labels"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 const maxSubscriptionFilterValues = 200

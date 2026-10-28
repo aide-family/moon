@@ -10,7 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/useroauth"
 )
 
 // UserOAuthCreate is the builder for creating a UserOAuth entity.

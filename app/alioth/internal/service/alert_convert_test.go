@@ -3,8 +3,8 @@ package service
 import (
 	"testing"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // TestRuleVariableConvert 校验自定义查询变量在 proto 与 bo 之间往返，顺序和

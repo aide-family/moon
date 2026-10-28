@@ -1,10 +1,10 @@
-module github.com/aide-family/Alioth/app/alkaid
+module github.com/aide-family/moon/app/alkaid
 
 go 1.26.0
 
 require (
-	github.com/aide-family/Alioth/api v0.0.0-00010101000000-000000000000
-	github.com/aide-family/Alioth/pkg v0.0.0
+	github.com/aide-family/moon/api v0.0.0-00010101000000-000000000000
+	github.com/aide-family/moon/pkg v0.0.0
 	github.com/go-kratos/kratos/v3 v3.0.0
 	github.com/google/wire v0.7.0
 	github.com/shirou/gopsutil/v4 v4.25.9
@@ -38,6 +38,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/aide-family/Alioth/pkg => ../../pkg
+replace github.com/aide-family/moon/pkg => ../../pkg
 
-replace github.com/aide-family/Alioth/api => ../../api
+replace github.com/aide-family/moon/api => ../../api

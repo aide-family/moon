@@ -7,10 +7,10 @@ import (
 	khttp "github.com/go-kratos/kratos/v3/transport/http"
 	"github.com/google/wire"
 
-	"github.com/aide-family/Alioth/app/megrez/internal/conf"
-	"github.com/aide-family/Alioth/app/megrez/internal/service"
-	"github.com/aide-family/Alioth/pkg/healthserver"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/megrez/internal/conf"
+	"github.com/aide-family/moon/app/megrez/internal/service"
+	"github.com/aide-family/moon/pkg/healthserver"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 var ProviderSet = wire.NewSet(NewHTTPServer)

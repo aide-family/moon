@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/Alioth/app/merak/pkg/bo"
+	"github.com/aide-family/moon/app/merak/pkg/bo"
 )
 
 const maxWebhookResponse = 64 << 10

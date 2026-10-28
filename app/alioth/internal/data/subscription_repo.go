@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationsubscription"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationsubscriptiongroup"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func (r *notificationRepo) CreateSubscription(ctx context.Context, in bo.NotificationSubscription) (*bo.NotificationSubscription, error) {

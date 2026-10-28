@@ -5,17 +5,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/systemmessage"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/systemmessage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 type inviteRepo struct{ *repoBase }

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // ClusterRepo 读写租户接入的 Kubernetes 集群，并负责 kubeconfig 的解析与探测。

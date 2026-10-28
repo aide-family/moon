@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/worker"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/worker"
 )
 
 // WorkerService exposes background worker telemetry to authorized administrators.

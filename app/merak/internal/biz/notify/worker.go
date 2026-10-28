@@ -12,12 +12,12 @@ import (
 	"github.com/google/wire"
 	"github.com/robfig/cron/v3"
 
-	"github.com/aide-family/Alioth/app/merak/internal/conf"
-	"github.com/aide-family/Alioth/app/merak/internal/data/repository"
-	"github.com/aide-family/Alioth/app/merak/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/lock"
-	"github.com/aide-family/Alioth/pkg/merr"
-	pkgworker "github.com/aide-family/Alioth/pkg/worker"
+	"github.com/aide-family/moon/app/merak/internal/conf"
+	"github.com/aide-family/moon/app/merak/internal/data/repository"
+	"github.com/aide-family/moon/app/merak/pkg/bo"
+	"github.com/aide-family/moon/pkg/lock"
+	"github.com/aide-family/moon/pkg/merr"
+	pkgworker "github.com/aide-family/moon/pkg/worker"
 )
 
 const (

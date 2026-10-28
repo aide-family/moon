@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
-	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/alerttmpl"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/megrez/internal/data/repository"
+	"github.com/aide-family/moon/app/megrez/pkg/bo"
+	"github.com/aide-family/moon/pkg/alerttmpl"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func TestHitsConditions(t *testing.T) {

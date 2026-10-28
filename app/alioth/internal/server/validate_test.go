@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
 )
 
 func TestProtoValidatorRejectsInvalidRequest(t *testing.T) {

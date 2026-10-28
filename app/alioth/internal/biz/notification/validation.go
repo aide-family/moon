@@ -9,10 +9,10 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/alerttmpl"
-	"github.com/aide-family/Alioth/pkg/merr"
-	pkgnotify "github.com/aide-family/Alioth/pkg/notify"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/alerttmpl"
+	"github.com/aide-family/moon/pkg/merr"
+	pkgnotify "github.com/aide-family/moon/pkg/notify"
 )
 
 // maxRepeatIntervalSeconds 是同一告警重复通知间隔的上限，12 小时。

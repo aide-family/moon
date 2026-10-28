@@ -7,14 +7,16 @@
 package main
 
 import (
-	"github.com/aide-family/Alioth/app/merak/internal/biz"
-	"github.com/aide-family/Alioth/app/merak/internal/biz/notify"
-	"github.com/aide-family/Alioth/app/merak/internal/conf"
-	"github.com/aide-family/Alioth/app/merak/internal/data"
-	"github.com/aide-family/Alioth/app/merak/internal/server"
-	"github.com/aide-family/Alioth/app/merak/internal/service"
-	"github.com/go-kratos/kratos/v3"
 	"log/slog"
+
+	"github.com/go-kratos/kratos/v3"
+
+	"github.com/aide-family/moon/app/merak/internal/biz"
+	"github.com/aide-family/moon/app/merak/internal/biz/notify"
+	"github.com/aide-family/moon/app/merak/internal/conf"
+	"github.com/aide-family/moon/app/merak/internal/data"
+	"github.com/aide-family/moon/app/merak/internal/server"
+	"github.com/aide-family/moon/app/merak/internal/service"
 )
 
 // Injectors from wire.go:

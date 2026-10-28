@@ -8,13 +8,13 @@ import (
 	"github.com/go-kratos/kratos/v3"
 	"github.com/google/wire"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/access"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz"
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data"
-	"github.com/aide-family/Alioth/app/alioth/internal/mailer"
-	"github.com/aide-family/Alioth/app/alioth/internal/server"
-	"github.com/aide-family/Alioth/app/alioth/internal/service"
+	"github.com/aide-family/moon/app/alioth/internal/access"
+	"github.com/aide-family/moon/app/alioth/internal/biz"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data"
+	"github.com/aide-family/moon/app/alioth/internal/mailer"
+	"github.com/aide-family/moon/app/alioth/internal/server"
+	"github.com/aide-family/moon/app/alioth/internal/service"
 )
 
 func wireApp(*conf.Server, *conf.Data, *conf.Auth, *slog.Logger) (*kratos.App, func(), error) {

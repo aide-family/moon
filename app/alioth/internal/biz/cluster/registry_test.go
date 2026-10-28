@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func TestClusterInput(t *testing.T) {

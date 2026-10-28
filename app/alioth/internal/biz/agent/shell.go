@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
-	"github.com/aide-family/Alioth/pkg/merr"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 const shellTicketTTL = 60 * time.Second

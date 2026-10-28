@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aide-family/Alioth/app/megrez/internal/conf"
-	"github.com/aide-family/Alioth/pkg/bootstrap"
+	"github.com/aide-family/moon/app/megrez/internal/conf"
+	"github.com/aide-family/moon/pkg/bootstrap"
 )
 
 func TestLoadConfig(t *testing.T) {

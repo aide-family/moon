@@ -9,7 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 )
 
 // Member is the model entity for the Member schema.

@@ -4,7 +4,7 @@ package merak.v1;
 
 import "google/api/annotations.proto";
 
-option go_package = "github.com/aide-family/Alioth/api/merak/v1;v1";
+option go_package = "github.com/aide-family/moon/api/merak/v1;v1";
 
 // 健康检查。天璇不挂载这个 HTTP 服务，定义只用于编译期占位。
 service HealthService {

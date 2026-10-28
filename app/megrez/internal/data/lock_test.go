@@ -10,8 +10,8 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/aide-family/Alioth/app/megrez/internal/conf"
-	"github.com/aide-family/Alioth/pkg/lock"
+	"github.com/aide-family/moon/app/megrez/internal/conf"
+	"github.com/aide-family/moon/pkg/lock"
 )
 
 func TestTwoClaimantsOneEvalLock(t *testing.T) {

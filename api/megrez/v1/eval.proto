@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package megrez.v1;
 
-option go_package = "github.com/aide-family/Alioth/api/megrez/v1;v1";
+option go_package = "github.com/aide-family/moon/api/megrez/v1;v1";
 
 // 评测领取和回写。只提供 gRPC，由玉衡实现，天权持 service key 调用。
 service EvalService {

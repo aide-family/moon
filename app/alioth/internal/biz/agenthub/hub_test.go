@@ -3,7 +3,7 @@ package agenthub
 import (
 	"testing"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
 )
 
 func TestPutReplacesAndClosesOldSession(t *testing.T) {

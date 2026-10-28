@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/access"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/datasource"
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
-	dsent "github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
-	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
+	"github.com/aide-family/moon/app/alioth/internal/access"
+	"github.com/aide-family/moon/app/alioth/internal/biz/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
+	dsent "github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/pkg/actor"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
 )
 
 type testNamespaces struct{ repository.NamespaceRepo }

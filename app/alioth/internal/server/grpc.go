@@ -6,14 +6,14 @@ import (
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
 	kgrpc "github.com/go-kratos/kratos/v3/transport/grpc"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
-	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/service"
-	"github.com/aide-family/Alioth/pkg/grpctls"
-	"github.com/aide-family/Alioth/pkg/merr"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	megrezv1 "github.com/aide-family/moon/api/megrez/v1"
+	merakv1 "github.com/aide-family/moon/api/merak/v1"
+	"github.com/aide-family/moon/app/alioth/internal/biz/auth"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/service"
+	"github.com/aide-family/moon/pkg/grpctls"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewGRPCServer(

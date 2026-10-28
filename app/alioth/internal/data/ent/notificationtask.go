@@ -9,7 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
 )
 
 // NotificationTask is the model entity for the NotificationTask schema.

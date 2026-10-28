@@ -7,8 +7,8 @@ import (
 
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func newTestSender(from, username string) *Sender {

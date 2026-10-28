@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
-	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/esagg"
-	"github.com/aide-family/Alioth/pkg/merr"
-	"github.com/aide-family/Alioth/pkg/upstream"
+	"github.com/aide-family/moon/app/megrez/internal/data/repository"
+	"github.com/aide-family/moon/app/megrez/pkg/bo"
+	"github.com/aide-family/moon/pkg/esagg"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/upstream"
 )
 
 // esQuery 把 Elasticsearch 的检索表达式按时间桶计数，产出与 Prometheus matrix

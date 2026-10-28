@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/aide-family/Alioth/app/alioth/internal/data/ent/runtime.go
+// The schema-stitching logic is generated in github.com/aide-family/moon/app/alioth/internal/data/ent/runtime.go
 
 const (
 	Version = "v0.14.6"                                         // Version of ent codegen.

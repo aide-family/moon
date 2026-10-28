@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // analysisHistoryPredicate 是历史事件的统计谓词，与历史明细列表的 historyItems 口径一致：

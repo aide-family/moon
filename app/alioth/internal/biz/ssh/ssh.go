@@ -8,16 +8,16 @@ import (
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/wire"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/access"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/agenthub"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
-	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
-	"github.com/aide-family/Alioth/app/alioth/pkg/page"
-	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
-	"github.com/aide-family/Alioth/pkg/merr"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/app/alioth/internal/access"
+	"github.com/aide-family/moon/app/alioth/internal/biz/agenthub"
+	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/pkg/actor"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/app/alioth/pkg/page"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 const maxOutputBytes = 64 * 1024

@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/wire"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/pkg/merr"
+	v1 "github.com/aide-family/moon/api/alioth/v1"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 var ProviderSet = wire.NewSet(NewHub)

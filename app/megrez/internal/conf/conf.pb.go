@@ -7,13 +7,12 @@
 package conf
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -318,7 +317,7 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"serviceKey\"7\n" +
 	"\x05Redis\x12\x12\n" +
 	"\x04addr\x18\x01 \x01(\tR\x04addr\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpasswordB=Z;github.com/aide-family/Alioth/app/megrez/internal/conf;confb\x06proto3"
+	"\bpassword\x18\x02 \x01(\tR\bpasswordB;Z9github.com/aide-family/moon/app/megrez/internal/conf;confb\x06proto3"
 
 var (
 	file_internal_conf_conf_proto_rawDescOnce sync.Once

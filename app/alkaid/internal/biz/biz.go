@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/aide-family/Alioth/app/alkaid/internal/biz/agent"
-	"github.com/aide-family/Alioth/pkg/healthcheck"
+	"github.com/aide-family/moon/app/alkaid/internal/biz/agent"
+	"github.com/aide-family/moon/pkg/healthcheck"
 )
 
 var ProviderSet = wire.NewSet(NewHealthProber, agent.ProviderSet)

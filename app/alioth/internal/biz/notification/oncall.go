@@ -5,12 +5,12 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/oncall"
-	"github.com/aide-family/Alioth/app/alioth/pkg/page"
-	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
-	labelsutil "github.com/aide-family/Alioth/pkg/labels"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/oncall"
+	"github.com/aide-family/moon/app/alioth/pkg/page"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
+	labelsutil "github.com/aide-family/moon/pkg/labels"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 const (

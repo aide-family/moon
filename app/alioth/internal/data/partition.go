@@ -10,11 +10,11 @@ import (
 
 	entschema "entgo.io/ent/dialect/sql/schema"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/rolepermission"
-	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 var partitionedTables = []string{"alert_events", "message_logs"}

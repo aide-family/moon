@@ -8,10 +8,10 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/aide-family/Alioth/app/merak/internal/conf"
-	"github.com/aide-family/Alioth/app/merak/internal/data/repository"
-	"github.com/aide-family/Alioth/pkg/lock"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/merak/internal/conf"
+	"github.com/aide-family/moon/app/merak/internal/data/repository"
+	"github.com/aide-family/moon/pkg/lock"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 type lockClient struct {

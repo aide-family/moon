@@ -8,11 +8,11 @@ import (
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/partition"
-	workerbiz "github.com/aide-family/Alioth/app/alioth/internal/biz/worker"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/biz/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
+	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
+	workerbiz "github.com/aide-family/moon/app/alioth/internal/biz/worker"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // Scheduler 按固定周期扫描到期规则。锁由 biz 层获取，扫描结束后释放。

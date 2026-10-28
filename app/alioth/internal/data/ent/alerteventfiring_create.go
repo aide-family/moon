@@ -9,7 +9,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 )
 
 // AlertEventFiringCreate is the builder for creating a AlertEventFiring entity.

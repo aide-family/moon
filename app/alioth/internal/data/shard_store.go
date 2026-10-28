@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 const (

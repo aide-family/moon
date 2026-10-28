@@ -1,11 +1,10 @@
-module github.com/aide-family/Alioth/app/merak
+module github.com/aide-family/moon/app/merak
 
 go 1.26.0
 
 require (
-	github.com/aide-family/Alioth/api v0.0.0-00010101000000-000000000000
-	github.com/aide-family/Alioth/pkg v0.0.0
-	github.com/go-kratos/kratos/contrib/encoding/json/v3 v3.0.0-20260626125723-668db92c2c00
+	github.com/aide-family/moon/api v0.0.0-00010101000000-000000000000
+	github.com/aide-family/moon/pkg v0.0.0
 	github.com/go-kratos/kratos/v3 v3.0.0
 	github.com/google/wire v0.7.0
 	github.com/redis/go-redis/v9 v9.23.0
@@ -24,6 +23,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/form/v4 v4.3.0 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
@@ -50,6 +50,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/aide-family/Alioth/pkg => ../../pkg
+replace github.com/aide-family/moon/pkg => ../../pkg
 
-replace github.com/aide-family/Alioth/api => ../../api
+replace github.com/aide-family/moon/api => ../../api

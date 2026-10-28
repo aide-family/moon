@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/actor"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // SelfOAuthLinks 列出当前账号已经绑定的第三方身份。个人资料页据此渲染已绑定行，

@@ -4,14 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationoncall"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationoncallgroup"
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/app/alioth/pkg/id"
-	"github.com/aide-family/Alioth/app/alioth/pkg/oncall"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncallgroup"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/app/alioth/pkg/oncall"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // onCallBinding 是写入时已经校验过的通知组绑定，windows 是规范化后的 JSON。

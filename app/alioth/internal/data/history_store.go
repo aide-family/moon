@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // defaultHistoryTablePrefix 与 config.yaml 的默认值一致。

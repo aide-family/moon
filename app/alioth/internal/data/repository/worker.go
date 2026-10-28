@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 // WorkerRepo persists recent heartbeats from background worker processes.

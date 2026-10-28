@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // Sender 是一封纯文本邮件的发送器。未配置 SMTP 时 Send 返回服务端错误。

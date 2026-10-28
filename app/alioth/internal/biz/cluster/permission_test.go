@@ -6,8 +6,8 @@ import (
 
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/access"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alioth/internal/access"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // TestPermissionGates 确认每个入口在没有租户上下文时先失败，不会碰到仓储。

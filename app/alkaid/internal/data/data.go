@@ -5,9 +5,9 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
-	"github.com/aide-family/Alioth/pkg/healthcheck"
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/app/alkaid/internal/conf"
+	"github.com/aide-family/moon/pkg/healthcheck"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 var ProviderSet = wire.NewSet(NewConnectionSettings, NewReadinessChecker)

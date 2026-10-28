@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
+	"github.com/aide-family/moon/app/alioth/pkg/actor"
 )
 
 // TestChangeEmailRequiresVerifiedCode 未带验证码 / 验证码错误时都不写邮箱。

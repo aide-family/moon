@@ -10,8 +10,8 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/aide-family/Alioth/app/merak/pkg/bo"
-	pkgnotify "github.com/aide-family/Alioth/pkg/notify"
+	"github.com/aide-family/moon/app/merak/pkg/bo"
+	pkgnotify "github.com/aide-family/moon/pkg/notify"
 )
 
 type smtpSender struct{}

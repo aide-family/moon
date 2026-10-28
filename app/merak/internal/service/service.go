@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/aide-family/Alioth/app/merak/internal/biz"
+	"github.com/aide-family/moon/app/merak/internal/biz"
 )
 
 var ProviderSet = wire.NewSet(NewHealthService)

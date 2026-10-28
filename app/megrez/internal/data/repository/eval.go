@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
+	"github.com/aide-family/moon/app/megrez/pkg/bo"
 )
 
 // Hold 是一把已拿到的评测锁。

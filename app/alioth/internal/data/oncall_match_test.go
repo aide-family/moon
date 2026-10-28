@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 )
 
 func TestMatchOnCall(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // apiVersionSuffix 是数据源地址里常见的 API 版本尾巴。

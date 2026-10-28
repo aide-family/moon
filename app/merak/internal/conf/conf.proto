@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package merak.conf;
 
-option go_package = "github.com/aide-family/Alioth/app/merak/internal/conf;conf";
+option go_package = "github.com/aide-family/moon/app/merak/internal/conf;conf";
 
 import "google/protobuf/duration.proto";
 

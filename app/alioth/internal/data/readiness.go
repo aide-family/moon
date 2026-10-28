@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/Alioth/pkg/healthcheck"
-	"github.com/aide-family/Alioth/pkg/lock"
+	"github.com/aide-family/moon/pkg/healthcheck"
+	"github.com/aide-family/moon/pkg/lock"
 )
 
 // NewReadinessChecker 汇总控制面的依赖探测：PostgreSQL 与 Redis。

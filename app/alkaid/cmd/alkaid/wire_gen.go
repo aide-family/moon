@@ -7,14 +7,16 @@
 package main
 
 import (
-	"github.com/aide-family/Alioth/app/alkaid/internal/biz"
-	"github.com/aide-family/Alioth/app/alkaid/internal/biz/agent"
-	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
-	"github.com/aide-family/Alioth/app/alkaid/internal/data"
-	"github.com/aide-family/Alioth/app/alkaid/internal/server"
-	"github.com/aide-family/Alioth/app/alkaid/internal/service"
-	"github.com/go-kratos/kratos/v3"
 	"log/slog"
+
+	"github.com/go-kratos/kratos/v3"
+
+	"github.com/aide-family/moon/app/alkaid/internal/biz"
+	"github.com/aide-family/moon/app/alkaid/internal/biz/agent"
+	"github.com/aide-family/moon/app/alkaid/internal/conf"
+	"github.com/aide-family/moon/app/alkaid/internal/data"
+	"github.com/aide-family/moon/app/alkaid/internal/server"
+	"github.com/aide-family/moon/app/alkaid/internal/service"
 )
 
 // Injectors from wire.go:

@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 )
 
 // The AgentFunc type is an adapter to allow the use of ordinary

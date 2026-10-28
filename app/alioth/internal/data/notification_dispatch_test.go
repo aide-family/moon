@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
 )
 
 func TestLabelsMatch(t *testing.T) {
