@@ -45,6 +45,11 @@ func TestNotificationListFilters(t *testing.T) {
 
 	repo := NewNotificationRepo(store, slog.Default()).(*notificationRepo)
 	base := time.Date(2026, 10, 19, 8, 0, 0, 0, time.UTC)
+	// ApplySchema 只预建当前周和下周的分区，CI 的空库没有历史周分区；
+	// 固定日期必须显式补建所在周，否则会依赖本机数据库遗留的分区才能通过。
+	if err := ensureMessageLogWeeks(ctx, store.db, base); err != nil {
+		t.Fatal(err)
+	}
 	taskUID := "task-" + ns
 	tasks := []struct {
 		status notificationtask.Status
