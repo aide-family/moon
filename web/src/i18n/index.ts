@@ -929,6 +929,20 @@ const zh = {
     colorPlaceholder: "#d92d20",
     colorHint: "用于展示，例如 #d92d20。",
     colorPicker: "取色",
+    presetLabel: "预设",
+    presetHint: "点击预设一键填入名称、颜色和类型，之后仍可继续修改。",
+    presetApplied: "已选",
+    presetAlert: {
+      p0: "P0",
+      p1: "P1",
+      p2: "P2",
+      p3: "P3",
+    },
+    presetDatasource: {
+      high: "高优",
+      medium: "中优",
+      low: "低优",
+    },
     typeAlert: "告警级别",
     typeDatasource: "数据源级别",
     empty: "还没有字典项。新建后才能挂到规则或数据源上。",
@@ -3010,6 +3024,21 @@ const en = {
     colorPlaceholder: "#d92d20",
     colorHint: "Used for display, for example #d92d20.",
     colorPicker: "Pick color",
+    presetLabel: "Presets",
+    presetHint:
+      "Pick a preset to fill in the name, color, and type at once. You can still edit them afterwards.",
+    presetApplied: "Selected",
+    presetAlert: {
+      p0: "P0",
+      p1: "P1",
+      p2: "P2",
+      p3: "P3",
+    },
+    presetDatasource: {
+      high: "High",
+      medium: "Medium",
+      low: "Low",
+    },
     typeAlert: "Alert level",
     typeDatasource: "Datasource level",
     empty:

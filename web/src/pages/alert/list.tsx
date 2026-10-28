@@ -391,7 +391,11 @@ export function AlertEventList({
 
   // 级别字典只在真会用到它的视图加载：实时列表始终需要；历史告警切到明细
   // tab 才需要（分析 tab 自带独立的级别字典，这里不为它兜底）。
-  // 用键记住已加载的租户/视图，切回明细 tab 时复用，不重复请求字典。
+  // levelsLoadedKey 必须在请求成功后才记账。StrictMode 的首次挂载会「执行 → 清理 →
+  // 再执行」，若在发请求前就记下 key，第二次 effect 会直接跳过，第一次的结果又被
+  // 清理标记丢弃，字典永远为空、级别列只能回退成 UID。失败或请求被取消时不记账，
+  // 下一次 effect 仍能重试；成功之后切回明细 tab 不会重复请求（并发请求本身由
+  // api/http 的 in-flight 合并保证只发一次）。
   const levelsLoadedKey = useRef("")
   useEffect(() => {
     const active = view === "REALTIME" || historyTab === "details"
@@ -402,7 +406,6 @@ export function AlertEventList({
     if (levelsLoadedKey.current === key) {
       return
     }
-    levelsLoadedKey.current = key
     let cancelled = false
     async function loadLevels() {
       try {
@@ -413,11 +416,12 @@ export function AlertEventList({
         })
         if (!cancelled) {
           setLevels(result.items ?? [])
+          levelsLoadedKey.current = key
         }
       } catch {
         if (!cancelled) {
           setLevels([])
-          // 失败不缓存，离开再回来时允许重试。
+          // 失败不记账，离开再回来时允许重试。
           levelsLoadedKey.current = ""
         }
       }
@@ -1484,7 +1488,7 @@ function eventCell(
         </span>
       )
     case "level":
-      return levelCell(item.levelUid, levels)
+      return levelCell(item, levels)
     case "sample_value":
       return view === "HISTORY" ? (
         <span className="font-mono tabular-nums">{item.sampleValue}</span>
@@ -1576,13 +1580,19 @@ function eventCell(
   }
 }
 
-function levelCell(uid: string, levels: AlertDictionaryItem[]) {
-  if (!uid) {
+// 级别名称优先用事件自带的 levelName：级别字典被删除/停用后历史名仍然保留，
+// 字典只用来取展示颜色；两者都缺失时才回退 UID，避免把内部标识直接摆到列表里。
+function levelCell(item: AlertEventItem, levels: AlertDictionaryItem[]) {
+  if (!item.levelUid && !item.levelName) {
     return ""
   }
-  const level = levels.find((item) => item.uid === uid)
-  if (!level) {
-    return <LevelBadge name={uid} />
-  }
-  return <LevelBadge name={level.name} color={level.color} />
+  const level = item.levelUid
+    ? levels.find((entry) => entry.uid === item.levelUid)
+    : undefined
+  return (
+    <LevelBadge
+      name={item.levelName || level?.name || item.levelUid}
+      color={level?.color}
+    />
+  )
 }

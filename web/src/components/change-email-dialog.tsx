@@ -207,6 +207,7 @@ export function ChangeEmailDialog({
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 value={code}
+                placeholder={t("login.codePlaceholder")}
                 aria-invalid={fieldErrors.code ? true : undefined}
                 onChange={(event) => setCode(event.target.value)}
               />

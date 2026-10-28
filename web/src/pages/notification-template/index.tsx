@@ -273,12 +273,7 @@ export function NotificationTemplatePage() {
           query.update({ name: draft })
         }}
       >
-        <div className="flex flex-nowrap gap-2">
-          <Input className="max-w-sm" value={draft} placeholder={t("template.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-          <Button type="submit" variant="outline" className="shrink-0">
-            {t("action.search")}
-          </Button>
-        </div>
+        <Input className="max-w-sm" value={draft} placeholder={t("template.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
         <Select value={query.type || "ALL"} onValueChange={(value) => query.update({ type: value === "ALL" ? "" : value })}>
           <SelectTrigger className="w-44">
             <SelectValue placeholder={t("template.typeFilter")}>
@@ -321,6 +316,9 @@ export function NotificationTemplatePage() {
             ))}
           </SelectContent>
         </Select>
+        <Button type="submit" variant="outline" className="shrink-0">
+          {t("action.search")}
+        </Button>
       </form>
       <ListFrame
         total={total}

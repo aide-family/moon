@@ -89,57 +89,72 @@ interface Pattern {
   size?: string
 }
 
-/** 纹路与色板一一对应：实色、45°、135°、竖线、横线、点阵、交叉、宽竖线。 */
+/**
+ * 纹路与色板一一对应：实色、45°、135°、竖线、横线、点阵、交叉、宽竖线。
+ * 白色纹理的浓度由 --oncall-texture 统一控制：浅色下为 1（渲染与原先一致），
+ * 深色下降低，避免白色斜线压在调暗后的泳道填充上过曝；纹理本身不变，所以
+ * 「颜色 + 位置 + 纹理」的三重编码仍然成立。
+ */
 const GROUP_PATTERNS: Pattern[] = [
   {},
   {
     image:
-      "repeating-linear-gradient(45deg, rgba(255,255,255,0.75) 0 1px, transparent 1px 3px)",
+      "repeating-linear-gradient(45deg, rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.75)) 0 1px, transparent 1px 3px)",
   },
   {
     image:
-      "repeating-linear-gradient(-45deg, rgba(255,255,255,0.75) 0 1px, transparent 1px 3px)",
+      "repeating-linear-gradient(-45deg, rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.75)) 0 1px, transparent 1px 3px)",
   },
   {
     image:
-      "repeating-linear-gradient(90deg, rgba(255,255,255,0.8) 0 1px, transparent 1px 3px)",
+      "repeating-linear-gradient(90deg, rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.8)) 0 1px, transparent 1px 3px)",
   },
   {
     image:
-      "repeating-linear-gradient(0deg, rgba(255,255,255,0.8) 0 1px, transparent 1px 3px)",
+      "repeating-linear-gradient(0deg, rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.8)) 0 1px, transparent 1px 3px)",
   },
   {
-    image: "radial-gradient(rgba(255,255,255,0.9) 1px, transparent 1.1px)",
+    image:
+      "radial-gradient(rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.9)) 1px, transparent 1.1px)",
     size: "3px 3px",
   },
   {
     image:
-      "repeating-linear-gradient(45deg, rgba(255,255,255,0.75) 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.75) 0 1px, transparent 1px 4px)",
+      "repeating-linear-gradient(45deg, rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.75)) 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.75)) 0 1px, transparent 1px 4px)",
   },
   {
     image:
-      "repeating-linear-gradient(90deg, rgba(255,255,255,0.8) 0 2px, transparent 2px 5px)",
+      "repeating-linear-gradient(90deg, rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.8)) 0 2px, transparent 2px 5px)",
   },
 ]
 
-/** 空档底纹：中性色 + 斜线，不与任何通知组泳道撞色，也不依赖颜色区分。 */
+/** 空档底纹：中性色 + 斜线，不与任何通知组泳道撞色，也不依赖颜色区分。
+ *  深色下泳道填充被调暗，底纹的斜线也要同步变淡（--oncall-gap-texture），
+ *  否则空档反而比有覆盖的时段更亮，形成对比倒置。 */
 const GAP_FILL: CSSProperties = {
   backgroundColor: "var(--muted)",
   backgroundImage:
-    "repeating-linear-gradient(45deg, color-mix(in srgb, var(--muted-foreground) 32%, transparent) 0 1px, transparent 1px 4px)",
+    "repeating-linear-gradient(45deg, color-mix(in srgb, var(--muted-foreground) var(--oncall-gap-texture, 32%), transparent) 0 1px, transparent 1px 4px)",
 }
 
-/** 超出 MAX_LANES 时合并的泳道：中性深色 + 交叉纹路，明确表示「不是某一个具体的组」。 */
+/** 超出 MAX_LANES 时合并的泳道：中性深色 + 交叉纹路，明确表示「不是某一个具体的组」。
+ *  深色下中性填充同样按 --oncall-other-mix 压向卡片底色，避免合并泳道比真实泳道更亮。 */
 const OTHER_FILL: CSSProperties = {
-  backgroundColor: "var(--muted-foreground)",
+  backgroundColor:
+    "color-mix(in oklab, var(--muted-foreground) var(--oncall-other-mix, 100%), var(--card))",
   backgroundImage:
-    "repeating-linear-gradient(45deg, rgba(255,255,255,0.85) 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.85) 0 1px, transparent 1px 4px)",
+    "repeating-linear-gradient(45deg, rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.85)) 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, rgb(255 255 255 / calc(var(--oncall-texture, 1) * 0.85)) 0 1px, transparent 1px 4px)",
 }
 
 function fillStyle(colorIndex: number): CSSProperties {
   const pattern = GROUP_PATTERNS[colorIndex % GROUP_PATTERNS.length]
   return {
-    backgroundColor: GROUP_COLORS[colorIndex % GROUP_COLORS.length],
+    // 泳道色是 Okabe–Ito 的固定色相，代表「哪一个通知组」，不能换掉；深色下只把
+    // 它按 --oncall-lane-mix 混进卡片底色，降低亮度/饱和度。浅色下该变量为 100%，
+    // color-mix 的结果就是原色，视觉与改动前一致。颜色、位置、纹理三者都还在。
+    backgroundColor: `color-mix(in oklab, ${
+      GROUP_COLORS[colorIndex % GROUP_COLORS.length]
+    } var(--oncall-lane-mix, 100%), var(--card))`,
     backgroundImage: pattern.image,
     backgroundSize: pattern.size,
   }
@@ -821,6 +836,11 @@ export function OnCallTimeView({
 
   const cardClasses = cn(
     "flex min-h-0 min-w-0 flex-col gap-3 rounded-xl border bg-card p-3 sm:p-4",
+    // 深色模式只在渲染层生效的四个混合参数：泳道填充、白色纹理、空档斜线、
+    // 「其他 N 组」中性填充。全部由 CSS 变量 + .dark 变体驱动，不引入主题状态，
+    // 切换明暗主题时立即重算；浅色下所有变量都回到原值，视觉与改动前一致。
+    "[--oncall-lane-mix:100%] [--oncall-texture:1] [--oncall-gap-texture:32%] [--oncall-other-mix:100%]",
+    "dark:[--oncall-lane-mix:45%] dark:[--oncall-texture:0.5] dark:[--oncall-gap-texture:20%] dark:[--oncall-other-mix:24%]",
     className
   )
 
@@ -946,13 +966,13 @@ export function OnCallTimeView({
       </div>
 
       {timezones.length > 1 ? (
-        <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-700 dark:text-amber-300">
+        <p className="rounded-md border border-warning-border bg-warning-soft px-2.5 py-1.5 text-xs text-warning">
           {copy("mixedTimezoneHint", { zones: timezones.join(zoneSeparator) })}
         </p>
       ) : null}
 
       {singleDisabled ? (
-        <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-700 dark:text-amber-300">
+        <p className="rounded-md border border-warning-border bg-warning-soft px-2.5 py-1.5 text-xs text-warning">
           {copy("disabledHint")}
         </p>
       ) : null}
