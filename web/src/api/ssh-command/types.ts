@@ -30,6 +30,7 @@ export interface ListSSHCommandsParams {
   page?: number
   pageSize?: number
   name?: string
+  reviewStatus?: string
 }
 
 export interface ListSSHCommandsResult {

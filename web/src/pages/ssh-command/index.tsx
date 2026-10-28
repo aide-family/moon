@@ -37,6 +37,14 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Table,
   TableBody,
   TableCell,
@@ -61,6 +69,9 @@ import {
 } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
+import { enumLabel } from "@/lib/enum-label"
+
+const REVIEW_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const
 
 export function SSHCommandPage() {
   const { t } = useTranslation()
@@ -93,8 +104,14 @@ export function SSHCommandPage() {
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<SSHCommandItem>({
     page: query.page,
     pageSize: query.pageSize,
-    filterKey: `${session.namespaceUid}|${query.name}`,
-    fetch: (page, pageSize) => listSSHCommands({ page, pageSize, name: query.name }),
+    filterKey: `${session.namespaceUid}|${query.name}|${query.reviewStatus}`,
+    fetch: (page, pageSize) =>
+      listSSHCommands({
+        page,
+        pageSize,
+        name: query.name,
+        reviewStatus: query.reviewStatus,
+      }),
   })
 
   function openCreate() {
@@ -260,6 +277,24 @@ export function SSHCommandPage() {
         }}
       >
         <Input className="max-w-sm" value={draft} placeholder={t("ssh.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
+        <Select
+          value={query.reviewStatus || "ALL"}
+          onValueChange={(value) => query.update({ reviewStatus: value === "ALL" ? "" : value })}
+        >
+          <SelectTrigger id="ssh-review-status" className="w-40" aria-label={t("ssh.reviewStatus")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="ALL">{t("ssh.allReviewStatus")}</SelectItem>
+              {REVIEW_STATUSES.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {enumLabel(t, item)}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
         <Button type="submit" variant="outline">
           {t("action.search")}
         </Button>

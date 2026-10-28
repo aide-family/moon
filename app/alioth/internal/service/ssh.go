@@ -66,7 +66,7 @@ func (s *SSHCommandService) GetSSHCommand(ctx context.Context, req *v1.GetSSHCom
 }
 
 func (s *SSHCommandService) ListSSHCommands(ctx context.Context, req *v1.ListSSHCommandsRequest) (*v1.ListSSHCommandsResponse, error) {
-	items, total, page, pageSize, err := s.executor.List(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.executor.List(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetReviewStatus())
 	if err != nil {
 		return nil, err
 	}

@@ -545,7 +545,7 @@ OverviewPage                       页面编排、数据获取、URL 状态
 **可选后端项（不在本阶段）**
 
 - `GET /v1/overview`：一次性聚合。字段与口径由统计学家定义后再定 proto。
-- `ListSSHCommands` 增加 `reviewStatus` 过滤，或 `GET /v1/ssh-command-audits/count`：才能让"待审 SSH"进待办卡。
+- `GET /v1/ssh-command-audits/count`（或等价的 `ListSSHCommands` 计数）：`reviewStatus` 过滤已随 SSH 命令列表落地，待办卡只差一个只读计数接口。
 - 实时告警的服务端"严重度优先 + 时长优先"排序（若要"最该处理的 5 条"而不是"最近 5 条"）。
 
 ---

@@ -216,6 +216,10 @@ message ListSSHCommandsRequest {
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
   // 名称。
   string name = 3;
+  // 审核状态。留空表示全部。
+  string review_status = 4 [json_name = "reviewStatus", (buf.validate.field).string = {
+    in: ["", "PENDING", "APPROVED", "REJECTED"]
+  }];
 }
 
 // 命令分页结果。

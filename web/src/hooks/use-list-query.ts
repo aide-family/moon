@@ -15,8 +15,15 @@ export function useListQuery() {
   const name = params.get("name") || ""
   const type = params.get("type") || ""
   const app = params.get("app") || ""
+  const reviewStatus = params.get("reviewStatus") || ""
 
-  function update(next: { page?: number; name?: string; type?: string; app?: string }) {
+  function update(next: {
+    page?: number
+    name?: string
+    type?: string
+    app?: string
+    reviewStatus?: string
+  }) {
     const query = new URLSearchParams(params)
     if (next.page !== undefined) {
       query.set("page", String(next.page))
@@ -45,9 +52,17 @@ export function useListQuery() {
       }
       query.set("page", "1")
     }
+    if (next.reviewStatus !== undefined) {
+      if (next.reviewStatus) {
+        query.set("reviewStatus", next.reviewStatus)
+      } else {
+        query.delete("reviewStatus")
+      }
+      query.set("page", "1")
+    }
     query.set("pageSize", String(pageSize))
     setParams(query)
   }
 
-  return { page, pageSize, name, type, app, update }
+  return { page, pageSize, name, type, app, reviewStatus, update }
 }

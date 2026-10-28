@@ -101,13 +101,13 @@ func (executor *Executor) Get(ctx context.Context, uid string) (*bo.SSHCommand, 
 	return item, executor.access.Wrap(err)
 }
 
-func (executor *Executor) List(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.SSHCommand, int, int, int, error) {
+func (executor *Executor) List(ctx context.Context, pageNo, pageSize int32, name, reviewStatus string) ([]bo.SSHCommand, int, int, int, error) {
 	ns, err := executor.access.Allow(ctx, "ssh:read")
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := executor.commands.ListCommands(ctx, ns, p, s, strings.TrimSpace(name))
+	items, total, err := executor.commands.ListCommands(ctx, ns, p, s, strings.TrimSpace(name), strings.TrimSpace(reviewStatus))
 	return items, total, p, s, executor.access.Wrap(err)
 }
 

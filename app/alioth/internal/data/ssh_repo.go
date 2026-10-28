@@ -150,10 +150,13 @@ func (r *sshCommandRepo) GetCommand(ctx context.Context, namespaceUID, uid strin
 	return &item, nil
 }
 
-func (r *sshCommandRepo) ListCommands(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.SSHCommand, int, error) {
+func (r *sshCommandRepo) ListCommands(ctx context.Context, namespaceUID string, page, pageSize int, name, reviewStatus string) ([]bo.SSHCommand, int, error) {
 	query := r.client.SSHCommand.Query().Where(sshcommand.NamespaceUIDEQ(namespaceUID), sshcommand.DeletedAtIsNil())
 	if name != "" {
 		query = query.Where(sshcommand.NameContainsFold(name))
+	}
+	if reviewStatus != "" {
+		query = query.Where(sshcommand.ReviewStatusEQ(sshcommand.ReviewStatus(reviewStatus)))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {

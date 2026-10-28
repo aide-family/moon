@@ -28,7 +28,7 @@ type SSHCommandRepo interface {
 	RejectCommand(ctx context.Context, namespaceUID, uid, operatorUID string) (*bo.SSHCommand, error)
 	DeleteCommand(ctx context.Context, namespaceUID, uid string) error
 	GetCommand(ctx context.Context, namespaceUID, uid string) (*bo.SSHCommand, error)
-	ListCommands(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.SSHCommand, int, error)
+	ListCommands(ctx context.Context, namespaceUID string, page, pageSize int, name, reviewStatus string) ([]bo.SSHCommand, int, error)
 	AddExecAudit(ctx context.Context, in bo.SSHCommandAudit) (*bo.SSHCommandAudit, error)
 	ListAudits(ctx context.Context, namespaceUID, commandUID, agentUID string, page, pageSize int) ([]bo.SSHCommandAudit, int, error)
 }
