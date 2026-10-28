@@ -1,6 +1,6 @@
 # 开发规范
 
-本规范适用于 M0 到 M7。各里程碑只写本步新增的约束，通用部分以本文为准。设计见 [../design.md](../design.md)，里程碑顺序见 [../roadmap.md](../roadmap.md)。
+本规范适用于 M0 到 M15。各里程碑只写本步新增的约束，通用部分以本文为准。设计见 [../design.md](../design.md)，里程碑顺序见 [../roadmap.md](../roadmap.md)。
 
 ## 仓库与分层
 
@@ -229,4 +229,4 @@ SSH 命令与终端操作写入审计。`member` 和 `viewer` 不能删除审计
 
 ## 本期不做
 
-探测任务、微前端、每个服务一块业务库、把 Redis 当缓存或消息队列、短信的发送实现、除 Loki LogQL 与 VictoriaLogs LogsQL 数值型规则外的日志与链路规则评测。这些不进入任何里程碑的交付。
+探测任务、微前端、每个服务一块业务库、把 Redis 当缓存或消息队列、短信的发送实现、除 Loki LogQL、VictoriaLogs LogsQL 与 Elasticsearch 时间桶数值型规则外的日志与链路规则评测。这些不进入任何里程碑的交付。

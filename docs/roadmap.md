@@ -1,6 +1,6 @@
 # Alioth 迭代与验收
 
-本文把 [设计文档](design.md) 拆成十四个可独立验收的里程碑。M9 是在 M1 身份模型上的平台化调整；M10 在现有指标告警基础上补齐 Loki LogQL 数值型告警闭环；M11 为 VictoriaLogs 增加 LogsQL 数值型告警、专属查询编辑器和同样的通知闭环；M13 在通知订阅之上增加按通知组时段投递的 OnCall；M14 增加多集群 Kubernetes 接入，以及节点、工作负载、Pod 与 Ingress 的基础管理；M15 让告警规则在摘要、描述这一步声明自定义查询变量，用主查询标签补出关联不上的数据（例如磁盘剩余容量）。后一步只叠加能力，不把业务数据从玉衡挪走，也不把 Redis 改成缓存或队列。不估工期。
+本文把 [设计文档](design.md) 拆成十五个可独立验收的里程碑。M9 是在 M1 身份模型上的平台化调整；M10 在现有指标告警基础上补齐 Loki LogQL 数值型告警闭环；M11 为 VictoriaLogs 增加 LogsQL 数值型告警、专属查询编辑器和同样的通知闭环；M12 为 Elasticsearch 增加时间桶数值型告警闭环；M13 在通知订阅之上增加按通知组时段投递的 OnCall；M14 增加多集群 Kubernetes 接入，以及节点、工作负载、Pod 与 Ingress 的基础管理；M15 让告警规则在摘要、描述这一步声明自定义查询变量，用主查询标签补出关联不上的数据（例如磁盘剩余容量）。后一步只叠加能力，不把业务数据从玉衡挪走，也不把 Redis 改成缓存或队列。不估工期。
 
 通用规范见 [iterations/conventions.md](iterations/conventions.md)。每步的开发细则和可勾选验收：
 
@@ -15,6 +15,7 @@
 - [M9 平台用户与邀请确认](iterations/m9.md)
 - [M10 Loki LogQL 告警闭环](iterations/m10-loki-alerts.md)
 - [M11 VictoriaLogs LogsQL 告警闭环](iterations/m11-vlogs-alerts.md)
+- [M12 Elasticsearch 时间桶告警闭环](iterations/m12-es-alerts.md)
 - [M13 OnCall 值班路由](iterations/m13-oncall.md)
 - [M14 Kubernetes 多集群管理](iterations/m14-k8s.md)
 - [M15 告警规则自定义变量](iterations/m15-alert-rule-variables.md)
@@ -31,7 +32,7 @@
 
 8022 与 9022 不对集群外发布。`alkaid` 不在公网提供管理入口。
 
-设计文档标明本期不做的内容，不进入任何一步：探测任务、微前端、每个服务一块业务库、把 Redis 当缓存或消息队列、短信发送、除 Loki LogQL 与 VictoriaLogs LogsQL 数值型规则外的日志与链路规则评测。
+设计文档标明本期不做的内容，不进入任何一步：探测任务、微前端、每个服务一块业务库、把 Redis 当缓存或消息队列、短信发送、除 Loki LogQL、VictoriaLogs LogsQL 与 Elasticsearch 时间桶数值型规则外的日志与链路规则评测。
 
 验收一律可重复。检查进程端口、HTTP/gRPC、数据库结果、Redis 锁，以及浏览器经 `http://<web>:8080` 走出的路径。页面验收在浏览器里完成登录、提交和跳转，不只看静态渲染。
 
@@ -50,6 +51,7 @@ flowchart LR
   m9[M9 平台用户与邀请确认]
   m10[M10 Loki LogQL 告警]
   m11[M11 VictoriaLogs LogsQL 告警]
+  m12[M12 Elasticsearch 时间桶告警]
   m13[M13 OnCall 值班路由]
   m14[M14 Kubernetes 多集群管理]
   m15[M15 告警规则自定义变量]
@@ -64,13 +66,15 @@ flowchart LR
   m4 --> m10
   m3 --> m11
   m4 --> m11
+  m3 --> m12
+  m4 --> m12
   m4 --> m13
   m8 --> m13
   m3 --> m15
   m4 --> m15
 ```
 
-M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台用户和邀请确认模型。M7 在 M3、M4、M5 都通过之后做整平台的多副本验收。M10 在 M3 的评测事件和 M4 的通知投递基础上补齐 Loki 专属求值与告警处置闭环。M11 用同一套事件与通知机制补齐 VictoriaLogs 的 LogsQL 数值型评测、专属编辑器和接收闭环。M13 在 M4 的任务投递和 M8 的订阅路由之上增加按通知组时段投递的 OnCall。M14 只依赖 M1 的租户与 RBAC：集群凭据由控制面加密保存，资源读取和操作直接走各集群的 API Server，不经过告警评测与通知链路。M15 复用 M3 的评测模板链路和 M4 的通知内容：变量在评测期展开并写入摘要、描述，通知投递只读取渲染后的文案。
+M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台用户和邀请确认模型。M7 在 M3、M4、M5 都通过之后做整平台的多副本验收。M10 在 M3 的评测事件和 M4 的通知投递基础上补齐 Loki 专属求值与告警处置闭环。M11 用同一套事件与通知机制补齐 VictoriaLogs 的 LogsQL 数值型评测、专属编辑器和接收闭环。M12 复用 M3 的评测回写与 M4 的投递链路，把 Elasticsearch 的命中数按时间桶变成采样值，再走同一套事件与通知。M13 在 M4 的任务投递和 M8 的订阅路由之上增加按通知组时段投递的 OnCall。M14 只依赖 M1 的租户与 RBAC：集群凭据由控制面加密保存，资源读取和操作直接走各集群的 API Server，不经过告警评测与通知链路。M15 复用 M3 的评测模板链路和 M4 的通知内容：变量在评测期展开并写入摘要、描述，通知投递只读取渲染后的文案。
 
 ## M0 骨架
 
@@ -243,6 +247,14 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台
 5. 按 systemd 说明安装一台 `alkaid`，以及按 Kubernetes 说明安装一个 `alkaid`。两者都出站注册到 `alioth:9000`，并在机器页显示在线。
 6. 抽查一条数据源密钥、一条渠道密钥和一条用户记录：库里没有明文密码。SSH 审计不能被 `member` 或 `viewer` 删除。
 
+## M8 通知增强
+
+目标：补齐试发结果提示、通知组的成员与 Webhook 选择，并把规则直接绑定通知组改为告警事件订阅。
+
+依赖：M4。
+
+交付与验收细则见 [iterations/m8.md](iterations/m8.md)。
+
 ## M9 平台用户与邀请确认
 
 目标：用户独立于租户；第一个注册用户是超级管理员；系统权限与租户权限分开；租户邀请必须由被邀请人在平台确认。
@@ -281,6 +293,14 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台
 依赖：M3、M4。
 
 交付与验收细则见 [iterations/m11-vlogs-alerts.md](iterations/m11-vlogs-alerts.md)。
+
+## M12 Elasticsearch 时间桶告警闭环
+
+目标：Elasticsearch 有独立的时间桶数值评测路径；命中数按时间桶变成采样值，从规则配置、触发、通知收件到实时/历史告警处理完整闭环。
+
+依赖：M3、M4。
+
+交付与验收细则见 [iterations/m12-es-alerts.md](iterations/m12-es-alerts.md)。
 
 ## M13 OnCall 值班路由
 

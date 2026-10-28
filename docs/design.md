@@ -277,7 +277,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 - 可评测表达式必须是返回数值序列的 LogQL 指标查询，例如 `sum by (app) (count_over_time({app="api"} |= "error" [5m]))`。Loki 原始日志 selector 返回 `streams`，不是采样值；Megrez 严格要求数值 matrix，收到 stream 或无效响应时评测失败且不回写，从而不会误恢复仍在触发的告警。
 - Megrez 严格按 `LOGS_LOKI` driver 调用 `/loki/api/v1/query_range`，传递 Unix 纳秒范围与 duration 步长；模板 `query` 使用 `/loki/api/v1/query`。LogQL 数值结果沿用现有告警级别、FOR / MAX / MIN 条件、指纹去重和事件回写。
 - Loki FIRING 与恢复进入共用 `AlertEvent` 与 `NotificationSubscription` 路由，之后由 `merak` 投递；实时/历史列表、通知收件、介入、抑制、手工恢复均使用现有公共流程。事件详情图表读取 Loki 数值矩阵并按事件标签收敛序列。
-- Loki 告警只匹配 ACTIVE 的 `LOGS_LOKI` 数据源。Elasticsearch 与 Jaeger 仍标记为未实现并跳过；Prometheus / VictoriaMetrics 查询路径保持不变。
+- Loki 告警只匹配 ACTIVE 的 `LOGS_LOKI` 数据源。Elasticsearch 有自己的时间桶路径（见下文「Elasticsearch 时间桶告警扩展」），Jaeger 仍标记为未实现并跳过；Prometheus / VictoriaMetrics 查询路径保持不变。
 
 #### VictoriaLogs LogsQL 告警扩展
 
@@ -287,7 +287,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 - 原始日志查询、非 matrix / vector 响应、非数值 stats 点、无效 JSON 和上游错误都会使评测失败且不回写；有效的空 matrix 才是“本次没有采样”，用于恢复旧事件。这样不会把原始日志或上游故障误当成恢复信号。
 - `stats_query_range` 的桶按 step 对齐，结束时间落在桶中间时最后一个桶只统计部分日志。Megrez 把结束时间向下对齐到桶边界；默认步长 15 秒，持续秒数短于 15 秒时改用与 FOR 相同的桶宽（例如 10 秒），避免 10 秒规则实际要求 30 秒连续日志。FOR 再多查一个桶并要求采样点连续，缺失桶不会被首末跨度掩盖。
 - FIRING 与恢复进入共用 `AlertEvent` 与 `NotificationSubscription` 路由，之后由 `merak` 投递；实时/历史列表、通知收件、介入、抑制、手工恢复均使用现有公共流程。事件详情图表调用同一个 `stats_query_range` 并按事件标签收敛 matrix 序列。
-- VictoriaLogs 告警只匹配 ACTIVE 的 `LOGS_VLOGS` 数据源。Elasticsearch 与 Jaeger 仍未实现；Prometheus / VictoriaMetrics / Loki 查询路径保持不变。
+- VictoriaLogs 告警只匹配 ACTIVE 的 `LOGS_VLOGS` 数据源。Elasticsearch 有自己的时间桶路径（见下文「Elasticsearch 时间桶告警扩展」），Jaeger 仍未实现；Prometheus / VictoriaMetrics / Loki 查询路径保持不变。
 
 #### Elasticsearch 时间桶告警扩展
 
