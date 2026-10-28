@@ -12,6 +12,10 @@ service WorkerService {
   rpc ListWorkerInstances(ListWorkerInstancesRequest) returns (ListWorkerInstancesResponse) {
     option (google.api.http) = {get: "/v1/worker-instances"};
   }
+  // 查询单个实例的评测批次详情：本轮领取的规则 × 数据源组合。
+  rpc GetWorkerInstance(GetWorkerInstanceRequest) returns (GetWorkerInstanceResponse) {
+    option (google.api.http) = {get: "/v1/worker-instances/{instance_uid}"};
+  }
 }
 
 // 查询不需要参数。
@@ -37,6 +41,33 @@ message WorkerInstanceItem {
   string last_seen_at = 8;
   // 是否在 15 秒内上报心跳。
   bool online = 9;
+  // 本批领取的规则 × 数据源组合，只有详情接口返回。
+  repeated WorkerTask tasks = 10;
+  // 本批领取时间，RFC3339；空值表示还没有领取批次。
+  string round_started_at = 11;
+  // 本实例下一次轮询时间，RFC3339；空值表示实例没有上报轮询计划。
+  string next_poll_at = 12;
+  // 本实例的轮询周期秒数。
+  int32 poll_interval_seconds = 13;
+}
+
+// 一个「规则 × 数据源」组合在本批里的状态。
+message WorkerTask {
+  // 组合状态：RUNNING（正在执行）、NEW（本轮新加入）、PENDING（本轮待执行）、
+  // DONE（本轮已回写）、LEFT（上一批有、本批已离开）。
+  string state = 1;
+  // 规则标识。
+  string rule_uid = 2;
+  // 规则名称，空值表示规则已删除。
+  string rule_name = 3;
+  // 数据源标识。
+  string datasource_uid = 4;
+  // 数据源名称，空值表示数据源已删除。
+  string datasource_name = 5;
+  // 本轮评测批次，RFC3339。
+  string eval_slot = 6;
+  // 跑批幂等键，格式 ruleUID/datasourceUID@evalSlot，与玉衡的批次去重键一致。
+  string idempotency_key = 7;
 }
 
 // 实例清单与聚合数量。
@@ -51,4 +82,24 @@ message ListWorkerInstancesResponse {
   int32 idle_count = 4;
   // 最近一次数据聚合时间，RFC3339。
   string observed_at = 5;
+}
+
+// 实例详情查询参数。
+message GetWorkerInstanceRequest {
+  // 进程实例唯一标识。service 与它一起唯一确定一个实例。
+  string instance_uid = 1;
+  // 服务名称，MEGREZ 或 MERAK。
+  string service = 2;
+}
+
+// 实例详情与本批组合。
+message GetWorkerInstanceResponse {
+  // 实例当前状态与本批领取的组合。
+  WorkerInstanceItem item = 1;
+  // 下一次评测调度时间，RFC3339。
+  string next_schedule_at = 2;
+  // 评测调度周期秒数。
+  int32 schedule_interval_seconds = 3;
+  // 本次查询时间，RFC3339。
+  string observed_at = 4;
 }

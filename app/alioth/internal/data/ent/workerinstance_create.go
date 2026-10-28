@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/workerinstance"
 )
 
@@ -103,6 +102,62 @@ func (_c *WorkerInstanceCreate) SetNillableTaskStartedAt(v *time.Time) *WorkerIn
 	return _c
 }
 
+// SetTasks sets the "tasks" field.
+func (_c *WorkerInstanceCreate) SetTasks(v string) *WorkerInstanceCreate {
+	_c.mutation.SetTasks(v)
+	return _c
+}
+
+// SetNillableTasks sets the "tasks" field if the given value is not nil.
+func (_c *WorkerInstanceCreate) SetNillableTasks(v *string) *WorkerInstanceCreate {
+	if v != nil {
+		_c.SetTasks(*v)
+	}
+	return _c
+}
+
+// SetRoundStartedAt sets the "round_started_at" field.
+func (_c *WorkerInstanceCreate) SetRoundStartedAt(v time.Time) *WorkerInstanceCreate {
+	_c.mutation.SetRoundStartedAt(v)
+	return _c
+}
+
+// SetNillableRoundStartedAt sets the "round_started_at" field if the given value is not nil.
+func (_c *WorkerInstanceCreate) SetNillableRoundStartedAt(v *time.Time) *WorkerInstanceCreate {
+	if v != nil {
+		_c.SetRoundStartedAt(*v)
+	}
+	return _c
+}
+
+// SetNextPollAt sets the "next_poll_at" field.
+func (_c *WorkerInstanceCreate) SetNextPollAt(v time.Time) *WorkerInstanceCreate {
+	_c.mutation.SetNextPollAt(v)
+	return _c
+}
+
+// SetNillableNextPollAt sets the "next_poll_at" field if the given value is not nil.
+func (_c *WorkerInstanceCreate) SetNillableNextPollAt(v *time.Time) *WorkerInstanceCreate {
+	if v != nil {
+		_c.SetNextPollAt(*v)
+	}
+	return _c
+}
+
+// SetPollIntervalSeconds sets the "poll_interval_seconds" field.
+func (_c *WorkerInstanceCreate) SetPollIntervalSeconds(v int32) *WorkerInstanceCreate {
+	_c.mutation.SetPollIntervalSeconds(v)
+	return _c
+}
+
+// SetNillablePollIntervalSeconds sets the "poll_interval_seconds" field if the given value is not nil.
+func (_c *WorkerInstanceCreate) SetNillablePollIntervalSeconds(v *int32) *WorkerInstanceCreate {
+	if v != nil {
+		_c.SetPollIntervalSeconds(*v)
+	}
+	return _c
+}
+
 // SetLastSeenAt sets the "last_seen_at" field.
 func (_c *WorkerInstanceCreate) SetLastSeenAt(v time.Time) *WorkerInstanceCreate {
 	_c.mutation.SetLastSeenAt(v)
@@ -168,6 +223,14 @@ func (_c *WorkerInstanceCreate) defaults() {
 		v := workerinstance.DefaultTaskName
 		_c.mutation.SetTaskName(v)
 	}
+	if _, ok := _c.mutation.Tasks(); !ok {
+		v := workerinstance.DefaultTasks
+		_c.mutation.SetTasks(v)
+	}
+	if _, ok := _c.mutation.PollIntervalSeconds(); !ok {
+		v := workerinstance.DefaultPollIntervalSeconds
+		_c.mutation.SetPollIntervalSeconds(v)
+	}
 	if _, ok := _c.mutation.LastSeenAt(); !ok {
 		v := workerinstance.DefaultLastSeenAt()
 		_c.mutation.SetLastSeenAt(v)
@@ -203,6 +266,12 @@ func (_c *WorkerInstanceCreate) check() error {
 	}
 	if _, ok := _c.mutation.TaskName(); !ok {
 		return &ValidationError{Name: "task_name", err: errors.New(`ent: missing required field "WorkerInstance.task_name"`)}
+	}
+	if _, ok := _c.mutation.Tasks(); !ok {
+		return &ValidationError{Name: "tasks", err: errors.New(`ent: missing required field "WorkerInstance.tasks"`)}
+	}
+	if _, ok := _c.mutation.PollIntervalSeconds(); !ok {
+		return &ValidationError{Name: "poll_interval_seconds", err: errors.New(`ent: missing required field "WorkerInstance.poll_interval_seconds"`)}
 	}
 	if _, ok := _c.mutation.LastSeenAt(); !ok {
 		return &ValidationError{Name: "last_seen_at", err: errors.New(`ent: missing required field "WorkerInstance.last_seen_at"`)}
@@ -260,6 +329,22 @@ func (_c *WorkerInstanceCreate) createSpec() (*WorkerInstance, *sqlgraph.CreateS
 	if value, ok := _c.mutation.TaskStartedAt(); ok {
 		_spec.SetField(workerinstance.FieldTaskStartedAt, field.TypeTime, value)
 		_node.TaskStartedAt = &value
+	}
+	if value, ok := _c.mutation.Tasks(); ok {
+		_spec.SetField(workerinstance.FieldTasks, field.TypeString, value)
+		_node.Tasks = value
+	}
+	if value, ok := _c.mutation.RoundStartedAt(); ok {
+		_spec.SetField(workerinstance.FieldRoundStartedAt, field.TypeTime, value)
+		_node.RoundStartedAt = &value
+	}
+	if value, ok := _c.mutation.NextPollAt(); ok {
+		_spec.SetField(workerinstance.FieldNextPollAt, field.TypeTime, value)
+		_node.NextPollAt = &value
+	}
+	if value, ok := _c.mutation.PollIntervalSeconds(); ok {
+		_spec.SetField(workerinstance.FieldPollIntervalSeconds, field.TypeInt32, value)
+		_node.PollIntervalSeconds = value
 	}
 	if value, ok := _c.mutation.LastSeenAt(); ok {
 		_spec.SetField(workerinstance.FieldLastSeenAt, field.TypeTime, value)

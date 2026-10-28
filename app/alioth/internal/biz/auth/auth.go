@@ -765,7 +765,8 @@ func namespaceOptional(operation string) bool {
 		v1.OperationUserServiceBanUser,
 		v1.OperationUserServicePermitUser,
 		v1.OperationUserServiceUpdateUserSystemRole,
-		v1.OperationWorkerServiceListWorkerInstances:
+		v1.OperationWorkerServiceListWorkerInstances,
+		v1.OperationWorkerServiceGetWorkerInstance:
 		return true
 	default:
 		return false

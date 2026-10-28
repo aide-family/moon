@@ -1791,8 +1791,16 @@ func init() {
 	workerinstanceDescTaskName := workerinstanceFields[5].Descriptor()
 	// workerinstance.DefaultTaskName holds the default value on creation for the task_name field.
 	workerinstance.DefaultTaskName = workerinstanceDescTaskName.Default.(string)
+	// workerinstanceDescTasks is the schema descriptor for tasks field.
+	workerinstanceDescTasks := workerinstanceFields[7].Descriptor()
+	// workerinstance.DefaultTasks holds the default value on creation for the tasks field.
+	workerinstance.DefaultTasks = workerinstanceDescTasks.Default.(string)
+	// workerinstanceDescPollIntervalSeconds is the schema descriptor for poll_interval_seconds field.
+	workerinstanceDescPollIntervalSeconds := workerinstanceFields[10].Descriptor()
+	// workerinstance.DefaultPollIntervalSeconds holds the default value on creation for the poll_interval_seconds field.
+	workerinstance.DefaultPollIntervalSeconds = workerinstanceDescPollIntervalSeconds.Default.(int32)
 	// workerinstanceDescLastSeenAt is the schema descriptor for last_seen_at field.
-	workerinstanceDescLastSeenAt := workerinstanceFields[7].Descriptor()
+	workerinstanceDescLastSeenAt := workerinstanceFields[11].Descriptor()
 	// workerinstance.DefaultLastSeenAt holds the default value on creation for the last_seen_at field.
 	workerinstance.DefaultLastSeenAt = workerinstanceDescLastSeenAt.Default.(func() time.Time)
 	// workerinstance.UpdateDefaultLastSeenAt holds the default value on update for the last_seen_at field.

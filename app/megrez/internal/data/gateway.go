@@ -66,7 +66,8 @@ func (g *gateway) Claim(ctx context.Context) ([]bo.RuleSnapshot, error) {
 			Description: rule.GetDescription(), EvalSlot: slot.UTC(), DatasourceUID: rule.GetDatasourceUid(),
 			Endpoint: rule.GetDatasourceEndpoint(), Username: rule.GetDatasourceUsername(),
 			Password: rule.GetDatasourcePassword(), Secret: rule.GetDatasourceSecret(),
-			IndexPattern: rule.GetDatasourceIndexPattern(), TimeField: rule.GetDatasourceTimeField(),
+			DatasourceName: rule.GetDatasourceName(),
+			IndexPattern:   rule.GetDatasourceIndexPattern(), TimeField: rule.GetDatasourceTimeField(),
 			Levels: levels, Firing: rule.GetFiringFingerprints(), Variables: variables,
 		})
 	}
@@ -98,9 +99,27 @@ func (g *gateway) ReportStatus(ctx context.Context, status bo.WorkerStatus) erro
 	if !status.TaskStartedAt.IsZero() {
 		startedAt = status.TaskStartedAt.UTC().Format(time.RFC3339Nano)
 	}
+	roundStartedAt := ""
+	if !status.RoundStartedAt.IsZero() {
+		roundStartedAt = status.RoundStartedAt.UTC().Format(time.RFC3339Nano)
+	}
+	nextPollAt := ""
+	if !status.NextPollAt.IsZero() {
+		nextPollAt = status.NextPollAt.UTC().Format(time.RFC3339Nano)
+	}
+	tasks := make([]*megrezv1.WorkerTaskSnapshot, 0, len(status.Tasks))
+	for _, task := range status.Tasks {
+		tasks = append(tasks, &megrezv1.WorkerTaskSnapshot{
+			State: task.State, RuleUid: task.RuleUID, RuleName: task.RuleName,
+			DatasourceUid: task.DatasourceUID, DatasourceName: task.DatasourceName,
+			EvalSlot: task.EvalSlot.UTC().Format(time.RFC3339Nano),
+		})
+	}
 	_, err := g.client.ReportWorkerStatus(g.auth(ctx), &megrezv1.ReportWorkerStatusRequest{
 		InstanceUid: status.InstanceUID, Hostname: status.Hostname, Busy: status.Busy,
 		TaskUid: status.TaskUID, TaskName: status.TaskName, TaskStartedAt: startedAt,
+		Tasks: tasks, RoundStartedAt: roundStartedAt, NextPollAt: nextPollAt,
+		PollIntervalSeconds: status.PollIntervalSeconds,
 	})
 	if err != nil {
 		return merr.Server("report worker status failed")

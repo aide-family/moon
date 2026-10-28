@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
 
@@ -83,6 +82,26 @@ func TaskName(v string) predicate.WorkerInstance {
 // TaskStartedAt applies equality check predicate on the "task_started_at" field. It's identical to TaskStartedAtEQ.
 func TaskStartedAt(v time.Time) predicate.WorkerInstance {
 	return predicate.WorkerInstance(sql.FieldEQ(FieldTaskStartedAt, v))
+}
+
+// Tasks applies equality check predicate on the "tasks" field. It's identical to TasksEQ.
+func Tasks(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldEQ(FieldTasks, v))
+}
+
+// RoundStartedAt applies equality check predicate on the "round_started_at" field. It's identical to RoundStartedAtEQ.
+func RoundStartedAt(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldEQ(FieldRoundStartedAt, v))
+}
+
+// NextPollAt applies equality check predicate on the "next_poll_at" field. It's identical to NextPollAtEQ.
+func NextPollAt(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldEQ(FieldNextPollAt, v))
+}
+
+// PollIntervalSeconds applies equality check predicate on the "poll_interval_seconds" field. It's identical to PollIntervalSecondsEQ.
+func PollIntervalSeconds(v int32) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldEQ(FieldPollIntervalSeconds, v))
 }
 
 // LastSeenAt applies equality check predicate on the "last_seen_at" field. It's identical to LastSeenAtEQ.
@@ -428,6 +447,211 @@ func TaskStartedAtIsNil() predicate.WorkerInstance {
 // TaskStartedAtNotNil applies the NotNil predicate on the "task_started_at" field.
 func TaskStartedAtNotNil() predicate.WorkerInstance {
 	return predicate.WorkerInstance(sql.FieldNotNull(FieldTaskStartedAt))
+}
+
+// TasksEQ applies the EQ predicate on the "tasks" field.
+func TasksEQ(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldEQ(FieldTasks, v))
+}
+
+// TasksNEQ applies the NEQ predicate on the "tasks" field.
+func TasksNEQ(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNEQ(FieldTasks, v))
+}
+
+// TasksIn applies the In predicate on the "tasks" field.
+func TasksIn(vs ...string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldIn(FieldTasks, vs...))
+}
+
+// TasksNotIn applies the NotIn predicate on the "tasks" field.
+func TasksNotIn(vs ...string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNotIn(FieldTasks, vs...))
+}
+
+// TasksGT applies the GT predicate on the "tasks" field.
+func TasksGT(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldGT(FieldTasks, v))
+}
+
+// TasksGTE applies the GTE predicate on the "tasks" field.
+func TasksGTE(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldGTE(FieldTasks, v))
+}
+
+// TasksLT applies the LT predicate on the "tasks" field.
+func TasksLT(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldLT(FieldTasks, v))
+}
+
+// TasksLTE applies the LTE predicate on the "tasks" field.
+func TasksLTE(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldLTE(FieldTasks, v))
+}
+
+// TasksContains applies the Contains predicate on the "tasks" field.
+func TasksContains(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldContains(FieldTasks, v))
+}
+
+// TasksHasPrefix applies the HasPrefix predicate on the "tasks" field.
+func TasksHasPrefix(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldHasPrefix(FieldTasks, v))
+}
+
+// TasksHasSuffix applies the HasSuffix predicate on the "tasks" field.
+func TasksHasSuffix(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldHasSuffix(FieldTasks, v))
+}
+
+// TasksEqualFold applies the EqualFold predicate on the "tasks" field.
+func TasksEqualFold(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldEqualFold(FieldTasks, v))
+}
+
+// TasksContainsFold applies the ContainsFold predicate on the "tasks" field.
+func TasksContainsFold(v string) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldContainsFold(FieldTasks, v))
+}
+
+// RoundStartedAtEQ applies the EQ predicate on the "round_started_at" field.
+func RoundStartedAtEQ(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldEQ(FieldRoundStartedAt, v))
+}
+
+// RoundStartedAtNEQ applies the NEQ predicate on the "round_started_at" field.
+func RoundStartedAtNEQ(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNEQ(FieldRoundStartedAt, v))
+}
+
+// RoundStartedAtIn applies the In predicate on the "round_started_at" field.
+func RoundStartedAtIn(vs ...time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldIn(FieldRoundStartedAt, vs...))
+}
+
+// RoundStartedAtNotIn applies the NotIn predicate on the "round_started_at" field.
+func RoundStartedAtNotIn(vs ...time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNotIn(FieldRoundStartedAt, vs...))
+}
+
+// RoundStartedAtGT applies the GT predicate on the "round_started_at" field.
+func RoundStartedAtGT(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldGT(FieldRoundStartedAt, v))
+}
+
+// RoundStartedAtGTE applies the GTE predicate on the "round_started_at" field.
+func RoundStartedAtGTE(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldGTE(FieldRoundStartedAt, v))
+}
+
+// RoundStartedAtLT applies the LT predicate on the "round_started_at" field.
+func RoundStartedAtLT(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldLT(FieldRoundStartedAt, v))
+}
+
+// RoundStartedAtLTE applies the LTE predicate on the "round_started_at" field.
+func RoundStartedAtLTE(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldLTE(FieldRoundStartedAt, v))
+}
+
+// RoundStartedAtIsNil applies the IsNil predicate on the "round_started_at" field.
+func RoundStartedAtIsNil() predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldIsNull(FieldRoundStartedAt))
+}
+
+// RoundStartedAtNotNil applies the NotNil predicate on the "round_started_at" field.
+func RoundStartedAtNotNil() predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNotNull(FieldRoundStartedAt))
+}
+
+// NextPollAtEQ applies the EQ predicate on the "next_poll_at" field.
+func NextPollAtEQ(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldEQ(FieldNextPollAt, v))
+}
+
+// NextPollAtNEQ applies the NEQ predicate on the "next_poll_at" field.
+func NextPollAtNEQ(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNEQ(FieldNextPollAt, v))
+}
+
+// NextPollAtIn applies the In predicate on the "next_poll_at" field.
+func NextPollAtIn(vs ...time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldIn(FieldNextPollAt, vs...))
+}
+
+// NextPollAtNotIn applies the NotIn predicate on the "next_poll_at" field.
+func NextPollAtNotIn(vs ...time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNotIn(FieldNextPollAt, vs...))
+}
+
+// NextPollAtGT applies the GT predicate on the "next_poll_at" field.
+func NextPollAtGT(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldGT(FieldNextPollAt, v))
+}
+
+// NextPollAtGTE applies the GTE predicate on the "next_poll_at" field.
+func NextPollAtGTE(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldGTE(FieldNextPollAt, v))
+}
+
+// NextPollAtLT applies the LT predicate on the "next_poll_at" field.
+func NextPollAtLT(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldLT(FieldNextPollAt, v))
+}
+
+// NextPollAtLTE applies the LTE predicate on the "next_poll_at" field.
+func NextPollAtLTE(v time.Time) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldLTE(FieldNextPollAt, v))
+}
+
+// NextPollAtIsNil applies the IsNil predicate on the "next_poll_at" field.
+func NextPollAtIsNil() predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldIsNull(FieldNextPollAt))
+}
+
+// NextPollAtNotNil applies the NotNil predicate on the "next_poll_at" field.
+func NextPollAtNotNil() predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNotNull(FieldNextPollAt))
+}
+
+// PollIntervalSecondsEQ applies the EQ predicate on the "poll_interval_seconds" field.
+func PollIntervalSecondsEQ(v int32) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldEQ(FieldPollIntervalSeconds, v))
+}
+
+// PollIntervalSecondsNEQ applies the NEQ predicate on the "poll_interval_seconds" field.
+func PollIntervalSecondsNEQ(v int32) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNEQ(FieldPollIntervalSeconds, v))
+}
+
+// PollIntervalSecondsIn applies the In predicate on the "poll_interval_seconds" field.
+func PollIntervalSecondsIn(vs ...int32) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldIn(FieldPollIntervalSeconds, vs...))
+}
+
+// PollIntervalSecondsNotIn applies the NotIn predicate on the "poll_interval_seconds" field.
+func PollIntervalSecondsNotIn(vs ...int32) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldNotIn(FieldPollIntervalSeconds, vs...))
+}
+
+// PollIntervalSecondsGT applies the GT predicate on the "poll_interval_seconds" field.
+func PollIntervalSecondsGT(v int32) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldGT(FieldPollIntervalSeconds, v))
+}
+
+// PollIntervalSecondsGTE applies the GTE predicate on the "poll_interval_seconds" field.
+func PollIntervalSecondsGTE(v int32) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldGTE(FieldPollIntervalSeconds, v))
+}
+
+// PollIntervalSecondsLT applies the LT predicate on the "poll_interval_seconds" field.
+func PollIntervalSecondsLT(v int32) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldLT(FieldPollIntervalSeconds, v))
+}
+
+// PollIntervalSecondsLTE applies the LTE predicate on the "poll_interval_seconds" field.
+func PollIntervalSecondsLTE(v int32) predicate.WorkerInstance {
+	return predicate.WorkerInstance(sql.FieldLTE(FieldPollIntervalSeconds, v))
 }
 
 // LastSeenAtEQ applies the EQ predicate on the "last_seen_at" field.

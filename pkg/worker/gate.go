@@ -46,6 +46,21 @@ func (g *Gate) Note(stretch bool) {
 	g.notBefore = time.Now().Add(wait)
 }
 
+// NextWait 返回距离下一轮可以开始的剩余等待时间。正常空闲时返回 0，
+// 退避期间返回剩余退避；本轮正在进行时也返回 0（下一拍由轮次结束时间决定）。
+func (g *Gate) NextWait() time.Duration {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.busy {
+		return 0
+	}
+	wait := time.Until(g.notBefore)
+	if wait < 0 {
+		return 0
+	}
+	return wait
+}
+
 // AdvanceBackoff 返回本轮应等待的时长和下一轮的退避值。
 func AdvanceBackoff(current, pollEvery, backoffMax time.Duration, stretch bool) (time.Duration, time.Duration) {
 	if !stretch {

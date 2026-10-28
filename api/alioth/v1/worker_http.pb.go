@@ -17,9 +17,12 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationWorkerServiceGetWorkerInstance = "/alioth.v1.WorkerService/GetWorkerInstance"
 const OperationWorkerServiceListWorkerInstances = "/alioth.v1.WorkerService/ListWorkerInstances"
 
 type WorkerServiceHTTPServer interface {
+	// GetWorkerInstance 查询单个实例的评测批次详情：本轮领取的规则 × 数据源组合。
+	GetWorkerInstance(context.Context, *GetWorkerInstanceRequest) (*GetWorkerInstanceResponse, error)
 	// ListWorkerInstances 查询最近活动的 Megrez 与 Merak 实例及其当前任务。
 	ListWorkerInstances(context.Context, *ListWorkerInstancesRequest) (*ListWorkerInstancesResponse, error)
 }
@@ -27,6 +30,7 @@ type WorkerServiceHTTPServer interface {
 func RegisterWorkerServiceHTTPServer(s *http.Server, srv WorkerServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/v1/worker-instances", _WorkerService_ListWorkerInstances0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/worker-instances/{instance_uid}", _WorkerService_GetWorkerInstance0_HTTP_Handler(srv))
 }
 
 func _WorkerService_ListWorkerInstances0_HTTP_Handler(srv WorkerServiceHTTPServer) func(ctx http.Context) error {
@@ -48,7 +52,31 @@ func _WorkerService_ListWorkerInstances0_HTTP_Handler(srv WorkerServiceHTTPServe
 	}
 }
 
+func _WorkerService_GetWorkerInstance0_HTTP_Handler(srv WorkerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetWorkerInstanceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationWorkerServiceGetWorkerInstance)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetWorkerInstance(ctx, req.(*GetWorkerInstanceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetWorkerInstanceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type WorkerServiceHTTPClient interface {
+	// GetWorkerInstance 查询单个实例的评测批次详情：本轮领取的规则 × 数据源组合。
+	GetWorkerInstance(ctx context.Context, req *GetWorkerInstanceRequest, opts ...http.CallOption) (rsp *GetWorkerInstanceResponse, err error)
 	// ListWorkerInstances 查询最近活动的 Megrez 与 Merak 实例及其当前任务。
 	ListWorkerInstances(ctx context.Context, req *ListWorkerInstancesRequest, opts ...http.CallOption) (rsp *ListWorkerInstancesResponse, err error)
 }
@@ -59,6 +87,23 @@ type WorkerServiceHTTPClientImpl struct {
 
 func NewWorkerServiceHTTPClient(client *http.Client) WorkerServiceHTTPClient {
 	return &WorkerServiceHTTPClientImpl{client}
+}
+
+// GetWorkerInstance 查询单个实例的评测批次详情：本轮领取的规则 × 数据源组合。
+func (c *WorkerServiceHTTPClientImpl) GetWorkerInstance(ctx context.Context, in *GetWorkerInstanceRequest, opts ...http.CallOption) (*GetWorkerInstanceResponse, error) {
+	var out GetWorkerInstanceResponse
+	pattern := "/v1/worker-instances/{instance_uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationWorkerServiceGetWorkerInstance),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // ListWorkerInstances 查询最近活动的 Megrez 与 Merak 实例及其当前任务。

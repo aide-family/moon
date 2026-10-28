@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/workerinstance"
 )
@@ -133,6 +132,81 @@ func (_u *WorkerInstanceUpdate) ClearTaskStartedAt() *WorkerInstanceUpdate {
 	return _u
 }
 
+// SetTasks sets the "tasks" field.
+func (_u *WorkerInstanceUpdate) SetTasks(v string) *WorkerInstanceUpdate {
+	_u.mutation.SetTasks(v)
+	return _u
+}
+
+// SetNillableTasks sets the "tasks" field if the given value is not nil.
+func (_u *WorkerInstanceUpdate) SetNillableTasks(v *string) *WorkerInstanceUpdate {
+	if v != nil {
+		_u.SetTasks(*v)
+	}
+	return _u
+}
+
+// SetRoundStartedAt sets the "round_started_at" field.
+func (_u *WorkerInstanceUpdate) SetRoundStartedAt(v time.Time) *WorkerInstanceUpdate {
+	_u.mutation.SetRoundStartedAt(v)
+	return _u
+}
+
+// SetNillableRoundStartedAt sets the "round_started_at" field if the given value is not nil.
+func (_u *WorkerInstanceUpdate) SetNillableRoundStartedAt(v *time.Time) *WorkerInstanceUpdate {
+	if v != nil {
+		_u.SetRoundStartedAt(*v)
+	}
+	return _u
+}
+
+// ClearRoundStartedAt clears the value of the "round_started_at" field.
+func (_u *WorkerInstanceUpdate) ClearRoundStartedAt() *WorkerInstanceUpdate {
+	_u.mutation.ClearRoundStartedAt()
+	return _u
+}
+
+// SetNextPollAt sets the "next_poll_at" field.
+func (_u *WorkerInstanceUpdate) SetNextPollAt(v time.Time) *WorkerInstanceUpdate {
+	_u.mutation.SetNextPollAt(v)
+	return _u
+}
+
+// SetNillableNextPollAt sets the "next_poll_at" field if the given value is not nil.
+func (_u *WorkerInstanceUpdate) SetNillableNextPollAt(v *time.Time) *WorkerInstanceUpdate {
+	if v != nil {
+		_u.SetNextPollAt(*v)
+	}
+	return _u
+}
+
+// ClearNextPollAt clears the value of the "next_poll_at" field.
+func (_u *WorkerInstanceUpdate) ClearNextPollAt() *WorkerInstanceUpdate {
+	_u.mutation.ClearNextPollAt()
+	return _u
+}
+
+// SetPollIntervalSeconds sets the "poll_interval_seconds" field.
+func (_u *WorkerInstanceUpdate) SetPollIntervalSeconds(v int32) *WorkerInstanceUpdate {
+	_u.mutation.ResetPollIntervalSeconds()
+	_u.mutation.SetPollIntervalSeconds(v)
+	return _u
+}
+
+// SetNillablePollIntervalSeconds sets the "poll_interval_seconds" field if the given value is not nil.
+func (_u *WorkerInstanceUpdate) SetNillablePollIntervalSeconds(v *int32) *WorkerInstanceUpdate {
+	if v != nil {
+		_u.SetPollIntervalSeconds(*v)
+	}
+	return _u
+}
+
+// AddPollIntervalSeconds adds value to the "poll_interval_seconds" field.
+func (_u *WorkerInstanceUpdate) AddPollIntervalSeconds(v int32) *WorkerInstanceUpdate {
+	_u.mutation.AddPollIntervalSeconds(v)
+	return _u
+}
+
 // SetLastSeenAt sets the "last_seen_at" field.
 func (_u *WorkerInstanceUpdate) SetLastSeenAt(v time.Time) *WorkerInstanceUpdate {
 	_u.mutation.SetLastSeenAt(v)
@@ -230,6 +304,27 @@ func (_u *WorkerInstanceUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if _u.mutation.TaskStartedAtCleared() {
 		_spec.ClearField(workerinstance.FieldTaskStartedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Tasks(); ok {
+		_spec.SetField(workerinstance.FieldTasks, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RoundStartedAt(); ok {
+		_spec.SetField(workerinstance.FieldRoundStartedAt, field.TypeTime, value)
+	}
+	if _u.mutation.RoundStartedAtCleared() {
+		_spec.ClearField(workerinstance.FieldRoundStartedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.NextPollAt(); ok {
+		_spec.SetField(workerinstance.FieldNextPollAt, field.TypeTime, value)
+	}
+	if _u.mutation.NextPollAtCleared() {
+		_spec.ClearField(workerinstance.FieldNextPollAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.PollIntervalSeconds(); ok {
+		_spec.SetField(workerinstance.FieldPollIntervalSeconds, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedPollIntervalSeconds(); ok {
+		_spec.AddField(workerinstance.FieldPollIntervalSeconds, field.TypeInt32, value)
 	}
 	if value, ok := _u.mutation.LastSeenAt(); ok {
 		_spec.SetField(workerinstance.FieldLastSeenAt, field.TypeTime, value)
@@ -355,6 +450,81 @@ func (_u *WorkerInstanceUpdateOne) SetNillableTaskStartedAt(v *time.Time) *Worke
 // ClearTaskStartedAt clears the value of the "task_started_at" field.
 func (_u *WorkerInstanceUpdateOne) ClearTaskStartedAt() *WorkerInstanceUpdateOne {
 	_u.mutation.ClearTaskStartedAt()
+	return _u
+}
+
+// SetTasks sets the "tasks" field.
+func (_u *WorkerInstanceUpdateOne) SetTasks(v string) *WorkerInstanceUpdateOne {
+	_u.mutation.SetTasks(v)
+	return _u
+}
+
+// SetNillableTasks sets the "tasks" field if the given value is not nil.
+func (_u *WorkerInstanceUpdateOne) SetNillableTasks(v *string) *WorkerInstanceUpdateOne {
+	if v != nil {
+		_u.SetTasks(*v)
+	}
+	return _u
+}
+
+// SetRoundStartedAt sets the "round_started_at" field.
+func (_u *WorkerInstanceUpdateOne) SetRoundStartedAt(v time.Time) *WorkerInstanceUpdateOne {
+	_u.mutation.SetRoundStartedAt(v)
+	return _u
+}
+
+// SetNillableRoundStartedAt sets the "round_started_at" field if the given value is not nil.
+func (_u *WorkerInstanceUpdateOne) SetNillableRoundStartedAt(v *time.Time) *WorkerInstanceUpdateOne {
+	if v != nil {
+		_u.SetRoundStartedAt(*v)
+	}
+	return _u
+}
+
+// ClearRoundStartedAt clears the value of the "round_started_at" field.
+func (_u *WorkerInstanceUpdateOne) ClearRoundStartedAt() *WorkerInstanceUpdateOne {
+	_u.mutation.ClearRoundStartedAt()
+	return _u
+}
+
+// SetNextPollAt sets the "next_poll_at" field.
+func (_u *WorkerInstanceUpdateOne) SetNextPollAt(v time.Time) *WorkerInstanceUpdateOne {
+	_u.mutation.SetNextPollAt(v)
+	return _u
+}
+
+// SetNillableNextPollAt sets the "next_poll_at" field if the given value is not nil.
+func (_u *WorkerInstanceUpdateOne) SetNillableNextPollAt(v *time.Time) *WorkerInstanceUpdateOne {
+	if v != nil {
+		_u.SetNextPollAt(*v)
+	}
+	return _u
+}
+
+// ClearNextPollAt clears the value of the "next_poll_at" field.
+func (_u *WorkerInstanceUpdateOne) ClearNextPollAt() *WorkerInstanceUpdateOne {
+	_u.mutation.ClearNextPollAt()
+	return _u
+}
+
+// SetPollIntervalSeconds sets the "poll_interval_seconds" field.
+func (_u *WorkerInstanceUpdateOne) SetPollIntervalSeconds(v int32) *WorkerInstanceUpdateOne {
+	_u.mutation.ResetPollIntervalSeconds()
+	_u.mutation.SetPollIntervalSeconds(v)
+	return _u
+}
+
+// SetNillablePollIntervalSeconds sets the "poll_interval_seconds" field if the given value is not nil.
+func (_u *WorkerInstanceUpdateOne) SetNillablePollIntervalSeconds(v *int32) *WorkerInstanceUpdateOne {
+	if v != nil {
+		_u.SetPollIntervalSeconds(*v)
+	}
+	return _u
+}
+
+// AddPollIntervalSeconds adds value to the "poll_interval_seconds" field.
+func (_u *WorkerInstanceUpdateOne) AddPollIntervalSeconds(v int32) *WorkerInstanceUpdateOne {
+	_u.mutation.AddPollIntervalSeconds(v)
 	return _u
 }
 
@@ -485,6 +655,27 @@ func (_u *WorkerInstanceUpdateOne) sqlSave(ctx context.Context) (_node *WorkerIn
 	}
 	if _u.mutation.TaskStartedAtCleared() {
 		_spec.ClearField(workerinstance.FieldTaskStartedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Tasks(); ok {
+		_spec.SetField(workerinstance.FieldTasks, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RoundStartedAt(); ok {
+		_spec.SetField(workerinstance.FieldRoundStartedAt, field.TypeTime, value)
+	}
+	if _u.mutation.RoundStartedAtCleared() {
+		_spec.ClearField(workerinstance.FieldRoundStartedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.NextPollAt(); ok {
+		_spec.SetField(workerinstance.FieldNextPollAt, field.TypeTime, value)
+	}
+	if _u.mutation.NextPollAtCleared() {
+		_spec.ClearField(workerinstance.FieldNextPollAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.PollIntervalSeconds(); ok {
+		_spec.SetField(workerinstance.FieldPollIntervalSeconds, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedPollIntervalSeconds(); ok {
+		_spec.AddField(workerinstance.FieldPollIntervalSeconds, field.TypeInt32, value)
 	}
 	if value, ok := _u.mutation.LastSeenAt(); ok {
 		_spec.SetField(workerinstance.FieldLastSeenAt, field.TypeTime, value)

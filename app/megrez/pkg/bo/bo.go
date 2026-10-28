@@ -18,6 +18,8 @@ type RuleSnapshot struct {
 	Username      string
 	Password      string
 	Secret        string
+	// DatasourceName 只用于心跳里展示「规则 × 数据源」组合，不参与评测。
+	DatasourceName string
 	// IndexPattern 和 TimeField 只对 Elasticsearch 有意义：索引模式决定搜哪些索引，
 	// 时间字段决定 date_histogram 按哪个字段切桶。空值分别表示全部索引和 @timestamp。
 	IndexPattern string
@@ -55,15 +57,42 @@ type EvalHit struct {
 	Description string
 }
 
-// EvalReport 是回写内容。Skipped 表示驱动尚未实现。
+// 一个「规则 × 数据源」组合在本轮领取里的状态。
+const (
+	// WorkerTaskRunning 表示这个组合正在被评测。
+	WorkerTaskRunning = "RUNNING"
+	// WorkerTaskNew 表示本轮新加入、上一批没有这个组合。
+	WorkerTaskNew = "NEW"
+	// WorkerTaskPending 表示本轮已领取、还在排队等待评测。
+	WorkerTaskPending = "PENDING"
+	// WorkerTaskDone 表示本轮已经回写完成。
+	WorkerTaskDone = "DONE"
+	// WorkerTaskLeft 表示上一批领取过、本批已不再包含它。
+	WorkerTaskLeft = "LEFT"
+)
+
+// WorkerTask 是一轮领取里的一个「规则 × 数据源」组合。
+type WorkerTask struct {
+	State          string
+	RuleUID        string
+	RuleName       string
+	DatasourceUID  string
+	DatasourceName string
+	EvalSlot       time.Time
+}
+
 // WorkerStatus is the safe instance heartbeat sent to Alioth.
 type WorkerStatus struct {
-	InstanceUID   string
-	Hostname      string
-	Busy          bool
-	TaskUID       string
-	TaskName      string
-	TaskStartedAt time.Time
+	InstanceUID         string
+	Hostname            string
+	Busy                bool
+	TaskUID             string
+	TaskName            string
+	TaskStartedAt       time.Time
+	Tasks               []WorkerTask
+	RoundStartedAt      time.Time
+	NextPollAt          time.Time
+	PollIntervalSeconds int32
 }
 
 // EvalReport is a rule evaluation result.

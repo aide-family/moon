@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -51,6 +52,10 @@ type Worker struct {
 	taskUID       string
 	taskName      string
 	taskStartedAt time.Time
+	// tasks 是最近一批领取的「规则 × 数据源」组合，batchStartedAt 是领取时间。
+	// 空轮次不覆盖它，这样页面能看到上一批的回写和离开状态。
+	tasks          []bo.WorkerTask
+	batchStartedAt time.Time
 }
 
 func NewWorker(gateway repository.EvalGateway, locks repository.Locker, query repository.RangeQuery, logger *slog.Logger) *Worker {
@@ -131,10 +136,15 @@ func (w *Worker) setStatus(ctx context.Context, busy bool, taskUID, taskName str
 func (w *Worker) reportStatus(parent context.Context) {
 	w.reportMu.Lock()
 	defer w.reportMu.Unlock()
+	nextPollAt := w.nextPollAt(w.now())
 	w.mu.RLock()
+	tasks := make([]bo.WorkerTask, len(w.tasks))
+	copy(tasks, w.tasks)
 	status := bo.WorkerStatus{
 		InstanceUID: w.instanceUID, Hostname: w.hostname, Busy: w.busy,
 		TaskUID: w.taskUID, TaskName: w.taskName, TaskStartedAt: w.taskStartedAt,
+		Tasks: tasks, RoundStartedAt: w.batchStartedAt, NextPollAt: nextPollAt,
+		PollIntervalSeconds: int32(pollEvery.Seconds()),
 	}
 	w.mu.RUnlock()
 	ctx, cancel := context.WithTimeout(parent, 2*time.Second)
@@ -191,6 +201,7 @@ func (w *Worker) once(ctx context.Context) bool {
 		}
 		return errors.Is(ctx.Err(), context.DeadlineExceeded)
 	}
+	w.setBatch(ctx, rules)
 	for _, rule := range rules {
 		if err := ctx.Err(); err != nil {
 			return errors.Is(err, context.DeadlineExceeded)
@@ -218,6 +229,7 @@ func (w *Worker) evalOne(ctx context.Context, rule bo.RuleSnapshot) error {
 	if name == "" {
 		name = rule.UID
 	}
+	w.markTask(rule, bo.WorkerTaskRunning)
 	w.setStatus(ctx, true, rule.UID, name, w.now().UTC())
 	defer w.setStatus(context.Background(), false, "", "", time.Time{})
 	return w.finish(ctx, hold, rule)
@@ -301,7 +313,91 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, rule bo.RuleS
 		report.Hits = HitsWithQuery(ctx, rule, samples, rule.EvalSlot, templateQuery)
 	}
 	if err := w.gateway.Report(ctx, report); err != nil {
+		w.markTask(rule, bo.WorkerTaskPending)
 		return err
 	}
+	w.markTask(rule, bo.WorkerTaskDone)
 	return nil
+}
+
+// setBatch 记录本轮领取的组合，并标出相对上一批的新加入和已离开。
+// 空轮次不覆盖上一批：真正领到规则的那一轮才有可比对的差异。
+func (w *Worker) setBatch(ctx context.Context, rules []bo.RuleSnapshot) {
+	if len(rules) == 0 {
+		return
+	}
+	w.mu.Lock()
+	previous := make(map[string]bo.WorkerTask, len(w.tasks))
+	for _, task := range w.tasks {
+		if task.State == bo.WorkerTaskLeft {
+			continue
+		}
+		previous[workerTaskKey(task.RuleUID, task.DatasourceUID)] = task
+	}
+	tasks := make([]bo.WorkerTask, 0, len(rules)+len(previous))
+	for _, rule := range rules {
+		key := workerTaskKey(rule.UID, rule.DatasourceUID)
+		state := bo.WorkerTaskPending
+		if _, ok := previous[key]; !ok {
+			state = bo.WorkerTaskNew
+		}
+		delete(previous, key)
+		tasks = append(tasks, bo.WorkerTask{
+			State: state, RuleUID: rule.UID, RuleName: rule.Name,
+			DatasourceUID: rule.DatasourceUID, DatasourceName: rule.DatasourceName,
+			EvalSlot: rule.EvalSlot.UTC(),
+		})
+	}
+	// 已离开的组合保留到下一批领取，排序保证页面上的顺序稳定。
+	left := make([]bo.WorkerTask, 0, len(previous))
+	for _, task := range previous {
+		task.State = bo.WorkerTaskLeft
+		left = append(left, task)
+	}
+	sort.Slice(left, func(i, j int) bool {
+		if left[i].RuleUID != left[j].RuleUID {
+			return left[i].RuleUID < left[j].RuleUID
+		}
+		return left[i].DatasourceUID < left[j].DatasourceUID
+	})
+	w.tasks = append(tasks, left...)
+	w.batchStartedAt = w.now().UTC()
+	w.mu.Unlock()
+	w.reportStatus(ctx)
+}
+
+// markTask 更新一个组合的状态。已经离开的组合不参与本次领取，忽略即可。
+func (w *Worker) markTask(rule bo.RuleSnapshot, state string) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	for i := range w.tasks {
+		if w.tasks[i].RuleUID == rule.UID && w.tasks[i].DatasourceUID == rule.DatasourceUID {
+			if w.tasks[i].State == bo.WorkerTaskLeft {
+				return
+			}
+			w.tasks[i].State = state
+			return
+		}
+	}
+}
+
+// workerTaskKey 用规则和数据源标识一个组合；批次变化不算新的组合。
+func workerTaskKey(ruleUID, datasourceUID string) string {
+	return ruleUID + "/" + datasourceUID
+}
+
+// nextPollAt 返回下一次轮询落在哪个墙钟刻度上。轮询 cron 与墙钟对齐，
+// 所以正常情况是下一个 pollEvery 刻度；退避期间顺延到退避结束后的那一拍。
+func (w *Worker) nextPollAt(now time.Time) time.Time {
+	earliest := now
+	if w.gate != nil {
+		if wait := w.gate.NextWait(); wait > 0 {
+			earliest = now.Add(wait)
+		}
+	}
+	next := earliest.Truncate(pollEvery)
+	if !next.After(earliest) {
+		next = next.Add(pollEvery)
+	}
+	return next
 }

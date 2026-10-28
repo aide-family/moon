@@ -18,6 +18,13 @@ const (
 	recentWindow    = time.Minute
 	onlineWindow    = 15 * time.Second
 	recordRetention = 24 * time.Hour
+	// maxWorkerTasks 是一次心跳里接受的「规则 × 数据源」组合上限。
+	// 超过上限时保留前面的组合：丢几条展示数据也比整条心跳被拒、页面变离线好。
+	maxWorkerTasks = 256
+	// workerFieldLimit 是实例、规则和数据源标识的长度上限。
+	workerFieldLimit = 160
+	// workerNameLimit 是规则名、数据源名和任务名的显示长度上限。
+	workerNameLimit = 240
 )
 
 var ProviderSet = wire.NewSet(NewRoster)
@@ -44,22 +51,26 @@ func (roster *Roster) Report(ctx context.Context, service string, status bo.Work
 	status.Hostname = strings.TrimSpace(status.Hostname)
 	status.TaskUID = strings.TrimSpace(status.TaskUID)
 	status.TaskName = strings.TrimSpace(status.TaskName)
-	if status.InstanceUID == "" || len(status.InstanceUID) > 160 {
+	if status.InstanceUID == "" || len(status.InstanceUID) > workerFieldLimit {
 		return merr.Client("invalid worker instance")
 	}
 	if !status.Busy {
 		status.TaskUID = ""
 		status.TaskName = ""
 		status.TaskStartedAt = nil
-	} else if status.TaskUID == "" || len(status.TaskUID) > 160 || status.TaskStartedAt == nil || status.TaskStartedAt.IsZero() {
+	} else if status.TaskUID == "" || len(status.TaskUID) > workerFieldLimit || status.TaskStartedAt == nil || status.TaskStartedAt.IsZero() {
 		return merr.Client("active task details are required")
 	}
-	if runes := []rune(status.TaskName); len(runes) > 240 {
-		status.TaskName = string(runes[:240])
+	status.TaskName = truncateRunes(status.TaskName, workerNameLimit)
+	status.Hostname = truncateRunes(status.Hostname, workerFieldLimit)
+	// 空闲时也要保留本轮组合：刚回写完的那一批状态（已回写、已离开）正是页面要看的内容。
+	tasks, err := normalizeWorkerTasks(status.Tasks)
+	if err != nil {
+		return err
 	}
-	if runes := []rune(status.Hostname); len(runes) > 160 {
-		status.Hostname = string(runes[:160])
-	}
+	status.Tasks = tasks
+	status.RoundStartedAt = utcTime(status.RoundStartedAt)
+	status.NextPollAt = utcTime(status.NextPollAt)
 	return roster.repo.Report(ctx, status, roster.now().UTC())
 }
 
@@ -88,4 +99,81 @@ func (roster *Roster) List(ctx context.Context) ([]bo.WorkerInstance, int, int, 
 		}
 	}
 	return items, online, busy, online - busy, now, nil
+}
+
+// Get 读取一个实例的本批组合快照，并返回查询时刻。
+func (roster *Roster) Get(ctx context.Context, service, instanceUID string) (bo.WorkerInstance, time.Time, error) {
+	if _, err := roster.access.RequireSystem(ctx, perm.SystemUserRead); err != nil {
+		return bo.WorkerInstance{}, time.Time{}, err
+	}
+	service = strings.ToUpper(strings.TrimSpace(service))
+	if service != "MEGREZ" && service != "MERAK" {
+		return bo.WorkerInstance{}, time.Time{}, merr.Client("invalid worker service")
+	}
+	instanceUID = strings.TrimSpace(instanceUID)
+	if instanceUID == "" || len(instanceUID) > workerFieldLimit {
+		return bo.WorkerInstance{}, time.Time{}, merr.Client("invalid worker instance")
+	}
+	item, err := roster.repo.Get(ctx, service, instanceUID)
+	if err != nil {
+		return bo.WorkerInstance{}, time.Time{}, err
+	}
+	now := roster.now().UTC()
+	item.Online = now.Sub(item.LastSeenAt) <= onlineWindow
+	return *item, now, nil
+}
+
+// normalizeWorkerTasks 校验并归一化心跳里的组合快照：状态必须已知，
+// 规则和数据源不能为空，同一组合只保留一条，批次时间统一成 UTC。
+func normalizeWorkerTasks(tasks []bo.WorkerTask) ([]bo.WorkerTask, error) {
+	if len(tasks) == 0 {
+		return nil, nil
+	}
+	if len(tasks) > maxWorkerTasks {
+		tasks = tasks[:maxWorkerTasks]
+	}
+	normalized := make([]bo.WorkerTask, 0, len(tasks))
+	seen := make(map[string]struct{}, len(tasks))
+	for _, task := range tasks {
+		task.State = strings.ToUpper(strings.TrimSpace(task.State))
+		if !bo.ValidWorkerTaskState(task.State) {
+			return nil, merr.Client("invalid worker task state")
+		}
+		task.RuleUID = strings.TrimSpace(task.RuleUID)
+		task.DatasourceUID = strings.TrimSpace(task.DatasourceUID)
+		if task.RuleUID == "" || task.DatasourceUID == "" ||
+			len(task.RuleUID) > workerFieldLimit || len(task.DatasourceUID) > workerFieldLimit ||
+			task.EvalSlot.IsZero() {
+			return nil, merr.Client("invalid worker task")
+		}
+		key := task.RuleUID + "/" + task.DatasourceUID
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		task.RuleName = truncateRunes(task.RuleName, workerNameLimit)
+		task.DatasourceName = truncateRunes(task.DatasourceName, workerNameLimit)
+		task.EvalSlot = task.EvalSlot.UTC()
+		normalized = append(normalized, task)
+	}
+	return normalized, nil
+}
+
+// truncateRunes 按字符截断，避免把 UTF-8 字符切坏。
+func truncateRunes(value string, limit int) string {
+	value = strings.TrimSpace(value)
+	runes := []rune(value)
+	if len(runes) <= limit {
+		return value
+	}
+	return string(runes[:limit])
+}
+
+// utcTime 把可选时间统一成 UTC，空值保持为空。
+func utcTime(value *time.Time) *time.Time {
+	if value == nil || value.IsZero() {
+		return nil
+	}
+	utc := value.UTC()
+	return &utc
 }

@@ -1594,6 +1594,10 @@ var (
 		{Name: "task_uid", Type: field.TypeString, Default: ""},
 		{Name: "task_name", Type: field.TypeString, Default: ""},
 		{Name: "task_started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "tasks", Type: field.TypeString, Default: "[]"},
+		{Name: "round_started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "next_poll_at", Type: field.TypeTime, Nullable: true},
+		{Name: "poll_interval_seconds", Type: field.TypeInt32, Default: 0},
 		{Name: "last_seen_at", Type: field.TypeTime},
 	}
 	// WorkerInstancesTable holds the schema information for the "worker_instances" table.
@@ -1610,7 +1614,7 @@ var (
 			{
 				Name:    "workerinstance_last_seen_at",
 				Unique:  false,
-				Columns: []*schema.Column{WorkerInstancesColumns[8]},
+				Columns: []*schema.Column{WorkerInstancesColumns[12]},
 			},
 		},
 	}

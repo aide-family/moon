@@ -324,3 +324,15 @@ func parseSlot(value string) (time.Time, error) {
 	}
 	return slot.UTC(), nil
 }
+
+// parseOptionalSlot 解析可以为空的时间字段，空串表示这个时间还没有。
+func parseOptionalSlot(value string) (*time.Time, error) {
+	if value == "" {
+		return nil, nil
+	}
+	slot, err := parseSlot(value)
+	if err != nil {
+		return nil, err
+	}
+	return &slot, nil
+}

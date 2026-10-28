@@ -65,6 +65,8 @@ message RuleSnapshot {
   string datasource_time_field = 19;
   // 自定义查询变量，按保存顺序。
   repeated RuleVariable variables = 20;
+  // 数据源名称，用于心跳里展示「规则 × 数据源」组合。
+  string datasource_name = 21;
 }
 
 // 一条自定义查询变量。expr 是查询模板，展开时可用主查询命中序列的标签。
@@ -143,6 +145,31 @@ message ReportWorkerStatusRequest {
   string task_name = 5;
   // 当前任务开始时间，RFC3339；空值表示无活动任务。
   string task_started_at = 6;
+  // 本批领取的规则 × 数据源组合，含状态。
+  repeated WorkerTaskSnapshot tasks = 7;
+  // 本批领取时间，RFC3339；空值表示还没有领取批次。
+  string round_started_at = 8;
+  // 本实例下一次轮询时间，RFC3339。
+  string next_poll_at = 9;
+  // 本实例的轮询周期秒数。
+  int32 poll_interval_seconds = 10;
+}
+
+// 一个「规则 × 数据源」组合在本批里的状态。
+message WorkerTaskSnapshot {
+  // 组合状态：RUNNING（正在执行）、NEW（本轮新加入）、PENDING（本轮待执行）、
+  // DONE（本轮已回写）、LEFT（上一批有、本批已离开）。
+  string state = 1;
+  // 规则标识。
+  string rule_uid = 2;
+  // 规则名称。
+  string rule_name = 3;
+  // 数据源标识。
+  string datasource_uid = 4;
+  // 数据源名称。
+  string datasource_name = 5;
+  // 本轮评测批次，RFC3339。
+  string eval_slot = 6;
 }
 
 // 状态已记录。

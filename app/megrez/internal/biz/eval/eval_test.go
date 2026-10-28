@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/app/megrez/pkg/bo"
 	"github.com/aide-family/moon/pkg/alerttmpl"
 	"github.com/aide-family/moon/pkg/merr"
+	pkgworker "github.com/aide-family/moon/pkg/worker"
 )
 
 func TestHitsConditions(t *testing.T) {
@@ -641,5 +642,83 @@ func TestHitsWithQueryEvaluatesVarsTableReference(t *testing.T) {
 	}
 	if len(exprs) != 1 || !strings.Contains(exprs[0], `instance="a"`) {
 		t.Fatalf("vars table reference did not query expanded expression: %q", exprs)
+	}
+}
+
+// TestSetBatchTracksNewPendingAndLeft 覆盖页面上的三种组合状态：
+// 上一批没有的是新加入，上一批有的是待执行，上一批有而这一批没有的是已离开。
+func TestSetBatchTracksNewPendingAndLeft(t *testing.T) {
+	now := time.Date(2026, 10, 21, 8, 0, 0, 0, time.UTC)
+	gateway := &fakeGateway{}
+	worker := &Worker{
+		gateway: gateway, log: slog.Default(), now: func() time.Time { return now },
+		instanceUID: "host-1", hostname: "host", gate: pkgworker.NewGate(pollEvery, backoffMax),
+	}
+	slot := now.UTC()
+	worker.setBatch(context.Background(), []bo.RuleSnapshot{
+		{UID: "rule-1", Name: "CPU", DatasourceUID: "ds-a", DatasourceName: "Prom A", EvalSlot: slot},
+		{UID: "rule-2", Name: "MEM", DatasourceUID: "ds-b", DatasourceName: "Prom B", EvalSlot: slot},
+	})
+	if got := worker.tasks; len(got) != 2 || got[0].State != bo.WorkerTaskNew || got[1].State != bo.WorkerTaskNew {
+		t.Fatalf("first batch = %+v", got)
+	}
+	if !worker.batchStartedAt.Equal(now) {
+		t.Fatalf("batch started at %s, want %s", worker.batchStartedAt, now)
+	}
+	if len(gateway.statuses) != 1 || len(gateway.statuses[0].Tasks) != 2 {
+		t.Fatalf("claims should report the batch once, got %+v", gateway.statuses)
+	}
+
+	next := now.Add(15 * time.Second)
+	worker.setBatch(context.Background(), []bo.RuleSnapshot{
+		{UID: "rule-1", Name: "CPU", DatasourceUID: "ds-a", DatasourceName: "Prom A", EvalSlot: next},
+		{UID: "rule-3", Name: "DISK", DatasourceUID: "ds-c", DatasourceName: "Prom C", EvalSlot: next},
+	})
+	states := map[string]string{}
+	for _, task := range worker.tasks {
+		states[task.RuleUID+"/"+task.DatasourceUID] = task.State
+	}
+	if states["rule-1/ds-a"] != bo.WorkerTaskPending || states["rule-3/ds-c"] != bo.WorkerTaskNew || states["rule-2/ds-b"] != bo.WorkerTaskLeft {
+		t.Fatalf("second batch states = %+v", states)
+	}
+
+	// 空轮次不覆盖上一批：下一次真正领到规则时才重新比对。
+	worker.setBatch(context.Background(), nil)
+	if len(worker.tasks) != 3 || !worker.batchStartedAt.Equal(now) {
+		t.Fatalf("empty claim reset the batch: %+v at %s", worker.tasks, worker.batchStartedAt)
+	}
+
+	// 已离开的组合只保留一批：再下一次领取时 rule-2 消失了，rule-3 变成新的已离开。
+	worker.setBatch(context.Background(), []bo.RuleSnapshot{
+		{UID: "rule-1", Name: "CPU", DatasourceUID: "ds-a", DatasourceName: "Prom A", EvalSlot: next},
+	})
+	states = map[string]string{}
+	for _, task := range worker.tasks {
+		states[task.RuleUID+"/"+task.DatasourceUID] = task.State
+	}
+	if _, ok := states["rule-2/ds-b"]; ok {
+		t.Fatalf("left task lingered for more than one batch: %+v", states)
+	}
+	if states["rule-1/ds-a"] != bo.WorkerTaskPending || states["rule-3/ds-c"] != bo.WorkerTaskLeft {
+		t.Fatalf("third batch states = %+v", states)
+	}
+}
+
+func TestNextPollAtAlignsToPollTick(t *testing.T) {
+	now := time.Date(2026, 10, 21, 8, 0, 1, 500*int(time.Millisecond), time.UTC)
+	worker := &Worker{now: func() time.Time { return now }, gate: pkgworker.NewGate(pollEvery, backoffMax)}
+	if got, want := worker.nextPollAt(now), time.Date(2026, 10, 21, 8, 0, 2, 0, time.UTC); !got.Equal(want) {
+		t.Fatalf("next poll = %s, want %s", got, want)
+	}
+	// 退避期间顺延到退避结束后的那一拍。
+	worker.gate.Note(true)
+	got := worker.nextPollAt(time.Now())
+	if got.Before(time.Now()) {
+		t.Fatalf("next poll during backoff = %s", got)
+	}
+	// 没有门控的构造（测试里直接建 Worker）不能 panic。
+	bare := &Worker{now: func() time.Time { return now }}
+	if got := bare.nextPollAt(now); !got.Equal(time.Date(2026, 10, 21, 8, 0, 2, 0, time.UTC)) {
+		t.Fatalf("next poll without gate = %s", got)
 	}
 }

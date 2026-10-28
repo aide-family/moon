@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	WorkerService_ListWorkerInstances_FullMethodName = "/alioth.v1.WorkerService/ListWorkerInstances"
+	WorkerService_GetWorkerInstance_FullMethodName   = "/alioth.v1.WorkerService/GetWorkerInstance"
 )
 
 // WorkerServiceClient is the client API for WorkerService service.
@@ -30,6 +31,8 @@ const (
 type WorkerServiceClient interface {
 	// 查询最近活动的 Megrez 与 Merak 实例及其当前任务。
 	ListWorkerInstances(ctx context.Context, in *ListWorkerInstancesRequest, opts ...grpc.CallOption) (*ListWorkerInstancesResponse, error)
+	// 查询单个实例的评测批次详情：本轮领取的规则 × 数据源组合。
+	GetWorkerInstance(ctx context.Context, in *GetWorkerInstanceRequest, opts ...grpc.CallOption) (*GetWorkerInstanceResponse, error)
 }
 
 type workerServiceClient struct {
@@ -50,6 +53,16 @@ func (c *workerServiceClient) ListWorkerInstances(ctx context.Context, in *ListW
 	return out, nil
 }
 
+func (c *workerServiceClient) GetWorkerInstance(ctx context.Context, in *GetWorkerInstanceRequest, opts ...grpc.CallOption) (*GetWorkerInstanceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetWorkerInstanceResponse)
+	err := c.cc.Invoke(ctx, WorkerService_GetWorkerInstance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WorkerServiceServer is the server API for WorkerService service.
 // All implementations must embed UnimplementedWorkerServiceServer
 // for forward compatibility.
@@ -58,6 +71,8 @@ func (c *workerServiceClient) ListWorkerInstances(ctx context.Context, in *ListW
 type WorkerServiceServer interface {
 	// 查询最近活动的 Megrez 与 Merak 实例及其当前任务。
 	ListWorkerInstances(context.Context, *ListWorkerInstancesRequest) (*ListWorkerInstancesResponse, error)
+	// 查询单个实例的评测批次详情：本轮领取的规则 × 数据源组合。
+	GetWorkerInstance(context.Context, *GetWorkerInstanceRequest) (*GetWorkerInstanceResponse, error)
 	mustEmbedUnimplementedWorkerServiceServer()
 }
 
@@ -70,6 +85,9 @@ type UnimplementedWorkerServiceServer struct{}
 
 func (UnimplementedWorkerServiceServer) ListWorkerInstances(context.Context, *ListWorkerInstancesRequest) (*ListWorkerInstancesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListWorkerInstances not implemented")
+}
+func (UnimplementedWorkerServiceServer) GetWorkerInstance(context.Context, *GetWorkerInstanceRequest) (*GetWorkerInstanceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWorkerInstance not implemented")
 }
 func (UnimplementedWorkerServiceServer) mustEmbedUnimplementedWorkerServiceServer() {}
 func (UnimplementedWorkerServiceServer) testEmbeddedByValue()                       {}
@@ -110,6 +128,24 @@ func _WorkerService_ListWorkerInstances_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WorkerService_GetWorkerInstance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkerInstanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkerServiceServer).GetWorkerInstance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkerService_GetWorkerInstance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkerServiceServer).GetWorkerInstance(ctx, req.(*GetWorkerInstanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WorkerService_ServiceDesc is the grpc.ServiceDesc for WorkerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -120,6 +156,10 @@ var WorkerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListWorkerInstances",
 			Handler:    _WorkerService_ListWorkerInstances_Handler,
+		},
+		{
+			MethodName: "GetWorkerInstance",
+			Handler:    _WorkerService_GetWorkerInstance_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

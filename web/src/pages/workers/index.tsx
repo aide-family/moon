@@ -1,4 +1,4 @@
-import { Activity, CircleAlert, Clock3, RefreshCw, Server } from "lucide-react"
+import { Activity, ChevronRight, CircleAlert, Clock3, RefreshCw, Server } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -9,6 +9,9 @@ import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/class-names"
+
+import { WorkerDetailSheet } from "./worker-detail-sheet"
 
 const services = [
   { key: "MEGREZ", title: "Megrez", descriptionKey: "megrezDescription" },
@@ -31,16 +34,24 @@ function formatDuration(value: string, now: number, t: (key: string, options?: R
   return t("worker.hours", { count: Math.floor(minutes / 60), minutes: minutes % 60 })
 }
 
-function WorkerRow({ item, now }: { item: WorkerInstanceItem; now: number }) {
+interface WorkerRowProps {
+  item: WorkerInstanceItem
+  now: number
+  // 只有天权实例可点开详情；天璇沿用原来的纯展示行。
+  onOpen?: (item: WorkerInstanceItem) => void
+}
+
+function WorkerRow({ item, now, onOpen }: WorkerRowProps) {
   const { t } = useTranslation()
   const heartbeatAge = formatDuration(item.lastSeenAt, now, t)
   const taskClock = item.online ? now : Date.parse(item.lastSeenAt)
   const taskAge = formatDuration(item.taskStartedAt, taskClock, t)
 
-  return (
-    <li className="grid gap-3 rounded-lg border border-border/60 bg-muted/25 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
+  // 行内容全部使用行内元素：可点击时整行是 <button>，块级标签嵌在按钮里不合法。
+  const body = (
+    <>
+      <span className="block min-w-0">
+        <span className="flex flex-wrap items-center gap-2">
           <span className="max-w-full truncate font-medium">{item.hostname || item.instanceUid}</span>
           <StatusBadge
             value={item.online ? "ONLINE" : "OFFLINE"}
@@ -52,12 +63,12 @@ function WorkerRow({ item, now }: { item: WorkerInstanceItem; now: number }) {
               label={item.busy ? t("worker.working") : t("worker.idle")}
             />
           ) : null}
-        </div>
-        <p className="mt-1 truncate font-mono text-xs text-muted-foreground" title={item.instanceUid}>{item.instanceUid}</p>
+        </span>
+        <span className="mt-1 block truncate font-mono text-xs text-muted-foreground" title={item.instanceUid}>{item.instanceUid}</span>
         {item.busy && item.taskUid ? (
-          <div className="mt-3 rounded-md bg-background/70 px-3 py-2">
-            <p className="truncate text-sm font-medium" title={item.taskName}>{item.taskName || t("worker.unnamedTask")}</p>
-            <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <span className="mt-3 block rounded-md bg-background/70 px-3 py-2">
+            <span className="block truncate text-sm font-medium" title={item.taskName}>{item.taskName || t("worker.unnamedTask")}</span>
+            <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span className="font-mono">{item.taskUid}</span>
               {item.taskStartedAt ? (
                 <span>
@@ -66,22 +77,54 @@ function WorkerRow({ item, now }: { item: WorkerInstanceItem; now: number }) {
                     : t("worker.lastKnownTask", { time: formatTime(item.lastSeenAt), duration: taskAge })}
                 </span>
               ) : null}
-            </p>
-          </div>
+            </span>
+          </span>
         ) : (
-          <p className="mt-2 text-xs text-muted-foreground">{item.online ? t("worker.noActiveTask") : t("worker.lastSeen", { time: formatTime(item.lastSeenAt) })}</p>
+          <span className="mt-2 block text-xs text-muted-foreground">{item.online ? t("worker.noActiveTask") : t("worker.lastSeen", { time: formatTime(item.lastSeenAt) })}</span>
         )}
-      </div>
-      <div className="flex items-center gap-1.5 text-xs tabular-nums text-muted-foreground">
+      </span>
+      <span className="flex items-center gap-1.5 text-xs tabular-nums text-muted-foreground">
         <Clock3 className="size-3.5" aria-hidden="true" />
         <span className="sr-only">{t("worker.lastHeartbeat", { duration: heartbeatAge })}</span>
         <span>{heartbeatAge}</span>
-      </div>
+        {onOpen ? <ChevronRight className="size-3.5 shrink-0" aria-hidden="true" /> : null}
+      </span>
+    </>
+  )
+
+  const rowClassName =
+    "grid w-full min-w-0 gap-3 rounded-lg border border-border/60 bg-muted/25 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+
+  return (
+    <li>
+      {onOpen ? (
+        <button
+          type="button"
+          onClick={() => onOpen(item)}
+          aria-haspopup="dialog"
+          aria-label={t("worker.openDetail", { name: item.hostname || item.instanceUid })}
+          className={cn(
+            rowClassName,
+            "text-left transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          )}
+        >
+          {body}
+        </button>
+      ) : (
+        <div className={rowClassName}>{body}</div>
+      )}
     </li>
   )
 }
 
-function ServicePanel({ service, items, now }: { service: (typeof services)[number]; items: WorkerInstanceItem[]; now: number }) {
+interface ServicePanelProps {
+  service: (typeof services)[number]
+  items: WorkerInstanceItem[]
+  now: number
+  onOpenInstance: (item: WorkerInstanceItem) => void
+}
+
+function ServicePanel({ service, items, now, onOpenInstance }: ServicePanelProps) {
   const { t } = useTranslation()
   const serviceItems = items.filter((item) => item.service === service.key)
   const online = serviceItems.filter((item) => item.online)
@@ -115,7 +158,14 @@ function ServicePanel({ service, items, now }: { service: (typeof services)[numb
         ) : (
           <>
             <ul className="space-y-2" aria-label={t(`worker.${service.descriptionKey}`)}>
-              {serviceItems.map((item) => <WorkerRow key={`${item.service}:${item.instanceUid}`} item={item} now={now} />)}
+              {serviceItems.map((item) => (
+                <WorkerRow
+                  key={`${item.service}:${item.instanceUid}`}
+                  item={item}
+                  now={now}
+                  onOpen={service.key === "MEGREZ" ? onOpenInstance : undefined}
+                />
+              ))}
             </ul>
           </>
         )}
@@ -132,6 +182,9 @@ export function WorkerStatusPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const [now, setNow] = useState(0)
+  // 选中的天权实例；仅 MEGREZ 行可打开详情抽屉。
+  const [selected, setSelected] = useState<WorkerInstanceItem | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -210,7 +263,18 @@ export function WorkerStatusPage() {
           </Card>
 
           <div className="grid gap-4 xl:grid-cols-2">
-            {services.map((service) => <ServicePanel key={service.key} service={service} items={items} now={now} />)}
+            {services.map((service) => (
+              <ServicePanel
+                key={service.key}
+                service={service}
+                items={items}
+                now={now}
+                onOpenInstance={(item) => {
+                  setSelected(item)
+                  setDetailOpen(true)
+                }}
+              />
+            ))}
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-muted-foreground">
             <span>{t("worker.autoRefresh")}</span>
@@ -231,6 +295,13 @@ export function WorkerStatusPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* 天权实例详情抽屉：关闭即停止 2 秒详情轮询；天璇没有详情入口。 */}
+      <WorkerDetailSheet
+        instance={selected}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </div>
   )
 }

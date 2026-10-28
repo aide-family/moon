@@ -53,6 +53,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := prepareNotificationColumns(ctx, db); err != nil {
 		return err
 	}
+	if err := prepareWorkerInstanceColumns(ctx, db); err != nil {
+		return err
+	}
 	opts := []entschema.MigrateOption{}
 	for _, name := range partitionedTables {
 		kind, err := relationKind(ctx, db, name)
@@ -153,6 +156,32 @@ func prepareNotificationColumns(ctx context.Context, db *sql.DB) error {
 			if _, err := db.ExecContext(ctx, statement); err != nil {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+// prepareWorkerInstanceColumns 给已有的工作实例表补上详情列。
+// 已有行上直接 ADD COLUMN NOT NULL 不会回填默认值（23502），
+// 所以先用 IF NOT EXISTS + DEFAULT 预建；新库由 ent 自己建表。
+func prepareWorkerInstanceColumns(ctx context.Context, db *sql.DB) error {
+	var exists bool
+	if err := db.QueryRowContext(ctx, `SELECT to_regclass($1) IS NOT NULL`, "worker_instances").Scan(&exists); err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+	statements := []string{
+		`ALTER TABLE worker_instances ADD COLUMN IF NOT EXISTS tasks character varying NOT NULL DEFAULT '[]'`,
+		`ALTER TABLE worker_instances ADD COLUMN IF NOT EXISTS round_started_at timestamptz NULL`,
+		`ALTER TABLE worker_instances ADD COLUMN IF NOT EXISTS next_poll_at timestamptz NULL`,
+		`ALTER TABLE worker_instances ADD COLUMN IF NOT EXISTS poll_interval_seconds integer NOT NULL DEFAULT 0`,
+	}
+	for _, statement := range statements {
+		if _, err := db.ExecContext(ctx, statement); err != nil {
+			slog.Default().Error(fmt.Sprintf("schema: %v", err))
+			return merr.Server("request failed")
 		}
 	}
 	return nil

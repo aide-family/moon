@@ -63,9 +63,30 @@ func (s *EvalService) ReportWorkerStatus(ctx context.Context, req *megrezv1.Repo
 		}
 		startedAt = &parsed
 	}
+	roundStartedAt, err := parseOptionalSlot(req.GetRoundStartedAt())
+	if err != nil {
+		return nil, err
+	}
+	nextPollAt, err := parseOptionalSlot(req.GetNextPollAt())
+	if err != nil {
+		return nil, err
+	}
+	tasks := make([]bo.WorkerTask, 0, len(req.GetTasks()))
+	for _, task := range req.GetTasks() {
+		slot, err := parseSlot(task.GetEvalSlot())
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, bo.WorkerTask{
+			State: task.GetState(), RuleUID: task.GetRuleUid(), RuleName: task.GetRuleName(),
+			DatasourceUID: task.GetDatasourceUid(), DatasourceName: task.GetDatasourceName(), EvalSlot: slot,
+		})
+	}
 	if err := s.roster.Report(ctx, "MEGREZ", bo.WorkerStatus{
 		InstanceUID: req.GetInstanceUid(), Hostname: req.GetHostname(), Busy: req.GetBusy(),
 		TaskUID: req.GetTaskUid(), TaskName: req.GetTaskName(), TaskStartedAt: startedAt,
+		RoundStartedAt: roundStartedAt, NextPollAt: nextPollAt,
+		PollIntervalSeconds: req.GetPollIntervalSeconds(), Tasks: tasks,
 	}); err != nil {
 		return nil, err
 	}
@@ -97,7 +118,8 @@ func snapshotItem(item bo.RuleSnapshot) *megrezv1.RuleSnapshot {
 		DatasourcePassword: item.Datasource.Password, DatasourceSecret: item.Datasource.Secret,
 		// Elasticsearch 的评测需要知道搜哪些索引、按哪个字段切时间桶。
 		DatasourceIndexPattern: item.Datasource.IndexPattern, DatasourceTimeField: item.Datasource.TimeField,
-		Levels: levels, FiringFingerprints: item.FiringFingerprints, DatasourceUid: item.Rule.DatasourceUID, Name: item.Rule.Name,
+		DatasourceName: item.Datasource.Name,
+		Levels:         levels, FiringFingerprints: item.FiringFingerprints, DatasourceUid: item.Rule.DatasourceUID, Name: item.Rule.Name,
 		Variables: variables,
 	}
 }

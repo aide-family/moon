@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/workerinstance"
 )
 
@@ -32,6 +31,14 @@ type WorkerInstance struct {
 	TaskName string `json:"task_name,omitempty"`
 	// TaskStartedAt holds the value of the "task_started_at" field.
 	TaskStartedAt *time.Time `json:"task_started_at,omitempty"`
+	// Tasks holds the value of the "tasks" field.
+	Tasks string `json:"tasks,omitempty"`
+	// RoundStartedAt holds the value of the "round_started_at" field.
+	RoundStartedAt *time.Time `json:"round_started_at,omitempty"`
+	// NextPollAt holds the value of the "next_poll_at" field.
+	NextPollAt *time.Time `json:"next_poll_at,omitempty"`
+	// PollIntervalSeconds holds the value of the "poll_interval_seconds" field.
+	PollIntervalSeconds int32 `json:"poll_interval_seconds,omitempty"`
 	// LastSeenAt holds the value of the "last_seen_at" field.
 	LastSeenAt   time.Time `json:"last_seen_at,omitempty"`
 	selectValues sql.SelectValues
@@ -44,11 +51,11 @@ func (*WorkerInstance) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case workerinstance.FieldBusy:
 			values[i] = new(sql.NullBool)
-		case workerinstance.FieldID:
+		case workerinstance.FieldID, workerinstance.FieldPollIntervalSeconds:
 			values[i] = new(sql.NullInt64)
-		case workerinstance.FieldService, workerinstance.FieldInstanceUID, workerinstance.FieldHostname, workerinstance.FieldTaskUID, workerinstance.FieldTaskName:
+		case workerinstance.FieldService, workerinstance.FieldInstanceUID, workerinstance.FieldHostname, workerinstance.FieldTaskUID, workerinstance.FieldTaskName, workerinstance.FieldTasks:
 			values[i] = new(sql.NullString)
-		case workerinstance.FieldTaskStartedAt, workerinstance.FieldLastSeenAt:
+		case workerinstance.FieldTaskStartedAt, workerinstance.FieldRoundStartedAt, workerinstance.FieldNextPollAt, workerinstance.FieldLastSeenAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -114,6 +121,32 @@ func (_m *WorkerInstance) assignValues(columns []string, values []any) error {
 				_m.TaskStartedAt = new(time.Time)
 				*_m.TaskStartedAt = value.Time
 			}
+		case workerinstance.FieldTasks:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tasks", values[i])
+			} else if value.Valid {
+				_m.Tasks = value.String
+			}
+		case workerinstance.FieldRoundStartedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field round_started_at", values[i])
+			} else if value.Valid {
+				_m.RoundStartedAt = new(time.Time)
+				*_m.RoundStartedAt = value.Time
+			}
+		case workerinstance.FieldNextPollAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field next_poll_at", values[i])
+			} else if value.Valid {
+				_m.NextPollAt = new(time.Time)
+				*_m.NextPollAt = value.Time
+			}
+		case workerinstance.FieldPollIntervalSeconds:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field poll_interval_seconds", values[i])
+			} else if value.Valid {
+				_m.PollIntervalSeconds = int32(value.Int64)
+			}
 		case workerinstance.FieldLastSeenAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field last_seen_at", values[i])
@@ -178,6 +211,22 @@ func (_m *WorkerInstance) String() string {
 		builder.WriteString("task_started_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("tasks=")
+	builder.WriteString(_m.Tasks)
+	builder.WriteString(", ")
+	if v := _m.RoundStartedAt; v != nil {
+		builder.WriteString("round_started_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.NextPollAt; v != nil {
+		builder.WriteString("next_poll_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("poll_interval_seconds=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PollIntervalSeconds))
 	builder.WriteString(", ")
 	builder.WriteString("last_seen_at=")
 	builder.WriteString(_m.LastSeenAt.Format(time.ANSIC))

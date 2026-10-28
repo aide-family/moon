@@ -122,10 +122,10 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 
 内部 gRPC 不经过 Web nginx：
 
-- `api/megrez/v1`：领取到期规则快照，回写评测结果，并上报实例心跳与当前规则
+- `api/megrez/v1`：领取到期规则快照，回写评测结果，并上报实例心跳、当前规则与本轮领取的规则 × 数据源组合
 - `api/merak/v1`：领取待发送任务，回写投递结果，并上报实例心跳与当前通知任务
 - `api/alioth/v1` 中的 Agent 双向流：注册、心跳、SSH 执行、Web Shell
-- 平台管理员通过 `GET /v1/worker-instances` 查看近期工作实例；心跳保存在 PostgreSQL，在线窗口为 15 秒，列表保留最近一分钟的实例
+- 平台管理员通过 `GET /v1/worker-instances` 查看近期工作实例；`GET /v1/worker-instances/{instance_uid}?service=MEGREZ` 返回该实例本轮领取的组合、组合状态与跑批幂等键，以及下一次调度和轮询时间；心跳保存在 PostgreSQL，在线窗口为 15 秒，列表保留最近一分钟的实例
 
 错误分为四类：客户端错误、未认证、无权限、服务端错误。列表用 `page` 与 `pageSize`。下拉选择用 `limit` 与 `lastUid`。写接口用 `buf.validate`。
 

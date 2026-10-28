@@ -35523,21 +35523,26 @@ func (m *UserOAuthMutation) ResetEdge(name string) error {
 // WorkerInstanceMutation represents an operation that mutates the WorkerInstance nodes in the graph.
 type WorkerInstanceMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	service         *workerinstance.Service
-	instance_uid    *string
-	hostname        *string
-	busy            *bool
-	task_uid        *string
-	task_name       *string
-	task_started_at *time.Time
-	last_seen_at    *time.Time
-	clearedFields   map[string]struct{}
-	done            bool
-	oldValue        func(context.Context) (*WorkerInstance, error)
-	predicates      []predicate.WorkerInstance
+	op                       Op
+	typ                      string
+	id                       *int
+	service                  *workerinstance.Service
+	instance_uid             *string
+	hostname                 *string
+	busy                     *bool
+	task_uid                 *string
+	task_name                *string
+	task_started_at          *time.Time
+	tasks                    *string
+	round_started_at         *time.Time
+	next_poll_at             *time.Time
+	poll_interval_seconds    *int32
+	addpoll_interval_seconds *int32
+	last_seen_at             *time.Time
+	clearedFields            map[string]struct{}
+	done                     bool
+	oldValue                 func(context.Context) (*WorkerInstance, error)
+	predicates               []predicate.WorkerInstance
 }
 
 var _ ent.Mutation = (*WorkerInstanceMutation)(nil)
@@ -35903,6 +35908,196 @@ func (m *WorkerInstanceMutation) ResetTaskStartedAt() {
 	delete(m.clearedFields, workerinstance.FieldTaskStartedAt)
 }
 
+// SetTasks sets the "tasks" field.
+func (m *WorkerInstanceMutation) SetTasks(s string) {
+	m.tasks = &s
+}
+
+// Tasks returns the value of the "tasks" field in the mutation.
+func (m *WorkerInstanceMutation) Tasks() (r string, exists bool) {
+	v := m.tasks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTasks returns the old "tasks" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldTasks(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTasks is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTasks requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTasks: %w", err)
+	}
+	return oldValue.Tasks, nil
+}
+
+// ResetTasks resets all changes to the "tasks" field.
+func (m *WorkerInstanceMutation) ResetTasks() {
+	m.tasks = nil
+}
+
+// SetRoundStartedAt sets the "round_started_at" field.
+func (m *WorkerInstanceMutation) SetRoundStartedAt(t time.Time) {
+	m.round_started_at = &t
+}
+
+// RoundStartedAt returns the value of the "round_started_at" field in the mutation.
+func (m *WorkerInstanceMutation) RoundStartedAt() (r time.Time, exists bool) {
+	v := m.round_started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoundStartedAt returns the old "round_started_at" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldRoundStartedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoundStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoundStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoundStartedAt: %w", err)
+	}
+	return oldValue.RoundStartedAt, nil
+}
+
+// ClearRoundStartedAt clears the value of the "round_started_at" field.
+func (m *WorkerInstanceMutation) ClearRoundStartedAt() {
+	m.round_started_at = nil
+	m.clearedFields[workerinstance.FieldRoundStartedAt] = struct{}{}
+}
+
+// RoundStartedAtCleared returns if the "round_started_at" field was cleared in this mutation.
+func (m *WorkerInstanceMutation) RoundStartedAtCleared() bool {
+	_, ok := m.clearedFields[workerinstance.FieldRoundStartedAt]
+	return ok
+}
+
+// ResetRoundStartedAt resets all changes to the "round_started_at" field.
+func (m *WorkerInstanceMutation) ResetRoundStartedAt() {
+	m.round_started_at = nil
+	delete(m.clearedFields, workerinstance.FieldRoundStartedAt)
+}
+
+// SetNextPollAt sets the "next_poll_at" field.
+func (m *WorkerInstanceMutation) SetNextPollAt(t time.Time) {
+	m.next_poll_at = &t
+}
+
+// NextPollAt returns the value of the "next_poll_at" field in the mutation.
+func (m *WorkerInstanceMutation) NextPollAt() (r time.Time, exists bool) {
+	v := m.next_poll_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextPollAt returns the old "next_poll_at" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldNextPollAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextPollAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextPollAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextPollAt: %w", err)
+	}
+	return oldValue.NextPollAt, nil
+}
+
+// ClearNextPollAt clears the value of the "next_poll_at" field.
+func (m *WorkerInstanceMutation) ClearNextPollAt() {
+	m.next_poll_at = nil
+	m.clearedFields[workerinstance.FieldNextPollAt] = struct{}{}
+}
+
+// NextPollAtCleared returns if the "next_poll_at" field was cleared in this mutation.
+func (m *WorkerInstanceMutation) NextPollAtCleared() bool {
+	_, ok := m.clearedFields[workerinstance.FieldNextPollAt]
+	return ok
+}
+
+// ResetNextPollAt resets all changes to the "next_poll_at" field.
+func (m *WorkerInstanceMutation) ResetNextPollAt() {
+	m.next_poll_at = nil
+	delete(m.clearedFields, workerinstance.FieldNextPollAt)
+}
+
+// SetPollIntervalSeconds sets the "poll_interval_seconds" field.
+func (m *WorkerInstanceMutation) SetPollIntervalSeconds(i int32) {
+	m.poll_interval_seconds = &i
+	m.addpoll_interval_seconds = nil
+}
+
+// PollIntervalSeconds returns the value of the "poll_interval_seconds" field in the mutation.
+func (m *WorkerInstanceMutation) PollIntervalSeconds() (r int32, exists bool) {
+	v := m.poll_interval_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPollIntervalSeconds returns the old "poll_interval_seconds" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldPollIntervalSeconds(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPollIntervalSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPollIntervalSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPollIntervalSeconds: %w", err)
+	}
+	return oldValue.PollIntervalSeconds, nil
+}
+
+// AddPollIntervalSeconds adds i to the "poll_interval_seconds" field.
+func (m *WorkerInstanceMutation) AddPollIntervalSeconds(i int32) {
+	if m.addpoll_interval_seconds != nil {
+		*m.addpoll_interval_seconds += i
+	} else {
+		m.addpoll_interval_seconds = &i
+	}
+}
+
+// AddedPollIntervalSeconds returns the value that was added to the "poll_interval_seconds" field in this mutation.
+func (m *WorkerInstanceMutation) AddedPollIntervalSeconds() (r int32, exists bool) {
+	v := m.addpoll_interval_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPollIntervalSeconds resets all changes to the "poll_interval_seconds" field.
+func (m *WorkerInstanceMutation) ResetPollIntervalSeconds() {
+	m.poll_interval_seconds = nil
+	m.addpoll_interval_seconds = nil
+}
+
 // SetLastSeenAt sets the "last_seen_at" field.
 func (m *WorkerInstanceMutation) SetLastSeenAt(t time.Time) {
 	m.last_seen_at = &t
@@ -35973,7 +36168,7 @@ func (m *WorkerInstanceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WorkerInstanceMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 12)
 	if m.service != nil {
 		fields = append(fields, workerinstance.FieldService)
 	}
@@ -35994,6 +36189,18 @@ func (m *WorkerInstanceMutation) Fields() []string {
 	}
 	if m.task_started_at != nil {
 		fields = append(fields, workerinstance.FieldTaskStartedAt)
+	}
+	if m.tasks != nil {
+		fields = append(fields, workerinstance.FieldTasks)
+	}
+	if m.round_started_at != nil {
+		fields = append(fields, workerinstance.FieldRoundStartedAt)
+	}
+	if m.next_poll_at != nil {
+		fields = append(fields, workerinstance.FieldNextPollAt)
+	}
+	if m.poll_interval_seconds != nil {
+		fields = append(fields, workerinstance.FieldPollIntervalSeconds)
 	}
 	if m.last_seen_at != nil {
 		fields = append(fields, workerinstance.FieldLastSeenAt)
@@ -36020,6 +36227,14 @@ func (m *WorkerInstanceMutation) Field(name string) (ent.Value, bool) {
 		return m.TaskName()
 	case workerinstance.FieldTaskStartedAt:
 		return m.TaskStartedAt()
+	case workerinstance.FieldTasks:
+		return m.Tasks()
+	case workerinstance.FieldRoundStartedAt:
+		return m.RoundStartedAt()
+	case workerinstance.FieldNextPollAt:
+		return m.NextPollAt()
+	case workerinstance.FieldPollIntervalSeconds:
+		return m.PollIntervalSeconds()
 	case workerinstance.FieldLastSeenAt:
 		return m.LastSeenAt()
 	}
@@ -36045,6 +36260,14 @@ func (m *WorkerInstanceMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldTaskName(ctx)
 	case workerinstance.FieldTaskStartedAt:
 		return m.OldTaskStartedAt(ctx)
+	case workerinstance.FieldTasks:
+		return m.OldTasks(ctx)
+	case workerinstance.FieldRoundStartedAt:
+		return m.OldRoundStartedAt(ctx)
+	case workerinstance.FieldNextPollAt:
+		return m.OldNextPollAt(ctx)
+	case workerinstance.FieldPollIntervalSeconds:
+		return m.OldPollIntervalSeconds(ctx)
 	case workerinstance.FieldLastSeenAt:
 		return m.OldLastSeenAt(ctx)
 	}
@@ -36105,6 +36328,34 @@ func (m *WorkerInstanceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTaskStartedAt(v)
 		return nil
+	case workerinstance.FieldTasks:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTasks(v)
+		return nil
+	case workerinstance.FieldRoundStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoundStartedAt(v)
+		return nil
+	case workerinstance.FieldNextPollAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextPollAt(v)
+		return nil
+	case workerinstance.FieldPollIntervalSeconds:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPollIntervalSeconds(v)
+		return nil
 	case workerinstance.FieldLastSeenAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -36119,13 +36370,21 @@ func (m *WorkerInstanceMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *WorkerInstanceMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addpoll_interval_seconds != nil {
+		fields = append(fields, workerinstance.FieldPollIntervalSeconds)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *WorkerInstanceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case workerinstance.FieldPollIntervalSeconds:
+		return m.AddedPollIntervalSeconds()
+	}
 	return nil, false
 }
 
@@ -36134,6 +36393,13 @@ func (m *WorkerInstanceMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *WorkerInstanceMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case workerinstance.FieldPollIntervalSeconds:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPollIntervalSeconds(v)
+		return nil
 	}
 	return fmt.Errorf("unknown WorkerInstance numeric field %s", name)
 }
@@ -36144,6 +36410,12 @@ func (m *WorkerInstanceMutation) ClearedFields() []string {
 	var fields []string
 	if m.FieldCleared(workerinstance.FieldTaskStartedAt) {
 		fields = append(fields, workerinstance.FieldTaskStartedAt)
+	}
+	if m.FieldCleared(workerinstance.FieldRoundStartedAt) {
+		fields = append(fields, workerinstance.FieldRoundStartedAt)
+	}
+	if m.FieldCleared(workerinstance.FieldNextPollAt) {
+		fields = append(fields, workerinstance.FieldNextPollAt)
 	}
 	return fields
 }
@@ -36161,6 +36433,12 @@ func (m *WorkerInstanceMutation) ClearField(name string) error {
 	switch name {
 	case workerinstance.FieldTaskStartedAt:
 		m.ClearTaskStartedAt()
+		return nil
+	case workerinstance.FieldRoundStartedAt:
+		m.ClearRoundStartedAt()
+		return nil
+	case workerinstance.FieldNextPollAt:
+		m.ClearNextPollAt()
 		return nil
 	}
 	return fmt.Errorf("unknown WorkerInstance nullable field %s", name)
@@ -36190,6 +36468,18 @@ func (m *WorkerInstanceMutation) ResetField(name string) error {
 		return nil
 	case workerinstance.FieldTaskStartedAt:
 		m.ResetTaskStartedAt()
+		return nil
+	case workerinstance.FieldTasks:
+		m.ResetTasks()
+		return nil
+	case workerinstance.FieldRoundStartedAt:
+		m.ResetRoundStartedAt()
+		return nil
+	case workerinstance.FieldNextPollAt:
+		m.ResetNextPollAt()
+		return nil
+	case workerinstance.FieldPollIntervalSeconds:
+		m.ResetPollIntervalSeconds()
 		return nil
 	case workerinstance.FieldLastSeenAt:
 		m.ResetLastSeenAt()

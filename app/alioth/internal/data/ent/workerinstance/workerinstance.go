@@ -28,6 +28,14 @@ const (
 	FieldTaskName = "task_name"
 	// FieldTaskStartedAt holds the string denoting the task_started_at field in the database.
 	FieldTaskStartedAt = "task_started_at"
+	// FieldTasks holds the string denoting the tasks field in the database.
+	FieldTasks = "tasks"
+	// FieldRoundStartedAt holds the string denoting the round_started_at field in the database.
+	FieldRoundStartedAt = "round_started_at"
+	// FieldNextPollAt holds the string denoting the next_poll_at field in the database.
+	FieldNextPollAt = "next_poll_at"
+	// FieldPollIntervalSeconds holds the string denoting the poll_interval_seconds field in the database.
+	FieldPollIntervalSeconds = "poll_interval_seconds"
 	// FieldLastSeenAt holds the string denoting the last_seen_at field in the database.
 	FieldLastSeenAt = "last_seen_at"
 	// Table holds the table name of the workerinstance in the database.
@@ -44,6 +52,10 @@ var Columns = []string{
 	FieldTaskUID,
 	FieldTaskName,
 	FieldTaskStartedAt,
+	FieldTasks,
+	FieldRoundStartedAt,
+	FieldNextPollAt,
+	FieldPollIntervalSeconds,
 	FieldLastSeenAt,
 }
 
@@ -68,6 +80,10 @@ var (
 	DefaultTaskUID string
 	// DefaultTaskName holds the default value on creation for the "task_name" field.
 	DefaultTaskName string
+	// DefaultTasks holds the default value on creation for the "tasks" field.
+	DefaultTasks string
+	// DefaultPollIntervalSeconds holds the default value on creation for the "poll_interval_seconds" field.
+	DefaultPollIntervalSeconds int32
 	// DefaultLastSeenAt holds the default value on creation for the "last_seen_at" field.
 	DefaultLastSeenAt func() time.Time
 	// UpdateDefaultLastSeenAt holds the default value on update for the "last_seen_at" field.
@@ -138,6 +154,26 @@ func ByTaskName(opts ...sql.OrderTermOption) OrderOption {
 // ByTaskStartedAt orders the results by the task_started_at field.
 func ByTaskStartedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTaskStartedAt, opts...).ToFunc()
+}
+
+// ByTasks orders the results by the tasks field.
+func ByTasks(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTasks, opts...).ToFunc()
+}
+
+// ByRoundStartedAt orders the results by the round_started_at field.
+func ByRoundStartedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRoundStartedAt, opts...).ToFunc()
+}
+
+// ByNextPollAt orders the results by the next_poll_at field.
+func ByNextPollAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNextPollAt, opts...).ToFunc()
+}
+
+// ByPollIntervalSeconds orders the results by the poll_interval_seconds field.
+func ByPollIntervalSeconds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPollIntervalSeconds, opts...).ToFunc()
 }
 
 // ByLastSeenAt orders the results by the last_seen_at field.
