@@ -74,6 +74,8 @@ export function ClusterDetailPage() {
   const [namespacesFailed, setNamespacesFailed] = useState(false)
   const [namespacesAttempt, setNamespacesAttempt] = useState(0)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  // 连接状态整块卡片默认收起，由页头的集群名称控制显隐。
+  const [summaryOpen, setSummaryOpen] = useState(false)
   const [draftState, setDraftState] = useState<{
     signature: string
     name: string
@@ -395,7 +397,11 @@ export function ClusterDetailPage() {
     <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
       <PageHeader
         title={cluster?.name ?? t("cluster.detailTitle")}
-        description={cluster?.server ?? t("cluster.detailDescription")}
+        onTitleClick={ready ? () => setSummaryOpen((open) => !open) : undefined}
+        titleExpanded={summaryOpen}
+        titleToggleLabel={
+          summaryOpen ? t("cluster.hideSummary") : t("cluster.showSummary")
+        }
       >
         <div className="flex flex-wrap items-center justify-end gap-2">
           {canTest ? (
@@ -442,7 +448,7 @@ export function ClusterDetailPage() {
           </Button>
         </div>
       ) : null}
-      {ready ? <ClusterSummary cluster={cluster} /> : null}
+      {ready && summaryOpen ? <ClusterSummary cluster={cluster} /> : null}
       {ready ? (
         <div className="grid min-h-0 min-w-0 flex-1 gap-4 overflow-hidden lg:grid-cols-[15.5rem_minmax(0,1fr)]">
           <aside className="hidden min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card/55 lg:flex">

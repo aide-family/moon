@@ -1,3 +1,4 @@
+import { Minus, Plus } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -56,7 +57,9 @@ import {
 import { ClusterResourceState } from "./resource-state"
 import { useClusterResourceDetail } from "./use-resource-detail"
 
-const MAX_REPLICAS = 10000
+// 副本数上限由产品约束固定为 100；下限 0 表示缩容到零。
+const MIN_REPLICAS = 0
+const MAX_REPLICAS = 100
 
 function workloadTone(kind: string): BadgeTone {
   if (kind === "Deployment") {
@@ -90,10 +93,21 @@ function readReplicas(value: string): number | null {
     return null
   }
   const parsed = Number(trimmed)
-  if (!Number.isInteger(parsed) || parsed < 0 || parsed > MAX_REPLICAS) {
+  if (
+    !Number.isInteger(parsed) ||
+    parsed < MIN_REPLICAS ||
+    parsed > MAX_REPLICAS
+  ) {
     return null
   }
   return parsed
+}
+
+/** 步进按钮：以当前输入为基准加减 1，并收敛到 [0, 100]。 */
+function stepReplicas(value: string, delta: number): string {
+  const parsed = Number.parseInt(value, 10)
+  const base = Number.isFinite(parsed) ? parsed : MIN_REPLICAS
+  return String(Math.min(MAX_REPLICAS, Math.max(MIN_REPLICAS, base + delta)))
 }
 
 interface KubernetesWorkloadsTabProps {
@@ -191,6 +205,11 @@ export function KubernetesWorkloadsTab({
     setReplicas(String(item.desiredReplicas))
     setScaleFieldError("")
     setScaleError("")
+  }
+
+  function adjustReplicas(delta: number) {
+    setReplicas((value) => stepReplicas(value, delta))
+    setScaleFieldError("")
   }
 
   async function onScale(event: React.FormEvent) {
@@ -387,16 +406,46 @@ export function KubernetesWorkloadsTab({
                 required
                 error={scaleFieldError}
               >
-                <Input
-                  id="workload-replicas"
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={MAX_REPLICAS}
-                  step={1}
-                  value={replicas}
-                  onChange={(event) => setReplicas(event.target.value)}
-                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label={t("kube.replicasDecrease")}
+                    disabled={
+                      scalePending || readReplicas(replicas) === MIN_REPLICAS
+                    }
+                    onClick={() => adjustReplicas(-1)}
+                  >
+                    <Minus aria-hidden="true" />
+                  </Button>
+                  <Input
+                    id="workload-replicas"
+                    className="w-24 text-center font-mono tabular-nums"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    pattern="[0-9]*"
+                    value={replicas}
+                    aria-invalid={scaleFieldError ? true : undefined}
+                    onChange={(event) => {
+                      setReplicas(event.target.value)
+                      setScaleFieldError("")
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label={t("kube.replicasIncrease")}
+                    disabled={
+                      scalePending || readReplicas(replicas) === MAX_REPLICAS
+                    }
+                    onClick={() => adjustReplicas(1)}
+                  >
+                    <Plus aria-hidden="true" />
+                  </Button>
+                </div>
               </FormField>
             </DialogBody>
             {scaleError ? (

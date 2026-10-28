@@ -13,6 +13,7 @@ interface ClusterSummaryProps {
 /**
  * 集群元数据条：连接状态、版本、Context 与最近检测时间。
  * 只做只读展示，操作入口留在页头，避免信息块里再出现按钮。
+ * 默认收起，由页头的集群名称控制展开 / 隐藏。
  */
 export function ClusterSummary({ cluster }: ClusterSummaryProps) {
   const { t } = useTranslation()
