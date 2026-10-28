@@ -33,7 +33,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: web
-          image: ghcr.io/aide-family/moon/web:sha-fdb4ca32699a
+          image: ghcr.io/aide-family/moon/web:sha-02f90de290a2
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
