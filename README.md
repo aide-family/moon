@@ -1,162 +1,124 @@
-<p align="center"><img src="web/public/alioth.svg" width="72" height="72" alt="Alioth logo" /></p>
+<p align="center"><img src="web/public/alioth.svg" width="88" height="88" alt="Alioth logo" /></p>
 
 # Alioth
 
-Alioth 是运维平台。玉衡（`alioth`）保存业务数据，天权（`megrez`）执行告警规则，天璇（`merak`）发送通知，摇光（`alkaid`）作为边缘 Agent 提供 SSH 执行与 Web Shell。浏览器只访问 Web，由 nginx 把 API 转到玉衡。
+<p align="center">自建、多租户的运维平台：数据源评测、告警、通知与值班处置在同一条链路上完成。</p>
 
-设计说明见 [docs/design.md](docs/design.md)。迭代步骤与验收见 [docs/roadmap.md](docs/roadmap.md)。各步开发细则见 [docs/iterations/conventions.md](docs/iterations/conventions.md)。
+<p align="center">
+  <a href="https://github.com/aide-family/Alioth/actions/workflows/ci.yml"><img src="https://github.com/aide-family/Alioth/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+  <a href="https://github.com/aide-family/Alioth/releases"><img src="https://img.shields.io/github/v/release/aide-family/Alioth?style=flat-square" alt="Release" /></a>
+  <a href="https://github.com/aide-family/Alioth/stargazers"><img src="https://img.shields.io/github/stars/aide-family/Alioth?style=flat-square" alt="Stars" /></a>
+  <a href="https://github.com/aide-family/Alioth/forks"><img src="https://img.shields.io/github/forks/aide-family/Alioth?style=flat-square" alt="Forks" /></a>
+  <a href="https://github.com/aide-family/Alioth/issues"><img src="https://img.shields.io/github/issues/aide-family/Alioth?style=flat-square" alt="Issues" /></a>
+  <a href="https://github.com/aide-family/Alioth/pulls"><img src="https://img.shields.io/github/issues-pr/aide-family/Alioth?style=flat-square" alt="Pull requests" /></a>
+  <a href="https://github.com/aide-family/Alioth/commits/main"><img src="https://img.shields.io/github/last-commit/aide-family/Alioth?style=flat-square" alt="Last commit" /></a>
+  <a href="https://github.com/aide-family/Alioth/graphs/contributors"><img src="https://img.shields.io/github/contributors/aide-family/Alioth?style=flat-square" alt="Contributors" /></a>
+  <img src="https://img.shields.io/badge/Go-1.26-00ADD8?style=flat-square" alt="Go 1.26" />
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square" alt="PostgreSQL 16" />
+</p>
 
-## 本地依赖
+<p align="center"><img src="docs/images/screenshots/overview.png" width="880" alt="Alioth 概览页" /></p>
 
-Docker Hub 不可达时，`make compose-up` 会先执行 [scripts/pull-compose-images.sh](scripts/pull-compose-images.sh)：按顺序尝试 `dockerproxy.net`、`docker.m.daocloud.io` 拉取 PostgreSQL、Redis、Mailpit、Prometheus 和 Loki，并重新 tag 成 compose 使用的官方名字。也可以指定自己的镜像代理：
+Alioth 是 aide-family 自建的运维平台，面向需要在自有环境里运行告警与值班流程的团队。它把数据源查询、告警规则评测、通知投递和 OnCall 值班放在同一条链路上，配置、事件与投递结果都保存在自己控制的 PostgreSQL 里。四个进程按北斗星名分工：玉衡 `alioth` 是控制面，统一保存身份、租户、告警与通知配置，业务数据由它写入 PostgreSQL；天权 `megrez` 领取到期规则并查询数据源完成评测；天璇 `merak` 领取待发送任务，投递邮件与 Webhook；摇光 `alkaid` 是边缘 Agent，主动出站连接控制面，执行 SSH 与 Web Shell。管理台是浏览器里的 React 单页应用，页面和接口走同一个 Web 入口。
+
+## 核心能力
+
+- 多租户与 RBAC：平台角色和租户角色分开，邀请确认后加入租户。
+- 实时告警与历史分析：触发、抑制、恢复、介入与历史统计。
+- 规则评测：面向 Prometheus、VictoriaMetrics、Loki、VictoriaLogs、Elasticsearch 的告警规则。
+- 通知与订阅：邮件、Webhook 渠道、模板、通知组与告警订阅。
+- OnCall 值班：按通知组接收时段路由，支持跨午夜。
+- Kubernetes 多集群：接入集群，管理节点、工作负载、Pod 与 Ingress。
+- 边缘 Agent：SSH 命令审核执行与 Web Shell。
+- 登录与身份：邮箱验证码登录，以及 GitHub、Gitee、飞书、钉钉第三方登录。
+
+## 概览与多租户
+
+概览页是值班入口，把当前在触发与抑制中的告警、今日新增、通知投递成功率、最近 7 天的投递趋势、14 天的告警趋势与级别分布、数据源与规则数量，以及后台工作进程的在线与忙碌情况集中在一屏，卡片按当前账号的权限显示。用户是平台级身份，租户（Namespace）承载成员与业务资源，业务资源都归属某个租户，同一实例上的租户互相看不到对方的数据。平台角色 SUPER_ADMIN、SYSTEM_ADMIN、USER 决定系统级能力，系统级权限只授予前两者，租户角色拿不到；租户预置 owner、admin、member、viewer 四种角色，持有 `resource:action` 形式的租户权限。成员通过邀请加入：租户管理员发出邀请，被邀请人在平台上确认后才创建成员并授予角色，邀请和结果都写入系统消息。登录没有密码，支持邮箱验证码，以及 GitHub、Gitee、飞书、钉钉第三方登录；第三方没有返回可用邮箱时，需要补填邮箱并通过验证码验证。
+
+## 实时告警与告警历史分析
+
+实时告警只列出仍在触发且未被抑制的事件，可以按摘要或告警指纹与告警级别筛选；每条事件可以介入、抑制或手工恢复，也支持批量介入和批量恢复，抑制时长从 1 分钟到 30 天。事件详情展示规则表达式、样本值、事件标签和按事件区间取的数值曲线，恢复事件截止到恢复时刻。表格列可以自定义，内置字段列和事件标签列都能作为列，配置按用户与视图保存。
+
+<p align="center"><img src="docs/images/screenshots/alerts.png" width="880" alt="实时告警列表" /></p>
+
+### 告警历史分析
+
+历史告警把统计分析和事件明细分成两个视图：分析页按趋势、终态和重复告警指纹聚合，终态分为自动恢复、人工恢复和仍在抑制中三种。明细页按摘要、级别、规则名、数据源、事件状态、抑制状态和开始时间范围过滤，单次查询的时间跨度最多 30 天。事件恢复后归档到历史存储并从实时列表移走，归档失败时历史列表仍会回退显示，不会丢事件；明细页复用实时告警的自定义列机制。
+
+<p align="center"><img src="docs/images/screenshots/alert-history.png" width="880" alt="历史告警分析" /></p>
+
+## 告警规则（含自定义变量）
+
+告警规则按规则组管理，每条规则通过驱动选择查询方式，用数据源标签匹配启用中的数据源：数据源级别匹配数据源等级名称，数据源匹配数据源名称，值为完整匹配正则，留空表示该驱动下的全部启用数据源。每个级别条件设置比较条件（EQ、NE、GT、GTE、LT、LTE、IN、NOT_IN）、采样方式（FOR、MAX、MIN）、阈值和持续秒数，并指向告警字典里的名称与展示色。
+
+指标规则查询 Prometheus 或 VictoriaMetrics 的区间数据；Loki 规则使用返回数值序列的 LogQL，VictoriaLogs 规则使用带 stats 的 LogsQL，Elasticsearch 规则把时间桶内的命中文档数作为采样值。原始日志结果不会被当成采样值，因此不会把日志查询误判成告警恢复。
+
+摘要和描述可以声明自定义查询变量：变量名、查询语句和说明随规则保存，触发时用主查询命中的标签展开变量查询，再把结果填进文案，例如磁盘使用率规则可以声明 `disk_free` 变量，在摘要里补出剩余容量。变量只影响告警文案，不参与告警指纹、级别判定和恢复，变量查询语言跟随规则使用的数据源驱动。
+
+<p align="center"><img src="docs/images/screenshots/alert-rules.png" width="880" alt="告警规则编辑" /></p>
+
+## 数据源
+
+数据源按指标、日志、链路三类保存，归属当前租户，可以启停、绑定数据源级别并携带 labels 供规则匹配，密钥加密保存。
+
+指标数据源支持 Prometheus 与 VictoriaMetrics：状态、指标列表、指标详情、即时查询、区间查询和代理查询。VictoriaMetrics 使用 MetricsQL（兼容 PromQL），地址可以带路径前缀，适配集群版部署。日志数据源支持 Loki、VictoriaLogs 与 Elasticsearch：Loki 使用 LogQL，VictoriaLogs 使用 LogsQL，Elasticsearch 使用 Query DSL 或普通检索语句，索引模式与时间字段随数据源保存。元数据页展示上游状态：Prometheus 与 VictoriaMetrics 的指标元数据、Loki 的构建信息、VictoriaLogs 的健康状态、Elasticsearch 的集群健康与节点分配。链路数据源（Jaeger）可以保存并做查询代理，暂不参与规则评测。
+
+<p align="center"><img src="docs/images/screenshots/datasources.png" width="880" alt="数据源查询" /></p>
+
+## 通知
+
+通知渠道支持 SMTP 邮件与 Webhook，Webhook 应用类型为 OTHER、DINGTALK、WECHAT、FEISHU，配置签名时按各自规则附加签名头或参数；短信类型只保留渠道与模板配置，暂未接入发送。
+
+模板按消息类型与应用区分，告警摘要、描述和通知模板共用同一套模板函数，`$labels`、`$value`、`.Labels`、`.Value`、`humanize` 等写法可以直接使用，系统预置模板只读、可以预览并另存为当前租户的副本；通知组把渠道、模板与接收方组合在一起：邮件与短信渠道各最多一个，Webhook 可以多选，邮件接收方由手填邮箱与成员邮箱合并去重。
+
+告警订阅按标签、告警级别、数据源和数据源级别匹配事件，条件之间是 AND，空条件表示不限制，命中后把事件发送给订阅下的通知组；订阅与 OnCall 各自配置重复通知间隔，同一告警在间隔内不会重复通知，恢复通知单独判断，投递失败的任务按剩余次数重试，消息日志分租户归档并支持查看、重试和取消。
+
+<p align="center"><img src="docs/images/screenshots/notifications.png" width="880" alt="通知渠道与告警订阅" /></p>
+
+### OnCall 值班路由
+
+OnCall 是通知下的第二套路由，匹配条件与告警订阅相同，另外为每个绑定的通知组保存接收时段；时段按星期与 HH:mm 起止时间组成，边界左闭右开，支持跨午夜（例如 FRIDAY 22:00-06:00 覆盖周五晚到周六凌晨），空时段表示全天候接收，时区按 IANA 名称保存。同一事件同时命中订阅和 OnCall 时，接收方会合并去重：同一邮箱或手机号只收到一次通知，同一个 Webhook 渠道只收到一次；重复通知间隔取命中来源中的最大值，恢复通知不受间隔限制，但只在同一告警仍有投递链路上的通知时发送。页面支持 OnCall 的增删改查、启停和时段编辑，通知组、数据源与数据源级别使用可搜索、可全选的下拉框。
+
+<p align="center"><img src="docs/images/screenshots/oncall.png" width="880" alt="OnCall 值班路由" /></p>
+
+## Kubernetes 多集群
+
+租户可以粘贴 kubeconfig 接入多个 Kubernetes 集群，名称在同一租户内唯一；接入时解析当前 context 并探测 API Server 版本，探测失败不入库。kubeconfig 加密后保存，任何接口都不回传原文，只接受内嵌证书或 Token 的配置，需要执行本机命令或读取本地文件的凭据会被拒绝。
+
+集群列表展示 API Server、版本、最近检测时间与最近错误，支持改名与备注、替换 kubeconfig、手动测试连通性和删除。
+
+进入单个集群后可以查看节点状态与容量、cordon 与 uncordon 节点，调整 Deployment 与 StatefulSet 副本数、滚动重启三种工作负载，查看 Pod 状态、容器与所属控制器，删除 Pod、读取容器日志尾部，以及查看 Ingress 的 IngressClass、主机、路径、后端服务与 TLS。Service、ConfigMap、Secret、PV、PVC 提供只读列表与详情，Secret 与 ConfigMap 只显示键名，值在页面上以脱敏形式展示。权限用 `cluster:read`、`cluster:write`、`cluster:delete` 控制，owner 与 admin 默认拥有全部，member 与 viewer 默认只读。
+
+<p align="center"><img src="docs/images/screenshots/clusters.png" width="880" alt="Kubernetes 集群详情" /></p>
+
+## 边缘 Agent（SSH 与 Web Shell）
+
+摇光 Agent 部署在目标机器或 Kubernetes 集群里，主动出站连接玉衡的 gRPC，使用独立的 Agent 令牌，不在公网监听管理端口，控制面也不需要回拨 Agent。连接建立后上报租户、令牌、主机名与机器标识，随后周期心跳并上报机器信息；连接断开即标记离线，对离线 Agent 执行命令会立即失败，不在控制面排队。
+
+SSH 命令走审核流：提交新建或更新生成待审核审计，通过后才可执行。执行时控制面校验 `ssh:exec` 权限，把命令发送给选定的在线 Agent，由 Agent 在自身所在机器执行本地 shell 命令并回传退出码与输出，每次执行都写入审计，审计只追加。Web Shell 使用一次性票据在同一条双向流上打开终端，输入输出实时回传。控制面多副本部署时，Agent 会自动连接可用副本，扩缩容后补齐或释放连接。
+
+<p align="center"><img src="docs/images/screenshots/ssh.png" width="880" alt="边缘机器与 SSH 执行" /></p>
+
+## 快速开始
 
 ```bash
-MIRROR=dockerproxy.net make compose-images
-make compose-up
-```
-
-## 本地全栈
-
-`docker-compose.yaml` 现在包含完整链路：PostgreSQL（`pgdata` 持久卷）、Redis、Mailpit、Prometheus（`prometheusdata` 持久卷）、Loki（`lokidata` 持久卷）、VictoriaLogs（`vlogsdata` 持久卷）、一次性迁移，
-以及 `alioth` / `megrez` / `merak` / `web` 四个服务。Loki 对宿主机开放 3100 端口，容器内可用 `http://loki:3100` 配置数据源；VictoriaLogs 开放 9428 端口，容器内地址是 `http://victorialogs:9428`。干净 clone 后一条命令即可：
-
-```bash
-make dev-up          # 构建镜像、跑迁移、起全部服务
+git clone https://github.com/aide-family/Alioth.git && cd Alioth
+make dev-up
 open http://127.0.0.1:8080
-# Prometheus UI: http://127.0.0.1:9090；容器内数据源地址：http://prometheus:9090
-# Loki readiness: http://127.0.0.1:3100/ready；宿主机数据源地址：http://127.0.0.1:3100
-# 在 Alioth 内添加 LOGS_LOKI 数据源时，地址用 http://loki:3100（本地 Loki 未启用认证）
-curl http://127.0.0.1:3100/ready
-# VictoriaLogs health: http://127.0.0.1:9428/health；容器内数据源地址：http://victorialogs:9428
-# 在 Alioth 内添加 LOGS_VLOGS 数据源时，地址用 http://victorialogs:9428（本地未启用认证）
-curl http://127.0.0.1:9428/health
-make loki-demo       # 可选：每 5 秒持续写入 api/error 和 web/info 示例日志
-# 普通日志查询：{source="alioth-demo", app="api", level="error"}
-# 告警数值表达式：sum by (app) (count_over_time({source="alioth-demo", app="api", level="error"} |= "request timeout" [1m]))
-make loki-demo-stop  # 停止生成；Loki 和已写入日志保留
-make vlogs-demo      # 可选：每 5 秒向 VictoriaLogs 写入 api/error 和 web/info 示例日志
-# 普通日志查询：app:api level:error source:alioth-demo "request timeout"
-# 告警数值表达式：app:api level:error source:alioth-demo "request timeout" | stats by (app, level) count() as value
-make vlogs-demo-stop # 停止生成；VictoriaLogs 和已写入日志保留
-make dev-down        # 停止服务，数据留在命名卷里
 ```
 
-只想在宿主机跑 Go 进程时，仍然可以用依赖 + 手工启动：
+需要 Docker 与 Docker Compose；依赖服务、环境变量、镜像构建与部署说明见 [DEVELOP.md](DEVELOP.md)。
 
-```bash
-make compose-images  # 准备本地依赖镜像
-# 只启动基础设施，不启动 compose 中的应用服务
-docker compose up -d postgres redis mailpit prometheus loki victorialogs
-make migrate         # 建表 + seed + 分区
-make run-alioth      # 另开终端跑其余服务
-```
+## 文档
 
-邮件沙箱在 <http://127.0.0.1:8025>，注册验证码、登录验证码和邀请邮件都会落到这里。
+- [DEVELOP.md](DEVELOP.md)：本地开发、环境变量、依赖服务、镜像构建与部署。
+- [docs/design.md](docs/design.md)：服务边界、数据模型、接口与安全设计。
+- [docs/roadmap.md](docs/roadmap.md)：迭代里程碑与可重复的验收标准。
+- [docs/iterations/conventions.md](docs/iterations/conventions.md)：各步迭代开发细则的通用规范。
 
-## 环境变量
+## Star 趋势
 
-根目录的 `.env` 是唯一一份本地/部署变量表（已被 `.gitignore` 忽略，不会提交）：
-
-- `docker compose` 自动读取它；`make` 目标也会加载并导出（命令行参数仍然优先，例如 `make images VERSION=v0.1.0`）。
-- 原生运行（`make run-*`、`go run`）由 `pkg/bootstrap` 自动加载：从配置文件所在目录向上找最近的 `.env`，进程环境变量优先。
-- 文件里已按用途分好段：安全密钥、服务间 key、站点地址、OAuth2、SMTP、数据库/Redis、历史库前缀、镜像版本、边缘 Agent。凡是留空会破坏默认值的项都写成注释，需要你补充的项直接填在等号右边。
-- `ALIOTH_SMTP_FROM` 写裸地址（`aidedevops@163.com`）或 `显示名 <地址>`（`Alioth 瑶光 <aidedevops@163.com>`）。163 等邮箱要求信封发件人就是登录账号本身，只写显示名会让 `MAIL FROM` 带空格/中文，被服务端以 500/550 拒绝。
-
-## 账号与登录
-
-账号没有密码，登录只有两条路径：
-
-- **邮箱验证码**：先答对数学计算图形验证码，再点「发送验证码」；验证码发到邮箱，10 分钟内有效、只能用一次。发码和最终登录都会校验图形验证码，同一邮箱 60 秒内只能发一次码。
-- **第三方登录**：GitHub、Gitee、飞书和钉钉。配置客户端后登录页才显示入口，未配置时不影响邮箱验证码登录。第三方没有返回可用邮箱时，登录不会直接完成，需要在回调页二次填写邮箱并通过邮箱验证码验证，详见下文。
-
-| 平台 | 环境变量 | 回调地址 |
-| --- | --- | --- |
-| GitHub | `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
-| Gitee | `GITEE_CLIENT_ID`、`GITEE_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
-| 飞书 | `FEISHU_CLIENT_ID`、`FEISHU_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
-| 钉钉 | `DINGTALK_CLIENT_ID`、`DINGTALK_CLIENT_SECRET` | `http://127.0.0.1:8080/auth/callback` |
-
-注册同样只用邮箱验证码：填邮箱、图形验证码，发送验证码后提交。第一个注册用户成为超级管理员。
-
-第三方登录只在第三方返回**平台已验证的邮箱**时直接完成：邮箱与本地账号相同时并入该账号，否则创建新账号。GitHub 看 `/user/emails` 的 verified 标记；Gitee 申请 `user_info emails`，用 `/api/v5/emails` 里 state=confirmed 的主邮箱判断；飞书邮箱由企业管理员在租户通讯录里维护、终端用户不能自行修改，且只有本企业安装的应用能完成授权，因此按企业已验证身份处理（飞书官方说明该邮箱不经用户本人实时验证，残余风险由企业通讯录的编辑权限兜底）。钉钉返回的邮箱只是用户自己填写的资料，平台不确认归属，按没有可用邮箱处理。
-
-第三方没有可用邮箱（平台没有返回，或返回的邮箱未经平台确认）时，登录不会直接完成：回调页要求再填一次邮箱，先答对图形验证码再发送邮箱验证码，验证码验证通过后才签发会话，并把这个第三方身份绑定到该邮箱账号。同一个邮箱可以绑定多个第三方账号（例如飞书和钉钉各绑一次），之后用任一平台登录都会进入同一个账号。第三方返回的邮箱未经平台确认、而该邮箱已经属于本地账号时，也走这条二次验证流程，不再提示用户去第三方平台确认邮箱；平台确认过的邮箱仍然直接并入已有账号。
-
-平台侧要求：GitHub 应用填授权回调地址即可（申请 `read:user user:email`）；Gitee 应用除了回调地址，还要在应用设置的权限里勾选 `emails`——授权会申请 `user_info emails`，应用没开该权限时 Gitee 授权页会报「请求范围无效、未知或格式不正确」，此时按没有可用邮箱处理，登录走二次邮箱验证。飞书应用在开放平台「安全设置」里添加同一个回调地址，在「权限管理」申请 `contact:user.email:readonly`（不申请也能登录，但 `user_info` 不返回邮箱，会走二次邮箱验证），发布应用并确保登录用户有应用使用权限。钉钉应用在开发者后台「开发配置 > 安全设置」添加同一个回调地址，在「权限管理」申请「通讯录个人信息读权限」，发布并给登录用户开通应用使用权限；钉钉用 `openId`（按应用唯一）绑定账号，`/v1.0/contact/users/me` 不返回可信邮箱，所以一律走二次邮箱验证。
-
-历史版本在第三方没有邮箱时会创建占位邮箱账号（`feishu-<open_id>@users.alioth.local`、`dingtalk-<openId>@users.alioth.local`）。这些账号下次第三方登录也会要求补真实邮箱：邮箱还没有被占用时，直接把占位账号的邮箱改成它，成员、角色和个人资料都保留；邮箱已经属于另一个本地账号时，把占位账号的租户成员和角色迁移到邮箱账号（同一租户的角色取并集），第三方绑定也改绑过去。个人偏好（列表列、告警页选择）和系统消息不迁移；占位账号本身保留为空账号，不再有租户成员身份和第三方绑定，平台管理员可以在用户列表里看到。
-
-注册 OAuth 应用时需要的图标可以直接用 [web/public/alioth.png](web/public/alioth.png)（512×512 PNG，透明圆角）；站点图标另有 SVG 版本 [web/public/alioth.svg](web/public/alioth.svg) 和 iOS 主屏用的 `apple-touch-icon.png`。
-
-## 镜像与发布
-
-四个 Go 服务与 web 都有多阶段 Dockerfile，构建上下文固定为仓库根目录：
-
-```bash
-make images VERSION=v0.1.0 IMAGE_PREFIX=alioth
-```
-
-镜像内注入 `main.version`，可用 `docker run --rm alioth/alioth:v0.1.0 version` 核对；Kubernetes
-部署顺序、迁移 Job、PDB 与网络策略见 [deploy/k8s/README.md](deploy/k8s/README.md)。
-
-`.github/workflows/release.yml` 在 `main` 和 `v*` tag 上构建并推送镜像，tag 上同时发布摇光部署包：
-
-| 服务 | GHCR 镜像 |
-| --- | --- |
-| 玉衡 | `ghcr.io/aide-family/alioth/alioth` |
-| 天权 | `ghcr.io/aide-family/alioth/megrez` |
-| 天璇 | `ghcr.io/aide-family/alioth/merak` |
-| 摇光 | `ghcr.io/aide-family/alioth/alkaid` |
-| Web | `ghcr.io/aide-family/alioth/web` |
-
-- `v0.1.0` 这类 tag 产出 `v0.1.0`、`0.1.0`、`0.1`、`0`、`latest` 和 `sha-<12 位>` 标签，镜像为 amd64 + arm64 多架构；`main` 只出 amd64，标签是 `main` 与 `sha-<12 位>`。
-- 镜像带 `org.opencontainers.image.source` 等 OCI 标签，GHCR 包因此关联本仓库；构建来源证明（provenance）与 SBOM 随镜像推送。
-- tag 的 Release 附带摇光 `alkaid` 的 linux/amd64、linux/arm64 裸二进制，以及含 systemd 单元、配置模板和 `install.sh` 的部署包，外加 `SHA256SUMS`，并用 GitHub Artifact Attestation 记录产物来源。安装见 [deploy/alkaid/README.md](deploy/alkaid/README.md)。
-- 本地可以先跑同一条打包命令验证产物：`make package-alkaid VERSION=v0.1.0`（`ARCHES=amd64` 只打一个架构），输出在 `dist/`。
-
-## 健康检查
-
-| 服务 | liveness | readiness |
-| --- | --- | --- |
-| alioth | `/livez` | `/readyz`（PostgreSQL + Redis） |
-| megrez / merak | `/livez` | `/readyz`（Redis 锁） |
-| web | `/health` | `/health` |
-
-`/health` 作为旧契约保留。readiness 失败只摘流量，不会触发重启。
-
-## 服务
-
-| 中文 | 编码名 | 职责 | 监听 |
-| --- | --- | --- | --- |
-| 玉衡 | `alioth` | 控制面。身份与租户、告警/通知配置与事件落库；唯一写入 PostgreSQL；对外提供 HTTP/gRPC | HTTP 8000，gRPC 9000 |
-| 天权 | `megrez` | 领取到期规则、向数据源评测、回写结果；不写业务库 | HTTP 8001（仅健康检查） |
-| 天璇 | `merak` | 领取待发送任务、邮件/Webhook 投递、回写结果；不写业务库 | HTTP 8002（仅健康检查） |
-| 摇光 | `alkaid` | 边缘 Agent。出站连接控制面，执行 SSH 与 Web Shell | HTTP 8022，gRPC 9022（不对集群外发布） |
-| Web | `web` | 管理台静态资源与 nginx；集群外唯一入口，`/v1` 反代到玉衡 | HTTP 8080 |
-
-Redis 只做分布式锁（`alioth` / `megrez` / `merak`），不当缓存或队列。业务状态在 PostgreSQL。
-
-## 服务关系
-
-```mermaid
-flowchart LR
-  browser[Browser]
-  web[web nginx :8080]
-  alioth[alioth :8000/:9000]
-  pg[(PostgreSQL)]
-  redis[(Redis locks)]
-  megrez[megrez]
-  merak[merak]
-  alkaid[alkaid]
-  ds[Datasources]
-
-  browser --> web --> alioth
-  alioth --> pg
-  alioth --> redis
-  megrez --> redis
-  merak --> redis
-  megrez -->|"claim and report"| alioth
-  merak -->|"claim and report"| alioth
-  alkaid -->|"outbound stream"| alioth
-  megrez --> ds
-```
+<p align="center">
+  <a href="https://star-history.com/#aide-family/Alioth&Date"><img src="https://api.star-history.com/svg?repos=aide-family/Alioth&type=Date" alt="Star 趋势" width="760" /></a>
+</p>

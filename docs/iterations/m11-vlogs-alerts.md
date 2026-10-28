@@ -42,7 +42,7 @@ M11 在 M3 指标评测、M4 通知投递与 M10 通用告警处置基础上增�
 6. 在实时告警详情检查 LogsQL 表达式、数值曲线和原始响应；执行介入、抑制与手工恢复，并在历史告警中确认状态。
 7. 停止产生日志，确认后续成功的 VictoriaLogs 数值评测将事件自动恢复并按订阅发送恢复通知。
 
-本地可用 `make vlogs-demo` 每 5 秒写入 `api/error` 与 `web/info` 示例日志，配套表达式见 [README](../../README.md#本地全栈)。
+本地可用 `make vlogs-demo` 每 5 秒写入 `api/error` 与 `web/info` 示例日志，配套表达式见 [DEVELOP.md](../../DEVELOP.md#本地全栈)。
 
 ## 验收标准
 
