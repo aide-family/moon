@@ -407,7 +407,9 @@ export function KubernetesWorkloadsTab({
                 error={scaleFieldError}
               >
                 <div className="flex w-full items-center gap-2">
+                  {/* 步进按钮在可滚动的 DialogBody 内；按钮按下的 1px 位移会撑出纵向滚动条，这里关掉。 */}
                   <Button
+                    className="active:translate-y-0!"
                     type="button"
                     variant="outline"
                     size="icon"
@@ -438,6 +440,7 @@ export function KubernetesWorkloadsTab({
                     }}
                   />
                   <Button
+                    className="active:translate-y-0!"
                     type="button"
                     variant="outline"
                     size="icon"
