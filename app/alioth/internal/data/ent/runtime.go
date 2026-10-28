@@ -176,6 +176,18 @@ func init() {
 	alertevalbatchDescEvalSlot := alertevalbatchFields[2].Descriptor()
 	// alertevalbatch.DefaultEvalSlot holds the default value on creation for the eval_slot field.
 	alertevalbatch.DefaultEvalSlot = alertevalbatchDescEvalSlot.Default.(func() time.Time)
+	// alertevalbatchDescFailed is the schema descriptor for failed field.
+	alertevalbatchDescFailed := alertevalbatchFields[3].Descriptor()
+	// alertevalbatch.DefaultFailed holds the default value on creation for the failed field.
+	alertevalbatch.DefaultFailed = alertevalbatchDescFailed.Default.(bool)
+	// alertevalbatchDescFailureMessage is the schema descriptor for failure_message field.
+	alertevalbatchDescFailureMessage := alertevalbatchFields[4].Descriptor()
+	// alertevalbatch.DefaultFailureMessage holds the default value on creation for the failure_message field.
+	alertevalbatch.DefaultFailureMessage = alertevalbatchDescFailureMessage.Default.(string)
+	// alertevalbatchDescCreatedAt is the schema descriptor for created_at field.
+	alertevalbatchDescCreatedAt := alertevalbatchFields[5].Descriptor()
+	// alertevalbatch.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertevalbatch.DefaultCreatedAt = alertevalbatchDescCreatedAt.Default.(func() time.Time)
 	alerteventMixin := schema.AlertEvent{}.Mixin()
 	alerteventMixinFields0 := alerteventMixin[0].Fields()
 	_ = alerteventMixinFields0
@@ -201,8 +213,8 @@ func init() {
 	alertevent.NamespaceUIDValidator = alerteventDescNamespaceUID.Validators[0].(func(string) error)
 	// alerteventDescRuleUID is the schema descriptor for rule_uid field.
 	alerteventDescRuleUID := alerteventFields[2].Descriptor()
-	// alertevent.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
-	alertevent.RuleUIDValidator = alerteventDescRuleUID.Validators[0].(func(string) error)
+	// alertevent.DefaultRuleUID holds the default value on creation for the rule_uid field.
+	alertevent.DefaultRuleUID = alerteventDescRuleUID.Default.(string)
 	// alerteventDescDatasourceUID is the schema descriptor for datasource_uid field.
 	alerteventDescDatasourceUID := alerteventFields[3].Descriptor()
 	// alertevent.DefaultDatasourceUID holds the default value on creation for the datasource_uid field.
@@ -294,8 +306,8 @@ func init() {
 	alerteventfiring.EventUIDValidator = alerteventfiringDescEventUID.Validators[0].(func(string) error)
 	// alerteventfiringDescRuleUID is the schema descriptor for rule_uid field.
 	alerteventfiringDescRuleUID := alerteventfiringFields[3].Descriptor()
-	// alerteventfiring.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
-	alerteventfiring.RuleUIDValidator = alerteventfiringDescRuleUID.Validators[0].(func(string) error)
+	// alerteventfiring.DefaultRuleUID holds the default value on creation for the rule_uid field.
+	alerteventfiring.DefaultRuleUID = alerteventfiringDescRuleUID.Default.(string)
 	alerthistoryeventMixin := schema.AlertHistoryEvent{}.Mixin()
 	alerthistoryeventMixinFields0 := alerthistoryeventMixin[0].Fields()
 	_ = alerthistoryeventMixinFields0
@@ -648,6 +660,22 @@ func init() {
 	datasourceDescRemark := datasourceFields[14].Descriptor()
 	// datasource.DefaultRemark holds the default value on creation for the remark field.
 	datasource.DefaultRemark = datasourceDescRemark.Default.(string)
+	// datasourceDescAvailabilityAlertEnabled is the schema descriptor for availability_alert_enabled field.
+	datasourceDescAvailabilityAlertEnabled := datasourceFields[15].Descriptor()
+	// datasource.DefaultAvailabilityAlertEnabled holds the default value on creation for the availability_alert_enabled field.
+	datasource.DefaultAvailabilityAlertEnabled = datasourceDescAvailabilityAlertEnabled.Default.(bool)
+	// datasourceDescFailureWindowMinutes is the schema descriptor for failure_window_minutes field.
+	datasourceDescFailureWindowMinutes := datasourceFields[16].Descriptor()
+	// datasource.DefaultFailureWindowMinutes holds the default value on creation for the failure_window_minutes field.
+	datasource.DefaultFailureWindowMinutes = datasourceDescFailureWindowMinutes.Default.(int)
+	// datasourceDescFailureThreshold is the schema descriptor for failure_threshold field.
+	datasourceDescFailureThreshold := datasourceFields[17].Descriptor()
+	// datasource.DefaultFailureThreshold holds the default value on creation for the failure_threshold field.
+	datasource.DefaultFailureThreshold = datasourceDescFailureThreshold.Default.(int)
+	// datasourceDescNotificationGroupUids is the schema descriptor for notification_group_uids field.
+	datasourceDescNotificationGroupUids := datasourceFields[18].Descriptor()
+	// datasource.DefaultNotificationGroupUids holds the default value on creation for the notification_group_uids field.
+	datasource.DefaultNotificationGroupUids = datasourceDescNotificationGroupUids.Default.([]string)
 	emaillogincodeMixin := schema.EmailLoginCode{}.Mixin()
 	emaillogincodeMixinFields0 := emaillogincodeMixin[0].Fields()
 	_ = emaillogincodeMixinFields0

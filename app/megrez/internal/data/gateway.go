@@ -85,6 +85,7 @@ func (g *gateway) Report(ctx context.Context, report bo.EvalReport) error {
 		RuleUid: report.RuleUID, DatasourceUid: report.DatasourceUID,
 		EvalSlot: report.EvalSlot.UTC().Format(time.RFC3339Nano),
 		Skipped:  report.Skipped, Hits: hits,
+		Failed: report.Failed, FailureMessage: report.FailureMessage,
 	})
 	if err != nil {
 		return merr.Server("report failed")

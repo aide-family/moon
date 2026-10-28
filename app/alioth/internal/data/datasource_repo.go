@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/endpoint"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
@@ -48,6 +49,10 @@ func (r *datasourceRepo) CreateDatasource(ctx context.Context, in bo.Datasource)
 		SetLevelUID(in.LevelUID).
 		SetLabels(in.Labels).
 		SetRemark(in.Remark).
+		SetAvailabilityAlertEnabled(in.AvailabilityAlertEnabled).
+		SetFailureWindowMinutes(in.FailureWindowMinutes).
+		SetFailureThreshold(in.FailureThreshold).
+		SetNotificationGroupUids(nonNilStrings(in.NotificationGroupUIDs)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -99,6 +104,10 @@ func (r *datasourceRepo) UpdateDatasource(ctx context.Context, in bo.Datasource)
 		SetLevelUID(in.LevelUID).
 		SetLabels(in.Labels).
 		SetRemark(in.Remark).
+		SetAvailabilityAlertEnabled(in.AvailabilityAlertEnabled).
+		SetFailureWindowMinutes(in.FailureWindowMinutes).
+		SetFailureThreshold(in.FailureThreshold).
+		SetNotificationGroupUids(nonNilStrings(in.NotificationGroupUIDs)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -326,18 +335,25 @@ func (r *datasourceRepo) SelectDatasources(ctx context.Context, namespaceUID str
 func (r *datasourceRepo) present(ctx context.Context, row *ent.Datasource, withSecret bool) (*bo.Datasource, error) {
 	names := r.levelNames(ctx, []string{row.LevelUID})
 	item := toDatasource(row, names[row.LevelUID], withSecret, r)
+	groupNames := r.notificationGroupNames(ctx, item.NotificationGroupUIDs)
+	item.NotificationGroupNames = pickNames(item.NotificationGroupUIDs, groupNames)
 	return &item, nil
 }
 
 func (r *datasourceRepo) presentMany(ctx context.Context, rows []*ent.Datasource, withSecret bool) []bo.Datasource {
 	uids := make([]string, 0, len(rows))
+	groupUIDs := make([]string, 0, len(rows))
 	for _, row := range rows {
 		uids = append(uids, row.LevelUID)
+		groupUIDs = append(groupUIDs, row.NotificationGroupUids...)
 	}
 	names := r.levelNames(ctx, uids)
+	groupNames := r.notificationGroupNames(ctx, groupUIDs)
 	items := make([]bo.Datasource, 0, len(rows))
 	for _, row := range rows {
-		items = append(items, toDatasource(row, names[row.LevelUID], withSecret, r))
+		item := toDatasource(row, names[row.LevelUID], withSecret, r)
+		item.NotificationGroupNames = pickNames(item.NotificationGroupUIDs, groupNames)
+		items = append(items, item)
 	}
 	return items
 }
@@ -350,6 +366,10 @@ func toDatasource(row *ent.Datasource, levelName string, withSecret bool, r *dat
 		Username: row.Username, SecretSet: row.PasswordCipher != "" || row.SecretCipher != "",
 		Status: string(row.Status), LevelUID: row.LevelUID, LevelName: levelName,
 		Labels: row.Labels, Remark: row.Remark,
+		AvailabilityAlertEnabled: row.AvailabilityAlertEnabled,
+		FailureWindowMinutes:     row.FailureWindowMinutes,
+		FailureThreshold:         row.FailureThreshold,
+		NotificationGroupUIDs:    append([]string{}, row.NotificationGroupUids...),
 	}
 	if !withSecret {
 		return item
@@ -389,6 +409,59 @@ func (r *datasourceRepo) levelNames(ctx context.Context, uids []string) map[stri
 		names[row.UID] = row.Name
 	}
 	return names
+}
+
+// notificationGroupNames 一次取出可用性告警绑定的通知组名称。
+// 已删除的通知组不返回名称，页面仍保留 UID，便于用户发现失效绑定。
+func (r *datasourceRepo) notificationGroupNames(ctx context.Context, uids []string) map[string]string {
+	names := map[string]string{}
+	clean := uniqueNonEmpty(uids)
+	if len(clean) == 0 {
+		return names
+	}
+	rows, err := r.client.NotificationGroup.Query().Where(
+		notificationgroup.UIDIn(clean...),
+		notificationgroup.DeletedAtIsNil(),
+	).All(ctx)
+	if err != nil {
+		r.log.Error(fmt.Sprintf("notification group names: %v", err))
+		return names
+	}
+	for _, row := range rows {
+		names[row.UID] = row.Name
+	}
+	return names
+}
+
+func pickNames(uids []string, names map[string]string) []string {
+	out := make([]string, 0, len(uids))
+	for _, uid := range uids {
+		out = append(out, names[uid])
+	}
+	return out
+}
+
+func uniqueNonEmpty(values []string) []string {
+	seen := map[string]struct{}{}
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	return out
+}
+
+func nonNilStrings(values []string) []string {
+	if values == nil {
+		return []string{}
+	}
+	return values
 }
 
 func datasourceEnums(kind, driver, status string) (datasource.Type, datasource.Driver, datasource.Status, error) {

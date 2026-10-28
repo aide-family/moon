@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
@@ -131,11 +130,6 @@ func (_u *AlertEventFiringUpdate) check() error {
 	if v, ok := _u.mutation.EventUID(); ok {
 		if err := alerteventfiring.EventUIDValidator(v); err != nil {
 			return &ValidationError{Name: "event_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEventFiring.event_uid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.RuleUID(); ok {
-		if err := alerteventfiring.RuleUIDValidator(v); err != nil {
-			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEventFiring.rule_uid": %w`, err)}
 		}
 	}
 	return nil
@@ -301,11 +295,6 @@ func (_u *AlertEventFiringUpdateOne) check() error {
 	if v, ok := _u.mutation.EventUID(); ok {
 		if err := alerteventfiring.EventUIDValidator(v); err != nil {
 			return &ValidationError{Name: "event_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEventFiring.event_uid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.RuleUID(); ok {
-		if err := alerteventfiring.RuleUIDValidator(v); err != nil {
-			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEventFiring.rule_uid": %w`, err)}
 		}
 	}
 	return nil

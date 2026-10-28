@@ -249,7 +249,13 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | TRACE          | TRACE_JAEGER                                | 管理与查询代理。评测器留接口      |
 
 
-数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`），并带 `labels` JSON 供规则按标签匹配。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。Prometheus 的指标列表取 `/api/v1/metadata`；VictoriaMetrics 的 `/api/v1/metadata` 只是空的兼容占位，指标名改取最近 24 小时的 `/api/v1/label/__name__/values`，指标详情取 `/api/v1/series`。两者共用 `/api/v1/query`、`/api/v1/query_range`，VictoriaMetrics 查询语句为 MetricsQL（兼容 PromQL）。数据源地址可以带路径前缀，例如 VictoriaMetrics 集群的 `/select/<accountID>/prometheus`，管理端查询和 `megrez` 评测都保留该前缀。Loki 日志数据源的连通检查走 `/ready`，日志查询走 `/loki/api/v1/query_range`，查询语句为 LogQL。VictoriaLogs 的连通检查走 `/health`，日志查询走 `/select/logsql/query`，查询语句为 LogsQL。Elasticsearch 日志数据源的连通检查走根路径，日志查询走 `/_search`，查询语句为 Query DSL 或普通检索语句，索引模式和时间字段随数据源保存。数据源列表和详情展示驱动对应的产品图标；元数据页对 Prometheus 和 VictoriaMetrics 展示指标元数据，对 Loki 展示构建信息，对 VictoriaLogs 展示健康状态，对 Elasticsearch 展示 `_cluster/health` 集群状态和 `_cat/allocation` 节点分配。
+数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`），并带 `labels` JSON 供规则按标签匹配。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。
+
+数据源可以开启可用性告警，字段为 `availability_alert_enabled`（默认关闭）、`failure_window_minutes`（默认 5，取值 0..1440，启用时至少 1）、`failure_threshold`（默认 3，取值 0..1000，启用时至少 1）和 `notification_group_uids`（直接绑定本 Namespace 的通知组）。这些项在数据源新建/编辑时一起保存；窗口与阈值的范围始终校验，关闭时允许 0 并在保存时归一为默认值 `5` 与 `3`，不产生告警。
+
+可用性从 `megrez` 的规则评测请求结果推导，不额外发探测请求。向数据源发起的查询出现连接失败、超时、HTTP 状态码不低于 300、响应不可读或无法解析时，记为一次可用性失败，`megrez` 在回写里置 `failed=true` 并带 `failure_message`；表达式或请求本身不合法（`merr.Invalid`）不算可用性失败，保持原有重试语义。`alioth` 把失败批次记入 `alert_eval_batches`，同一 `(rule_uid, datasource_uid, eval_slot)` 只记一次；失败批次与成功批次一样算已回写，`scheduled_slot` 因此被清除，失败任务不会被反复领取。统计窗口以失败批次的写入时间（`created_at`，即失败回写到达 `alioth` 的时刻）向前回溯 `failure_window_minutes` 分钟，不用 `eval_slot`；同一数据源的失败批次达到 `failure_threshold` 时，`alioth` 生成一条 FIRING 的 `AlertEvent`：fingerprint 由数据源 UID 稳定推导，`rule_uid` 为空，`level_uid` 也为空（没有告警级别），labels 带数据源名称、数据源自身 labels 与数据源级别名称，summary 形如「数据源 X 在 n 分钟内请求失败 c 次（阈值 m）」，description 取最近一次失败原因，sample_value 为失败次数，并写 `starts_at` 与 `eval_slot`。同一数据源最多一条未恢复的可用性事件，后续失败只更新数值、摘要和标签，不重复发 FIRING 通知。数据源下一次评测成功后事件恢复；关闭可用性告警开关、停用或删除数据源也会立即恢复该事件，普通规则事件不受影响。可用性事件与普通事件共用实时/历史告警列表，并支持介入、抑制与手工恢复。
+
+指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。Prometheus 的指标列表取 `/api/v1/metadata`；VictoriaMetrics 的 `/api/v1/metadata` 只是空的兼容占位，指标名改取最近 24 小时的 `/api/v1/label/__name__/values`，指标详情取 `/api/v1/series`。两者共用 `/api/v1/query`、`/api/v1/query_range`，VictoriaMetrics 查询语句为 MetricsQL（兼容 PromQL）。数据源地址可以带路径前缀，例如 VictoriaMetrics 集群的 `/select/<accountID>/prometheus`，管理端查询和 `megrez` 评测都保留该前缀。Loki 日志数据源的连通检查走 `/ready`，日志查询走 `/loki/api/v1/query_range`，查询语句为 LogQL。VictoriaLogs 的连通检查走 `/health`，日志查询走 `/select/logsql/query`，查询语句为 LogsQL。Elasticsearch 日志数据源的连通检查走根路径，日志查询走 `/_search`，查询语句为 Query DSL 或普通检索语句，索引模式和时间字段随数据源保存。数据源列表和详情展示驱动对应的产品图标；元数据页对 Prometheus 和 VictoriaMetrics 展示指标元数据，对 Loki 展示构建信息，对 VictoriaLogs 展示健康状态，对 Elasticsearch 展示 `_cluster/health` 集群状态和 `_cat/allocation` 节点分配。
 
 ### 4.2 规则
 
@@ -340,6 +346,8 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 ## 5. 通知
 
 渠道、模板、通知组、订阅、OnCall、任务和日志都在 `alioth`。`merak` 只负责把任务发出去。
+
+数据源可用性事件的 FIRING 与恢复不经过 `NotificationSubscription` 与 `NotificationOnCall`，而是直接投递给数据源 `notification_group_uids` 绑定的通知组；没有绑定通知组时事件照常记录与归档，但不生成通知任务。恢复事件在下一次成功评测后产生，恢复通知复用同一套 `NotificationTask`、`merak` 投递与 `MessageLog` 链路，但只有该事件此前实际生成过 FIRING 任务时才生成恢复任务；没有绑定通知组或 FIRING 任务未建立时，恢复只更新事件状态并归档。
 
 
 | 实体                     | 来源                                  | 说明                                                                          |

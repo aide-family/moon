@@ -19,6 +19,12 @@ const (
 	FieldDatasourceUID = "datasource_uid"
 	// FieldEvalSlot holds the string denoting the eval_slot field in the database.
 	FieldEvalSlot = "eval_slot"
+	// FieldFailed holds the string denoting the failed field in the database.
+	FieldFailed = "failed"
+	// FieldFailureMessage holds the string denoting the failure_message field in the database.
+	FieldFailureMessage = "failure_message"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
 	// Table holds the table name of the alertevalbatch in the database.
 	Table = "alert_eval_batches"
 )
@@ -29,6 +35,9 @@ var Columns = []string{
 	FieldRuleUID,
 	FieldDatasourceUID,
 	FieldEvalSlot,
+	FieldFailed,
+	FieldFailureMessage,
+	FieldCreatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -48,6 +57,12 @@ var (
 	DatasourceUIDValidator func(string) error
 	// DefaultEvalSlot holds the default value on creation for the "eval_slot" field.
 	DefaultEvalSlot func() time.Time
+	// DefaultFailed holds the default value on creation for the "failed" field.
+	DefaultFailed bool
+	// DefaultFailureMessage holds the default value on creation for the "failure_message" field.
+	DefaultFailureMessage string
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the AlertEvalBatch queries.
@@ -71,4 +86,19 @@ func ByDatasourceUID(opts ...sql.OrderTermOption) OrderOption {
 // ByEvalSlot orders the results by the eval_slot field.
 func ByEvalSlot(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEvalSlot, opts...).ToFunc()
+}
+
+// ByFailed orders the results by the failed field.
+func ByFailed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailed, opts...).ToFunc()
+}
+
+// ByFailureMessage orders the results by the failure_message field.
+func ByFailureMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailureMessage, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
 }

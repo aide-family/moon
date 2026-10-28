@@ -142,6 +142,10 @@ type datasourceRequest interface {
 	GetLevelUid() string
 	GetRemark() string
 	GetLabels() string
+	GetAvailabilityAlertEnabled() bool
+	GetFailureWindowMinutes() int32
+	GetFailureThreshold() int32
+	GetNotificationGroupUids() []string
 }
 
 func datasourceInput(req datasourceRequest) bo.Datasource {
@@ -150,5 +154,9 @@ func datasourceInput(req datasourceRequest) bo.Datasource {
 		IndexPattern: req.GetIndexPattern(), TimeField: req.GetTimeField(), Username: req.GetUsername(),
 		Password: req.GetPassword(), Secret: req.GetSecret(), LevelUID: req.GetLevelUid(),
 		Remark: req.GetRemark(), Labels: req.GetLabels(),
+		AvailabilityAlertEnabled: req.GetAvailabilityAlertEnabled(),
+		FailureWindowMinutes:     int(req.GetFailureWindowMinutes()),
+		FailureThreshold:         int(req.GetFailureThreshold()),
+		NotificationGroupUIDs:    req.GetNotificationGroupUids(),
 	}
 }

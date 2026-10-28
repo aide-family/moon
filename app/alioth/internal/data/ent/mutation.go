@@ -11,7 +11,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/agent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
@@ -2299,16 +2298,19 @@ func (m *AlertDictionaryMutation) ResetEdge(name string) error {
 // AlertEvalBatchMutation represents an operation that mutates the AlertEvalBatch nodes in the graph.
 type AlertEvalBatchMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	rule_uid       *string
-	datasource_uid *string
-	eval_slot      *time.Time
-	clearedFields  map[string]struct{}
-	done           bool
-	oldValue       func(context.Context) (*AlertEvalBatch, error)
-	predicates     []predicate.AlertEvalBatch
+	op              Op
+	typ             string
+	id              *int
+	rule_uid        *string
+	datasource_uid  *string
+	eval_slot       *time.Time
+	failed          *bool
+	failure_message *string
+	created_at      *time.Time
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*AlertEvalBatch, error)
+	predicates      []predicate.AlertEvalBatch
 }
 
 var _ ent.Mutation = (*AlertEvalBatchMutation)(nil)
@@ -2517,6 +2519,114 @@ func (m *AlertEvalBatchMutation) ResetEvalSlot() {
 	m.eval_slot = nil
 }
 
+// SetFailed sets the "failed" field.
+func (m *AlertEvalBatchMutation) SetFailed(b bool) {
+	m.failed = &b
+}
+
+// Failed returns the value of the "failed" field in the mutation.
+func (m *AlertEvalBatchMutation) Failed() (r bool, exists bool) {
+	v := m.failed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailed returns the old "failed" field's value of the AlertEvalBatch entity.
+// If the AlertEvalBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertEvalBatchMutation) OldFailed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailed: %w", err)
+	}
+	return oldValue.Failed, nil
+}
+
+// ResetFailed resets all changes to the "failed" field.
+func (m *AlertEvalBatchMutation) ResetFailed() {
+	m.failed = nil
+}
+
+// SetFailureMessage sets the "failure_message" field.
+func (m *AlertEvalBatchMutation) SetFailureMessage(s string) {
+	m.failure_message = &s
+}
+
+// FailureMessage returns the value of the "failure_message" field in the mutation.
+func (m *AlertEvalBatchMutation) FailureMessage() (r string, exists bool) {
+	v := m.failure_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailureMessage returns the old "failure_message" field's value of the AlertEvalBatch entity.
+// If the AlertEvalBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertEvalBatchMutation) OldFailureMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailureMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailureMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailureMessage: %w", err)
+	}
+	return oldValue.FailureMessage, nil
+}
+
+// ResetFailureMessage resets all changes to the "failure_message" field.
+func (m *AlertEvalBatchMutation) ResetFailureMessage() {
+	m.failure_message = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AlertEvalBatchMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AlertEvalBatchMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AlertEvalBatch entity.
+// If the AlertEvalBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertEvalBatchMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AlertEvalBatchMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
 // Where appends a list predicates to the AlertEvalBatchMutation builder.
 func (m *AlertEvalBatchMutation) Where(ps ...predicate.AlertEvalBatch) {
 	m.predicates = append(m.predicates, ps...)
@@ -2551,7 +2661,7 @@ func (m *AlertEvalBatchMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlertEvalBatchMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 6)
 	if m.rule_uid != nil {
 		fields = append(fields, alertevalbatch.FieldRuleUID)
 	}
@@ -2560,6 +2670,15 @@ func (m *AlertEvalBatchMutation) Fields() []string {
 	}
 	if m.eval_slot != nil {
 		fields = append(fields, alertevalbatch.FieldEvalSlot)
+	}
+	if m.failed != nil {
+		fields = append(fields, alertevalbatch.FieldFailed)
+	}
+	if m.failure_message != nil {
+		fields = append(fields, alertevalbatch.FieldFailureMessage)
+	}
+	if m.created_at != nil {
+		fields = append(fields, alertevalbatch.FieldCreatedAt)
 	}
 	return fields
 }
@@ -2575,6 +2694,12 @@ func (m *AlertEvalBatchMutation) Field(name string) (ent.Value, bool) {
 		return m.DatasourceUID()
 	case alertevalbatch.FieldEvalSlot:
 		return m.EvalSlot()
+	case alertevalbatch.FieldFailed:
+		return m.Failed()
+	case alertevalbatch.FieldFailureMessage:
+		return m.FailureMessage()
+	case alertevalbatch.FieldCreatedAt:
+		return m.CreatedAt()
 	}
 	return nil, false
 }
@@ -2590,6 +2715,12 @@ func (m *AlertEvalBatchMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldDatasourceUID(ctx)
 	case alertevalbatch.FieldEvalSlot:
 		return m.OldEvalSlot(ctx)
+	case alertevalbatch.FieldFailed:
+		return m.OldFailed(ctx)
+	case alertevalbatch.FieldFailureMessage:
+		return m.OldFailureMessage(ctx)
+	case alertevalbatch.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown AlertEvalBatch field %s", name)
 }
@@ -2619,6 +2750,27 @@ func (m *AlertEvalBatchMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEvalSlot(v)
+		return nil
+	case alertevalbatch.FieldFailed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailed(v)
+		return nil
+	case alertevalbatch.FieldFailureMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailureMessage(v)
+		return nil
+	case alertevalbatch.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown AlertEvalBatch field %s", name)
@@ -2677,6 +2829,15 @@ func (m *AlertEvalBatchMutation) ResetField(name string) error {
 		return nil
 	case alertevalbatch.FieldEvalSlot:
 		m.ResetEvalSlot()
+		return nil
+	case alertevalbatch.FieldFailed:
+		m.ResetFailed()
+		return nil
+	case alertevalbatch.FieldFailureMessage:
+		m.ResetFailureMessage()
+		return nil
+	case alertevalbatch.FieldCreatedAt:
+		m.ResetCreatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown AlertEvalBatch field %s", name)
@@ -11479,31 +11640,38 @@ func (m *ClusterMutation) ResetEdge(name string) error {
 // DatasourceMutation represents an operation that mutates the Datasource nodes in the graph.
 type DatasourceMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	created_at      *time.Time
-	updated_at      *time.Time
-	deleted_at      *time.Time
-	uid             *string
-	namespace_uid   *string
-	name            *string
-	_type           *datasource.Type
-	_driver         *datasource.Driver
-	endpoint        *string
-	index_pattern   *string
-	time_field      *string
-	username        *string
-	password_cipher *string
-	secret_cipher   *string
-	status          *datasource.Status
-	level_uid       *string
-	labels          *string
-	remark          *string
-	clearedFields   map[string]struct{}
-	done            bool
-	oldValue        func(context.Context) (*Datasource, error)
-	predicates      []predicate.Datasource
+	op                            Op
+	typ                           string
+	id                            *int
+	created_at                    *time.Time
+	updated_at                    *time.Time
+	deleted_at                    *time.Time
+	uid                           *string
+	namespace_uid                 *string
+	name                          *string
+	_type                         *datasource.Type
+	_driver                       *datasource.Driver
+	endpoint                      *string
+	index_pattern                 *string
+	time_field                    *string
+	username                      *string
+	password_cipher               *string
+	secret_cipher                 *string
+	status                        *datasource.Status
+	level_uid                     *string
+	labels                        *string
+	remark                        *string
+	availability_alert_enabled    *bool
+	failure_window_minutes        *int
+	addfailure_window_minutes     *int
+	failure_threshold             *int
+	addfailure_threshold          *int
+	notification_group_uids       *[]string
+	appendnotification_group_uids []string
+	clearedFields                 map[string]struct{}
+	done                          bool
+	oldValue                      func(context.Context) (*Datasource, error)
+	predicates                    []predicate.Datasource
 }
 
 var _ ent.Mutation = (*DatasourceMutation)(nil)
@@ -12265,6 +12433,205 @@ func (m *DatasourceMutation) ResetRemark() {
 	m.remark = nil
 }
 
+// SetAvailabilityAlertEnabled sets the "availability_alert_enabled" field.
+func (m *DatasourceMutation) SetAvailabilityAlertEnabled(b bool) {
+	m.availability_alert_enabled = &b
+}
+
+// AvailabilityAlertEnabled returns the value of the "availability_alert_enabled" field in the mutation.
+func (m *DatasourceMutation) AvailabilityAlertEnabled() (r bool, exists bool) {
+	v := m.availability_alert_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAvailabilityAlertEnabled returns the old "availability_alert_enabled" field's value of the Datasource entity.
+// If the Datasource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceMutation) OldAvailabilityAlertEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAvailabilityAlertEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAvailabilityAlertEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAvailabilityAlertEnabled: %w", err)
+	}
+	return oldValue.AvailabilityAlertEnabled, nil
+}
+
+// ResetAvailabilityAlertEnabled resets all changes to the "availability_alert_enabled" field.
+func (m *DatasourceMutation) ResetAvailabilityAlertEnabled() {
+	m.availability_alert_enabled = nil
+}
+
+// SetFailureWindowMinutes sets the "failure_window_minutes" field.
+func (m *DatasourceMutation) SetFailureWindowMinutes(i int) {
+	m.failure_window_minutes = &i
+	m.addfailure_window_minutes = nil
+}
+
+// FailureWindowMinutes returns the value of the "failure_window_minutes" field in the mutation.
+func (m *DatasourceMutation) FailureWindowMinutes() (r int, exists bool) {
+	v := m.failure_window_minutes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailureWindowMinutes returns the old "failure_window_minutes" field's value of the Datasource entity.
+// If the Datasource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceMutation) OldFailureWindowMinutes(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailureWindowMinutes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailureWindowMinutes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailureWindowMinutes: %w", err)
+	}
+	return oldValue.FailureWindowMinutes, nil
+}
+
+// AddFailureWindowMinutes adds i to the "failure_window_minutes" field.
+func (m *DatasourceMutation) AddFailureWindowMinutes(i int) {
+	if m.addfailure_window_minutes != nil {
+		*m.addfailure_window_minutes += i
+	} else {
+		m.addfailure_window_minutes = &i
+	}
+}
+
+// AddedFailureWindowMinutes returns the value that was added to the "failure_window_minutes" field in this mutation.
+func (m *DatasourceMutation) AddedFailureWindowMinutes() (r int, exists bool) {
+	v := m.addfailure_window_minutes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFailureWindowMinutes resets all changes to the "failure_window_minutes" field.
+func (m *DatasourceMutation) ResetFailureWindowMinutes() {
+	m.failure_window_minutes = nil
+	m.addfailure_window_minutes = nil
+}
+
+// SetFailureThreshold sets the "failure_threshold" field.
+func (m *DatasourceMutation) SetFailureThreshold(i int) {
+	m.failure_threshold = &i
+	m.addfailure_threshold = nil
+}
+
+// FailureThreshold returns the value of the "failure_threshold" field in the mutation.
+func (m *DatasourceMutation) FailureThreshold() (r int, exists bool) {
+	v := m.failure_threshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailureThreshold returns the old "failure_threshold" field's value of the Datasource entity.
+// If the Datasource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceMutation) OldFailureThreshold(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailureThreshold is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailureThreshold requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailureThreshold: %w", err)
+	}
+	return oldValue.FailureThreshold, nil
+}
+
+// AddFailureThreshold adds i to the "failure_threshold" field.
+func (m *DatasourceMutation) AddFailureThreshold(i int) {
+	if m.addfailure_threshold != nil {
+		*m.addfailure_threshold += i
+	} else {
+		m.addfailure_threshold = &i
+	}
+}
+
+// AddedFailureThreshold returns the value that was added to the "failure_threshold" field in this mutation.
+func (m *DatasourceMutation) AddedFailureThreshold() (r int, exists bool) {
+	v := m.addfailure_threshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFailureThreshold resets all changes to the "failure_threshold" field.
+func (m *DatasourceMutation) ResetFailureThreshold() {
+	m.failure_threshold = nil
+	m.addfailure_threshold = nil
+}
+
+// SetNotificationGroupUids sets the "notification_group_uids" field.
+func (m *DatasourceMutation) SetNotificationGroupUids(s []string) {
+	m.notification_group_uids = &s
+	m.appendnotification_group_uids = nil
+}
+
+// NotificationGroupUids returns the value of the "notification_group_uids" field in the mutation.
+func (m *DatasourceMutation) NotificationGroupUids() (r []string, exists bool) {
+	v := m.notification_group_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotificationGroupUids returns the old "notification_group_uids" field's value of the Datasource entity.
+// If the Datasource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceMutation) OldNotificationGroupUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotificationGroupUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotificationGroupUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotificationGroupUids: %w", err)
+	}
+	return oldValue.NotificationGroupUids, nil
+}
+
+// AppendNotificationGroupUids adds s to the "notification_group_uids" field.
+func (m *DatasourceMutation) AppendNotificationGroupUids(s []string) {
+	m.appendnotification_group_uids = append(m.appendnotification_group_uids, s...)
+}
+
+// AppendedNotificationGroupUids returns the list of values that were appended to the "notification_group_uids" field in this mutation.
+func (m *DatasourceMutation) AppendedNotificationGroupUids() ([]string, bool) {
+	if len(m.appendnotification_group_uids) == 0 {
+		return nil, false
+	}
+	return m.appendnotification_group_uids, true
+}
+
+// ResetNotificationGroupUids resets all changes to the "notification_group_uids" field.
+func (m *DatasourceMutation) ResetNotificationGroupUids() {
+	m.notification_group_uids = nil
+	m.appendnotification_group_uids = nil
+}
+
 // Where appends a list predicates to the DatasourceMutation builder.
 func (m *DatasourceMutation) Where(ps ...predicate.Datasource) {
 	m.predicates = append(m.predicates, ps...)
@@ -12299,7 +12666,7 @@ func (m *DatasourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DatasourceMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 22)
 	if m.created_at != nil {
 		fields = append(fields, datasource.FieldCreatedAt)
 	}
@@ -12354,6 +12721,18 @@ func (m *DatasourceMutation) Fields() []string {
 	if m.remark != nil {
 		fields = append(fields, datasource.FieldRemark)
 	}
+	if m.availability_alert_enabled != nil {
+		fields = append(fields, datasource.FieldAvailabilityAlertEnabled)
+	}
+	if m.failure_window_minutes != nil {
+		fields = append(fields, datasource.FieldFailureWindowMinutes)
+	}
+	if m.failure_threshold != nil {
+		fields = append(fields, datasource.FieldFailureThreshold)
+	}
+	if m.notification_group_uids != nil {
+		fields = append(fields, datasource.FieldNotificationGroupUids)
+	}
 	return fields
 }
 
@@ -12398,6 +12777,14 @@ func (m *DatasourceMutation) Field(name string) (ent.Value, bool) {
 		return m.Labels()
 	case datasource.FieldRemark:
 		return m.Remark()
+	case datasource.FieldAvailabilityAlertEnabled:
+		return m.AvailabilityAlertEnabled()
+	case datasource.FieldFailureWindowMinutes:
+		return m.FailureWindowMinutes()
+	case datasource.FieldFailureThreshold:
+		return m.FailureThreshold()
+	case datasource.FieldNotificationGroupUids:
+		return m.NotificationGroupUids()
 	}
 	return nil, false
 }
@@ -12443,6 +12830,14 @@ func (m *DatasourceMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldLabels(ctx)
 	case datasource.FieldRemark:
 		return m.OldRemark(ctx)
+	case datasource.FieldAvailabilityAlertEnabled:
+		return m.OldAvailabilityAlertEnabled(ctx)
+	case datasource.FieldFailureWindowMinutes:
+		return m.OldFailureWindowMinutes(ctx)
+	case datasource.FieldFailureThreshold:
+		return m.OldFailureThreshold(ctx)
+	case datasource.FieldNotificationGroupUids:
+		return m.OldNotificationGroupUids(ctx)
 	}
 	return nil, fmt.Errorf("unknown Datasource field %s", name)
 }
@@ -12578,6 +12973,34 @@ func (m *DatasourceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRemark(v)
 		return nil
+	case datasource.FieldAvailabilityAlertEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAvailabilityAlertEnabled(v)
+		return nil
+	case datasource.FieldFailureWindowMinutes:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailureWindowMinutes(v)
+		return nil
+	case datasource.FieldFailureThreshold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailureThreshold(v)
+		return nil
+	case datasource.FieldNotificationGroupUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotificationGroupUids(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Datasource field %s", name)
 }
@@ -12585,13 +13008,26 @@ func (m *DatasourceMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *DatasourceMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addfailure_window_minutes != nil {
+		fields = append(fields, datasource.FieldFailureWindowMinutes)
+	}
+	if m.addfailure_threshold != nil {
+		fields = append(fields, datasource.FieldFailureThreshold)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *DatasourceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case datasource.FieldFailureWindowMinutes:
+		return m.AddedFailureWindowMinutes()
+	case datasource.FieldFailureThreshold:
+		return m.AddedFailureThreshold()
+	}
 	return nil, false
 }
 
@@ -12600,6 +13036,20 @@ func (m *DatasourceMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *DatasourceMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case datasource.FieldFailureWindowMinutes:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFailureWindowMinutes(v)
+		return nil
+	case datasource.FieldFailureThreshold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFailureThreshold(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Datasource numeric field %s", name)
 }
@@ -12689,6 +13139,18 @@ func (m *DatasourceMutation) ResetField(name string) error {
 		return nil
 	case datasource.FieldRemark:
 		m.ResetRemark()
+		return nil
+	case datasource.FieldAvailabilityAlertEnabled:
+		m.ResetAvailabilityAlertEnabled()
+		return nil
+	case datasource.FieldFailureWindowMinutes:
+		m.ResetFailureWindowMinutes()
+		return nil
+	case datasource.FieldFailureThreshold:
+		m.ResetFailureThreshold()
+		return nil
+	case datasource.FieldNotificationGroupUids:
+		m.ResetNotificationGroupUids()
 		return nil
 	}
 	return fmt.Errorf("unknown Datasource field %s", name)

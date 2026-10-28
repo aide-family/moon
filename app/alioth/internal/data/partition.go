@@ -127,6 +127,19 @@ func prepareNotificationColumns(ctx context.Context, db *sql.DB) error {
 			`ALTER TABLE email_login_codes ADD COLUMN IF NOT EXISTS attempts bigint NOT NULL DEFAULT 0`,
 			`ALTER TABLE email_login_codes ADD COLUMN IF NOT EXISTS bind_token_hash character varying NOT NULL DEFAULT ''`,
 		},
+		// 数据源可用性告警：已有数据源默认关闭，窗口和阈值给出与界面一致的默认值。
+		"datasources": {
+			`ALTER TABLE datasources ADD COLUMN IF NOT EXISTS availability_alert_enabled boolean NOT NULL DEFAULT false`,
+			`ALTER TABLE datasources ADD COLUMN IF NOT EXISTS failure_window_minutes bigint NOT NULL DEFAULT 5`,
+			`ALTER TABLE datasources ADD COLUMN IF NOT EXISTS failure_threshold bigint NOT NULL DEFAULT 3`,
+			`ALTER TABLE datasources ADD COLUMN IF NOT EXISTS notification_group_uids jsonb NOT NULL DEFAULT '[]'::jsonb`,
+		},
+		// 评测批次新增失败标记和回写时间。已有批次都是升级前的成功批次，failed 取 false。
+		"alert_eval_batches": {
+			`ALTER TABLE alert_eval_batches ADD COLUMN IF NOT EXISTS failed boolean NOT NULL DEFAULT false`,
+			`ALTER TABLE alert_eval_batches ADD COLUMN IF NOT EXISTS failure_message character varying NOT NULL DEFAULT ''`,
+			`ALTER TABLE alert_eval_batches ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now()`,
+		},
 	}
 	for table, statements := range columns {
 		var exists bool

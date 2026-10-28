@@ -50,6 +50,14 @@ const (
 	FieldLabels = "labels"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
+	// FieldAvailabilityAlertEnabled holds the string denoting the availability_alert_enabled field in the database.
+	FieldAvailabilityAlertEnabled = "availability_alert_enabled"
+	// FieldFailureWindowMinutes holds the string denoting the failure_window_minutes field in the database.
+	FieldFailureWindowMinutes = "failure_window_minutes"
+	// FieldFailureThreshold holds the string denoting the failure_threshold field in the database.
+	FieldFailureThreshold = "failure_threshold"
+	// FieldNotificationGroupUids holds the string denoting the notification_group_uids field in the database.
+	FieldNotificationGroupUids = "notification_group_uids"
 	// Table holds the table name of the datasource in the database.
 	Table = "datasources"
 )
@@ -75,6 +83,10 @@ var Columns = []string{
 	FieldLevelUID,
 	FieldLabels,
 	FieldRemark,
+	FieldAvailabilityAlertEnabled,
+	FieldFailureWindowMinutes,
+	FieldFailureThreshold,
+	FieldNotificationGroupUids,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -118,6 +130,14 @@ var (
 	DefaultLabels string
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
+	// DefaultAvailabilityAlertEnabled holds the default value on creation for the "availability_alert_enabled" field.
+	DefaultAvailabilityAlertEnabled bool
+	// DefaultFailureWindowMinutes holds the default value on creation for the "failure_window_minutes" field.
+	DefaultFailureWindowMinutes int
+	// DefaultFailureThreshold holds the default value on creation for the "failure_threshold" field.
+	DefaultFailureThreshold int
+	// DefaultNotificationGroupUids holds the default value on creation for the "notification_group_uids" field.
+	DefaultNotificationGroupUids []string
 )
 
 // Type defines the type for the "type" enum field.
@@ -293,4 +313,19 @@ func ByLabels(opts ...sql.OrderTermOption) OrderOption {
 // ByRemark orders the results by the remark field.
 func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByAvailabilityAlertEnabled orders the results by the availability_alert_enabled field.
+func ByAvailabilityAlertEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAvailabilityAlertEnabled, opts...).ToFunc()
+}
+
+// ByFailureWindowMinutes orders the results by the failure_window_minutes field.
+func ByFailureWindowMinutes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailureWindowMinutes, opts...).ToFunc()
+}
+
+// ByFailureThreshold orders the results by the failure_threshold field.
+func ByFailureThreshold(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailureThreshold, opts...).ToFunc()
 }

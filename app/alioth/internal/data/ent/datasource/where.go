@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
 
@@ -128,6 +127,21 @@ func Labels(v string) predicate.Datasource {
 // Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
 func Remark(v string) predicate.Datasource {
 	return predicate.Datasource(sql.FieldEQ(FieldRemark, v))
+}
+
+// AvailabilityAlertEnabled applies equality check predicate on the "availability_alert_enabled" field. It's identical to AvailabilityAlertEnabledEQ.
+func AvailabilityAlertEnabled(v bool) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldAvailabilityAlertEnabled, v))
+}
+
+// FailureWindowMinutes applies equality check predicate on the "failure_window_minutes" field. It's identical to FailureWindowMinutesEQ.
+func FailureWindowMinutes(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldFailureWindowMinutes, v))
+}
+
+// FailureThreshold applies equality check predicate on the "failure_threshold" field. It's identical to FailureThresholdEQ.
+func FailureThreshold(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldFailureThreshold, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -1098,6 +1112,96 @@ func RemarkEqualFold(v string) predicate.Datasource {
 // RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
 func RemarkContainsFold(v string) predicate.Datasource {
 	return predicate.Datasource(sql.FieldContainsFold(FieldRemark, v))
+}
+
+// AvailabilityAlertEnabledEQ applies the EQ predicate on the "availability_alert_enabled" field.
+func AvailabilityAlertEnabledEQ(v bool) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldAvailabilityAlertEnabled, v))
+}
+
+// AvailabilityAlertEnabledNEQ applies the NEQ predicate on the "availability_alert_enabled" field.
+func AvailabilityAlertEnabledNEQ(v bool) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNEQ(FieldAvailabilityAlertEnabled, v))
+}
+
+// FailureWindowMinutesEQ applies the EQ predicate on the "failure_window_minutes" field.
+func FailureWindowMinutesEQ(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldFailureWindowMinutes, v))
+}
+
+// FailureWindowMinutesNEQ applies the NEQ predicate on the "failure_window_minutes" field.
+func FailureWindowMinutesNEQ(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNEQ(FieldFailureWindowMinutes, v))
+}
+
+// FailureWindowMinutesIn applies the In predicate on the "failure_window_minutes" field.
+func FailureWindowMinutesIn(vs ...int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldIn(FieldFailureWindowMinutes, vs...))
+}
+
+// FailureWindowMinutesNotIn applies the NotIn predicate on the "failure_window_minutes" field.
+func FailureWindowMinutesNotIn(vs ...int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNotIn(FieldFailureWindowMinutes, vs...))
+}
+
+// FailureWindowMinutesGT applies the GT predicate on the "failure_window_minutes" field.
+func FailureWindowMinutesGT(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGT(FieldFailureWindowMinutes, v))
+}
+
+// FailureWindowMinutesGTE applies the GTE predicate on the "failure_window_minutes" field.
+func FailureWindowMinutesGTE(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGTE(FieldFailureWindowMinutes, v))
+}
+
+// FailureWindowMinutesLT applies the LT predicate on the "failure_window_minutes" field.
+func FailureWindowMinutesLT(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLT(FieldFailureWindowMinutes, v))
+}
+
+// FailureWindowMinutesLTE applies the LTE predicate on the "failure_window_minutes" field.
+func FailureWindowMinutesLTE(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLTE(FieldFailureWindowMinutes, v))
+}
+
+// FailureThresholdEQ applies the EQ predicate on the "failure_threshold" field.
+func FailureThresholdEQ(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldFailureThreshold, v))
+}
+
+// FailureThresholdNEQ applies the NEQ predicate on the "failure_threshold" field.
+func FailureThresholdNEQ(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNEQ(FieldFailureThreshold, v))
+}
+
+// FailureThresholdIn applies the In predicate on the "failure_threshold" field.
+func FailureThresholdIn(vs ...int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldIn(FieldFailureThreshold, vs...))
+}
+
+// FailureThresholdNotIn applies the NotIn predicate on the "failure_threshold" field.
+func FailureThresholdNotIn(vs ...int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNotIn(FieldFailureThreshold, vs...))
+}
+
+// FailureThresholdGT applies the GT predicate on the "failure_threshold" field.
+func FailureThresholdGT(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGT(FieldFailureThreshold, v))
+}
+
+// FailureThresholdGTE applies the GTE predicate on the "failure_threshold" field.
+func FailureThresholdGTE(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGTE(FieldFailureThreshold, v))
+}
+
+// FailureThresholdLT applies the LT predicate on the "failure_threshold" field.
+func FailureThresholdLT(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLT(FieldFailureThreshold, v))
+}
+
+// FailureThresholdLTE applies the LTE predicate on the "failure_threshold" field.
+func FailureThresholdLTE(v int) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLTE(FieldFailureThreshold, v))
 }
 
 // And groups predicates with the AND operator between them.

@@ -33,6 +33,12 @@ func (Datasource) Fields() []ent.Field {
 		field.String("level_uid").Default(""),
 		field.String("labels").Default("{}"),
 		field.String("remark").Default(""),
+		// 可用性告警：统计窗口内向数据源发起的规则评测请求失败达到阈值时，
+		// 生成一条数据源级别的告警事件，并直接通知绑定的通知组。
+		field.Bool("availability_alert_enabled").Default(false),
+		field.Int("failure_window_minutes").Default(5),
+		field.Int("failure_threshold").Default(3),
+		field.Strings("notification_group_uids").Default([]string{}),
 	}
 }
 

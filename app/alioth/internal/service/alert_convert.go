@@ -11,6 +11,11 @@ func datasourceItem(item bo.Datasource) *v1.DatasourceItem {
 		IndexPattern: item.IndexPattern, TimeField: item.TimeField,
 		Username: item.Username, SecretSet: item.SecretSet, Status: item.Status,
 		LevelUid: item.LevelUID, LevelName: item.LevelName, Labels: item.Labels, Remark: item.Remark,
+		AvailabilityAlertEnabled: item.AvailabilityAlertEnabled,
+		FailureWindowMinutes:     int32(item.FailureWindowMinutes),
+		FailureThreshold:         int32(item.FailureThreshold),
+		NotificationGroupUids:    item.NotificationGroupUIDs,
+		NotificationGroupNames:   item.NotificationGroupNames,
 	}
 }
 

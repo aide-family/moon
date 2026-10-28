@@ -264,7 +264,20 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, rule bo.RuleS
 		return merr.Server("lock failed")
 	}
 	if err != nil {
-		return err
+		// 本轮被取消（进程退出或轮次超时）不是数据源的问题，保持原行为不记账。
+		if ctx.Err() != nil {
+			return err
+		}
+		// 无效表达式等客户端错误属于规则配置问题，不是数据源不可用：
+		// 不回写批次，下一轮继续尝试，用户修正规则后即可恢复。
+		if merr.IsInvalid(err) {
+			return err
+		}
+		// 连接失败、超时、上游错误或响应无法解析：回写失败批次，由玉衡累计
+		// 数据源可用性；同时让本批次记为已回写，避免每 2 秒重复领取同一条规则。
+		report.Failed = true
+		report.FailureMessage = err.Error()
+		return w.gateway.Report(ctx, report)
 	}
 	if !report.Skipped {
 		var templateQuery TemplateQuery

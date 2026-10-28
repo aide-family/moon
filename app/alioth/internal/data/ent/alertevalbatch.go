@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 )
 
@@ -23,7 +22,13 @@ type AlertEvalBatch struct {
 	// DatasourceUID holds the value of the "datasource_uid" field.
 	DatasourceUID string `json:"datasource_uid,omitempty"`
 	// EvalSlot holds the value of the "eval_slot" field.
-	EvalSlot     time.Time `json:"eval_slot,omitempty"`
+	EvalSlot time.Time `json:"eval_slot,omitempty"`
+	// Failed holds the value of the "failed" field.
+	Failed bool `json:"failed,omitempty"`
+	// FailureMessage holds the value of the "failure_message" field.
+	FailureMessage string `json:"failure_message,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt    time.Time `json:"created_at,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -32,11 +37,13 @@ func (*AlertEvalBatch) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case alertevalbatch.FieldFailed:
+			values[i] = new(sql.NullBool)
 		case alertevalbatch.FieldID:
 			values[i] = new(sql.NullInt64)
-		case alertevalbatch.FieldRuleUID, alertevalbatch.FieldDatasourceUID:
+		case alertevalbatch.FieldRuleUID, alertevalbatch.FieldDatasourceUID, alertevalbatch.FieldFailureMessage:
 			values[i] = new(sql.NullString)
-		case alertevalbatch.FieldEvalSlot:
+		case alertevalbatch.FieldEvalSlot, alertevalbatch.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -76,6 +83,24 @@ func (_m *AlertEvalBatch) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field eval_slot", values[i])
 			} else if value.Valid {
 				_m.EvalSlot = value.Time
+			}
+		case alertevalbatch.FieldFailed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field failed", values[i])
+			} else if value.Valid {
+				_m.Failed = value.Bool
+			}
+		case alertevalbatch.FieldFailureMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field failure_message", values[i])
+			} else if value.Valid {
+				_m.FailureMessage = value.String
+			}
+		case alertevalbatch.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				_m.CreatedAt = value.Time
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -121,6 +146,15 @@ func (_m *AlertEvalBatch) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("eval_slot=")
 	builder.WriteString(_m.EvalSlot.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("failed=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Failed))
+	builder.WriteString(", ")
+	builder.WriteString("failure_message=")
+	builder.WriteString(_m.FailureMessage)
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -23,6 +23,16 @@ export interface DatasourceItem {
   levelName: string
   labels: string
   remark: string
+  /** 是否启用数据源可用性告警。 */
+  availabilityAlertEnabled: boolean
+  /** 可用性告警的统计窗口，单位分钟，0..1440。 */
+  failureWindowMinutes: number
+  /** 统计窗口内触发可用性告警的失败次数阈值，0..1000。 */
+  failureThreshold: number
+  /** 可用性告警绑定的通知组标识。 */
+  notificationGroupUids: string[]
+  /** 绑定的通知组名称，只用于展示。 */
+  notificationGroupNames: string[]
 }
 
 export interface ListDatasourcesParams {
@@ -52,6 +62,11 @@ export interface CreateDatasourceParams {
   levelUid?: string
   remark?: string
   labels?: string
+  availabilityAlertEnabled: boolean
+  failureWindowMinutes: number
+  failureThreshold: number
+  /** 绑定列表整体替换：空数组表示解绑全部通知组。 */
+  notificationGroupUids: string[]
 }
 
 export interface UpdateDatasourceParams extends CreateDatasourceParams {

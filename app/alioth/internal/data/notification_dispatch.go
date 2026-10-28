@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
@@ -134,7 +135,11 @@ func dispatchEventNotifications(ctx context.Context, tx *ent.Tx, event notifyEve
 // 订阅条件按标签、告警级别、数据源和数据源级别过滤；OnCall 还要求绑定在同一个
 // time.Now() 换算到各自时区后处于接收时段。贡献了至少一个生效通知组的来源
 // 参与重复通知间隔计算，取其中最大的间隔。
+// 数据源可用性事件没有关联规则，按数据源直接绑定的通知组投递，不参与订阅和 OnCall。
 func collectNotificationRoutes(ctx context.Context, tx *ent.Tx, event notifyEvent) (dispatchMatch, error) {
+	if event.RuleUID == "" && event.DatasourceUID != "" {
+		return datasourceNotificationRoutes(ctx, tx, event)
+	}
 	subscriptions, err := matchedSubscriptions(ctx, tx, event)
 	if err != nil {
 		return dispatchMatch{}, err
@@ -190,6 +195,39 @@ func collectNotificationRoutes(ctx context.Context, tx *ent.Tx, event notifyEven
 		}
 	}
 	return dispatchMatch{routes: routes, maxInterval: time.Duration(maxInterval) * time.Second}, nil
+}
+
+// datasourceNotificationRoutes 把数据源可用性事件直接投递给数据源绑定的通知组。
+// 这类事件没有规则，不能按订阅或 OnCall 的规则条件路由，否则会被无关条件放行或拦截。
+func datasourceNotificationRoutes(ctx context.Context, tx *ent.Tx, event notifyEvent) (dispatchMatch, error) {
+	row, err := tx.Datasource.Query().Where(
+		datasource.UIDEQ(event.DatasourceUID),
+		datasource.NamespaceUIDEQ(event.NamespaceUID),
+	).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return dispatchMatch{}, nil
+		}
+		return dispatchMatch{}, err
+	}
+	groupUIDs := uniqueNonEmpty(row.NotificationGroupUids)
+	if len(groupUIDs) == 0 {
+		// 没有绑定通知组时仍保留事件，只是不生成投递任务。
+		return dispatchMatch{}, nil
+	}
+	active, err := activeNotificationGroups(ctx, tx, event.NamespaceUID, groupUIDs)
+	if err != nil {
+		return dispatchMatch{}, err
+	}
+	routes := make([]groupRoute, 0, len(groupUIDs))
+	for _, groupUID := range groupUIDs {
+		if _, ok := active[groupUID]; !ok {
+			continue
+		}
+		routes = append(routes, groupRoute{GroupUID: groupUID})
+	}
+	// 可用性告警没有重复通知间隔：一个事件只在触发和恢复时各发一次。
+	return dispatchMatch{routes: routes}, nil
 }
 
 // matchedSubscriptions 返回条件命中的 ACTIVE 订阅及其通知组绑定。

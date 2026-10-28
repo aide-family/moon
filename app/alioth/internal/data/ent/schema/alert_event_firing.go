@@ -17,7 +17,8 @@ func (AlertEventFiring) Fields() []ent.Field {
 		field.String("namespace_uid").NotEmpty(),
 		field.String("fingerprint").NotEmpty(),
 		field.String("event_uid").NotEmpty(),
-		field.String("rule_uid").NotEmpty(),
+		// 数据源可用性事件没有关联规则，rule_uid 为空。
+		field.String("rule_uid").Default(""),
 	}
 }
 

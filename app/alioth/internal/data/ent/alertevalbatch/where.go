@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
 
@@ -68,6 +67,21 @@ func DatasourceUID(v string) predicate.AlertEvalBatch {
 // EvalSlot applies equality check predicate on the "eval_slot" field. It's identical to EvalSlotEQ.
 func EvalSlot(v time.Time) predicate.AlertEvalBatch {
 	return predicate.AlertEvalBatch(sql.FieldEQ(FieldEvalSlot, v))
+}
+
+// Failed applies equality check predicate on the "failed" field. It's identical to FailedEQ.
+func Failed(v bool) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEQ(FieldFailed, v))
+}
+
+// FailureMessage applies equality check predicate on the "failure_message" field. It's identical to FailureMessageEQ.
+func FailureMessage(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEQ(FieldFailureMessage, v))
+}
+
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // RuleUIDEQ applies the EQ predicate on the "rule_uid" field.
@@ -238,6 +252,121 @@ func EvalSlotLT(v time.Time) predicate.AlertEvalBatch {
 // EvalSlotLTE applies the LTE predicate on the "eval_slot" field.
 func EvalSlotLTE(v time.Time) predicate.AlertEvalBatch {
 	return predicate.AlertEvalBatch(sql.FieldLTE(FieldEvalSlot, v))
+}
+
+// FailedEQ applies the EQ predicate on the "failed" field.
+func FailedEQ(v bool) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEQ(FieldFailed, v))
+}
+
+// FailedNEQ applies the NEQ predicate on the "failed" field.
+func FailedNEQ(v bool) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldNEQ(FieldFailed, v))
+}
+
+// FailureMessageEQ applies the EQ predicate on the "failure_message" field.
+func FailureMessageEQ(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEQ(FieldFailureMessage, v))
+}
+
+// FailureMessageNEQ applies the NEQ predicate on the "failure_message" field.
+func FailureMessageNEQ(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldNEQ(FieldFailureMessage, v))
+}
+
+// FailureMessageIn applies the In predicate on the "failure_message" field.
+func FailureMessageIn(vs ...string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldIn(FieldFailureMessage, vs...))
+}
+
+// FailureMessageNotIn applies the NotIn predicate on the "failure_message" field.
+func FailureMessageNotIn(vs ...string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldNotIn(FieldFailureMessage, vs...))
+}
+
+// FailureMessageGT applies the GT predicate on the "failure_message" field.
+func FailureMessageGT(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldGT(FieldFailureMessage, v))
+}
+
+// FailureMessageGTE applies the GTE predicate on the "failure_message" field.
+func FailureMessageGTE(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldGTE(FieldFailureMessage, v))
+}
+
+// FailureMessageLT applies the LT predicate on the "failure_message" field.
+func FailureMessageLT(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldLT(FieldFailureMessage, v))
+}
+
+// FailureMessageLTE applies the LTE predicate on the "failure_message" field.
+func FailureMessageLTE(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldLTE(FieldFailureMessage, v))
+}
+
+// FailureMessageContains applies the Contains predicate on the "failure_message" field.
+func FailureMessageContains(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldContains(FieldFailureMessage, v))
+}
+
+// FailureMessageHasPrefix applies the HasPrefix predicate on the "failure_message" field.
+func FailureMessageHasPrefix(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldHasPrefix(FieldFailureMessage, v))
+}
+
+// FailureMessageHasSuffix applies the HasSuffix predicate on the "failure_message" field.
+func FailureMessageHasSuffix(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldHasSuffix(FieldFailureMessage, v))
+}
+
+// FailureMessageEqualFold applies the EqualFold predicate on the "failure_message" field.
+func FailureMessageEqualFold(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEqualFold(FieldFailureMessage, v))
+}
+
+// FailureMessageContainsFold applies the ContainsFold predicate on the "failure_message" field.
+func FailureMessageContainsFold(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldContainsFold(FieldFailureMessage, v))
+}
+
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldLTE(FieldCreatedAt, v))
 }
 
 // And groups predicates with the AND operator between them.

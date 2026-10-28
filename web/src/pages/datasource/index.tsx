@@ -1,5 +1,5 @@
 import { EllipsisVertical } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 
@@ -13,18 +13,25 @@ import {
   updateDatasource,
   updateDatasourceStatus,
 } from "@/api/datasource"
-import type { DatasourceItem } from "@/api/datasource/types"
+import type {
+  CreateDatasourceParams,
+  DatasourceItem,
+} from "@/api/datasource/types"
+import { selectNotificationGroups } from "@/api/notification-group"
+import type { SelectItem as NotificationGroupSelectItem } from "@/api/notification-group/types"
 import { useSession } from "@/auth/session"
 import { BrandIcon } from "@/components/brand-icon"
 import { ConfirmAction } from "@/components/confirm-action"
 import { FormField } from "@/components/form-field"
 import { LabelTags } from "@/components/label-tags"
+import { MultiSelect } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
 import { ListFrame } from "@/components/list-frame"
 import { StatusBadge } from "@/components/status-badge"
 import { StepForm } from "@/components/step-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -61,6 +68,7 @@ import {
   serializeLabelPairs,
   type LabelPair,
 } from "@/lib/labels"
+import { loadAllSelectItems } from "@/lib/select-pages"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { MetadataPanel } from "@/pages/datasource/metadata-panel"
@@ -71,6 +79,27 @@ const drivers: Record<string, string[]> = {
   METRICS: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS"],
   LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS"],
   TRACE: ["TRACE_JAEGER"],
+}
+
+// 与 proto 的 buf.validate 对齐：窗口 0..1440 分钟，阈值 0..1000 次，
+// 绑定的通知组最多 20 个。0 在服务端表示“不触发”，所以只在启用时要求大于 0。
+const MAX_AVAILABILITY_WINDOW_MINUTES = 1440
+const MAX_AVAILABILITY_THRESHOLD = 1000
+const MAX_AVAILABILITY_GROUPS = 20
+
+/** 整数范围校验：空值、非整数和越界都返回同一条字段错误。 */
+function availabilityCountError(
+  value: string,
+  minimum: number,
+  maximum: number,
+  message: string
+): string | null {
+  const trimmed = value.trim()
+  if (!/^\d+$/.test(trimmed)) {
+    return message
+  }
+  const count = Number(trimmed)
+  return count < minimum || count > maximum ? message : null
 }
 
 interface Draft {
@@ -86,6 +115,10 @@ interface Draft {
   levelUid: string
   labels: LabelPair[]
   remark: string
+  availabilityAlertEnabled: boolean
+  failureWindowMinutes: string
+  failureThreshold: string
+  notificationGroupUids: string[]
 }
 
 const emptyDraft: Draft = {
@@ -101,6 +134,11 @@ const emptyDraft: Draft = {
   levelUid: "",
   labels: [{ key: "", value: "" }],
   remark: "",
+  // 新数据源默认关闭告警：5 分钟窗口、3 次失败，不绑定通知组。
+  availabilityAlertEnabled: false,
+  failureWindowMinutes: "5",
+  failureThreshold: "3",
+  notificationGroupUids: [],
 }
 
 export function DatasourcePage() {
@@ -113,6 +151,9 @@ export function DatasourcePage() {
   const [draftName, setDraftName] = useState(query.name)
   const [current, setCurrent] = useState<DatasourceItem | null>(null)
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
+  const [notificationGroups, setNotificationGroups] = useState<
+    NotificationGroupSelectItem[]
+  >([])
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -212,6 +253,21 @@ export function DatasourcePage() {
           setLevels([])
         }
       }
+      // 可用性告警只能绑定启用中的通知组；编辑时停用组的名称由详情响应补上。
+      try {
+        const groups = await loadAllSelectItems(
+          (lastUid) =>
+            selectNotificationGroups({ limit: 100, lastUid, activeOnly: true }),
+          100
+        )
+        if (active) {
+          setNotificationGroups(groups)
+        }
+      } catch {
+        if (active) {
+          setNotificationGroups([])
+        }
+      }
     }
     void load()
     return () => {
@@ -245,6 +301,30 @@ export function DatasourcePage() {
     setOpen(true)
   }
 
+  // 编辑时把当前数据源已绑定的通知组补进选项：select 接口带 activeOnly，
+  // 停用的通知组不会返回，不补的话下拉框只能显示 uid。
+  // 名称取自详情响应的 notificationGroupNames（只用于展示）；只有名称与
+  // uid 数量一致时才按下标补齐，避免把名称错配到别的通知组上。
+  const notificationGroupOptions = useMemo(() => {
+    const options = notificationGroups.map((item) => ({
+      value: item.uid,
+      label: item.name,
+    }))
+    const known = new Set(options.map((option) => option.value))
+    // 新建时不要把上一次编辑的数据源绑定补进选项。
+    const uids = editing ? current?.notificationGroupUids ?? [] : []
+    const names = editing ? current?.notificationGroupNames ?? [] : []
+    if (uids.length === names.length) {
+      uids.forEach((uid, index) => {
+        const name = names[index]
+        if (name && !known.has(uid)) {
+          options.push({ value: uid, label: name })
+        }
+      })
+    }
+    return options
+  }, [notificationGroups, current, editing])
+
   function openEdit(item: DatasourceItem) {
     setParam("uid", item.uid)
     setEditing(true)
@@ -261,11 +341,47 @@ export function DatasourcePage() {
       levelUid: item.levelUid,
       labels: parseLabelPairs(item.labels),
       remark: item.remark,
+      availabilityAlertEnabled: Boolean(item.availabilityAlertEnabled),
+      failureWindowMinutes: String(item.failureWindowMinutes ?? 5),
+      failureThreshold: String(item.failureThreshold ?? 3),
+      notificationGroupUids: item.notificationGroupUids ?? [],
     })
     setError("")
     setFieldErrors({})
     setFormStep(0)
     setOpen(true)
+  }
+
+  function validateAvailabilityStep(): FieldErrors {
+    // 服务端只在启用、窗口大于 0 且阈值大于 0 时触发。关闭时允许保存 0
+    // （语义为不触发）；启用后必须大于 0，否则开关打开却永远不会产生事件。
+    const minimum = form.availabilityAlertEnabled ? 1 : 0
+    return collectFieldErrors([
+      [
+        "failureWindowMinutes",
+        availabilityCountError(
+          form.failureWindowMinutes,
+          minimum,
+          MAX_AVAILABILITY_WINDOW_MINUTES,
+          t("datasource.failureWindowMinutesInvalid")
+        ),
+      ],
+      [
+        "failureThreshold",
+        availabilityCountError(
+          form.failureThreshold,
+          minimum,
+          MAX_AVAILABILITY_THRESHOLD,
+          t("datasource.failureThresholdInvalid")
+        ),
+      ],
+      [
+        "notificationGroupUids",
+        form.notificationGroupUids.length > MAX_AVAILABILITY_GROUPS
+          ? t("datasource.notificationGroupsTooMany")
+          : null,
+      ],
+    ])
   }
 
   function validateDatasourceStep(step: number): FieldErrors {
@@ -285,26 +401,52 @@ export function DatasourcePage() {
       }
       return errors
     }
+    if (step === 2) {
+      return validateAvailabilityStep()
+    }
     return {}
   }
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const errors = validateDatasourceStep(0)
+    // 保存入口在最后一步，但基础信息可能被回退修改过，两步一起校验；
+    // 出错时跳回对应步骤，字段错误仍显示在输入框下。
+    const errors = {
+      ...validateDatasourceStep(0),
+      ...validateDatasourceStep(2),
+    }
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
-      setFormStep(0)
+      setFormStep(
+        errors.failureWindowMinutes ||
+          errors.failureThreshold ||
+          errors.notificationGroupUids
+          ? 2
+          : 0
+      )
       return
     }
     setPending(true)
     setError("")
     setFieldErrors({})
     try {
-      const payload = {
-        ...form,
+      const payload: CreateDatasourceParams = {
         name: form.name.trim(),
+        type: form.type,
+        driver: form.driver,
         endpoint: form.endpoint.trim(),
+        indexPattern: form.indexPattern,
+        timeField: form.timeField,
+        username: form.username,
+        password: form.password,
+        secret: form.secret,
+        levelUid: form.levelUid,
+        remark: form.remark,
         labels: serializeLabelPairs(form.labels),
+        availabilityAlertEnabled: form.availabilityAlertEnabled,
+        failureWindowMinutes: Number(form.failureWindowMinutes),
+        failureThreshold: Number(form.failureThreshold),
+        notificationGroupUids: form.notificationGroupUids,
       }
       if (editing && current) {
         await updateDatasource({ uid: current.uid, ...payload })
@@ -359,6 +501,9 @@ export function DatasourcePage() {
       }
     }
   }
+
+  // 详情里的通知组名称来自响应，仅用于展示；空数组表示未绑定通知组。
+  const availabilityGroupNames = current?.notificationGroupNames ?? []
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
@@ -588,6 +733,56 @@ export function DatasourcePage() {
                         </dd>
                       </div>
                     </dl>
+                    <section className="grid min-w-0 gap-3 border-t pt-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h3 className="text-sm font-medium">
+                          {t("datasource.availabilityAlertTitle")}
+                        </h3>
+                        <span className="text-sm text-muted-foreground">
+                          {current.availabilityAlertEnabled
+                            ? t("datasource.availabilityAlertOn")
+                            : t("datasource.availabilityAlertOff")}
+                        </span>
+                      </div>
+                      <dl className="grid min-w-0 gap-4 sm:grid-cols-2">
+                        <div className="grid min-w-0 gap-1">
+                          <dt className="text-sm text-muted-foreground">
+                            {t("datasource.failureWindow")}
+                          </dt>
+                          <dd className="tabular-nums">
+                            {t("datasource.failureWindowValue", {
+                              count: current.failureWindowMinutes,
+                            })}
+                          </dd>
+                        </div>
+                        <div className="grid min-w-0 gap-1">
+                          <dt className="text-sm text-muted-foreground">
+                            {t("datasource.failureThreshold")}
+                          </dt>
+                          <dd className="tabular-nums">
+                            {t("datasource.failureThresholdValue", {
+                              count: current.failureThreshold,
+                            })}
+                          </dd>
+                        </div>
+                        <div className="grid min-w-0 gap-1 sm:col-span-full">
+                          <dt className="text-sm text-muted-foreground">
+                            {t("datasource.notificationGroups")}
+                          </dt>
+                          <dd className="min-w-0 break-words">
+                            {availabilityGroupNames.length > 0
+                              ? availabilityGroupNames.join(", ")
+                              : t("datasource.notificationGroupsUnbound")}
+                          </dd>
+                        </div>
+                      </dl>
+                      {current.availabilityAlertEnabled &&
+                      availabilityGroupNames.length === 0 ? (
+                        <p className="rounded-md border border-warning-border bg-warning-soft px-2.5 py-1.5 text-xs text-warning">
+                          {t("datasource.noNotificationGroupsHint")}
+                        </p>
+                      ) : null}
+                    </section>
                   </div>
                 </TabsContent>
                 <TabsContent
@@ -902,6 +1097,114 @@ export function DatasourcePage() {
                     }
                   />
                 </FormField>
+                <section className="grid gap-4 rounded-lg border bg-muted/10 p-4 sm:col-span-full">
+                  <div className="grid gap-1">
+                    <h3 className="text-sm font-medium">
+                      {t("datasource.availabilityAlertTitle")}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {t("datasource.availabilityAlertDescription")}
+                    </p>
+                  </div>
+                  <label className="flex items-start gap-2">
+                    <Checkbox
+                      id="ds-availability-enabled"
+                      className="mt-0.5"
+                      checked={form.availabilityAlertEnabled}
+                      onCheckedChange={(value) =>
+                        setForm({
+                          ...form,
+                          availabilityAlertEnabled: value === true,
+                        })
+                      }
+                    />
+                    <span className="grid gap-1">
+                      <span className="text-sm font-medium">
+                        {t("datasource.availabilityAlertEnabled")}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("datasource.availabilityAlertEnabledHint")}
+                      </span>
+                    </span>
+                  </label>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      label={t("datasource.failureWindowMinutes")}
+                      htmlFor="ds-availability-window"
+                      hint={t("datasource.failureWindowMinutesHint")}
+                      required={form.availabilityAlertEnabled}
+                      error={fieldErrors.failureWindowMinutes}
+                    >
+                      <Input
+                        id="ds-availability-window"
+                        type="number"
+                        min={form.availabilityAlertEnabled ? 1 : 0}
+                        max={MAX_AVAILABILITY_WINDOW_MINUTES}
+                        step={1}
+                        inputMode="numeric"
+                        value={form.failureWindowMinutes}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            failureWindowMinutes: event.target.value,
+                          })
+                        }
+                        required={form.availabilityAlertEnabled}
+                      />
+                    </FormField>
+                    <FormField
+                      label={t("datasource.failureThreshold")}
+                      htmlFor="ds-availability-threshold"
+                      hint={t("datasource.failureThresholdHint")}
+                      required={form.availabilityAlertEnabled}
+                      error={fieldErrors.failureThreshold}
+                    >
+                      <Input
+                        id="ds-availability-threshold"
+                        type="number"
+                        min={form.availabilityAlertEnabled ? 1 : 0}
+                        max={MAX_AVAILABILITY_THRESHOLD}
+                        step={1}
+                        inputMode="numeric"
+                        value={form.failureThreshold}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            failureThreshold: event.target.value,
+                          })
+                        }
+                        required={form.availabilityAlertEnabled}
+                      />
+                    </FormField>
+                  </div>
+                  <FormField
+                    label={t("datasource.notificationGroups")}
+                    htmlFor="ds-availability-groups"
+                    hint={t("datasource.notificationGroupsHint")}
+                    error={fieldErrors.notificationGroupUids}
+                  >
+                    <MultiSelect
+                      id="ds-availability-groups"
+                      invalid={Boolean(fieldErrors.notificationGroupUids)}
+                      values={form.notificationGroupUids}
+                      options={notificationGroupOptions}
+                      onChange={(values) =>
+                        setForm({ ...form, notificationGroupUids: values })
+                      }
+                      placeholder={t("multiSelect.placeholder")}
+                      searchPlaceholder={t("multiSelect.searchPlaceholder")}
+                      emptyText={t("datasource.notificationGroupsEmpty")}
+                      allLabel={t("multiSelect.all")}
+                      clearLabel={t("multiSelect.clear")}
+                    />
+                  </FormField>
+                  {form.availabilityAlertEnabled &&
+                  form.notificationGroupUids.length === 0 ? (
+                    <p className="rounded-md border border-warning-border bg-warning-soft px-2.5 py-1.5 text-xs text-warning">
+                      {t("datasource.noNotificationGroupsHint")}
+                    </p>
+                  ) : null}
+                </section>
               </>
             ) : null}
           </StepForm>

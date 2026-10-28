@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
 )
 
@@ -64,6 +63,14 @@ func (_c *AlertEventCreate) SetNamespaceUID(v string) *AlertEventCreate {
 // SetRuleUID sets the "rule_uid" field.
 func (_c *AlertEventCreate) SetRuleUID(v string) *AlertEventCreate {
 	_c.mutation.SetRuleUID(v)
+	return _c
+}
+
+// SetNillableRuleUID sets the "rule_uid" field if the given value is not nil.
+func (_c *AlertEventCreate) SetNillableRuleUID(v *string) *AlertEventCreate {
+	if v != nil {
+		_c.SetRuleUID(*v)
+	}
 	return _c
 }
 
@@ -302,6 +309,10 @@ func (_c *AlertEventCreate) defaults() {
 		v := alertevent.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.RuleUID(); !ok {
+		v := alertevent.DefaultRuleUID
+		_c.mutation.SetRuleUID(v)
+	}
 	if _, ok := _c.mutation.DatasourceUID(); !ok {
 		v := alertevent.DefaultDatasourceUID
 		_c.mutation.SetDatasourceUID(v)
@@ -366,11 +377,6 @@ func (_c *AlertEventCreate) check() error {
 	}
 	if _, ok := _c.mutation.RuleUID(); !ok {
 		return &ValidationError{Name: "rule_uid", err: errors.New(`ent: missing required field "AlertEvent.rule_uid"`)}
-	}
-	if v, ok := _c.mutation.RuleUID(); ok {
-		if err := alertevent.RuleUIDValidator(v); err != nil {
-			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.rule_uid": %w`, err)}
-		}
 	}
 	if _, ok := _c.mutation.DatasourceUID(); !ok {
 		return &ValidationError{Name: "datasource_uid", err: errors.New(`ent: missing required field "AlertEvent.datasource_uid"`)}

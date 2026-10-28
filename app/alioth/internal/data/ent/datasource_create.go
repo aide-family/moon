@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 )
 
@@ -225,6 +224,54 @@ func (_c *DatasourceCreate) SetNillableRemark(v *string) *DatasourceCreate {
 	return _c
 }
 
+// SetAvailabilityAlertEnabled sets the "availability_alert_enabled" field.
+func (_c *DatasourceCreate) SetAvailabilityAlertEnabled(v bool) *DatasourceCreate {
+	_c.mutation.SetAvailabilityAlertEnabled(v)
+	return _c
+}
+
+// SetNillableAvailabilityAlertEnabled sets the "availability_alert_enabled" field if the given value is not nil.
+func (_c *DatasourceCreate) SetNillableAvailabilityAlertEnabled(v *bool) *DatasourceCreate {
+	if v != nil {
+		_c.SetAvailabilityAlertEnabled(*v)
+	}
+	return _c
+}
+
+// SetFailureWindowMinutes sets the "failure_window_minutes" field.
+func (_c *DatasourceCreate) SetFailureWindowMinutes(v int) *DatasourceCreate {
+	_c.mutation.SetFailureWindowMinutes(v)
+	return _c
+}
+
+// SetNillableFailureWindowMinutes sets the "failure_window_minutes" field if the given value is not nil.
+func (_c *DatasourceCreate) SetNillableFailureWindowMinutes(v *int) *DatasourceCreate {
+	if v != nil {
+		_c.SetFailureWindowMinutes(*v)
+	}
+	return _c
+}
+
+// SetFailureThreshold sets the "failure_threshold" field.
+func (_c *DatasourceCreate) SetFailureThreshold(v int) *DatasourceCreate {
+	_c.mutation.SetFailureThreshold(v)
+	return _c
+}
+
+// SetNillableFailureThreshold sets the "failure_threshold" field if the given value is not nil.
+func (_c *DatasourceCreate) SetNillableFailureThreshold(v *int) *DatasourceCreate {
+	if v != nil {
+		_c.SetFailureThreshold(*v)
+	}
+	return _c
+}
+
+// SetNotificationGroupUids sets the "notification_group_uids" field.
+func (_c *DatasourceCreate) SetNotificationGroupUids(v []string) *DatasourceCreate {
+	_c.mutation.SetNotificationGroupUids(v)
+	return _c
+}
+
 // Mutation returns the DatasourceMutation object of the builder.
 func (_c *DatasourceCreate) Mutation() *DatasourceMutation {
 	return _c.mutation
@@ -303,6 +350,22 @@ func (_c *DatasourceCreate) defaults() {
 	if _, ok := _c.mutation.Remark(); !ok {
 		v := datasource.DefaultRemark
 		_c.mutation.SetRemark(v)
+	}
+	if _, ok := _c.mutation.AvailabilityAlertEnabled(); !ok {
+		v := datasource.DefaultAvailabilityAlertEnabled
+		_c.mutation.SetAvailabilityAlertEnabled(v)
+	}
+	if _, ok := _c.mutation.FailureWindowMinutes(); !ok {
+		v := datasource.DefaultFailureWindowMinutes
+		_c.mutation.SetFailureWindowMinutes(v)
+	}
+	if _, ok := _c.mutation.FailureThreshold(); !ok {
+		v := datasource.DefaultFailureThreshold
+		_c.mutation.SetFailureThreshold(v)
+	}
+	if _, ok := _c.mutation.NotificationGroupUids(); !ok {
+		v := datasource.DefaultNotificationGroupUids
+		_c.mutation.SetNotificationGroupUids(v)
 	}
 }
 
@@ -393,6 +456,18 @@ func (_c *DatasourceCreate) check() error {
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		return &ValidationError{Name: "remark", err: errors.New(`ent: missing required field "Datasource.remark"`)}
+	}
+	if _, ok := _c.mutation.AvailabilityAlertEnabled(); !ok {
+		return &ValidationError{Name: "availability_alert_enabled", err: errors.New(`ent: missing required field "Datasource.availability_alert_enabled"`)}
+	}
+	if _, ok := _c.mutation.FailureWindowMinutes(); !ok {
+		return &ValidationError{Name: "failure_window_minutes", err: errors.New(`ent: missing required field "Datasource.failure_window_minutes"`)}
+	}
+	if _, ok := _c.mutation.FailureThreshold(); !ok {
+		return &ValidationError{Name: "failure_threshold", err: errors.New(`ent: missing required field "Datasource.failure_threshold"`)}
+	}
+	if _, ok := _c.mutation.NotificationGroupUids(); !ok {
+		return &ValidationError{Name: "notification_group_uids", err: errors.New(`ent: missing required field "Datasource.notification_group_uids"`)}
 	}
 	return nil
 }
@@ -491,6 +566,22 @@ func (_c *DatasourceCreate) createSpec() (*Datasource, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(datasource.FieldRemark, field.TypeString, value)
 		_node.Remark = value
+	}
+	if value, ok := _c.mutation.AvailabilityAlertEnabled(); ok {
+		_spec.SetField(datasource.FieldAvailabilityAlertEnabled, field.TypeBool, value)
+		_node.AvailabilityAlertEnabled = value
+	}
+	if value, ok := _c.mutation.FailureWindowMinutes(); ok {
+		_spec.SetField(datasource.FieldFailureWindowMinutes, field.TypeInt, value)
+		_node.FailureWindowMinutes = value
+	}
+	if value, ok := _c.mutation.FailureThreshold(); ok {
+		_spec.SetField(datasource.FieldFailureThreshold, field.TypeInt, value)
+		_node.FailureThreshold = value
+	}
+	if value, ok := _c.mutation.NotificationGroupUids(); ok {
+		_spec.SetField(datasource.FieldNotificationGroupUids, field.TypeJSON, value)
+		_node.NotificationGroupUids = value
 	}
 	return _node, _spec
 }

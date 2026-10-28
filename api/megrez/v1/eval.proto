@@ -99,10 +99,15 @@ message ReportEvalRequest {
   string eval_slot = 2;
   // 为真表示驱动尚未实现，不产生 FIRING。
   bool skipped = 3;
-  // 本次命中的序列。skipped 为真时留空。
+  // 本次命中的序列。skipped 或 failed 为真时留空。
   repeated EvalHit hits = 4;
   // 本次评测的数据源标识。
   string datasource_uid = 5;
+  // 为真表示本次向数据源的查询失败（连接失败、超时、上游错误或响应无法解析），
+  // 用于数据源可用性判断；无效表达式等客户端错误不会置为 true。
+  bool failed = 6;
+  // 失败原因，failed 为真时有值，用于事件描述和排查。
+  string failure_message = 7;
 }
 
 // 一条命中序列。

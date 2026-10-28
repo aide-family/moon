@@ -20,7 +20,8 @@ func (AlertEvent) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("uid").NotEmpty().Immutable(),
 		field.String("namespace_uid").NotEmpty(),
-		field.String("rule_uid").NotEmpty(),
+		// 数据源可用性事件没有关联规则，rule_uid 为空。
+		field.String("rule_uid").Default(""),
 		field.String("datasource_uid").Default(""),
 		field.String("fingerprint").NotEmpty(),
 		field.Enum("status").Values("FIRING", "RECOVERED", "RECOVERED_BY_MANUAL"),

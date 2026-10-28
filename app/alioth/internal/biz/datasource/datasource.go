@@ -27,6 +27,12 @@ const (
 	maxLogLimit = 5000
 	// maxDatasourceName 与 proto 校验保持一致，避免绕过 HTTP 的调用写入超长名称。
 	maxDatasourceName = 64
+	// 可用性告警的默认窗口、默认阈值和允许的上限，与 proto 校验保持一致。
+	defaultFailureWindowMinutes = 5
+	defaultFailureThreshold     = 3
+	maxFailureWindowMinutes     = 1440
+	maxFailureThreshold         = 1000
+	maxNotificationGroups       = 20
 )
 
 // Gateway 管理数据源配置，并把查询请求转发给对应驱动。
@@ -34,11 +40,12 @@ type Gateway struct {
 	datasources  repository.DatasourceRepo
 	dictionaries repository.AlertDictionaryRepo
 	events       repository.AlertEventRepo
+	groups       repository.NotificationRepo
 	access       access.Checker
 }
 
-func NewGateway(datasources repository.DatasourceRepo, dictionaries repository.AlertDictionaryRepo, events repository.AlertEventRepo, checker access.Checker) *Gateway {
-	return &Gateway{datasources: datasources, dictionaries: dictionaries, events: events, access: checker}
+func NewGateway(datasources repository.DatasourceRepo, dictionaries repository.AlertDictionaryRepo, events repository.AlertEventRepo, groups repository.NotificationRepo, checker access.Checker) *Gateway {
+	return &Gateway{datasources: datasources, dictionaries: dictionaries, events: events, groups: groups, access: checker}
 }
 
 // CreateDatasource 先核对类型和驱动是否成对，再确认数据源级别属于当前租户。
@@ -53,6 +60,9 @@ func (gateway *Gateway) CreateDatasource(ctx context.Context, in bo.Datasource) 
 		return nil, err
 	}
 	if err := gateway.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
+		return nil, err
+	}
+	if err := gateway.requireNotificationGroups(ctx, ns, in.NotificationGroupUIDs); err != nil {
 		return nil, err
 	}
 	labels, err := labelsutil.NormalizeObject(in.Labels)
@@ -77,6 +87,9 @@ func (gateway *Gateway) UpdateDatasource(ctx context.Context, in bo.Datasource) 
 	if err := gateway.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
+	if err := gateway.requireNotificationGroups(ctx, ns, in.NotificationGroupUIDs); err != nil {
+		return nil, err
+	}
 	labels, err := labelsutil.NormalizeObject(in.Labels)
 	if err != nil {
 		return nil, err
@@ -97,6 +110,13 @@ func (gateway *Gateway) UpdateDatasource(ctx context.Context, in bo.Datasource) 
 	if previous.LevelUID != item.LevelUID || previous.Labels != item.Labels ||
 		previous.Type != item.Type || previous.Driver != item.Driver {
 		if err := gateway.events.RecoverSource(ctx, ns, nil, []string{item.UID}, nil); err != nil {
+			return nil, gateway.access.Wrap(err)
+		}
+	}
+	// 可用性告警被关掉时，已经触发的可用性事件没有后续评测来恢复，
+	// 必须在这里主动收口；普通规则事件不受影响，交给上面的配置变化判断。
+	if previous.AvailabilityAlertEnabled && !item.AvailabilityAlertEnabled {
+		if err := gateway.events.RecoverAvailability(ctx, ns, item.UID); err != nil {
 			return nil, gateway.access.Wrap(err)
 		}
 	}
@@ -323,6 +343,17 @@ func (gateway *Gateway) requireDatasourceLevel(ctx context.Context, namespaceUID
 	return nil
 }
 
+// requireNotificationGroups 确认绑定的通知组都属于当前租户。
+// 停用的通知组允许保留绑定，恢复或投递时由分发逻辑跳过。
+func (gateway *Gateway) requireNotificationGroups(ctx context.Context, namespaceUID string, groupUIDs []string) error {
+	for _, groupUID := range groupUIDs {
+		if _, err := gateway.groups.GetGroup(ctx, namespaceUID, groupUID); err != nil {
+			return gateway.access.Wrap(err)
+		}
+	}
+	return nil
+}
+
 func validateDatasource(in bo.Datasource) error {
 	if !DriverMatches(in.Type, in.Driver) {
 		return merr.Invalid("invalid request")
@@ -339,6 +370,20 @@ func validateDatasource(in bo.Datasource) error {
 	if err != nil || endpoint.Host == "" || (endpoint.Scheme != "http" && endpoint.Scheme != "https") {
 		return merr.Invalid("invalid request")
 	}
+	if in.FailureWindowMinutes < 0 || in.FailureWindowMinutes > maxFailureWindowMinutes {
+		return merr.Invalid("invalid request")
+	}
+	if in.FailureThreshold < 0 || in.FailureThreshold > maxFailureThreshold {
+		return merr.Invalid("invalid request")
+	}
+	if len(in.NotificationGroupUIDs) > maxNotificationGroups {
+		return merr.Invalid("too many notification groups")
+	}
+	// 关闭可用性告警时允许保留窗口和阈值，方便下次直接启用；
+	// 启用时两者必须都是正数，否则永远不会触发。
+	if in.AvailabilityAlertEnabled && (in.FailureWindowMinutes <= 0 || in.FailureThreshold <= 0) {
+		return merr.Invalid("invalid request")
+	}
 	return nil
 }
 
@@ -353,6 +398,32 @@ func normalizeDatasource(in *bo.Datasource) {
 		in.IndexPattern = ""
 		in.TimeField = ""
 	}
+	in.NotificationGroupUIDs = normalizeUIDs(in.NotificationGroupUIDs)
+	// 0 表示“没有配置”，落库时用默认值，升级前已有的数据源也有确定的窗口和阈值。
+	if in.FailureWindowMinutes == 0 {
+		in.FailureWindowMinutes = defaultFailureWindowMinutes
+	}
+	if in.FailureThreshold == 0 {
+		in.FailureThreshold = defaultFailureThreshold
+	}
+}
+
+// normalizeUIDs 去掉空白和重复的标识，保持用户选择的顺序。
+func normalizeUIDs(uids []string) []string {
+	seen := make(map[string]struct{}, len(uids))
+	out := make([]string, 0, len(uids))
+	for _, uid := range uids {
+		uid = strings.TrimSpace(uid)
+		if uid == "" {
+			continue
+		}
+		if _, ok := seen[uid]; ok {
+			continue
+		}
+		seen[uid] = struct{}{}
+		out = append(out, uid)
+	}
+	return out
 }
 
 // DriverMatches 判断数据源类型和驱动是否匹配。

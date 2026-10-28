@@ -49,8 +49,8 @@ var (
 	FingerprintValidator func(string) error
 	// EventUIDValidator is a validator for the "event_uid" field. It is called by the builders before save.
 	EventUIDValidator func(string) error
-	// RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
-	RuleUIDValidator func(string) error
+	// DefaultRuleUID holds the default value on creation for the "rule_uid" field.
+	DefaultRuleUID string
 )
 
 // OrderOption defines the ordering options for the AlertEventFiring queries.

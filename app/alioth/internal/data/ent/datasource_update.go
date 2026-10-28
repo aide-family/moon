@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
@@ -251,6 +251,74 @@ func (_u *DatasourceUpdate) SetNillableRemark(v *string) *DatasourceUpdate {
 	return _u
 }
 
+// SetAvailabilityAlertEnabled sets the "availability_alert_enabled" field.
+func (_u *DatasourceUpdate) SetAvailabilityAlertEnabled(v bool) *DatasourceUpdate {
+	_u.mutation.SetAvailabilityAlertEnabled(v)
+	return _u
+}
+
+// SetNillableAvailabilityAlertEnabled sets the "availability_alert_enabled" field if the given value is not nil.
+func (_u *DatasourceUpdate) SetNillableAvailabilityAlertEnabled(v *bool) *DatasourceUpdate {
+	if v != nil {
+		_u.SetAvailabilityAlertEnabled(*v)
+	}
+	return _u
+}
+
+// SetFailureWindowMinutes sets the "failure_window_minutes" field.
+func (_u *DatasourceUpdate) SetFailureWindowMinutes(v int) *DatasourceUpdate {
+	_u.mutation.ResetFailureWindowMinutes()
+	_u.mutation.SetFailureWindowMinutes(v)
+	return _u
+}
+
+// SetNillableFailureWindowMinutes sets the "failure_window_minutes" field if the given value is not nil.
+func (_u *DatasourceUpdate) SetNillableFailureWindowMinutes(v *int) *DatasourceUpdate {
+	if v != nil {
+		_u.SetFailureWindowMinutes(*v)
+	}
+	return _u
+}
+
+// AddFailureWindowMinutes adds value to the "failure_window_minutes" field.
+func (_u *DatasourceUpdate) AddFailureWindowMinutes(v int) *DatasourceUpdate {
+	_u.mutation.AddFailureWindowMinutes(v)
+	return _u
+}
+
+// SetFailureThreshold sets the "failure_threshold" field.
+func (_u *DatasourceUpdate) SetFailureThreshold(v int) *DatasourceUpdate {
+	_u.mutation.ResetFailureThreshold()
+	_u.mutation.SetFailureThreshold(v)
+	return _u
+}
+
+// SetNillableFailureThreshold sets the "failure_threshold" field if the given value is not nil.
+func (_u *DatasourceUpdate) SetNillableFailureThreshold(v *int) *DatasourceUpdate {
+	if v != nil {
+		_u.SetFailureThreshold(*v)
+	}
+	return _u
+}
+
+// AddFailureThreshold adds value to the "failure_threshold" field.
+func (_u *DatasourceUpdate) AddFailureThreshold(v int) *DatasourceUpdate {
+	_u.mutation.AddFailureThreshold(v)
+	return _u
+}
+
+// SetNotificationGroupUids sets the "notification_group_uids" field.
+func (_u *DatasourceUpdate) SetNotificationGroupUids(v []string) *DatasourceUpdate {
+	_u.mutation.SetNotificationGroupUids(v)
+	return _u
+}
+
+// AppendNotificationGroupUids appends value to the "notification_group_uids" field.
+func (_u *DatasourceUpdate) AppendNotificationGroupUids(v []string) *DatasourceUpdate {
+	_u.mutation.AppendNotificationGroupUids(v)
+	return _u
+}
+
 // Mutation returns the DatasourceMutation object of the builder.
 func (_u *DatasourceUpdate) Mutation() *DatasourceMutation {
 	return _u.mutation
@@ -389,6 +457,29 @@ func (_u *DatasourceUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(datasource.FieldRemark, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AvailabilityAlertEnabled(); ok {
+		_spec.SetField(datasource.FieldAvailabilityAlertEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FailureWindowMinutes(); ok {
+		_spec.SetField(datasource.FieldFailureWindowMinutes, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFailureWindowMinutes(); ok {
+		_spec.AddField(datasource.FieldFailureWindowMinutes, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.FailureThreshold(); ok {
+		_spec.SetField(datasource.FieldFailureThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFailureThreshold(); ok {
+		_spec.AddField(datasource.FieldFailureThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.NotificationGroupUids(); ok {
+		_spec.SetField(datasource.FieldNotificationGroupUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedNotificationGroupUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, datasource.FieldNotificationGroupUids, value)
+		})
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -632,6 +723,74 @@ func (_u *DatasourceUpdateOne) SetNillableRemark(v *string) *DatasourceUpdateOne
 	return _u
 }
 
+// SetAvailabilityAlertEnabled sets the "availability_alert_enabled" field.
+func (_u *DatasourceUpdateOne) SetAvailabilityAlertEnabled(v bool) *DatasourceUpdateOne {
+	_u.mutation.SetAvailabilityAlertEnabled(v)
+	return _u
+}
+
+// SetNillableAvailabilityAlertEnabled sets the "availability_alert_enabled" field if the given value is not nil.
+func (_u *DatasourceUpdateOne) SetNillableAvailabilityAlertEnabled(v *bool) *DatasourceUpdateOne {
+	if v != nil {
+		_u.SetAvailabilityAlertEnabled(*v)
+	}
+	return _u
+}
+
+// SetFailureWindowMinutes sets the "failure_window_minutes" field.
+func (_u *DatasourceUpdateOne) SetFailureWindowMinutes(v int) *DatasourceUpdateOne {
+	_u.mutation.ResetFailureWindowMinutes()
+	_u.mutation.SetFailureWindowMinutes(v)
+	return _u
+}
+
+// SetNillableFailureWindowMinutes sets the "failure_window_minutes" field if the given value is not nil.
+func (_u *DatasourceUpdateOne) SetNillableFailureWindowMinutes(v *int) *DatasourceUpdateOne {
+	if v != nil {
+		_u.SetFailureWindowMinutes(*v)
+	}
+	return _u
+}
+
+// AddFailureWindowMinutes adds value to the "failure_window_minutes" field.
+func (_u *DatasourceUpdateOne) AddFailureWindowMinutes(v int) *DatasourceUpdateOne {
+	_u.mutation.AddFailureWindowMinutes(v)
+	return _u
+}
+
+// SetFailureThreshold sets the "failure_threshold" field.
+func (_u *DatasourceUpdateOne) SetFailureThreshold(v int) *DatasourceUpdateOne {
+	_u.mutation.ResetFailureThreshold()
+	_u.mutation.SetFailureThreshold(v)
+	return _u
+}
+
+// SetNillableFailureThreshold sets the "failure_threshold" field if the given value is not nil.
+func (_u *DatasourceUpdateOne) SetNillableFailureThreshold(v *int) *DatasourceUpdateOne {
+	if v != nil {
+		_u.SetFailureThreshold(*v)
+	}
+	return _u
+}
+
+// AddFailureThreshold adds value to the "failure_threshold" field.
+func (_u *DatasourceUpdateOne) AddFailureThreshold(v int) *DatasourceUpdateOne {
+	_u.mutation.AddFailureThreshold(v)
+	return _u
+}
+
+// SetNotificationGroupUids sets the "notification_group_uids" field.
+func (_u *DatasourceUpdateOne) SetNotificationGroupUids(v []string) *DatasourceUpdateOne {
+	_u.mutation.SetNotificationGroupUids(v)
+	return _u
+}
+
+// AppendNotificationGroupUids appends value to the "notification_group_uids" field.
+func (_u *DatasourceUpdateOne) AppendNotificationGroupUids(v []string) *DatasourceUpdateOne {
+	_u.mutation.AppendNotificationGroupUids(v)
+	return _u
+}
+
 // Mutation returns the DatasourceMutation object of the builder.
 func (_u *DatasourceUpdateOne) Mutation() *DatasourceMutation {
 	return _u.mutation
@@ -800,6 +959,29 @@ func (_u *DatasourceUpdateOne) sqlSave(ctx context.Context) (_node *Datasource, 
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(datasource.FieldRemark, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AvailabilityAlertEnabled(); ok {
+		_spec.SetField(datasource.FieldAvailabilityAlertEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FailureWindowMinutes(); ok {
+		_spec.SetField(datasource.FieldFailureWindowMinutes, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFailureWindowMinutes(); ok {
+		_spec.AddField(datasource.FieldFailureWindowMinutes, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.FailureThreshold(); ok {
+		_spec.SetField(datasource.FieldFailureThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFailureThreshold(); ok {
+		_spec.AddField(datasource.FieldFailureThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.NotificationGroupUids(); ok {
+		_spec.SetField(datasource.FieldNotificationGroupUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedNotificationGroupUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, datasource.FieldNotificationGroupUids, value)
+		})
 	}
 	_node = &Datasource{config: _u.config}
 	_spec.Assign = _node.assignValues

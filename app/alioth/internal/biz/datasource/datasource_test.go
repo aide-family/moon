@@ -128,3 +128,73 @@ func TestNormalizeLogQuery(t *testing.T) {
 		})
 	}
 }
+
+// availabilityDatasource 生成一条地址和驱动都合法、只用于测试可用性字段的数据源。
+func availabilityDatasource() bo.Datasource {
+	return bo.Datasource{
+		Name: "prom", Type: "METRICS", Driver: "METRICS_PROMETHEUS", Endpoint: "http://127.0.0.1:9090",
+	}
+}
+
+func TestNormalizeDatasourceAvailabilityDefaults(t *testing.T) {
+	item := availabilityDatasource()
+	normalizeDatasource(&item)
+	if item.FailureWindowMinutes != defaultFailureWindowMinutes || item.FailureThreshold != defaultFailureThreshold {
+		t.Fatalf("defaults = %d/%d", item.FailureWindowMinutes, item.FailureThreshold)
+	}
+	if item.NotificationGroupUIDs == nil || len(item.NotificationGroupUIDs) != 0 {
+		t.Fatalf("group uids = %#v, want empty slice", item.NotificationGroupUIDs)
+	}
+	if err := validateDatasource(item); err != nil {
+		t.Fatalf("disabled defaults should validate: %v", err)
+	}
+}
+
+func TestNormalizeDatasourceNotificationGroups(t *testing.T) {
+	item := availabilityDatasource()
+	item.NotificationGroupUIDs = []string{" group-1 ", "", "group-2", "group-1"}
+	normalizeDatasource(&item)
+	if len(item.NotificationGroupUIDs) != 2 || item.NotificationGroupUIDs[0] != "group-1" || item.NotificationGroupUIDs[1] != "group-2" {
+		t.Fatalf("group uids = %#v", item.NotificationGroupUIDs)
+	}
+}
+
+func TestValidateDatasourceAvailability(t *testing.T) {
+	valid := []bo.Datasource{
+		{AvailabilityAlertEnabled: true, FailureWindowMinutes: 1, FailureThreshold: 1},
+		{AvailabilityAlertEnabled: true, FailureWindowMinutes: maxFailureWindowMinutes, FailureThreshold: maxFailureThreshold},
+		{AvailabilityAlertEnabled: false, FailureWindowMinutes: 0, FailureThreshold: 0},
+	}
+	for _, tc := range valid {
+		item := availabilityDatasource()
+		item.AvailabilityAlertEnabled = tc.AvailabilityAlertEnabled
+		item.FailureWindowMinutes = tc.FailureWindowMinutes
+		item.FailureThreshold = tc.FailureThreshold
+		if err := validateDatasource(item); err != nil {
+			t.Fatalf("validate(%+v) error = %v", tc, err)
+		}
+	}
+
+	invalid := []bo.Datasource{
+		{AvailabilityAlertEnabled: true, FailureWindowMinutes: 0, FailureThreshold: 3},
+		{AvailabilityAlertEnabled: true, FailureWindowMinutes: 5, FailureThreshold: 0},
+		{AvailabilityAlertEnabled: true, FailureWindowMinutes: maxFailureWindowMinutes + 1, FailureThreshold: 3},
+		{AvailabilityAlertEnabled: true, FailureWindowMinutes: 5, FailureThreshold: maxFailureThreshold + 1},
+		{AvailabilityAlertEnabled: false, FailureWindowMinutes: -1, FailureThreshold: 3},
+	}
+	for _, tc := range invalid {
+		item := availabilityDatasource()
+		item.AvailabilityAlertEnabled = tc.AvailabilityAlertEnabled
+		item.FailureWindowMinutes = tc.FailureWindowMinutes
+		item.FailureThreshold = tc.FailureThreshold
+		if err := validateDatasource(item); !merr.IsInvalid(err) {
+			t.Fatalf("validate(%+v) error = %v", tc, err)
+		}
+	}
+
+	tooMany := availabilityDatasource()
+	tooMany.NotificationGroupUIDs = make([]string, maxNotificationGroups+1)
+	if err := validateDatasource(tooMany); !merr.IsInvalid(err) {
+		t.Fatalf("too many groups error = %v", err)
+	}
+}

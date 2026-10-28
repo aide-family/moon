@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
@@ -351,11 +350,6 @@ func (_u *AlertEventUpdate) check() error {
 	if v, ok := _u.mutation.NamespaceUID(); ok {
 		if err := alertevent.NamespaceUIDValidator(v); err != nil {
 			return &ValidationError{Name: "namespace_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.namespace_uid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.RuleUID(); ok {
-		if err := alertevent.RuleUIDValidator(v); err != nil {
-			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.rule_uid": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Fingerprint(); ok {
@@ -804,11 +798,6 @@ func (_u *AlertEventUpdateOne) check() error {
 	if v, ok := _u.mutation.NamespaceUID(); ok {
 		if err := alertevent.NamespaceUIDValidator(v); err != nil {
 			return &ValidationError{Name: "namespace_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.namespace_uid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.RuleUID(); ok {
-		if err := alertevent.RuleUIDValidator(v); err != nil {
-			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.rule_uid": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Fingerprint(); ok {

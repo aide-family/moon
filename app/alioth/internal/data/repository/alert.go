@@ -78,6 +78,8 @@ type AlertEventRepo interface {
 	RecoverManual(ctx context.Context, namespaceUID string, uids []string) error
 	// RecoverSource 把仍在触发的事件记为恢复。规则、数据源、级别都为空时不处理。
 	RecoverSource(ctx context.Context, namespaceUID string, ruleUIDs, datasourceUIDs, levelUIDs []string) error
+	// RecoverAvailability 只恢复某个数据源当前触发的可用性事件，不影响该数据源下的规则事件。
+	RecoverAvailability(ctx context.Context, namespaceUID, datasourceUID string) error
 	Stats(ctx context.Context, namespaceUID string) (bo.AlertStats, error)
 	// Insight 按本地自然日聚合区间内的告警：新增、恢复、级别分布与闭环时长分位数。
 	Insight(ctx context.Context, namespaceUID string, from, to time.Time, loc *time.Location) (bo.AlertInsight, error)

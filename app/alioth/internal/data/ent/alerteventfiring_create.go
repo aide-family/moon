@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 )
 
@@ -44,6 +43,14 @@ func (_c *AlertEventFiringCreate) SetRuleUID(v string) *AlertEventFiringCreate {
 	return _c
 }
 
+// SetNillableRuleUID sets the "rule_uid" field if the given value is not nil.
+func (_c *AlertEventFiringCreate) SetNillableRuleUID(v *string) *AlertEventFiringCreate {
+	if v != nil {
+		_c.SetRuleUID(*v)
+	}
+	return _c
+}
+
 // Mutation returns the AlertEventFiringMutation object of the builder.
 func (_c *AlertEventFiringCreate) Mutation() *AlertEventFiringMutation {
 	return _c.mutation
@@ -51,6 +58,7 @@ func (_c *AlertEventFiringCreate) Mutation() *AlertEventFiringMutation {
 
 // Save creates the AlertEventFiring in the database.
 func (_c *AlertEventFiringCreate) Save(ctx context.Context) (*AlertEventFiring, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -73,6 +81,14 @@ func (_c *AlertEventFiringCreate) Exec(ctx context.Context) error {
 func (_c *AlertEventFiringCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *AlertEventFiringCreate) defaults() {
+	if _, ok := _c.mutation.RuleUID(); !ok {
+		v := alerteventfiring.DefaultRuleUID
+		_c.mutation.SetRuleUID(v)
 	}
 }
 
@@ -104,11 +120,6 @@ func (_c *AlertEventFiringCreate) check() error {
 	}
 	if _, ok := _c.mutation.RuleUID(); !ok {
 		return &ValidationError{Name: "rule_uid", err: errors.New(`ent: missing required field "AlertEventFiring.rule_uid"`)}
-	}
-	if v, ok := _c.mutation.RuleUID(); ok {
-		if err := alerteventfiring.RuleUIDValidator(v); err != nil {
-			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEventFiring.rule_uid": %w`, err)}
-		}
 	}
 	return nil
 }
@@ -173,6 +184,7 @@ func (_c *AlertEventFiringCreateBulk) Save(ctx context.Context) ([]*AlertEventFi
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*AlertEventFiringMutation)
 				if !ok {

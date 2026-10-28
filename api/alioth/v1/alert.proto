@@ -220,6 +220,16 @@ message DatasourceItem {
   string index_pattern = 13 [json_name = "indexPattern"];
   // Elasticsearch 时间字段。留空表示使用 @timestamp，仅对 LOGS_ELASTICSEARCH 生效。
   string time_field = 14 [json_name = "timeField"];
+  // 是否启用数据源可用性告警。
+  bool availability_alert_enabled = 15 [json_name = "availabilityAlertEnabled"];
+  // 可用性告警的统计窗口，单位分钟。启用时必须大于 0。
+  int32 failure_window_minutes = 16 [json_name = "failureWindowMinutes"];
+  // 统计窗口内触发可用性告警的请求失败次数阈值。启用时必须大于 0。
+  int32 failure_threshold = 17 [json_name = "failureThreshold"];
+  // 可用性告警绑定的通知组标识。事件直接投递给这些通知组，不经过告警订阅。
+  repeated string notification_group_uids = 18 [json_name = "notificationGroupUids"];
+  // 绑定的通知组名称，只用于展示。
+  repeated string notification_group_names = 19 [json_name = "notificationGroupNames"];
 }
 
 // 创建数据源。
@@ -248,6 +258,14 @@ message CreateDatasourceRequest {
   string index_pattern = 11 [json_name = "indexPattern", (buf.validate.field).string.max_len = 256];
   // Elasticsearch 时间字段。留空表示使用 @timestamp。
   string time_field = 12 [json_name = "timeField", (buf.validate.field).string.max_len = 128];
+  // 是否启用数据源可用性告警。
+  bool availability_alert_enabled = 13 [json_name = "availabilityAlertEnabled"];
+  // 可用性告警的统计窗口，单位分钟。启用时必须大于 0。
+  int32 failure_window_minutes = 14 [json_name = "failureWindowMinutes", (buf.validate.field).int32 = {gte: 0, lte: 1440}];
+  // 统计窗口内触发可用性告警的请求失败次数阈值。启用时必须大于 0。
+  int32 failure_threshold = 15 [json_name = "failureThreshold", (buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  // 可用性告警绑定的通知组标识。最多 20 个。
+  repeated string notification_group_uids = 16 [json_name = "notificationGroupUids", (buf.validate.field).repeated.max_items = 20];
 }
 
 // 创建数据源的结果。
@@ -284,6 +302,14 @@ message UpdateDatasourceRequest {
   string index_pattern = 12 [json_name = "indexPattern", (buf.validate.field).string.max_len = 256];
   // Elasticsearch 时间字段。留空表示使用 @timestamp。
   string time_field = 13 [json_name = "timeField", (buf.validate.field).string.max_len = 128];
+  // 是否启用数据源可用性告警。
+  bool availability_alert_enabled = 14 [json_name = "availabilityAlertEnabled"];
+  // 可用性告警的统计窗口，单位分钟。启用时必须大于 0。
+  int32 failure_window_minutes = 15 [json_name = "failureWindowMinutes", (buf.validate.field).int32 = {gte: 0, lte: 1440}];
+  // 统计窗口内触发可用性告警的请求失败次数阈值。启用时必须大于 0。
+  int32 failure_threshold = 16 [json_name = "failureThreshold", (buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  // 可用性告警绑定的通知组标识。最多 20 个。
+  repeated string notification_group_uids = 17 [json_name = "notificationGroupUids", (buf.validate.field).repeated.max_items = 20];
 }
 
 // 更新数据源的结果。

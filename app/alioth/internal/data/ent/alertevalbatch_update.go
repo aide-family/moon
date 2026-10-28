@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
@@ -67,6 +66,34 @@ func (_u *AlertEvalBatchUpdate) SetEvalSlot(v time.Time) *AlertEvalBatchUpdate {
 func (_u *AlertEvalBatchUpdate) SetNillableEvalSlot(v *time.Time) *AlertEvalBatchUpdate {
 	if v != nil {
 		_u.SetEvalSlot(*v)
+	}
+	return _u
+}
+
+// SetFailed sets the "failed" field.
+func (_u *AlertEvalBatchUpdate) SetFailed(v bool) *AlertEvalBatchUpdate {
+	_u.mutation.SetFailed(v)
+	return _u
+}
+
+// SetNillableFailed sets the "failed" field if the given value is not nil.
+func (_u *AlertEvalBatchUpdate) SetNillableFailed(v *bool) *AlertEvalBatchUpdate {
+	if v != nil {
+		_u.SetFailed(*v)
+	}
+	return _u
+}
+
+// SetFailureMessage sets the "failure_message" field.
+func (_u *AlertEvalBatchUpdate) SetFailureMessage(v string) *AlertEvalBatchUpdate {
+	_u.mutation.SetFailureMessage(v)
+	return _u
+}
+
+// SetNillableFailureMessage sets the "failure_message" field if the given value is not nil.
+func (_u *AlertEvalBatchUpdate) SetNillableFailureMessage(v *string) *AlertEvalBatchUpdate {
+	if v != nil {
+		_u.SetFailureMessage(*v)
 	}
 	return _u
 }
@@ -139,6 +166,12 @@ func (_u *AlertEvalBatchUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if value, ok := _u.mutation.EvalSlot(); ok {
 		_spec.SetField(alertevalbatch.FieldEvalSlot, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.Failed(); ok {
+		_spec.SetField(alertevalbatch.FieldFailed, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FailureMessage(); ok {
+		_spec.SetField(alertevalbatch.FieldFailureMessage, field.TypeString, value)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{alertevalbatch.Label}
@@ -197,6 +230,34 @@ func (_u *AlertEvalBatchUpdateOne) SetEvalSlot(v time.Time) *AlertEvalBatchUpdat
 func (_u *AlertEvalBatchUpdateOne) SetNillableEvalSlot(v *time.Time) *AlertEvalBatchUpdateOne {
 	if v != nil {
 		_u.SetEvalSlot(*v)
+	}
+	return _u
+}
+
+// SetFailed sets the "failed" field.
+func (_u *AlertEvalBatchUpdateOne) SetFailed(v bool) *AlertEvalBatchUpdateOne {
+	_u.mutation.SetFailed(v)
+	return _u
+}
+
+// SetNillableFailed sets the "failed" field if the given value is not nil.
+func (_u *AlertEvalBatchUpdateOne) SetNillableFailed(v *bool) *AlertEvalBatchUpdateOne {
+	if v != nil {
+		_u.SetFailed(*v)
+	}
+	return _u
+}
+
+// SetFailureMessage sets the "failure_message" field.
+func (_u *AlertEvalBatchUpdateOne) SetFailureMessage(v string) *AlertEvalBatchUpdateOne {
+	_u.mutation.SetFailureMessage(v)
+	return _u
+}
+
+// SetNillableFailureMessage sets the "failure_message" field if the given value is not nil.
+func (_u *AlertEvalBatchUpdateOne) SetNillableFailureMessage(v *string) *AlertEvalBatchUpdateOne {
+	if v != nil {
+		_u.SetFailureMessage(*v)
 	}
 	return _u
 }
@@ -298,6 +359,12 @@ func (_u *AlertEvalBatchUpdateOne) sqlSave(ctx context.Context) (_node *AlertEva
 	}
 	if value, ok := _u.mutation.EvalSlot(); ok {
 		_spec.SetField(alertevalbatch.FieldEvalSlot, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Failed(); ok {
+		_spec.SetField(alertevalbatch.FieldFailed, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FailureMessage(); ok {
+		_spec.SetField(alertevalbatch.FieldFailureMessage, field.TypeString, value)
 	}
 	_node = &AlertEvalBatch{config: _u.config}
 	_spec.Assign = _node.assignValues

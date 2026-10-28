@@ -67,12 +67,16 @@ type WorkerStatus struct {
 }
 
 // EvalReport is a rule evaluation result.
+// Failed marks a datasource request failure that alioth counts toward availability;
+// Hits stays empty in that case and the failed batch never recovers rule events.
 type EvalReport struct {
-	RuleUID       string
-	DatasourceUID string
-	EvalSlot      time.Time
-	Skipped       bool
-	Hits          []EvalHit
+	RuleUID        string
+	DatasourceUID  string
+	EvalSlot       time.Time
+	Skipped        bool
+	Failed         bool
+	FailureMessage string
+	Hits           []EvalHit
 }
 
 // Sample 是一个时间序列。Step 是数据源的时间桶秒数，只有按桶聚合的结果

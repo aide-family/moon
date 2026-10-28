@@ -46,7 +46,8 @@ func (s *EvalService) ReportEval(ctx context.Context, req *megrezv1.ReportEvalRe
 	}
 	if err := s.coordinator.Report(ctx, bo.EvalReport{
 		RuleUID: req.GetRuleUid(), DatasourceUID: req.GetDatasourceUid(),
-		EvalSlot: slot.UTC(), Skipped: req.GetSkipped(), Hits: hits,
+		EvalSlot: slot.UTC(), Skipped: req.GetSkipped(), Failed: req.GetFailed(),
+		FailureMessage: req.GetFailureMessage(), Hits: hits,
 	}); err != nil {
 		return nil, err
 	}

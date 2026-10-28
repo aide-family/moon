@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 )
 
@@ -43,6 +42,48 @@ func (_c *AlertEvalBatchCreate) SetEvalSlot(v time.Time) *AlertEvalBatchCreate {
 func (_c *AlertEvalBatchCreate) SetNillableEvalSlot(v *time.Time) *AlertEvalBatchCreate {
 	if v != nil {
 		_c.SetEvalSlot(*v)
+	}
+	return _c
+}
+
+// SetFailed sets the "failed" field.
+func (_c *AlertEvalBatchCreate) SetFailed(v bool) *AlertEvalBatchCreate {
+	_c.mutation.SetFailed(v)
+	return _c
+}
+
+// SetNillableFailed sets the "failed" field if the given value is not nil.
+func (_c *AlertEvalBatchCreate) SetNillableFailed(v *bool) *AlertEvalBatchCreate {
+	if v != nil {
+		_c.SetFailed(*v)
+	}
+	return _c
+}
+
+// SetFailureMessage sets the "failure_message" field.
+func (_c *AlertEvalBatchCreate) SetFailureMessage(v string) *AlertEvalBatchCreate {
+	_c.mutation.SetFailureMessage(v)
+	return _c
+}
+
+// SetNillableFailureMessage sets the "failure_message" field if the given value is not nil.
+func (_c *AlertEvalBatchCreate) SetNillableFailureMessage(v *string) *AlertEvalBatchCreate {
+	if v != nil {
+		_c.SetFailureMessage(*v)
+	}
+	return _c
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (_c *AlertEvalBatchCreate) SetCreatedAt(v time.Time) *AlertEvalBatchCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *AlertEvalBatchCreate) SetNillableCreatedAt(v *time.Time) *AlertEvalBatchCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
 	}
 	return _c
 }
@@ -86,6 +127,18 @@ func (_c *AlertEvalBatchCreate) defaults() {
 		v := alertevalbatch.DefaultEvalSlot()
 		_c.mutation.SetEvalSlot(v)
 	}
+	if _, ok := _c.mutation.Failed(); !ok {
+		v := alertevalbatch.DefaultFailed
+		_c.mutation.SetFailed(v)
+	}
+	if _, ok := _c.mutation.FailureMessage(); !ok {
+		v := alertevalbatch.DefaultFailureMessage
+		_c.mutation.SetFailureMessage(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := alertevalbatch.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -108,6 +161,15 @@ func (_c *AlertEvalBatchCreate) check() error {
 	}
 	if _, ok := _c.mutation.EvalSlot(); !ok {
 		return &ValidationError{Name: "eval_slot", err: errors.New(`ent: missing required field "AlertEvalBatch.eval_slot"`)}
+	}
+	if _, ok := _c.mutation.Failed(); !ok {
+		return &ValidationError{Name: "failed", err: errors.New(`ent: missing required field "AlertEvalBatch.failed"`)}
+	}
+	if _, ok := _c.mutation.FailureMessage(); !ok {
+		return &ValidationError{Name: "failure_message", err: errors.New(`ent: missing required field "AlertEvalBatch.failure_message"`)}
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "AlertEvalBatch.created_at"`)}
 	}
 	return nil
 }
@@ -146,6 +208,18 @@ func (_c *AlertEvalBatchCreate) createSpec() (*AlertEvalBatch, *sqlgraph.CreateS
 	if value, ok := _c.mutation.EvalSlot(); ok {
 		_spec.SetField(alertevalbatch.FieldEvalSlot, field.TypeTime, value)
 		_node.EvalSlot = value
+	}
+	if value, ok := _c.mutation.Failed(); ok {
+		_spec.SetField(alertevalbatch.FieldFailed, field.TypeBool, value)
+		_node.Failed = value
+	}
+	if value, ok := _c.mutation.FailureMessage(); ok {
+		_spec.SetField(alertevalbatch.FieldFailureMessage, field.TypeString, value)
+		_node.FailureMessage = value
+	}
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(alertevalbatch.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
 	}
 	return _node, _spec
 }

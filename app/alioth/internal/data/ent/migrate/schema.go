@@ -109,6 +109,9 @@ var (
 		{Name: "rule_uid", Type: field.TypeString},
 		{Name: "datasource_uid", Type: field.TypeString},
 		{Name: "eval_slot", Type: field.TypeTime},
+		{Name: "failed", Type: field.TypeBool, Default: false},
+		{Name: "failure_message", Type: field.TypeString, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
 	}
 	// AlertEvalBatchesTable holds the schema information for the "alert_eval_batches" table.
 	AlertEvalBatchesTable = &schema.Table{
@@ -121,6 +124,11 @@ var (
 				Unique:  true,
 				Columns: []*schema.Column{AlertEvalBatchesColumns[1], AlertEvalBatchesColumns[2], AlertEvalBatchesColumns[3]},
 			},
+			{
+				Name:    "alertevalbatch_datasource_uid_failed_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEvalBatchesColumns[2], AlertEvalBatchesColumns[4], AlertEvalBatchesColumns[6]},
+			},
 		},
 	}
 	// AlertEventsColumns holds the columns for the "alert_events" table.
@@ -130,7 +138,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "uid", Type: field.TypeString},
 		{Name: "namespace_uid", Type: field.TypeString},
-		{Name: "rule_uid", Type: field.TypeString},
+		{Name: "rule_uid", Type: field.TypeString, Default: ""},
 		{Name: "datasource_uid", Type: field.TypeString, Default: ""},
 		{Name: "fingerprint", Type: field.TypeString},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"FIRING", "RECOVERED", "RECOVERED_BY_MANUAL"}},
@@ -216,7 +224,7 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "fingerprint", Type: field.TypeString},
 		{Name: "event_uid", Type: field.TypeString},
-		{Name: "rule_uid", Type: field.TypeString},
+		{Name: "rule_uid", Type: field.TypeString, Default: ""},
 	}
 	// AlertEventFiringsTable holds the schema information for the "alert_event_firings" table.
 	AlertEventFiringsTable = &schema.Table{
@@ -532,6 +540,10 @@ var (
 		{Name: "level_uid", Type: field.TypeString, Default: ""},
 		{Name: "labels", Type: field.TypeString, Default: "{}"},
 		{Name: "remark", Type: field.TypeString, Default: ""},
+		{Name: "availability_alert_enabled", Type: field.TypeBool, Default: false},
+		{Name: "failure_window_minutes", Type: field.TypeInt, Default: 5},
+		{Name: "failure_threshold", Type: field.TypeInt, Default: 3},
+		{Name: "notification_group_uids", Type: field.TypeJSON},
 	}
 	// DatasourcesTable holds the schema information for the "datasources" table.
 	DatasourcesTable = &schema.Table{

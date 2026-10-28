@@ -87,7 +87,8 @@ func TestUpdateDatasourceLevelRecoversEvents(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gateway := datasource.NewGateway(sources, dictionaries, events, access.Checker{
+	notifications := NewNotificationRepo(store, slog.Default())
+	gateway := datasource.NewGateway(sources, dictionaries, events, notifications, access.Checker{
 		Namespaces: testNamespaces{}, Roles: testRoles{}, Log: slog.Default(),
 	})
 	runCtx := actor.WithUser(actor.WithNamespace(ctx, ns), userUID)

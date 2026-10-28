@@ -3,8 +3,11 @@ package data
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log/slog"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,9 +25,14 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/pkg/fingerprint"
 	labelsutil "github.com/aide-family/moon/pkg/labels"
 	"github.com/aide-family/moon/pkg/merr"
 )
+
+// errAvailabilityRaced 表示另一个副本已经为同一数据源建立了可用性事件。
+// 事务需要回滚，但调用方不需要把这次并发当成错误。
+var errAvailabilityRaced = errors.New("availability event already created")
 
 func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, report bo.EvalReport) error {
 	// 分区由 partition.Maintainer 定时预创建：写路径不再执行 DDL，避免 catalog 锁和写延迟。
@@ -50,6 +58,29 @@ func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, rep
 		return nil
 	}
 	report.DatasourceUID = dsUID
+
+	// 查询失败不能当成恢复信号：失败批次只用于数据源可用性统计，
+	// 不进入 applyHits，否则仍在触发的规则事件会被误恢复。
+	if report.Failed {
+		inserted, err := r.recordFailedBatch(ctx, tx, report)
+		if err != nil {
+			return err
+		}
+		if inserted {
+			if err := r.applyAvailabilityFailure(ctx, tx, rule.NamespaceUID, report); err != nil {
+				if errors.Is(err, errAvailabilityRaced) {
+					// 另一副本已经建立事件并提交；本事务回滚即可，错过的通知由那个副本负责。
+					return nil
+				}
+				return err
+			}
+		}
+		if err := tx.Commit(); err != nil {
+			return r.fail(err)
+		}
+		return nil
+	}
+
 	// 跳过评测也要走恢复判断：规则从指标改成日志/链路后，旧的 FIRING 不能永久留在实时列表里。
 	recovered, err := r.applyHits(ctx, tx, rule, report)
 	if err != nil {
@@ -65,6 +96,15 @@ func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, rep
 		}
 		return r.fail(err)
 	}
+	// 评测成功说明数据源在本次请求时可用。跳过驱动的评测没有真正发出请求，
+	// 不能作为恢复依据，只在真实查询成功时收口可用性事件。
+	if !report.Skipped {
+		if item, err := r.recoverAvailability(ctx, tx, rule.NamespaceUID, dsUID, report.EvalSlot); err != nil {
+			return err
+		} else if item != nil {
+			recovered = append(recovered, *item)
+		}
+	}
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)
 	}
@@ -72,6 +112,238 @@ func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, rep
 	// 历史查询仍能在合并结果里看到它，不会因为分库暂时不可用而丢历史。
 	r.archiveEvents(ctx, rule.NamespaceUID, recovered)
 	return nil
+}
+
+// maxFailureMessageLength 限制入库的失败原因长度，避免上游响应把事件描述写爆。
+const maxFailureMessageLength = 512
+
+// recordFailedBatch 记录一次数据源请求失败。返回 false 表示同一批次已经回写过，
+// 此时不重复计数，也不重复判断阈值。
+func (r *alertEventRepo) recordFailedBatch(ctx context.Context, tx *ent.Tx, report bo.EvalReport) (bool, error) {
+	err := tx.AlertEvalBatch.Create().
+		SetRuleUID(report.RuleUID).
+		SetDatasourceUID(report.DatasourceUID).
+		SetEvalSlot(report.EvalSlot).
+		SetFailed(true).
+		SetFailureMessage(truncateText(report.FailureMessage, maxFailureMessageLength)).
+		Exec(ctx)
+	if err != nil {
+		if ent.IsConstraintError(err) {
+			return false, nil
+		}
+		return false, r.fail(err)
+	}
+	return true, nil
+}
+
+// applyAvailabilityFailure 按数据源配置的窗口和阈值判断是否触发可用性告警。
+// 同一数据源最多只有一条仍在触发的可用性事件；后续失败只刷新事件内容，
+// 不重复发送 FIRING 通知。
+func (r *alertEventRepo) applyAvailabilityFailure(ctx context.Context, tx *ent.Tx, namespaceUID string, report bo.EvalReport) error {
+	source, err := tx.Datasource.Query().Where(datasource.UIDEQ(report.DatasourceUID)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil
+		}
+		return r.fail(err)
+	}
+	if !source.AvailabilityAlertEnabled || source.FailureWindowMinutes <= 0 || source.FailureThreshold <= 0 {
+		return nil
+	}
+	now := time.Now().UTC()
+	since := now.Add(-time.Duration(source.FailureWindowMinutes) * time.Minute)
+	count, err := tx.AlertEvalBatch.Query().Where(
+		alertevalbatch.DatasourceUIDEQ(report.DatasourceUID),
+		alertevalbatch.FailedEQ(true),
+		alertevalbatch.CreatedAtGTE(since),
+	).Count(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if count < source.FailureThreshold {
+		return nil
+	}
+	levelNames := r.levelNames(ctx, []string{source.LevelUID})
+	meta := datasourceMetaInfo{Name: source.Name, Labels: source.Labels, Endpoint: source.Endpoint, LevelUID: source.LevelUID}
+	labels := mergeEventLabels("", meta, "", levelNames)
+	summary := availabilitySummary(source.Name, count, source.FailureWindowMinutes, source.FailureThreshold)
+	description := availabilityDescription(report.FailureMessage)
+	value := strconv.Itoa(count)
+	fingerprint := availabilityFingerprint(report.DatasourceUID)
+	firing, err := tx.AlertEventFiring.Query().Where(
+		alerteventfiring.NamespaceUIDEQ(namespaceUID),
+		alerteventfiring.FingerprintEQ(fingerprint),
+	).Only(ctx)
+	if err == nil {
+		if _, err := tx.AlertEvent.Update().Where(
+			alertevent.UIDEQ(firing.EventUID),
+			alertevent.NamespaceUIDEQ(namespaceUID),
+			alertevent.StatusEQ(alertevent.StatusFIRING),
+		).SetLabels(labels).
+			SetSummary(summary).
+			SetDescription(description).
+			SetSampleValue(value).
+			SetEvalSlot(report.EvalSlot).
+			Save(ctx); err != nil {
+			return r.fail(err)
+		}
+		return nil
+	}
+	if !ent.IsNotFound(err) {
+		return r.fail(err)
+	}
+	eventUID := id.New()
+	if err := tx.AlertEvent.Create().
+		SetUID(eventUID).
+		SetNamespaceUID(namespaceUID).
+		SetRuleUID("").
+		SetDatasourceUID(report.DatasourceUID).
+		SetFingerprint(fingerprint).
+		SetStatus(alertevent.StatusFIRING).
+		SetExpr("").
+		SetLabels(labels).
+		SetSummary(summary).
+		SetDescription(description).
+		SetSampleValue(value).
+		SetLevelUID("").
+		SetStartsAt(now).
+		SetEvalSlot(report.EvalSlot).
+		SetSuppressed(false).
+		Exec(ctx); err != nil {
+		return r.fail(err)
+	}
+	if err := tx.AlertEventFiring.Create().
+		SetNamespaceUID(namespaceUID).
+		SetFingerprint(fingerprint).
+		SetEventUID(eventUID).
+		SetRuleUID("").
+		Exec(ctx); err != nil {
+		// 并发回写时另一个副本已经建立同指纹的 FIRING 占位；事务会整体回滚，
+		// 事件由那个副本负责，调用方不需要报错。
+		if ent.IsConstraintError(err) {
+			return errAvailabilityRaced
+		}
+		return r.fail(err)
+	}
+	return dispatchEventNotifications(ctx, tx, notifyEvent{
+		NamespaceUID: namespaceUID, EventUID: eventUID, RuleUID: "",
+		DatasourceUID: report.DatasourceUID, DatasourceLevelUID: source.LevelUID, LevelUID: "", Phase: "FIRING",
+		Summary: summary, Description: description, Labels: labels,
+		Value: value, ExternalURL: source.Endpoint, Fingerprint: fingerprint,
+	})
+}
+
+// recoverAvailability 把数据源当前触发的可用性事件收口为恢复并发送恢复通知。
+// 没有可用性事件时返回 nil；调用方负责在事务提交后归档返回的事件。
+func (r *alertEventRepo) recoverAvailability(ctx context.Context, tx *ent.Tx, namespaceUID, datasourceUID string, evalSlot time.Time) (*bo.AlertEvent, error) {
+	fingerprint := availabilityFingerprint(datasourceUID)
+	firing, err := tx.AlertEventFiring.Query().Where(
+		alerteventfiring.NamespaceUIDEQ(namespaceUID),
+		alerteventfiring.FingerprintEQ(fingerprint),
+	).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, r.fail(err)
+	}
+	event, err := tx.AlertEvent.Query().Where(
+		alertevent.UIDEQ(firing.EventUID),
+		alertevent.NamespaceUIDEQ(namespaceUID),
+	).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			if _, deleteErr := tx.AlertEventFiring.Delete().Where(alerteventfiring.IDEQ(firing.ID)).Exec(ctx); deleteErr != nil {
+				return nil, r.fail(deleteErr)
+			}
+			return nil, nil
+		}
+		return nil, r.fail(err)
+	}
+	if event.Status != alertevent.StatusFIRING {
+		if _, deleteErr := tx.AlertEventFiring.Delete().Where(alerteventfiring.IDEQ(firing.ID)).Exec(ctx); deleteErr != nil {
+			return nil, r.fail(deleteErr)
+		}
+		return nil, nil
+	}
+	now := time.Now().UTC()
+	if _, err := tx.AlertEvent.Update().Where(
+		alertevent.UIDEQ(event.UID),
+		alertevent.NamespaceUIDEQ(namespaceUID),
+		alertevent.StatusEQ(alertevent.StatusFIRING),
+	).SetStatus(alertevent.StatusRECOVERED).SetEndsAt(now).SetEvalSlot(evalSlot).Save(ctx); err != nil {
+		return nil, r.fail(err)
+	}
+	if _, err := tx.AlertEventFiring.Delete().Where(alerteventfiring.IDEQ(firing.ID)).Exec(ctx); err != nil {
+		return nil, r.fail(err)
+	}
+	item := toEvent(event, now)
+	item.Status = string(alertevent.StatusRECOVERED)
+	item.EndsAt = &now
+	item.EvalSlot = evalSlot
+	meta := r.datasourceMeta(ctx, tx, datasourceUID)
+	if err := dispatchEventNotifications(ctx, tx, notifyEvent{
+		NamespaceUID: namespaceUID, EventUID: event.UID, RuleUID: "",
+		DatasourceUID: datasourceUID, DatasourceLevelUID: meta.LevelUID, LevelUID: "", Phase: "RECOVERED",
+		Summary: event.Summary, Description: event.Description, Labels: event.Labels,
+		Value: event.SampleValue, ExternalURL: meta.Endpoint, Fingerprint: fingerprint,
+	}); err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
+
+// RecoverAvailability 只恢复某个数据源当前触发的可用性事件。
+// 关闭可用性告警或数据源被停用、删除时调用；同一数据源下的规则事件不受影响。
+func (r *alertEventRepo) RecoverAvailability(ctx context.Context, namespaceUID, datasourceUID string) error {
+	if datasourceUID == "" {
+		return nil
+	}
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	item, err := r.recoverAvailability(ctx, tx, namespaceUID, datasourceUID, time.Now().UTC())
+	if err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return r.fail(err)
+	}
+	if item != nil {
+		r.archiveEvents(ctx, namespaceUID, []bo.AlertEvent{*item})
+	}
+	return nil
+}
+
+// availabilityFingerprint 为数据源可用性事件生成稳定指纹。
+// 规则事件用 (规则, 数据源, 标签) 计算，这里用一个保留前缀避免与任何规则指纹碰撞。
+func availabilityFingerprint(datasourceUID string) string {
+	return fingerprint.Of("datasource-availability", datasourceUID, map[string]string{"kind": "availability"})
+}
+
+// availabilitySummary 是可用性事件在列表和通知里展示的摘要。
+func availabilitySummary(name string, count, windowMinutes, threshold int) string {
+	return fmt.Sprintf("数据源 %s 在 %d 分钟内请求失败 %d 次（阈值 %d 次）", name, windowMinutes, count, threshold)
+}
+
+// availabilityDescription 带上最近一次失败原因，便于在事件详情里直接定位。
+func availabilityDescription(message string) string {
+	message = strings.TrimSpace(message)
+	if message == "" {
+		return "数据源规则评测请求失败。"
+	}
+	return "最近一次数据源规则评测请求失败：" + truncateText(message, maxFailureMessageLength)
+}
+
+// truncateText 按字符截断，避免把 UTF-8 字符切坏。
+func truncateText(value string, limit int) string {
+	runes := []rune(strings.TrimSpace(value))
+	if len(runes) <= limit {
+		return string(runes)
+	}
+	return string(runes[:limit]) + "…"
 }
 
 func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.AlertRule, report bo.EvalReport) ([]bo.AlertEvent, error) {

@@ -3,13 +3,13 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 )
 
@@ -53,8 +53,16 @@ type Datasource struct {
 	// Labels holds the value of the "labels" field.
 	Labels string `json:"labels,omitempty"`
 	// Remark holds the value of the "remark" field.
-	Remark       string `json:"remark,omitempty"`
-	selectValues sql.SelectValues
+	Remark string `json:"remark,omitempty"`
+	// AvailabilityAlertEnabled holds the value of the "availability_alert_enabled" field.
+	AvailabilityAlertEnabled bool `json:"availability_alert_enabled,omitempty"`
+	// FailureWindowMinutes holds the value of the "failure_window_minutes" field.
+	FailureWindowMinutes int `json:"failure_window_minutes,omitempty"`
+	// FailureThreshold holds the value of the "failure_threshold" field.
+	FailureThreshold int `json:"failure_threshold,omitempty"`
+	// NotificationGroupUids holds the value of the "notification_group_uids" field.
+	NotificationGroupUids []string `json:"notification_group_uids,omitempty"`
+	selectValues          sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -62,7 +70,11 @@ func (*Datasource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case datasource.FieldID:
+		case datasource.FieldNotificationGroupUids:
+			values[i] = new([]byte)
+		case datasource.FieldAvailabilityAlertEnabled:
+			values[i] = new(sql.NullBool)
+		case datasource.FieldID, datasource.FieldFailureWindowMinutes, datasource.FieldFailureThreshold:
 			values[i] = new(sql.NullInt64)
 		case datasource.FieldUID, datasource.FieldNamespaceUID, datasource.FieldName, datasource.FieldType, datasource.FieldDriver, datasource.FieldEndpoint, datasource.FieldIndexPattern, datasource.FieldTimeField, datasource.FieldUsername, datasource.FieldPasswordCipher, datasource.FieldSecretCipher, datasource.FieldStatus, datasource.FieldLevelUID, datasource.FieldLabels, datasource.FieldRemark:
 			values[i] = new(sql.NullString)
@@ -198,6 +210,32 @@ func (_m *Datasource) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Remark = value.String
 			}
+		case datasource.FieldAvailabilityAlertEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field availability_alert_enabled", values[i])
+			} else if value.Valid {
+				_m.AvailabilityAlertEnabled = value.Bool
+			}
+		case datasource.FieldFailureWindowMinutes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field failure_window_minutes", values[i])
+			} else if value.Valid {
+				_m.FailureWindowMinutes = int(value.Int64)
+			}
+		case datasource.FieldFailureThreshold:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field failure_threshold", values[i])
+			} else if value.Valid {
+				_m.FailureThreshold = int(value.Int64)
+			}
+		case datasource.FieldNotificationGroupUids:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field notification_group_uids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.NotificationGroupUids); err != nil {
+					return fmt.Errorf("unmarshal field notification_group_uids: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -287,6 +325,18 @@ func (_m *Datasource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
 	builder.WriteString(_m.Remark)
+	builder.WriteString(", ")
+	builder.WriteString("availability_alert_enabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AvailabilityAlertEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("failure_window_minutes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FailureWindowMinutes))
+	builder.WriteString(", ")
+	builder.WriteString("failure_threshold=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FailureThreshold))
+	builder.WriteString(", ")
+	builder.WriteString("notification_group_uids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.NotificationGroupUids))
 	builder.WriteByte(')')
 	return builder.String()
 }

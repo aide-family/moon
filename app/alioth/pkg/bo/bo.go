@@ -165,6 +165,13 @@ type Datasource struct {
 	LevelName    string
 	Labels       string
 	Remark       string
+	// 可用性告警：统计窗口内向数据源发起的规则评测请求失败达到阈值时，
+	// 生成一条数据源级别的告警事件，并直接通知绑定的通知组。
+	AvailabilityAlertEnabled bool
+	FailureWindowMinutes     int
+	FailureThreshold         int
+	NotificationGroupUIDs    []string
+	NotificationGroupNames   []string
 }
 
 // DatasourceMetric 是指标数据源上的一条元数据。
@@ -516,12 +523,16 @@ type EvalHit struct {
 }
 
 // EvalReport 是 megrez 回写的一次评测结果。Skipped 表示驱动尚未实现。
+// Failed 表示本次向数据源的查询失败（连接失败、超时、上游错误或响应无法解析），
+// 用于数据源可用性判断；此时 Hits 为空，不会恢复任何规则事件。
 type EvalReport struct {
-	RuleUID       string
-	DatasourceUID string
-	EvalSlot      time.Time
-	Skipped       bool
-	Hits          []EvalHit
+	RuleUID        string
+	DatasourceUID  string
+	EvalSlot       time.Time
+	Skipped        bool
+	Failed         bool
+	FailureMessage string
+	Hits           []EvalHit
 }
 
 // RuleSnapshot 是领取到的规则，含解密后的数据源连接信息。
