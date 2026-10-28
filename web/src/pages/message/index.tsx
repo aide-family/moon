@@ -97,7 +97,7 @@ function messageIcon(kind: string): LucideIcon {
 function messageTone(kind: string): string {
   switch (kind) {
     case "INVITE_RECEIVED":
-      return "bg-primary/10 text-primary"
+      return "bg-primary/10 text-primary-ink"
     case "INVITE_ACCEPTED":
       return "bg-success/10 text-success"
     case "INVITE_DECLINED":
@@ -272,7 +272,7 @@ export function MessagePage() {
               </p>
             </div>
             <Inbox
-              className="absolute -right-3 -bottom-4 size-24 rotate-[-10deg] text-primary/[0.08]"
+              className="absolute -right-3 -bottom-4 size-24 rotate-[-10deg] text-primary-ink/[0.08]"
               aria-hidden="true"
             />
           </section>
@@ -295,7 +295,7 @@ export function MessagePage() {
               }`}
             >
               <Inbox
-                className={`size-4 shrink-0 ${!unreadOnly ? "text-primary" : ""}`}
+                className={`size-4 shrink-0 ${!unreadOnly ? "text-primary-ink" : ""}`}
                 aria-hidden="true"
               />
               <span className="min-w-0 flex-1">{t("message.allMessages")}</span>
@@ -314,7 +314,7 @@ export function MessagePage() {
               }`}
             >
               <span
-                className={`relative flex size-4 shrink-0 items-center justify-center ${unreadOnly ? "text-primary" : ""}`}
+                className={`relative flex size-4 shrink-0 items-center justify-center ${unreadOnly ? "text-primary-ink" : ""}`}
                 aria-hidden="true"
               >
                 <span className="size-2 rounded-full bg-current" />
@@ -483,7 +483,7 @@ export function MessagePage() {
                                         {title(item)}
                                       </h4>
                                       {!item.read ? (
-                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary-ink">
                                           <span
                                             className="size-1.5 rounded-full bg-primary"
                                             aria-hidden="true"

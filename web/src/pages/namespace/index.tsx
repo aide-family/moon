@@ -492,7 +492,7 @@ export function NamespacePage() {
         ) : null}
         {!loading && !failed && items.length === 0 && !query.name ? (
           <div className="flex min-h-44 flex-col items-center justify-center rounded-lg border border-dashed border-border px-5 py-8 text-center">
-            <span className="mb-3 grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+            <span className="mb-3 grid size-11 place-items-center rounded-xl bg-primary/10 text-primary-ink">
               <Building2 aria-hidden="true" className="size-5" />
             </span>
             <p className="max-w-md text-sm text-muted-foreground">
@@ -526,7 +526,7 @@ export function NamespacePage() {
                       <div className="flex min-w-0 items-center gap-3">
                         <span
                           aria-hidden="true"
-                          className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg ring-1 ${isCurrent ? "bg-primary/10 text-primary ring-primary/20" : "bg-muted/70 text-muted-foreground ring-border/70"}`}
+                          className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg ring-1 ${isCurrent ? "bg-primary/10 text-primary-ink ring-primary/20" : "bg-muted/70 text-muted-foreground ring-border/70"}`}
                         >
                           <Building2 className="size-4" />
                           {item.logo ? (

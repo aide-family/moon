@@ -381,13 +381,13 @@ export function TenantSwitcher() {
                   value={query}
                   onChange={(event) => changeQuery(event.target.value)}
                   onKeyDown={onSearchKeyDown}
-                  className="h-8 w-full rounded-lg border border-input bg-transparent pr-8 pl-8 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+                  className="h-8 w-full rounded-lg border border-input bg-transparent pr-8 pl-8 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring md:text-sm dark:bg-input/30"
                 />
                 {query ? (
                   <button
                     type="button"
                     aria-label={t("namespace.switcher.clearSearch")}
-                    className="absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-hidden"
+                    className="absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
                     onClick={() => {
                       changeQuery("")
                       searchRef.current?.focus()
@@ -401,7 +401,7 @@ export function TenantSwitcher() {
           </div>
 
           {session.switching && switchingTarget ? (
-            <div className="flex items-center gap-2 border-b border-primary/15 bg-primary/5 px-3 py-2 text-xs text-primary">
+            <div className="flex items-center gap-2 border-b border-primary/15 bg-primary/5 px-3 py-2 text-xs text-primary-ink">
               <Loader2 className="size-3.5 animate-spin" aria-hidden />
               {t("namespace.switcher.switching", {
                 name: switchingTarget.name,
@@ -537,7 +537,7 @@ export function TenantSwitcher() {
                           </div>
                           {isCurrent ? (
                             <Check
-                              className="size-4 shrink-0 text-primary"
+                              className="size-4 shrink-0 text-primary-ink"
                               aria-hidden
                             />
                           ) : null}
@@ -554,7 +554,7 @@ export function TenantSwitcher() {
             <Link
               to="/namespaces"
               onClick={() => handleOpenChange(false)}
-              className="flex h-8 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-hidden"
+              className="flex h-8 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
             >
               <Settings2 className="size-4" aria-hidden />
               {t("namespace.switcher.manage")}

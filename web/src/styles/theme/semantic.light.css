@@ -1,0 +1,108 @@
+/*
+ * 浅色语义层：把品牌层（tokens.brand.css）的角色色映射成组件真正消费的语义变量。
+ *
+ * 规则：
+ * - 这里只允许出现中性色/材质字面量；任何“带色”的值必须引用 --brand-*，
+ *   否则换品牌时会出现一半跟着变、一半不跟着变的情况。
+ * - 品牌色承担三种不同职责，变量必须拆开：
+ *     --primary       填充色（按钮底、选中底），配 --primary-foreground
+ *     --primary-ink   品牌色当“文字/图标”用（链接、侧栏选中、soft 底上的字）
+ *     --ring          焦点环，必须对页面底 ≥3:1
+ *   同一枚 --primary 兼任三者时，柠檬黄这类高明度色必然在某一头不达标。
+ * - 状态色与品牌色彻底解耦，且状态色本身也要满足对比度（浅色用 -700 档）。
+ */
+:root {
+  color-scheme: light;
+
+  /* 中性层：与品牌无关，只承载“底/面/字/线” */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: rgb(255 255 255 / 0.85);
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #e2e8f0;
+  --border: rgb(15 23 42 / 0.1);
+  --input: rgb(15 23 42 / 0.12);
+  --overlay: rgb(15 23 42 / 0.32);
+  --scrollbar-thumb: rgb(15 23 42 / 0.2);
+  --scrollbar-thumb-hover: rgb(15 23 42 / 0.32);
+
+  /* 品牌角色层 */
+  --primary: var(--brand-fill);
+  --primary-foreground: var(--brand-fill-fg);
+  --primary-hover: var(--brand-fill-hover);
+  --primary-ink: var(--brand-ink);
+  --primary-soft: color-mix(in oklab, var(--brand-fill) 12%, #ffffff);
+  --primary-soft-foreground: var(--brand-ink);
+  --ring: var(--brand-ring);
+  --accent-foreground: var(--brand-ink);
+  --selection-bg: color-mix(in oklab, var(--brand-fill) 22%, transparent);
+
+  /* 状态语义：与品牌解耦，浅色统一走 -700 档保证 4.5:1 以上 */
+  --success: #047857;
+  --success-foreground: #ffffff;
+  --success-soft: color-mix(in oklab, var(--success) 12%, #ffffff);
+  --success-border: color-mix(in oklab, var(--success) 32%, transparent);
+
+  --warning: #a34a06;
+  --warning-foreground: #ffffff;
+  --warning-soft: color-mix(in oklab, var(--warning) 12%, #ffffff);
+  --warning-border: color-mix(in oklab, var(--warning) 32%, transparent);
+
+  /* --destructive 是“危险色当文字/描边”用的墨色；实心红底见 --danger-strong */
+  --danger: #b42318;
+  --danger-foreground: #ffffff;
+  --danger-soft: color-mix(in oklab, var(--danger) 10%, #ffffff);
+  --danger-border: color-mix(in oklab, var(--danger) 32%, transparent);
+  --danger-strong: #b42318;
+  --danger-strong-foreground: #ffffff;
+  --destructive: var(--danger);
+  --destructive-foreground: #ffffff;
+  --error: var(--danger);
+
+  --info: #0369a1;
+  --info-foreground: #ffffff;
+  --info-soft: color-mix(in oklab, var(--info) 12%, #ffffff);
+  --info-border: color-mix(in oklab, var(--info) 32%, transparent);
+
+  --violet: #6d28d9;
+  --violet-foreground: #ffffff;
+  --violet-soft: color-mix(in oklab, var(--violet) 12%, #ffffff);
+  --violet-border: color-mix(in oklab, var(--violet) 32%, transparent);
+
+  /* 侧栏骨架保持中性，品牌只从选中态/焦点环透出，7 套主题才不会“像换了个产品” */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: var(--brand-ink);
+  --sidebar-border: rgb(15 23 42 / 0.08);
+  --sidebar-ring: var(--ring);
+
+  /* 分类图表色：不跟品牌走（数据序列需要稳定、可区分的色相），只保证对底色 ≥3:1 */
+  --chart-1: #2563eb;
+  --chart-2: #0e9f6e;
+  --chart-3: #b45309;
+  --chart-4: #be185d;
+  --chart-5: #0e7490;
+  --chart-6: #6d28d9;
+  --chart-7: #c2410c;
+  --chart-8: #4338ca;
+
+  /* 页面顶部光晕由品牌色派生，换主题时整屏氛围一起变 */
+  --app-gradient:
+    radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in oklab, var(--brand-fill) 12%, transparent), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, color-mix(in oklab, var(--brand-400) 10%, transparent), transparent);
+
+  /* 代码块用 GitHub light 主题的底色与正文色（github-light）。 */
+  --code-bg: #ffffff;
+  --code-fg: #24292e;
+
+  --radius: 0.625rem;
+}

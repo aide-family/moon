@@ -206,7 +206,7 @@ function linkTo(to: string, label: string) {
   return (
     <Link
       to={to}
-      className="break-all text-primary underline-offset-4 hover:underline"
+      className="break-all text-primary-ink underline-offset-4 hover:underline"
     >
       {label}
     </Link>
@@ -235,7 +235,7 @@ function levelValue(
       />
       <Link
         to={`/alert-dictionaries?type=ALERT&uid=${encodeURIComponent(event.levelUid)}`}
-        className="min-w-0 break-all text-primary underline-offset-4 hover:underline"
+        className="min-w-0 break-all text-primary-ink underline-offset-4 hover:underline"
       >
         {event.levelName || event.levelUid}
       </Link>

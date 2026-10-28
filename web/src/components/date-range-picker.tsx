@@ -419,7 +419,7 @@ export function DateRangePicker({
   return (
     <div
       className={cn(
-        "flex h-8 w-full items-center gap-0.5 rounded-lg border border-input bg-background px-0.5 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30",
+        "flex h-8 w-full items-center gap-0.5 rounded-lg border border-input bg-background px-0.5 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring dark:bg-input/30",
         invalid && "border-destructive ring-3 ring-destructive/20",
         disabled && "pointer-events-none opacity-50",
         className

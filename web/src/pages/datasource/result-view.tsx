@@ -287,7 +287,7 @@ export function StatChart({
                       width={Math.max(barWidth - barGap, 1)}
                       height={barH}
                       rx={2}
-                      fill={chartColor(fieldIndex)}
+                      style={{ fill: chartColor(fieldIndex) }}
                     >
                       <title>
                         {`${group.label} · ${fieldLabel(item.field)}=${

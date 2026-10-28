@@ -1,0 +1,98 @@
+/*
+ * 深色语义层。
+ *
+ * 深色不是浅色的“反色”：品牌填充要重新提亮（-400/-300 档）并把前景从白字换成
+ * 同色相深字，否则 #DB7A0E 这类色压深底只剩 2~3:1。中性层也不复用浅色值，
+ * 深色底更暗、描边更透，避免整屏发灰。
+ *
+ * 选择器用 :root.dark（特异性 0,2,0），保证无论两个文件谁先加载，
+ * 深色值都盖得住浅色值。
+ */
+:root.dark {
+  color-scheme: dark;
+
+  --background: #0b1120;
+  --foreground: #e2e8f0;
+  --card: rgb(17 24 39 / 0.75);
+  --card-foreground: #e2e8f0;
+  --popover: #111827;
+  --popover-foreground: #e2e8f0;
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --border: rgb(148 163 184 / 0.15);
+  --input: rgb(148 163 184 / 0.2);
+  --overlay: rgb(2 6 23 / 0.62);
+  --scrollbar-thumb: rgb(226 232 240 / 0.2);
+  --scrollbar-thumb-hover: rgb(226 232 240 / 0.32);
+
+  --primary: var(--brand-fill-dark);
+  --primary-foreground: var(--brand-fill-fg-dark);
+  --primary-hover: var(--brand-fill-hover-dark);
+  --primary-ink: var(--brand-ink-dark);
+  --primary-soft: color-mix(in oklab, var(--brand-fill-dark) 16%, var(--background));
+  --primary-soft-foreground: var(--brand-ink-dark);
+  --ring: var(--brand-ring-dark);
+  --accent-foreground: var(--brand-ink-dark);
+  --selection-bg: color-mix(in oklab, var(--brand-fill-dark) 28%, transparent);
+
+  --success: #34d399;
+  --success-foreground: #04120c;
+  --success-soft: color-mix(in oklab, var(--success) 14%, var(--background));
+  --success-border: color-mix(in oklab, var(--success) 32%, transparent);
+
+  --warning: #fbbf24;
+  --warning-foreground: #1a1206;
+  --warning-soft: color-mix(in oklab, var(--warning) 14%, var(--background));
+  --warning-border: color-mix(in oklab, var(--warning) 32%, transparent);
+
+  /* #fca5a5 而不是 #f87171：后者落在 soft 底上只有 4.01:1 */
+  --danger: #fca5a5;
+  --danger-foreground: #2a0d0d;
+  --danger-soft: color-mix(in oklab, var(--danger) 12%, var(--background));
+  --danger-border: color-mix(in oklab, var(--danger) 32%, transparent);
+  /* 实心红底仍需要白字可读，单独一枚填充令牌 */
+  --danger-strong: #dc2626;
+  --danger-strong-foreground: #ffffff;
+  --destructive: var(--danger);
+  --destructive-foreground: #2a0d0d;
+  --error: var(--danger);
+
+  --info: #38bdf8;
+  --info-foreground: #04121c;
+  --info-soft: color-mix(in oklab, var(--info) 14%, var(--background));
+  --info-border: color-mix(in oklab, var(--info) 32%, transparent);
+
+  --violet: #c4b5fd;
+  --violet-foreground: #12081f;
+  --violet-soft: color-mix(in oklab, var(--violet) 12%, var(--background));
+  --violet-border: color-mix(in oklab, var(--violet) 32%, transparent);
+
+  --sidebar: #0f172a;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: var(--brand-ink-dark);
+  --sidebar-border: rgb(148 163 184 / 0.12);
+  --sidebar-ring: var(--ring);
+
+  --chart-1: #60a5fa;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #f472b6;
+  --chart-5: #22d3ee;
+  --chart-6: #a78bfa;
+  --chart-7: #fb923c;
+  --chart-8: #818cf8;
+
+  --app-gradient:
+    radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in oklab, var(--brand-fill-dark) 14%, transparent), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, color-mix(in oklab, var(--brand-400) 10%, transparent), transparent);
+
+  /* 深色模式换成 GitHub dark 主题的底色与正文色（github-dark）。 */
+  --code-bg: #24292e;
+  --code-fg: #e1e4e8;
+}

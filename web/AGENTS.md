@@ -74,3 +74,10 @@ All list tables share one width model, defined in `web/src/lib/table-layout.ts`:
 - Tab data is lazy: while the history page sits on the analysis tab it must not request the details ledger (`/v1/alert-events`) or the details-side severity dictionary; switching to the details tab requests them once, and switching back does not repeat. The analysis tab lazily loads its own severity dictionary for the level distribution.
 - The shared `DateRangePicker` anchors the right calendar to the current month and the left one to the previous month, both on open and after paging; the keyboard focus target must always be a visible, selectable day. The 30-day cap and future-date blocking are unchanged.
 
+## Colors and theming
+
+- Never write a literal color (hex/rgb/hsl) or a Tailwind palette class (`bg-emerald-500`, `text-slate-700`, …) in components. Use semantic tokens: `bg-primary` + `text-primary-foreground` for fills, `text-primary-ink` for brand-colored text/icons, `bg-primary-soft` for tinted chips, `--success/--warning/--danger/--info/--violet` (+ `-soft`/`-border`) for states, `bg-overlay` for scrims.
+- Brand color is never the only state signal. Pair a color with text, an icon, weight, or position; `StatusBadge` and `StatusDot` already encode this — keep their text labels.
+- 15 brands × light/dark come from three layers: `src/styles/theme/tokens.brand.css` (generated, brand scales + role colors), `semantic.light.css` / `semantic.dark.css` (role mapping, neutrals, states), and `@theme inline` in `src/index.css`. Never add `--brand-*` or `--primary*` values outside these files.
+- Adding or changing a brand: edit `BRANDS` in `scripts/gen-brand-tokens.mjs`, run `npm run tokens:gen`, then `npm run tokens:check` (also verifies the `index.html` boot script's brand list). The generator asserts WCAG contrast on fill/foreground, brand text, and focus ring for both modes; a red run means the palette is not shippable.
+- `--primary` is a fill, `--primary-ink` is text, `--ring` is the focus ring. Do not collapse them back into one value: yellow/teal brands cannot use one token for all three and stay legible.

@@ -1,13 +1,40 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="light" data-brand="sunset">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/alioth.svg" />
     <!-- 不支持 SVG 图标的浏览器与 iOS 主屏快捷方式使用 PNG 版本。 -->
     <link rel="icon" type="image/png" sizes="512x512" href="/alioth.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#1677ff" />
+    <meta name="theme-color" content="#f8fafc" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // 首帧防闪烁：必须在样式表与 React 之前同步执行，所以只能内联。
+      // 品牌 id 列表刻意在这里硬编码一次 —— 引导脚本不能 import 模块，
+      // 否则会多一次请求，失去"首帧"意义。scripts/check-theme-boot.mjs 会校验它与 BRAND_IDS 一致。
+      ;(() => {
+        try {
+          const root = document.documentElement
+          const mode = localStorage.getItem("theme")
+          const stored = localStorage.getItem("brand")
+          const brands = ["sunset", "cornflower", "jade", "lagoon", "lemon", "merlot", "royal", "dawn", "cyan", "purple", "geekblue", "magenta", "marigold", "lime", "dusk"]
+          const brand = brands.includes(stored) ? stored : "sunset"
+          const dark =
+            mode === "dark" ||
+            ((mode === null || mode === "system") &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches)
+
+          root.classList.toggle("dark", dark)
+          root.classList.toggle("light", !dark)
+          root.dataset.brand = brand
+          root.style.colorScheme = dark ? "dark" : "light"
+          // 占位底色，挂载后由 ThemeProvider 清掉，交还给 --background。
+          root.style.backgroundColor = dark ? "#0b1120" : "#f8fafc"
+        } catch {
+          // 隐私模式下 localStorage 会抛错，忽略即可（回落默认品牌 + 跟随系统）。
+        }
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

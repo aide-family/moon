@@ -36,7 +36,7 @@ export function ChannelLogo({
       {logo ? (
         <img src={logo} alt="" className="size-full object-contain" />
       ) : type === "SMTP" || type === "EMAIL" ? (
-        <Mail className="size-full text-primary" />
+        <Mail className="size-full text-primary-ink" />
       ) : type === "SMS" || type === "SMS_ALICLOUD" ? (
         <MessageSquareText className="size-full text-emerald-600 dark:text-emerald-400" />
       ) : (

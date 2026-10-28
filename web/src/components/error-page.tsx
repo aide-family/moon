@@ -27,7 +27,7 @@ export function ErrorPage({
     <div className="grid w-full items-center gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
       <img src={image} alt="" className="mx-auto w-full max-w-xs md:max-w-sm" />
       <div className="text-center md:text-left">
-        <p className="text-sm font-semibold tracking-[0.18em] text-primary">
+        <p className="text-sm font-semibold tracking-[0.18em] text-primary-ink">
           {status}
           <span className="ml-2 font-normal tracking-normal text-muted-foreground">
             {label}

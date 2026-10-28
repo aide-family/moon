@@ -75,7 +75,7 @@ export function ClusterResourceNav({
                       aria-hidden="true"
                       className={cn(
                         "size-4 shrink-0",
-                        active ? "text-primary" : "text-muted-foreground/80"
+                        active ? "text-primary-ink" : "text-muted-foreground/80"
                       )}
                     />
                     <span className="min-w-0 flex-1 truncate">

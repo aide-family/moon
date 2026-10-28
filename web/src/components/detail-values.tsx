@@ -144,7 +144,7 @@ function CopyTag({
     <button
       type="button"
       className={cn(
-        "group/tag inline-flex max-w-full items-center gap-1 rounded-md border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[11px] text-foreground transition-colors hover:border-border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none",
+        "group/tag inline-flex max-w-full items-center gap-1 rounded-md border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[11px] text-foreground transition-colors hover:border-border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         mono && "font-mono"
       )}
       aria-label={t("detail.copyField", { label: label ?? value })}

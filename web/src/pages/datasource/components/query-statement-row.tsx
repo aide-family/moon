@@ -39,7 +39,7 @@ export function QueryStatementRow({
         disabled={disabled}
         title={tooltip}
         onClick={onPrimary}
-        className="flex min-w-0 flex-1 flex-col items-start gap-1 rounded-md px-2 py-1.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
+        className="flex min-w-0 flex-1 flex-col items-start gap-1 rounded-md px-2 py-1.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
       >
         <span className="flex w-full min-w-0 items-center gap-1.5">
           {ok !== undefined ? (

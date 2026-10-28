@@ -11,7 +11,8 @@ import notificationsIllustration from "@/assets/undraw/notifications.svg"
 import serviceHealthIllustration from "@/assets/undraw/service-health.svg"
 import sshWebShellIllustration from "@/assets/undraw/ssh-web-shell.svg"
 import teamPermissionsIllustration from "@/assets/undraw/team-permissions.svg"
-import { LocaleThemeMenu } from "@/components/locale-theme-menu"
+import { AppearanceMenu } from "@/components/appearance-menu"
+import { LocaleMenu } from "@/components/locale-menu"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Carousel,
@@ -147,7 +148,10 @@ export function AuthShell({
             Alioth
           </span>
         </div>
-        <LocaleThemeMenu />
+        <div className="flex items-center gap-2">
+          <AppearanceMenu />
+          <LocaleMenu />
+        </div>
       </div>
       <AuthIntro />
       <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-4 pt-20 pb-12 sm:px-10">

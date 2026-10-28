@@ -468,7 +468,7 @@ export function ClusterDetailPage() {
                   {SectionIcon ? (
                     <SectionIcon
                       aria-hidden="true"
-                      className="size-4 shrink-0 text-primary"
+                      className="size-4 shrink-0 text-primary-ink"
                     />
                   ) : null}
                   <h2 className="truncate font-heading text-sm font-medium">

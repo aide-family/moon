@@ -55,7 +55,7 @@ export function CaptchaField({
         />
         <button
           type="button"
-          className="flex shrink-0 rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="flex shrink-0 rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring"
           aria-label={t("form.captchaRefresh")}
           aria-busy={captcha.loading || undefined}
           disabled={captcha.loading}

@@ -35,8 +35,9 @@ import {
 } from "react-router-dom"
 
 import { SessionProvider, useSession } from "@/auth/session"
+import { AppearanceMenu } from "@/components/appearance-menu"
 import { GitHubIcon } from "@/components/github-icon"
-import { LocaleThemeMenu } from "@/components/locale-theme-menu"
+import { LocaleMenu } from "@/components/locale-menu"
 import { StatusBadge } from "@/components/status-badge"
 import { TenantSwitcher } from "@/components/tenant-switcher"
 import { Button } from "@/components/ui/button"
@@ -326,7 +327,7 @@ function AccountAvatar({
   return (
     <span
       aria-hidden="true"
-      className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 font-semibold text-primary ring-1 ring-border/70 ${className}`}
+      className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 font-semibold text-primary-ink ring-1 ring-border/70 ${className}`}
     >
       {initial || "A"}
       {avatar && !imageFailed ? (
@@ -535,14 +536,15 @@ function ShellFrame() {
               >
                 <Bell />
                 {session.unreadMessages > 0 ? (
-                  <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-4 text-white">
+                  <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-danger-strong px-1 text-[10px] leading-4 text-danger-strong-foreground">
                     {session.unreadMessages > 99
                       ? "99+"
                       : session.unreadMessages}
                   </span>
                 ) : null}
               </Button>
-              <LocaleThemeMenu />
+              <AppearanceMenu />
+              <LocaleMenu />
               <Button variant="ghost" size="icon" className="shrink-0" asChild>
                 <a
                   href={repositoryURL}
@@ -626,7 +628,7 @@ function ShellFrame() {
                     <MessageSquare className="text-muted-foreground" />
                     {t("nav.messages")}
                     {session.unreadMessages > 0 ? (
-                      <span className="ml-auto min-w-5 rounded-full bg-destructive px-1.5 text-center text-[10px] leading-4 font-medium text-white tabular-nums">
+                      <span className="ml-auto min-w-5 rounded-full bg-danger-strong px-1.5 text-center text-[10px] leading-4 font-medium text-danger-strong-foreground tabular-nums">
                         {session.unreadMessages > 99
                           ? "99+"
                           : session.unreadMessages}

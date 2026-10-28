@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tokens:gen": "node scripts/gen-brand-tokens.mjs --write && node scripts/sync-theme-preview.mjs",
+    "tokens:check": "node scripts/gen-brand-tokens.mjs --check && node scripts/check-theme-boot.mjs && node scripts/sync-theme-preview.mjs --check"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.4",

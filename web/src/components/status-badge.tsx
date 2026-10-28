@@ -14,17 +14,16 @@ export type BadgeTone =
   | "neutral"
 
 // 所有状态/类型标签共用一套底色，避免每个页面各写一种绿、黄、红。
+// 浅/深两套取值由语义层负责，这里不写 dark: 变体；品牌色只走 --primary-* 角色色，
+// 状态色不跟品牌主题走，换主题时“成功/失败”的含义必须不变。
 const toneClasses: Record<BadgeTone, string> = {
-  success:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  warning:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  danger:
-    "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
-  info: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  violet:
-    "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300",
-  primary: "border-primary/30 bg-primary/10 text-primary",
+  success: "border-success-border bg-success-soft text-success",
+  warning: "border-warning-border bg-warning-soft text-warning",
+  danger: "border-danger-border bg-danger-soft text-danger",
+  info: "border-info-border bg-info-soft text-info",
+  violet: "border-violet-border bg-violet-soft text-violet",
+  // 品牌色当标签：底色用 soft，文字用 ink，而不是拿填充色当文字（柠檬黄当文字不达标）。
+  primary: "border-primary-ink/35 bg-primary-soft text-primary-ink",
   neutral: "border-border bg-muted/60 text-muted-foreground",
 }
 
@@ -152,7 +151,7 @@ export function LevelBadge({ name, color, className }: LevelBadgeProps) {
     ? {
         borderColor: color,
         color,
-        backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`,
+        backgroundColor: `color-mix(in oklab, ${color} 12%, transparent)`,
       }
     : undefined
   return (

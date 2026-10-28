@@ -33,7 +33,7 @@ export function FilterToggle({
       <SlidersHorizontal aria-hidden="true" data-icon="inline-start" />
       {open ? t("filter.hide") : t("filter.toggle")}
       {count > 0 ? (
-        <span className="ml-1 rounded bg-primary/10 px-1.5 font-mono text-xs text-primary tabular-nums">
+        <span className="ml-1 rounded bg-primary/10 px-1.5 font-mono text-xs text-primary-ink tabular-nums">
           {count}
         </span>
       ) : null}

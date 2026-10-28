@@ -32,7 +32,7 @@ import { elapsed, formatClock, formatCount, formatPercent, share } from "./lib"
 const toneChips = {
   danger: "bg-red-500/10 text-red-600 dark:text-red-400",
   warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  primary: "bg-primary/10 text-primary",
+  primary: "bg-primary/10 text-primary-ink",
   neutral: "bg-muted text-muted-foreground",
 } as const
 

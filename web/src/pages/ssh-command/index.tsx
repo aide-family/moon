@@ -452,7 +452,7 @@ export function SSHCommandPage() {
                         {audit.kind === "EXECUTE" ? (
                           <Link
                             to={`/ssh-commands/${audit.commandUid || auditTarget?.uid}/results?${createSearchParams({ audit: audit.uid })}`}
-                            className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                            className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary-ink hover:underline"
                           >
                             {t("ssh.viewExecutionRecord")}
                             <span aria-hidden="true">→</span>

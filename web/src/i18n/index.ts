@@ -1888,6 +1888,16 @@ const zh = {
     dark: "深色",
     system: "跟随系统",
   },
+  appearance: {
+    label: "外观",
+    mode: "模式",
+    brand: "品牌主题",
+    light: "浅色",
+    dark: "深色",
+    system: "跟随系统",
+    switchedMode: "已切换到{{mode}}",
+    switchedBrand: "已切换到{{brand}}主题",
+  },
   lang: {
     label: "语言",
     zh: "中文",
@@ -4012,6 +4022,16 @@ const en = {
     light: "Light",
     dark: "Dark",
     system: "System",
+  },
+  appearance: {
+    label: "Appearance",
+    mode: "Mode",
+    brand: "Brand theme",
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+    switchedMode: "Switched to {{mode}} mode",
+    switchedBrand: "Switched to {{brand}}",
   },
   lang: {
     label: "Language",

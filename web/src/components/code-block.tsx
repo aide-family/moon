@@ -113,7 +113,7 @@ export function CodeBlock({
             ariaLabel ?? (typeof label === "string" ? label : undefined)
           }
           className={cn(
-            "min-w-full font-mono text-xs leading-5 text-[var(--code-fg)] outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
+            "min-w-full font-mono text-xs leading-5 text-[var(--code-fg)] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
             plain ? "p-0" : "p-3",
             wrap ? "break-words whitespace-pre-wrap" : "whitespace-pre"
           )}

@@ -92,7 +92,7 @@ function ServicePanel({ service, items, now }: { service: (typeof services)[numb
       <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <span className="grid size-8 place-items-center rounded-md bg-primary/10 text-primary"><Server className="size-4" aria-hidden="true" /></span>
+            <span className="grid size-8 place-items-center rounded-md bg-primary/10 text-primary-ink"><Server className="size-4" aria-hidden="true" /></span>
             {service.title}
           </CardTitle>
           <CardDescription>{t(`worker.${service.descriptionKey}`)}</CardDescription>

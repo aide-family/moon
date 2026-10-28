@@ -299,7 +299,7 @@ export function MetricGraph({
                   key={item.name}
                   d={path}
                   fill="none"
-                  stroke={chartColor(index)}
+                  style={{ stroke: chartColor(index) }}
                   strokeWidth={1.5}
                 />
               )

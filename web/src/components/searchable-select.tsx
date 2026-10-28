@@ -287,7 +287,7 @@ export function SearchableSelect({
                     "flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
                     index === safeActiveIndex &&
                       "bg-accent text-accent-foreground",
-                    row.kind === "custom" && "text-primary"
+                    row.kind === "custom" && "text-primary-ink"
                   )}
                 >
                   {row.kind === "custom" ? (
@@ -303,7 +303,7 @@ export function SearchableSelect({
                   </span>
                   {isSelected ? (
                     <Check
-                      className="size-4 shrink-0 text-primary"
+                      className="size-4 shrink-0 text-primary-ink"
                       aria-hidden
                     />
                   ) : null}
