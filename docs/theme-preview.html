@@ -1,0 +1,1277 @@
+<!doctype html>
+<html lang="zh-CN" data-brand="sunset" class="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Alioth 品牌主题预览</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px;
+    font: 14px/1.5 'Inter', -apple-system, 'PingFang SC', system-ui, sans-serif;
+    background: #0b1120; color: #e2e8f0;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #94a3b8; margin: 0 0 24px; font-size: 13px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .bar span { color: #94a3b8; font-size: 12px; margin-right: 4px; }
+  .seg { display: inline-flex; background: #1e293b; border-radius: 8px; padding: 3px; gap: 2px; }
+  .seg button {
+    border: 0; background: transparent; color: #94a3b8; font: inherit; font-size: 12px;
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .seg button[aria-checked="true"] { background: #334155; color: #e2e8f0; }
+  .swatches { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+  .swatches button {
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    border: 1px solid #334155; background: #111827; color: #cbd5e1;
+    padding: 5px 10px 5px 6px; border-radius: 999px; font: inherit; font-size: 12px;
+  }
+  .swatches button[aria-checked="true"] { border-color: currentColor; box-shadow: 0 0 0 2px rgb(148 163 184/.35); }
+  .swatches i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+  .brand { margin-bottom: 24px; }
+  .brand-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .brand-name { font-weight: 600; }
+  .brand-head code { color: #94a3b8; font-size: 12px; }
+  .brand-id { color: #64748b; font-size: 11px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 900px) { .pair { grid-template-columns: 1fr; } }
+  
+  .light {
+    --background:#f8fafc; --foreground:#0f172a; --card:#ffffff; --card-foreground:#0f172a;
+    --popover:#ffffff; --muted:#f1f5f9; --muted-foreground:#64748b; --border:rgb(15 23 42/.1);
+    --primary:var(--brand-fill); --primary-foreground:var(--brand-fill-fg);
+    --primary-hover:var(--brand-fill-hover); --primary-ink:var(--brand-ink); --ring:var(--brand-ring);
+    --primary-soft:color-mix(in oklab, var(--primary) 12%, var(--background));
+    --success:#047857; --warning:#b45309; --danger:#b42318; --info:#0369a1; --violet:#6d28d9;
+    --success-soft:color-mix(in oklab,var(--success) 12%,var(--background));
+    --warning-soft:color-mix(in oklab,var(--warning) 12%,var(--background));
+    --danger-soft:color-mix(in oklab,var(--danger) 12%,var(--background));
+    --info-soft:color-mix(in oklab,var(--info) 12%,var(--background));
+    --violet-soft:color-mix(in oklab,var(--violet) 12%,var(--background));
+    --sidebar:#fff; --sidebar-foreground:#0f172a; --sidebar-accent:#f1f5f9;
+    --chart-1:#2563eb; --chart-2:#0e9f6e; --chart-3:#b45309; --chart-4:#be185d;
+    --shadow:0 1px 2px rgb(15 23 42/.06), 0 8px 24px -12px rgb(15 23 42/.18);
+  }
+  .dark {
+    --background:#0b1120; --foreground:#e2e8f0; --card:#111827; --card-foreground:#e2e8f0;
+    --popover:#111827; --muted:#1e293b; --muted-foreground:#94a3b8; --border:rgb(148 163 184/.15);
+    --primary:var(--brand-fill-dark); --primary-foreground:var(--brand-fill-fg-dark);
+    --primary-hover:var(--brand-fill-hover-dark); --primary-ink:var(--brand-ink-dark); --ring:var(--brand-ring-dark);
+    --primary-soft:color-mix(in oklab, var(--primary) 16%, var(--background));
+    --success:#34d399; --warning:#fbbf24; --danger:#fca5a5; --info:#38bdf8; --violet:#c4b5fd;
+    --success-soft:color-mix(in oklab,var(--success) 12%,var(--background));
+    --warning-soft:color-mix(in oklab,var(--warning) 12%,var(--background));
+    --danger-soft:color-mix(in oklab,var(--danger) 12%,var(--background));
+    --info-soft:color-mix(in oklab,var(--info) 12%,var(--background));
+    --violet-soft:color-mix(in oklab,var(--violet) 12%,var(--background));
+    --sidebar:#0f172a; --sidebar-foreground:#e2e8f0; --sidebar-accent:#1e293b;
+    --chart-1:#60a5fa; --chart-2:#34d399; --chart-3:#fbbf24; --chart-4:#f472b6;
+    --shadow:0 1px 2px rgb(0 0 0/.4), 0 8px 24px -12px rgb(0 0 0/.6);
+  }
+
+  .light, .dark { border-radius: 12px; }
+  .card {
+    background: var(--background); color: var(--foreground);
+    border-radius: 12px; padding: 12px; min-height: 190px;
+  }
+  .mock { display: flex; gap: 10px; height: 100%; }
+  .side {
+    width: 96px; flex: none; background: var(--sidebar); color: var(--sidebar-foreground);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px; display: flex;
+    flex-direction: column; gap: 2px; font-size: 11px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-bottom: 6px; }
+  .side-item { padding: 3px 6px; border-radius: 4px; color: var(--muted-foreground); }
+  .side-item.active { background: var(--sidebar-accent); color: var(--primary-ink); font-weight: 600; }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .row.gap { justify-content: flex-start; }
+  .title { font-size: 13px; }
+  .btn {
+    border: 0; border-radius: 7px; padding: 6px 12px; font: inherit; font-size: 12px; font-weight: 500;
+    background: var(--primary); color: var(--primary-foreground); cursor: pointer;
+  }
+  .btn:hover { background: var(--primary-hover); }
+  .btn.ghost {
+    background: transparent; color: var(--foreground); border: 1px solid var(--border);
+  }
+  .link { color: var(--primary-ink); font-size: 12px; text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid transparent; }
+  .chip.ok { background: var(--success-soft); color: var(--success); border-color: color-mix(in oklab, var(--success) 32%, transparent); }
+  .chip.warn { background: var(--warning-soft); color: var(--warning); border-color: color-mix(in oklab, var(--warning) 32%, transparent); }
+  .chip.bad { background: var(--danger-soft); color: var(--danger); border-color: color-mix(in oklab, var(--danger) 32%, transparent); }
+  .chip.info { background: var(--info-soft); color: var(--info); border-color: color-mix(in oklab, var(--info) 32%, transparent); }
+  .chip.brand { background: var(--primary-soft); color: var(--primary-ink); border-color: color-mix(in oklab, var(--primary) 32%, transparent); }
+  .bars { display: flex; gap: 4px; }
+  .bars span { height: 6px; flex: 1; border-radius: 3px; }
+  .input {
+    width: 100%; border: 1px solid var(--border); border-radius: 6px; background: var(--popover);
+    color: var(--foreground); padding: 5px 8px; font: inherit; font-size: 11px;
+  }
+  .input:focus { outline: 2px solid var(--ring); outline-offset: 1px; border-color: var(--ring); }
+  footer { color: #64748b; font-size: 12px; margin-top: 28px; border-top: 1px solid #1e293b; padding-top: 12px; }
+</style>
+</head>
+<body class="light">
+  <h1>Alioth 品牌主题预览</h1>
+  <p class="sub">15 品牌 × 浅/深，全部取值来自 <code>web/src/styles/theme/tokens.brand.css</code>（生成产物）。状态色不随品牌变化。</p>
+
+  <div class="bar">
+    <span>模式</span>
+    <div class="seg" role="radiogroup" aria-label="模式">
+      <button role="radio" aria-checked="true" data-mode="light">浅色</button>
+      <button role="radio" aria-checked="false" data-mode="dark">深色</button>
+    </div>
+  </div>
+  <div class="bar">
+    <span>品牌</span>
+    <div class="swatches" role="radiogroup" aria-label="品牌"><button role="radio" aria-checked="true" data-brand="sunset"><i style="background:#db7a0e"></i>暖阳橙 Sunset Orange</button><button role="radio" aria-checked="false" data-brand="cornflower"><i style="background:#5a92e5"></i>矢车菊蓝 Cornflower Blue</button><button role="radio" aria-checked="false" data-brand="jade"><i style="background:#5e8034"></i>翠微 Jade Green</button><button role="radio" aria-checked="false" data-brand="lagoon"><i style="background:#41b5c2"></i>碧青 Lagoon Teal</button><button role="radio" aria-checked="false" data-brand="lemon"><i style="background:#faca2e"></i>柠檬黄 Lemon Yellow</button><button role="radio" aria-checked="false" data-brand="merlot"><i style="background:#eb6d98"></i>梅洛粉 Merlot Pink</button><button role="radio" aria-checked="false" data-brand="royal"><i style="background:#722169"></i>皇家紫 Royal Purple</button><button role="radio" aria-checked="false" data-brand="dawn"><i style="background:#0c58c2"></i>拂晓蓝 Dawn Blue</button><button role="radio" aria-checked="false" data-brand="cyan"><i style="background:#13c2c2"></i>明青 Cyan</button><button role="radio" aria-checked="false" data-brand="purple"><i style="background:#722ed1"></i>酱紫 Golden Purple</button><button role="radio" aria-checked="false" data-brand="geekblue"><i style="background:#2f54eb"></i>极客蓝 Geek Blue</button><button role="radio" aria-checked="false" data-brand="magenta"><i style="background:#eb2f96"></i>法式洋红 French Magenta</button><button role="radio" aria-checked="false" data-brand="marigold"><i style="background:#faad14"></i>金盏花 Marigold</button><button role="radio" aria-checked="false" data-brand="lime"><i style="background:#a0d911"></i>青柠 Lime</button><button role="radio" aria-checked="false" data-brand="dusk"><i style="background:#fa8c16"></i>日暮 Dusk</button></div>
+  </div>
+
+  
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">暖阳橙 Sunset Orange</span>
+      <code>#DB7A0E</code>
+      <span class="brand-id">data-brand="sunset"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #faf2eb;--brand-100: #f9e5d7;--brand-200: #f6ceb0;--brand-300: #f8ad72;--brand-400: #f0891f;--brand-500: #db7a0e;--brand-600: #ac6012;--brand-700: #8c4d0d;--brand-800: #6e3b08;--brand-900: #502b06;--brand-950: #331a04;--brand-fill: #db7a0e;--brand-fill-fg: #171717;--brand-fill-hover: #ac6012;--brand-ink: #8c4d0d;--brand-ring: #8c4d0d;--brand-fill-dark: #f0891f;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f8ad72;--brand-ink-dark: #f8ad72;--brand-ring-dark: #f8ad72;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #faf2eb;--brand-100: #f9e5d7;--brand-200: #f6ceb0;--brand-300: #f8ad72;--brand-400: #f0891f;--brand-500: #db7a0e;--brand-600: #ac6012;--brand-700: #8c4d0d;--brand-800: #6e3b08;--brand-900: #502b06;--brand-950: #331a04;--brand-fill: #db7a0e;--brand-fill-fg: #171717;--brand-fill-hover: #ac6012;--brand-ink: #8c4d0d;--brand-ring: #8c4d0d;--brand-fill-dark: #f0891f;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f8ad72;--brand-ink-dark: #f8ad72;--brand-ring-dark: #f8ad72;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">矢车菊蓝 Cornflower Blue</span>
+      <code>#5A92E5</code>
+      <span class="brand-id">data-brand="cornflower"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #eff4fa;--brand-100: #e0eaf9;--brand-200: #c5d8f6;--brand-300: #9ec2f8;--brand-400: #6fa7fb;--brand-500: #5a92e5;--brand-600: #4776bc;--brand-700: #375f9a;--brand-800: #294a7a;--brand-900: #1b355c;--brand-950: #0d213e;--brand-fill: #5a92e5;--brand-fill-fg: #171717;--brand-fill-hover: #4776bc;--brand-ink: #375f9a;--brand-ring: #375f9a;--brand-fill-dark: #6fa7fb;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #9ec2f8;--brand-ink-dark: #9ec2f8;--brand-ring-dark: #9ec2f8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #eff4fa;--brand-100: #e0eaf9;--brand-200: #c5d8f6;--brand-300: #9ec2f8;--brand-400: #6fa7fb;--brand-500: #5a92e5;--brand-600: #4776bc;--brand-700: #375f9a;--brand-800: #294a7a;--brand-900: #1b355c;--brand-950: #0d213e;--brand-fill: #5a92e5;--brand-fill-fg: #171717;--brand-fill-hover: #4776bc;--brand-ink: #375f9a;--brand-ring: #375f9a;--brand-fill-dark: #6fa7fb;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #9ec2f8;--brand-ink-dark: #9ec2f8;--brand-ring-dark: #9ec2f8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">翠微 Jade Green</span>
+      <code>#5E8034</code>
+      <span class="brand-id">data-brand="jade"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #e9fbd9;--brand-100: #d0faa5;--brand-200: #b5eb76;--brand-300: #9cd551;--brand-400: #87b946;--brand-500: #749e3e;--brand-600: #5e8034;--brand-700: #4c6a27;--brand-800: #3a5319;--brand-900: #283d0b;--brand-950: #182604;--brand-fill: #5e8034;--brand-fill-fg: #ffffff;--brand-fill-hover: #4c6a27;--brand-ink: #4c6a27;--brand-ring: #4c6a27;--brand-fill-dark: #8db65c;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #a6d075;--brand-ink-dark: #a9cf80;--brand-ring-dark: #a9cf80;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #e9fbd9;--brand-100: #d0faa5;--brand-200: #b5eb76;--brand-300: #9cd551;--brand-400: #87b946;--brand-500: #749e3e;--brand-600: #5e8034;--brand-700: #4c6a27;--brand-800: #3a5319;--brand-900: #283d0b;--brand-950: #182604;--brand-fill: #5e8034;--brand-fill-fg: #ffffff;--brand-fill-hover: #4c6a27;--brand-ink: #4c6a27;--brand-ring: #4c6a27;--brand-fill-dark: #8db65c;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #a6d075;--brand-ink-dark: #a9cf80;--brand-ring-dark: #a9cf80;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">碧青 Lagoon Teal</span>
+      <code>#41B5C2</code>
+      <span class="brand-id">data-brand="lagoon"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #e4f8fa;--brand-100: #c6f3f9;--brand-200: #85e9f5;--brand-300: #45d6e6;--brand-400: #41b5c2;--brand-500: #379faa;--brand-600: #2c848e;--brand-700: #216b73;--brand-800: #17535a;--brand-900: #0d3d42;--brand-950: #05262a;--brand-fill: #41b5c2;--brand-fill-fg: #171717;--brand-fill-hover: #379faa;--brand-ink: #216b73;--brand-ring: #216b73;--brand-fill-dark: #41b5c2;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #4ad6e5;--brand-ink-dark: #63d3e0;--brand-ring-dark: #63d3e0;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #e4f8fa;--brand-100: #c6f3f9;--brand-200: #85e9f5;--brand-300: #45d6e6;--brand-400: #41b5c2;--brand-500: #379faa;--brand-600: #2c848e;--brand-700: #216b73;--brand-800: #17535a;--brand-900: #0d3d42;--brand-950: #05262a;--brand-fill: #41b5c2;--brand-fill-fg: #171717;--brand-fill-hover: #379faa;--brand-ink: #216b73;--brand-ring: #216b73;--brand-fill-dark: #41b5c2;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #4ad6e5;--brand-ink-dark: #63d3e0;--brand-ring-dark: #63d3e0;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">柠檬黄 Lemon Yellow</span>
+      <code>#FACA2E</code>
+      <span class="brand-id">data-brand="lemon"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #faf3e0;--brand-100: #f9e9bd;--brand-200: #faca2e;--brand-300: #e5bb3d;--brand-400: #c7a22b;--brand-500: #ab8b28;--brand-600: #8d7325;--brand-700: #715d21;--brand-800: #57481c;--brand-900: #3f3417;--brand-950: #292004;--brand-fill: #faca2e;--brand-fill-fg: #171717;--brand-fill-hover: #e5bb3d;--brand-ink: #715d21;--brand-ring: #715d21;--brand-fill-dark: #e5bb3d;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #faca2e;--brand-ink-dark: #e5bb3d;--brand-ring-dark: #e5bb3d;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #faf3e0;--brand-100: #f9e9bd;--brand-200: #faca2e;--brand-300: #e5bb3d;--brand-400: #c7a22b;--brand-500: #ab8b28;--brand-600: #8d7325;--brand-700: #715d21;--brand-800: #57481c;--brand-900: #3f3417;--brand-950: #292004;--brand-fill: #faca2e;--brand-fill-fg: #171717;--brand-fill-hover: #e5bb3d;--brand-ink: #715d21;--brand-ring: #715d21;--brand-fill-dark: #e5bb3d;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #faca2e;--brand-ink-dark: #e5bb3d;--brand-ring-dark: #e5bb3d;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">梅洛粉 Merlot Pink</span>
+      <code>#EB6D98</code>
+      <span class="brand-id">data-brand="merlot"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #faf0f3;--brand-100: #f9e3e8;--brand-200: #f6c9d5;--brand-300: #f8a4bd;--brand-400: #eb6d98;--brand-500: #d6628a;--brand-600: #b35072;--brand-700: #923f5c;--brand-800: #733047;--brand-900: #562133;--brand-950: #38121f;--brand-fill: #eb6d98;--brand-fill-fg: #171717;--brand-fill-hover: #d6628a;--brand-ink: #923f5c;--brand-ring: #923f5c;--brand-fill-dark: #eb6d98;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f8a4bd;--brand-ink-dark: #f8a4bd;--brand-ring-dark: #f8a4bd;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #faf0f3;--brand-100: #f9e3e8;--brand-200: #f6c9d5;--brand-300: #f8a4bd;--brand-400: #eb6d98;--brand-500: #d6628a;--brand-600: #b35072;--brand-700: #923f5c;--brand-800: #733047;--brand-900: #562133;--brand-950: #38121f;--brand-fill: #eb6d98;--brand-fill-fg: #171717;--brand-fill-hover: #d6628a;--brand-ink: #923f5c;--brand-ring: #923f5c;--brand-fill-dark: #eb6d98;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f8a4bd;--brand-ink-dark: #f8a4bd;--brand-ring-dark: #f8a4bd;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">皇家紫 Royal Purple</span>
+      <code>#722169</code>
+      <span class="brand-id">data-brand="royal"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #faf0f8;--brand-100: #f9e1f4;--brand-200: #f6c5ed;--brand-300: #f89aea;--brand-400: #f366e1;--brand-500: #d74bc7;--brand-600: #b43ca7;--brand-700: #932e88;--brand-800: #722169;--brand-900: #581051;--brand-950: #3a0635;--brand-fill: #722169;--brand-fill-fg: #ffffff;--brand-fill-hover: #581051;--brand-ink: #722169;--brand-ring: #722169;--brand-fill-dark: #e27cd2;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f89aea;--brand-ink-dark: #f69ce8;--brand-ring-dark: #f69ce8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #faf0f8;--brand-100: #f9e1f4;--brand-200: #f6c5ed;--brand-300: #f89aea;--brand-400: #f366e1;--brand-500: #d74bc7;--brand-600: #b43ca7;--brand-700: #932e88;--brand-800: #722169;--brand-900: #581051;--brand-950: #3a0635;--brand-fill: #722169;--brand-fill-fg: #ffffff;--brand-fill-hover: #581051;--brand-ink: #722169;--brand-ring: #722169;--brand-fill-dark: #e27cd2;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f89aea;--brand-ink-dark: #f69ce8;--brand-ring-dark: #f69ce8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">拂晓蓝 Dawn Blue</span>
+      <code>#1677FF</code>
+      <span class="brand-id">data-brand="dawn"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #eff4fa;--brand-100: #e1eaf9;--brand-200: #c5d8f6;--brand-300: #9fc2f8;--brand-400: #71a7fb;--brand-500: #448bfa;--brand-600: #1677ff;--brand-700: #0c58c2;--brand-800: #074499;--brand-900: #063171;--brand-950: #041f49;--brand-fill: #0c58c2;--brand-fill-fg: #ffffff;--brand-fill-hover: #074499;--brand-ink: #0c58c2;--brand-ring: #0c58c2;--brand-fill-dark: #71a7fb;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #9fc2f8;--brand-ink-dark: #9fc2f8;--brand-ring-dark: #9fc2f8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #eff4fa;--brand-100: #e1eaf9;--brand-200: #c5d8f6;--brand-300: #9fc2f8;--brand-400: #71a7fb;--brand-500: #448bfa;--brand-600: #1677ff;--brand-700: #0c58c2;--brand-800: #074499;--brand-900: #063171;--brand-950: #041f49;--brand-fill: #0c58c2;--brand-fill-fg: #ffffff;--brand-fill-hover: #074499;--brand-ink: #0c58c2;--brand-ring: #0c58c2;--brand-fill-dark: #71a7fb;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #9fc2f8;--brand-ink-dark: #9fc2f8;--brand-ring-dark: #9fc2f8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">明青 Cyan</span>
+      <code>#13C2C2</code>
+      <span class="brand-id">data-brand="cyan"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #ddfafa;--brand-100: #b0f9f8;--brand-200: #6deeee;--brand-300: #45d8d8;--brand-400: #13c2c2;--brand-500: #1ea2a2;--brand-600: #178787;--brand-700: #106d6d;--brand-800: #0a5555;--brand-900: #093e3d;--brand-950: #052727;--brand-fill: #13c2c2;--brand-fill-fg: #171717;--brand-fill-hover: #1ea2a2;--brand-ink: #106d6d;--brand-ring: #106d6d;--brand-fill-dark: #13c2c2;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #45d8d8;--brand-ink-dark: #45d8d8;--brand-ring-dark: #45d8d8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #ddfafa;--brand-100: #b0f9f8;--brand-200: #6deeee;--brand-300: #45d8d8;--brand-400: #13c2c2;--brand-500: #1ea2a2;--brand-600: #178787;--brand-700: #106d6d;--brand-800: #0a5555;--brand-900: #093e3d;--brand-950: #052727;--brand-fill: #13c2c2;--brand-fill-fg: #171717;--brand-fill-hover: #1ea2a2;--brand-ink: #106d6d;--brand-ring: #106d6d;--brand-fill-dark: #13c2c2;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #45d8d8;--brand-ink-dark: #45d8d8;--brand-ring-dark: #45d8d8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">酱紫 Golden Purple</span>
+      <code>#722ED1</code>
+      <span class="brand-id">data-brand="purple"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #f4f2fa;--brand-100: #eae7f9;--brand-200: #d9d1f6;--brand-300: #c5b4f8;--brand-400: #af91fb;--brand-500: #9b6cfa;--brand-600: #893bf8;--brand-700: #722ed1;--brand-800: #5819a7;--brand-900: #410e7f;--brand-950: #290952;--brand-fill: #722ed1;--brand-fill-fg: #ffffff;--brand-fill-hover: #5819a7;--brand-ink: #722ed1;--brand-ring: #722ed1;--brand-fill-dark: #af91fb;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #c5b4f8;--brand-ink-dark: #c5b4f8;--brand-ring-dark: #c5b4f8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #f4f2fa;--brand-100: #eae7f9;--brand-200: #d9d1f6;--brand-300: #c5b4f8;--brand-400: #af91fb;--brand-500: #9b6cfa;--brand-600: #893bf8;--brand-700: #722ed1;--brand-800: #5819a7;--brand-900: #410e7f;--brand-950: #290952;--brand-fill: #722ed1;--brand-fill-fg: #ffffff;--brand-fill-hover: #5819a7;--brand-ink: #722ed1;--brand-ring: #722ed1;--brand-fill-dark: #af91fb;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #c5b4f8;--brand-ink-dark: #c5b4f8;--brand-ring-dark: #c5b4f8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">极客蓝 Geek Blue</span>
+      <code>#2F54EB</code>
+      <span class="brand-id">data-brand="geekblue"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #f0f3fa;--brand-100: #e3eaf9;--brand-200: #c9d7f6;--brand-300: #a8bff8;--brand-400: #80a3fb;--brand-500: #5d86fa;--brand-600: #3b64f8;--brand-700: #2f54eb;--brand-800: #1c36b1;--brand-900: #10238b;--brand-950: #060e65;--brand-fill: #2f54eb;--brand-fill-fg: #ffffff;--brand-fill-hover: #1c36b1;--brand-ink: #2f54eb;--brand-ring: #2f54eb;--brand-fill-dark: #80a3fb;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #a8bff8;--brand-ink-dark: #a8bff8;--brand-ring-dark: #a8bff8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #f0f3fa;--brand-100: #e3eaf9;--brand-200: #c9d7f6;--brand-300: #a8bff8;--brand-400: #80a3fb;--brand-500: #5d86fa;--brand-600: #3b64f8;--brand-700: #2f54eb;--brand-800: #1c36b1;--brand-900: #10238b;--brand-950: #060e65;--brand-fill: #2f54eb;--brand-fill-fg: #ffffff;--brand-fill-hover: #1c36b1;--brand-ink: #2f54eb;--brand-ring: #2f54eb;--brand-fill-dark: #80a3fb;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #a8bff8;--brand-ink-dark: #a8bff8;--brand-ring-dark: #a8bff8;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">法式洋红 French Magenta</span>
+      <code>#EB2F96</code>
+      <span class="brand-id">data-brand="magenta"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #faf0f4;--brand-100: #f9e3eb;--brand-200: #f6c8da;--brand-300: #f8a2c6;--brand-400: #fb6cb0;--brand-500: #eb2f96;--brand-600: #cb2481;--brand-700: #a71668;--brand-800: #840c51;--brand-900: #610a3b;--brand-950: #3f0625;--brand-fill: #eb2f96;--brand-fill-fg: #171717;--brand-fill-hover: #cb2481;--brand-ink: #a71668;--brand-ring: #a71668;--brand-fill-dark: #fb6cb0;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f8a2c6;--brand-ink-dark: #f8a2c6;--brand-ring-dark: #f8a2c6;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #faf0f4;--brand-100: #f9e3eb;--brand-200: #f6c8da;--brand-300: #f8a2c6;--brand-400: #fb6cb0;--brand-500: #eb2f96;--brand-600: #cb2481;--brand-700: #a71668;--brand-800: #840c51;--brand-900: #610a3b;--brand-950: #3f0625;--brand-fill: #eb2f96;--brand-fill-fg: #171717;--brand-fill-hover: #cb2481;--brand-ink: #a71668;--brand-ring: #a71668;--brand-fill-dark: #fb6cb0;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f8a2c6;--brand-ink-dark: #f8a2c6;--brand-ring-dark: #f8a2c6;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">金盏花 Marigold</span>
+      <code>#FAAD14</code>
+      <span class="brand-id">data-brand="marigold"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #faf2e7;--brand-100: #f9e7cd;--brand-200: #f6d09b;--brand-300: #faad14;--brand-400: #da981f;--brand-500: #bb8219;--brand-600: #9c6c14;--brand-700: #7e5712;--brand-800: #62430f;--brand-900: #47310c;--brand-950: #2e1e04;--brand-fill: #faad14;--brand-fill-fg: #171717;--brand-fill-hover: #da981f;--brand-ink: #7e5712;--brand-ring: #7e5712;--brand-fill-dark: #faad14;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f6d09b;--brand-ink-dark: #faad14;--brand-ring-dark: #faad14;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #faf2e7;--brand-100: #f9e7cd;--brand-200: #f6d09b;--brand-300: #faad14;--brand-400: #da981f;--brand-500: #bb8219;--brand-600: #9c6c14;--brand-700: #7e5712;--brand-800: #62430f;--brand-900: #47310c;--brand-950: #2e1e04;--brand-fill: #faad14;--brand-fill-fg: #171717;--brand-fill-hover: #da981f;--brand-ink: #7e5712;--brand-ring: #7e5712;--brand-fill-dark: #faad14;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f6d09b;--brand-ink-dark: #faad14;--brand-ring-dark: #faad14;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">青柠 Lime</span>
+      <code>#A0D911</code>
+      <span class="brand-id">data-brand="lime"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #eafbd5;--brand-100: #d3fa98;--brand-200: #baeb64;--brand-300: #a0d911;--brand-400: #8ab920;--brand-500: #759f19;--brand-600: #618416;--brand-700: #4e6a14;--brand-800: #3d5212;--brand-900: #2c3c0e;--brand-950: #1a2604;--brand-fill: #a0d911;--brand-fill-fg: #171717;--brand-fill-hover: #8ab920;--brand-ink: #4e6a14;--brand-ring: #4e6a14;--brand-fill-dark: #a0d911;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #baeb64;--brand-ink-dark: #a0d911;--brand-ring-dark: #a0d911;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #eafbd5;--brand-100: #d3fa98;--brand-200: #baeb64;--brand-300: #a0d911;--brand-400: #8ab920;--brand-500: #759f19;--brand-600: #618416;--brand-700: #4e6a14;--brand-800: #3d5212;--brand-900: #2c3c0e;--brand-950: #1a2604;--brand-fill: #a0d911;--brand-fill-fg: #171717;--brand-fill-hover: #8ab920;--brand-ink: #4e6a14;--brand-ring: #4e6a14;--brand-fill-dark: #a0d911;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #baeb64;--brand-ink-dark: #a0d911;--brand-ring-dark: #a0d911;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  <section class="brand">
+    <header class="brand-head">
+      <span class="brand-name">日暮 Dusk</span>
+      <code>#FA8C16</code>
+      <span class="brand-id">data-brand="dusk"</span>
+    </header>
+    <div class="pair">
+      <div class="light" style="--brand-50: #faf2eb;--brand-100: #f9e5d7;--brand-200: #f6ceb0;--brand-300: #f8ad72;--brand-400: #fa8c16;--brand-500: #cf7419;--brand-600: #ac6012;--brand-700: #8c4d0d;--brand-800: #6e3b08;--brand-900: #502a06;--brand-950: #331a04;--brand-fill: #fa8c16;--brand-fill-fg: #171717;--brand-fill-hover: #cf7419;--brand-ink: #8c4d0d;--brand-ring: #8c4d0d;--brand-fill-dark: #fa8c16;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f8ad72;--brand-ink-dark: #f8ad72;--brand-ring-dark: #f8ad72;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+      <div class="dark" style="--brand-50: #faf2eb;--brand-100: #f9e5d7;--brand-200: #f6ceb0;--brand-300: #f8ad72;--brand-400: #fa8c16;--brand-500: #cf7419;--brand-600: #ac6012;--brand-700: #8c4d0d;--brand-800: #6e3b08;--brand-900: #502a06;--brand-950: #331a04;--brand-fill: #fa8c16;--brand-fill-fg: #171717;--brand-fill-hover: #cf7419;--brand-ink: #8c4d0d;--brand-ring: #8c4d0d;--brand-fill-dark: #fa8c16;--brand-fill-fg-dark: #171717;--brand-fill-hover-dark: #f8ad72;--brand-ink-dark: #f8ad72;--brand-ring-dark: #f8ad72;">
+  <div class="card">
+    <div class="mock">
+      <aside class="side">
+        <span class="dot"></span><span class="side-item active">概览</span>
+        <span class="side-item">告警</span><span class="side-item">数据源</span>
+      </aside>
+      <div class="main">
+        <div class="row">
+          <strong class="title">触发中的告警</strong>
+          <button class="btn">新建规则</button>
+        </div>
+        <div class="row gap">
+          <button class="btn ghost">导出</button>
+          <a class="link">查看历史 →</a>
+        </div>
+        <div class="chips">
+          <span class="chip ok">运行中</span>
+          <span class="chip warn">待处理</span>
+          <span class="chip bad">失败</span>
+          <span class="chip info">信息</span>
+          <span class="chip brand">主色标签</span>
+        </div>
+        <div class="bars">
+          <span style="background:var(--chart-1)"></span>
+          <span style="background:var(--chart-2)"></span>
+          <span style="background:var(--chart-3)"></span>
+          <span style="background:var(--chart-4)"></span>
+        </div>
+        <input class="input" value="focus 环来自 --ring" readonly />
+      </div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+
+  <footer>评审提示：每张卡片的按钮文字色由生成器按 ≥4.5:1 自动挑选，没有手工指定（浅色下 10 套用深色字、翠微/皇家紫/拂晓蓝/酱紫/极客蓝用白字；深色下全部为深色字）。状态标签始终「文字 + 颜色」双通道，品牌色不承载状态语义。新增品牌改 <code>BRANDS</code> 后重跑 <code>npm run tokens:gen</code>，本页会自动同步。</footer>
+
+<script>
+  document.querySelectorAll("[data-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-checked", String(b === button)))
+      document.body.className = button.dataset.mode
+    })
+  })
+  document.querySelectorAll("[data-brand]").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll("[data-brand]").forEach((b) => b.setAttribute("aria-checked", String(b === button)))
+    })
+  })
+</script>
+</body>
+</html>
