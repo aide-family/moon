@@ -52,6 +52,130 @@ const messageKeys: Record<string, string> = {
   "cluster is rate limited": "error.clusterRateLimited",
   "cluster is unavailable": "error.clusterUnavailable",
   "pod has no containers": "error.podNoContainers",
+  "access token required": "error.accessTokenRequired",
+  "refresh token required": "error.refreshTokenRequired",
+  "invalid token": "error.invalidToken",
+  "forbidden": "error.forbidden",
+  "permission denied": "error.permissionDenied",
+  "user is banned": "error.userBanned",
+  "user is not active": "error.userInactive",
+  "cannot change super admin": "error.cannotChangeSuperAdmin",
+  "cannot change another system admin": "error.cannotChangeAnotherSystemAdmin",
+  "cannot change your own status": "error.cannotChangeOwnStatus",
+  "cannot change your own system role": "error.cannotChangeOwnSystemRole",
+  "cannot change owner status": "error.cannotChangeOwnerStatus",
+  "invalid system role": "error.invalidSystemRole",
+  "owner role is assigned by transfer owner": "error.ownerRoleByTransfer",
+  "namespace is required": "error.namespaceRequired",
+  "namespace is disabled": "error.namespaceDisabled",
+  "namespace mismatch": "error.namespaceMismatch",
+  "member not found": "error.memberNotFound",
+  "member is not joined": "error.memberNotJoined",
+  "member must accept invitation": "error.memberMustAcceptInvitation",
+  "member has no email": "error.memberNoEmail",
+  "member has no phone": "error.memberNoPhone",
+  "member is already merged": "error.memberAlreadyMerged",
+  "invalid invitation": "error.invalidInvitation",
+  "invitation not found": "error.invitationNotFound",
+  "name already exists": "error.nameExists",
+  "too many members": "error.tooManyMembers",
+  "datasource is disabled": "error.datasourceDisabled",
+  "datasource is not logs": "error.datasourceNotLogs",
+  "datasource is not metrics": "error.datasourceNotMetrics",
+  "datasource does not support alert charts": "error.datasourceNoAlertCharts",
+  "unsupported datasource driver": "error.unsupportedDriver",
+  "invalid datasource index pattern": "error.invalidIndexPattern",
+  "invalid label matcher": "error.invalidLabelMatcher",
+  "invalid query expression": "error.invalidQueryExpression",
+  "upstream query failed": "error.upstreamQueryFailed",
+  "invalid smtp endpoint": "error.invalidSmtpEndpoint",
+  "invalid smtp port": "error.invalidSmtpPort",
+  "invalid webhook endpoint": "error.invalidWebhookEndpoint",
+  "webhook endpoint must not contain credentials": "error.webhookEndpointCredentials",
+  "level is in use": "error.levelInUse",
+  "group still has rules": "error.groupHasRules",
+  "invalid alert event status": "error.invalidAlertEventStatus",
+  "invalid alert event time range": "error.invalidAlertEventTimeRange",
+  "invalid time range": "error.invalidTimeRange",
+  "invalid time zone": "error.invalidTimeZone",
+  "invalid suppression filter": "error.invalidSuppressionFilter",
+  "history filters require HISTORY view": "error.historyFiltersNeedHistoryView",
+  "alert analysis range must be within 30 days": "error.analysisRangeTooLong",
+  "alert analysis range must not end in the future": "error.analysisRangeFuture",
+  "alert event time range must be within 30 days": "error.eventRangeTooLong",
+  "time range must be within 30 days": "error.rangeTooLong",
+  "focus window must be within the analysis range": "error.focusWindowOutsideRange",
+  "duplicate variable name": "error.duplicateVariableName",
+  "empty variable expr": "error.emptyVariableExpr",
+  "invalid variable name": "error.invalidVariableName",
+  "reserved variable name": "error.reservedVariableName",
+  "too many variables": "error.tooManyVariables",
+  "variable expr is too long": "error.variableExprTooLong",
+  "invalid summary template": "error.invalidSummaryTemplate",
+  "invalid description template": "error.invalidDescriptionTemplate",
+  "channel is disabled": "error.channelDisabled",
+  "channel is used by a notification group": "error.channelInUseByGroup",
+  "channel type and app do not match": "error.channelTypeAppMismatch",
+  "invalid channel type": "error.invalidChannelType",
+  "template is disabled": "error.templateDisabled",
+  "template is used by a notification group": "error.templateInUseByGroup",
+  "template is required for every channel": "error.templateRequiredPerChannel",
+  "channel and template counts do not match": "error.channelTemplateCountMismatch",
+  "duplicate notification group": "error.duplicateGroup",
+  "group is bound to a notification subscription": "error.groupBoundSubscription",
+  "group is bound to a notification on-call": "error.groupBoundOncall",
+  "notification group requires at least one channel": "error.groupNeedsChannel",
+  "only one email channel is allowed": "error.onlyOneEmailChannel",
+  "only one sms channel is allowed": "error.onlyOneSmsChannel",
+  "email channel requires at least one receiver": "error.emailChannelNeedsReceiver",
+  "email receivers require an email channel": "error.emailReceiversNeedChannel",
+  "sms channel requires an sms template": "error.smsChannelNeedsTemplate",
+  "sms channel requires at least one receiver": "error.smsChannelNeedsReceiver",
+  "sms receivers require an sms channel": "error.smsReceiversNeedChannel",
+  "sms delivery is not implemented": "error.smsNotImplemented",
+  "sms access key is required": "error.smsAccessKeyRequired",
+  "sms sign name is required": "error.smsSignNameRequired",
+  "template body is required": "error.templateBodyRequired",
+  "receivers are required": "error.receiversRequired",
+  "repeat interval seconds is out of range": "error.repeatIntervalOutOfRange",
+  "too many receivers": "error.tooManyReceivers",
+  "too many channels": "error.tooManyChannels",
+  "too many subscription filters": "error.tooManySubscriptionFilters",
+  "invalid on-call timezone": "error.invalidOncallTimezone",
+  "invalid on-call weekday": "error.invalidOncallWeekday",
+  "invalid on-call windows": "error.invalidOncallWindows",
+  "on-call window requires at least one weekday": "error.oncallWindowNeedsWeekday",
+  "on-call window start and end must differ": "error.oncallWindowSameEdge",
+  "on-call window time must be HH:mm": "error.oncallWindowTimeFormat",
+  "too many on-call filters": "error.tooManyOncallFilters",
+  "too many on-call groups": "error.tooManyOncallGroups",
+  "too many on-call time windows": "error.tooManyOncallWindows",
+  "agent is offline": "error.agentOffline",
+  "agent is revoked": "error.agentRevoked",
+  "select an online agent": "error.selectOnlineAgent",
+  "command is not approved": "error.commandNotApproved",
+  "name and command are required": "error.nameCommandRequired",
+  "ssh credentials missing": "error.sshCredentialsMissing",
+  "invalid ssh private key": "error.invalidSshPrivateKey",
+  "execute cancelled": "error.executeCancelled",
+  "execute timed out": "error.executeTimedOut",
+  "node name is required": "error.nodeNameRequired",
+  "invalid resource kind": "error.invalidResourceKind",
+  "resource name is required": "error.resourceNameRequired",
+  "resource yaml is too large to preview": "error.yamlTooLarge",
+  "namespace and name are required": "error.namespaceNameRequired",
+}
+
+// 服务端错误带 reason（CLIENT / INVALID / CONFLICT 等）。message 没有具体映射时用它兜底，
+// 保证中文界面永远拿得到本地化文案，而不是把后端英文原文当主文案显示。
+const reasonKeys: Record<string, string> = {
+  CLIENT: "error.reason.CLIENT",
+  UNAUTHENTICATED: "error.reason.UNAUTHENTICATED",
+  FORBIDDEN: "error.reason.FORBIDDEN",
+  NOT_FOUND: "error.reason.NOT_FOUND",
+  CONFLICT: "error.reason.CONFLICT",
+  INVALID: "error.reason.INVALID",
+  SERVER: "error.reason.SERVER",
 }
 
 const fieldByMessage: Record<string, string> = {
@@ -68,25 +192,33 @@ export class ApiError extends Error {
   raw: string
   /** 服务端错误携带的附加信息，例如发码节流的 retryAfterSeconds。 */
   metadata: Record<string, string>
+  /** 服务端错误原因（CLIENT / INVALID / CONFLICT 等），未提供时为空串。 */
+  reason: string
 
   constructor(
     status: number,
     message: string,
     fields: Record<string, string> = {},
     raw = "",
-    metadata: Record<string, string> = {}
+    metadata: Record<string, string> = {},
+    reason = ""
   ) {
     super(message)
     this.status = status
     this.fields = fields
     this.raw = raw
     this.metadata = metadata
+    this.reason = reason
   }
 }
 
-export function localizeMessage(message: string): string {
+export function localizeMessage(message: string, reason = ""): string {
   const key = messageKeys[message]
-  return key ? i18n.t(key) : message
+  if (key) {
+    return i18n.t(key)
+  }
+  const fallback = reasonKeys[reason]
+  return fallback ? i18n.t(fallback) : message
 }
 
 function fieldName(raw: string): string {
@@ -245,12 +377,17 @@ export async function send<T>(
 ): Promise<T> {
   const response = await request(path, init)
   const text = await response.text()
-  let data: { message?: string; metadata?: Record<string, string> } = {}
+  let data: {
+    message?: string
+    metadata?: Record<string, string>
+    reason?: string
+  } = {}
   if (text) {
     try {
       data = JSON.parse(text) as {
         message?: string
         metadata?: Record<string, string>
+        reason?: string
       }
     } catch {
       data = { message: text }
@@ -258,7 +395,7 @@ export async function send<T>(
   }
   if (!response.ok) {
     const raw = data.message || `request failed: ${response.status}`
-    const message = localizeMessage(raw)
+    const message = localizeMessage(raw, data.reason ?? "")
     const fields = response.status === 400 ? parseFieldErrors(raw) : {}
     if (
       !options.silent &&
@@ -271,7 +408,8 @@ export async function send<T>(
       message,
       fields,
       raw,
-      data.metadata ?? {}
+      data.metadata ?? {},
+      data.reason ?? ""
     )
   }
   return data as T

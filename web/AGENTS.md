@@ -67,6 +67,18 @@ Reference shape:
 
 A dialog without actions uses `DialogHeader` + `DialogBody` only. A selection dialog (e.g. the alert-page picker) may keep a fixed filter / batch bar between the header and `DialogBody`; the list itself is the only scrolling element. `AlertDialog` confirmation dialogs keep the compact primitive layout (one short paragraph, no scrolling body).
 
+## Error copy
+
+- Backend `merr` messages are English originals and reach the browser as the
+  error `message`. `web/src/api/http.ts` maps the ones users can actually hit to
+  `error.*` keys in both language packs; anything unmapped falls back to the
+  localized `error.reason.<REASON>` text (`CLIENT`, `INVALID`, `CONFLICT`,
+  `NOT_FOUND`, `FORBIDDEN`, `UNAUTHENTICATED`, `SERVER`), so a Chinese UI never
+  shows an English sentence as the primary message.
+- Add a specific `messageKeys` entry plus zh/en values when a message needs its
+  own wording (conflicts, disabled resources, ownership rules). Keep the raw
+  English in `ApiError.raw`; never branch on the localized text.
+
 ## Form controls and filter panels
 
 - Form controls keep the primitive height (`h-8`, 32px): never override `h-9`/`h-10` on `Input`, `SelectTrigger`, `Textarea`, or `DateRangePicker`. Side-by-side controls must measure equal height; verify with the rendered rects rather than by reading class names.
