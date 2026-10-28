@@ -151,11 +151,11 @@ make images VERSION=v0.1.0 IMAGE_PREFIX=alioth
 
 | 服务 | GHCR 镜像 |
 | --- | --- |
-| 玉衡 | `ghcr.io/aide-family/alioth/alioth` |
-| 天权 | `ghcr.io/aide-family/alioth/megrez` |
-| 天璇 | `ghcr.io/aide-family/alioth/merak` |
-| 摇光 | `ghcr.io/aide-family/alioth/alkaid` |
-| Web | `ghcr.io/aide-family/alioth/web` |
+| 玉衡 | `ghcr.io/aide-family/moon/alioth` |
+| 天权 | `ghcr.io/aide-family/moon/megrez` |
+| 天璇 | `ghcr.io/aide-family/moon/merak` |
+| 摇光 | `ghcr.io/aide-family/moon/alkaid` |
+| Web | `ghcr.io/aide-family/moon/web` |
 
 - `v0.1.0` 这类 tag 产出 `v0.1.0`、`0.1.0`、`0.1`、`0`、`latest` 标签（`-rc1` 这类预发布 tag 不覆盖 `latest`），镜像为 amd64 + arm64 多架构；`main` 只出 amd64，标签是 `main` 与 `sha-<12 位>`。
 - 镜像带 `org.opencontainers.image.source` 等 OCI 标签，GHCR 包因此关联本仓库；构建来源证明（provenance）与 SBOM 随镜像推送。

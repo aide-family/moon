@@ -1,9 +1,9 @@
 # 控制面多副本部署
 
 命名空间 `alioth`。清单里统一使用 GHCR 上发布的镜像
-`ghcr.io/aide-family/alioth/<service>:sha-<12>`（`.github/workflows/release.yml` 产出，
+`ghcr.io/aide-family/moon/<service>:sha-<12>`（`.github/workflows/release.yml` 产出，
 多架构）。这里固定用 `sha-` 标签而不是 `main`：`main` 会随主分支漂移，`sha-` 才是不可变引用。
-升级版本时用 `kubectl -n alioth set image deploy/<service> <service>=ghcr.io/aide-family/alioth/<service>:sha-<新提交>`
+升级版本时用 `kubectl -n alioth set image deploy/<service> <service>=ghcr.io/aide-family/moon/<service>:sha-<新提交>`
 逐个换，或者直接改清单里的标签再 apply。
 
 仓库里也有本地构建路径（`make images VERSION=v1.2.3`），产物是 `alioth/<service>:<version>`，

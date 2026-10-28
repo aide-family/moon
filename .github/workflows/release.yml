@@ -36,7 +36,8 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       is_release: ${{ steps.version.outputs.is_release }}
-      # GHCR 镜像名必须全小写；namespace 取小写后的 owner，再按服务分下一级。
+      # GHCR 镜像名必须全小写；namespace 取小写后的 owner/repo，再按服务分下一级。
+      # 包名跟随仓库名，仓库改名（Alioth → moon）或同一份代码推到两个仓库时都不会撞包。
       image_prefix: ${{ steps.version.outputs.image_prefix }}
     steps:
       - id: version
@@ -56,12 +57,15 @@ jobs:
             version="sha-${GITHUB_SHA:0:12}"
           fi
           owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          # 镜像包跟着仓库名走：包只能由关联的仓库写入，写死 alioth 会让 moon 仓库
+          # 在 push 时拿到 permission_denied: write_package。
+          repo="$(printf '%s' "${GITHUB_REPOSITORY#*/}" | tr '[:upper:]' '[:lower:]')"
           {
             echo "version=${version}"
             echo "is_release=${is_release}"
-            echo "image_prefix=ghcr.io/${owner}/alioth"
+            echo "image_prefix=ghcr.io/${owner}/${repo}"
           } >> "${GITHUB_OUTPUT}"
-          echo "版本戳：\`${version}\`，镜像前缀 \`ghcr.io/${owner}/alioth\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "版本戳：\`${version}\`，镜像前缀 \`ghcr.io/${owner}/${repo}\`" >> "${GITHUB_STEP_SUMMARY}"
 
   images:
     name: 镜像 ${{ matrix.service }}

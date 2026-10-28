@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: alkaid
-          image: ghcr.io/aide-family/alioth/alkaid:sha-fdb4ca32699a
+          image: ghcr.io/aide-family/moon/alkaid:sha-fdb4ca32699a
           ports:
             - name: http
               containerPort: 8022
