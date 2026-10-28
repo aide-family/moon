@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -429,42 +430,44 @@ export function MemberPage() {
           <DialogHeader>
             <DialogTitle>{t("action.invite")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onInvite}>
-            <FormField
-              label={t("member.email")}
-              htmlFor="invite-email"
-              required
-              error={fieldErrors.email}
-            >
-              <Input
-                id="invite-email"
-                type="email"
-                value={email}
-                placeholder={t("member.emailPlaceholder")}
-                onChange={(event) => setEmail(event.target.value)}
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onInvite}>
+            <DialogBody className="grid gap-4">
+              <FormField
+                label={t("member.email")}
+                htmlFor="invite-email"
                 required
-              />
-            </FormField>
-            <FormField
-              label={t("member.role")}
-              htmlFor="invite-role"
-              hint={t("member.roleHint")}
-              required
-              error={fieldErrors.role}
-            >
-              <Select value={roleUid || undefined} onValueChange={setRoleUid}>
-                <SelectTrigger id="invite-role" className="w-full">
-                  <SelectValue placeholder={t("member.rolePlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {inviteRoles.map((role) => (
-                    <SelectItem key={role.uid} value={role.uid}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
+                error={fieldErrors.email}
+              >
+                <Input
+                  id="invite-email"
+                  type="email"
+                  value={email}
+                  placeholder={t("member.emailPlaceholder")}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+              </FormField>
+              <FormField
+                label={t("member.role")}
+                htmlFor="invite-role"
+                hint={t("member.roleHint")}
+                required
+                error={fieldErrors.role}
+              >
+                <Select value={roleUid || undefined} onValueChange={setRoleUid}>
+                  <SelectTrigger id="invite-role" className="w-full">
+                    <SelectValue placeholder={t("member.rolePlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {inviteRoles.map((role) => (
+                      <SelectItem key={role.uid} value={role.uid}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+            </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="submit" disabled={pending}>
@@ -479,79 +482,81 @@ export function MemberPage() {
           <DialogHeader>
             <DialogTitle>{t("action.assign")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onAssign}>
-            <FormField label={t("member.role")} required error={fieldErrors.roles}>
-              <div className="grid gap-2">
-                <Input
-                  value={roleQuery}
-                  onChange={(event) => setRoleQuery(event.target.value)}
-                  placeholder={t("member.roleSearch")}
-                  aria-label={t("member.roleSearch")}
-                />
-                <div className="grid max-h-[50vh] gap-1 overflow-y-auto rounded-md border p-1">
-                  {assignableRoles.length === 0 ? (
-                    <p className="px-2 py-3 text-sm text-muted-foreground">
-                      {t("member.roleSearchEmpty")}
-                    </p>
-                  ) : null}
-                  {assignableRoles.map((role) => {
-                    const checked = selected.includes(role.uid)
-                    const disabled = role.status !== "ACTIVE" && !checked
-                    return (
-                      <div
-                        key={role.uid}
-                        className="flex min-h-11 items-center gap-2 rounded-sm px-2 py-1 hover:bg-muted/50"
-                      >
-                        <Checkbox
-                          id={`assign-${role.uid}`}
-                          checked={checked}
-                          disabled={disabled}
-                          onCheckedChange={(value) => {
-                            setSelected((current) =>
-                              value === true
-                                ? [...current, role.uid]
-                                : current.filter((uid) => uid !== role.uid),
-                            )
-                          }}
-                        />
-                        <div className="grid min-w-0 flex-1 gap-0.5">
-                          <div className="flex min-w-0 flex-wrap items-center gap-2">
-                            <Label
-                              htmlFor={`assign-${role.uid}`}
-                              className="cursor-pointer truncate text-sm font-medium"
-                            >
-                              {role.name}
-                            </Label>
-                            <RoleTypeTag
-                              isSystem={role.isSystem}
-                              variant="compact"
-                              className="hidden sm:inline-flex"
-                            />
-                            {role.status !== "ACTIVE" ? (
-                              <StatusBadge
-                                value="DISABLED"
-                                label={t("member.roleDisabled")}
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onAssign}>
+            <DialogBody className="grid gap-4">
+              <FormField label={t("member.role")} required error={fieldErrors.roles}>
+                <div className="grid gap-2">
+                  <Input
+                    value={roleQuery}
+                    onChange={(event) => setRoleQuery(event.target.value)}
+                    placeholder={t("member.roleSearch")}
+                    aria-label={t("member.roleSearch")}
+                  />
+                  <div className="grid gap-1 rounded-md border p-1">
+                    {assignableRoles.length === 0 ? (
+                      <p className="px-2 py-3 text-sm text-muted-foreground">
+                        {t("member.roleSearchEmpty")}
+                      </p>
+                    ) : null}
+                    {assignableRoles.map((role) => {
+                      const checked = selected.includes(role.uid)
+                      const disabled = role.status !== "ACTIVE" && !checked
+                      return (
+                        <div
+                          key={role.uid}
+                          className="flex min-h-11 items-center gap-2 rounded-sm px-2 py-1 hover:bg-muted/50"
+                        >
+                          <Checkbox
+                            id={`assign-${role.uid}`}
+                            checked={checked}
+                            disabled={disabled}
+                            onCheckedChange={(value) => {
+                              setSelected((current) =>
+                                value === true
+                                  ? [...current, role.uid]
+                                  : current.filter((uid) => uid !== role.uid),
+                              )
+                            }}
+                          />
+                          <div className="grid min-w-0 flex-1 gap-0.5">
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              <Label
+                                htmlFor={`assign-${role.uid}`}
+                                className="cursor-pointer truncate text-sm font-medium"
+                              >
+                                {role.name}
+                              </Label>
+                              <RoleTypeTag
+                                isSystem={role.isSystem}
+                                variant="compact"
+                                className="hidden sm:inline-flex"
                               />
+                              {role.status !== "ACTIVE" ? (
+                                <StatusBadge
+                                  value="DISABLED"
+                                  label={t("member.roleDisabled")}
+                                />
+                              ) : null}
+                              <RoleRemarkHint
+                                remark={role.remark}
+                                label={t("member.roleRemarkLabel", { name: role.name })}
+                                className="hidden sm:inline-flex [@media(hover:none)]:hidden"
+                              />
+                            </div>
+                            {/* 触屏没有 hover，备注直接铺在角色名下面，不留死角。 */}
+                            {role.remark?.trim() ? (
+                              <span className="line-clamp-2 text-xs text-muted-foreground sm:hidden [@media(hover:none)]:block">
+                                {role.remark}
+                              </span>
                             ) : null}
-                            <RoleRemarkHint
-                              remark={role.remark}
-                              label={t("member.roleRemarkLabel", { name: role.name })}
-                              className="hidden sm:inline-flex [@media(hover:none)]:hidden"
-                            />
                           </div>
-                          {/* 触屏没有 hover，备注直接铺在角色名下面，不留死角。 */}
-                          {role.remark?.trim() ? (
-                            <span className="line-clamp-2 text-xs text-muted-foreground sm:hidden [@media(hover:none)]:block">
-                              {role.remark}
-                            </span>
-                          ) : null}
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            </FormField>
+              </FormField>
+            </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter className="items-center sm:justify-between">
               <span className="text-xs text-muted-foreground">

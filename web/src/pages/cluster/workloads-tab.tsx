@@ -23,6 +23,7 @@ import { TableActionsHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -372,30 +373,32 @@ export function KubernetesWorkloadsTab({
           <DialogHeader>
             <DialogTitle>{t("kube.scaleTitle")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onScale}>
-            <p className="text-sm break-all text-muted-foreground">
-              {scaleTarget
-                ? `${scaleTarget.kind} · ${scaleTarget.namespace}/${scaleTarget.name}`
-                : ""}
-            </p>
-            <FormField
-              label={t("kube.replicas")}
-              htmlFor="workload-replicas"
-              hint={t("kube.replicasHint")}
-              required
-              error={scaleFieldError}
-            >
-              <Input
-                id="workload-replicas"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={MAX_REPLICAS}
-                step={1}
-                value={replicas}
-                onChange={(event) => setReplicas(event.target.value)}
-              />
-            </FormField>
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onScale}>
+            <DialogBody className="grid gap-4">
+              <p className="text-sm break-all text-muted-foreground">
+                {scaleTarget
+                  ? `${scaleTarget.kind} · ${scaleTarget.namespace}/${scaleTarget.name}`
+                  : ""}
+              </p>
+              <FormField
+                label={t("kube.replicas")}
+                htmlFor="workload-replicas"
+                hint={t("kube.replicasHint")}
+                required
+                error={scaleFieldError}
+              >
+                <Input
+                  id="workload-replicas"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={MAX_REPLICAS}
+                  step={1}
+                  value={replicas}
+                  onChange={(event) => setReplicas(event.target.value)}
+                />
+              </FormField>
+            </DialogBody>
             {scaleError ? (
               <p className="text-sm break-words text-destructive">
                 {scaleError}

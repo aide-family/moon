@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -608,29 +609,31 @@ export function NamespacePage() {
           <DialogHeader>
             <DialogTitle>{t("namespace.create")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onCreate}>
-            <FormField
-              label={t("namespace.name")}
-              htmlFor="ns-name"
-              required
-              error={fieldErrors.name}
-            >
-              <Input
-                id="ns-name"
-                value={name}
-                placeholder={t("namespace.namePlaceholder")}
-                onChange={(event) => setName(event.target.value)}
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onCreate}>
+            <DialogBody className="grid gap-4">
+              <FormField
+                label={t("namespace.name")}
+                htmlFor="ns-name"
                 required
-              />
-            </FormField>
-            <FormField label={t("namespace.remark")} htmlFor="ns-remark">
-              <Input
-                id="ns-remark"
-                value={remark}
-                placeholder={t("namespace.remarkPlaceholder")}
-                onChange={(event) => setRemark(event.target.value)}
-              />
-            </FormField>
+                error={fieldErrors.name}
+              >
+                <Input
+                  id="ns-name"
+                  value={name}
+                  placeholder={t("namespace.namePlaceholder")}
+                  onChange={(event) => setName(event.target.value)}
+                  required
+                />
+              </FormField>
+              <FormField label={t("namespace.remark")} htmlFor="ns-remark">
+                <Input
+                  id="ns-remark"
+                  value={remark}
+                  placeholder={t("namespace.remarkPlaceholder")}
+                  onChange={(event) => setRemark(event.target.value)}
+                />
+              </FormField>
+            </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="submit" disabled={pending}>
@@ -645,21 +648,23 @@ export function NamespacePage() {
           <DialogHeader>
             <DialogTitle>{t("action.edit")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onRename}>
-            <FormField
-              label={t("namespace.name")}
-              htmlFor="edit-name"
-              required
-              error={fieldErrors.name}
-            >
-              <Input
-                id="edit-name"
-                value={name}
-                placeholder={t("namespace.namePlaceholder")}
-                onChange={(event) => setName(event.target.value)}
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onRename}>
+            <DialogBody className="grid gap-4">
+              <FormField
+                label={t("namespace.name")}
+                htmlFor="edit-name"
                 required
-              />
-            </FormField>
+                error={fieldErrors.name}
+              >
+                <Input
+                  id="edit-name"
+                  value={name}
+                  placeholder={t("namespace.namePlaceholder")}
+                  onChange={(event) => setName(event.target.value)}
+                  required
+                />
+              </FormField>
+            </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="submit" disabled={pending}>
@@ -674,37 +679,39 @@ export function NamespacePage() {
           <DialogHeader>
             <DialogTitle>{t("action.transfer")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={requestTransfer}>
-            {members.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {t("state.empty")}
-              </p>
-            ) : (
-              <FormField
-                label={t("member.email")}
-                hint={t("namespace.transferHint")}
-                required
-                error={fieldErrors.target}
-              >
-                <Select value={target || undefined} onValueChange={setTarget}>
-                  <SelectTrigger
-                    className="w-full"
-                    aria-label={t("member.email")}
-                  >
-                    <SelectValue
-                      placeholder={t("namespace.memberPlaceholder")}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {members.map((item) => (
-                      <SelectItem key={item.uid} value={item.userUid}>
-                        {item.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-            )}
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={requestTransfer}>
+            <DialogBody className="grid gap-4">
+              {members.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("state.empty")}
+                </p>
+              ) : (
+                <FormField
+                  label={t("member.email")}
+                  hint={t("namespace.transferHint")}
+                  required
+                  error={fieldErrors.target}
+                >
+                  <Select value={target || undefined} onValueChange={setTarget}>
+                    <SelectTrigger
+                      className="w-full"
+                      aria-label={t("member.email")}
+                    >
+                      <SelectValue
+                        placeholder={t("namespace.memberPlaceholder")}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {members.map((item) => (
+                        <SelectItem key={item.uid} value={item.userUid}>
+                          {item.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              )}
+            </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="submit" disabled={pending}>

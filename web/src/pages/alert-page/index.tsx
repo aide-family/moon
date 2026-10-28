@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -232,76 +233,78 @@ export function AlertPageManagePage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField
-              label={t("alertPage.name")}
-              htmlFor="alert-page-name"
-              className="sm:col-span-full"
-              required
-              error={fieldErrors.name}
-            >
-              <Input
-                id="alert-page-name"
-                value={name}
-                placeholder={t("alertPage.namePlaceholder")}
-                onChange={(event) => setName(event.target.value)}
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSave}>
+            <DialogBody className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                label={t("alertPage.name")}
+                htmlFor="alert-page-name"
+                className="sm:col-span-full"
                 required
-              />
-            </FormField>
-            <div className="grid gap-2 sm:col-span-full">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium">{t("alertPage.labels")}</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setLabels((current) => [...current, { key: "", value: "" }])}
-                >
-                  {t("alertPage.addLabel")}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">{t("alertPage.labelsHint")}</p>
-              {labels.map((pair, index) => (
-                <div key={index} className="grid gap-2 sm:grid-cols-2">
-                  <Input
-                    value={pair.key}
-                    placeholder={t("alertPage.labelKeyPlaceholder")}
-                    onChange={(event) => {
-                      const next = [...labels]
-                      next[index] = { ...pair, key: event.target.value }
-                      setLabels(next)
-                    }}
-                  />
-                  <Input
-                    value={pair.value}
-                    placeholder={t("alertPage.labelValuePlaceholder")}
-                    onChange={(event) => {
-                      const next = [...labels]
-                      next[index] = { ...pair, value: event.target.value }
-                      setLabels(next)
-                    }}
-                  />
+                error={fieldErrors.name}
+              >
+                <Input
+                  id="alert-page-name"
+                  value={name}
+                  placeholder={t("alertPage.namePlaceholder")}
+                  onChange={(event) => setName(event.target.value)}
+                  required
+                />
+              </FormField>
+              <div className="grid gap-2 sm:col-span-full">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium">{t("alertPage.labels")}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLabels((current) => [...current, { key: "", value: "" }])}
+                  >
+                    {t("alertPage.addLabel")}
+                  </Button>
                 </div>
-              ))}
-            </div>
-            <FormField label={t("alertPage.remark")} htmlFor="alert-page-remark" className="sm:col-span-full">
-              <Input
-                id="alert-page-remark"
-                value={remark}
-                placeholder={t("alertPage.remarkPlaceholder")}
-                onChange={(event) => setRemark(event.target.value)}
-              />
-            </FormField>
-            <label className="flex items-center gap-2 sm:col-span-full">
-              <Checkbox checked={isPublic} onCheckedChange={(value) => setIsPublic(value === true)} />
-              <span className="text-sm">{t("alertPage.publicHint")}</span>
-            </label>
-            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
-            <DialogFooter className="sm:col-span-full">
+                <p className="text-xs text-muted-foreground">{t("alertPage.labelsHint")}</p>
+                {labels.map((pair, index) => (
+                  <div key={index} className="grid gap-2 sm:grid-cols-2">
+                    <Input
+                      value={pair.key}
+                      placeholder={t("alertPage.labelKeyPlaceholder")}
+                      onChange={(event) => {
+                        const next = [...labels]
+                        next[index] = { ...pair, key: event.target.value }
+                        setLabels(next)
+                      }}
+                    />
+                    <Input
+                      value={pair.value}
+                      placeholder={t("alertPage.labelValuePlaceholder")}
+                      onChange={(event) => {
+                        const next = [...labels]
+                        next[index] = { ...pair, value: event.target.value }
+                        setLabels(next)
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <FormField label={t("alertPage.remark")} htmlFor="alert-page-remark" className="sm:col-span-full">
+                <Input
+                  id="alert-page-remark"
+                  value={remark}
+                  placeholder={t("alertPage.remarkPlaceholder")}
+                  onChange={(event) => setRemark(event.target.value)}
+                />
+              </FormField>
+              <label className="flex items-center gap-2 sm:col-span-full">
+                <Checkbox checked={isPublic} onCheckedChange={(value) => setIsPublic(value === true)} />
+                <span className="text-sm">{t("alertPage.publicHint")}</span>
+              </label>
+            </DialogBody>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <DialogFooter>
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>

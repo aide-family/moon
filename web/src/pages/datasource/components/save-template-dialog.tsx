@@ -6,6 +6,7 @@ import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -67,7 +68,7 @@ export function SaveTemplateDialog({
         <DialogHeader>
           <DialogTitle>{t("datasource.query.saveTemplateTitle")}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4">
+        <DialogBody className="grid gap-4">
           <FormField
             label={t("datasource.query.templateName")}
             htmlFor="query-template-name"
@@ -109,7 +110,7 @@ export function SaveTemplateDialog({
             wrap
             maxHeightClass="max-h-32"
           />
-        </div>
+        </DialogBody>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={close}>
             {t("action.cancel")}

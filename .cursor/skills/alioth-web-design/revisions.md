@@ -1,3 +1,14 @@
+## 2026-10-28 对话框横向 80vw 上限与共享 DialogBody
+
+适用：`web/src` 下所有 `Dialog`（新建/编辑/选择/预览/详情），以及以后新加的弹窗。
+
+- 三段式由共享原语保证：`DialogContent` 保持 `flex max-h-[80vh] w-[min(calc(100%-2rem),80vw)] flex-col overflow-hidden`；`DialogHeader` / `DialogFooter` 是 `shrink-0`；只有中间 `DialogBody`（`min-h-0 min-w-0 flex-1 overflow-auto`）滚动。不要在 `DialogContent` 上加 `overflow-y-auto`：外框本身永远不滚动。
+- 页脚可以放在 `<form>` 里，但 `form` 必须是 `flex min-h-0 flex-1 flex-col`，且页脚不能落在 `DialogBody` 或任何滚动容器内；内容再多，「取消/保存」也不能被挤出视口。
+- 宽度上限 `80vw`：宽内容（宽表格、代码、多列栅格）在 `DialogBody` 内横向滚动，不要靠撑大对话框，也不要在祖先上再加第二个横向滚动条；窄屏同样按 80vw 收窄。
+- 表单级提交错误放在 `DialogBody` 之外、页脚之上；字段级错误仍留在对应字段下方（滚动区内）。
+- 打开对话框时焦点落到第一个可输入控件；没有可输入控件时聚焦内容区本身（原语已实现）。不要手动聚焦提示按钮：否则提示气泡自动展开遮住标题，且第一次 Esc 只关闭气泡。
+- 参考实现：`pages/alert-dictionary/index.tsx` 的新建对话框、`components/step-form.tsx` 的分步表单。`AlertDialog` 确认框保持紧凑原语布局，不强行加滚动内容区。
+
 ## 2026-10-27 壳层分割线、资料页第三方账号与登录备案
 
 适用：全局壳、个人资料页、登录/注册/OAuth 回调页。

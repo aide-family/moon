@@ -9,6 +9,7 @@ import { MetricGraph } from "@/components/metric-graph"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -75,16 +76,18 @@ export function AlertEventChartDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[80vh] flex-col gap-4 overflow-hidden sm:max-w-5xl">
+      <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>{t("alertEvent.eventChart")}</DialogTitle>
           <DialogDescription className="truncate">
             {event?.summary || event?.fingerprint}
           </DialogDescription>
         </DialogHeader>
-        {open && event ? (
-          <AlertEventChartBody key={event.uid} event={event} />
-        ) : null}
+        <DialogBody className="grid content-start gap-4">
+          {open && event ? (
+            <AlertEventChartBody key={event.uid} event={event} />
+          ) : null}
+        </DialogBody>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("action.close")}

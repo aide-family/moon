@@ -36,8 +36,36 @@ The historical analysis panel exposed two independent mistakes: the shared Tabs 
 - [ ] Flex scroll ancestors and children have the needed `min-h-0` / `min-w-0` constraints.
 - [ ] Tabs use the primitive's actual active-state attributes and expose visible selection and panel changes.
 - [ ] Long-content page and table scrolling were tested at desktop and narrow viewports.
+- [ ] Every dialog keeps `max-h-[80vh]` / `80vw` at the frame, scrolls only inside `DialogBody`, and keeps its header and footer visible after scrolling the body to the end at a short viewport.
 - [ ] Browser verification limitations are stated explicitly.
 - [ ] Typecheck, lint, and production build passed.
+
+## Dialogs and modals
+
+The shared `Dialog` primitive owns the three-part frame (`web/src/components/ui/dialog.tsx`); dialogs must not re-implement it:
+
+- `DialogContent` keeps `flex max-h-[80vh] ... flex-col overflow-hidden`; its width never exceeds 80vw (`w-[min(calc(100%-2rem),80vw)]` is built in). Never put `overflow-y-auto` on `DialogContent` — the frame itself must not scroll.
+- `DialogHeader` and `DialogFooter` are `shrink-0` (built in). The title and the action row stay visible at any content length; the footer must never sit inside `DialogBody` or any scrolling element. It may live inside the `<form>` as long as the form is `flex min-h-0 flex-1 flex-col` and `DialogBody` is its only scrolling child.
+- `DialogBody` is the only scroll owner: `min-h-0 min-w-0 flex-1 overflow-auto`. All fields and long read-only content go inside it. Wide content scrolls horizontally inside the body (the 80vw cap applies there), never by growing the dialog or adding a second scrollbar on an ancestor.
+- Form-level submit errors go between `DialogBody` and `DialogFooter` (outside the scroll area); field errors stay under their field inside the body.
+- Initial focus goes to the first text-like control, or to `DialogBody` itself when the dialog has none (built into `DialogContent`). Do not add a local `onOpenAutoFocus` unless a dialog must focus a specific field. Without this, the first `FormField` hint button takes focus, its tooltip covers the title, and the first Escape only dismisses the tooltip.
+
+Reference shape:
+
+```tsx
+<DialogContent className="sm:max-w-2xl">
+  <DialogHeader>
+    <DialogTitle>…</DialogTitle>
+  </DialogHeader>
+  <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSubmit}>
+    <DialogBody className="grid gap-4 sm:grid-cols-2">…fields…</DialogBody>
+    {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    <DialogFooter>…actions…</DialogFooter>
+  </form>
+</DialogContent>
+```
+
+A dialog without actions uses `DialogHeader` + `DialogBody` only. A selection dialog (e.g. the alert-page picker) may keep a fixed filter / batch bar between the header and `DialogBody`; the list itself is the only scrolling element. `AlertDialog` confirmation dialogs keep the compact primitive layout (one short paragraph, no scrolling body).
 
 ## Form controls and filter panels
 

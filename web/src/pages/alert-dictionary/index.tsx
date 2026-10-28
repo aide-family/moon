@@ -23,6 +23,7 @@ import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -387,7 +388,8 @@ export function AlertDictionaryPage() {
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid min-h-0 gap-4 overflow-y-auto sm:grid-cols-2" onSubmit={onSave}>
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSave}>
+            <DialogBody className="grid gap-4 sm:grid-cols-2">
             {!editing ? (
               <FormField
                 label={t("alertDictionary.presetLabel")}
@@ -491,8 +493,9 @@ export function AlertDictionaryPage() {
                 </div>
               </FormField>
             ) : null}
-            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
-            <DialogFooter className="sm:col-span-full">
+            </DialogBody>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <DialogFooter>
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>

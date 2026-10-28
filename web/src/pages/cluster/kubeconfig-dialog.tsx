@@ -9,6 +9,7 @@ import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -159,7 +160,7 @@ export function ClusterKubeconfigDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
-        <DialogHeader className="shrink-0">
+        <DialogHeader>
           <DialogTitle>
             {editing ? t("cluster.editTitle") : t("cluster.createTitle")}
           </DialogTitle>
@@ -169,7 +170,7 @@ export function ClusterKubeconfigDialog({
           className="flex min-h-0 flex-1 flex-col gap-4"
           onSubmit={onSave}
         >
-          <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto sm:grid-cols-2">
+          <DialogBody className="grid content-start gap-4 sm:grid-cols-2">
             <FormField
               label={t("cluster.name")}
               htmlFor="cluster-name"
@@ -274,13 +275,13 @@ export function ClusterKubeconfigDialog({
                 {probeError}
               </p>
             ) : null}
-          </div>
+          </DialogBody>
           {formError ? (
             <p className="shrink-0 text-sm break-words text-destructive">
               {formError}
             </p>
           ) : null}
-          <DialogFooter className="shrink-0">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"

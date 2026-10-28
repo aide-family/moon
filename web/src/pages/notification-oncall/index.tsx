@@ -39,6 +39,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -930,7 +931,7 @@ export function NotificationOnCallPage() {
         </ListFrame>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
+        <DialogContent className="gap-0 p-0 sm:max-w-3xl">
           <DialogHeader className="shrink-0 border-b px-4 py-3 pr-12">
             <DialogTitle>
               {editing ? t("action.edit") : t("action.create")}
@@ -941,7 +942,7 @@ export function NotificationOnCallPage() {
             className="flex min-h-0 flex-1 flex-col"
             onSubmit={onSave}
           >
-            <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto px-4 py-4">
+            <DialogBody className="grid gap-4 px-4 py-4">
               <FormField
                 label={t("oncall.name")}
                 htmlFor="oncall-name"
@@ -1230,10 +1231,10 @@ export function NotificationOnCallPage() {
                   onChange={(event) => setRemark(event.target.value)}
                 />
               </FormField>
-              {error ? (
-                <p className="text-sm text-destructive">{error}</p>
-              ) : null}
-            </div>
+            </DialogBody>
+            {error ? (
+              <p className="text-sm text-destructive">{error}</p>
+            ) : null}
             <DialogFooter className="mx-0 mb-0 shrink-0 border-t px-4 py-3">
               <Button type="submit" disabled={pending}>
                 {t("action.save")}

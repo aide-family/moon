@@ -47,6 +47,7 @@ import { TemplateEditor } from "@/components/template-editor"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -1099,22 +1100,24 @@ export function AlertRulePage() {
               {editingGroup ? t("action.edit") : t("alertRule.createGroup")}
             </DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onSaveGroup}>
-            <FormField
-              label={t("alertRule.group")}
-              htmlFor="group-name"
-              required
-              error={fieldErrors.name}
-            >
-              <Input
-                id="group-name"
-                value={groupName}
-                maxLength={64}
-                placeholder={t("alertRule.groupPlaceholder")}
-                onChange={(event) => setGroupName(event.target.value)}
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSaveGroup}>
+            <DialogBody className="grid gap-4">
+              <FormField
+                label={t("alertRule.group")}
+                htmlFor="group-name"
                 required
-              />
-            </FormField>
+                error={fieldErrors.name}
+              >
+                <Input
+                  id="group-name"
+                  value={groupName}
+                  maxLength={64}
+                  placeholder={t("alertRule.groupPlaceholder")}
+                  onChange={(event) => setGroupName(event.target.value)}
+                  required
+                />
+              </FormField>
+            </DialogBody>
             <DialogFooter>
               <Button type="submit" disabled={pending}>
                 {t("action.save")}

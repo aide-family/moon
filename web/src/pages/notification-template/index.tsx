@@ -29,6 +29,7 @@ import { TemplatePreviewDialog } from "@/components/template-preview-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -378,58 +379,30 @@ export function NotificationTemplatePage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-3xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField label={t("template.name")} htmlFor="tpl-name" required error={fieldErrors.name}>
-              <Input id="tpl-name" value={name} placeholder={t("template.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
-            </FormField>
-            <FormField label={t("template.type")} required error={fieldErrors.type}>
-              <Select value={type} onValueChange={selectType}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("template.typePlaceholder")}>
-                    <span className="flex items-center gap-2">
-                      <ChannelLogo type={type} app={app} className="size-4" />
-                      <span>{enumLabel(t, type)}</span>
-                    </span>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {types.map((item) => (
-                    <SelectOption key={item} value={item}>
-                      <span className="flex items-center gap-2">
-                        <ChannelLogo type={item} className="size-4" />
-                        <span>{enumLabel(t, item)}</span>
-                      </span>
-                    </SelectOption>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-            {type === "WEBHOOK" ? (
-              <FormField label={t("template.app")} required error={fieldErrors.app}>
-                <Select
-                  value={app}
-                  onValueChange={(value) => {
-                    setApp(value)
-                    setFieldErrors({})
-                  }}
-                >
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSave}>
+            <DialogBody className="grid gap-4 sm:grid-cols-2">
+              <FormField label={t("template.name")} htmlFor="tpl-name" required error={fieldErrors.name}>
+                <Input id="tpl-name" value={name} placeholder={t("template.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
+              </FormField>
+              <FormField label={t("template.type")} required error={fieldErrors.type}>
+                <Select value={type} onValueChange={selectType}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("template.appPlaceholder")}>
+                    <SelectValue placeholder={t("template.typePlaceholder")}>
                       <span className="flex items-center gap-2">
-                        <ChannelLogo type="WEBHOOK" app={app} className="size-4" />
-                        <span>{enumLabel(t, app)}</span>
+                        <ChannelLogo type={type} app={app} className="size-4" />
+                        <span>{enumLabel(t, type)}</span>
                       </span>
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {webhookApps.map((item) => (
+                    {types.map((item) => (
                       <SelectOption key={item} value={item}>
                         <span className="flex items-center gap-2">
-                          <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                          <ChannelLogo type={item} className="size-4" />
                           <span>{enumLabel(t, item)}</span>
                         </span>
                       </SelectOption>
@@ -437,46 +410,76 @@ export function NotificationTemplatePage() {
                   </SelectContent>
                 </Select>
               </FormField>
-            ) : null}
-            {type === "EMAIL" ? (
+              {type === "WEBHOOK" ? (
+                <FormField label={t("template.app")} required error={fieldErrors.app}>
+                  <Select
+                    value={app}
+                    onValueChange={(value) => {
+                      setApp(value)
+                      setFieldErrors({})
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("template.appPlaceholder")}>
+                        <span className="flex items-center gap-2">
+                          <ChannelLogo type="WEBHOOK" app={app} className="size-4" />
+                          <span>{enumLabel(t, app)}</span>
+                        </span>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {webhookApps.map((item) => (
+                        <SelectOption key={item} value={item}>
+                          <span className="flex items-center gap-2">
+                            <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                            <span>{enumLabel(t, item)}</span>
+                          </span>
+                        </SelectOption>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              ) : null}
+              {type === "EMAIL" ? (
+                <FormField
+                  label={t("template.subject")}
+                  htmlFor="tpl-subject"
+                  hint={t("template.subjectHint")}
+                  className="sm:col-span-full"
+                  required
+                  error={fieldErrors.subject}
+                >
+                  <TemplateEditor
+                    value={subject}
+                    onChange={setSubject}
+                    singleLine
+                    placeholder={t("template.subjectPlaceholder")}
+                    ariaLabel={t("template.subject")}
+                  />
+                </FormField>
+              ) : null}
               <FormField
-                label={t("template.subject")}
-                htmlFor="tpl-subject"
-                hint={t("template.subjectHint")}
+                label={t("template.body")}
+                htmlFor="tpl-body"
+                hint={t("template.bodyHint")}
                 className="sm:col-span-full"
                 required
-                error={fieldErrors.subject}
+                error={fieldErrors.body}
               >
                 <TemplateEditor
-                  value={subject}
-                  onChange={setSubject}
-                  singleLine
-                  placeholder={t("template.subjectPlaceholder")}
-                  ariaLabel={t("template.subject")}
+                  value={body}
+                  onChange={setBody}
+                  height={260}
+                  placeholder={t("template.bodyPlaceholder")}
+                  ariaLabel={t("template.body")}
                 />
               </FormField>
-            ) : null}
-            <FormField
-              label={t("template.body")}
-              htmlFor="tpl-body"
-              hint={t("template.bodyHint")}
-              className="sm:col-span-full"
-              required
-              error={fieldErrors.body}
-            >
-              <TemplateEditor
-                value={body}
-                onChange={setBody}
-                height={260}
-                placeholder={t("template.bodyPlaceholder")}
-                ariaLabel={t("template.body")}
-              />
-            </FormField>
-            <FormField label={t("template.remark")} htmlFor="tpl-remark" className="sm:col-span-full">
-              <Input id="tpl-remark" value={remark} placeholder={t("template.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
-            </FormField>
-            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
-            <DialogFooter className="sm:col-span-full">
+              <FormField label={t("template.remark")} htmlFor="tpl-remark" className="sm:col-span-full">
+                <Input id="tpl-remark" value={remark} placeholder={t("template.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
+              </FormField>
+            </DialogBody>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setFormPreview(true)}>
                 {t("template.preview")}
               </Button>

@@ -9,6 +9,7 @@ import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -160,7 +161,7 @@ export function ChangeEmailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader className="shrink-0">
+        <DialogHeader>
           <DialogTitle>{t("profile.changeEmailTitle")}</DialogTitle>
           <DialogDescription>
             {t("profile.changeEmailDescription", { email: currentEmail })}
@@ -168,73 +169,75 @@ export function ChangeEmailDialog({
         </DialogHeader>
         <form
           id="change-email-form"
-          className="grid min-h-0 gap-4 overflow-y-auto"
+          className="flex min-h-0 flex-1 flex-col gap-4"
           noValidate
           onSubmit={onSubmit}
         >
-          <FormField
-            label={t("profile.changeEmailNew")}
-            htmlFor="change-email"
-            required
-            error={fieldErrors.email}
-          >
-            <Input
-              id="change-email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              placeholder={currentEmail}
-              aria-invalid={fieldErrors.email ? true : undefined}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </FormField>
-          <CaptchaField
-            value={captchaCode}
-            onChange={setCaptchaCode}
-            captcha={captcha}
-            error={fieldErrors.captchaCode}
-          />
-          <FormField
-            label={t("profile.changeEmailCode")}
-            htmlFor="change-email-code"
-            required
-            error={fieldErrors.code}
-          >
-            <div className="flex items-center gap-2">
+          <DialogBody className="grid gap-4">
+            <FormField
+              label={t("profile.changeEmailNew")}
+              htmlFor="change-email"
+              required
+              error={fieldErrors.email}
+            >
               <Input
-                id="change-email-code"
-                className="min-w-0 flex-1"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                value={code}
-                placeholder={t("login.codePlaceholder")}
-                aria-invalid={fieldErrors.code ? true : undefined}
-                onChange={(event) => setCode(event.target.value)}
+                id="change-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                placeholder={currentEmail}
+                aria-invalid={fieldErrors.email ? true : undefined}
+                onChange={(event) => setEmail(event.target.value)}
               />
-              <Button
-                type="button"
-                variant="outline"
-                className="shrink-0"
-                disabled={sending || cooldown.remaining > 0 || !captcha.captchaId}
-                onClick={() => void onSendCode()}
-              >
-                {cooldown.remaining > 0
-                  ? t("profile.changeEmailResendIn", {
-                      seconds: cooldown.remaining,
-                    })
-                  : sending
-                    ? t("profile.changeEmailSending")
-                    : t("profile.changeEmailSend")}
-              </Button>
-            </div>
-          </FormField>
+            </FormField>
+            <CaptchaField
+              value={captchaCode}
+              onChange={setCaptchaCode}
+              captcha={captcha}
+              error={fieldErrors.captchaCode}
+            />
+            <FormField
+              label={t("profile.changeEmailCode")}
+              htmlFor="change-email-code"
+              required
+              error={fieldErrors.code}
+            >
+              <div className="flex items-center gap-2">
+                <Input
+                  id="change-email-code"
+                  className="min-w-0 flex-1"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={code}
+                  placeholder={t("login.codePlaceholder")}
+                  aria-invalid={fieldErrors.code ? true : undefined}
+                  onChange={(event) => setCode(event.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0"
+                  disabled={sending || cooldown.remaining > 0 || !captcha.captchaId}
+                  onClick={() => void onSendCode()}
+                >
+                  {cooldown.remaining > 0
+                    ? t("profile.changeEmailResendIn", {
+                        seconds: cooldown.remaining,
+                      })
+                    : sending
+                      ? t("profile.changeEmailSending")
+                      : t("profile.changeEmailSend")}
+                </Button>
+              </div>
+            </FormField>
+          </DialogBody>
           {error ? (
             <p role="alert" className="text-sm text-destructive">
               {error}
             </p>
           ) : null}
         </form>
-        <DialogFooter className="shrink-0">
+        <DialogFooter>
           <Button type="submit" form="change-email-form" disabled={submitting}>
             {submitting ? t("action.saving") : t("action.save")}
           </Button>

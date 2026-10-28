@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -439,8 +440,8 @@ export function AlertRealtimePage() {
         }
       />
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
-        <DialogContent className="flex max-h-[80vh] flex-col gap-4 overflow-hidden sm:max-w-2xl">
-          <DialogHeader className="shrink-0">
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
             <DialogTitle>{t("alertEvent.choosePages")}</DialogTitle>
           </DialogHeader>
           {/* 标题、批量操作和筛选固定在顶部，只有下面的页面列表滚动。 */}
@@ -514,7 +515,7 @@ export function AlertRealtimePage() {
               onChange={(event) => setPickerFilter(event.target.value)}
             />
           </div>
-          <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1">
+          <DialogBody className="grid content-start gap-3">
             {selectable.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 {t("alertPage.emptySelectable")}
@@ -573,11 +574,9 @@ export function AlertRealtimePage() {
                 )
               })
             )}
-          </div>
-          {error ? (
-            <p className="shrink-0 text-sm text-destructive">{error}</p>
-          ) : null}
-          <DialogFooter className="shrink-0">
+          </DialogBody>
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"

@@ -2,7 +2,7 @@ import type { FormEvent, ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
-import { DialogFooter } from "@/components/ui/dialog"
+import { DialogBody, DialogFooter } from "@/components/ui/dialog"
 import { cn } from "@/lib/class-names"
 
 interface StepFormProps {
@@ -45,9 +45,9 @@ export function StepForm({
       <p className="text-sm text-muted-foreground">
         {t("form.step", { current: step + 1, total: stepCount })}
       </p>
-      <div className={cn("grid min-h-0 flex-1 content-start gap-4 overflow-y-auto", fieldsClassName)}>
+      <DialogBody className={cn("grid content-start gap-4", fieldsClassName)}>
         {children}
-      </div>
+      </DialogBody>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <DialogFooter>
         {step > 0 ? (

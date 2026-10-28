@@ -23,6 +23,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -366,73 +367,47 @@ export function NotificationChannelPage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField
-              label={t("channel.name")}
-              htmlFor="channel-name"
-              required
-              error={fieldErrors.name}
-            >
-              <Input id="channel-name" value={name} placeholder={t("channel.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
-            </FormField>
-            <FormField
-              label={t("channel.type")}
-              required
-              error={fieldErrors.type}
-            >
-              <Select
-                value={type}
-                onValueChange={(value) => {
-                  setType(value)
-                  setApp(value === "SMS" ? "SMS_ALICLOUD" : "OTHER")
-                  setError("")
-                  setFieldErrors({})
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("channel.typePlaceholder")}>
-                    <span className="flex items-center gap-2">
-                      <ChannelLogo type={type} className="size-4" />
-                      <span>{enumLabel(t, type)}</span>
-                    </span>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {types.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      <span className="flex items-center gap-2">
-                        <ChannelLogo type={item} className="size-4" />
-                        <span>{enumLabel(t, item)}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-            {type === "WEBHOOK" ? (
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSave}>
+            <DialogBody className="grid gap-4 sm:grid-cols-2">
               <FormField
-                label={t("channel.app")}
+                label={t("channel.name")}
+                htmlFor="channel-name"
                 required
-                error={fieldErrors.app}
+                error={fieldErrors.name}
               >
-                <Select value={app} onValueChange={setApp}>
+                <Input id="channel-name" value={name} placeholder={t("channel.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
+              </FormField>
+              <FormField
+                label={t("channel.type")}
+                required
+                error={fieldErrors.type}
+              >
+                <Select
+                  value={type}
+                  onValueChange={(value) => {
+                    setType(value)
+                    setApp(value === "SMS" ? "SMS_ALICLOUD" : "OTHER")
+                    setError("")
+                    setFieldErrors({})
+                  }}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder={t("channel.appPlaceholder")}>
+                    <SelectValue placeholder={t("channel.typePlaceholder")}>
                       <span className="flex items-center gap-2">
-                        <ChannelLogo type="WEBHOOK" app={app} className="size-4" />
-                        <span>{enumLabel(t, app)}</span>
+                        <ChannelLogo type={type} className="size-4" />
+                        <span>{enumLabel(t, type)}</span>
                       </span>
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {webhookApps.map((item) => (
+                    {types.map((item) => (
                       <SelectItem key={item} value={item}>
                         <span className="flex items-center gap-2">
-                          <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                          <ChannelLogo type={item} className="size-4" />
                           <span>{enumLabel(t, item)}</span>
                         </span>
                       </SelectItem>
@@ -440,80 +415,108 @@ export function NotificationChannelPage() {
                   </SelectContent>
                 </Select>
               </FormField>
-            ) : null}
-            <FormField
-              label={t("channel.endpoint")}
-              htmlFor="channel-endpoint"
-              className="sm:col-span-full"
-              required
-              error={fieldErrors.endpoint}
-            >
-              <Input
-                id="channel-endpoint"
-                value={endpoint}
-                placeholder={
-                  type === "SMTP"
-                    ? t("channel.endpointSmtpPlaceholder")
-                    : type === "SMS"
-                      ? t("channel.endpointSmsPlaceholder")
-                      : t("channel.endpointWebhookPlaceholder")
-                }
-                onChange={(event) => setEndpoint(event.target.value)}
+              {type === "WEBHOOK" ? (
+                <FormField
+                  label={t("channel.app")}
+                  required
+                  error={fieldErrors.app}
+                >
+                  <Select value={app} onValueChange={setApp}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("channel.appPlaceholder")}>
+                        <span className="flex items-center gap-2">
+                          <ChannelLogo type="WEBHOOK" app={app} className="size-4" />
+                          <span>{enumLabel(t, app)}</span>
+                        </span>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {webhookApps.map((item) => (
+                        <SelectItem key={item} value={item}>
+                          <span className="flex items-center gap-2">
+                            <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                            <span>{enumLabel(t, item)}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              ) : null}
+              <FormField
+                label={t("channel.endpoint")}
+                htmlFor="channel-endpoint"
+                className="sm:col-span-full"
                 required
-              />
-            </FormField>
-            {type === "SMTP" || type === "SMS" ? (
-              <>
-                <FormField
-                  label={type === "SMS" ? t("channel.accessKeyId") : t("channel.username")}
-                  htmlFor="channel-username"
-                  required={type === "SMS"}
-                  error={fieldErrors.username}
-                >
-                  <Input
-                    id="channel-username"
-                    value={username}
-                    placeholder={type === "SMS" ? t("channel.accessKeyIdPlaceholder") : t("channel.usernamePlaceholder")}
-                    onChange={(event) => setUsername(event.target.value)}
-                  />
-                </FormField>
-                <FormField
-                  label={type === "SMS" ? t("channel.accessKeySecret") : t("channel.password")}
-                  htmlFor="channel-password"
-                  required={type === "SMS" && !editing}
-                  hint={editing ? t("form.keepSecret") : undefined}
-                  error={fieldErrors.password}
-                >
-                  <Input
-                    id="channel-password"
-                    type="password"
-                    value={password}
-                    placeholder={type === "SMS" ? t("channel.accessKeySecretPlaceholder") : t("channel.passwordPlaceholder")}
-                    onChange={(event) => setPassword(event.target.value)}
-                  />
-                </FormField>
-                <FormField
-                  label={type === "SMS" ? t("channel.smsSignName") : t("channel.fromAddress")}
-                  htmlFor="channel-from"
-                  required={type === "SMS"}
-                  error={fieldErrors.fromAddress}
-                >
-                  <Input id="channel-from" value={fromAddress} placeholder={type === "SMS" ? t("channel.smsSignNamePlaceholder") : t("channel.fromAddressPlaceholder")} onChange={(event) => setFromAddress(event.target.value)} />
-                </FormField>
-              </>
-            ) : (
-              <FormField label={t("channel.secret")} htmlFor="channel-secret" hint={editing ? `${t("channel.secretHint")}；${t("form.keepSecret")}` : t("channel.secretHint")} className="sm:col-span-full">
-                <Input id="channel-secret" type="password" value={secret} placeholder={t("channel.secretPlaceholder")} onChange={(event) => setSecret(event.target.value)} />
+                error={fieldErrors.endpoint}
+              >
+                <Input
+                  id="channel-endpoint"
+                  value={endpoint}
+                  placeholder={
+                    type === "SMTP"
+                      ? t("channel.endpointSmtpPlaceholder")
+                      : type === "SMS"
+                        ? t("channel.endpointSmsPlaceholder")
+                        : t("channel.endpointWebhookPlaceholder")
+                  }
+                  onChange={(event) => setEndpoint(event.target.value)}
+                  required
+                />
               </FormField>
-            )}
-            <FormField label={t("channel.remark")} htmlFor="channel-remark" className="sm:col-span-full">
-              <Input id="channel-remark" value={remark} placeholder={t("channel.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
-            </FormField>
-            {type === "SMS" ? (
-              <p className="text-sm text-muted-foreground sm:col-span-full">{t("channel.smsNotImplemented")}</p>
-            ) : null}
-            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
-            <DialogFooter className="sm:col-span-full">
+              {type === "SMTP" || type === "SMS" ? (
+                <>
+                  <FormField
+                    label={type === "SMS" ? t("channel.accessKeyId") : t("channel.username")}
+                    htmlFor="channel-username"
+                    required={type === "SMS"}
+                    error={fieldErrors.username}
+                  >
+                    <Input
+                      id="channel-username"
+                      value={username}
+                      placeholder={type === "SMS" ? t("channel.accessKeyIdPlaceholder") : t("channel.usernamePlaceholder")}
+                      onChange={(event) => setUsername(event.target.value)}
+                    />
+                  </FormField>
+                  <FormField
+                    label={type === "SMS" ? t("channel.accessKeySecret") : t("channel.password")}
+                    htmlFor="channel-password"
+                    required={type === "SMS" && !editing}
+                    hint={editing ? t("form.keepSecret") : undefined}
+                    error={fieldErrors.password}
+                  >
+                    <Input
+                      id="channel-password"
+                      type="password"
+                      value={password}
+                      placeholder={type === "SMS" ? t("channel.accessKeySecretPlaceholder") : t("channel.passwordPlaceholder")}
+                      onChange={(event) => setPassword(event.target.value)}
+                    />
+                  </FormField>
+                  <FormField
+                    label={type === "SMS" ? t("channel.smsSignName") : t("channel.fromAddress")}
+                    htmlFor="channel-from"
+                    required={type === "SMS"}
+                    error={fieldErrors.fromAddress}
+                  >
+                    <Input id="channel-from" value={fromAddress} placeholder={type === "SMS" ? t("channel.smsSignNamePlaceholder") : t("channel.fromAddressPlaceholder")} onChange={(event) => setFromAddress(event.target.value)} />
+                  </FormField>
+                </>
+              ) : (
+                <FormField label={t("channel.secret")} htmlFor="channel-secret" hint={editing ? `${t("channel.secretHint")}；${t("form.keepSecret")}` : t("channel.secretHint")} className="sm:col-span-full">
+                  <Input id="channel-secret" type="password" value={secret} placeholder={t("channel.secretPlaceholder")} onChange={(event) => setSecret(event.target.value)} />
+                </FormField>
+              )}
+              <FormField label={t("channel.remark")} htmlFor="channel-remark" className="sm:col-span-full">
+                <Input id="channel-remark" value={remark} placeholder={t("channel.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
+              </FormField>
+              {type === "SMS" ? (
+                <p className="text-sm text-muted-foreground sm:col-span-full">{t("channel.smsNotImplemented")}</p>
+              ) : null}
+            </DialogBody>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <DialogFooter>
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>

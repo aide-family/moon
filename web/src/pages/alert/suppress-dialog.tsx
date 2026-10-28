@@ -7,6 +7,7 @@ import type { AlertEventItem } from "@/api/alert-event/types"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -100,7 +101,7 @@ export function AlertEventSuppressDialog({
             {event?.summary || event?.fingerprint}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
+        <DialogBody className="grid gap-4">
           <div className="grid gap-2">
             <span className="text-sm text-muted-foreground">
               {t("alertEvent.suppressPreset")}
@@ -183,7 +184,7 @@ export function AlertEventSuppressDialog({
               </>
             )}
           </div>
-        </div>
+        </DialogBody>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <DialogFooter>
           <Button

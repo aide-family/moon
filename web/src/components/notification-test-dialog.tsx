@@ -11,6 +11,7 @@ import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -129,88 +130,90 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
             {t("action.test")} · {target.item.name}
           </DialogTitle>
         </DialogHeader>
-        <form noValidate className="grid gap-4" onSubmit={submit}>
-          {target.kind === "template" ? (
-            <FormField
-              label={t("template.channel")}
-              required
-              error={fieldErrors.channel}
-            >
-              <Select value={channelUid || "NONE"} onValueChange={(value) => setChannelUid(value === "NONE" ? "" : value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("template.channelPlaceholder")}>
-                    {selectedChannel ? (
-                      <span className="flex min-w-0 items-center gap-2">
-                        <ChannelLogo type={selectedChannel.type} app={selectedChannel.app} className="size-4" />
-                        <span className="truncate">{selectedChannel.name}</span>
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">{t("template.channelPlaceholder")}</span>
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NONE">{t("template.channelPlaceholder")}</SelectItem>
-                  {compatibleChannels.map((item) => (
-                    <SelectItem key={item.uid} value={item.uid}>
-                      <span className="flex items-center gap-2">
-                        <ChannelLogo type={item.type} app={item.app} className="size-4" />
-                        <span>
-                          {item.name}（{enumLabel(t, item.type)}）
-                        </span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-          ) : null}
-          {channelType === "SMTP" ? (
-            <FormField
-              label={t("channel.testReceivers")}
-              htmlFor="notification-test-receivers"
-              required
-              error={fieldErrors.receivers}
-            >
-              <Input
-                id="notification-test-receivers"
-                value={receivers}
-                placeholder={t("channel.testReceiversPlaceholder")}
-                onChange={(event) => setReceivers(event.target.value)}
+        <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={submit}>
+          <DialogBody className="grid gap-4">
+            {target.kind === "template" ? (
+              <FormField
+                label={t("template.channel")}
                 required
-              />
-            </FormField>
-          ) : null}
-          {isChannel && channelType === "SMTP" ? (
-            <FormField
-              label={t("channel.testSubject")}
-              htmlFor="notification-test-subject"
-              required
-              error={fieldErrors.subject}
-            >
-              <Input
-                id="notification-test-subject"
-                value={subject}
-                placeholder={t("channel.testSubjectPlaceholder")}
-                onChange={(event) => setSubject(event.target.value)}
-              />
-            </FormField>
-          ) : null}
-          {isChannel ? (
-            <FormField
-              label={t("channel.testBody")}
-              htmlFor="notification-test-body"
-              required
-              error={fieldErrors.body}
-            >
-              <Textarea
-                id="notification-test-body"
-                value={body}
-                placeholder={t("channel.testBodyPlaceholder")}
-                onChange={(event) => setBody(event.target.value)}
-              />
-            </FormField>
-          ) : null}
+                error={fieldErrors.channel}
+              >
+                <Select value={channelUid || "NONE"} onValueChange={(value) => setChannelUid(value === "NONE" ? "" : value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("template.channelPlaceholder")}>
+                      {selectedChannel ? (
+                        <span className="flex min-w-0 items-center gap-2">
+                          <ChannelLogo type={selectedChannel.type} app={selectedChannel.app} className="size-4" />
+                          <span className="truncate">{selectedChannel.name}</span>
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">{t("template.channelPlaceholder")}</span>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NONE">{t("template.channelPlaceholder")}</SelectItem>
+                    {compatibleChannels.map((item) => (
+                      <SelectItem key={item.uid} value={item.uid}>
+                        <span className="flex items-center gap-2">
+                          <ChannelLogo type={item.type} app={item.app} className="size-4" />
+                          <span>
+                            {item.name}（{enumLabel(t, item.type)}）
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+            ) : null}
+            {channelType === "SMTP" ? (
+              <FormField
+                label={t("channel.testReceivers")}
+                htmlFor="notification-test-receivers"
+                required
+                error={fieldErrors.receivers}
+              >
+                <Input
+                  id="notification-test-receivers"
+                  value={receivers}
+                  placeholder={t("channel.testReceiversPlaceholder")}
+                  onChange={(event) => setReceivers(event.target.value)}
+                  required
+                />
+              </FormField>
+            ) : null}
+            {isChannel && channelType === "SMTP" ? (
+              <FormField
+                label={t("channel.testSubject")}
+                htmlFor="notification-test-subject"
+                required
+                error={fieldErrors.subject}
+              >
+                <Input
+                  id="notification-test-subject"
+                  value={subject}
+                  placeholder={t("channel.testSubjectPlaceholder")}
+                  onChange={(event) => setSubject(event.target.value)}
+                />
+              </FormField>
+            ) : null}
+            {isChannel ? (
+              <FormField
+                label={t("channel.testBody")}
+                htmlFor="notification-test-body"
+                required
+                error={fieldErrors.body}
+              >
+                <Textarea
+                  id="notification-test-body"
+                  value={body}
+                  placeholder={t("channel.testBodyPlaceholder")}
+                  onChange={(event) => setBody(event.target.value)}
+                />
+              </FormField>
+            ) : null}
+          </DialogBody>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>

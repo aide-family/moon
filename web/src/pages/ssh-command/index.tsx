@@ -28,6 +28,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -307,39 +308,41 @@ export function SSHCommandPage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField
-              label={t("ssh.name")}
-              htmlFor="ssh-name"
-              required
-              error={fieldErrors.name}
-            >
-              <Input id="ssh-name" value={name} placeholder={t("ssh.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
-            </FormField>
-            <FormField label={t("ssh.workdir")} htmlFor="ssh-workdir">
-              <Input id="ssh-workdir" value={workdir} placeholder={t("ssh.workdirPlaceholder")} onChange={(event) => setWorkdir(event.target.value)} />
-            </FormField>
-            <FormField
-              label={t("ssh.command")}
-              htmlFor="ssh-command"
-              className="sm:col-span-full"
-              required
-              error={fieldErrors.command}
-            >
-              <Textarea id="ssh-command" value={command} placeholder={t("ssh.commandPlaceholder")} onChange={(event) => setCommand(event.target.value)} required />
-            </FormField>
-            <FormField label={t("ssh.env")} htmlFor="ssh-env" className="sm:col-span-full">
-              <Textarea id="ssh-env" value={env} onChange={(event) => setEnv(event.target.value)} placeholder={t("ssh.envPlaceholder")} />
-            </FormField>
-            <FormField label={t("ssh.remark")} htmlFor="ssh-remark" className="sm:col-span-full">
-              <Textarea id="ssh-remark" value={remark} placeholder={t("ssh.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
-            </FormField>
-            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
-            <DialogFooter className="sm:col-span-full">
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSave}>
+            <DialogBody className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                label={t("ssh.name")}
+                htmlFor="ssh-name"
+                required
+                error={fieldErrors.name}
+              >
+                <Input id="ssh-name" value={name} placeholder={t("ssh.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
+              </FormField>
+              <FormField label={t("ssh.workdir")} htmlFor="ssh-workdir">
+                <Input id="ssh-workdir" value={workdir} placeholder={t("ssh.workdirPlaceholder")} onChange={(event) => setWorkdir(event.target.value)} />
+              </FormField>
+              <FormField
+                label={t("ssh.command")}
+                htmlFor="ssh-command"
+                className="sm:col-span-full"
+                required
+                error={fieldErrors.command}
+              >
+                <Textarea id="ssh-command" value={command} placeholder={t("ssh.commandPlaceholder")} onChange={(event) => setCommand(event.target.value)} required />
+              </FormField>
+              <FormField label={t("ssh.env")} htmlFor="ssh-env" className="sm:col-span-full">
+                <Textarea id="ssh-env" value={env} onChange={(event) => setEnv(event.target.value)} placeholder={t("ssh.envPlaceholder")} />
+              </FormField>
+              <FormField label={t("ssh.remark")} htmlFor="ssh-remark" className="sm:col-span-full">
+                <Textarea id="ssh-remark" value={remark} placeholder={t("ssh.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
+              </FormField>
+            </DialogBody>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 {t("action.cancel")}
               </Button>
@@ -355,37 +358,39 @@ export function SSHCommandPage() {
           <DialogHeader>
             <DialogTitle>{t("ssh.execute")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onExecute}>
-            <FormField
-              label={t("ssh.agents")}
-              hint={t("ssh.pickAgents")}
-              required
-              error={fieldErrors.agents}
-            >
-              <div
-                className={`grid max-h-64 gap-2 overflow-auto rounded-md border p-3 ${
-                  fieldErrors.agents ? "border-destructive" : ""
-                }`}
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onExecute}>
+            <DialogBody className="grid gap-4">
+              <FormField
+                label={t("ssh.agents")}
+                hint={t("ssh.pickAgents")}
+                required
+                error={fieldErrors.agents}
               >
-                {agents.map((agent) => {
-                  const checked = agentUids.includes(agent.uid)
-                  return (
-                    <label key={agent.uid} className="flex items-center gap-2 text-sm">
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(value) => {
-                          setAgentUids((current) =>
-                            value === true ? [...current, agent.uid] : current.filter((uid) => uid !== agent.uid),
-                          )
-                        }}
-                      />
-                      <span>{agent.name} ({agent.hostname || agent.localIp || agent.uid})</span>
-                    </label>
-                  )
-                })}
-              </div>
-              {agents.length === 0 ? <p className="text-sm text-muted-foreground">{t("ssh.noOnlineAgent")}</p> : null}
-            </FormField>
+                <div
+                  className={`grid max-h-64 gap-2 overflow-auto rounded-md border p-3 ${
+                    fieldErrors.agents ? "border-destructive" : ""
+                  }`}
+                >
+                  {agents.map((agent) => {
+                    const checked = agentUids.includes(agent.uid)
+                    return (
+                      <label key={agent.uid} className="flex items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(value) => {
+                            setAgentUids((current) =>
+                              value === true ? [...current, agent.uid] : current.filter((uid) => uid !== agent.uid),
+                            )
+                          }}
+                        />
+                        <span>{agent.name} ({agent.hostname || agent.localIp || agent.uid})</span>
+                      </label>
+                    )
+                  })}
+                </div>
+                {agents.length === 0 ? <p className="text-sm text-muted-foreground">{t("ssh.noOnlineAgent")}</p> : null}
+              </FormField>
+            </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setExecOpen(false)}>

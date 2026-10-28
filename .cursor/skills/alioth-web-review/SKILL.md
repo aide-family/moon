@@ -17,6 +17,7 @@ description: >-
 - 是否出现 `antd`、`@ant-design/icons` 或 ahooks。发现则改为 shadcn/ui。
 - 异步请求是否有 loading，失败是否有空状态，卸载后是否还会 setState。
 - 业务文案是否绕过 i18n。
+- 对话框是否保持三段式：外框 `max-h-[80vh]`、宽度 ≤ `80vw` 且自身不滚动，`DialogHeader` / `DialogFooter` 固定，只有 `DialogBody` 滚动；页脚是否被放进了滚动区，`DialogContent` 上是否残留 `overflow-y-auto`。
 - 请求是否带 Bearer 和 `X-Namespace`，是否指向 8001、8002、8022 或 9022。
 
 发现问题就改。界面结构、键盘操作和可访问性再按 [web-design-guidelines/SKILL.md](file:///Users/hubiao/.agents/skills/web-design-guidelines/SKILL.md) 复核改过的文件。

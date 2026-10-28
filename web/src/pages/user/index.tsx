@@ -19,6 +19,7 @@ import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -283,24 +284,26 @@ export function UserPage() {
           <DialogHeader>
             <DialogTitle>{t("user.grantRole")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onGrant}>
-            <FormField
-              label={t("user.systemRole")}
-              htmlFor="system-role"
-              hint={t("user.grantRoleHint")}
-              required
-              error={fieldErrors.role}
-            >
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger id="system-role">
-                  <SelectValue placeholder={t("user.systemRolePlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="SYSTEM_ADMIN">{t("user.systemAdmin")}</SelectItem>
-                  <SelectItem value="USER">{t("user.normalUser")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onGrant}>
+            <DialogBody className="grid gap-4">
+              <FormField
+                label={t("user.systemRole")}
+                htmlFor="system-role"
+                hint={t("user.grantRoleHint")}
+                required
+                error={fieldErrors.role}
+              >
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger id="system-role">
+                    <SelectValue placeholder={t("user.systemRolePlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SYSTEM_ADMIN">{t("user.systemAdmin")}</SelectItem>
+                    <SelectItem value="USER">{t("user.normalUser")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+            </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button

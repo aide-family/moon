@@ -31,6 +31,7 @@ import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -405,40 +406,42 @@ export function RolePage() {
           <DialogHeader>
             <DialogTitle>{t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onCreate}>
-            <FormField
-              label={t("role.name")}
-              htmlFor="role-name"
-              required
-              error={fieldErrors.name}
-            >
-              <Input
-                id="role-name"
-                value={name}
-                placeholder={t("role.namePlaceholder")}
-                onChange={(event) => setName(event.target.value)}
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onCreate}>
+            <DialogBody className="grid gap-4">
+              <FormField
+                label={t("role.name")}
+                htmlFor="role-name"
                 required
-              />
-            </FormField>
-            <FormField
-              label={t("role.remark")}
-              htmlFor="role-remark"
-              hint={t("role.remarkHint")}
-              error={fieldErrors.remark}
-            >
-              <Textarea
-                id="role-remark"
-                value={remark}
-                rows={3}
-                maxLength={REMARK_MAX}
-                placeholder={t("role.remarkPlaceholder")}
-                className="resize-none"
-                onChange={(event) => setRemark(event.target.value)}
-              />
-              <p className="text-right text-xs text-muted-foreground">
-                {t("role.remarkCount", { count: remarkCount })}
-              </p>
-            </FormField>
+                error={fieldErrors.name}
+              >
+                <Input
+                  id="role-name"
+                  value={name}
+                  placeholder={t("role.namePlaceholder")}
+                  onChange={(event) => setName(event.target.value)}
+                  required
+                />
+              </FormField>
+              <FormField
+                label={t("role.remark")}
+                htmlFor="role-remark"
+                hint={t("role.remarkHint")}
+                error={fieldErrors.remark}
+              >
+                <Textarea
+                  id="role-remark"
+                  value={remark}
+                  rows={3}
+                  maxLength={REMARK_MAX}
+                  placeholder={t("role.remarkPlaceholder")}
+                  className="resize-none"
+                  onChange={(event) => setRemark(event.target.value)}
+                />
+                <p className="text-right text-xs text-muted-foreground">
+                  {t("role.remarkCount", { count: remarkCount })}
+                </p>
+              </FormField>
+            </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="submit" disabled={pending}>
@@ -454,41 +457,43 @@ export function RolePage() {
           <DialogHeader>
             <DialogTitle>{t("action.edit")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4" onSubmit={onSaveEdit}>
-            <FormField
-              label={t("role.name")}
-              htmlFor="role-edit-name"
-              required={!editing?.isSystem}
-              hint={editing?.isSystem ? t("role.systemNameLocked") : undefined}
-              error={fieldErrors.name}
-            >
-              <Input
-                id="role-edit-name"
-                value={name}
-                placeholder={t("role.namePlaceholder")}
-                disabled={editing?.isSystem}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </FormField>
-            <FormField
-              label={t("role.remark")}
-              htmlFor="role-edit-remark"
-              hint={t("role.remarkHint")}
-              error={fieldErrors.remark}
-            >
-              <Textarea
-                id="role-edit-remark"
-                value={remark}
-                rows={3}
-                maxLength={REMARK_MAX}
-                placeholder={t("role.remarkPlaceholder")}
-                className="resize-none"
-                onChange={(event) => setRemark(event.target.value)}
-              />
-              <p className="text-right text-xs text-muted-foreground">
-                {t("role.remarkCount", { count: remarkCount })}
-              </p>
-            </FormField>
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSaveEdit}>
+            <DialogBody className="grid gap-4">
+              <FormField
+                label={t("role.name")}
+                htmlFor="role-edit-name"
+                required={!editing?.isSystem}
+                hint={editing?.isSystem ? t("role.systemNameLocked") : undefined}
+                error={fieldErrors.name}
+              >
+                <Input
+                  id="role-edit-name"
+                  value={name}
+                  placeholder={t("role.namePlaceholder")}
+                  disabled={editing?.isSystem}
+                  onChange={(event) => setName(event.target.value)}
+                />
+              </FormField>
+              <FormField
+                label={t("role.remark")}
+                htmlFor="role-edit-remark"
+                hint={t("role.remarkHint")}
+                error={fieldErrors.remark}
+              >
+                <Textarea
+                  id="role-edit-remark"
+                  value={remark}
+                  rows={3}
+                  maxLength={REMARK_MAX}
+                  placeholder={t("role.remarkPlaceholder")}
+                  className="resize-none"
+                  onChange={(event) => setRemark(event.target.value)}
+                />
+                <p className="text-right text-xs text-muted-foreground">
+                  {t("role.remarkCount", { count: remarkCount })}
+                </p>
+              </FormField>
+            </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="submit" disabled={pending}>

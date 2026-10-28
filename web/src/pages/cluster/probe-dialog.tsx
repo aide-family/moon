@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -57,7 +58,7 @@ export function ClusterProbeDialog({
         <DialogHeader>
           <DialogTitle>{t("cluster.probeTitle")}</DialogTitle>
         </DialogHeader>
-        <div className="grid min-w-0 gap-3">
+        <DialogBody className="grid min-w-0 gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <span className="min-w-0 truncate font-medium">{name}</span>
             <StatusBadge
@@ -90,7 +91,7 @@ export function ClusterProbeDialog({
               {error || t("cluster.testFailed")}
             </p>
           )}
-        </div>
+        </DialogBody>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("action.close")}

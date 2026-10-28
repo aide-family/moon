@@ -23,6 +23,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -270,40 +271,42 @@ export function AgentPage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="grid gap-4 sm:grid-cols-3" onSubmit={onSave}>
-            <FormField
-              label={t("agent.name")}
-              htmlFor="agent-name"
-              className="sm:col-span-full"
-              required
-              error={fieldErrors.name}
-            >
-              <Input id="agent-name" value={name} placeholder={t("agent.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
-            </FormField>
-            <FormField label={t("agent.sshHost")} htmlFor="agent-host">
-              <Input id="agent-host" value={sshHost} placeholder={t("agent.sshHostPlaceholder")} onChange={(event) => setSshHost(event.target.value)} />
-            </FormField>
-            <FormField label={t("agent.sshPort")} htmlFor="agent-port">
-              <Input id="agent-port" value={sshPort} placeholder={t("agent.sshPortPlaceholder")} onChange={(event) => setSshPort(event.target.value)} />
-            </FormField>
-            <FormField label={t("agent.sshUser")} htmlFor="agent-user">
-              <Input id="agent-user" value={sshUser} placeholder={t("agent.sshUserPlaceholder")} onChange={(event) => setSshUser(event.target.value)} />
-            </FormField>
-            <FormField label={t("agent.sshPassword")} htmlFor="agent-password" className="sm:col-span-full">
-              <Input id="agent-password" type="password" value={sshPassword} onChange={(event) => setSshPassword(event.target.value)} placeholder={t("agent.keepSecret")} />
-            </FormField>
-            <FormField label={t("agent.sshPrivateKey")} htmlFor="agent-key" className="sm:col-span-full">
-              <Textarea id="agent-key" value={sshPrivateKey} onChange={(event) => setSshPrivateKey(event.target.value)} placeholder={editing ? t("agent.keepSecret") : t("agent.sshPrivateKeyPlaceholder")} />
-            </FormField>
-            <FormField label={t("agent.remark")} htmlFor="agent-remark" className="sm:col-span-full">
-              <Textarea id="agent-remark" value={remark} placeholder={t("agent.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
-            </FormField>
-            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
-            <DialogFooter className="sm:col-span-full">
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSave}>
+            <DialogBody className="grid gap-4 sm:grid-cols-3">
+              <FormField
+                label={t("agent.name")}
+                htmlFor="agent-name"
+                className="sm:col-span-full"
+                required
+                error={fieldErrors.name}
+              >
+                <Input id="agent-name" value={name} placeholder={t("agent.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
+              </FormField>
+              <FormField label={t("agent.sshHost")} htmlFor="agent-host">
+                <Input id="agent-host" value={sshHost} placeholder={t("agent.sshHostPlaceholder")} onChange={(event) => setSshHost(event.target.value)} />
+              </FormField>
+              <FormField label={t("agent.sshPort")} htmlFor="agent-port">
+                <Input id="agent-port" value={sshPort} placeholder={t("agent.sshPortPlaceholder")} onChange={(event) => setSshPort(event.target.value)} />
+              </FormField>
+              <FormField label={t("agent.sshUser")} htmlFor="agent-user">
+                <Input id="agent-user" value={sshUser} placeholder={t("agent.sshUserPlaceholder")} onChange={(event) => setSshUser(event.target.value)} />
+              </FormField>
+              <FormField label={t("agent.sshPassword")} htmlFor="agent-password" className="sm:col-span-full">
+                <Input id="agent-password" type="password" value={sshPassword} onChange={(event) => setSshPassword(event.target.value)} placeholder={t("agent.keepSecret")} />
+              </FormField>
+              <FormField label={t("agent.sshPrivateKey")} htmlFor="agent-key" className="sm:col-span-full">
+                <Textarea id="agent-key" value={sshPrivateKey} onChange={(event) => setSshPrivateKey(event.target.value)} placeholder={editing ? t("agent.keepSecret") : t("agent.sshPrivateKeyPlaceholder")} />
+              </FormField>
+              <FormField label={t("agent.remark")} htmlFor="agent-remark" className="sm:col-span-full">
+                <Textarea id="agent-remark" value={remark} placeholder={t("agent.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
+              </FormField>
+            </DialogBody>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 {t("action.cancel")}
               </Button>
@@ -319,8 +322,10 @@ export function AgentPage() {
           <DialogHeader>
             <DialogTitle>{t("agent.tokenTitle")}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">{t("agent.tokenHint")}</p>
-          <Input readOnly value={token} />
+          <DialogBody className="grid gap-4">
+            <p className="text-sm text-muted-foreground">{t("agent.tokenHint")}</p>
+            <Input readOnly value={token} />
+          </DialogBody>
           <DialogFooter>
             <Button onClick={() => setTokenOpen(false)}>{t("action.confirm")}</Button>
           </DialogFooter>
