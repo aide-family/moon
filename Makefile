@@ -17,6 +17,8 @@ VERSION ?= $(shell git -C $(ROOT) describe --tags --always --dirty 2>/dev/null |
 IMAGE_PREFIX ?= alioth
 # 摇光部署包的目标架构；本地验证时可只跑一个，例如 ARCHES=arm64。
 ARCHES ?= amd64 arm64
+# 摇光 RPM 开关：auto 表示装了 rpmbuild 就打，1 强制打（缺 rpmbuild 直接失败），0 只打 tar.gz。
+RPM ?= auto
 
 .PHONY: tools api conf vet lint build build-alioth build-megrez build-merak build-alkaid build-alkaid-linux build-web \
 	image-alioth image-megrez image-merak image-alkaid image-web images package-alkaid \
@@ -89,9 +91,9 @@ build-alkaid:
 build-alkaid-linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -C $(ROOT)app/alkaid -ldflags "$(version_ldflags)" -o $(BIN)/alkaid-linux ./cmd/alkaid
 
-# 摇光 systemd 一键部署包（二进制 + 单元 + install.sh）。release.yml 调用的也是这一条。
+# 摇光 systemd 一键部署包与 RPM（二进制 + 单元 + install.sh + rpm）。release.yml 调用的也是这一条。
 package-alkaid:
-	OUT=$(ROOT)dist VERSION=$(VERSION) ARCHES="$(ARCHES)" $(ROOT)scripts/package-alkaid.sh
+	OUT=$(ROOT)dist VERSION=$(VERSION) ARCHES="$(ARCHES)" RPM="$(RPM)" $(ROOT)scripts/package-alkaid.sh
 
 build-web:
 	npm --prefix $(ROOT)web ci

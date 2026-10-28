@@ -21,6 +21,24 @@ sudo ./install.sh                # 加 --no-start 只安装并 enable
 
 本地打同一个包：`make package-alkaid VERSION=v0.1.0`（产物在 `dist/`，`ARCHES=arm64` 可只打一个架构）。
 
+## RPM 包
+
+同一批 Release 资产里还有 `alkaid-<版本>-<release>.x86_64.rpm` 与
+`alkaid-<版本>-<release>.aarch64.rpm`（版本号去掉 `v` 前缀，正式版 release 是 `1`，
+`v1.2.3-rc1` 这类预发布是 `0.rc1`，`sha-xxxxx` 这类非语义版本落到 `0.0.0-<sha>`）：
+
+```bash
+sudo dnf install ./alkaid-0.1.0-1.x86_64.rpm     # RHEL / openEuler；或 rpm -Uvh
+sudoedit /etc/alioth/alkaid.env                  # 填 ALKAID_AGENT_TOKEN
+sudo systemctl restart alkaid
+```
+
+RPM 装完会 `enable` 但不会启动（令牌还是占位值时启动只会刷错误日志），升级时
+`/etc/alioth/alkaid.yaml` 和 `alkaid.env` 按 `%config(noreplace)` 保留现场修改。文件位置：
+二进制 `/usr/local/bin/alkaid`、单元 `/usr/lib/systemd/system/alkaid.service`、配置
+`/etc/alioth/`。本地打 RPM 需要 rpmbuild（Debian/Ubuntu 装 `rpm`，RHEL/openEuler 装 `rpm-build`）：
+`RPM=1 make package-alkaid VERSION=v0.1.0`。
+
 ## 手工 systemd 安装
 
 1. 把 `alkaid` 二进制放到 `/usr/local/bin/alkaid`。

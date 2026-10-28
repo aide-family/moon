@@ -38,7 +38,7 @@ Go 1.26，以各 `go.mod` 的 `go` 指令为准。
 | `make run-alioth` | 前台运行单个进程，另有 `run-megrez`、`run-merak`、`run-alkaid`、`run-web` |
 | `make dev-up` / `make dev-down` | compose 起 / 停完整本地栈 |
 | `make images VERSION=v0.1.0` | 构建五个镜像 |
-| `make package-alkaid` | 打摇光部署包 |
+| `make package-alkaid` | 打摇光部署包（tar.gz + RPM） |
 
 Web 用 npm（仓库锁文件是 `package-lock.json`）：
 
@@ -159,8 +159,8 @@ make images VERSION=v0.1.0 IMAGE_PREFIX=alioth
 
 - `v0.1.0` 这类 tag 产出 `v0.1.0`、`0.1.0`、`0.1`、`0`、`latest` 标签（`-rc1` 这类预发布 tag 不覆盖 `latest`），镜像为 amd64 + arm64 多架构；`main` 只出 amd64，标签是 `main` 与 `sha-<12 位>`。
 - 镜像带 `org.opencontainers.image.source` 等 OCI 标签，GHCR 包因此关联本仓库；构建来源证明（provenance）与 SBOM 随镜像推送。
-- tag 的 Release 附带摇光 `alkaid` 的 linux/amd64、linux/arm64 裸二进制，以及含 systemd 单元、配置模板和 `install.sh` 的部署包，外加 `SHA256SUMS`，并用 GitHub Artifact Attestation 记录产物来源。安装见 [deploy/alkaid/README.md](deploy/alkaid/README.md)。
-- 本地可以先跑同一条打包命令验证产物：`make package-alkaid VERSION=v0.1.0`（`ARCHES=amd64` 只打一个架构），输出在 `dist/`。
+- tag 的 Release 附带摇光 `alkaid` 的 linux/amd64、linux/arm64 裸二进制，含 systemd 单元、配置模板和 `install.sh` 的部署包，以及 x86_64 / aarch64 的 RPM（`alkaid-<版本>-<release>.x86_64.rpm`、`alkaid-<版本>-<release>.aarch64.rpm`，版本号去掉 `v` 前缀），外加 `SHA256SUMS`，并用 GitHub Artifact Attestation 记录产物来源。安装见 [deploy/alkaid/README.md](deploy/alkaid/README.md)。
+- 本地可以先跑同一条打包命令验证产物：`make package-alkaid VERSION=v0.1.0`（`ARCHES=amd64` 只打一个架构），输出在 `dist/`。装了 rpmbuild 时默认同时出 RPM，`RPM=0` 跳过、`RPM=1` 强制（RPM 里没装就是失败，不会悄悄降级）。
 
 ## 健康检查
 

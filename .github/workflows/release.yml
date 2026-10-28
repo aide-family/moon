@@ -141,7 +141,7 @@ jobs:
           } >> "${GITHUB_STEP_SUMMARY}"
 
   alkaid-package:
-    name: 摇光部署包（二进制 + systemd）
+    name: 摇光部署包（二进制 + systemd + RPM）
     needs: version
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -156,11 +156,33 @@ jobs:
             pkg/go.sum
             api/go.sum
             app/alkaid/go.sum
+      # rpmbuild 由 Ubuntu 的 rpm 包提供（Fedora/openEuler 叫 rpm-build）。
+      - name: 安装 rpmbuild
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rpm
+          rpmbuild --version
       # 与本地 `make package-alkaid` 同一条命令，CI 和手工打包不会长出两套真相。
-      - name: 打包 linux/amd64 与 linux/arm64
+      # RPM=1：缺 rpmbuild 时直接失败，不让 Release 悄悄只发 tar.gz。
+      - name: 打包 linux/amd64 与 linux/arm64（tar.gz + RPM）
         env:
           VERSION: ${{ needs.version.outputs.version }}
+          RPM: "1"
         run: make package-alkaid VERSION="${VERSION}" OUT="${PWD}/dist"
+      # dist/* 会被整个上传到 Release，先确认 RPM 真有两个架构，而不是被静默跳过。
+      - name: 校验 RPM 产物
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          rpms=(dist/*.rpm)
+          if [ "${#rpms[@]}" -ne 2 ]; then
+            echo "期望 2 个 RPM（x86_64 + aarch64），实际 ${#rpms[@]} 个" >&2
+            ls -l dist >&2
+            exit 1
+          fi
+          for rpm in "${rpms[@]}"; do
+            echo "$(basename "${rpm}") → $(rpm -qp --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}' "${rpm}")"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: alkaid-dist
@@ -185,7 +207,7 @@ jobs:
         with:
           name: alkaid-dist
           path: dist
-      - name: 为部署包附加来源证明
+      - name: 为全部产物附加来源证明
         uses: actions/attest-build-provenance@v2
         # 私有仓库未启用 Artifact Attestations 时该步骤不可用；发布内容不依赖它。
         continue-on-error: true
@@ -197,6 +219,7 @@ jobs:
           VERSION: ${{ needs.version.outputs.version }}
         run: |
           set -euo pipefail
+          shopt -s nullglob
           notes="$(mktemp)"
           {
             echo "## 镜像（GHCR）"
@@ -209,16 +232,26 @@ jobs:
             echo
             echo "镜像带 \`org.opencontainers.image.source\` 标签，已在 GHCR 关联本仓库；来源证明与 SBOM 随镜像推送。"
             echo
-            echo "## 摇光（alkaid）二进制与 systemd 部署包"
+            echo "## 摇光（alkaid）二进制、systemd 部署包与 RPM"
             echo
             echo "| 文件 | 说明 |"
             echo "| --- | --- |"
             echo "| \`alkaid_${VERSION}_linux_amd64\`、\`alkaid_${VERSION}_linux_arm64\` | 裸二进制，自带 systemd 单元时用 |"
             echo "| \`alkaid_${VERSION}_linux_amd64.tar.gz\`、\`alkaid_${VERSION}_linux_arm64.tar.gz\` | 二进制 + \`alkaid.service\` + \`alkaid.yaml\` + \`alkaid.env.example\` + \`install.sh\` |"
+            for rpm in dist/*.rpm; do
+              echo "| \`$(basename "${rpm}")\` | RPM：二进制 + systemd 单元 + 配置模板，升级保留现场配置 |"
+            done
             echo "| \`SHA256SUMS\` | 下载后先校验 |"
             echo
             echo '```bash'
             echo "sha256sum -c SHA256SUMS        # macOS 用 shasum -a 256 -c SHA256SUMS"
+            echo
+            echo "# RPM（RHEL / openEuler；arm64 换成 aarch64 包）"
+            echo "sudo dnf install ./alkaid-*.x86_64.rpm"
+            echo "sudoedit /etc/alioth/alkaid.env      # 填 ALKAID_AGENT_TOKEN"
+            echo "sudo systemctl restart alkaid"
+            echo
+            echo "# tar.gz + install.sh"
             echo "tar -xzf alkaid_${VERSION}_linux_amd64.tar.gz"
             echo "cd alkaid_${VERSION}_linux_amd64 && sudo ./install.sh"
             echo '```'

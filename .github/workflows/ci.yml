@@ -105,6 +105,34 @@ jobs:
       - name: build binaries
         run: make build-alioth build-megrez build-merak build-alkaid VERSION=${GITHUB_SHA::12}
 
+  # release.yml 只在 main 与 v* tag 上打摇光包；这里在 PR 上先验证 spec 和打包脚本
+  # 两个架构都还能出 RPM，免得坏掉的 spec 到发版那天才发现。
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: app/alkaid/go.mod
+          cache-dependency-path: |
+            pkg/go.sum
+            api/go.sum
+            app/alkaid/go.sum
+      - name: 安装 rpmbuild
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rpm
+          rpmbuild --version
+      - name: 打包 tar.gz 与 RPM
+        env:
+          RPM: "1"
+        run: make package-alkaid VERSION="sha-${GITHUB_SHA::12}" OUT="${PWD}/dist"
+      - name: 列出产物
+        run: |
+          ls -l dist
+          cat dist/SHA256SUMS
+
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 20
