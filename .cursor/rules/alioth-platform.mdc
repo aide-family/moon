@@ -12,3 +12,4 @@ alwaysApply: true
 - 端口：`web` 8080，`alioth` 8000/9000，`megrez` 8001，`merak` 8002，`alkaid` 8022/9022。浏览器只访问 8080。
 - Redis 只做分布式锁，不当缓存或队列。
 - 本期不做探测任务、微前端、分库、短信发送、日志与链路评测。
+- 改仓库内容前按 [docs/git-workflow.md](../../docs/git-workflow.md)：从当前分支位置切出 `<类型>/<kebab-case>` 分支，在分支上开发，完成后只提交到该分支，不推送、不合并，由用户决定推送还是本地合并进 `main`。
