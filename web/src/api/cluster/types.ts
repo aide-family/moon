@@ -94,12 +94,31 @@ export interface ListKubernetesNodesResult {
   total: number
 }
 
+/** 工作负载列表只覆盖三种控制器。 */
 export type KubernetesWorkloadKind = "Deployment" | "StatefulSet" | "DaemonSet"
+
+/**
+ * 详情抽屉与 YAML 预览支持的对象类型。
+ * 在三种工作负载之外还包括 Pod、Job、CronJob 及其余只读资源；
+ * 工作负载列表的 kind 过滤仍然只用 KubernetesWorkloadKind。
+ */
+export type KubernetesResourceKind =
+  | KubernetesWorkloadKind
+  | "Pod"
+  | "Job"
+  | "CronJob"
+  | "Ingress"
+  | "Service"
+  | "ConfigMap"
+  | "Secret"
+  | "Node"
+  | "PersistentVolume"
+  | "PersistentVolumeClaim"
 
 export interface KubernetesWorkloadItem {
   namespace: string
   /** Deployment、StatefulSet 或 DaemonSet。 */
-  kind: string
+  kind: KubernetesWorkloadKind
   name: string
   desiredReplicas: number
   readyReplicas: number
@@ -134,6 +153,198 @@ export interface ScaleKubernetesWorkloadParams {
 export interface RestartKubernetesWorkloadParams {
   namespace: string
   kind: string
+  name: string
+}
+
+/** 某个容器镜像的历史版本，来自 ReplicaSet 或 ControllerRevision。 */
+export interface KubernetesImageVersionItem {
+  image: string
+  /** 版本号（proto 为 int32）。 */
+  revision: number
+  /** 历史对象创建时间，Unix 秒。protojson 把 int64 序列化成字符串。 */
+  createdAt: number | string
+}
+
+export interface KubernetesWorkloadImageItem {
+  /** 容器名。 */
+  container: string
+  /** 是否为 init 容器；设置镜像时必须与之一致。 */
+  init: boolean
+  image: string
+  repository: string
+  tag: string
+  /** 该容器的历史版本，新版本在前；没有历史对象时为空。 */
+  versions: KubernetesImageVersionItem[]
+}
+
+export interface GetKubernetesWorkloadImagesParams {
+  kind: KubernetesWorkloadKind
+  namespace: string
+  name: string
+}
+
+export interface GetKubernetesWorkloadImagesResult {
+  images: KubernetesWorkloadImageItem[]
+}
+
+export interface SetKubernetesWorkloadImageParams {
+  namespace: string
+  kind: KubernetesWorkloadKind
+  name: string
+  container: string
+  /** 目标容器是否为 init 容器。 */
+  init: boolean
+  image: string
+}
+
+/** 工作负载的一个历史版本。 */
+export interface KubernetesWorkloadRevisionItem {
+  /** 版本号（proto 为 int32）。 */
+  revision: number
+  /** 承载该版本的历史对象名（ReplicaSet 或 ControllerRevision）。 */
+  name: string
+  /** 是否为当前版本；当前版本不能回滚。 */
+  current: boolean
+  replicas: number
+  images: string[]
+  /** 创建时间，Unix 秒。protojson 把 int64 序列化成字符串。 */
+  createdAt: number | string
+}
+
+export interface ListKubernetesWorkloadRevisionsParams {
+  kind: KubernetesWorkloadKind
+  namespace: string
+  name: string
+}
+
+export interface ListKubernetesWorkloadRevisionsResult {
+  /** 新版本在前。 */
+  revisions: KubernetesWorkloadRevisionItem[]
+}
+
+export interface RollbackKubernetesWorkloadParams {
+  namespace: string
+  kind: KubernetesWorkloadKind
+  name: string
+  /** 目标版本，必须是该工作负载已存在的历史版本且不是当前版本。 */
+  revision: number
+}
+
+/** Job 的执行状态；proto 字段是 string，取值由服务端判定。 */
+export type KubernetesJobStatus =
+  | "Suspended"
+  | "Failed"
+  | "Complete"
+  | "Running"
+  | "Unknown"
+  | "Pending"
+
+export interface KubernetesJobItem {
+  namespace: string
+  name: string
+  /** 执行状态；服务端按 suspend / failed / succeeded / active 的顺序判定。 */
+  status: KubernetesJobStatus
+  /** 期望完成数；未设置时为 0。 */
+  completions: number
+  /** 并行度；未设置时为 0。 */
+  parallelism: number
+  active: number
+  succeeded: number
+  failed: number
+  /** 直接控制器的类型，通常是 CronJob。 */
+  ownerKind: string
+  /** 直接控制器的名称。 */
+  ownerName: string
+  /** 开始时间，Unix 秒；未开始为 0。protojson 把 int64 序列化成字符串。 */
+  startTime: number | string
+  /** 完成时间，Unix 秒；未完成或未成功为 0。 */
+  completionTime: number | string
+  /** 创建时间，Unix 秒。 */
+  createdAt: number | string
+  /** 按容器顺序的镜像。 */
+  images: string[]
+}
+
+export interface ListKubernetesJobsParams {
+  /** 留空表示全部命名空间。 */
+  namespace?: string
+  name?: string
+  page?: number
+  pageSize?: number
+}
+
+export interface ListKubernetesJobsResult {
+  items: KubernetesJobItem[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export interface GetKubernetesJobDetailParams {
+  namespace: string
+  name: string
+}
+
+export interface GetKubernetesJobDetailResult {
+  job: KubernetesJobItem
+  /** 该 Job 创建的 Pod，按名称升序。 */
+  pods: KubernetesPodItem[]
+}
+
+export interface KubernetesCronJobItem {
+  namespace: string
+  name: string
+  /** Cron 调度表达式。 */
+  schedule: string
+  /** 调度时区；未设置时为空。 */
+  timeZone: string
+  /** 是否已暂停。 */
+  suspend: boolean
+  /** 并发策略，例如 Allow、Forbid、Replace。 */
+  concurrencyPolicy: string
+  /** 最近一次调度时间，Unix 秒；从未调度为 0。protojson 把 int64 序列化成字符串。 */
+  lastScheduleTime: number | string
+  /** 当前活跃的 Job 数。 */
+  activeCount: number
+  images: string[]
+  /** 创建时间，Unix 秒。protojson 把 int64 序列化成字符串。 */
+  createdAt: number | string
+}
+
+export interface ListKubernetesCronJobsParams {
+  /** 留空表示全部命名空间。 */
+  namespace?: string
+  name?: string
+  page?: number
+  pageSize?: number
+}
+
+export interface ListKubernetesCronJobsResult {
+  items: KubernetesCronJobItem[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export interface GetKubernetesCronJobDetailParams {
+  namespace: string
+  name: string
+}
+
+export interface GetKubernetesCronJobDetailResult {
+  cronjob: KubernetesCronJobItem
+  /** 最近的 Job，最多 10 条，按创建时间倒序。 */
+  jobs: KubernetesJobItem[]
+}
+
+export interface SetKubernetesCronJobSuspendParams {
+  namespace: string
+  name: string
+  suspend: boolean
+}
+
+export interface TriggerKubernetesCronJobParams {
+  namespace: string
   name: string
 }
 
@@ -398,9 +609,9 @@ export interface ListKubernetesPersistentVolumeClaimsResult {
   pageSize: number
 }
 
-/** 读取单个资源 YAML 的参数。kind 取 proto 允许的 11 种资源类型。 */
+/** 读取单个资源 YAML 的参数。kind 取 proto 允许的资源类型，含 Job 与 CronJob。 */
 export interface GetKubernetesResourceYamlParams {
-  kind: string
+  kind: KubernetesResourceKind
   /** Node 与 PersistentVolume 忽略该字段，其余资源必填。 */
   namespace?: string
   name: string

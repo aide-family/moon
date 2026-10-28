@@ -107,6 +107,66 @@ service KubernetesService {
   rpc GetKubernetesPersistentVolumeClaimDetail(GetKubernetesPersistentVolumeClaimDetailRequest) returns (GetKubernetesPersistentVolumeClaimDetailResponse) {
     option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/persistentvolumeclaim-detail"};
   }
+  // 列出工作负载每个容器的当前镜像与历史版本。
+  rpc GetKubernetesWorkloadImages(GetKubernetesWorkloadImagesRequest) returns (GetKubernetesWorkloadImagesResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/workload/images"};
+  }
+  // 设置工作负载中某个容器的镜像。
+  rpc SetKubernetesWorkloadImage(SetKubernetesWorkloadImageRequest) returns (SetKubernetesWorkloadImageResponse) {
+    option (google.api.http) = {
+      put: "/v1/cluster/{cluster_uid}/workload/image"
+      body: "*"
+    };
+  }
+  // 列出工作负载的历史版本，新版本在前。
+  rpc ListKubernetesWorkloadRevisions(ListKubernetesWorkloadRevisionsRequest) returns (ListKubernetesWorkloadRevisionsResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/workload/revisions"};
+  }
+  // 把工作负载回滚到指定历史版本。
+  rpc RollbackKubernetesWorkload(RollbackKubernetesWorkloadRequest) returns (RollbackKubernetesWorkloadResponse) {
+    option (google.api.http) = {
+      post: "/v1/cluster/{cluster_uid}/workload/rollback"
+      body: "*"
+    };
+  }
+  // 列出 Job，可按命名空间和名称过滤。
+  rpc ListKubernetesJobs(ListKubernetesJobsRequest) returns (ListKubernetesJobsResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/jobs"};
+  }
+  // Job 详情：基础信息与它的 Pod。
+  rpc GetKubernetesJobDetail(GetKubernetesJobDetailRequest) returns (GetKubernetesJobDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/job-detail"};
+  }
+  // 删除 Job，使用默认的后台级联删除。
+  rpc DeleteKubernetesJob(DeleteKubernetesJobRequest) returns (DeleteKubernetesJobResponse) {
+    option (google.api.http) = {delete: "/v1/cluster/{cluster_uid}/namespace/{namespace}/job/{name}"};
+  }
+  // 列出 CronJob，可按命名空间和名称过滤。
+  rpc ListKubernetesCronJobs(ListKubernetesCronJobsRequest) returns (ListKubernetesCronJobsResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/cronjobs"};
+  }
+  // CronJob 详情：基础信息与它最近创建的 Job。
+  rpc GetKubernetesCronJobDetail(GetKubernetesCronJobDetailRequest) returns (GetKubernetesCronJobDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/cronjob-detail"};
+  }
+  // 暂停或恢复 CronJob 的调度。
+  rpc SetKubernetesCronJobSuspend(SetKubernetesCronJobSuspendRequest) returns (SetKubernetesCronJobSuspendResponse) {
+    option (google.api.http) = {
+      put: "/v1/cluster/{cluster_uid}/cronjob/suspend"
+      body: "*"
+    };
+  }
+  // 立即用 jobTemplate 创建一次 Job。
+  rpc TriggerKubernetesCronJob(TriggerKubernetesCronJobRequest) returns (TriggerKubernetesCronJobResponse) {
+    option (google.api.http) = {
+      post: "/v1/cluster/{cluster_uid}/cronjob/trigger"
+      body: "*"
+    };
+  }
+  // 删除 CronJob。
+  rpc DeleteKubernetesCronJob(DeleteKubernetesCronJobRequest) returns (DeleteKubernetesCronJobResponse) {
+    option (google.api.http) = {delete: "/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}"};
+  }
 }
 
 // 节点。
@@ -667,7 +727,7 @@ message GetKubernetesResourceYAMLRequest {
   string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
   // 资源类型。
   string kind = 2 [(buf.validate.field).string = {
-    in: ["Node", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Service", "ConfigMap", "Secret", "PersistentVolume", "PersistentVolumeClaim"]
+    in: ["Node", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Service", "ConfigMap", "Secret", "PersistentVolume", "PersistentVolumeClaim"]
   }];
   // 命名空间。Node 与 PersistentVolume 忽略该字段，其余资源必填。
   string namespace = 3 [(buf.validate.field).string.max_len = 253];
@@ -852,3 +912,337 @@ message GetKubernetesPersistentVolumeClaimDetailResponse {
   // 挂载该 PVC 的工作负载。
   repeated KubernetesWorkloadRefItem related_workloads = 2 [json_name = "relatedWorkloads"];
 }
+
+// 镜像的一个历史版本。
+message KubernetesImageVersionItem {
+  // 该版本使用的镜像。
+  string image = 1;
+  // 历史对象对应的版本号。
+  int32 revision = 2;
+  // 历史对象的创建时间，Unix 秒。
+  int64 created_at = 3 [json_name = "createdAt"];
+}
+
+// 工作负载中一个容器的镜像信息。
+message KubernetesWorkloadImageItem {
+  // 容器名。
+  string container = 1;
+  // 是否是初始化容器。
+  bool init = 2;
+  // 当前镜像。
+  string image = 3;
+  // 镜像仓库，不含 tag。
+  string repository = 4;
+  // 镜像 tag；镜像没有 tag 时为空。
+  string tag = 5;
+  // 历史版本，新版本在前，按镜像去重，不包含当前镜像。
+  repeated KubernetesImageVersionItem versions = 6;
+}
+
+// 列出工作负载的容器镜像。
+message GetKubernetesWorkloadImagesRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 工作负载类型，只能是 Deployment、StatefulSet 或 DaemonSet。
+  string kind = 3 [(buf.validate.field).string = {
+    in: ["Deployment", "StatefulSet", "DaemonSet"]
+  }];
+  // 名称。
+  string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 工作负载的容器镜像列表。
+message GetKubernetesWorkloadImagesResponse {
+  // 容器镜像，按 Pod 模板中的容器顺序排列，初始化容器在后。
+  repeated KubernetesWorkloadImageItem images = 1;
+}
+
+// 设置工作负载中某个容器的镜像。
+message SetKubernetesWorkloadImageRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 工作负载类型，只能是 Deployment、StatefulSet 或 DaemonSet。
+  string kind = 3 [(buf.validate.field).string = {
+    in: ["Deployment", "StatefulSet", "DaemonSet"]
+  }];
+  // 名称。
+  string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 容器名。必须存在于 Pod 模板中。
+  string container = 5 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 是否定位初始化容器。
+  bool init = 6;
+  // 新镜像。
+  string image = 7 [(buf.validate.field).string = {min_len: 1, max_len: 1024}];
+}
+
+// 设置镜像的结果。
+message SetKubernetesWorkloadImageResponse {
+  // 更新后的工作负载。
+  KubernetesWorkloadItem workload = 1;
+}
+
+// 工作负载的一个历史版本。
+message KubernetesWorkloadRevisionItem {
+  // 版本号。
+  int32 revision = 1;
+  // 历史对象名，例如 ReplicaSet 或 ControllerRevision 的名称。
+  string name = 2;
+  // 是否是当前版本。
+  bool current = 3;
+  // 该版本的副本数。ControllerRevision 不记录副本数，取工作负载当前期望副本数。
+  int32 replicas = 4;
+  // 该版本的容器镜像。
+  repeated string images = 5;
+  // 历史对象的创建时间，Unix 秒。
+  int64 created_at = 6 [json_name = "createdAt"];
+}
+
+// 列出工作负载的历史版本。
+message ListKubernetesWorkloadRevisionsRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 工作负载类型，只能是 Deployment、StatefulSet 或 DaemonSet。
+  string kind = 3 [(buf.validate.field).string = {
+    in: ["Deployment", "StatefulSet", "DaemonSet"]
+  }];
+  // 名称。
+  string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 工作负载的历史版本列表。
+message ListKubernetesWorkloadRevisionsResponse {
+  // 历史版本，新版本在前。
+  repeated KubernetesWorkloadRevisionItem revisions = 1;
+}
+
+// 回滚工作负载。
+message RollbackKubernetesWorkloadRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 工作负载类型，只能是 Deployment、StatefulSet 或 DaemonSet。
+  string kind = 3 [(buf.validate.field).string = {
+    in: ["Deployment", "StatefulSet", "DaemonSet"]
+  }];
+  // 名称。
+  string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 目标版本号，从 1 开始。
+  int32 revision = 5 [(buf.validate.field).int32.gte = 1];
+}
+
+// 回滚结果。
+message RollbackKubernetesWorkloadResponse {
+  // 更新后的工作负载。
+  KubernetesWorkloadItem workload = 1;
+}
+
+// Job。
+message KubernetesJobItem {
+  // 命名空间。
+  string namespace = 1;
+  // 名称。
+  string name = 2;
+  // 状态，取值为 Suspended、Failed、Complete、Running、Unknown 或 Pending。
+  string status = 3;
+  // 期望完成数。未设置时为 0。
+  int32 completions = 4;
+  // 并行数。未设置时为 0。
+  int32 parallelism = 5;
+  // 活跃 Pod 数。
+  int32 active = 6;
+  // 成功 Pod 数。
+  int32 succeeded = 7;
+  // 失败 Pod 数。
+  int32 failed = 8;
+  // 直接所属控制器的类型，通常是 CronJob。
+  string owner_kind = 9 [json_name = "ownerKind"];
+  // 直接所属控制器的名称。
+  string owner_name = 10 [json_name = "ownerName"];
+  // 开始时间，Unix 秒；未开始时为 0。
+  int64 start_time = 11 [json_name = "startTime"];
+  // 完成时间，Unix 秒；未完成时为 0。
+  int64 completion_time = 12 [json_name = "completionTime"];
+  // 创建时间，Unix 秒。
+  int64 created_at = 13 [json_name = "createdAt"];
+  // 容器镜像，按容器顺序去重。
+  repeated string images = 14;
+}
+
+// 列出 Job。
+message ListKubernetesJobsRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间。
+  string namespace = 2;
+  // 按名称过滤。
+  string name = 3;
+  // 页码，从 1 开始。
+  int32 page = 4 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 5 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// Job 列表。
+message ListKubernetesJobsResponse {
+  // Job。
+  repeated KubernetesJobItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// Job 详情。
+message GetKubernetesJobDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// Job 详情结果。
+message GetKubernetesJobDetailResponse {
+  // Job。
+  KubernetesJobItem job = 1;
+  // 该 Job 的 Pod，按名称升序。
+  repeated KubernetesPodItem pods = 2;
+}
+
+// 删除 Job。
+message DeleteKubernetesJobRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 删除结果。
+message DeleteKubernetesJobResponse {}
+
+// CronJob。
+message KubernetesCronJobItem {
+  // 命名空间。
+  string namespace = 1;
+  // 名称。
+  string name = 2;
+  // 调度规则，例如 0 2 * * *。
+  string schedule = 3;
+  // 时区。未设置时为空，表示使用控制器默认时区。
+  string time_zone = 4 [json_name = "timeZone"];
+  // 是否已暂停调度。
+  bool suspend = 5;
+  // 并发策略，例如 Allow、Forbid、Replace。
+  string concurrency_policy = 6 [json_name = "concurrencyPolicy"];
+  // 最近一次调度时间，Unix 秒；未调度过时为 0。
+  int64 last_schedule_time = 7 [json_name = "lastScheduleTime"];
+  // 当前活跃的 Job 数。
+  int32 active_count = 8 [json_name = "activeCount"];
+  // 容器镜像，按容器顺序去重。
+  repeated string images = 9;
+  // 创建时间，Unix 秒。
+  int64 created_at = 10 [json_name = "createdAt"];
+}
+
+// 列出 CronJob。
+message ListKubernetesCronJobsRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间。
+  string namespace = 2;
+  // 按名称过滤。
+  string name = 3;
+  // 页码，从 1 开始。
+  int32 page = 4 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 5 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// CronJob 列表。
+message ListKubernetesCronJobsResponse {
+  // CronJob。
+  repeated KubernetesCronJobItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// CronJob 详情。
+message GetKubernetesCronJobDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// CronJob 详情结果。
+message GetKubernetesCronJobDetailResponse {
+  // CronJob。
+  KubernetesCronJobItem cronjob = 1;
+  // 最近创建的 Job，最多 10 条，创建时间倒序。
+  repeated KubernetesJobItem jobs = 2;
+}
+
+// 暂停或恢复 CronJob。
+message SetKubernetesCronJobSuspendRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // true 为暂停，false 为恢复。
+  bool suspend = 4;
+}
+
+// 暂停或恢复的结果。
+message SetKubernetesCronJobSuspendResponse {
+  // 更新后的 CronJob。
+  KubernetesCronJobItem cronjob = 1;
+}
+
+// 立即运行 CronJob。
+message TriggerKubernetesCronJobRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 立即运行的结果。
+message TriggerKubernetesCronJobResponse {
+  // 新建的 Job。
+  KubernetesJobItem job = 1;
+}
+
+// 删除 CronJob。
+message DeleteKubernetesCronJobRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 删除结果。
+message DeleteKubernetesCronJobResponse {}

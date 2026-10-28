@@ -4,8 +4,12 @@ import type {
   ClusterItem,
   GetKubernetesConfigMapDetailParams,
   GetKubernetesConfigMapDetailResult,
+  GetKubernetesCronJobDetailParams,
+  GetKubernetesCronJobDetailResult,
   GetKubernetesIngressDetailParams,
   GetKubernetesIngressDetailResult,
+  GetKubernetesJobDetailParams,
+  GetKubernetesJobDetailResult,
   GetKubernetesPersistentVolumeClaimDetailParams,
   GetKubernetesPersistentVolumeClaimDetailResult,
   GetKubernetesResourceYamlParams,
@@ -16,6 +20,10 @@ import type {
   GetKubernetesServiceDetailResult,
   GetKubernetesWorkloadDetailParams,
   GetKubernetesWorkloadDetailResult,
+  GetKubernetesWorkloadImagesParams,
+  GetKubernetesWorkloadImagesResult,
+  KubernetesCronJobItem,
+  KubernetesJobItem,
   KubernetesPodLogsParams,
   KubernetesPodLogsResult,
   KubernetesWorkloadItem,
@@ -23,8 +31,12 @@ import type {
   ListClustersResult,
   ListKubernetesConfigMapsParams,
   ListKubernetesConfigMapsResult,
+  ListKubernetesCronJobsParams,
+  ListKubernetesCronJobsResult,
   ListKubernetesIngressesParams,
   ListKubernetesIngressesResult,
+  ListKubernetesJobsParams,
+  ListKubernetesJobsResult,
   ListKubernetesNamespacesResult,
   ListKubernetesNodesParams,
   ListKubernetesNodesResult,
@@ -38,13 +50,19 @@ import type {
   ListKubernetesSecretsResult,
   ListKubernetesServicesParams,
   ListKubernetesServicesResult,
+  ListKubernetesWorkloadRevisionsParams,
+  ListKubernetesWorkloadRevisionsResult,
   ListKubernetesWorkloadsParams,
   ListKubernetesWorkloadsResult,
   ProbeKubeconfigResult,
   RestartKubernetesWorkloadParams,
+  RollbackKubernetesWorkloadParams,
   SaveClusterParams,
   ScaleKubernetesWorkloadParams,
+  SetKubernetesCronJobSuspendParams,
+  SetKubernetesWorkloadImageParams,
   TestClusterResult,
+  TriggerKubernetesCronJobParams,
   UpdateClusterParams,
 } from "./types"
 
@@ -161,6 +179,54 @@ export function restartKubernetesWorkload(
   )
 }
 
+/** GET /v1/cluster/{clusterUid}/workload/images */
+export function getKubernetesWorkloadImages(
+  clusterUid: string,
+  params: GetKubernetesWorkloadImagesParams
+): Promise<GetKubernetesWorkloadImagesResult> {
+  return get<GetKubernetesWorkloadImagesResult>(
+    `/cluster/${segment(clusterUid)}/workload/images`,
+    { kind: params.kind, namespace: params.namespace, name: params.name },
+    undefined,
+    { silent: true }
+  )
+}
+
+/** PUT /v1/cluster/{clusterUid}/workload/image */
+export function setKubernetesWorkloadImage(
+  clusterUid: string,
+  body: SetKubernetesWorkloadImageParams
+): Promise<{ workload: KubernetesWorkloadItem }> {
+  return put<{ workload: KubernetesWorkloadItem }>(
+    `/cluster/${segment(clusterUid)}/workload/image`,
+    body
+  )
+}
+
+/** GET /v1/cluster/{clusterUid}/workload/revisions */
+export function listKubernetesWorkloadRevisions(
+  clusterUid: string,
+  params: ListKubernetesWorkloadRevisionsParams
+): Promise<ListKubernetesWorkloadRevisionsResult> {
+  return get<ListKubernetesWorkloadRevisionsResult>(
+    `/cluster/${segment(clusterUid)}/workload/revisions`,
+    { kind: params.kind, namespace: params.namespace, name: params.name },
+    undefined,
+    { silent: true }
+  )
+}
+
+/** POST /v1/cluster/{clusterUid}/workload/rollback */
+export function rollbackKubernetesWorkload(
+  clusterUid: string,
+  body: RollbackKubernetesWorkloadParams
+): Promise<{ workload: KubernetesWorkloadItem }> {
+  return post<{ workload: KubernetesWorkloadItem }>(
+    `/cluster/${segment(clusterUid)}/workload/rollback`,
+    body
+  )
+}
+
 /** GET /v1/cluster/{clusterUid}/pods */
 export function listKubernetesPods(
   clusterUid: string,
@@ -195,6 +261,98 @@ export function getKubernetesPodLogs(
       tailLines: params.tailLines,
       previous: params.previous,
     }
+  )
+}
+
+/** GET /v1/cluster/{clusterUid}/jobs */
+export function listKubernetesJobs(
+  clusterUid: string,
+  params: ListKubernetesJobsParams = {}
+): Promise<ListKubernetesJobsResult> {
+  return get<ListKubernetesJobsResult>(
+    `/cluster/${segment(clusterUid)}/jobs`,
+    params
+  )
+}
+
+/** GET /v1/cluster/{clusterUid}/job-detail */
+export function getKubernetesJobDetail(
+  clusterUid: string,
+  params: GetKubernetesJobDetailParams
+): Promise<GetKubernetesJobDetailResult> {
+  return get<GetKubernetesJobDetailResult>(
+    `/cluster/${segment(clusterUid)}/job-detail`,
+    { namespace: params.namespace, name: params.name },
+    undefined,
+    { silent: true }
+  )
+}
+
+/** DELETE /v1/cluster/{clusterUid}/namespace/{namespace}/job/{name} */
+export function deleteKubernetesJob(
+  clusterUid: string,
+  namespace: string,
+  name: string
+): Promise<Record<string, never>> {
+  return del<Record<string, never>>(
+    `/cluster/${segment(clusterUid)}/namespace/${segment(namespace)}/job/${segment(name)}`
+  )
+}
+
+/** GET /v1/cluster/{clusterUid}/cronjobs */
+export function listKubernetesCronJobs(
+  clusterUid: string,
+  params: ListKubernetesCronJobsParams = {}
+): Promise<ListKubernetesCronJobsResult> {
+  return get<ListKubernetesCronJobsResult>(
+    `/cluster/${segment(clusterUid)}/cronjobs`,
+    params
+  )
+}
+
+/** GET /v1/cluster/{clusterUid}/cronjob-detail */
+export function getKubernetesCronJobDetail(
+  clusterUid: string,
+  params: GetKubernetesCronJobDetailParams
+): Promise<GetKubernetesCronJobDetailResult> {
+  return get<GetKubernetesCronJobDetailResult>(
+    `/cluster/${segment(clusterUid)}/cronjob-detail`,
+    { namespace: params.namespace, name: params.name },
+    undefined,
+    { silent: true }
+  )
+}
+
+/** PUT /v1/cluster/{clusterUid}/cronjob/suspend */
+export function setKubernetesCronJobSuspend(
+  clusterUid: string,
+  body: SetKubernetesCronJobSuspendParams
+): Promise<{ cronjob: KubernetesCronJobItem }> {
+  return put<{ cronjob: KubernetesCronJobItem }>(
+    `/cluster/${segment(clusterUid)}/cronjob/suspend`,
+    body
+  )
+}
+
+/** POST /v1/cluster/{clusterUid}/cronjob/trigger */
+export function triggerKubernetesCronJob(
+  clusterUid: string,
+  body: TriggerKubernetesCronJobParams
+): Promise<{ job: KubernetesJobItem }> {
+  return post<{ job: KubernetesJobItem }>(
+    `/cluster/${segment(clusterUid)}/cronjob/trigger`,
+    body
+  )
+}
+
+/** DELETE /v1/cluster/{clusterUid}/namespace/{namespace}/cronjob/{name} */
+export function deleteKubernetesCronJob(
+  clusterUid: string,
+  namespace: string,
+  name: string
+): Promise<Record<string, never>> {
+  return del<Record<string, never>>(
+    `/cluster/${segment(clusterUid)}/namespace/${segment(namespace)}/cronjob/${segment(name)}`
   )
 }
 
@@ -364,8 +522,12 @@ export type {
   ClusterProbe,
   GetKubernetesConfigMapDetailParams,
   GetKubernetesConfigMapDetailResult,
+  GetKubernetesCronJobDetailParams,
+  GetKubernetesCronJobDetailResult,
   GetKubernetesIngressDetailParams,
   GetKubernetesIngressDetailResult,
+  GetKubernetesJobDetailParams,
+  GetKubernetesJobDetailResult,
   GetKubernetesPersistentVolumeClaimDetailParams,
   GetKubernetesPersistentVolumeClaimDetailResult,
   GetKubernetesResourceYamlParams,
@@ -376,11 +538,17 @@ export type {
   GetKubernetesServiceDetailResult,
   GetKubernetesWorkloadDetailParams,
   GetKubernetesWorkloadDetailResult,
+  GetKubernetesWorkloadImagesParams,
+  GetKubernetesWorkloadImagesResult,
   KubernetesConfigMapItem,
+  KubernetesCronJobItem,
   KubernetesEndpointItem,
   KubernetesEndpointPortItem,
+  KubernetesImageVersionItem,
   KubernetesIngressItem,
   KubernetesIngressPathItem,
+  KubernetesJobItem,
+  KubernetesJobStatus,
   KubernetesNodeItem,
   KubernetesPersistentVolumeClaimItem,
   KubernetesPersistentVolumeItem,
@@ -389,18 +557,25 @@ export type {
   KubernetesPodLogsParams,
   KubernetesPodLogsResult,
   KubernetesReplicaSetItem,
+  KubernetesResourceKind,
   KubernetesSecretItem,
   KubernetesServiceItem,
   KubernetesServicePortItem,
+  KubernetesWorkloadImageItem,
   KubernetesWorkloadItem,
   KubernetesWorkloadKind,
   KubernetesWorkloadRefItem,
+  KubernetesWorkloadRevisionItem,
   ListClustersParams,
   ListClustersResult,
   ListKubernetesConfigMapsParams,
   ListKubernetesConfigMapsResult,
+  ListKubernetesCronJobsParams,
+  ListKubernetesCronJobsResult,
   ListKubernetesIngressesParams,
   ListKubernetesIngressesResult,
+  ListKubernetesJobsParams,
+  ListKubernetesJobsResult,
   ListKubernetesNamespacesResult,
   ListKubernetesNodesParams,
   ListKubernetesNodesResult,
@@ -414,12 +589,18 @@ export type {
   ListKubernetesSecretsResult,
   ListKubernetesServicesParams,
   ListKubernetesServicesResult,
+  ListKubernetesWorkloadRevisionsParams,
+  ListKubernetesWorkloadRevisionsResult,
   ListKubernetesWorkloadsParams,
   ListKubernetesWorkloadsResult,
   ProbeKubeconfigResult,
   RestartKubernetesWorkloadParams,
+  RollbackKubernetesWorkloadParams,
   SaveClusterParams,
   ScaleKubernetesWorkloadParams,
+  SetKubernetesCronJobSuspendParams,
+  SetKubernetesWorkloadImageParams,
   TestClusterResult,
+  TriggerKubernetesCronJobParams,
   UpdateClusterParams,
 } from "./types"

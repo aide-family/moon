@@ -3,14 +3,15 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { getKubernetesResourceYaml } from "@/api/cluster"
+import type { KubernetesResourceKind } from "@/api/cluster"
 import { CodeBlock } from "@/components/code-block"
 import { Button } from "@/components/ui/button"
 import { failureMessage } from "@/lib/form-error"
 
 interface ClusterYamlPreviewProps {
   clusterUid: string
-  /** Node / Pod / Deployment / … / PersistentVolumeClaim。 */
-  kind: string
+  /** Node / Pod / Deployment / Job / CronJob / … / PersistentVolumeClaim。 */
+  kind: KubernetesResourceKind
   /** 集群级资源（Node、PersistentVolume）不传。 */
   namespace?: string
   name: string

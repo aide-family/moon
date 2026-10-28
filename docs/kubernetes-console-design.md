@@ -1,6 +1,6 @@
 # Kubernetes 集群详情：控制台化改造设计
 
-本文对应 `web/src/pages/cluster/` 的详情页改造。页面现已覆盖节点、工作负载、Pod、Ingress、Service、ConfigMap、Secret、PV、PVC 九类资源，全部使用 `alioth` 的 `/v1/cluster/...` 接口；Secret 与 ConfigMap 只展示键名，任何接口都不返回值。
+本文对应 `web/src/pages/cluster/` 的详情页改造。页面现已覆盖节点、工作负载、Job、CronJob、Pod、Ingress、Service、ConfigMap、Secret、PV、PVC 十一类资源，全部使用 `alioth` 的 `/v1/cluster/...` 接口；Secret 与 ConfigMap 只展示键名，任何接口都不返回值。
 
 ## 1. 页面结构
 
@@ -15,6 +15,7 @@
    │  ├─ 负载
    │  │  ├─ 全部工作负载
    │  │  ├─ Deployment / StatefulSet / DaemonSet
+   │  │  ├─ Job / CronJob
    │  │  └─ Pod
    │  ├─ 服务与路由
    │  │  ├─ Ingress
@@ -38,10 +39,10 @@
 
 | 参数 | 含义 | 说明 |
 | --- | --- | --- |
-| `tab` | 资源视图 | `overview`、`workloads`、`pods`、`ingresses`、`services`、`configmaps`、`secrets`、`pvs`、`pvcs`；缺省为节点（节点不写 `tab`） |
-| `kind` | 工作负载类型 | 仅 `tab=workloads` 生效：`Deployment`、`StatefulSet`、`DaemonSet`；空表示全部 |
+| `tab` | 资源视图 | `overview`、`workloads`、`jobs`、`cronjobs`、`pods`、`ingresses`、`services`、`configmaps`、`secrets`、`pvs`、`pvcs`；缺省为节点（节点不写 `tab`） |
+| `kind` | 工作负载类型 | 仅 `tab=workloads` 生效：`Deployment`、`StatefulSet`、`DaemonSet`；空表示全部；Job/CronJob 忽略该参数 |
 | `namespace` | 命名空间 | 空表示全部命名空间；节点与 PV 隐藏该控件并忽略该参数 |
-| `name` | 名称过滤 | 九类资源都支持 |
+| `name` | 名称过滤 | 十一类资源都支持 |
 | `page` / `pageSize` | 分页 | 所有列表使用；切换视图、命名空间、名称时回到第 1 页 |
 
 旧链接 `?tab=workloads&kind=Deployment`、`?tab=pods&page=2` 语义不变。`tab + kind` 同时表达导航项。
@@ -59,7 +60,7 @@
 | --- | --- | --- |
 | `detail/index.tsx` | `ClusterDetailPage` | 页面壳：集群元数据、命名空间列表、URL 状态、工具栏与面板路由 |
 | `detail/use-cluster-detail-query.ts` | `useClusterDetailQuery` | 读写 `tab/kind/namespace/name/page/pageSize`，保持旧链接兼容 |
-| `detail/sections.ts` | `CLUSTER_NAV_GROUPS`、`findClusterNavEntry` | 导航分组、作用域与标签；九类资源全部可用 |
+| `detail/sections.ts` | `CLUSTER_NAV_GROUPS`、`findClusterNavEntry` | 导航分组、作用域与标签；十一类资源全部可用 |
 | `detail/cluster-summary.tsx` | `ClusterSummary` | 只读元数据条与连接状态 |
 | `detail/resource-nav.tsx` | `ClusterResourceNav`、`ClusterResourcePicker` | 桌面分组导航 / 窄屏分组下拉；显示各资源计数 |
 | `detail/use-resource-counts.ts` | `useClusterResourceCounts` | 用 `pageSize=1` 补齐 Service / ConfigMap / Secret / PV / PVC 的导航计数 |
@@ -67,6 +68,8 @@
 | `detail/overview-tab.tsx` | `ClusterOverviewTab` | 概况布局与滚动归属 |
 | `detail/overview-cards.tsx` | `ClusterOverviewKpis` 等 | KPI、Pod 分布、工作负载健康、容量、基础组件、Top 榜单 |
 | `nodes-tab.tsx`、`workloads-tab.tsx`、`pods-tab.tsx`、`ingresses-tab.tsx` | 对应 Tab 组件 | 四类既有资源：列表、筛选、RowActions、详情抽屉与写操作 |
+| `jobs-tab.tsx`、`cronjobs-tab.tsx` | `ClusterJobsTab`、`ClusterCronJobsTab` | Job/CronJob 列表、筛选、分页、详情抽屉与写操作（删除、暂停/恢复、立即运行） |
+| `workload-image-dialog.tsx`、`workload-rollback-dialog.tsx` | `WorkloadImageDialog`、`WorkloadRollbackDialog` | 按容器查看/设置镜像版本、列出历史版本并回滚 |
 | `services-tab.tsx`、`configmaps-tab.tsx`、`secrets-tab.tsx`、`persistent-volumes-tab.tsx`、`persistent-volume-claims-tab.tsx` | 对应 Tab 组件 | 五类新增资源：列表、筛选、分页、详情抽屉 |
 | `key-list.tsx` | `KubernetesKeyList` | ConfigMap / Secret 的键名 chip 列表（不渲染值） |
 | `resource-state.tsx` | `ClusterResourceState` | 列表加载 / 错误 / 空态统一外观 |
@@ -111,11 +114,11 @@
 
 | 权限 | 页面行为 |
 | --- | --- |
-| `cluster:read` | 查看详情、概况、九类资源列表与详情、日志、测试连接；无权限时跳 `/forbidden` |
-| `cluster:write` | cordon/uncordon、调整副本、滚动重启、删除 Pod |
+| `cluster:read` | 查看详情、概况、十一类资源列表与详情、日志、镜像与历史版本、测试连接；无权限时跳 `/forbidden` |
+| `cluster:write` | cordon/uncordon、调整副本、滚动重启、删除 Pod、设置镜像、版本回滚、删除 Job、暂停/恢复与立即运行 CronJob、删除 CronJob |
 | `cluster:delete` | 集群列表页删除集群（详情页不新增删除入口） |
 
-本次改造不新增写操作，也未改变服务端校验；新增五类资源全部只读。
+M16 新增的写操作全部使用既有 `cluster:write`，未新增权限；服务端仍独立校验，页面只负责隐藏入口。
 
 ## 4. 详情抽屉
 
@@ -130,12 +133,16 @@
 | Secret | 命名空间、类型、data 键名、是否不可变、运行时长、创建时间（值永不返回） |
 | PV | 名称、容量、StorageClass、访问模式、绑定的 PVC、阶段、回收策略、运行时长、创建时间 |
 | PVC | 命名空间、名称、容量、StorageClass、访问模式、绑定的 PV、阶段、运行时长、创建时间 |
+| Job | 命名空间、状态、完成数、并行数、成功/失败/活跃、所属 CronJob、开始时间、完成时间、镜像、运行时长、创建时间（关联 Pod 可跳转） |
+| CronJob | 命名空间、调度、时区、是否挂起、并发策略、最近调度、活跃 Job、镜像、运行时长、创建时间（关联最近 10 个 Job 可跳转） |
 
 详情抽屉还会按资源加载关联信息（打开时懒加载，加载失败可重试）：
 
 | 资源 | 关联区块 | 交互 |
 | --- | --- | --- |
 | 工作负载 | 副本集（名称、期望/就绪/当前副本、镜像、创建时间）；Pod 列表（阶段、就绪、重启、节点） | 点击 Pod 跳到 Pod 页签并按 Pod 名称过滤 |
+| Job | Pod 列表（阶段、就绪、重启、节点） | 点击 Pod 跳到 Pod 页签并过滤 |
+| CronJob | 最近 Job（名称、状态、成功/失败、创建时间） | 点击 Job 跳到 Job 页签并过滤 |
 | Ingress | 关联 Service（类型、ClusterIP、端口） | 点击 Service 跳到 Service 页签并过滤 |
 | Service | Endpoints（就绪状态、地址、节点、目标对象、端口）；选择器 | 选择器以 `key=value` 标签展示（可复制） |
 | ConfigMap / Secret / PVC | 关联工作负载（类型、名称、命名空间），覆盖 volume、projected、envFrom、env.valueFrom、imagePullSecrets（Secret）引用 | 点击跳转到工作负载页签并过滤 |
@@ -185,16 +192,38 @@ Pod 采样而不全量拉取的原因：`ListPods` 在服务端先列全量再�
 
 六类接口均要求 `cluster:read`，并先按当前租户校验 `cluster_uid`；分页在服务端完成，排序为 namespace/name（PV 按 name）。
 
+### M16 新增接口
+
+| 方法 | 路径 | 关键字段 | 说明 |
+| --- | --- | --- | --- |
+| `GET` | `/v1/cluster/{cluster_uid}/workload/images` | `kind`、`namespace`、`name` → `images[]`（容器、是否 init、当前镜像、仓库、tag、历史版本） | 历史版本来自该工作负载的 ReplicaSet（Deployment）或 ControllerRevision（StatefulSet/DaemonSet），按版本倒序去重 |
+| `PUT` | `/v1/cluster/{cluster_uid}/workload/image` | `kind`、`namespace`、`name`、`container`、`init`、`image` → `workload` | 只改目标容器镜像并返回更新后的工作负载 |
+| `GET` | `/v1/cluster/{cluster_uid}/workload/revisions` | `kind`、`namespace`、`name` → `revisions[]`（版本号、历史对象名、当前标记、副本数、镜像、创建时间） | 新版本在前；当前版本不可回滚 |
+| `POST` | `/v1/cluster/{cluster_uid}/workload/rollback` | `revision` → `workload` | 把目标版本的 Pod 模板写回工作负载；回滚到当前版本或不存在的版本返回客户端错误 |
+| `GET` | `/v1/cluster/{cluster_uid}/jobs` | `namespace`、`name`、`page`、`pageSize` → `items[]`、`total`、`page`、`pageSize` | 状态取 Suspended/Failed/Complete/Running/Unknown/Pending |
+| `GET` | `/v1/cluster/{cluster_uid}/job-detail` | `namespace`、`name` → `job`、`pods[]` | Pod 按名称升序 |
+| `DELETE` | `/v1/cluster/{cluster_uid}/namespace/{namespace}/job/{name}` | — | 级联删除其 Pod |
+| `GET` | `/v1/cluster/{cluster_uid}/cronjobs` | `namespace`、`name`、`page`、`pageSize` → `items[]`、`total`、`page`、`pageSize` | 调度、时区、挂起、并发策略、最近调度、活跃 Job |
+| `GET` | `/v1/cluster/{cluster_uid}/cronjob-detail` | `namespace`、`name` → `cronjob`、`jobs[]` | 最近 10 个 Job，创建时间倒序 |
+| `PUT` | `/v1/cluster/{cluster_uid}/cronjob/suspend` | `namespace`、`name`、`suspend` → `cronjob` | 暂停/恢复调度 |
+| `POST` | `/v1/cluster/{cluster_uid}/cronjob/trigger` | `namespace`、`name` → `job` | 用 `jobTemplate` 立即创建 Job，名称 `<cronjob>-manual-<unix秒>` |
+| `DELETE` | `/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}` | — | 删除 CronJob（默认级联删除它创建的 Job） |
+
+- 读接口要求 `cluster:read`，写接口要求 `cluster:write`；分页参数与十一类列表一致，排序为 namespace/name。
+- YAML 接口的 `kind` 扩展到 `Job`、`CronJob`；Secret/ConfigMap 脱敏规则不变。
+- 以上接口都不落库、不新增表与迁移。
+
 ## 7. 后续可增强
 
 - `GET /v1/cluster/{cluster_uid}/overview`：一次返回概况聚合，替代前端 5–7 次列表调用。
 - `Cluster.metrics_datasource_uid` + `GET /v1/cluster/{cluster_uid}/metrics/summary`：绑定指标数据源，补齐 CPU/内存用量、控制面真实状态与 Top 消耗；前端接入点已留在概况 hook/卡片。
 - 节点/Pod/工作负载详情接口（条件、污点、事件、卷、ReplicaSet 历史）。
-- Job / CronJob、HPA、StorageClass、NetworkPolicy 等二级资源。
+- HPA、StorageClass、NetworkPolicy 等二级资源。
 
 ## 8. 验证
 
 - 真实集群（v1.35.5）浏览器回归：九类资源列表与详情抽屉、详情「详细信息 / YAML」Tab 切换、YAML 铺满剩余高度且内部滚动、GitHub light/dark 高亮切换、复制图标动画、工作负载副本集/Pod 关系与跳转、Ingress→Service 跳转、Service Endpoints 与选择器标签、ConfigMap/Secret/PVC 关联工作负载跳转、RowActions 的详情/更多菜单、Pod 日志共享代码块主题、名称筛选展开/收起与对齐、集群级资源隐藏命名空间选择器、命名空间切换、旧深链、390×844 窄屏无横向溢出、无 console error。
 - 请求去重：浏览器实测集群列表 `/v1/clusters` 只请求一次，详情页各接口每个 URL 只请求一次（并发 GET 共享同一个解析结果；settle 后不缓存，后续刷新仍会请求）。
 - Go：`go build / vet / test`（新增五类接口的转换、fake clientset、权限门禁测试）；Secret/ConfigMap 值不泄漏由单测与真实接口测试覆盖。
+- M16：镜像历史与设置、Deployment/StatefulSet/DaemonSet 回滚（含回滚到当前/不存在版本的客户端错误）、Job 状态判定、CronJob 暂停/立即运行、Job/CronJob YAML 都有 fake clientset 单测；Job/CronJob 页签、镜像与回滚对话框、URL `tab=jobs`/`cronjobs` 与旧深链兼容在浏览器回归。
 - Web：`npm run typecheck` / `lint` / `build` 通过。

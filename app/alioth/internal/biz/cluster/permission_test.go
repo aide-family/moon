@@ -134,6 +134,52 @@ func TestPermissionGates(t *testing.T) {
 		{name: "delete pod", run: func() error {
 			return operator.DeletePod(ctx, "uid", "ns", "pod")
 		}},
+		{name: "workload images", run: func() error {
+			_, err := explorer.WorkloadImages(ctx, "uid", "ns", workloadDeployment, "web")
+			return err
+		}},
+		{name: "workload revisions", run: func() error {
+			_, err := explorer.WorkloadRevisions(ctx, "uid", "ns", workloadDeployment, "web")
+			return err
+		}},
+		{name: "list jobs", run: func() error {
+			_, _, _, _, err := explorer.ListJobs(ctx, "uid", "", "", 1, 20)
+			return err
+		}},
+		{name: "job detail", run: func() error {
+			_, err := explorer.JobDetail(ctx, "uid", "ns", "backup")
+			return err
+		}},
+		{name: "list cronjobs", run: func() error {
+			_, _, _, _, err := explorer.ListCronJobs(ctx, "uid", "", "", 1, 20)
+			return err
+		}},
+		{name: "cronjob detail", run: func() error {
+			_, err := explorer.CronJobDetail(ctx, "uid", "ns", "backup")
+			return err
+		}},
+		{name: "set workload image", run: func() error {
+			_, err := operator.SetWorkloadImage(ctx, "uid", "ns", workloadDeployment, "web", "app", false, "nginx:1.28")
+			return err
+		}},
+		{name: "rollback workload", run: func() error {
+			_, err := operator.RollbackWorkload(ctx, "uid", "ns", workloadDeployment, "web", 1)
+			return err
+		}},
+		{name: "delete job", run: func() error {
+			return operator.DeleteJob(ctx, "uid", "ns", "backup")
+		}},
+		{name: "set cronjob suspend", run: func() error {
+			_, err := operator.SetCronJobSuspend(ctx, "uid", "ns", "backup", true)
+			return err
+		}},
+		{name: "trigger cronjob", run: func() error {
+			_, err := operator.TriggerCronJob(ctx, "uid", "ns", "backup")
+			return err
+		}},
+		{name: "delete cronjob", run: func() error {
+			return operator.DeleteCronJob(ctx, "uid", "ns", "backup")
+		}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

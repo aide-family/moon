@@ -25,6 +25,8 @@ const (
 const (
 	yamlKindNode                  = "Node"
 	yamlKindPod                   = "Pod"
+	yamlKindJob                   = "Job"
+	yamlKindCronJob               = "CronJob"
 	yamlKindIngress               = "Ingress"
 	yamlKindService               = "Service"
 	yamlKindConfigMap             = "ConfigMap"
@@ -102,6 +104,18 @@ func (r *kubernetesRepo) getResourceObject(ctx context.Context, clusterUID, kind
 			return nil, "", "", kubeError(r.log, err)
 		}
 		return object, "apps/v1", workloadKindDaemonSet, nil
+	case yamlKindJob:
+		object, err := client.BatchV1().Jobs(namespace).Get(callCtx, name, metav1.GetOptions{})
+		if err != nil {
+			return nil, "", "", kubeError(r.log, err)
+		}
+		return object, "batch/v1", yamlKindJob, nil
+	case yamlKindCronJob:
+		object, err := client.BatchV1().CronJobs(namespace).Get(callCtx, name, metav1.GetOptions{})
+		if err != nil {
+			return nil, "", "", kubeError(r.log, err)
+		}
+		return object, "batch/v1", yamlKindCronJob, nil
 	case yamlKindIngress:
 		object, err := client.NetworkingV1().Ingresses(namespace).Get(callCtx, name, metav1.GetOptions{})
 		if err != nil {

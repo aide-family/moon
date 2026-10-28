@@ -21,7 +21,9 @@ import { Input } from "@/components/ui/input"
 import { failureMessage, formErrorMessage } from "@/lib/form-error"
 
 import { KubernetesConfigMapsTab } from "../configmaps-tab"
+import { ClusterCronJobsTab } from "../cronjobs-tab"
 import { KubernetesIngressesTab } from "../ingresses-tab"
+import { ClusterJobsTab } from "../jobs-tab"
 import { KubernetesNodesTab } from "../nodes-tab"
 import { KubernetesPersistentVolumeClaimsTab } from "../persistent-volume-claims-tab"
 import { KubernetesPersistentVolumesTab } from "../persistent-volumes-tab"
@@ -297,6 +299,32 @@ export function ClusterDetailPage() {
             kind={kind}
             name={applied.name}
             canWrite={canWrite}
+            refreshKey={refreshKey}
+          />
+        )
+      case "jobs":
+        return (
+          <ClusterJobsTab
+            clusterUid={uid}
+            namespace={applied.namespace}
+            name={applied.name}
+            canWrite={canWrite}
+            page={query.page}
+            pageSize={query.pageSize}
+            onPageChange={(page) => query.update({ page })}
+            refreshKey={refreshKey}
+          />
+        )
+      case "cronjobs":
+        return (
+          <ClusterCronJobsTab
+            clusterUid={uid}
+            namespace={applied.namespace}
+            name={applied.name}
+            canWrite={canWrite}
+            page={query.page}
+            pageSize={query.pageSize}
+            onPageChange={(page) => query.update({ page })}
             refreshKey={refreshKey}
           />
         )

@@ -17,17 +17,24 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationKubernetesServiceDeleteKubernetesCronJob = "/alioth.v1.KubernetesService/DeleteKubernetesCronJob"
+const OperationKubernetesServiceDeleteKubernetesJob = "/alioth.v1.KubernetesService/DeleteKubernetesJob"
 const OperationKubernetesServiceDeleteKubernetesPod = "/alioth.v1.KubernetesService/DeleteKubernetesPod"
 const OperationKubernetesServiceGetKubernetesConfigMapDetail = "/alioth.v1.KubernetesService/GetKubernetesConfigMapDetail"
+const OperationKubernetesServiceGetKubernetesCronJobDetail = "/alioth.v1.KubernetesService/GetKubernetesCronJobDetail"
 const OperationKubernetesServiceGetKubernetesIngressDetail = "/alioth.v1.KubernetesService/GetKubernetesIngressDetail"
+const OperationKubernetesServiceGetKubernetesJobDetail = "/alioth.v1.KubernetesService/GetKubernetesJobDetail"
 const OperationKubernetesServiceGetKubernetesPersistentVolumeClaimDetail = "/alioth.v1.KubernetesService/GetKubernetesPersistentVolumeClaimDetail"
 const OperationKubernetesServiceGetKubernetesPodLogs = "/alioth.v1.KubernetesService/GetKubernetesPodLogs"
 const OperationKubernetesServiceGetKubernetesResourceYAML = "/alioth.v1.KubernetesService/GetKubernetesResourceYAML"
 const OperationKubernetesServiceGetKubernetesSecretDetail = "/alioth.v1.KubernetesService/GetKubernetesSecretDetail"
 const OperationKubernetesServiceGetKubernetesServiceDetail = "/alioth.v1.KubernetesService/GetKubernetesServiceDetail"
 const OperationKubernetesServiceGetKubernetesWorkloadDetail = "/alioth.v1.KubernetesService/GetKubernetesWorkloadDetail"
+const OperationKubernetesServiceGetKubernetesWorkloadImages = "/alioth.v1.KubernetesService/GetKubernetesWorkloadImages"
 const OperationKubernetesServiceListKubernetesConfigMaps = "/alioth.v1.KubernetesService/ListKubernetesConfigMaps"
+const OperationKubernetesServiceListKubernetesCronJobs = "/alioth.v1.KubernetesService/ListKubernetesCronJobs"
 const OperationKubernetesServiceListKubernetesIngresses = "/alioth.v1.KubernetesService/ListKubernetesIngresses"
+const OperationKubernetesServiceListKubernetesJobs = "/alioth.v1.KubernetesService/ListKubernetesJobs"
 const OperationKubernetesServiceListKubernetesNamespaces = "/alioth.v1.KubernetesService/ListKubernetesNamespaces"
 const OperationKubernetesServiceListKubernetesNodes = "/alioth.v1.KubernetesService/ListKubernetesNodes"
 const OperationKubernetesServiceListKubernetesPersistentVolumeClaims = "/alioth.v1.KubernetesService/ListKubernetesPersistentVolumeClaims"
@@ -35,18 +42,31 @@ const OperationKubernetesServiceListKubernetesPersistentVolumes = "/alioth.v1.Ku
 const OperationKubernetesServiceListKubernetesPods = "/alioth.v1.KubernetesService/ListKubernetesPods"
 const OperationKubernetesServiceListKubernetesSecrets = "/alioth.v1.KubernetesService/ListKubernetesSecrets"
 const OperationKubernetesServiceListKubernetesServices = "/alioth.v1.KubernetesService/ListKubernetesServices"
+const OperationKubernetesServiceListKubernetesWorkloadRevisions = "/alioth.v1.KubernetesService/ListKubernetesWorkloadRevisions"
 const OperationKubernetesServiceListKubernetesWorkloads = "/alioth.v1.KubernetesService/ListKubernetesWorkloads"
 const OperationKubernetesServiceRestartKubernetesWorkload = "/alioth.v1.KubernetesService/RestartKubernetesWorkload"
+const OperationKubernetesServiceRollbackKubernetesWorkload = "/alioth.v1.KubernetesService/RollbackKubernetesWorkload"
 const OperationKubernetesServiceScaleKubernetesWorkload = "/alioth.v1.KubernetesService/ScaleKubernetesWorkload"
+const OperationKubernetesServiceSetKubernetesCronJobSuspend = "/alioth.v1.KubernetesService/SetKubernetesCronJobSuspend"
 const OperationKubernetesServiceSetKubernetesNodeUnschedulable = "/alioth.v1.KubernetesService/SetKubernetesNodeUnschedulable"
+const OperationKubernetesServiceSetKubernetesWorkloadImage = "/alioth.v1.KubernetesService/SetKubernetesWorkloadImage"
+const OperationKubernetesServiceTriggerKubernetesCronJob = "/alioth.v1.KubernetesService/TriggerKubernetesCronJob"
 
 type KubernetesServiceHTTPServer interface {
+	// DeleteKubernetesCronJob 删除 CronJob。
+	DeleteKubernetesCronJob(context.Context, *DeleteKubernetesCronJobRequest) (*DeleteKubernetesCronJobResponse, error)
+	// DeleteKubernetesJob 删除 Job，使用默认的后台级联删除。
+	DeleteKubernetesJob(context.Context, *DeleteKubernetesJobRequest) (*DeleteKubernetesJobResponse, error)
 	// DeleteKubernetesPod 删除一个 Pod。由工作负载管理的 Pod 会被控制器重新创建。
 	DeleteKubernetesPod(context.Context, *DeleteKubernetesPodRequest) (*DeleteKubernetesPodResponse, error)
 	// GetKubernetesConfigMapDetail ConfigMap 详情：基础信息和引用它的工作负载。
 	GetKubernetesConfigMapDetail(context.Context, *GetKubernetesConfigMapDetailRequest) (*GetKubernetesConfigMapDetailResponse, error)
+	// GetKubernetesCronJobDetail CronJob 详情：基础信息与它最近创建的 Job。
+	GetKubernetesCronJobDetail(context.Context, *GetKubernetesCronJobDetailRequest) (*GetKubernetesCronJobDetailResponse, error)
 	// GetKubernetesIngressDetail Ingress 详情：规则和关联的 Service。
 	GetKubernetesIngressDetail(context.Context, *GetKubernetesIngressDetailRequest) (*GetKubernetesIngressDetailResponse, error)
+	// GetKubernetesJobDetail Job 详情：基础信息与它的 Pod。
+	GetKubernetesJobDetail(context.Context, *GetKubernetesJobDetailRequest) (*GetKubernetesJobDetailResponse, error)
 	// GetKubernetesPersistentVolumeClaimDetail PVC 详情：基础信息和挂载它的工作负载。
 	GetKubernetesPersistentVolumeClaimDetail(context.Context, *GetKubernetesPersistentVolumeClaimDetailRequest) (*GetKubernetesPersistentVolumeClaimDetailResponse, error)
 	// GetKubernetesPodLogs 读取一个 Pod 的日志尾部。
@@ -59,10 +79,16 @@ type KubernetesServiceHTTPServer interface {
 	GetKubernetesServiceDetail(context.Context, *GetKubernetesServiceDetailRequest) (*GetKubernetesServiceDetailResponse, error)
 	// GetKubernetesWorkloadDetail 工作负载详情：基础信息、副本集和 Pod 列表。
 	GetKubernetesWorkloadDetail(context.Context, *GetKubernetesWorkloadDetailRequest) (*GetKubernetesWorkloadDetailResponse, error)
+	// GetKubernetesWorkloadImages 列出工作负载每个容器的当前镜像与历史版本。
+	GetKubernetesWorkloadImages(context.Context, *GetKubernetesWorkloadImagesRequest) (*GetKubernetesWorkloadImagesResponse, error)
 	// ListKubernetesConfigMaps 列出 ConfigMap。只返回键名，不返回值。
 	ListKubernetesConfigMaps(context.Context, *ListKubernetesConfigMapsRequest) (*ListKubernetesConfigMapsResponse, error)
+	// ListKubernetesCronJobs 列出 CronJob，可按命名空间和名称过滤。
+	ListKubernetesCronJobs(context.Context, *ListKubernetesCronJobsRequest) (*ListKubernetesCronJobsResponse, error)
 	// ListKubernetesIngresses 列出 Ingress 及其规则。
 	ListKubernetesIngresses(context.Context, *ListKubernetesIngressesRequest) (*ListKubernetesIngressesResponse, error)
+	// ListKubernetesJobs 列出 Job，可按命名空间和名称过滤。
+	ListKubernetesJobs(context.Context, *ListKubernetesJobsRequest) (*ListKubernetesJobsResponse, error)
 	// ListKubernetesNamespaces 列出集群的 Namespace，供页面筛选使用。
 	ListKubernetesNamespaces(context.Context, *ListKubernetesNamespacesRequest) (*ListKubernetesNamespacesResponse, error)
 	// ListKubernetesNodes 列出节点及其状态和容量。
@@ -77,14 +103,24 @@ type KubernetesServiceHTTPServer interface {
 	ListKubernetesSecrets(context.Context, *ListKubernetesSecretsRequest) (*ListKubernetesSecretsResponse, error)
 	// ListKubernetesServices 列出 Service 及其端口和选择器。
 	ListKubernetesServices(context.Context, *ListKubernetesServicesRequest) (*ListKubernetesServicesResponse, error)
+	// ListKubernetesWorkloadRevisions 列出工作负载的历史版本，新版本在前。
+	ListKubernetesWorkloadRevisions(context.Context, *ListKubernetesWorkloadRevisionsRequest) (*ListKubernetesWorkloadRevisionsResponse, error)
 	// ListKubernetesWorkloads 列出 Deployment、StatefulSet 和 DaemonSet。
 	ListKubernetesWorkloads(context.Context, *ListKubernetesWorkloadsRequest) (*ListKubernetesWorkloadsResponse, error)
 	// RestartKubernetesWorkload 滚动重启工作负载，等价于给 Pod 模板打上重启时间注解。
 	RestartKubernetesWorkload(context.Context, *RestartKubernetesWorkloadRequest) (*RestartKubernetesWorkloadResponse, error)
+	// RollbackKubernetesWorkload 把工作负载回滚到指定历史版本。
+	RollbackKubernetesWorkload(context.Context, *RollbackKubernetesWorkloadRequest) (*RollbackKubernetesWorkloadResponse, error)
 	// ScaleKubernetesWorkload 调整工作负载副本数。DaemonSet 不支持改副本数，会返回客户端错误。
 	ScaleKubernetesWorkload(context.Context, *ScaleKubernetesWorkloadRequest) (*ScaleKubernetesWorkloadResponse, error)
+	// SetKubernetesCronJobSuspend 暂停或恢复 CronJob 的调度。
+	SetKubernetesCronJobSuspend(context.Context, *SetKubernetesCronJobSuspendRequest) (*SetKubernetesCronJobSuspendResponse, error)
 	// SetKubernetesNodeUnschedulable 设置节点是否可调度（cordon / uncordon）。
 	SetKubernetesNodeUnschedulable(context.Context, *SetKubernetesNodeUnschedulableRequest) (*SetKubernetesNodeUnschedulableResponse, error)
+	// SetKubernetesWorkloadImage 设置工作负载中某个容器的镜像。
+	SetKubernetesWorkloadImage(context.Context, *SetKubernetesWorkloadImageRequest) (*SetKubernetesWorkloadImageResponse, error)
+	// TriggerKubernetesCronJob 立即用 jobTemplate 创建一次 Job。
+	TriggerKubernetesCronJob(context.Context, *TriggerKubernetesCronJobRequest) (*TriggerKubernetesCronJobResponse, error)
 }
 
 func RegisterKubernetesServiceHTTPServer(s *http.Server, srv KubernetesServiceHTTPServer) {
@@ -111,6 +147,18 @@ func RegisterKubernetesServiceHTTPServer(s *http.Server, srv KubernetesServiceHT
 	r.Handle("GET", "/v1/cluster/{cluster_uid}/configmap-detail", _KubernetesService_GetKubernetesConfigMapDetail0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/cluster/{cluster_uid}/secret-detail", _KubernetesService_GetKubernetesSecretDetail0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/cluster/{cluster_uid}/persistentvolumeclaim-detail", _KubernetesService_GetKubernetesPersistentVolumeClaimDetail0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/workload/images", _KubernetesService_GetKubernetesWorkloadImages0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/cluster/{cluster_uid}/workload/image", _KubernetesService_SetKubernetesWorkloadImage0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/workload/revisions", _KubernetesService_ListKubernetesWorkloadRevisions0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/cluster/{cluster_uid}/workload/rollback", _KubernetesService_RollbackKubernetesWorkload0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/jobs", _KubernetesService_ListKubernetesJobs0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/job-detail", _KubernetesService_GetKubernetesJobDetail0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/cluster/{cluster_uid}/namespace/{namespace}/job/{name}", _KubernetesService_DeleteKubernetesJob0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/cronjobs", _KubernetesService_ListKubernetesCronJobs0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/cronjob-detail", _KubernetesService_GetKubernetesCronJobDetail0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/cluster/{cluster_uid}/cronjob/suspend", _KubernetesService_SetKubernetesCronJobSuspend0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/cluster/{cluster_uid}/cronjob/trigger", _KubernetesService_TriggerKubernetesCronJob0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}", _KubernetesService_DeleteKubernetesCronJob0_HTTP_Handler(srv))
 }
 
 func _KubernetesService_ListKubernetesNamespaces0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
@@ -597,13 +645,285 @@ func _KubernetesService_GetKubernetesPersistentVolumeClaimDetail0_HTTP_Handler(s
 	}
 }
 
+func _KubernetesService_GetKubernetesWorkloadImages0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetKubernetesWorkloadImagesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceGetKubernetesWorkloadImages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetKubernetesWorkloadImages(ctx, req.(*GetKubernetesWorkloadImagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetKubernetesWorkloadImagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_SetKubernetesWorkloadImage0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetKubernetesWorkloadImageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceSetKubernetesWorkloadImage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetKubernetesWorkloadImage(ctx, req.(*SetKubernetesWorkloadImageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SetKubernetesWorkloadImageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_ListKubernetesWorkloadRevisions0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListKubernetesWorkloadRevisionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceListKubernetesWorkloadRevisions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListKubernetesWorkloadRevisions(ctx, req.(*ListKubernetesWorkloadRevisionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListKubernetesWorkloadRevisionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_RollbackKubernetesWorkload0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RollbackKubernetesWorkloadRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceRollbackKubernetesWorkload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RollbackKubernetesWorkload(ctx, req.(*RollbackKubernetesWorkloadRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RollbackKubernetesWorkloadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_ListKubernetesJobs0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListKubernetesJobsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceListKubernetesJobs)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListKubernetesJobs(ctx, req.(*ListKubernetesJobsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListKubernetesJobsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_GetKubernetesJobDetail0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetKubernetesJobDetailRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceGetKubernetesJobDetail)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetKubernetesJobDetail(ctx, req.(*GetKubernetesJobDetailRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetKubernetesJobDetailResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_DeleteKubernetesJob0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteKubernetesJobRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceDeleteKubernetesJob)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteKubernetesJob(ctx, req.(*DeleteKubernetesJobRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteKubernetesJobResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_ListKubernetesCronJobs0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListKubernetesCronJobsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceListKubernetesCronJobs)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListKubernetesCronJobs(ctx, req.(*ListKubernetesCronJobsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListKubernetesCronJobsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_GetKubernetesCronJobDetail0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetKubernetesCronJobDetailRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceGetKubernetesCronJobDetail)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetKubernetesCronJobDetail(ctx, req.(*GetKubernetesCronJobDetailRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetKubernetesCronJobDetailResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_SetKubernetesCronJobSuspend0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetKubernetesCronJobSuspendRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceSetKubernetesCronJobSuspend)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetKubernetesCronJobSuspend(ctx, req.(*SetKubernetesCronJobSuspendRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SetKubernetesCronJobSuspendResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_TriggerKubernetesCronJob0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TriggerKubernetesCronJobRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceTriggerKubernetesCronJob)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TriggerKubernetesCronJob(ctx, req.(*TriggerKubernetesCronJobRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TriggerKubernetesCronJobResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_DeleteKubernetesCronJob0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteKubernetesCronJobRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceDeleteKubernetesCronJob)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteKubernetesCronJob(ctx, req.(*DeleteKubernetesCronJobRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteKubernetesCronJobResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type KubernetesServiceHTTPClient interface {
+	// DeleteKubernetesCronJob 删除 CronJob。
+	DeleteKubernetesCronJob(ctx context.Context, req *DeleteKubernetesCronJobRequest, opts ...http.CallOption) (rsp *DeleteKubernetesCronJobResponse, err error)
+	// DeleteKubernetesJob 删除 Job，使用默认的后台级联删除。
+	DeleteKubernetesJob(ctx context.Context, req *DeleteKubernetesJobRequest, opts ...http.CallOption) (rsp *DeleteKubernetesJobResponse, err error)
 	// DeleteKubernetesPod 删除一个 Pod。由工作负载管理的 Pod 会被控制器重新创建。
 	DeleteKubernetesPod(ctx context.Context, req *DeleteKubernetesPodRequest, opts ...http.CallOption) (rsp *DeleteKubernetesPodResponse, err error)
 	// GetKubernetesConfigMapDetail ConfigMap 详情：基础信息和引用它的工作负载。
 	GetKubernetesConfigMapDetail(ctx context.Context, req *GetKubernetesConfigMapDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesConfigMapDetailResponse, err error)
+	// GetKubernetesCronJobDetail CronJob 详情：基础信息与它最近创建的 Job。
+	GetKubernetesCronJobDetail(ctx context.Context, req *GetKubernetesCronJobDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesCronJobDetailResponse, err error)
 	// GetKubernetesIngressDetail Ingress 详情：规则和关联的 Service。
 	GetKubernetesIngressDetail(ctx context.Context, req *GetKubernetesIngressDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesIngressDetailResponse, err error)
+	// GetKubernetesJobDetail Job 详情：基础信息与它的 Pod。
+	GetKubernetesJobDetail(ctx context.Context, req *GetKubernetesJobDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesJobDetailResponse, err error)
 	// GetKubernetesPersistentVolumeClaimDetail PVC 详情：基础信息和挂载它的工作负载。
 	GetKubernetesPersistentVolumeClaimDetail(ctx context.Context, req *GetKubernetesPersistentVolumeClaimDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesPersistentVolumeClaimDetailResponse, err error)
 	// GetKubernetesPodLogs 读取一个 Pod 的日志尾部。
@@ -616,10 +936,16 @@ type KubernetesServiceHTTPClient interface {
 	GetKubernetesServiceDetail(ctx context.Context, req *GetKubernetesServiceDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesServiceDetailResponse, err error)
 	// GetKubernetesWorkloadDetail 工作负载详情：基础信息、副本集和 Pod 列表。
 	GetKubernetesWorkloadDetail(ctx context.Context, req *GetKubernetesWorkloadDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesWorkloadDetailResponse, err error)
+	// GetKubernetesWorkloadImages 列出工作负载每个容器的当前镜像与历史版本。
+	GetKubernetesWorkloadImages(ctx context.Context, req *GetKubernetesWorkloadImagesRequest, opts ...http.CallOption) (rsp *GetKubernetesWorkloadImagesResponse, err error)
 	// ListKubernetesConfigMaps 列出 ConfigMap。只返回键名，不返回值。
 	ListKubernetesConfigMaps(ctx context.Context, req *ListKubernetesConfigMapsRequest, opts ...http.CallOption) (rsp *ListKubernetesConfigMapsResponse, err error)
+	// ListKubernetesCronJobs 列出 CronJob，可按命名空间和名称过滤。
+	ListKubernetesCronJobs(ctx context.Context, req *ListKubernetesCronJobsRequest, opts ...http.CallOption) (rsp *ListKubernetesCronJobsResponse, err error)
 	// ListKubernetesIngresses 列出 Ingress 及其规则。
 	ListKubernetesIngresses(ctx context.Context, req *ListKubernetesIngressesRequest, opts ...http.CallOption) (rsp *ListKubernetesIngressesResponse, err error)
+	// ListKubernetesJobs 列出 Job，可按命名空间和名称过滤。
+	ListKubernetesJobs(ctx context.Context, req *ListKubernetesJobsRequest, opts ...http.CallOption) (rsp *ListKubernetesJobsResponse, err error)
 	// ListKubernetesNamespaces 列出集群的 Namespace，供页面筛选使用。
 	ListKubernetesNamespaces(ctx context.Context, req *ListKubernetesNamespacesRequest, opts ...http.CallOption) (rsp *ListKubernetesNamespacesResponse, err error)
 	// ListKubernetesNodes 列出节点及其状态和容量。
@@ -634,14 +960,24 @@ type KubernetesServiceHTTPClient interface {
 	ListKubernetesSecrets(ctx context.Context, req *ListKubernetesSecretsRequest, opts ...http.CallOption) (rsp *ListKubernetesSecretsResponse, err error)
 	// ListKubernetesServices 列出 Service 及其端口和选择器。
 	ListKubernetesServices(ctx context.Context, req *ListKubernetesServicesRequest, opts ...http.CallOption) (rsp *ListKubernetesServicesResponse, err error)
+	// ListKubernetesWorkloadRevisions 列出工作负载的历史版本，新版本在前。
+	ListKubernetesWorkloadRevisions(ctx context.Context, req *ListKubernetesWorkloadRevisionsRequest, opts ...http.CallOption) (rsp *ListKubernetesWorkloadRevisionsResponse, err error)
 	// ListKubernetesWorkloads 列出 Deployment、StatefulSet 和 DaemonSet。
 	ListKubernetesWorkloads(ctx context.Context, req *ListKubernetesWorkloadsRequest, opts ...http.CallOption) (rsp *ListKubernetesWorkloadsResponse, err error)
 	// RestartKubernetesWorkload 滚动重启工作负载，等价于给 Pod 模板打上重启时间注解。
 	RestartKubernetesWorkload(ctx context.Context, req *RestartKubernetesWorkloadRequest, opts ...http.CallOption) (rsp *RestartKubernetesWorkloadResponse, err error)
+	// RollbackKubernetesWorkload 把工作负载回滚到指定历史版本。
+	RollbackKubernetesWorkload(ctx context.Context, req *RollbackKubernetesWorkloadRequest, opts ...http.CallOption) (rsp *RollbackKubernetesWorkloadResponse, err error)
 	// ScaleKubernetesWorkload 调整工作负载副本数。DaemonSet 不支持改副本数，会返回客户端错误。
 	ScaleKubernetesWorkload(ctx context.Context, req *ScaleKubernetesWorkloadRequest, opts ...http.CallOption) (rsp *ScaleKubernetesWorkloadResponse, err error)
+	// SetKubernetesCronJobSuspend 暂停或恢复 CronJob 的调度。
+	SetKubernetesCronJobSuspend(ctx context.Context, req *SetKubernetesCronJobSuspendRequest, opts ...http.CallOption) (rsp *SetKubernetesCronJobSuspendResponse, err error)
 	// SetKubernetesNodeUnschedulable 设置节点是否可调度（cordon / uncordon）。
 	SetKubernetesNodeUnschedulable(ctx context.Context, req *SetKubernetesNodeUnschedulableRequest, opts ...http.CallOption) (rsp *SetKubernetesNodeUnschedulableResponse, err error)
+	// SetKubernetesWorkloadImage 设置工作负载中某个容器的镜像。
+	SetKubernetesWorkloadImage(ctx context.Context, req *SetKubernetesWorkloadImageRequest, opts ...http.CallOption) (rsp *SetKubernetesWorkloadImageResponse, err error)
+	// TriggerKubernetesCronJob 立即用 jobTemplate 创建一次 Job。
+	TriggerKubernetesCronJob(ctx context.Context, req *TriggerKubernetesCronJobRequest, opts ...http.CallOption) (rsp *TriggerKubernetesCronJobResponse, err error)
 }
 
 type KubernetesServiceHTTPClientImpl struct {
@@ -650,6 +986,40 @@ type KubernetesServiceHTTPClientImpl struct {
 
 func NewKubernetesServiceHTTPClient(client *http.Client) KubernetesServiceHTTPClient {
 	return &KubernetesServiceHTTPClientImpl{client}
+}
+
+// DeleteKubernetesCronJob 删除 CronJob。
+func (c *KubernetesServiceHTTPClientImpl) DeleteKubernetesCronJob(ctx context.Context, in *DeleteKubernetesCronJobRequest, opts ...http.CallOption) (*DeleteKubernetesCronJobResponse, error) {
+	var out DeleteKubernetesCronJobResponse
+	pattern := "/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceDeleteKubernetesCronJob),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteKubernetesJob 删除 Job，使用默认的后台级联删除。
+func (c *KubernetesServiceHTTPClientImpl) DeleteKubernetesJob(ctx context.Context, in *DeleteKubernetesJobRequest, opts ...http.CallOption) (*DeleteKubernetesJobResponse, error) {
+	var out DeleteKubernetesJobResponse
+	pattern := "/v1/cluster/{cluster_uid}/namespace/{namespace}/job/{name}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceDeleteKubernetesJob),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // DeleteKubernetesPod 删除一个 Pod。由工作负载管理的 Pod 会被控制器重新创建。
@@ -686,6 +1056,23 @@ func (c *KubernetesServiceHTTPClientImpl) GetKubernetesConfigMapDetail(ctx conte
 	return &out, nil
 }
 
+// GetKubernetesCronJobDetail CronJob 详情：基础信息与它最近创建的 Job。
+func (c *KubernetesServiceHTTPClientImpl) GetKubernetesCronJobDetail(ctx context.Context, in *GetKubernetesCronJobDetailRequest, opts ...http.CallOption) (*GetKubernetesCronJobDetailResponse, error) {
+	var out GetKubernetesCronJobDetailResponse
+	pattern := "/v1/cluster/{cluster_uid}/cronjob-detail"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceGetKubernetesCronJobDetail),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetKubernetesIngressDetail Ingress 详情：规则和关联的 Service。
 func (c *KubernetesServiceHTTPClientImpl) GetKubernetesIngressDetail(ctx context.Context, in *GetKubernetesIngressDetailRequest, opts ...http.CallOption) (*GetKubernetesIngressDetailResponse, error) {
 	var out GetKubernetesIngressDetailResponse
@@ -694,6 +1081,23 @@ func (c *KubernetesServiceHTTPClientImpl) GetKubernetesIngressDetail(ctx context
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationKubernetesServiceGetKubernetesIngressDetail),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetKubernetesJobDetail Job 详情：基础信息与它的 Pod。
+func (c *KubernetesServiceHTTPClientImpl) GetKubernetesJobDetail(ctx context.Context, in *GetKubernetesJobDetailRequest, opts ...http.CallOption) (*GetKubernetesJobDetailResponse, error) {
+	var out GetKubernetesJobDetailResponse
+	pattern := "/v1/cluster/{cluster_uid}/job-detail"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceGetKubernetesJobDetail),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -805,6 +1209,23 @@ func (c *KubernetesServiceHTTPClientImpl) GetKubernetesWorkloadDetail(ctx contex
 	return &out, nil
 }
 
+// GetKubernetesWorkloadImages 列出工作负载每个容器的当前镜像与历史版本。
+func (c *KubernetesServiceHTTPClientImpl) GetKubernetesWorkloadImages(ctx context.Context, in *GetKubernetesWorkloadImagesRequest, opts ...http.CallOption) (*GetKubernetesWorkloadImagesResponse, error) {
+	var out GetKubernetesWorkloadImagesResponse
+	pattern := "/v1/cluster/{cluster_uid}/workload/images"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceGetKubernetesWorkloadImages),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListKubernetesConfigMaps 列出 ConfigMap。只返回键名，不返回值。
 func (c *KubernetesServiceHTTPClientImpl) ListKubernetesConfigMaps(ctx context.Context, in *ListKubernetesConfigMapsRequest, opts ...http.CallOption) (*ListKubernetesConfigMapsResponse, error) {
 	var out ListKubernetesConfigMapsResponse
@@ -822,6 +1243,23 @@ func (c *KubernetesServiceHTTPClientImpl) ListKubernetesConfigMaps(ctx context.C
 	return &out, nil
 }
 
+// ListKubernetesCronJobs 列出 CronJob，可按命名空间和名称过滤。
+func (c *KubernetesServiceHTTPClientImpl) ListKubernetesCronJobs(ctx context.Context, in *ListKubernetesCronJobsRequest, opts ...http.CallOption) (*ListKubernetesCronJobsResponse, error) {
+	var out ListKubernetesCronJobsResponse
+	pattern := "/v1/cluster/{cluster_uid}/cronjobs"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceListKubernetesCronJobs),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListKubernetesIngresses 列出 Ingress 及其规则。
 func (c *KubernetesServiceHTTPClientImpl) ListKubernetesIngresses(ctx context.Context, in *ListKubernetesIngressesRequest, opts ...http.CallOption) (*ListKubernetesIngressesResponse, error) {
 	var out ListKubernetesIngressesResponse
@@ -830,6 +1268,23 @@ func (c *KubernetesServiceHTTPClientImpl) ListKubernetesIngresses(ctx context.Co
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationKubernetesServiceListKubernetesIngresses),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListKubernetesJobs 列出 Job，可按命名空间和名称过滤。
+func (c *KubernetesServiceHTTPClientImpl) ListKubernetesJobs(ctx context.Context, in *ListKubernetesJobsRequest, opts ...http.CallOption) (*ListKubernetesJobsResponse, error) {
+	var out ListKubernetesJobsResponse
+	pattern := "/v1/cluster/{cluster_uid}/jobs"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceListKubernetesJobs),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -958,6 +1413,23 @@ func (c *KubernetesServiceHTTPClientImpl) ListKubernetesServices(ctx context.Con
 	return &out, nil
 }
 
+// ListKubernetesWorkloadRevisions 列出工作负载的历史版本，新版本在前。
+func (c *KubernetesServiceHTTPClientImpl) ListKubernetesWorkloadRevisions(ctx context.Context, in *ListKubernetesWorkloadRevisionsRequest, opts ...http.CallOption) (*ListKubernetesWorkloadRevisionsResponse, error) {
+	var out ListKubernetesWorkloadRevisionsResponse
+	pattern := "/v1/cluster/{cluster_uid}/workload/revisions"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceListKubernetesWorkloadRevisions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListKubernetesWorkloads 列出 Deployment、StatefulSet 和 DaemonSet。
 func (c *KubernetesServiceHTTPClientImpl) ListKubernetesWorkloads(ctx context.Context, in *ListKubernetesWorkloadsRequest, opts ...http.CallOption) (*ListKubernetesWorkloadsResponse, error) {
 	var out ListKubernetesWorkloadsResponse
@@ -993,6 +1465,24 @@ func (c *KubernetesServiceHTTPClientImpl) RestartKubernetesWorkload(ctx context.
 	return &out, nil
 }
 
+// RollbackKubernetesWorkload 把工作负载回滚到指定历史版本。
+func (c *KubernetesServiceHTTPClientImpl) RollbackKubernetesWorkload(ctx context.Context, in *RollbackKubernetesWorkloadRequest, opts ...http.CallOption) (*RollbackKubernetesWorkloadResponse, error) {
+	var out RollbackKubernetesWorkloadResponse
+	pattern := "/v1/cluster/{cluster_uid}/workload/rollback"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationKubernetesServiceRollbackKubernetesWorkload),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ScaleKubernetesWorkload 调整工作负载副本数。DaemonSet 不支持改副本数，会返回客户端错误。
 func (c *KubernetesServiceHTTPClientImpl) ScaleKubernetesWorkload(ctx context.Context, in *ScaleKubernetesWorkloadRequest, opts ...http.CallOption) (*ScaleKubernetesWorkloadResponse, error) {
 	var out ScaleKubernetesWorkloadResponse
@@ -1002,6 +1492,24 @@ func (c *KubernetesServiceHTTPClientImpl) ScaleKubernetesWorkload(ctx context.Co
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationKubernetesServiceScaleKubernetesWorkload),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SetKubernetesCronJobSuspend 暂停或恢复 CronJob 的调度。
+func (c *KubernetesServiceHTTPClientImpl) SetKubernetesCronJobSuspend(ctx context.Context, in *SetKubernetesCronJobSuspendRequest, opts ...http.CallOption) (*SetKubernetesCronJobSuspendResponse, error) {
+	var out SetKubernetesCronJobSuspendResponse
+	pattern := "/v1/cluster/{cluster_uid}/cronjob/suspend"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationKubernetesServiceSetKubernetesCronJobSuspend),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
@@ -1023,6 +1531,42 @@ func (c *KubernetesServiceHTTPClientImpl) SetKubernetesNodeUnschedulable(ctx con
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SetKubernetesWorkloadImage 设置工作负载中某个容器的镜像。
+func (c *KubernetesServiceHTTPClientImpl) SetKubernetesWorkloadImage(ctx context.Context, in *SetKubernetesWorkloadImageRequest, opts ...http.CallOption) (*SetKubernetesWorkloadImageResponse, error) {
+	var out SetKubernetesWorkloadImageResponse
+	pattern := "/v1/cluster/{cluster_uid}/workload/image"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationKubernetesServiceSetKubernetesWorkloadImage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// TriggerKubernetesCronJob 立即用 jobTemplate 创建一次 Job。
+func (c *KubernetesServiceHTTPClientImpl) TriggerKubernetesCronJob(ctx context.Context, in *TriggerKubernetesCronJobRequest, opts ...http.CallOption) (*TriggerKubernetesCronJobResponse, error) {
+	var out TriggerKubernetesCronJobResponse
+	pattern := "/v1/cluster/{cluster_uid}/cronjob/trigger"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationKubernetesServiceTriggerKubernetesCronJob),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,6 @@
 import {
   Boxes,
+  CalendarClock,
   Container,
   Database,
   Globe,
@@ -8,6 +9,7 @@ import {
   Layers,
   LayoutDashboard,
   LayoutList,
+  ListChecks,
   Network,
   Server,
   Settings2,
@@ -19,13 +21,16 @@ import type { KubernetesWorkloadKind } from "@/api/cluster"
 
 /**
  * 集群详情页的资源视图。URL 仍用 tab + kind 表达：
- * overview / nodes / workloads（kind 为空表示全部）/ pods / ingresses /
- * services / configmaps / secrets / pvs / pvcs。
+ * overview / nodes / workloads（kind 为空表示全部）/ jobs / cronjobs / pods /
+ * ingresses / services / configmaps / secrets / pvs / pvcs。
+ * Job 与 CronJob 是独立视图，忽略 kind 参数。
  */
 export const CLUSTER_SECTIONS = [
   "overview",
   "nodes",
   "workloads",
+  "jobs",
+  "cronjobs",
   "pods",
   "ingresses",
   "services",
@@ -136,6 +141,20 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         kind: "DaemonSet",
         label: text("DaemonSet"),
         icon: Layers,
+        scope: "namespaced",
+      },
+      {
+        id: "jobs",
+        section: "jobs",
+        label: text("Job"),
+        icon: ListChecks,
+        scope: "namespaced",
+      },
+      {
+        id: "cronjobs",
+        section: "cronjobs",
+        label: text("CronJob"),
+        icon: CalendarClock,
         scope: "namespaced",
       },
       {

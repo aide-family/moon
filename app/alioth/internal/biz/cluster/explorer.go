@@ -19,6 +19,8 @@ const (
 	resourceKindDeployment            = "Deployment"
 	resourceKindStatefulSet           = "StatefulSet"
 	resourceKindDaemonSet             = "DaemonSet"
+	resourceKindJob                   = "Job"
+	resourceKindCronJob               = "CronJob"
 	resourceKindIngress               = "Ingress"
 	resourceKindService               = "Service"
 	resourceKindConfigMap             = "ConfigMap"
@@ -247,6 +249,98 @@ func (explorer *Explorer) PersistentVolumeClaimDetail(ctx context.Context, clust
 	return item, explorer.access.Wrap(err)
 }
 
+// WorkloadImages 返回每个容器的当前镜像与历史版本。历史版本来自集群里已存在的历史对象。
+func (explorer *Explorer) WorkloadImages(ctx context.Context, clusterUID, namespace, kind, name string) ([]bo.KubeWorkloadImage, error) {
+	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+		return nil, err
+	}
+	namespace, kind, name, err := normalizeWorkloadTarget(namespace, kind, name)
+	if err != nil {
+		return nil, err
+	}
+	items, err := explorer.resources.WorkloadImages(ctx, clusterUID, namespace, kind, name)
+	return items, explorer.access.Wrap(err)
+}
+
+// WorkloadRevisions 返回工作负载的历史版本，新版本在前。
+func (explorer *Explorer) WorkloadRevisions(ctx context.Context, clusterUID, namespace, kind, name string) ([]bo.KubeWorkloadRevision, error) {
+	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+		return nil, err
+	}
+	namespace, kind, name, err := normalizeWorkloadTarget(namespace, kind, name)
+	if err != nil {
+		return nil, err
+	}
+	items, err := explorer.resources.WorkloadRevisions(ctx, clusterUID, namespace, kind, name)
+	return items, explorer.access.Wrap(err)
+}
+
+// ListJobs 在内存里分页：仓储返回按 namespace、name 排好的完整结果。
+func (explorer *Explorer) ListJobs(ctx context.Context, clusterUID, namespace, name string, pageNo, pageSize int32) ([]bo.KubeJob, int, int, int, error) {
+	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+		return nil, 0, 0, 0, err
+	}
+	items, err := explorer.resources.ListJobs(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name))
+	if err != nil {
+		return nil, 0, 0, 0, explorer.access.Wrap(err)
+	}
+	paged, total, p, s := slicePage(items, pageNo, pageSize)
+	return paged, total, p, s, nil
+}
+
+// JobDetail 返回 Job 和它的 Pod。
+func (explorer *Explorer) JobDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeJobDetail, error) {
+	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+		return nil, err
+	}
+	namespace, name, err := normalizeNamespacedTarget(namespace, name)
+	if err != nil {
+		return nil, err
+	}
+	detail, err := explorer.resources.JobDetail(ctx, clusterUID, namespace, name)
+	return detail, explorer.access.Wrap(err)
+}
+
+// ListCronJobs 在内存里分页：仓储返回按 namespace、name 排好的完整结果。
+func (explorer *Explorer) ListCronJobs(ctx context.Context, clusterUID, namespace, name string, pageNo, pageSize int32) ([]bo.KubeCronJob, int, int, int, error) {
+	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+		return nil, 0, 0, 0, err
+	}
+	items, err := explorer.resources.ListCronJobs(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name))
+	if err != nil {
+		return nil, 0, 0, 0, explorer.access.Wrap(err)
+	}
+	paged, total, p, s := slicePage(items, pageNo, pageSize)
+	return paged, total, p, s, nil
+}
+
+// CronJobDetail 返回 CronJob 和它最近创建的 Job。
+func (explorer *Explorer) CronJobDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeCronJobDetail, error) {
+	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+		return nil, err
+	}
+	namespace, name, err := normalizeNamespacedTarget(namespace, name)
+	if err != nil {
+		return nil, err
+	}
+	detail, err := explorer.resources.CronJobDetail(ctx, clusterUID, namespace, name)
+	return detail, explorer.access.Wrap(err)
+}
+
+// normalizeWorkloadTarget 清理并校验工作负载类型、命名空间和名称。工作负载只接受
+// Deployment、StatefulSet 和 DaemonSet，空类型不表示全部。
+func normalizeWorkloadTarget(namespace, kind, name string) (string, string, string, error) {
+	kind = strings.TrimSpace(kind)
+	namespace, name, err := normalizeNamespacedTarget(namespace, name)
+	if err != nil {
+		return "", "", "", err
+	}
+	if kind == "" || !validWorkloadKind(kind) {
+		return "", "", "", merr.Invalid("invalid resource kind")
+	}
+	return namespace, kind, name, nil
+}
+
 // normalizeNamespacedTarget 清理并校验命名空间和名称。
 func normalizeNamespacedTarget(namespace, name string) (string, string, error) {
 	namespace = strings.TrimSpace(namespace)
@@ -296,8 +390,9 @@ func normalizeYAMLResource(kind, namespace, name string) (string, string, string
 func yamlResourceKindSupported(kind string) bool {
 	switch kind {
 	case resourceKindNode, resourceKindPod, resourceKindDeployment, resourceKindStatefulSet,
-		resourceKindDaemonSet, resourceKindIngress, resourceKindService, resourceKindConfigMap,
-		resourceKindSecret, resourceKindPersistentVolume, resourceKindPersistentVolumeClaim:
+		resourceKindDaemonSet, resourceKindJob, resourceKindCronJob, resourceKindIngress,
+		resourceKindService, resourceKindConfigMap, resourceKindSecret, resourceKindPersistentVolume,
+		resourceKindPersistentVolumeClaim:
 		return true
 	default:
 		return false

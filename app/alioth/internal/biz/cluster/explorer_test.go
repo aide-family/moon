@@ -68,7 +68,7 @@ func TestNormalizeYAMLResource(t *testing.T) {
 		{name: "namespaced resource", kind: " Pod ", namespace: " default ", resourceName: " web-1 ", wantKind: "Pod", wantNamespace: "default", wantName: "web-1"},
 		{name: "node ignores namespace", kind: "Node", namespace: "ignored", resourceName: "node-a", wantKind: "Node", wantName: "node-a"},
 		{name: "pv ignores namespace", kind: "PersistentVolume", namespace: "ignored", resourceName: "pv-a", wantKind: "PersistentVolume", wantName: "pv-a"},
-		{name: "unknown kind", kind: "Job", namespace: "default", resourceName: "backup", wantInvalid: true},
+		{name: "unknown kind", kind: "HorizontalPodAutoscaler", namespace: "default", resourceName: "backup", wantInvalid: true},
 		{name: "empty kind", kind: "  ", namespace: "default", resourceName: "web", wantInvalid: true},
 		{name: "empty name", kind: "Pod", namespace: "default", resourceName: "  ", wantInvalid: true},
 		{name: "missing namespace", kind: "Pod", namespace: " ", resourceName: "web", wantInvalid: true},

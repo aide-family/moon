@@ -256,3 +256,78 @@ type KubePersistentVolumeClaimDetail struct {
 	Claim            KubePersistentVolumeClaim
 	RelatedWorkloads []KubeWorkloadRef
 }
+
+// KubeWorkloadImage 是工作负载中一个容器的当前镜像与历史版本。
+// Versions 只包含历史对象里的镜像，不含当前镜像，按版本从新到旧、按镜像去重。
+type KubeWorkloadImage struct {
+	Container  string
+	Init       bool
+	Image      string
+	Repository string
+	Tag        string
+	Versions   []KubeImageVersion
+}
+
+// KubeImageVersion 是某个容器在一个历史版本里的镜像。
+type KubeImageVersion struct {
+	Image     string
+	Revision  int32
+	CreatedAt int64
+}
+
+// KubeWorkloadRevision 是工作负载的一个历史版本。
+// ControllerRevision 不记录副本数，StatefulSet / DaemonSet 的 Replicas 取当前期望副本数。
+type KubeWorkloadRevision struct {
+	Revision  int32
+	Name      string
+	Current   bool
+	Replicas  int32
+	Images    []string
+	CreatedAt int64
+}
+
+// KubeJob 是集群中的一个 Job。Status 取 Suspended、Failed、Complete、Running、Unknown
+// 或 Pending；OwnerKind 和 OwnerName 取直接所属控制器，通常是 CronJob。
+type KubeJob struct {
+	Namespace      string
+	Name           string
+	Status         string
+	Completions    int32
+	Parallelism    int32
+	Active         int32
+	Succeeded      int32
+	Failed         int32
+	OwnerKind      string
+	OwnerName      string
+	StartTime      int64
+	CompletionTime int64
+	CreatedAt      int64
+	Images         []string
+}
+
+// KubeJobDetail 是 Job 详情：基础信息和它的 Pod。
+type KubeJobDetail struct {
+	Job  KubeJob
+	Pods []KubePod
+}
+
+// KubeCronJob 是集群中的一个 CronJob。LastScheduleTime 未调度过时为 0，
+// ActiveCount 是当前活跃 Job 的数量。
+type KubeCronJob struct {
+	Namespace         string
+	Name              string
+	Schedule          string
+	TimeZone          string
+	Suspend           bool
+	ConcurrencyPolicy string
+	LastScheduleTime  int64
+	ActiveCount       int32
+	Images            []string
+	CreatedAt         int64
+}
+
+// KubeCronJobDetail 是 CronJob 详情：基础信息和它最近创建的 Job。
+type KubeCronJobDetail struct {
+	CronJob KubeCronJob
+	Jobs    []KubeJob
+}

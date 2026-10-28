@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 
 import {
   listKubernetesConfigMaps,
+  listKubernetesCronJobs,
+  listKubernetesJobs,
   listKubernetesPersistentVolumeClaims,
   listKubernetesPersistentVolumes,
   listKubernetesSecrets,
@@ -50,42 +52,57 @@ export function useClusterResourceCounts({
     let active = true
 
     async function load() {
-      const [services, configmaps, secrets, pvs, pvcs] = await Promise.all([
-        readTotal(
-          listKubernetesServices(clusterUid, {
-            namespace: namespace || undefined,
-            page: 1,
-            pageSize: 1,
-          })
-        ),
-        readTotal(
-          listKubernetesConfigMaps(clusterUid, {
-            namespace: namespace || undefined,
-            page: 1,
-            pageSize: 1,
-          })
-        ),
-        readTotal(
-          listKubernetesSecrets(clusterUid, {
-            namespace: namespace || undefined,
-            page: 1,
-            pageSize: 1,
-          })
-        ),
-        readTotal(
-          listKubernetesPersistentVolumes(clusterUid, {
-            page: 1,
-            pageSize: 1,
-          })
-        ),
-        readTotal(
-          listKubernetesPersistentVolumeClaims(clusterUid, {
-            namespace: namespace || undefined,
-            page: 1,
-            pageSize: 1,
-          })
-        ),
-      ])
+      const [services, configmaps, secrets, pvs, pvcs, jobs, cronjobs] =
+        await Promise.all([
+          readTotal(
+            listKubernetesServices(clusterUid, {
+              namespace: namespace || undefined,
+              page: 1,
+              pageSize: 1,
+            })
+          ),
+          readTotal(
+            listKubernetesConfigMaps(clusterUid, {
+              namespace: namespace || undefined,
+              page: 1,
+              pageSize: 1,
+            })
+          ),
+          readTotal(
+            listKubernetesSecrets(clusterUid, {
+              namespace: namespace || undefined,
+              page: 1,
+              pageSize: 1,
+            })
+          ),
+          readTotal(
+            listKubernetesPersistentVolumes(clusterUid, {
+              page: 1,
+              pageSize: 1,
+            })
+          ),
+          readTotal(
+            listKubernetesPersistentVolumeClaims(clusterUid, {
+              namespace: namespace || undefined,
+              page: 1,
+              pageSize: 1,
+            })
+          ),
+          readTotal(
+            listKubernetesJobs(clusterUid, {
+              namespace: namespace || undefined,
+              page: 1,
+              pageSize: 1,
+            })
+          ),
+          readTotal(
+            listKubernetesCronJobs(clusterUid, {
+              namespace: namespace || undefined,
+              page: 1,
+              pageSize: 1,
+            })
+          ),
+        ])
       if (!active) {
         return
       }
@@ -104,6 +121,12 @@ export function useClusterResourceCounts({
       }
       if (pvcs !== undefined) {
         next.pvcs = pvcs
+      }
+      if (jobs !== undefined) {
+        next.jobs = jobs
+      }
+      if (cronjobs !== undefined) {
+        next.cronjobs = cronjobs
       }
       setCounts(next)
     }

@@ -41,6 +41,18 @@ const (
 	KubernetesService_GetKubernetesConfigMapDetail_FullMethodName             = "/alioth.v1.KubernetesService/GetKubernetesConfigMapDetail"
 	KubernetesService_GetKubernetesSecretDetail_FullMethodName                = "/alioth.v1.KubernetesService/GetKubernetesSecretDetail"
 	KubernetesService_GetKubernetesPersistentVolumeClaimDetail_FullMethodName = "/alioth.v1.KubernetesService/GetKubernetesPersistentVolumeClaimDetail"
+	KubernetesService_GetKubernetesWorkloadImages_FullMethodName              = "/alioth.v1.KubernetesService/GetKubernetesWorkloadImages"
+	KubernetesService_SetKubernetesWorkloadImage_FullMethodName               = "/alioth.v1.KubernetesService/SetKubernetesWorkloadImage"
+	KubernetesService_ListKubernetesWorkloadRevisions_FullMethodName          = "/alioth.v1.KubernetesService/ListKubernetesWorkloadRevisions"
+	KubernetesService_RollbackKubernetesWorkload_FullMethodName               = "/alioth.v1.KubernetesService/RollbackKubernetesWorkload"
+	KubernetesService_ListKubernetesJobs_FullMethodName                       = "/alioth.v1.KubernetesService/ListKubernetesJobs"
+	KubernetesService_GetKubernetesJobDetail_FullMethodName                   = "/alioth.v1.KubernetesService/GetKubernetesJobDetail"
+	KubernetesService_DeleteKubernetesJob_FullMethodName                      = "/alioth.v1.KubernetesService/DeleteKubernetesJob"
+	KubernetesService_ListKubernetesCronJobs_FullMethodName                   = "/alioth.v1.KubernetesService/ListKubernetesCronJobs"
+	KubernetesService_GetKubernetesCronJobDetail_FullMethodName               = "/alioth.v1.KubernetesService/GetKubernetesCronJobDetail"
+	KubernetesService_SetKubernetesCronJobSuspend_FullMethodName              = "/alioth.v1.KubernetesService/SetKubernetesCronJobSuspend"
+	KubernetesService_TriggerKubernetesCronJob_FullMethodName                 = "/alioth.v1.KubernetesService/TriggerKubernetesCronJob"
+	KubernetesService_DeleteKubernetesCronJob_FullMethodName                  = "/alioth.v1.KubernetesService/DeleteKubernetesCronJob"
 )
 
 // KubernetesServiceClient is the client API for KubernetesService service.
@@ -94,6 +106,30 @@ type KubernetesServiceClient interface {
 	GetKubernetesSecretDetail(ctx context.Context, in *GetKubernetesSecretDetailRequest, opts ...grpc.CallOption) (*GetKubernetesSecretDetailResponse, error)
 	// PVC 详情：基础信息和挂载它的工作负载。
 	GetKubernetesPersistentVolumeClaimDetail(ctx context.Context, in *GetKubernetesPersistentVolumeClaimDetailRequest, opts ...grpc.CallOption) (*GetKubernetesPersistentVolumeClaimDetailResponse, error)
+	// 列出工作负载每个容器的当前镜像与历史版本。
+	GetKubernetesWorkloadImages(ctx context.Context, in *GetKubernetesWorkloadImagesRequest, opts ...grpc.CallOption) (*GetKubernetesWorkloadImagesResponse, error)
+	// 设置工作负载中某个容器的镜像。
+	SetKubernetesWorkloadImage(ctx context.Context, in *SetKubernetesWorkloadImageRequest, opts ...grpc.CallOption) (*SetKubernetesWorkloadImageResponse, error)
+	// 列出工作负载的历史版本，新版本在前。
+	ListKubernetesWorkloadRevisions(ctx context.Context, in *ListKubernetesWorkloadRevisionsRequest, opts ...grpc.CallOption) (*ListKubernetesWorkloadRevisionsResponse, error)
+	// 把工作负载回滚到指定历史版本。
+	RollbackKubernetesWorkload(ctx context.Context, in *RollbackKubernetesWorkloadRequest, opts ...grpc.CallOption) (*RollbackKubernetesWorkloadResponse, error)
+	// 列出 Job，可按命名空间和名称过滤。
+	ListKubernetesJobs(ctx context.Context, in *ListKubernetesJobsRequest, opts ...grpc.CallOption) (*ListKubernetesJobsResponse, error)
+	// Job 详情：基础信息与它的 Pod。
+	GetKubernetesJobDetail(ctx context.Context, in *GetKubernetesJobDetailRequest, opts ...grpc.CallOption) (*GetKubernetesJobDetailResponse, error)
+	// 删除 Job，使用默认的后台级联删除。
+	DeleteKubernetesJob(ctx context.Context, in *DeleteKubernetesJobRequest, opts ...grpc.CallOption) (*DeleteKubernetesJobResponse, error)
+	// 列出 CronJob，可按命名空间和名称过滤。
+	ListKubernetesCronJobs(ctx context.Context, in *ListKubernetesCronJobsRequest, opts ...grpc.CallOption) (*ListKubernetesCronJobsResponse, error)
+	// CronJob 详情：基础信息与它最近创建的 Job。
+	GetKubernetesCronJobDetail(ctx context.Context, in *GetKubernetesCronJobDetailRequest, opts ...grpc.CallOption) (*GetKubernetesCronJobDetailResponse, error)
+	// 暂停或恢复 CronJob 的调度。
+	SetKubernetesCronJobSuspend(ctx context.Context, in *SetKubernetesCronJobSuspendRequest, opts ...grpc.CallOption) (*SetKubernetesCronJobSuspendResponse, error)
+	// 立即用 jobTemplate 创建一次 Job。
+	TriggerKubernetesCronJob(ctx context.Context, in *TriggerKubernetesCronJobRequest, opts ...grpc.CallOption) (*TriggerKubernetesCronJobResponse, error)
+	// 删除 CronJob。
+	DeleteKubernetesCronJob(ctx context.Context, in *DeleteKubernetesCronJobRequest, opts ...grpc.CallOption) (*DeleteKubernetesCronJobResponse, error)
 }
 
 type kubernetesServiceClient struct {
@@ -324,6 +360,126 @@ func (c *kubernetesServiceClient) GetKubernetesPersistentVolumeClaimDetail(ctx c
 	return out, nil
 }
 
+func (c *kubernetesServiceClient) GetKubernetesWorkloadImages(ctx context.Context, in *GetKubernetesWorkloadImagesRequest, opts ...grpc.CallOption) (*GetKubernetesWorkloadImagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKubernetesWorkloadImagesResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_GetKubernetesWorkloadImages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) SetKubernetesWorkloadImage(ctx context.Context, in *SetKubernetesWorkloadImageRequest, opts ...grpc.CallOption) (*SetKubernetesWorkloadImageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetKubernetesWorkloadImageResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_SetKubernetesWorkloadImage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) ListKubernetesWorkloadRevisions(ctx context.Context, in *ListKubernetesWorkloadRevisionsRequest, opts ...grpc.CallOption) (*ListKubernetesWorkloadRevisionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListKubernetesWorkloadRevisionsResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_ListKubernetesWorkloadRevisions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) RollbackKubernetesWorkload(ctx context.Context, in *RollbackKubernetesWorkloadRequest, opts ...grpc.CallOption) (*RollbackKubernetesWorkloadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RollbackKubernetesWorkloadResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_RollbackKubernetesWorkload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) ListKubernetesJobs(ctx context.Context, in *ListKubernetesJobsRequest, opts ...grpc.CallOption) (*ListKubernetesJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListKubernetesJobsResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_ListKubernetesJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) GetKubernetesJobDetail(ctx context.Context, in *GetKubernetesJobDetailRequest, opts ...grpc.CallOption) (*GetKubernetesJobDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKubernetesJobDetailResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_GetKubernetesJobDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) DeleteKubernetesJob(ctx context.Context, in *DeleteKubernetesJobRequest, opts ...grpc.CallOption) (*DeleteKubernetesJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteKubernetesJobResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_DeleteKubernetesJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) ListKubernetesCronJobs(ctx context.Context, in *ListKubernetesCronJobsRequest, opts ...grpc.CallOption) (*ListKubernetesCronJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListKubernetesCronJobsResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_ListKubernetesCronJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) GetKubernetesCronJobDetail(ctx context.Context, in *GetKubernetesCronJobDetailRequest, opts ...grpc.CallOption) (*GetKubernetesCronJobDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKubernetesCronJobDetailResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_GetKubernetesCronJobDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) SetKubernetesCronJobSuspend(ctx context.Context, in *SetKubernetesCronJobSuspendRequest, opts ...grpc.CallOption) (*SetKubernetesCronJobSuspendResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetKubernetesCronJobSuspendResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_SetKubernetesCronJobSuspend_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) TriggerKubernetesCronJob(ctx context.Context, in *TriggerKubernetesCronJobRequest, opts ...grpc.CallOption) (*TriggerKubernetesCronJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TriggerKubernetesCronJobResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_TriggerKubernetesCronJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) DeleteKubernetesCronJob(ctx context.Context, in *DeleteKubernetesCronJobRequest, opts ...grpc.CallOption) (*DeleteKubernetesCronJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteKubernetesCronJobResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_DeleteKubernetesCronJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KubernetesServiceServer is the server API for KubernetesService service.
 // All implementations must embed UnimplementedKubernetesServiceServer
 // for forward compatibility.
@@ -375,6 +531,30 @@ type KubernetesServiceServer interface {
 	GetKubernetesSecretDetail(context.Context, *GetKubernetesSecretDetailRequest) (*GetKubernetesSecretDetailResponse, error)
 	// PVC 详情：基础信息和挂载它的工作负载。
 	GetKubernetesPersistentVolumeClaimDetail(context.Context, *GetKubernetesPersistentVolumeClaimDetailRequest) (*GetKubernetesPersistentVolumeClaimDetailResponse, error)
+	// 列出工作负载每个容器的当前镜像与历史版本。
+	GetKubernetesWorkloadImages(context.Context, *GetKubernetesWorkloadImagesRequest) (*GetKubernetesWorkloadImagesResponse, error)
+	// 设置工作负载中某个容器的镜像。
+	SetKubernetesWorkloadImage(context.Context, *SetKubernetesWorkloadImageRequest) (*SetKubernetesWorkloadImageResponse, error)
+	// 列出工作负载的历史版本，新版本在前。
+	ListKubernetesWorkloadRevisions(context.Context, *ListKubernetesWorkloadRevisionsRequest) (*ListKubernetesWorkloadRevisionsResponse, error)
+	// 把工作负载回滚到指定历史版本。
+	RollbackKubernetesWorkload(context.Context, *RollbackKubernetesWorkloadRequest) (*RollbackKubernetesWorkloadResponse, error)
+	// 列出 Job，可按命名空间和名称过滤。
+	ListKubernetesJobs(context.Context, *ListKubernetesJobsRequest) (*ListKubernetesJobsResponse, error)
+	// Job 详情：基础信息与它的 Pod。
+	GetKubernetesJobDetail(context.Context, *GetKubernetesJobDetailRequest) (*GetKubernetesJobDetailResponse, error)
+	// 删除 Job，使用默认的后台级联删除。
+	DeleteKubernetesJob(context.Context, *DeleteKubernetesJobRequest) (*DeleteKubernetesJobResponse, error)
+	// 列出 CronJob，可按命名空间和名称过滤。
+	ListKubernetesCronJobs(context.Context, *ListKubernetesCronJobsRequest) (*ListKubernetesCronJobsResponse, error)
+	// CronJob 详情：基础信息与它最近创建的 Job。
+	GetKubernetesCronJobDetail(context.Context, *GetKubernetesCronJobDetailRequest) (*GetKubernetesCronJobDetailResponse, error)
+	// 暂停或恢复 CronJob 的调度。
+	SetKubernetesCronJobSuspend(context.Context, *SetKubernetesCronJobSuspendRequest) (*SetKubernetesCronJobSuspendResponse, error)
+	// 立即用 jobTemplate 创建一次 Job。
+	TriggerKubernetesCronJob(context.Context, *TriggerKubernetesCronJobRequest) (*TriggerKubernetesCronJobResponse, error)
+	// 删除 CronJob。
+	DeleteKubernetesCronJob(context.Context, *DeleteKubernetesCronJobRequest) (*DeleteKubernetesCronJobResponse, error)
 	mustEmbedUnimplementedKubernetesServiceServer()
 }
 
@@ -450,6 +630,42 @@ func (UnimplementedKubernetesServiceServer) GetKubernetesSecretDetail(context.Co
 }
 func (UnimplementedKubernetesServiceServer) GetKubernetesPersistentVolumeClaimDetail(context.Context, *GetKubernetesPersistentVolumeClaimDetailRequest) (*GetKubernetesPersistentVolumeClaimDetailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetKubernetesPersistentVolumeClaimDetail not implemented")
+}
+func (UnimplementedKubernetesServiceServer) GetKubernetesWorkloadImages(context.Context, *GetKubernetesWorkloadImagesRequest) (*GetKubernetesWorkloadImagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKubernetesWorkloadImages not implemented")
+}
+func (UnimplementedKubernetesServiceServer) SetKubernetesWorkloadImage(context.Context, *SetKubernetesWorkloadImageRequest) (*SetKubernetesWorkloadImageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetKubernetesWorkloadImage not implemented")
+}
+func (UnimplementedKubernetesServiceServer) ListKubernetesWorkloadRevisions(context.Context, *ListKubernetesWorkloadRevisionsRequest) (*ListKubernetesWorkloadRevisionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListKubernetesWorkloadRevisions not implemented")
+}
+func (UnimplementedKubernetesServiceServer) RollbackKubernetesWorkload(context.Context, *RollbackKubernetesWorkloadRequest) (*RollbackKubernetesWorkloadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RollbackKubernetesWorkload not implemented")
+}
+func (UnimplementedKubernetesServiceServer) ListKubernetesJobs(context.Context, *ListKubernetesJobsRequest) (*ListKubernetesJobsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListKubernetesJobs not implemented")
+}
+func (UnimplementedKubernetesServiceServer) GetKubernetesJobDetail(context.Context, *GetKubernetesJobDetailRequest) (*GetKubernetesJobDetailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKubernetesJobDetail not implemented")
+}
+func (UnimplementedKubernetesServiceServer) DeleteKubernetesJob(context.Context, *DeleteKubernetesJobRequest) (*DeleteKubernetesJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteKubernetesJob not implemented")
+}
+func (UnimplementedKubernetesServiceServer) ListKubernetesCronJobs(context.Context, *ListKubernetesCronJobsRequest) (*ListKubernetesCronJobsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListKubernetesCronJobs not implemented")
+}
+func (UnimplementedKubernetesServiceServer) GetKubernetesCronJobDetail(context.Context, *GetKubernetesCronJobDetailRequest) (*GetKubernetesCronJobDetailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKubernetesCronJobDetail not implemented")
+}
+func (UnimplementedKubernetesServiceServer) SetKubernetesCronJobSuspend(context.Context, *SetKubernetesCronJobSuspendRequest) (*SetKubernetesCronJobSuspendResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetKubernetesCronJobSuspend not implemented")
+}
+func (UnimplementedKubernetesServiceServer) TriggerKubernetesCronJob(context.Context, *TriggerKubernetesCronJobRequest) (*TriggerKubernetesCronJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TriggerKubernetesCronJob not implemented")
+}
+func (UnimplementedKubernetesServiceServer) DeleteKubernetesCronJob(context.Context, *DeleteKubernetesCronJobRequest) (*DeleteKubernetesCronJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteKubernetesCronJob not implemented")
 }
 func (UnimplementedKubernetesServiceServer) mustEmbedUnimplementedKubernetesServiceServer() {}
 func (UnimplementedKubernetesServiceServer) testEmbeddedByValue()                           {}
@@ -868,6 +1084,222 @@ func _KubernetesService_GetKubernetesPersistentVolumeClaimDetail_Handler(srv int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KubernetesService_GetKubernetesWorkloadImages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKubernetesWorkloadImagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).GetKubernetesWorkloadImages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_GetKubernetesWorkloadImages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).GetKubernetesWorkloadImages(ctx, req.(*GetKubernetesWorkloadImagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_SetKubernetesWorkloadImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetKubernetesWorkloadImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).SetKubernetesWorkloadImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_SetKubernetesWorkloadImage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).SetKubernetesWorkloadImage(ctx, req.(*SetKubernetesWorkloadImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_ListKubernetesWorkloadRevisions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListKubernetesWorkloadRevisionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).ListKubernetesWorkloadRevisions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_ListKubernetesWorkloadRevisions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).ListKubernetesWorkloadRevisions(ctx, req.(*ListKubernetesWorkloadRevisionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_RollbackKubernetesWorkload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RollbackKubernetesWorkloadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).RollbackKubernetesWorkload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_RollbackKubernetesWorkload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).RollbackKubernetesWorkload(ctx, req.(*RollbackKubernetesWorkloadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_ListKubernetesJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListKubernetesJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).ListKubernetesJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_ListKubernetesJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).ListKubernetesJobs(ctx, req.(*ListKubernetesJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_GetKubernetesJobDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKubernetesJobDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).GetKubernetesJobDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_GetKubernetesJobDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).GetKubernetesJobDetail(ctx, req.(*GetKubernetesJobDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_DeleteKubernetesJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteKubernetesJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).DeleteKubernetesJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_DeleteKubernetesJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).DeleteKubernetesJob(ctx, req.(*DeleteKubernetesJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_ListKubernetesCronJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListKubernetesCronJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).ListKubernetesCronJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_ListKubernetesCronJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).ListKubernetesCronJobs(ctx, req.(*ListKubernetesCronJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_GetKubernetesCronJobDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKubernetesCronJobDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).GetKubernetesCronJobDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_GetKubernetesCronJobDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).GetKubernetesCronJobDetail(ctx, req.(*GetKubernetesCronJobDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_SetKubernetesCronJobSuspend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetKubernetesCronJobSuspendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).SetKubernetesCronJobSuspend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_SetKubernetesCronJobSuspend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).SetKubernetesCronJobSuspend(ctx, req.(*SetKubernetesCronJobSuspendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_TriggerKubernetesCronJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TriggerKubernetesCronJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).TriggerKubernetesCronJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_TriggerKubernetesCronJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).TriggerKubernetesCronJob(ctx, req.(*TriggerKubernetesCronJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_DeleteKubernetesCronJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteKubernetesCronJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).DeleteKubernetesCronJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_DeleteKubernetesCronJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).DeleteKubernetesCronJob(ctx, req.(*DeleteKubernetesCronJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // KubernetesService_ServiceDesc is the grpc.ServiceDesc for KubernetesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -962,6 +1394,54 @@ var KubernetesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetKubernetesPersistentVolumeClaimDetail",
 			Handler:    _KubernetesService_GetKubernetesPersistentVolumeClaimDetail_Handler,
+		},
+		{
+			MethodName: "GetKubernetesWorkloadImages",
+			Handler:    _KubernetesService_GetKubernetesWorkloadImages_Handler,
+		},
+		{
+			MethodName: "SetKubernetesWorkloadImage",
+			Handler:    _KubernetesService_SetKubernetesWorkloadImage_Handler,
+		},
+		{
+			MethodName: "ListKubernetesWorkloadRevisions",
+			Handler:    _KubernetesService_ListKubernetesWorkloadRevisions_Handler,
+		},
+		{
+			MethodName: "RollbackKubernetesWorkload",
+			Handler:    _KubernetesService_RollbackKubernetesWorkload_Handler,
+		},
+		{
+			MethodName: "ListKubernetesJobs",
+			Handler:    _KubernetesService_ListKubernetesJobs_Handler,
+		},
+		{
+			MethodName: "GetKubernetesJobDetail",
+			Handler:    _KubernetesService_GetKubernetesJobDetail_Handler,
+		},
+		{
+			MethodName: "DeleteKubernetesJob",
+			Handler:    _KubernetesService_DeleteKubernetesJob_Handler,
+		},
+		{
+			MethodName: "ListKubernetesCronJobs",
+			Handler:    _KubernetesService_ListKubernetesCronJobs_Handler,
+		},
+		{
+			MethodName: "GetKubernetesCronJobDetail",
+			Handler:    _KubernetesService_GetKubernetesCronJobDetail_Handler,
+		},
+		{
+			MethodName: "SetKubernetesCronJobSuspend",
+			Handler:    _KubernetesService_SetKubernetesCronJobSuspend_Handler,
+		},
+		{
+			MethodName: "TriggerKubernetesCronJob",
+			Handler:    _KubernetesService_TriggerKubernetesCronJob_Handler,
+		},
+		{
+			MethodName: "DeleteKubernetesCronJob",
+			Handler:    _KubernetesService_DeleteKubernetesCronJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

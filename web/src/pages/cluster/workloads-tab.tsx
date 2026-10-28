@@ -56,6 +56,8 @@ import {
 } from "./relation"
 import { ClusterResourceState } from "./resource-state"
 import { useClusterResourceDetail } from "./use-resource-detail"
+import { WorkloadImageDialog } from "./workload-image-dialog"
+import { WorkloadRollbackDialog } from "./workload-rollback-dialog"
 
 // 副本数上限由产品约束固定为 100；下限 0 表示缩容到零。
 const MIN_REPLICAS = 0
@@ -141,6 +143,11 @@ export function KubernetesWorkloadsTab({
     useState<KubernetesWorkloadItem | null>(null)
   const [restartError, setRestartError] = useState("")
   const [restartPending, setRestartPending] = useState(false)
+  const [imageTarget, setImageTarget] = useState<KubernetesWorkloadItem | null>(
+    null
+  )
+  const [rollbackTarget, setRollbackTarget] =
+    useState<KubernetesWorkloadItem | null>(null)
   const [detail, setDetail] = useState<KubernetesWorkloadItem | null>(null)
   const workloadRelation =
     useClusterResourceDetail<GetKubernetesWorkloadDetailResult>({
@@ -196,6 +203,17 @@ export function KubernetesWorkloadsTab({
         setRestartError("")
         setRestartTarget(item)
       },
+    })
+    // 镜像与回滚都只改 Pod 模板，三种控制器都支持。
+    actions.push({
+      key: "image",
+      label: t("kube.image"),
+      onSelect: () => setImageTarget(item),
+    })
+    actions.push({
+      key: "rollback",
+      label: t("kube.rollback"),
+      onSelect: () => setRollbackTarget(item),
     })
     return actions
   }
@@ -498,6 +516,44 @@ export function KubernetesWorkloadsTab({
             setRestartTarget(null)
             setRestartError("")
           }
+        }}
+      />
+      <WorkloadImageDialog
+        key={
+          imageTarget
+            ? `${imageTarget.kind}/${imageTarget.namespace}/${imageTarget.name}`
+            : "no-image-target"
+        }
+        open={imageTarget !== null}
+        clusterUid={clusterUid}
+        workload={imageTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setImageTarget(null)
+          }
+        }}
+        onSaved={() => {
+          reload()
+          workloadRelation.retry()
+        }}
+      />
+      <WorkloadRollbackDialog
+        key={
+          rollbackTarget
+            ? `${rollbackTarget.kind}/${rollbackTarget.namespace}/${rollbackTarget.name}`
+            : "no-rollback-target"
+        }
+        open={rollbackTarget !== null}
+        clusterUid={clusterUid}
+        workload={rollbackTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRollbackTarget(null)
+          }
+        }}
+        onRolledBack={() => {
+          reload()
+          workloadRelation.retry()
         }}
       />
       <ClusterDetailSheet

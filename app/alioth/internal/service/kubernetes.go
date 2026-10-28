@@ -245,6 +245,119 @@ func (s *KubernetesService) GetKubernetesPersistentVolumeClaimDetail(ctx context
 	}, nil
 }
 
+func (s *KubernetesService) GetKubernetesWorkloadImages(ctx context.Context, req *v1.GetKubernetesWorkloadImagesRequest) (*v1.GetKubernetesWorkloadImagesResponse, error) {
+	items, err := s.explorer.WorkloadImages(ctx, req.GetClusterUid(), req.GetNamespace(), req.GetKind(), req.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetKubernetesWorkloadImagesResponse{Images: kubeWorkloadImageItems(items)}, nil
+}
+
+func (s *KubernetesService) SetKubernetesWorkloadImage(ctx context.Context, req *v1.SetKubernetesWorkloadImageRequest) (*v1.SetKubernetesWorkloadImageResponse, error) {
+	item, err := s.operator.SetWorkloadImage(
+		ctx, req.GetClusterUid(), req.GetNamespace(), req.GetKind(), req.GetName(),
+		req.GetContainer(), req.GetInit(), req.GetImage(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SetKubernetesWorkloadImageResponse{Workload: kubeWorkloadItem(*item)}, nil
+}
+
+func (s *KubernetesService) ListKubernetesWorkloadRevisions(ctx context.Context, req *v1.ListKubernetesWorkloadRevisionsRequest) (*v1.ListKubernetesWorkloadRevisionsResponse, error) {
+	items, err := s.explorer.WorkloadRevisions(ctx, req.GetClusterUid(), req.GetNamespace(), req.GetKind(), req.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListKubernetesWorkloadRevisionsResponse{Revisions: kubeWorkloadRevisionItems(items)}, nil
+}
+
+func (s *KubernetesService) RollbackKubernetesWorkload(ctx context.Context, req *v1.RollbackKubernetesWorkloadRequest) (*v1.RollbackKubernetesWorkloadResponse, error) {
+	item, err := s.operator.RollbackWorkload(
+		ctx, req.GetClusterUid(), req.GetNamespace(), req.GetKind(), req.GetName(), req.GetRevision(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.RollbackKubernetesWorkloadResponse{Workload: kubeWorkloadItem(*item)}, nil
+}
+
+func (s *KubernetesService) ListKubernetesJobs(ctx context.Context, req *v1.ListKubernetesJobsRequest) (*v1.ListKubernetesJobsResponse, error) {
+	items, total, page, pageSize, err := s.explorer.ListJobs(
+		ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName(), req.GetPage(), req.GetPageSize(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListKubernetesJobsResponse{
+		Items: kubeJobItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize),
+	}, nil
+}
+
+func (s *KubernetesService) GetKubernetesJobDetail(ctx context.Context, req *v1.GetKubernetesJobDetailRequest) (*v1.GetKubernetesJobDetailResponse, error) {
+	detail, err := s.explorer.JobDetail(ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetKubernetesJobDetailResponse{
+		Job:  kubeJobItem(detail.Job),
+		Pods: kubePodItems(detail.Pods),
+	}, nil
+}
+
+func (s *KubernetesService) DeleteKubernetesJob(ctx context.Context, req *v1.DeleteKubernetesJobRequest) (*v1.DeleteKubernetesJobResponse, error) {
+	if err := s.operator.DeleteJob(ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName()); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteKubernetesJobResponse{}, nil
+}
+
+func (s *KubernetesService) ListKubernetesCronJobs(ctx context.Context, req *v1.ListKubernetesCronJobsRequest) (*v1.ListKubernetesCronJobsResponse, error) {
+	items, total, page, pageSize, err := s.explorer.ListCronJobs(
+		ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName(), req.GetPage(), req.GetPageSize(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListKubernetesCronJobsResponse{
+		Items: kubeCronJobItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize),
+	}, nil
+}
+
+func (s *KubernetesService) GetKubernetesCronJobDetail(ctx context.Context, req *v1.GetKubernetesCronJobDetailRequest) (*v1.GetKubernetesCronJobDetailResponse, error) {
+	detail, err := s.explorer.CronJobDetail(ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetKubernetesCronJobDetailResponse{
+		Cronjob: kubeCronJobItem(detail.CronJob),
+		Jobs:    kubeJobItems(detail.Jobs),
+	}, nil
+}
+
+func (s *KubernetesService) SetKubernetesCronJobSuspend(ctx context.Context, req *v1.SetKubernetesCronJobSuspendRequest) (*v1.SetKubernetesCronJobSuspendResponse, error) {
+	item, err := s.operator.SetCronJobSuspend(ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName(), req.GetSuspend())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SetKubernetesCronJobSuspendResponse{Cronjob: kubeCronJobItem(*item)}, nil
+}
+
+func (s *KubernetesService) TriggerKubernetesCronJob(ctx context.Context, req *v1.TriggerKubernetesCronJobRequest) (*v1.TriggerKubernetesCronJobResponse, error) {
+	item, err := s.operator.TriggerCronJob(ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.TriggerKubernetesCronJobResponse{Job: kubeJobItem(*item)}, nil
+}
+
+func (s *KubernetesService) DeleteKubernetesCronJob(ctx context.Context, req *v1.DeleteKubernetesCronJobRequest) (*v1.DeleteKubernetesCronJobResponse, error) {
+	if err := s.operator.DeleteCronJob(ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName()); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteKubernetesCronJobResponse{}, nil
+}
+
 func kubeNodeItems(items []bo.KubeNode) []*v1.KubernetesNodeItem {
 	out := make([]*v1.KubernetesNodeItem, 0, len(items))
 	for _, item := range items {
@@ -506,6 +619,98 @@ func kubeWorkloadRefItems(items []bo.KubeWorkloadRef) []*v1.KubernetesWorkloadRe
 			Namespace: item.Namespace,
 			Name:      item.Name,
 		})
+	}
+	return out
+}
+
+func kubeWorkloadImageItem(in bo.KubeWorkloadImage) *v1.KubernetesWorkloadImageItem {
+	versions := make([]*v1.KubernetesImageVersionItem, 0, len(in.Versions))
+	for _, version := range in.Versions {
+		versions = append(versions, &v1.KubernetesImageVersionItem{
+			Image:     version.Image,
+			Revision:  version.Revision,
+			CreatedAt: version.CreatedAt,
+		})
+	}
+	return &v1.KubernetesWorkloadImageItem{
+		Container:  in.Container,
+		Init:       in.Init,
+		Image:      in.Image,
+		Repository: in.Repository,
+		Tag:        in.Tag,
+		Versions:   versions,
+	}
+}
+
+func kubeWorkloadImageItems(items []bo.KubeWorkloadImage) []*v1.KubernetesWorkloadImageItem {
+	out := make([]*v1.KubernetesWorkloadImageItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, kubeWorkloadImageItem(item))
+	}
+	return out
+}
+
+func kubeWorkloadRevisionItems(items []bo.KubeWorkloadRevision) []*v1.KubernetesWorkloadRevisionItem {
+	out := make([]*v1.KubernetesWorkloadRevisionItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.KubernetesWorkloadRevisionItem{
+			Revision:  item.Revision,
+			Name:      item.Name,
+			Current:   item.Current,
+			Replicas:  item.Replicas,
+			Images:    item.Images,
+			CreatedAt: item.CreatedAt,
+		})
+	}
+	return out
+}
+
+func kubeJobItem(in bo.KubeJob) *v1.KubernetesJobItem {
+	return &v1.KubernetesJobItem{
+		Namespace:      in.Namespace,
+		Name:           in.Name,
+		Status:         in.Status,
+		Completions:    in.Completions,
+		Parallelism:    in.Parallelism,
+		Active:         in.Active,
+		Succeeded:      in.Succeeded,
+		Failed:         in.Failed,
+		OwnerKind:      in.OwnerKind,
+		OwnerName:      in.OwnerName,
+		StartTime:      in.StartTime,
+		CompletionTime: in.CompletionTime,
+		CreatedAt:      in.CreatedAt,
+		Images:         in.Images,
+	}
+}
+
+func kubeJobItems(items []bo.KubeJob) []*v1.KubernetesJobItem {
+	out := make([]*v1.KubernetesJobItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, kubeJobItem(item))
+	}
+	return out
+}
+
+func kubeCronJobItem(in bo.KubeCronJob) *v1.KubernetesCronJobItem {
+	return &v1.KubernetesCronJobItem{
+		Namespace:         in.Namespace,
+		Name:              in.Name,
+		Schedule:          in.Schedule,
+		TimeZone:          in.TimeZone,
+		Suspend:           in.Suspend,
+		ConcurrencyPolicy: in.ConcurrencyPolicy,
+		LastScheduleTime:  in.LastScheduleTime,
+		ActiveCount:       in.ActiveCount,
+		Images:            in.Images,
+		CreatedAt:         in.CreatedAt,
+	}
+}
+
+func kubeCronJobItems(items []bo.KubeCronJob) []*v1.KubernetesCronJobItem {
+	out := make([]*v1.KubernetesCronJobItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, kubeCronJobItem(item))
 	}
 	return out
 }

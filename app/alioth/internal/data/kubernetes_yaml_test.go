@@ -7,6 +7,7 @@ import (
 
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -193,9 +194,63 @@ func TestResourceYAMLClusterScoped(t *testing.T) {
 	}
 }
 
+func TestResourceYAMLJobAndCronJob(t *testing.T) {
+	job := &batchv1.Job{
+		ObjectMeta: fakeYAMLObjectMeta("default", "backup"),
+		Spec: batchv1.JobSpec{
+			Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{
+				Containers: []corev1.Container{{Name: "backup", Image: "backup:1"}},
+			}},
+		},
+	}
+	cronJob := &batchv1.CronJob{
+		ObjectMeta: fakeYAMLObjectMeta("default", "nightly"),
+		Spec: batchv1.CronJobSpec{
+			Schedule: "0 2 * * *",
+			JobTemplate: batchv1.JobTemplateSpec{
+				Spec: batchv1.JobSpec{
+					Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{
+						Containers: []corev1.Container{{Name: "backup", Image: "backup:1"}},
+					}},
+				},
+			},
+		},
+	}
+	repo := newFakeRepo(job, cronJob)
+	jobItem, err := repo.ResourceYAML(context.Background(), testClusterUID, "Job", "default", "backup")
+	if err != nil {
+		t.Fatalf("ResourceYAML Job: %v", err)
+	}
+	if jobItem.Redacted {
+		t.Fatal("job yaml should not be redacted")
+	}
+	for _, want := range []string{"apiVersion: batch/v1", "kind: Job", "name: backup", "image: backup:1"} {
+		if !strings.Contains(jobItem.YAML, want) {
+			t.Fatalf("job yaml missing %q:\n%s", want, jobItem.YAML)
+		}
+	}
+	cronJobItem, err := repo.ResourceYAML(context.Background(), testClusterUID, "CronJob", "default", "nightly")
+	if err != nil {
+		t.Fatalf("ResourceYAML CronJob: %v", err)
+	}
+	if cronJobItem.Redacted {
+		t.Fatal("cronjob yaml should not be redacted")
+	}
+	for _, want := range []string{"apiVersion: batch/v1", "kind: CronJob", "name: nightly", "schedule:", "0 2 * * *", "image: backup:1"} {
+		if !strings.Contains(cronJobItem.YAML, want) {
+			t.Fatalf("cronjob yaml missing %q:\n%s", want, cronJobItem.YAML)
+		}
+	}
+	for _, unwanted := range []string{"managedFields", "last-applied-configuration", "stale-config-value"} {
+		if strings.Contains(jobItem.YAML, unwanted) || strings.Contains(cronJobItem.YAML, unwanted) {
+			t.Fatalf("yaml should not contain %q", unwanted)
+		}
+	}
+}
+
 func TestResourceYAMLUnknownKind(t *testing.T) {
 	repo := newFakeRepo()
-	if _, err := repo.ResourceYAML(context.Background(), testClusterUID, "Job", "default", "backup"); !merr.IsInvalid(err) {
+	if _, err := repo.ResourceYAML(context.Background(), testClusterUID, "HorizontalPodAutoscaler", "default", "backup"); !merr.IsInvalid(err) {
 		t.Fatalf("err = %v, want invalid", err)
 	}
 }

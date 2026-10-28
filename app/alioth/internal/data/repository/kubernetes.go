@@ -53,4 +53,32 @@ type KubernetesRepo interface {
 	SecretDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeSecretDetail, error)
 	// PersistentVolumeClaimDetail 返回 PVC 和把它作为卷挂载的工作负载。
 	PersistentVolumeClaimDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubePersistentVolumeClaimDetail, error)
+
+	// WorkloadImages 返回工作负载每个容器的当前镜像和历史版本。
+	// 历史版本只来自属于该工作负载的历史对象，不含当前镜像。
+	WorkloadImages(ctx context.Context, clusterUID, namespace, kind, name string) ([]bo.KubeWorkloadImage, error)
+	// SetWorkloadImage 按容器名和 init 只改目标容器的镜像，返回更新后的工作负载。
+	SetWorkloadImage(ctx context.Context, clusterUID, namespace, kind, name, container string, init bool, image string) (*bo.KubeWorkload, error)
+	// WorkloadRevisions 返回工作负载的历史版本，新版本在前。
+	WorkloadRevisions(ctx context.Context, clusterUID, namespace, kind, name string) ([]bo.KubeWorkloadRevision, error)
+	// RollbackWorkload 把工作负载的 Pod 模板恢复为目标历史版本。
+	RollbackWorkload(ctx context.Context, clusterUID, namespace, kind, name string, revision int32) (*bo.KubeWorkload, error)
+
+	// ListJobs 返回按 namespace、name 升序排好的全部匹配项，分页由调用方切片。
+	ListJobs(ctx context.Context, clusterUID, namespace, name string) ([]bo.KubeJob, error)
+	// JobDetail 返回 Job 和它的 Pod，Pod 按名称升序。
+	JobDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeJobDetail, error)
+	// DeleteJob 删除 Job，使用默认的后台级联删除。
+	DeleteJob(ctx context.Context, clusterUID, namespace, name string) error
+
+	// ListCronJobs 返回按 namespace、name 升序排好的全部匹配项，分页由调用方切片。
+	ListCronJobs(ctx context.Context, clusterUID, namespace, name string) ([]bo.KubeCronJob, error)
+	// CronJobDetail 返回 CronJob 和它最近创建的 10 个 Job，创建时间倒序。
+	CronJobDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeCronJobDetail, error)
+	// SetCronJobSuspend 设置 CronJob 是否暂停调度，返回更新后的 CronJob。
+	SetCronJobSuspend(ctx context.Context, clusterUID, namespace, name string, suspend bool) (*bo.KubeCronJob, error)
+	// TriggerCronJob 用 jobTemplate 立即创建一个独立 Job，不设置 CronJob ownerReference。
+	TriggerCronJob(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeJob, error)
+	// DeleteCronJob 删除 CronJob。
+	DeleteCronJob(ctx context.Context, clusterUID, namespace, name string) error
 }

@@ -1,5 +1,7 @@
 import type { TFunction } from "i18next"
 
+import type { BadgeTone } from "@/components/status-badge"
+
 /** 把 Unix 秒格式化成浏览器本地日期时间；0 表示从未发生。 */
 export function formatClusterTime(raw: number | string): string {
   const seconds = Number(raw)
@@ -141,4 +143,52 @@ export function formatClusterAge(raw: number | string, t: TFunction): string {
     return t("kube.ageHours", { count: Math.floor(elapsed / 3600) })
   }
   return t("kube.ageDays", { count: Math.floor(elapsed / 86400) })
+}
+
+/** Job 执行状态 → 标签颜色：完成=成功、失败=危险、运行=信息、暂停/等待=警告。 */
+export function readJobStatusTone(status: string): BadgeTone {
+  switch (status) {
+    case "Complete":
+      return "success"
+    case "Failed":
+      return "danger"
+    case "Running":
+      return "info"
+    case "Suspended":
+    case "Pending":
+      return "warning"
+    default:
+      return "neutral"
+  }
+}
+
+/** Pod 阶段 → 标签颜色，与 Pod / 工作负载页签的状态语义一致。 */
+export function readPodPhaseTone(phase: string): BadgeTone {
+  switch (phase) {
+    case "Running":
+      return "success"
+    case "Pending":
+      return "warning"
+    case "Failed":
+      return "danger"
+    case "Succeeded":
+      return "info"
+    default:
+      return "neutral"
+  }
+}
+
+const JOB_STATUS_KEYS: Record<string, string> = {
+  Suspended: "kube.jobStatusSuspended",
+  Failed: "kube.jobStatusFailed",
+  Complete: "kube.jobStatusComplete",
+  Running: "kube.jobStatusRunning",
+  Unknown: "kube.jobStatusUnknown",
+  Pending: "kube.jobStatusPending",
+}
+
+/** Job 执行状态标签；未知状态回落到服务端原文。 */
+export function formatJobStatus(t: TFunction, status: string): string {
+  const key = JOB_STATUS_KEYS[status]
+  return key ? t(key) : status
 }

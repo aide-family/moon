@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 
+import type { KubernetesResourceKind } from "@/api/cluster"
 import {
   DetailSheet,
   DetailSectionList,
@@ -13,7 +14,7 @@ import { ClusterYamlPreview } from "./yaml-preview"
 
 export interface ClusterDetailYamlTarget {
   clusterUid: string
-  kind: string
+  kind: KubernetesResourceKind
   /** 集群级资源（Node、PersistentVolume）不传。 */
   namespace?: string
   name: string
