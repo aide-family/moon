@@ -243,10 +243,10 @@ export function AlertEventList({
   // 已应用的筛选以标签形式展示，需要时再展开；收起只是加 hidden，面板不卸载，
   // 所以展开过又收起的草稿输入不会丢失。
   const [filtersOpen, setFiltersOpen] = useState(false)
-  // 实时告警同样默认展开，应用后收起；有 URL 条件时直接收起。
-  const [realtimeFiltersOpen, setRealtimeFiltersOpen] = useState(
-    () => !(query.name || analysisLevel)
-  )
+  // 实时告警的筛选面板默认收起：统计和列表才是主内容，展开的筛选会挤掉表格高度。
+  // 已应用的条件以标签形式展示，需要时再展开；收起只加 hidden，面板不卸载，
+  // 所以展开过又收起的草稿输入不会丢失。
+  const [realtimeFiltersOpen, setRealtimeFiltersOpen] = useState(false)
   const historyDraftDirty =
     JSON.stringify(historyDraft) !== historyFilterSignature
   const listName =
@@ -706,11 +706,10 @@ export function AlertEventList({
             setParams(next)
           }
         }}
-        className={
-          view === "HISTORY"
-            ? "min-h-0 min-w-0 flex-1 gap-4 overflow-hidden"
-            : "gap-4"
-        }
+        // 实时告警的 Tab 里也有长表格：必须和明细列表一样给出有界的高度链，
+        // 让 Table 自带的 overflow-auto 视口承担纵向滚动。没有 flex-1/min-h-0 时
+        // 表格按内容撑高，外壳的 overflow-hidden 会把底部行和分页直接裁掉。
+        className="min-h-0 min-w-0 flex-1 gap-4 overflow-hidden"
       >
         {view === "HISTORY" ? (
           <>
@@ -767,11 +766,8 @@ export function AlertEventList({
         ) : null}
         <TabsContent
           value={view === "HISTORY" ? "details" : "realtime"}
-          className={
-            view === "HISTORY"
-              ? "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
-              : "min-w-0"
-          }
+          // 实时和历史共用同一条有界链路：面板占满 Tab 剩余高度，不再由内容撑开。
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
         >
           <section
             aria-labelledby={
@@ -781,8 +777,9 @@ export function AlertEventList({
             className={
               view === "HISTORY"
                 ? "flex min-h-0 min-w-0 flex-1 flex-col gap-3"
-                : // 操作区（筛选/统计/批量按钮）和表格之间留出间距，避免贴在一起。
-                  "min-w-0 space-y-4"
+                : // 操作区（筛选/统计/批量按钮）和表格之间留出间距，避免贴在一起；
+                  // flex-1 + min-h-0 让列表卡片拿到剩余高度，表格在卡片内部滚动。
+                  "flex min-h-0 min-w-0 flex-1 flex-col gap-4"
             }
           >
             {view === "HISTORY" ? (
