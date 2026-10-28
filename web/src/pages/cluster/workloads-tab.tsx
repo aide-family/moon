@@ -388,12 +388,12 @@ export function KubernetesWorkloadsTab({
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("kube.scaleTitle")}</DialogTitle>
           </DialogHeader>
           <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onScale}>
-            <DialogBody className="grid gap-4">
+            <DialogBody className="grid min-w-0 content-start gap-4">
               <p className="text-sm break-all text-muted-foreground">
                 {scaleTarget
                   ? `${scaleTarget.kind} · ${scaleTarget.namespace}/${scaleTarget.name}`
@@ -406,7 +406,7 @@ export function KubernetesWorkloadsTab({
                 required
                 error={scaleFieldError}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex w-full items-center gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -421,15 +421,19 @@ export function KubernetesWorkloadsTab({
                   </Button>
                   <Input
                     id="workload-replicas"
-                    className="w-24 text-center font-mono tabular-nums"
+                    className="min-w-0 flex-1 text-center font-mono tabular-nums"
                     type="text"
                     inputMode="numeric"
                     autoComplete="off"
                     pattern="[0-9]*"
+                    placeholder={t("kube.replicasPlaceholder")}
                     value={replicas}
                     aria-invalid={scaleFieldError ? true : undefined}
                     onChange={(event) => {
-                      setReplicas(event.target.value)
+                      // 只接受数字，最多 3 位（副本数上限 100）。
+                      setReplicas(
+                        event.target.value.replace(/\D/g, "").slice(0, 3)
+                      )
                       setScaleFieldError("")
                     }}
                   />

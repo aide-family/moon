@@ -1510,6 +1510,7 @@ const zh = {
     replicasInvalid: "请输入 0 到 100 之间的整数",
     replicasDecrease: "减少副本数",
     replicasIncrease: "增加副本数",
+    replicasPlaceholder: "输入副本数",
     restart: "滚动重启",
     restartTitle: "确认滚动重启",
     restartDescription:
@@ -3783,6 +3784,7 @@ const en = {
     replicasInvalid: "Enter an integer from 0 to 100",
     replicasDecrease: "Decrease replicas",
     replicasIncrease: "Increase replicas",
+    replicasPlaceholder: "Enter replicas",
     restart: "Rolling restart",
     restartTitle: "Rolling restart",
     restartDescription:
