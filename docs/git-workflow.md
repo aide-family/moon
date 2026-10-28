@@ -1,6 +1,6 @@
 # 分支与提交规范
 
-本文是强制约束，不是建议。每个新会话任务都按本文执行：凡是会改动 git 仓库内容的任务，先基于当前分支位置切出工作分支，在分支上完成开发，结束时只提交到分支，不推送、不合并，把推送还是本地合并进 `main`（只用 rebase 快进，不留合并提交）的决定权交回用户。
+本文是强制约束，不是建议。每个新会话任务都按本文执行：凡是会改动 git 仓库内容的任务，先把本地 `main` 同步到 `origin/main` 的最新提交，再从 `main` 切出工作分支，在分支上完成开发，结束时只提交到分支，不推送、不合并，把推送还是本地合并进 `main`（只用 rebase 快进，不留合并提交）的决定权交回用户。
 
 只读任务（只读文件、只跑查询命令、不改工作区）不受约束。用户明确要求"直接在 main 上改"时按用户指示执行，并在交付说明里写明这次走了例外。
 
@@ -11,6 +11,8 @@
 
 ## 开工前
 
+先把本地 `main` 同步到远端最新，再从 `main` 切分支。不从当前分支切，也不从某个旧提交切。
+
 记录基线，并写进最后的交付说明：
 
 ```sh
@@ -19,15 +21,33 @@ git rev-parse --short HEAD  # 起点提交
 git status --porcelain      # 任务开始前已有的未提交改动
 ```
 
-从当前分支的当前位置切出工作分支。不先 `pull`，不先 `rebase`，不先 `reset`：
+同步 `main`。`git fetch` 只更新远端引用，不动工作区；两个哈希必须一致才能继续：
 
 ```sh
-git switch -c <类型>/<kebab-case-描述>
+git fetch origin
+git rev-parse --short main origin/main
 ```
 
-"当前分支位置"指任务开始时 HEAD 指向的提交。默认不基于 `origin/main`，避免把远端新提交悄悄带进本任务。
+| 情况 | 处理 |
+| --- | --- |
+| 一致 | 继续切分支 |
+| `main` 落后 | 快进到 `origin/main`：`main` 没被检出时用 `git fetch origin main:main`（只接受快进，非快进会直接拒绝）；正被检出且工作区干净时，在那份 checkout 里 `git merge --ff-only origin/main` |
+| `main` 领先 | 停下问用户：推送这些本地提交，还是先处理掉。不擅自 `push` |
+| 两边分叉 | 停下问用户，不自动 `merge`、不自动 `rebase` |
+
+切分支，基点是 `main` 本身：
+
+```sh
+git switch -c <类型>/<kebab-case-描述> main
+git merge-base --is-ancestor main HEAD && echo "起点是 main"
+```
+
+- 本地合并进 `main` 走 rebase 快进，合并完 `main` 会领先远端；下次开工前必须先按上表处理，这条同步检查就是为此存在。
+- 新分支不设 upstream，等用户决定推送时再加 `-u`。
 
 工作区已经有上一任务或他人的未提交改动时，原样保留：不 `stash`、不 `checkout --`、不 `restore`、不 `clean`，也不把这些改动提交进本任务。只改本任务自己的文件。
+
+checkout 正被另一个会话使用、或带着他人未提交改动时，不要在里面 `git switch`：在 `.agents/worktrees/`（已被 git 忽略）里用 `git worktree add <路径> -b <分支> main` 开一份工作区，做完 `git worktree remove <路径>`。
 
 一个任务一个分支。分支不合并其他分支；任务中途不为别的事再切分支——那是另一个任务、另一个分支。
 
@@ -110,7 +130,7 @@ git switch -c <类型>/<kebab-case-描述>
 
 交付说明必须给出：
 
-- 分支名与起点，例如 `fix/web-dialog-scroll`，基于 `main` @ `742226b`。
+- 分支名与起点，例如 `fix/web-dialog-scroll`，基于已同步的 `main` @ `82701263`（切分支时 `main` 的提交）。
 - 提交短哈希与标题，按顺序列出。
 - 变更文件清单。
 - 验证结论（跑了什么，结果如何，什么没跑）。
@@ -148,6 +168,8 @@ git merge --ff-only <分支> # 没有快进空间就停下：说明 rebase 没�
 ## 禁止
 
 - 在 `main` 上直接提交本任务的改动（用户明确指示除外）。
+- 在 `main` 与 `origin/main` 不一致时从 `main` 切新分支：落后先快进，领先或分叉停下问用户。
+- 从非 `main` 的分支或提交切本任务分支（用户明确要求接着某个分支做时除外）。
 - `git push`、`git push --force`、`git commit --amend` 已推送的提交、`git reset --hard`。
 - 对 `main` 或他人的分支执行 `git rebase`；对本任务分支 rebase 后强推，除非用户明确同意。
 - 用 `git merge` 把任务分支合进 `main`，包括 `--no-ff`：`main` 只接受 rebase 后的 `--ff-only` 快进。

@@ -2,7 +2,7 @@
 
 本规范适用于 M0 到 M17。各里程碑只写本步新增的约束，通用部分以本文为准。设计见 [../design.md](../design.md)，里程碑顺序见 [../roadmap.md](../roadmap.md)。
 
-每个任务的分支与提交规则见 [../git-workflow.md](../git-workflow.md)：从当前分支位置切出 `<类型>/<kebab-case>` 分支，在分支上开发，完成后只提交到分支，不推送、不合并，由用户决定后续。
+每个任务的分支与提交规则见 [../git-workflow.md](../git-workflow.md)：先把本地 `main` 同步到 `origin/main`，再从 `main` 切出 `<类型>/<kebab-case>` 分支，在分支上开发，完成后只提交到分支，不推送、不合并，由用户决定后续。
 
 ## 仓库与分层
 
