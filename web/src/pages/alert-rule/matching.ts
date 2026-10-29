@@ -1,4 +1,5 @@
 import type { DatasourceItem } from "@/api/datasource/types"
+import type { ProbeTargetGroupItem } from "@/api/probe-target/types"
 import { labelMatchersMatch, type LabelPair } from "@/lib/labels"
 
 /** 解析数据源标签 JSON；无法解析时返回 null，调用方按不匹配处理。 */
@@ -170,4 +171,144 @@ export function ruleLabelKeys(labels: string): string[] {
   } catch {
     return []
   }
+}
+
+// ---- 探测规则：目标组标签匹配 ----
+//
+// 与数据源匹配分开实现：目标组有自己的固定键 probe_group（组名）和自定义标签，
+// 复用 datasource-label-keys.ts 会把两套条件混在一起。
+
+/** 探测规则的系统匹配键：目标组名称由后端在匹配时并入标签。 */
+export const PROBE_GROUP_MATCH_SYSTEM_KEYS = ["probe_group"] as const
+
+function parseProbeLabels(raw: string): Record<string, string> | null {
+  try {
+    const parsed: unknown = JSON.parse(raw || "{}")
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return null
+    }
+    return parsed as Record<string, string>
+  } catch {
+    return null
+  }
+}
+
+/** 目标组参与匹配的标签：自身标签 + probe_group（组名）。 */
+export function probeTargetMatchLabels(
+  item: ProbeTargetGroupItem
+): Record<string, string> | null {
+  const labels = parseProbeLabels(item.labels)
+  if (labels === null) {
+    return null
+  }
+  return { ...labels, probe_group: item.name }
+}
+
+function matchableProbeGroups(
+  groups: ProbeTargetGroupItem[]
+): ProbeTargetGroupItem[] {
+  return groups.filter(
+    (item) => item.driver === "PROBE_HTTP" && item.status === "ACTIVE"
+  )
+}
+
+/** 探测规则可选的匹配键：probe_group 固定在前，其后是启用目标组的自定义标签键。 */
+export function probeTargetMatchKeys(
+  groups: ProbeTargetGroupItem[]
+): string[] {
+  const customKeys = new Set<string>()
+  for (const item of matchableProbeGroups(groups)) {
+    const labels = parseProbeLabels(item.labels)
+    if (labels === null) {
+      continue
+    }
+    for (const rawKey of Object.keys(labels)) {
+      const key = rawKey.trim()
+      if (
+        key !== "" &&
+        !(PROBE_GROUP_MATCH_SYSTEM_KEYS as readonly string[]).includes(key)
+      ) {
+        customKeys.add(key)
+      }
+    }
+  }
+  return [
+    ...PROBE_GROUP_MATCH_SYSTEM_KEYS,
+    ...[...customKeys].sort(compareText),
+  ]
+}
+
+/** 选中匹配键后可以带出的值：probe_group -> 组名，其余键 -> 目标组同名标签值。 */
+export function probeTargetMatchValues(
+  groups: ProbeTargetGroupItem[],
+  key: string
+): string[] {
+  const matchKey = key.trim()
+  if (matchKey === "") {
+    return []
+  }
+  const values = new Set<string>()
+  for (const item of matchableProbeGroups(groups)) {
+    if (matchKey === "probe_group") {
+      if (item.name.trim() !== "") {
+        values.add(item.name)
+      }
+      continue
+    }
+    const labels = parseProbeLabels(item.labels)
+    const value = labels?.[matchKey]
+    if (typeof value === "string" && value.trim() !== "") {
+      values.add(value)
+    }
+  }
+  return [...values].sort(compareText)
+}
+
+/** 规则会命中哪些启用目标组：HTTP 驱动且标签匹配器全部命中。 */
+export function matchedProbeTargetGroups(
+  groups: ProbeTargetGroupItem[],
+  matchers: LabelPair[]
+): ProbeTargetGroupItem[] {
+  return groups.filter((item) => {
+    if (item.driver !== "PROBE_HTTP" || item.status !== "ACTIVE") {
+      return false
+    }
+    const labels = probeTargetMatchLabels(item)
+    return labels !== null && labelMatchersMatch(matchers, labels)
+  })
+}
+
+/** 匹配预览：命中的启用目标组数与启用目标总数。 */
+export function probeTargetMatchPreview(
+  groups: ProbeTargetGroupItem[],
+  matchers: LabelPair[]
+): { groups: number; targets: number } {
+  const matched = matchedProbeTargetGroups(groups, matchers)
+  let targets = 0
+  for (const item of matched) {
+    targets +=
+      item.activeTargetCount > 0
+        ? item.activeTargetCount
+        : (item.targets ?? []).filter((target) => target.status !== "DISABLED")
+            .length
+  }
+  return { groups: matched.length, targets }
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+/** 按组勾选的快捷填充：把选中的组名写成 probe_group 的完整匹配正则。 */
+export function probeGroupNamesMatcher(names: string[]): LabelPair[] {
+  const values = names.map((name) => name.trim()).filter((name) => name !== "")
+  if (values.length === 0) {
+    return []
+  }
+  return [
+    {
+      key: "probe_group",
+      value: values.map(escapeRegExp).join("|"),
+    },
+  ]
 }

@@ -46,6 +46,12 @@ export interface AlertRuleItem {
   description: string
   variables: AlertRuleVariable[]
   levels: AlertRuleLevelItem[]
+  /** 探测规则的目标组标签匹配器 JSON；查询规则为空对象。 */
+  probeGroupLabels: string
+  /** 探测周期秒数；查询规则为 0。 */
+  probeIntervalSeconds: number
+  /** 探测规则比较的观测指标；查询规则为空。 */
+  probeMetric: string
 }
 
 export interface ListAlertRuleGroupsParams {
@@ -88,4 +94,10 @@ export interface SaveAlertRuleParams {
   description?: string
   variables?: AlertRuleVariable[]
   levels: AlertRuleLevelInput[]
+  /** 探测规则的目标组标签匹配器 JSON；查询规则留空。 */
+  probeGroupLabels?: string
+  /** 探测周期秒数，15 / 30 / 60 / 300；查询规则为 0。 */
+  probeIntervalSeconds?: number
+  /** 探测规则比较的观测指标；查询规则留空。 */
+  probeMetric?: string
 }

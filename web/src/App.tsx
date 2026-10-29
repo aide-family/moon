@@ -30,6 +30,7 @@ import { NotificationPresetPage } from "@/pages/notification-template/presets"
 import { OAuthCallbackPage } from "@/pages/oauth-callback"
 import { OverviewPage } from "@/pages/overview"
 import { ProfilePage } from "@/pages/profile"
+import { ProbeTargetPage } from "@/pages/probe-target"
 import { RegisterPage } from "@/pages/register"
 import { RolePage } from "@/pages/role"
 import { SSHCommandPage } from "@/pages/ssh-command"
@@ -58,6 +59,7 @@ export function App() {
         <Route path="/members" element={<MemberPage />} />
         <Route path="/roles" element={<RolePage />} />
         <Route path="/datasources" element={<DatasourcePage />} />
+        <Route path="/probe-targets" element={<ProbeTargetPage />} />
         <Route path="/alert-rules" element={<AlertRulePage />} />
         <Route path="/alert-dictionaries" element={<AlertDictionaryPage />} />
         <Route path="/alert-pages" element={<AlertPageManagePage />} />

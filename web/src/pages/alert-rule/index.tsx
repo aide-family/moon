@@ -24,10 +24,13 @@ import type {
   AlertRuleItem,
   AlertRuleLevelInput,
   AlertRuleVariable,
+  SaveAlertRuleParams,
 } from "@/api/alert-rule/types"
 import { listDatasources } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
 import { ApiError } from "@/api/http"
+import { listProbeTargetGroups } from "@/api/probe-target"
+import type { ProbeTargetGroupItem } from "@/api/probe-target/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -41,6 +44,7 @@ import {
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { SearchableSelect } from "@/components/searchable-select"
 import { ListFrame } from "@/components/list-frame"
+import { MultiSelect } from "@/components/multi-select"
 import { StatusBadge } from "@/components/status-badge"
 import { StepForm } from "@/components/step-form"
 import { TemplateEditor } from "@/components/template-editor"
@@ -76,6 +80,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { enumLabel } from "@/lib/enum-label"
 import {
@@ -97,6 +102,11 @@ import {
   datasourceMatchValues,
   matchDatasourceCount,
   matchedDatasourceUid,
+  matchedProbeTargetGroups,
+  probeGroupNamesMatcher,
+  probeTargetMatchKeys,
+  probeTargetMatchPreview,
+  probeTargetMatchValues,
   ruleLabelKeys,
 } from "./matching"
 import { AlertRuleExpr } from "./rule-expr"
@@ -109,7 +119,12 @@ const drivers = [
   "LOGS_LOKI",
   "LOGS_VLOGS",
   "TRACE_JAEGER",
+  "PROBE_HTTP",
 ]
+// 探测规则：匹配目标组而不是数据源，观测指标与探测周期随规则保存。
+const PROBE_DRIVER = "PROBE_HTTP"
+const probeIntervals = [15, 30, 60, 300]
+const probeMetrics = ["UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS"]
 const conditions = ["EQ", "NE", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN"]
 const samples = ["FOR", "MAX", "MIN"]
 
@@ -165,6 +180,9 @@ interface RuleDraft {
   expr: string
   labels: string
   datasourceLabels: LabelPair[]
+  probeGroupLabels: LabelPair[]
+  probeIntervalSeconds: number
+  probeMetric: string
   summary: string
   description: string
   variables: AlertRuleVariable[]
@@ -185,10 +203,57 @@ const emptyRule: RuleDraft = {
   expr: "",
   labels: "",
   datasourceLabels: [{ key: "", value: "" }],
+  probeGroupLabels: [],
+  probeIntervalSeconds: 30,
+  probeMetric: "UP",
   summary: "",
   description: "",
   variables: [],
   levels: [{ ...emptyLevel }],
+}
+
+/** 列表「观测对象」列：探测规则展示匹配到的目标组与目标数。 */
+function ProbeTargetMatchCell({
+  groups,
+  matchers,
+}: {
+  groups: ProbeTargetGroupItem[]
+  matchers: string
+}) {
+  const { t } = useTranslation()
+  const pairs = parseLabelPairs(matchers)
+  const matched = matchedProbeTargetGroups(groups, pairs)
+  const preview = probeTargetMatchPreview(groups, pairs)
+  if (matched.length === 0) {
+    return (
+      <span className="text-xs text-warning">
+        {t("alertRule.probeNoMatchedGroup")}
+      </span>
+    )
+  }
+  const shown = matched.slice(0, 5)
+  return (
+    <div className="grid gap-1">
+      <div className="flex flex-wrap gap-1">
+        {shown.map((group) => (
+          <StatusBadge
+            key={group.uid}
+            value="PROBE"
+            label={group.name}
+            tone="primary"
+          />
+        ))}
+        {matched.length > shown.length ? (
+          <span className="text-xs text-muted-foreground">
+            +{matched.length - shown.length}
+          </span>
+        ) : null}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {t("alertRule.probeTargetCount", { count: preview.targets })}
+      </p>
+    </div>
+  )
 }
 
 export function AlertRulePage() {
@@ -200,6 +265,8 @@ export function AlertRulePage() {
   const ruleUid = params.get("ruleUid") || ""
   const rulePage = Number(params.get("rulePage") || "1")
   const ruleName = params.get("ruleName") || ""
+  // 类型分段筛选：空 / query / probe。探测规则与查询规则共用告警规则列表。
+  const ruleType = params.get("ruleType") || ""
   const [groupDraft, setGroupDraft] = useState(groupsQuery.name)
   const [ruleDraft, setRuleDraft] = useState(ruleName)
   const [groups, setGroups] = useState<AlertRuleGroupItem[]>([])
@@ -208,6 +275,7 @@ export function AlertRulePage() {
   const [ruleTotal, setRuleTotal] = useState(0)
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [sources, setSources] = useState<DatasourceItem[]>([])
+  const [probeGroups, setProbeGroups] = useState<ProbeTargetGroupItem[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [loadError, setLoadError] = useState("")
@@ -239,6 +307,10 @@ export function AlertRulePage() {
     "disable"
   )
   const canWrite = session.can("alert_rule:write")
+  // 探测规则与查询规则共用表单，按驱动切换匹配区域与判定指标。
+  const isProbe = form.driver === PROBE_DRIVER
+  // 周期换算提示用第一条级别条件的持续秒数（没有条件时为 0，不显示）。
+  const levelForSeconds = form.levels[0]?.forSeconds ?? 0
   // 深链规则打不开时（已删除、无权限）仍然按默认规则组展示列表。
   const deepLinkFailed = ruleUid !== "" && failedRuleUid === ruleUid
   // 表达式编辑器和模板补全共用同一个数据源选择；规则标签会并入评测标签。
@@ -247,7 +319,13 @@ export function AlertRulePage() {
     form.driver,
     form.datasourceLabels
   )
-  const labelKeys = useMemo(() => ruleLabelKeys(form.labels), [form.labels])
+  // 探测事件的标签里有 datasource（目标组名）、probe_target、probe_kind，模板补全要带上。
+  const labelKeys = useMemo(() => {
+    const keys = ruleLabelKeys(form.labels)
+    return isProbe
+      ? [...keys, "datasource", "probe_target", "probe_kind"]
+      : keys
+  }, [form.labels, isProbe])
   // 摘要/描述模板补全用：已声明且格式合法的变量名（空行和非法名字不参与补全）。
   const variableNames = useMemo(
     () =>
@@ -284,6 +362,36 @@ export function AlertRulePage() {
         label: key,
       })),
     [sources, form.driver]
+  )
+  // 探测规则：匹配键 = probe_group + 启用 HTTP 目标组的自定义标签键。
+  const probeMatchKeyOptions = useMemo(
+    () =>
+      probeTargetMatchKeys(probeGroups).map((key) => ({
+        value: key,
+        label: key,
+      })),
+    [probeGroups]
+  )
+  // 「按目标组选择」的当前选中项：由匹配器反推命中的组名，修改后覆盖成 probe_group 正则。
+  const selectedProbeGroupNames = useMemo(
+    () =>
+      matchedProbeTargetGroups(probeGroups, form.probeGroupLabels).map(
+        (item) => item.name
+      ),
+    [probeGroups, form.probeGroupLabels]
+  )
+  const probeMatchPreview = useMemo(
+    () => probeTargetMatchPreview(probeGroups, form.probeGroupLabels),
+    [probeGroups, form.probeGroupLabels]
+  )
+  const probeGroupOptions = useMemo(
+    () =>
+      probeGroups
+        .filter(
+          (item) => item.driver === "PROBE_HTTP" && item.status === "ACTIVE"
+        )
+        .map((item) => ({ value: item.name, label: item.name })),
+    [probeGroups]
   )
 
   function askConfirm(
@@ -344,19 +452,39 @@ export function AlertRulePage() {
         return
       }
       try {
-        const result = await listAlertRules({
-          page: rulePage,
-          pageSize: groupsQuery.pageSize,
-          groupUid,
-          name: ruleName,
-        })
-        if (active) {
-          setRules(result.items ?? [])
-          setRuleTotal(result.total ?? 0)
+        if (!ruleType) {
+          const result = await listAlertRules({
+            page: rulePage,
+            pageSize: groupsQuery.pageSize,
+            groupUid,
+            name: ruleName,
+          })
+          if (active) {
+            setRules(result.items ?? [])
+            setRuleTotal(result.total ?? 0)
+          }
+          return
         }
+        // 列表接口没有 driver 过滤：类型筛选时取回该组全部规则再本地分页，
+        // 保证「全部 / 查询规则 / 探测规则」的数量与分页一致。
+        const all = await loadAllPagedItems((page, pageSize) =>
+          listAlertRules({ page, pageSize, groupUid, name: ruleName })
+        )
+        const filtered = all.filter((item) =>
+          ruleType === "probe"
+            ? item.driver === PROBE_DRIVER
+            : item.driver !== PROBE_DRIVER
+        )
+        if (!active) {
+          return
+        }
+        const start = (rulePage - 1) * groupsQuery.pageSize
+        setRules(filtered.slice(start, start + groupsQuery.pageSize))
+        setRuleTotal(filtered.length)
       } catch {
         if (active) {
           setRules([])
+          setRuleTotal(0)
         }
       }
     }
@@ -368,6 +496,7 @@ export function AlertRulePage() {
     groupUid,
     rulePage,
     ruleName,
+    ruleType,
     groupsQuery.pageSize,
     attempt,
     session.namespaceUid,
@@ -439,23 +568,29 @@ export function AlertRulePage() {
     let active = true
     async function load() {
       try {
-        const [levelResult, sourceResult] = await Promise.all([
-          loadAllPagedItems((page, pageSize) =>
-            listAlertDictionaries({ page, pageSize, type: "ALERT" })
-          ),
-          loadAllPagedItems((page, pageSize) =>
-            listDatasources({ page, pageSize })
-          ),
-        ])
+        const [levelResult, sourceResult, probeGroupResult] =
+          await Promise.all([
+            loadAllPagedItems((page, pageSize) =>
+              listAlertDictionaries({ page, pageSize, type: "ALERT" })
+            ),
+            loadAllPagedItems((page, pageSize) =>
+              listDatasources({ page, pageSize })
+            ),
+            loadAllPagedItems((page, pageSize) =>
+              listProbeTargetGroups({ page, pageSize, driver: "PROBE_HTTP" })
+            ),
+          ])
         if (!active) {
           return
         }
         setLevels(levelResult)
         setSources(sourceResult)
+        setProbeGroups(probeGroupResult)
       } catch {
         if (active) {
           setLevels([])
           setSources([])
+          setProbeGroups([])
         }
       }
     }
@@ -490,6 +625,9 @@ export function AlertRulePage() {
             expr: item.expr,
             labels: item.labels,
             datasourceLabels: parseLabelPairs(item.datasourceLabels),
+            probeGroupLabels: parseLabelPairs(item.probeGroupLabels),
+            probeIntervalSeconds: item.probeIntervalSeconds || 30,
+            probeMetric: item.probeMetric || "UP",
             summary: item.summary,
             description: item.description,
             variables: (item.variables ?? []).map((variable) => ({
@@ -520,6 +658,18 @@ export function AlertRulePage() {
       current === index ? { ...pair, ...patch } : pair
     )
     setForm({ ...form, datasourceLabels })
+  }
+
+  function updateProbeGroupLabel(index: number, patch: Partial<LabelPair>) {
+    const probeGroupLabels = form.probeGroupLabels.map((pair, current) =>
+      current === index ? { ...pair, ...patch } : pair
+    )
+    setForm({ ...form, probeGroupLabels })
+  }
+
+  // 按组勾选是「我就想指定这几个组」的快捷方式：用 probe_group 正则覆盖匹配条件。
+  function selectProbeGroups(names: string[]) {
+    setForm({ ...form, probeGroupLabels: probeGroupNamesMatcher(names) })
   }
 
   function updateVariable(index: number, patch: Partial<AlertRuleVariable>) {
@@ -577,12 +727,16 @@ export function AlertRulePage() {
 
   function validateRuleStep(step: number): FieldErrors {
     if (step === 0) {
-      return collectFieldErrors([
+      const checks: Array<[string, string | null]> = [
         ["name", requireTrimmed(form.name, t("form.required"))],
         ["name", maxLength(form.name, 64, t("form.nameTooLong"))],
         ["driver", requireTrimmed(form.driver, t("form.required"))],
-        ["expr", requireTrimmed(form.expr, t("form.required"))],
-      ])
+      ]
+      // 探测规则没有查询表达式，改为匹配目标组；查询规则仍要求表达式。
+      if (!isProbe) {
+        checks.push(["expr", requireTrimmed(form.expr, t("form.required"))])
+      }
+      return collectFieldErrors(checks)
     }
     if (step === 1) {
       const checks: Array<[string, string | null]> = [
@@ -595,71 +749,82 @@ export function AlertRulePage() {
           maxLength(form.description, 2000, t("alertRule.templateTooLong")),
         ],
       ]
-      if (form.variables.length > maxRuleVariables) {
-        checks.push([
-          "variables",
-          t("alertRule.variableCountExceeded", { max: maxRuleVariables }),
-        ])
-      }
-      // 重名只标后出现的那一行；name 为空时交给 required 报错。
-      const seenNames = new Set<string>()
-      form.variables.forEach((variable, index) => {
-        const name = variable.name.trim()
-        const invalidName = name !== "" && !ruleVariableNamePattern.test(name)
-        const reservedName =
-          name !== "" && reservedRuleVariableNames.has(name)
-        const duplicateName = name !== "" && seenNames.has(name)
-        if (name !== "" && !duplicateName) {
-          seenNames.add(name)
+      // 探测规则隐藏自定义变量，跳过变量相关的全部校验。
+      if (!isProbe) {
+        if (form.variables.length > maxRuleVariables) {
+          checks.push([
+            "variables",
+            t("alertRule.variableCountExceeded", { max: maxRuleVariables }),
+          ])
         }
-        checks.push(
-          [
-            `variable.${index}.name`,
-            requireTrimmed(variable.name, t("form.required")),
-          ],
-          [
-            `variable.${index}.name`,
-            invalidName ? t("alertRule.variableNameInvalid") : null,
-          ],
-          [
-            `variable.${index}.name`,
-            reservedName ? t("alertRule.variableNameReserved") : null,
-          ],
-          [
-            `variable.${index}.name`,
-            duplicateName ? t("alertRule.variableNameDuplicate") : null,
-          ],
-          [
-            `variable.${index}.expr`,
-            requireTrimmed(variable.expr, t("form.required")),
-          ],
-          [
-            `variable.${index}.expr`,
-            maxLength(
-              variable.expr,
-              ruleVariableExprMax,
-              t("alertRule.variableExprTooLong", { max: ruleVariableExprMax })
-            ),
-          ],
-          [
-            `variable.${index}.description`,
-            maxLength(
-              variable.description,
-              ruleVariableDescriptionMax,
-              t("alertRule.variableDescriptionTooLong", {
-                max: ruleVariableDescriptionMax,
-              })
-            ),
-          ]
-        )
-      })
+        // 重名只标后出现的那一行；name 为空时交给 required 报错。
+        const seenNames = new Set<string>()
+        form.variables.forEach((variable, index) => {
+          const name = variable.name.trim()
+          const invalidName =
+            name !== "" && !ruleVariableNamePattern.test(name)
+          const reservedName =
+            name !== "" && reservedRuleVariableNames.has(name)
+          const duplicateName = name !== "" && seenNames.has(name)
+          if (name !== "" && !duplicateName) {
+            seenNames.add(name)
+          }
+          checks.push(
+            [
+              `variable.${index}.name`,
+              requireTrimmed(variable.name, t("form.required")),
+            ],
+            [
+              `variable.${index}.name`,
+              invalidName ? t("alertRule.variableNameInvalid") : null,
+            ],
+            [
+              `variable.${index}.name`,
+              reservedName ? t("alertRule.variableNameReserved") : null,
+            ],
+            [
+              `variable.${index}.name`,
+              duplicateName ? t("alertRule.variableNameDuplicate") : null,
+            ],
+            [
+              `variable.${index}.expr`,
+              requireTrimmed(variable.expr, t("form.required")),
+            ],
+            [
+              `variable.${index}.expr`,
+              maxLength(
+                variable.expr,
+                ruleVariableExprMax,
+                t("alertRule.variableExprTooLong", {
+                  max: ruleVariableExprMax,
+                })
+              ),
+            ],
+            [
+              `variable.${index}.description`,
+              maxLength(
+                variable.description,
+                ruleVariableDescriptionMax,
+                t("alertRule.variableDescriptionTooLong", {
+                  max: ruleVariableDescriptionMax,
+                })
+              ),
+            ]
+          )
+        })
+      }
       return collectFieldErrors(checks)
     }
     if (step === 2) {
-      if (form.levels.length === 0) {
-        return { levels: t("form.required") }
-      }
       const checks: Array<[string, string | null]> = []
+      // 探测规则必须选择观测指标；查询规则的指标由表达式隐式决定。
+      if (isProbe && !probeMetrics.includes(form.probeMetric)) {
+        checks.push(["probeMetric", t("alertRule.probeMetricRequired")])
+      }
+      if (form.levels.length === 0) {
+        checks.push(["levels", t("form.required")])
+        return collectFieldErrors(checks)
+      }
       form.levels.forEach((level, index) => {
         checks.push(
           [
@@ -742,16 +907,31 @@ export function AlertRulePage() {
     setError("")
     setFieldErrors({})
     try {
-      const body = {
-        ...form,
-        name: form.name.trim(),
+      // 探测规则忽略查询侧的表达式 / 数据源匹配 / 自定义变量，保存时归一为空。
+      const body: SaveAlertRuleParams = {
         groupUid,
-        datasourceLabels: serializeLabelPairs(form.datasourceLabels),
-        variables: form.variables.map((variable) => ({
-          name: variable.name.trim(),
-          expr: variable.expr.trim(),
-          description: variable.description.trim(),
-        })),
+        name: form.name.trim(),
+        driver: form.driver,
+        labels: form.labels,
+        summary: form.summary,
+        description: form.description,
+        levels: form.levels,
+        expr: isProbe ? "" : form.expr,
+        datasourceLabels: isProbe
+          ? ""
+          : serializeLabelPairs(form.datasourceLabels),
+        variables: isProbe
+          ? []
+          : form.variables.map((variable) => ({
+              name: variable.name.trim(),
+              expr: variable.expr.trim(),
+              description: variable.description.trim(),
+            })),
+        probeGroupLabels: isProbe
+          ? serializeLabelPairs(form.probeGroupLabels)
+          : "",
+        probeIntervalSeconds: isProbe ? form.probeIntervalSeconds : 0,
+        probeMetric: isProbe ? form.probeMetric : "",
       }
       if (editingRule) {
         await updateAlertRule({ ...body, uid: editingRule.uid })
@@ -1033,9 +1213,38 @@ export function AlertRulePage() {
                   {t("action.search")}
                 </Button>
               </form>
-              {canWrite ? (
-                <Button onClick={() => openRule()}>{t("action.create")}</Button>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-2">
+                <Tabs
+                  value={ruleType || "all"}
+                  onValueChange={(value) => {
+                    const next = new URLSearchParams(params)
+                    if (value === "all") {
+                      next.delete("ruleType")
+                    } else {
+                      next.set("ruleType", value)
+                    }
+                    next.set("rulePage", "1")
+                    setParams(next)
+                  }}
+                >
+                  <TabsList aria-label={t("alertRule.observation")}>
+                    <TabsTrigger value="all">
+                      {t("alertRule.ruleTypeAll")}
+                    </TabsTrigger>
+                    <TabsTrigger value="query">
+                      {t("alertRule.ruleTypeQuery")}
+                    </TabsTrigger>
+                    <TabsTrigger value="probe">
+                      {t("alertRule.ruleTypeProbe")}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                {canWrite ? (
+                  <Button onClick={() => openRule()}>
+                    {t("action.create")}
+                  </Button>
+                ) : null}
+              </div>
             </div>
           ) : null}
           <ListFrame
@@ -1058,7 +1267,7 @@ export function AlertRulePage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("alertRule.name")}</TableHead>
-                    <TableHead>{t("datasource.expr")}</TableHead>
+                    <TableHead>{t("alertRule.observation")}</TableHead>
                     <TableHead>{t("datasource.driver")}</TableHead>
                     <TableStatusHead>{t("namespace.status")}</TableStatusHead>
                     <TableActionsHead>{t("action.actions")}</TableActionsHead>
@@ -1069,11 +1278,18 @@ export function AlertRulePage() {
                     <TableRow key={item.uid}>
                       <TableCell>{item.name}</TableCell>
                       <TableCell className="max-w-[28rem] min-w-[16rem] align-top">
-                        <AlertRuleExpr
-                          expr={item.expr}
-                          levels={item.levels}
-                          maxHeightClass="max-h-24"
-                        />
+                        {item.driver === PROBE_DRIVER ? (
+                          <ProbeTargetMatchCell
+                            groups={probeGroups}
+                            matchers={item.probeGroupLabels}
+                          />
+                        ) : (
+                          <AlertRuleExpr
+                            expr={item.expr}
+                            levels={item.levels}
+                            maxHeightClass="max-h-24"
+                          />
+                        )}
                       </TableCell>
                       <TableCell><StatusBadge value={item.driver} /></TableCell>
                       <TableCell><StatusBadge value={item.status} /></TableCell>
@@ -1184,14 +1400,21 @@ export function AlertRulePage() {
                       if (value === form.driver) {
                         return
                       }
-                      // 切换驱动后旧匹配键/值可能不再被任何数据源上报，继续保留会保存出永不命中的条件。
-                      const clearsMatchers = form.datasourceLabels.length > 0
+                      // 切换驱动后旧匹配键/值可能不再被任何数据源或目标组上报，继续保留会保存出永不命中的条件。
+                      const nextIsProbe = value === PROBE_DRIVER
+                      const clearsMatchers =
+                        form.datasourceLabels.length > 0 ||
+                        form.probeGroupLabels.length > 0
                       setForm({
                         ...form,
                         driver: value,
-                        datasourceLabels: clearsMatchers
-                          ? []
-                          : form.datasourceLabels,
+                        datasourceLabels:
+                          nextIsProbe || form.datasourceLabels.length > 0
+                            ? []
+                            : form.datasourceLabels,
+                        probeGroupLabels: nextIsProbe
+                          ? form.probeGroupLabels
+                          : [],
                       })
                       if (clearsMatchers) {
                         toast(t("alertRule.datasourceLabelsCleared"))
@@ -1212,6 +1435,205 @@ export function AlertRulePage() {
                     </SelectContent>
                   </Select>
                 </FormField>
+                {isProbe ? (
+                  <div className="grid min-w-0 gap-2 sm:col-span-full">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium">
+                        {t("alertRule.probeGroupLabels")}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setForm({
+                            ...form,
+                            probeGroupLabels: [
+                              ...form.probeGroupLabels,
+                              { key: "", value: "" },
+                            ],
+                          })
+                        }
+                      >
+                        {t("alertRule.addProbeGroupLabel")}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("alertRule.probeGroupLabelsHint")}
+                    </p>
+                    {form.probeGroupLabels.map((pair, index) => {
+                      // 编辑旧规则时，历史键/值可能已不在当前候选里；保留为可选项，保存时不会丢数据。
+                      const keyOptions =
+                        pair.key === "" ||
+                        probeMatchKeyOptions.some(
+                          (option) => option.value === pair.key
+                        )
+                          ? probeMatchKeyOptions
+                          : [
+                              ...probeMatchKeyOptions,
+                              { value: pair.key, label: pair.key },
+                            ]
+                      const values = probeTargetMatchValues(
+                        probeGroups,
+                        pair.key
+                      )
+                      const valueOptions = values.map((value) => ({
+                        value,
+                        label: value,
+                      }))
+                      if (pair.value !== "" && !values.includes(pair.value)) {
+                        valueOptions.push({
+                          value: pair.value,
+                          label: pair.value,
+                        })
+                      }
+                      return (
+                        <div key={index} className="grid gap-2 sm:grid-cols-2">
+                          <SearchableSelect
+                            ariaLabel={t("alertRule.probeGroupLabelKeyAria")}
+                            value={pair.key}
+                            options={keyOptions}
+                            placeholder={t(
+                              "alertRule.probeGroupLabelKeyPlaceholder"
+                            )}
+                            searchPlaceholder={t(
+                              "alertRule.probeGroupLabelKeySearch"
+                            )}
+                            emptyText={t("alertRule.probeGroupLabelKeyEmpty")}
+                            clearLabel={t("alertRule.probeGroupLabelClear")}
+                            onChange={(key) => {
+                              if (key === pair.key) {
+                                return
+                              }
+                              const nextValues = probeTargetMatchValues(
+                                probeGroups,
+                                key
+                              )
+                              updateProbeGroupLabel(index, {
+                                key,
+                                value: nextValues.includes(pair.value)
+                                  ? pair.value
+                                  : "",
+                              })
+                            }}
+                          />
+                          <SearchableSelect
+                            ariaLabel={t("alertRule.probeGroupLabelValueAria")}
+                            value={pair.value}
+                            options={valueOptions}
+                            allowCustom
+                            customLabel={(value) =>
+                              t("alertRule.probeGroupLabelCustomValue", {
+                                value,
+                              })
+                            }
+                            customHint={t(
+                              "alertRule.probeGroupLabelCustomHint"
+                            )}
+                            placeholder={t(
+                              "alertRule.probeGroupLabelValuePlaceholder"
+                            )}
+                            searchPlaceholder={t(
+                              "alertRule.probeGroupLabelValueSearch"
+                            )}
+                            emptyText={t(
+                              "alertRule.probeGroupLabelValueEmpty"
+                            )}
+                            clearLabel={t("alertRule.probeGroupLabelClear")}
+                            onChange={(value) =>
+                              updateProbeGroupLabel(index, { value })
+                            }
+                          />
+                        </div>
+                      )
+                    })}
+                    <div className="grid gap-2 rounded-lg border bg-muted/10 p-3">
+                      <div className="grid gap-1">
+                        <span className="text-sm font-medium">
+                          {t("alertRule.probeGroupSelect")}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("alertRule.probeGroupSelectHint")}
+                        </span>
+                      </div>
+                      <MultiSelect
+                        values={selectedProbeGroupNames}
+                        options={probeGroupOptions}
+                        onChange={selectProbeGroups}
+                        placeholder={t(
+                          "alertRule.probeGroupSelectPlaceholder"
+                        )}
+                        searchPlaceholder={t("multiSelect.searchPlaceholder")}
+                        emptyText={t("alertRule.probeGroupSelectEmpty")}
+                        allLabel={t("multiSelect.all")}
+                        clearLabel={t("alertRule.probeGroupSelectClear")}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("alertRule.probeMatchPreview", {
+                        groups: probeMatchPreview.groups,
+                        targets: probeMatchPreview.targets,
+                      })}
+                    </p>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <FormField
+                        label={t("alertRule.probeInterval")}
+                        hint={t("alertRule.probeIntervalHint")}
+                      >
+                        <Select
+                          value={String(form.probeIntervalSeconds)}
+                          onValueChange={(value) =>
+                            setForm({
+                              ...form,
+                              probeIntervalSeconds: Number(value),
+                            })
+                          }
+                        >
+                          <SelectTrigger
+                            aria-label={t("alertRule.probeInterval")}
+                          >
+                            <SelectValue
+                              placeholder={t("alertRule.probeInterval")}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {probeIntervals.map((seconds) => (
+                              <SelectItem
+                                key={seconds}
+                                value={String(seconds)}
+                              >
+                                {t("alertRule.probeIntervalValue", {
+                                  seconds,
+                                })}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormField>
+                      <FormField
+                        label={t("alertRule.probeExecutor")}
+                        hint={t("alertRule.probeExecutorHint")}
+                      >
+                        <div className="flex h-8 items-center rounded-md border border-input bg-muted/40 px-2.5 text-sm text-muted-foreground">
+                          {t("alertRule.probeExecutorCluster")}
+                        </div>
+                      </FormField>
+                    </div>
+                    {levelForSeconds > 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        {t("alertRule.probeIntervalForHint", {
+                          seconds: levelForSeconds,
+                          count: Math.max(
+                            1,
+                            Math.round(
+                              levelForSeconds / (form.probeIntervalSeconds || 30)
+                            )
+                          ),
+                        })}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
                 <div className="grid gap-2 sm:col-span-full">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium">
@@ -1330,6 +1752,8 @@ export function AlertRulePage() {
                     })}
                   </p>
                 </div>
+                )}
+                {!isProbe ? (
                 <FormField
                   label={t("datasource.expr")}
                   htmlFor="rule-expr"
@@ -1373,6 +1797,7 @@ export function AlertRulePage() {
                     />
                   )}
                 </FormField>
+                ) : null}
                 <FormField
                   label={t("alertRule.labels")}
                   htmlFor="rule-labels"
@@ -1434,6 +1859,16 @@ export function AlertRulePage() {
                     }
                   />
                 </FormField>
+                {isProbe ? (
+                  <div className="grid gap-2 rounded-lg border border-dashed p-3 sm:col-span-full">
+                    <p className="text-sm text-muted-foreground">
+                      {t("alertRule.probeNoVariables")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("alertRule.probeDatasourceHint")}
+                    </p>
+                  </div>
+                ) : (
                 <div className="grid min-w-0 gap-2 sm:col-span-full">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium">
@@ -1567,10 +2002,40 @@ export function AlertRulePage() {
                     </div>
                   ))}
                 </div>
+                )}
               </>
             ) : null}
             {formStep === 2 ? (
               <>
+                {isProbe ? (
+                  <FormField
+                    label={t("alertRule.probeMetric")}
+                    hint={t("alertRule.probeMetricHint")}
+                    className="sm:col-span-full"
+                    required
+                    error={fieldErrors.probeMetric}
+                  >
+                    <Select
+                      value={form.probeMetric}
+                      onValueChange={(value) =>
+                        setForm({ ...form, probeMetric: value })
+                      }
+                    >
+                      <SelectTrigger aria-label={t("alertRule.probeMetric")}>
+                        <SelectValue
+                          placeholder={t("alertRule.probeMetric")}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {probeMetrics.map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {enumLabel(t, item)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                ) : null}
                 <FormField
                   label={t("alertRule.levels")}
                   hint={t("alertRule.levelsHint")}
@@ -1776,6 +2241,7 @@ export function AlertRulePage() {
         detail={detail}
         groups={groups}
         sources={sources}
+        probeGroups={probeGroups}
         onOpenChange={(value) => {
           if (!value) {
             setDetail(null)

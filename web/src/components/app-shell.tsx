@@ -18,6 +18,7 @@ import {
   Server,
   Settings,
   Shield,
+  Target,
   Terminal,
   UserRound,
   Users,
@@ -148,6 +149,12 @@ const alertLinks: {
     label: "nav.datasources",
     permission: "datasource:read",
     icon: Database,
+  },
+  {
+    to: "/probe-targets",
+    label: "nav.probeTargets",
+    permission: "probe:read",
+    icon: Target,
   },
   {
     to: "/alert-rules",

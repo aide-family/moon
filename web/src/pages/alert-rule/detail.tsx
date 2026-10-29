@@ -3,13 +3,19 @@ import { useTranslation } from "react-i18next"
 
 import type { AlertRuleGroupItem, AlertRuleItem } from "@/api/alert-rule/types"
 import type { DatasourceItem } from "@/api/datasource/types"
+import type { ProbeTargetGroupItem } from "@/api/probe-target/types"
 import { CodeBlock } from "@/components/code-block"
 import { DetailSheet } from "@/components/detail-sheet"
 import { LabelTags } from "@/components/label-tags"
 import { StatusBadge } from "@/components/status-badge"
+import { enumLabel } from "@/lib/enum-label"
 import { parseLabelPairs } from "@/lib/labels"
 
-import { matchedDatasources } from "./matching"
+import {
+  matchedDatasources,
+  matchedProbeTargetGroups,
+  probeTargetMatchPreview,
+} from "./matching"
 import { AlertRuleExpr } from "./rule-expr"
 
 interface DetailField {
@@ -22,17 +28,20 @@ interface AlertRuleDetailSheetProps {
   detail: AlertRuleItem | null
   groups: AlertRuleGroupItem[]
   sources: DatasourceItem[]
+  probeGroups: ProbeTargetGroupItem[]
   onOpenChange: (open: boolean) => void
 }
 
 /**
  * 告警规则详情抽屉：数据源范围、规则标签、摘要/描述模板和级别条件都来自
  * 已加载的规则项，规则组名称和匹配数据源由页面传入的列表补充，避免详情再发请求。
+ * 探测规则把「数据源范围」换成目标组范围与探测周期 / 观测指标。
  */
 export function AlertRuleDetailSheet({
   detail,
   groups,
   sources,
+  probeGroups,
   onOpenChange,
 }: AlertRuleDetailSheetProps) {
   const { t } = useTranslation()
@@ -42,9 +51,7 @@ export function AlertRuleDetailSheet({
     const groupName =
       groups.find((item) => item.uid === detail.groupUid)?.name ||
       detail.groupUid
-    const matchers = parseLabelPairs(detail.datasourceLabels)
-    const hasMatchers = matchers.some((pair) => pair.key.trim() !== "")
-    const matched = matchedDatasources(sources, detail.driver, matchers)
+    const isProbe = detail.driver === "PROBE_HTTP"
 
     fields.push(
       { label: t("alertRule.group"), value: groupName },
@@ -56,35 +63,96 @@ export function AlertRuleDetailSheet({
       {
         label: t("namespace.status"),
         value: <StatusBadge value={detail.status} />,
-      },
-      {
-        label: t("alertRule.datasourceLabels"),
-        value: hasMatchers ? (
-          <LabelTags labels={detail.datasourceLabels} />
-        ) : (
-          t("alertRule.detail.allDatasources")
-        ),
-        span: 2,
-      },
-      {
-        label: t("alertRule.detail.matchedDatasources"),
-        value:
-          matched.length > 0 ? (
-            <span className="grid gap-1">
-              <span>
-                {t("alertRule.detail.matchedCount", { count: matched.length })}
-              </span>
-              <span className="break-words text-muted-foreground">
-                {matched.map((item) => item.name).join("、")}
-              </span>
-            </span>
+      }
+    )
+
+    if (isProbe) {
+      const matchers = parseLabelPairs(detail.probeGroupLabels)
+      const hasMatchers = matchers.some((pair) => pair.key.trim() !== "")
+      const matched = matchedProbeTargetGroups(probeGroups, matchers)
+      const preview = probeTargetMatchPreview(probeGroups, matchers)
+      fields.push(
+        {
+          label: t("alertRule.probeGroupLabels"),
+          value: hasMatchers ? (
+            <LabelTags labels={detail.probeGroupLabels} />
           ) : (
-            <span className="text-muted-foreground">
-              {t("alertRule.detail.noDatasource")}
-            </span>
+            t("alertRule.probeGroupAll")
           ),
-        span: 2,
-      },
+          span: 2,
+        },
+        {
+          label: t("alertRule.observation"),
+          value:
+            matched.length > 0 ? (
+              <span className="grid gap-1">
+                <span>
+                  {t("alertRule.probeMatchPreview", {
+                    groups: matched.length,
+                    targets: preview.targets,
+                  })}
+                </span>
+                <span className="break-words text-muted-foreground">
+                  {matched.map((item) => item.name).join("、")}
+                </span>
+              </span>
+            ) : (
+              <span className="text-muted-foreground">
+                {t("alertRule.probeNoMatchedGroup")}
+              </span>
+            ),
+          span: 2,
+        },
+        {
+          label: t("alertRule.probeInterval"),
+          value: t("alertRule.probeIntervalValue", {
+            seconds: detail.probeIntervalSeconds,
+          }),
+        },
+        {
+          label: t("alertRule.probeMetric"),
+          value: enumLabel(t, detail.probeMetric) || "—",
+        }
+      )
+    } else {
+      const matchers = parseLabelPairs(detail.datasourceLabels)
+      const hasMatchers = matchers.some((pair) => pair.key.trim() !== "")
+      const matched = matchedDatasources(sources, detail.driver, matchers)
+      fields.push(
+        {
+          label: t("alertRule.datasourceLabels"),
+          value: hasMatchers ? (
+            <LabelTags labels={detail.datasourceLabels} />
+          ) : (
+            t("alertRule.detail.allDatasources")
+          ),
+          span: 2,
+        },
+        {
+          label: t("alertRule.detail.matchedDatasources"),
+          value:
+            matched.length > 0 ? (
+              <span className="grid gap-1">
+                <span>
+                  {t("alertRule.detail.matchedCount", {
+                    count: matched.length,
+                  })}
+                </span>
+                <span className="break-words text-muted-foreground">
+                  {matched.map((item) => item.name).join("、")}
+                </span>
+              </span>
+            ) : (
+              <span className="text-muted-foreground">
+                {t("alertRule.detail.noDatasource")}
+              </span>
+            ),
+          span: 2,
+        }
+      )
+    }
+
+    fields.push(
       {
         label: t("alertRule.labels"),
         value: <LabelTags labels={detail.labels} />,
@@ -159,7 +227,12 @@ export function AlertRuleDetailSheet({
       label: t("alertRule.levels"),
       value: (
         <AlertRuleExpr
-          expr={detail.expr}
+          // 探测规则没有表达式，用观测指标代替表达式位置，再展示级别条件。
+          expr={
+            isProbe
+              ? enumLabel(t, detail.probeMetric) || "—"
+              : detail.expr
+          }
           levels={detail.levels}
           maxHeightClass="max-h-96"
         />
