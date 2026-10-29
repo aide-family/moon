@@ -22,7 +22,7 @@ func (FeaturePackage) Fields() []ent.Field {
 		field.String("uid").NotEmpty().Immutable(),
 		// 套餐名称在未删除记录上唯一。
 		field.String("name").NotEmpty(),
-		field.String("remark").MaxLen(5000).Default(""),
+		field.String("remark").MaxRuneLen(5000).Default(""),
 		// 基础套餐是新租户的默认套餐，只能有一个：改名和删除都被禁止，功能与备注可改。
 		field.Bool("is_base").Default(false),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
