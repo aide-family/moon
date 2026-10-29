@@ -26,6 +26,13 @@ type EvalGateway interface {
 	ReportStatus(ctx context.Context, status bo.WorkerStatus) error
 }
 
+// ProbeGateway 领取探测任务并回写结果。与评测共用同一个 alioth 服务与 service key。
+type ProbeGateway interface {
+	ClaimProbeTasks(ctx context.Context, kind string) ([]bo.ProbeTask, error)
+	ReportProbeResults(ctx context.Context, report bo.ProbeReport) error
+	ReportStatus(ctx context.Context, status bo.WorkerStatus) error
+}
+
 // RangeQuery 向指标数据源查询区间数据。
 type RangeQuery interface {
 	QueryRange(ctx context.Context, item bo.RuleSnapshot, start, end, step int64) ([]bo.Sample, error)

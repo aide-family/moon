@@ -9,7 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/healthcheck"
 )
 
-var ProviderSet = wire.NewSet(NewLocker, NewGateway, NewRangeQuery, NewReadinessChecker)
+var ProviderSet = wire.NewSet(NewLocker, NewGateway, NewProbeGateway, NewRangeQuery, NewReadinessChecker)
 
 // NewReadinessChecker 只探测 Redis：megrez 通过 gRPC 访问控制面，不直连 PostgreSQL。
 func NewReadinessChecker(locker repository.Locker) healthcheck.Checker {

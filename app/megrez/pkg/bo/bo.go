@@ -122,3 +122,77 @@ type Point struct {
 	Value float64
 	Raw   string
 }
+
+// 探测任务：一个规则在一个目标组上、本轮要探测的目标。
+type ProbeTask struct {
+	Rule    ProbeRule
+	Group   ProbeGroup
+	Targets []ProbeTarget
+	Slot    time.Time
+}
+
+// ProbeRule 是探测任务的规则快照。
+type ProbeRule struct {
+	UID                  string
+	NamespaceUID         string
+	Name                 string
+	Driver               string
+	ProbeMetric          string
+	ProbeIntervalSeconds int
+	Labels               string
+	Summary              string
+	Description          string
+	Levels               []Level
+}
+
+// ProbeGroup 是探测任务的目标组快照。
+type ProbeGroup struct {
+	UID     string
+	Name    string
+	Labels  string
+	Request ProbeRequest
+}
+
+// ProbeRequest 是组内地址共用的请求参数。
+type ProbeRequest struct {
+	Method          string
+	ExpectStatus    string
+	TimeoutMS       int
+	FollowRedirects bool
+	SkipTLSVerify   bool
+	VerifyCert      bool
+	Headers         map[string]string
+	BodyKeyword     string
+}
+
+// ProbeTarget 是一个待探测地址。
+type ProbeTarget struct {
+	UID    string
+	Spec   string
+	Labels string
+}
+
+// ProbeResult 是单个目标的探测结果。
+type ProbeResult struct {
+	TargetUID    string
+	OK           bool
+	Value        string
+	DurationMS   int
+	StatusCode   int
+	ErrorKind    string
+	ErrorMessage string
+	DNSMS        int
+	TCPMS        int
+	TLSMS        int
+	TTFBMS       int
+	CertDays     int
+	ResolvedIP   string
+	Executor     string
+}
+
+// ProbeReport 是一次回写。
+type ProbeReport struct {
+	RuleUID string
+	Slot    time.Time
+	Results []ProbeResult
+}

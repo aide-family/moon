@@ -7,16 +7,15 @@
 package main
 
 import (
-	"log/slog"
-
-	"github.com/go-kratos/kratos/v3"
-
 	"github.com/aide-family/moon/app/megrez/internal/biz"
 	"github.com/aide-family/moon/app/megrez/internal/biz/eval"
+	"github.com/aide-family/moon/app/megrez/internal/biz/probe"
 	"github.com/aide-family/moon/app/megrez/internal/conf"
 	"github.com/aide-family/moon/app/megrez/internal/data"
 	"github.com/aide-family/moon/app/megrez/internal/server"
 	"github.com/aide-family/moon/app/megrez/internal/service"
+	"github.com/go-kratos/kratos/v3"
+	"log/slog"
 )
 
 // Injectors from wire.go:
@@ -41,8 +40,16 @@ func wireApp(confServer *conf.Server, alioth *conf.Alioth, redis *conf.Redis, lo
 	}
 	rangeQuery := data.NewRangeQuery()
 	worker := eval.NewWorker(evalGateway, locker, rangeQuery, logger)
-	app := newApp(logger, httpServer, worker)
+	probeGateway, cleanup3, err := data.NewProbeGateway(alioth)
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	probeWorker := probe.NewWorker(probeGateway, locker, logger)
+	app := newApp(logger, httpServer, worker, probeWorker)
 	return app, func() {
+		cleanup3()
 		cleanup2()
 		cleanup()
 	}, nil

@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/aide-family/moon/app/megrez/internal/biz/eval"
+	"github.com/aide-family/moon/app/megrez/internal/biz/probe"
 	"github.com/aide-family/moon/app/megrez/internal/conf"
 	"github.com/aide-family/moon/pkg/bootstrap"
 )
@@ -67,11 +68,11 @@ func serve(confPath string) error {
 	return app.Run()
 }
 
-func newApp(logger *slog.Logger, httpServer *http.Server, worker *eval.Worker) *kratos.App {
+func newApp(logger *slog.Logger, httpServer *http.Server, worker *eval.Worker, probeWorker *probe.Worker) *kratos.App {
 	return kratos.New(
 		kratos.Name("megrez"),
 		kratos.Logger(logger),
-		kratos.Server(httpServer, worker),
+		kratos.Server(httpServer, worker, probeWorker),
 		kratos.StopTimeout(10*time.Second),
 	)
 }

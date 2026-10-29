@@ -6,10 +6,11 @@ import (
 	"github.com/google/wire"
 
 	"github.com/aide-family/moon/app/megrez/internal/biz/eval"
+	"github.com/aide-family/moon/app/megrez/internal/biz/probe"
 	"github.com/aide-family/moon/pkg/healthcheck"
 )
 
-var ProviderSet = wire.NewSet(NewHealthProber, eval.ProviderSet)
+var ProviderSet = wire.NewSet(NewHealthProber, eval.ProviderSet, probe.ProviderSet)
 
 // HealthProber 提供 liveness 与 readiness 两个视角。
 // megrez 不连业务库，readiness 只检查 Redis（评测锁）是否可用。
