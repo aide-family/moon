@@ -10,6 +10,7 @@ message Bootstrap {
   Server server = 1;
   Alioth alioth = 2;
   Redis redis = 3;
+  Probe probe = 4;
 }
 
 message Server {
@@ -35,4 +36,15 @@ message Redis {
   string addr = 1;
   // 密码。
   string password = 2;
+}
+
+// 探测执行器配置。一期只有 HTTP 探测，关闭后不再领取探测任务，
+// 不影响指标与日志评测。
+message Probe {
+  // 是否启用探测 worker。
+  bool enabled = 1;
+  // 轮询周期。
+  google.protobuf.Duration poll_interval = 2;
+  // 单目标最大超时毫秒数，覆盖目标组里配置过大的值。
+  int32 max_timeout_ms = 3;
 }

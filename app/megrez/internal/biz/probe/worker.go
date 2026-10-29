@@ -14,6 +14,7 @@ import (
 	"github.com/google/wire"
 	"github.com/robfig/cron/v3"
 
+	"github.com/aide-family/moon/app/megrez/internal/conf"
 	"github.com/aide-family/moon/app/megrez/internal/data/repository"
 	"github.com/aide-family/moon/app/megrez/pkg/bo"
 	"github.com/aide-family/moon/pkg/lock"
@@ -54,23 +55,40 @@ type Worker struct {
 	taskName      string
 	taskStartedAt time.Time
 
+	enabled      bool
+	maxTimeoutMS int
+
 	cancel context.CancelFunc
 	done   chan struct{}
 }
 
-func NewWorker(gateway repository.ProbeGateway, locks repository.Locker, logger *slog.Logger) *Worker {
+func NewWorker(gateway repository.ProbeGateway, locks repository.Locker, cfg *conf.Probe, logger *slog.Logger) *Worker {
 	hostname, err := os.Hostname()
 	if err != nil || hostname == "" {
 		hostname = "unknown"
 	}
 	instanceUID := fmt.Sprintf("%s-%d-probe-%d", hostname, os.Getpid(), time.Now().UnixNano())
-	return &Worker{
+	worker := &Worker{
 		gateway: gateway, locks: locks, log: logger, now: time.Now,
 		gate: pkgworker.NewGate(pollEvery, backoffMax), instanceUID: instanceUID, hostname: hostname,
+		enabled: true, maxTimeoutMS: 0,
 	}
+	if cfg != nil {
+		// 未显式配置时按启用处理；配了 enabled=false 才关闭。
+		worker.enabled = cfg.GetEnabled()
+		worker.maxTimeoutMS = int(cfg.GetMaxTimeoutMs())
+		if worker.maxTimeoutMS <= 0 {
+			worker.maxTimeoutMS = 30000
+		}
+	}
+	return worker
 }
 
 func (w *Worker) Start(context.Context) error {
+	if !w.enabled {
+		w.log.Info("probe worker disabled")
+		return nil
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	w.cancel = cancel
 	w.done = make(chan struct{})
@@ -224,7 +242,7 @@ func (w *Worker) runTask(ctx context.Context, task bo.ProbeTask) error {
 			}
 			return err
 		}
-		result := execute(ctx, task.Group, target, task.Rule.ProbeMetric)
+		result := execute(ctx, task.Group, target, task.Rule.ProbeMetric, w.maxTimeoutMS)
 		result.Executor = w.hostname
 		results = append(results, result)
 		_ = hold.Release(context.Background())

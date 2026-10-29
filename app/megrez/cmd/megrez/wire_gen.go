@@ -20,7 +20,7 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp(confServer *conf.Server, alioth *conf.Alioth, redis *conf.Redis, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, alioth *conf.Alioth, redis *conf.Redis, confProbe *conf.Probe, logger *slog.Logger) (*kratos.App, func(), error) {
 	locker, cleanup, err := data.NewLocker(redis, logger)
 	if err != nil {
 		return nil, nil, err
@@ -46,7 +46,7 @@ func wireApp(confServer *conf.Server, alioth *conf.Alioth, redis *conf.Redis, lo
 		cleanup()
 		return nil, nil, err
 	}
-	probeWorker := probe.NewWorker(probeGateway, locker, logger)
+	probeWorker := probe.NewWorker(probeGateway, locker, confProbe, logger)
 	app := newApp(logger, httpServer, worker, probeWorker)
 	return app, func() {
 		cleanup3()

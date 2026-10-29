@@ -15,6 +15,6 @@ import (
 	"github.com/aide-family/moon/app/megrez/internal/service"
 )
 
-func wireApp(*conf.Server, *conf.Alioth, *conf.Redis, *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(*conf.Server, *conf.Alioth, *conf.Redis, *conf.Probe, *slog.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(server.ProviderSet, data.ProviderSet, biz.ProviderSet, service.ProviderSet, newApp))
 }

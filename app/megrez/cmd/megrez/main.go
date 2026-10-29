@@ -60,7 +60,7 @@ func serve(confPath string) error {
 		log.WithFormat(log.FormatJSON),
 		log.WithAddSource(true),
 	)).With(slog.String("service", "megrez"))
-	app, cleanup, err := wireApp(cfg.Server, cfg.Alioth, cfg.Redis, logger)
+	app, cleanup, err := wireApp(cfg.Server, cfg.Alioth, cfg.Redis, cfg.Probe, logger)
 	if err != nil {
 		return err
 	}

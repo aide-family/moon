@@ -9,3 +9,9 @@ alioth:
 redis:
   addr: ${REDIS_ADDR:127.0.0.1:6379}
   password: ${REDIS_PASSWORD:}
+
+# 探测执行器：一期只有 HTTP 探测。关闭后不再领取探测任务，评测不受影响。
+probe:
+  enabled: ${MEGREZ_PROBE_ENABLED:true}
+  poll_interval: 5s
+  max_timeout_ms: 30000

@@ -11,7 +11,7 @@ import (
 
 // execute 执行一次 HTTP 探测，并把结果转成回写结构。观测值按规则选择的指标取，
 // 判定仍然发生在玉衡：执行器只负责「测」，不解析级别条件。
-func execute(ctx context.Context, group bo.ProbeGroup, target bo.ProbeTarget, metric string) bo.ProbeResult {
+func execute(ctx context.Context, group bo.ProbeGroup, target bo.ProbeTarget, metric string, maxTimeoutMS int) bo.ProbeResult {
 	request := probesdk.Request{
 		Method:          group.Request.Method,
 		ExpectStatus:    group.Request.ExpectStatus,
@@ -24,6 +24,9 @@ func execute(ctx context.Context, group bo.ProbeGroup, target bo.ProbeTarget, me
 	}.Normalize()
 
 	timeout := time.Duration(request.TimeoutMS) * time.Millisecond
+	if maxTimeoutMS > 0 && timeout > time.Duration(maxTimeoutMS)*time.Millisecond {
+		timeout = time.Duration(maxTimeoutMS) * time.Millisecond
+	}
 	if timeout <= 0 {
 		timeout = 3 * time.Second
 	}
