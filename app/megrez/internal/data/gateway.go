@@ -154,7 +154,7 @@ func (g *gateway) ClaimProbeTasks(ctx context.Context, kind string) ([]bo.ProbeT
 		Executor: &megrezv1.ProbeExecutor{Kind: kind},
 	})
 	if err != nil {
-		return nil, merr.Server("claim probe tasks failed")
+		return nil, merr.Server("claim probe tasks failed: " + err.Error())
 	}
 	tasks := make([]bo.ProbeTask, 0, len(reply.GetTasks()))
 	for _, task := range reply.GetTasks() {
@@ -220,7 +220,7 @@ func (g *gateway) ReportProbeResults(ctx context.Context, report bo.ProbeReport)
 		RuleUid: report.RuleUID, Slot: report.Slot.UTC().Format(time.RFC3339), Results: results,
 	})
 	if err != nil {
-		return merr.Server("report probe results failed")
+		return merr.Server("report probe results failed: " + err.Error())
 	}
 	return nil
 }
