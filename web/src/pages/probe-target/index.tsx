@@ -1,5 +1,10 @@
-import { EllipsisVertical, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import {
+  ChevronDown,
+  ChevronRight,
+  EllipsisVertical,
+  Trash2,
+} from "lucide-react"
+import { Fragment, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 
@@ -318,8 +323,11 @@ export function ProbeTargetPage() {
   const selected = params.get("uid") || ""
   const [draftName, setDraftName] = useState(query.name)
   const [current, setCurrent] = useState<ProbeTargetGroupItem | null>(null)
-  const [results, setResults] = useState<ProbeResultItem[]>([])
-  const [resultsTotal, setResultsTotal] = useState(0)
+  // 探测记录按目标展开：一行目标点开后只拉这个目标的记录，按目标缓存。
+  const [expandedTarget, setExpandedTarget] = useState("")
+  const [targetRecords, setTargetRecords] = useState<
+    Record<string, { items: ProbeResultItem[]; total: number; loading: boolean }>
+  >({})
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailVersion, setDetailVersion] = useState(0)
   const [open, setOpen] = useState(false)
@@ -391,10 +399,10 @@ export function ProbeTargetPage() {
   useEffect(() => {
     let active = true
     async function load() {
+      setExpandedTarget("")
+      setTargetRecords({})
       if (!selected) {
         setCurrent(null)
-        setResults([])
-        setResultsTotal(0)
         return
       }
       setDetailLoading(true)
@@ -408,24 +416,8 @@ export function ProbeTargetPage() {
           setCurrent(null)
         }
       }
-      try {
-        const result = await listProbeTargetResults(selected, {
-          page: 1,
-          pageSize: 20,
-        })
-        if (active) {
-          setResults(result.items ?? [])
-          setResultsTotal(result.total ?? 0)
-        }
-      } catch {
-        if (active) {
-          setResults([])
-          setResultsTotal(0)
-        }
-      } finally {
-        if (active) {
-          setDetailLoading(false)
-        }
+      if (active) {
+        setDetailLoading(false)
       }
     }
     void load()
@@ -443,6 +435,54 @@ export function ProbeTargetPage() {
     // setParam 每次渲染都是新函数；写入 uid 后 selected 非空，本 effect 自然停下。
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, loading, failed, items])
+
+  // loadTargetRecords 拉一个目标的探测记录；force 用于「刷新」按钮。
+  async function loadTargetRecords(targetUid: string, force = false) {
+    if (!selected) {
+      return
+    }
+    if (!force && targetRecords[targetUid] && !targetRecords[targetUid].loading) {
+      return
+    }
+    setTargetRecords((prev) => ({
+      ...prev,
+      [targetUid]: {
+        items: prev[targetUid]?.items ?? [],
+        total: prev[targetUid]?.total ?? 0,
+        loading: true,
+      },
+    }))
+    try {
+      const result = await listProbeTargetResults(selected, {
+        targetUid,
+        page: 1,
+        pageSize: 20,
+      })
+      setTargetRecords((prev) => ({
+        ...prev,
+        [targetUid]: {
+          items: result.items ?? [],
+          total: result.total ?? 0,
+          loading: false,
+        },
+      }))
+    } catch {
+      setTargetRecords((prev) => ({
+        ...prev,
+        [targetUid]: { items: [], total: 0, loading: false },
+      }))
+    }
+  }
+
+  // toggleTargetRecords 展开当前目标的记录行，第一次展开时拉数据。
+  function toggleTargetRecords(targetUid: string) {
+    if (expandedTarget === targetUid) {
+      setExpandedTarget("")
+      return
+    }
+    setExpandedTarget(targetUid)
+    void loadTargetRecords(targetUid)
+  }
 
   function openCreate() {
     setEditing(false)
@@ -1045,6 +1085,7 @@ export function ProbeTargetPage() {
                     <Table className={TABLE_MIN_WIDTH.default}>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="w-10" />
                           <TableHead>{t("probeTarget.targetUrl")}</TableHead>
                           <TableHead className={TABLE_COLUMN_WIDTH.status}>
                             {t("namespace.status")}
@@ -1064,8 +1105,30 @@ export function ProbeTargetPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {targets.map((target) => (
-                          <TableRow key={target.uid || target.spec}>
+                        {targets.map((target) => {
+                          const targetKey = target.uid || target.spec
+                          const expanded = expandedTarget === targetKey
+                          const records = targetRecords[targetKey]
+                          return (
+                          <Fragment key={targetKey}>
+                          <TableRow>
+                            <TableCell className={TABLE_NOWRAP}>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-expanded={expanded}
+                                aria-controls={`probe-records-${targetKey}`}
+                                aria-label={
+                                  expanded
+                                    ? t("probeTarget.recordsCollapse")
+                                    : t("probeTarget.recordsExpand")
+                                }
+                                onClick={() => toggleTargetRecords(targetKey)}
+                              >
+                                {expanded ? <ChevronDown /> : <ChevronRight />}
+                              </Button>
+                            </TableCell>
                             <TableCell className="min-w-0 break-all">
                               {target.spec}
                             </TableCell>
@@ -1104,97 +1167,125 @@ export function ProbeTargetPage() {
                                 : "—"}
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </section>
-                  <section className="grid min-w-0 gap-2 border-t pt-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-medium">
-                          {t("probeTarget.recentResults")}
-                        </h3>
-                        <span className="text-xs text-muted-foreground">
-                          {t("list.total", { count: resultsTotal })}
-                        </span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDetailVersion((value) => value + 1)}
-                      >
-                        {t("action.refresh")}
-                      </Button>
-                    </div>
-                    {results.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        {t("probeTarget.recentResultsEmpty")}
-                      </p>
-                    ) : (
-                      <Table className={TABLE_MIN_WIDTH.wide}>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className={TABLE_COLUMN_WIDTH.time}>
-                              {t("probeTarget.resultTime")}
-                            </TableHead>
-                            <TableHead>{t("probeTarget.targetUrl")}</TableHead>
-                            <TableHead>{t("probeTarget.rule")}</TableHead>
-                            <TableHead className={TABLE_COLUMN_WIDTH.status}>
-                              {t("probeTarget.resultStatus")}
-                            </TableHead>
-                            <TableHead className={TABLE_COLUMN_WIDTH.type}>
-                              {t("probeTarget.statusCode")}
-                            </TableHead>
-                            <TableHead className={TABLE_COLUMN_WIDTH.type}>
-                              {t("probeTarget.duration")}
-                            </TableHead>
-                            <TableHead>{t("probeTarget.errorMessage")}</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {results.map((item) => (
+                          {expanded ? (
                             <TableRow
-                              key={`${item.targetUid}-${item.slot || item.probedAt}`}
+                              id={`probe-records-${targetKey}`}
+                              className="bg-muted/20 hover:bg-muted/20"
                             >
-                              <TableCell
-                                className={`${TABLE_COLUMN_WIDTH.time} ${TABLE_NOWRAP} tabular-nums`}
-                              >
-                                {formatDateTime(item.probedAt || item.slot)}
-                              </TableCell>
-                              <TableCell className="min-w-0 break-all">
-                                {item.targetSpec}
-                              </TableCell>
-                              <TableCell className="min-w-0 break-words">
-                                {item.ruleName || "—"}
-                              </TableCell>
-                              <TableCell className={TABLE_NOWRAP}>
-                                <StatusBadge
-                                  value={item.ok ? "OK" : "FAILED"}
-                                  label={
-                                    item.ok
-                                      ? t("probeTarget.ok")
-                                      : t("probeTarget.failed")
-                                  }
-                                />
-                              </TableCell>
-                              <TableCell className={TABLE_NOWRAP}>
-                                {item.statusCode || "—"}
-                              </TableCell>
-                              <TableCell className={TABLE_NOWRAP}>
-                                {t("probeTarget.durationValue", {
-                                  ms: item.durationMs,
-                                })}
-                              </TableCell>
-                              <TableCell className="min-w-0 break-words">
-                                {item.ok
-                                  ? item.errorMessage || "—"
-                                  : `${item.errorKind ? `${item.errorKind}: ` : ""}${item.errorMessage || "—"}`}
+                              <TableCell colSpan={7} className="min-w-0">
+                                <div className="grid min-w-0 gap-2 py-1">
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="text-xs text-muted-foreground">
+                                      {t("probeTarget.recordsTotal", {
+                                        count: records?.total ?? 0,
+                                      })}
+                                    </span>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled={records?.loading}
+                                      onClick={() =>
+                                        void loadTargetRecords(targetKey, true)
+                                      }
+                                    >
+                                      {t("action.refresh")}
+                                    </Button>
+                                  </div>
+                                  {records?.loading && !records.items.length ? (
+                                    <p className="text-sm text-muted-foreground">
+                                      {t("state.loading")}
+                                    </p>
+                                  ) : null}
+                                  {!records?.loading &&
+                                  (records?.items.length ?? 0) === 0 ? (
+                                    <p className="text-sm text-muted-foreground">
+                                      {t("probeTarget.recordsEmpty")}
+                                    </p>
+                                  ) : null}
+                                  {(records?.items.length ?? 0) > 0 ? (
+                                    <Table className={TABLE_MIN_WIDTH.wide}>
+                                      <TableHeader>
+                                        <TableRow>
+                                          <TableHead
+                                            className={TABLE_COLUMN_WIDTH.time}
+                                          >
+                                            {t("probeTarget.resultTime")}
+                                          </TableHead>
+                                          <TableHead>
+                                            {t("probeTarget.rule")}
+                                          </TableHead>
+                                          <TableHead
+                                            className={TABLE_COLUMN_WIDTH.status}
+                                          >
+                                            {t("probeTarget.resultStatus")}
+                                          </TableHead>
+                                          <TableHead
+                                            className={TABLE_COLUMN_WIDTH.type}
+                                          >
+                                            {t("probeTarget.statusCode")}
+                                          </TableHead>
+                                          <TableHead
+                                            className={TABLE_COLUMN_WIDTH.type}
+                                          >
+                                            {t("probeTarget.duration")}
+                                          </TableHead>
+                                          <TableHead>
+                                            {t("probeTarget.errorMessage")}
+                                          </TableHead>
+                                        </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {records.items.map((item) => (
+                                          <TableRow
+                                            key={`${item.targetUid}-${item.slot || item.probedAt}`}
+                                          >
+                                            <TableCell
+                                              className={`${TABLE_COLUMN_WIDTH.time} ${TABLE_NOWRAP} tabular-nums`}
+                                            >
+                                              {formatDateTime(
+                                                item.probedAt || item.slot
+                                              )}
+                                            </TableCell>
+                                            <TableCell className="min-w-0 break-words">
+                                              {item.ruleName || "—"}
+                                            </TableCell>
+                                            <TableCell className={TABLE_NOWRAP}>
+                                              <StatusBadge
+                                                value={item.ok ? "OK" : "FAILED"}
+                                                label={
+                                                  item.ok
+                                                    ? t("probeTarget.ok")
+                                                    : t("probeTarget.failed")
+                                                }
+                                              />
+                                            </TableCell>
+                                            <TableCell className={TABLE_NOWRAP}>
+                                              {item.statusCode || "—"}
+                                            </TableCell>
+                                            <TableCell className={TABLE_NOWRAP}>
+                                              {t("probeTarget.durationValue", {
+                                                ms: item.durationMs,
+                                              })}
+                                            </TableCell>
+                                            <TableCell className="min-w-0 break-words">
+                                              {item.ok
+                                                ? item.errorMessage || "—"
+                                                : `${item.errorKind ? `${item.errorKind}: ` : ""}${item.errorMessage || "—"}`}
+                                            </TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  ) : null}
+                                </div>
                               </TableCell>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    )}
+                          ) : null}
+                          </Fragment>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
                   </section>
                 </div>
               </div>

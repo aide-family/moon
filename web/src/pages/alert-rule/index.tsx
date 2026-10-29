@@ -372,18 +372,6 @@ export function AlertRulePage() {
       })),
     [probeGroups]
   )
-  // 「按目标组选择」的当前选中项：由匹配器反推命中的组名，修改后覆盖成 probe_group 正则。
-  const selectedProbeGroupNames = useMemo(
-    () =>
-      matchedProbeTargetGroups(probeGroups, form.probeGroupLabels).map(
-        (item) => item.name
-      ),
-    [probeGroups, form.probeGroupLabels]
-  )
-  const probeMatchPreview = useMemo(
-    () => probeTargetMatchPreview(probeGroups, form.probeGroupLabels),
-    [probeGroups, form.probeGroupLabels]
-  )
   const probeGroupOptions = useMemo(
     () =>
       probeGroups
@@ -394,6 +382,28 @@ export function AlertRulePage() {
     [probeGroups]
   )
 
+  // 「按目标组选择」的选中项只从显式 probe_group 匹配器反推。匹配器为空表示
+  // 「全部启用目标组」，此时不应把所有组显示成已选，否则看起来像强制选择。
+  const selectedProbeGroupNames = useMemo(() => {
+    const pair = form.probeGroupLabels.find(
+      (item) => item.key.trim() === "probe_group"
+    )
+    if (!pair || pair.value.trim() === "") {
+      return []
+    }
+    try {
+      const pattern = new RegExp(`^(?:${pair.value})$`)
+      return probeGroupOptions
+        .filter((option) => pattern.test(option.value))
+        .map((option) => option.value)
+    } catch {
+      return []
+    }
+  }, [probeGroupOptions, form.probeGroupLabels])
+  const probeMatchPreview = useMemo(
+    () => probeTargetMatchPreview(probeGroups, form.probeGroupLabels),
+    [probeGroups, form.probeGroupLabels]
+  )
   function askConfirm(
     kind: "group" | "rule",
     action: "disable" | "delete",
@@ -667,9 +677,17 @@ export function AlertRulePage() {
     setForm({ ...form, probeGroupLabels })
   }
 
-  // 按组勾选是「我就想指定这几个组」的快捷方式：用 probe_group 正则覆盖匹配条件。
+  // 按组勾选是可选快捷方式：只写 probe_group 这一条匹配器，保留用户手写的其他条件。
+  // 清空勾选表示「同类型全部」——去掉 probe_group 匹配器，后续新增的组也会自动覆盖。
   function selectProbeGroups(names: string[]) {
-    setForm({ ...form, probeGroupLabels: probeGroupNamesMatcher(names) })
+    const others = form.probeGroupLabels.filter(
+      (pair) =>
+        pair.key.trim() !== "" && pair.key.trim() !== "probe_group"
+    )
+    setForm({
+      ...form,
+      probeGroupLabels: [...others, ...probeGroupNamesMatcher(names)],
+    })
   }
 
   function updateVariable(index: number, patch: Partial<AlertRuleVariable>) {

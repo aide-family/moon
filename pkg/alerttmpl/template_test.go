@@ -148,3 +148,38 @@ func TestValidateWithVarsInjectsDeclaredNames(t *testing.T) {
 		t.Fatal("broken template accepted")
 	}
 }
+
+// TestLabelsRenderAsJSON $labels 输出 JSON（与事件「标签」字段一致），
+// 而不是 Go 的 map[...]；键索引仍然可用。
+func TestLabelsRenderAsJSON(t *testing.T) {
+	labels := map[string]string{"job": "api", "datasource": "核心接口组"}
+	data := NewData(labels, `{"job":"api","datasource":"核心接口组"}`, 3, "http://api.example", nil)
+	externalURL, _ := url.Parse("http://api.example")
+	got, err := Render(context.Background(), "{{ $labels }}", data, "t", time.Now(), nil, externalURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(got, "map[") {
+		t.Fatalf("$labels should render as JSON, got %q", got)
+	}
+	if !strings.Contains(got, `"job":"api"`) || !strings.Contains(got, `"datasource":"核心接口组"`) {
+		t.Fatalf("$labels should contain the labels JSON, got %q", got)
+	}
+	indexed, err := Render(context.Background(), "{{ $labels.job }}", data, "t", time.Now(), nil, externalURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if indexed != "api" {
+		t.Fatalf("label indexing should work, got %q", indexed)
+	}
+
+	// 通知侧走 FromParams：只有小写 labels 时也要补成同样的 JSON 输出。
+	fromParams := FromParams(map[string]any{"labels": `{"job":"api"}`})
+	rendered, err := Render(context.Background(), "{{ $labels }}", fromParams, "t", time.Now(), nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rendered != `{"job":"api"}` {
+		t.Fatalf("FromParams $labels = %q", rendered)
+	}
+}
