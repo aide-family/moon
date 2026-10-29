@@ -10,8 +10,8 @@ import (
 func TestNormalizeSpec(t *testing.T) {
 	cases := map[string]string{
 		"  HTTPS://API.Example.com:443/healthz#frag ": "https://api.example.com/healthz",
-		"http://user:pass@example.com:80/data?q=1":   "http://example.com/data?q=1",
-		"https://example.com:8443/x":                 "https://example.com:8443/x",
+		"http://user:pass@example.com:80/data?q=1":    "http://example.com/data?q=1",
+		"https://example.com:8443/x":                  "https://example.com:8443/x",
 	}
 	for in, want := range cases {
 		got, err := NormalizeSpec(in)

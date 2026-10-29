@@ -281,3 +281,11 @@ func probeWindow(rule bo.AlertRule, interval time.Duration) time.Duration {
 func isNotAcquired(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "not acquired")
 }
+
+// pruneProbeWindow 是探测结果的保留窗口：判定只需要最近几天，更早的明细清理掉。
+const pruneProbeWindow = 7 * 24 * time.Hour
+
+// PruneProbeResults 清理超过保留期的探测记录，由调度器每小时调用一次。
+func (coordinator *Coordinator) PruneProbeResults(ctx context.Context) (int, error) {
+	return coordinator.probes.PruneProbeResults(ctx, time.Now().UTC().Add(-pruneProbeWindow), 200)
+}

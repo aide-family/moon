@@ -26,6 +26,7 @@ type Scheduler struct {
 	lastWorkerCleanup time.Time
 	lastBackfill      time.Time
 	lastLogBackfill   time.Time
+	lastProbePrune    time.Time
 	cancel            context.CancelFunc
 	done              chan struct{}
 }
@@ -88,7 +89,19 @@ func (s *Scheduler) tick(ctx context.Context) {
 	s.maintainPartitions(ctx)
 	s.backfillHistory(ctx)
 	s.backfillMessageLogs(ctx)
+	s.pruneProbeResults(ctx)
 	s.cleanupWorkerInstances(ctx)
+}
+
+// pruneProbeResults 每小时清理超过保留期的探测记录，判定窗口只用到最近几天。
+func (s *Scheduler) pruneProbeResults(ctx context.Context) {
+	if time.Since(s.lastProbePrune) < time.Hour {
+		return
+	}
+	s.lastProbePrune = time.Now()
+	if _, err := s.coordinator.PruneProbeResults(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("prune probe results: %v", err))
+	}
 }
 
 // cleanupWorkerInstances periodically prunes stopped process identities independently of dashboard traffic.
