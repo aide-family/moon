@@ -30,6 +30,7 @@ func NewHTTPServer(
 	users *service.UserService,
 	roles *service.RoleService,
 	datasources *service.DatasourceService,
+	probeTargets *service.ProbeTargetService,
 	queries *service.MetricQueryService,
 	logQueries *service.LogsQueryService,
 	rules *service.AlertRuleService,
@@ -98,6 +99,7 @@ func NewHTTPServer(
 	v1.RegisterUserServiceHTTPServer(srv, users)
 	v1.RegisterRoleServiceHTTPServer(srv, roles)
 	v1.RegisterDatasourceServiceHTTPServer(srv, datasources)
+	v1.RegisterProbeTargetServiceHTTPServer(srv, probeTargets)
 	v1.RegisterMetricQueryServiceHTTPServer(srv, queries)
 	v1.RegisterLogsQueryServiceHTTPServer(srv, logQueries)
 	v1.RegisterAlertRuleServiceHTTPServer(srv, rules)

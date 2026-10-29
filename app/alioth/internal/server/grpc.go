@@ -29,6 +29,7 @@ func NewGRPCServer(
 	users *service.UserService,
 	roles *service.RoleService,
 	datasources *service.DatasourceService,
+	probeTargets *service.ProbeTargetService,
 	queries *service.MetricQueryService,
 	logQueries *service.LogsQueryService,
 	rules *service.AlertRuleService,
@@ -83,6 +84,7 @@ func NewGRPCServer(
 	v1.RegisterUserServiceServer(srv, users)
 	v1.RegisterRoleServiceServer(srv, roles)
 	v1.RegisterDatasourceServiceServer(srv, datasources)
+	v1.RegisterProbeTargetServiceServer(srv, probeTargets)
 	v1.RegisterMetricQueryServiceServer(srv, queries)
 	v1.RegisterLogsQueryServiceServer(srv, logQueries)
 	v1.RegisterAlertRuleServiceServer(srv, rules)

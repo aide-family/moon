@@ -78,6 +78,9 @@ type AlertEventRepo interface {
 	RecoverManual(ctx context.Context, namespaceUID string, uids []string) error
 	// RecoverSource 把仍在触发的事件记为恢复。规则、数据源、级别都为空时不处理。
 	RecoverSource(ctx context.Context, namespaceUID string, ruleUIDs, datasourceUIDs, levelUIDs []string) error
+	// RecoverProbeTargets 把仍在触发、且标签里 probe_target_uid 命中的探测事件记为恢复。
+	// 目标被删除、停用或改到别的目标组时使用。
+	RecoverProbeTargets(ctx context.Context, namespaceUID string, targetUIDs []string) error
 	// RecoverAvailability 只恢复某个数据源当前触发的可用性事件，不影响该数据源下的规则事件。
 	RecoverAvailability(ctx context.Context, namespaceUID, datasourceUID string) error
 	Stats(ctx context.Context, namespaceUID string) (bo.AlertStats, error)

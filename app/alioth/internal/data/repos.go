@@ -33,6 +33,9 @@ type memberRepo struct{ *repoBase }
 type messageRepo struct{ *repoBase }
 type roleRepo struct{ *repoBase }
 type datasourceRepo struct{ *repoBase }
+
+// probeRepo 管理探测目标组、组内地址与探测记录。
+type probeRepo struct{ *repoBase }
 type alertDictionaryRepo struct{ *repoBase }
 type alertRuleRepo struct{ *repoBase }
 type alertEventRepo struct{ *repoBase }
@@ -75,6 +78,11 @@ func NewMessageRepo(deps *Dependencies, logger *slog.Logger) repository.MessageR
 
 func NewRoleRepo(deps *Dependencies, logger *slog.Logger) repository.RoleRepo {
 	return &roleRepo{newBase(deps, logger)}
+}
+
+// NewProbeRepo 返回探测目标组的仓储实现。
+func NewProbeRepo(deps *Dependencies, logger *slog.Logger) repository.ProbeTargetRepo {
+	return &probeRepo{newBase(deps, logger)}
 }
 
 func NewDatasourceRepo(deps *Dependencies, logger *slog.Logger) repository.DatasourceRepo {

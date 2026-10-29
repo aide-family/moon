@@ -1180,7 +1180,10 @@ func (r *alertEventRepo) datasourceMeta(ctx context.Context, tx *ent.Tx, uid str
 
 // 事件标签里保留数据源、告警等级和数据源等级名称的键。
 const (
-	datasourceLabelKey      = "datasource"
+	datasourceLabelKey = "datasource"
+	// 探测事件用这两个键定位目标：probe_target_uid 用于收口事件，probe_target 用于展示。
+	probeTargetUIDLabelKey  = "probe_target_uid"
+	probeTargetLabelKey     = "probe_target"
 	alertLevelLabelKey      = "alert_level"
 	datasourceLevelLabelKey = "datasource_level"
 )
@@ -1323,6 +1326,84 @@ func (r *alertEventRepo) RecoverSource(ctx context.Context, namespaceUID string,
 			DatasourceUID: row.DatasourceUID, DatasourceLevelUID: meta.LevelUID, LevelUID: row.LevelUID, Phase: "RECOVERED",
 			Summary: row.Summary, Description: row.Description, Labels: row.Labels,
 			Value: row.SampleValue, ExternalURL: meta.Endpoint,
+			Fingerprint: row.Fingerprint,
+		}); err != nil {
+			return err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return r.fail(err)
+	}
+	r.archiveEvents(ctx, namespaceUID, recovered)
+	return nil
+}
+
+// RecoverProbeTargets 按标签里的 probe_target_uid 收口探测事件。探测事件没有
+// datasource_uid，只能靠标签定位被删除或停用的目标。
+func (r *alertEventRepo) RecoverProbeTargets(ctx context.Context, namespaceUID string, targetUIDs []string) error {
+	if len(targetUIDs) == 0 {
+		return nil
+	}
+	wanted := make(map[string]struct{}, len(targetUIDs))
+	for _, uid := range targetUIDs {
+		if uid != "" {
+			wanted[uid] = struct{}{}
+		}
+	}
+	if len(wanted) == 0 {
+		return nil
+	}
+	rows, err := r.client.AlertEvent.Query().Where(
+		alertevent.NamespaceUIDEQ(namespaceUID),
+		alertevent.StatusEQ(alertevent.StatusFIRING),
+	).All(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	matched := make([]*ent.AlertEvent, 0, len(rows))
+	for _, row := range rows {
+		labels, err := labelsutil.ParseObject(row.Labels)
+		if err != nil {
+			continue
+		}
+		if _, ok := wanted[labels[probeTargetUIDLabelKey]]; ok {
+			matched = append(matched, row)
+		}
+	}
+	if len(matched) == 0 {
+		return nil
+	}
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	now := time.Now().UTC()
+	recovered := make([]bo.AlertEvent, 0, len(matched))
+	for _, row := range matched {
+		if _, err := tx.AlertEvent.Update().Where(
+			alertevent.UIDEQ(row.UID),
+			alertevent.NamespaceUIDEQ(namespaceUID),
+			alertevent.StatusEQ(alertevent.StatusFIRING),
+		).SetStatus(alertevent.StatusRECOVERED).SetEndsAt(now).Save(ctx); err != nil {
+			return r.fail(err)
+		}
+		if _, err := tx.AlertEventFiring.Delete().Where(
+			alerteventfiring.NamespaceUIDEQ(namespaceUID),
+			alerteventfiring.EventUIDEQ(row.UID),
+		).Exec(ctx); err != nil {
+			return r.fail(err)
+		}
+		item := toEvent(row, now)
+		item.Status = string(alertevent.StatusRECOVERED)
+		item.EndsAt = &now
+		recovered = append(recovered, item)
+		labels, _ := labelsutil.ParseObject(row.Labels)
+		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
+			NamespaceUID: namespaceUID, EventUID: row.UID, RuleUID: row.RuleUID,
+			LevelUID: row.LevelUID, Phase: "RECOVERED",
+			Summary: row.Summary, Description: row.Description, Labels: row.Labels,
+			Value: row.SampleValue, ExternalURL: labels[probeTargetLabelKey],
 			Fingerprint: row.Fingerprint,
 		}); err != nil {
 			return err
