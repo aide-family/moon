@@ -15,6 +15,7 @@ const knownPaths = new Set([
   "/profile",
   "/forbidden",
   "/namespaces",
+  "/tenants",
   "/users",
   "/workers",
   "/invitations",

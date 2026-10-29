@@ -1075,6 +1075,7 @@ const (
 	NamespaceService_ListNamespaces_FullMethodName         = "/alioth.v1.NamespaceService/ListNamespaces"
 	NamespaceService_SelectNamespaces_FullMethodName       = "/alioth.v1.NamespaceService/SelectNamespaces"
 	NamespaceService_ListSimpleNamespaces_FullMethodName   = "/alioth.v1.NamespaceService/ListSimpleNamespaces"
+	NamespaceService_ListSystemNamespaces_FullMethodName   = "/alioth.v1.NamespaceService/ListSystemNamespaces"
 	NamespaceService_TransferNamespaceOwner_FullMethodName = "/alioth.v1.NamespaceService/TransferNamespaceOwner"
 )
 
@@ -1100,6 +1101,8 @@ type NamespaceServiceClient interface {
 	SelectNamespaces(ctx context.Context, in *SelectNamespacesRequest, opts ...grpc.CallOption) (*SelectNamespacesResponse, error)
 	// 按页返回租户简表。
 	ListSimpleNamespaces(ctx context.Context, in *ListSimpleNamespacesRequest, opts ...grpc.CallOption) (*ListSimpleNamespacesResponse, error)
+	// 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
+	ListSystemNamespaces(ctx context.Context, in *ListSystemNamespacesRequest, opts ...grpc.CallOption) (*ListSystemNamespacesResponse, error)
 	// 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(ctx context.Context, in *TransferNamespaceOwnerRequest, opts ...grpc.CallOption) (*TransferNamespaceOwnerResponse, error)
 }
@@ -1192,6 +1195,16 @@ func (c *namespaceServiceClient) ListSimpleNamespaces(ctx context.Context, in *L
 	return out, nil
 }
 
+func (c *namespaceServiceClient) ListSystemNamespaces(ctx context.Context, in *ListSystemNamespacesRequest, opts ...grpc.CallOption) (*ListSystemNamespacesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSystemNamespacesResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_ListSystemNamespaces_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *namespaceServiceClient) TransferNamespaceOwner(ctx context.Context, in *TransferNamespaceOwnerRequest, opts ...grpc.CallOption) (*TransferNamespaceOwnerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TransferNamespaceOwnerResponse)
@@ -1224,6 +1237,8 @@ type NamespaceServiceServer interface {
 	SelectNamespaces(context.Context, *SelectNamespacesRequest) (*SelectNamespacesResponse, error)
 	// 按页返回租户简表。
 	ListSimpleNamespaces(context.Context, *ListSimpleNamespacesRequest) (*ListSimpleNamespacesResponse, error)
+	// 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
+	ListSystemNamespaces(context.Context, *ListSystemNamespacesRequest) (*ListSystemNamespacesResponse, error)
 	// 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error)
 	mustEmbedUnimplementedNamespaceServiceServer()
@@ -1259,6 +1274,9 @@ func (UnimplementedNamespaceServiceServer) SelectNamespaces(context.Context, *Se
 }
 func (UnimplementedNamespaceServiceServer) ListSimpleNamespaces(context.Context, *ListSimpleNamespacesRequest) (*ListSimpleNamespacesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListSimpleNamespaces not implemented")
+}
+func (UnimplementedNamespaceServiceServer) ListSystemNamespaces(context.Context, *ListSystemNamespacesRequest) (*ListSystemNamespacesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSystemNamespaces not implemented")
 }
 func (UnimplementedNamespaceServiceServer) TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TransferNamespaceOwner not implemented")
@@ -1428,6 +1446,24 @@ func _NamespaceService_ListSimpleNamespaces_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NamespaceService_ListSystemNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSystemNamespacesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).ListSystemNamespaces(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_ListSystemNamespaces_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).ListSystemNamespaces(ctx, req.(*ListSystemNamespacesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _NamespaceService_TransferNamespaceOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TransferNamespaceOwnerRequest)
 	if err := dec(in); err != nil {
@@ -1484,6 +1520,10 @@ var NamespaceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSimpleNamespaces",
 			Handler:    _NamespaceService_ListSimpleNamespaces_Handler,
+		},
+		{
+			MethodName: "ListSystemNamespaces",
+			Handler:    _NamespaceService_ListSystemNamespaces_Handler,
 		},
 		{
 			MethodName: "TransferNamespaceOwner",

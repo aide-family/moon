@@ -984,6 +984,7 @@ const OperationNamespaceServiceDeleteNamespace = "/alioth.v1.NamespaceService/De
 const OperationNamespaceServiceGetNamespace = "/alioth.v1.NamespaceService/GetNamespace"
 const OperationNamespaceServiceListNamespaces = "/alioth.v1.NamespaceService/ListNamespaces"
 const OperationNamespaceServiceListSimpleNamespaces = "/alioth.v1.NamespaceService/ListSimpleNamespaces"
+const OperationNamespaceServiceListSystemNamespaces = "/alioth.v1.NamespaceService/ListSystemNamespaces"
 const OperationNamespaceServiceSelectNamespaces = "/alioth.v1.NamespaceService/SelectNamespaces"
 const OperationNamespaceServiceTransferNamespaceOwner = "/alioth.v1.NamespaceService/TransferNamespaceOwner"
 const OperationNamespaceServiceUpdateNamespace = "/alioth.v1.NamespaceService/UpdateNamespace"
@@ -1000,6 +1001,8 @@ type NamespaceServiceHTTPServer interface {
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
 	// ListSimpleNamespaces 按页返回租户简表。
 	ListSimpleNamespaces(context.Context, *ListSimpleNamespacesRequest) (*ListSimpleNamespacesResponse, error)
+	// ListSystemNamespaces 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
+	ListSystemNamespaces(context.Context, *ListSystemNamespacesRequest) (*ListSystemNamespacesResponse, error)
 	// SelectNamespaces 按游标列出当前用户可切换的租户。
 	SelectNamespaces(context.Context, *SelectNamespacesRequest) (*SelectNamespacesResponse, error)
 	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
@@ -1020,6 +1023,7 @@ func RegisterNamespaceServiceHTTPServer(s *http.Server, srv NamespaceServiceHTTP
 	r.Handle("GET", "/v1/namespaces", _NamespaceService_ListNamespaces0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/namespaces/select", _NamespaceService_SelectNamespaces0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/namespaces/simple", _NamespaceService_ListSimpleNamespaces0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/namespaces", _NamespaceService_ListSystemNamespaces0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/namespace/{uid}/owner", _NamespaceService_TransferNamespaceOwner0_HTTP_Handler(srv))
 }
 
@@ -1187,6 +1191,25 @@ func _NamespaceService_ListSimpleNamespaces0_HTTP_Handler(srv NamespaceServiceHT
 	}
 }
 
+func _NamespaceService_ListSystemNamespaces0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListSystemNamespacesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceListSystemNamespaces)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSystemNamespaces(ctx, req.(*ListSystemNamespacesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSystemNamespacesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _NamespaceService_TransferNamespaceOwner0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in TransferNamespaceOwnerRequest
@@ -1220,6 +1243,8 @@ type NamespaceServiceHTTPClient interface {
 	ListNamespaces(ctx context.Context, req *ListNamespacesRequest, opts ...http.CallOption) (rsp *ListNamespacesResponse, err error)
 	// ListSimpleNamespaces 按页返回租户简表。
 	ListSimpleNamespaces(ctx context.Context, req *ListSimpleNamespacesRequest, opts ...http.CallOption) (rsp *ListSimpleNamespacesResponse, err error)
+	// ListSystemNamespaces 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
+	ListSystemNamespaces(ctx context.Context, req *ListSystemNamespacesRequest, opts ...http.CallOption) (rsp *ListSystemNamespacesResponse, err error)
 	// SelectNamespaces 按游标列出当前用户可切换的租户。
 	SelectNamespaces(ctx context.Context, req *SelectNamespacesRequest, opts ...http.CallOption) (rsp *SelectNamespacesResponse, err error)
 	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
@@ -1315,6 +1340,23 @@ func (c *NamespaceServiceHTTPClientImpl) ListSimpleNamespaces(ctx context.Contex
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationNamespaceServiceListSimpleNamespaces),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListSystemNamespaces 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
+func (c *NamespaceServiceHTTPClientImpl) ListSystemNamespaces(ctx context.Context, in *ListSystemNamespacesRequest, opts ...http.CallOption) (*ListSystemNamespacesResponse, error) {
+	var out ListSystemNamespacesResponse
+	pattern := "/v1/system/namespaces"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceListSystemNamespaces),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

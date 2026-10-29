@@ -207,6 +207,62 @@ func (r *namespaceRepo) ListNamespaces(ctx context.Context, userUID string, page
 	return items, total, nil
 }
 
+// ListAllNamespaces 列出平台全部租户，供系统管理员查看。不按成员身份过滤。
+// 成员数只在这个列表补齐：GetNamespace 在每次业务请求的租户校验里都会调用，不做额外统计。
+func (r *namespaceRepo) ListAllNamespaces(ctx context.Context, page, pageSize int, name, status string) ([]bo.Namespace, int, error) {
+	preds := []predicate.Namespace{namespace.DeletedAtIsNil()}
+	if name != "" {
+		preds = append(preds, namespace.NameContainsFold(name))
+	}
+	if status != "" {
+		preds = append(preds, namespace.StatusEQ(namespace.Status(status)))
+	}
+	query := r.client.Namespace.Query().Where(preds...)
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, 0, r.fail(err)
+	}
+	rows, err := query.Order(ent.Asc(namespace.FieldUID)).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if err != nil {
+		return nil, 0, r.fail(err)
+	}
+	items := toNamespaces(rows)
+	if err := r.fillOwners(ctx, items); err != nil {
+		return nil, 0, err
+	}
+	if err := r.fillMemberCounts(ctx, items); err != nil {
+		return nil, 0, err
+	}
+	return items, total, nil
+}
+
+// fillMemberCounts 按租户批量统计 JOINED 成员数。未确认的邀请和已移除的成员不计入。
+func (r *namespaceRepo) fillMemberCounts(ctx context.Context, items []bo.Namespace) error {
+	if len(items) == 0 {
+		return nil
+	}
+	uids := make([]string, 0, len(items))
+	for _, item := range items {
+		uids = append(uids, item.UID)
+	}
+	rows, err := r.client.Member.Query().Where(
+		member.NamespaceUIDIn(uids...),
+		member.DeletedAtIsNil(),
+		member.StatusEQ(member.StatusJOINED),
+	).All(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	counts := make(map[string]int, len(rows))
+	for _, row := range rows {
+		counts[row.NamespaceUID]++
+	}
+	for i := range items {
+		items[i].MemberCount = counts[items[i].UID]
+	}
+	return nil
+}
+
 func (r *namespaceRepo) SelectNamespaces(ctx context.Context, userUID string, limit int, lastUID string) ([]bo.SelectItem, error) {
 	uids, err := r.joinedNamespaceUIDs(ctx, userUID)
 	if err != nil || len(uids) == 0 {
@@ -359,12 +415,13 @@ func (r *namespaceRepo) TransferOwner(ctx context.Context, namespaceUID, targetU
 
 func toNamespace(row *ent.Namespace) bo.Namespace {
 	return bo.Namespace{
-		UID:      row.UID,
-		Name:     row.Name,
-		OwnerUID: row.OwnerUID,
-		Logo:     row.Logo,
-		Remark:   row.Remark,
-		Status:   string(row.Status),
+		UID:       row.UID,
+		Name:      row.Name,
+		OwnerUID:  row.OwnerUID,
+		Logo:      row.Logo,
+		Remark:    row.Remark,
+		Status:    string(row.Status),
+		CreatedAt: row.CreatedAt,
 	}
 }
 

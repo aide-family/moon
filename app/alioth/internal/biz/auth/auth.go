@@ -754,6 +754,9 @@ func namespaceOptional(operation string) bool {
 		v1.OperationSelfServiceBindSelfOAuth,
 		v1.OperationSelfServiceUnbindSelfOAuth,
 		v1.OperationNamespaceServiceCreateNamespace,
+		// 平台租户列表不读 X-Namespace：系统管理员还没有加入任何租户时，
+		// 也要能从租户管理页只读切入，所以不要求租户头。
+		v1.OperationNamespaceServiceListSystemNamespaces,
 		v1.OperationInvitationServiceListSelfInvitations,
 		v1.OperationInvitationServiceAcceptInvitation,
 		v1.OperationInvitationServiceDeclineInvitation,

@@ -207,6 +207,20 @@ func (r *roleRepo) ListPermissions(ctx context.Context) ([]bo.Permission, error)
 	return items, nil
 }
 
+// IsMember 判断用户是否已经加入租户。只读切入只对非成员的平台管理员生效。
+func (r *roleRepo) IsMember(ctx context.Context, namespaceUID, userUID string) (bool, error) {
+	joined, err := r.client.Member.Query().Where(
+		member.NamespaceUIDEQ(namespaceUID),
+		member.UserUIDEQ(userUID),
+		member.DeletedAtIsNil(),
+		member.StatusEQ(member.StatusJOINED),
+	).Exist(ctx)
+	if err != nil {
+		return false, r.fail(err)
+	}
+	return joined, nil
+}
+
 func (r *roleRepo) Permissions(ctx context.Context, namespaceUID, userUID string) (map[string]struct{}, error) {
 	mem, err := r.client.Member.Query().Where(
 		member.NamespaceUIDEQ(namespaceUID),

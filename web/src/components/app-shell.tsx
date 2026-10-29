@@ -10,6 +10,7 @@ import {
   FileText,
   Gauge,
   History,
+  Landmark,
   LayoutDashboard,
   LayoutList,
   LogOut,
@@ -18,6 +19,7 @@ import {
   Server,
   Settings,
   Shield,
+  ShieldAlert,
   Target,
   Terminal,
   UserRound,
@@ -85,6 +87,7 @@ const repositoryURL = "https://github.com/aide-family/moon"
 // 这些页面不依赖当前租户，没有租户也可以直接打开；其余登录内页面会被送回租户页。
 const tenantFreePaths = new Set([
   "/namespaces",
+  "/tenants",
   "/users",
   "/workers",
   "/invitations",
@@ -104,6 +107,12 @@ const links: {
     label: "nav.namespaces",
     permission: "namespace:read",
     icon: Building2,
+  },
+  {
+    to: "/tenants",
+    label: "nav.tenants",
+    permission: "system:namespace:read",
+    icon: Landmark,
   },
   {
     to: "/users",
@@ -436,6 +445,12 @@ function ShellFrame() {
     navigate("/login")
   }
 
+  // 退出只读回落到第一个成员租户；租户管理页不属于租户相关页面，不会被守卫拦截。
+  function exitReadOnlyView() {
+    session.exitReadOnly()
+    navigate("/tenants")
+  }
+
   return (
     <TooltipProvider>
       <SidebarProvider className="h-svh overflow-hidden">
@@ -533,7 +548,9 @@ function ShellFrame() {
           <header className="flex h-12 items-center gap-2 border-b border-border/60 bg-background/80 px-4 backdrop-blur-sm">
             <SidebarTrigger />
             <div className="ml-auto flex h-10 min-w-0 items-center gap-2 overflow-x-auto overflow-y-hidden">
-              <TenantSwitcher />
+              {/* 只读视角下当前租户不在成员列表里，切换器会显示「无租户」，
+                  上下文由内容区顶部的只读横幅承担，这里直接隐藏。 */}
+              {session.readOnly ? null : <TenantSwitcher />}
               <Button
                 variant="ghost"
                 size="icon"
@@ -656,6 +673,37 @@ function ShellFrame() {
             </div>
           </header>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 overflow-hidden bg-transparent p-4 md:p-6">
+            {/* 系统管理员只读横幅：写操作已按 permissions 隐藏，服务端 403 兜底。 */}
+            {session.readOnly ? (
+              <div
+                role="status"
+                className="flex shrink-0 items-start gap-3 rounded-lg border border-warning-border bg-warning-soft px-3 py-2 text-sm"
+              >
+                <ShieldAlert
+                  aria-hidden="true"
+                  className="mt-0.5 size-4 shrink-0 text-warning"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium break-words text-warning">
+                    {t("readonly.banner", {
+                      name:
+                        session.viewingNamespace?.name || t("namespace.none"),
+                    })}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {t("readonly.hint")}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={exitReadOnlyView}
+                >
+                  {t("readonly.exit")}
+                </Button>
+              </div>
+            ) : null}
             {session.loading && !session.switching ? (
               <p className="text-sm text-muted-foreground">
                 {t("state.loading")}

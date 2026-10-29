@@ -155,23 +155,44 @@ func (authority *Authority) ListPermissions(ctx context.Context) ([]bo.Permissio
 	return items, authority.access.Wrap(err)
 }
 
-// Mine 返回当前用户在当前租户的权限名。没有选择租户时返回空列表，而不是报错。
-func (authority *Authority) Mine(ctx context.Context) ([]string, error) {
+// Mine 返回当前用户在当前租户的权限名，以及是否只是平台管理员的只读视角。
+// 没有选择租户时返回空列表和 false，而不是报错。
+// 不是该租户成员、但持有平台管理员角色时，返回租户目录中的全部只读权限，
+// 调用方据此展示只读横幅；写操作仍由 access 按成员角色拒绝。
+func (authority *Authority) Mine(ctx context.Context) ([]string, bool, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
-		return nil, merr.Unauthenticated("missing token")
+		return nil, false, merr.Unauthenticated("missing token")
 	}
 	namespace, ok := actor.NamespaceID(ctx)
 	if !ok {
-		return []string{}, nil
+		return []string{}, false, nil
 	}
 	perms, err := authority.roles.Permissions(ctx, namespace, uid)
 	if err != nil {
-		return nil, authority.access.Wrap(err)
+		return nil, false, authority.access.Wrap(err)
+	}
+	if len(perms) == 0 {
+		// 权限为空时区分两种情况：成员只是没有有效权限，仍然按成员返回空列表；
+		// 非成员的平台管理员才能拿到只读目录。
+		member, err := authority.roles.IsMember(ctx, namespace, uid)
+		if err != nil {
+			return nil, false, authority.access.Wrap(err)
+		}
+		if !member {
+			admin, err := authority.access.SystemAdmin(ctx)
+			if err != nil {
+				return nil, false, err
+			}
+			if admin {
+				return perm.ReadOnlyNames(), true, nil
+			}
+		}
+		return []string{}, false, nil
 	}
 	names := make([]string, 0, len(perms))
 	for name := range perms {
 		names = append(names, name)
 	}
-	return names, nil
+	return names, false, nil
 }

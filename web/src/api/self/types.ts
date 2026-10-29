@@ -14,6 +14,13 @@ export type SelfNamespaces = {
 
 export type SelfPermissions = {
   permissions?: string[]
+  /**
+   * 系统管理员只读视角：调用者不是该租户成员，但仍可查看租户数据。
+   * 为真时 permissions 只包含租户的 :read 权限；写接口仍由服务端 403 拒绝。
+   */
+  readOnly?: boolean
+  /** 带 X-Namespace 时返回当前租户；readOnly 为真时一定存在。 */
+  namespace?: NamespaceItem
 }
 
 /** 当前账号已绑定的一条第三方身份。 */

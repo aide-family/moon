@@ -19,6 +19,7 @@ type Account struct {
 
 // Namespace 是租户。OwnerUID 指向当前负责人。
 // OwnerName 和 OwnerEmail 是负责人的展示信息，由仓储在查询租户时补齐。
+// MemberCount 只在平台租户列表补齐；CreatedAt 随租户查询返回。
 type Namespace struct {
 	UID        string
 	Name       string
@@ -28,6 +29,10 @@ type Namespace struct {
 	Logo       string
 	Remark     string
 	Status     string
+	// MemberCount 是 JOINED 成员数，由平台租户列表补齐。
+	MemberCount int
+	// CreatedAt 是租户创建时间，按 Unix 秒返回给调用方。
+	CreatedAt time.Time
 }
 
 // Member 是用户在某个租户中的成员身份。

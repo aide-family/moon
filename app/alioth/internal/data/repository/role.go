@@ -19,5 +19,7 @@ type RoleRepo interface {
 	DeleteRole(ctx context.Context, namespaceUID, uid string) error
 	UpdateRolePermissions(ctx context.Context, namespaceUID, uid string, names []string) (*bo.Role, error)
 	ListPermissions(ctx context.Context) ([]bo.Permission, error)
+	// IsMember 判断用户是否是租户的 JOINED 成员，用来区分「成员但没有有效权限」和「非成员」。
+	IsMember(ctx context.Context, namespaceUID, userUID string) (bool, error)
 	Permissions(ctx context.Context, namespaceUID, userUID string) (map[string]struct{}, error)
 }

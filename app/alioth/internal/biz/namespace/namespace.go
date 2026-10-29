@@ -116,6 +116,20 @@ func (tenancy *Tenancy) TransferOwner(ctx context.Context, uid, userUID string) 
 	return item, tenancy.access.Wrap(err)
 }
 
+// ListAllNamespaces 列出平台全部租户，只给系统管理员使用。
+// 它走 RequireSystem，不读 X-Namespace，也不要求调用者是任何租户的成员。
+func (tenancy *Tenancy) ListAllNamespaces(ctx context.Context, pageNo, pageSize int32, name, status string) ([]bo.Namespace, int, int, int, error) {
+	if _, err := tenancy.access.RequireSystem(ctx, perm.SystemNamespaceRead); err != nil {
+		return nil, 0, 0, 0, err
+	}
+	if status != "" && status != "ACTIVE" && status != "DISABLED" {
+		return nil, 0, 0, 0, merr.Invalid("invalid request")
+	}
+	p, s := page.Normalize(pageNo, pageSize)
+	items, total, err := tenancy.namespaces.ListAllNamespaces(ctx, p, s, name, status)
+	return items, total, p, s, tenancy.access.Wrap(err)
+}
+
 // ListMine 返回当前用户加入的租户，供个人资料使用，不要求已经选定租户。
 func (tenancy *Tenancy) ListMine(ctx context.Context) ([]bo.Namespace, error) {
 	uid, ok := actor.UserID(ctx)
@@ -124,4 +138,22 @@ func (tenancy *Tenancy) ListMine(ctx context.Context) ([]bo.Namespace, error) {
 	}
 	items, err := tenancy.namespaces.ListUserNamespaces(ctx, uid)
 	return items, tenancy.access.Wrap(err)
+}
+
+// Current 返回 X-Namespace 指定的租户，不校验成员身份。
+// /self/permissions 用它返回当前视角下的租户信息；没有选择租户或租户已删除时返回 nil，
+// 保持该接口在租户失效时仍能返回空权限，由前端重新选择。
+func (tenancy *Tenancy) Current(ctx context.Context) (*bo.Namespace, error) {
+	uid, ok := actor.NamespaceID(ctx)
+	if !ok {
+		return nil, nil
+	}
+	item, err := tenancy.namespaces.GetNamespace(ctx, uid)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, tenancy.access.Wrap(err)
+	}
+	return item, nil
 }

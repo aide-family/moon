@@ -1252,3 +1252,14 @@ func TestPublicOperation(t *testing.T) {
 		t.Fatal("PasswordLogin 已删除，不能出现在公开接口白名单里")
 	}
 }
+
+// TestSystemNamespaceListDoesNotRequireNamespace 确认平台租户列表不依赖 X-Namespace：
+// 系统管理员还没加入任何租户时，也要能从租户管理页只读切入。
+func TestSystemNamespaceListDoesNotRequireNamespace(t *testing.T) {
+	if !namespaceOptional(v1.OperationNamespaceServiceListSystemNamespaces) {
+		t.Fatal("system namespace list requires X-Namespace")
+	}
+	if namespaceOptional(v1.OperationNamespaceServiceListNamespaces) {
+		t.Fatal("tenant namespace list no longer requires X-Namespace")
+	}
+}

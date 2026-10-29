@@ -22,10 +22,15 @@ func userItems(items []bo.Account) []*v1.UserItem {
 }
 
 func namespaceItem(item bo.Namespace) *v1.NamespaceItem {
+	createdAt := int64(0)
+	if !item.CreatedAt.IsZero() {
+		createdAt = item.CreatedAt.Unix()
+	}
 	return &v1.NamespaceItem{
 		Uid: item.UID, Name: item.Name, OwnerUid: item.OwnerUID,
 		OwnerName: item.OwnerName, OwnerEmail: item.OwnerEmail,
 		Logo: item.Logo, Remark: item.Remark, Status: item.Status,
+		MemberCount: int32(item.MemberCount), CreatedAt: createdAt,
 	}
 }
 

@@ -190,6 +190,10 @@ service NamespaceService {
   rpc ListSimpleNamespaces(ListSimpleNamespacesRequest) returns (ListSimpleNamespacesResponse) {
     option (google.api.http) = {get: "/v1/namespaces/simple"};
   }
+  // 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
+  rpc ListSystemNamespaces(ListSystemNamespacesRequest) returns (ListSystemNamespacesResponse) {
+    option (google.api.http) = {get: "/v1/system/namespaces"};
+  }
   // 把当前租户的负责人移交给另一名成员。
   rpc TransferNamespaceOwner(TransferNamespaceOwnerRequest) returns (TransferNamespaceOwnerResponse) {
     option (google.api.http) = {
@@ -430,6 +434,10 @@ message NamespaceItem {
   string owner_name = 7 [json_name = "ownerName"];
   // 负责人的邮箱。
   string owner_email = 8 [json_name = "ownerEmail"];
+  // 成员数。只在平台租户列表和当前租户视角返回，按 JOINED 成员统计。
+  int32 member_count = 9 [json_name = "memberCount"];
+  // 创建时间，Unix 秒。
+  int64 created_at = 10 [json_name = "createdAt"];
 }
 
 // 租户成员。
@@ -769,6 +777,11 @@ message GetSelfPermissionsRequest {}
 message GetSelfPermissionsResponse {
   // 权限名列表。
   repeated string permissions = 1;
+  // 是否只是平台管理员的只读视角。true 时 permissions 只含租户目录中的只读权限，
+  // 写操作仍要求该租户的成员角色。
+  bool read_only = 2 [json_name = "readOnly"];
+  // 当前租户。没有选择租户时为空。
+  NamespaceItem namespace = 3;
 }
 
 // 当前账号绑定的一条第三方身份。
@@ -938,6 +951,30 @@ message ListSimpleNamespacesResponse {
   repeated NamespaceItem items = 1;
   // 符合条件的总数。
   int32 total = 2;
+}
+
+// 平台租户分页查询。
+message ListSystemNamespacesRequest {
+  // 页码。0 表示使用默认页。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+  // 状态。留空表示全部，取值为 ACTIVE 或 DISABLED。
+  string status = 4 [(buf.validate.field).string = {in: ["", "ACTIVE", "DISABLED"]}];
+}
+
+// 平台租户分页结果。
+message ListSystemNamespacesResponse {
+  // 当前页数据。
+  repeated NamespaceItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。0 表示使用默认页。
+  int32 page = 3;
+  // 每页条数，最大 100。
+  int32 page_size = 4 [json_name = "pageSize"];
 }
 
 // 移交负责人的参数。

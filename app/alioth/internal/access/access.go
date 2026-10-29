@@ -105,10 +105,39 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 	if err != nil {
 		return c.Wrap(err)
 	}
-	if _, ok := perms[code]; !ok {
-		return merr.Forbidden("permission denied")
+	if _, ok := perms[code]; ok {
+		return nil
 	}
-	return nil
+	// 平台管理员可以只读切入不是自己成员的租户：只有租户目录里的 :read 放行，
+	// 写、删除、介入和执行动作仍然要求该租户的成员角色。
+	if perm.IsReadOnly(code) {
+		admin, err := c.SystemAdmin(ctx)
+		if err != nil {
+			return err
+		}
+		if admin {
+			c.Log.Debug(fmt.Sprintf("access: system admin read-only user=%s namespace=%s permission=%s", uid, ns, code))
+			return nil
+		}
+	}
+	return merr.Forbidden("permission denied")
+}
+
+// SystemAdmin 判断当前登录用户是否持有平台管理员角色。
+// 只读切入只认 SUPER_ADMIN 和 SYSTEM_ADMIN；普通用户和已封禁用户都不算。
+func (c Checker) SystemAdmin(ctx context.Context) (bool, error) {
+	uid, ok := actor.UserID(ctx)
+	if !ok {
+		return false, merr.Unauthenticated("missing token")
+	}
+	account, err := c.Users.UserByUID(ctx, uid)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return false, nil
+		}
+		return false, c.Wrap(err)
+	}
+	return account.Status == "ACTIVE" && perm.IsSystemAdmin(account.SystemRole), nil
 }
 
 // SameNamespace 要求路径中的租户就是当前租户，避免用一个租户的令牌改另一个租户。

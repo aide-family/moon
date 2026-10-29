@@ -79,6 +79,14 @@ func (s *NamespaceService) ListSimpleNamespaces(ctx context.Context, req *v1.Lis
 	return &v1.ListSimpleNamespacesResponse{Items: namespaceItems(items), Total: int32(total)}, nil
 }
 
+func (s *NamespaceService) ListSystemNamespaces(ctx context.Context, req *v1.ListSystemNamespacesRequest) (*v1.ListSystemNamespacesResponse, error) {
+	items, total, page, pageSize, err := s.tenancy.ListAllNamespaces(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetStatus())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListSystemNamespacesResponse{Items: namespaceItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
+}
+
 func (s *NamespaceService) TransferNamespaceOwner(ctx context.Context, req *v1.TransferNamespaceOwnerRequest) (*v1.TransferNamespaceOwnerResponse, error) {
 	item, err := s.tenancy.TransferOwner(ctx, req.GetUid(), req.GetUserUid())
 	if err != nil {

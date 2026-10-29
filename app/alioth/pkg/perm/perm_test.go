@@ -64,8 +64,44 @@ func TestSystemTenantIsolation(t *testing.T) {
 	if _, ok := admin[SystemRoleWrite]; ok {
 		t.Fatal("system admin has system role write")
 	}
+	if _, ok := admin[SystemNamespaceRead]; !ok {
+		t.Fatal("system admin missing system namespace read")
+	}
+	if _, ok := super[SystemNamespaceRead]; !ok {
+		t.Fatal("super admin missing system namespace read")
+	}
 	if len(SystemPermissions(SystemRoleUser)) != 0 {
 		t.Fatal("normal user has system permissions")
+	}
+}
+
+// TestReadOnlyCatalog 确认只读放行只认租户目录里的 read 动作。
+// 平台管理员跨租户只读，写、删除、介入和执行动作不在其中。
+func TestReadOnlyCatalog(t *testing.T) {
+	reads := set(ReadOnlyNames())
+	for _, item := range Catalog() {
+		_, inReads := reads[item.Name]
+		want := item.Action == "read"
+		if inReads != want {
+			t.Fatalf("permission %s read-only = %v, want %v", item.Name, inReads, want)
+		}
+		if got := IsReadOnly(item.Name); got != want {
+			t.Fatalf("IsReadOnly(%s) = %v, want %v", item.Name, got, want)
+		}
+	}
+	for _, write := range []string{MemberWrite, MemberDelete, AlertIntervene, SSHExec, NamespaceDelete, NamespaceTransfer} {
+		if IsReadOnly(write) {
+			t.Fatalf("write permission %s treated as read-only", write)
+		}
+	}
+	if IsReadOnly(SystemNamespaceRead) || IsReadOnly(SystemUserRead) {
+		t.Fatal("system permission treated as tenant read-only permission")
+	}
+	if IsReadOnly("member") || IsReadOnly("") {
+		t.Fatal("unknown permission treated as read-only")
+	}
+	if len(reads) != len(readPermissions()) {
+		t.Fatalf("read-only catalog size = %d, want %d", len(reads), len(readPermissions()))
 	}
 }
 

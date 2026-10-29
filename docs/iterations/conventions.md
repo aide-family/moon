@@ -149,10 +149,12 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 
 | 类型 | 目录 | 授权载体 | 校验 |
 | --- | --- | --- | --- |
-| 系统权限 | `system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read` | `User.system_role` | `access.RequireSystem`，不读 `X-Namespace` |
+| 系统权限 | `system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read`、`system:namespace:read` | `User.system_role` | `access.RequireSystem`，不读 `X-Namespace` |
 | 租户权限 | `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh` 的 `resource:action` | `Role` + `MemberRole` | `access.Allow` / `Require`，必须带 `X-Namespace` |
 
-平台角色固定三档：第一个注册用户是 `SUPER_ADMIN`；`SYSTEM_ADMIN` 由超级管理员授权，可查看和管理普通用户；`USER` 没有系统权限。超级管理员唯一性由数据库部分唯一索引保证。已有部署升级时，最早注册的用户补为超级管理员。`system:user:read` 及以上才能查看用户列表。
+平台角色固定三档：第一个注册用户是 `SUPER_ADMIN`；`SYSTEM_ADMIN` 由超级管理员授权，可查看和管理普通用户、列出平台全部租户；`USER` 没有系统权限。超级管理员唯一性由数据库部分唯一索引保证。已有部署升级时，最早注册的用户补为超级管理员。`system:user:read` 及以上才能查看用户列表。
+
+平台管理员不是某租户成员时，`access.Require` 仍放行租户目录里的 `:read` 权限（`perm.IsReadOnly`），写、删除、介入和执行动作返回 403；`/self/permissions` 据此返回 `readOnly = true` 和只读权限目录。
 
 租户预置角色：
 

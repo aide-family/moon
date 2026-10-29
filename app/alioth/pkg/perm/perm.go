@@ -48,11 +48,12 @@ const (
 
 // 系统权限属于平台，不写入租户的 permission 表，也不参与租户角色授权。
 const (
-	SystemUserRead   = "system:user:read"
-	SystemUserWrite  = "system:user:write"
-	SystemRoleWrite  = "system:role:write"
-	SystemRoleRead   = "system:role:read"
-	SystemInviteRead = "system:invite:read"
+	SystemUserRead      = "system:user:read"
+	SystemUserWrite     = "system:user:write"
+	SystemRoleWrite     = "system:role:write"
+	SystemRoleRead      = "system:role:read"
+	SystemInviteRead    = "system:invite:read"
+	SystemNamespaceRead = "system:namespace:read"
 )
 
 const (
@@ -112,6 +113,7 @@ func SystemCatalog() []Item {
 		{Name: SystemRoleRead, Resource: "system", Action: "role:read"},
 		{Name: SystemRoleWrite, Resource: "system", Action: "role:write"},
 		{Name: SystemInviteRead, Resource: "system", Action: "invite:read"},
+		{Name: SystemNamespaceRead, Resource: "system", Action: "namespace:read"},
 	}
 }
 
@@ -166,16 +168,39 @@ func DefaultRoleRemark(role string) string {
 }
 
 // SystemPermissions 返回平台角色拥有的系统权限。
-// 系统权限不叠加租户权限；超级管理员要使用租户能力仍需成为该租户成员。
+// 系统权限不叠加租户权限；平台管理员跨租户只读，写操作仍要求成为该租户成员。
 func SystemPermissions(role string) []string {
 	switch role {
 	case SystemRoleSuperAdmin:
 		return SystemNames()
 	case SystemRoleSystemAdmin:
-		return []string{SystemUserRead, SystemUserWrite, SystemRoleRead, SystemInviteRead}
+		return []string{SystemUserRead, SystemUserWrite, SystemRoleRead, SystemInviteRead, SystemNamespaceRead}
 	default:
 		return nil
 	}
+}
+
+// IsReadOnly 判断权限名是否属于租户目录中的只读权限。
+// 平台管理员只靠它跨租户读取；写、删除、介入和执行动作一律不放行。
+func IsReadOnly(code string) bool {
+	for _, item := range Catalog() {
+		if item.Name == code {
+			return item.Action == "read"
+		}
+	}
+	return false
+}
+
+// ReadOnlyNames 返回租户目录中的全部只读权限名，顺序与 Catalog 一致。
+// 平台管理员不是租户成员时，/self/permissions 返回这份目录。
+func ReadOnlyNames() []string {
+	var names []string
+	for _, item := range Catalog() {
+		if item.Action == "read" {
+			names = append(names, item.Name)
+		}
+	}
+	return names
 }
 
 // TenantRoles 返回每个租户预置的四个角色。
