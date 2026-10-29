@@ -112,6 +112,9 @@ probe:
 - [x] 判定命中后写入 FIRING 事件：`datasource_uid` 为空、`expr` 是目标地址、`sample_value=0`，labels 为 `{"datasource":"E2E 目标组","env":"e2e","probe_kind":"HTTP","probe_target":"http://127.0.0.1:18080/","probe_target_uid":"e2e-target","team":"platform"}`。
 - [x] 目标恢复后事件恢复并归档到租户历史库 `alioth_alert_e2ens` 的周表 `alert_events_20261026`：状态 `RECOVERED`、`ends_at` 有值、标签原样保留，主库行与 `alert_event_firings` 占位都已清掉。
 - [x] `TestProbeEventFiringAndRecovery` 集成测试覆盖事件字段、列表数据源名兜底与恢复归档。
+- [x] 通知闭环（到任务层）：只配标签 `{"probe_kind":"HTTP"}` 的订阅在 FIRING 时生成一条 `PENDING` 通知任务（订阅、通知组、收件人、邮件渠道都正确），目标恢复后再生成一条 `RECOVERED` 任务；投递本身仍由 `merak` 走既有链路。
+- [x] 多副本：同时起两个 megrez 探测 worker，`probe_results` 的 `(target, slot)` 无重复（23 行 / 23 个不同组合），单目标锁生效。
+- [x] `probe.enabled=false`：worker 打一行 `probe worker disabled` 后不领任务，等待 20 秒后 `probe_results` 行数没变。
 
 端到端跑出来并已修复的问题：
 
@@ -122,9 +125,7 @@ probe:
 ### 待补验（需要浏览器登录态或第二实例）
 
 - [ ] 浏览器：目标组页与规则表单在 1366×768 / 390×844 的滚动、对话框、分段筛选。
-- [ ] 通知闭环：绑定通知组与按标签匹配的订阅后，FIRING/RECOVERED 进入消息日志，`externalURL` 为目标地址。
-- [ ] 多副本：两个 megrez 同时开启探测，同一 `(target, slot)` 只探一次。
-- [ ] `probe.enabled=false` 时不产生新的探测记录，评测节奏不受影响。
+- [ ] 通知投递：起 `merak` 后确认任务进入消息日志、模板渲染出 `datasource` / `probe_target` / `externalURL`（任务层已验证，投递层未跑）。
 - [ ] 目标删除 / 目标组停用后旧 FIRING 事件的收口（`RecoverProbeTargets` 目前只有数据层集成覆盖，未在运行态验证）。
 
 ## 验收
