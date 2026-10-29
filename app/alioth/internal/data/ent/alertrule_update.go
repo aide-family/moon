@@ -223,6 +223,55 @@ func (_u *AlertRuleUpdate) SetNillableVariables(v *string) *AlertRuleUpdate {
 	return _u
 }
 
+// SetProbeGroupLabels sets the "probe_group_labels" field.
+func (_u *AlertRuleUpdate) SetProbeGroupLabels(v string) *AlertRuleUpdate {
+	_u.mutation.SetProbeGroupLabels(v)
+	return _u
+}
+
+// SetNillableProbeGroupLabels sets the "probe_group_labels" field if the given value is not nil.
+func (_u *AlertRuleUpdate) SetNillableProbeGroupLabels(v *string) *AlertRuleUpdate {
+	if v != nil {
+		_u.SetProbeGroupLabels(*v)
+	}
+	return _u
+}
+
+// SetProbeIntervalSeconds sets the "probe_interval_seconds" field.
+func (_u *AlertRuleUpdate) SetProbeIntervalSeconds(v int) *AlertRuleUpdate {
+	_u.mutation.ResetProbeIntervalSeconds()
+	_u.mutation.SetProbeIntervalSeconds(v)
+	return _u
+}
+
+// SetNillableProbeIntervalSeconds sets the "probe_interval_seconds" field if the given value is not nil.
+func (_u *AlertRuleUpdate) SetNillableProbeIntervalSeconds(v *int) *AlertRuleUpdate {
+	if v != nil {
+		_u.SetProbeIntervalSeconds(*v)
+	}
+	return _u
+}
+
+// AddProbeIntervalSeconds adds value to the "probe_interval_seconds" field.
+func (_u *AlertRuleUpdate) AddProbeIntervalSeconds(v int) *AlertRuleUpdate {
+	_u.mutation.AddProbeIntervalSeconds(v)
+	return _u
+}
+
+// SetProbeMetric sets the "probe_metric" field.
+func (_u *AlertRuleUpdate) SetProbeMetric(v alertrule.ProbeMetric) *AlertRuleUpdate {
+	_u.mutation.SetProbeMetric(v)
+	return _u
+}
+
+// SetNillableProbeMetric sets the "probe_metric" field if the given value is not nil.
+func (_u *AlertRuleUpdate) SetNillableProbeMetric(v *alertrule.ProbeMetric) *AlertRuleUpdate {
+	if v != nil {
+		_u.SetProbeMetric(*v)
+	}
+	return _u
+}
+
 // SetNextEvalAt sets the "next_eval_at" field.
 func (_u *AlertRuleUpdate) SetNextEvalAt(v time.Time) *AlertRuleUpdate {
 	_u.mutation.SetNextEvalAt(v)
@@ -331,6 +380,11 @@ func (_u *AlertRuleUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AlertRule.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ProbeMetric(); ok {
+		if err := alertrule.ProbeMetricValidator(v); err != nil {
+			return &ValidationError{Name: "probe_metric", err: fmt.Errorf(`ent: validator failed for field "AlertRule.probe_metric": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -390,6 +444,18 @@ func (_u *AlertRuleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Variables(); ok {
 		_spec.SetField(alertrule.FieldVariables, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ProbeGroupLabels(); ok {
+		_spec.SetField(alertrule.FieldProbeGroupLabels, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ProbeIntervalSeconds(); ok {
+		_spec.SetField(alertrule.FieldProbeIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedProbeIntervalSeconds(); ok {
+		_spec.AddField(alertrule.FieldProbeIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.ProbeMetric(); ok {
+		_spec.SetField(alertrule.FieldProbeMetric, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.NextEvalAt(); ok {
 		_spec.SetField(alertrule.FieldNextEvalAt, field.TypeTime, value)
@@ -617,6 +683,55 @@ func (_u *AlertRuleUpdateOne) SetNillableVariables(v *string) *AlertRuleUpdateOn
 	return _u
 }
 
+// SetProbeGroupLabels sets the "probe_group_labels" field.
+func (_u *AlertRuleUpdateOne) SetProbeGroupLabels(v string) *AlertRuleUpdateOne {
+	_u.mutation.SetProbeGroupLabels(v)
+	return _u
+}
+
+// SetNillableProbeGroupLabels sets the "probe_group_labels" field if the given value is not nil.
+func (_u *AlertRuleUpdateOne) SetNillableProbeGroupLabels(v *string) *AlertRuleUpdateOne {
+	if v != nil {
+		_u.SetProbeGroupLabels(*v)
+	}
+	return _u
+}
+
+// SetProbeIntervalSeconds sets the "probe_interval_seconds" field.
+func (_u *AlertRuleUpdateOne) SetProbeIntervalSeconds(v int) *AlertRuleUpdateOne {
+	_u.mutation.ResetProbeIntervalSeconds()
+	_u.mutation.SetProbeIntervalSeconds(v)
+	return _u
+}
+
+// SetNillableProbeIntervalSeconds sets the "probe_interval_seconds" field if the given value is not nil.
+func (_u *AlertRuleUpdateOne) SetNillableProbeIntervalSeconds(v *int) *AlertRuleUpdateOne {
+	if v != nil {
+		_u.SetProbeIntervalSeconds(*v)
+	}
+	return _u
+}
+
+// AddProbeIntervalSeconds adds value to the "probe_interval_seconds" field.
+func (_u *AlertRuleUpdateOne) AddProbeIntervalSeconds(v int) *AlertRuleUpdateOne {
+	_u.mutation.AddProbeIntervalSeconds(v)
+	return _u
+}
+
+// SetProbeMetric sets the "probe_metric" field.
+func (_u *AlertRuleUpdateOne) SetProbeMetric(v alertrule.ProbeMetric) *AlertRuleUpdateOne {
+	_u.mutation.SetProbeMetric(v)
+	return _u
+}
+
+// SetNillableProbeMetric sets the "probe_metric" field if the given value is not nil.
+func (_u *AlertRuleUpdateOne) SetNillableProbeMetric(v *alertrule.ProbeMetric) *AlertRuleUpdateOne {
+	if v != nil {
+		_u.SetProbeMetric(*v)
+	}
+	return _u
+}
+
 // SetNextEvalAt sets the "next_eval_at" field.
 func (_u *AlertRuleUpdateOne) SetNextEvalAt(v time.Time) *AlertRuleUpdateOne {
 	_u.mutation.SetNextEvalAt(v)
@@ -738,6 +853,11 @@ func (_u *AlertRuleUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AlertRule.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ProbeMetric(); ok {
+		if err := alertrule.ProbeMetricValidator(v); err != nil {
+			return &ValidationError{Name: "probe_metric", err: fmt.Errorf(`ent: validator failed for field "AlertRule.probe_metric": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -814,6 +934,18 @@ func (_u *AlertRuleUpdateOne) sqlSave(ctx context.Context) (_node *AlertRule, er
 	}
 	if value, ok := _u.mutation.Variables(); ok {
 		_spec.SetField(alertrule.FieldVariables, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ProbeGroupLabels(); ok {
+		_spec.SetField(alertrule.FieldProbeGroupLabels, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ProbeIntervalSeconds(); ok {
+		_spec.SetField(alertrule.FieldProbeIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedProbeIntervalSeconds(); ok {
+		_spec.AddField(alertrule.FieldProbeIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.ProbeMetric(); ok {
+		_spec.SetField(alertrule.FieldProbeMetric, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.NextEvalAt(); ok {
 		_spec.SetField(alertrule.FieldNextEvalAt, field.TypeTime, value)

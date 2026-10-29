@@ -50,6 +50,12 @@ type AlertRule struct {
 	Description string `json:"description,omitempty"`
 	// Variables holds the value of the "variables" field.
 	Variables string `json:"variables,omitempty"`
+	// ProbeGroupLabels holds the value of the "probe_group_labels" field.
+	ProbeGroupLabels string `json:"probe_group_labels,omitempty"`
+	// ProbeIntervalSeconds holds the value of the "probe_interval_seconds" field.
+	ProbeIntervalSeconds int `json:"probe_interval_seconds,omitempty"`
+	// ProbeMetric holds the value of the "probe_metric" field.
+	ProbeMetric alertrule.ProbeMetric `json:"probe_metric,omitempty"`
 	// NextEvalAt holds the value of the "next_eval_at" field.
 	NextEvalAt *time.Time `json:"next_eval_at,omitempty"`
 	// ScheduledSlot holds the value of the "scheduled_slot" field.
@@ -62,9 +68,9 @@ func (*AlertRule) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case alertrule.FieldID:
+		case alertrule.FieldID, alertrule.FieldProbeIntervalSeconds:
 			values[i] = new(sql.NullInt64)
-		case alertrule.FieldUID, alertrule.FieldNamespaceUID, alertrule.FieldGroupUID, alertrule.FieldName, alertrule.FieldDriver, alertrule.FieldStatus, alertrule.FieldExpr, alertrule.FieldLabels, alertrule.FieldDatasourceUID, alertrule.FieldDatasourceLabels, alertrule.FieldSummary, alertrule.FieldDescription, alertrule.FieldVariables:
+		case alertrule.FieldUID, alertrule.FieldNamespaceUID, alertrule.FieldGroupUID, alertrule.FieldName, alertrule.FieldDriver, alertrule.FieldStatus, alertrule.FieldExpr, alertrule.FieldLabels, alertrule.FieldDatasourceUID, alertrule.FieldDatasourceLabels, alertrule.FieldSummary, alertrule.FieldDescription, alertrule.FieldVariables, alertrule.FieldProbeGroupLabels, alertrule.FieldProbeMetric:
 			values[i] = new(sql.NullString)
 		case alertrule.FieldCreatedAt, alertrule.FieldUpdatedAt, alertrule.FieldDeletedAt, alertrule.FieldNextEvalAt, alertrule.FieldScheduledSlot:
 			values[i] = new(sql.NullTime)
@@ -186,6 +192,24 @@ func (_m *AlertRule) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Variables = value.String
 			}
+		case alertrule.FieldProbeGroupLabels:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field probe_group_labels", values[i])
+			} else if value.Valid {
+				_m.ProbeGroupLabels = value.String
+			}
+		case alertrule.FieldProbeIntervalSeconds:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field probe_interval_seconds", values[i])
+			} else if value.Valid {
+				_m.ProbeIntervalSeconds = int(value.Int64)
+			}
+		case alertrule.FieldProbeMetric:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field probe_metric", values[i])
+			} else if value.Valid {
+				_m.ProbeMetric = alertrule.ProbeMetric(value.String)
+			}
 		case alertrule.FieldNextEvalAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field next_eval_at", values[i])
@@ -285,6 +309,15 @@ func (_m *AlertRule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("variables=")
 	builder.WriteString(_m.Variables)
+	builder.WriteString(", ")
+	builder.WriteString("probe_group_labels=")
+	builder.WriteString(_m.ProbeGroupLabels)
+	builder.WriteString(", ")
+	builder.WriteString("probe_interval_seconds=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ProbeIntervalSeconds))
+	builder.WriteString(", ")
+	builder.WriteString("probe_metric=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ProbeMetric))
 	builder.WriteString(", ")
 	if v := _m.NextEvalAt; v != nil {
 		builder.WriteString("next_eval_at=")

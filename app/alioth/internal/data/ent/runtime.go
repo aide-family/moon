@@ -36,6 +36,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/schema"
@@ -445,6 +448,14 @@ func init() {
 	alertruleDescVariables := alertruleFields[12].Descriptor()
 	// alertrule.DefaultVariables holds the default value on creation for the variables field.
 	alertrule.DefaultVariables = alertruleDescVariables.Default.(string)
+	// alertruleDescProbeGroupLabels is the schema descriptor for probe_group_labels field.
+	alertruleDescProbeGroupLabels := alertruleFields[13].Descriptor()
+	// alertrule.DefaultProbeGroupLabels holds the default value on creation for the probe_group_labels field.
+	alertrule.DefaultProbeGroupLabels = alertruleDescProbeGroupLabels.Default.(string)
+	// alertruleDescProbeIntervalSeconds is the schema descriptor for probe_interval_seconds field.
+	alertruleDescProbeIntervalSeconds := alertruleFields[14].Descriptor()
+	// alertrule.DefaultProbeIntervalSeconds holds the default value on creation for the probe_interval_seconds field.
+	alertrule.DefaultProbeIntervalSeconds = alertruleDescProbeIntervalSeconds.Default.(int)
 	alertrulegroupMixin := schema.AlertRuleGroup{}.Mixin()
 	alertrulegroupMixinFields0 := alertrulegroupMixin[0].Fields()
 	_ = alertrulegroupMixinFields0
@@ -1439,6 +1450,175 @@ func init() {
 	permissionDescAction := permissionFields[3].Descriptor()
 	// permission.ActionValidator is a validator for the "action" field. It is called by the builders before save.
 	permission.ActionValidator = permissionDescAction.Validators[0].(func(string) error)
+	proberesultMixin := schema.ProbeResult{}.Mixin()
+	proberesultMixinFields0 := proberesultMixin[0].Fields()
+	_ = proberesultMixinFields0
+	proberesultFields := schema.ProbeResult{}.Fields()
+	_ = proberesultFields
+	// proberesultDescCreatedAt is the schema descriptor for created_at field.
+	proberesultDescCreatedAt := proberesultMixinFields0[0].Descriptor()
+	// proberesult.DefaultCreatedAt holds the default value on creation for the created_at field.
+	proberesult.DefaultCreatedAt = proberesultDescCreatedAt.Default.(func() time.Time)
+	// proberesultDescUpdatedAt is the schema descriptor for updated_at field.
+	proberesultDescUpdatedAt := proberesultMixinFields0[1].Descriptor()
+	// proberesult.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	proberesult.DefaultUpdatedAt = proberesultDescUpdatedAt.Default.(func() time.Time)
+	// proberesult.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	proberesult.UpdateDefaultUpdatedAt = proberesultDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// proberesultDescUID is the schema descriptor for uid field.
+	proberesultDescUID := proberesultFields[0].Descriptor()
+	// proberesult.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	proberesult.UIDValidator = proberesultDescUID.Validators[0].(func(string) error)
+	// proberesultDescNamespaceUID is the schema descriptor for namespace_uid field.
+	proberesultDescNamespaceUID := proberesultFields[1].Descriptor()
+	// proberesult.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	proberesult.NamespaceUIDValidator = proberesultDescNamespaceUID.Validators[0].(func(string) error)
+	// proberesultDescRuleUID is the schema descriptor for rule_uid field.
+	proberesultDescRuleUID := proberesultFields[2].Descriptor()
+	// proberesult.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
+	proberesult.RuleUIDValidator = proberesultDescRuleUID.Validators[0].(func(string) error)
+	// proberesultDescGroupUID is the schema descriptor for group_uid field.
+	proberesultDescGroupUID := proberesultFields[3].Descriptor()
+	// proberesult.GroupUIDValidator is a validator for the "group_uid" field. It is called by the builders before save.
+	proberesult.GroupUIDValidator = proberesultDescGroupUID.Validators[0].(func(string) error)
+	// proberesultDescTargetUID is the schema descriptor for target_uid field.
+	proberesultDescTargetUID := proberesultFields[4].Descriptor()
+	// proberesult.TargetUIDValidator is a validator for the "target_uid" field. It is called by the builders before save.
+	proberesult.TargetUIDValidator = proberesultDescTargetUID.Validators[0].(func(string) error)
+	// proberesultDescOk is the schema descriptor for ok field.
+	proberesultDescOk := proberesultFields[7].Descriptor()
+	// proberesult.DefaultOk holds the default value on creation for the ok field.
+	proberesult.DefaultOk = proberesultDescOk.Default.(bool)
+	// proberesultDescValue is the schema descriptor for value field.
+	proberesultDescValue := proberesultFields[8].Descriptor()
+	// proberesult.DefaultValue holds the default value on creation for the value field.
+	proberesult.DefaultValue = proberesultDescValue.Default.(string)
+	// proberesultDescDurationMs is the schema descriptor for duration_ms field.
+	proberesultDescDurationMs := proberesultFields[9].Descriptor()
+	// proberesult.DefaultDurationMs holds the default value on creation for the duration_ms field.
+	proberesult.DefaultDurationMs = proberesultDescDurationMs.Default.(int)
+	// proberesultDescStatusCode is the schema descriptor for status_code field.
+	proberesultDescStatusCode := proberesultFields[10].Descriptor()
+	// proberesult.DefaultStatusCode holds the default value on creation for the status_code field.
+	proberesult.DefaultStatusCode = proberesultDescStatusCode.Default.(int)
+	// proberesultDescErrorKind is the schema descriptor for error_kind field.
+	proberesultDescErrorKind := proberesultFields[11].Descriptor()
+	// proberesult.DefaultErrorKind holds the default value on creation for the error_kind field.
+	proberesult.DefaultErrorKind = proberesultDescErrorKind.Default.(string)
+	// proberesultDescErrorMessage is the schema descriptor for error_message field.
+	proberesultDescErrorMessage := proberesultFields[12].Descriptor()
+	// proberesult.DefaultErrorMessage holds the default value on creation for the error_message field.
+	proberesult.DefaultErrorMessage = proberesultDescErrorMessage.Default.(string)
+	// proberesultDescDNSMs is the schema descriptor for dns_ms field.
+	proberesultDescDNSMs := proberesultFields[13].Descriptor()
+	// proberesult.DefaultDNSMs holds the default value on creation for the dns_ms field.
+	proberesult.DefaultDNSMs = proberesultDescDNSMs.Default.(int)
+	// proberesultDescTCPMs is the schema descriptor for tcp_ms field.
+	proberesultDescTCPMs := proberesultFields[14].Descriptor()
+	// proberesult.DefaultTCPMs holds the default value on creation for the tcp_ms field.
+	proberesult.DefaultTCPMs = proberesultDescTCPMs.Default.(int)
+	// proberesultDescTLSMs is the schema descriptor for tls_ms field.
+	proberesultDescTLSMs := proberesultFields[15].Descriptor()
+	// proberesult.DefaultTLSMs holds the default value on creation for the tls_ms field.
+	proberesult.DefaultTLSMs = proberesultDescTLSMs.Default.(int)
+	// proberesultDescTtfbMs is the schema descriptor for ttfb_ms field.
+	proberesultDescTtfbMs := proberesultFields[16].Descriptor()
+	// proberesult.DefaultTtfbMs holds the default value on creation for the ttfb_ms field.
+	proberesult.DefaultTtfbMs = proberesultDescTtfbMs.Default.(int)
+	// proberesultDescCertDays is the schema descriptor for cert_days field.
+	proberesultDescCertDays := proberesultFields[17].Descriptor()
+	// proberesult.DefaultCertDays holds the default value on creation for the cert_days field.
+	proberesult.DefaultCertDays = proberesultDescCertDays.Default.(int)
+	// proberesultDescResolvedIP is the schema descriptor for resolved_ip field.
+	proberesultDescResolvedIP := proberesultFields[18].Descriptor()
+	// proberesult.DefaultResolvedIP holds the default value on creation for the resolved_ip field.
+	proberesult.DefaultResolvedIP = proberesultDescResolvedIP.Default.(string)
+	// proberesultDescExecutor is the schema descriptor for executor field.
+	proberesultDescExecutor := proberesultFields[19].Descriptor()
+	// proberesult.DefaultExecutor holds the default value on creation for the executor field.
+	proberesult.DefaultExecutor = proberesultDescExecutor.Default.(string)
+	probetargetMixin := schema.ProbeTarget{}.Mixin()
+	probetargetMixinFields0 := probetargetMixin[0].Fields()
+	_ = probetargetMixinFields0
+	probetargetFields := schema.ProbeTarget{}.Fields()
+	_ = probetargetFields
+	// probetargetDescCreatedAt is the schema descriptor for created_at field.
+	probetargetDescCreatedAt := probetargetMixinFields0[0].Descriptor()
+	// probetarget.DefaultCreatedAt holds the default value on creation for the created_at field.
+	probetarget.DefaultCreatedAt = probetargetDescCreatedAt.Default.(func() time.Time)
+	// probetargetDescUpdatedAt is the schema descriptor for updated_at field.
+	probetargetDescUpdatedAt := probetargetMixinFields0[1].Descriptor()
+	// probetarget.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	probetarget.DefaultUpdatedAt = probetargetDescUpdatedAt.Default.(func() time.Time)
+	// probetarget.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	probetarget.UpdateDefaultUpdatedAt = probetargetDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// probetargetDescUID is the schema descriptor for uid field.
+	probetargetDescUID := probetargetFields[0].Descriptor()
+	// probetarget.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	probetarget.UIDValidator = probetargetDescUID.Validators[0].(func(string) error)
+	// probetargetDescNamespaceUID is the schema descriptor for namespace_uid field.
+	probetargetDescNamespaceUID := probetargetFields[1].Descriptor()
+	// probetarget.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	probetarget.NamespaceUIDValidator = probetargetDescNamespaceUID.Validators[0].(func(string) error)
+	// probetargetDescGroupUID is the schema descriptor for group_uid field.
+	probetargetDescGroupUID := probetargetFields[2].Descriptor()
+	// probetarget.GroupUIDValidator is a validator for the "group_uid" field. It is called by the builders before save.
+	probetarget.GroupUIDValidator = probetargetDescGroupUID.Validators[0].(func(string) error)
+	// probetargetDescSpec is the schema descriptor for spec field.
+	probetargetDescSpec := probetargetFields[3].Descriptor()
+	// probetarget.SpecValidator is a validator for the "spec" field. It is called by the builders before save.
+	probetarget.SpecValidator = probetargetDescSpec.Validators[0].(func(string) error)
+	// probetargetDescLabels is the schema descriptor for labels field.
+	probetargetDescLabels := probetargetFields[4].Descriptor()
+	// probetarget.DefaultLabels holds the default value on creation for the labels field.
+	probetarget.DefaultLabels = probetargetDescLabels.Default.(string)
+	// probetargetDescSort is the schema descriptor for sort field.
+	probetargetDescSort := probetargetFields[6].Descriptor()
+	// probetarget.DefaultSort holds the default value on creation for the sort field.
+	probetarget.DefaultSort = probetargetDescSort.Default.(int)
+	probetargetgroupMixin := schema.ProbeTargetGroup{}.Mixin()
+	probetargetgroupMixinFields0 := probetargetgroupMixin[0].Fields()
+	_ = probetargetgroupMixinFields0
+	probetargetgroupFields := schema.ProbeTargetGroup{}.Fields()
+	_ = probetargetgroupFields
+	// probetargetgroupDescCreatedAt is the schema descriptor for created_at field.
+	probetargetgroupDescCreatedAt := probetargetgroupMixinFields0[0].Descriptor()
+	// probetargetgroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	probetargetgroup.DefaultCreatedAt = probetargetgroupDescCreatedAt.Default.(func() time.Time)
+	// probetargetgroupDescUpdatedAt is the schema descriptor for updated_at field.
+	probetargetgroupDescUpdatedAt := probetargetgroupMixinFields0[1].Descriptor()
+	// probetargetgroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	probetargetgroup.DefaultUpdatedAt = probetargetgroupDescUpdatedAt.Default.(func() time.Time)
+	// probetargetgroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	probetargetgroup.UpdateDefaultUpdatedAt = probetargetgroupDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// probetargetgroupDescUID is the schema descriptor for uid field.
+	probetargetgroupDescUID := probetargetgroupFields[0].Descriptor()
+	// probetargetgroup.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	probetargetgroup.UIDValidator = probetargetgroupDescUID.Validators[0].(func(string) error)
+	// probetargetgroupDescNamespaceUID is the schema descriptor for namespace_uid field.
+	probetargetgroupDescNamespaceUID := probetargetgroupFields[1].Descriptor()
+	// probetargetgroup.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	probetargetgroup.NamespaceUIDValidator = probetargetgroupDescNamespaceUID.Validators[0].(func(string) error)
+	// probetargetgroupDescName is the schema descriptor for name field.
+	probetargetgroupDescName := probetargetgroupFields[2].Descriptor()
+	// probetargetgroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	probetargetgroup.NameValidator = probetargetgroupDescName.Validators[0].(func(string) error)
+	// probetargetgroupDescLabels is the schema descriptor for labels field.
+	probetargetgroupDescLabels := probetargetgroupFields[5].Descriptor()
+	// probetargetgroup.DefaultLabels holds the default value on creation for the labels field.
+	probetargetgroup.DefaultLabels = probetargetgroupDescLabels.Default.(string)
+	// probetargetgroupDescExecutorLabels is the schema descriptor for executor_labels field.
+	probetargetgroupDescExecutorLabels := probetargetgroupFields[6].Descriptor()
+	// probetargetgroup.DefaultExecutorLabels holds the default value on creation for the executor_labels field.
+	probetargetgroup.DefaultExecutorLabels = probetargetgroupDescExecutorLabels.Default.(string)
+	// probetargetgroupDescRequest is the schema descriptor for request field.
+	probetargetgroupDescRequest := probetargetgroupFields[7].Descriptor()
+	// probetargetgroup.DefaultRequest holds the default value on creation for the request field.
+	probetargetgroup.DefaultRequest = probetargetgroupDescRequest.Default.(string)
+	// probetargetgroupDescRemark is the schema descriptor for remark field.
+	probetargetgroupDescRemark := probetargetgroupFields[8].Descriptor()
+	// probetargetgroup.DefaultRemark holds the default value on creation for the remark field.
+	probetargetgroup.DefaultRemark = probetargetgroupDescRemark.Default.(string)
 	roleMixin := schema.Role{}.Mixin()
 	roleMixinFields0 := roleMixin[0].Fields()
 	_ = roleMixinFields0

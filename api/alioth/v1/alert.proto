@@ -283,7 +283,7 @@ message UpdateDatasourceRequest {
   // 类型，取值为 METRICS、LOGS 或 TRACE。
   string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
   // 驱动。
-  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP"]}];
   // 连接地址。
   string endpoint = 5 [(buf.validate.field).string.min_len = 1];
   // 用户名。
@@ -707,6 +707,12 @@ message AlertRuleItem {
   string datasource_labels = 14 [json_name = "datasourceLabels"];
   // 自定义查询变量，按保存顺序返回。
   repeated AlertRuleVariableItem variables = 15;
+  // 探测规则的目标组标签匹配器 JSON；查询规则为空对象。
+  string probe_group_labels = 16 [json_name = "probeGroupLabels"];
+  // 探测周期秒数；查询规则为 0。
+  int32 probe_interval_seconds = 17 [json_name = "probeIntervalSeconds"];
+  // 探测规则比较的观测指标，取值为 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS。
+  string probe_metric = 18 [json_name = "probeMetric"];
 
   reserved 13;
   reserved "notification_group_uids";
@@ -721,7 +727,7 @@ message CreateAlertRuleRequest {
   reserved 3;
   reserved "type";
   // 驱动。类型由驱动推导。
-  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP"]}];
   // 表达式。
   string expr = 5;
   // 标签，JSON 文本。
@@ -738,6 +744,12 @@ message CreateAlertRuleRequest {
   string datasource_labels = 12 [json_name = "datasourceLabels", (buf.validate.field).string.max_len = 4096];
   // 自定义查询变量，最多 20 个，保存时替换原有变量。
   repeated AlertRuleVariableInput variables = 13 [(buf.validate.field).repeated.max_items = 20];
+  // 探测规则的目标组标签匹配器 JSON。查询规则留空。
+  string probe_group_labels = 14 [json_name = "probeGroupLabels", (buf.validate.field).string.max_len = 4096];
+  // 探测周期秒数，取值为 15、30、60、300；探测规则必填，查询规则为 0。
+  int32 probe_interval_seconds = 15 [json_name = "probeIntervalSeconds", (buf.validate.field).int32 = {gte: 0, lte: 3600}];
+  // 探测规则比较的观测指标；查询规则留空。
+  string probe_metric = 16 [json_name = "probeMetric", (buf.validate.field).string = {in: ["", "UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS"]}];
 
   reserved 11;
   reserved "notification_group_uids";
@@ -760,7 +772,7 @@ message UpdateAlertRuleRequest {
   reserved 4;
   reserved "type";
   // 驱动。类型由驱动推导。
-  string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
+  string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP"]}];
   // 表达式。
   string expr = 6;
   // 标签，JSON 文本。
@@ -777,6 +789,12 @@ message UpdateAlertRuleRequest {
   string datasource_labels = 13 [json_name = "datasourceLabels", (buf.validate.field).string.max_len = 4096];
   // 自定义查询变量，最多 20 个，保存时替换原有变量。
   repeated AlertRuleVariableInput variables = 14 [(buf.validate.field).repeated.max_items = 20];
+  // 探测规则的目标组标签匹配器 JSON。查询规则留空。
+  string probe_group_labels = 15 [json_name = "probeGroupLabels", (buf.validate.field).string.max_len = 4096];
+  // 探测周期秒数，取值为 15、30、60、300；探测规则必填，查询规则为 0。
+  int32 probe_interval_seconds = 16 [json_name = "probeIntervalSeconds", (buf.validate.field).int32 = {gte: 0, lte: 3600}];
+  // 探测规则比较的观测指标；查询规则留空。
+  string probe_metric = 17 [json_name = "probeMetric", (buf.validate.field).string = {in: ["", "UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS"]}];
 
   reserved 12;
   reserved "notification_group_uids";

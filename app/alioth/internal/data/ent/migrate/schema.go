@@ -334,7 +334,7 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "group_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
-		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"}},
+		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
 		{Name: "expr", Type: field.TypeString, Default: ""},
 		{Name: "labels", Type: field.TypeString, Default: ""},
@@ -343,6 +343,9 @@ var (
 		{Name: "summary", Type: field.TypeString, Default: ""},
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "variables", Type: field.TypeString, Default: "[]"},
+		{Name: "probe_group_labels", Type: field.TypeString, Default: "{}"},
+		{Name: "probe_interval_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "probe_metric", Type: field.TypeEnum, Enums: []string{"UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS"}, Default: "UP"},
 		{Name: "next_eval_at", Type: field.TypeTime, Nullable: true},
 		{Name: "scheduled_slot", Type: field.TypeTime, Nullable: true},
 	}
@@ -1275,6 +1278,147 @@ var (
 			},
 		},
 	}
+	// ProbeResultsColumns holds the columns for the "probe_results" table.
+	ProbeResultsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "rule_uid", Type: field.TypeString},
+		{Name: "group_uid", Type: field.TypeString},
+		{Name: "target_uid", Type: field.TypeString},
+		{Name: "slot", Type: field.TypeTime},
+		{Name: "probed_at", Type: field.TypeTime},
+		{Name: "ok", Type: field.TypeBool, Default: false},
+		{Name: "value", Type: field.TypeString, Default: ""},
+		{Name: "duration_ms", Type: field.TypeInt, Default: 0},
+		{Name: "status_code", Type: field.TypeInt, Default: 0},
+		{Name: "error_kind", Type: field.TypeString, Default: ""},
+		{Name: "error_message", Type: field.TypeString, Default: ""},
+		{Name: "dns_ms", Type: field.TypeInt, Default: 0},
+		{Name: "tcp_ms", Type: field.TypeInt, Default: 0},
+		{Name: "tls_ms", Type: field.TypeInt, Default: 0},
+		{Name: "ttfb_ms", Type: field.TypeInt, Default: 0},
+		{Name: "cert_days", Type: field.TypeInt, Default: 0},
+		{Name: "resolved_ip", Type: field.TypeString, Default: ""},
+		{Name: "executor", Type: field.TypeString, Default: ""},
+	}
+	// ProbeResultsTable holds the schema information for the "probe_results" table.
+	ProbeResultsTable = &schema.Table{
+		Name:       "probe_results",
+		Columns:    ProbeResultsColumns,
+		PrimaryKey: []*schema.Column{ProbeResultsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "proberesult_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ProbeResultsColumns[3]},
+			},
+			{
+				Name:    "proberesult_target_uid_slot",
+				Unique:  true,
+				Columns: []*schema.Column{ProbeResultsColumns[7], ProbeResultsColumns[8]},
+			},
+			{
+				Name:    "proberesult_rule_uid_group_uid_target_uid_probed_at",
+				Unique:  false,
+				Columns: []*schema.Column{ProbeResultsColumns[5], ProbeResultsColumns[6], ProbeResultsColumns[7], ProbeResultsColumns[9]},
+			},
+			{
+				Name:    "proberesult_namespace_uid_probed_at",
+				Unique:  false,
+				Columns: []*schema.Column{ProbeResultsColumns[4], ProbeResultsColumns[9]},
+			},
+		},
+	}
+	// ProbeTargetsColumns holds the columns for the "probe_targets" table.
+	ProbeTargetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "group_uid", Type: field.TypeString},
+		{Name: "spec", Type: field.TypeString},
+		{Name: "labels", Type: field.TypeString, Default: "{}"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
+	}
+	// ProbeTargetsTable holds the schema information for the "probe_targets" table.
+	ProbeTargetsTable = &schema.Table{
+		Name:       "probe_targets",
+		Columns:    ProbeTargetsColumns,
+		PrimaryKey: []*schema.Column{ProbeTargetsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "probetarget_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ProbeTargetsColumns[4]},
+			},
+			{
+				Name:    "probetarget_group_uid_spec",
+				Unique:  true,
+				Columns: []*schema.Column{ProbeTargetsColumns[6], ProbeTargetsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "probetarget_group_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ProbeTargetsColumns[6]},
+			},
+			{
+				Name:    "probetarget_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ProbeTargetsColumns[5]},
+			},
+		},
+	}
+	// ProbeTargetGroupsColumns holds the columns for the "probe_target_groups" table.
+	ProbeTargetGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "driver", Type: field.TypeEnum, Enums: []string{"PROBE_HTTP"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "labels", Type: field.TypeString, Default: "{}"},
+		{Name: "executor_labels", Type: field.TypeString, Default: "{}"},
+		{Name: "request", Type: field.TypeString, Default: "{}"},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// ProbeTargetGroupsTable holds the schema information for the "probe_target_groups" table.
+	ProbeTargetGroupsTable = &schema.Table{
+		Name:       "probe_target_groups",
+		Columns:    ProbeTargetGroupsColumns,
+		PrimaryKey: []*schema.Column{ProbeTargetGroupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "probetargetgroup_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ProbeTargetGroupsColumns[4]},
+			},
+			{
+				Name:    "probetargetgroup_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{ProbeTargetGroupsColumns[5], ProbeTargetGroupsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "probetargetgroup_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{ProbeTargetGroupsColumns[5], ProbeTargetGroupsColumns[8]},
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1651,6 +1795,9 @@ var (
 		NotificationTasksTable,
 		NotificationTemplatesTable,
 		PermissionsTable,
+		ProbeResultsTable,
+		ProbeTargetsTable,
+		ProbeTargetGroupsTable,
 		RolesTable,
 		RolePermissionsTable,
 		SSHCommandsTable,

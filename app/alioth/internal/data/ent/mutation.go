@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/agent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
@@ -43,6 +44,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
@@ -94,6 +98,9 @@ const (
 	TypeNotificationTask              = "NotificationTask"
 	TypeNotificationTemplate          = "NotificationTemplate"
 	TypePermission                    = "Permission"
+	TypeProbeResult                   = "ProbeResult"
+	TypeProbeTarget                   = "ProbeTarget"
+	TypeProbeTargetGroup              = "ProbeTargetGroup"
 	TypeRole                          = "Role"
 	TypeRolePermission                = "RolePermission"
 	TypeSSHCommand                    = "SSHCommand"
@@ -7036,31 +7043,35 @@ func (m *AlertPageMutation) ResetEdge(name string) error {
 // AlertRuleMutation represents an operation that mutates the AlertRule nodes in the graph.
 type AlertRuleMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	created_at        *time.Time
-	updated_at        *time.Time
-	deleted_at        *time.Time
-	uid               *string
-	namespace_uid     *string
-	group_uid         *string
-	name              *string
-	_driver           *alertrule.Driver
-	status            *alertrule.Status
-	expr              *string
-	labels            *string
-	datasource_uid    *string
-	datasource_labels *string
-	summary           *string
-	description       *string
-	variables         *string
-	next_eval_at      *time.Time
-	scheduled_slot    *time.Time
-	clearedFields     map[string]struct{}
-	done              bool
-	oldValue          func(context.Context) (*AlertRule, error)
-	predicates        []predicate.AlertRule
+	op                        Op
+	typ                       string
+	id                        *int
+	created_at                *time.Time
+	updated_at                *time.Time
+	deleted_at                *time.Time
+	uid                       *string
+	namespace_uid             *string
+	group_uid                 *string
+	name                      *string
+	_driver                   *alertrule.Driver
+	status                    *alertrule.Status
+	expr                      *string
+	labels                    *string
+	datasource_uid            *string
+	datasource_labels         *string
+	summary                   *string
+	description               *string
+	variables                 *string
+	probe_group_labels        *string
+	probe_interval_seconds    *int
+	addprobe_interval_seconds *int
+	probe_metric              *alertrule.ProbeMetric
+	next_eval_at              *time.Time
+	scheduled_slot            *time.Time
+	clearedFields             map[string]struct{}
+	done                      bool
+	oldValue                  func(context.Context) (*AlertRule, error)
+	predicates                []predicate.AlertRule
 }
 
 var _ ent.Mutation = (*AlertRuleMutation)(nil)
@@ -7750,6 +7761,134 @@ func (m *AlertRuleMutation) ResetVariables() {
 	m.variables = nil
 }
 
+// SetProbeGroupLabels sets the "probe_group_labels" field.
+func (m *AlertRuleMutation) SetProbeGroupLabels(s string) {
+	m.probe_group_labels = &s
+}
+
+// ProbeGroupLabels returns the value of the "probe_group_labels" field in the mutation.
+func (m *AlertRuleMutation) ProbeGroupLabels() (r string, exists bool) {
+	v := m.probe_group_labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProbeGroupLabels returns the old "probe_group_labels" field's value of the AlertRule entity.
+// If the AlertRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertRuleMutation) OldProbeGroupLabels(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProbeGroupLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProbeGroupLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProbeGroupLabels: %w", err)
+	}
+	return oldValue.ProbeGroupLabels, nil
+}
+
+// ResetProbeGroupLabels resets all changes to the "probe_group_labels" field.
+func (m *AlertRuleMutation) ResetProbeGroupLabels() {
+	m.probe_group_labels = nil
+}
+
+// SetProbeIntervalSeconds sets the "probe_interval_seconds" field.
+func (m *AlertRuleMutation) SetProbeIntervalSeconds(i int) {
+	m.probe_interval_seconds = &i
+	m.addprobe_interval_seconds = nil
+}
+
+// ProbeIntervalSeconds returns the value of the "probe_interval_seconds" field in the mutation.
+func (m *AlertRuleMutation) ProbeIntervalSeconds() (r int, exists bool) {
+	v := m.probe_interval_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProbeIntervalSeconds returns the old "probe_interval_seconds" field's value of the AlertRule entity.
+// If the AlertRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertRuleMutation) OldProbeIntervalSeconds(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProbeIntervalSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProbeIntervalSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProbeIntervalSeconds: %w", err)
+	}
+	return oldValue.ProbeIntervalSeconds, nil
+}
+
+// AddProbeIntervalSeconds adds i to the "probe_interval_seconds" field.
+func (m *AlertRuleMutation) AddProbeIntervalSeconds(i int) {
+	if m.addprobe_interval_seconds != nil {
+		*m.addprobe_interval_seconds += i
+	} else {
+		m.addprobe_interval_seconds = &i
+	}
+}
+
+// AddedProbeIntervalSeconds returns the value that was added to the "probe_interval_seconds" field in this mutation.
+func (m *AlertRuleMutation) AddedProbeIntervalSeconds() (r int, exists bool) {
+	v := m.addprobe_interval_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetProbeIntervalSeconds resets all changes to the "probe_interval_seconds" field.
+func (m *AlertRuleMutation) ResetProbeIntervalSeconds() {
+	m.probe_interval_seconds = nil
+	m.addprobe_interval_seconds = nil
+}
+
+// SetProbeMetric sets the "probe_metric" field.
+func (m *AlertRuleMutation) SetProbeMetric(am alertrule.ProbeMetric) {
+	m.probe_metric = &am
+}
+
+// ProbeMetric returns the value of the "probe_metric" field in the mutation.
+func (m *AlertRuleMutation) ProbeMetric() (r alertrule.ProbeMetric, exists bool) {
+	v := m.probe_metric
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProbeMetric returns the old "probe_metric" field's value of the AlertRule entity.
+// If the AlertRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertRuleMutation) OldProbeMetric(ctx context.Context) (v alertrule.ProbeMetric, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProbeMetric is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProbeMetric requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProbeMetric: %w", err)
+	}
+	return oldValue.ProbeMetric, nil
+}
+
+// ResetProbeMetric resets all changes to the "probe_metric" field.
+func (m *AlertRuleMutation) ResetProbeMetric() {
+	m.probe_metric = nil
+}
+
 // SetNextEvalAt sets the "next_eval_at" field.
 func (m *AlertRuleMutation) SetNextEvalAt(t time.Time) {
 	m.next_eval_at = &t
@@ -7882,7 +8021,7 @@ func (m *AlertRuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlertRuleMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 21)
 	if m.created_at != nil {
 		fields = append(fields, alertrule.FieldCreatedAt)
 	}
@@ -7931,6 +8070,15 @@ func (m *AlertRuleMutation) Fields() []string {
 	if m.variables != nil {
 		fields = append(fields, alertrule.FieldVariables)
 	}
+	if m.probe_group_labels != nil {
+		fields = append(fields, alertrule.FieldProbeGroupLabels)
+	}
+	if m.probe_interval_seconds != nil {
+		fields = append(fields, alertrule.FieldProbeIntervalSeconds)
+	}
+	if m.probe_metric != nil {
+		fields = append(fields, alertrule.FieldProbeMetric)
+	}
 	if m.next_eval_at != nil {
 		fields = append(fields, alertrule.FieldNextEvalAt)
 	}
@@ -7977,6 +8125,12 @@ func (m *AlertRuleMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case alertrule.FieldVariables:
 		return m.Variables()
+	case alertrule.FieldProbeGroupLabels:
+		return m.ProbeGroupLabels()
+	case alertrule.FieldProbeIntervalSeconds:
+		return m.ProbeIntervalSeconds()
+	case alertrule.FieldProbeMetric:
+		return m.ProbeMetric()
 	case alertrule.FieldNextEvalAt:
 		return m.NextEvalAt()
 	case alertrule.FieldScheduledSlot:
@@ -8022,6 +8176,12 @@ func (m *AlertRuleMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldDescription(ctx)
 	case alertrule.FieldVariables:
 		return m.OldVariables(ctx)
+	case alertrule.FieldProbeGroupLabels:
+		return m.OldProbeGroupLabels(ctx)
+	case alertrule.FieldProbeIntervalSeconds:
+		return m.OldProbeIntervalSeconds(ctx)
+	case alertrule.FieldProbeMetric:
+		return m.OldProbeMetric(ctx)
 	case alertrule.FieldNextEvalAt:
 		return m.OldNextEvalAt(ctx)
 	case alertrule.FieldScheduledSlot:
@@ -8147,6 +8307,27 @@ func (m *AlertRuleMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVariables(v)
 		return nil
+	case alertrule.FieldProbeGroupLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProbeGroupLabels(v)
+		return nil
+	case alertrule.FieldProbeIntervalSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProbeIntervalSeconds(v)
+		return nil
+	case alertrule.FieldProbeMetric:
+		v, ok := value.(alertrule.ProbeMetric)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProbeMetric(v)
+		return nil
 	case alertrule.FieldNextEvalAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -8168,13 +8349,21 @@ func (m *AlertRuleMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *AlertRuleMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addprobe_interval_seconds != nil {
+		fields = append(fields, alertrule.FieldProbeIntervalSeconds)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *AlertRuleMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case alertrule.FieldProbeIntervalSeconds:
+		return m.AddedProbeIntervalSeconds()
+	}
 	return nil, false
 }
 
@@ -8183,6 +8372,13 @@ func (m *AlertRuleMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *AlertRuleMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case alertrule.FieldProbeIntervalSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddProbeIntervalSeconds(v)
+		return nil
 	}
 	return fmt.Errorf("unknown AlertRule numeric field %s", name)
 }
@@ -8278,6 +8474,15 @@ func (m *AlertRuleMutation) ResetField(name string) error {
 		return nil
 	case alertrule.FieldVariables:
 		m.ResetVariables()
+		return nil
+	case alertrule.FieldProbeGroupLabels:
+		m.ResetProbeGroupLabels()
+		return nil
+	case alertrule.FieldProbeIntervalSeconds:
+		m.ResetProbeIntervalSeconds()
+		return nil
+	case alertrule.FieldProbeMetric:
+		m.ResetProbeMetric()
 		return nil
 	case alertrule.FieldNextEvalAt:
 		m.ResetNextEvalAt()
@@ -28938,6 +29143,3512 @@ func (m *PermissionMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *PermissionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Permission edge %s", name)
+}
+
+// ProbeResultMutation represents an operation that mutates the ProbeResult nodes in the graph.
+type ProbeResultMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	uid            *string
+	namespace_uid  *string
+	rule_uid       *string
+	group_uid      *string
+	target_uid     *string
+	slot           *time.Time
+	probed_at      *time.Time
+	ok             *bool
+	value          *string
+	duration_ms    *int
+	addduration_ms *int
+	status_code    *int
+	addstatus_code *int
+	error_kind     *string
+	error_message  *string
+	dns_ms         *int
+	adddns_ms      *int
+	tcp_ms         *int
+	addtcp_ms      *int
+	tls_ms         *int
+	addtls_ms      *int
+	ttfb_ms        *int
+	addttfb_ms     *int
+	cert_days      *int
+	addcert_days   *int
+	resolved_ip    *string
+	executor       *string
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*ProbeResult, error)
+	predicates     []predicate.ProbeResult
+}
+
+var _ ent.Mutation = (*ProbeResultMutation)(nil)
+
+// proberesultOption allows management of the mutation configuration using functional options.
+type proberesultOption func(*ProbeResultMutation)
+
+// newProbeResultMutation creates new mutation for the ProbeResult entity.
+func newProbeResultMutation(c config, op Op, opts ...proberesultOption) *ProbeResultMutation {
+	m := &ProbeResultMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProbeResult,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withProbeResultID sets the ID field of the mutation.
+func withProbeResultID(id int) proberesultOption {
+	return func(m *ProbeResultMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ProbeResult
+		)
+		m.oldValue = func(ctx context.Context) (*ProbeResult, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProbeResult.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProbeResult sets the old ProbeResult of the mutation.
+func withProbeResult(node *ProbeResult) proberesultOption {
+	return func(m *ProbeResultMutation) {
+		m.oldValue = func(context.Context) (*ProbeResult, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ProbeResultMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ProbeResultMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ProbeResultMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ProbeResultMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ProbeResult.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProbeResultMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProbeResultMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProbeResultMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ProbeResultMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ProbeResultMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ProbeResultMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *ProbeResultMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *ProbeResultMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *ProbeResultMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *ProbeResultMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *ProbeResultMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *ProbeResultMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetRuleUID sets the "rule_uid" field.
+func (m *ProbeResultMutation) SetRuleUID(s string) {
+	m.rule_uid = &s
+}
+
+// RuleUID returns the value of the "rule_uid" field in the mutation.
+func (m *ProbeResultMutation) RuleUID() (r string, exists bool) {
+	v := m.rule_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRuleUID returns the old "rule_uid" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldRuleUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRuleUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRuleUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRuleUID: %w", err)
+	}
+	return oldValue.RuleUID, nil
+}
+
+// ResetRuleUID resets all changes to the "rule_uid" field.
+func (m *ProbeResultMutation) ResetRuleUID() {
+	m.rule_uid = nil
+}
+
+// SetGroupUID sets the "group_uid" field.
+func (m *ProbeResultMutation) SetGroupUID(s string) {
+	m.group_uid = &s
+}
+
+// GroupUID returns the value of the "group_uid" field in the mutation.
+func (m *ProbeResultMutation) GroupUID() (r string, exists bool) {
+	v := m.group_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupUID returns the old "group_uid" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldGroupUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupUID: %w", err)
+	}
+	return oldValue.GroupUID, nil
+}
+
+// ResetGroupUID resets all changes to the "group_uid" field.
+func (m *ProbeResultMutation) ResetGroupUID() {
+	m.group_uid = nil
+}
+
+// SetTargetUID sets the "target_uid" field.
+func (m *ProbeResultMutation) SetTargetUID(s string) {
+	m.target_uid = &s
+}
+
+// TargetUID returns the value of the "target_uid" field in the mutation.
+func (m *ProbeResultMutation) TargetUID() (r string, exists bool) {
+	v := m.target_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetUID returns the old "target_uid" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldTargetUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetUID: %w", err)
+	}
+	return oldValue.TargetUID, nil
+}
+
+// ResetTargetUID resets all changes to the "target_uid" field.
+func (m *ProbeResultMutation) ResetTargetUID() {
+	m.target_uid = nil
+}
+
+// SetSlot sets the "slot" field.
+func (m *ProbeResultMutation) SetSlot(t time.Time) {
+	m.slot = &t
+}
+
+// Slot returns the value of the "slot" field in the mutation.
+func (m *ProbeResultMutation) Slot() (r time.Time, exists bool) {
+	v := m.slot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlot returns the old "slot" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldSlot(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlot: %w", err)
+	}
+	return oldValue.Slot, nil
+}
+
+// ResetSlot resets all changes to the "slot" field.
+func (m *ProbeResultMutation) ResetSlot() {
+	m.slot = nil
+}
+
+// SetProbedAt sets the "probed_at" field.
+func (m *ProbeResultMutation) SetProbedAt(t time.Time) {
+	m.probed_at = &t
+}
+
+// ProbedAt returns the value of the "probed_at" field in the mutation.
+func (m *ProbeResultMutation) ProbedAt() (r time.Time, exists bool) {
+	v := m.probed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProbedAt returns the old "probed_at" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldProbedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProbedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProbedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProbedAt: %w", err)
+	}
+	return oldValue.ProbedAt, nil
+}
+
+// ResetProbedAt resets all changes to the "probed_at" field.
+func (m *ProbeResultMutation) ResetProbedAt() {
+	m.probed_at = nil
+}
+
+// SetOk sets the "ok" field.
+func (m *ProbeResultMutation) SetOk(b bool) {
+	m.ok = &b
+}
+
+// Ok returns the value of the "ok" field in the mutation.
+func (m *ProbeResultMutation) Ok() (r bool, exists bool) {
+	v := m.ok
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOk returns the old "ok" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldOk(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOk is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOk requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOk: %w", err)
+	}
+	return oldValue.Ok, nil
+}
+
+// ResetOk resets all changes to the "ok" field.
+func (m *ProbeResultMutation) ResetOk() {
+	m.ok = nil
+}
+
+// SetValue sets the "value" field.
+func (m *ProbeResultMutation) SetValue(s string) {
+	m.value = &s
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *ProbeResultMutation) Value() (r string, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldValue(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *ProbeResultMutation) ResetValue() {
+	m.value = nil
+}
+
+// SetDurationMs sets the "duration_ms" field.
+func (m *ProbeResultMutation) SetDurationMs(i int) {
+	m.duration_ms = &i
+	m.addduration_ms = nil
+}
+
+// DurationMs returns the value of the "duration_ms" field in the mutation.
+func (m *ProbeResultMutation) DurationMs() (r int, exists bool) {
+	v := m.duration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationMs returns the old "duration_ms" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldDurationMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationMs: %w", err)
+	}
+	return oldValue.DurationMs, nil
+}
+
+// AddDurationMs adds i to the "duration_ms" field.
+func (m *ProbeResultMutation) AddDurationMs(i int) {
+	if m.addduration_ms != nil {
+		*m.addduration_ms += i
+	} else {
+		m.addduration_ms = &i
+	}
+}
+
+// AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
+func (m *ProbeResultMutation) AddedDurationMs() (r int, exists bool) {
+	v := m.addduration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationMs resets all changes to the "duration_ms" field.
+func (m *ProbeResultMutation) ResetDurationMs() {
+	m.duration_ms = nil
+	m.addduration_ms = nil
+}
+
+// SetStatusCode sets the "status_code" field.
+func (m *ProbeResultMutation) SetStatusCode(i int) {
+	m.status_code = &i
+	m.addstatus_code = nil
+}
+
+// StatusCode returns the value of the "status_code" field in the mutation.
+func (m *ProbeResultMutation) StatusCode() (r int, exists bool) {
+	v := m.status_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatusCode returns the old "status_code" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldStatusCode(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatusCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatusCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatusCode: %w", err)
+	}
+	return oldValue.StatusCode, nil
+}
+
+// AddStatusCode adds i to the "status_code" field.
+func (m *ProbeResultMutation) AddStatusCode(i int) {
+	if m.addstatus_code != nil {
+		*m.addstatus_code += i
+	} else {
+		m.addstatus_code = &i
+	}
+}
+
+// AddedStatusCode returns the value that was added to the "status_code" field in this mutation.
+func (m *ProbeResultMutation) AddedStatusCode() (r int, exists bool) {
+	v := m.addstatus_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatusCode resets all changes to the "status_code" field.
+func (m *ProbeResultMutation) ResetStatusCode() {
+	m.status_code = nil
+	m.addstatus_code = nil
+}
+
+// SetErrorKind sets the "error_kind" field.
+func (m *ProbeResultMutation) SetErrorKind(s string) {
+	m.error_kind = &s
+}
+
+// ErrorKind returns the value of the "error_kind" field in the mutation.
+func (m *ProbeResultMutation) ErrorKind() (r string, exists bool) {
+	v := m.error_kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorKind returns the old "error_kind" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldErrorKind(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorKind: %w", err)
+	}
+	return oldValue.ErrorKind, nil
+}
+
+// ResetErrorKind resets all changes to the "error_kind" field.
+func (m *ProbeResultMutation) ResetErrorKind() {
+	m.error_kind = nil
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *ProbeResultMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *ProbeResultMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldErrorMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *ProbeResultMutation) ResetErrorMessage() {
+	m.error_message = nil
+}
+
+// SetDNSMs sets the "dns_ms" field.
+func (m *ProbeResultMutation) SetDNSMs(i int) {
+	m.dns_ms = &i
+	m.adddns_ms = nil
+}
+
+// DNSMs returns the value of the "dns_ms" field in the mutation.
+func (m *ProbeResultMutation) DNSMs() (r int, exists bool) {
+	v := m.dns_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDNSMs returns the old "dns_ms" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldDNSMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDNSMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDNSMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDNSMs: %w", err)
+	}
+	return oldValue.DNSMs, nil
+}
+
+// AddDNSMs adds i to the "dns_ms" field.
+func (m *ProbeResultMutation) AddDNSMs(i int) {
+	if m.adddns_ms != nil {
+		*m.adddns_ms += i
+	} else {
+		m.adddns_ms = &i
+	}
+}
+
+// AddedDNSMs returns the value that was added to the "dns_ms" field in this mutation.
+func (m *ProbeResultMutation) AddedDNSMs() (r int, exists bool) {
+	v := m.adddns_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDNSMs resets all changes to the "dns_ms" field.
+func (m *ProbeResultMutation) ResetDNSMs() {
+	m.dns_ms = nil
+	m.adddns_ms = nil
+}
+
+// SetTCPMs sets the "tcp_ms" field.
+func (m *ProbeResultMutation) SetTCPMs(i int) {
+	m.tcp_ms = &i
+	m.addtcp_ms = nil
+}
+
+// TCPMs returns the value of the "tcp_ms" field in the mutation.
+func (m *ProbeResultMutation) TCPMs() (r int, exists bool) {
+	v := m.tcp_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTCPMs returns the old "tcp_ms" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldTCPMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTCPMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTCPMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTCPMs: %w", err)
+	}
+	return oldValue.TCPMs, nil
+}
+
+// AddTCPMs adds i to the "tcp_ms" field.
+func (m *ProbeResultMutation) AddTCPMs(i int) {
+	if m.addtcp_ms != nil {
+		*m.addtcp_ms += i
+	} else {
+		m.addtcp_ms = &i
+	}
+}
+
+// AddedTCPMs returns the value that was added to the "tcp_ms" field in this mutation.
+func (m *ProbeResultMutation) AddedTCPMs() (r int, exists bool) {
+	v := m.addtcp_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTCPMs resets all changes to the "tcp_ms" field.
+func (m *ProbeResultMutation) ResetTCPMs() {
+	m.tcp_ms = nil
+	m.addtcp_ms = nil
+}
+
+// SetTLSMs sets the "tls_ms" field.
+func (m *ProbeResultMutation) SetTLSMs(i int) {
+	m.tls_ms = &i
+	m.addtls_ms = nil
+}
+
+// TLSMs returns the value of the "tls_ms" field in the mutation.
+func (m *ProbeResultMutation) TLSMs() (r int, exists bool) {
+	v := m.tls_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTLSMs returns the old "tls_ms" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldTLSMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTLSMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTLSMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTLSMs: %w", err)
+	}
+	return oldValue.TLSMs, nil
+}
+
+// AddTLSMs adds i to the "tls_ms" field.
+func (m *ProbeResultMutation) AddTLSMs(i int) {
+	if m.addtls_ms != nil {
+		*m.addtls_ms += i
+	} else {
+		m.addtls_ms = &i
+	}
+}
+
+// AddedTLSMs returns the value that was added to the "tls_ms" field in this mutation.
+func (m *ProbeResultMutation) AddedTLSMs() (r int, exists bool) {
+	v := m.addtls_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTLSMs resets all changes to the "tls_ms" field.
+func (m *ProbeResultMutation) ResetTLSMs() {
+	m.tls_ms = nil
+	m.addtls_ms = nil
+}
+
+// SetTtfbMs sets the "ttfb_ms" field.
+func (m *ProbeResultMutation) SetTtfbMs(i int) {
+	m.ttfb_ms = &i
+	m.addttfb_ms = nil
+}
+
+// TtfbMs returns the value of the "ttfb_ms" field in the mutation.
+func (m *ProbeResultMutation) TtfbMs() (r int, exists bool) {
+	v := m.ttfb_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTtfbMs returns the old "ttfb_ms" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldTtfbMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTtfbMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTtfbMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTtfbMs: %w", err)
+	}
+	return oldValue.TtfbMs, nil
+}
+
+// AddTtfbMs adds i to the "ttfb_ms" field.
+func (m *ProbeResultMutation) AddTtfbMs(i int) {
+	if m.addttfb_ms != nil {
+		*m.addttfb_ms += i
+	} else {
+		m.addttfb_ms = &i
+	}
+}
+
+// AddedTtfbMs returns the value that was added to the "ttfb_ms" field in this mutation.
+func (m *ProbeResultMutation) AddedTtfbMs() (r int, exists bool) {
+	v := m.addttfb_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTtfbMs resets all changes to the "ttfb_ms" field.
+func (m *ProbeResultMutation) ResetTtfbMs() {
+	m.ttfb_ms = nil
+	m.addttfb_ms = nil
+}
+
+// SetCertDays sets the "cert_days" field.
+func (m *ProbeResultMutation) SetCertDays(i int) {
+	m.cert_days = &i
+	m.addcert_days = nil
+}
+
+// CertDays returns the value of the "cert_days" field in the mutation.
+func (m *ProbeResultMutation) CertDays() (r int, exists bool) {
+	v := m.cert_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCertDays returns the old "cert_days" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldCertDays(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCertDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCertDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCertDays: %w", err)
+	}
+	return oldValue.CertDays, nil
+}
+
+// AddCertDays adds i to the "cert_days" field.
+func (m *ProbeResultMutation) AddCertDays(i int) {
+	if m.addcert_days != nil {
+		*m.addcert_days += i
+	} else {
+		m.addcert_days = &i
+	}
+}
+
+// AddedCertDays returns the value that was added to the "cert_days" field in this mutation.
+func (m *ProbeResultMutation) AddedCertDays() (r int, exists bool) {
+	v := m.addcert_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCertDays resets all changes to the "cert_days" field.
+func (m *ProbeResultMutation) ResetCertDays() {
+	m.cert_days = nil
+	m.addcert_days = nil
+}
+
+// SetResolvedIP sets the "resolved_ip" field.
+func (m *ProbeResultMutation) SetResolvedIP(s string) {
+	m.resolved_ip = &s
+}
+
+// ResolvedIP returns the value of the "resolved_ip" field in the mutation.
+func (m *ProbeResultMutation) ResolvedIP() (r string, exists bool) {
+	v := m.resolved_ip
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResolvedIP returns the old "resolved_ip" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldResolvedIP(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResolvedIP is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResolvedIP requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResolvedIP: %w", err)
+	}
+	return oldValue.ResolvedIP, nil
+}
+
+// ResetResolvedIP resets all changes to the "resolved_ip" field.
+func (m *ProbeResultMutation) ResetResolvedIP() {
+	m.resolved_ip = nil
+}
+
+// SetExecutor sets the "executor" field.
+func (m *ProbeResultMutation) SetExecutor(s string) {
+	m.executor = &s
+}
+
+// Executor returns the value of the "executor" field in the mutation.
+func (m *ProbeResultMutation) Executor() (r string, exists bool) {
+	v := m.executor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExecutor returns the old "executor" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldExecutor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExecutor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExecutor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExecutor: %w", err)
+	}
+	return oldValue.Executor, nil
+}
+
+// ResetExecutor resets all changes to the "executor" field.
+func (m *ProbeResultMutation) ResetExecutor() {
+	m.executor = nil
+}
+
+// Where appends a list predicates to the ProbeResultMutation builder.
+func (m *ProbeResultMutation) Where(ps ...predicate.ProbeResult) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ProbeResultMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProbeResultMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProbeResult, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ProbeResultMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProbeResultMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ProbeResult).
+func (m *ProbeResultMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ProbeResultMutation) Fields() []string {
+	fields := make([]string, 0, 22)
+	if m.created_at != nil {
+		fields = append(fields, proberesult.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, proberesult.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, proberesult.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, proberesult.FieldNamespaceUID)
+	}
+	if m.rule_uid != nil {
+		fields = append(fields, proberesult.FieldRuleUID)
+	}
+	if m.group_uid != nil {
+		fields = append(fields, proberesult.FieldGroupUID)
+	}
+	if m.target_uid != nil {
+		fields = append(fields, proberesult.FieldTargetUID)
+	}
+	if m.slot != nil {
+		fields = append(fields, proberesult.FieldSlot)
+	}
+	if m.probed_at != nil {
+		fields = append(fields, proberesult.FieldProbedAt)
+	}
+	if m.ok != nil {
+		fields = append(fields, proberesult.FieldOk)
+	}
+	if m.value != nil {
+		fields = append(fields, proberesult.FieldValue)
+	}
+	if m.duration_ms != nil {
+		fields = append(fields, proberesult.FieldDurationMs)
+	}
+	if m.status_code != nil {
+		fields = append(fields, proberesult.FieldStatusCode)
+	}
+	if m.error_kind != nil {
+		fields = append(fields, proberesult.FieldErrorKind)
+	}
+	if m.error_message != nil {
+		fields = append(fields, proberesult.FieldErrorMessage)
+	}
+	if m.dns_ms != nil {
+		fields = append(fields, proberesult.FieldDNSMs)
+	}
+	if m.tcp_ms != nil {
+		fields = append(fields, proberesult.FieldTCPMs)
+	}
+	if m.tls_ms != nil {
+		fields = append(fields, proberesult.FieldTLSMs)
+	}
+	if m.ttfb_ms != nil {
+		fields = append(fields, proberesult.FieldTtfbMs)
+	}
+	if m.cert_days != nil {
+		fields = append(fields, proberesult.FieldCertDays)
+	}
+	if m.resolved_ip != nil {
+		fields = append(fields, proberesult.FieldResolvedIP)
+	}
+	if m.executor != nil {
+		fields = append(fields, proberesult.FieldExecutor)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ProbeResultMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case proberesult.FieldCreatedAt:
+		return m.CreatedAt()
+	case proberesult.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case proberesult.FieldUID:
+		return m.UID()
+	case proberesult.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case proberesult.FieldRuleUID:
+		return m.RuleUID()
+	case proberesult.FieldGroupUID:
+		return m.GroupUID()
+	case proberesult.FieldTargetUID:
+		return m.TargetUID()
+	case proberesult.FieldSlot:
+		return m.Slot()
+	case proberesult.FieldProbedAt:
+		return m.ProbedAt()
+	case proberesult.FieldOk:
+		return m.Ok()
+	case proberesult.FieldValue:
+		return m.Value()
+	case proberesult.FieldDurationMs:
+		return m.DurationMs()
+	case proberesult.FieldStatusCode:
+		return m.StatusCode()
+	case proberesult.FieldErrorKind:
+		return m.ErrorKind()
+	case proberesult.FieldErrorMessage:
+		return m.ErrorMessage()
+	case proberesult.FieldDNSMs:
+		return m.DNSMs()
+	case proberesult.FieldTCPMs:
+		return m.TCPMs()
+	case proberesult.FieldTLSMs:
+		return m.TLSMs()
+	case proberesult.FieldTtfbMs:
+		return m.TtfbMs()
+	case proberesult.FieldCertDays:
+		return m.CertDays()
+	case proberesult.FieldResolvedIP:
+		return m.ResolvedIP()
+	case proberesult.FieldExecutor:
+		return m.Executor()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ProbeResultMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case proberesult.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case proberesult.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case proberesult.FieldUID:
+		return m.OldUID(ctx)
+	case proberesult.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case proberesult.FieldRuleUID:
+		return m.OldRuleUID(ctx)
+	case proberesult.FieldGroupUID:
+		return m.OldGroupUID(ctx)
+	case proberesult.FieldTargetUID:
+		return m.OldTargetUID(ctx)
+	case proberesult.FieldSlot:
+		return m.OldSlot(ctx)
+	case proberesult.FieldProbedAt:
+		return m.OldProbedAt(ctx)
+	case proberesult.FieldOk:
+		return m.OldOk(ctx)
+	case proberesult.FieldValue:
+		return m.OldValue(ctx)
+	case proberesult.FieldDurationMs:
+		return m.OldDurationMs(ctx)
+	case proberesult.FieldStatusCode:
+		return m.OldStatusCode(ctx)
+	case proberesult.FieldErrorKind:
+		return m.OldErrorKind(ctx)
+	case proberesult.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	case proberesult.FieldDNSMs:
+		return m.OldDNSMs(ctx)
+	case proberesult.FieldTCPMs:
+		return m.OldTCPMs(ctx)
+	case proberesult.FieldTLSMs:
+		return m.OldTLSMs(ctx)
+	case proberesult.FieldTtfbMs:
+		return m.OldTtfbMs(ctx)
+	case proberesult.FieldCertDays:
+		return m.OldCertDays(ctx)
+	case proberesult.FieldResolvedIP:
+		return m.OldResolvedIP(ctx)
+	case proberesult.FieldExecutor:
+		return m.OldExecutor(ctx)
+	}
+	return nil, fmt.Errorf("unknown ProbeResult field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProbeResultMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case proberesult.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case proberesult.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case proberesult.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case proberesult.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case proberesult.FieldRuleUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRuleUID(v)
+		return nil
+	case proberesult.FieldGroupUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupUID(v)
+		return nil
+	case proberesult.FieldTargetUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetUID(v)
+		return nil
+	case proberesult.FieldSlot:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlot(v)
+		return nil
+	case proberesult.FieldProbedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProbedAt(v)
+		return nil
+	case proberesult.FieldOk:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOk(v)
+		return nil
+	case proberesult.FieldValue:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
+		return nil
+	case proberesult.FieldDurationMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationMs(v)
+		return nil
+	case proberesult.FieldStatusCode:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatusCode(v)
+		return nil
+	case proberesult.FieldErrorKind:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorKind(v)
+		return nil
+	case proberesult.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	case proberesult.FieldDNSMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDNSMs(v)
+		return nil
+	case proberesult.FieldTCPMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTCPMs(v)
+		return nil
+	case proberesult.FieldTLSMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTLSMs(v)
+		return nil
+	case proberesult.FieldTtfbMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTtfbMs(v)
+		return nil
+	case proberesult.FieldCertDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCertDays(v)
+		return nil
+	case proberesult.FieldResolvedIP:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResolvedIP(v)
+		return nil
+	case proberesult.FieldExecutor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExecutor(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeResult field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ProbeResultMutation) AddedFields() []string {
+	var fields []string
+	if m.addduration_ms != nil {
+		fields = append(fields, proberesult.FieldDurationMs)
+	}
+	if m.addstatus_code != nil {
+		fields = append(fields, proberesult.FieldStatusCode)
+	}
+	if m.adddns_ms != nil {
+		fields = append(fields, proberesult.FieldDNSMs)
+	}
+	if m.addtcp_ms != nil {
+		fields = append(fields, proberesult.FieldTCPMs)
+	}
+	if m.addtls_ms != nil {
+		fields = append(fields, proberesult.FieldTLSMs)
+	}
+	if m.addttfb_ms != nil {
+		fields = append(fields, proberesult.FieldTtfbMs)
+	}
+	if m.addcert_days != nil {
+		fields = append(fields, proberesult.FieldCertDays)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ProbeResultMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case proberesult.FieldDurationMs:
+		return m.AddedDurationMs()
+	case proberesult.FieldStatusCode:
+		return m.AddedStatusCode()
+	case proberesult.FieldDNSMs:
+		return m.AddedDNSMs()
+	case proberesult.FieldTCPMs:
+		return m.AddedTCPMs()
+	case proberesult.FieldTLSMs:
+		return m.AddedTLSMs()
+	case proberesult.FieldTtfbMs:
+		return m.AddedTtfbMs()
+	case proberesult.FieldCertDays:
+		return m.AddedCertDays()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProbeResultMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case proberesult.FieldDurationMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDurationMs(v)
+		return nil
+	case proberesult.FieldStatusCode:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatusCode(v)
+		return nil
+	case proberesult.FieldDNSMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDNSMs(v)
+		return nil
+	case proberesult.FieldTCPMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTCPMs(v)
+		return nil
+	case proberesult.FieldTLSMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTLSMs(v)
+		return nil
+	case proberesult.FieldTtfbMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTtfbMs(v)
+		return nil
+	case proberesult.FieldCertDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCertDays(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeResult numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ProbeResultMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ProbeResultMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ProbeResultMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ProbeResult nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ProbeResultMutation) ResetField(name string) error {
+	switch name {
+	case proberesult.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case proberesult.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case proberesult.FieldUID:
+		m.ResetUID()
+		return nil
+	case proberesult.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case proberesult.FieldRuleUID:
+		m.ResetRuleUID()
+		return nil
+	case proberesult.FieldGroupUID:
+		m.ResetGroupUID()
+		return nil
+	case proberesult.FieldTargetUID:
+		m.ResetTargetUID()
+		return nil
+	case proberesult.FieldSlot:
+		m.ResetSlot()
+		return nil
+	case proberesult.FieldProbedAt:
+		m.ResetProbedAt()
+		return nil
+	case proberesult.FieldOk:
+		m.ResetOk()
+		return nil
+	case proberesult.FieldValue:
+		m.ResetValue()
+		return nil
+	case proberesult.FieldDurationMs:
+		m.ResetDurationMs()
+		return nil
+	case proberesult.FieldStatusCode:
+		m.ResetStatusCode()
+		return nil
+	case proberesult.FieldErrorKind:
+		m.ResetErrorKind()
+		return nil
+	case proberesult.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	case proberesult.FieldDNSMs:
+		m.ResetDNSMs()
+		return nil
+	case proberesult.FieldTCPMs:
+		m.ResetTCPMs()
+		return nil
+	case proberesult.FieldTLSMs:
+		m.ResetTLSMs()
+		return nil
+	case proberesult.FieldTtfbMs:
+		m.ResetTtfbMs()
+		return nil
+	case proberesult.FieldCertDays:
+		m.ResetCertDays()
+		return nil
+	case proberesult.FieldResolvedIP:
+		m.ResetResolvedIP()
+		return nil
+	case proberesult.FieldExecutor:
+		m.ResetExecutor()
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeResult field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ProbeResultMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ProbeResultMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ProbeResultMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ProbeResultMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ProbeResultMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ProbeResultMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ProbeResultMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ProbeResult unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ProbeResultMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ProbeResult edge %s", name)
+}
+
+// ProbeTargetMutation represents an operation that mutates the ProbeTarget nodes in the graph.
+type ProbeTargetMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	deleted_at    *time.Time
+	uid           *string
+	namespace_uid *string
+	group_uid     *string
+	spec          *string
+	labels        *string
+	status        *probetarget.Status
+	sort          *int
+	addsort       *int
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*ProbeTarget, error)
+	predicates    []predicate.ProbeTarget
+}
+
+var _ ent.Mutation = (*ProbeTargetMutation)(nil)
+
+// probetargetOption allows management of the mutation configuration using functional options.
+type probetargetOption func(*ProbeTargetMutation)
+
+// newProbeTargetMutation creates new mutation for the ProbeTarget entity.
+func newProbeTargetMutation(c config, op Op, opts ...probetargetOption) *ProbeTargetMutation {
+	m := &ProbeTargetMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProbeTarget,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withProbeTargetID sets the ID field of the mutation.
+func withProbeTargetID(id int) probetargetOption {
+	return func(m *ProbeTargetMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ProbeTarget
+		)
+		m.oldValue = func(ctx context.Context) (*ProbeTarget, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProbeTarget.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProbeTarget sets the old ProbeTarget of the mutation.
+func withProbeTarget(node *ProbeTarget) probetargetOption {
+	return func(m *ProbeTargetMutation) {
+		m.oldValue = func(context.Context) (*ProbeTarget, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ProbeTargetMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ProbeTargetMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ProbeTargetMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ProbeTargetMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ProbeTarget.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProbeTargetMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProbeTargetMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProbeTargetMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ProbeTargetMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ProbeTargetMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ProbeTargetMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *ProbeTargetMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *ProbeTargetMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *ProbeTargetMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[probetarget.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *ProbeTargetMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[probetarget.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *ProbeTargetMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, probetarget.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *ProbeTargetMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *ProbeTargetMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *ProbeTargetMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *ProbeTargetMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *ProbeTargetMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *ProbeTargetMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetGroupUID sets the "group_uid" field.
+func (m *ProbeTargetMutation) SetGroupUID(s string) {
+	m.group_uid = &s
+}
+
+// GroupUID returns the value of the "group_uid" field in the mutation.
+func (m *ProbeTargetMutation) GroupUID() (r string, exists bool) {
+	v := m.group_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupUID returns the old "group_uid" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldGroupUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupUID: %w", err)
+	}
+	return oldValue.GroupUID, nil
+}
+
+// ResetGroupUID resets all changes to the "group_uid" field.
+func (m *ProbeTargetMutation) ResetGroupUID() {
+	m.group_uid = nil
+}
+
+// SetSpec sets the "spec" field.
+func (m *ProbeTargetMutation) SetSpec(s string) {
+	m.spec = &s
+}
+
+// Spec returns the value of the "spec" field in the mutation.
+func (m *ProbeTargetMutation) Spec() (r string, exists bool) {
+	v := m.spec
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpec returns the old "spec" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldSpec(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpec is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpec requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpec: %w", err)
+	}
+	return oldValue.Spec, nil
+}
+
+// ResetSpec resets all changes to the "spec" field.
+func (m *ProbeTargetMutation) ResetSpec() {
+	m.spec = nil
+}
+
+// SetLabels sets the "labels" field.
+func (m *ProbeTargetMutation) SetLabels(s string) {
+	m.labels = &s
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *ProbeTargetMutation) Labels() (r string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldLabels(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *ProbeTargetMutation) ResetLabels() {
+	m.labels = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *ProbeTargetMutation) SetStatus(pr probetarget.Status) {
+	m.status = &pr
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ProbeTargetMutation) Status() (r probetarget.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldStatus(ctx context.Context) (v probetarget.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ProbeTargetMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetSort sets the "sort" field.
+func (m *ProbeTargetMutation) SetSort(i int) {
+	m.sort = &i
+	m.addsort = nil
+}
+
+// Sort returns the value of the "sort" field in the mutation.
+func (m *ProbeTargetMutation) Sort() (r int, exists bool) {
+	v := m.sort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSort returns the old "sort" field's value of the ProbeTarget entity.
+// If the ProbeTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetMutation) OldSort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSort: %w", err)
+	}
+	return oldValue.Sort, nil
+}
+
+// AddSort adds i to the "sort" field.
+func (m *ProbeTargetMutation) AddSort(i int) {
+	if m.addsort != nil {
+		*m.addsort += i
+	} else {
+		m.addsort = &i
+	}
+}
+
+// AddedSort returns the value that was added to the "sort" field in this mutation.
+func (m *ProbeTargetMutation) AddedSort() (r int, exists bool) {
+	v := m.addsort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSort resets all changes to the "sort" field.
+func (m *ProbeTargetMutation) ResetSort() {
+	m.sort = nil
+	m.addsort = nil
+}
+
+// Where appends a list predicates to the ProbeTargetMutation builder.
+func (m *ProbeTargetMutation) Where(ps ...predicate.ProbeTarget) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ProbeTargetMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProbeTargetMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProbeTarget, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ProbeTargetMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProbeTargetMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ProbeTarget).
+func (m *ProbeTargetMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ProbeTargetMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, probetarget.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, probetarget.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, probetarget.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, probetarget.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, probetarget.FieldNamespaceUID)
+	}
+	if m.group_uid != nil {
+		fields = append(fields, probetarget.FieldGroupUID)
+	}
+	if m.spec != nil {
+		fields = append(fields, probetarget.FieldSpec)
+	}
+	if m.labels != nil {
+		fields = append(fields, probetarget.FieldLabels)
+	}
+	if m.status != nil {
+		fields = append(fields, probetarget.FieldStatus)
+	}
+	if m.sort != nil {
+		fields = append(fields, probetarget.FieldSort)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ProbeTargetMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case probetarget.FieldCreatedAt:
+		return m.CreatedAt()
+	case probetarget.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case probetarget.FieldDeletedAt:
+		return m.DeletedAt()
+	case probetarget.FieldUID:
+		return m.UID()
+	case probetarget.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case probetarget.FieldGroupUID:
+		return m.GroupUID()
+	case probetarget.FieldSpec:
+		return m.Spec()
+	case probetarget.FieldLabels:
+		return m.Labels()
+	case probetarget.FieldStatus:
+		return m.Status()
+	case probetarget.FieldSort:
+		return m.Sort()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ProbeTargetMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case probetarget.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case probetarget.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case probetarget.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case probetarget.FieldUID:
+		return m.OldUID(ctx)
+	case probetarget.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case probetarget.FieldGroupUID:
+		return m.OldGroupUID(ctx)
+	case probetarget.FieldSpec:
+		return m.OldSpec(ctx)
+	case probetarget.FieldLabels:
+		return m.OldLabels(ctx)
+	case probetarget.FieldStatus:
+		return m.OldStatus(ctx)
+	case probetarget.FieldSort:
+		return m.OldSort(ctx)
+	}
+	return nil, fmt.Errorf("unknown ProbeTarget field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProbeTargetMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case probetarget.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case probetarget.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case probetarget.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case probetarget.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case probetarget.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case probetarget.FieldGroupUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupUID(v)
+		return nil
+	case probetarget.FieldSpec:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpec(v)
+		return nil
+	case probetarget.FieldLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
+	case probetarget.FieldStatus:
+		v, ok := value.(probetarget.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case probetarget.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSort(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeTarget field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ProbeTargetMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort != nil {
+		fields = append(fields, probetarget.FieldSort)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ProbeTargetMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case probetarget.FieldSort:
+		return m.AddedSort()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProbeTargetMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case probetarget.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSort(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeTarget numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ProbeTargetMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(probetarget.FieldDeletedAt) {
+		fields = append(fields, probetarget.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ProbeTargetMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ProbeTargetMutation) ClearField(name string) error {
+	switch name {
+	case probetarget.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeTarget nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ProbeTargetMutation) ResetField(name string) error {
+	switch name {
+	case probetarget.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case probetarget.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case probetarget.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case probetarget.FieldUID:
+		m.ResetUID()
+		return nil
+	case probetarget.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case probetarget.FieldGroupUID:
+		m.ResetGroupUID()
+		return nil
+	case probetarget.FieldSpec:
+		m.ResetSpec()
+		return nil
+	case probetarget.FieldLabels:
+		m.ResetLabels()
+		return nil
+	case probetarget.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case probetarget.FieldSort:
+		m.ResetSort()
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeTarget field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ProbeTargetMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ProbeTargetMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ProbeTargetMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ProbeTargetMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ProbeTargetMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ProbeTargetMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ProbeTargetMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ProbeTarget unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ProbeTargetMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ProbeTarget edge %s", name)
+}
+
+// ProbeTargetGroupMutation represents an operation that mutates the ProbeTargetGroup nodes in the graph.
+type ProbeTargetGroupMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	created_at      *time.Time
+	updated_at      *time.Time
+	deleted_at      *time.Time
+	uid             *string
+	namespace_uid   *string
+	name            *string
+	_driver         *probetargetgroup.Driver
+	status          *probetargetgroup.Status
+	labels          *string
+	executor_labels *string
+	request         *string
+	remark          *string
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*ProbeTargetGroup, error)
+	predicates      []predicate.ProbeTargetGroup
+}
+
+var _ ent.Mutation = (*ProbeTargetGroupMutation)(nil)
+
+// probetargetgroupOption allows management of the mutation configuration using functional options.
+type probetargetgroupOption func(*ProbeTargetGroupMutation)
+
+// newProbeTargetGroupMutation creates new mutation for the ProbeTargetGroup entity.
+func newProbeTargetGroupMutation(c config, op Op, opts ...probetargetgroupOption) *ProbeTargetGroupMutation {
+	m := &ProbeTargetGroupMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProbeTargetGroup,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withProbeTargetGroupID sets the ID field of the mutation.
+func withProbeTargetGroupID(id int) probetargetgroupOption {
+	return func(m *ProbeTargetGroupMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ProbeTargetGroup
+		)
+		m.oldValue = func(ctx context.Context) (*ProbeTargetGroup, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProbeTargetGroup.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProbeTargetGroup sets the old ProbeTargetGroup of the mutation.
+func withProbeTargetGroup(node *ProbeTargetGroup) probetargetgroupOption {
+	return func(m *ProbeTargetGroupMutation) {
+		m.oldValue = func(context.Context) (*ProbeTargetGroup, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ProbeTargetGroupMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ProbeTargetGroupMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ProbeTargetGroupMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ProbeTargetGroupMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ProbeTargetGroup.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProbeTargetGroupMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProbeTargetGroupMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProbeTargetGroupMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ProbeTargetGroupMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ProbeTargetGroupMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ProbeTargetGroupMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *ProbeTargetGroupMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *ProbeTargetGroupMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *ProbeTargetGroupMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[probetargetgroup.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *ProbeTargetGroupMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[probetargetgroup.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *ProbeTargetGroupMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, probetargetgroup.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *ProbeTargetGroupMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *ProbeTargetGroupMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *ProbeTargetGroupMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *ProbeTargetGroupMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *ProbeTargetGroupMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *ProbeTargetGroupMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetName sets the "name" field.
+func (m *ProbeTargetGroupMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ProbeTargetGroupMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ProbeTargetGroupMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDriver sets the "driver" field.
+func (m *ProbeTargetGroupMutation) SetDriver(pr probetargetgroup.Driver) {
+	m._driver = &pr
+}
+
+// Driver returns the value of the "driver" field in the mutation.
+func (m *ProbeTargetGroupMutation) Driver() (r probetargetgroup.Driver, exists bool) {
+	v := m._driver
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDriver returns the old "driver" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldDriver(ctx context.Context) (v probetargetgroup.Driver, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDriver is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDriver requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDriver: %w", err)
+	}
+	return oldValue.Driver, nil
+}
+
+// ResetDriver resets all changes to the "driver" field.
+func (m *ProbeTargetGroupMutation) ResetDriver() {
+	m._driver = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *ProbeTargetGroupMutation) SetStatus(pr probetargetgroup.Status) {
+	m.status = &pr
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ProbeTargetGroupMutation) Status() (r probetargetgroup.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldStatus(ctx context.Context) (v probetargetgroup.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ProbeTargetGroupMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetLabels sets the "labels" field.
+func (m *ProbeTargetGroupMutation) SetLabels(s string) {
+	m.labels = &s
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *ProbeTargetGroupMutation) Labels() (r string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldLabels(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *ProbeTargetGroupMutation) ResetLabels() {
+	m.labels = nil
+}
+
+// SetExecutorLabels sets the "executor_labels" field.
+func (m *ProbeTargetGroupMutation) SetExecutorLabels(s string) {
+	m.executor_labels = &s
+}
+
+// ExecutorLabels returns the value of the "executor_labels" field in the mutation.
+func (m *ProbeTargetGroupMutation) ExecutorLabels() (r string, exists bool) {
+	v := m.executor_labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExecutorLabels returns the old "executor_labels" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldExecutorLabels(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExecutorLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExecutorLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExecutorLabels: %w", err)
+	}
+	return oldValue.ExecutorLabels, nil
+}
+
+// ResetExecutorLabels resets all changes to the "executor_labels" field.
+func (m *ProbeTargetGroupMutation) ResetExecutorLabels() {
+	m.executor_labels = nil
+}
+
+// SetRequest sets the "request" field.
+func (m *ProbeTargetGroupMutation) SetRequest(s string) {
+	m.request = &s
+}
+
+// Request returns the value of the "request" field in the mutation.
+func (m *ProbeTargetGroupMutation) Request() (r string, exists bool) {
+	v := m.request
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequest returns the old "request" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldRequest(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequest is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequest requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequest: %w", err)
+	}
+	return oldValue.Request, nil
+}
+
+// ResetRequest resets all changes to the "request" field.
+func (m *ProbeTargetGroupMutation) ResetRequest() {
+	m.request = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *ProbeTargetGroupMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *ProbeTargetGroupMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the ProbeTargetGroup entity.
+// If the ProbeTargetGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeTargetGroupMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *ProbeTargetGroupMutation) ResetRemark() {
+	m.remark = nil
+}
+
+// Where appends a list predicates to the ProbeTargetGroupMutation builder.
+func (m *ProbeTargetGroupMutation) Where(ps ...predicate.ProbeTargetGroup) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ProbeTargetGroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProbeTargetGroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProbeTargetGroup, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ProbeTargetGroupMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProbeTargetGroupMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ProbeTargetGroup).
+func (m *ProbeTargetGroupMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ProbeTargetGroupMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, probetargetgroup.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, probetargetgroup.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, probetargetgroup.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, probetargetgroup.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, probetargetgroup.FieldNamespaceUID)
+	}
+	if m.name != nil {
+		fields = append(fields, probetargetgroup.FieldName)
+	}
+	if m._driver != nil {
+		fields = append(fields, probetargetgroup.FieldDriver)
+	}
+	if m.status != nil {
+		fields = append(fields, probetargetgroup.FieldStatus)
+	}
+	if m.labels != nil {
+		fields = append(fields, probetargetgroup.FieldLabels)
+	}
+	if m.executor_labels != nil {
+		fields = append(fields, probetargetgroup.FieldExecutorLabels)
+	}
+	if m.request != nil {
+		fields = append(fields, probetargetgroup.FieldRequest)
+	}
+	if m.remark != nil {
+		fields = append(fields, probetargetgroup.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ProbeTargetGroupMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case probetargetgroup.FieldCreatedAt:
+		return m.CreatedAt()
+	case probetargetgroup.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case probetargetgroup.FieldDeletedAt:
+		return m.DeletedAt()
+	case probetargetgroup.FieldUID:
+		return m.UID()
+	case probetargetgroup.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case probetargetgroup.FieldName:
+		return m.Name()
+	case probetargetgroup.FieldDriver:
+		return m.Driver()
+	case probetargetgroup.FieldStatus:
+		return m.Status()
+	case probetargetgroup.FieldLabels:
+		return m.Labels()
+	case probetargetgroup.FieldExecutorLabels:
+		return m.ExecutorLabels()
+	case probetargetgroup.FieldRequest:
+		return m.Request()
+	case probetargetgroup.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ProbeTargetGroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case probetargetgroup.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case probetargetgroup.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case probetargetgroup.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case probetargetgroup.FieldUID:
+		return m.OldUID(ctx)
+	case probetargetgroup.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case probetargetgroup.FieldName:
+		return m.OldName(ctx)
+	case probetargetgroup.FieldDriver:
+		return m.OldDriver(ctx)
+	case probetargetgroup.FieldStatus:
+		return m.OldStatus(ctx)
+	case probetargetgroup.FieldLabels:
+		return m.OldLabels(ctx)
+	case probetargetgroup.FieldExecutorLabels:
+		return m.OldExecutorLabels(ctx)
+	case probetargetgroup.FieldRequest:
+		return m.OldRequest(ctx)
+	case probetargetgroup.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown ProbeTargetGroup field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProbeTargetGroupMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case probetargetgroup.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case probetargetgroup.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case probetargetgroup.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case probetargetgroup.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case probetargetgroup.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case probetargetgroup.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case probetargetgroup.FieldDriver:
+		v, ok := value.(probetargetgroup.Driver)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDriver(v)
+		return nil
+	case probetargetgroup.FieldStatus:
+		v, ok := value.(probetargetgroup.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case probetargetgroup.FieldLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
+	case probetargetgroup.FieldExecutorLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExecutorLabels(v)
+		return nil
+	case probetargetgroup.FieldRequest:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequest(v)
+		return nil
+	case probetargetgroup.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeTargetGroup field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ProbeTargetGroupMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ProbeTargetGroupMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProbeTargetGroupMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ProbeTargetGroup numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ProbeTargetGroupMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(probetargetgroup.FieldDeletedAt) {
+		fields = append(fields, probetargetgroup.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ProbeTargetGroupMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ProbeTargetGroupMutation) ClearField(name string) error {
+	switch name {
+	case probetargetgroup.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeTargetGroup nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ProbeTargetGroupMutation) ResetField(name string) error {
+	switch name {
+	case probetargetgroup.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case probetargetgroup.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case probetargetgroup.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case probetargetgroup.FieldUID:
+		m.ResetUID()
+		return nil
+	case probetargetgroup.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case probetargetgroup.FieldName:
+		m.ResetName()
+		return nil
+	case probetargetgroup.FieldDriver:
+		m.ResetDriver()
+		return nil
+	case probetargetgroup.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case probetargetgroup.FieldLabels:
+		m.ResetLabels()
+		return nil
+	case probetargetgroup.FieldExecutorLabels:
+		m.ResetExecutorLabels()
+		return nil
+	case probetargetgroup.FieldRequest:
+		m.ResetRequest()
+		return nil
+	case probetargetgroup.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeTargetGroup field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ProbeTargetGroupMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ProbeTargetGroupMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ProbeTargetGroupMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ProbeTargetGroupMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ProbeTargetGroupMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ProbeTargetGroupMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ProbeTargetGroupMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ProbeTargetGroup unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ProbeTargetGroupMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ProbeTargetGroup edge %s", name)
 }
 
 // RoleMutation represents an operation that mutates the Role nodes in the graph.

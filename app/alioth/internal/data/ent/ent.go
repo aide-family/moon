@@ -44,6 +44,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
@@ -144,6 +147,9 @@ func checkColumn(t, c string) error {
 			notificationtask.Table:              notificationtask.ValidColumn,
 			notificationtemplate.Table:          notificationtemplate.ValidColumn,
 			permission.Table:                    permission.ValidColumn,
+			proberesult.Table:                   proberesult.ValidColumn,
+			probetarget.Table:                   probetarget.ValidColumn,
+			probetargetgroup.Table:              probetargetgroup.ValidColumn,
 			role.Table:                          role.ValidColumn,
 			rolepermission.Table:                rolepermission.ValidColumn,
 			sshcommand.Table:                    sshcommand.ValidColumn,

@@ -99,6 +99,15 @@ type NotificationTemplate func(*sql.Selector)
 // Permission is the predicate function for permission builders.
 type Permission func(*sql.Selector)
 
+// ProbeResult is the predicate function for proberesult builders.
+type ProbeResult func(*sql.Selector)
+
+// ProbeTarget is the predicate function for probetarget builders.
+type ProbeTarget func(*sql.Selector)
+
+// ProbeTargetGroup is the predicate function for probetargetgroup builders.
+type ProbeTargetGroup func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 

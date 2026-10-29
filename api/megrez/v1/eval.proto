@@ -12,7 +12,119 @@ service EvalService {
   rpc ReportEval(ReportEvalRequest) returns (ReportEvalResponse);
   // 上报天权实例心跳与当前评测任务。
   rpc ReportWorkerStatus(ReportWorkerStatusRequest) returns (ReportWorkerStatusResponse);
+  // 领取待探测的「规则 × 目标组 × 目标」。
+  rpc ClaimProbeTasks(ClaimProbeTasksRequest) returns (ClaimProbeTasksResponse);
+  // 回写一次探测结果，按目标逐条提交。
+  rpc ReportProbeResults(ReportProbeResultsRequest) returns (ReportProbeResultsResponse);
 }
+
+// 执行器身份。一期只有 CLUSTER，EDGE 留给后续的边缘探测。
+message ProbeExecutor {
+  // 执行器类型，取值为 CLUSTER 或 EDGE。
+  string kind = 1;
+  // 执行器标签 JSON。集群内为空对象。
+  string labels = 2;
+}
+
+// 领取探测任务。只接受 service key megrez。
+message ClaimProbeTasksRequest {
+  // 执行器身份。
+  ProbeExecutor executor = 1;
+}
+
+// 本轮可执行的探测任务。
+message ClaimProbeTasksResponse {
+  repeated ProbeTask tasks = 1;
+}
+
+// 一条探测任务：一个规则在一个目标组的一批目标上的一次探测。
+message ProbeTask {
+  // 规则快照。
+  ProbeRuleSnapshot rule = 1;
+  // 目标组快照。
+  ProbeGroupSnapshot group = 2;
+  // 本批目标。
+  repeated ProbeTargetRef targets = 3;
+  // 计划时刻，RFC3339。
+  string slot = 4;
+}
+
+// 探测任务里的规则快照。
+message ProbeRuleSnapshot {
+  string uid = 1;
+  string namespace_uid = 2;
+  string name = 3;
+  string driver = 4;
+  // 观测指标，取值为 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS。
+  string probe_metric = 5;
+  int32 probe_interval_seconds = 6;
+  string labels = 7;
+  string summary = 8;
+  string description = 9;
+  repeated LevelCondition levels = 10;
+}
+
+// 探测任务里的目标组快照。
+message ProbeGroupSnapshot {
+  string uid = 1;
+  string name = 2;
+  string labels = 3;
+  // 组内地址共用的请求参数。
+  ProbeRequestSnapshot request = 4;
+}
+
+// 探测请求参数快照。
+message ProbeRequestSnapshot {
+  string method = 1;
+  string expect_status = 2;
+  int32 timeout_ms = 3;
+  bool follow_redirects = 4;
+  bool skip_tls_verify = 5;
+  bool verify_cert = 6;
+  string headers = 7;
+  string body_keyword = 8;
+}
+
+// 一个待探测目标。
+message ProbeTargetRef {
+  string uid = 1;
+  string spec = 2;
+  string labels = 3;
+}
+
+// 回写探测结果。
+message ReportProbeResultsRequest {
+  // 规则标识。
+  string rule_uid = 1;
+  // 领取时的计划时刻，RFC3339。
+  string slot = 2;
+  // 本次结果，按目标逐条。
+  repeated ProbeResult results = 3;
+}
+
+// 单个目标的探测结果。
+message ProbeResult {
+  string target_uid = 1;
+  bool ok = 2;
+  // 观测值：up 取 1/0，耗时为毫秒，状态码为整数，证书剩余天数为天数。
+  string value = 3;
+  int32 duration_ms = 4;
+  int32 status_code = 5;
+  // 失败分类：dns / connect / tls / timeout / status / keyword / redirect / protocol。
+  string error_kind = 6;
+  string error_message = 7;
+  int32 dns_ms = 8;
+  int32 tcp_ms = 9;
+  int32 tls_ms = 10;
+  int32 ttfb_ms = 11;
+  int32 cert_days = 12;
+  string resolved_ip = 13;
+  // 执行器标识。
+  string executor = 14;
+}
+
+// 回写已接受。
+message ReportProbeResultsResponse {}
 
 // 领取不需要参数，也不要求租户头。
 message ClaimRulesRequest {}

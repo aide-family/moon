@@ -22,6 +22,8 @@ const (
 	EvalService_ClaimRules_FullMethodName         = "/megrez.v1.EvalService/ClaimRules"
 	EvalService_ReportEval_FullMethodName         = "/megrez.v1.EvalService/ReportEval"
 	EvalService_ReportWorkerStatus_FullMethodName = "/megrez.v1.EvalService/ReportWorkerStatus"
+	EvalService_ClaimProbeTasks_FullMethodName    = "/megrez.v1.EvalService/ClaimProbeTasks"
+	EvalService_ReportProbeResults_FullMethodName = "/megrez.v1.EvalService/ReportProbeResults"
 )
 
 // EvalServiceClient is the client API for EvalService service.
@@ -36,6 +38,10 @@ type EvalServiceClient interface {
 	ReportEval(ctx context.Context, in *ReportEvalRequest, opts ...grpc.CallOption) (*ReportEvalResponse, error)
 	// 上报天权实例心跳与当前评测任务。
 	ReportWorkerStatus(ctx context.Context, in *ReportWorkerStatusRequest, opts ...grpc.CallOption) (*ReportWorkerStatusResponse, error)
+	// 领取待探测的「规则 × 目标组 × 目标」。
+	ClaimProbeTasks(ctx context.Context, in *ClaimProbeTasksRequest, opts ...grpc.CallOption) (*ClaimProbeTasksResponse, error)
+	// 回写一次探测结果，按目标逐条提交。
+	ReportProbeResults(ctx context.Context, in *ReportProbeResultsRequest, opts ...grpc.CallOption) (*ReportProbeResultsResponse, error)
 }
 
 type evalServiceClient struct {
@@ -76,6 +82,26 @@ func (c *evalServiceClient) ReportWorkerStatus(ctx context.Context, in *ReportWo
 	return out, nil
 }
 
+func (c *evalServiceClient) ClaimProbeTasks(ctx context.Context, in *ClaimProbeTasksRequest, opts ...grpc.CallOption) (*ClaimProbeTasksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClaimProbeTasksResponse)
+	err := c.cc.Invoke(ctx, EvalService_ClaimProbeTasks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *evalServiceClient) ReportProbeResults(ctx context.Context, in *ReportProbeResultsRequest, opts ...grpc.CallOption) (*ReportProbeResultsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportProbeResultsResponse)
+	err := c.cc.Invoke(ctx, EvalService_ReportProbeResults_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EvalServiceServer is the server API for EvalService service.
 // All implementations must embed UnimplementedEvalServiceServer
 // for forward compatibility.
@@ -88,6 +114,10 @@ type EvalServiceServer interface {
 	ReportEval(context.Context, *ReportEvalRequest) (*ReportEvalResponse, error)
 	// 上报天权实例心跳与当前评测任务。
 	ReportWorkerStatus(context.Context, *ReportWorkerStatusRequest) (*ReportWorkerStatusResponse, error)
+	// 领取待探测的「规则 × 目标组 × 目标」。
+	ClaimProbeTasks(context.Context, *ClaimProbeTasksRequest) (*ClaimProbeTasksResponse, error)
+	// 回写一次探测结果，按目标逐条提交。
+	ReportProbeResults(context.Context, *ReportProbeResultsRequest) (*ReportProbeResultsResponse, error)
 	mustEmbedUnimplementedEvalServiceServer()
 }
 
@@ -106,6 +136,12 @@ func (UnimplementedEvalServiceServer) ReportEval(context.Context, *ReportEvalReq
 }
 func (UnimplementedEvalServiceServer) ReportWorkerStatus(context.Context, *ReportWorkerStatusRequest) (*ReportWorkerStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportWorkerStatus not implemented")
+}
+func (UnimplementedEvalServiceServer) ClaimProbeTasks(context.Context, *ClaimProbeTasksRequest) (*ClaimProbeTasksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ClaimProbeTasks not implemented")
+}
+func (UnimplementedEvalServiceServer) ReportProbeResults(context.Context, *ReportProbeResultsRequest) (*ReportProbeResultsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReportProbeResults not implemented")
 }
 func (UnimplementedEvalServiceServer) mustEmbedUnimplementedEvalServiceServer() {}
 func (UnimplementedEvalServiceServer) testEmbeddedByValue()                     {}
@@ -182,6 +218,42 @@ func _EvalService_ReportWorkerStatus_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EvalService_ClaimProbeTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClaimProbeTasksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EvalServiceServer).ClaimProbeTasks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EvalService_ClaimProbeTasks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EvalServiceServer).ClaimProbeTasks(ctx, req.(*ClaimProbeTasksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EvalService_ReportProbeResults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportProbeResultsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EvalServiceServer).ReportProbeResults(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EvalService_ReportProbeResults_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EvalServiceServer).ReportProbeResults(ctx, req.(*ReportProbeResultsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EvalService_ServiceDesc is the grpc.ServiceDesc for EvalService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -200,6 +272,14 @@ var EvalService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportWorkerStatus",
 			Handler:    _EvalService_ReportWorkerStatus_Handler,
+		},
+		{
+			MethodName: "ClaimProbeTasks",
+			Handler:    _EvalService_ClaimProbeTasks_Handler,
+		},
+		{
+			MethodName: "ReportProbeResults",
+			Handler:    _EvalService_ReportProbeResults_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

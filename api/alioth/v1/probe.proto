@@ -1,0 +1,338 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 探测目标组的创建、查询、启停与手动探测。一期只有 HTTP 探测。
+service ProbeTargetService {
+  // 创建探测目标组。
+  rpc CreateProbeTargetGroup(CreateProbeTargetGroupRequest) returns (CreateProbeTargetGroupResponse) {
+    option (google.api.http) = {
+      post: "/v1/probe-target-groups"
+      body: "*"
+    };
+  }
+  // 更新探测目标组。目标列表整体替换，uid 为空的目标视为新增。
+  rpc UpdateProbeTargetGroup(UpdateProbeTargetGroupRequest) returns (UpdateProbeTargetGroupResponse) {
+    option (google.api.http) = {
+      put: "/v1/probe-target-groups/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用探测目标组。
+  rpc UpdateProbeTargetGroupStatus(UpdateProbeTargetGroupStatusRequest) returns (UpdateProbeTargetGroupStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/probe-target-groups/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除探测目标组。
+  rpc DeleteProbeTargetGroup(DeleteProbeTargetGroupRequest) returns (DeleteProbeTargetGroupResponse) {
+    option (google.api.http) = {delete: "/v1/probe-target-groups/{uid}"};
+  }
+  // 获取探测目标组详情。
+  rpc GetProbeTargetGroup(GetProbeTargetGroupRequest) returns (GetProbeTargetGroupResponse) {
+    option (google.api.http) = {get: "/v1/probe-target-groups/{uid}"};
+  }
+  // 分页列出探测目标组。
+  rpc ListProbeTargetGroups(ListProbeTargetGroupsRequest) returns (ListProbeTargetGroupsResponse) {
+    option (google.api.http) = {get: "/v1/probe-target-groups"};
+  }
+  // 分页列出某个目标组的最近探测记录。
+  rpc ListProbeTargetResults(ListProbeTargetResultsRequest) returns (ListProbeTargetResultsResponse) {
+    option (google.api.http) = {get: "/v1/probe-target-groups/{uid}/results"};
+  }
+  // 立即探测一次目标组里的全部启用目标：写探测记录，不按级别条件判定。
+  rpc ProbeTargetGroupNow(ProbeTargetGroupNowRequest) returns (ProbeTargetGroupNowResponse) {
+    option (google.api.http) = {
+      post: "/v1/probe-target-groups/{uid}/probe-now"
+      body: "*"
+    };
+  }
+  // 试探测一个地址：不落库、不判定、不产生事件。
+  rpc ProbeTrial(ProbeTrialRequest) returns (ProbeTrialResponse) {
+    option (google.api.http) = {
+      post: "/v1/probe-trial"
+      body: "*"
+    };
+  }
+}
+
+// 组内地址共用的 HTTP 请求参数。
+message ProbeRequestConfig {
+  // 请求方法，取值为 GET 或 HEAD。
+  string method = 1 [(buf.validate.field).string = {in: ["GET", "HEAD"]}];
+  // 期望状态码。支持单值、区间与列表：200、200-299、200,204,301。
+  string expect_status = 2 [json_name = "expectStatus", (buf.validate.field).string.max_len = 128];
+  // 单次超时，单位毫秒。运行时实际超时取 min(此值, 规则周期 × 0.8)。
+  int32 timeout_ms = 3 [json_name = "timeoutMs", (buf.validate.field).int32 = {gte: 100, lte: 60000}];
+  // 是否跟随重定向，最多 5 跳。
+  bool follow_redirects = 4 [json_name = "followRedirects"];
+  // 是否跳过 TLS 证书校验。
+  bool skip_tls_verify = 5 [json_name = "skipTlsVerify"];
+  // 是否校验证书有效期，用于计算证书剩余天数。
+  bool verify_cert = 6 [json_name = "verifyCert"];
+  // 自定义请求头，JSON 对象文本。受控头会被拒绝。
+  string headers = 7 [(buf.validate.field).string.max_len = 8192];
+  // 响应体关键字。命中即成功，留空只按状态码判定。
+  string body_keyword = 8 [json_name = "bodyKeyword", (buf.validate.field).string.max_len = 256];
+}
+
+// 目标组里的一个地址。
+message ProbeTargetItem {
+  // 标识。
+  string uid = 1;
+  // 归一化后的地址。
+  string spec = 2;
+  // 标签 JSON 对象。
+  string labels = 3;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 4;
+  // 排序。
+  int32 sort = 5;
+  // 最近一次探测结果。还没有探测记录时为空。
+  ProbeResultItem last_result = 6 [json_name = "lastResult"];
+}
+
+// 保存目标时提交的目标。
+message ProbeTargetInput {
+  // 标识。更新时为空表示新增。
+  string uid = 1;
+  // 地址。
+  string spec = 2 [(buf.validate.field).string = {min_len: 1, max_len: 2048}];
+  // 标签 JSON 对象。
+  string labels = 3 [(buf.validate.field).string.max_len = 4096];
+  // 状态，取值为 ACTIVE 或 DISABLED。留空按 ACTIVE 处理。
+  string status = 4 [(buf.validate.field).string = {in: ["", "ACTIVE", "DISABLED"]}];
+  // 排序。
+  int32 sort = 5;
+}
+
+// 探测目标组。
+message ProbeTargetGroupItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 探测类型，一期只有 PROBE_HTTP。
+  string driver = 3;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 4;
+  // 标签 JSON 对象，规则按它匹配。
+  string labels = 5;
+  // 执行器标签 JSON 对象，预留给边缘探测；空对象表示集群内执行。
+  string executor_labels = 6 [json_name = "executorLabels"];
+  // 组内地址共用的请求参数。
+  ProbeRequestConfig request = 7;
+  // 备注。
+  string remark = 8;
+  // 目标列表，按 sort 升序。
+  repeated ProbeTargetItem targets = 9;
+  // 目标总数。
+  int32 target_count = 10 [json_name = "targetCount"];
+  // 启用目标数。
+  int32 active_target_count = 11 [json_name = "activeTargetCount"];
+  // 最近一次探测时间，RFC3339；还没有探测过时为空。
+  string last_probed_at = 12 [json_name = "lastProbedAt"];
+}
+
+// 创建探测目标组。
+message CreateProbeTargetGroupRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 探测类型，一期只有 PROBE_HTTP。
+  string driver = 2 [(buf.validate.field).string = {in: ["PROBE_HTTP"]}];
+  // 标签 JSON 对象。
+  string labels = 3 [(buf.validate.field).string.max_len = 4096];
+  // 执行器标签 JSON 对象。
+  string executor_labels = 4 [json_name = "executorLabels", (buf.validate.field).string.max_len = 4096];
+  // 请求参数。
+  ProbeRequestConfig request = 5;
+  // 备注。
+  string remark = 6 [(buf.validate.field).string.max_len = 200];
+  // 目标列表，至少 1 个，最多 50 个。
+  repeated ProbeTargetInput targets = 7 [(buf.validate.field).repeated = {min_items: 1, max_items: 50}];
+}
+
+// 创建探测目标组的结果。
+message CreateProbeTargetGroupResponse {
+  // 目标组。
+  ProbeTargetGroupItem group = 1;
+}
+
+// 更新探测目标组。
+message UpdateProbeTargetGroupRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 探测类型，一期只有 PROBE_HTTP。
+  string driver = 3 [(buf.validate.field).string = {in: ["PROBE_HTTP"]}];
+  // 标签 JSON 对象。
+  string labels = 4 [(buf.validate.field).string.max_len = 4096];
+  // 执行器标签 JSON 对象。
+  string executor_labels = 5 [json_name = "executorLabels", (buf.validate.field).string.max_len = 4096];
+  // 请求参数。
+  ProbeRequestConfig request = 6;
+  // 备注。
+  string remark = 7 [(buf.validate.field).string.max_len = 200];
+  // 目标列表，整体替换。
+  repeated ProbeTargetInput targets = 8 [(buf.validate.field).repeated = {min_items: 1, max_items: 50}];
+}
+
+// 更新探测目标组的结果。
+message UpdateProbeTargetGroupResponse {
+  // 目标组。
+  ProbeTargetGroupItem group = 1;
+}
+
+// 启用或停用探测目标组。
+message UpdateProbeTargetGroupStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 启用或停用的结果。
+message UpdateProbeTargetGroupStatusResponse {
+  // 目标组。
+  ProbeTargetGroupItem group = 1;
+}
+
+// 删除探测目标组。
+message DeleteProbeTargetGroupRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除探测目标组的结果。
+message DeleteProbeTargetGroupResponse {}
+
+// 获取探测目标组详情。
+message GetProbeTargetGroupRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取探测目标组详情的结果。
+message GetProbeTargetGroupResponse {
+  // 目标组。
+  ProbeTargetGroupItem group = 1;
+}
+
+// 分页列出探测目标组。
+message ListProbeTargetGroupsRequest {
+  // 页码。0 表示使用默认页。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+  // 探测类型。留空表示全部。
+  string driver = 4;
+}
+
+// 分页列出探测目标组的结果。
+message ListProbeTargetGroupsResponse {
+  // 当前页数据。
+  repeated ProbeTargetGroupItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 一条探测记录。
+message ProbeResultItem {
+  // 目标标识。
+  string target_uid = 1 [json_name = "targetUid"];
+  // 目标地址。
+  string target_spec = 2 [json_name = "targetSpec"];
+  // 规则标识。
+  string rule_uid = 3 [json_name = "ruleUid"];
+  // 规则名称，只用于展示。
+  string rule_name = 4 [json_name = "ruleName"];
+  // 是否成功。
+  bool ok = 5;
+  // 观测值。
+  string value = 6;
+  // 总耗时，单位毫秒。
+  int32 duration_ms = 7 [json_name = "durationMs"];
+  // HTTP 状态码。
+  int32 status_code = 8 [json_name = "statusCode"];
+  // 失败分类，成功时为空。
+  string error_kind = 9 [json_name = "errorKind"];
+  // 失败原因，成功时为空。
+  string error_message = 10 [json_name = "errorMessage"];
+  int32 dns_ms = 11 [json_name = "dnsMs"];
+  int32 tcp_ms = 12 [json_name = "tcpMs"];
+  int32 tls_ms = 13 [json_name = "tlsMs"];
+  int32 ttfb_ms = 14 [json_name = "ttfbMs"];
+  // TLS 证书剩余天数。
+  int32 cert_days = 15 [json_name = "certDays"];
+  // 解析到的 IP。
+  string resolved_ip = 16 [json_name = "resolvedIp"];
+  // 计划时刻，RFC3339。
+  string slot = 17;
+  // 实际探测时刻，RFC3339。
+  string probed_at = 18 [json_name = "probedAt"];
+  // 执行器标识。
+  string executor = 19;
+}
+
+// 分页列出探测记录。
+message ListProbeTargetResultsRequest {
+  // 目标组标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 目标标识。留空表示组内全部目标。
+  string target_uid = 2 [json_name = "targetUid"];
+  // 页码。0 表示使用默认页。
+  int32 page = 3 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 4 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// 分页列出探测记录的结果。
+message ListProbeTargetResultsResponse {
+  // 当前页数据。
+  repeated ProbeResultItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 立即探测目标组。
+message ProbeTargetGroupNowRequest {
+  // 目标组标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 立即探测目标组的结果。
+message ProbeTargetGroupNowResponse {
+  // 本次结果，按目标顺序。
+  repeated ProbeResultItem results = 1;
+}
+
+// 试探测一个地址。
+message ProbeTrialRequest {
+  // 地址。
+  string spec = 1 [(buf.validate.field).string = {min_len: 1, max_len: 2048}];
+  // 请求参数。留空按默认 GET、200-299、3000ms 处理。
+  ProbeRequestConfig request = 2;
+}
+
+// 试探测的结果。
+message ProbeTrialResponse {
+  // 本次结果。target_uid、rule_uid、slot 为空。
+  ProbeResultItem result = 1;
+}

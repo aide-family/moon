@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 )
 

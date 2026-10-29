@@ -46,6 +46,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
@@ -124,6 +127,12 @@ type Client struct {
 	NotificationTemplate *NotificationTemplateClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
+	// ProbeResult is the client for interacting with the ProbeResult builders.
+	ProbeResult *ProbeResultClient
+	// ProbeTarget is the client for interacting with the ProbeTarget builders.
+	ProbeTarget *ProbeTargetClient
+	// ProbeTargetGroup is the client for interacting with the ProbeTargetGroup builders.
+	ProbeTargetGroup *ProbeTargetGroupClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// RolePermission is the client for interacting with the RolePermission builders.
@@ -184,6 +193,9 @@ func (c *Client) init() {
 	c.NotificationTask = NewNotificationTaskClient(c.config)
 	c.NotificationTemplate = NewNotificationTemplateClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
+	c.ProbeResult = NewProbeResultClient(c.config)
+	c.ProbeTarget = NewProbeTargetClient(c.config)
+	c.ProbeTargetGroup = NewProbeTargetGroupClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RolePermission = NewRolePermissionClient(c.config)
 	c.SSHCommand = NewSSHCommandClient(c.config)
@@ -316,6 +328,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NotificationTask:              NewNotificationTaskClient(cfg),
 		NotificationTemplate:          NewNotificationTemplateClient(cfg),
 		Permission:                    NewPermissionClient(cfg),
+		ProbeResult:                   NewProbeResultClient(cfg),
+		ProbeTarget:                   NewProbeTargetClient(cfg),
+		ProbeTargetGroup:              NewProbeTargetGroupClient(cfg),
 		Role:                          NewRoleClient(cfg),
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
@@ -375,6 +390,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NotificationTask:              NewNotificationTaskClient(cfg),
 		NotificationTemplate:          NewNotificationTemplateClient(cfg),
 		Permission:                    NewPermissionClient(cfg),
+		ProbeResult:                   NewProbeResultClient(cfg),
+		ProbeTarget:                   NewProbeTargetClient(cfg),
+		ProbeTargetGroup:              NewProbeTargetGroupClient(cfg),
 		Role:                          NewRoleClient(cfg),
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
@@ -420,9 +438,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.MessageLogShard, c.Namespace, c.NotificationChannel, c.NotificationGroup,
 		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
 		c.NotificationSubscription, c.NotificationSubscriptionGroup,
-		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
-		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
-		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.NotificationTask, c.NotificationTemplate, c.Permission, c.ProbeResult,
+		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
+		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
+		c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -439,9 +458,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.MessageLogShard, c.Namespace, c.NotificationChannel, c.NotificationGroup,
 		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
 		c.NotificationSubscription, c.NotificationSubscriptionGroup,
-		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
-		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
-		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.NotificationTask, c.NotificationTemplate, c.Permission, c.ProbeResult,
+		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
+		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
+		c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -512,6 +532,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NotificationTemplate.mutate(ctx, m)
 	case *PermissionMutation:
 		return c.Permission.mutate(ctx, m)
+	case *ProbeResultMutation:
+		return c.ProbeResult.mutate(ctx, m)
+	case *ProbeTargetMutation:
+		return c.ProbeTarget.mutate(ctx, m)
+	case *ProbeTargetGroupMutation:
+		return c.ProbeTargetGroup.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
 	case *RolePermissionMutation:
@@ -4658,6 +4684,405 @@ func (c *PermissionClient) mutate(ctx context.Context, m *PermissionMutation) (V
 	}
 }
 
+// ProbeResultClient is a client for the ProbeResult schema.
+type ProbeResultClient struct {
+	config
+}
+
+// NewProbeResultClient returns a client for the ProbeResult from the given config.
+func NewProbeResultClient(c config) *ProbeResultClient {
+	return &ProbeResultClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `proberesult.Hooks(f(g(h())))`.
+func (c *ProbeResultClient) Use(hooks ...Hook) {
+	c.hooks.ProbeResult = append(c.hooks.ProbeResult, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `proberesult.Intercept(f(g(h())))`.
+func (c *ProbeResultClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProbeResult = append(c.inters.ProbeResult, interceptors...)
+}
+
+// Create returns a builder for creating a ProbeResult entity.
+func (c *ProbeResultClient) Create() *ProbeResultCreate {
+	mutation := newProbeResultMutation(c.config, OpCreate)
+	return &ProbeResultCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProbeResult entities.
+func (c *ProbeResultClient) CreateBulk(builders ...*ProbeResultCreate) *ProbeResultCreateBulk {
+	return &ProbeResultCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProbeResultClient) MapCreateBulk(slice any, setFunc func(*ProbeResultCreate, int)) *ProbeResultCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProbeResultCreateBulk{err: fmt.Errorf("calling to ProbeResultClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProbeResultCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProbeResultCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProbeResult.
+func (c *ProbeResultClient) Update() *ProbeResultUpdate {
+	mutation := newProbeResultMutation(c.config, OpUpdate)
+	return &ProbeResultUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProbeResultClient) UpdateOne(_m *ProbeResult) *ProbeResultUpdateOne {
+	mutation := newProbeResultMutation(c.config, OpUpdateOne, withProbeResult(_m))
+	return &ProbeResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProbeResultClient) UpdateOneID(id int) *ProbeResultUpdateOne {
+	mutation := newProbeResultMutation(c.config, OpUpdateOne, withProbeResultID(id))
+	return &ProbeResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProbeResult.
+func (c *ProbeResultClient) Delete() *ProbeResultDelete {
+	mutation := newProbeResultMutation(c.config, OpDelete)
+	return &ProbeResultDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProbeResultClient) DeleteOne(_m *ProbeResult) *ProbeResultDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProbeResultClient) DeleteOneID(id int) *ProbeResultDeleteOne {
+	builder := c.Delete().Where(proberesult.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProbeResultDeleteOne{builder}
+}
+
+// Query returns a query builder for ProbeResult.
+func (c *ProbeResultClient) Query() *ProbeResultQuery {
+	return &ProbeResultQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProbeResult},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProbeResult entity by its id.
+func (c *ProbeResultClient) Get(ctx context.Context, id int) (*ProbeResult, error) {
+	return c.Query().Where(proberesult.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProbeResultClient) GetX(ctx context.Context, id int) *ProbeResult {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ProbeResultClient) Hooks() []Hook {
+	return c.hooks.ProbeResult
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProbeResultClient) Interceptors() []Interceptor {
+	return c.inters.ProbeResult
+}
+
+func (c *ProbeResultClient) mutate(ctx context.Context, m *ProbeResultMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProbeResultCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProbeResultUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProbeResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProbeResultDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProbeResult mutation op: %q", m.Op())
+	}
+}
+
+// ProbeTargetClient is a client for the ProbeTarget schema.
+type ProbeTargetClient struct {
+	config
+}
+
+// NewProbeTargetClient returns a client for the ProbeTarget from the given config.
+func NewProbeTargetClient(c config) *ProbeTargetClient {
+	return &ProbeTargetClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `probetarget.Hooks(f(g(h())))`.
+func (c *ProbeTargetClient) Use(hooks ...Hook) {
+	c.hooks.ProbeTarget = append(c.hooks.ProbeTarget, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `probetarget.Intercept(f(g(h())))`.
+func (c *ProbeTargetClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProbeTarget = append(c.inters.ProbeTarget, interceptors...)
+}
+
+// Create returns a builder for creating a ProbeTarget entity.
+func (c *ProbeTargetClient) Create() *ProbeTargetCreate {
+	mutation := newProbeTargetMutation(c.config, OpCreate)
+	return &ProbeTargetCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProbeTarget entities.
+func (c *ProbeTargetClient) CreateBulk(builders ...*ProbeTargetCreate) *ProbeTargetCreateBulk {
+	return &ProbeTargetCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProbeTargetClient) MapCreateBulk(slice any, setFunc func(*ProbeTargetCreate, int)) *ProbeTargetCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProbeTargetCreateBulk{err: fmt.Errorf("calling to ProbeTargetClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProbeTargetCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProbeTargetCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProbeTarget.
+func (c *ProbeTargetClient) Update() *ProbeTargetUpdate {
+	mutation := newProbeTargetMutation(c.config, OpUpdate)
+	return &ProbeTargetUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProbeTargetClient) UpdateOne(_m *ProbeTarget) *ProbeTargetUpdateOne {
+	mutation := newProbeTargetMutation(c.config, OpUpdateOne, withProbeTarget(_m))
+	return &ProbeTargetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProbeTargetClient) UpdateOneID(id int) *ProbeTargetUpdateOne {
+	mutation := newProbeTargetMutation(c.config, OpUpdateOne, withProbeTargetID(id))
+	return &ProbeTargetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProbeTarget.
+func (c *ProbeTargetClient) Delete() *ProbeTargetDelete {
+	mutation := newProbeTargetMutation(c.config, OpDelete)
+	return &ProbeTargetDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProbeTargetClient) DeleteOne(_m *ProbeTarget) *ProbeTargetDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProbeTargetClient) DeleteOneID(id int) *ProbeTargetDeleteOne {
+	builder := c.Delete().Where(probetarget.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProbeTargetDeleteOne{builder}
+}
+
+// Query returns a query builder for ProbeTarget.
+func (c *ProbeTargetClient) Query() *ProbeTargetQuery {
+	return &ProbeTargetQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProbeTarget},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProbeTarget entity by its id.
+func (c *ProbeTargetClient) Get(ctx context.Context, id int) (*ProbeTarget, error) {
+	return c.Query().Where(probetarget.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProbeTargetClient) GetX(ctx context.Context, id int) *ProbeTarget {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ProbeTargetClient) Hooks() []Hook {
+	return c.hooks.ProbeTarget
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProbeTargetClient) Interceptors() []Interceptor {
+	return c.inters.ProbeTarget
+}
+
+func (c *ProbeTargetClient) mutate(ctx context.Context, m *ProbeTargetMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProbeTargetCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProbeTargetUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProbeTargetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProbeTargetDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProbeTarget mutation op: %q", m.Op())
+	}
+}
+
+// ProbeTargetGroupClient is a client for the ProbeTargetGroup schema.
+type ProbeTargetGroupClient struct {
+	config
+}
+
+// NewProbeTargetGroupClient returns a client for the ProbeTargetGroup from the given config.
+func NewProbeTargetGroupClient(c config) *ProbeTargetGroupClient {
+	return &ProbeTargetGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `probetargetgroup.Hooks(f(g(h())))`.
+func (c *ProbeTargetGroupClient) Use(hooks ...Hook) {
+	c.hooks.ProbeTargetGroup = append(c.hooks.ProbeTargetGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `probetargetgroup.Intercept(f(g(h())))`.
+func (c *ProbeTargetGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProbeTargetGroup = append(c.inters.ProbeTargetGroup, interceptors...)
+}
+
+// Create returns a builder for creating a ProbeTargetGroup entity.
+func (c *ProbeTargetGroupClient) Create() *ProbeTargetGroupCreate {
+	mutation := newProbeTargetGroupMutation(c.config, OpCreate)
+	return &ProbeTargetGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProbeTargetGroup entities.
+func (c *ProbeTargetGroupClient) CreateBulk(builders ...*ProbeTargetGroupCreate) *ProbeTargetGroupCreateBulk {
+	return &ProbeTargetGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProbeTargetGroupClient) MapCreateBulk(slice any, setFunc func(*ProbeTargetGroupCreate, int)) *ProbeTargetGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProbeTargetGroupCreateBulk{err: fmt.Errorf("calling to ProbeTargetGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProbeTargetGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProbeTargetGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProbeTargetGroup.
+func (c *ProbeTargetGroupClient) Update() *ProbeTargetGroupUpdate {
+	mutation := newProbeTargetGroupMutation(c.config, OpUpdate)
+	return &ProbeTargetGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProbeTargetGroupClient) UpdateOne(_m *ProbeTargetGroup) *ProbeTargetGroupUpdateOne {
+	mutation := newProbeTargetGroupMutation(c.config, OpUpdateOne, withProbeTargetGroup(_m))
+	return &ProbeTargetGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProbeTargetGroupClient) UpdateOneID(id int) *ProbeTargetGroupUpdateOne {
+	mutation := newProbeTargetGroupMutation(c.config, OpUpdateOne, withProbeTargetGroupID(id))
+	return &ProbeTargetGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProbeTargetGroup.
+func (c *ProbeTargetGroupClient) Delete() *ProbeTargetGroupDelete {
+	mutation := newProbeTargetGroupMutation(c.config, OpDelete)
+	return &ProbeTargetGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProbeTargetGroupClient) DeleteOne(_m *ProbeTargetGroup) *ProbeTargetGroupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProbeTargetGroupClient) DeleteOneID(id int) *ProbeTargetGroupDeleteOne {
+	builder := c.Delete().Where(probetargetgroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProbeTargetGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for ProbeTargetGroup.
+func (c *ProbeTargetGroupClient) Query() *ProbeTargetGroupQuery {
+	return &ProbeTargetGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProbeTargetGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProbeTargetGroup entity by its id.
+func (c *ProbeTargetGroupClient) Get(ctx context.Context, id int) (*ProbeTargetGroup, error) {
+	return c.Query().Where(probetargetgroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProbeTargetGroupClient) GetX(ctx context.Context, id int) *ProbeTargetGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ProbeTargetGroupClient) Hooks() []Hook {
+	return c.hooks.ProbeTargetGroup
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProbeTargetGroupClient) Interceptors() []Interceptor {
+	return c.inters.ProbeTargetGroup
+}
+
+func (c *ProbeTargetGroupClient) mutate(ctx context.Context, m *ProbeTargetGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProbeTargetGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProbeTargetGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProbeTargetGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProbeTargetGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProbeTargetGroup mutation op: %q", m.Op())
+	}
+}
+
 // RoleClient is a client for the Role schema.
 type RoleClient struct {
 	config
@@ -5865,8 +6290,9 @@ type (
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, Role, RolePermission, SSHCommand, SSHCommandAudit, SystemMessage,
-		User, UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
+		Permission, ProbeResult, ProbeTarget, ProbeTargetGroup, Role, RolePermission,
+		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
@@ -5876,7 +6302,8 @@ type (
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, Role, RolePermission, SSHCommand, SSHCommandAudit, SystemMessage,
-		User, UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
+		Permission, ProbeResult, ProbeTarget, ProbeTargetGroup, Role, RolePermission,
+		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Interceptor
 	}
 )

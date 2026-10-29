@@ -205,6 +205,48 @@ func (_c *AlertRuleCreate) SetNillableVariables(v *string) *AlertRuleCreate {
 	return _c
 }
 
+// SetProbeGroupLabels sets the "probe_group_labels" field.
+func (_c *AlertRuleCreate) SetProbeGroupLabels(v string) *AlertRuleCreate {
+	_c.mutation.SetProbeGroupLabels(v)
+	return _c
+}
+
+// SetNillableProbeGroupLabels sets the "probe_group_labels" field if the given value is not nil.
+func (_c *AlertRuleCreate) SetNillableProbeGroupLabels(v *string) *AlertRuleCreate {
+	if v != nil {
+		_c.SetProbeGroupLabels(*v)
+	}
+	return _c
+}
+
+// SetProbeIntervalSeconds sets the "probe_interval_seconds" field.
+func (_c *AlertRuleCreate) SetProbeIntervalSeconds(v int) *AlertRuleCreate {
+	_c.mutation.SetProbeIntervalSeconds(v)
+	return _c
+}
+
+// SetNillableProbeIntervalSeconds sets the "probe_interval_seconds" field if the given value is not nil.
+func (_c *AlertRuleCreate) SetNillableProbeIntervalSeconds(v *int) *AlertRuleCreate {
+	if v != nil {
+		_c.SetProbeIntervalSeconds(*v)
+	}
+	return _c
+}
+
+// SetProbeMetric sets the "probe_metric" field.
+func (_c *AlertRuleCreate) SetProbeMetric(v alertrule.ProbeMetric) *AlertRuleCreate {
+	_c.mutation.SetProbeMetric(v)
+	return _c
+}
+
+// SetNillableProbeMetric sets the "probe_metric" field if the given value is not nil.
+func (_c *AlertRuleCreate) SetNillableProbeMetric(v *alertrule.ProbeMetric) *AlertRuleCreate {
+	if v != nil {
+		_c.SetProbeMetric(*v)
+	}
+	return _c
+}
+
 // SetNextEvalAt sets the "next_eval_at" field.
 func (_c *AlertRuleCreate) SetNextEvalAt(v time.Time) *AlertRuleCreate {
 	_c.mutation.SetNextEvalAt(v)
@@ -308,6 +350,18 @@ func (_c *AlertRuleCreate) defaults() {
 		v := alertrule.DefaultVariables
 		_c.mutation.SetVariables(v)
 	}
+	if _, ok := _c.mutation.ProbeGroupLabels(); !ok {
+		v := alertrule.DefaultProbeGroupLabels
+		_c.mutation.SetProbeGroupLabels(v)
+	}
+	if _, ok := _c.mutation.ProbeIntervalSeconds(); !ok {
+		v := alertrule.DefaultProbeIntervalSeconds
+		_c.mutation.SetProbeIntervalSeconds(v)
+	}
+	if _, ok := _c.mutation.ProbeMetric(); !ok {
+		v := alertrule.DefaultProbeMetric
+		_c.mutation.SetProbeMetric(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -386,6 +440,20 @@ func (_c *AlertRuleCreate) check() error {
 	}
 	if _, ok := _c.mutation.Variables(); !ok {
 		return &ValidationError{Name: "variables", err: errors.New(`ent: missing required field "AlertRule.variables"`)}
+	}
+	if _, ok := _c.mutation.ProbeGroupLabels(); !ok {
+		return &ValidationError{Name: "probe_group_labels", err: errors.New(`ent: missing required field "AlertRule.probe_group_labels"`)}
+	}
+	if _, ok := _c.mutation.ProbeIntervalSeconds(); !ok {
+		return &ValidationError{Name: "probe_interval_seconds", err: errors.New(`ent: missing required field "AlertRule.probe_interval_seconds"`)}
+	}
+	if _, ok := _c.mutation.ProbeMetric(); !ok {
+		return &ValidationError{Name: "probe_metric", err: errors.New(`ent: missing required field "AlertRule.probe_metric"`)}
+	}
+	if v, ok := _c.mutation.ProbeMetric(); ok {
+		if err := alertrule.ProbeMetricValidator(v); err != nil {
+			return &ValidationError{Name: "probe_metric", err: fmt.Errorf(`ent: validator failed for field "AlertRule.probe_metric": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -476,6 +544,18 @@ func (_c *AlertRuleCreate) createSpec() (*AlertRule, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Variables(); ok {
 		_spec.SetField(alertrule.FieldVariables, field.TypeString, value)
 		_node.Variables = value
+	}
+	if value, ok := _c.mutation.ProbeGroupLabels(); ok {
+		_spec.SetField(alertrule.FieldProbeGroupLabels, field.TypeString, value)
+		_node.ProbeGroupLabels = value
+	}
+	if value, ok := _c.mutation.ProbeIntervalSeconds(); ok {
+		_spec.SetField(alertrule.FieldProbeIntervalSeconds, field.TypeInt, value)
+		_node.ProbeIntervalSeconds = value
+	}
+	if value, ok := _c.mutation.ProbeMetric(); ok {
+		_spec.SetField(alertrule.FieldProbeMetric, field.TypeEnum, value)
+		_node.ProbeMetric = value
 	}
 	if value, ok := _c.mutation.NextEvalAt(); ok {
 		_spec.SetField(alertrule.FieldNextEvalAt, field.TypeTime, value)

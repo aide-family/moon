@@ -381,6 +381,42 @@ func (f PermissionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PermissionMutation", m)
 }
 
+// The ProbeResultFunc type is an adapter to allow the use of ordinary
+// function as ProbeResult mutator.
+type ProbeResultFunc func(context.Context, *ent.ProbeResultMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProbeResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProbeResultMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProbeResultMutation", m)
+}
+
+// The ProbeTargetFunc type is an adapter to allow the use of ordinary
+// function as ProbeTarget mutator.
+type ProbeTargetFunc func(context.Context, *ent.ProbeTargetMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProbeTargetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProbeTargetMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProbeTargetMutation", m)
+}
+
+// The ProbeTargetGroupFunc type is an adapter to allow the use of ordinary
+// function as ProbeTargetGroup mutator.
+type ProbeTargetGroupFunc func(context.Context, *ent.ProbeTargetGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProbeTargetGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProbeTargetGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProbeTargetGroupMutation", m)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)

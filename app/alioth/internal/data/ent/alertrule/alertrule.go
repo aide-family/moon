@@ -46,6 +46,12 @@ const (
 	FieldDescription = "description"
 	// FieldVariables holds the string denoting the variables field in the database.
 	FieldVariables = "variables"
+	// FieldProbeGroupLabels holds the string denoting the probe_group_labels field in the database.
+	FieldProbeGroupLabels = "probe_group_labels"
+	// FieldProbeIntervalSeconds holds the string denoting the probe_interval_seconds field in the database.
+	FieldProbeIntervalSeconds = "probe_interval_seconds"
+	// FieldProbeMetric holds the string denoting the probe_metric field in the database.
+	FieldProbeMetric = "probe_metric"
 	// FieldNextEvalAt holds the string denoting the next_eval_at field in the database.
 	FieldNextEvalAt = "next_eval_at"
 	// FieldScheduledSlot holds the string denoting the scheduled_slot field in the database.
@@ -73,6 +79,9 @@ var Columns = []string{
 	FieldSummary,
 	FieldDescription,
 	FieldVariables,
+	FieldProbeGroupLabels,
+	FieldProbeIntervalSeconds,
+	FieldProbeMetric,
 	FieldNextEvalAt,
 	FieldScheduledSlot,
 }
@@ -116,6 +125,10 @@ var (
 	DefaultDescription string
 	// DefaultVariables holds the default value on creation for the "variables" field.
 	DefaultVariables string
+	// DefaultProbeGroupLabels holds the default value on creation for the "probe_group_labels" field.
+	DefaultProbeGroupLabels string
+	// DefaultProbeIntervalSeconds holds the default value on creation for the "probe_interval_seconds" field.
+	DefaultProbeIntervalSeconds int
 )
 
 // Driver defines the type for the "driver" enum field.
@@ -129,6 +142,7 @@ const (
 	DriverLOGS_LOKI                Driver = "LOGS_LOKI"
 	DriverLOGS_VLOGS               Driver = "LOGS_VLOGS"
 	DriverTRACE_JAEGER             Driver = "TRACE_JAEGER"
+	DriverPROBE_HTTP               Driver = "PROBE_HTTP"
 )
 
 func (_driver Driver) String() string {
@@ -138,7 +152,7 @@ func (_driver Driver) String() string {
 // DriverValidator is a validator for the "driver" field enum values. It is called by the builders before save.
 func DriverValidator(_driver Driver) error {
 	switch _driver {
-	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER:
+	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER, DriverPROBE_HTTP:
 		return nil
 	default:
 		return fmt.Errorf("alertrule: invalid enum value for driver field: %q", _driver)
@@ -168,6 +182,34 @@ func StatusValidator(s Status) error {
 		return nil
 	default:
 		return fmt.Errorf("alertrule: invalid enum value for status field: %q", s)
+	}
+}
+
+// ProbeMetric defines the type for the "probe_metric" enum field.
+type ProbeMetric string
+
+// ProbeMetricUP is the default value of the ProbeMetric enum.
+const DefaultProbeMetric = ProbeMetricUP
+
+// ProbeMetric values.
+const (
+	ProbeMetricUP          ProbeMetric = "UP"
+	ProbeMetricLATENCY_MS  ProbeMetric = "LATENCY_MS"
+	ProbeMetricSTATUS_CODE ProbeMetric = "STATUS_CODE"
+	ProbeMetricCERT_DAYS   ProbeMetric = "CERT_DAYS"
+)
+
+func (pm ProbeMetric) String() string {
+	return string(pm)
+}
+
+// ProbeMetricValidator is a validator for the "probe_metric" field enum values. It is called by the builders before save.
+func ProbeMetricValidator(pm ProbeMetric) error {
+	switch pm {
+	case ProbeMetricUP, ProbeMetricLATENCY_MS, ProbeMetricSTATUS_CODE, ProbeMetricCERT_DAYS:
+		return nil
+	default:
+		return fmt.Errorf("alertrule: invalid enum value for probe_metric field: %q", pm)
 	}
 }
 
@@ -257,6 +299,21 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByVariables orders the results by the variables field.
 func ByVariables(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVariables, opts...).ToFunc()
+}
+
+// ByProbeGroupLabels orders the results by the probe_group_labels field.
+func ByProbeGroupLabels(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProbeGroupLabels, opts...).ToFunc()
+}
+
+// ByProbeIntervalSeconds orders the results by the probe_interval_seconds field.
+func ByProbeIntervalSeconds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProbeIntervalSeconds, opts...).ToFunc()
+}
+
+// ByProbeMetric orders the results by the probe_metric field.
+func ByProbeMetric(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProbeMetric, opts...).ToFunc()
 }
 
 // ByNextEvalAt orders the results by the next_eval_at field.

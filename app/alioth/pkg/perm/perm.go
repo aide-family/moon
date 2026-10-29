@@ -18,6 +18,11 @@ const (
 	DatasourceWrite  = "datasource:write"
 	DatasourceDelete = "datasource:delete"
 
+	// Probe 是探测目标组的权限点。探测规则本身属于告警规则，用 alert_rule:*。
+	ProbeRead   = "probe:read"
+	ProbeWrite  = "probe:write"
+	ProbeDelete = "probe:delete"
+
 	AlertRuleRead   = "alert_rule:read"
 	AlertRuleWrite  = "alert_rule:write"
 	AlertRuleDelete = "alert_rule:delete"
@@ -66,7 +71,7 @@ const (
 
 // resources 只包含租户资源。user 是平台资源，不在租户权限目录里。
 var resources = []string{
-	"member", "role", "namespace", "datasource", "alert_rule",
+	"member", "role", "namespace", "datasource", "probe", "alert_rule",
 	"alert", "notification", "cluster", "agent", "ssh",
 }
 

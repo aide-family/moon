@@ -125,6 +125,16 @@ func Variables(v string) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldEQ(FieldVariables, v))
 }
 
+// ProbeGroupLabels applies equality check predicate on the "probe_group_labels" field. It's identical to ProbeGroupLabelsEQ.
+func ProbeGroupLabels(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldProbeGroupLabels, v))
+}
+
+// ProbeIntervalSeconds applies equality check predicate on the "probe_interval_seconds" field. It's identical to ProbeIntervalSecondsEQ.
+func ProbeIntervalSeconds(v int) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldProbeIntervalSeconds, v))
+}
+
 // NextEvalAt applies equality check predicate on the "next_eval_at" field. It's identical to NextEvalAtEQ.
 func NextEvalAt(v time.Time) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldEQ(FieldNextEvalAt, v))
@@ -1018,6 +1028,131 @@ func VariablesEqualFold(v string) predicate.AlertRule {
 // VariablesContainsFold applies the ContainsFold predicate on the "variables" field.
 func VariablesContainsFold(v string) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldContainsFold(FieldVariables, v))
+}
+
+// ProbeGroupLabelsEQ applies the EQ predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsEQ(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsNEQ applies the NEQ predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsNEQ(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNEQ(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsIn applies the In predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsIn(vs ...string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldIn(FieldProbeGroupLabels, vs...))
+}
+
+// ProbeGroupLabelsNotIn applies the NotIn predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsNotIn(vs ...string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNotIn(FieldProbeGroupLabels, vs...))
+}
+
+// ProbeGroupLabelsGT applies the GT predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsGT(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGT(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsGTE applies the GTE predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsGTE(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGTE(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsLT applies the LT predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsLT(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLT(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsLTE applies the LTE predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsLTE(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLTE(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsContains applies the Contains predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsContains(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldContains(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsHasPrefix applies the HasPrefix predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsHasPrefix(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldHasPrefix(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsHasSuffix applies the HasSuffix predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsHasSuffix(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldHasSuffix(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsEqualFold applies the EqualFold predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsEqualFold(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEqualFold(FieldProbeGroupLabels, v))
+}
+
+// ProbeGroupLabelsContainsFold applies the ContainsFold predicate on the "probe_group_labels" field.
+func ProbeGroupLabelsContainsFold(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldContainsFold(FieldProbeGroupLabels, v))
+}
+
+// ProbeIntervalSecondsEQ applies the EQ predicate on the "probe_interval_seconds" field.
+func ProbeIntervalSecondsEQ(v int) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldProbeIntervalSeconds, v))
+}
+
+// ProbeIntervalSecondsNEQ applies the NEQ predicate on the "probe_interval_seconds" field.
+func ProbeIntervalSecondsNEQ(v int) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNEQ(FieldProbeIntervalSeconds, v))
+}
+
+// ProbeIntervalSecondsIn applies the In predicate on the "probe_interval_seconds" field.
+func ProbeIntervalSecondsIn(vs ...int) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldIn(FieldProbeIntervalSeconds, vs...))
+}
+
+// ProbeIntervalSecondsNotIn applies the NotIn predicate on the "probe_interval_seconds" field.
+func ProbeIntervalSecondsNotIn(vs ...int) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNotIn(FieldProbeIntervalSeconds, vs...))
+}
+
+// ProbeIntervalSecondsGT applies the GT predicate on the "probe_interval_seconds" field.
+func ProbeIntervalSecondsGT(v int) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGT(FieldProbeIntervalSeconds, v))
+}
+
+// ProbeIntervalSecondsGTE applies the GTE predicate on the "probe_interval_seconds" field.
+func ProbeIntervalSecondsGTE(v int) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGTE(FieldProbeIntervalSeconds, v))
+}
+
+// ProbeIntervalSecondsLT applies the LT predicate on the "probe_interval_seconds" field.
+func ProbeIntervalSecondsLT(v int) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLT(FieldProbeIntervalSeconds, v))
+}
+
+// ProbeIntervalSecondsLTE applies the LTE predicate on the "probe_interval_seconds" field.
+func ProbeIntervalSecondsLTE(v int) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLTE(FieldProbeIntervalSeconds, v))
+}
+
+// ProbeMetricEQ applies the EQ predicate on the "probe_metric" field.
+func ProbeMetricEQ(v ProbeMetric) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldProbeMetric, v))
+}
+
+// ProbeMetricNEQ applies the NEQ predicate on the "probe_metric" field.
+func ProbeMetricNEQ(v ProbeMetric) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNEQ(FieldProbeMetric, v))
+}
+
+// ProbeMetricIn applies the In predicate on the "probe_metric" field.
+func ProbeMetricIn(vs ...ProbeMetric) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldIn(FieldProbeMetric, vs...))
+}
+
+// ProbeMetricNotIn applies the NotIn predicate on the "probe_metric" field.
+func ProbeMetricNotIn(vs ...ProbeMetric) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNotIn(FieldProbeMetric, vs...))
 }
 
 // NextEvalAtEQ applies the EQ predicate on the "next_eval_at" field.

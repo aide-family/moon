@@ -74,6 +74,12 @@ type Tx struct {
 	NotificationTemplate *NotificationTemplateClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
+	// ProbeResult is the client for interacting with the ProbeResult builders.
+	ProbeResult *ProbeResultClient
+	// ProbeTarget is the client for interacting with the ProbeTarget builders.
+	ProbeTarget *ProbeTargetClient
+	// ProbeTargetGroup is the client for interacting with the ProbeTargetGroup builders.
+	ProbeTargetGroup *ProbeTargetGroupClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// RolePermission is the client for interacting with the RolePermission builders.
@@ -254,6 +260,9 @@ func (tx *Tx) init() {
 	tx.NotificationTask = NewNotificationTaskClient(tx.config)
 	tx.NotificationTemplate = NewNotificationTemplateClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
+	tx.ProbeResult = NewProbeResultClient(tx.config)
+	tx.ProbeTarget = NewProbeTargetClient(tx.config)
+	tx.ProbeTargetGroup = NewProbeTargetGroupClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RolePermission = NewRolePermissionClient(tx.config)
 	tx.SSHCommand = NewSSHCommandClient(tx.config)
