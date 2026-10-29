@@ -1,231 +1,191 @@
-# 探测规则设计与工作方式（方案确认稿）
+# 探测规则设计与工作方式（方案确认稿 v2）
 
-本文回答两件事：**探测规则怎么工作**、**为什么这样改现有规则与表单**，并附可点击原型与截图，用于确认可行性后再开工。
+本文说明「探测规则」**怎么工作**、**改哪些现有规则与表单**、**事件如何与现有告警链路闭环**。
 
-- 原型（可交互，支持浅色/深色）：[probe-rule-prototype.html](probe-rule-prototype.html)
-- 截图目录：[images/probe-rule/](images/probe-rule/)
+- 原型（可交互，浅色/深色）：[probe-rule-prototype.html](probe-rule-prototype.html)
+- 截图：[images/probe-rule/](images/probe-rule/)
 - 基线：`main` @ `0b3f1d3d`，分支 `docs/probe-rule-prototype`
+- v2 依据的 6 条决策见第 10 节（已确认）
 
 ---
 
 ## 0. 一页结论
 
-**可行性：可行，但必须新增一条「探测」评测链路，不能塞进现有 `megrez` 的查询评测路径。**
+**可行。一期只做 HTTP；探测在 megrez 内新增一个 worker 执行；探测目标组独立建表、用新菜单「探测目标」管理；规则按「探测类型 + 目标组标签」匹配多个目标组；事件字段、状态机、指纹、通知链路与查询事件完全一致，只新增一处「无数据源事件」的展示兜底。**
 
-| 判断 | 依据 |
+| 结论 | 依据 |
 | --- | --- |
-| 规则、规则组、列表、权限、告警事件、通知、归档可原样复用 | 探测规则共用 `AlertRule` 表与事件模型；数据源可用性告警（M17）已经证明「非查询来源的事件」可以复用 `AlertEvent` 与通知链路 |
-| 表单必须重新设计 | 现有表单以「驱动 + 表达式 + 数据源标签匹配」为主语（`web/src/pages/alert-rule/index.tsx`），探测规则没有数据源、没有表达式；语义先变，表单必须跟着变 |
-| 评测链路必须新增 | `ClaimRules` 只按「规则 × 数据源」展开，无匹配数据源即不领取；`megrez` 的 `numericDriver` 不含探测驱动，会一律标 `Skipped`（`app/megrez/internal/biz/eval/worker.go:259`） |
-| 调度不能直接复用 15s 扫描 | 现有定时任务每 15s（`EvalInterval`，`app/alioth/internal/biz/alertevent/alertevent.go:25`）在 `Schedule` 里把所有到期规则推到 `now+15s`（同文件 `:83`），和「探测周期可配」冲突 |
-| 一期需要接受 3 个取舍 | 只从集群内执行探测、判定放在 `alioth`、`ICMP` 依赖 `NET_RAW`（见第 8 节） |
+| 目标组独立建模，不做成数据源 | 数据源是「查询源」（endpoint / 索引模式 / 密钥 / 查询代理），探测组是「一组 URL + 请求参数」，共用一张表会让两个表单与校验互相污染 |
+| 规则与目标组用标签匹配 | 与现有「规则 × 数据源」同一机制：新增组自动覆盖、改标签立即生效、不用逐条维护；表单提供「按组勾选」快捷填充 |
+| megrez 新增探测 worker | 复用 service key 校验、redis 锁、并发闸门、实例上报；与查询评测并行、互不阻塞 |
+| 事件格式不变 | 逐字段对齐 `applyHits`（第 5.5 节）；新增事件走同一套写库辅助，`AlertEvent` 表结构不变 |
+| 订阅只用标签 | 事件注入 `datasource`（组名）/`probe_kind`/`probe_target`，订阅协议不改 |
+| 边缘探测留口子 | 领取协议带执行器身份、目标组带 `executor_labels`、执行逻辑抽成 `Executor` 接口；一期只接受集群内执行器 |
 
-范围提醒：`docs/design.md:30` 与 `docs/roadmap.md:37` 目前写明「本期不做探测任务（probe_task）」。落地前需要把这条边界改成「不做玉树那种独立探测任务，改为探测规则」，否则实现与文档冲突。
-
----
-
-## 1. 探测规则是什么
-
-一条探测规则 = **一组目标 + 一套请求参数 + 一组判定条件**。按周期主动发起探测，把结果变成与查询规则完全一致的告警事件。
-
-| 探测类型 | 目标形态 | 成功语义 | 可比较的观测值 |
-| --- | --- | --- | --- |
-| HTTP(S) | `https://api.example.com/healthz` | 连接成功、状态码在期望范围内、可选响应体关键字命中 | `up`、`latency_ms`、`status_code`、`cert_days` |
-| TCP | `db.internal:5432` | TCP 三次握手在超时内完成 | `up`、`connect_ms` |
-| ICMP | `10.20.8.11`、`host.internal` | 收到回包 | `up`、`loss_percent`、`rtt_ms` |
-
-「观测值」是判定条件比较的对象。规则上选一个（默认 `up`），级别条件沿用现有的「比较条件 + 阈值 + 时间方式 + 持续秒数」：
-
-- **失败告警**：`up` `等于` `0`，时间方式 `持续`，持续秒数 `60`
-- **慢响应告警**：`latency_ms` `大于` `1500`，时间方式 `最大值`，窗口 `300`
-- **证书将过期**：`cert_days` `小于` `14`（仅 HTTPS）
-
-这样**告警级别、级别字典、模板、事件、通知一行代码都不用改语义**。
+范围提醒：`docs/design.md`、`docs/roadmap.md`、`docs/iterations/conventions.md` 里「本期不做探测任务」的表述按第 9 节一并更新。
 
 ---
 
-## 2. 规则模型
+## 1. 一期做什么
 
-### 2.1 不新增 `type` 列，用驱动表达类型
+**HTTP 探测规则**：按周期对匹配到的目标组里的每个 URL 发 HTTP 请求，把结果变成与查询规则完全一致的告警事件。
 
-`alert.proto` 里 `type` 字段已被 `reserved`（`api/alioth/v1/alert.proto:688`），历史设计是「类型由驱动推导」。探测继续沿用这条规则：
-
-| 驱动（新增 3 个） | 类别（由驱动推导，不落库） | 用什么评测 |
+| 维度 | 一期 | 后续 |
 | --- | --- | --- |
-| `PROBE_HTTP` | `PROBE` | HTTP 主动探测 |
-| `PROBE_TCP` | `PROBE` | TCP 连接探测 |
-| `PROBE_ICMP` | `PROBE` | ICMP 回包探测 |
+| 探测类型 | `HTTP`（GET / HEAD） | `TCP`（host:port）、`ICMP`（host/IP） |
+| 执行位置 | 集群内（megrez 的探测 worker） | 边缘机器（alkaid 作为执行器） |
+| 目标粒度 | 目标组（1 组 N 个 URL），一条规则匹配多个组 | 目标级独立周期、目标级执行点 |
+| 判定指标 | `up`、`latency_ms`、`status_code`、`cert_days` | 追加 `dns_ms` / `ttfb_ms` 细分指标 |
 
-后端提供一个 `CategoryOfDriver(driver)` 帮助函数（`QUERY` / `PROBE`），列表、领取、调度、表单全部用它分流，不再各处 `switch` 三个字符串。驱动枚举出现在 4 处，必须同步：proto 白名单、`AlertRule` ent schema、`Datasource` ent schema（探测驱动不进数据源枚举，这里只确认不冲突）、`web/src/pages/alert-rule/index.tsx` 的 `drivers` 常量与 i18n。
+---
 
-### 2.2 `alert_rules` 新增字段
+## 2. 领域模型
 
-| 字段 | 类型 | 查询规则 | 探测规则 |
-| --- | --- | --- | --- |
-| `driver` | 枚举 +3 值 | 现有 6 值 | `PROBE_*` |
-| `probe_interval_seconds` | int，默认 30 | 空 | 15 / 30 / 60 / 300（调度要用，必须是列，不能放 JSON） |
-| `probe_metric` | 枚举 | 空 | `UP` / `LATENCY_MS` / `STATUS_CODE` / `CERT_DAYS` / `LOSS_PERCENT` |
-| `probe_config` | JSON 文本 | 空 | 方法、期望状态码、超时、重定向、TLS、关键字、请求头、执行点 |
-| `expr` / `datasource_labels` | 现有列 | 沿用 | 留空（保存时归一为 `""` / `{}`，不参与匹配） |
-| `next_eval_at` | 现有列 | 沿用 | 复用为「下次探测时刻」 |
-| `variables` | 现有列 | 沿用 | 为空：探测规则不提供自定义查询变量 |
+### 2.1 探测目标组 `probe_target_groups`（新表，新菜单管理）
 
-`scheduled_slot` 不用于探测：它以 15s 为粒度被全局刷新，用来做探测批次会互相覆盖。探测批次幂等靠结果表唯一键（见 2.4）。
+管理范式与 `datasources` 一致（租户内唯一名称、标签、启停、软删除、备注），字段按探测定义：
 
-### 2.3 `probe_targets` 新表
-
-目标单独建表，不塞进 `probe_config` 的 JSON 里。理由：目标要能单独启停、单独产生事件、单独看最近结果、要能批量导入，JSON 里做不到按目标去重与恢复。
-
-```
-uid, namespace_uid, rule_uid,
-spec        -- 归一化目标串：URL 去掉默认端口与末尾 #、TCP 统一 host:port、ICMP 只留 host
-kind        -- HTTP / TCP / ICMP（与规则 driver 一致，冗余存一份便于查询）
-labels      -- 目标级标签 JSON，可为空
-status      -- ACTIVE / DISABLED
-排序字段      -- 保持表单里的顺序
-唯一索引 (rule_uid, spec) WHERE deleted_at IS NULL
-```
-
-### 2.4 `probe_results` 新表（探测记录）
-
-```
-uid, namespace_uid, rule_uid, target_uid,
-slot              -- 该轮计划时刻（unix 秒，按 interval 对齐）
-probed_at         -- 实际执行时刻
-ok                -- bool
-value             -- 与 probe_metric 对应的数值（up=0/1、latency_ms、status_code、cert_days、loss_percent）
-duration_ms, status_code, error_kind, error_message,
-dns_ms, tcp_ms, tls_ms, ttfb_ms, cert_days, resolved_ip,
-executor          -- 执行点标识（实例名）
-唯一索引 (target_uid, slot)   -- 回写幂等
-索引 (rule_uid, target_uid, probed_at)
-```
-
-保留策略：每个目标保留最近 200 条且不超过 7 天，`alioth` 每小时清理一次。详情页的「最近探测记录」和判定窗口都读这张表，不读数据源。
-
-### 2.5 字段与现有系统的对应关系
-
-| 现有能力 | 探测规则怎么用 |
+| 字段 | 说明 |
 | --- | --- |
-| 规则组、规则名唯一、软删除 | 原样复用 |
-| 告警级别（`AlertRuleLevel`） | 原样复用，比较的数值来自 `probe_metric` |
-| 级别字典 `AlertDictionary` | 原样复用 |
-| 摘要 / 描述模板 | 原样复用，模板里额外可用 `probe_target`、`probe_kind`、`probe_error`、`value` |
-| 规则标签 | 原样复用，并入事件 labels |
-| 数据源标签匹配 | 不适用（保存时清空并提示） |
-| 自定义查询变量 | 不提供（没有数据源） |
-| 事件、实时/历史告警、介入、抑制、手工恢复、归档 | 原样复用 |
-| 通知订阅 / OnCall | 复用，但订阅里的「数据源」过滤条件对探测事件永不命中，见 5.6 |
+| `uid` / `namespace_uid` / `name` | 名称租户内唯一，≤64 字符 |
+| `driver` | 一期只有 `PROBE_HTTP` |
+| `status` | `ACTIVE` / `DISABLED` |
+| `labels` | JSON 对象，规则按它匹配，例如 `{"env":"prod","region":"sh"}` |
+| `executor_labels` | JSON 对象，默认 `{}` = 集群内执行；边缘探测写 `{"executor":"edge","region":"sh"}`（一期只存不调度，见 5.7） |
+| `request` | JSON：`method`、`expect_status`、`timeout_ms`、`follow_redirects`、`skip_tls_verify`、`verify_cert`、`headers`、`body_keyword` |
+| `remark` | 备注 |
+
+### 2.2 探测目标 `probe_targets`（新表）
+
+| 字段 | 说明 |
+| --- | --- |
+| `uid` / `namespace_uid` / `group_uid` | 归属目标组 |
+| `spec` | 归一化目标：URL 去掉默认端口、末尾 `#`、userinfo，保留路径与查询串 |
+| `labels` / `status` / `sort` | 目标级标签、单独启停、排序 |
+
+唯一索引 `(group_uid, spec) WHERE deleted_at IS NULL`。
+
+### 2.3 规则新增字段 `alert_rules`
+
+| 字段 | 查询规则 | 探测规则 |
+| --- | --- | --- |
+| `driver` | 现有 6 值 | 新增 `PROBE_HTTP` |
+| `probe_group_labels` | 空 | 目标组标签匹配器 JSON；键包含固定键 `probe_group`（组名）与目标组自定义标签键，值为完整匹配正则 |
+| `probe_interval_seconds` | 空 | 15 / 30 / 60 / 300，默认 30 |
+| `probe_metric` | 空 | `UP` / `LATENCY_MS` / `STATUS_CODE` / `CERT_DAYS` |
+| `expr` / `datasource_labels` / `variables` | 现有 | 留空：无查询表达式、不匹配数据源、不支持自定义查询变量 |
+
+匹配范围就是规则的 `driver`（`PROBE_HTTP` 只匹配 HTTP 目标组），不需要额外的 `probeType` 字段。
+
+> 为什么不复用 `datasource_labels`：两列分别表示「数据源」和「目标组」，共用会让驱动切换残留错误条件，claim 端过滤条件也会歧义。多一列换互不污染。
+
+### 2.4 为什么不把目标组做成数据源
+
+| 需求 | 数据源表 | 探测目标组 |
+| --- | --- | --- |
+| 观测对象 | 单个查询 endpoint | 一组 URL，逐个探测、逐个产生事件 |
+| 请求语义 | 查询语言（PromQL / LogQL…） | HTTP 方法、期望状态码、请求头、关键字 |
+| 现有字段 | 索引模式、时间字段、用户名密码、可用性告警、查询代理 | 只需要其中 3~4 个 |
+| 页面 | 数据源页有「元数据 / 查询」两个 tab、同驱动唯一约束 | 需要「目标列表 / 最近探测记录」 |
+
+做成数据源要付出：数据源页与三个接口都要为探测类型加分支、多目标无法表达、`type` 枚举被污染。独立建表只多一个 CRUD 模块。
+
+### 2.5 结果表 `probe_results`（新表）
+
+```
+uid, namespace_uid, rule_uid, group_uid, target_uid,
+slot               -- 计划时刻，按 interval 对齐的 unix 秒
+probed_at,
+ok, value, duration_ms, status_code, error_kind, error_message,
+dns_ms, tcp_ms, tls_ms, ttfb_ms, cert_days, resolved_ip,
+executor
+唯一索引 (target_uid, slot)         -- 回写幂等
+索引 (rule_uid, group_uid, target_uid, probed_at)
+```
+
+保留策略：每目标最近 200 条且 ≤7 天，`alioth` 每小时清理。判定窗口、目标组详情、规则详情都读这张表。
+
+> 同一目标组被多条规则匹配时会各自探测（结果按 `rule_uid` 分开），这是有意为之：不同规则的周期和判定互不影响。代价是重复 HTTP 请求，建议同类判定用一条规则覆盖多组。
 
 ---
 
-## 3. 统一入口：列表页怎么变
+## 3. 新菜单：探测目标
 
-![统一规则页](images/probe-rule/01-rules-list.png)
+侧边栏「告警」分组、`数据源` 之后新增 **探测目标**（`app-shell.tsx` 的 `alertLinks` 加一项，权限点 `probe:read`，图标 `Target`）。页面**照数据源页的「左列表 + 右详情卡」结构**，不是规则页的两栏表格。
 
-沿用现有 `/alert-rules` 的两栏结构（左规则组、右规则列表），只做三处改动：
+![探测目标组](images/probe-rule/03-probe-target-groups.png)
 
-1. **右栏工具栏加「类型」分段筛选**：`全部类型 / 查询规则 / 探测规则`（带条数）。用的是历史告警页同款分段控件，不是新组件。
-2. **表格列改为 6 列**：名称（含类型副行）、类型、观测对象、级别、状态、操作。
-   - 查询规则的「观测对象」= 表达式（等宽字体，两行截断）
-   - 探测规则的「观测对象」= 前两个目标 + 「另有 N 个目标」，每行前面带最近一次探测的圆点（`●` 成功 / `▲` 失败）
-3. **行操作**：`详情` + `更多`。探测规则的「更多」里多两项：`立即探测`（执行一次、写探测记录、不按级别判定）、`复制为…`（可选，二期）。
+- 页头：`探测目标` + 说明 + 右侧「新建」主按钮
+- 筛选：名称 Input + 类型 Select（`全部类型 / HTTP`）+「搜索」outline（与数据源页同一版式，不额外加状态筛选）
+- 左列表：`ListFrame`，每行 = 名称（truncate）+ 类型徽标 + 状态徽标 + ghost 更多菜单（编辑 / 启用 / 停用 / 删除）；选中行 `variant=secondary`
+- 右详情卡：名称 + 目标数徽标 + 类型/状态徽标 → `dl`（探测类型、目标数、标签、执行点、备注）→ **目标表**（URL、最近结果、耗时、状态）→ **最近探测记录** → 底部启停按钮
 
-筛选条件进 URL（沿用现有 `ruleName / rulePage / groupUid` 的写法，新增 `ruleType`），刷新和前进后退保持。
+### 3.1 新建 / 编辑目标组
 
-### 3.1 详情抽屉
+沿用数据源对话框的**三步 `StepForm`**（`sm:max-w-2xl`，底部由 `StepForm` 渲染上一步/下一步/保存）：
 
-![探测规则详情](images/probe-rule/06-probe-detail.png)
+![新建探测目标组](images/probe-rule/04-probe-target-group-form.png)
 
-探测规则的详情用现有 `DetailSheet`：
+| 步骤 | 字段 |
+| --- | --- |
+| ① 基础 | 名称、探测类型（HTTP；TCP/ICMP 灰态标「后续版本」）、标签（键值行 + 添加标签）、备注 |
+| ② 目标 | 目标列表：一行一个 URL，添加 / 批量粘贴 / 删除 / 单条启停；每行校验 URL；至少 1 个 |
+| ③ 请求与试探测 | 方法（GET/HEAD）、期望状态码（`200`、`200-299`、`200,204,301`）、超时、跟随重定向、跳过 TLS 校验、校验证书有效期、响应体关键字、请求头；底部「试探测全部目标」结果面板 |
 
-- 顶部：类型徽标、状态、级别徽标
-- 三个统计卡：近 24h 可用率、平均耗时、最近触发时间
-- 耗时曲线（近 6 分钟，取 `probe_results`）
-- 目标表：目标、最近结果、耗时
-- 最近探测记录表：时间、结果、耗时、状态码、`up`，底部「全部历史」进历史列表
-- 基本信息：周期、期望状态码、超时、观测指标、规则组、执行点、判定条件、指纹
+试探测结果（保存前验证可达性与期望值，不写探测历史、不产生事件）：
 
-查询规则的详情保持现状，不在本次改动范围内。
+![试探测结果](images/probe-rule/05-probe-trial-result.png)
+
+校验：名称唯一、URL 合法且组内不重复、期望状态码可解析、超时 100–60000ms、请求头拒绝 `Host` / `Content-Length` / `Transfer-Encoding` 等受控头；跨步错误在保存时汇总并跳回对应步骤（沿用数据源的 `readFormError` 模式）。
 
 ---
 
-## 4. 重新设计规则表单
+## 4. 规则表单：把「数据源匹配」换成「目标组匹配」
 
-### 4.1 为什么必须重做
-
-现状（`web/src/pages/alert-rule/index.tsx`，1829 行）三步向导的第一步就压着「名称 + 驱动 + 可变长数据源标签匹配 + 表达式 + 标签」5 类内容，第二步是文案与变量，第三步才是级别条件。问题：
-
-1. **驱动是隐藏主语**：表达式语言、占位、补全、匹配预览、能否评测全由驱动派生，但界面上它只是第一个下拉框；切换驱动会静默清空匹配标签（只弹 toast）。
-2. **步骤没有标题**：只有「1 / 3」，用户不知道这一步在干什么、还差几步。
-3. **级别行挤**：`sm:grid-cols-4` 在 672px 对话框里每列约 140px，还要塞「秒」后缀。
-4. **提示重复**：同一段提示既是 `?` tooltip 又是正文。
-5. **探测规则放不进去**：没有数据源、没有表达式，硬塞会让每一步都出现「不适用」字段。
-
-### 4.2 新表单：类型先行 + 步骤有标题
+### 4.1 类型选择：一期只开 HTTP
 
 ![新建规则：类型选择](images/probe-rule/02-new-rule-types.png)
 
-- 对话框宽度从 `sm:max-w-2xl`（672px）提到 44rem（704px），仍是三段式外框（`DialogHeader` / `DialogBody` / `DialogFooter`），不自己造滚动。
-- 步骤条显示标题与完成态：`① 类型与基本信息 → ② 观测配置 → ③ 判定与告警`。已完成步骤打勾，可点击回退。
-- 第 1 步把**类型变成第一等公民**：两组卡片
-  - 查询规则：`指标查询`、`日志查询`
-  - 探测规则：`HTTP 探测`、`TCP 探测`、`ICMP 探测`
-  - 卡片上是图标 + 名称 + 一句能力说明；选中态用品牌色描边 + 底色 + 勾选角标。选完下面直接给出「本规则将创建」的说明，告诉用户后面会出现什么字段。
-- 第 1 步只放「名称 + 规则组」两个字段，和类型卡片一起，一屏够用。
+类型卡片分两组：`查询规则`（指标、日志）与 `探测规则`（HTTP 可用；TCP、ICMP 灰态标「后续版本」）。
 
-### 4.3 第 2 步：观测配置（按类型切换）
+### 4.2 第 2 步：目标组匹配
 
-**探测（HTTP）**：
+![规则匹配目标组](images/probe-rule/06-rule-match-groups.png)
 
-![HTTP 目标配置](images/probe-rule/03-http-target.png)
+交互**照现有「数据源标签匹配」重写一份**（同一套 `SearchableSelect`、同一套完整匹配正则、同一处「将匹配 N 个」预览），代码上新增 `probeTargetMatchKeys` / `probeTargetMatchValues`（照 `alert-rule/matching.ts` 的 `datasourceMatchKeys/Values` 写），**不要复用 `datasource-label-keys.ts`**——那个是给摘要/描述模板补全 `$labels.` 用的。
 
-分三个区，每个区有编号与标题，不再是无标题的字段堆叠：
+- 探测类型：HTTP（跟随第 1 步，只读）
+- 目标组标签匹配：可添加多行「匹配键 / 匹配值（支持正则）」，可选键 = 固定键 `probe_group`（组名）+ 当前租户 HTTP 目标组的自定义标签键
+- 预览：`将匹配 3 个启用目标组，共 12 个目标`
+- 快捷方式：`按目标组选择` 打开多选列表，勾选后自动写成 `probe_group` 的正则匹配器（覆盖「我就想指定这几个组」的场景）
+- 探测周期：15 / 30 / 60 / 300 秒，旁边给出换算 `持续 60 秒 ≈ 连续 2 次探测`
+- 执行点：一期固定「集群内执行器」只读，并注明「后续支持边缘执行点」
 
-1. **探测目标**：目标 1..N 的列表，每行一个输入框 + 删除；`添加目标`、`批量粘贴目标`。同一规则的目标共用下面的参数与判定条件。
-2. **请求设置**：请求方法、期望状态码（支持 `200`、`200-299`、`200,204,301`）、探测周期、单次超时、执行点；折叠的「高级选项」放跟随重定向、跳过 TLS 校验、校验证书有效期、响应体关键字、请求头。
-3. **试探测**：保存前先对第一个目标跑一次，返回状态码、总耗时与 DNS/TCP/TLS/TTFB 分解、证书剩余天数、响应体大小，并直接给出「命中哪条条件、会不会产生事件」的判定结论。
+原来 v1 设计里的「目标列表 + 请求参数」全部搬到目标组表单，规则里不再出现 URL、方法、期望状态码。
 
-![试探测结果](images/probe-rule/04-trial-result.png)
+### 4.3 第 3 步：判定与告警
 
-TCP / ICMP 是同一套骨架，字段更少：
+![判定与告警](images/probe-rule/07-judge-conditions.png)
 
-| 类型 | 目标输入 | 参数 |
-| --- | --- | --- |
-| TCP | `host:port` | 周期、超时、执行点（[截图](images/probe-rule/08-tcp-target.png)） |
-| ICMP | `host` 或 `IP` | 周期、超时、发包数、执行点（[截图](images/probe-rule/09-icmp-target.png)） |
+- **观测指标**：`up`（默认）、响应耗时、状态码、证书剩余天数
+- **级别条件**：一卡两行（级别/条件/阈值 + 时间方式/持续秒数 + 换算提示），语义与查询规则一致
+- **摘要 / 描述 / 标签**：模板可用 `{{ $labels.datasource }}`（目标组名）、`{{ $labels.probe_target }}`、`{{ $labels.probe_kind }}`、`{{ $value }}`
+- **成功语义由目标组定义**（期望状态码 + 关键字），规则只选「比较什么」；失败原因（`connection refused`、`status 502`、`timeout 3000ms`）由系统在事件描述末尾追加，**不进标签、不做模板变量**——否则每次失败原因变化都会换指纹，事件会抖动
+- 探测规则不提供自定义查询变量，用虚线框说明原因
 
-**查询**：保持现有「驱动 + 数据源标签匹配 + 表达式」三件套，但收进「观测配置」这一个标题下，并把驱动改成卡片式下拉（带产品图标），切换驱动时把受影响的字段高亮提示，而不是只弹 toast。
+### 4.4 列表页与详情
 
-### 4.4 第 3 步：判定与告警
+![统一规则页](images/probe-rule/01-rules-list.png)
 
-![判定与告警](images/probe-rule/05-judge-conditions.png)
+`/alert-rules` 加类型分段筛选（全部 / 查询规则 / 探测规则）；「观测对象」列对探测规则显示「匹配目标组 + 目标数」；「更多」里多 `立即探测`、`查看目标组`。
 
-1. **观测指标**：`比较对象` 下拉（探测：`up` / 响应耗时 / 状态码 / 证书剩余天数；查询规则固定为表达式返回值）+ `失败判定`（哪些失败原因算 `up=0`）。
-2. **级别条件**：每条条件一张卡，卡头是「条件 1 · 失败触发」+ 删除按钮，卡内两行：
-   - 行 1：告警级别、比较条件、阈值
-   - 行 2：时间方式（持续 / 最大值 / 最小值）、持续秒数，**下面直接给出换算**：`按当前周期 30s 换算 ≈ 连续 2 次探测都失败`
-   - 这一改动同时解决现有表单「4 列挤」和「持续秒数看不懂」两个问题
-3. **告警文案与标签**：摘要、描述、标签。探测规则这里多一行说明：自动附加 `probe_kind`、`probe_target`、`probe_region`，用于订阅匹配。
-4. **不支持的自定义变量**：用一条虚线框说明「探测规则不提供自定义查询变量」，而不是隐藏一块让人怀疑漏了字段。
+探测规则详情用 `DetailSheet`：匹配到的目标组列表（含每组目标数）、最近探测记录、近 24h 可用率与平均耗时。
 
-### 4.5 校验与交互约定
+![探测规则详情](images/probe-rule/08-probe-detail.png)
 
-| 项 | 规则 |
-| --- | --- |
-| 目标 | 至少 1 个；每规则 ≤ 50 个；按 `kind` 校验格式（URL 必须 http/https 且带 host；TCP 端口 1–65535；ICMP 只允许 host/IP 字面量）；同规则内去重（归一化后比较） |
-| 周期 | 15 / 30 / 60 / 300 秒；持续秒数不足一个周期时提示「至少 1 个周期」 |
-| 超时 | `100–interval*1000`，超过周期说明会串轮，直接拦下 |
-| 期望状态码 | 解析成区间集合；非法写法当场报错 |
-| 请求头 | 只允许自定义普通头，`Host`、`Content-Length`、`Transfer-Encoding` 等受控头拒绝 |
-| 试探测 | 需要 `alert:write`；结果不写库、不判定、不产生事件 |
-| 错误呈现 | 字段错误留在字段下；跨步骤的保存错误在 footer 上方汇总并给出「去第 N 步」的跳转 |
+暗色模式下的同一页（令牌全部走语义层，不写死颜色）：
 
-### 4.6 复用的现有组件（不新造轮子）
-
-`PageHeader`、`ListFrame`、`Table` + `TableActionsHead`、`StatusBadge`、`DetailSheet`、`Dialog` 三段式、`FormField`、`StepForm`、`SearchableSelect`、`FilterChips` / `FilterToggle`、`CodeBlock`、`Switch`、`Select`、`toast`。颜色只用语义令牌（`primary` / `success` / `danger` / `muted` …），不写调色板类，暗色由语义层自动跟。
-
-![暗色模式](images/probe-rule/07-dark-rules-list.png)
+![暗色模式](images/probe-rule/09-dark-rules-list.png)
 
 ---
 
@@ -234,197 +194,271 @@ TCP / ICMP 是同一套骨架，字段更少：
 ```mermaid
 flowchart LR
   subgraph alioth
-    A[探测调度 tick<br/>next_eval_at <= now] --> B[ClaimProbeTasks<br/>规则 × 目标<br/>写 scheduled_slot]
-    C[ReportProbeResults<br/>结构化结果] --> D[写 probe_results<br/>按唯一键幂等]
-    D --> E[判定<br/>取窗口内结果序列]
-    E --> F[AlertEvent<br/>FIRING / RECOVERED]
-    F --> G[NotificationTask<br/>订阅 / OnCall]
+    A[探测调度 tick<br/>按 interval 推进 slot] --> B["ClaimProbeTasks<br/>规则 × 目标组 × 目标"]
+    C[ReportProbeResults<br/>单目标结构化结果] --> D[probe_results<br/>唯一键 target+slot]
+    D --> E[判定<br/>窗口内结果 vs 级别条件]
+    E --> F[AlertEvent<br/>与查询事件同格式]
+    F --> G[NotificationTask<br/>订阅按标签匹配]
   end
-  subgraph 执行器 phecda 或 megrez 分支
-    B --> H[执行探测<br/>HTTP / TCP / ICMP]
-    H --> I[判定输入<br/>up / latency / status / cert]
+  subgraph megrez
+    B --> H[probe.Worker<br/>闸门 + 单目标锁]
+    H --> I[HTTP Executor]
     I --> C
   end
   G --> J[merak 投递]
 ```
 
-### 5.1 调度
+### 5.1 调度（alioth）
 
-- 新增独立 tick（建议 5s），在 `alioth:lock:schedule:probe` 下扫描 `status=ACTIVE AND driver IN (PROBE_*) AND next_eval_at <= now`。
-- 对每条规则：`slot = 按 probe_interval_seconds 对齐的当前时刻`，写 `scheduled_slot = slot`、`next_eval_at = slot + interval`。
-- 现有 15s 的 `ScheduleDue` 只处理 6 个查询驱动，**不改它的语义**，避免影响指标/日志规则的评测节奏。
+- 新增 tick（5s）：`alioth:lock:schedule:probe` 内扫描 `status=ACTIVE AND driver='PROBE_HTTP' AND next_eval_at <= now`。
+- 每条规则：`slot = floor(now / interval) * interval`，写 `scheduled_slot = slot`、`next_eval_at = slot + interval`。
+- 现有 15s 的 `ScheduleDue`（`app/alioth/internal/biz/alertevent/alertevent.go:83`）只处理查询驱动，语义不动。
+- 领取时按 `probe_group_labels` 展开目标组，再展开 `ACTIVE` 目标；无匹配组则不产生任务（与查询规则「无匹配数据源不领取」一致）。
 
-### 5.2 领取
+### 5.2 领取（megrez 探测 worker）
 
-新增 `ProbeService.ClaimProbeTasks`（单独的 service key，比如 `phecda`），返回：
+在现有 `api/megrez/v1/eval.proto` 的 `EvalService` 里**追加两个 RPC**（最省改，service key 校验沿用 `requireMegrez`，`app/alioth/internal/biz/alertevent/alertevent.go:531`）：
 
 ```
-task = { rule: 快照(uid, driver, probe_config, probe_metric, interval,
-                   levels, labels, summary, description),
-         targets: [{ uid, spec, labels, status }],
-         slot: unix 秒 }
+ClaimProbeTasks(executor{kind, labels}) → tasks[]
+task = {
+  rule:  {uid, driver, probe_metric, interval, levels, labels, summary, description},
+  group: {uid, name, labels, request{...}},
+  targets: [{uid, spec, labels}],
+  slot
+}
+ReportProbeResults(rule_uid, slot, results[])
 ```
 
-执行器不访问数据库，也不解析告警条件——它只负责「测」，把数值带回来。这样执行器永远和告警语义解耦，二期换执行点（边缘机器）时只需要搬执行器。
+执行器身份参与过滤：一期只返回 `executor_labels` 为空的目标组（5.7）。
 
-### 5.3 执行
+### 5.3 megrez 新增的 worker
 
-- 单目标一次探测，总超时 `min(超时配置, interval * 0.8)`，到点立刻记为失败（`error_kind=timeout`）。
-- 并发闸门沿用 `pkgworker.Gate`，默认 8 并发，单轮 30s 上限；没跑完的目标留到下一轮（槽位不同，不会重复）。
-- 执行器自身故障（进程重启、上游网络不可达、DNS 解析器挂了）记 `executor_error`，**不回写结果**：既不算目标失败，也不会误恢复。这与 `megrez` 的 `failed=true` 语义一致（`app/megrez/internal/biz/eval/worker.go:285`）。
+新增包 `app/megrez/internal/biz/probe`，与 `eval.Worker` 同构，作为 kratos 里并列的第二个 server：
 
-### 5.4 回写与判定
+```
+probe/
+  worker.go    // 轮询、领取、单目标锁、闸门、回写、上报
+  executor.go  // Executor 接口 + HTTP 实现 + driver 注册表（TCP/ICMP 后续）
+  bo.go        // 任务/结果快照
+```
 
-- `ReportProbeResults` 落 `probe_results`，唯一键 `(target_uid, slot)` 保证重复回写幂等。
-- 判定在 `alioth` 侧完成（数据源可用性 M17 的先例）：从 `probe_results` 取该目标 `(now - window, now]` 的结果序列，构造成现有 `[]bo.Point`，直接复用 `megrez` 的 `matchLevel` 语义：
-  - `持续`：窗口内每个点都命中，且相邻点间隔 ≤ `interval * 1.5`（缺一次就从下一次重新计时）
-  - `最大值` / `最小值`：窗口内极值比较
-  - 窗口点数不足 `for_seconds/interval` 时**不判定**，避免刚建规则就误报
-- 判定函数放在 `pkg`，`megrez` 与 `alioth` 共用，防止两处语义漂移。
+装配点（全部已核对）：
 
-### 5.5 事件与指纹
-
-| 项 | 取值 |
+| 文件 | 改动 |
 | --- | --- |
-| fingerprint | `fingerprint.Of(rule_uid, target_uid, labels)` —— 复用现有函数，第二个参数在探测规则下承载目标标识（函数签名不变，注释写清语义） |
-| labels | 规则标签 + `probe_kind` + `probe_target`（归一化目标串） |
-| **不进 labels** | 错误原因、耗时、状态码、解析到的 IP —— 这些一变就会换指纹，导致「失败变成功必新事件」的抖动 |
-| summary / description | 由模板渲染；`probe_error` 只进描述 |
-| sample_value | 观测指标数值 |
-| 恢复 | 本次成功且新条件不命中 → `RECOVERED`；`executor_error` 不参与恢复 |
+| `app/megrez/internal/biz/biz.go:12` | ProviderSet 聚合加 `probe.ProviderSet` |
+| `app/megrez/cmd/megrez/wire.go` / `wire_gen.go` | 重生成，多一个 `probe.NewWorker` |
+| `app/megrez/cmd/megrez/main.go:70` | `newApp` 加参数，`kratos.Server(httpServer, evalWorker, probeWorker)` |
+| `app/megrez/internal/conf/conf.proto` + `configs/config.yaml` | 新增 `probe: { enabled, poll_interval, concurrency, max_timeout_ms }` |
+| `app/megrez/internal/data/repository/` + `data/gateway.go` | 新增 `ProbeGateway` 接口与实现（同一个 gRPC client） |
 
-### 5.6 通知
+worker 行为：
 
-探测事件 `rule_uid` 非空、`datasource_uid` 为空，会走现有的订阅 / OnCall 匹配。但 `matchSubscription` 里「数据源过滤」是按 UID 精确比较的（`app/alioth/internal/data/notification_dispatch.go:646`），**订阅一旦勾了数据源，就永远收不到探测事件**。三条路，见第 10 节待决策。
+| 项 | 取值 | 与现有实现的关系 |
+| --- | --- | --- |
+| 轮询 | 5s | 与 `eval.Worker` 的 `*/2 * * * * *` 同机制，独立批次 |
+| 单目标锁 | `alioth:lock:probe:{target_uid}:{slot}` | 与 `alioth:lock:eval:{rule}:{datasource}` 同类；复用 `pkg/lock` 与 `data/lock.go` 封装 |
+| 并发 | `pkg/worker.Gate`，默认 8 | 与评测 worker 各自独立闸门 |
+| 单轮超时 | 30s | 与现有 `roundTimeout` 一致 |
+| 失败退避 | 上限 30s | 与现有 `backoffMax` 一致 |
+| 回写 | 单目标一条，逐条回写 | 一个目标超时不拖累同批其他目标 |
+| 自身故障 | 不回写，只记日志 | 与「查询失败不回写」一致：执行器故障 ≠ 目标故障 |
+| 实例上报 | 复用 `ReportStatus`，**身份仍是 `MEGREZ`**，task 名写探测任务 | roster 只接受 `MEGREZ`/`MERAK`（`app/alioth/internal/service/eval.go:85`），换身份会被当成新进程 |
+
+> 若后台工作进程页需要区分「指标评测组合」与「探测组合」，给 `WorkerStatus` 增加一个 `kind` 维度即可；一期可以先共用身份、只靠 task 名区分。
+
+### 5.4 HTTP 探测语义
+
+| 项 | 规则 |
+| --- | --- |
+| 成功 | 连接成功 + TLS 校验通过（未跳过）+ 状态码在期望范围 + 关键字命中（若配置） |
+| 观测值 | `up`=1/0、`latency_ms`=整请求耗时、`status_code`、`cert_days`=证书剩余天数 |
+| `error_kind` | `dns` / `connect` / `tls` / `timeout` / `status` / `keyword` / `redirect` / `protocol` |
+| 重定向 | ≤5 跳，逐跳校验协议与目标，禁止跳到非 http(s) |
+| 响应体 | 只读前 64 KiB 用于关键字判定，不落库 |
+| 请求头 | 允许自定义普通头，拒绝受控头；值过滤换行 |
+| 超时 | `min(配置 timeout_ms, interval × 0.8)`，到点记 `timeout` |
+| 客户端 | 现有没有通用 HTTP 封装（`megrez` 只有固定 10s 的查询 client），需自建支持 per-target 超时的 `http.Client` 池 |
+
+### 5.5 事件：与现有格式逐字段一致
+
+探测事件与查询事件**走同一套写库辅助**（`applyHits` 的兄弟函数，同一事务语义），字段映射：
+
+| `AlertEvent` 字段 | 查询事件（现状） | 探测事件（本期） |
+| --- | --- | --- |
+| `rule_uid` | 规则 UID（`alert_event_repo.go:430`） | 同 |
+| `datasource_uid` | 数据源 UID（`:431`） | **空**（同 M17 数据源可用性事件先例） |
+| `expr` | PromQL / LogQL（`:434`） | 归一化后的目标 URL |
+| `fingerprint` | `Of(rule_uid, datasource_uid, labels)` | `Of(rule_uid, target_uid, labels)` |
+| `labels` | 采样标签 + 数据源 labels + 注入键（`:404`、`:1190`） | 规则标签 + 目标组 labels + 目标级 labels + 注入键 |
+| 注入键 `datasource` | 数据源名 | **目标组名** |
+| 注入键 `alert_level` / `datasource_level` | 级别名 / 数据源级别名 | 级别名 / 空（删键） |
+| 额外键 | —— | `probe_kind`、`probe_target` |
+| `summary` / `description` | 模板渲染（`:436-437`） | 同 |
+| `sample_value` | 命中数值（`:438`） | 观测指标数值 |
+| `level_uid` | 级别字典（`:439`） | 同 |
+| `starts_at` / `eval_slot` | `now` / 批次（`:440-441`） | 同（槽位 = 探测 slot） |
+| `status` / `suppressed` / `intervened_*` / 归档 | FIRING → RECOVERED / 手工恢复 | 完全一致 |
+| 通知 `externalURL` | 数据源 endpoint（`:232`、`:459`） | **目标 URL**（点开通知就能打开被探测地址） |
+
+一个探测事件实例：
+
+```json
+{
+  "ruleUid": "rule_api_health",
+  "datasourceUid": "",
+  "fingerprint": "9c1f…",
+  "status": "FIRING",
+  "expr": "https://api.example.com/healthz",
+  "labels": {
+    "datasource": "核心接口组",
+    "alert_level": "严重",
+    "probe_kind": "HTTP",
+    "probe_target": "https://api.example.com/healthz",
+    "env": "prod",
+    "team": "platform"
+  },
+  "summary": "https://api.example.com/healthz 探测失败（HTTP）",
+  "description": "连续 2 次探测失败，最后错误：connect: connection refused",
+  "sampleValue": "0",
+  "levelUid": "lvl_critical",
+  "startsAt": "2026-10-29T08:12:00Z",
+  "evalSlot": "2026-10-29T08:12:00Z"
+}
+```
+
+**唯一需要改的读取逻辑**：告警列表/详情/筛选的「数据源」列是按 `datasource_uid` 回查数据源表的（`alert_event_repo.go:1038`、`:1054`、`:1547`），`datasource_uid` 为空就显示空。因此在这些回填处补一条**标签兜底**：uid 为空时取 labels 里的 `datasource` 作为 `DatasourceName`。这样列、按数据源名筛选、前端兜底显示三处一起生效，且不新增事件字段。
+
+> 备选方案是「目标组直接落 `datasources` 表，用新 driver 表示」，那样列与筛选原生可用；代价是数据源页、元数据/查询 tab、可用性告警、同驱动唯一约束都要为探测类型加分支。本方案选择独立表 + 一处读取兜底。
+
+**闭环验收（不改任何接口协议）**
+
+- 实时/历史告警：可查、可按摘要/级别/规则名/「数据源（=目标组）」筛选
+- 介入（单条/批量）、抑制、手工恢复、自动恢复：同一套接口
+- 恢复后进租户历史库周表，历史分析页的统计口径不变
+- 通知任务生成：订阅按标签命中、OnCall 按时段路由、`merak` 投递、消息日志可查
+- 模板占位符：`{{ $labels.datasource }}`、`{{ $labels.probe_target }}`、`{{ $value }}`、`{{ .externalURL }}` 都有值
+- 告警页面：能按 `probe_kind` / `datasource` 标签聚合
+
+### 5.6 判定（alioth 侧）
+
+- 回写落 `probe_results`（唯一键幂等）后，取该目标 `(now - 窗口, now]` 的结果序列，构造成现有 `[]bo.Point`，复用 `matchLevel` 语义：
+
+| 时间方式 | 判定 | 注意 |
+| --- | --- | --- |
+| 持续 | 窗口内每个点都命中，相邻点间隔 ≤ `interval × 1.5` | 缺一次就从下一次重新计时 |
+| 最大值 / 最小值 | 窗口内极值比较 | 适合延迟、证书天数 |
+
+- 点数不足 `持续秒数 / 周期` 时不判定，避免刚建规则就误报。
+- 判定函数移到 `pkg`，megrez 与 alioth 共用，防止语义漂移。
+- `executor_error` 不参与判定，也不触发恢复。
+
+### 5.7 边缘探测的预留口（一期不实现）
+
+| 预留点 | 形态 | 一期行为 |
+| --- | --- | --- |
+| 领取协议 | `ClaimProbeTasks(executor{kind, labels})` | 只接受 `kind=CLUSTER`；`EDGE` 返回空 |
+| 目标组字段 | `executor_labels` | 保存、校验、展示；不参与调度（空 = 集群内） |
+| 执行逻辑 | `probe.Executor` 接口 + driver 注册表 | 只有 `http`；alkaid 后续 import 同一包 |
+| 结果表 | `probe_results.executor` | 记集群内实例名 |
+| 事件标签 | 预留 `probe_executor` 键，**一期不写** | 多执行点上线后再加，避免指纹抖动 |
+
+最后一条是刻意的：写进事件标签就会改变指纹，后加比留字段贵得多。
 
 ---
 
-## 6. 安全与限制（探测特有的问题，必须在一期定死）
+## 6. 安全与限制
 
 | 风险 | 处理 |
 | --- | --- |
-| SSRF / 打到云元数据 | 默认拒绝 `169.254.169.254`、链路本地与组播网段，可用配置追加黑名单；私网默认允许（内网探活是核心需求），但要显式写进部署文档 |
-| 重定向绕过 | 最多 5 跳，每一跳重新校验目标与协议，禁止跳到 `file://`、`gopher://` |
-| 响应体打爆内存 | 只读前 64 KiB，声明长度超限直接判失败 |
+| SSRF / 云元数据 | 默认拒绝 `169.254.169.254`、链路本地与组播网段；私网默认允许（内网探活是主用途），写进部署文档 |
+| 重定向绕过 | ≤5 跳，逐跳校验协议与目标 |
+| 响应体打爆内存 | 只读前 64 KiB |
 | TLS | 默认校验；「跳过校验」是显式开关，列表页给风险标记 |
-| 请求头注入 | 拒绝受控头；请求头值做换行符过滤 |
-| 探测放大 | 每规则 ≤ 50 目标，每租户 ≤ 200 条探测规则，同租户总目标数配上限 |
-| ICMP 权限 | 容器需要 `NET_RAW` 或 `net.ipv4.ping_group_range`；没有权限时执行器返回明确的 `executor_error`，不产出失败事件（见第 8 节取舍） |
-| 并发挤占 | 探测与查询评测分开进程/分开闸门，探测慢不拖住指标评测 |
+| 请求头注入 | 拒绝受控头，值过滤换行 |
+| 凭据 | 目标组请求头可能带 token，与数据源密钥一样走 `ALIOTH_ENCRYPT_KEY` 加密存储 |
+| 探测放大 | 每规则 ≤50 个匹配组、每租户 ≤200 条探测规则，目标总数配上限 |
+| 并发挤占 | 探测与评测是两个 kratos server、两个闸门 |
 
 ---
 
 ## 7. 接口与迁移
 
-### 7.1 proto（新增，不动 reserved 字段号）
+### 7.1 接口清单
 
-```proto
-// api/probe/v1/probe.proto
-service ProbeService {
-  rpc ClaimProbeTasks(ClaimProbeTasksRequest) returns (ClaimProbeTasksResponse);
-  rpc ReportProbeResults(ReportProbeResultsRequest) returns (ReportProbeResultsResponse);
-}
+| 类型 | 接口 |
+| --- | --- |
+| 目标组 CRUD | `GET/POST/PUT/DELETE /v1/probe-target-groups`、`GET /v1/probe-target-groups/{uid}` |
+| 目标组动作 | `PATCH .../{uid}/status`、`POST .../{uid}/probe-now`（立即探测，写结果不判定）、`GET .../{uid}/probe-results` |
+| 试探测 | `POST /v1/probe-trial`（目标 + 请求参数，不落库） |
+| 匹配候选 | `GET /v1/probe-target-groups/match-keys`、`.../match-values`（规则表单的键/值候选） |
+| 内部评测 | `EvalService.ClaimProbeTasks` / `ReportProbeResults`（megrez） |
+| 规则 | `driver` 白名单加 `PROBE_HTTP`；`Create/UpdateAlertRuleRequest` 追加 `probe_group_labels`、`probe_interval_seconds`、`probe_metric`（新 tag，避开已 reserved 的 4/11/12/13） |
 
-message ProbeTask {
-  ProbeRuleSnapshot rule = 1;
-  int64 slot = 2;                       // 计划时刻（unix 秒）
-  repeated ProbeTarget targets = 3;
-}
+### 7.2 迁移顺序（每步可独立验证）
 
-message ProbeResult {
-  string target_uid = 1;
-  bool ok = 2;
-  double value = 3;                     // 与 probe_metric 对应
-  int64 duration_ms = 4;
-  int32 status_code = 5;
-  string error_kind = 6;                // timeout / dns / connect / tls / status / keyword
-  string error_message = 7;
-  int64 dns_ms = 8;
-  int64 tcp_ms = 9;
-  int64 tls_ms = 10;
-  int64 ttfb_ms = 11;
-  int64 cert_days = 12;
-  string resolved_ip = 13;
-  string executor = 14;
-}
-```
-
-规则 CRUD：`CreateAlertRuleRequest` / `UpdateAlertRuleRequest` 追加 `ProbeConfig probe_config = 15;`、`repeated ProbeTargetInput targets = 16;`，driver 白名单加 3 个值（`api/alioth/v1/alert.proto:724`）。旧客户端提交旧值行为不变。
-
-### 7.2 REST（经 web 反代）
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| `GET` | `/v1/alert-rules` | 增加 `type` 过滤；返回每个规则的探测摘要（目标数、最近结果、近 24h 可用率） |
-| `GET` | `/v1/alert-rules/{uid}` | 返回 `probeConfig` 与 `targets` |
-| `GET` | `/v1/alert-rules/{uid}/probe-results` | 探测历史，按目标与时间过滤、分页 |
-| `POST` | `/v1/alert-rules/probe-trial` | 试探测：不写库、不判定，直接返回上面 `ProbeResult` 结构 |
-| `POST` | `/v1/alert-rules/{uid}/probe-now` | 立即探测一次：写 `probe_results`，走判定 |
-
-### 7.3 迁移顺序
-
-1. proto + ent（driver 枚举、`probe_targets`、`probe_results`）→ `make conf` / `buf generate` / ent 重生成
-2. `alioth` 侧校验与存储（目标规范化、唯一索引、`RecoverSource` 扩展到目标变更）
-3. 调度 + claim + 回写 + 判定（先用 curl 建规则跑通）
-4. 执行器进程（或 `megrez` 的探测分支）
-5. `web` 列表 + 表单 + 详情 + i18n + 权限
-6. （可选）订阅的「规则类别」筛选
+1. proto + ent（`PROBE_HTTP`、三张新表、规则三个字段、`perm.go` 加 `probe` 资源）→ `make conf` / `buf generate` / ent 重生成
+2. `alioth` 目标组模块：CRUD、URL 归一化、标签键汇总、试探测
+3. `alioth` 调度 + 领取 + 回写 + 判定 + 事件写入与读取兜底
+4. `megrez` 探测 worker + 配置 + 装配 + 上报
+5. `web`：`App.tsx` 路由、`app-shell.tsx` 菜单、`last-page.ts` knownPaths、`permission-catalog.ts`、i18n（zh/en）、目标组页、规则表单第 2 步、列表与详情、`api/probe-target/`
+6. 文档：`design.md`、`roadmap.md`、`iterations/m18-probe-rules.md`
 
 ---
 
-## 8. 一期取舍（决定可行性边界）
+## 8. 复用 / 新增 / 冲突
 
-| 取舍 | 一期做法 | 为什么 | 二期 |
-| --- | --- | --- | --- |
-| 谁执行探测 | 集群内新进程 `phecda`（复用 megrez 的领取/锁/闸门骨架）；若不想加进程，先在 `megrez` 加探测分支 | 加进程的成本是部署多一个 pod，收益是探测出站、ICMP 权限、并发闸门与评测隔离；挤进 `megrez` 更快但会互相拖慢 | 边缘 `alkaid` 也能当执行点，按执行点标签路由 |
-| 判定位置 | `alioth` 侧判定 | 与 M17 数据源可用性同构；判定要读历史结果，本来就在 `alioth` 库里 | 不变 |
-| ICMP | 支持，但要求部署侧给权限；无权限时明确报错不误报 | 内网存活探测常见，但容器默认没 `NET_RAW` | 无 |
-| 目标粒度 | 一条规则多目标（同类型） | 运维上是「一组接口探活」，逐条建规则不现实；评测模型天然是「规则 × 目标」，与现有「规则 × 数据源」同构 | 目标级独立周期与执行点 |
-| 令牌 / 内容 | 一期不做，只支持 GET / HEAD | 减少表单复杂度，也不引入「我们会替你发任意请求体」的风险 | POST + 请求体 + 校验脚本 |
+**可原样复用**：规则组、名称唯一与软删除、级别字典、级别条件语义、摘要/描述模板、`AlertEvent` 全字段与状态机、实时/历史告警、介入/抑制/手工恢复、归档分片、通知任务与 `merak`、RBAC 派生、`pkg/labels` 匹配器（`CompileMatchers`）、`pkg/lock`、`pkg/worker.Gate`、`ListFrame` / `Dialog` / `DetailSheet` / `StepForm` / `SearchableSelect` / `StatusBadge`。
 
----
+**新增**：`PROBE_HTTP`；目标组/目标/结果三张表；规则三个字段；探测调度 tick；两个 RPC；megrez 探测 worker；HTTP executor；目标组菜单与页面；规则表单第 2 步；列表筛选与详情区块；i18n；权限点 `probe`。
 
-## 9. 复用 / 新增 / 冲突清单
-
-**可原样复用（不改语义）**
-规则组、规则名唯一与软删除、级别字典、级别条件语义（EQ/NE/GT/GTE/LT/LTE/IN/NOT_IN × FOR/MAX/MIN）、摘要/描述模板、`AlertEvent` + firing 占位、实时/历史告警、介入/抑制/手工恢复、归档分片、通知任务与 `merak` 投递、RBAC（`alert:read` / `alert:write`）、列表分页与表格样式。
-
-**必须新增**
-探测驱动 3 个（4 处同步）、`probe_*` 三个字段、`probe_targets` / `probe_results` 两张表、探测调度 tick、`ClaimProbeTasks` / `ReportProbeResults`、执行器（或 megrez 分支）、目标变更的 `RecoverSource`、列表摘要与探测历史接口、试探测接口、表单与列表改造、i18n、`docs/design.md` 与 `docs/roadmap.md` 的范围修改。
-
-**有冲突，需要改现有逻辑（列出是因为它们才是真正的成本）**
+**要改现有逻辑（真实成本）**
 
 | 冲突 | 处理 |
 | --- | --- |
-| `ClaimRules` 按数据源展开，无匹配不领取 | 探测走独立 RPC；同时在 `megrez` 的 claim 里过滤探测驱动，避免空转领取后标 `Skipped` |
-| 15s 全局调度覆盖 `next_eval_at` / `scheduled_slot` | 探测走独立调度函数与独立锁，不复用 `ScheduleDue` |
-| `eval_slot` 语义是 15s 批次 | 探测用「按 interval 对齐的 slot」，只存在于 `probe_results` 与 `scheduled_slot`，不进 `alert_eval_batches` |
-| `driver` 同时承担「评测路径」与「数据源匹配」 | 用 `CategoryOfDriver` 分流，数据源匹配只对 `QUERY` 生效 |
-| 改驱动/表达式/级别会让 `recoverChangedRule` 收口旧事件（`app/alioth/internal/biz/alertrule/alertrule.go:309`），目标变更目前不会 | 目标增删改、规则停用/删除都要触发对应指纹的恢复，否则旧 FIRING 永久残留 |
-| 订阅的数据源过滤挡住探测事件 | 见第 10 节决策 5 |
-| 设计文档声明「本期不做探测任务」 | 需要先改范围文档，否则实现即违约 |
+| `ClaimRules` 只按「规则 × 数据源」展开 | 探测独立 RPC；`Claim` 对探测驱动直接跳过，避免空转领取标 `Skipped` |
+| 15s 全局调度覆盖 `next_eval_at` | 探测独立 tick + 独立锁 |
+| 「数据源」列/筛选只认 `datasource_uid` | 补一处 labels 兜底（第 5.5 节） |
+| 只有驱动/表达式/级别变更才恢复旧事件 | 目标增删改、目标组停用/删除、匹配器变更也要触发恢复，否则旧 FIRING 残留 |
+| megrez 单 worker 装配 | `main.go` / `wire` / 配置三处改，且锁键不能与评测共用 |
+| 实例身份只认 `MEGREZ`/`MERAK` | 探测 worker 复用 `MEGREZ` 身份、task 名区分；需要区分组合类型时再加 `kind` 维度 |
 
 ---
 
-## 10. 需要你确认的决策
+## 9. 文档要同步改的地方
 
-1. **目标粒度**：一条规则多目标（推荐，已按此做原型）还是严格一条规则一个目标？
-2. **执行点**：一期只从集群内探测（推荐），还是必须支持从指定边缘机器发起（会牵扯 `alkaid` 协议与权限模型，工作量翻倍）？
-3. **探测类型范围**：一期 `HTTP + TCP + ICMP` 全上（推荐，但 ICMP 受部署权限限制），还是先做 `HTTP + TCP`，ICMP 二期？
-4. **判定位置**：`alioth` 侧判定（推荐），还是执行器判定后只回写命中结果（回写更轻，但历史结果与判定会分家）？
-5. **通知路由**：给「告警订阅」加一个「规则类别」筛选（推荐，改动小且语义清楚），还是要求探测事件只靠标签匹配（零改动，但配置容易踩空）？
-6. **范围文档**：是否确认把 `docs/design.md:30` / `docs/roadmap.md:37` 的「本期不做探测任务」改成「不做独立探测任务，改为探测规则」？
-7. **一期是否允许新增一个进程**（`phecda`），还是必须塞进 `megrez`？
+| 文件 | 改动 |
+| --- | --- |
+| `docs/design.md` | 第 1 节「本期不做」去掉探测任务；「4. 告警」新增 4.4 探测规则 |
+| `docs/roadmap.md` | 依赖图与里程碑列表加 `M18 探测规则（HTTP）`，改「本期不做」那句 |
+| `docs/iterations/m18-probe-rules.md` | 新增：开发细则 + 可勾选验收 |
+| `docs/iterations/conventions.md` | 「不做」清单删掉探测任务 |
 
-确认后我会按第 7.3 的迁移顺序拆成可验收的提交，在 `feat/` 分支上落地，每步都能独立跑通；本次只交付设计与原型，未改动任何业务代码。
+---
+
+## 10. 已确认的决策（v2）
+
+1. **一条规则对应多个目标组**，目标组在新菜单「探测目标」里像数据源一样管理 —— 已按此设计
+2. **一期只从集群内探测**，预留边缘执行口子 —— 见 5.7
+3. **一期只上 HTTP** —— TCP/ICMP 灰态预告
+4. **订阅只靠标签匹配** —— 事件注入 `datasource` / `probe_kind` / `probe_target`
+5. **文档跟着更新** —— 见第 9 节
+6. **探测 worker 放在 megrez 内新增** —— 见 5.3
+
+## 11. 剩余风险
+
+| 风险 | 影响 | 应对 |
+| --- | --- | --- |
+| `PROBE_HTTP` 加进 proto 白名单后，旧前端提交新值会被拒 | 灰度期版本错配 | 后端先接受、前端随菜单一起发；用 feature flag 控制类型卡片可见 |
+| 标签匹配是动态的：新增组会让老规则突然多出目标 | 告警面扩大 | 表单给「将匹配 N 组 / M 目标」预览；保存时匹配数变化给 toast |
+| 目标 URL 里的 userinfo/查询串进 `expr` 与标签 | 敏感信息进事件与通知 | `spec` 归一化去掉 userinfo；查询串可配置脱敏 |
+| 探测 goroutine 泄漏 | megrez 内存增长 | 每请求 `WithTimeout`，闸门限并发，轮次结束统一 cancel |
+| 多副本 megrez 同时探测 | 重复探测 | 单目标 + slot 锁；回写唯一键兜底 |
+| 同一目标组被多条规则匹配 | 重复 HTTP 请求 | 文档建议同类判定合并为一条规则 |
 
 ---
 
 ## 附：原型使用说明
 
-直接用浏览器打开 [probe-rule-prototype.html](probe-rule-prototype.html)：
-
-- 底部控制条切换 7 个场景：统一规则页、新建规则·类型、HTTP/TCP/ICMP 目标、判定与告警、试探测结果、探测详情
-- 可切换浅色 / 深色，验证语义令牌在暗色下的一致性
-- 交互是真的：点类型卡片换表单、步骤可前进后退、点「对第一个目标试探测」会走一次加载态再出结果、类型筛选会重排表格
-- 原型是单文件、无构建、无后端依赖，只用于评审布局与字段，不代表最终组件实现
+打开 [probe-rule-prototype.html](probe-rule-prototype.html)，底部控制条切换场景：统一规则页、探测目标组（列表+详情）、新建目标组（三步）、新建规则（类型）、规则匹配目标组、判定与告警、试探测结果、探测详情、深色模式。单文件、无构建、无后端，只用于评审布局与字段。

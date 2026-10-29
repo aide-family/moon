@@ -21,13 +21,13 @@ Moon 是 Kratos 单仓，四个服务各自持有存储（默认 SQLite，可换
 本期范围：
 
 - 后台：注册、登录、用户、角色、权限、多租户
-- 告警：多数据源、多类型数据源、规则、规则组、通知组、通知方式、实时告警与历史告警
+- 告警：多数据源、多类型数据源、规则、规则组、探测规则（HTTP 探测目标组）、通知组、通知方式、实时告警与历史告警
 - 边缘：主机 SSH 与 Web Shell
 - Web 管理台
 
 本期不做：
 
-- 玉树的探测任务（`probe_task`：tcp / ping / http）
+- 玉树那种独立于告警的探测任务模型（`probe_task` 的独立任务/报告体系）。Alioth 的探测是告警规则的一种类型（`PROBE_HTTP`），目标组单独管理、结果直接产生 `AlertEvent`，见 4.4
 - Moon Web 的微前端拆包
 - 每个服务一块业务库
 - 把 Redis 当作缓存、会话或消息队列
@@ -343,6 +343,22 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 统计沿用 Moon 的告警统计能力，由 `alioth` 对 `AlertEvent` 聚合。在专用统计接口落地前，分析页通过历史列表接口分页读取受控范围（服务端过滤后）并在浏览器侧聚合，单次分析最多读取 5000 条；触达上限时页面必须显式提示统计被截断，不得静默少算。
 
+### 4.4 探测规则（M18）
+
+探测规则与查询规则共用「规则组 → 规则 → 级别条件 → `AlertEvent` → 订阅/OnCall → `merak`」这条链路，区别只在观测方式：规则按周期对一个或多个探测目标组里的地址发 HTTP 请求。一期只有 `PROBE_HTTP`，只从集群内探测。
+
+被观测对象是**探测目标组**（`probe_target_groups`）与组内**目标**（`probe_targets`）：组内有多个地址，共用方法、期望状态码、超时、是否跟随重定向、是否跳过 TLS 校验、校验证书有效期、响应体关键字与请求头；组带 `labels`（规则按它匹配）与 `executor_labels`（为边缘探测预留，一期只存不调度）。目标地址归一化后组内唯一，可单独启停。探测结果落 `probe_results`，唯一键 `(target_uid, slot)` 保证回写幂等，每目标保留最近 200 条且不超过 7 天。
+
+规则只保存三个探测字段：`probe_group_labels`（目标组标签匹配器，键含固定键 `probe_group` 与目标组自定义标签键，值为完整匹配正则）、`probe_interval_seconds`（15/30/60/300）与 `probe_metric`（`UP` / `LATENCY_MS` / `STATUS_CODE` / `CERT_DAYS`）。`expr`、`datasource_labels`、`variables` 对探测规则留空：没有查询表达式、不匹配数据源、不支持自定义查询变量。
+
+调度与评测：
+
+- `alioth` 用独立的探测 tick 扫描到期规则（锁 `alioth:lock:schedule:probe`），按 `probe_interval_seconds` 推进 `next_eval_at`，不改动查询规则的 15s 调度。
+- `megrez` 内新增探测 worker：向 `alioth` 的 `EvalService` 调用 `ClaimProbeTasks` 领取「规则 × 目标组 × 目标」，按单目标锁 `alioth:lock:probe:{target_uid}:{slot}` 加锁后执行 HTTP 探测，用 `ReportProbeResults` 逐条回写。身份仍是 `MEGREZ`，与指标/日志评测并行、各自独立闸门。
+- 判定在 `alioth`：取该目标在窗口内的结果序列，按级别条件的 `持续` / `最大值` / `最小值` 语义比较（与查询规则同一实现）。点数不足一个窗口时不判定；执行器自身故障不回写，也不触发恢复。
+- 事件沿用 `AlertEvent` 的同一套字段：`datasource_uid` 为空，`expr` 是目标 URL，指纹为 `Of(rule_uid, target_uid, labels)`，labels 注入 `datasource`（目标组名）、`alert_level`、`probe_kind`、`probe_target`，`sample_value` 是观测值。读取时若 `datasource_uid` 为空，用 labels 的 `datasource` 作为列表与筛选里的数据源名。通知的 `externalURL` 取目标 URL。
+- 订阅不做特殊处理：探测事件按标签命中订阅与 OnCall；设置了数据源条件的订阅不会命中探测事件。
+
 ## 5. 通知
 
 渠道、模板、通知组、订阅、OnCall、任务和日志都在 `alioth`。`merak` 只负责把任务发出去。
@@ -587,7 +603,7 @@ flowchart TB
 
 身份：`User`、`UserOAuth`、`Namespace`、`Member`、`Role`、`Permission`、`RolePermission`、`MemberRole`。
 
-告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`、`AlertHistoryEvent`（历史分片索引）、`AlertEventColumn`（实时告警自定义列）。
+告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`、`AlertHistoryEvent`（历史分片索引）、`AlertEventColumn`（实时告警自定义列）、`ProbeTargetGroup`（探测目标组）、`ProbeTarget`（组内目标）、`ProbeResult`（探测结果）。
 
 通知：`NotificationChannel`、`NotificationTemplate`、`NotificationGroup`、`NotificationTask`、`MessageLog`。
 

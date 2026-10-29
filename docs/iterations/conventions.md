@@ -231,4 +231,4 @@ SSH 命令与终端操作写入审计。`member` 和 `viewer` 不能删除审计
 
 ## 本期不做
 
-探测任务、微前端、每个服务一块业务库、把 Redis 当缓存或消息队列、短信的发送实现、除 Loki LogQL、VictoriaLogs LogsQL 与 Elasticsearch 时间桶数值型规则外的日志与链路规则评测。这些不进入任何里程碑的交付。
+玉树那种独立于告警的探测任务（探测只作为告警规则的一种类型存在，见 M18；不引入 `probe_task` 那套独立任务模型）、微前端、每个服务一块业务库、把 Redis 当缓存或消息队列、短信的发送实现、除 Loki LogQL、VictoriaLogs LogsQL 与 Elasticsearch 时间桶数值型规则外的日志与链路规则评测。这些不进入任何里程碑的交付。

@@ -197,6 +197,7 @@
 
   .content { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 24px 32px; }
   .page { display: flex; flex-direction: column; gap: 24px; }
+  .page[hidden] { display: none; }
   .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
   .page-title { margin: 0; font-family: var(--font-heading); font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
   .page-desc { margin: 4px 0 0; font-size: 14px; color: var(--muted-foreground); }
@@ -423,6 +424,13 @@
   .type-card .tc-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .type-card .tc-title { font-size: 13px; font-weight: 500; }
   .type-card .tc-desc { font-size: 11px; line-height: 1.45; color: var(--muted-foreground); }
+  .type-card[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+  .type-card[aria-disabled="true"]:hover { border-color: var(--input); background: var(--popover); }
+  .soon {
+    display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 9999px;
+    font-size: 10px; font-weight: 500; line-height: 15px; vertical-align: 1px;
+    color: var(--muted-foreground); background: var(--muted); border: 1px solid var(--border);
+  }
   .type-card .tc-check { position: absolute; top: 8px; right: 8px; color: var(--primary-ink); display: none; }
   .type-card[aria-checked="true"] .tc-check { display: block; }
 
@@ -566,7 +574,8 @@
         <button class="nav-item"><span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>实时告警</button>
         <button class="nav-item"><span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></span>历史告警</button>
         <button class="nav-item"><span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg></span>数据源</button>
-        <button class="nav-item active"><span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>告警规则</button>
+        <button class="nav-item" id="nav-targets"><span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>探测目标</button>
+        <button class="nav-item active" id="nav-rules"><span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>告警规则</button>
         <button class="nav-item"><span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></span>告警字典</button>
         <button class="nav-item"><span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="14" height="14" rx="2"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/></svg></span>告警页面</button>
       </div>
@@ -615,11 +624,11 @@
     </header>
 
     <div class="content">
-      <div class="page">
+      <div class="page" id="page-rules">
         <div class="page-head">
           <div>
             <h1 class="page-title">告警规则</h1>
-            <p class="page-desc">查询规则按数据源表达式评测，探测规则按周期主动探测目标。两者共用规则组、级别条件与告警链路。</p>
+            <p class="page-desc">查询规则按数据源表达式评测，探测规则按周期探测匹配到的目标组。两者共用规则组、级别条件与告警链路。</p>
           </div>
         </div>
         <div class="rules-grid">
@@ -712,6 +721,120 @@
           </div>
         </div>
       </div>
+
+      <!-- ===== 探测目标页（照数据源页：左列表 + 右详情卡）===== -->
+      <div class="page" id="page-targets" hidden>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">探测目标</h1>
+            <p class="page-desc">按探测类型管理目标组。告警规则用标签匹配这些目标组，一个组里的地址共用同一套请求参数。</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-primary" id="new-group-btn">新建</button>
+          </div>
+        </div>
+        <form class="inline" onsubmit="return false">
+          <input class="input" style="max-width: 22rem" placeholder="搜索目标组名称" />
+          <select class="select" style="width: 10rem">
+            <option>全部类型</option>
+            <option>HTTP</option>
+          </select>
+          <button class="btn btn-outline" type="submit">搜索</button>
+        </form>
+        <div class="rules-grid">
+          <div class="col">
+            <div class="card">
+              <div class="control-bar">
+                <span class="total">共 3 条</span>
+                <div class="pager">
+                  <button class="btn btn-outline btn-sm" disabled>上一页</button>
+                  <span>1 / 1</span>
+                  <button class="btn btn-outline btn-sm" disabled>下一页</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="group-list">
+                  <div class="group-row">
+                    <button class="group-btn selected">
+                      <span class="name">核心接口组</span>
+                      <span class="badge tone-primary">HTTP</span>
+                      <span class="badge tone-success"><span class="dot"></span>启用</span>
+                    </button>
+                    <button class="btn btn-ghost btn-icon" aria-label="更多"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+                  </div>
+                  <div class="group-row">
+                    <button class="group-btn">
+                      <span class="name">外部依赖组</span>
+                      <span class="badge tone-primary">HTTP</span>
+                      <span class="badge tone-success"><span class="dot"></span>启用</span>
+                    </button>
+                    <button class="btn btn-ghost btn-icon" aria-label="更多"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+                  </div>
+                  <div class="group-row">
+                    <button class="group-btn">
+                      <span class="name">办公网关</span>
+                      <span class="badge tone-primary">HTTP</span>
+                      <span class="badge tone-warning"><span class="dot"></span>停用</span>
+                    </button>
+                    <button class="btn btn-ghost btn-icon" aria-label="更多"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card">
+              <div class="card-body" style="display:flex; flex-direction:column; gap:16px">
+                <div class="inline" style="justify-content:space-between; flex-wrap:wrap; gap:8px">
+                  <div style="display:flex; flex-direction:column; gap:4px; min-width:0">
+                    <span style="font-family:var(--font-heading); font-size:18px; font-weight:600">核心接口组</span>
+                    <span class="cell-sub mono">3 个目标 · 每 30 秒探测（周期在规则上）</span>
+                  </div>
+                  <div class="inline" style="gap:6px">
+                    <span class="badge tone-primary">HTTP</span>
+                    <span class="badge tone-success"><span class="dot"></span>启用</span>
+                  </div>
+                </div>
+                <dl class="kv">
+                  <dt>探测类型</dt><dd>HTTP（GET，期望 200-299）</dd>
+                  <dt>超时</dt><dd class="mono">3000 ms</dd>
+                  <dt>标签</dt><dd><span class="code-line one">{"env":"prod","region":"sh"}</span></dd>
+                  <dt>执行点</dt><dd>集群内执行器（默认）</dd>
+                  <dt>备注</dt><dd>对外网关与核心服务的健康检查地址</dd>
+                </dl>
+                <div>
+                  <div class="section-head" style="margin-bottom:8px"><span class="section-title">目标</span><span class="cell-sub">3 个</span></div>
+                  <table class="mini-tbl">
+                    <thead><tr><th>地址</th><th>最近结果</th><th>耗时</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td class="mono">https://api.example.com/healthz</td><td><span class="badge tone-success"><span class="dot"></span>成功</span></td><td class="mono">186 ms</td><td><span class="badge tone-success">启用</span></td></tr>
+                      <tr><td class="mono">https://api.example.com/v1/status</td><td><span class="badge tone-success"><span class="dot"></span>成功</span></td><td class="mono">92 ms</td><td><span class="badge tone-success">启用</span></td></tr>
+                      <tr><td class="mono">https://gw.example.com/healthz</td><td><span class="badge tone-danger"><span class="dot"></span>失败</span></td><td class="mono">3000 ms</td><td><span class="badge tone-success">启用</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div>
+                  <div class="section-head" style="margin-bottom:8px"><span class="section-title">最近探测记录</span><button class="btn btn-outline btn-sm" type="button">全部历史</button></div>
+                  <table class="mini-tbl">
+                    <thead><tr><th>时间</th><th>目标</th><th>结果</th><th>耗时</th><th>被哪条规则判定</th></tr></thead>
+                    <tbody>
+                      <tr><td class="mono">08:12:30</td><td class="mono">…/healthz</td><td><span class="badge tone-success"><span class="dot"></span>成功</span></td><td class="mono">186 ms</td><td>API 健康检查</td></tr>
+                      <tr><td class="mono">08:12:00</td><td class="mono">…/healthz</td><td><span class="badge tone-success"><span class="dot"></span>成功</span></td><td class="mono">179 ms</td><td>API 健康检查</td></tr>
+                      <tr><td class="mono">08:11:30</td><td class="mono">…/healthz</td><td><span class="badge tone-success"><span class="dot"></span>成功</span></td><td class="mono">191 ms</td><td>API 健康检查</td></tr>
+                      <tr><td class="mono">08:11:00</td><td class="mono">…/healthz</td><td><span class="badge tone-danger"><span class="dot"></span>失败</span></td><td class="mono">3000 ms</td><td>API 健康检查</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="inline" style="gap:8px">
+                  <button class="btn btn-outline" type="button">编辑</button>
+                  <button class="btn btn-outline" type="button">立即探测</button>
+                  <button class="btn btn-danger" type="button">停用</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -721,6 +844,10 @@
 <div class="proto-bar" id="proto-bar">
   <span class="label">原型场景</span>
   <button data-scene="list">统一规则页</button>
+  <button data-scene="targets">探测目标页</button>
+  <button data-scene="group-1">新建目标组·基础</button>
+  <button data-scene="group-2">目标组·目标</button>
+  <button data-scene="group-3">目标组·请求</button>
   <button data-scene="new">新建规则·类型</button>
   <button data-scene="probe-http">HTTP 目标</button>
   <button data-scene="probe-tcp">TCP 目标</button>
@@ -798,64 +925,62 @@ const RULES = [
     type: "HTTP 探测",
     tone: "primary",
     iconName: "globe",
-    targetKind: "targets",
-    targets: [
-      { value: "https://api.example.com/healthz", ok: true },
-      { value: "https://api.example.com/v1/status", ok: true },
-      { value: "https://gw.example.com/healthz", ok: false },
+    targetKind: "groups",
+    groups: [
+      { name: "核心接口组", targets: 3, ok: true },
     ],
-    sub: "周期 30s · 观测指标：up · 执行点：集群内 megrez",
+    sub: "周期 30s · 观测指标 up · 执行点：集群内",
     levels: [["严重", "danger"], ["警告", "warning"]],
     status: "启用",
   },
   {
-    id: "db-port",
-    name: "数据库端口连通性",
+    id: "external-dep",
+    name: "外部依赖可用性",
     cat: "probe",
-    type: "TCP 探测",
+    type: "HTTP 探测",
     tone: "primary",
-    iconName: "plug",
-    targetKind: "targets",
-    targets: [
-      { value: "db-primary.internal:5432", ok: true },
-      { value: "db-replica-01.internal:5432", ok: true },
+    iconName: "globe",
+    targetKind: "groups",
+    groups: [
+      { name: "外部依赖组", targets: 4, ok: true },
+      { name: "办公网关", targets: 1, ok: false },
     ],
-    sub: "周期 60s · 观测指标：up",
+    sub: "周期 60s · 观测指标 up · 执行点：集群内",
     levels: [["严重", "danger"]],
     status: "启用",
   },
   {
-    id: "idc-ping",
-    name: "IDC 出口主机存活",
+    id: "cert-expiry",
+    name: "证书到期巡检",
     cat: "probe",
-    type: "ICMP 探测",
+    type: "HTTP 探测",
     tone: "primary",
-    iconName: "radio",
-    targetKind: "targets",
-    targets: [
-      { value: "10.20.8.11", ok: true },
-      { value: "10.20.8.12", ok: true },
-      { value: "10.20.8.13", ok: true },
+    iconName: "globe",
+    targetKind: "groups",
+    groups: [
+      { name: "核心接口组", targets: 3, ok: true },
+      { name: "外部依赖组", targets: 4, ok: true },
     ],
-    sub: "周期 60s · 观测指标：丢包率 · 执行点：集群内 megrez",
+    sub: "周期 300s · 观测指标 cert_days（剩余天数）· 执行点：集群内",
     levels: [["警告", "warning"]],
-    status: "停用",
+    status: "启用",
   },
 ];
-
 let state = { scene: "list", step: 1, kind: "http", filter: "all", theme: "light", trial: null };
 
 function ruleRows() {
   const rows = RULES.filter((r) => state.filter === "all" || r.cat === state.filter);
   return rows.map((r) => {
+    const total = r.targetKind === "groups" ? r.groups.reduce((n, g) => n + g.targets, 0) : 0;
     const targets = r.targetKind === "expr"
       ? `<span class="code-line">${r.target}</span>`
-      : `<div class="targets">${r.targets.slice(0, 2).map((t) => `
+      : `<div class="targets">${r.groups.map((g) => `
           <span class="target-line">
-            <span class="${t.ok ? "up" : "down"}">${t.ok ? "●" : "▲"}</span>
-            <span class="code-line one">${t.value}</span>
+            <span class="${g.ok ? "up" : "down"}">${g.ok ? "●" : "▲"}</span>
+            <span class="code-line one">${g.name}</span>
+            <span class="cell-sub" style="flex:none">${g.targets} 个目标</span>
           </span>`).join("")}
-          ${r.targets.length > 2 ? `<span class="cell-sub">另有 ${r.targets.length - 2} 个目标</span>` : ""}
+          <span class="cell-sub">共 ${total} 个目标，按标签匹配</span>
         </div>`;
     return `
       <tr>
@@ -896,19 +1021,20 @@ const KINDS = {
 
 function typeCard(kind, key) {
   const k = KINDS[kind];
+  const soon = kind === "tcp" || kind === "icmp";
   return `
-    <button class="type-card" role="radio" aria-checked="${state.kind === kind}" data-kind="${kind}">
+    <button class="type-card" role="radio" aria-checked="${state.kind === kind}"
+            data-kind="${kind}" ${soon ? 'data-soon="1" aria-disabled="true"' : ""}>
       <span class="tc-icon">${icon(k.icon, 15)}</span>
       <span class="tc-text">
-        <span class="tc-title">${k.label}</span>
+        <span class="tc-title">${k.label}${soon ? ' <span class="soon">后续版本</span>' : ""}</span>
         <span class="tc-desc">${k.desc}</span>
       </span>
       <span class="tc-check">${icon("check", 13)}</span>
     </button>`;
 }
 
-function stepsBar() {
-  const labels = ["类型与基本信息", "观测配置", "判定与告警"];
+function stepsBar(labels = ["类型与基本信息", "观测配置", "判定与告警"]) {
   return `<div class="steps">${labels.map((label, i) => {
     const n = i + 1;
     const st = state.step === n ? "active" : state.step > n ? "done" : "todo";
@@ -917,7 +1043,7 @@ function stepsBar() {
   }).join("")}</div>`;
 }
 
-function dialogShell(title, sub, body, footer, extraClass = "") {
+function dialogShell(title, sub, body, footer, extraClass = "", stepLabels) {
   return `
     <div class="overlay" data-close="1">
       <div class="dialog ${extraClass}" role="dialog" aria-modal="true">
@@ -925,7 +1051,7 @@ function dialogShell(title, sub, body, footer, extraClass = "") {
         <div class="dialog-head">
           <h2 class="dialog-title">${title}</h2>
           ${sub ? `<p class="dialog-sub">${sub}</p>` : ""}
-          ${stepsBar()}
+          ${stepsBar(stepLabels)}
         </div>
         <div class="dialog-body">${body}</div>
         <div class="dialog-footer">${footer}</div>
@@ -964,7 +1090,7 @@ function step1Body() {
       <div class="section-hint">
         类型：<strong>${KINDS[state.kind].label}</strong> · 后续字段按类型切换：${
           KINDS[state.kind].cat === "probe"
-            ? "目标列表、探测参数、观测指标；不选择数据源、不写表达式。"
+            ? "目标组匹配、探测周期、判定条件；地址与请求参数在「探测目标」页维护，不选择数据源、不写表达式。"
             : "驱动、数据源标签匹配、查询表达式；不做主动探测。"
         }
       </div>
@@ -990,102 +1116,80 @@ function targetRows(rows, kind) {
     </div>`).join("");
 }
 
-function probeStep2() {
-  const kind = state.kind;
-  const d = PROBE_DEFAULT[kind];
-  const label = kind === "http" ? "URL" : kind === "tcp" ? "host:port" : "host / IP";
+function probeGroupStep2() {
   return `
     <div class="section">
       <div class="section-head">
-        <span class="section-title"><span class="idx">1</span>探测目标</span>
-        <button class="btn btn-outline btn-sm" type="button">${icon("plus", 14)}添加目标</button>
+        <span class="section-title"><span class="idx">1</span>匹配目标组</span>
+        <div class="inline" style="gap:6px">
+          <button class="btn btn-outline btn-sm" type="button" id="pick-groups">按目标组选择</button>
+          <button class="btn btn-outline btn-sm" type="button" data-goto="targets">${icon("plus", 14)}新建目标组</button>
+        </div>
+      </div>
+      <div class="inline" style="gap:8px; flex-wrap:wrap">
+        <span class="cell-sub">探测类型</span>
+        <span class="badge tone-primary">${icon("globe", 12)}HTTP</span>
+        <span class="cell-sub">由第 1 步的类型决定，只匹配同类型的目标组</span>
       </div>
       <p class="section-hint">
-        同一规则的目标共用下方的请求参数与判定条件，每个目标独立产生事件与指纹；
-        目标支持 ${label}，留空的目标不会保存。
+        每行一个「匹配键 / 匹配值」，值为完整匹配正则；也可以用固定键 probe_group 直接匹配组名。
+        匹配到的目标组里的每个地址都会独立探测、独立产生事件。
       </p>
-      <div class="repeat-rows">${targetRows(d.targets, kind)}</div>
-      <button class="btn btn-ghost btn-sm" type="button" style="align-self:flex-start">批量粘贴目标</button>
+      <div class="repeat-rows">
+        <div class="repeat-row">
+          <div class="field grow">
+            <label>匹配键</label>
+            <input class="input mono" value="probe_group" />
+          </div>
+          <div class="field grow">
+            <label>匹配值（支持正则）</label>
+            <input class="input mono" value="核心接口组|外部依赖组" />
+          </div>
+          <button class="btn btn-ghost btn-icon" style="margin-top: 22px" aria-label="删除匹配条件">${icon("trash", 15)}</button>
+        </div>
+        <div class="repeat-row">
+          <div class="field grow">
+            <label>匹配键</label>
+            <input class="input mono" value="env" />
+          </div>
+          <div class="field grow">
+            <label>匹配值（支持正则）</label>
+            <input class="input mono" value="prod" />
+          </div>
+          <button class="btn btn-ghost btn-icon" style="margin-top: 22px" aria-label="删除匹配条件">${icon("trash", 15)}</button>
+        </div>
+      </div>
+      <div class="inline" style="justify-content:space-between; flex-wrap:wrap; gap:8px">
+        <button class="btn btn-outline btn-sm" type="button">${icon("plus", 14)}添加匹配条件</button>
+        <span class="convert-hint">${icon("check", 12)}将匹配 3 个启用目标组，共 8 个目标</span>
+      </div>
     </div>
 
     <div class="section">
       <div class="section-head">
-        <span class="section-title"><span class="idx">2</span>${kind === "http" ? "请求设置" : "探测设置"}</span>
+        <span class="section-title"><span class="idx">2</span>探测设置</span>
       </div>
       <div class="row2">
-        ${kind === "http" ? `
         <div class="field">
-          <label>请求方法</label>
-          <select class="select" id="probe-method">
-            <option>GET</option><option>HEAD</option><option>POST</option><option>OPTIONS</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>期望状态码</label>
-          <input class="input mono" id="probe-expect" value="${d.expect}" />
-          <span class="hint">支持单值、区间与列表：200、200-299、200,204,301。不在范围内记为本次探测失败。</span>
-        </div>` : ""}
-        <div class="field">
-          <label>探测周期</label>
+          <label>探测周期 <span class="req">*</span></label>
           <select class="select" id="probe-interval">
-            <option${d.interval === "30s" ? " selected" : ""}>15s</option>
-            <option${d.interval === "30s" ? " selected" : ""}>30s</option>
-            <option${d.interval === "60s" ? " selected" : ""}>60s</option>
-            <option>5m</option>
+            <option>15s</option><option selected>30s</option><option>60s</option><option>300s</option>
           </select>
           <span class="hint">判定里的「持续秒数」按此周期换算为连续次数。</span>
         </div>
         <div class="field">
-          <label>单次超时</label>
-          <input class="input mono" id="probe-timeout" value="${d.timeout}" />
-          <span class="hint">毫秒。超过即记为本次探测失败（观测指标 up = 0）。</span>
-        </div>
-        ${kind === "icmp" ? `
-        <div class="field">
-          <label>每次探测发包数</label>
-          <select class="select"><option${d.count === "3" ? " selected" : ""}>3</option><option>5</option></select>
-        </div>` : ""}
-        <div class="field span2">
           <label>执行点</label>
-          <select class="select">
-            <option>集群内执行器（默认）</option>
-            <option>边缘机器：生产内网</option>
-            <option>边缘机器：办公网</option>
-          </select>
-          <span class="hint">一期只有集群内执行器；二期可按执行器标签选择探测来源。</span>
+          <input class="input" value="集群内执行器（默认）" disabled />
+          <span class="hint">一期固定从集群内探测；后续可按目标组的执行器标签选边缘机器。</span>
         </div>
       </div>
-      ${kind === "http" ? `
-      <button class="adv-toggle" aria-expanded="false" type="button" data-adv="1">
-        ${icon("chevronDown", 14)}高级选项（重定向、TLS、请求头、响应体关键字）
-      </button>
-      <div class="adv-body" hidden>
-        <div class="row3">
-          <label class="switch" aria-checked="true" role="switch"><span class="track"></span>跟随重定向（≤ 5 次）</label>
-          <label class="switch" aria-checked="false" role="switch"><span class="track"></span>跳过 TLS 校验</label>
-          <label class="switch" aria-checked="true" role="switch"><span class="track"></span>校验证书有效期</label>
-        </div>
-        <div class="row2">
-          <div class="field">
-            <label>响应体关键字</label>
-            <input class="input" placeholder="例如 healthy" />
-            <span class="hint">命中即视为成功；留空只按状态码判定。最多读取前 64 KiB。</span>
-          </div>
-          <div class="field">
-            <label>请求头</label>
-            <input class="input mono" placeholder="Authorization: Bearer …" />
-          </div>
-        </div>
-      </div>` : ""}
     </div>
 
-    <div class="section">
-      <div class="section-head">
-        <span class="section-title"><span class="idx">3</span>试探测</span>
-        <button class="btn btn-secondary btn-sm" type="button" id="trial-btn">${icon("play", 14)}对第一个目标试探测</button>
-      </div>
-      <p class="section-hint">保存前先跑一次，确认目标可达、期望状态码与判定条件匹配，不用等下一个评测周期。</p>
-      <div id="trial-host">${trialBlock()}</div>
+    <div class="section" style="border-style: dashed; background: color-mix(in oklab, var(--muted) 35%, var(--popover))">
+      <span class="section-hint">
+        目标地址、请求方法、期望状态码、超时、请求头都在「探测目标」页的组里维护，规则只决定<b>匹配哪些组</b>和<b>怎么判定</b>。
+        同一个组可以被多条规则匹配（例如一条判可用性、一条判耗时）。
+      </span>
     </div>`;
 }
 
@@ -1174,7 +1278,7 @@ function queryStep2() {
 }
 
 function step2Body() {
-  return KINDS[state.kind].cat === "probe" ? probeStep2() : queryStep2();
+  return KINDS[state.kind].cat === "probe" ? probeGroupStep2() : queryStep2();
 }
 
 function step3Body() {
@@ -1199,12 +1303,9 @@ function step3Body() {
         </div>
         ${isProbe ? `
         <div class="field">
-          <label>失败判定</label>
-          <select class="select">
-            <option>连接失败、超时、状态码不符、关键字未命中</option>
-            <option>仅连接失败与超时</option>
-          </select>
-          <span class="hint">任一失败原因都会把 up 记为 0，并写入探测记录。</span>
+          <label>成功如何定义</label>
+          <input class="input" value="由目标组决定：期望状态码 + 响应体关键字" disabled />
+          <span class="hint">状态码不符、超时、连接失败、关键字未命中都会把 up 记为 0；失败原因由系统追加在描述末尾。</span>
         </div>` : ""}
       </div>
     </div>
@@ -1292,7 +1393,7 @@ function step3Body() {
       </div>
       <div class="field">
         <label>描述</label>
-        <textarea class="textarea" rows="3">目标 {{ $labels.probe_target }} 连续 {{ $value }} 次探测失败，最后错误：{{ $labels.probe_error }}。</textarea>
+        <textarea class="textarea" rows="3">目标 {{ $labels.probe_target }} 探测失败，已连续 2 个周期未恢复。</textarea>
       </div>
       <div class="field">
         <label>标签</label>
@@ -1308,6 +1409,160 @@ function step3Body() {
         需要额外信息时，把结论写进摘要/描述模板，或改用查询规则。
       </span>
     </div>` : ""}`;
+}
+
+/* ---------------- 探测目标组对话框（照数据源三步 StepForm）---------------- */
+const GROUP_FORM = {
+  name: "核心接口组",
+  labels: [["env", "prod"], ["region", "sh"]],
+  remark: "对外网关与核心服务的健康检查地址",
+  targets: [
+    { spec: "https://api.example.com/healthz", on: true },
+    { spec: "https://api.example.com/v1/status", on: true },
+    { spec: "https://gw.example.com/healthz", on: true },
+  ],
+};
+
+function groupStep1Body() {
+  return `
+    <div class="row2">
+      <div class="field">
+        <label>名称 <span class="req">*</span></label>
+        <input class="input" value="${GROUP_FORM.name}" maxlength="64" />
+        <span class="hint">租户内唯一，规则用标签匹配到这里。</span>
+      </div>
+      <div class="field">
+        <label>探测类型 <span class="req">*</span></label>
+        <select class="select">
+          <option>HTTP</option>
+          <option disabled>TCP（后续版本）</option>
+          <option disabled>ICMP（后续版本）</option>
+        </select>
+        <span class="hint">类型决定目标写法与请求参数，规则只匹配同类型的目标组。</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>标签</label>
+      <span class="hint">规则按这些键值匹配目标组；留空表示只能通过组名匹配。</span>
+      <div class="repeat-rows">
+        ${GROUP_FORM.labels.map(([k, v]) => `
+          <div class="repeat-row">
+            <div class="field grow"><label>标签键</label><input class="input mono" value="${k}" /></div>
+            <div class="field grow"><label>标签值</label><input class="input mono" value="${v}" /></div>
+            <button class="btn btn-ghost btn-icon" style="margin-top: 22px" aria-label="删除标签">${icon("trash", 15)}</button>
+          </div>`).join("")}
+      </div>
+      <button class="btn btn-outline btn-sm" type="button" style="align-self:flex-start">${icon("plus", 14)}添加标签</button>
+    </div>
+    <div class="field">
+      <label>备注</label>
+      <textarea class="textarea" rows="2">${GROUP_FORM.remark}</textarea>
+    </div>`;
+}
+
+function groupStep2Body() {
+  return `
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title"><span class="idx">1</span>目标地址</span>
+        <div class="inline" style="gap:6px">
+          <button class="btn btn-outline btn-sm" type="button">${icon("plus", 14)}添加目标</button>
+          <button class="btn btn-ghost btn-sm" type="button">批量粘贴</button>
+        </div>
+      </div>
+      <p class="section-hint">
+        同组内地址共用下一步的请求参数，每个地址独立探测、独立产生事件；地址停用后保留但不探测。
+      </p>
+      <div class="repeat-rows">
+        ${GROUP_FORM.targets.map((t, i) => `
+          <div class="repeat-row">
+            <div class="field grow">
+              <label>地址 ${i + 1} ${i === 0 ? '<span class="req">*</span>' : ""}</label>
+              <input class="input mono" value="${t.spec}" />
+            </div>
+            <label class="switch" aria-checked="${t.on}" role="switch" style="margin-top: 24px"><span class="track"></span>启用</label>
+            <button class="btn btn-ghost btn-icon" style="margin-top: 22px" aria-label="删除地址">${icon("trash", 15)}</button>
+          </div>`).join("")}
+      </div>
+      <p class="section-hint">当前 3 个地址，其中 3 个启用。规则的「将匹配 N 个目标」按启用地址计数。</p>
+    </div>`;
+}
+
+function groupStep3Body() {
+  return `
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title"><span class="idx">1</span>请求设置</span>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>请求方法</label>
+          <select class="select"><option>GET</option><option>HEAD</option></select>
+        </div>
+        <div class="field">
+          <label>期望状态码 <span class="req">*</span></label>
+          <input class="input mono" value="200-299" />
+          <span class="hint">支持单值、区间与列表：200、200-299、200,204,301。不在范围内记为失败。</span>
+        </div>
+        <div class="field">
+          <label>单次超时（毫秒）</label>
+          <input class="input mono" value="3000" />
+          <span class="hint">实际超时取 min(此值, 规则周期 × 0.8)。</span>
+        </div>
+        <div class="field">
+          <label>响应体关键字</label>
+          <input class="input" placeholder="例如 healthy" />
+          <span class="hint">命中即成功；留空只按状态码判定，最多读取前 64 KiB。</span>
+        </div>
+      </div>
+      <div class="row3">
+        <label class="switch" aria-checked="true" role="switch"><span class="track"></span>跟随重定向（≤5 次）</label>
+        <label class="switch" aria-checked="false" role="switch"><span class="track"></span>跳过 TLS 校验</label>
+        <label class="switch" aria-checked="true" role="switch"><span class="track"></span>校验证书有效期</label>
+      </div>
+      <div class="field">
+        <label>请求头</label>
+        <input class="input mono" placeholder="Authorization: Bearer …" />
+        <span class="hint">受控头（Host、Content-Length、Transfer-Encoding）会被拒绝；值加密存储。</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title"><span class="idx">2</span>试探测</span>
+        <button class="btn btn-secondary btn-sm" type="button" id="trial-btn">${icon("play", 14)}试探测全部目标</button>
+      </div>
+      <p class="section-hint">保存前跑一次：确认地址可达、期望状态码与判定条件匹配，结果不写探测历史、不产生事件。</p>
+      <div id="trial-host">${trialBlock()}</div>
+    </div>`;
+}
+
+function groupFooter() {
+  if (state.step === 1) {
+    return `<button class="btn btn-outline" data-close="1">取消</button>
+            <button class="btn btn-primary" id="next-btn">下一步</button>`;
+  }
+  if (state.step === 2) {
+    return `<button class="btn btn-outline" data-close="1">取消</button>
+            <button class="btn btn-outline" id="prev-btn">上一步</button>
+            <button class="btn btn-primary" id="next-btn">下一步</button>`;
+  }
+  return `<button class="btn btn-outline" data-close="1">取消</button>
+          <button class="btn btn-outline" id="prev-btn">上一步</button>
+          <button class="btn btn-primary" data-close="1">保存</button>`;
+}
+
+function openGroupDialog() {
+  const titles = ["新建探测目标组", "新建探测目标组", "新建探测目标组"];
+  const body = state.step === 1 ? groupStep1Body() : state.step === 2 ? groupStep2Body() : groupStep3Body();
+  return dialogShell(
+    titles[state.step - 1],
+    `HTTP 探测 · 第 ${state.step} 步，共 3 步`,
+    body,
+    groupFooter(),
+    "",
+    ["基础", "目标地址", "请求与试探测"]
+  );
 }
 
 function footer() {
@@ -1393,15 +1648,17 @@ function detailSheet() {
           <p class="section-hint" style="margin:4px 0 0">两次连续超时造成尖峰；该区间未达到「持续 60 秒」条件，因此没有产生事件。</p>
         </div>
         <div>
-          <div class="section-head" style="margin-bottom:8px"><span class="section-title">探测目标</span><span class="cell-sub">3 个</span></div>
+          <div class="section-head" style="margin-bottom:8px">
+            <span class="section-title">匹配到的目标组</span>
+            <button class="btn btn-outline btn-sm" type="button" data-goto="targets">管理目标组</button>
+          </div>
           <table class="mini-tbl">
-            <thead><tr><th>目标</th><th>最近结果</th><th>耗时</th></tr></thead>
+            <thead><tr><th>目标组</th><th>目标</th><th>最近结果</th></tr></thead>
             <tbody>
-              <tr><td class="mono">https://api.example.com/healthz</td><td><span class="badge tone-success"><span class="dot"></span>成功</span></td><td class="mono">186 ms</td></tr>
-              <tr><td class="mono">https://api.example.com/v1/status</td><td><span class="badge tone-success"><span class="dot"></span>成功</span></td><td class="mono">92 ms</td></tr>
-              <tr><td class="mono">https://gw.example.com/healthz</td><td><span class="badge tone-danger"><span class="dot"></span>失败</span></td><td class="mono">3000 ms</td></tr>
+              <tr><td>核心接口组</td><td class="mono">3</td><td><span class="badge tone-success"><span class="dot"></span>2 成功 / 1 失败</span></td></tr>
             </tbody>
           </table>
+          <p class="section-hint" style="margin:6px 0 0">规则按 probe_group = 核心接口组|外部依赖组 与 env = prod 匹配到 1 个组（示例中两个匹配条件需同时命中）。</p>
         </div>
         <div>
           <div class="section-head" style="margin-bottom:8px">
@@ -1418,6 +1675,7 @@ function detailSheet() {
           <dt>期望状态码</dt><dd class="mono">200-299</dd>
           <dt>超时</dt><dd class="mono">3000 ms</dd>
           <dt>观测指标</dt><dd>up（1 / 0）</dd>
+          <dt>目标组匹配</dt><dd class="mono">probe_group=核心接口组|外部依赖组, env=prod</dd>
           <dt>规则组</dt><dd>核心链路</dd>
           <dt>执行点</dt><dd>集群内执行器（默认）</dd>
           <dt>判定条件</dt><dd>连续 60 秒 up 等于 0 → 严重；连续 300 秒最大耗时大于 1500 ms → 警告</dd>
@@ -1434,8 +1692,20 @@ function render() {
   document.body.classList.toggle("shot", location.hash.includes("shot"));
   document.body.classList.toggle("full", location.hash.includes("full"));
 
-  if (state.scene === "list") { layer.innerHTML = ""; }
+  const scenes = ["list", "new", "probe-http", "probe-judge", "trial", "detail"];
+  const isGroup = state.scene.startsWith("group-") || state.scene === "trial";
+  const onTargets = state.scene === "targets" || isGroup;
+
+  document.getElementById("page-rules").hidden = onTargets;
+  document.getElementById("page-targets").hidden = !onTargets;
+  const navRules = document.getElementById("nav-rules");
+  const navTargets = document.getElementById("nav-targets");
+  if (navRules) navRules.classList.toggle("active", !onTargets);
+  if (navTargets) navTargets.classList.toggle("active", onTargets);
+
+  if (state.scene === "list" || state.scene === "targets") { layer.innerHTML = ""; }
   else if (state.scene === "detail") { layer.innerHTML = detailSheet(); }
+  else if (isGroup) { layer.innerHTML = openGroupDialog(); }
   else { layer.innerHTML = openRuleDialog(); }
 
   document.querySelectorAll(".proto-bar [data-scene]").forEach((b) => {
@@ -1451,12 +1721,12 @@ function setScene(scene) {
   state.scene = scene;
   if (scene === "new") { state.step = 1; state.kind = "http"; }
   if (scene === "probe-http") { state.kind = "http"; state.step = 2; }
-  if (scene === "probe-tcp") { state.kind = "tcp"; state.step = 2; }
-  if (scene === "probe-icmp") { state.kind = "icmp"; state.step = 2; }
   if (scene === "probe-judge") { state.kind = "http"; state.step = 3; }
-  if (scene === "trial") { state.kind = "http"; state.step = 2; state.trial = "ok"; }
-  if (scene === "detail") { state.scene = "detail"; }
-  if (scene !== "trial") state.trial = state.scene === "trial" ? "ok" : null;
+  if (scene === "trial") { state.step = 3; }
+  if (scene === "group-1") { state.step = 1; }
+  if (scene === "group-2") { state.step = 2; }
+  if (scene === "group-3") { state.step = 3; }
+  state.trial = scene === "trial" ? "ok" : null;
   render();
 }
 
@@ -1466,6 +1736,8 @@ document.addEventListener("click", (event) => {
   if (!el) return;
 
   if (el.id === "new-rule-btn") { setScene("new"); return; }
+  if (el.id === "new-group-btn") { setScene("group-1"); return; }
+  if (el.hasAttribute("data-goto")) { setScene(el.dataset.goto); return; }
 
   if (el.hasAttribute("data-close") && !el.closest(".dialog")?.contains(event.target)) {
     // 点击遮罩
@@ -1492,6 +1764,7 @@ document.addEventListener("click", (event) => {
     return;
   }
   if (el.hasAttribute("data-kind")) {
+    if (el.hasAttribute("data-soon")) return;
     state.kind = el.dataset.kind;
     document.querySelectorAll("[data-kind]").forEach((b) => b.setAttribute("aria-checked", String(b === el)));
     const hint = document.querySelector(".type-group:last-of-type + .row2");
@@ -1519,7 +1792,7 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("hashchange", () => {
   const scene = location.hash.replace("#", "").split("&")[0] || "list";
-  if (["list", "new", "probe-http", "probe-tcp", "probe-icmp", "probe-judge", "trial", "detail"].includes(scene)) setScene(scene);
+  if (["list", "new", "probe-http", "probe-judge", "trial", "detail", "targets", "group-1", "group-2", "group-3"].includes(scene)) setScene(scene);
 });
 
 const hashParts = location.hash.replace("#", "").split("&");
@@ -1529,7 +1802,7 @@ if (hashParts.includes("dark")) {
   document.documentElement.classList.remove("light");
 }
 const initial = hashParts[0];
-setScene(["list", "new", "probe-http", "probe-tcp", "probe-icmp", "probe-judge", "trial", "detail"].includes(initial) ? initial : "list");
+setScene(["list", "new", "probe-http", "probe-judge", "trial", "detail", "targets", "group-1", "group-2", "group-3"].includes(initial) ? initial : "list");
 </script>
 </body>
 </html>
