@@ -707,7 +707,9 @@ func isAgentToken(token string) bool {
 
 func serviceOperation(operation string) (string, bool) {
 	switch operation {
-	case megrezv1.EvalService_ClaimRules_FullMethodName, megrezv1.EvalService_ReportEval_FullMethodName, megrezv1.EvalService_ReportWorkerStatus_FullMethodName:
+	case megrezv1.EvalService_ClaimRules_FullMethodName, megrezv1.EvalService_ReportEval_FullMethodName,
+		megrezv1.EvalService_ReportWorkerStatus_FullMethodName,
+		megrezv1.EvalService_ClaimProbeTasks_FullMethodName, megrezv1.EvalService_ReportProbeResults_FullMethodName:
 		return "megrez", true
 	case merakv1.NotifyService_ClaimTasks_FullMethodName, merakv1.NotifyService_MarkSending_FullMethodName, merakv1.NotifyService_ReportNotify_FullMethodName, merakv1.NotifyService_ReportWorkerStatus_FullMethodName:
 		return "merak", true
