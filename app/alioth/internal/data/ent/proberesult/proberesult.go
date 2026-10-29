@@ -109,8 +109,8 @@ var (
 	UIDValidator func(string) error
 	// NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
 	NamespaceUIDValidator func(string) error
-	// RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
-	RuleUIDValidator func(string) error
+	// DefaultRuleUID holds the default value on creation for the "rule_uid" field.
+	DefaultRuleUID string
 	// GroupUIDValidator is a validator for the "group_uid" field. It is called by the builders before save.
 	GroupUIDValidator func(string) error
 	// TargetUIDValidator is a validator for the "target_uid" field. It is called by the builders before save.

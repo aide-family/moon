@@ -398,11 +398,6 @@ func (_u *ProbeResultUpdate) check() error {
 			return &ValidationError{Name: "namespace_uid", err: fmt.Errorf(`ent: validator failed for field "ProbeResult.namespace_uid": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.RuleUID(); ok {
-		if err := proberesult.RuleUIDValidator(v); err != nil {
-			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "ProbeResult.rule_uid": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.GroupUID(); ok {
 		if err := proberesult.GroupUIDValidator(v); err != nil {
 			return &ValidationError{Name: "group_uid", err: fmt.Errorf(`ent: validator failed for field "ProbeResult.group_uid": %w`, err)}
@@ -909,11 +904,6 @@ func (_u *ProbeResultUpdateOne) check() error {
 	if v, ok := _u.mutation.NamespaceUID(); ok {
 		if err := proberesult.NamespaceUIDValidator(v); err != nil {
 			return &ValidationError{Name: "namespace_uid", err: fmt.Errorf(`ent: validator failed for field "ProbeResult.namespace_uid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.RuleUID(); ok {
-		if err := proberesult.RuleUIDValidator(v); err != nil {
-			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "ProbeResult.rule_uid": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.GroupUID(); ok {

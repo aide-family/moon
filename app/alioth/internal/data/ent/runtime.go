@@ -1475,8 +1475,8 @@ func init() {
 	proberesult.NamespaceUIDValidator = proberesultDescNamespaceUID.Validators[0].(func(string) error)
 	// proberesultDescRuleUID is the schema descriptor for rule_uid field.
 	proberesultDescRuleUID := proberesultFields[2].Descriptor()
-	// proberesult.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
-	proberesult.RuleUIDValidator = proberesultDescRuleUID.Validators[0].(func(string) error)
+	// proberesult.DefaultRuleUID holds the default value on creation for the rule_uid field.
+	proberesult.DefaultRuleUID = proberesultDescRuleUID.Default.(string)
 	// proberesultDescGroupUID is the schema descriptor for group_uid field.
 	proberesultDescGroupUID := proberesultFields[3].Descriptor()
 	// proberesult.GroupUIDValidator is a validator for the "group_uid" field. It is called by the builders before save.

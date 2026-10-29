@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
@@ -119,5 +120,47 @@ func TestProbeEventFiringAndRecovery(t *testing.T) {
 		alerteventfiring.NamespaceUIDEQ(namespace), alerteventfiring.FingerprintEQ(hit.Fingerprint),
 	).Only(ctx); !ent.IsNotFound(err) {
 		t.Fatalf("firing placeholder should be removed, err = %v", err)
+	}
+}
+
+// TestSaveProbeResultWithoutRule 立即探测没有规则，写入的 probe_results 允许
+// rule_uid 为空；规则判定的记录才带规则标识。
+func TestSaveProbeResultWithoutRule(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	store, cleanup, err := NewDependencies(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Skip(err)
+	}
+	t.Cleanup(cleanup)
+	if err := ApplySchema(ctx, store.client, store.db); err != nil {
+		t.Fatal(err)
+	}
+	namespace := "ns-probe-now-" + time.Now().Format("150405.000000")
+	t.Cleanup(func() {
+		_, _ = store.client.ProbeResult.Delete().Where(proberesult.NamespaceUIDEQ(namespace)).Exec(ctx)
+	})
+
+	repo := NewProbeRepo(store, slog.Default())
+	slot := time.Now().UTC().Truncate(time.Second)
+	if err := repo.SaveProbeResults(ctx, []bo.ProbeResult{{
+		NamespaceUID: namespace, GroupUID: "group-now", TargetUID: "target-now",
+		TargetSpec: "http://127.0.0.1:8002/health", Slot: slot, ProbedAt: slot,
+		Value: "12", DurationMS: 12, StatusCode: 200, Executor: "manual",
+	}}); err != nil {
+		t.Fatalf("probe-now result without rule should be saved: %v", err)
+	}
+	row, err := store.client.ProbeResult.Query().Where(
+		proberesult.NamespaceUIDEQ(namespace), proberesult.TargetUIDEQ("target-now"),
+	).Only(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if row.RuleUID != "" {
+		t.Fatalf("probe-now row rule_uid = %q, want empty", row.RuleUID)
 	}
 }

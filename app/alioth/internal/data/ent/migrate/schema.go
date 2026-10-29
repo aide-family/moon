@@ -1285,7 +1285,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "uid", Type: field.TypeString},
 		{Name: "namespace_uid", Type: field.TypeString},
-		{Name: "rule_uid", Type: field.TypeString},
+		{Name: "rule_uid", Type: field.TypeString, Default: ""},
 		{Name: "group_uid", Type: field.TypeString},
 		{Name: "target_uid", Type: field.TypeString},
 		{Name: "slot", Type: field.TypeTime},

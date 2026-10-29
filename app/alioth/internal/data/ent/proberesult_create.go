@@ -67,6 +67,14 @@ func (_c *ProbeResultCreate) SetRuleUID(v string) *ProbeResultCreate {
 	return _c
 }
 
+// SetNillableRuleUID sets the "rule_uid" field if the given value is not nil.
+func (_c *ProbeResultCreate) SetNillableRuleUID(v *string) *ProbeResultCreate {
+	if v != nil {
+		_c.SetRuleUID(*v)
+	}
+	return _c
+}
+
 // SetGroupUID sets the "group_uid" field.
 func (_c *ProbeResultCreate) SetGroupUID(v string) *ProbeResultCreate {
 	_c.mutation.SetGroupUID(v)
@@ -316,6 +324,10 @@ func (_c *ProbeResultCreate) defaults() {
 		v := proberesult.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.RuleUID(); !ok {
+		v := proberesult.DefaultRuleUID
+		_c.mutation.SetRuleUID(v)
+	}
 	if _, ok := _c.mutation.Ok(); !ok {
 		v := proberesult.DefaultOk
 		_c.mutation.SetOk(v)
@@ -396,11 +408,6 @@ func (_c *ProbeResultCreate) check() error {
 	}
 	if _, ok := _c.mutation.RuleUID(); !ok {
 		return &ValidationError{Name: "rule_uid", err: errors.New(`ent: missing required field "ProbeResult.rule_uid"`)}
-	}
-	if v, ok := _c.mutation.RuleUID(); ok {
-		if err := proberesult.RuleUIDValidator(v); err != nil {
-			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "ProbeResult.rule_uid": %w`, err)}
-		}
 	}
 	if _, ok := _c.mutation.GroupUID(); !ok {
 		return &ValidationError{Name: "group_uid", err: errors.New(`ent: missing required field "ProbeResult.group_uid"`)}

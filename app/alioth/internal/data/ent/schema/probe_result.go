@@ -20,7 +20,8 @@ func (ProbeResult) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("uid").NotEmpty().Immutable(),
 		field.String("namespace_uid").NotEmpty(),
-		field.String("rule_uid").NotEmpty(),
+		// 立即探测（probe-now）没有规则，rule_uid 允许为空；规则判定的记录才带规则。
+		field.String("rule_uid").Default(""),
 		field.String("group_uid").NotEmpty(),
 		field.String("target_uid").NotEmpty(),
 		// slot 是这一轮的计划时刻，按探测周期对齐。
