@@ -95,6 +95,7 @@ probe:
 
 - 侧边栏「告警」加「探测目标」（`probe:read`，`Target` 图标）；`App.tsx` 加路由；`last-page.ts` 的 knownPaths 加 `/probe-targets`；i18n zh/en 补 nav 与页面文案。
 - 探测目标页照数据源页：页头 + 名称/类型筛选 + 左列表（名称、类型、状态、更多菜单）+ 右详情卡（基本信息、目标表、最近探测记录、启停）。对话框为三步：基础 → 目标地址 → 请求与试探测。
+- 探测类型下拉一期只提供 `HTTP 探测`；`PROBE_TCP` / `PROBE_ICMP` 不在 proto 白名单里，界面也不出现这两个选项。
 - 规则表单选择探测驱动后，在第 1 步把「数据源标签匹配 + 表达式」替换成「匹配目标组」（新增 `probeTargetMatchKeys/Values`，不复用 `datasource-label-keys.ts`，含「将匹配 N 个组 / M 个目标」预览与「按目标组选择」快捷填充）+ 探测周期 + 只读执行点；后续步骤的观测指标、级别条件、文案/标签与查询规则共用。
 - 规则列表加类型分段筛选，探测规则的「观测对象」显示匹配到的目标组与目标数；详情抽屉显示目标组列表与探测记录。
 - 新类型与驱动补 `enum` 中英文与 `StatusBadge` 色调映射。
@@ -134,10 +135,20 @@ probe:
 
 浏览器验收发现并已修复的问题：数据层 `ruleDriver` 白名单没有 `PROBE_HTTP`，前端能选到 HTTP 探测，提交却一律 400（`fix(alert-rule): accept PROBE_HTTP when saving rules`）。
 
+### 2026-10-29 告警链路投递与运行态收口（alioth + megrez + merak 三进程）
+
+- [x] 通知投递：只配标签 `{"probe_kind":"HTTP"}` 的订阅，FIRING 任务被 `merak` 取走后 `message_logs` 记为 `SENT`，邮件在 Mailpit 里可见；模板 `{{ .summary }}`、`{{ .description }}`、`{{ .externalURL }}`、`{{ index .Labels "probe_kind" }}`、`{{ index .Labels "probe_target" }}`、`{{ index .Labels "datasource" }}` 全部渲染出目标地址与目标组名。
+  注意模板字段是小写：`{{ .summary }}` / `{{ .description }}`，不是 `.Summary`（第一次用大写只渲染出 `<no value>`，属测试夹具写错，不是产品问题）。
+- [x] 恢复通知：目标恢复后生成 `RECOVERED` 任务并投递，`message_logs` 同为 `SENT`。
+- [x] 运行态收口：事件 FIRING 时调用 `DELETE /v1/probe-target-groups/{uid}`，事件立即从主库消失（恢复并归档到租户历史库），并生成一条 `RECOVERED` 通知任务。
+- [x] 目标组校验（API 实测）：重复地址、无协议、非 http(s)、云元数据地址、受控请求头分别返回 400 `duplicate probe target` / `probe target must be http or https` / `probe target host is blocked` / `probe header is controlled by the client`。
+- [x] 试探测：`POST /v1/probe-trial` 返回 200 与真实失败分类，不写 `probe_results`、不产生事件。
+
 ### 待补验
 
-- [ ] 通知投递：起 `merak` 后确认任务进入消息日志、模板渲染出 `datasource` / `probe_target` / `externalURL`（任务层已验证，投递层未跑）。
-- [ ] 目标删除 / 目标组停用后旧 FIRING 事件的收口（`RecoverProbeTargets` 目前只有数据层集成覆盖，未在运行态验证）。
+- [ ] 介入 / 抑制 / 手工恢复：探测事件走的是既有告警处置路径，本次没有逐项在运行态点过（由既有告警测试覆盖）。
+- [ ] 规则匹配器变更后的旧事件收口：逻辑在 `recoverChangedRule` 里，只有数据层集成覆盖，未在运行态触发。
+- [ ] 实时告警列表里探测事件的「数据源」列：标签兜底有集成测试覆盖，浏览器没有单独打开实时告警页核对。
 
 ## 验收
 
