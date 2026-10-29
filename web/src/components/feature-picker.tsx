@@ -72,7 +72,9 @@ export function FeaturePicker({
         const someSelected = groupSelected > 0 && !allSelected
         return (
           <div key={group.code} className="rounded-md border">
-            <div className="flex min-h-10 items-center gap-2 border-b px-2 py-1.5">
+            {/* 组头复选框是行的最后一个元素：Checkbox 用 ::after 扩大点击热区，
+                右侧再多留 12px，热区才不会被 DialogBody 的 overflow-auto 算成横向溢出。 */}
+            <div className="flex min-h-10 items-center gap-2 border-b py-1.5 pr-3 pl-2">
               <span className="min-w-0 flex-1 text-sm font-medium break-words">
                 {group.title}
               </span>
