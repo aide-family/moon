@@ -29,8 +29,9 @@ const (
 	resourceKindPersistentVolumeClaim = "PersistentVolumeClaim"
 )
 
-// Explorer 读取集群资源。每个方法都先确认调用方有 cluster:read，
-// 再确认集群属于当前租户，最后才访问集群 API Server。
+// Explorer 读取集群资源。每个方法都先确认调用方持有对应资源的读权限
+// （进入控制台的 ListNamespaces 仍用 cluster:read），再确认集群属于当前租户，
+// 最后才访问集群 API Server。
 type Explorer struct {
 	clusters  repository.ClusterRepo
 	resources repository.KubernetesRepo
@@ -42,7 +43,7 @@ func NewExplorer(clusters repository.ClusterRepo, resources repository.Kubernete
 }
 
 func (explorer *Explorer) ListNamespaces(ctx context.Context, clusterUID string) ([]string, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.ClusterRead); err != nil {
 		return nil, err
 	}
 	names, err := explorer.resources.ListNamespaces(ctx, clusterUID)
@@ -51,7 +52,7 @@ func (explorer *Explorer) ListNamespaces(ctx context.Context, clusterUID string)
 
 // ListNodes 返回全部匹配的节点，节点数量有限，不分页。
 func (explorer *Explorer) ListNodes(ctx context.Context, clusterUID, name string) ([]bo.KubeNode, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sNodeRead); err != nil {
 		return nil, 0, err
 	}
 	items, err := explorer.resources.ListNodes(ctx, clusterUID, strings.TrimSpace(name))
@@ -60,7 +61,7 @@ func (explorer *Explorer) ListNodes(ctx context.Context, clusterUID, name string
 
 // ListWorkloads 返回全部匹配的工作负载，不分页。
 func (explorer *Explorer) ListWorkloads(ctx context.Context, clusterUID, namespace, kind, name string) ([]bo.KubeWorkload, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sWorkloadRead); err != nil {
 		return nil, 0, err
 	}
 	items, err := explorer.resources.ListWorkloads(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(kind), strings.TrimSpace(name))
@@ -69,7 +70,7 @@ func (explorer *Explorer) ListWorkloads(ctx context.Context, clusterUID, namespa
 
 // ListPods 在内存里分页：集群 API 的列表不分页，仓储返回按 namespace、name 排好的完整结果。
 func (explorer *Explorer) ListPods(ctx context.Context, clusterUID, namespace, name, ownerKind, ownerName string, pageNo, pageSize int32) ([]bo.KubePod, int, int, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sPodRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	items, err := explorer.resources.ListPods(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name), strings.TrimSpace(ownerKind), strings.TrimSpace(ownerName))
@@ -82,7 +83,7 @@ func (explorer *Explorer) ListPods(ctx context.Context, clusterUID, namespace, n
 
 // ListIngresses 和 Pod 一样在内存里分页。
 func (explorer *Explorer) ListIngresses(ctx context.Context, clusterUID, namespace, name string, pageNo, pageSize int32) ([]bo.KubeIngress, int, int, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sIngressRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	items, err := explorer.resources.ListIngresses(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name))
@@ -95,7 +96,7 @@ func (explorer *Explorer) ListIngresses(ctx context.Context, clusterUID, namespa
 
 // ListServices 和 Pod 一样在内存里分页。
 func (explorer *Explorer) ListServices(ctx context.Context, clusterUID, namespace, name string, pageNo, pageSize int32) ([]bo.KubeService, int, int, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sServiceRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	items, err := explorer.resources.ListServices(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name))
@@ -108,7 +109,7 @@ func (explorer *Explorer) ListServices(ctx context.Context, clusterUID, namespac
 
 // ListConfigMaps 只返回键名，值不会离开数据层。
 func (explorer *Explorer) ListConfigMaps(ctx context.Context, clusterUID, namespace, name string, pageNo, pageSize int32) ([]bo.KubeConfigMap, int, int, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sConfigMapRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	items, err := explorer.resources.ListConfigMaps(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name))
@@ -121,7 +122,7 @@ func (explorer *Explorer) ListConfigMaps(ctx context.Context, clusterUID, namesp
 
 // ListSecrets 只返回类型和键名，值不会离开数据层。
 func (explorer *Explorer) ListSecrets(ctx context.Context, clusterUID, namespace, name string, pageNo, pageSize int32) ([]bo.KubeSecret, int, int, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sSecretRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	items, err := explorer.resources.ListSecrets(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name))
@@ -134,7 +135,7 @@ func (explorer *Explorer) ListSecrets(ctx context.Context, clusterUID, namespace
 
 // ListPersistentVolumes 是集群级资源，没有命名空间过滤，只在名称上过滤。
 func (explorer *Explorer) ListPersistentVolumes(ctx context.Context, clusterUID, name string, pageNo, pageSize int32) ([]bo.KubePersistentVolume, int, int, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sPersistentVolumeRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	items, err := explorer.resources.ListPersistentVolumes(ctx, clusterUID, strings.TrimSpace(name))
@@ -147,7 +148,7 @@ func (explorer *Explorer) ListPersistentVolumes(ctx context.Context, clusterUID,
 
 // ListPersistentVolumeClaims 在内存里分页。
 func (explorer *Explorer) ListPersistentVolumeClaims(ctx context.Context, clusterUID, namespace, name string, pageNo, pageSize int32) ([]bo.KubePersistentVolumeClaim, int, int, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sPersistentVolumeClaimRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	items, err := explorer.resources.ListPersistentVolumeClaims(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name))
@@ -160,7 +161,7 @@ func (explorer *Explorer) ListPersistentVolumeClaims(ctx context.Context, cluste
 
 // PodLogs 读取容器日志尾部。容器名留空时由仓储取第一个容器。
 func (explorer *Explorer) PodLogs(ctx context.Context, clusterUID, namespace, name, container string, tailLines int32, previous bool) (*bo.KubePodLogs, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sPodLogs); err != nil {
 		return nil, err
 	}
 	logs, err := explorer.resources.PodLogs(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name), strings.TrimSpace(container), tailLines, previous)
@@ -169,7 +170,7 @@ func (explorer *Explorer) PodLogs(ctx context.Context, clusterUID, namespace, na
 
 // WorkloadDetail 返回工作负载、名下 ReplicaSet 和 Pod。
 func (explorer *Explorer) WorkloadDetail(ctx context.Context, clusterUID, kind, namespace, name string) (*bo.KubeWorkloadDetail, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sWorkloadRead); err != nil {
 		return nil, err
 	}
 	kind = strings.TrimSpace(kind)
@@ -186,7 +187,7 @@ func (explorer *Explorer) WorkloadDetail(ctx context.Context, clusterUID, kind, 
 
 // IngressDetail 返回 Ingress 和规则里引用的 Service。
 func (explorer *Explorer) IngressDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeIngressDetail, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sIngressRead); err != nil {
 		return nil, err
 	}
 	namespace, name, err := normalizeNamespacedTarget(namespace, name)
@@ -199,7 +200,7 @@ func (explorer *Explorer) IngressDetail(ctx context.Context, clusterUID, namespa
 
 // ServiceDetail 返回 Service 和 Endpoints。
 func (explorer *Explorer) ServiceDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeServiceDetail, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sServiceRead); err != nil {
 		return nil, err
 	}
 	namespace, name, err := normalizeNamespacedTarget(namespace, name)
@@ -212,7 +213,7 @@ func (explorer *Explorer) ServiceDetail(ctx context.Context, clusterUID, namespa
 
 // ConfigMapDetail 返回 ConfigMap 和引用它的工作负载。
 func (explorer *Explorer) ConfigMapDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeConfigMapDetail, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sConfigMapRead); err != nil {
 		return nil, err
 	}
 	namespace, name, err := normalizeNamespacedTarget(namespace, name)
@@ -225,7 +226,7 @@ func (explorer *Explorer) ConfigMapDetail(ctx context.Context, clusterUID, names
 
 // SecretDetail 返回 Secret 和引用它的工作负载。响应只有类型和键名。
 func (explorer *Explorer) SecretDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeSecretDetail, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sSecretRead); err != nil {
 		return nil, err
 	}
 	namespace, name, err := normalizeNamespacedTarget(namespace, name)
@@ -238,7 +239,7 @@ func (explorer *Explorer) SecretDetail(ctx context.Context, clusterUID, namespac
 
 // PersistentVolumeClaimDetail 返回 PVC 和挂载它的工作负载。
 func (explorer *Explorer) PersistentVolumeClaimDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubePersistentVolumeClaimDetail, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sPersistentVolumeClaimRead); err != nil {
 		return nil, err
 	}
 	namespace, name, err := normalizeNamespacedTarget(namespace, name)
@@ -251,7 +252,7 @@ func (explorer *Explorer) PersistentVolumeClaimDetail(ctx context.Context, clust
 
 // WorkloadImages 返回每个容器的当前镜像与历史版本。历史版本来自集群里已存在的历史对象。
 func (explorer *Explorer) WorkloadImages(ctx context.Context, clusterUID, namespace, kind, name string) ([]bo.KubeWorkloadImage, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sWorkloadRead); err != nil {
 		return nil, err
 	}
 	namespace, kind, name, err := normalizeWorkloadTarget(namespace, kind, name)
@@ -264,7 +265,7 @@ func (explorer *Explorer) WorkloadImages(ctx context.Context, clusterUID, namesp
 
 // WorkloadRevisions 返回工作负载的历史版本，新版本在前。
 func (explorer *Explorer) WorkloadRevisions(ctx context.Context, clusterUID, namespace, kind, name string) ([]bo.KubeWorkloadRevision, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sWorkloadRead); err != nil {
 		return nil, err
 	}
 	namespace, kind, name, err := normalizeWorkloadTarget(namespace, kind, name)
@@ -277,7 +278,7 @@ func (explorer *Explorer) WorkloadRevisions(ctx context.Context, clusterUID, nam
 
 // ListJobs 在内存里分页：仓储返回按 namespace、name 排好的完整结果。
 func (explorer *Explorer) ListJobs(ctx context.Context, clusterUID, namespace, name string, pageNo, pageSize int32) ([]bo.KubeJob, int, int, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sJobRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	items, err := explorer.resources.ListJobs(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name))
@@ -290,7 +291,7 @@ func (explorer *Explorer) ListJobs(ctx context.Context, clusterUID, namespace, n
 
 // JobDetail 返回 Job 和它的 Pod。
 func (explorer *Explorer) JobDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeJobDetail, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sJobRead); err != nil {
 		return nil, err
 	}
 	namespace, name, err := normalizeNamespacedTarget(namespace, name)
@@ -303,7 +304,7 @@ func (explorer *Explorer) JobDetail(ctx context.Context, clusterUID, namespace, 
 
 // ListCronJobs 在内存里分页：仓储返回按 namespace、name 排好的完整结果。
 func (explorer *Explorer) ListCronJobs(ctx context.Context, clusterUID, namespace, name string, pageNo, pageSize int32) ([]bo.KubeCronJob, int, int, int, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sCronJobRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	items, err := explorer.resources.ListCronJobs(ctx, clusterUID, strings.TrimSpace(namespace), strings.TrimSpace(name))
@@ -316,7 +317,7 @@ func (explorer *Explorer) ListCronJobs(ctx context.Context, clusterUID, namespac
 
 // CronJobDetail 返回 CronJob 和它最近创建的 Job。
 func (explorer *Explorer) CronJobDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeCronJobDetail, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
+	if _, err := explorer.scope(ctx, clusterUID, perm.K8sCronJobRead); err != nil {
 		return nil, err
 	}
 	namespace, name, err := normalizeNamespacedTarget(namespace, name)
@@ -352,13 +353,13 @@ func normalizeNamespacedTarget(namespace, name string) (string, string, error) {
 }
 
 // ResourceYAML 读取单个资源的 YAML 预览。Secret / ConfigMap 的值由仓储替换，
-// 这里只负责权限、租户范围和资源定位参数的校验。
+// 这里先校验资源定位参数，再按资源类型取读权限，最后确认集群属于当前租户。
 func (explorer *Explorer) ResourceYAML(ctx context.Context, clusterUID, kind, namespace, name string) (*bo.KubeResourceYAML, error) {
-	if _, err := explorer.scope(ctx, clusterUID); err != nil {
-		return nil, err
-	}
 	kind, namespace, name, err := normalizeYAMLResource(kind, namespace, name)
 	if err != nil {
+		return nil, err
+	}
+	if _, err := explorer.scope(ctx, clusterUID, yamlResourcePermission(kind)); err != nil {
 		return nil, err
 	}
 	item, err := explorer.resources.ResourceYAML(ctx, clusterUID, kind, namespace, name)
@@ -404,10 +405,41 @@ func yamlResourceClusterScoped(kind string) bool {
 	return kind == resourceKindNode || kind == resourceKindPersistentVolume
 }
 
-// scope 校验读权限并确认集群属于当前租户。不属于当前租户时仓储返回 NotFound，
+// yamlResourcePermission 返回 YAML 预览需要的资源级读权限。
+// 调用方已经用 normalizeYAMLResource 校验过 kind，未知类型不会走到这里的 default。
+func yamlResourcePermission(kind string) string {
+	switch kind {
+	case resourceKindNode:
+		return perm.K8sNodeRead
+	case resourceKindPod:
+		return perm.K8sPodRead
+	case resourceKindDeployment, resourceKindStatefulSet, resourceKindDaemonSet:
+		return perm.K8sWorkloadRead
+	case resourceKindJob:
+		return perm.K8sJobRead
+	case resourceKindCronJob:
+		return perm.K8sCronJobRead
+	case resourceKindIngress:
+		return perm.K8sIngressRead
+	case resourceKindService:
+		return perm.K8sServiceRead
+	case resourceKindConfigMap:
+		return perm.K8sConfigMapRead
+	case resourceKindSecret:
+		return perm.K8sSecretRead
+	case resourceKindPersistentVolume:
+		return perm.K8sPersistentVolumeRead
+	case resourceKindPersistentVolumeClaim:
+		return perm.K8sPersistentVolumeClaimRead
+	default:
+		return ""
+	}
+}
+
+// scope 校验权限码并确认集群属于当前租户。不属于当前租户时仓储返回 NotFound，
 // 不区分「集群不存在」和「属于别的租户」。
-func (explorer *Explorer) scope(ctx context.Context, clusterUID string) (string, error) {
-	ns, err := explorer.access.Allow(ctx, perm.ClusterRead)
+func (explorer *Explorer) scope(ctx context.Context, clusterUID, code string) (string, error) {
+	ns, err := explorer.access.Allow(ctx, code)
 	if err != nil {
 		return "", err
 	}

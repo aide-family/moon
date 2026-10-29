@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationpreset"
@@ -34,6 +35,9 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 		}
 	}
 	if err := syncTenantRoles(ctx, client, helper); err != nil {
+		return err
+	}
+	if err := migrateCustomRoleK8sPermissions(ctx, client, helper); err != nil {
 		return err
 	}
 	if err := ensureSuperAdmin(ctx, client, helper); err != nil {
@@ -174,6 +178,82 @@ func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logge
 		}
 	}
 	return nil
+}
+
+// migrateCustomRoleK8sPermissions 把集群级权限展开成 Kubernetes 资源级权限。
+// Kubernetes 控制台改为按资源授权后，旧的自定义角色只有 cluster:read/cluster:write：
+// 有 cluster:read 的补全部 k8s 读权限和 Pod 日志，有 cluster:write 的补全部 k8s 写权限。
+// 只处理当前没有任何 k8s:* 权限的角色，补齐后不会再命中，可以重复执行。
+// 系统角色由 syncTenantRoles 按预置角色目录直接补齐，不走这里。
+func migrateCustomRoleK8sPermissions(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	rows, err := client.Permission.Query().All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	byName := make(map[string]string, len(rows))
+	for _, row := range rows {
+		byName[row.Name] = row.UID
+	}
+	roles, err := client.Role.Query().Where(role.IsSystem(false), role.DeletedAtIsNil()).All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	if len(roles) == 0 {
+		return nil
+	}
+	roleUIDs := make([]string, len(roles))
+	for index, item := range roles {
+		roleUIDs[index] = item.UID
+	}
+	links, err := client.RolePermission.Query().Where(rolepermission.RoleUIDIn(roleUIDs...)).All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	heldByRole := make(map[string]map[string]struct{}, len(links))
+	for _, link := range links {
+		names := heldByRole[link.RoleUID]
+		if names == nil {
+			names = make(map[string]struct{})
+			heldByRole[link.RoleUID] = names
+		}
+		names[byName[link.PermissionUID]] = struct{}{}
+	}
+	for _, item := range roles {
+		for _, code := range legacyRoleK8sPermissions(heldByRole[item.UID]) {
+			permissionUID := byName[code]
+			if permissionUID == "" {
+				continue
+			}
+			if _, err := client.RolePermission.Create().
+				SetUID(id.New()).
+				SetNamespaceUID(item.NamespaceUID).
+				SetRoleUID(item.UID).
+				SetPermissionUID(permissionUID).
+				Save(ctx); err != nil {
+				return databaseErr(helper, err)
+			}
+		}
+	}
+	return nil
+}
+
+// legacyRoleK8sPermissions 计算旧的自定义角色需要补齐的 Kubernetes 权限。
+// names 是角色当前持有的权限名：已经有任何 k8s:* 权限时返回 nil，补齐后不会重复命中；
+// 否则有 cluster:read 补全部 k8s 读权限和 Pod 日志，有 cluster:write 补全部 k8s 写权限。
+func legacyRoleK8sPermissions(names map[string]struct{}) []string {
+	for name := range names {
+		if strings.HasPrefix(name, "k8s:") {
+			return nil
+		}
+	}
+	codes := make([]string, 0, len(perm.K8sReadPermissions())+len(perm.K8sWritePermissions()))
+	if _, ok := names[perm.ClusterRead]; ok {
+		codes = append(codes, perm.K8sReadPermissions()...)
+	}
+	if _, ok := names[perm.ClusterWrite]; ok {
+		codes = append(codes, perm.K8sWritePermissions()...)
+	}
+	return codes
 }
 
 // ensureSuperAdmin 为已有部署补上超级管理员：第一个注册的用户。

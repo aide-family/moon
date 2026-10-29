@@ -67,7 +67,10 @@ interface KubernetesPodsTabProps {
   clusterUid: string
   namespace: string
   name: string
+  /** k8s:pod:write：只控制删除，读取日志是独立权限。 */
   canWrite: boolean
+  /** k8s:pod:logs：控制日志行操作与日志面板入口。 */
+  canLogs: boolean
   page: number
   pageSize: number
   onPageChange: (page: number) => void
@@ -81,6 +84,7 @@ export function KubernetesPodsTab({
   namespace,
   name,
   canWrite,
+  canLogs,
   page,
   pageSize,
   onPageChange,
@@ -158,13 +162,14 @@ export function KubernetesPodsTab({
   }, [clusterUid, logsPod, logContainer, tailLines, previous, logRefreshKey, t])
 
   function podActions(pod: KubernetesPodItem): RowAction[] {
-    const actions: RowAction[] = [
-      {
+    const actions: RowAction[] = []
+    if (canLogs) {
+      actions.push({
         key: "logs",
         label: t("kube.logs"),
         onSelect: () => openLogs(pod),
-      },
-    ]
+      })
+    }
     if (canWrite) {
       actions.push({
         key: "delete",

@@ -150,7 +150,7 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 | 类型 | 目录 | 授权载体 | 校验 |
 | --- | --- | --- | --- |
 | 系统权限 | `system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read`、`system:namespace:read` | `User.system_role` | `access.RequireSystem`，不读 `X-Namespace` |
-| 租户权限 | `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh` 的 `resource:action` | `Role` + `MemberRole` | `access.Allow` / `Require`，必须带 `X-Namespace` |
+| 租户权限 | `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`cluster`、`agent`、`ssh` 的 `resource:action`，以及 Kubernetes 资源级 `k8s:<资源>:<动作>` | `Role` + `MemberRole` | `access.Allow` / `Require`，必须带 `X-Namespace` |
 
 平台角色固定三档：第一个注册用户是 `SUPER_ADMIN`；`SYSTEM_ADMIN` 由超级管理员授权，可查看和管理普通用户、列出平台全部租户；`USER` 没有系统权限。超级管理员唯一性由数据库部分唯一索引保证。已有部署升级时，最早注册的用户补为超级管理员。`system:user:read` 及以上才能查看用户列表。
 
@@ -165,7 +165,7 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 | `member` | 查看配置；处理告警；使用已授权的 SSH 与 Web Shell |
 | `viewer` | 只读 |
 
-权限名是 `resource:action`。租户资源为 `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`；`user` 不属于租户权限。动作至少有 `read` 与 `write`。告警另有 `intervene`。执行动作为 `ssh:exec`。系统权限不写入 `permissions` 表，租户角色授权页也不返回它们。
+权限名是 `resource:action`。租户资源为 `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`cluster`、`agent`、`ssh`；`user` 不属于租户权限。Kubernetes 控制台按资源授权，权限名写成 `k8s:<资源>:<动作>`，资源为节点、工作负载、Pod、Ingress、Service、ConfigMap、Secret、PV、PVC、Job、CronJob；`cluster:*` 只负责集群接入与连接，进入控制台仍要求 `cluster:read`。动作至少有 `read` 与 `write`，Pod 日志是独立的只读动作 `k8s:pod:logs`。告警另有 `intervene`。执行动作为 `ssh:exec`。系统权限不写入 `permissions` 表，租户角色授权页也不返回它们。
 
 租户邀请不直接创建成员：
 

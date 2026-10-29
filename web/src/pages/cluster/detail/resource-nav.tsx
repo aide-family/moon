@@ -12,16 +12,18 @@ import {
 import { cn } from "@/lib/class-names"
 
 import {
-  CLUSTER_NAV_GROUPS,
   findClusterNavEntry,
   readClusterNavLabel,
   type ClusterNavCounts,
+  type ClusterNavGroup,
   type ClusterSection,
 } from "./sections"
 
 interface ClusterResourceNavProps {
   section: ClusterSection
   kind: string
+  /** 已按权限过滤的导航分组；无权限的资源视图不会出现在这里。 */
+  groups: ClusterNavGroup[]
   /** 导航项 id → 当前命名空间下的数量；接口未返回时不显示数字。 */
   counts: ClusterNavCounts
   onSelect: (section: ClusterSection, kind?: string) => void
@@ -29,11 +31,12 @@ interface ClusterResourceNavProps {
 
 /**
  * 左侧资源管理导航：按负载 / 服务与路由 / 配置管理 / 存储 分组。
- * 每项右侧显示当前命名空间下的资源数量（接口未返回时不显示数字）。
+ * 分组由调用方按权限过滤后传入；每项右侧显示当前命名空间下的资源数量。
  */
 export function ClusterResourceNav({
   section,
   kind,
+  groups,
   counts,
   onSelect,
 }: ClusterResourceNavProps) {
@@ -46,7 +49,7 @@ export function ClusterResourceNav({
       data-slot="cluster-resource-nav"
       className="flex flex-col gap-1"
     >
-      {CLUSTER_NAV_GROUPS.map((group) => (
+      {groups.map((group) => (
         <div key={group.id} className="min-w-0">
           {group.title ? (
             <p className="px-2 pt-3 pb-1 text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
@@ -100,6 +103,8 @@ export function ClusterResourceNav({
 interface ClusterResourcePickerProps {
   section: ClusterSection
   kind: string
+  /** 已按权限过滤的导航分组，与左侧导航复用同一份数据。 */
+  groups: ClusterNavGroup[]
   onSelect: (section: ClusterSection, kind?: string) => void
   className?: string
 }
@@ -108,18 +113,27 @@ interface ClusterResourcePickerProps {
 export function ClusterResourcePicker({
   section,
   kind,
+  groups,
   onSelect,
   className,
 }: ClusterResourcePickerProps) {
   const { t } = useTranslation()
   const active = findClusterNavEntry(section, kind)
+  // 当前 section 无权限时页面会回退到概况，下拉也要显示概况而不是空值。
+  const activeVisible =
+    active !== null &&
+    groups.some((group) =>
+      group.entries.some((entry) => entry.id === active.id)
+    )
+  const fallbackId = groups[0]?.entries[0]?.id ?? "overview"
+  const value = activeVisible && active ? active.id : fallbackId
 
   return (
     <Select
-      value={active?.id ?? "overview"}
-      onValueChange={(value) => {
-        for (const group of CLUSTER_NAV_GROUPS) {
-          const entry = group.entries.find((item) => item.id === value)
+      value={value}
+      onValueChange={(next) => {
+        for (const group of groups) {
+          const entry = group.entries.find((item) => item.id === next)
           if (entry) {
             onSelect(entry.section, entry.kind)
             return
@@ -134,7 +148,7 @@ export function ClusterResourcePicker({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {CLUSTER_NAV_GROUPS.map((group) => (
+        {groups.map((group) => (
           <SelectGroup key={group.id}>
             {group.title ? (
               <SelectLabel>{readClusterNavLabel(t, group.title)}</SelectLabel>

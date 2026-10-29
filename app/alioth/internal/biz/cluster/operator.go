@@ -20,7 +20,7 @@ const (
 	maxWorkloadImageLength = 1024
 )
 
-// Operator 修改集群资源。每个方法都先确认调用方有 cluster:write，
+// Operator 修改集群资源。每个方法都先确认调用方持有对应资源的写权限，
 // 再确认集群属于当前租户，最后才访问集群 API Server。
 type Operator struct {
 	clusters  repository.ClusterRepo
@@ -34,7 +34,7 @@ func NewOperator(clusters repository.ClusterRepo, resources repository.Kubernete
 
 // SetNodeUnschedulable 设置节点是否可调度：true 为 cordon，false 为 uncordon。
 func (operator *Operator) SetNodeUnschedulable(ctx context.Context, clusterUID, name string, unschedulable bool) error {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sNodeWrite); err != nil {
 		return err
 	}
 	name = strings.TrimSpace(name)
@@ -46,7 +46,7 @@ func (operator *Operator) SetNodeUnschedulable(ctx context.Context, clusterUID, 
 
 // ScaleWorkload 调整副本数。DaemonSet 的副本数由节点数决定，不能手动改。
 func (operator *Operator) ScaleWorkload(ctx context.Context, clusterUID, namespace, kind, name string, replicas int32) (*bo.KubeWorkload, error) {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sWorkloadWrite); err != nil {
 		return nil, err
 	}
 	namespace, kind, name = strings.TrimSpace(namespace), strings.TrimSpace(kind), strings.TrimSpace(name)
@@ -59,7 +59,7 @@ func (operator *Operator) ScaleWorkload(ctx context.Context, clusterUID, namespa
 
 // RestartWorkload 给 Pod 模板打重启时间注解，三种工作负载都支持。
 func (operator *Operator) RestartWorkload(ctx context.Context, clusterUID, namespace, kind, name string) (*bo.KubeWorkload, error) {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sWorkloadWrite); err != nil {
 		return nil, err
 	}
 	namespace, kind, name = strings.TrimSpace(namespace), strings.TrimSpace(kind), strings.TrimSpace(name)
@@ -72,7 +72,7 @@ func (operator *Operator) RestartWorkload(ctx context.Context, clusterUID, names
 
 // DeletePod 删除一个 Pod。由工作负载管理的 Pod 会被控制器重新创建。
 func (operator *Operator) DeletePod(ctx context.Context, clusterUID, namespace, name string) error {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sPodWrite); err != nil {
 		return err
 	}
 	namespace, name = strings.TrimSpace(namespace), strings.TrimSpace(name)
@@ -84,7 +84,7 @@ func (operator *Operator) DeletePod(ctx context.Context, clusterUID, namespace, 
 
 // SetWorkloadImage 只改目标容器的镜像。容器必须存在，init 决定查找普通容器还是初始化容器。
 func (operator *Operator) SetWorkloadImage(ctx context.Context, clusterUID, namespace, kind, name, container string, init bool, image string) (*bo.KubeWorkload, error) {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sWorkloadWrite); err != nil {
 		return nil, err
 	}
 	namespace, kind, name, err := normalizeWorkloadTarget(namespace, kind, name)
@@ -107,7 +107,7 @@ func (operator *Operator) SetWorkloadImage(ctx context.Context, clusterUID, name
 
 // RollbackWorkload 把工作负载回滚到指定历史版本，revision 从 1 开始。
 func (operator *Operator) RollbackWorkload(ctx context.Context, clusterUID, namespace, kind, name string, revision int32) (*bo.KubeWorkload, error) {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sWorkloadWrite); err != nil {
 		return nil, err
 	}
 	namespace, kind, name, err := normalizeWorkloadTarget(namespace, kind, name)
@@ -123,7 +123,7 @@ func (operator *Operator) RollbackWorkload(ctx context.Context, clusterUID, name
 
 // DeleteJob 删除 Job，它的 Pod 由默认的后台级联删除清理。
 func (operator *Operator) DeleteJob(ctx context.Context, clusterUID, namespace, name string) error {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sJobWrite); err != nil {
 		return err
 	}
 	namespace, name = strings.TrimSpace(namespace), strings.TrimSpace(name)
@@ -135,7 +135,7 @@ func (operator *Operator) DeleteJob(ctx context.Context, clusterUID, namespace, 
 
 // SetCronJobSuspend 暂停或恢复 CronJob 的调度。
 func (operator *Operator) SetCronJobSuspend(ctx context.Context, clusterUID, namespace, name string, suspend bool) (*bo.KubeCronJob, error) {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sCronJobWrite); err != nil {
 		return nil, err
 	}
 	namespace, name = strings.TrimSpace(namespace), strings.TrimSpace(name)
@@ -148,7 +148,7 @@ func (operator *Operator) SetCronJobSuspend(ctx context.Context, clusterUID, nam
 
 // TriggerCronJob 用 jobTemplate 立即创建一个独立 Job，返回新建的 Job。
 func (operator *Operator) TriggerCronJob(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeJob, error) {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sCronJobWrite); err != nil {
 		return nil, err
 	}
 	namespace, name = strings.TrimSpace(namespace), strings.TrimSpace(name)
@@ -161,7 +161,7 @@ func (operator *Operator) TriggerCronJob(ctx context.Context, clusterUID, namesp
 
 // DeleteCronJob 删除 CronJob 和它创建的 Job。
 func (operator *Operator) DeleteCronJob(ctx context.Context, clusterUID, namespace, name string) error {
-	if _, err := operator.scope(ctx, clusterUID); err != nil {
+	if _, err := operator.scope(ctx, clusterUID, perm.K8sCronJobWrite); err != nil {
 		return err
 	}
 	namespace, name = strings.TrimSpace(namespace), strings.TrimSpace(name)
@@ -171,8 +171,10 @@ func (operator *Operator) DeleteCronJob(ctx context.Context, clusterUID, namespa
 	return operator.access.Wrap(operator.resources.DeleteCronJob(ctx, clusterUID, namespace, name))
 }
 
-func (operator *Operator) scope(ctx context.Context, clusterUID string) (string, error) {
-	ns, err := operator.access.Allow(ctx, perm.ClusterWrite)
+// scope 校验权限码并确认集群属于当前租户。写操作按资源独立授权，
+// cluster:write 只覆盖集群接入与连接，不再放行资源修改。
+func (operator *Operator) scope(ctx context.Context, clusterUID, code string) (string, error) {
+	ns, err := operator.access.Allow(ctx, code)
 	if err != nil {
 		return "", err
 	}

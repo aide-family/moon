@@ -5,7 +5,7 @@
 
 ## 目标与依赖
 
-依赖 M14（集群接入、工作负载/Pod 列表与详情抽屉、`cluster:*` 权限）与
+依赖 M14（集群接入、工作负载/Pod 列表与详情抽屉、`cluster:*` 与 `k8s:*` 权限）与
 [kubernetes-console-design.md](../kubernetes-console-design.md) 定义的控制台结构与 URL 契约。
 
 做：
@@ -60,27 +60,27 @@
 
 | 方法 | 路径 | 权限 | 说明 |
 | --- | --- | --- | --- |
-| `GET` | `/v1/cluster/{cluster_uid}/workload/images` | `cluster:read` | `kind`、`namespace`、`name`；返回容器镜像与历史版本 |
-| `PUT` | `/v1/cluster/{cluster_uid}/workload/image` | `cluster:write` | `kind`、`namespace`、`name`、`container`、`init`、`image`；返回更新后的工作负载 |
-| `GET` | `/v1/cluster/{cluster_uid}/workload/revisions` | `cluster:read` | 返回历史版本列表，新版本在前 |
-| `POST` | `/v1/cluster/{cluster_uid}/workload/rollback` | `cluster:write` | `revision` 必填且 ≥1；返回更新后的工作负载 |
+| `GET` | `/v1/cluster/{cluster_uid}/workload/images` | `k8s:workload:read` | `kind`、`namespace`、`name`；返回容器镜像与历史版本 |
+| `PUT` | `/v1/cluster/{cluster_uid}/workload/image` | `k8s:workload:write` | `kind`、`namespace`、`name`、`container`、`init`、`image`；返回更新后的工作负载 |
+| `GET` | `/v1/cluster/{cluster_uid}/workload/revisions` | `k8s:workload:read` | 返回历史版本列表，新版本在前 |
+| `POST` | `/v1/cluster/{cluster_uid}/workload/rollback` | `k8s:workload:write` | `revision` 必填且 ≥1；返回更新后的工作负载 |
 
 Job/CronJob：
 
 | 方法 | 路径 | 权限 | 说明 |
 | --- | --- | --- | --- |
-| `GET` | `/v1/cluster/{cluster_uid}/jobs` | `cluster:read` | `namespace`、`name`、`page`、`pageSize`；返回 `items`、`total`、`page`、`pageSize` |
-| `GET` | `/v1/cluster/{cluster_uid}/job-detail` | `cluster:read` | `namespace`、`name`；返回 Job 与其 Pod |
-| `DELETE` | `/v1/cluster/{cluster_uid}/namespace/{namespace}/job/{name}` | `cluster:write` | 删除 Job（`propagationPolicy` 用默认后台级联） |
-| `GET` | `/v1/cluster/{cluster_uid}/cronjobs` | `cluster:read` | `namespace`、`name`、`page`、`pageSize` |
-| `GET` | `/v1/cluster/{cluster_uid}/cronjob-detail` | `cluster:read` | 返回 CronJob 与其最近 Job |
-| `PUT` | `/v1/cluster/{cluster_uid}/cronjob/suspend` | `cluster:write` | `namespace`、`name`、`suspend`；返回更新后的 CronJob |
-| `POST` | `/v1/cluster/{cluster_uid}/cronjob/trigger` | `cluster:write` | 用 `jobTemplate` 立即创建一个 Job，返回新 Job |
-| `DELETE` | `/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}` | `cluster:write` | 删除 CronJob |
+| `GET` | `/v1/cluster/{cluster_uid}/jobs` | `k8s:job:read` | `namespace`、`name`、`page`、`pageSize`；返回 `items`、`total`、`page`、`pageSize` |
+| `GET` | `/v1/cluster/{cluster_uid}/job-detail` | `k8s:job:read` | `namespace`、`name`；返回 Job 与其 Pod |
+| `DELETE` | `/v1/cluster/{cluster_uid}/namespace/{namespace}/job/{name}` | `k8s:job:write` | 删除 Job（`propagationPolicy` 用默认后台级联） |
+| `GET` | `/v1/cluster/{cluster_uid}/cronjobs` | `k8s:cronjob:read` | `namespace`、`name`、`page`、`pageSize` |
+| `GET` | `/v1/cluster/{cluster_uid}/cronjob-detail` | `k8s:cronjob:read` | 返回 CronJob 与其最近 Job |
+| `PUT` | `/v1/cluster/{cluster_uid}/cronjob/suspend` | `k8s:cronjob:write` | `namespace`、`name`、`suspend`；返回更新后的 CronJob |
+| `POST` | `/v1/cluster/{cluster_uid}/cronjob/trigger` | `k8s:cronjob:write` | 用 `jobTemplate` 立即创建一个 Job，返回新 Job |
+| `DELETE` | `/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}` | `k8s:cronjob:write` | 删除 CronJob |
 
 - 分页沿用 `page` / `pageSize`，按 namespace、name 升序；`name` 为子串过滤。
 - `job-detail` 的 Pod 按 name 升序；`cronjob-detail` 的 Job 最多 10 条，按创建时间倒序。
-- YAML 接口扩展 `kind=Job`、`kind=CronJob`；Secret/ConfigMap 的脱敏规则不变。
+- YAML 接口扩展 `kind=Job`、`kind=CronJob`，分别按 `k8s:job:read`、`k8s:cronjob:read` 校验；Secret/ConfigMap 的脱敏规则不变。
 - 回滚：Deployment 把目标 ReplicaSet 的 Pod 模板写回 Deployment；StatefulSet/DaemonSet 把目标
   ControllerRevision 的模板写回工作负载。回滚到当前版本返回客户端错误；目标版本不存在返回客户端错误。
 - 设置镜像：`container` 必须存在且按 `init` 区分普通容器与 init 容器；只改目标容器的镜像，其它字段不动。
@@ -91,8 +91,11 @@ Job/CronJob：
 
 ## 权限
 
-不新增权限。读取新增接口用 `cluster:read`；设置镜像、回滚、删除 Job、暂停/恢复、立即运行、
-删除 CronJob 用 `cluster:write`。预置角色不变，`member`/`viewer` 只读。
+接口不再使用 `cluster:read` / `cluster:write`，改按资源授权：工作负载的镜像、历史版本与回滚用
+`k8s:workload:read` / `k8s:workload:write`；Job 的列表、详情与 YAML 预览用 `k8s:job:read`，删除用
+`k8s:job:write`；CronJob 的列表、详情用 `k8s:cronjob:read`，暂停/恢复、立即运行、删除用
+`k8s:cronjob:write`。预置角色沿用 M14：`owner`/`admin` 拥有全部，`member`/`viewer` 只有读。
+集群接入与连接仍由 `cluster:*` 负责，进入控制台仍要求 `cluster:read`。
 
 ## Web
 
@@ -108,7 +111,7 @@ Job/CronJob：
 - CronJob 页签：名称、命名空间、调度、时区、挂起、并发策略、最近调度、活跃 Job、创建时间；
   行操作为「详情 + 更多（暂停/恢复、立即运行、删除）」；详情抽屉展示字段与最近 Job。
 - Job/CronJob 的详情抽屉同样有「详细信息 / YAML」两个 Tab；YAML 走 `/yaml` 接口。
-- 写操作按钮按 `cluster:write` 隐藏，服务端仍独立校验；所有操作成功后 `toast.success` 并刷新。
+- 写操作按钮按对应资源的 `k8s:workload:write`、`k8s:job:write`、`k8s:cronjob:write` 隐藏，服务端仍独立校验；所有操作成功后 `toast.success` 并刷新。
 - 沿用 `web/AGENTS.md` 的表格、滚动、32px 控件与 `RowActions`/`DetailSheet` 约束。
 
 ## 验收标准
@@ -120,6 +123,6 @@ Job/CronJob：
 - [ ] Job 列表分页、名称过滤、状态判定正确；Job 详情返回其 Pod；删除 Job 后列表刷新。
 - [ ] CronJob 列表展示调度、时区、挂起状态与活跃 Job；暂停后 `suspend=true`，恢复后为 `false`。
 - [ ] 立即运行生成独立 Job，名称符合 `<cronjob>-manual-<unix秒>`，带 `cronjob.kubernetes.io/instantiate=manual` 标签。
-- [ ] 未登录、无 `cluster:read` 的账号访问新增接口被拒绝；`viewer` 不能设置镜像、回滚、删除 Job/CronJob、暂停或立即运行。
+- [ ] 未登录、无对应 `k8s:*:read` 的账号读新增接口被拒绝；`viewer` 不能设置镜像、回滚、删除 Job/CronJob、暂停或立即运行。
 - [ ] Job/CronJob 的 YAML 预览返回真实 manifest；Secret/ConfigMap 值仍然不出现在响应里。
 - [ ] `go test ./...`、`make lint`、Web 的 `typecheck`/`lint`/`build` 全部通过。

@@ -70,6 +70,11 @@ export interface ClusterNavEntry {
   label: ClusterNavLabel
   icon: LucideIcon
   scope: ClusterSectionScope
+  /**
+   * 资源级读取权限。查看该资源视图需要它；不填表示跟随页面级
+   * cluster:read（概况就是这种情况）。写权限由各 Tab 单独判断。
+   */
+  permission?: string
 }
 
 export interface ClusterNavGroup {
@@ -105,6 +110,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: i18n("kube.navNodes"),
         icon: Server,
         scope: "cluster",
+        permission: "k8s:node:read",
       },
     ],
   },
@@ -118,6 +124,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: i18n("kube.navAllWorkloads"),
         icon: LayoutList,
         scope: "namespaced",
+        permission: "k8s:workload:read",
       },
       {
         id: "workloads/Deployment",
@@ -126,6 +133,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("Deployment"),
         icon: Boxes,
         scope: "namespaced",
+        permission: "k8s:workload:read",
       },
       {
         id: "workloads/StatefulSet",
@@ -134,6 +142,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("StatefulSet"),
         icon: Database,
         scope: "namespaced",
+        permission: "k8s:workload:read",
       },
       {
         id: "workloads/DaemonSet",
@@ -142,6 +151,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("DaemonSet"),
         icon: Layers,
         scope: "namespaced",
+        permission: "k8s:workload:read",
       },
       {
         id: "jobs",
@@ -149,6 +159,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("Job"),
         icon: ListChecks,
         scope: "namespaced",
+        permission: "k8s:job:read",
       },
       {
         id: "cronjobs",
@@ -156,6 +167,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("CronJob"),
         icon: CalendarClock,
         scope: "namespaced",
+        permission: "k8s:cronjob:read",
       },
       {
         id: "pods",
@@ -163,6 +175,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: i18n("kube.navPods"),
         icon: Container,
         scope: "namespaced",
+        permission: "k8s:pod:read",
       },
     ],
   },
@@ -176,6 +189,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("Ingress"),
         icon: Globe,
         scope: "namespaced",
+        permission: "k8s:ingress:read",
       },
       {
         id: "services",
@@ -183,6 +197,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("Service"),
         icon: Network,
         scope: "namespaced",
+        permission: "k8s:service:read",
       },
     ],
   },
@@ -196,6 +211,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("ConfigMap"),
         icon: Settings2,
         scope: "namespaced",
+        permission: "k8s:configmap:read",
       },
       {
         id: "secrets",
@@ -203,6 +219,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("Secret"),
         icon: KeyRound,
         scope: "namespaced",
+        permission: "k8s:secret:read",
       },
     ],
   },
@@ -216,6 +233,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("PV"),
         icon: HardDrive,
         scope: "cluster",
+        permission: "k8s:pv:read",
       },
       {
         id: "pvcs",
@@ -223,6 +241,7 @@ export const CLUSTER_NAV_GROUPS: readonly ClusterNavGroup[] = [
         label: text("PVC"),
         icon: Database,
         scope: "namespaced",
+        permission: "k8s:pvc:read",
       },
     ],
   },
@@ -251,6 +270,42 @@ export function clusterSectionScope(
   kind: string
 ): ClusterSectionScope {
   return findClusterNavEntry(section, kind)?.scope ?? "namespaced"
+}
+
+/** session.can 的签名；只传判定函数，导航模块不依赖 session 实现。 */
+export type ClusterPermissionCheck = (code: string) => boolean
+
+/** 单个导航项是否可见：没有资源级权限的项跟随页面级 cluster:read。 */
+export function canAccessClusterNavEntry(
+  entry: ClusterNavEntry,
+  can: ClusterPermissionCheck
+): boolean {
+  return entry.permission === undefined || can(entry.permission)
+}
+
+/** 当前 section + kind 的视图是否可访问，用于 URL 直接进入时回退到概况。 */
+export function isClusterSectionAllowed(
+  section: ClusterSection,
+  kind: string,
+  can: ClusterPermissionCheck
+): boolean {
+  const entry = findClusterNavEntry(section, kind)
+  return entry === null || canAccessClusterNavEntry(entry, can)
+}
+
+/**
+ * 按权限过滤导航：无权限的项不渲染，整组都不可见时连分组标题一起隐藏。
+ * 顺序与 CLUSTER_NAV_GROUPS 一致，调用方不要自己再排序。
+ */
+export function filterClusterNavGroups(
+  can: ClusterPermissionCheck
+): ClusterNavGroup[] {
+  return CLUSTER_NAV_GROUPS.map((group) => ({
+    ...group,
+    entries: group.entries.filter((entry) =>
+      canAccessClusterNavEntry(entry, can)
+    ),
+  })).filter((group) => group.entries.length > 0)
 }
 
 /** 概况之外的所有资源视图都支持按名称过滤。 */

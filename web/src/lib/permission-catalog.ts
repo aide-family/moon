@@ -16,12 +16,28 @@ const RESOURCE_LABELS: Record<string, LocalizedLabel> = {
   alert: { zh: "告警", en: "Alerts" },
   notification: { zh: "通知", en: "Notifications" },
   cluster: { zh: "Kubernetes 集群", en: "Kubernetes clusters" },
+  // cluster:* 只负责集群接入与连接；集群内具体资源按 k8s:<资源>:<动作> 授权。
+  "k8s:node": { zh: "Kubernetes 节点", en: "Kubernetes nodes" },
+  "k8s:workload": { zh: "Kubernetes 工作负载", en: "Kubernetes workloads" },
+  "k8s:pod": { zh: "Kubernetes Pod", en: "Kubernetes pods" },
+  "k8s:ingress": { zh: "Kubernetes Ingress", en: "Kubernetes ingresses" },
+  "k8s:service": { zh: "Kubernetes Service", en: "Kubernetes services" },
+  "k8s:configmap": { zh: "Kubernetes ConfigMap", en: "Kubernetes ConfigMaps" },
+  "k8s:secret": { zh: "Kubernetes Secret", en: "Kubernetes secrets" },
+  "k8s:pv": { zh: "Kubernetes PV", en: "Kubernetes persistent volumes" },
+  "k8s:pvc": {
+    zh: "Kubernetes PVC",
+    en: "Kubernetes persistent volume claims",
+  },
+  "k8s:job": { zh: "Kubernetes Job", en: "Kubernetes jobs" },
+  "k8s:cronjob": { zh: "Kubernetes CronJob", en: "Kubernetes cronjobs" },
   agent: { zh: "机器", en: "Agents" },
   ssh: { zh: "SSH 命令", en: "SSH commands" },
 }
 
 const ACTION_LABELS: Record<string, LocalizedLabel> = {
   read: { zh: "读取", en: "Read" },
+  logs: { zh: "日志", en: "Logs" },
   write: { zh: "写入", en: "Write" },
   intervene: { zh: "干预", en: "Intervene" },
   exec: { zh: "执行", en: "Execute" },
@@ -29,8 +45,14 @@ const ACTION_LABELS: Record<string, LocalizedLabel> = {
   transfer: { zh: "移交", en: "Transfer" },
 }
 
-export const UNKNOWN_RESOURCE: LocalizedLabel = { zh: "未分类", en: "Uncategorized" }
-export const UNKNOWN_ACTION: LocalizedLabel = { zh: "未知动作", en: "Unknown action" }
+export const UNKNOWN_RESOURCE: LocalizedLabel = {
+  zh: "未分类",
+  en: "Uncategorized",
+}
+export const UNKNOWN_ACTION: LocalizedLabel = {
+  zh: "未知动作",
+  en: "Unknown action",
+}
 
 /** 模块顺序与 perm.Catalog() 一致，避免同一份权限在不同页面分组顺序不同。 */
 const RESOURCE_ORDER = [
@@ -43,12 +65,33 @@ const RESOURCE_ORDER = [
   "alert",
   "notification",
   "cluster",
+  // 资源级权限紧跟在集群接入权限之后，先集群（节点 / 工作负载 / Pod），
+  // 再路由、配置、存储，最后是批处理任务。
+  "k8s:node",
+  "k8s:workload",
+  "k8s:pod",
+  "k8s:ingress",
+  "k8s:service",
+  "k8s:configmap",
+  "k8s:secret",
+  "k8s:pv",
+  "k8s:pvc",
+  "k8s:job",
+  "k8s:cronjob",
   "agent",
   "ssh",
 ]
 
-/** 组内顺序：读写在前，强动作在后。 */
-const ACTION_ORDER = ["read", "write", "intervene", "exec", "delete", "transfer"]
+/** 组内顺序：读在最前（日志属于读，紧随其后），再写，最后是强动作。 */
+const ACTION_ORDER = [
+  "read",
+  "logs",
+  "write",
+  "intervene",
+  "exec",
+  "delete",
+  "transfer",
+]
 
 /** 只属于负责人的权限，不能授予自定义角色（后端同样会拒绝）。 */
 export const OWNER_ONLY = new Set(["namespace:delete", "namespace:transfer"])
@@ -74,12 +117,16 @@ export function actionTitle(action: string): string {
 }
 
 /** 「成员 / 读取」——没有分组上下文时（Tooltip、审计文本）的完整中文形态。 */
-export function permissionTitleZh(item: Pick<PermissionItem, "resource" | "action">): string {
+export function permissionTitleZh(
+  item: Pick<PermissionItem, "resource" | "action">
+): string {
   return `${resourceLabel(item.resource).zh} / ${actionLabel(item.action).zh}`
 }
 
 /** 「Members / Read」——完整英文形态。 */
-export function permissionTitleEn(item: Pick<PermissionItem, "resource" | "action">): string {
+export function permissionTitleEn(
+  item: Pick<PermissionItem, "resource" | "action">
+): string {
   return `${resourceLabel(item.resource).en} / ${actionLabel(item.action).en}`
 }
 
@@ -105,7 +152,7 @@ function actionRank(action: string): number {
  */
 export function groupPermissions(
   items: PermissionItem[],
-  options: { assignableOnly?: boolean } = {},
+  options: { assignableOnly?: boolean } = {}
 ): PermissionGroup[] {
   const groups = new Map<string, PermissionItem[]>()
   for (const item of items) {
@@ -127,7 +174,7 @@ export function groupPermissions(
       items: [...list].sort(
         (left, right) =>
           actionRank(left.action) - actionRank(right.action) ||
-          left.name.localeCompare(right.name),
+          left.name.localeCompare(right.name)
       ),
     }))
 }
@@ -135,13 +182,29 @@ export function groupPermissions(
 /** 只按 name 推导权限项，目录未加载完时详情仍能显示已授予的权限。 */
 export function itemsFromNames(names: string[]): PermissionItem[] {
   return names.map((name) => {
+    // 资源名本身可能含冒号（如 k8s:node:read），按已知资源前缀切分；
+    // 未知资源仍回落到「第一段是资源」。
+    const known = RESOURCE_ORDER.find((resource) =>
+      name.startsWith(`${resource}:`)
+    )
+    if (known) {
+      return {
+        uid: name,
+        name,
+        resource: known,
+        action: name.slice(known.length + 1),
+      }
+    }
     const [resource, ...rest] = name.split(":")
     return { uid: name, name, resource, action: rest.join(":") }
   })
 }
 
 /** 搜索命中中文、英文、模块、动作或完整 code；大小写不敏感。 */
-export function matchesPermission(item: PermissionItem, query: string): boolean {
+export function matchesPermission(
+  item: PermissionItem,
+  query: string
+): boolean {
   const keyword = query.trim().toLowerCase()
   if (!keyword) {
     return true

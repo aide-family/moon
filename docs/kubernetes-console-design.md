@@ -112,13 +112,22 @@
 
 ### 权限
 
+`cluster:*` 只负责集群接入与连接；资源操作按资源独立授权，页面按权限过滤导航与写入口。
+
 | 权限 | 页面行为 |
 | --- | --- |
-| `cluster:read` | 查看详情、概况、十一类资源列表与详情、日志、镜像与历史版本、测试连接；无权限时跳 `/forbidden` |
-| `cluster:write` | cordon/uncordon、调整副本、滚动重启、删除 Pod、设置镜像、版本回滚、删除 Job、暂停/恢复与立即运行 CronJob、删除 CronJob |
-| `cluster:delete` | 集群列表页删除集群（详情页不新增删除入口） |
+| `cluster:read` | 查看集群列表/详情、测试连接、进入控制台；无权限时跳 `/forbidden` |
+| `cluster:write` / `cluster:delete` | 接入、更新、探测 kubeconfig / 删除集群 |
+| `k8s:node:read` / `k8s:node:write` | 节点列表与详情 / cordon、uncordon |
+| `k8s:workload:read` / `k8s:workload:write` | 工作负载列表、详情、镜像与历史版本 / 调整副本、滚动重启、设置镜像、版本回滚 |
+| `k8s:pod:read` / `k8s:pod:write` / `k8s:pod:logs` | Pod 列表与详情 / 删除 Pod / 读取容器日志 |
+| `k8s:ingress:read`、`k8s:service:read` | Ingress、Service 列表与详情 |
+| `k8s:configmap:read`、`k8s:secret:read` | ConfigMap、Secret 列表与详情（仅键名） |
+| `k8s:pv:read`、`k8s:pvc:read` | PV、PVC 列表与详情 |
+| `k8s:job:read` / `k8s:job:write` | Job 列表与详情 / 删除 Job |
+| `k8s:cronjob:read` / `k8s:cronjob:write` | CronJob 列表与详情 / 暂停、恢复、立即运行、删除 CronJob |
 
-M16 新增的写操作全部使用既有 `cluster:write`，未新增权限；服务端仍独立校验，页面只负责隐藏入口。
+预置角色：`owner`、`admin` 全部；`member`、`viewer` 拿到全部 `k8s:*:read` 与 `k8s:pod:logs`，没有写权限。缺某个 `k8s:*:read` 时对应导航、Tab 和 YAML 入口不显示，直接访问 URL 回落到概况。服务端仍独立校验，页面只负责隐藏入口。
 
 ## 4. 详情抽屉
 
@@ -190,7 +199,7 @@ Pod 采样而不全量拉取的原因：`ListPods` 在服务端先列全量再�
 | `GET` | `/v1/cluster/{cluster_uid}/secret-detail` | `namespace`、`name` → `secret`、`relatedWorkloads[]` | 含 imagePullSecrets；值仍不返回 |
 | `GET` | `/v1/cluster/{cluster_uid}/persistentvolumeclaim-detail` | `namespace`、`name` → `claim`、`relatedWorkloads[]` | volumeMount 引用 |
 
-六类接口均要求 `cluster:read`，并先按当前租户校验 `cluster_uid`；分页在服务端完成，排序为 namespace/name（PV 按 name）。
+六类接口的读权限按资源校验（Service、ConfigMap、Secret、PV、PVC 各自 `k8s:*:read`，YAML 按 `kind` 映射），并先按当前租户校验 `cluster_uid`；分页在服务端完成，排序为 namespace/name（PV 按 name）。
 
 ### M16 新增接口
 
@@ -209,7 +218,7 @@ Pod 采样而不全量拉取的原因：`ListPods` 在服务端先列全量再�
 | `POST` | `/v1/cluster/{cluster_uid}/cronjob/trigger` | `namespace`、`name` → `job` | 用 `jobTemplate` 立即创建 Job，名称 `<cronjob>-manual-<unix秒>` |
 | `DELETE` | `/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}` | — | 删除 CronJob（默认级联删除它创建的 Job） |
 
-- 读接口要求 `cluster:read`，写接口要求 `cluster:write`；分页参数与十一类列表一致，排序为 namespace/name。
+- 读接口要求对应资源的 `k8s:*:read`（工作负载、Job、CronJob），写接口要求对应资源的 `k8s:*:write`；分页参数与十一类列表一致，排序为 namespace/name。
 - YAML 接口的 `kind` 扩展到 `Job`、`CronJob`；Secret/ConfigMap 脱敏规则不变。
 - 以上接口都不落库、不新增表与迁移。
 

@@ -38,7 +38,9 @@ import { ClusterResourceNav, ClusterResourcePicker } from "./resource-nav"
 import {
   clusterSectionScope,
   clusterSectionSupportsName,
+  filterClusterNavGroups,
   findClusterNavEntry,
+  isClusterSectionAllowed,
   readClusterNavLabel,
   type ClusterNavCounts,
   type ClusterSection,
@@ -83,15 +85,27 @@ export function ClusterDetailPage() {
     name: string
   } | null>(null)
 
-  const canWrite = session.can("cluster:write")
-  // 测试连通性只读集群元数据，服务端按 cluster:read 校验。
-  const canTest = session.can("cluster:read")
+  const can = session.can
+  // 页面级门槛仍是 cluster:read：它代表集群接入与连接权限，不是资源读写权限。
+  const canTest = can("cluster:read")
+  // 写操作按资源下传；cluster:write 现在只用于集群接入/连接，不再代表能改资源。
+  const canWriteNodes = can("k8s:node:write")
+  const canWriteWorkloads = can("k8s:workload:write")
+  const canWriteJobs = can("k8s:job:write")
+  const canWriteCronJobs = can("k8s:cronjob:write")
+  const canWritePods = can("k8s:pod:write")
+  const canReadPodLogs = can("k8s:pod:logs")
 
   const section = query.section
   const kind = query.kind
-  const scope = clusterSectionScope(section, kind)
-  const entry = findClusterNavEntry(section, kind)
-  const supportsNameFilter = clusterSectionSupportsName(section)
+  // 当前视图没有读权限时（含直接改 URL 进入），立即按概况渲染并清理 URL。
+  const sectionAllowed = isClusterSectionAllowed(section, kind, can)
+  const visibleSection: ClusterSection = sectionAllowed ? section : "overview"
+  const scope = clusterSectionScope(visibleSection, kind)
+  const entry = findClusterNavEntry(visibleSection, kind)
+  const supportsNameFilter = clusterSectionSupportsName(visibleSection)
+  // 左侧导航与窄屏下拉共用一份按权限过滤的分组。
+  const navGroups = useMemo(() => filterClusterNavGroups(can), [can])
   const overview = useClusterOverview({
     clusterUid: uid,
     namespace: query.namespace,
@@ -102,6 +116,15 @@ export function ClusterDetailPage() {
     namespace: query.namespace,
     refreshKey,
   })
+
+  // 读权限被收回或链接指向无权视图时，把 URL 收回概况，刷新后也不会再落到 403 面板。
+  // 条件成立才更新 URL，所以同一份 query 对象重复触发该 effect 也只是空转。
+  useEffect(() => {
+    if (session.loading || sectionAllowed) {
+      return
+    }
+    query.update({ section: "overview", kind: "" })
+  }, [sectionAllowed, session.loading, query])
 
   useEffect(() => {
     if (!uid) {
@@ -203,12 +226,12 @@ export function ClusterDetailPage() {
     [namespaces, t]
   )
 
-  if (!session.loading && !session.can("cluster:read")) {
+  if (!session.loading && !can("cluster:read")) {
     return <Navigate to="/forbidden" replace />
   }
 
   const applied = {
-    section,
+    section: visibleSection,
     kind,
     namespace: query.namespace,
     name: query.name,
@@ -229,6 +252,10 @@ export function ClusterDetailPage() {
     : []
 
   function selectSection(nextSection: ClusterSection, nextKind?: string) {
+    // 导航项已按权限过滤；概况卡片等入口也可能指向无权视图，这里统一拦截。
+    if (!isClusterSectionAllowed(nextSection, nextKind ?? "", can)) {
+      return
+    }
     if (nextSection === section && (nextKind ?? "") === kind) {
       return
     }
@@ -271,7 +298,7 @@ export function ClusterDetailPage() {
   }
 
   function renderResourcePanel() {
-    switch (section) {
+    switch (visibleSection) {
       case "overview":
         return (
           <ClusterOverviewTab
@@ -287,7 +314,7 @@ export function ClusterDetailPage() {
           <KubernetesNodesTab
             clusterUid={uid}
             name={applied.name}
-            canWrite={canWrite}
+            canWrite={canWriteNodes}
             refreshKey={refreshKey}
           />
         )
@@ -298,7 +325,7 @@ export function ClusterDetailPage() {
             namespace={applied.namespace}
             kind={kind}
             name={applied.name}
-            canWrite={canWrite}
+            canWrite={canWriteWorkloads}
             refreshKey={refreshKey}
           />
         )
@@ -308,7 +335,7 @@ export function ClusterDetailPage() {
             clusterUid={uid}
             namespace={applied.namespace}
             name={applied.name}
-            canWrite={canWrite}
+            canWrite={canWriteJobs}
             page={query.page}
             pageSize={query.pageSize}
             onPageChange={(page) => query.update({ page })}
@@ -321,7 +348,7 @@ export function ClusterDetailPage() {
             clusterUid={uid}
             namespace={applied.namespace}
             name={applied.name}
-            canWrite={canWrite}
+            canWrite={canWriteCronJobs}
             page={query.page}
             pageSize={query.pageSize}
             onPageChange={(page) => query.update({ page })}
@@ -334,7 +361,8 @@ export function ClusterDetailPage() {
             clusterUid={uid}
             namespace={applied.namespace}
             name={applied.name}
-            canWrite={canWrite}
+            canWrite={canWritePods}
+            canLogs={canReadPodLogs}
             page={query.page}
             pageSize={query.pageSize}
             onPageChange={(page) => query.update({ page })}
@@ -482,8 +510,9 @@ export function ClusterDetailPage() {
           <aside className="hidden min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card/55 lg:flex">
             <div className="min-h-0 flex-1 overflow-y-auto p-2">
               <ClusterResourceNav
-                section={section}
+                section={visibleSection}
                 kind={kind}
+                groups={navGroups}
                 counts={navCounts}
                 onSelect={selectSection}
               />
@@ -493,8 +522,9 @@ export function ClusterDetailPage() {
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2">
               <div className="flex min-w-0 items-center gap-2 lg:flex-1">
                 <ClusterResourcePicker
-                  section={section}
+                  section={visibleSection}
                   kind={kind}
+                  groups={navGroups}
                   onSelect={selectSection}
                   className="lg:hidden"
                 />

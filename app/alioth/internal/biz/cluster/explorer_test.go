@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
@@ -89,6 +90,34 @@ func TestNormalizeYAMLResource(t *testing.T) {
 				t.Fatalf("got kind=%q namespace=%q name=%q, want %q/%q/%q", kind, namespace, resourceName, tc.wantKind, tc.wantNamespace, tc.wantName)
 			}
 		})
+	}
+}
+
+// TestYAMLResourcePermission 确认 YAML 预览按资源类型取权限：
+// 三种工作负载共用 k8s:workload:read，节点、存储等分别映射到独立权限。
+func TestYAMLResourcePermission(t *testing.T) {
+	cases := map[string]string{
+		resourceKindNode:                  perm.K8sNodeRead,
+		resourceKindPod:                   perm.K8sPodRead,
+		resourceKindDeployment:            perm.K8sWorkloadRead,
+		resourceKindStatefulSet:           perm.K8sWorkloadRead,
+		resourceKindDaemonSet:             perm.K8sWorkloadRead,
+		resourceKindJob:                   perm.K8sJobRead,
+		resourceKindCronJob:               perm.K8sCronJobRead,
+		resourceKindIngress:               perm.K8sIngressRead,
+		resourceKindService:               perm.K8sServiceRead,
+		resourceKindConfigMap:             perm.K8sConfigMapRead,
+		resourceKindSecret:                perm.K8sSecretRead,
+		resourceKindPersistentVolume:      perm.K8sPersistentVolumeRead,
+		resourceKindPersistentVolumeClaim: perm.K8sPersistentVolumeClaimRead,
+	}
+	for kind, want := range cases {
+		if got := yamlResourcePermission(kind); got != want {
+			t.Fatalf("yamlResourcePermission(%s) = %s, want %s", kind, got, want)
+		}
+	}
+	if got := yamlResourcePermission("HorizontalPodAutoscaler"); got != "" {
+		t.Fatalf("unknown kind permission = %s, want empty", got)
 	}
 }
 

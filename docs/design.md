@@ -200,7 +200,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 系统权限目录：`system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read`、`system:namespace:read`。其中 `system:user:read` 决定用户列表可见性，`system:namespace:read` 决定平台租户列表可见性和只读切入入口；`system:role:write` 只授予超级管理员。
 
 
-租户权限按资源划分：`member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`。动作至少包含 `read` 与 `write`；告警另有 `intervene`；执行动作为 `ssh:exec`。`user` 是平台资源，不进入租户权限目录。具体权限名在 proto 枚举中定稿。Web 菜单分别按系统权限和当前用户在当前 Namespace 的租户权限生成。Moon Web 的菜单是前端写死的，没有路由级权限。
+租户权限按资源划分：`member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`cluster`、`agent`、`ssh`。Kubernetes 控制台另外按资源授权，权限名为 `k8s:<资源>:<动作>`，覆盖 `k8s:node`、`k8s:workload`、`k8s:pod`、`k8s:ingress`、`k8s:service`、`k8s:configmap`、`k8s:secret`、`k8s:pv`、`k8s:pvc`、`k8s:job`、`k8s:cronjob`；`cluster:*` 只负责集群接入与连接，进入控制台仍要求 `cluster:read`。动作至少包含 `read` 与 `write`；Pod 日志为独立的只读动作 `k8s:pod:logs`；告警另有 `intervene`；执行动作为 `ssh:exec`。`user` 是平台资源，不进入租户权限目录。具体权限名在 proto 枚举中定稿。Web 菜单分别按系统权限和当前用户在当前 Namespace 的租户权限生成。Moon Web 的菜单是前端写死的，没有路由级权限。
 
 认证：
 

@@ -30,9 +30,109 @@ func TestRoleBoundaries(t *testing.T) {
 		t.Fatal("viewer has exec permission")
 	}
 	for name := range viewer {
-		if len(name) < 5 || name[len(name)-5:] != ":read" {
-			t.Fatalf("viewer permission %s is not read", name)
+		if !IsReadOnly(name) {
+			t.Fatalf("viewer permission %s is not read-only", name)
 		}
+	}
+}
+
+// TestK8sPermissionCatalog 确认 Kubernetes 资源级权限都在租户目录里，
+// 并且 Name 能由 Resource 和 Action 拼回，前端分组和详情页才不会错位。
+func TestK8sPermissionCatalog(t *testing.T) {
+	catalog := set(Names())
+	want := []string{
+		K8sNodeRead, K8sNodeWrite,
+		K8sWorkloadRead, K8sWorkloadWrite,
+		K8sPodRead, K8sPodWrite, K8sPodLogs,
+		K8sIngressRead, K8sServiceRead, K8sConfigMapRead, K8sSecretRead,
+		K8sPersistentVolumeRead, K8sPersistentVolumeClaimRead,
+		K8sJobRead, K8sJobWrite, K8sCronJobRead, K8sCronJobWrite,
+	}
+	for _, name := range want {
+		if _, ok := catalog[name]; !ok {
+			t.Fatalf("tenant catalog missing %s", name)
+		}
+		if !IsTenantPermission(name) {
+			t.Fatalf("%s is not a tenant permission", name)
+		}
+	}
+	for _, item := range Catalog() {
+		if item.Name != item.Resource+":"+item.Action {
+			t.Fatalf("permission %s name does not match resource/action %s/%s", item.Name, item.Resource, item.Action)
+		}
+	}
+	if len(K8sReadPermissions()) != 12 {
+		t.Fatalf("k8s read permissions = %d, want 12", len(K8sReadPermissions()))
+	}
+	if len(K8sWritePermissions()) != 5 {
+		t.Fatalf("k8s write permissions = %d, want 5", len(K8sWritePermissions()))
+	}
+}
+
+// TestK8sRoleBoundaries 确认 owner/admin 拿到全部资源读写，
+// member/viewer 只拿到全部资源读和 Pod 日志，不含任何资源写。
+func TestK8sRoleBoundaries(t *testing.T) {
+	owner := set(RolePermissions(RoleOwner))
+	admin := set(RolePermissions(RoleAdmin))
+	member := set(RolePermissions(RoleMember))
+	viewer := set(RolePermissions(RoleViewer))
+	reads := K8sReadPermissions()
+	if !IsReadOnly(K8sPodLogs) {
+		t.Fatal("k8s pod logs is not read-only")
+	}
+	for _, code := range reads {
+		if _, ok := member[code]; !ok {
+			t.Fatalf("member missing k8s read permission %s", code)
+		}
+		if _, ok := viewer[code]; !ok {
+			t.Fatalf("viewer missing k8s read permission %s", code)
+		}
+	}
+	for _, code := range K8sWritePermissions() {
+		if _, ok := owner[code]; !ok {
+			t.Fatalf("owner missing k8s write permission %s", code)
+		}
+		if _, ok := admin[code]; !ok {
+			t.Fatalf("admin missing k8s write permission %s", code)
+		}
+		if _, ok := member[code]; ok {
+			t.Fatalf("member has k8s write permission %s", code)
+		}
+		if _, ok := viewer[code]; ok {
+			t.Fatalf("viewer has k8s write permission %s", code)
+		}
+	}
+}
+
+// TestReadOnlyCatalog 确认只读判断覆盖 read 与 logs，写、删除、介入和执行都不算只读。
+func TestReadOnlyCatalog(t *testing.T) {
+	reads := set(ReadOnlyNames())
+	for _, item := range Catalog() {
+		_, inReads := reads[item.Name]
+		want := item.Action == "read" || item.Action == "logs"
+		if inReads != want {
+			t.Fatalf("permission %s read-only = %v, want %v", item.Name, inReads, want)
+		}
+		if got := IsReadOnly(item.Name); got != want {
+			t.Fatalf("IsReadOnly(%s) = %v, want %v", item.Name, got, want)
+		}
+	}
+	for _, write := range []string{
+		MemberWrite, MemberDelete, AlertIntervene, SSHExec, NamespaceDelete, NamespaceTransfer,
+		K8sPodWrite, K8sCronJobWrite,
+	} {
+		if IsReadOnly(write) {
+			t.Fatalf("write permission %s treated as read-only", write)
+		}
+	}
+	if IsReadOnly("k8s:node") || IsReadOnly("") {
+		t.Fatal("unknown permission treated as read-only")
+	}
+	if IsReadOnly(SystemNamespaceRead) || IsReadOnly(SystemUserRead) {
+		t.Fatal("system permission treated as tenant read-only permission")
+	}
+	if len(reads) != len(readPermissions()) {
+		t.Fatalf("read-only catalog size = %d, want %d", len(reads), len(readPermissions()))
 	}
 }
 
@@ -75,36 +175,7 @@ func TestSystemTenantIsolation(t *testing.T) {
 	}
 }
 
-// TestReadOnlyCatalog 确认只读放行只认租户目录里的 read 动作。
-// 平台管理员跨租户只读，写、删除、介入和执行动作不在其中。
-func TestReadOnlyCatalog(t *testing.T) {
-	reads := set(ReadOnlyNames())
-	for _, item := range Catalog() {
-		_, inReads := reads[item.Name]
-		want := item.Action == "read"
-		if inReads != want {
-			t.Fatalf("permission %s read-only = %v, want %v", item.Name, inReads, want)
-		}
-		if got := IsReadOnly(item.Name); got != want {
-			t.Fatalf("IsReadOnly(%s) = %v, want %v", item.Name, got, want)
-		}
-	}
-	for _, write := range []string{MemberWrite, MemberDelete, AlertIntervene, SSHExec, NamespaceDelete, NamespaceTransfer} {
-		if IsReadOnly(write) {
-			t.Fatalf("write permission %s treated as read-only", write)
-		}
-	}
-	if IsReadOnly(SystemNamespaceRead) || IsReadOnly(SystemUserRead) {
-		t.Fatal("system permission treated as tenant read-only permission")
-	}
-	if IsReadOnly("member") || IsReadOnly("") {
-		t.Fatal("unknown permission treated as read-only")
-	}
-	if len(reads) != len(readPermissions()) {
-		t.Fatalf("read-only catalog size = %d, want %d", len(reads), len(readPermissions()))
-	}
-}
-
+// TestTenantPermissionCatalog 确认租户权限目录不接受平台权限。
 func TestTenantPermissionCatalog(t *testing.T) {
 	if IsTenantPermission(SystemUserRead) {
 		t.Fatal("system permission accepted as tenant permission")

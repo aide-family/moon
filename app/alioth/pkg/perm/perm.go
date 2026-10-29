@@ -40,6 +40,27 @@ const (
 	ClusterWrite  = "cluster:write"
 	ClusterDelete = "cluster:delete"
 
+	// Kubernetes 控制台按资源细分。cluster:* 只保留集群接入与连接：列表、详情、
+	// 测试连通性、修改 kubeconfig 和删除集群；进入控制台仍然要求 cluster:read。
+	// 节点、工作负载、Pod 等资源的读写用下面的 k8s:<资源>:<动作>。Pod 日志单独授权。
+	K8sNodeRead                  = "k8s:node:read"
+	K8sNodeWrite                 = "k8s:node:write"
+	K8sWorkloadRead              = "k8s:workload:read"
+	K8sWorkloadWrite             = "k8s:workload:write"
+	K8sPodRead                   = "k8s:pod:read"
+	K8sPodWrite                  = "k8s:pod:write"
+	K8sPodLogs                   = "k8s:pod:logs"
+	K8sIngressRead               = "k8s:ingress:read"
+	K8sServiceRead               = "k8s:service:read"
+	K8sConfigMapRead             = "k8s:configmap:read"
+	K8sSecretRead                = "k8s:secret:read"
+	K8sPersistentVolumeRead      = "k8s:pv:read"
+	K8sPersistentVolumeClaimRead = "k8s:pvc:read"
+	K8sJobRead                   = "k8s:job:read"
+	K8sJobWrite                  = "k8s:job:write"
+	K8sCronJobRead               = "k8s:cronjob:read"
+	K8sCronJobWrite              = "k8s:cronjob:write"
+
 	AgentDelete = "agent:delete"
 
 	SSHDelete = "ssh:delete"
@@ -84,7 +105,7 @@ type Item struct {
 
 // Catalog 返回租户权限目录。
 func Catalog() []Item {
-	items := make([]Item, 0, len(resources)*2+4)
+	items := make([]Item, 0, len(resources)*2+4+len(k8sCatalog()))
 	for _, resource := range resources {
 		items = append(items,
 			Item{Name: resource + ":read", Resource: resource, Action: "read"},
@@ -102,7 +123,32 @@ func Catalog() []Item {
 		Item{Name: NamespaceDelete, Resource: "namespace", Action: "delete"},
 		Item{Name: NamespaceTransfer, Resource: "namespace", Action: "transfer"},
 	)
+	items = append(items, k8sCatalog()...)
 	return items
+}
+
+// k8sCatalog 返回 Kubernetes 资源级权限，追加在租户权限目录末尾。
+// Resource 用 k8s:<资源> 形式，供前端按资源分组；Name 仍是 Resource + ":" + Action。
+func k8sCatalog() []Item {
+	return []Item{
+		{Name: K8sNodeRead, Resource: "k8s:node", Action: "read"},
+		{Name: K8sNodeWrite, Resource: "k8s:node", Action: "write"},
+		{Name: K8sWorkloadRead, Resource: "k8s:workload", Action: "read"},
+		{Name: K8sWorkloadWrite, Resource: "k8s:workload", Action: "write"},
+		{Name: K8sPodRead, Resource: "k8s:pod", Action: "read"},
+		{Name: K8sPodWrite, Resource: "k8s:pod", Action: "write"},
+		{Name: K8sPodLogs, Resource: "k8s:pod", Action: "logs"},
+		{Name: K8sIngressRead, Resource: "k8s:ingress", Action: "read"},
+		{Name: K8sServiceRead, Resource: "k8s:service", Action: "read"},
+		{Name: K8sConfigMapRead, Resource: "k8s:configmap", Action: "read"},
+		{Name: K8sSecretRead, Resource: "k8s:secret", Action: "read"},
+		{Name: K8sPersistentVolumeRead, Resource: "k8s:pv", Action: "read"},
+		{Name: K8sPersistentVolumeClaimRead, Resource: "k8s:pvc", Action: "read"},
+		{Name: K8sJobRead, Resource: "k8s:job", Action: "read"},
+		{Name: K8sJobWrite, Resource: "k8s:job", Action: "write"},
+		{Name: K8sCronJobRead, Resource: "k8s:cronjob", Action: "read"},
+		{Name: K8sCronJobWrite, Resource: "k8s:cronjob", Action: "write"},
+	}
 }
 
 // SystemCatalog 返回平台权限目录，和租户权限目录互不混用。
@@ -181,11 +227,12 @@ func SystemPermissions(role string) []string {
 }
 
 // IsReadOnly 判断权限名是否属于租户目录中的只读权限。
+// 只读动作是 read 和 logs：读取 Pod 日志不改变集群状态，但仍然是独立权限点。
 // 平台管理员只靠它跨租户读取；写、删除、介入和执行动作一律不放行。
 func IsReadOnly(code string) bool {
 	for _, item := range Catalog() {
 		if item.Name == code {
-			return item.Action == "read"
+			return item.Action == "read" || item.Action == "logs"
 		}
 	}
 	return false
@@ -194,9 +241,9 @@ func IsReadOnly(code string) bool {
 // ReadOnlyNames 返回租户目录中的全部只读权限名，顺序与 Catalog 一致。
 // 平台管理员不是租户成员时，/self/permissions 返回这份目录。
 func ReadOnlyNames() []string {
-	var names []string
+	names := make([]string, 0)
 	for _, item := range Catalog() {
-		if item.Action == "read" {
+		if item.Action == "read" || item.Action == "logs" {
 			names = append(names, item.Name)
 		}
 	}
@@ -236,12 +283,38 @@ func IsSystemAdmin(role string) bool {
 	return role == SystemRoleSuperAdmin || role == SystemRoleSystemAdmin
 }
 
+// K8sReadPermissions 返回 Kubernetes 资源级的全部只读权限，顺序与 Catalog 一致。
+// Pod 日志读取（k8s:pod:logs）不改变集群状态，也属于只读；member 和 viewer 默认持有。
+func K8sReadPermissions() []string {
+	names := make([]string, 0, len(k8sCatalog()))
+	for _, item := range k8sCatalog() {
+		if item.Action == "read" || item.Action == "logs" {
+			names = append(names, item.Name)
+		}
+	}
+	return names
+}
+
+// K8sWritePermissions 返回 Kubernetes 资源级的全部写权限。
+// 迁移旧的自定义角色时，持有 cluster:write 的角色补齐这一组，但不会因此拿到 pod:logs。
+func K8sWritePermissions() []string {
+	names := make([]string, 0, len(k8sCatalog()))
+	for _, item := range k8sCatalog() {
+		if item.Action == "write" {
+			names = append(names, item.Name)
+		}
+	}
+	return names
+}
+
+// readPermissions 返回 viewer 的只读权限：全部租户资源的读权限，加上 Kubernetes
+// 资源级只读权限（含读取 Pod 日志）。member 在此基础上再叠加告警干预与 SSH 执行。
 func readPermissions() []string {
-	names := make([]string, 0, len(resources))
+	names := make([]string, 0, len(resources)+len(k8sCatalog()))
 	for _, resource := range resources {
 		names = append(names, resource+":read")
 	}
-	return names
+	return append(names, K8sReadPermissions()...)
 }
 
 func memberPermissions() []string {
