@@ -26,10 +26,15 @@ type ProbeTargetRepo interface {
 	// ListProbeTargets 返回目标组内启用中的地址。
 	ListProbeTargets(ctx context.Context, namespaceUID, groupUID string) ([]bo.ProbeTarget, error)
 
-	// SaveProbeResults 按 (target_uid, slot) 幂等写入探测结果。
-	SaveProbeResults(ctx context.Context, results []bo.ProbeResult) error
+	// SaveProbeResults 按 (target_uid, slot) 幂等写入探测结果，返回本次真正新增的
+	// 目标 UID；重复回写的目标不会出现在返回值里，调用方据此避免重复判定。
+	SaveProbeResults(ctx context.Context, results []bo.ProbeResult) (map[string]struct{}, error)
+	// ProbingTargetUIDs 返回某个槽位已经有探测结果的目标，领取时用来避免同槽位
+	// 反复探测。
 	// ListProbeResults 按目标与时间窗口返回探测结果，按 Slot 升序。
 	ListProbeResults(ctx context.Context, namespaceUID string, targetUIDs []string, from, to time.Time) ([]bo.ProbeResult, error)
+	// ProbingTargetUIDs 返回某个槽位已有结果的目标集合。
+	ProbingTargetUIDs(ctx context.Context, namespaceUID string, slot time.Time, targetUIDs []string) (map[string]struct{}, error)
 	// ListProbeTargetResults 分页返回某个目标组的探测记录。
 	ListProbeTargetResults(ctx context.Context, namespaceUID, groupUID, targetUID string, page, pageSize int) ([]bo.ProbeResult, int, error)
 	// LatestProbeResults 返回一批目标各自最近一条探测结果。

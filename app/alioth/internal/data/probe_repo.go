@@ -369,9 +369,10 @@ func (r *probeRepo) fillProbeLatest(ctx context.Context, groups []*bo.ProbeTarge
 	_ = targetUIDs
 }
 
-func (r *probeRepo) SaveProbeResults(ctx context.Context, results []bo.ProbeResult) error {
+func (r *probeRepo) SaveProbeResults(ctx context.Context, results []bo.ProbeResult) (map[string]struct{}, error) {
+	inserted := make(map[string]struct{}, len(results))
 	if len(results) == 0 {
-		return nil
+		return inserted, nil
 	}
 	for _, item := range results {
 		_, err := r.client.ProbeResult.Create().
@@ -401,10 +402,32 @@ func (r *probeRepo) SaveProbeResults(ctx context.Context, results []bo.ProbeResu
 				// 同一 (target, slot) 已回写过，幂等跳过。
 				continue
 			}
-			return r.fail(err)
+			return inserted, r.fail(err)
 		}
+		inserted[item.TargetUID] = struct{}{}
 	}
-	return nil
+	return inserted, nil
+}
+
+// ProbingTargetUIDs 返回某个槽位已有结果的目标；领取时跳过它们，避免同一个
+// 槽位在窗口内被反复探测和反复回写。
+func (r *probeRepo) ProbingTargetUIDs(ctx context.Context, namespaceUID string, slot time.Time, targetUIDs []string) (map[string]struct{}, error) {
+	out := make(map[string]struct{}, len(targetUIDs))
+	if len(targetUIDs) == 0 {
+		return out, nil
+	}
+	rows, err := r.client.ProbeResult.Query().Where(
+		proberesult.NamespaceUIDEQ(namespaceUID),
+		proberesult.SlotEQ(slot),
+		proberesult.TargetUIDIn(targetUIDs...),
+	).Select(proberesult.FieldTargetUID).All(ctx)
+	if err != nil {
+		return out, r.fail(err)
+	}
+	for _, row := range rows {
+		out[row.TargetUID] = struct{}{}
+	}
+	return out, nil
 }
 
 func (r *probeRepo) ListProbeResults(ctx context.Context, namespaceUID string, targetUIDs []string, from, to time.Time) ([]bo.ProbeResult, error) {

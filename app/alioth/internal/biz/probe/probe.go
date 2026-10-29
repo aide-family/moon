@@ -174,7 +174,7 @@ func (gateway *Gateway) ProbeTargetGroupNow(ctx context.Context, uid string) ([]
 		cancel()
 		results = append(results, toResult(ns, group.UID, target, outcome, slot, now))
 	}
-	if err := gateway.targets.SaveProbeResults(ctx, results); err != nil {
+	if _, err := gateway.targets.SaveProbeResults(ctx, results); err != nil {
 		return nil, gateway.access.Wrap(err)
 	}
 	return results, nil

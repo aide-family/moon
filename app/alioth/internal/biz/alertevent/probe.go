@@ -93,8 +93,28 @@ func (coordinator *Coordinator) ClaimProbeTasks(ctx context.Context) ([]bo.Probe
 			if len(targets) == 0 {
 				continue
 			}
+			// 同一槽位已探测过的目标不再下发：领取窗口内会轮询多次，不去重会
+			// 反复探测同一个槽位。
+			uids := make([]string, 0, len(targets))
+			for _, target := range targets {
+				uids = append(uids, target.UID)
+			}
+			probed, err := coordinator.probes.ProbingTargetUIDs(ctx, rule.NamespaceUID, *rule.ScheduledSlot, uids)
+			if err != nil {
+				return nil, err
+			}
+			pending := make([]bo.ProbeTarget, 0, len(targets))
+			for _, target := range targets {
+				if _, ok := probed[target.UID]; ok {
+					continue
+				}
+				pending = append(pending, target)
+			}
+			if len(pending) == 0 {
+				continue
+			}
 			tasks = append(tasks, bo.ProbeTask{
-				Rule: rule, Group: group, Targets: targets, Slot: *rule.ScheduledSlot,
+				Rule: rule, Group: group, Targets: pending, Slot: *rule.ScheduledSlot,
 			})
 		}
 	}
@@ -165,10 +185,15 @@ func (coordinator *Coordinator) ReportProbeResults(ctx context.Context, in bo.Pr
 	if len(records) == 0 {
 		return nil
 	}
-	if err := coordinator.probes.SaveProbeResults(ctx, records); err != nil {
+	inserted, err := coordinator.probes.SaveProbeResults(ctx, records)
+	if err != nil {
 		return err
 	}
+	// 只判定本次真正写入的目标：同一槽位的重复回写不会再次触发事件或通知。
 	for _, record := range records {
+		if _, ok := inserted[record.TargetUID]; !ok {
+			continue
+		}
 		target := targets[record.TargetUID]
 		group := groupByUID[target.GroupUID]
 		if err := coordinator.judgeProbeTarget(ctx, *rule, group, target, in.Slot); err != nil {

@@ -147,7 +147,7 @@ func TestSaveProbeResultWithoutRule(t *testing.T) {
 
 	repo := NewProbeRepo(store, slog.Default())
 	slot := time.Now().UTC().Truncate(time.Second)
-	if err := repo.SaveProbeResults(ctx, []bo.ProbeResult{{
+	if _, err := repo.SaveProbeResults(ctx, []bo.ProbeResult{{
 		NamespaceUID: namespace, GroupUID: "group-now", TargetUID: "target-now",
 		TargetSpec: "http://127.0.0.1:8002/health", Slot: slot, ProbedAt: slot,
 		Value: "12", DurationMS: 12, StatusCode: 200, Executor: "manual",
@@ -162,5 +162,56 @@ func TestSaveProbeResultWithoutRule(t *testing.T) {
 	}
 	if row.RuleUID != "" {
 		t.Fatalf("probe-now row rule_uid = %q, want empty", row.RuleUID)
+	}
+}
+
+// TestSaveProbeResultsReportsOnlyNewTargets 同一槽位重复回写不会重复判定和通知：
+// SaveProbeResults 只把真正新增的目标返给调用方。
+func TestSaveProbeResultsReportsOnlyNewTargets(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	store, cleanup, err := NewDependencies(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Skip(err)
+	}
+	t.Cleanup(cleanup)
+	if err := ApplySchema(ctx, store.client, store.db); err != nil {
+		t.Fatal(err)
+	}
+	namespace := "ns-probe-dedup-" + time.Now().Format("150405.000000")
+	t.Cleanup(func() {
+		_, _ = store.client.ProbeResult.Delete().Where(proberesult.NamespaceUIDEQ(namespace)).Exec(ctx)
+	})
+	repo := NewProbeRepo(store, slog.Default())
+	slot := time.Now().UTC().Truncate(time.Second)
+	result := bo.ProbeResult{
+		NamespaceUID: namespace, GroupUID: "group-dedup", TargetUID: "target-dedup",
+		TargetSpec: "http://127.0.0.1:8002/health", Slot: slot, ProbedAt: slot,
+		OK: true, Value: "1", DurationMS: 9, StatusCode: 200,
+	}
+	first, err := repo.SaveProbeResults(ctx, []bo.ProbeResult{result})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := first["target-dedup"]; !ok {
+		t.Fatalf("first write should report the target as new: %v", first)
+	}
+	second, err := repo.SaveProbeResults(ctx, []bo.ProbeResult{result})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(second) != 0 {
+		t.Fatalf("duplicate write must report no new targets, got %v", second)
+	}
+	probed, err := repo.ProbingTargetUIDs(ctx, namespace, slot, []string{"target-dedup"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := probed["target-dedup"]; !ok {
+		t.Fatal("slot should be marked as probed")
 	}
 }
