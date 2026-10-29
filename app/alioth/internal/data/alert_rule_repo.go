@@ -148,7 +148,7 @@ func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		SetVariables(encodeRuleVariables(in.Variables)).
 		SetProbeGroupLabels(in.ProbeGroupLabels).
 		SetProbeIntervalSeconds(in.ProbeIntervalSeconds).
-		SetProbeMetric(alertrule.ProbeMetric(in.ProbeMetric)).
+		SetProbeMetric(probeMetricValue(in.ProbeMetric)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -192,7 +192,7 @@ func (r *alertRuleRepo) UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		SetVariables(encodeRuleVariables(in.Variables)).
 		SetProbeGroupLabels(in.ProbeGroupLabels).
 		SetProbeIntervalSeconds(in.ProbeIntervalSeconds).
-		SetProbeMetric(alertrule.ProbeMetric(in.ProbeMetric)).
+		SetProbeMetric(probeMetricValue(in.ProbeMetric)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -554,6 +554,18 @@ func (r *alertRuleRepo) withLevels(ctx context.Context, namespaceUID string, row
 
 func toGroup(row *ent.AlertRuleGroup) bo.AlertRuleGroup {
 	return bo.AlertRuleGroup{UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, Status: string(row.Status)}
+}
+
+// probeMetricValue 把观测指标归一成合法枚举。历史调用方与测试可能不传这个字段，
+// 空值按 UP 处理，避免枚举校验把查询规则的写入挡掉。
+func probeMetricValue(metric string) alertrule.ProbeMetric {
+	switch alertrule.ProbeMetric(metric) {
+	case alertrule.ProbeMetricUP, alertrule.ProbeMetricLATENCY_MS,
+		alertrule.ProbeMetricSTATUS_CODE, alertrule.ProbeMetricCERT_DAYS:
+		return alertrule.ProbeMetric(metric)
+	default:
+		return alertrule.ProbeMetricUP
+	}
 }
 
 func toRule(row *ent.AlertRule, levels []bo.AlertRuleLevel) bo.AlertRule {

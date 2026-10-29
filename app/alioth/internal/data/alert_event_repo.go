@@ -1784,6 +1784,9 @@ func (r *alertEventRepo) ApplyProbeHits(ctx context.Context, rule bo.AlertRule, 
 		Labels:   group.Labels,
 		Endpoint: target.Spec,
 	}
+	// 探测规则没有查询表达式，事件的 expr 位置放归一化后的目标地址，
+	// 与查询事件「expr 描述观测对象」的语义保持一致。
+	rule.Expr = target.Spec
 	scopedHits := make([]bo.EvalHit, 0, len(hits))
 	for _, hit := range hits {
 		labels, err := labelsutil.ParseObject(hit.Labels)
