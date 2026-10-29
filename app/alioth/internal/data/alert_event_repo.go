@@ -347,6 +347,17 @@ func truncateText(value string, limit int) string {
 }
 
 func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.AlertRule, report bo.EvalReport) ([]bo.AlertEvent, error) {
+	// 查询规则按数据源收敛事件；探测事件没有数据源，改用目标标签收敛。
+	source := r.datasourceMeta(ctx, tx, report.DatasourceUID)
+	scope := func(event *ent.AlertEvent) bool {
+		return event.DatasourceUID == report.DatasourceUID
+	}
+	return r.applyHitsScoped(ctx, tx, rule, report, source, scope)
+}
+
+// applyHitsScoped 是命中落库的唯一实现：source 提供数据源/目标组元信息，scope
+// 决定哪些现有事件属于本次汇报的范围，范围外的事件不会被误恢复。
+func (r *alertEventRepo) applyHitsScoped(ctx context.Context, tx *ent.Tx, rule bo.AlertRule, report bo.EvalReport, source datasourceMetaInfo, scope func(*ent.AlertEvent) bool) ([]bo.AlertEvent, error) {
 	rows, err := tx.AlertEventFiring.Query().Where(
 		alerteventfiring.NamespaceUIDEQ(rule.NamespaceUID),
 		alerteventfiring.RuleUIDEQ(rule.UID),
@@ -371,7 +382,7 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 			}
 			return nil, r.fail(err)
 		}
-		if event.DatasourceUID != report.DatasourceUID {
+		if !scope(event) {
 			continue
 		}
 		current[row.Fingerprint] = firingEvent{firing: row, event: event}
@@ -385,7 +396,6 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 	}
 	now := time.Now().UTC()
 	recovered := make([]bo.AlertEvent, 0)
-	source := r.datasourceMeta(ctx, tx, report.DatasourceUID)
 	// 级别名称同时用于事件标签和通知；一次取回级别字典，避免每条命中都查一次。
 	levelUIDs := make([]string, 0, len(hits)+1)
 	seenLevels := map[string]struct{}{}
@@ -1052,6 +1062,13 @@ func (r *alertEventRepo) nameEvents(ctx context.Context, items []bo.AlertEvent) 
 	for i := range items {
 		source := sources[items[i].DatasourceUID]
 		items[i].DatasourceName = source.Name
+		// 探测等没有数据源的事件把目标组名放在 labels 的 datasource 键里，
+		// 列表的「数据源」列与按数据源名筛选都用它兜底。
+		if items[i].DatasourceName == "" {
+			if labels, err := labelsutil.ParseObject(items[i].Labels); err == nil {
+				items[i].DatasourceName = labels[datasourceLabelKey]
+			}
+		}
 		items[i].RuleName, items[i].RuleGroupUID = rules[items[i].RuleUID].Name, rules[items[i].RuleUID].GroupUID
 		items[i].LevelName = levels[items[i].LevelUID]
 		// 旧事件没有名称标签，读取时补上，详情标签与写入后的新事件保持一致。
@@ -1752,4 +1769,55 @@ func (r *alertEventRepo) BackfillHistory(ctx context.Context, limit int) (int, e
 	}
 	r.archiveEvents(ctx, "", items)
 	return len(items), nil
+}
+
+// ApplyProbeHits 写一次探测命中：scope 限制在该目标上，source 用目标组名与
+// 目标地址，保证事件字段与查询事件一一对应。
+func (r *alertEventRepo) ApplyProbeHits(ctx context.Context, rule bo.AlertRule, group bo.ProbeTargetGroup, target bo.ProbeTarget, slot time.Time, hits []bo.EvalHit) ([]bo.AlertEvent, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	source := datasourceMetaInfo{
+		Name:     group.Name,
+		Labels:   group.Labels,
+		Endpoint: target.Spec,
+	}
+	scopedHits := make([]bo.EvalHit, 0, len(hits))
+	for _, hit := range hits {
+		labels, err := labelsutil.ParseObject(hit.Labels)
+		if err != nil {
+			continue
+		}
+		// 只接受属于这个目标的命中，防止调用方串目标。
+		if labels[probeTargetUIDLabelKey] != target.UID {
+			continue
+		}
+		scopedHits = append(scopedHits, hit)
+	}
+	report := bo.EvalReport{
+		RuleUID:       rule.UID,
+		DatasourceUID: "",
+		EvalSlot:      slot,
+		Hits:          scopedHits,
+	}
+	scope := func(event *ent.AlertEvent) bool {
+		labels, err := labelsutil.ParseObject(event.Labels)
+		if err != nil {
+			return false
+		}
+		return labels[probeTargetUIDLabelKey] == target.UID
+	}
+	recovered, err := r.applyHitsScoped(ctx, tx, rule, report, source, scope)
+	if err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, r.fail(err)
+	}
+	if len(recovered) > 0 {
+		r.archiveEvents(ctx, rule.NamespaceUID, recovered)
+	}
+	return recovered, nil
 }

@@ -79,6 +79,9 @@ func (s *Scheduler) tick(ctx context.Context) {
 	if err := s.coordinator.Schedule(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("schedule eval: %v", err))
 	}
+	if err := s.coordinator.ScheduleProbes(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("schedule probe: %v", err))
+	}
 	if err := s.center.ReapStale(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("reap notify: %v", err))
 	}

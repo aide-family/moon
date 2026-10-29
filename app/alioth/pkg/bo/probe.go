@@ -80,3 +80,37 @@ type ProbeResult struct {
 	ResolvedIP   string
 	Executor     string
 }
+
+// ProbeTask 是一条待执行的探测：一个规则在一个目标组上、本轮要探测的目标。
+type ProbeTask struct {
+	Rule    AlertRule
+	Group   ProbeTargetGroup
+	Targets []ProbeTarget
+	// Slot 是本轮计划时刻。
+	Slot time.Time
+}
+
+// ProbeReportItem 是执行器回写的单个目标结果。
+type ProbeReportItem struct {
+	TargetUID    string
+	OK           bool
+	Value        string
+	DurationMS   int
+	StatusCode   int
+	ErrorKind    string
+	ErrorMessage string
+	DNSMS        int
+	TCPMS        int
+	TLSMS        int
+	TTFBMS       int
+	CertDays     int
+	ResolvedIP   string
+	Executor     string
+}
+
+// ProbeReport 是执行器的一次回写。Slot 是领取时的计划时刻。
+type ProbeReport struct {
+	RuleUID string
+	Slot    time.Time
+	Results []ProbeReportItem
+}

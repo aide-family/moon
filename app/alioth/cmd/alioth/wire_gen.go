@@ -109,7 +109,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	alertPageRepo := data.NewAlertPageRepo(dependencies, logger)
 	layout := alertpage.NewLayout(alertPageRepo, accessChecker)
 	alertPageService := service.NewAlertPageService(layout)
-	coordinator := alertevent.NewCoordinator(alertRuleRepo, alertEventRepo, alertPageRepo, userRepo, memberRepo, datasourceRepo, client, accessChecker, logger)
+	coordinator := alertevent.NewCoordinator(alertRuleRepo, alertEventRepo, alertPageRepo, userRepo, memberRepo, datasourceRepo, probeTargetRepo, client, accessChecker, logger)
 	alertEventService := service.NewAlertEventService(coordinator)
 	center := notification.NewCenter(notificationRepo, memberRepo, accessChecker, client, logger)
 	notificationChannelService := service.NewNotificationChannelService(center)

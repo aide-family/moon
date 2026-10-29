@@ -23,6 +23,11 @@ import (
 const (
 	// EvalInterval 是调度周期，与调度锁的 TTL 相同。
 	EvalInterval = 15 * time.Second
+	// ProbeScheduleLockKey 是探测调度的锁。探测按每条规则自己的周期推进，
+	// 与查询规则的 15 秒批次互不影响。
+	ProbeScheduleLockKey = "alioth:lock:schedule:probe"
+	// ProbeScheduleTTL 是探测调度锁的持有时间。
+	ProbeScheduleTTL = 10 * time.Second
 	// ScheduleLockKey 是到期扫描使用的锁。玉衡不持有评测锁。
 	ScheduleLockKey = "alioth:lock:schedule:eval"
 	// tabMineID 是实时告警页固定的「我的告警」Tab 标识。
@@ -44,6 +49,7 @@ type Coordinator struct {
 	users       repository.UserRepo
 	members     repository.MemberRepo
 	datasources repository.DatasourceRepo
+	probes      repository.ProbeTargetRepo
 	locks       *lock.Client
 	access      access.Checker
 	log         *slog.Logger
@@ -56,13 +62,14 @@ func NewCoordinator(
 	users repository.UserRepo,
 	members repository.MemberRepo,
 	datasources repository.DatasourceRepo,
+	probes repository.ProbeTargetRepo,
 	locks *lock.Client,
 	checker access.Checker,
 	logger *slog.Logger,
 ) *Coordinator {
 	return &Coordinator{
 		rules: rules, events: events, pages: pages, users: users, members: members,
-		datasources: datasources, locks: locks, access: checker, log: logger,
+		datasources: datasources, probes: probes, locks: locks, access: checker, log: logger,
 	}
 }
 

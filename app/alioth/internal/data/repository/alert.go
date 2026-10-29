@@ -84,6 +84,8 @@ type AlertEventRepo interface {
 	RecoverManual(ctx context.Context, namespaceUID string, uids []string) error
 	// RecoverSource 把仍在触发的事件记为恢复。规则、数据源、级别都为空时不处理。
 	RecoverSource(ctx context.Context, namespaceUID string, ruleUIDs, datasourceUIDs, levelUIDs []string) error
+	// ApplyProbeHits 写一次探测命中，事件字段与查询事件一致；scope 只作用于该目标。
+	ApplyProbeHits(ctx context.Context, rule bo.AlertRule, group bo.ProbeTargetGroup, target bo.ProbeTarget, slot time.Time, hits []bo.EvalHit) ([]bo.AlertEvent, error)
 	// RecoverProbeTargets 把仍在触发、且标签里 probe_target_uid 命中的探测事件记为恢复。
 	// 目标被删除、停用或改到别的目标组时使用。
 	RecoverProbeTargets(ctx context.Context, namespaceUID string, targetUIDs []string) error
