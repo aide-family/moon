@@ -173,11 +173,17 @@ func (coordinator *Coordinator) ReportProbeResults(ctx context.Context, in bo.Pr
 }
 
 // judgeProbeTarget 取该目标在窗口内的结果序列，按级别条件判定并写事件。
-// 点数不足一个窗口时不判定，避免刚建规则就误报。
+// 每个级别用自己的窗口：持续类需要覆盖 for_seconds + 一个周期，最大值/最小值
+// 只看最近一个周期。窗口内点数不足时不判定，避免刚建规则就误报。
 func (coordinator *Coordinator) judgeProbeTarget(ctx context.Context, rule bo.AlertRule, group bo.ProbeTargetGroup, target bo.ProbeTarget, slot time.Time) error {
 	interval := probeInterval(rule)
-	window := probeWindow(rule, interval)
-	records, err := coordinator.probes.ListProbeResults(ctx, rule.NamespaceUID, []string{target.UID}, slot.Add(-window), slot)
+	maxWindow := interval
+	for _, level := range rule.Levels {
+		if window := probeLevelWindow(level, interval); window > maxWindow {
+			maxWindow = window
+		}
+	}
+	records, err := coordinator.probes.ListProbeResults(ctx, rule.NamespaceUID, []string{target.UID}, slot.Add(-maxWindow), slot)
 	if err != nil {
 		return err
 	}
@@ -195,16 +201,17 @@ func (coordinator *Coordinator) judgeProbeTarget(ctx context.Context, rule bo.Al
 	if len(points) == 0 {
 		return nil
 	}
+	labelMap, labels := probeLabels(rule, group, target)
 	hits := make([]bo.EvalHit, 0, 1)
 	for _, level := range rule.Levels {
-		value, raw, ok := alertjudge.Match(alertjudge.Level{
+		windowed := filterProbePoints(points, slot.Add(-probeLevelWindow(level, interval)))
+		_, raw, ok := alertjudge.Match(alertjudge.Level{
 			Condition: level.Condition, Sample: level.Sample,
 			Threshold: level.Threshold, ForSeconds: level.ForSeconds,
-		}, points, int64(interval.Seconds()))
+		}, windowed, int64(interval.Seconds()))
 		if !ok {
 			continue
 		}
-		labelMap, labels := probeLabels(rule, group, target)
 		hits = append(hits, bo.EvalHit{
 			Fingerprint: fingerprint.Of(rule.UID, target.UID, labelMap),
 			Labels:      labels,
@@ -213,12 +220,32 @@ func (coordinator *Coordinator) judgeProbeTarget(ctx context.Context, rule bo.Al
 			Summary:     renderProbeTemplate(rule.Summary, target, group),
 			Description: renderProbeTemplate(rule.Description, target, group),
 		})
-		_ = value
 		break
 	}
 	// 没有命中也要调用：仍在触发的旧事件要按指纹恢复。
 	_, err = coordinator.events.ApplyProbeHits(ctx, rule, group, target, slot, hits)
 	return err
+}
+
+// probeLevelWindow 是一个级别的判定窗口：持续类覆盖 for_seconds 加一个周期，
+// 其余只看最近一个周期。
+func probeLevelWindow(level bo.AlertRuleLevel, interval time.Duration) time.Duration {
+	if level.Sample != "FOR" || level.ForSeconds <= 0 {
+		return interval
+	}
+	return time.Duration(level.ForSeconds)*time.Second + interval
+}
+
+// filterProbePoints 只保留窗口内的点。
+func filterProbePoints(points []alertjudge.Point, from time.Time) []alertjudge.Point {
+	out := make([]alertjudge.Point, 0, len(points))
+	for _, point := range points {
+		if point.At.Before(from) {
+			continue
+		}
+		out = append(out, point)
+	}
+	return out
 }
 
 // probeLabels 生成探测事件的稳定标签集合：规则标签 + 目标组标签 + 目标标签，
@@ -264,17 +291,6 @@ func probeInterval(rule bo.AlertRule) time.Duration {
 		return defaultProbeInterval
 	}
 	return time.Duration(rule.ProbeIntervalSeconds) * time.Second
-}
-
-// probeWindow 是判定窗口：至少一个周期，且覆盖最长的持续秒数。
-func probeWindow(rule bo.AlertRule, interval time.Duration) time.Duration {
-	window := interval
-	for _, level := range rule.Levels {
-		if seconds := time.Duration(level.ForSeconds) * time.Second; seconds > window {
-			window = seconds
-		}
-	}
-	return window + interval
 }
 
 // isNotAcquired 判断锁是否被别人持有。
