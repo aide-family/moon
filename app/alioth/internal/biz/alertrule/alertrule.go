@@ -273,9 +273,16 @@ func validateRuleVariables(in *bo.AlertRule) error {
 }
 
 func (rulebook *Rulebook) prepare(ctx context.Context, namespaceUID string, in *bo.AlertRule) error {
+	if in.Driver == bo.ProbeDriverHTTP {
+		return rulebook.prepareProbe(ctx, namespaceUID, in)
+	}
 	if !datasource.ValidDriver(in.Driver) {
 		return merr.Invalid("invalid request")
 	}
+	// 查询规则不使用探测字段，保存时归一，避免驱动切换后残留旧配置。
+	in.ProbeGroupLabels = "{}"
+	in.ProbeIntervalSeconds = 0
+	in.ProbeMetric = bo.ProbeMetricUp
 	if err := validateRuleVariables(in); err != nil {
 		return err
 	}
@@ -308,6 +315,54 @@ func (rulebook *Rulebook) prepare(ctx context.Context, namespaceUID string, in *
 	return nil
 }
 
+// prepareProbe 校验探测规则：周期、观测指标、目标组匹配器，并清空查询字段。
+func (rulebook *Rulebook) prepareProbe(ctx context.Context, namespaceUID string, in *bo.AlertRule) error {
+	if err := validateRuleVariables(in); err != nil {
+		return err
+	}
+	if err := validateRuleTemplates(in); err != nil {
+		return err
+	}
+	switch in.ProbeIntervalSeconds {
+	case 15, 30, 60, 300:
+	default:
+		return merr.Invalid("invalid probe interval")
+	}
+	switch in.ProbeMetric {
+	case bo.ProbeMetricUp, bo.ProbeMetricLatencyMS, bo.ProbeMetricStatusCode, bo.ProbeMetricCertDays:
+	default:
+		return merr.Invalid("invalid probe metric")
+	}
+	matchers, err := labelsutil.NormalizeMatchers(in.ProbeGroupLabels)
+	if err != nil {
+		return err
+	}
+	in.ProbeGroupLabels = matchers
+	if strings.TrimSpace(in.Labels) != "" && !json.Valid([]byte(in.Labels)) {
+		return merr.Invalid("invalid request")
+	}
+	// 探测规则没有查询表达式，也不匹配数据源。
+	in.Expr = ""
+	in.DatasourceLabels = "{}"
+	in.DatasourceUID = ""
+	in.Variables = nil
+	if _, err := rulebook.rules.GetAlertRuleGroup(ctx, namespaceUID, in.GroupUID); err != nil {
+		return rulebook.access.Wrap(err)
+	}
+	for _, level := range in.Levels {
+		item, err := rulebook.dictionaries.GetAlertDictionary(ctx, namespaceUID, level.LevelUID)
+		if err != nil {
+			return rulebook.access.Wrap(err)
+		}
+		if item.Type != "ALERT" || item.Status != "ACTIVE" {
+			return merr.Invalid("invalid request")
+		}
+	}
+	in.NamespaceUID = namespaceUID
+	in.Name = strings.TrimSpace(in.Name)
+	return nil
+}
+
 func (rulebook *Rulebook) recoverChangedRule(ctx context.Context, namespaceUID string, previous, next *bo.AlertRule) error {
 	if previous == nil || next == nil {
 		return nil
@@ -315,6 +370,12 @@ func (rulebook *Rulebook) recoverChangedRule(ctx context.Context, namespaceUID s
 	// 驱动或表达式变化会改变整条规则的评测语义，旧事件不能继续代表新配置。
 	recoverAll, levelUIDs := changedLevelUIDs(previous.Levels, next.Levels)
 	if previous.Driver != next.Driver || previous.Expr != next.Expr {
+		recoverAll = true
+	}
+	// 探测规则改周期、观测指标或目标组匹配范围，旧事件的含义已经变了。
+	if previous.ProbeIntervalSeconds != next.ProbeIntervalSeconds ||
+		previous.ProbeMetric != next.ProbeMetric ||
+		previous.ProbeGroupLabels != next.ProbeGroupLabels {
 		recoverAll = true
 	}
 	if recoverAll {

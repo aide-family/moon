@@ -57,6 +57,12 @@ type AlertRuleRepo interface {
 	ListEvalCandidates(ctx context.Context, now time.Time) ([]bo.AlertRule, error)
 	ScheduleDue(ctx context.Context, now, next time.Time) error
 	ListScheduled(ctx context.Context) ([]bo.AlertRule, error)
+	// ListProbeRulesDue 返回到期的探测规则，调度按每条规则自己的周期推进。
+	ListProbeRulesDue(ctx context.Context, now time.Time) ([]bo.AlertRule, error)
+	// SetProbeSchedule 写入探测规则本轮槽位与下一次探测时间。
+	SetProbeSchedule(ctx context.Context, uid string, slot, next time.Time) error
+	// ListProbeRulesForClaim 返回当前窗口内可领取的探测规则。
+	ListProbeRulesForClaim(ctx context.Context, now time.Time) ([]bo.AlertRule, error)
 	GetAlertRuleByUID(ctx context.Context, uid string) (*bo.AlertRule, error)
 	ClearScheduledSlot(ctx context.Context, ruleUID string, slot time.Time) error
 }

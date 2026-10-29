@@ -255,6 +255,15 @@ type AlertRule struct {
 	Levels           []AlertRuleLevel
 	// Variables 是摘要和描述模板里可用的自定义查询变量。
 	Variables []AlertRuleVariable
+	// 探测规则字段：查询规则分别为空、0 与空字符串。
+	ProbeGroupLabels     string
+	ProbeIntervalSeconds int
+	ProbeMetric          string
+}
+
+// IsProbeRule 判断规则是不是探测规则。类型由驱动推导，不单独存列。
+func (r AlertRule) IsProbeRule() bool {
+	return r.Driver == ProbeDriverHTTP
 }
 
 // AlertRuleVariable 是规则上的一条自定义查询变量。名字是模板标识符，

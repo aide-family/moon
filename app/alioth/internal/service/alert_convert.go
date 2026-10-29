@@ -58,6 +58,8 @@ func ruleItem(item bo.AlertRule) *v1.AlertRuleItem {
 		Status: item.Status, Expr: item.Expr, Labels: item.Labels, DatasourceUid: item.DatasourceUID,
 		DatasourceLabels: item.DatasourceLabels,
 		Summary:          item.Summary, Description: item.Description, Levels: levels, Variables: variables,
+		ProbeGroupLabels: item.ProbeGroupLabels, ProbeIntervalSeconds: int32(item.ProbeIntervalSeconds),
+		ProbeMetric: item.ProbeMetric,
 	}
 }
 

@@ -146,6 +146,9 @@ func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		SetSummary(in.Summary).
 		SetDescription(in.Description).
 		SetVariables(encodeRuleVariables(in.Variables)).
+		SetProbeGroupLabels(in.ProbeGroupLabels).
+		SetProbeIntervalSeconds(in.ProbeIntervalSeconds).
+		SetProbeMetric(alertrule.ProbeMetric(in.ProbeMetric)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -187,6 +190,9 @@ func (r *alertRuleRepo) UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		SetSummary(in.Summary).
 		SetDescription(in.Description).
 		SetVariables(encodeRuleVariables(in.Variables)).
+		SetProbeGroupLabels(in.ProbeGroupLabels).
+		SetProbeIntervalSeconds(in.ProbeIntervalSeconds).
+		SetProbeMetric(alertrule.ProbeMetric(in.ProbeMetric)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -328,9 +334,60 @@ func (r *alertRuleRepo) ScheduleDue(ctx context.Context, now, next time.Time) er
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
 		alertrule.GroupUIDIn(groups...),
+		alertrule.DriverNEQ(alertrule.DriverPROBE_HTTP),
 		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
 	).SetNextEvalAt(next).SetScheduledSlot(now).Save(ctx)
 	return r.fail(err)
+}
+
+// ListProbeRulesDue 返回到期的探测规则。调度按每条规则自己的周期推进，
+// 不能复用查询规则的 15 秒全局批次。
+func (r *alertRuleRepo) ListProbeRulesDue(ctx context.Context, now time.Time) ([]bo.AlertRule, error) {
+	groups, err := r.activeGroupUIDs(ctx)
+	if err != nil || len(groups) == 0 {
+		return nil, err
+	}
+	rows, err := r.client.AlertRule.Query().Where(
+		alertrule.DeletedAtIsNil(),
+		alertrule.StatusEQ(alertrule.StatusACTIVE),
+		alertrule.GroupUIDIn(groups...),
+		alertrule.DriverEQ(alertrule.DriverPROBE_HTTP),
+		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	return r.withLevels(ctx, "", rows)
+}
+
+// SetProbeSchedule 写入本轮探测槽位与下一次探测时间。
+func (r *alertRuleRepo) SetProbeSchedule(ctx context.Context, uid string, slot, next time.Time) error {
+	_, err := r.client.AlertRule.Update().Where(
+		alertrule.UIDEQ(uid),
+		alertrule.DeletedAtIsNil(),
+	).SetScheduledSlot(slot).SetNextEvalAt(next).Save(ctx)
+	return r.fail(err)
+}
+
+// ListProbeRulesForClaim 返回当前窗口内可领取的探测规则：已写入本轮槽位，
+// 且下一次探测时间还没到。执行器按 (target, slot) 幂等，重复领取不会重复探测。
+func (r *alertRuleRepo) ListProbeRulesForClaim(ctx context.Context, now time.Time) ([]bo.AlertRule, error) {
+	groups, err := r.activeGroupUIDs(ctx)
+	if err != nil || len(groups) == 0 {
+		return nil, err
+	}
+	rows, err := r.client.AlertRule.Query().Where(
+		alertrule.DeletedAtIsNil(),
+		alertrule.StatusEQ(alertrule.StatusACTIVE),
+		alertrule.GroupUIDIn(groups...),
+		alertrule.DriverEQ(alertrule.DriverPROBE_HTTP),
+		alertrule.ScheduledSlotNotNil(),
+		alertrule.NextEvalAtGT(now),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	return r.withLevels(ctx, "", rows)
 }
 
 func (r *alertRuleRepo) ListRuleUIDs(ctx context.Context, namespaceUID, groupUID string) ([]string, error) {
@@ -358,6 +415,7 @@ func (r *alertRuleRepo) ListScheduled(ctx context.Context) ([]bo.AlertRule, erro
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
 		alertrule.GroupUIDIn(groups...),
+		alertrule.DriverNEQ(alertrule.DriverPROBE_HTTP),
 		alertrule.ScheduledSlotNotNil(),
 	).All(ctx)
 	if err != nil {
@@ -416,6 +474,7 @@ func (r *alertRuleRepo) dueRules(ctx context.Context, now time.Time) ([]*ent.Ale
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
 		alertrule.GroupUIDIn(groups...),
+		alertrule.DriverNEQ(alertrule.DriverPROBE_HTTP),
 		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
 	).All(ctx)
 	if err != nil {
@@ -504,6 +563,8 @@ func toRule(row *ent.AlertRule, levels []bo.AlertRuleLevel) bo.AlertRule {
 		Expr: row.Expr, Labels: row.Labels, DatasourceUID: row.DatasourceUID, DatasourceLabels: row.DatasourceLabels,
 		Summary: row.Summary, Description: row.Description, NextEvalAt: row.NextEvalAt,
 		ScheduledSlot: row.ScheduledSlot, Levels: levels, Variables: decodeRuleVariables(row.Variables),
+		ProbeGroupLabels: row.ProbeGroupLabels, ProbeIntervalSeconds: row.ProbeIntervalSeconds,
+		ProbeMetric: string(row.ProbeMetric),
 	}
 }
 
