@@ -43,7 +43,8 @@ M18 在 M3 规则评测、M4 通知链路与 M17 事件口径之上增加「探�
 
 ## 调度与领取
 
-- `alioth` 新增探测调度 tick（5s），锁 `alioth:lock:schedule:probe`，扫描 `status=ACTIVE AND driver='PROBE_HTTP' AND next_eval_at <= now`；写 `scheduled_slot = slot`、`next_eval_at = slot + interval`，`slot` 按 interval 对齐。
+- `alioth` 新增探测调度 tick（与查询调度同一 cron，15s），锁 `alioth:lock:schedule:probe`，扫描 `status=ACTIVE AND driver='PROBE_HTTP' AND next_eval_at <= now`；写 `scheduled_slot = slot`、`next_eval_at = slot + interval`，`slot` 按 interval 对齐。
+- `scheduled_slot` 对探测规则是「当前窗口」而不是待清除的批次标记：领取条件为 `scheduled_slot` 非空且 `next_eval_at > now`，窗口内重复领取由 `(target_uid, slot)` 唯一键与单目标锁兜底，因此不需要像查询规则那样在回写后清除。
 - 现有 `ScheduleDue` 只处理查询驱动，行为与 15s 节奏不变。
 - `EvalService` 追加 `ClaimProbeTasks(executor{kind, labels})` 与 `ReportProbeResults(rule_uid, slot, results[])`，仍只接受 service key `megrez`。
 - 领取时按 `probe_group_labels` 匹配 `ACTIVE` 目标组，再展开 `ACTIVE` 目标；一条任务 = 规则 × 目标组 × 目标。无匹配目标组不产生任务。
@@ -98,12 +99,40 @@ probe:
 - 规则列表加类型分段筛选，探测规则的「观测对象」显示匹配到的目标组与目标数；详情抽屉显示目标组列表与探测记录。
 - 新类型与驱动补 `enum` 中英文与 `StatusBadge` 色调映射。
 
+## 验证记录
+
+### 2026-10-29 端到端（本地 compose 的 Postgres/Redis + 独立库 `alioth_probe_e2e`）
+
+做法：起 `alioth`（HTTP 18000 / gRPC 19000）与 `megrez`（探测 worker 开启），用 SQL 造一条 15 秒周期、`EQ 0 / FOR 0 秒` 的探测规则与一个目标组，目标指向本地 `python3 -m http.server 18080`。
+
+已验证：
+
+- [x] 目标可达时 `probe_results` 按槽位落库（`ok=t`、`value=1`、`status_code=200`），`scheduled_slot` / `next_eval_at` 每轮推进 15 秒。
+- [x] 停掉目标后下一轮 `ok=f`、`value=0`、`error_kind=connect`，同一 `(target, slot)` 没有重复行。
+- [x] 判定命中后写入 FIRING 事件：`datasource_uid` 为空、`expr` 是目标地址、`sample_value=0`，labels 为 `{"datasource":"E2E 目标组","env":"e2e","probe_kind":"HTTP","probe_target":"http://127.0.0.1:18080/","probe_target_uid":"e2e-target","team":"platform"}`。
+- [x] 目标恢复后事件恢复并归档到租户历史库 `alioth_alert_e2ens` 的周表 `alert_events_20261026`：状态 `RECOVERED`、`ends_at` 有值、标签原样保留，主库行与 `alert_event_firings` 占位都已清掉。
+- [x] `TestProbeEventFiringAndRecovery` 集成测试覆盖事件字段、列表数据源名兜底与恢复归档。
+
+端到端跑出来并已修复的问题：
+
+- service key 白名单没有放行探测 RPC，worker 全部 `PermissionDenied`；
+- 判定窗口按最长 `for_seconds` 统一取窗口，`FOR 0` 也会回看两个周期，窗口里只要有一个旧成功点就永不命中；
+- 探测事件写入时 `expr` 为空（应在写入时置为目标地址）。
+
+### 待补验（需要浏览器登录态或第二实例）
+
+- [ ] 浏览器：目标组页与规则表单在 1366×768 / 390×844 的滚动、对话框、分段筛选。
+- [ ] 通知闭环：绑定通知组与按标签匹配的订阅后，FIRING/RECOVERED 进入消息日志，`externalURL` 为目标地址。
+- [ ] 多副本：两个 megrez 同时开启探测，同一 `(target, slot)` 只探一次。
+- [ ] `probe.enabled=false` 时不产生新的探测记录，评测节奏不受影响。
+- [ ] 目标删除 / 目标组停用后旧 FIRING 事件的收口（`RecoverProbeTargets` 目前只有数据层集成覆盖，未在运行态验证）。
+
 ## 验收
 
 - [ ] 新建 HTTP 目标组：3 个地址 + 标签 `env=prod`，保存后出现在列表，详情可见 3 个地址与最近探测记录。
 - [ ] 目标组地址重复保存被拒绝；URL 不带 scheme 或非 http(s) 被拒绝；受控请求头被拒绝。
 - [ ] 试探测不写 `probe_results`、不产生事件，返回状态码、耗时分解、证书天数。
-- [ ] 新建探测规则匹配 `probe_group=核心接口组`，周期 30s；一个周期后 `probe_results` 出现 3 条同 slot 记录，`scheduled_slot` 被清除。
+- [ ] 新建探测规则匹配 `probe_group=核心接口组`，周期 30s；一个周期后 `probe_results` 出现 3 条同 slot 记录，`scheduled_slot` 推进到本轮槽位。
 - [ ] 停掉目标服务后，第二个周期 `up=0`；连续 2 次（持续 60s）后产生一条 FIRING 事件，级别取第一条命中的条件。
 - [ ] 该事件出现在实时告警，可介入、抑制、手工恢复；恢复后进入历史告警与历史分片，历史分析口径不变。
 - [ ] 事件 `datasource` 标签为目标组名，实时/历史列表「数据源」列显示同名，按数据源名可筛出该事件。
