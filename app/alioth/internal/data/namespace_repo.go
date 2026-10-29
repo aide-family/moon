@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"strings"
 	"time"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
@@ -38,32 +39,37 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 		}
 		return nil, r.fail(err)
 	}
-	// 预置角色跟随基础套餐当前的功能，而不是代码里的常量：超级管理员调整基础套餐后，
-	// 新建租户的角色权限要立即一致。套餐明细缺失时回落到代码默认值。
+	// 预置角色跟随基础套餐当前的能力，而不是代码里的常量：超级管理员调整基础套餐后，
+	// 新建租户的角色权限要立即一致。套餐明细缺失时回落到代码默认能力。
 	baseItems, err := tx.FeaturePackageItem.Query().
 		Where(featurepackageitem.PackageUIDEQ(base.UID)).
 		All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	baseFeatures := make([]string, 0, len(baseItems))
+	baseCodes := make([]string, 0, len(baseItems))
 	for _, item := range baseItems {
-		baseFeatures = append(baseFeatures, item.Feature)
+		baseCodes = append(baseCodes, item.Feature)
 	}
-	if len(baseFeatures) == 0 {
-		baseFeatures = perm.BaseFeatures()
+	baseCapabilities := capabilityCodesOf(baseCodes)
+	if len(baseCapabilities) == 0 {
+		baseCapabilities = perm.BaseCapabilities()
 	}
 	secret := make([]byte, 24)
 	_, _ = rand.Read(secret)
-	ns, err := tx.Namespace.Create().
+	create := tx.Namespace.Create().
 		SetUID(id.New()).
 		SetName(name).
 		SetRemark(remark).
 		SetOwnerUID(ownerUID).
 		SetPackageUID(base.UID).
 		SetSecret(hex.EncodeToString(secret)).
-		SetStatus(namespace.StatusACTIVE).
-		Save(ctx)
+		SetStatus(namespace.StatusACTIVE)
+	// 新租户的到期时间由基础套餐的默认时长决定；0 表示永久。
+	if base.DurationDays > 0 {
+		create = create.SetPackageExpiresAt(time.Now().Add(time.Duration(base.DurationDays) * 24 * time.Hour))
+	}
+	ns, err := create.Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
@@ -91,8 +97,8 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 		if roleName == perm.RoleOwner {
 			ownerRoleUID = created.UID
 		}
-		// 预置角色只授基础套餐范围内的权限；其余功能由租户开通后再授予角色。
-		for _, code := range perm.RolePermissionsForFeatures(roleName, baseFeatures) {
+		// 预置角色只授基础套餐能力范围内的权限；其余能力由租户开通后再授予角色。
+		for _, code := range perm.RolePermissionsForCapabilities(roleName, baseCapabilities) {
 			permissionUID, ok := byName[code]
 			if !ok {
 				return nil, merr.Invalid("invalid request")
@@ -140,6 +146,9 @@ func (r *namespaceRepo) GetNamespace(ctx context.Context, uid string) (*bo.Names
 	if err := r.fillOwners(ctx, items); err != nil {
 		return nil, err
 	}
+	if err := r.fillPackageNames(ctx, items); err != nil {
+		return nil, err
+	}
 	return &items[0], nil
 }
 
@@ -179,6 +188,38 @@ func (r *namespaceRepo) fillOwners(ctx context.Context, items []bo.Namespace) er
 	return nil
 }
 
+// fillPackageNames 按套餐 UID 批量补齐套餐名称。套餐可能已被软删除，这里不过滤删除标记，
+// 保证历史租户仍能显示当初选择的套餐名。
+func (r *namespaceRepo) fillPackageNames(ctx context.Context, items []bo.Namespace) error {
+	packageUIDs := make([]string, 0, len(items))
+	seen := make(map[string]struct{}, len(items))
+	for _, item := range items {
+		if item.PackageUID == "" {
+			continue
+		}
+		if _, ok := seen[item.PackageUID]; ok {
+			continue
+		}
+		seen[item.PackageUID] = struct{}{}
+		packageUIDs = append(packageUIDs, item.PackageUID)
+	}
+	if len(packageUIDs) == 0 {
+		return nil
+	}
+	rows, err := r.client.FeaturePackage.Query().Where(featurepackage.UIDIn(packageUIDs...)).All(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	byUID := make(map[string]string, len(rows))
+	for _, row := range rows {
+		byUID[row.UID] = row.Name
+	}
+	for i := range items {
+		items[i].PackageName = byUID[items[i].PackageUID]
+	}
+	return nil
+}
+
 func (r *namespaceRepo) joinedNamespaceUIDs(ctx context.Context, userUID string) ([]string, error) {
 	rows, err := r.client.Member.Query().Where(
 		member.UserUIDEQ(userUID),
@@ -200,7 +241,11 @@ func (r *namespaceRepo) ListUserNamespaces(ctx context.Context, userUID string) 
 	if err != nil || len(uids) == 0 {
 		return nil, err
 	}
-	rows, err := r.client.Namespace.Query().Where(namespace.UIDIn(uids...), namespace.DeletedAtIsNil()).Order(ent.Asc(namespace.FieldName)).All(ctx)
+	// 停用租户不可切换进入：只列出 ACTIVE 的租户，停用后前端会自动回落到其他租户。
+	rows, err := r.client.Namespace.Query().
+		Where(namespace.UIDIn(uids...), namespace.DeletedAtIsNil(), namespace.StatusNEQ(namespace.StatusDISABLED)).
+		Order(ent.Asc(namespace.FieldName)).
+		All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
@@ -262,6 +307,9 @@ func (r *namespaceRepo) ListAllNamespaces(ctx context.Context, page, pageSize in
 	if err := r.fillMemberCounts(ctx, items); err != nil {
 		return nil, 0, err
 	}
+	if err := r.fillPackageNames(ctx, items); err != nil {
+		return nil, 0, err
+	}
 	return items, total, nil
 }
 
@@ -297,7 +345,8 @@ func (r *namespaceRepo) SelectNamespaces(ctx context.Context, userUID string, li
 	if err != nil || len(uids) == 0 {
 		return nil, err
 	}
-	query := r.client.Namespace.Query().Where(namespace.UIDIn(uids...), namespace.DeletedAtIsNil())
+	query := r.client.Namespace.Query().
+		Where(namespace.UIDIn(uids...), namespace.DeletedAtIsNil(), namespace.StatusNEQ(namespace.StatusDISABLED))
 	if lastUID != "" {
 		query = query.Where(namespace.UIDGT(lastUID))
 	}
@@ -332,6 +381,36 @@ func (r *namespaceRepo) UpdateNamespaceStatus(ctx context.Context, uid, status s
 		return nil, merr.Invalid("invalid request")
 	}
 	n, err := r.client.Namespace.Update().Where(namespace.UIDEQ(uid), namespace.DeletedAtIsNil()).SetStatus(value).Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if n == 0 {
+		return nil, merr.NotFound("not found")
+	}
+	return r.GetNamespace(ctx, uid)
+}
+
+// SetNamespaceStatus 是平台停用/启用租户的入口。停用必须带原因，启用清空原因；
+// 状态与原因在同一个更新里写入，避免出现停用但没有原因的中间状态。
+func (r *namespaceRepo) SetNamespaceStatus(ctx context.Context, uid, status, reason string) (*bo.Namespace, error) {
+	value := namespace.StatusACTIVE
+	reason = strings.TrimSpace(reason)
+	switch status {
+	case "ACTIVE":
+		reason = ""
+	case "DISABLED":
+		if reason == "" {
+			return nil, merr.Invalid("invalid request")
+		}
+		value = namespace.StatusDISABLED
+	default:
+		return nil, merr.Invalid("invalid request")
+	}
+	n, err := r.client.Namespace.Update().
+		Where(namespace.UIDEQ(uid), namespace.DeletedAtIsNil()).
+		SetStatus(value).
+		SetDisableReason(reason).
+		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
@@ -443,15 +522,21 @@ func (r *namespaceRepo) TransferOwner(ctx context.Context, namespaceUID, targetU
 }
 
 func toNamespace(row *ent.Namespace) bo.Namespace {
-	return bo.Namespace{
-		UID:       row.UID,
-		Name:      row.Name,
-		OwnerUID:  row.OwnerUID,
-		Logo:      row.Logo,
-		Remark:    row.Remark,
-		Status:    string(row.Status),
-		CreatedAt: row.CreatedAt,
+	item := bo.Namespace{
+		UID:           row.UID,
+		Name:          row.Name,
+		OwnerUID:      row.OwnerUID,
+		Logo:          row.Logo,
+		Remark:        row.Remark,
+		Status:        string(row.Status),
+		CreatedAt:     row.CreatedAt,
+		PackageUID:    row.PackageUID,
+		DisableReason: row.DisableReason,
 	}
+	if row.PackageExpiresAt != nil {
+		item.PackageExpiresAt = *row.PackageExpiresAt
+	}
+	return item
 }
 
 func toNamespaces(rows []*ent.Namespace) []bo.Namespace {

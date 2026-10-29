@@ -194,53 +194,50 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | -------------- | --------------------------------------------------------------- |
 | `SUPER_ADMIN`  | 第一个注册用户。持有全部系统权限，可把其他用户授权为系统管理员，也可撤销该授权                          |
 | `SYSTEM_ADMIN` | 可查看平台用户、封禁或解封普通用户，可查看平台全部租户并以只读身份切入任意租户，但不能授权或撤销系统管理员，也不能操作超级管理员 |
+| `SYSTEM_READONLY` | 系统只读角色。持有全部 `system:*:read`，可查看平台用户、租户、功能套餐和租户能力，可以跨租户只读切入；没有任何写权限，不能管理用户或授权系统角色 |
 | `USER`         | 没有系统权限。仍然可以通过租户邀请成为成员，并按租户角色使用管理台                                  |
 
 
-系统权限目录：`system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read`、`system:namespace:read`、`system:package:read`、`system:package:write`。其中 `system:user:read` 决定用户列表可见性，`system:namespace:read` 决定平台租户列表可见性和只读切入入口；`system:role:write`、`system:package:write` 只授予超级管理员，`system:package:read` 同时授予系统管理员。
+系统权限目录：`system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read`、`system:namespace:read`、`system:namespace:write`、`system:package:read`、`system:package:write`。其中 `system:user:read` 决定用户列表可见性，`system:namespace:read` 决定平台租户列表可见性和只读切入入口，`system:namespace:write` 管理租户停用、启用和归档；`system:role:write`、`system:namespace:write`、`system:package:write` 只授予超级管理员，`system:package:read` 同时授予系统管理员和系统只读角色。`perm.CanReadAnyTenant` 判断平台角色能否跨租户只读（三种平台角色都为真），`perm.IsSystemAdmin` 只认超级管理员和系统管理员，系统只读角色不算管理员。
 
 
-租户权限按资源划分：`member`、`role`、`namespace`、`datasource`、`probe`、`alert_rule`、`alert`、`notification`、`cluster`、`agent`、`ssh`。Kubernetes 控制台另外按资源授权，权限名为 `k8s:<资源>:<动作>`，覆盖 `k8s:node`、`k8s:workload`、`k8s:pod`、`k8s:ingress`、`k8s:service`、`k8s:configmap`、`k8s:secret`、`k8s:pv`、`k8s:pvc`、`k8s:job`、`k8s:cronjob`；`cluster:*` 只负责集群接入与连接，进入控制台仍要求 `cluster:read`。动作至少包含 `read` 与 `write`；Pod 日志为独立的只读动作 `k8s:pod:logs`；告警另有 `intervene`；执行动作为 `ssh:exec`。`user` 是平台资源，不进入租户权限目录。具体权限名在 proto 枚举中定稿。Web 菜单分别按系统权限、当前用户在当前 Namespace 的租户权限，以及租户已开通的功能生成。Moon Web 的菜单是前端写死的，没有路由级权限。
+租户权限按资源划分：`member`、`role`、`namespace`、`datasource`、`probe`、`alert_rule`、`alert`、`notification`、`cluster`、`agent`、`ssh`。Kubernetes 控制台另外按资源授权，权限名为 `k8s:<资源>:<动作>`，覆盖 `k8s:node`、`k8s:workload`、`k8s:pod`、`k8s:ingress`、`k8s:service`、`k8s:configmap`、`k8s:secret`、`k8s:pv`、`k8s:pvc`、`k8s:job`、`k8s:cronjob`；`cluster:*` 只负责集群接入与连接，进入控制台仍要求 `cluster:read`。动作至少包含 `read` 与 `write`；Pod 日志为独立的只读动作 `k8s:pod:logs`；告警另有 `intervene`；执行动作为 `ssh:exec`。`user` 是平台资源，不进入租户权限目录。租户权限之上还有一层菜单权限 `menu:<能力>`：它只控制入口可见性，不改变接口语义，`IsReadOnly` 与 `ReadOnlyNames` 都把它当只读。Web 菜单分别按系统权限、当前用户在当前 Namespace 的租户权限（含菜单权限）和租户已开通的能力生成。Moon Web 的菜单是前端写死的，没有路由级权限。
 
-### 3.1 功能套餐
+### 3.1 功能能力化与租户授权
 
-菜单模块化成为「功能」。超级管理员用「套餐」把功能开通给租户，租户只能基于已开通功能给角色授权。功能目录由代码维护（`app/alioth/pkg/perm`），不由接口增删：
+菜单模块是两级模型：模块（菜单分组）→ 能力（可单独开通的最小单位）→ 权限。目录由代码维护（`app/alioth/pkg/perm`），不由接口增删：
 
-| 功能 | 编码 | 包含的租户权限 |
-| --- | --- | --- |
-| 告警 | `alert` | `alert:*` |
-| 告警规则 | `alert_rule` | `alert_rule:*` |
-| 探测目标 | `probe` | `probe:*` |
-| 数据源 | `datasource` | `datasource:*` |
-| 通知 | `notification` | `notification:*` |
-| 成员 | `member` | `member:*` |
-| 角色 | `role` | `role:*` |
-| Kubernetes | `cluster` | `cluster:*` 与全部 `k8s:<资源>:<动作>` |
-| 机器 | `agent` | `agent:*` |
-| SSH 与 Web Shell | `ssh` | `ssh:*`（含 `ssh:exec`） |
+- 10 个模块：`alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`、`cluster`、`agent`、`ssh`。
+- 30 个能力，例如 `alert_realtime`、`alert_history`、`alert_page`（alert 模块按页面拆开，权限分别取 `alert:*` 的子集）、`notify_channel` 等六个通知能力、`cluster_access`（`cluster:*`）和 11 个 `k8s_*` 资源能力、`agent_machine`、`ssh_command`、`web_shell`。完整清单见 [M19](iterations/m19-feature-packages.md)。
+- `namespace:*` 不属于任何能力，始终可用；`system:*` 不参与能力。
 
-- `namespace:*` 不属于任何功能，始终可用；`system:*` 不参与功能。
-- `FeatureOf(permission)` 把租户权限映射到功能；`RolePermissionsForFeatures(role, features)` 按功能过滤预置角色权限。
-- 基础套餐固定七个功能：`alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`。新租户默认使用基础套餐，Kubernetes、机器和 SSH 由超级管理员另行开通。
+能力化后的授权模型：
+
+- 超级管理员用「套餐」给租户开通能力，套餐带默认授权时长 `duration_days`（0=永久）。租户在套餐之上只能加开能力，不能减掉套餐能力。
+- 基础套餐固定为前七个模块的全部能力，共 15 个；新租户默认使用基础套餐，Kubernetes、机器和 SSH 由超级管理员另行开通。
+- 有效能力 = 套餐能力 ∪ 租户额外能力，按目录顺序排列，不落表。租户停用、归档或套餐到期时有效能力为空，配置保留；`EffectiveModules` 由能力反推模块，模块下还有一个能力开通，模块就还在。
+- 菜单入口由菜单权限 `menu:<能力>` 控制：角色持有它才显示入口；接口仍由能力里的权限决定。`Catalog()` 把 30 条菜单权限追加在租户权限目录末尾，`FeatureOf` 对 `menu:*`、能力编码和普通权限都返回所属模块。
+- `RolePermissionsForCapabilities(role, capabilities)` 取模块权限与能力权限的交集并补菜单权限，预置角色、seed 和租户创建都用它。
 
 数据模型：
 
 | 实体 | 说明 |
 | --- | --- |
-| `FeaturePackage` | 平台级功能套餐。`uid`、`name`（未删除唯一）、`remark`、`is_base`（部分唯一索引保证只有一个基础套餐）、`status`。功能不落此表 |
-| `FeaturePackageItem` | 套餐里的一个功能，`(package_uid, feature)` 唯一 |
-| `NamespaceFeature` | 租户相对套餐的功能差异，`(namespace_uid, feature)` 唯一，`enabled` 为加开或减掉 |
-| `Namespace.package_uid` | 租户当前套餐；为空只出现在升级前的存量租户 |
+| `FeaturePackage` | 平台级套餐。`uid`、`name`（未删除唯一）、`remark`、`is_base`（部分唯一索引保证只有一个基础套餐）、`status`、`duration_days`（默认授权天数，0=永久）。能力不落此表 |
+| `FeaturePackageItem` | 套餐里的一个能力，`(package_uid, feature)` 唯一 |
+| `NamespaceFeature` | 租户额外能力，`(namespace_uid, feature)` 唯一，`enabled` 恒为 true；没有记录表示完全跟随套餐 |
+| `Namespace` | 增加 `package_uid`、`package_expires_at`（NULL=永久）与 `disable_reason` |
 
-有效功能 = 套餐功能 + 租户差异（`enabled = true` 加、`false` 减），按功能目录顺序排列，不落表。租户功能设置接口接收的是目标有效功能，服务端换算差异并在一个事务里换套餐、重写差异。
+租户能力设置接口接收目标能力集合，服务端校验它包含套餐全部能力（只增不减），在一个事务里换套餐、重写额外能力、写到期时间并补齐预置角色权限。归档在事务里软删除租户和全部业务数据，不可恢复。
 
 执行点：
 
-- `access.Checker` 在权限通过后检查 `FeatureOf(code)` 已开通，否则返回 403 `feature not enabled`。系统管理员跨租户只读同样受限，避免菜单展示点进去必失败的能力。
-- `role.Authority` 的权限目录、角色授权写入和 `/self/permissions` 都按有效功能过滤；未开通功能的权限不能授给角色，提交会被拒绝。
-- 新租户创建时写入基础套餐 `package_uid`，预置角色权限取基础功能范围。
-- seed 创建基础套餐（已存在不覆盖），把 `package_uid` 为空的存量租户迁到基础套餐并加开 `cluster`、`agent`、`ssh`，保持升级前能力；系统角色补齐权限时只看有效功能。
-- `/v1/self/permissions` 额外返回 `features`，前端据此决定菜单入口。
+- `access.Checker` 的检查顺序：角色持有权限（或平台管理员只读放行）→ `FeatureOf(code)` 在 `EffectiveModules` 中，否则 403 `feature not enabled` → 租户成员还要求持有覆盖该权限的 `menu:<能力>`，否则 403 `menu permission denied`。`namespace:*` 跳过模块与菜单检查；平台管理员只读通道跳过菜单检查，模块检查仍生效。
+- `role.Authority` 的权限目录、角色授权写入和 `/self/permissions` 都按有效能力与菜单权限过滤；未开通能力的权限不能授给角色。
+- 新租户创建时写入基础套餐与到期时间，预置角色权限取基础能力范围。
+- seed 在基础套餐上只补能力不删（旧模块编码展开成能力），把 `package_uid` 为空的存量租户迁到基础套餐并加开 cluster/agent/ssh 的全部能力，给已持有能力权限的角色补菜单权限；所有迁移幂等。
+- `/v1/self/permissions` 返回 `permissions`（含菜单权限）、`features`（有效能力）和 `readOnly`，前端据此决定菜单入口。
+- 租户生命周期由平台管理：`PUT /v1/system/namespace/{uid}/status` 停用/启用（停用必填原因并邮件通知负责人），`PUT /v1/system/namespace/{uid}/archive` 归档。停用和归档租户不出现在成员租户列表，也不能只读切入。
 
 认证：
 

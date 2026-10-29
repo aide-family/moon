@@ -2,6 +2,8 @@ package feature
 
 import (
 	"context"
+	"slices"
+	"time"
 
 	"github.com/google/wire"
 
@@ -26,16 +28,18 @@ func NewProvisioning(features repository.FeatureRepo, checker access.Checker) *P
 	return &Provisioning{features: features, access: checker}
 }
 
-// ListFeatures 返回代码维护的功能目录。功能不是租户数据，不分页。
+// ListFeatures 返回代码维护的能力目录。能力不是租户数据，不分页。
+// 每个能力带上所属菜单模块，前端按模块分组展示授权项。
 func (provisioning *Provisioning) ListFeatures(ctx context.Context) ([]bo.Feature, error) {
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageRead); err != nil {
 		return nil, err
 	}
-	items := perm.Features()
+	items := perm.Capabilities()
 	out := make([]bo.Feature, 0, len(items))
 	for _, item := range items {
 		out = append(out, bo.Feature{
 			Code:        item.Code,
+			Module:      item.Module,
 			Name:        item.Name,
 			Description: item.Description,
 			Permissions: item.Permissions,
@@ -61,21 +65,27 @@ func (provisioning *Provisioning) GetPackage(ctx context.Context, uid string) (*
 	return item, provisioning.access.Wrap(err)
 }
 
-func (provisioning *Provisioning) CreatePackage(ctx context.Context, name, remark string, features []string) (*bo.FeaturePackage, error) {
+func (provisioning *Provisioning) CreatePackage(ctx context.Context, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error) {
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageWrite); err != nil {
 		return nil, err
 	}
-	if err := validateFeatures(features); err != nil {
+	if err := validateDuration(durationDays); err != nil {
 		return nil, err
 	}
-	item, err := provisioning.features.CreatePackage(ctx, name, remark, features)
+	if err := validateCapabilities(features); err != nil {
+		return nil, err
+	}
+	item, err := provisioning.features.CreatePackage(ctx, name, remark, durationDays, features)
 	return item, provisioning.access.Wrap(err)
 }
 
 // UpdatePackage 更新套餐。基础套餐只允许改功能和备注：改名会破坏它的识别，
 // 所以名称必须保持原值。
-func (provisioning *Provisioning) UpdatePackage(ctx context.Context, uid, name, remark string, features []string) (*bo.FeaturePackage, error) {
+func (provisioning *Provisioning) UpdatePackage(ctx context.Context, uid, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error) {
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageWrite); err != nil {
+		return nil, err
+	}
+	if err := validateDuration(durationDays); err != nil {
 		return nil, err
 	}
 	current, err := provisioning.features.GetPackage(ctx, uid)
@@ -85,10 +95,10 @@ func (provisioning *Provisioning) UpdatePackage(ctx context.Context, uid, name, 
 	if current.IsBase && name != current.Name {
 		return nil, merr.Client("base package cannot be renamed")
 	}
-	if err := validateFeatures(features); err != nil {
+	if err := validateCapabilities(features); err != nil {
 		return nil, err
 	}
-	item, err := provisioning.features.UpdatePackage(ctx, uid, name, remark, features)
+	item, err := provisioning.features.UpdatePackage(ctx, uid, name, remark, durationDays, features)
 	return item, provisioning.access.Wrap(err)
 }
 
@@ -124,34 +134,66 @@ func (provisioning *Provisioning) GetNamespaceFeatures(ctx context.Context, name
 	return item, provisioning.access.Wrap(err)
 }
 
-// UpdateNamespaceFeatures 原子设置租户的套餐和目标有效功能。
-// 服务端按套餐功能换算差异，调用方只表达最终结果。
-func (provisioning *Provisioning) UpdateNamespaceFeatures(ctx context.Context, namespaceUID, packageUID string, features []string) (*bo.NamespaceFeature, error) {
+// UpdateNamespaceFeatures 原子设置租户的套餐和目标有效能力。
+// 服务端按套餐能力换算差异，调用方只表达最终结果：
+// 目标能力必须包含套餐能力（只增不减），expiresAt 为 0 时按套餐授权天数计算。
+func (provisioning *Provisioning) UpdateNamespaceFeatures(ctx context.Context, namespaceUID, packageUID string, capabilities []string, expiresAt int64) (*bo.NamespaceFeature, error) {
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageWrite); err != nil {
 		return nil, err
 	}
-	if _, err := provisioning.features.GetPackage(ctx, packageUID); err != nil {
+	item, err := provisioning.features.GetPackage(ctx, packageUID)
+	if err != nil {
 		return nil, provisioning.access.Wrap(err)
 	}
-	if err := validateFeatures(features); err != nil {
+	// 不传功能表示「不额外调整」，直接使用套餐默认能力。
+	if len(capabilities) == 0 {
+		capabilities = item.Features
+	}
+	if err := validateCapabilities(capabilities); err != nil {
 		return nil, err
 	}
-	if err := provisioning.features.SetNamespaceFeatureState(ctx, namespaceUID, packageUID, features); err != nil {
+	for _, code := range item.Features {
+		if !slices.Contains(capabilities, code) {
+			return nil, merr.Client("features must include the package features")
+		}
+	}
+	expiry := resolveExpiresAt(item.DurationDays, expiresAt)
+	if err := provisioning.features.SetNamespaceFeatureState(ctx, namespaceUID, packageUID, capabilities, expiry); err != nil {
 		return nil, provisioning.access.Wrap(err)
 	}
-	item, err := provisioning.features.NamespaceFeatureState(ctx, namespaceUID)
-	return item, provisioning.access.Wrap(err)
+	state, err := provisioning.features.NamespaceFeatureState(ctx, namespaceUID)
+	return state, provisioning.access.Wrap(err)
 }
 
-// validateFeatures 拒绝目录外的功能编码和重复项。
-func validateFeatures(features []string) error {
-	seen := make(map[string]struct{}, len(features))
-	for _, code := range features {
-		if !perm.IsFeature(code) {
-			return merr.Client("invalid feature")
+// resolveExpiresAt 把调用方的 Unix 秒和套餐授权时长换算成仓储使用的到期时间。
+// 0 表示永久；没有显式到期时间时按套餐的授权天数从现在起算。
+func resolveExpiresAt(durationDays int32, expiresAt int64) time.Time {
+	if expiresAt > 0 {
+		return time.Unix(expiresAt, 0)
+	}
+	if durationDays > 0 {
+		return time.Now().AddDate(0, 0, int(durationDays))
+	}
+	return time.Time{}
+}
+
+// validateDuration 拒绝负数授权天数；0 表示永久。
+func validateDuration(durationDays int32) error {
+	if durationDays < 0 {
+		return merr.Invalid("invalid duration")
+	}
+	return nil
+}
+
+// validateCapabilities 拒绝目录外的能力编码和重复项。
+func validateCapabilities(capabilities []string) error {
+	seen := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
+		if !perm.IsCapability(code) {
+			return merr.Client("invalid capability")
 		}
 		if _, ok := seen[code]; ok {
-			return merr.Client("invalid feature")
+			return merr.Client("invalid capability")
 		}
 		seen[code] = struct{}{}
 	}

@@ -3,6 +3,7 @@ package access
 import (
 	"context"
 	"log/slog"
+	"slices"
 	"testing"
 
 	kerrors "github.com/go-kratos/kratos/v3/errors"
@@ -52,11 +53,36 @@ func (s roleRepoStub) Permissions(context.Context, string, string) (map[string]s
 
 type featureRepoStub struct {
 	repository.FeatureRepo
-	features []string
+	capabilities []string
+	modules      []string
 }
 
-func (s featureRepoStub) EffectiveFeatures(context.Context, string) ([]string, error) {
-	return s.features, nil
+func (s featureRepoStub) EffectiveCapabilities(context.Context, string) ([]string, error) {
+	return s.capabilities, nil
+}
+
+func (s featureRepoStub) EffectiveModules(context.Context, string) ([]string, error) {
+	return s.modules, nil
+}
+
+// allCapabilities 返回全部能力编码，作为「租户开通了所有能力」的测试默认值。
+func allCapabilities() []string {
+	items := perm.Capabilities()
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		out = append(out, item.Code)
+	}
+	return out
+}
+
+// allModules 返回全部模块编码，作为「全能力开通」对应的模块集合。
+func allModules() []string {
+	items := perm.Features()
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		out = append(out, item.Code)
+	}
+	return out
 }
 
 func checkerFor(systemRole string, permissions ...string) Checker {
@@ -68,8 +94,8 @@ func checkerFor(systemRole string, permissions ...string) Checker {
 		Users:      userRepoStub{account: &bo.Account{UID: "user-1", Status: "ACTIVE", SystemRole: systemRole}},
 		Namespaces: namespaceRepoStub{},
 		Roles:      roleRepoStub{permissions: granted},
-		// 默认租户已开通全部功能，权限相关的用例只关心权限判断本身。
-		Features: featureRepoStub{features: perm.FeatureCodes()},
+		// 默认租户已开通全部能力，权限相关的用例只关心权限判断本身。
+		Features: featureRepoStub{capabilities: allCapabilities(), modules: allModules()},
 		Log:      slog.New(slog.DiscardHandler),
 	}
 }
@@ -79,10 +105,12 @@ func tenantContext() context.Context {
 	return actor.WithNamespace(ctx, "namespace-1")
 }
 
-// TestRequireAllowsSystemAdminReadOnly 确认平台管理员不带成员身份也能通过全部租户 :read 权限。
+// TestRequireAllowsSystemAdminReadOnly 确认平台只读角色不带成员身份也能通过全部租户只读权限。
 func TestRequireAllowsSystemAdminReadOnly(t *testing.T) {
 	ctx := tenantContext()
-	for _, systemRole := range []string{perm.SystemRoleSuperAdmin, perm.SystemRoleSystemAdmin} {
+	for _, systemRole := range []string{
+		perm.SystemRoleSuperAdmin, perm.SystemRoleSystemAdmin, perm.SystemRoleReadOnly,
+	} {
 		checker := checkerFor(systemRole)
 		for _, code := range perm.ReadOnlyNames() {
 			if err := checker.Require(ctx, code); err != nil {
@@ -99,25 +127,31 @@ func TestRequireAllowsSystemAdminReadOnly(t *testing.T) {
 // TestRequireRejectsSystemAdminWrites 确认只读放行不覆盖写、删除、介入和执行动作。
 func TestRequireRejectsSystemAdminWrites(t *testing.T) {
 	ctx := tenantContext()
-	checker := checkerFor(perm.SystemRoleSystemAdmin)
-	for _, code := range []string{
-		perm.MemberWrite, perm.MemberDelete, perm.AlertRuleWrite,
-		perm.AlertIntervene, perm.SSHExec, perm.NamespaceDelete, perm.NamespaceTransfer,
+	for _, systemRole := range []string{
+		perm.SystemRoleSystemAdmin, perm.SystemRoleReadOnly,
 	} {
-		err := checker.Require(ctx, code)
-		if reason := kerrors.Reason(err); reason != merr.ReasonForbidden {
-			t.Fatalf("require %s reason = %q, want %q (err = %v)", code, reason, merr.ReasonForbidden, err)
+		checker := checkerFor(systemRole)
+		for _, code := range []string{
+			perm.MemberWrite, perm.MemberDelete, perm.AlertRuleWrite,
+			perm.AlertIntervene, perm.SSHExec, perm.NamespaceDelete, perm.NamespaceTransfer,
+		} {
+			err := checker.Require(ctx, code)
+			if reason := kerrors.Reason(err); reason != merr.ReasonForbidden {
+				t.Fatalf("%s require %s reason = %q, want %q (err = %v)", systemRole, code, reason, merr.ReasonForbidden, err)
+			}
 		}
-	}
-	// 平台权限只能走 RequireSystem，不能借租户上下文放行。
-	if err := checker.Require(ctx, perm.SystemUserRead); kerrors.Reason(err) != merr.ReasonForbidden {
-		t.Fatalf("system permission gated by tenant context: %v", err)
+		// 平台权限只能走 RequireSystem，不能借租户上下文放行。
+		if err := checker.Require(ctx, perm.SystemUserRead); kerrors.Reason(err) != merr.ReasonForbidden {
+			t.Fatalf("%s system permission gated by tenant context: %v", systemRole, err)
+		}
 	}
 }
 
 func TestRequireKeepsMemberPermissions(t *testing.T) {
 	ctx := tenantContext()
-	checker := checkerFor(perm.SystemRoleUser, perm.RoleRead, perm.RoleWrite)
+	checker := checkerFor(perm.SystemRoleUser,
+		perm.RoleRead, perm.RoleWrite, perm.MenuPermission(perm.CapabilityRole),
+	)
 	for _, code := range []string{perm.RoleRead, perm.RoleWrite} {
 		if err := checker.Require(ctx, code); err != nil {
 			t.Fatalf("member require %s: %v", code, err)
@@ -139,37 +173,70 @@ func TestRequireRejectsNormalUserOnForeignTenant(t *testing.T) {
 // TestRequireReadOnlyOnDisabledNamespace 确认只读切入也要遵守租户停用规则。
 func TestRequireReadOnlyOnDisabledNamespace(t *testing.T) {
 	ctx := tenantContext()
-	checker := checkerFor(perm.SystemRoleSystemAdmin)
+	checker := checkerFor(perm.SystemRoleReadOnly)
 	checker.Namespaces = namespaceRepoStub{status: "DISABLED"}
 	if err := checker.Require(ctx, perm.AlertRuleRead); kerrors.Reason(err) != merr.ReasonForbidden {
 		t.Fatalf("read-only on disabled namespace: %v", err)
 	}
 }
 
-// TestRequireChecksFeature 确认权限通过后仍要求租户开通对应功能，系统管理员只读同样受限。
+// TestRequireChecksFeature 确认权限通过后仍要求租户开通对应模块，系统管理员只读同样受限。
 func TestRequireChecksFeature(t *testing.T) {
 	ctx := tenantContext()
-	checker := checkerFor(perm.SystemRoleUser, perm.ClusterRead, perm.AlertRuleRead)
-	checker.Features = featureRepoStub{features: perm.BaseFeatures()}
+	base := featureRepoStub{capabilities: perm.BaseCapabilities(), modules: perm.ModulesOfCapabilities(perm.BaseCapabilities())}
+	checker := checkerFor(perm.SystemRoleUser,
+		perm.AlertRuleRead, perm.ClusterRead,
+		perm.MenuPermission(perm.CapabilityAlertRule), perm.MenuPermission(perm.CapabilityClusterAccess),
+	)
+	checker.Features = base
 	if err := checker.Require(ctx, perm.AlertRuleRead); err != nil {
-		t.Fatalf("base feature permission: %v", err)
+		t.Fatalf("base capability permission: %v", err)
 	}
-	if err := checker.Require(ctx, perm.ClusterRead); kerrors.Reason(err) != merr.ReasonForbidden {
-		t.Fatalf("disabled feature permission err = %v, want forbidden", err)
+	err := checker.Require(ctx, perm.ClusterRead)
+	if reason := kerrors.Reason(err); reason != merr.ReasonForbidden || kerrors.FromError(err).Message != "feature not enabled" {
+		t.Fatalf("disabled feature permission err = %v, want forbidden feature not enabled", err)
 	}
 	admin := checkerFor(perm.SystemRoleSystemAdmin)
-	admin.Features = featureRepoStub{features: perm.BaseFeatures()}
-	if err := admin.Require(ctx, perm.ClusterRead); kerrors.Reason(err) != merr.ReasonForbidden {
-		t.Fatalf("system admin read-only disabled feature err = %v, want forbidden", err)
+	admin.Features = base
+	if err := admin.Require(ctx, perm.ClusterRead); kerrors.FromError(err).Message != "feature not enabled" {
+		t.Fatalf("system admin read-only disabled feature err = %v, want forbidden feature not enabled", err)
 	}
 	if err := admin.Require(ctx, perm.AlertRuleRead); err != nil {
 		t.Fatalf("system admin read-only base feature: %v", err)
 	}
 }
 
+// TestRequireChecksMenuPermission 确认成员即使持有接口权限，也要持有对应能力的菜单权限。
+func TestRequireChecksMenuPermission(t *testing.T) {
+	ctx := tenantContext()
+	checker := checkerFor(perm.SystemRoleUser, perm.RoleRead)
+	err := checker.Require(ctx, perm.RoleRead)
+	if reason := kerrors.Reason(err); reason != merr.ReasonForbidden || kerrors.FromError(err).Message != "menu permission denied" {
+		t.Fatalf("missing menu permission err = %v, want forbidden menu permission denied", err)
+	}
+	granted := checkerFor(perm.SystemRoleUser, perm.RoleRead, perm.MenuPermission(perm.CapabilityRole))
+	if err := granted.Require(ctx, perm.RoleRead); err != nil {
+		t.Fatalf("role read with menu permission: %v", err)
+	}
+}
+
+// TestRequireSkipsMenuPermissionForSystemAdminReadOnly 平台管理员跨租户只读不要求租户菜单授权。
+func TestRequireSkipsMenuPermissionForSystemAdminReadOnly(t *testing.T) {
+	ctx := tenantContext()
+	for _, systemRole := range []string{
+		perm.SystemRoleSuperAdmin, perm.SystemRoleSystemAdmin, perm.SystemRoleReadOnly,
+	} {
+		if err := checkerFor(systemRole).Require(ctx, perm.RoleRead); err != nil {
+			t.Fatalf("%s read-only require role:read: %v", systemRole, err)
+		}
+	}
+}
+
 func TestSystemAdmin(t *testing.T) {
 	ctx := tenantContext()
-	for _, systemRole := range []string{perm.SystemRoleSuperAdmin, perm.SystemRoleSystemAdmin} {
+	for _, systemRole := range []string{
+		perm.SystemRoleSuperAdmin, perm.SystemRoleSystemAdmin, perm.SystemRoleReadOnly,
+	} {
 		if admin, err := checkerFor(systemRole).SystemAdmin(ctx); err != nil || !admin {
 			t.Fatalf("%s admin = %v, %v", systemRole, admin, err)
 		}
@@ -191,5 +258,45 @@ func TestSystemAdmin(t *testing.T) {
 	withoutUser := actor.WithNamespace(context.Background(), "namespace-1")
 	if _, err := checkerFor(perm.SystemRoleSystemAdmin).SystemAdmin(withoutUser); kerrors.Reason(err) != merr.ReasonUnauthenticated {
 		t.Fatalf("system admin without user: %v", err)
+	}
+}
+
+// TestCurrentNamespace 确认 /self/permissions 能拿到租户状态；没有租户头时返回 nil。
+func TestCurrentNamespace(t *testing.T) {
+	checker := checkerFor(perm.SystemRoleUser)
+	item, err := checker.CurrentNamespace(tenantContext())
+	if err != nil || item == nil || item.Status != "ACTIVE" {
+		t.Fatalf("current namespace = %v, %v", item, err)
+	}
+	missing, err := checker.CurrentNamespace(actor.WithUser(context.Background(), "user-1"))
+	if err != nil || missing != nil {
+		t.Fatalf("current namespace without header = %v, %v", missing, err)
+	}
+}
+
+// TestEveryTenantPermissionBelongsToCapability 确认每条租户权限都挂在某个能力上，
+// 否则 role/access 的能力检查会让这条权限永远无法通过菜单校验。
+func TestEveryTenantPermissionBelongsToCapability(t *testing.T) {
+	capabilities := perm.Capabilities()
+	for _, item := range perm.Catalog() {
+		if item.Resource == "menu" || item.Resource == "namespace" {
+			continue
+		}
+		covered := slices.ContainsFunc(capabilities, func(capability perm.Capability) bool {
+			return slices.Contains(capability.Permissions, item.Name)
+		})
+		if !covered {
+			t.Fatalf("permission %s belongs to no capability", item.Name)
+		}
+	}
+}
+
+// TestReadOnlyNamesCoverCapabilities 确认只读目录包含菜单权限，平台只读能展示菜单。
+func TestReadOnlyNamesCoverCapabilities(t *testing.T) {
+	names := perm.ReadOnlyNames()
+	for _, capability := range perm.Capabilities() {
+		if !slices.Contains(names, perm.MenuPermission(capability.Code)) {
+			t.Fatalf("read-only names missing menu permission for %s", capability.Code)
+		}
 	}
 }

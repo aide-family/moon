@@ -18,6 +18,7 @@ import {
 import type { TFunction } from "i18next"
 
 import type { KubernetesWorkloadKind } from "@/api/cluster"
+import { clusterSectionCapability } from "@/lib/feature-catalog"
 
 /**
  * 集群详情页的资源视图。URL 仍用 tab + kind 表达：
@@ -75,6 +76,11 @@ export interface ClusterNavEntry {
    * cluster:read（概况就是这种情况）。写权限由各 Tab 单独判断。
    */
   permission?: string
+  /**
+   * 租户能力开关（k8s_node / k8s_pod …）。没开通能力的资源视图直接隐藏，
+   * 直接改 URL 进入时也会回落到概况。缺省按 section 从能力目录推导。
+   */
+  capability?: string
 }
 
 export interface ClusterNavGroup {
@@ -275,35 +281,60 @@ export function clusterSectionScope(
 /** session.can 的签名；只传判定函数，导航模块不依赖 session 实现。 */
 export type ClusterPermissionCheck = (code: string) => boolean
 
-/** 单个导航项是否可见：没有资源级权限的项跟随页面级 cluster:read。 */
+/** 集群详情的访问判定：资源权限 + 菜单权限 + 租户能力。 */
+export type ClusterAccessCheck = {
+  can: ClusterPermissionCheck
+  /** 菜单权限 menu:<能力>；旧后端（没有 menu:*）由 session 放行。 */
+  canMenu: (capability: string) => boolean
+  hasFeature: (capability: string) => boolean
+}
+
+/** 导航项需要的租户能力：显式配置优先，否则按 section 推导。 */
+export function clusterNavEntryCapability(
+  entry: ClusterNavEntry
+): string | undefined {
+  return entry.capability ?? clusterSectionCapability(entry.section)
+}
+
+/**
+ * 单个导航项是否可见：先过资源级权限（没配置则跟随页面级 cluster:read），
+ * 再过租户能力（概况没有能力限制）。
+ */
 export function canAccessClusterNavEntry(
   entry: ClusterNavEntry,
-  can: ClusterPermissionCheck
+  access: ClusterAccessCheck
 ): boolean {
-  return entry.permission === undefined || can(entry.permission)
+  if (entry.permission !== undefined && !access.can(entry.permission)) {
+    return false
+  }
+  const capability = clusterNavEntryCapability(entry)
+  return (
+    capability === undefined ||
+    (access.hasFeature(capability) && access.canMenu(capability))
+  )
 }
 
 /** 当前 section + kind 的视图是否可访问，用于 URL 直接进入时回退到概况。 */
 export function isClusterSectionAllowed(
   section: ClusterSection,
   kind: string,
-  can: ClusterPermissionCheck
+  access: ClusterAccessCheck
 ): boolean {
   const entry = findClusterNavEntry(section, kind)
-  return entry === null || canAccessClusterNavEntry(entry, can)
+  return entry === null || canAccessClusterNavEntry(entry, access)
 }
 
 /**
- * 按权限过滤导航：无权限的项不渲染，整组都不可见时连分组标题一起隐藏。
+ * 按权限与能力过滤导航：无权限或无能力的项不渲染，整组都不可见时连分组标题一起隐藏。
  * 顺序与 CLUSTER_NAV_GROUPS 一致，调用方不要自己再排序。
  */
 export function filterClusterNavGroups(
-  can: ClusterPermissionCheck
+  access: ClusterAccessCheck
 ): ClusterNavGroup[] {
   return CLUSTER_NAV_GROUPS.map((group) => ({
     ...group,
     entries: group.entries.filter((entry) =>
-      canAccessClusterNavEntry(entry, can)
+      canAccessClusterNavEntry(entry, access)
     ),
   })).filter((group) => group.entries.length > 0)
 }

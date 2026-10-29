@@ -1,12 +1,20 @@
 import type { PermissionItem } from "@/api/role/types"
+import {
+  capabilityLabel,
+  capabilityRank,
+  type LocalizedLabel,
+} from "@/lib/feature-catalog"
 
 // 权限字典。这里是唯一的中英文来源，故意不用 i18n 的 t()：
 // 「模块 + 动作」要同时显示中文和英文，切到 en 时中文标注也不能消失。
 // 字典必须与 app/alioth/pkg/perm/perm.go 的 perm.Catalog() 保持一致；
 // 后端新增模块而这里没跟上时，页面回落显示原始 code，不会空白。
-export type LocalizedLabel = { zh: string; en: string }
+// menu 模块的动作就是能力 code，标签与顺序都直接复用 feature-catalog。
+export type { LocalizedLabel }
 
 const RESOURCE_LABELS: Record<string, LocalizedLabel> = {
+  // 菜单权限：动作是能力 code（menu:<能力>），决定租户菜单是否可见。
+  menu: { zh: "菜单", en: "Menus" },
   member: { zh: "成员", en: "Members" },
   role: { zh: "角色", en: "Roles" },
   namespace: { zh: "租户", en: "Namespaces" },
@@ -80,6 +88,9 @@ const RESOURCE_ORDER = [
   "k8s:cronjob",
   "agent",
   "ssh",
+  // 菜单权限是独立分组，排在资源权限之后：它只控制菜单是否可见，
+  // 不替代资源权限，两者需要同时具备。
+  "menu",
 ]
 
 /** 组内顺序：读在最前（日志属于读，紧随其后），再写，最后是强动作。 */
@@ -104,6 +115,27 @@ export function actionLabel(action: string): LocalizedLabel {
   return ACTION_LABELS[action] ?? { zh: action, en: action }
 }
 
+/**
+ * 权限项在组内显示的动作。menu 组的动作就是能力 code，
+ * 用能力目录的双语标签渲染，不再显示原始 code。
+ */
+export function permissionActionLabel(
+  item: Pick<PermissionItem, "resource" | "action">
+): LocalizedLabel {
+  if (item.resource === "menu") {
+    return capabilityLabel(item.action)
+  }
+  return actionLabel(item.action)
+}
+
+/** 「实时告警 / Realtime alerts」——组内行内文案，中英并排。 */
+export function permissionActionTitle(
+  item: Pick<PermissionItem, "resource" | "action">
+): string {
+  const label = permissionActionLabel(item)
+  return `${label.zh} / ${label.en}`
+}
+
 /** 「成员 · Members」——分组头用。 */
 export function moduleTitle(resource: string): string {
   const label = resourceLabel(resource)
@@ -120,14 +152,14 @@ export function actionTitle(action: string): string {
 export function permissionTitleZh(
   item: Pick<PermissionItem, "resource" | "action">
 ): string {
-  return `${resourceLabel(item.resource).zh} / ${actionLabel(item.action).zh}`
+  return `${resourceLabel(item.resource).zh} / ${permissionActionLabel(item).zh}`
 }
 
 /** 「Members / Read」——完整英文形态。 */
 export function permissionTitleEn(
   item: Pick<PermissionItem, "resource" | "action">
 ): string {
-  return `${resourceLabel(item.resource).en} / ${actionLabel(item.action).en}`
+  return `${resourceLabel(item.resource).en} / ${permissionActionLabel(item).en}`
 }
 
 export type PermissionGroup = {
@@ -171,11 +203,19 @@ export function groupPermissions(
     .map(([resource, list]) => ({
       resource,
       title: moduleTitle(resource),
-      items: [...list].sort(
-        (left, right) =>
+      items: [...list].sort((left, right) => {
+        // 菜单组按能力目录顺序排，避免 alert_realtime 之类被字母序打乱。
+        if (resource === "menu") {
+          return (
+            capabilityRank(left.action) - capabilityRank(right.action) ||
+            left.name.localeCompare(right.name)
+          )
+        }
+        return (
           actionRank(left.action) - actionRank(right.action) ||
           left.name.localeCompare(right.name)
-      ),
+        )
+      }),
     }))
 }
 
@@ -210,7 +250,7 @@ export function matchesPermission(
     return true
   }
   const resource = resourceLabel(item.resource)
-  const action = actionLabel(item.action)
+  const action = permissionActionLabel(item)
   const haystack = [
     item.name,
     item.resource,

@@ -1262,4 +1262,13 @@ func TestSystemNamespaceListDoesNotRequireNamespace(t *testing.T) {
 	if namespaceOptional(v1.OperationNamespaceServiceListNamespaces) {
 		t.Fatal("tenant namespace list no longer requires X-Namespace")
 	}
+	// 平台启停/归档租户按路径参数定位租户，同样不读 X-Namespace。
+	for _, operation := range []string{
+		v1.OperationNamespaceServiceUpdateSystemNamespaceStatus,
+		v1.OperationNamespaceServiceArchiveSystemNamespace,
+	} {
+		if !namespaceOptional(operation) {
+			t.Fatalf("%s requires X-Namespace", operation)
+		}
+	}
 }

@@ -42,6 +42,7 @@ import {
   findClusterNavEntry,
   isClusterSectionAllowed,
   readClusterNavLabel,
+  type ClusterAccessCheck,
   type ClusterNavCounts,
   type ClusterSection,
 } from "./sections"
@@ -96,16 +97,25 @@ export function ClusterDetailPage() {
   const canWritePods = can("k8s:pod:write")
   const canReadPodLogs = can("k8s:pod:logs")
 
+  // 资源视图的可见性同时看资源读权限与租户能力（k8s_*）。
+  const access = useMemo<ClusterAccessCheck>(
+    () => ({
+      can,
+      canMenu: session.canMenu,
+      hasFeature: session.hasFeature,
+    }),
+    [can, session.canMenu, session.hasFeature]
+  )
   const section = query.section
   const kind = query.kind
-  // 当前视图没有读权限时（含直接改 URL 进入），立即按概况渲染并清理 URL。
-  const sectionAllowed = isClusterSectionAllowed(section, kind, can)
+  // 当前视图没有读权限或能力未开通时（含直接改 URL 进入），立即按概况渲染并清理 URL。
+  const sectionAllowed = isClusterSectionAllowed(section, kind, access)
   const visibleSection: ClusterSection = sectionAllowed ? section : "overview"
   const scope = clusterSectionScope(visibleSection, kind)
   const entry = findClusterNavEntry(visibleSection, kind)
   const supportsNameFilter = clusterSectionSupportsName(visibleSection)
-  // 左侧导航与窄屏下拉共用一份按权限过滤的分组。
-  const navGroups = useMemo(() => filterClusterNavGroups(can), [can])
+  // 左侧导航与窄屏下拉共用一份按权限与能力过滤的分组。
+  const navGroups = useMemo(() => filterClusterNavGroups(access), [access])
   const overview = useClusterOverview({
     clusterUid: uid,
     namespace: query.namespace,
@@ -253,7 +263,7 @@ export function ClusterDetailPage() {
 
   function selectSection(nextSection: ClusterSection, nextKind?: string) {
     // 导航项已按权限过滤；概况卡片等入口也可能指向无权视图，这里统一拦截。
-    if (!isClusterSectionAllowed(nextSection, nextKind ?? "", can)) {
+    if (!isClusterSectionAllowed(nextSection, nextKind ?? "", access)) {
       return
     }
     if (nextSection === section && (nextKind ?? "") === kind) {

@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react"
 import { useId } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -5,23 +6,30 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/class-names"
 import {
-  featureDescription,
-  featureLabelText,
-  featureSecondaryText,
-  groupFeatureCodes,
+  capabilityDescription,
+  capabilityLabelText,
+  capabilitySecondaryText,
+  groupCapabilityCodes,
 } from "@/lib/feature-catalog"
 
 interface FeaturePickerProps {
-  /** 可选功能 code；通常来自后端目录，接口失败时由调用方用本地目录兜底。 */
+  /** 可选能力 code；通常来自后端目录，接口失败时由调用方用本地目录兜底。 */
   codes: string[]
-  /** 已勾选的功能 code。 */
+  /** 已勾选的能力 code。 */
   value: string[]
   onChange: (next: string[]) => void
   disabled?: boolean
+  /**
+   * 锁定能力：来自套餐，不能取消勾选（只增不减）。
+   * 勾选状态按「已选 ∪ 锁定」计算，回调里也始终包含它们。
+   */
+  lockedCodes?: string[]
+  /** 锁定行右侧的说明文案（由调用方本地化）。 */
+  lockedLabel?: string
 }
 
 /**
- * 功能勾选器：按功能分组、中英并标，组头支持三态全选。
+ * 两级能力勾选器：模块（第一级，带三态全选）→ 能力（第二级，中英并标）。
  * 只负责选择，不包含滚动容器——放在 DialogBody 里由弹窗外框滚动。
  */
 export function FeaturePicker({
@@ -29,13 +37,19 @@ export function FeaturePicker({
   value,
   onChange,
   disabled = false,
+  lockedCodes,
+  lockedLabel,
 }: FeaturePickerProps) {
   const { t, i18n } = useTranslation()
   const id = useId()
-  const selected = new Set(value)
-  const groups = groupFeatureCodes(codes)
+  const locked = new Set(lockedCodes ?? [])
+  const selected = new Set([...value, ...locked])
+  const groups = groupCapabilityCodes(codes)
 
   function toggle(code: string, checked: boolean) {
+    if (locked.has(code) && !checked) {
+      return
+    }
     const next = new Set(selected)
     if (checked) {
       next.add(code)
@@ -48,6 +62,9 @@ export function FeaturePicker({
   function toggleGroup(groupCodes: string[], checked: boolean) {
     const next = new Set(selected)
     for (const code of groupCodes) {
+      if (!checked && locked.has(code)) {
+        continue
+      }
       if (checked) {
         next.add(code)
       } else {
@@ -96,8 +113,9 @@ export function FeaturePicker({
             </div>
             <div className="grid gap-1 p-2 sm:grid-cols-2">
               {group.codes.map((code) => {
+                const isLocked = locked.has(code)
                 const checked = selected.has(code)
-                const description = featureDescription(code, i18n.language)
+                const description = capabilityDescription(code, i18n.language)
                 return (
                   <div
                     key={code}
@@ -110,7 +128,7 @@ export function FeaturePicker({
                     <Checkbox
                       id={`${id}-${code}`}
                       checked={checked}
-                      disabled={disabled}
+                      disabled={disabled || isLocked}
                       className="mt-0.5"
                       onCheckedChange={(next) => toggle(code, next === true)}
                     />
@@ -118,15 +136,17 @@ export function FeaturePicker({
                       htmlFor={`${id}-${code}`}
                       className={cn(
                         "grid min-w-0 flex-1 gap-0.5 font-normal",
-                        disabled ? "cursor-default" : "cursor-pointer"
+                        disabled || isLocked
+                          ? "cursor-default"
+                          : "cursor-pointer"
                       )}
                     >
                       <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
                         <span className="text-sm">
-                          {featureLabelText(code, i18n.language)}
+                          {capabilityLabelText(code, i18n.language)}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {featureSecondaryText(code, i18n.language)}
+                          {capabilitySecondaryText(code, i18n.language)}
                         </span>
                       </span>
                       {description ? (
@@ -135,6 +155,12 @@ export function FeaturePicker({
                         </span>
                       ) : null}
                     </Label>
+                    {isLocked && lockedLabel ? (
+                      <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-4xl border border-border px-1.5 text-[11px] whitespace-nowrap text-muted-foreground">
+                        <Lock aria-hidden="true" className="size-3" />
+                        {lockedLabel}
+                      </span>
+                    ) : null}
                   </div>
                 )
               })}

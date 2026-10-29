@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 )
 
@@ -151,6 +150,34 @@ func (_c *NamespaceCreate) SetNillableStatus(v *namespace.Status) *NamespaceCrea
 	return _c
 }
 
+// SetPackageExpiresAt sets the "package_expires_at" field.
+func (_c *NamespaceCreate) SetPackageExpiresAt(v time.Time) *NamespaceCreate {
+	_c.mutation.SetPackageExpiresAt(v)
+	return _c
+}
+
+// SetNillablePackageExpiresAt sets the "package_expires_at" field if the given value is not nil.
+func (_c *NamespaceCreate) SetNillablePackageExpiresAt(v *time.Time) *NamespaceCreate {
+	if v != nil {
+		_c.SetPackageExpiresAt(*v)
+	}
+	return _c
+}
+
+// SetDisableReason sets the "disable_reason" field.
+func (_c *NamespaceCreate) SetDisableReason(v string) *NamespaceCreate {
+	_c.mutation.SetDisableReason(v)
+	return _c
+}
+
+// SetNillableDisableReason sets the "disable_reason" field if the given value is not nil.
+func (_c *NamespaceCreate) SetNillableDisableReason(v *string) *NamespaceCreate {
+	if v != nil {
+		_c.SetDisableReason(*v)
+	}
+	return _c
+}
+
 // Mutation returns the NamespaceMutation object of the builder.
 func (_c *NamespaceCreate) Mutation() *NamespaceMutation {
 	return _c.mutation
@@ -214,6 +241,10 @@ func (_c *NamespaceCreate) defaults() {
 		v := namespace.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
+	if _, ok := _c.mutation.DisableReason(); !ok {
+		v := namespace.DefaultDisableReason
+		_c.mutation.SetDisableReason(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -266,6 +297,14 @@ func (_c *NamespaceCreate) check() error {
 	if v, ok := _c.mutation.Status(); ok {
 		if err := namespace.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Namespace.status": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.DisableReason(); !ok {
+		return &ValidationError{Name: "disable_reason", err: errors.New(`ent: missing required field "Namespace.disable_reason"`)}
+	}
+	if v, ok := _c.mutation.DisableReason(); ok {
+		if err := namespace.DisableReasonValidator(v); err != nil {
+			return &ValidationError{Name: "disable_reason", err: fmt.Errorf(`ent: validator failed for field "Namespace.disable_reason": %w`, err)}
 		}
 	}
 	return nil
@@ -337,6 +376,14 @@ func (_c *NamespaceCreate) createSpec() (*Namespace, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(namespace.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := _c.mutation.PackageExpiresAt(); ok {
+		_spec.SetField(namespace.FieldPackageExpiresAt, field.TypeTime, value)
+		_node.PackageExpiresAt = &value
+	}
+	if value, ok := _c.mutation.DisableReason(); ok {
+		_spec.SetField(namespace.FieldDisableReason, field.TypeString, value)
+		_node.DisableReason = value
 	}
 	return _node, _spec
 }

@@ -17,6 +17,9 @@ type NamespaceRepo interface {
 	GetNamespace(ctx context.Context, uid string) (*bo.Namespace, error)
 	UpdateNamespace(ctx context.Context, uid, name, remark, logo string) (*bo.Namespace, error)
 	UpdateNamespaceStatus(ctx context.Context, uid, status string) (*bo.Namespace, error)
+	// SetNamespaceStatus 是平台停用/启用租户的入口：status 取 ACTIVE 或 DISABLED，
+	// DISABLED 必须带非空 reason，启用时清空 disable_reason。返回更新后的租户。
+	SetNamespaceStatus(ctx context.Context, uid, status, reason string) (*bo.Namespace, error)
 	DeleteNamespace(ctx context.Context, uid string) error
 	TransferOwner(ctx context.Context, namespaceUID, targetUserUID string) (*bo.Namespace, error)
 }

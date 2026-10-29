@@ -76,6 +76,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { MENU_CAPABILITIES } from "@/lib/feature-catalog"
 import {
   isKnownAppPath,
   normalizeAppPath,
@@ -102,8 +103,8 @@ const links: {
   to: string
   label: string
   permission: string
-  /** 租户功能开关：配置后还要求当前租户已开通该功能（system 菜单不配置）。 */
-  feature?: string
+  /** 菜单能力开关：配置后还要求当前租户已开通该能力（system 菜单不配置）。 */
+  capability?: string
   icon: LucideIcon
 }[] = [
   {
@@ -134,14 +135,14 @@ const links: {
     to: "/members",
     label: "nav.members",
     permission: "member:read",
-    feature: "member",
+    capability: MENU_CAPABILITIES["/members"],
     icon: UserRound,
   },
   {
     to: "/roles",
     label: "nav.roles",
     permission: "role:read",
-    feature: "role",
+    capability: MENU_CAPABILITIES["/roles"],
     icon: Shield,
   },
   {
@@ -156,56 +157,56 @@ const alertLinks: {
   to: string
   label: string
   permission: string
-  feature?: string
+  capability?: string
   icon: LucideIcon
 }[] = [
   {
     to: "/alerts",
     label: "nav.realtime",
     permission: "alert:read",
-    feature: "alert",
+    capability: MENU_CAPABILITIES["/alerts"],
     icon: Activity,
   },
   {
     to: "/alert-history",
     label: "nav.history",
     permission: "alert:read",
-    feature: "alert",
+    capability: MENU_CAPABILITIES["/alert-history"],
     icon: History,
   },
   {
     to: "/datasources",
     label: "nav.datasources",
     permission: "datasource:read",
-    feature: "datasource",
+    capability: MENU_CAPABILITIES["/datasources"],
     icon: Database,
   },
   {
     to: "/probe-targets",
     label: "nav.probeTargets",
     permission: "probe:read",
-    feature: "probe",
+    capability: MENU_CAPABILITIES["/probe-targets"],
     icon: Target,
   },
   {
     to: "/alert-rules",
     label: "nav.alertRules",
     permission: "alert_rule:read",
-    feature: "alert_rule",
+    capability: MENU_CAPABILITIES["/alert-rules"],
     icon: Bell,
   },
   {
     to: "/alert-dictionaries",
     label: "nav.alertDictionaries",
     permission: "alert_rule:read",
-    feature: "alert_rule",
+    capability: MENU_CAPABILITIES["/alert-dictionaries"],
     icon: Gauge,
   },
   {
     to: "/alert-pages",
     label: "nav.alertPages",
     permission: "alert:read",
-    feature: "alert",
+    capability: MENU_CAPABILITIES["/alert-pages"],
     icon: LayoutList,
   },
 ]
@@ -214,49 +215,49 @@ const notifyLinks: {
   to: string
   label: string
   permission: string
-  feature?: string
+  capability?: string
   icon: LucideIcon
 }[] = [
   {
     to: "/notification-channels",
     label: "nav.channels",
     permission: "notification:read",
-    feature: "notification",
+    capability: MENU_CAPABILITIES["/notification-channels"],
     icon: Mail,
   },
   {
     to: "/notification-templates",
     label: "nav.templates",
     permission: "notification:read",
-    feature: "notification",
+    capability: MENU_CAPABILITIES["/notification-templates"],
     icon: FileText,
   },
   {
     to: "/notification-groups",
     label: "nav.groups",
     permission: "notification:read",
-    feature: "notification",
+    capability: MENU_CAPABILITIES["/notification-groups"],
     icon: UsersRound,
   },
   {
     to: "/notification-subscriptions",
     label: "nav.subscriptions",
     permission: "notification:read",
-    feature: "notification",
+    capability: MENU_CAPABILITIES["/notification-subscriptions"],
     icon: BellRing,
   },
   {
     to: "/notification-oncalls",
     label: "nav.onCalls",
     permission: "notification:read",
-    feature: "notification",
+    capability: MENU_CAPABILITIES["/notification-oncalls"],
     icon: CalendarClock,
   },
   {
     to: "/message-logs",
     label: "nav.messageLogs",
     permission: "notification:read",
-    feature: "notification",
+    capability: MENU_CAPABILITIES["/message-logs"],
     icon: MessageSquare,
   },
 ]
@@ -265,14 +266,14 @@ const kubeLinks: {
   to: string
   label: string
   permission: string
-  feature?: string
+  capability?: string
   icon: LucideIcon
 }[] = [
   {
     to: "/clusters",
     label: "nav.clusters",
     permission: "cluster:read",
-    feature: "cluster",
+    capability: MENU_CAPABILITIES["/clusters"],
     icon: Boxes,
   },
 ]
@@ -281,21 +282,21 @@ const edgeLinks: {
   to: string
   label: string
   permission: string
-  feature?: string
+  capability?: string
   icon: LucideIcon
 }[] = [
   {
     to: "/agents",
     label: "nav.agents",
     permission: "agent:read",
-    feature: "agent",
+    capability: MENU_CAPABILITIES["/agents"],
     icon: Server,
   },
   {
     to: "/ssh-commands",
     label: "nav.sshCommands",
     permission: "ssh:read",
-    feature: "ssh",
+    capability: MENU_CAPABILITIES["/ssh-commands"],
     icon: Terminal,
   },
 ]
@@ -409,9 +410,20 @@ function ShellFrame() {
   const accountName = session.user?.nickname || session.user?.name || ""
   const accountLabel = accountName || session.user?.email || t("shell.account")
   const avatarName = accountName || session.user?.email || "Alioth"
-  // 租户功能开关：只有后端返回了 features 时才过滤（旧后端不返回，hasFeature 为真）。
-  const featureVisible = (link: { feature?: string }) =>
-    !link.feature || session.hasFeature(link.feature)
+  // 租户菜单三重判定：菜单权限（menu:<能力>）、租户已开通能力、资源权限。
+  // 旧后端没有 menu:* 权限或 features 字段时，canMenu / hasFeature 都不拦截；
+  // 系统菜单不受能力限制，只看系统权限。
+  const tenantVisible = (link: { permission: string; capability?: string }) => {
+    if (session.namespaceUid === "" || !session.can(link.permission)) {
+      return false
+    }
+    if (!link.capability) {
+      return true
+    }
+    return (
+      session.canMenu(link.capability) && session.hasFeature(link.capability)
+    )
+  }
   const visible = links.filter((link) => {
     if (link.to === "/namespaces") {
       return true
@@ -419,36 +431,12 @@ function ShellFrame() {
     if (link.permission.startsWith("system:")) {
       return session.canSystem(link.permission)
     }
-    return (
-      session.namespaceUid !== "" &&
-      session.can(link.permission) &&
-      featureVisible(link)
-    )
+    return tenantVisible(link)
   })
-  const alerts = alertLinks.filter(
-    (link) =>
-      session.namespaceUid !== "" &&
-      session.can(link.permission) &&
-      featureVisible(link)
-  )
-  const notifies = notifyLinks.filter(
-    (link) =>
-      session.namespaceUid !== "" &&
-      session.can(link.permission) &&
-      featureVisible(link)
-  )
-  const kubes = kubeLinks.filter(
-    (link) =>
-      session.namespaceUid !== "" &&
-      session.can(link.permission) &&
-      featureVisible(link)
-  )
-  const edges = edgeLinks.filter(
-    (link) =>
-      session.namespaceUid !== "" &&
-      session.can(link.permission) &&
-      featureVisible(link)
-  )
+  const alerts = alertLinks.filter(tenantVisible)
+  const notifies = notifyLinks.filter(tenantVisible)
+  const kubes = kubeLinks.filter(tenantVisible)
+  const edges = edgeLinks.filter(tenantVisible)
   const systemActive = visible.some((link) => location.pathname === link.to)
   const alertActive = alerts.some((link) => location.pathname === link.to)
   const notifyActive = notifies.some((link) => location.pathname === link.to)
@@ -462,12 +450,12 @@ function ShellFrame() {
       location.pathname === link.to ||
       location.pathname.startsWith(`${link.to}/`)
   )
-  // 概览是唯一不带领域前缀的一级入口：它是值班着陆页，不属于某个资源域。
+  // 概览是唯一不带领域前缀的一级入口：它是值班着陆页，跟随实时告警能力。
   const overviewActive = location.pathname === "/overview"
-  const canOverview =
-    session.namespaceUid !== "" &&
-    session.can("alert:read") &&
-    session.hasFeature("alert")
+  const canOverview = tenantVisible({
+    permission: "alert:read",
+    capability: MENU_CAPABILITIES["/overview"],
+  })
   const token = localStorage.getItem("token")
   if (!token) {
     return <Navigate to="/login" replace />

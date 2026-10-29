@@ -22,7 +22,7 @@
 - [M16 Kubernetes 工作负载运维](iterations/m16-k8s-workload-ops.md)
 - [M17 数据源可用性告警](iterations/m17-datasource-availability.md)
 - [M18 探测规则（HTTP）](iterations/m18-probe-rules.md)
-- [M19 功能套餐与租户功能授权](iterations/m19-feature-packages.md)
+- [M19 功能能力化与租户授权](iterations/m19-feature-packages.md)
 
 端口以设计文档第 2.1 节为准：
 
@@ -62,7 +62,7 @@ flowchart LR
   m16[M16 Kubernetes 工作负载运维]
   m17[M17 数据源可用性告警]
   m18[M18 探测规则（HTTP）]
-  m19[M19 功能套餐与租户功能授权]
+  m19[M19 功能能力化与租户授权]
   m0 --> m1 --> m2 --> m3 --> m4
   m1 --> m5
   m1 --> m9
@@ -359,11 +359,11 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台
 
 交付与验收细则见 [iterations/m17-datasource-availability.md](iterations/m17-datasource-availability.md)。
 
-## M19 功能套餐与租户功能授权
+## M19 功能能力化与租户授权
 
-目标：菜单模块化成为「功能」，超级管理员用「套餐」给租户开通功能；租户只能基于已开通功能给角色授权；新租户默认使用不含 Kubernetes、机器与 SSH 的基础套餐，存量租户保持升级前能力。
+目标：菜单模块细化为「模块 → 能力 → 权限」两级目录，超级管理员用带授权时长的「套餐」给租户开通能力，租户在套餐之上只能加开能力；菜单入口由 `menu:<能力>` 权限控制，套餐到期、租户停用或归档后能力失效但配置保留；平台可以停用（带原因并邮件通知负责人）、启用和归档租户，并新增系统只读角色 `SYSTEM_READONLY`。新租户默认使用不含 Kubernetes、机器与 SSH 能力的基础套餐，存量租户保持升级前能力。
 
-依赖：M1、M5、M14、M18。
+依赖：M1、M5、M14、M16、M18。
 
 交付与验收细则见 [iterations/m19-feature-packages.md](iterations/m19-feature-packages.md)。
 

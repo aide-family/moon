@@ -30,6 +30,8 @@ const (
 	FieldIsBase = "is_base"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldDurationDays holds the string denoting the duration_days field in the database.
+	FieldDurationDays = "duration_days"
 	// Table holds the table name of the featurepackage in the database.
 	Table = "feature_packages"
 )
@@ -45,6 +47,7 @@ var Columns = []string{
 	FieldRemark,
 	FieldIsBase,
 	FieldStatus,
+	FieldDurationDays,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -74,6 +77,10 @@ var (
 	RemarkValidator func(string) error
 	// DefaultIsBase holds the default value on creation for the "is_base" field.
 	DefaultIsBase bool
+	// DefaultDurationDays holds the default value on creation for the "duration_days" field.
+	DefaultDurationDays int32
+	// DurationDaysValidator is a validator for the "duration_days" field. It is called by the builders before save.
+	DurationDaysValidator func(int32) error
 )
 
 // Status defines the type for the "status" enum field.
@@ -148,4 +155,9 @@ func ByIsBase(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByDurationDays orders the results by the duration_days field.
+func ByDurationDays(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDurationDays, opts...).ToFunc()
 }

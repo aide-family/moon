@@ -26,11 +26,18 @@ func namespaceItem(item bo.Namespace) *v1.NamespaceItem {
 	if !item.CreatedAt.IsZero() {
 		createdAt = item.CreatedAt.Unix()
 	}
+	// 套餐到期时间为零表示永久，对外统一输出 0。
+	packageExpiresAt := int64(0)
+	if !item.PackageExpiresAt.IsZero() {
+		packageExpiresAt = item.PackageExpiresAt.Unix()
+	}
 	return &v1.NamespaceItem{
 		Uid: item.UID, Name: item.Name, OwnerUid: item.OwnerUID,
 		OwnerName: item.OwnerName, OwnerEmail: item.OwnerEmail,
 		Logo: item.Logo, Remark: item.Remark, Status: item.Status,
 		MemberCount: int32(item.MemberCount), CreatedAt: createdAt,
+		PackageName: item.PackageName, PackageExpiresAt: packageExpiresAt,
+		DisableReason: item.DisableReason,
 	}
 }
 
@@ -125,7 +132,8 @@ func lastUID(items []bo.SelectItem) string {
 
 func featureItem(item bo.Feature) *v1.FeatureItem {
 	return &v1.FeatureItem{
-		Code: item.Code, Name: item.Name, Description: item.Description, Permissions: item.Permissions,
+		Code: item.Code, Module: item.Module, Name: item.Name,
+		Description: item.Description, Permissions: item.Permissions,
 	}
 }
 
@@ -145,6 +153,7 @@ func featurePackageItem(item bo.FeaturePackage) *v1.FeaturePackageItem {
 	return &v1.FeaturePackageItem{
 		Uid: item.UID, Name: item.Name, Remark: item.Remark, Features: item.Features,
 		IsBase: item.IsBase, Status: item.Status, CreatedAt: createdAt,
+		DurationDays: item.DurationDays,
 	}
 }
 
@@ -156,7 +165,12 @@ func featurePackageItems(items []bo.FeaturePackage) []*v1.FeaturePackageItem {
 	return out
 }
 
-// namespaceFeatureFields 拆出租户功能开通的四个响应字段，GET 和 PUT 共用同一份视图。
-func namespaceFeatureFields(item bo.NamespaceFeature) (packageUID, packageName string, features, packageFeatures []string) {
-	return item.PackageUID, item.PackageName, item.Features, item.PackageFeatures
+// namespaceFeatureFields 拆出租户能力开通的响应字段，GET 和 PUT 共用同一份视图。
+// 到期时间为零表示永久，对外统一输出 0。
+func namespaceFeatureFields(item bo.NamespaceFeature) (packageUID, packageName string, features, packageFeatures, extraFeatures []string, expiresAt int64, expired bool, durationDays int32) {
+	if !item.ExpiresAt.IsZero() {
+		expiresAt = item.ExpiresAt.Unix()
+	}
+	return item.PackageUID, item.PackageName, item.Features, item.PackageFeatures,
+		item.ExtraFeatures, expiresAt, item.Expired, item.DurationDays
 }

@@ -163,7 +163,8 @@ service NamespaceService {
       body: "*"
     };
   }
-  // 启用或停用当前租户。
+  // 租户侧启停已由平台接管，该接口固定拒绝，避免租户自行解封。
+  // 平台停用/启用走 UpdateSystemNamespaceStatus。
   rpc UpdateNamespaceStatus(UpdateNamespaceStatusRequest) returns (UpdateNamespaceStatusResponse) {
     option (google.api.http) = {
       put: "/v1/namespace/{uid}/status"
@@ -193,6 +194,19 @@ service NamespaceService {
   // 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
   rpc ListSystemNamespaces(ListSystemNamespacesRequest) returns (ListSystemNamespacesResponse) {
     option (google.api.http) = {get: "/v1/system/namespaces"};
+  }
+  // 平台停用或启用租户。不读 X-Namespace，需要 system:namespace:write。
+  // 停用必须填写原因，成功后邮件通知租户负责人；启用会清空停用原因且不发邮件。
+  rpc UpdateSystemNamespaceStatus(UpdateSystemNamespaceStatusRequest) returns (UpdateSystemNamespaceStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/namespace/{uid}/status"
+      body: "*"
+    };
+  }
+  // 归档租户：软删除租户及其全部业务数据。不读 X-Namespace，需要 system:namespace:write。
+  // 归档不可恢复，也不提供取消归档的接口。
+  rpc ArchiveSystemNamespace(ArchiveSystemNamespaceRequest) returns (ArchiveSystemNamespaceResponse) {
+    option (google.api.http) = {put: "/v1/system/namespace/{uid}/archive"};
   }
   // 把当前租户的负责人移交给另一名成员。
   rpc TransferNamespaceOwner(TransferNamespaceOwnerRequest) returns (TransferNamespaceOwnerResponse) {
@@ -450,7 +464,7 @@ message UserItem {
   string remark = 6;
   // 状态。
   string status = 7;
-  // 平台角色：SUPER_ADMIN、SYSTEM_ADMIN 或 USER。
+  // 平台角色：SUPER_ADMIN、SYSTEM_ADMIN、SYSTEM_READONLY 或 USER。
   string system_role = 8 [json_name = "systemRole"];
   // 授权该平台角色的超级管理员标识。
   string authorized_by = 9 [json_name = "authorizedBy"];
@@ -480,6 +494,12 @@ message NamespaceItem {
   int32 member_count = 9 [json_name = "memberCount"];
   // 创建时间，Unix 秒。
   int64 created_at = 10 [json_name = "createdAt"];
+  // 当前套餐名称。只在平台租户列表返回。
+  string package_name = 11 [json_name = "packageName"];
+  // 套餐到期时间，Unix 秒。0 表示永久。只在平台租户列表返回。
+  int64 package_expires_at = 12 [json_name = "packageExpiresAt"];
+  // 停用原因。只在平台租户列表返回，租户启用时为空。
+  string disable_reason = 13 [json_name = "disableReason"];
 }
 
 // 租户成员。
@@ -817,14 +837,14 @@ message GetSelfPermissionsRequest {}
 
 // 当前用户在当前租户的权限名和功能。
 message GetSelfPermissionsResponse {
-  // 权限名列表。只含当前租户已开通功能内的权限。
+  // 权限名列表。只含当前租户已开通能力内的权限，菜单权限以 menu:<能力> 形式出现。
   repeated string permissions = 1;
   // 是否只是平台管理员的只读视角。true 时 permissions 只含租户目录中的只读权限，
   // 写操作仍要求该租户的成员角色。
   bool read_only = 2 [json_name = "readOnly"];
   // 当前租户。没有选择租户时为空。
   NamespaceItem namespace = 3;
-  // 当前租户的有效功能编码列表。没有选择租户时为空。
+  // 当前租户的有效能力编码列表。没有选择租户或租户停用/到期时为空。
   repeated string features = 4;
 }
 
@@ -1020,6 +1040,31 @@ message ListSystemNamespacesResponse {
   // 每页条数，最大 100。
   int32 page_size = 4 [json_name = "pageSize"];
 }
+
+// 平台停用或启用租户的参数。
+message UpdateSystemNamespaceStatusRequest {
+  // 租户标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 目标状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+  // 停用原因，停用时必填，1 到 500 字。启用时忽略并清空。
+  string reason = 3 [(buf.validate.field).string.max_len = 500];
+}
+
+// 修改后的租户。
+message UpdateSystemNamespaceStatusResponse {
+  // 租户。
+  NamespaceItem namespace = 1;
+}
+
+// 归档租户的参数。
+message ArchiveSystemNamespaceRequest {
+  // 租户标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 租户已归档。数据软删除且不可恢复。
+message ArchiveSystemNamespaceResponse {}
 
 // 移交负责人的参数。
 message TransferNamespaceOwnerRequest {
@@ -1268,8 +1313,8 @@ message PermitUserResponse {
 message UpdateUserSystemRoleRequest {
   // 用户标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
-  // 目标平台角色：SYSTEM_ADMIN 或 USER。
-  string role = 2 [(buf.validate.field).string = {in: ["SYSTEM_ADMIN", "USER"]}];
+  // 目标平台角色：SYSTEM_ADMIN、SYSTEM_READONLY 或 USER。
+  string role = 2 [(buf.validate.field).string = {in: ["SYSTEM_ADMIN", "SYSTEM_READONLY", "USER"]}];
 }
 message UpdateUserSystemRoleResponse {
   // 用户资料。
@@ -1509,19 +1554,21 @@ message MarkMessageReadResponse {}
 message MarkAllMessagesReadRequest {}
 message MarkAllMessagesReadResponse {}
 
-// 一个功能。权限名是该功能包含的租户权限，供角色授权页按功能分组。
+// 一个能力。权限名是该能力包含的租户权限，供角色授权页按能力分组。
 message FeatureItem {
-  // 功能编码，如 alert、alert_rule、datasource。
+  // 能力编码，如 alert_realtime、k8s_node、web_shell。
   string code = 1;
-  // 功能名称。
+  // 能力名称。
   string name = 2;
-  // 功能说明。
+  // 能力说明。
   string description = 3;
-  // 该功能包含的租户权限名。
+  // 该能力包含的租户权限名。
   repeated string permissions = 4;
+  // 能力所属的菜单模块编码，如 alert、cluster、ssh。
+  string module = 5;
 }
 
-// 一个功能套餐。features 是套餐携带的功能编码。
+// 一个功能套餐。features 是套餐携带的能力编码。
 message FeaturePackageItem {
   // 标识。
   string uid = 1;
@@ -1529,7 +1576,7 @@ message FeaturePackageItem {
   string name = 2;
   // 备注。
   string remark = 3;
-  // 套餐功能编码列表。
+  // 套餐能力编码列表。
   repeated string features = 4;
   // 是否基础套餐。基础套餐只有一个，不能改名或删除。
   bool is_base = 5 [json_name = "isBase"];
@@ -1537,6 +1584,8 @@ message FeaturePackageItem {
   string status = 6;
   // 创建时间，Unix 秒。
   int64 created_at = 7 [json_name = "createdAt"];
+  // 授权时长（天），0 表示永久。
+  int32 duration_days = 8 [json_name = "durationDays"];
 }
 
 // 列出功能目录不需要参数。
@@ -1588,8 +1637,10 @@ message CreateFeaturePackageRequest {
   string name = 1 [(buf.validate.field).string.min_len = 1];
   // 备注。
   string remark = 2;
-  // 套餐功能编码列表。
+  // 套餐能力编码列表。
   repeated string features = 3;
+  // 授权时长（天），0 表示永久。
+  int32 duration_days = 4 [json_name = "durationDays", (buf.validate.field).int32.gte = 0];
 }
 
 // 新建后的功能套餐。
@@ -1606,8 +1657,10 @@ message UpdateFeaturePackageRequest {
   string name = 2 [(buf.validate.field).string.min_len = 1];
   // 备注。
   string remark = 3;
-  // 套餐功能编码列表。
+  // 套餐能力编码列表。
   repeated string features = 4;
+  // 授权时长（天），0 表示永久。
+  int32 duration_days = 5 [json_name = "durationDays", (buf.validate.field).int32.gte = 0];
 }
 
 // 修改后的功能套餐。
@@ -1631,36 +1684,54 @@ message GetNamespaceFeaturesRequest {
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
-// 租户的功能开通情况。有效功能 = 套餐功能 + 租户差异。
+// 租户的能力开通情况。有效能力 = 套餐能力 + 租户额外能力（只增不减）。
 message GetNamespaceFeaturesResponse {
   // 当前套餐标识。
   string package_uid = 1 [json_name = "packageUid"];
   // 当前套餐名称。
   string package_name = 2 [json_name = "packageName"];
-  // 目标有效功能编码列表。
+  // 目标有效能力编码列表。
   repeated string features = 3;
-  // 套餐自带的功能编码列表。
+  // 套餐自带的能力编码列表。
   repeated string package_features = 4 [json_name = "packageFeatures"];
+  // 授权到期时间，Unix 秒。0 表示永久。
+  int64 expires_at = 5 [json_name = "expiresAt"];
+  // 授权是否已过期。已过期时租户实际能力为空。
+  bool expired = 6;
+  // 租户额外增加的能力编码列表（套餐能力之外）。
+  repeated string extra_features = 7 [json_name = "extraFeatures"];
+  // 套餐的授权时长（天），0 表示永久。
+  int32 duration_days = 8 [json_name = "durationDays"];
 }
 
-// 设置租户功能的参数。features 是目标有效功能，服务端换算相对套餐的差异。
+// 设置租户能力的参数。features 是目标有效能力，服务端换算相对套餐的差异。
 message UpdateNamespaceFeaturesRequest {
   // 租户标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 目标套餐标识。
   string package_uid = 2 [json_name = "packageUid", (buf.validate.field).string.min_len = 1];
-  // 目标有效功能编码列表。
+  // 目标有效能力编码列表，必须包含套餐的全部能力。
   repeated string features = 3;
+  // 授权到期时间，Unix 秒。0 表示按套餐时长计算，仍为 0 则永久。
+  int64 expires_at = 4 [json_name = "expiresAt", (buf.validate.field).int64.gte = 0];
 }
 
-// 设置后的租户功能开通情况。
+// 设置后的租户能力开通情况。
 message UpdateNamespaceFeaturesResponse {
   // 当前套餐标识。
   string package_uid = 1 [json_name = "packageUid"];
   // 当前套餐名称。
   string package_name = 2 [json_name = "packageName"];
-  // 目标有效功能编码列表。
+  // 目标有效能力编码列表。
   repeated string features = 3;
-  // 套餐自带的功能编码列表。
+  // 套餐自带的能力编码列表。
   repeated string package_features = 4 [json_name = "packageFeatures"];
+  // 授权到期时间，Unix 秒。0 表示永久。
+  int64 expires_at = 5 [json_name = "expiresAt"];
+  // 授权是否已过期。已过期时租户实际能力为空。
+  bool expired = 6;
+  // 租户额外增加的能力编码列表（套餐能力之外）。
+  repeated string extra_features = 7 [json_name = "extraFeatures"];
+  // 套餐的授权时长（天），0 表示永久。
+  int32 duration_days = 8 [json_name = "durationDays"];
 }

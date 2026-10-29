@@ -26,6 +26,9 @@ func (FeaturePackage) Fields() []ent.Field {
 		// 基础套餐是新租户的默认套餐，只能有一个：改名和删除都被禁止，功能与备注可改。
 		field.Bool("is_base").Default(false),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
+		// duration_days 是租户使用该套餐时的默认授权时长；0 表示永久。
+		// 套餐只给默认值，真正到期时间落在 namespaces.package_expires_at。
+		field.Int32("duration_days").Default(0).NonNegative(),
 	}
 }
 

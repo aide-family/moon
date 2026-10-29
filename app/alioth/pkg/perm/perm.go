@@ -1,5 +1,7 @@
 package perm
 
+import "strings"
+
 const (
 	MemberRead   = "member:read"
 	MemberWrite  = "member:write"
@@ -61,8 +63,12 @@ const (
 	K8sCronJobRead               = "k8s:cronjob:read"
 	K8sCronJobWrite              = "k8s:cronjob:write"
 
+	AgentRead   = "agent:read"
+	AgentWrite  = "agent:write"
 	AgentDelete = "agent:delete"
 
+	SSHRead   = "ssh:read"
+	SSHWrite  = "ssh:write"
 	SSHDelete = "ssh:delete"
 	SSHExec   = "ssh:exec"
 )
@@ -75,6 +81,8 @@ const (
 	SystemRoleRead      = "system:role:read"
 	SystemInviteRead    = "system:invite:read"
 	SystemNamespaceRead = "system:namespace:read"
+	// system:namespace:write 管理租户生命周期：停用、启用和归档，只给超级管理员。
+	SystemNamespaceWrite = "system:namespace:write"
 	// 功能套餐只由平台维护：读给系统管理员，写只给超级管理员。
 	SystemPackageRead  = "system:package:read"
 	SystemPackageWrite = "system:package:write"
@@ -87,10 +95,12 @@ const (
 	RoleViewer = "viewer"
 )
 
-// 平台角色只有固定三档。第一个注册用户是超级管理员，其余由超级管理员授权。
+// 平台角色只有固定四档。第一个注册用户是超级管理员，其余由超级管理员授权。
+// SYSTEM_READONLY 是可查看平台全部信息、但没有任何写权限的只读管理员。
 const (
 	SystemRoleSuperAdmin  = "SUPER_ADMIN"
 	SystemRoleSystemAdmin = "SYSTEM_ADMIN"
+	SystemRoleReadOnly    = "SYSTEM_READONLY"
 	SystemRoleUser        = "USER"
 )
 
@@ -108,7 +118,7 @@ type Item struct {
 
 // Catalog 返回租户权限目录。
 func Catalog() []Item {
-	items := make([]Item, 0, len(resources)*2+4+len(k8sCatalog()))
+	items := make([]Item, 0, len(resources)*2+4+len(k8sCatalog())+len(capabilitySpecs))
 	for _, resource := range resources {
 		items = append(items,
 			Item{Name: resource + ":read", Resource: resource, Action: "read"},
@@ -127,6 +137,18 @@ func Catalog() []Item {
 		Item{Name: NamespaceTransfer, Resource: "namespace", Action: "transfer"},
 	)
 	items = append(items, k8sCatalog()...)
+	// 菜单权限追加在租户权限目录末尾。资源名固定为 menu，动作是能力编码，
+	// 因此 Name 仍是 Resource+":"+Action 的形式，前端可以直接按资源分组。
+	items = append(items, menuCatalog()...)
+	return items
+}
+
+// menuCatalog 返回全部能力的菜单权限，顺序与能力目录一致。
+func menuCatalog() []Item {
+	items := make([]Item, 0, len(capabilitySpecs))
+	for _, item := range capabilitySpecs {
+		items = append(items, Item{Name: MenuPermission(item.Code), Resource: "menu", Action: item.Code})
+	}
 	return items
 }
 
@@ -163,6 +185,7 @@ func SystemCatalog() []Item {
 		{Name: SystemRoleWrite, Resource: "system", Action: "role:write"},
 		{Name: SystemInviteRead, Resource: "system", Action: "invite:read"},
 		{Name: SystemNamespaceRead, Resource: "system", Action: "namespace:read"},
+		{Name: SystemNamespaceWrite, Resource: "system", Action: "namespace:write"},
 		{Name: SystemPackageRead, Resource: "system", Action: "package:read"},
 		{Name: SystemPackageWrite, Resource: "system", Action: "package:write"},
 	}
@@ -226,9 +249,23 @@ func SystemPermissions(role string) []string {
 		return SystemNames()
 	case SystemRoleSystemAdmin:
 		return []string{SystemUserRead, SystemUserWrite, SystemRoleRead, SystemInviteRead, SystemNamespaceRead, SystemPackageRead}
+	case SystemRoleReadOnly:
+		return systemReadPermissions()
 	default:
 		return nil
 	}
+}
+
+// systemReadPermissions 返回系统权限目录里的全部只读权限。
+// 系统只读角色靠它查看平台信息，写权限一个都不持有。
+func systemReadPermissions() []string {
+	names := make([]string, 0, len(SystemCatalog()))
+	for _, item := range SystemCatalog() {
+		if item.Action == "read" || strings.HasSuffix(item.Name, ":read") {
+			names = append(names, item.Name)
+		}
+	}
+	return names
 }
 
 // IsReadOnly 判断权限名是否属于租户目录中的只读权限。
@@ -236,19 +273,21 @@ func SystemPermissions(role string) []string {
 // 平台管理员只靠它跨租户读取；写、删除、介入和执行动作一律不放行。
 func IsReadOnly(code string) bool {
 	for _, item := range Catalog() {
-		if item.Name == code {
-			return item.Action == "read" || item.Action == "logs"
+		if item.Name != code {
+			continue
 		}
+		return item.Resource == "menu" || item.Action == "read" || item.Action == "logs"
 	}
 	return false
 }
 
 // ReadOnlyNames 返回租户目录中的全部只读权限名，顺序与 Catalog 一致。
-// 平台管理员不是租户成员时，/self/permissions 返回这份目录。
+// 平台管理员（含系统只读角色）不是租户成员时，/self/permissions 返回这份目录。
+// 菜单权限只是入口开关，不改变任何状态，也算只读。
 func ReadOnlyNames() []string {
 	names := make([]string, 0)
 	for _, item := range Catalog() {
-		if item.Action == "read" || item.Action == "logs" {
+		if item.Resource == "menu" || item.Action == "read" || item.Action == "logs" {
 			names = append(names, item.Name)
 		}
 	}
@@ -262,7 +301,7 @@ func TenantRoles() []string {
 
 // SystemRoles 返回平台固定角色。
 func SystemRoles() []string {
-	return []string{SystemRoleSuperAdmin, SystemRoleSystemAdmin, SystemRoleUser}
+	return []string{SystemRoleSuperAdmin, SystemRoleSystemAdmin, SystemRoleReadOnly, SystemRoleUser}
 }
 
 // IsTenantPermission 只认租户权限目录。用于阻止把 user:* 或 system:* 授给租户角色。
@@ -277,7 +316,24 @@ func IsTenantPermission(name string) bool {
 
 func IsSystemRole(role string) bool {
 	switch role {
-	case SystemRoleSuperAdmin, SystemRoleSystemAdmin, SystemRoleUser:
+	case SystemRoleSuperAdmin, SystemRoleSystemAdmin, SystemRoleReadOnly, SystemRoleUser:
+		return true
+	default:
+		return false
+	}
+}
+
+// IsSystemReadOnly 判断平台角色是否是只读管理员。
+// 只读管理员能看平台全部信息，但任何写接口都必须返回 403。
+func IsSystemReadOnly(role string) bool {
+	return role == SystemRoleReadOnly
+}
+
+// CanReadAnyTenant 判断平台角色是否可以跨租户只读。
+// 只读管理员只是不写，读取范围与超级管理员、系统管理员一致。
+func CanReadAnyTenant(role string) bool {
+	switch role {
+	case SystemRoleSuperAdmin, SystemRoleSystemAdmin, SystemRoleReadOnly:
 		return true
 	default:
 		return false
@@ -315,11 +371,14 @@ func K8sWritePermissions() []string {
 // readPermissions 返回 viewer 的只读权限：全部租户资源的读权限，加上 Kubernetes
 // 资源级只读权限（含读取 Pod 日志）。member 在此基础上再叠加告警干预与 SSH 执行。
 func readPermissions() []string {
-	names := make([]string, 0, len(resources)+len(k8sCatalog()))
+	names := make([]string, 0, len(resources)+len(k8sCatalog())+len(capabilitySpecs))
 	for _, resource := range resources {
 		names = append(names, resource+":read")
 	}
-	return append(names, K8sReadPermissions()...)
+	names = append(names, K8sReadPermissions()...)
+	// 菜单权限只控制入口可见性，属于只读：viewer 与 member 默认持有全部菜单，
+	// 实际可见哪些入口仍由套餐开通的能力过滤。
+	return append(names, MenuPermissions()...)
 }
 
 func memberPermissions() []string {

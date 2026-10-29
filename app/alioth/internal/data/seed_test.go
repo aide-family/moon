@@ -49,3 +49,42 @@ func permissionSet(names []string) map[string]struct{} {
 	}
 	return out
 }
+
+// TestCapabilityCodesOf 确认旧的模块级编码会展开成该模块的全部能力，
+// 能力编码去重并按目录顺序返回，目录外的编码被忽略。
+func TestCapabilityCodesOf(t *testing.T) {
+	got := capabilityCodesOf([]string{
+		perm.FeatureCluster,
+		perm.CapabilityAlertRealtime,
+		perm.CapabilityAlertRealtime,
+		"unknown",
+		perm.FeatureMember,
+	})
+	want := append(
+		[]string{perm.CapabilityAlertRealtime, perm.CapabilityMember},
+		perm.CapabilityCodesOfModule(perm.FeatureCluster)...,
+	)
+	if len(got) != len(want) {
+		t.Fatalf("capability codes = %v, want %v", got, want)
+	}
+	wantSet := permissionSet(want)
+	for _, code := range got {
+		if _, ok := wantSet[code]; !ok {
+			t.Fatalf("unexpected capability %s, want %v", code, want)
+		}
+	}
+}
+
+// TestHoldsAnyPermission 确认菜单权限补齐只看角色是否持有能力的任一权限。
+func TestHoldsAnyPermission(t *testing.T) {
+	held := permissionSet([]string{perm.AlertRead})
+	if !holdsAnyPermission(held, []string{perm.AlertWrite, perm.AlertRead}) {
+		t.Fatal("held permission not detected")
+	}
+	if holdsAnyPermission(held, []string{perm.AlertWrite, perm.AlertDelete}) {
+		t.Fatal("unheld permission detected")
+	}
+	if holdsAnyPermission(permissionSet(nil), []string{perm.AlertRead}) {
+		t.Fatal("empty held set matched")
+	}
+}

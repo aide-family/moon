@@ -56,6 +56,8 @@ const dangerValues = new Set([
   "EXPIRED",
   "REVOKED",
   "FIRING",
+  // 租户软删除后不再可用，按危险态展示（列表通常不再返回）。
+  "ARCHIVED",
 ])
 
 const infoValues = new Set([
@@ -89,6 +91,8 @@ const typeTones: Record<string, BadgeTone> = {
   OTHER: "neutral",
   SUPER_ADMIN: "primary",
   SYSTEM_ADMIN: "info",
+  // 系统只读：可查看平台全部信息、不可修改，用紫色与只读提示呼应。
+  SYSTEM_READONLY: "violet",
   USER: "neutral",
   ALERT: "warning",
   DATASOURCE: "info",

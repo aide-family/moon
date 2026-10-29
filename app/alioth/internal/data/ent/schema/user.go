@@ -29,7 +29,8 @@ func (User) Fields() []ent.Field {
 		field.String("remark").Default(""),
 		field.Enum("status").Values("ACTIVE", "BANNED").Default("ACTIVE"),
 		field.String("password_hash").Sensitive().Default(""),
-		field.Enum("system_role").Values("SUPER_ADMIN", "SYSTEM_ADMIN", "USER").Default("USER"),
+		// SYSTEM_READONLY 是可查看平台全部信息但没有任何写权限的只读管理员。
+		field.Enum("system_role").Values("SUPER_ADMIN", "SYSTEM_ADMIN", "SYSTEM_READONLY", "USER").Default("USER"),
 		field.String("authorized_by").Default(""),
 	}
 }

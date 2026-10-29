@@ -1,6 +1,9 @@
 package perm
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestRoleBoundaries(t *testing.T) {
 	owner := set(RolePermissions(RoleOwner))
@@ -109,7 +112,7 @@ func TestReadOnlyCatalog(t *testing.T) {
 	reads := set(ReadOnlyNames())
 	for _, item := range Catalog() {
 		_, inReads := reads[item.Name]
-		want := item.Action == "read" || item.Action == "logs"
+		want := item.Action == "read" || item.Action == "logs" || item.Resource == "menu"
 		if inReads != want {
 			t.Fatalf("permission %s read-only = %v, want %v", item.Name, inReads, want)
 		}
@@ -173,6 +176,35 @@ func TestSystemTenantIsolation(t *testing.T) {
 	if len(SystemPermissions(SystemRoleUser)) != 0 {
 		t.Fatal("normal user has system permissions")
 	}
+	if _, ok := super[SystemNamespaceWrite]; !ok {
+		t.Fatal("super admin missing system namespace write")
+	}
+	if _, ok := admin[SystemNamespaceWrite]; ok {
+		t.Fatal("system admin has system namespace write")
+	}
+	readOnly := set(SystemPermissions(SystemRoleReadOnly))
+	for _, item := range SystemCatalog() {
+		isRead := strings.HasSuffix(item.Name, ":read")
+		_, held := readOnly[item.Name]
+		if held != isRead {
+			t.Fatalf("system readonly role permission %s held = %v, want %v", item.Name, held, isRead)
+		}
+	}
+	if _, ok := readOnly[SystemPackageWrite]; ok {
+		t.Fatal("system readonly role has system package write")
+	}
+	if !CanReadAnyTenant(SystemRoleReadOnly) || !CanReadAnyTenant(SystemRoleSystemAdmin) || !CanReadAnyTenant(SystemRoleSuperAdmin) {
+		t.Fatal("read-only tenant access not granted to platform roles")
+	}
+	if CanReadAnyTenant(SystemRoleUser) {
+		t.Fatal("normal user can read any tenant")
+	}
+	if IsSystemAdmin(SystemRoleReadOnly) {
+		t.Fatal("system readonly role treated as system admin")
+	}
+	if !IsSystemReadOnly(SystemRoleReadOnly) {
+		t.Fatal("system readonly role not recognized")
+	}
 }
 
 // TestTenantPermissionCatalog 确认租户权限目录不接受平台权限。
@@ -199,6 +231,135 @@ func TestSystemRoles(t *testing.T) {
 	}
 	if !IsSystemAdmin(SystemRoleSuperAdmin) || !IsSystemAdmin(SystemRoleSystemAdmin) {
 		t.Fatal("system admin roles not recognized")
+	}
+	if !IsSystemRole(SystemRoleReadOnly) {
+		t.Fatal("system readonly role not recognized")
+	}
+}
+
+// TestCapabilityCatalog 确认两级功能模型：30 个能力都挂在 10 个模块下，
+// 权限都在租户目录里，菜单权限与能力一一对应。
+func TestCapabilityCatalog(t *testing.T) {
+	items := Capabilities()
+	if len(items) != 30 {
+		t.Fatalf("capabilities = %d, want 30", len(items))
+	}
+	if items[0].Code != CapabilityAlertRealtime || items[len(items)-1].Code != CapabilityWebShell {
+		t.Fatalf("unexpected capability order: first %s last %s", items[0].Code, items[len(items)-1].Code)
+	}
+	catalog := set(Names())
+	modules := set(FeatureCodes())
+	for _, item := range items {
+		if !IsCapability(item.Code) {
+			t.Fatalf("capability %s not recognized", item.Code)
+		}
+		if _, ok := modules[item.Module]; !ok {
+			t.Fatalf("capability %s module %s is not a feature", item.Code, item.Module)
+		}
+		if len(item.Permissions) == 0 {
+			t.Fatalf("capability %s has no permissions", item.Code)
+		}
+		for _, name := range item.Permissions {
+			if _, ok := catalog[name]; !ok {
+				t.Fatalf("capability %s permission %s is not in tenant catalog", item.Code, name)
+			}
+			if !IsTenantPermission(name) {
+				t.Fatalf("capability permission %s is not a tenant permission", name)
+			}
+		}
+		if got := FeatureOf(MenuPermission(item.Code)); got != item.Module {
+			t.Fatalf("FeatureOf(menu:%s) = %s, want %s", item.Code, got, item.Module)
+		}
+		if got := FeatureOf(item.Code); got != item.Module {
+			t.Fatalf("FeatureOf(%s) = %s, want %s", item.Code, got, item.Module)
+		}
+		if !IsMenuPermission(MenuPermission(item.Code)) {
+			t.Fatalf("menu permission for %s not recognized", item.Code)
+		}
+		if !IsReadOnly(MenuPermission(item.Code)) {
+			t.Fatalf("menu permission for %s is not read-only", item.Code)
+		}
+	}
+	if len(set(MenuPermissions())) != len(items) {
+		t.Fatal("menu permission count does not match capability count")
+	}
+	base := BaseCapabilities()
+	if len(base) != 15 {
+		t.Fatalf("base capabilities = %d, want 15", len(base))
+	}
+	baseModules := set(BaseFeatures())
+	for _, code := range base {
+		item, _ := CapabilityOf(code)
+		if _, ok := baseModules[item.Module]; !ok {
+			t.Fatalf("base capability %s module %s is not a base feature", code, item.Module)
+		}
+	}
+	if got := CapabilityPermissions([]string{CapabilityNotifyChannel, CapabilityNotifyGroup}); len(got) != 3 {
+		t.Fatalf("notification permissions = %v, want 3 unique", got)
+	}
+	if got := CapabilityCodesOfModule(FeatureCluster); len(got) != 12 {
+		t.Fatalf("cluster capabilities = %d, want 12", len(got))
+	}
+}
+
+// TestRolePermissionsForCapabilities 确认预置角色按能力范围取权限：
+// 模块权限与能力权限取交集，再带上对应菜单权限；namespace:* 始终保留。
+func TestRolePermissionsForCapabilities(t *testing.T) {
+	caps := []string{CapabilityAlertRealtime, CapabilityClusterAccess}
+	owner := set(RolePermissionsForCapabilities(RoleOwner, caps))
+	for _, name := range []string{AlertRead, AlertIntervene, MenuPermission(CapabilityAlertRealtime), MenuPermission(CapabilityClusterAccess), NamespaceWrite} {
+		if _, ok := owner[name]; !ok {
+			t.Fatalf("owner missing %s", name)
+		}
+	}
+	for _, name := range []string{AlertWrite, AlertDelete, K8sNodeRead, MenuPermission(CapabilityAlertHistory)} {
+		if _, ok := owner[name]; ok {
+			t.Fatalf("owner has out-of-scope permission %s", name)
+		}
+	}
+	if _, ok := owner[ClusterWrite]; !ok {
+		t.Fatal("owner missing cluster write from cluster access capability")
+	}
+	viewer := set(RolePermissionsForCapabilities(RoleViewer, caps))
+	for name := range viewer {
+		if !IsReadOnly(name) {
+			t.Fatalf("viewer permission %s is not read-only", name)
+		}
+	}
+	member := set(RolePermissionsForCapabilities(RoleMember, []string{CapabilityWebShell}))
+	if _, ok := member[SSHExec]; !ok {
+		t.Fatal("member missing ssh exec in web shell capability")
+	}
+	if _, ok := member[MenuPermission(CapabilityWebShell)]; !ok {
+		t.Fatal("member missing web shell menu permission")
+	}
+	if _, ok := member[MenuPermission(CapabilitySSHCommand)]; ok {
+		t.Fatal("member has menu permission outside capabilities")
+	}
+	if _, ok := set(RolePermissionsForCapabilities(RoleViewer, nil))[MemberRead]; ok {
+		t.Fatal("capability-less role kept module permissions")
+	}
+}
+
+// TestEffectiveCapabilities 确认套餐能力与额外能力求并集并按目录顺序返回，
+// 目录外的旧编码被忽略。
+func TestEffectiveCapabilities(t *testing.T) {
+	got := EffectiveCapabilities(
+		[]string{CapabilityRole, "alert", CapabilityAlertRealtime},
+		[]string{CapabilityRole, CapabilityK8sPod},
+	)
+	want := []string{CapabilityAlertRealtime, CapabilityRole, CapabilityK8sPod}
+	if len(got) != len(want) {
+		t.Fatalf("effective capabilities = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("effective capabilities = %v, want %v", got, want)
+		}
+	}
+	modules := ModulesOfCapabilities([]string{CapabilityK8sPod, CapabilityClusterAccess, CapabilityMember})
+	if len(modules) != 2 || modules[0] != FeatureMember || modules[1] != FeatureCluster {
+		t.Fatalf("modules = %v, want [member cluster]", modules)
 	}
 }
 

@@ -133,9 +133,10 @@ const DefaultSystemRole = SystemRoleUSER
 
 // SystemRole values.
 const (
-	SystemRoleSUPER_ADMIN  SystemRole = "SUPER_ADMIN"
-	SystemRoleSYSTEM_ADMIN SystemRole = "SYSTEM_ADMIN"
-	SystemRoleUSER         SystemRole = "USER"
+	SystemRoleSUPER_ADMIN     SystemRole = "SUPER_ADMIN"
+	SystemRoleSYSTEM_ADMIN    SystemRole = "SYSTEM_ADMIN"
+	SystemRoleSYSTEM_READONLY SystemRole = "SYSTEM_READONLY"
+	SystemRoleUSER            SystemRole = "USER"
 )
 
 func (sr SystemRole) String() string {
@@ -145,7 +146,7 @@ func (sr SystemRole) String() string {
 // SystemRoleValidator is a validator for the "system_role" field enum values. It is called by the builders before save.
 func SystemRoleValidator(sr SystemRole) error {
 	switch sr {
-	case SystemRoleSUPER_ADMIN, SystemRoleSYSTEM_ADMIN, SystemRoleUSER:
+	case SystemRoleSUPER_ADMIN, SystemRoleSYSTEM_ADMIN, SystemRoleSYSTEM_READONLY, SystemRoleUSER:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for system_role field: %q", sr)

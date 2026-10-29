@@ -149,12 +149,12 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 
 | 类型 | 目录 | 授权载体 | 校验 |
 | --- | --- | --- | --- |
-| 系统权限 | `system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read`、`system:namespace:read`、`system:package:read`、`system:package:write` | `User.system_role` | `access.RequireSystem`，不读 `X-Namespace` |
-| 租户权限 | `member`、`role`、`namespace`、`datasource`、`probe`、`alert_rule`、`alert`、`notification`、`cluster`、`agent`、`ssh` 的 `resource:action`，以及 Kubernetes 资源级 `k8s:<资源>:<动作>` | `Role` + `MemberRole` | `access.Allow` / `Require`，必须带 `X-Namespace`，且所属功能已开通 |
+| 系统权限 | `system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read`、`system:namespace:read`、`system:namespace:write`、`system:package:read`、`system:package:write` | `User.system_role` | `access.RequireSystem`，不读 `X-Namespace` |
+| 租户权限 | `member`、`role`、`namespace`、`datasource`、`probe`、`alert_rule`、`alert`、`notification`、`cluster`、`agent`、`ssh` 的 `resource:action`、Kubernetes 资源级 `k8s:<资源>:<动作>`，以及菜单权限 `menu:<能力>` | `Role` + `MemberRole` | `access.Allow` / `Require`，必须带 `X-Namespace`，且所属模块与菜单能力已开通 |
 
-平台角色固定三档：第一个注册用户是 `SUPER_ADMIN`；`SYSTEM_ADMIN` 由超级管理员授权，可查看和管理普通用户、列出平台全部租户、查看功能套餐；`USER` 没有系统权限。`system:package:write` 只授予超级管理员。超级管理员唯一性由数据库部分唯一索引保证。已有部署升级时，最早注册的用户补为超级管理员。`system:user:read` 及以上才能查看用户列表。
+平台角色固定四档：第一个注册用户是 `SUPER_ADMIN`；`SYSTEM_ADMIN` 由超级管理员授权，可查看和管理普通用户、列出平台全部租户、查看功能套餐；`SYSTEM_READONLY` 由超级管理员授权，持有全部 `system:*:read`、没有任何写权限，可查看平台信息和跨租户只读；`USER` 没有系统权限。`system:role:write`、`system:namespace:write`、`system:package:write` 只授予超级管理员。`perm.IsSystemAdmin` 只认超级管理员和系统管理员，系统只读角色不算管理员；能否跨租户只读用 `perm.CanReadAnyTenant` 判断。超级管理员唯一性由数据库部分唯一索引保证。已有部署升级时，最早注册的用户补为超级管理员。`system:user:read` 及以上才能查看用户列表。
 
-平台管理员不是某租户成员时，`access.Require` 仍放行租户目录里的 `:read` 权限（`perm.IsReadOnly`），写、删除、介入和执行动作返回 403；`/self/permissions` 据此返回 `readOnly = true` 和只读权限目录。
+平台管理员不是某租户成员时，`access.Require` 仍放行租户目录里的 `:read` 权限（`perm.IsReadOnly`），写、删除、介入和执行动作返回 403；`menu:*` 判为只读，因此 `ReadOnlyNames` 含菜单权限；`/self/permissions` 据此返回 `readOnly = true` 和只读权限目录。
 
 租户预置角色：
 
@@ -167,13 +167,15 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 
 权限名是 `resource:action`。租户资源为 `member`、`role`、`namespace`、`datasource`、`probe`、`alert_rule`、`alert`、`notification`、`cluster`、`agent`、`ssh`；`user` 不属于租户权限。Kubernetes 控制台按资源授权，权限名写成 `k8s:<资源>:<动作>`，资源为节点、工作负载、Pod、Ingress、Service、ConfigMap、Secret、PV、PVC、Job、CronJob；`cluster:*` 只负责集群接入与连接，进入控制台仍要求 `cluster:read`。动作至少有 `read` 与 `write`，Pod 日志是独立的只读动作 `k8s:pod:logs`。告警另有 `intervene`。执行动作为 `ssh:exec`。系统权限不写入 `permissions` 表，租户角色授权页也不返回它们。
 
-功能套餐约束（M19）：
+功能能力化约束（M19）：
 
-- 菜单模块成为「功能」，功能目录在 `app/alioth/pkg/perm` 用代码维护，不建表、不由接口增删；`namespace:*` 不属于任何功能，始终可用。
-- 超级管理员用「套餐」（`FeaturePackage` + `FeaturePackageItem`）给租户开通功能；租户可以用 `NamespaceFeature` 相对套餐加减功能。有效功能 = 套餐功能 + 租户差异，按目录顺序排列，不落表。
-- 新租户默认基础套餐，只含 `alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`。`cluster`、`agent`、`ssh` 需超级管理员开通；存量租户由 seed 迁到基础套餐并加开这三项。
-- 租户只能把已开通功能的权限授给角色；`ListPermissions`、`UpdateRolePermissions`、`/self/permissions` 都按有效功能过滤，未开通功能返回 403 `feature not enabled`。系统管理员的跨租户只读也受功能限制。
-- `access.Checker` 在权限通过后检查 `perm.FeatureOf(code)`；新增需要功能控制的租户接口不需要额外代码，权限名到功能的映射由 `perm` 包统一维护。
+- 目录是两级：10 个模块 → 30 个能力 → 权限，全部在 `app/alioth/pkg/perm` 用代码维护（`feature.go`、`capability.go`、`perm.go`），不建表、不由接口增删；`namespace:*` 不属于任何能力，始终可用。
+- 超级管理员用带 `duration_days`（0=永久）的「套餐」（`FeaturePackage` + `FeaturePackageItem`）给租户开通能力；`NamespaceFeature` 只存租户额外能力（`enabled` 恒为 true）。有效能力 = 套餐能力 ∪ 额外能力，按目录顺序排列，不落表；能力只增不减，设置接口的目标能力必须包含套餐全部能力。
+- 套餐到期（`namespaces.package_expires_at` 非空且已过）、租户停用或归档时，`EffectiveCapabilities`/`EffectiveModules` 返回空，配置保留；启用/续期后恢复。
+- 新租户默认基础套餐，只含前七个模块的全部能力（15 个）：`alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`。`cluster`、`agent`、`ssh` 能力需超级管理员开通；存量租户由 seed 迁到基础套餐并加开这三个模块的全部能力。
+- 菜单入口由 `menu:<能力>` 控制，角色授权页和 `/self/permissions` 都返回它；接口权限仍由能力里的权限决定。`access.Checker` 在权限通过后先校验 `perm.FeatureOf(code)` 在有效模块内（403 `feature not enabled`），租户成员还要持有覆盖该权限的菜单权限（403 `menu permission denied`）；新增受控接口不需要额外代码，映射由 `perm` 包维护。
+- 租户只能把已开通能力的权限授给角色；`ListPermissions`、`UpdateRolePermissions`、`/self/permissions` 都按有效能力过滤。
+- 租户生命周期由平台管理：`PUT /v1/system/namespace/{uid}/status` 停用/启用（停用必填原因并邮件通知负责人），`PUT /v1/system/namespace/{uid}/archive` 归档（软删除租户和全部业务数据，不可恢复）。停用租户不可切换进入，租户侧没有自行解封的接口。
 
 租户邀请不直接创建成员：
 

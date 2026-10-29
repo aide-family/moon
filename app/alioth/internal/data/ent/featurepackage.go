@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 )
 
@@ -33,7 +32,9 @@ type FeaturePackage struct {
 	// IsBase holds the value of the "is_base" field.
 	IsBase bool `json:"is_base,omitempty"`
 	// Status holds the value of the "status" field.
-	Status       featurepackage.Status `json:"status,omitempty"`
+	Status featurepackage.Status `json:"status,omitempty"`
+	// DurationDays holds the value of the "duration_days" field.
+	DurationDays int32 `json:"duration_days,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -44,7 +45,7 @@ func (*FeaturePackage) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case featurepackage.FieldIsBase:
 			values[i] = new(sql.NullBool)
-		case featurepackage.FieldID:
+		case featurepackage.FieldID, featurepackage.FieldDurationDays:
 			values[i] = new(sql.NullInt64)
 		case featurepackage.FieldUID, featurepackage.FieldName, featurepackage.FieldRemark, featurepackage.FieldStatus:
 			values[i] = new(sql.NullString)
@@ -120,6 +121,12 @@ func (_m *FeaturePackage) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Status = featurepackage.Status(value.String)
 			}
+		case featurepackage.FieldDurationDays:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field duration_days", values[i])
+			} else if value.Valid {
+				_m.DurationDays = int32(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -181,6 +188,9 @@ func (_m *FeaturePackage) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("duration_days=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DurationDays))
 	builder.WriteByte(')')
 	return builder.String()
 }

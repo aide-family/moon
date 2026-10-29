@@ -90,6 +90,23 @@ func (s *NamespaceService) ListSystemNamespaces(ctx context.Context, req *v1.Lis
 	return &v1.ListSystemNamespacesResponse{Items: namespaceItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
 }
 
+// UpdateSystemNamespaceStatus 由平台停用或启用租户。停用原因必填，成功后通知负责人。
+func (s *NamespaceService) UpdateSystemNamespaceStatus(ctx context.Context, req *v1.UpdateSystemNamespaceStatusRequest) (*v1.UpdateSystemNamespaceStatusResponse, error) {
+	item, err := s.tenancy.SetSystemNamespaceStatus(ctx, req.GetUid(), req.GetStatus(), req.GetReason())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateSystemNamespaceStatusResponse{Namespace: namespaceItem(*item)}, nil
+}
+
+// ArchiveSystemNamespace 归档租户：软删除租户及其全部业务数据，不可恢复。
+func (s *NamespaceService) ArchiveSystemNamespace(ctx context.Context, req *v1.ArchiveSystemNamespaceRequest) (*v1.ArchiveSystemNamespaceResponse, error) {
+	if err := s.tenancy.ArchiveNamespace(ctx, req.GetUid()); err != nil {
+		return nil, err
+	}
+	return &v1.ArchiveSystemNamespaceResponse{}, nil
+}
+
 func (s *NamespaceService) TransferNamespaceOwner(ctx context.Context, req *v1.TransferNamespaceOwnerRequest) (*v1.TransferNamespaceOwnerResponse, error) {
 	item, err := s.tenancy.TransferOwner(ctx, req.GetUid(), req.GetUserUid())
 	if err != nil {
@@ -123,7 +140,7 @@ func (s *NamespaceService) GetFeaturePackage(ctx context.Context, req *v1.GetFea
 }
 
 func (s *NamespaceService) CreateFeaturePackage(ctx context.Context, req *v1.CreateFeaturePackageRequest) (*v1.CreateFeaturePackageResponse, error) {
-	item, err := s.provisioning.CreatePackage(ctx, strings.TrimSpace(req.GetName()), strings.TrimSpace(req.GetRemark()), req.GetFeatures())
+	item, err := s.provisioning.CreatePackage(ctx, strings.TrimSpace(req.GetName()), strings.TrimSpace(req.GetRemark()), req.GetDurationDays(), req.GetFeatures())
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +148,7 @@ func (s *NamespaceService) CreateFeaturePackage(ctx context.Context, req *v1.Cre
 }
 
 func (s *NamespaceService) UpdateFeaturePackage(ctx context.Context, req *v1.UpdateFeaturePackageRequest) (*v1.UpdateFeaturePackageResponse, error) {
-	item, err := s.provisioning.UpdatePackage(ctx, req.GetUid(), strings.TrimSpace(req.GetName()), strings.TrimSpace(req.GetRemark()), req.GetFeatures())
+	item, err := s.provisioning.UpdatePackage(ctx, req.GetUid(), strings.TrimSpace(req.GetName()), strings.TrimSpace(req.GetRemark()), req.GetDurationDays(), req.GetFeatures())
 	if err != nil {
 		return nil, err
 	}
@@ -150,15 +167,23 @@ func (s *NamespaceService) GetNamespaceFeatures(ctx context.Context, req *v1.Get
 	if err != nil {
 		return nil, err
 	}
-	packageUID, packageName, features, packageFeatures := namespaceFeatureFields(*item)
-	return &v1.GetNamespaceFeaturesResponse{PackageUid: packageUID, PackageName: packageName, Features: features, PackageFeatures: packageFeatures}, nil
+	packageUID, packageName, features, packageFeatures, extraFeatures, expiresAt, expired, durationDays := namespaceFeatureFields(*item)
+	return &v1.GetNamespaceFeaturesResponse{
+		PackageUid: packageUID, PackageName: packageName, Features: features,
+		PackageFeatures: packageFeatures, ExtraFeatures: extraFeatures,
+		ExpiresAt: expiresAt, Expired: expired, DurationDays: durationDays,
+	}, nil
 }
 
 func (s *NamespaceService) UpdateNamespaceFeatures(ctx context.Context, req *v1.UpdateNamespaceFeaturesRequest) (*v1.UpdateNamespaceFeaturesResponse, error) {
-	item, err := s.provisioning.UpdateNamespaceFeatures(ctx, req.GetUid(), req.GetPackageUid(), req.GetFeatures())
+	item, err := s.provisioning.UpdateNamespaceFeatures(ctx, req.GetUid(), req.GetPackageUid(), req.GetFeatures(), req.GetExpiresAt())
 	if err != nil {
 		return nil, err
 	}
-	packageUID, packageName, features, packageFeatures := namespaceFeatureFields(*item)
-	return &v1.UpdateNamespaceFeaturesResponse{PackageUid: packageUID, PackageName: packageName, Features: features, PackageFeatures: packageFeatures}, nil
+	packageUID, packageName, features, packageFeatures, extraFeatures, expiresAt, expired, durationDays := namespaceFeatureFields(*item)
+	return &v1.UpdateNamespaceFeaturesResponse{
+		PackageUid: packageUID, PackageName: packageName, Features: features,
+		PackageFeatures: packageFeatures, ExtraFeatures: extraFeatures,
+		ExpiresAt: expiresAt, Expired: expired, DurationDays: durationDays,
+	}, nil
 }

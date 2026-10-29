@@ -762,6 +762,12 @@ func init() {
 	featurepackageDescIsBase := featurepackageFields[3].Descriptor()
 	// featurepackage.DefaultIsBase holds the default value on creation for the is_base field.
 	featurepackage.DefaultIsBase = featurepackageDescIsBase.Default.(bool)
+	// featurepackageDescDurationDays is the schema descriptor for duration_days field.
+	featurepackageDescDurationDays := featurepackageFields[5].Descriptor()
+	// featurepackage.DefaultDurationDays holds the default value on creation for the duration_days field.
+	featurepackage.DefaultDurationDays = featurepackageDescDurationDays.Default.(int32)
+	// featurepackage.DurationDaysValidator is a validator for the "duration_days" field. It is called by the builders before save.
+	featurepackage.DurationDaysValidator = featurepackageDescDurationDays.Validators[0].(func(int32) error)
 	featurepackageitemMixin := schema.FeaturePackageItem{}.Mixin()
 	featurepackageitemMixinFields0 := featurepackageitemMixin[0].Fields()
 	_ = featurepackageitemMixinFields0
@@ -1023,6 +1029,12 @@ func init() {
 	namespaceDescRemark := namespaceFields[6].Descriptor()
 	// namespace.DefaultRemark holds the default value on creation for the remark field.
 	namespace.DefaultRemark = namespaceDescRemark.Default.(string)
+	// namespaceDescDisableReason is the schema descriptor for disable_reason field.
+	namespaceDescDisableReason := namespaceFields[9].Descriptor()
+	// namespace.DefaultDisableReason holds the default value on creation for the disable_reason field.
+	namespace.DefaultDisableReason = namespaceDescDisableReason.Default.(string)
+	// namespace.DisableReasonValidator is a validator for the "disable_reason" field. It is called by the builders before save.
+	namespace.DisableReasonValidator = namespaceDescDisableReason.Validators[0].(func(string) error)
 	namespacefeatureMixin := schema.NamespaceFeature{}.Mixin()
 	namespacefeatureMixinFields0 := namespacefeatureMixin[0].Fields()
 	_ = namespacefeatureMixinFields0

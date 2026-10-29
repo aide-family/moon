@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 )
 
@@ -39,8 +38,12 @@ type Namespace struct {
 	// Remark holds the value of the "remark" field.
 	Remark string `json:"remark,omitempty"`
 	// Status holds the value of the "status" field.
-	Status       namespace.Status `json:"status,omitempty"`
-	selectValues sql.SelectValues
+	Status namespace.Status `json:"status,omitempty"`
+	// PackageExpiresAt holds the value of the "package_expires_at" field.
+	PackageExpiresAt *time.Time `json:"package_expires_at,omitempty"`
+	// DisableReason holds the value of the "disable_reason" field.
+	DisableReason string `json:"disable_reason,omitempty"`
+	selectValues  sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -50,9 +53,9 @@ func (*Namespace) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case namespace.FieldID:
 			values[i] = new(sql.NullInt64)
-		case namespace.FieldUID, namespace.FieldName, namespace.FieldSecret, namespace.FieldOwnerUID, namespace.FieldPackageUID, namespace.FieldLogo, namespace.FieldRemark, namespace.FieldStatus:
+		case namespace.FieldUID, namespace.FieldName, namespace.FieldSecret, namespace.FieldOwnerUID, namespace.FieldPackageUID, namespace.FieldLogo, namespace.FieldRemark, namespace.FieldStatus, namespace.FieldDisableReason:
 			values[i] = new(sql.NullString)
-		case namespace.FieldCreatedAt, namespace.FieldUpdatedAt, namespace.FieldDeletedAt:
+		case namespace.FieldCreatedAt, namespace.FieldUpdatedAt, namespace.FieldDeletedAt, namespace.FieldPackageExpiresAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -142,6 +145,19 @@ func (_m *Namespace) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Status = namespace.Status(value.String)
 			}
+		case namespace.FieldPackageExpiresAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field package_expires_at", values[i])
+			} else if value.Valid {
+				_m.PackageExpiresAt = new(time.Time)
+				*_m.PackageExpiresAt = value.Time
+			}
+		case namespace.FieldDisableReason:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field disable_reason", values[i])
+			} else if value.Valid {
+				_m.DisableReason = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -211,6 +227,14 @@ func (_m *Namespace) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	if v := _m.PackageExpiresAt; v != nil {
+		builder.WriteString("package_expires_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("disable_reason=")
+	builder.WriteString(_m.DisableReason)
 	builder.WriteByte(')')
 	return builder.String()
 }

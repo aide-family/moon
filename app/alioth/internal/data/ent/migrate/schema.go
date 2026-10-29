@@ -625,6 +625,7 @@ var (
 		{Name: "remark", Type: field.TypeString, Size: 5000, Default: ""},
 		{Name: "is_base", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "duration_days", Type: field.TypeInt32, Default: 0},
 	}
 	// FeaturePackagesTable holds the schema information for the "feature_packages" table.
 	FeaturePackagesTable = &schema.Table{
@@ -883,6 +884,8 @@ var (
 		{Name: "logo", Type: field.TypeString, Default: ""},
 		{Name: "remark", Type: field.TypeString, Default: ""},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "package_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "disable_reason", Type: field.TypeString, Size: 500, Default: ""},
 	}
 	// NamespacesTable holds the schema information for the "namespaces" table.
 	NamespacesTable = &schema.Table{
@@ -1733,7 +1736,7 @@ var (
 		{Name: "remark", Type: field.TypeString, Default: ""},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "BANNED"}, Default: "ACTIVE"},
 		{Name: "password_hash", Type: field.TypeString, Default: ""},
-		{Name: "system_role", Type: field.TypeEnum, Enums: []string{"SUPER_ADMIN", "SYSTEM_ADMIN", "USER"}, Default: "USER"},
+		{Name: "system_role", Type: field.TypeEnum, Enums: []string{"SUPER_ADMIN", "SYSTEM_ADMIN", "SYSTEM_READONLY", "USER"}, Default: "USER"},
 		{Name: "authorized_by", Type: field.TypeString, Default: ""},
 	}
 	// UsersTable holds the schema information for the "users" table.

@@ -2,11 +2,16 @@ package namespace
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
+	"strings"
+	"time"
 
 	"github.com/google/wire"
 
 	"github.com/aide-family/moon/app/alioth/internal/access"
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/internal/mailer"
 	"github.com/aide-family/moon/app/alioth/pkg/actor"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/page"
@@ -19,11 +24,14 @@ var ProviderSet = wire.NewSet(NewTenancy)
 // Tenancy 管理租户的创建、状态和所有者移交。
 type Tenancy struct {
 	namespaces repository.NamespaceRepo
+	features   repository.FeatureRepo
 	access     access.Checker
+	mail       *mailer.Sender
+	log        *slog.Logger
 }
 
-func NewTenancy(namespaces repository.NamespaceRepo, checker access.Checker) *Tenancy {
-	return &Tenancy{namespaces: namespaces, access: checker}
+func NewTenancy(namespaces repository.NamespaceRepo, features repository.FeatureRepo, checker access.Checker, mail *mailer.Sender, logger *slog.Logger) *Tenancy {
+	return &Tenancy{namespaces: namespaces, features: features, access: checker, mail: mail, log: logger}
 }
 
 // CreateNamespace 用当前登录用户作为负责人。创建租户不要求已有租户上下文。
@@ -47,16 +55,83 @@ func (tenancy *Tenancy) UpdateNamespace(ctx context.Context, uid, name, remark, 
 	return item, tenancy.access.Wrap(err)
 }
 
-func (tenancy *Tenancy) UpdateNamespaceStatus(ctx context.Context, uid, status string) (*bo.Namespace, error) {
-	ns, err := tenancy.access.AllowAnyStatus(ctx, perm.NamespaceWrite)
-	if err != nil {
+// UpdateNamespaceStatus 租户侧不能再自行启停：停用和启用由平台管理，
+// 否则租户可以用自己的令牌直接解封。平台入口是 SetSystemNamespaceStatus。
+func (tenancy *Tenancy) UpdateNamespaceStatus(_ context.Context, _ string, _ string) (*bo.Namespace, error) {
+	return nil, merr.Forbidden("namespace status is managed by platform")
+}
+
+// SetSystemNamespaceStatus 由平台停用或启用租户，不读 X-Namespace。
+// 停用必须填写原因（1-500 字），成功后邮件通知租户负责人；邮件失败只记日志。
+// 启用会清空停用原因且不发邮件。
+func (tenancy *Tenancy) SetSystemNamespaceStatus(ctx context.Context, uid, status, reason string) (*bo.Namespace, error) {
+	if _, err := tenancy.access.RequireSystem(ctx, perm.SystemNamespaceWrite); err != nil {
 		return nil, err
 	}
-	if ns != uid {
-		return nil, merr.Client("namespace mismatch")
+	reason = strings.TrimSpace(reason)
+	switch status {
+	case "DISABLED":
+		if reason == "" {
+			return nil, merr.Invalid("reason is required")
+		}
+		if len([]rune(reason)) > 500 {
+			return nil, merr.Invalid("reason is too long")
+		}
+	case "ACTIVE":
+		// 启用后租户不再有停用原因，避免下一次停用时展示旧原因。
+		reason = ""
+	default:
+		return nil, merr.Invalid("invalid status")
 	}
-	item, err := tenancy.namespaces.UpdateNamespaceStatus(ctx, uid, status)
-	return item, tenancy.access.Wrap(err)
+	current, err := tenancy.namespaces.GetNamespace(ctx, uid)
+	if err != nil {
+		return nil, tenancy.access.Wrap(err)
+	}
+	item, err := tenancy.namespaces.SetNamespaceStatus(ctx, uid, status, reason)
+	if err != nil {
+		return nil, tenancy.access.Wrap(err)
+	}
+	// 只在真正从启用切到停用时通知，重复停用不重复发信。
+	if status == "DISABLED" && current.Status != "DISABLED" && item != nil {
+		tenancy.notifyNamespaceDisabled(current, item, reason)
+	}
+	return item, nil
+}
+
+// ArchiveNamespace 归档租户：软删除租户和它的全部业务数据。不读 X-Namespace。
+// 归档不可恢复，没有取消归档的接口。
+func (tenancy *Tenancy) ArchiveNamespace(ctx context.Context, uid string) error {
+	if _, err := tenancy.access.RequireSystem(ctx, perm.SystemNamespaceWrite); err != nil {
+		return err
+	}
+	return tenancy.access.Wrap(tenancy.features.ArchiveNamespace(ctx, uid))
+}
+
+// notifyNamespaceDisabled 通知租户负责人租户已停用。邮件是旁路动作：
+// SMTP 未配置、负责人没有邮箱或发送失败都只记日志，不影响停用结果。
+func (tenancy *Tenancy) notifyNamespaceDisabled(before, after *bo.Namespace, reason string) {
+	name := before.Name
+	if name == "" {
+		name = after.Name
+	}
+	subject := "Alioth 租户已停用：" + name
+	body := fmt.Sprintf("您好，\n\n租户「%s」已被平台停用。\n\n停用原因：%s\n停用时间：%s\n\n如需恢复，请联系平台管理员。\n",
+		name, reason, time.Now().Format("2006-01-02 15:04:05"))
+	recipient := strings.TrimSpace(before.OwnerEmail)
+	if tenancy.mail == nil || !tenancy.mail.Configured() {
+		tenancy.log.Warn("namespace disabled: smtp is not configured, skip notifying owner",
+			"namespace", after.UID, "owner", before.OwnerUID)
+		return
+	}
+	if recipient == "" {
+		tenancy.log.Warn("namespace disabled: owner has no email, skip notifying",
+			"namespace", after.UID, "owner", before.OwnerUID)
+		return
+	}
+	if err := tenancy.mail.Send(recipient, subject, body); err != nil {
+		tenancy.log.Error(fmt.Sprintf("namespace disabled: notify %s failed: %v", recipient, err),
+			"namespace", after.UID)
+	}
 }
 
 func (tenancy *Tenancy) DeleteNamespace(ctx context.Context, uid string) error {

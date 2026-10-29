@@ -107,9 +107,11 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 	if err != nil {
 		return c.Wrap(err)
 	}
+	readOnly := false
 	if _, ok := perms[code]; !ok {
 		// 平台管理员可以只读切入不是自己成员的租户：只有租户目录里的 :read 放行，
 		// 写、删除、介入和执行动作仍然要求该租户的成员角色。
+		// 系统只读角色同样走这条只读通道，它没有任何写权限。
 		if !perm.IsReadOnly(code) {
 			return merr.Forbidden("permission denied")
 		}
@@ -120,26 +122,57 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 		if !admin {
 			return merr.Forbidden("permission denied")
 		}
+		readOnly = true
 		c.Log.Debug(fmt.Sprintf("access: system admin read-only user=%s namespace=%s permission=%s", uid, ns, code))
 	}
-	// 权限通过后再看功能开通情况：租户没开通的功能，成员持有权限也不能用，
-	// 平台管理员的只读视角同样受限。
-	featureCode := perm.FeatureOf(code)
-	if featureCode == "" {
+	// namespace:* 不属于任何能力，始终可用；菜单权限本身不是接口权限，不在这里判断。
+	module := perm.FeatureOf(code)
+	if module == "" || perm.IsMenuPermission(code) {
 		return nil
 	}
-	features, err := c.Features.EffectiveFeatures(ctx, ns)
+	// 权限通过后再看租户开通情况：能力没开通，成员持有权限也不能用。
+	// 平台管理员的只读视角同样受限。
+	modules, err := c.Features.EffectiveModules(ctx, ns)
 	if err != nil {
 		return c.Wrap(err)
 	}
-	if slices.Contains(features, featureCode) {
+	if !slices.Contains(modules, module) {
+		return merr.Forbidden("feature not enabled")
+	}
+	// 跨租户只读的平台管理员不需要租户给它授菜单权限，菜单只约束租户成员。
+	if readOnly {
 		return nil
 	}
-	return merr.Forbidden("feature not enabled")
+	// 菜单权限决定租户成员能不能打开对应页面：同一个能力下只要有一条 menu:<cap>
+	// 就放行。角色授权页由 ListPermissions 只展示已开通能力，两者范围一致。
+	capabilities, err := c.Features.EffectiveCapabilities(ctx, ns)
+	if err != nil {
+		return c.Wrap(err)
+	}
+	if c.hasMenuPermission(perms, capabilities, code) {
+		return nil
+	}
+	return merr.Forbidden("menu permission denied")
 }
 
-// SystemAdmin 判断当前登录用户是否持有平台管理员角色。
-// 只读切入只认 SUPER_ADMIN 和 SYSTEM_ADMIN；普通用户和已封禁用户都不算。
+// hasMenuPermission 判断角色是否持有能覆盖 code 的菜单权限。
+// 能力必须已在租户开通范围内，且角色的权限集合里出现对应的 menu:<能力>。
+func (c Checker) hasMenuPermission(perms map[string]struct{}, capabilities []string, code string) bool {
+	for _, capCode := range capabilities {
+		capability, ok := perm.CapabilityOf(capCode)
+		if !ok || !slices.Contains(capability.Permissions, code) {
+			continue
+		}
+		if _, held := perms[perm.MenuPermission(capCode)]; held {
+			return true
+		}
+	}
+	return false
+}
+
+// SystemAdmin 判断当前登录用户是否可以跨租户只读查看。
+// SUPER_ADMIN、SYSTEM_ADMIN 和 SYSTEM_READONLY 都算；普通用户和已封禁用户都不算。
+// 只是只读通道，写操作仍然要求租户成员角色。
 func (c Checker) SystemAdmin(ctx context.Context) (bool, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
@@ -152,7 +185,24 @@ func (c Checker) SystemAdmin(ctx context.Context) (bool, error) {
 		}
 		return false, c.Wrap(err)
 	}
-	return account.Status == "ACTIVE" && perm.IsSystemAdmin(account.SystemRole), nil
+	return account.Status == "ACTIVE" && perm.CanReadAnyTenant(account.SystemRole), nil
+}
+
+// CurrentNamespace 返回 X-Namespace 指定的租户，不校验成员身份和租户状态。
+// /self/permissions 用它判断租户是否停用或已归档；没有租户头或租户已删除时返回 nil。
+func (c Checker) CurrentNamespace(ctx context.Context) (*bo.Namespace, error) {
+	ns, ok := actor.NamespaceID(ctx)
+	if !ok {
+		return nil, nil
+	}
+	item, err := c.Namespaces.GetNamespace(ctx, ns)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, c.Wrap(err)
+	}
+	return item, nil
 }
 
 // SameNamespace 要求路径中的租户就是当前租户，避免用一个租户的令牌改另一个租户。

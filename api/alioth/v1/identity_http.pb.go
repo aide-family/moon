@@ -979,6 +979,7 @@ func (c *SelfServiceHTTPClientImpl) UnbindSelfOAuth(ctx context.Context, in *Unb
 	return &out, nil
 }
 
+const OperationNamespaceServiceArchiveSystemNamespace = "/alioth.v1.NamespaceService/ArchiveSystemNamespace"
 const OperationNamespaceServiceCreateFeaturePackage = "/alioth.v1.NamespaceService/CreateFeaturePackage"
 const OperationNamespaceServiceCreateNamespace = "/alioth.v1.NamespaceService/CreateNamespace"
 const OperationNamespaceServiceDeleteFeaturePackage = "/alioth.v1.NamespaceService/DeleteFeaturePackage"
@@ -997,8 +998,12 @@ const OperationNamespaceServiceUpdateFeaturePackage = "/alioth.v1.NamespaceServi
 const OperationNamespaceServiceUpdateNamespace = "/alioth.v1.NamespaceService/UpdateNamespace"
 const OperationNamespaceServiceUpdateNamespaceFeatures = "/alioth.v1.NamespaceService/UpdateNamespaceFeatures"
 const OperationNamespaceServiceUpdateNamespaceStatus = "/alioth.v1.NamespaceService/UpdateNamespaceStatus"
+const OperationNamespaceServiceUpdateSystemNamespaceStatus = "/alioth.v1.NamespaceService/UpdateSystemNamespaceStatus"
 
 type NamespaceServiceHTTPServer interface {
+	// ArchiveSystemNamespace 归档租户：软删除租户及其全部业务数据。不读 X-Namespace，需要 system:namespace:write。
+	// 归档不可恢复，也不提供取消归档的接口。
+	ArchiveSystemNamespace(context.Context, *ArchiveSystemNamespaceRequest) (*ArchiveSystemNamespaceResponse, error)
 	// CreateFeaturePackage 新建功能套餐。需要 system:package:write，仅超级管理员。
 	CreateFeaturePackage(context.Context, *CreateFeaturePackageRequest) (*CreateFeaturePackageResponse, error)
 	// CreateNamespace 创建租户，当前用户成为负责人。
@@ -1033,8 +1038,12 @@ type NamespaceServiceHTTPServer interface {
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceResponse, error)
 	// UpdateNamespaceFeatures 原子设置租户的套餐和目标有效功能。需要 system:package:write。
 	UpdateNamespaceFeatures(context.Context, *UpdateNamespaceFeaturesRequest) (*UpdateNamespaceFeaturesResponse, error)
-	// UpdateNamespaceStatus 启用或停用当前租户。
+	// UpdateNamespaceStatus 租户侧启停已由平台接管，该接口固定拒绝，避免租户自行解封。
+	// 平台停用/启用走 UpdateSystemNamespaceStatus。
 	UpdateNamespaceStatus(context.Context, *UpdateNamespaceStatusRequest) (*UpdateNamespaceStatusResponse, error)
+	// UpdateSystemNamespaceStatus 平台停用或启用租户。不读 X-Namespace，需要 system:namespace:write。
+	// 停用必须填写原因，成功后邮件通知租户负责人；启用会清空停用原因且不发邮件。
+	UpdateSystemNamespaceStatus(context.Context, *UpdateSystemNamespaceStatusRequest) (*UpdateSystemNamespaceStatusResponse, error)
 }
 
 func RegisterNamespaceServiceHTTPServer(s *http.Server, srv NamespaceServiceHTTPServer) {
@@ -1048,6 +1057,8 @@ func RegisterNamespaceServiceHTTPServer(s *http.Server, srv NamespaceServiceHTTP
 	r.Handle("GET", "/v1/namespaces/select", _NamespaceService_SelectNamespaces0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/namespaces/simple", _NamespaceService_ListSimpleNamespaces0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/system/namespaces", _NamespaceService_ListSystemNamespaces0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/system/namespace/{uid}/status", _NamespaceService_UpdateSystemNamespaceStatus0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/system/namespace/{uid}/archive", _NamespaceService_ArchiveSystemNamespace0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/namespace/{uid}/owner", _NamespaceService_TransferNamespaceOwner0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/system/features", _NamespaceService_ListFeatures0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/system/packages", _NamespaceService_ListFeaturePackages0_HTTP_Handler(srv))
@@ -1242,6 +1253,50 @@ func _NamespaceService_ListSystemNamespaces0_HTTP_Handler(srv NamespaceServiceHT
 	}
 }
 
+func _NamespaceService_UpdateSystemNamespaceStatus0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateSystemNamespaceStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceUpdateSystemNamespaceStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateSystemNamespaceStatus(ctx, req.(*UpdateSystemNamespaceStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateSystemNamespaceStatusResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_ArchiveSystemNamespace0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ArchiveSystemNamespaceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceArchiveSystemNamespace)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ArchiveSystemNamespace(ctx, req.(*ArchiveSystemNamespaceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ArchiveSystemNamespaceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _NamespaceService_TransferNamespaceOwner0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in TransferNamespaceOwnerRequest
@@ -1432,6 +1487,9 @@ func _NamespaceService_UpdateNamespaceFeatures0_HTTP_Handler(srv NamespaceServic
 }
 
 type NamespaceServiceHTTPClient interface {
+	// ArchiveSystemNamespace 归档租户：软删除租户及其全部业务数据。不读 X-Namespace，需要 system:namespace:write。
+	// 归档不可恢复，也不提供取消归档的接口。
+	ArchiveSystemNamespace(ctx context.Context, req *ArchiveSystemNamespaceRequest, opts ...http.CallOption) (rsp *ArchiveSystemNamespaceResponse, err error)
 	// CreateFeaturePackage 新建功能套餐。需要 system:package:write，仅超级管理员。
 	CreateFeaturePackage(ctx context.Context, req *CreateFeaturePackageRequest, opts ...http.CallOption) (rsp *CreateFeaturePackageResponse, err error)
 	// CreateNamespace 创建租户，当前用户成为负责人。
@@ -1466,8 +1524,12 @@ type NamespaceServiceHTTPClient interface {
 	UpdateNamespace(ctx context.Context, req *UpdateNamespaceRequest, opts ...http.CallOption) (rsp *UpdateNamespaceResponse, err error)
 	// UpdateNamespaceFeatures 原子设置租户的套餐和目标有效功能。需要 system:package:write。
 	UpdateNamespaceFeatures(ctx context.Context, req *UpdateNamespaceFeaturesRequest, opts ...http.CallOption) (rsp *UpdateNamespaceFeaturesResponse, err error)
-	// UpdateNamespaceStatus 启用或停用当前租户。
+	// UpdateNamespaceStatus 租户侧启停已由平台接管，该接口固定拒绝，避免租户自行解封。
+	// 平台停用/启用走 UpdateSystemNamespaceStatus。
 	UpdateNamespaceStatus(ctx context.Context, req *UpdateNamespaceStatusRequest, opts ...http.CallOption) (rsp *UpdateNamespaceStatusResponse, err error)
+	// UpdateSystemNamespaceStatus 平台停用或启用租户。不读 X-Namespace，需要 system:namespace:write。
+	// 停用必须填写原因，成功后邮件通知租户负责人；启用会清空停用原因且不发邮件。
+	UpdateSystemNamespaceStatus(ctx context.Context, req *UpdateSystemNamespaceStatusRequest, opts ...http.CallOption) (rsp *UpdateSystemNamespaceStatusResponse, err error)
 }
 
 type NamespaceServiceHTTPClientImpl struct {
@@ -1476,6 +1538,24 @@ type NamespaceServiceHTTPClientImpl struct {
 
 func NewNamespaceServiceHTTPClient(client *http.Client) NamespaceServiceHTTPClient {
 	return &NamespaceServiceHTTPClientImpl{client}
+}
+
+// ArchiveSystemNamespace 归档租户：软删除租户及其全部业务数据。不读 X-Namespace，需要 system:namespace:write。
+// 归档不可恢复，也不提供取消归档的接口。
+func (c *NamespaceServiceHTTPClientImpl) ArchiveSystemNamespace(ctx context.Context, in *ArchiveSystemNamespaceRequest, opts ...http.CallOption) (*ArchiveSystemNamespaceResponse, error) {
+	var out ArchiveSystemNamespaceResponse
+	pattern := "/v1/system/namespace/{uid}/archive"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceArchiveSystemNamespace),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // CreateFeaturePackage 新建功能套餐。需要 system:package:write，仅超级管理员。
@@ -1773,7 +1853,8 @@ func (c *NamespaceServiceHTTPClientImpl) UpdateNamespaceFeatures(ctx context.Con
 	return &out, nil
 }
 
-// UpdateNamespaceStatus 启用或停用当前租户。
+// UpdateNamespaceStatus 租户侧启停已由平台接管，该接口固定拒绝，避免租户自行解封。
+// 平台停用/启用走 UpdateSystemNamespaceStatus。
 func (c *NamespaceServiceHTTPClientImpl) UpdateNamespaceStatus(ctx context.Context, in *UpdateNamespaceStatusRequest, opts ...http.CallOption) (*UpdateNamespaceStatusResponse, error) {
 	var out UpdateNamespaceStatusResponse
 	pattern := "/v1/namespace/{uid}/status"
@@ -1782,6 +1863,25 @@ func (c *NamespaceServiceHTTPClientImpl) UpdateNamespaceStatus(ctx context.Conte
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationNamespaceServiceUpdateNamespaceStatus),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateSystemNamespaceStatus 平台停用或启用租户。不读 X-Namespace，需要 system:namespace:write。
+// 停用必须填写原因，成功后邮件通知租户负责人；启用会清空停用原因且不发邮件。
+func (c *NamespaceServiceHTTPClientImpl) UpdateSystemNamespaceStatus(ctx context.Context, in *UpdateSystemNamespaceStatusRequest, opts ...http.CallOption) (*UpdateSystemNamespaceStatusResponse, error) {
+	var out UpdateSystemNamespaceStatusResponse
+	pattern := "/v1/system/namespace/{uid}/status"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNamespaceServiceUpdateSystemNamespaceStatus),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

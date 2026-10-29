@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
@@ -153,6 +152,40 @@ func (_u *NamespaceUpdate) SetNillableStatus(v *namespace.Status) *NamespaceUpda
 	return _u
 }
 
+// SetPackageExpiresAt sets the "package_expires_at" field.
+func (_u *NamespaceUpdate) SetPackageExpiresAt(v time.Time) *NamespaceUpdate {
+	_u.mutation.SetPackageExpiresAt(v)
+	return _u
+}
+
+// SetNillablePackageExpiresAt sets the "package_expires_at" field if the given value is not nil.
+func (_u *NamespaceUpdate) SetNillablePackageExpiresAt(v *time.Time) *NamespaceUpdate {
+	if v != nil {
+		_u.SetPackageExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearPackageExpiresAt clears the value of the "package_expires_at" field.
+func (_u *NamespaceUpdate) ClearPackageExpiresAt() *NamespaceUpdate {
+	_u.mutation.ClearPackageExpiresAt()
+	return _u
+}
+
+// SetDisableReason sets the "disable_reason" field.
+func (_u *NamespaceUpdate) SetDisableReason(v string) *NamespaceUpdate {
+	_u.mutation.SetDisableReason(v)
+	return _u
+}
+
+// SetNillableDisableReason sets the "disable_reason" field if the given value is not nil.
+func (_u *NamespaceUpdate) SetNillableDisableReason(v *string) *NamespaceUpdate {
+	if v != nil {
+		_u.SetDisableReason(*v)
+	}
+	return _u
+}
+
 // Mutation returns the NamespaceMutation object of the builder.
 func (_u *NamespaceUpdate) Mutation() *NamespaceMutation {
 	return _u.mutation
@@ -211,6 +244,11 @@ func (_u *NamespaceUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Namespace.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DisableReason(); ok {
+		if err := namespace.DisableReasonValidator(v); err != nil {
+			return &ValidationError{Name: "disable_reason", err: fmt.Errorf(`ent: validator failed for field "Namespace.disable_reason": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -255,6 +293,15 @@ func (_u *NamespaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(namespace.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.PackageExpiresAt(); ok {
+		_spec.SetField(namespace.FieldPackageExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.PackageExpiresAtCleared() {
+		_spec.ClearField(namespace.FieldPackageExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.DisableReason(); ok {
+		_spec.SetField(namespace.FieldDisableReason, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -400,6 +447,40 @@ func (_u *NamespaceUpdateOne) SetNillableStatus(v *namespace.Status) *NamespaceU
 	return _u
 }
 
+// SetPackageExpiresAt sets the "package_expires_at" field.
+func (_u *NamespaceUpdateOne) SetPackageExpiresAt(v time.Time) *NamespaceUpdateOne {
+	_u.mutation.SetPackageExpiresAt(v)
+	return _u
+}
+
+// SetNillablePackageExpiresAt sets the "package_expires_at" field if the given value is not nil.
+func (_u *NamespaceUpdateOne) SetNillablePackageExpiresAt(v *time.Time) *NamespaceUpdateOne {
+	if v != nil {
+		_u.SetPackageExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearPackageExpiresAt clears the value of the "package_expires_at" field.
+func (_u *NamespaceUpdateOne) ClearPackageExpiresAt() *NamespaceUpdateOne {
+	_u.mutation.ClearPackageExpiresAt()
+	return _u
+}
+
+// SetDisableReason sets the "disable_reason" field.
+func (_u *NamespaceUpdateOne) SetDisableReason(v string) *NamespaceUpdateOne {
+	_u.mutation.SetDisableReason(v)
+	return _u
+}
+
+// SetNillableDisableReason sets the "disable_reason" field if the given value is not nil.
+func (_u *NamespaceUpdateOne) SetNillableDisableReason(v *string) *NamespaceUpdateOne {
+	if v != nil {
+		_u.SetDisableReason(*v)
+	}
+	return _u
+}
+
 // Mutation returns the NamespaceMutation object of the builder.
 func (_u *NamespaceUpdateOne) Mutation() *NamespaceMutation {
 	return _u.mutation
@@ -471,6 +552,11 @@ func (_u *NamespaceUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Namespace.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DisableReason(); ok {
+		if err := namespace.DisableReasonValidator(v); err != nil {
+			return &ValidationError{Name: "disable_reason", err: fmt.Errorf(`ent: validator failed for field "Namespace.disable_reason": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -532,6 +618,15 @@ func (_u *NamespaceUpdateOne) sqlSave(ctx context.Context) (_node *Namespace, er
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(namespace.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.PackageExpiresAt(); ok {
+		_spec.SetField(namespace.FieldPackageExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.PackageExpiresAtCleared() {
+		_spec.ClearField(namespace.FieldPackageExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.DisableReason(); ok {
+		_spec.SetField(namespace.FieldDisableReason, field.TypeString, value)
 	}
 	_node = &Namespace{config: _u.config}
 	_spec.Assign = _node.assignValues

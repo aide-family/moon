@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/tooltip"
 import type { PermissionItem } from "@/api/role/types"
 import {
-  actionTitle,
   groupPermissions,
   itemsFromNames,
+  permissionActionTitle,
   permissionTitleEn,
   permissionTitleZh,
 } from "@/lib/permission-catalog"
@@ -62,7 +62,7 @@ export function PermissionSummary({ permissions, catalog }: PermissionSummaryPro
                     variant="outline"
                     className="cursor-default border-border bg-muted/50 font-normal"
                   >
-                    {actionTitle(item.action)}
+                    {permissionActionTitle(item)}
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
 
@@ -103,6 +102,16 @@ func Logo(v string) predicate.Namespace {
 // Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
 func Remark(v string) predicate.Namespace {
 	return predicate.Namespace(sql.FieldEQ(FieldRemark, v))
+}
+
+// PackageExpiresAt applies equality check predicate on the "package_expires_at" field. It's identical to PackageExpiresAtEQ.
+func PackageExpiresAt(v time.Time) predicate.Namespace {
+	return predicate.Namespace(sql.FieldEQ(FieldPackageExpiresAt, v))
+}
+
+// DisableReason applies equality check predicate on the "disable_reason" field. It's identical to DisableReasonEQ.
+func DisableReason(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldEQ(FieldDisableReason, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -708,6 +717,121 @@ func StatusIn(vs ...Status) predicate.Namespace {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.Namespace {
 	return predicate.Namespace(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// PackageExpiresAtEQ applies the EQ predicate on the "package_expires_at" field.
+func PackageExpiresAtEQ(v time.Time) predicate.Namespace {
+	return predicate.Namespace(sql.FieldEQ(FieldPackageExpiresAt, v))
+}
+
+// PackageExpiresAtNEQ applies the NEQ predicate on the "package_expires_at" field.
+func PackageExpiresAtNEQ(v time.Time) predicate.Namespace {
+	return predicate.Namespace(sql.FieldNEQ(FieldPackageExpiresAt, v))
+}
+
+// PackageExpiresAtIn applies the In predicate on the "package_expires_at" field.
+func PackageExpiresAtIn(vs ...time.Time) predicate.Namespace {
+	return predicate.Namespace(sql.FieldIn(FieldPackageExpiresAt, vs...))
+}
+
+// PackageExpiresAtNotIn applies the NotIn predicate on the "package_expires_at" field.
+func PackageExpiresAtNotIn(vs ...time.Time) predicate.Namespace {
+	return predicate.Namespace(sql.FieldNotIn(FieldPackageExpiresAt, vs...))
+}
+
+// PackageExpiresAtGT applies the GT predicate on the "package_expires_at" field.
+func PackageExpiresAtGT(v time.Time) predicate.Namespace {
+	return predicate.Namespace(sql.FieldGT(FieldPackageExpiresAt, v))
+}
+
+// PackageExpiresAtGTE applies the GTE predicate on the "package_expires_at" field.
+func PackageExpiresAtGTE(v time.Time) predicate.Namespace {
+	return predicate.Namespace(sql.FieldGTE(FieldPackageExpiresAt, v))
+}
+
+// PackageExpiresAtLT applies the LT predicate on the "package_expires_at" field.
+func PackageExpiresAtLT(v time.Time) predicate.Namespace {
+	return predicate.Namespace(sql.FieldLT(FieldPackageExpiresAt, v))
+}
+
+// PackageExpiresAtLTE applies the LTE predicate on the "package_expires_at" field.
+func PackageExpiresAtLTE(v time.Time) predicate.Namespace {
+	return predicate.Namespace(sql.FieldLTE(FieldPackageExpiresAt, v))
+}
+
+// PackageExpiresAtIsNil applies the IsNil predicate on the "package_expires_at" field.
+func PackageExpiresAtIsNil() predicate.Namespace {
+	return predicate.Namespace(sql.FieldIsNull(FieldPackageExpiresAt))
+}
+
+// PackageExpiresAtNotNil applies the NotNil predicate on the "package_expires_at" field.
+func PackageExpiresAtNotNil() predicate.Namespace {
+	return predicate.Namespace(sql.FieldNotNull(FieldPackageExpiresAt))
+}
+
+// DisableReasonEQ applies the EQ predicate on the "disable_reason" field.
+func DisableReasonEQ(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldEQ(FieldDisableReason, v))
+}
+
+// DisableReasonNEQ applies the NEQ predicate on the "disable_reason" field.
+func DisableReasonNEQ(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldNEQ(FieldDisableReason, v))
+}
+
+// DisableReasonIn applies the In predicate on the "disable_reason" field.
+func DisableReasonIn(vs ...string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldIn(FieldDisableReason, vs...))
+}
+
+// DisableReasonNotIn applies the NotIn predicate on the "disable_reason" field.
+func DisableReasonNotIn(vs ...string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldNotIn(FieldDisableReason, vs...))
+}
+
+// DisableReasonGT applies the GT predicate on the "disable_reason" field.
+func DisableReasonGT(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldGT(FieldDisableReason, v))
+}
+
+// DisableReasonGTE applies the GTE predicate on the "disable_reason" field.
+func DisableReasonGTE(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldGTE(FieldDisableReason, v))
+}
+
+// DisableReasonLT applies the LT predicate on the "disable_reason" field.
+func DisableReasonLT(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldLT(FieldDisableReason, v))
+}
+
+// DisableReasonLTE applies the LTE predicate on the "disable_reason" field.
+func DisableReasonLTE(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldLTE(FieldDisableReason, v))
+}
+
+// DisableReasonContains applies the Contains predicate on the "disable_reason" field.
+func DisableReasonContains(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldContains(FieldDisableReason, v))
+}
+
+// DisableReasonHasPrefix applies the HasPrefix predicate on the "disable_reason" field.
+func DisableReasonHasPrefix(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldHasPrefix(FieldDisableReason, v))
+}
+
+// DisableReasonHasSuffix applies the HasSuffix predicate on the "disable_reason" field.
+func DisableReasonHasSuffix(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldHasSuffix(FieldDisableReason, v))
+}
+
+// DisableReasonEqualFold applies the EqualFold predicate on the "disable_reason" field.
+func DisableReasonEqualFold(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldEqualFold(FieldDisableReason, v))
+}
+
+// DisableReasonContainsFold applies the ContainsFold predicate on the "disable_reason" field.
+func DisableReasonContainsFold(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldContainsFold(FieldDisableReason, v))
 }
 
 // And groups predicates with the AND operator between them.

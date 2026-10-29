@@ -77,7 +77,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	}
 	captchaService := service.NewCaptchaService(authenticator)
 	authService := service.NewAuthService(authenticator)
-	tenancy := namespace.NewTenancy(namespaceRepo, accessChecker)
+	tenancy := namespace.NewTenancy(namespaceRepo, featureRepo, accessChecker, sender, logger)
 	authority := role.NewAuthority(roleRepo, featureRepo, accessChecker)
 	selfService := service.NewSelfService(authenticator, tenancy, authority)
 	provisioning := feature.NewProvisioning(featureRepo, accessChecker)

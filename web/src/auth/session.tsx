@@ -44,7 +44,7 @@ type SessionValue = {
   user: UserItem | null
   namespaces: NamespaceItem[]
   permissions: string[]
-  /** 当前租户已开通的功能；旧后端未返回 features 时为空数组且按「不过滤」处理。 */
+  /** 当前租户已开通的能力 code；旧后端未返回 features 时为空数组且按「不过滤」处理。 */
   features: string[]
   systemPermissions: string[]
   systemRole: string
@@ -73,10 +73,16 @@ type SessionValue = {
   can: (code: string) => boolean
   canSystem: (code: string) => boolean
   /**
-   * 当前租户是否开通了某个功能。后端未返回 features 时返回 true（不拦截菜单），
-   * 避免升级期间旧后端把租户菜单全部隐藏。
+   * 当前租户是否开通了某个能力（GET /v1/self/permissions 的 features）。
+   * 旧后端未返回 features 时返回 true（不拦截菜单），避免升级期间租户菜单全部隐藏。
    */
   hasFeature: (code: string) => boolean
+  /**
+   * 菜单权限（permissions 里的 menu:<能力>）。旧后端没有 features 字段时视为
+   * 尚未启用菜单权限并放行，菜单是否可见仍由 can(资源权限) 兜底；
+   * 新后端严格按 menu:<能力> 判断。
+   */
+  canMenu: (capability: string) => boolean
   refreshUnreadMessages: () => void
 }
 
@@ -182,7 +188,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             return
           }
           granted = result.permissions ?? []
-          // features 是后端新增字段：只有它出现时才启用菜单功能过滤。
+          // features 是后端新增字段：只有它出现时才启用菜单能力过滤。
           if (result.features !== undefined) {
             grantedFeatures = result.features ?? []
             featureFilterKnown = true
@@ -192,9 +198,45 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             nextReadOnly = true
             nextViewing = result.namespace
           }
+          // 租户被停用后后端只返回空权限：这时不要停在空壳租户上，
+          // 回落到仍在启用的成员租户，避免导航/接口全部 403 却没有任何出口。
+          const member = items.find((item) => item.uid === next)
+          const unusable = member ? member.status === "DISABLED" : true
+          if (granted.length === 0 && unusable) {
+            const fallback = items.find(
+              (item) => item.uid !== next && item.status !== "DISABLED"
+            )
+            if (fallback) {
+              next = fallback.uid
+              const recovered = await getSelfPermissions(next, { silent: true })
+              if (!active) {
+                return
+              }
+              granted = recovered.permissions ?? []
+              grantedFeatures = recovered.features ?? []
+              featureFilterKnown = recovered.features !== undefined
+              nextReadOnly = false
+              nextViewing = null
+            }
+          }
         }
         if (!active) {
           return
+        }
+        // 自愈可能改了目标租户；显式切换时不能悄悄落到别的租户，按切换失败处理。
+        if (transition && next !== transition.to) {
+          const targetExists = items.some(
+            (item) => item.uid === transition.to
+          )
+          throw new Error(
+            i18n.t(
+              transition.kind === "readonly"
+                ? "readonly.unavailable"
+                : targetExists
+                  ? "error.namespaceDisabled"
+                  : "namespace.switcher.missing"
+            )
+          )
         }
         setUser(info.user)
         setNamespaces(items)
@@ -352,7 +394,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       clearSwitchError,
       can: (code: string) => permissions.includes(code),
       canSystem: (code: string) => systemPermissions.includes(code),
-      hasFeature: (code: string) => !featuresKnown || features.includes(code),
+      hasFeature: (code: string) =>
+        !featuresKnown || features.includes(code),
+      // 旧后端（没有 features 字段）按未启用菜单权限放行；新后端严格判断。
+      canMenu: (capability: string) =>
+        !featuresKnown || permissions.includes(`menu:${capability}`),
       refreshUnreadMessages,
     }),
     [

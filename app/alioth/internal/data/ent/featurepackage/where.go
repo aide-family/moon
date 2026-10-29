@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
 
@@ -88,6 +87,11 @@ func Remark(v string) predicate.FeaturePackage {
 // IsBase applies equality check predicate on the "is_base" field. It's identical to IsBaseEQ.
 func IsBase(v bool) predicate.FeaturePackage {
 	return predicate.FeaturePackage(sql.FieldEQ(FieldIsBase, v))
+}
+
+// DurationDays applies equality check predicate on the "duration_days" field. It's identical to DurationDaysEQ.
+func DurationDays(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldEQ(FieldDurationDays, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -443,6 +447,46 @@ func StatusIn(vs ...Status) predicate.FeaturePackage {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.FeaturePackage {
 	return predicate.FeaturePackage(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// DurationDaysEQ applies the EQ predicate on the "duration_days" field.
+func DurationDaysEQ(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldEQ(FieldDurationDays, v))
+}
+
+// DurationDaysNEQ applies the NEQ predicate on the "duration_days" field.
+func DurationDaysNEQ(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNEQ(FieldDurationDays, v))
+}
+
+// DurationDaysIn applies the In predicate on the "duration_days" field.
+func DurationDaysIn(vs ...int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldIn(FieldDurationDays, vs...))
+}
+
+// DurationDaysNotIn applies the NotIn predicate on the "duration_days" field.
+func DurationDaysNotIn(vs ...int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNotIn(FieldDurationDays, vs...))
+}
+
+// DurationDaysGT applies the GT predicate on the "duration_days" field.
+func DurationDaysGT(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldGT(FieldDurationDays, v))
+}
+
+// DurationDaysGTE applies the GTE predicate on the "duration_days" field.
+func DurationDaysGTE(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldGTE(FieldDurationDays, v))
+}
+
+// DurationDaysLT applies the LT predicate on the "duration_days" field.
+func DurationDaysLT(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldLT(FieldDurationDays, v))
+}
+
+// DurationDaysLTE applies the LTE predicate on the "duration_days" field.
+func DurationDaysLTE(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldLTE(FieldDurationDays, v))
 }
 
 // And groups predicates with the AND operator between them.

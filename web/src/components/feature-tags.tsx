@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/class-names"
-import { featureLabelText, featureTitle } from "@/lib/feature-catalog"
+import { capabilityLabelText, capabilityTitle } from "@/lib/feature-catalog"
 
 interface FeatureTagsProps {
   codes?: string[]
@@ -11,7 +11,7 @@ interface FeatureTagsProps {
   className?: string
 }
 
-/** 功能 code 列表渲染成标签；当前语言优先，title 提供中英对照。 */
+/** 能力 code 列表渲染成标签；当前语言优先，title 提供中英对照。 */
 export function FeatureTags({
   codes,
   emptyLabel,
@@ -28,10 +28,10 @@ export function FeatureTags({
         <Badge
           key={code}
           variant="outline"
-          title={featureTitle(code)}
+          title={capabilityTitle(code)}
           className="font-normal"
         >
-          {featureLabelText(code, i18n.language)}
+          {capabilityLabelText(code, i18n.language)}
         </Badge>
       ))}
     </span>

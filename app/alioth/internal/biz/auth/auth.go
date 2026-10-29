@@ -757,6 +757,9 @@ func namespaceOptional(operation string) bool {
 		// 平台租户列表不读 X-Namespace：系统管理员还没有加入任何租户时，
 		// 也要能从租户管理页只读切入，所以不要求租户头。
 		v1.OperationNamespaceServiceListSystemNamespaces,
+		// 平台启停和归档租户同样按路径参数定位租户，不读 X-Namespace。
+		v1.OperationNamespaceServiceUpdateSystemNamespaceStatus,
+		v1.OperationNamespaceServiceArchiveSystemNamespace,
 		// 功能目录、套餐和租户功能开通都是平台级操作，同样不读 X-Namespace。
 		v1.OperationNamespaceServiceListFeatures,
 		v1.OperationNamespaceServiceListFeaturePackages,

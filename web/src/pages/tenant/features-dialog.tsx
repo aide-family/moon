@@ -11,6 +11,7 @@ import {
 import type { FeatureItem, PackageItem } from "@/api/package/types"
 import type { SystemNamespaceItem } from "@/api/system-namespace/types"
 import { FeaturePicker } from "@/components/feature-picker"
+import { FeatureTags } from "@/components/feature-tags"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -30,9 +32,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  defaultFeatureCodes,
-  sameFeatureSet,
-  sortFeatureCodes,
+  defaultCapabilityCodes,
+  sameCapabilitySet,
+  sortCapabilityCodes,
 } from "@/lib/feature-catalog"
 import { collectFieldErrors, hasFieldErrors, requireSelected } from "@/lib/form"
 import { failureMessage, readFormError } from "@/lib/form-error"
@@ -42,16 +44,44 @@ const PACKAGE_PAGE_SIZE = 100
 
 type LoadStatus = "loading" | "ready" | "failed"
 
+/** Unix 秒 → <input type="date"> 的本地日期值。 */
+function dateValue(seconds?: number): string {
+  if (!seconds || seconds <= 0) {
+    return ""
+  }
+  const date = new Date(seconds * 1000)
+  const pad = (value: number) => String(value).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+/** <input type="date"> 的本地日期值 → 当天 23:59:59 的 Unix 秒。 */
+function endOfDaySeconds(value: string): number {
+  const [year, month, day] = value.split("-").map(Number)
+  if (!year || !month || !day) {
+    return 0
+  }
+  return Math.floor(new Date(year, month - 1, day, 23, 59, 59).getTime() / 1000)
+}
+
+function todayValue(): string {
+  return dateValue(Math.floor(Date.now() / 1000))
+}
+
+/** 日期输入值（当天 23:59:59）是否已经过去。 */
+function expiryInPast(value: string): boolean {
+  return endOfDaySeconds(value) * 1000 <= Date.now()
+}
+
 interface TenantFeaturesDialogProps {
   tenant: SystemNamespaceItem | null
   onOpenChange: (open: boolean) => void
-  /** 保存成功后由页面刷新租户列表（必要时同时刷新会话里的功能）。 */
+  /** 保存成功后由页面刷新租户列表（必要时同时刷新会话里的能力）。 */
   onSaved: (uid: string) => void
 }
 
 /**
- * 租户功能授权：选择套餐 + 调整有效功能。
- * 默认勾选租户当前有效功能；切换套餐时按新套餐的默认功能重置勾选。
+ * 租户功能授权：选择套餐 + 调整有效能力 + 设置到期时间。
+ * 套餐自带能力锁定（只增不减），只能额外追加；到期时间留空则按套餐默认时长。
  */
 export function TenantFeaturesDialog({
   tenant,
@@ -68,7 +98,18 @@ export function TenantFeaturesDialog({
   const [packageUid, setPackageUid] = useState("")
   const [initialPackageUid, setInitialPackageUid] = useState("")
   const [initialFeatures, setInitialFeatures] = useState<string[]>([])
+  // 套餐自带能力：锁定，不能取消；切套餐时换成新套餐的默认能力。
+  // 切换前要保留初始套餐的能力/时长/到期状态，切回来时原样恢复。
+  const [packageFeatures, setPackageFeatures] = useState<string[]>([])
+  const [initialPackageFeatures, setInitialPackageFeatures] = useState<string[]>([])
+  const [initialDurationDays, setInitialDurationDays] = useState(0)
+  const [initialExpired, setInitialExpired] = useState(false)
   const [features, setFeatures] = useState<string[]>([])
+  const [expiry, setExpiry] = useState("")
+  // 初始到期时间：切回原套餐时恢复成租户当前的到期时间。
+  const [initialExpiry, setInitialExpiry] = useState("")
+  const [expired, setExpired] = useState(false)
+  const [durationDays, setDurationDays] = useState(0)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
@@ -89,6 +130,7 @@ export function TenantFeaturesDialog({
         }
         const currentPackageUid = assignment.packageUid ?? ""
         const currentFeatures = assignment.features ?? []
+        const baseFeatures = assignment.packageFeatures ?? []
         const list = [...(packageResult.items ?? [])]
         // 当前套餐不在第一页/已停用时补一条只读选项，避免 Select 显示为空。
         if (
@@ -98,9 +140,10 @@ export function TenantFeaturesDialog({
           list.unshift({
             uid: currentPackageUid,
             name: assignment.packageName || currentPackageUid,
-            features: assignment.packageFeatures ?? [],
+            features: baseFeatures,
             isBase: false,
             status: "ACTIVE",
+            durationDays: assignment.durationDays ?? 0,
           })
         }
         setPackages(list)
@@ -108,7 +151,16 @@ export function TenantFeaturesDialog({
         setPackageUid(currentPackageUid)
         setInitialPackageUid(currentPackageUid)
         setInitialFeatures(currentFeatures)
+        setPackageFeatures(baseFeatures)
+        setInitialPackageFeatures(baseFeatures)
         setFeatures(currentFeatures)
+        const currentExpiry = dateValue(assignment.expiresAt)
+        setExpiry(currentExpiry)
+        setInitialExpiry(currentExpiry)
+        setExpired(Boolean(assignment.expired))
+        setInitialExpired(Boolean(assignment.expired))
+        setDurationDays(assignment.durationDays ?? 0)
+        setInitialDurationDays(assignment.durationDays ?? 0)
         setStatus("ready")
       })
       .catch((err) => {
@@ -138,15 +190,22 @@ export function TenantFeaturesDialog({
     setFieldErrors((current) => {
       const next = { ...current }
       delete next.packageUid
+      delete next.expiresAt
       return next
     })
-    // 选回当前套餐时恢复实际有效功能；换套餐时按套餐默认功能重置勾选。
-    if (uid === initialPackageUid) {
-      setFeatures(initialFeatures)
-      return
-    }
+    // 换套餐按新套餐的默认能力重置；到期时间回到「按套餐时长」。
+    // 切回原套餐时恢复租户当前的授权（含额外能力与到期时间）。
     const selected = packages.find((item) => item.uid === uid)
-    setFeatures(selected?.features ?? [])
+    const isInitial = uid === initialPackageUid
+    setFeatures(isInitial ? initialFeatures : selected?.features ?? [])
+    setPackageFeatures(
+      isInitial ? initialPackageFeatures : selected?.features ?? []
+    )
+    setDurationDays(
+      isInitial ? initialDurationDays : selected?.durationDays ?? 0
+    )
+    setExpiry(isInitial ? initialExpiry : "")
+    setExpired(isInitial ? initialExpired : false)
   }
 
   async function onSave(event: React.FormEvent) {
@@ -155,6 +214,12 @@ export function TenantFeaturesDialog({
       [
         "packageUid",
         requireSelected(packageUid, t("tenantAdmin.packageRequired")),
+      ],
+      [
+        "expiresAt",
+        expiry !== "" && expiryInPast(expiry)
+          ? t("tenantAdmin.expiryInvalid")
+          : null,
       ],
     ])
     if (hasFieldErrors(errors)) {
@@ -165,9 +230,11 @@ export function TenantFeaturesDialog({
     setError("")
     setFieldErrors({})
     try {
+      // 目标能力必须包含套餐能力（后端也会校验），这里始终把锁定项并进去。
       await updateNamespaceFeatures(tenantUid, {
         packageUid,
-        features: sortFeatureCodes(features),
+        features: targetFeatures,
+        expiresAt: expiry !== "" ? endOfDaySeconds(expiry) : 0,
       })
       toast.success(t("tenantAdmin.featuresSaved"))
       onSaved(tenantUid)
@@ -184,17 +251,34 @@ export function TenantFeaturesDialog({
   const catalogCodes =
     catalog.length > 0
       ? catalog.map((item) => item.code)
-      : defaultFeatureCodes()
+      : defaultCapabilityCodes()
+  const selectedPackage = packages.find((item) => item.uid === packageUid)
+  // 锁定的套餐能力：当前套餐优先用接口返回的 packageFeatures，切到别的套餐时用它自己的能力。
+  const lockedCodes = sortCapabilityCodes(
+    packageUid === initialPackageUid && packageFeatures.length > 0
+      ? packageFeatures
+      : selectedPackage?.features ?? []
+  )
+  const lockedSet = new Set(lockedCodes)
   // 已选但目录里没有的 code 也要展示，避免保存时把它悄悄丢掉。
-  const codes = sortFeatureCodes([
+  const codes = sortCapabilityCodes([
     ...catalogCodes,
     ...initialFeatures,
+    ...packageFeatures,
     ...features,
+    ...lockedCodes,
   ])
-  const selectedPackage = packages.find((item) => item.uid === packageUid)
-  const customized = selectedPackage
-    ? !sameFeatureSet(selectedPackage.features ?? [], features)
-    : false
+  const targetFeatures = sortCapabilityCodes([...features, ...lockedCodes])
+  const extraFeatures = targetFeatures.filter((code) => !lockedSet.has(code))
+  // 套餐时长：原套餐用接口返回的时长（0 就是永久），切套餐后取新套餐的默认时长。
+  const effectiveDays =
+    packageUid === initialPackageUid
+      ? durationDays
+      : selectedPackage?.durationDays ?? 0
+  const permanent = effectiveDays === 0
+  // 只在校验结果是「已过期」且日期没被改到未来时提示。
+  const expiredNow = expired && expiry !== "" && expiryInPast(expiry)
+  const customized = !sameCapabilitySet(lockedCodes, targetFeatures)
 
   return (
     <Dialog open={tenant !== null} onOpenChange={onOpenChange}>
@@ -255,6 +339,61 @@ export function TenantFeaturesDialog({
                     </SelectContent>
                   </Select>
                 </FormField>
+                <div className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                  <span>
+                    {t("tenantAdmin.packageDuration")}：
+                    <span className="font-medium text-foreground">
+                      {permanent
+                        ? t("tenantAdmin.permanent")
+                        : t("tenantAdmin.durationDays", {
+                            count: effectiveDays,
+                          })}
+                    </span>
+                  </span>
+                  <span aria-hidden="true">·</span>
+                  <span>
+                    {t("tenantAdmin.packageFeaturesCount", {
+                      count: lockedCodes.length,
+                    })}
+                  </span>
+                </div>
+                <FormField
+                  label={t("tenantAdmin.expiresAt")}
+                  htmlFor="tenant-expiry"
+                  hint={
+                    permanent
+                      ? t("tenantAdmin.expiresAtPermanentHint")
+                      : t("tenantAdmin.expiresAtHint", {
+                          count: effectiveDays,
+                        })
+                  }
+                  error={fieldErrors.expiresAt}
+                >
+                  <div className="grid min-w-0 gap-1.5">
+                    <Input
+                      id="tenant-expiry"
+                      type="date"
+                      value={expiry}
+                      min={todayValue()}
+                      disabled={permanent}
+                      onChange={(event) => setExpiry(event.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {permanent
+                        ? t("tenantAdmin.expiresAtPermanent")
+                        : expiry
+                          ? t("tenantAdmin.expiresAtValue", {
+                              date: expiry,
+                            })
+                          : t("tenantAdmin.expiresAtDefault")}
+                      {expiredNow ? (
+                        <span className="ml-2 text-destructive">
+                          {t("tenantAdmin.expired")}
+                        </span>
+                      ) : null}
+                    </p>
+                  </div>
+                </FormField>
                 <div className="grid min-w-0 gap-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium">
@@ -262,7 +401,7 @@ export function TenantFeaturesDialog({
                     </span>
                     <span className="text-xs text-muted-foreground tabular-nums">
                       {t("tenantAdmin.featuresCount", {
-                        selected: features.length,
+                        selected: targetFeatures.length,
                         total: codes.length,
                       })}
                     </span>
@@ -271,15 +410,35 @@ export function TenantFeaturesDialog({
                     {customized
                       ? t("tenantAdmin.featuresOverride")
                       : t("tenantAdmin.packageFeatures", {
-                          count: selectedPackage?.features?.length ?? 0,
+                          count: lockedCodes.length,
                         })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("tenantAdmin.packageLockedHint")}
                   </p>
                   <FeaturePicker
                     codes={codes}
                     value={features}
+                    lockedCodes={lockedCodes}
+                    lockedLabel={t("tenantAdmin.packageLocked")}
                     disabled={pending}
                     onChange={setFeatures}
                   />
+                </div>
+                <div className="grid min-w-0 gap-1.5 rounded-lg border border-border/70 bg-muted/40 px-3 py-2">
+                  <span className="text-xs font-medium">
+                    {t("tenantAdmin.extraFeatures")}
+                  </span>
+                  {extraFeatures.length > 0 ? (
+                    <FeatureTags codes={extraFeatures} emptyLabel="—" />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      {t("tenantAdmin.noExtraFeatures")}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {t("tenantAdmin.extraFeaturesHint")}
+                  </span>
                 </div>
               </>
             ) : null}

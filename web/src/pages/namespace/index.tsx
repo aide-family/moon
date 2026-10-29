@@ -11,7 +11,6 @@ import {
   listNamespaces,
   transferNamespaceOwner,
   updateNamespace,
-  updateNamespaceStatus,
 } from "@/api/namespace"
 import type { NamespaceItem } from "@/api/namespace/types"
 import { TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS } from "@/lib/table-layout"
@@ -68,7 +67,7 @@ export function NamespacePage() {
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<NamespaceItem | null>(null)
   const [confirm, setConfirm] = useState<
-    { type: "delete" | "disable"; uid: string } | { type: "transfer" } | null
+    { type: "delete"; uid: string } | { type: "transfer" } | null
   >(null)
   const [confirmError, setConfirmError] = useState("")
 
@@ -172,12 +171,6 @@ export function NamespacePage() {
     }
   }
 
-  async function onStatus(uid: string) {
-    localStorage.setItem("namespace", uid)
-    await updateNamespaceStatus(uid, "ACTIVE")
-    refresh()
-  }
-
   async function runConfirm() {
     if (!confirm) {
       return
@@ -189,9 +182,6 @@ export function NamespacePage() {
         localStorage.setItem("namespace", confirm.uid)
         await deleteNamespace(confirm.uid)
         localStorage.removeItem("namespace")
-      } else if (confirm.type === "disable") {
-        localStorage.setItem("namespace", confirm.uid)
-        await updateNamespaceStatus(confirm.uid, "DISABLED")
       } else if (transferUid && target) {
         localStorage.setItem("namespace", transferUid)
         await transferNamespaceOwner(transferUid, target)
@@ -281,23 +271,6 @@ export function NamespacePage() {
           setFieldErrors({})
         },
       })
-      if (item.status === "ACTIVE") {
-        actions.push({
-          key: "disable",
-          label: t("action.disable"),
-          destructive: true,
-          onSelect: () => {
-            setConfirmError("")
-            setConfirm({ type: "disable", uid: item.uid })
-          },
-        })
-      } else {
-        actions.push({
-          key: "enable",
-          label: t("action.enable"),
-          onSelect: () => void onStatus(item.uid),
-        })
-      }
     }
     if (session.can("namespace:transfer")) {
       actions.push({
@@ -326,9 +299,6 @@ export function NamespacePage() {
   // 统计口径跟着会话里的完整租户集走，不受列表筛选与分页影响。
   const activeCount = session.namespaces.filter(
     (item) => item.status === "ACTIVE"
-  ).length
-  const disabledCount = session.namespaces.filter(
-    (item) => item.status === "DISABLED"
   ).length
 
   return (
@@ -412,12 +382,6 @@ export function NamespacePage() {
               <StatusBadge value="ACTIVE" />
               <span className="font-mono text-sm font-semibold tabular-nums">
                 {session.loading ? "—" : activeCount}
-              </span>
-            </span>
-            <span className="inline-flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2">
-              <StatusBadge value="DISABLED" />
-              <span className="font-mono text-sm font-semibold tabular-nums">
-                {session.loading ? "—" : disabledCount}
               </span>
             </span>
           </div>
@@ -759,16 +723,12 @@ export function NamespacePage() {
         title={
           confirm?.type === "delete"
             ? t("confirm.deleteTitle")
-            : confirm?.type === "disable"
-              ? t("confirm.disableTitle")
-              : t("confirm.transferTitle")
+            : t("confirm.transferTitle")
         }
         description={
           confirm?.type === "delete"
             ? t("confirm.deleteDescription")
-            : confirm?.type === "disable"
-              ? t("confirm.disableDescription")
-              : t("confirm.transferDescription")
+            : t("confirm.transferDescription")
         }
         confirmLabel={t("action.confirm")}
         cancelLabel={t("action.cancel")}

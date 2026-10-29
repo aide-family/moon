@@ -12,6 +12,7 @@ import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
+import { cn } from "@/lib/class-names"
 import { collectFieldErrors, hasFieldErrors, requireSelected } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
@@ -26,13 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
@@ -42,6 +37,27 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
+
+// 平台角色选项：卡片单选，带一句能力说明。系统只读是新增角色（可查看平台
+// 全部信息、不可修改），用醒目的提示区分，避免误授予写权限。
+const SYSTEM_ROLE_OPTIONS = [
+  {
+    value: "SYSTEM_ADMIN",
+    labelKey: "user.systemAdmin",
+    descriptionKey: "user.systemAdminDescription",
+  },
+  {
+    value: "SYSTEM_READONLY",
+    labelKey: "user.systemReadonly",
+    descriptionKey: "user.systemReadonlyDescription",
+    highlight: true,
+  },
+  {
+    value: "USER",
+    labelKey: "user.normalUser",
+    descriptionKey: "user.normalUserDescription",
+  },
+] as const
 
 export function UserPage() {
   const { t } = useTranslation()
@@ -153,7 +169,12 @@ export function UserPage() {
         label: t("user.grantRole"),
         onSelect: () => {
           setGranting(item)
-          setRole(item.systemRole === "SYSTEM_ADMIN" ? "SYSTEM_ADMIN" : "USER")
+          setRole(
+            item.systemRole === "SYSTEM_ADMIN" ||
+              item.systemRole === "SYSTEM_READONLY"
+              ? item.systemRole
+              : "USER"
+          )
           setError("")
           setFieldErrors({})
         },
@@ -288,20 +309,66 @@ export function UserPage() {
             <DialogBody className="grid gap-4">
               <FormField
                 label={t("user.systemRole")}
-                htmlFor="system-role"
-                hint={t("user.grantRoleHint")}
                 required
                 error={fieldErrors.role}
               >
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger id="system-role">
-                    <SelectValue placeholder={t("user.systemRolePlaceholder")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SYSTEM_ADMIN">{t("user.systemAdmin")}</SelectItem>
-                    <SelectItem value="USER">{t("user.normalUser")}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <fieldset className="grid gap-2" role="radiogroup" aria-label={t("user.systemRole")}>
+                  <legend className="sr-only">{t("user.systemRole")}</legend>
+                  {SYSTEM_ROLE_OPTIONS.map((option) => {
+                    const selected = role === option.value
+                    const highlight = "highlight" in option && option.highlight
+                    return (
+                      <label
+                        key={option.value}
+                        className={cn(
+                          "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors",
+                          selected
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:bg-muted/50",
+                          highlight &&
+                            !selected &&
+                            "border-violet-border bg-violet-soft/60"
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="system-role"
+                          value={option.value}
+                          checked={selected}
+                          onChange={() => setRole(option.value)}
+                          className="mt-1 size-4 shrink-0 accent-primary focus-visible:ring-2 focus-visible:ring-ring"
+                        />
+                        <span className="grid min-w-0 gap-0.5">
+                          <span className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium">
+                              {t(option.labelKey)}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="px-1.5 py-0 font-mono text-[10px] font-normal text-muted-foreground"
+                            >
+                              {option.value}
+                            </Badge>
+                            {highlight ? (
+                              <Badge
+                                variant="outline"
+                                className="border-violet-border bg-violet-soft px-1.5 py-0 font-normal text-violet"
+                              >
+                                {t("user.systemReadonlyBadge")}
+                              </Badge>
+                            ) : null}
+                          </span>
+                          <span className="text-xs break-words text-muted-foreground">
+                            {t(option.descriptionKey)}
+                          </span>
+                        </span>
+                      </label>
+                    )
+                  })}
+                  <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs break-words text-muted-foreground">
+                    {t("user.grantRoleHint")}
+                  </p>
+                </fieldset>
               </FormField>
             </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}

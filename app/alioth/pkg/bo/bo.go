@@ -20,6 +20,8 @@ type Account struct {
 // Namespace 是租户。OwnerUID 指向当前负责人。
 // OwnerName 和 OwnerEmail 是负责人的展示信息，由仓储在查询租户时补齐。
 // MemberCount 只在平台租户列表补齐；CreatedAt 随租户查询返回。
+// PackageUID/PackageName/PackageExpiresAt 是租户当前套餐与到期时间，
+// PackageExpiresAt 零值表示永久；DisableReason 是停用原因，启用时清空。
 type Namespace struct {
 	UID        string
 	Name       string
@@ -33,6 +35,14 @@ type Namespace struct {
 	MemberCount int
 	// CreatedAt 是租户创建时间，按 Unix 秒返回给调用方。
 	CreatedAt time.Time
+	// PackageUID 是租户当前使用的功能套餐。
+	PackageUID string
+	// PackageName 是套餐名称，由平台租户列表补齐。
+	PackageName string
+	// PackageExpiresAt 是套餐到期时间，零值表示永久。
+	PackageExpiresAt time.Time
+	// DisableReason 是租户被停用的原因；启用时清空。
+	DisableReason string
 }
 
 // Member 是用户在某个租户中的成员身份。

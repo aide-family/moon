@@ -123,7 +123,8 @@ func (directory *Directory) setStatus(ctx context.Context, uid, status string) (
 	if target.SystemRole == perm.SystemRoleSuperAdmin {
 		return nil, merr.Forbidden("cannot change super admin")
 	}
-	if actorAccount.SystemRole != perm.SystemRoleSuperAdmin && target.SystemRole == perm.SystemRoleSystemAdmin {
+	if actorAccount.SystemRole != perm.SystemRoleSuperAdmin &&
+		(target.SystemRole == perm.SystemRoleSystemAdmin || target.SystemRole == perm.SystemRoleReadOnly) {
 		return nil, merr.Forbidden("cannot change another system admin")
 	}
 	account, err := directory.users.UpdateUserStatus(ctx, uid, status)
@@ -133,7 +134,7 @@ func (directory *Directory) setStatus(ctx context.Context, uid, status string) (
 	return account, nil
 }
 
-// UpdateSystemRole 由超级管理员授权或撤销系统管理员。
+// UpdateSystemRole 由超级管理员授权或撤销系统管理员和系统只读角色。
 // 超级管理员只能是最早注册的那个用户，不能通过接口再授予或转移。
 func (directory *Directory) UpdateSystemRole(ctx context.Context, uid, role string) (*bo.Account, error) {
 	actorAccount, err := directory.access.RequireSystem(ctx, perm.SystemRoleWrite)
@@ -143,7 +144,8 @@ func (directory *Directory) UpdateSystemRole(ctx context.Context, uid, role stri
 	if actorAccount.UID == uid {
 		return nil, merr.Client("cannot change your own system role")
 	}
-	if role != perm.SystemRoleSystemAdmin && role != perm.SystemRoleUser {
+	// 系统只读角色只有读权限，授予它不会扩大目标用户的实际能力。
+	if role != perm.SystemRoleSystemAdmin && role != perm.SystemRoleReadOnly && role != perm.SystemRoleUser {
 		return nil, merr.Invalid("invalid system role")
 	}
 	target, err := directory.users.UserByUID(ctx, uid)

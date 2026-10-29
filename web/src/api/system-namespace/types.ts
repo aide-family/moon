@@ -17,6 +17,13 @@ export type ListSystemNamespacesParams = {
   status?: string
 }
 
+/** PUT /v1/system/namespace/{uid}/status 的请求体。 */
+export type UpdateNamespaceStatusPayload = {
+  status: "ACTIVE" | "DISABLED"
+  /** DISABLED 必填，1-500 字；后端会邮件通知租户负责人。 */
+  reason?: string
+}
+
 export type ListSystemNamespacesResult = {
   items?: SystemNamespaceItem[]
   total?: number

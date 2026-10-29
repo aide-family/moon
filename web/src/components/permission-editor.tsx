@@ -26,9 +26,9 @@ import { cn } from "@/lib/class-names"
 import { formErrorMessage } from "@/lib/form-error"
 import {
   OWNER_ONLY,
-  actionLabel,
   groupPermissions,
   matchesPermission,
+  permissionActionLabel,
 } from "@/lib/permission-catalog"
 
 interface PermissionEditorProps {
@@ -402,7 +402,8 @@ export function PermissionEditor({
                         <div className="grid gap-1 border-t p-2 sm:grid-cols-2">
                           {group.items.map((item) => {
                             const checked = selected.has(item.name)
-                            const action = actionLabel(item.action)
+                            // 菜单组的动作是能力 code，这里按能力目录渲染双语标签。
+                            const action = permissionActionLabel(item)
                             const locked = OWNER_ONLY.has(item.name)
                             return (
                               <div

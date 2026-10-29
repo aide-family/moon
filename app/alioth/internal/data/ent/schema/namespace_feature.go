@@ -6,9 +6,11 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// NamespaceFeature 是租户相对套餐的功能差异。
-// enabled=true 表示在套餐之外为租户加开功能，false 表示从套餐里减掉功能；
-// 没有记录表示跟随套餐。有效功能由套餐功能叠加差异计算，不落表。
+// NamespaceFeature 是租户相对套餐的额外能力。
+// 只存「在套餐之外为租户加开」的能力，enabled 恒为 true；没有记录表示完全跟随套餐。
+// 能力只能加不能减：目标能力必须包含套餐能力，因此不存在 enabled=false 的正常数据。
+// 升级前写入的 enabled=false 旧记录由 seed 清理，不再参与计算。
+// 有效能力 = 套餐能力 ∪ 额外能力，不落表。
 type NamespaceFeature struct {
 	ent.Schema
 }

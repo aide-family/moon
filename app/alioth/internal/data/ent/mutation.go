@@ -11,7 +11,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/agent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
@@ -14288,21 +14287,23 @@ func (m *EmailLoginCodeMutation) ResetEdge(name string) error {
 // FeaturePackageMutation represents an operation that mutates the FeaturePackage nodes in the graph.
 type FeaturePackageMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	created_at    *time.Time
-	updated_at    *time.Time
-	deleted_at    *time.Time
-	uid           *string
-	name          *string
-	remark        *string
-	is_base       *bool
-	status        *featurepackage.Status
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*FeaturePackage, error)
-	predicates    []predicate.FeaturePackage
+	op               Op
+	typ              string
+	id               *int
+	created_at       *time.Time
+	updated_at       *time.Time
+	deleted_at       *time.Time
+	uid              *string
+	name             *string
+	remark           *string
+	is_base          *bool
+	status           *featurepackage.Status
+	duration_days    *int32
+	addduration_days *int32
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*FeaturePackage, error)
+	predicates       []predicate.FeaturePackage
 }
 
 var _ ent.Mutation = (*FeaturePackageMutation)(nil)
@@ -14704,6 +14705,62 @@ func (m *FeaturePackageMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetDurationDays sets the "duration_days" field.
+func (m *FeaturePackageMutation) SetDurationDays(i int32) {
+	m.duration_days = &i
+	m.addduration_days = nil
+}
+
+// DurationDays returns the value of the "duration_days" field in the mutation.
+func (m *FeaturePackageMutation) DurationDays() (r int32, exists bool) {
+	v := m.duration_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationDays returns the old "duration_days" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldDurationDays(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationDays: %w", err)
+	}
+	return oldValue.DurationDays, nil
+}
+
+// AddDurationDays adds i to the "duration_days" field.
+func (m *FeaturePackageMutation) AddDurationDays(i int32) {
+	if m.addduration_days != nil {
+		*m.addduration_days += i
+	} else {
+		m.addduration_days = &i
+	}
+}
+
+// AddedDurationDays returns the value that was added to the "duration_days" field in this mutation.
+func (m *FeaturePackageMutation) AddedDurationDays() (r int32, exists bool) {
+	v := m.addduration_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationDays resets all changes to the "duration_days" field.
+func (m *FeaturePackageMutation) ResetDurationDays() {
+	m.duration_days = nil
+	m.addduration_days = nil
+}
+
 // Where appends a list predicates to the FeaturePackageMutation builder.
 func (m *FeaturePackageMutation) Where(ps ...predicate.FeaturePackage) {
 	m.predicates = append(m.predicates, ps...)
@@ -14738,7 +14795,7 @@ func (m *FeaturePackageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FeaturePackageMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, featurepackage.FieldCreatedAt)
 	}
@@ -14762,6 +14819,9 @@ func (m *FeaturePackageMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, featurepackage.FieldStatus)
+	}
+	if m.duration_days != nil {
+		fields = append(fields, featurepackage.FieldDurationDays)
 	}
 	return fields
 }
@@ -14787,6 +14847,8 @@ func (m *FeaturePackageMutation) Field(name string) (ent.Value, bool) {
 		return m.IsBase()
 	case featurepackage.FieldStatus:
 		return m.Status()
+	case featurepackage.FieldDurationDays:
+		return m.DurationDays()
 	}
 	return nil, false
 }
@@ -14812,6 +14874,8 @@ func (m *FeaturePackageMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldIsBase(ctx)
 	case featurepackage.FieldStatus:
 		return m.OldStatus(ctx)
+	case featurepackage.FieldDurationDays:
+		return m.OldDurationDays(ctx)
 	}
 	return nil, fmt.Errorf("unknown FeaturePackage field %s", name)
 }
@@ -14877,6 +14941,13 @@ func (m *FeaturePackageMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case featurepackage.FieldDurationDays:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationDays(v)
+		return nil
 	}
 	return fmt.Errorf("unknown FeaturePackage field %s", name)
 }
@@ -14884,13 +14955,21 @@ func (m *FeaturePackageMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *FeaturePackageMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addduration_days != nil {
+		fields = append(fields, featurepackage.FieldDurationDays)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *FeaturePackageMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case featurepackage.FieldDurationDays:
+		return m.AddedDurationDays()
+	}
 	return nil, false
 }
 
@@ -14899,6 +14978,13 @@ func (m *FeaturePackageMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *FeaturePackageMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case featurepackage.FieldDurationDays:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDurationDays(v)
+		return nil
 	}
 	return fmt.Errorf("unknown FeaturePackage numeric field %s", name)
 }
@@ -14958,6 +15044,9 @@ func (m *FeaturePackageMutation) ResetField(name string) error {
 		return nil
 	case featurepackage.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case featurepackage.FieldDurationDays:
+		m.ResetDurationDays()
 		return nil
 	}
 	return fmt.Errorf("unknown FeaturePackage field %s", name)
@@ -19444,24 +19533,26 @@ func (m *MessageLogShardMutation) ResetEdge(name string) error {
 // NamespaceMutation represents an operation that mutates the Namespace nodes in the graph.
 type NamespaceMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	created_at    *time.Time
-	updated_at    *time.Time
-	deleted_at    *time.Time
-	uid           *string
-	name          *string
-	secret        *string
-	owner_uid     *string
-	package_uid   *string
-	logo          *string
-	remark        *string
-	status        *namespace.Status
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Namespace, error)
-	predicates    []predicate.Namespace
+	op                 Op
+	typ                string
+	id                 *int
+	created_at         *time.Time
+	updated_at         *time.Time
+	deleted_at         *time.Time
+	uid                *string
+	name               *string
+	secret             *string
+	owner_uid          *string
+	package_uid        *string
+	logo               *string
+	remark             *string
+	status             *namespace.Status
+	package_expires_at *time.Time
+	disable_reason     *string
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*Namespace, error)
+	predicates         []predicate.Namespace
 }
 
 var _ ent.Mutation = (*NamespaceMutation)(nil)
@@ -19971,6 +20062,91 @@ func (m *NamespaceMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetPackageExpiresAt sets the "package_expires_at" field.
+func (m *NamespaceMutation) SetPackageExpiresAt(t time.Time) {
+	m.package_expires_at = &t
+}
+
+// PackageExpiresAt returns the value of the "package_expires_at" field in the mutation.
+func (m *NamespaceMutation) PackageExpiresAt() (r time.Time, exists bool) {
+	v := m.package_expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageExpiresAt returns the old "package_expires_at" field's value of the Namespace entity.
+// If the Namespace object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceMutation) OldPackageExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageExpiresAt: %w", err)
+	}
+	return oldValue.PackageExpiresAt, nil
+}
+
+// ClearPackageExpiresAt clears the value of the "package_expires_at" field.
+func (m *NamespaceMutation) ClearPackageExpiresAt() {
+	m.package_expires_at = nil
+	m.clearedFields[namespace.FieldPackageExpiresAt] = struct{}{}
+}
+
+// PackageExpiresAtCleared returns if the "package_expires_at" field was cleared in this mutation.
+func (m *NamespaceMutation) PackageExpiresAtCleared() bool {
+	_, ok := m.clearedFields[namespace.FieldPackageExpiresAt]
+	return ok
+}
+
+// ResetPackageExpiresAt resets all changes to the "package_expires_at" field.
+func (m *NamespaceMutation) ResetPackageExpiresAt() {
+	m.package_expires_at = nil
+	delete(m.clearedFields, namespace.FieldPackageExpiresAt)
+}
+
+// SetDisableReason sets the "disable_reason" field.
+func (m *NamespaceMutation) SetDisableReason(s string) {
+	m.disable_reason = &s
+}
+
+// DisableReason returns the value of the "disable_reason" field in the mutation.
+func (m *NamespaceMutation) DisableReason() (r string, exists bool) {
+	v := m.disable_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisableReason returns the old "disable_reason" field's value of the Namespace entity.
+// If the Namespace object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceMutation) OldDisableReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisableReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisableReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisableReason: %w", err)
+	}
+	return oldValue.DisableReason, nil
+}
+
+// ResetDisableReason resets all changes to the "disable_reason" field.
+func (m *NamespaceMutation) ResetDisableReason() {
+	m.disable_reason = nil
+}
+
 // Where appends a list predicates to the NamespaceMutation builder.
 func (m *NamespaceMutation) Where(ps ...predicate.Namespace) {
 	m.predicates = append(m.predicates, ps...)
@@ -20005,7 +20181,7 @@ func (m *NamespaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NamespaceMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, namespace.FieldCreatedAt)
 	}
@@ -20039,6 +20215,12 @@ func (m *NamespaceMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, namespace.FieldStatus)
 	}
+	if m.package_expires_at != nil {
+		fields = append(fields, namespace.FieldPackageExpiresAt)
+	}
+	if m.disable_reason != nil {
+		fields = append(fields, namespace.FieldDisableReason)
+	}
 	return fields
 }
 
@@ -20069,6 +20251,10 @@ func (m *NamespaceMutation) Field(name string) (ent.Value, bool) {
 		return m.Remark()
 	case namespace.FieldStatus:
 		return m.Status()
+	case namespace.FieldPackageExpiresAt:
+		return m.PackageExpiresAt()
+	case namespace.FieldDisableReason:
+		return m.DisableReason()
 	}
 	return nil, false
 }
@@ -20100,6 +20286,10 @@ func (m *NamespaceMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldRemark(ctx)
 	case namespace.FieldStatus:
 		return m.OldStatus(ctx)
+	case namespace.FieldPackageExpiresAt:
+		return m.OldPackageExpiresAt(ctx)
+	case namespace.FieldDisableReason:
+		return m.OldDisableReason(ctx)
 	}
 	return nil, fmt.Errorf("unknown Namespace field %s", name)
 }
@@ -20186,6 +20376,20 @@ func (m *NamespaceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case namespace.FieldPackageExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageExpiresAt(v)
+		return nil
+	case namespace.FieldDisableReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisableReason(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Namespace field %s", name)
 }
@@ -20219,6 +20423,9 @@ func (m *NamespaceMutation) ClearedFields() []string {
 	if m.FieldCleared(namespace.FieldDeletedAt) {
 		fields = append(fields, namespace.FieldDeletedAt)
 	}
+	if m.FieldCleared(namespace.FieldPackageExpiresAt) {
+		fields = append(fields, namespace.FieldPackageExpiresAt)
+	}
 	return fields
 }
 
@@ -20235,6 +20442,9 @@ func (m *NamespaceMutation) ClearField(name string) error {
 	switch name {
 	case namespace.FieldDeletedAt:
 		m.ClearDeletedAt()
+		return nil
+	case namespace.FieldPackageExpiresAt:
+		m.ClearPackageExpiresAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Namespace nullable field %s", name)
@@ -20276,6 +20486,12 @@ func (m *NamespaceMutation) ResetField(name string) error {
 		return nil
 	case namespace.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case namespace.FieldPackageExpiresAt:
+		m.ResetPackageExpiresAt()
+		return nil
+	case namespace.FieldDisableReason:
+		m.ResetDisableReason()
 		return nil
 	}
 	return fmt.Errorf("unknown Namespace field %s", name)

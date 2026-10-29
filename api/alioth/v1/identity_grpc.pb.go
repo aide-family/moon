@@ -1067,24 +1067,26 @@ var SelfService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	NamespaceService_CreateNamespace_FullMethodName         = "/alioth.v1.NamespaceService/CreateNamespace"
-	NamespaceService_UpdateNamespace_FullMethodName         = "/alioth.v1.NamespaceService/UpdateNamespace"
-	NamespaceService_UpdateNamespaceStatus_FullMethodName   = "/alioth.v1.NamespaceService/UpdateNamespaceStatus"
-	NamespaceService_DeleteNamespace_FullMethodName         = "/alioth.v1.NamespaceService/DeleteNamespace"
-	NamespaceService_GetNamespace_FullMethodName            = "/alioth.v1.NamespaceService/GetNamespace"
-	NamespaceService_ListNamespaces_FullMethodName          = "/alioth.v1.NamespaceService/ListNamespaces"
-	NamespaceService_SelectNamespaces_FullMethodName        = "/alioth.v1.NamespaceService/SelectNamespaces"
-	NamespaceService_ListSimpleNamespaces_FullMethodName    = "/alioth.v1.NamespaceService/ListSimpleNamespaces"
-	NamespaceService_ListSystemNamespaces_FullMethodName    = "/alioth.v1.NamespaceService/ListSystemNamespaces"
-	NamespaceService_TransferNamespaceOwner_FullMethodName  = "/alioth.v1.NamespaceService/TransferNamespaceOwner"
-	NamespaceService_ListFeatures_FullMethodName            = "/alioth.v1.NamespaceService/ListFeatures"
-	NamespaceService_ListFeaturePackages_FullMethodName     = "/alioth.v1.NamespaceService/ListFeaturePackages"
-	NamespaceService_GetFeaturePackage_FullMethodName       = "/alioth.v1.NamespaceService/GetFeaturePackage"
-	NamespaceService_CreateFeaturePackage_FullMethodName    = "/alioth.v1.NamespaceService/CreateFeaturePackage"
-	NamespaceService_UpdateFeaturePackage_FullMethodName    = "/alioth.v1.NamespaceService/UpdateFeaturePackage"
-	NamespaceService_DeleteFeaturePackage_FullMethodName    = "/alioth.v1.NamespaceService/DeleteFeaturePackage"
-	NamespaceService_GetNamespaceFeatures_FullMethodName    = "/alioth.v1.NamespaceService/GetNamespaceFeatures"
-	NamespaceService_UpdateNamespaceFeatures_FullMethodName = "/alioth.v1.NamespaceService/UpdateNamespaceFeatures"
+	NamespaceService_CreateNamespace_FullMethodName             = "/alioth.v1.NamespaceService/CreateNamespace"
+	NamespaceService_UpdateNamespace_FullMethodName             = "/alioth.v1.NamespaceService/UpdateNamespace"
+	NamespaceService_UpdateNamespaceStatus_FullMethodName       = "/alioth.v1.NamespaceService/UpdateNamespaceStatus"
+	NamespaceService_DeleteNamespace_FullMethodName             = "/alioth.v1.NamespaceService/DeleteNamespace"
+	NamespaceService_GetNamespace_FullMethodName                = "/alioth.v1.NamespaceService/GetNamespace"
+	NamespaceService_ListNamespaces_FullMethodName              = "/alioth.v1.NamespaceService/ListNamespaces"
+	NamespaceService_SelectNamespaces_FullMethodName            = "/alioth.v1.NamespaceService/SelectNamespaces"
+	NamespaceService_ListSimpleNamespaces_FullMethodName        = "/alioth.v1.NamespaceService/ListSimpleNamespaces"
+	NamespaceService_ListSystemNamespaces_FullMethodName        = "/alioth.v1.NamespaceService/ListSystemNamespaces"
+	NamespaceService_UpdateSystemNamespaceStatus_FullMethodName = "/alioth.v1.NamespaceService/UpdateSystemNamespaceStatus"
+	NamespaceService_ArchiveSystemNamespace_FullMethodName      = "/alioth.v1.NamespaceService/ArchiveSystemNamespace"
+	NamespaceService_TransferNamespaceOwner_FullMethodName      = "/alioth.v1.NamespaceService/TransferNamespaceOwner"
+	NamespaceService_ListFeatures_FullMethodName                = "/alioth.v1.NamespaceService/ListFeatures"
+	NamespaceService_ListFeaturePackages_FullMethodName         = "/alioth.v1.NamespaceService/ListFeaturePackages"
+	NamespaceService_GetFeaturePackage_FullMethodName           = "/alioth.v1.NamespaceService/GetFeaturePackage"
+	NamespaceService_CreateFeaturePackage_FullMethodName        = "/alioth.v1.NamespaceService/CreateFeaturePackage"
+	NamespaceService_UpdateFeaturePackage_FullMethodName        = "/alioth.v1.NamespaceService/UpdateFeaturePackage"
+	NamespaceService_DeleteFeaturePackage_FullMethodName        = "/alioth.v1.NamespaceService/DeleteFeaturePackage"
+	NamespaceService_GetNamespaceFeatures_FullMethodName        = "/alioth.v1.NamespaceService/GetNamespaceFeatures"
+	NamespaceService_UpdateNamespaceFeatures_FullMethodName     = "/alioth.v1.NamespaceService/UpdateNamespaceFeatures"
 )
 
 // NamespaceServiceClient is the client API for NamespaceService service.
@@ -1097,7 +1099,8 @@ type NamespaceServiceClient interface {
 	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*CreateNamespaceResponse, error)
 	// 修改当前租户的名称、备注和标志。
 	UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*UpdateNamespaceResponse, error)
-	// 启用或停用当前租户。
+	// 租户侧启停已由平台接管，该接口固定拒绝，避免租户自行解封。
+	// 平台停用/启用走 UpdateSystemNamespaceStatus。
 	UpdateNamespaceStatus(ctx context.Context, in *UpdateNamespaceStatusRequest, opts ...grpc.CallOption) (*UpdateNamespaceStatusResponse, error)
 	// 删除当前租户。需要 namespace:delete。
 	DeleteNamespace(ctx context.Context, in *DeleteNamespaceRequest, opts ...grpc.CallOption) (*DeleteNamespaceResponse, error)
@@ -1111,6 +1114,12 @@ type NamespaceServiceClient interface {
 	ListSimpleNamespaces(ctx context.Context, in *ListSimpleNamespacesRequest, opts ...grpc.CallOption) (*ListSimpleNamespacesResponse, error)
 	// 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
 	ListSystemNamespaces(ctx context.Context, in *ListSystemNamespacesRequest, opts ...grpc.CallOption) (*ListSystemNamespacesResponse, error)
+	// 平台停用或启用租户。不读 X-Namespace，需要 system:namespace:write。
+	// 停用必须填写原因，成功后邮件通知租户负责人；启用会清空停用原因且不发邮件。
+	UpdateSystemNamespaceStatus(ctx context.Context, in *UpdateSystemNamespaceStatusRequest, opts ...grpc.CallOption) (*UpdateSystemNamespaceStatusResponse, error)
+	// 归档租户：软删除租户及其全部业务数据。不读 X-Namespace，需要 system:namespace:write。
+	// 归档不可恢复，也不提供取消归档的接口。
+	ArchiveSystemNamespace(ctx context.Context, in *ArchiveSystemNamespaceRequest, opts ...grpc.CallOption) (*ArchiveSystemNamespaceResponse, error)
 	// 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(ctx context.Context, in *TransferNamespaceOwnerRequest, opts ...grpc.CallOption) (*TransferNamespaceOwnerResponse, error)
 	// 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
@@ -1229,6 +1238,26 @@ func (c *namespaceServiceClient) ListSystemNamespaces(ctx context.Context, in *L
 	return out, nil
 }
 
+func (c *namespaceServiceClient) UpdateSystemNamespaceStatus(ctx context.Context, in *UpdateSystemNamespaceStatusRequest, opts ...grpc.CallOption) (*UpdateSystemNamespaceStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSystemNamespaceStatusResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_UpdateSystemNamespaceStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) ArchiveSystemNamespace(ctx context.Context, in *ArchiveSystemNamespaceRequest, opts ...grpc.CallOption) (*ArchiveSystemNamespaceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ArchiveSystemNamespaceResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_ArchiveSystemNamespace_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *namespaceServiceClient) TransferNamespaceOwner(ctx context.Context, in *TransferNamespaceOwnerRequest, opts ...grpc.CallOption) (*TransferNamespaceOwnerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TransferNamespaceOwnerResponse)
@@ -1329,7 +1358,8 @@ type NamespaceServiceServer interface {
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error)
 	// 修改当前租户的名称、备注和标志。
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceResponse, error)
-	// 启用或停用当前租户。
+	// 租户侧启停已由平台接管，该接口固定拒绝，避免租户自行解封。
+	// 平台停用/启用走 UpdateSystemNamespaceStatus。
 	UpdateNamespaceStatus(context.Context, *UpdateNamespaceStatusRequest) (*UpdateNamespaceStatusResponse, error)
 	// 删除当前租户。需要 namespace:delete。
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*DeleteNamespaceResponse, error)
@@ -1343,6 +1373,12 @@ type NamespaceServiceServer interface {
 	ListSimpleNamespaces(context.Context, *ListSimpleNamespacesRequest) (*ListSimpleNamespacesResponse, error)
 	// 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
 	ListSystemNamespaces(context.Context, *ListSystemNamespacesRequest) (*ListSystemNamespacesResponse, error)
+	// 平台停用或启用租户。不读 X-Namespace，需要 system:namespace:write。
+	// 停用必须填写原因，成功后邮件通知租户负责人；启用会清空停用原因且不发邮件。
+	UpdateSystemNamespaceStatus(context.Context, *UpdateSystemNamespaceStatusRequest) (*UpdateSystemNamespaceStatusResponse, error)
+	// 归档租户：软删除租户及其全部业务数据。不读 X-Namespace，需要 system:namespace:write。
+	// 归档不可恢复，也不提供取消归档的接口。
+	ArchiveSystemNamespace(context.Context, *ArchiveSystemNamespaceRequest) (*ArchiveSystemNamespaceResponse, error)
 	// 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error)
 	// 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
@@ -1397,6 +1433,12 @@ func (UnimplementedNamespaceServiceServer) ListSimpleNamespaces(context.Context,
 }
 func (UnimplementedNamespaceServiceServer) ListSystemNamespaces(context.Context, *ListSystemNamespacesRequest) (*ListSystemNamespacesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListSystemNamespaces not implemented")
+}
+func (UnimplementedNamespaceServiceServer) UpdateSystemNamespaceStatus(context.Context, *UpdateSystemNamespaceStatusRequest) (*UpdateSystemNamespaceStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSystemNamespaceStatus not implemented")
+}
+func (UnimplementedNamespaceServiceServer) ArchiveSystemNamespace(context.Context, *ArchiveSystemNamespaceRequest) (*ArchiveSystemNamespaceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ArchiveSystemNamespace not implemented")
 }
 func (UnimplementedNamespaceServiceServer) TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TransferNamespaceOwner not implemented")
@@ -1608,6 +1650,42 @@ func _NamespaceService_ListSystemNamespaces_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NamespaceService_UpdateSystemNamespaceStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSystemNamespaceStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).UpdateSystemNamespaceStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_UpdateSystemNamespaceStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).UpdateSystemNamespaceStatus(ctx, req.(*UpdateSystemNamespaceStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_ArchiveSystemNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ArchiveSystemNamespaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).ArchiveSystemNamespace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_ArchiveSystemNamespace_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).ArchiveSystemNamespace(ctx, req.(*ArchiveSystemNamespaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _NamespaceService_TransferNamespaceOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TransferNamespaceOwnerRequest)
 	if err := dec(in); err != nil {
@@ -1812,6 +1890,14 @@ var NamespaceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSystemNamespaces",
 			Handler:    _NamespaceService_ListSystemNamespaces_Handler,
+		},
+		{
+			MethodName: "UpdateSystemNamespaceStatus",
+			Handler:    _NamespaceService_UpdateSystemNamespaceStatus_Handler,
+		},
+		{
+			MethodName: "ArchiveSystemNamespace",
+			Handler:    _NamespaceService_ArchiveSystemNamespace_Handler,
 		},
 		{
 			MethodName: "TransferNamespaceOwner",

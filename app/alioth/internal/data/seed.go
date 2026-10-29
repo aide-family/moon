@@ -41,10 +41,16 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	if err := ensureBasePackage(ctx, client, helper); err != nil {
 		return err
 	}
+	if err := migrateLegacyFeatureCodes(ctx, client, helper); err != nil {
+		return err
+	}
 	if err := migrateLegacyNamespaceFeatures(ctx, client, helper); err != nil {
 		return err
 	}
 	if err := syncTenantRoles(ctx, client, helper); err != nil {
+		return err
+	}
+	if err := migrateRoleMenuPermissions(ctx, client, helper); err != nil {
 		return err
 	}
 	if err := migrateCustomRoleK8sPermissions(ctx, client, helper); err != nil {
@@ -138,20 +144,21 @@ func seedNotificationPresets(ctx context.Context, client *ent.Client, helper *sl
 
 const (
 	basePackageName   = "基础套餐"
-	basePackageRemark = "新租户默认功能：告警、告警规则、探测、数据源、通知、成员与角色。"
+	basePackageRemark = "新租户默认能力：告警、告警规则、探测、数据源、通知、成员与角色。"
 )
 
-// ensureBasePackage 保证基础套餐存在。已经存在时不做任何修改，管理员改过的
-// 名称、备注和功能都保留。多副本同时启动时由 is_base 的部分唯一索引兜底。
+// ensureBasePackage 保证基础套餐存在，并且包含全部基础能力。
+// 已存在时只补缺失的能力，不删除管理员额外加上的能力，也不改名称、备注和时长。
+// 多副本同时启动时由 is_base 的部分唯一索引兜底。
 func ensureBasePackage(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
-	exists, err := client.FeaturePackage.Query().
+	base, err := client.FeaturePackage.Query().
 		Where(featurepackage.IsBase(true), featurepackage.DeletedAtIsNil()).
-		Exist(ctx)
-	if err != nil {
+		Only(ctx)
+	switch {
+	case err == nil:
+		return ensurePackageCapabilities(ctx, client, helper, base.UID, perm.BaseCapabilities())
+	case !ent.IsNotFound(err):
 		return databaseErr(helper, err)
-	}
-	if exists {
-		return nil
 	}
 	tx, err := client.Tx(ctx)
 	if err != nil {
@@ -176,7 +183,7 @@ func ensureBasePackage(ctx context.Context, client *ent.Client, helper *slog.Log
 		}
 		return databaseErr(helper, err)
 	}
-	for _, code := range perm.BaseFeatures() {
+	for _, code := range perm.BaseCapabilities() {
 		if _, err := tx.FeaturePackageItem.Create().
 			SetUID(id.New()).
 			SetPackageUID(created.UID).
@@ -191,9 +198,90 @@ func ensureBasePackage(ctx context.Context, client *ent.Client, helper *slog.Log
 	return nil
 }
 
+// ensurePackageCapabilities 给套餐补上缺失的能力，只加不删。
+// 重复执行不会产生重复明细，也不会动管理员已有的配置。
+func ensurePackageCapabilities(ctx context.Context, client *ent.Client, helper *slog.Logger, packageUID string, capabilities []string) error {
+	for _, code := range capabilities {
+		exists, err := client.FeaturePackageItem.Query().
+			Where(featurepackageitem.PackageUIDEQ(packageUID), featurepackageitem.FeatureEQ(code)).
+			Exist(ctx)
+		if err != nil {
+			return databaseErr(helper, err)
+		}
+		if exists {
+			continue
+		}
+		if _, err := client.FeaturePackageItem.Create().
+			SetUID(id.New()).
+			SetPackageUID(packageUID).
+			SetFeature(code).
+			Save(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+	}
+	return nil
+}
+
+// migrateLegacyFeatureCodes 把升级前按模块编码写入的套餐明细和租户差异展开成能力编码。
+// 能力目录里没有模块级编码，读取时会被忽略；这里先补齐能力明细，再删除旧行，可重复执行。
+func migrateLegacyFeatureCodes(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	items, err := client.FeaturePackageItem.Query().All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	for _, item := range items {
+		if perm.IsCapability(item.Feature) {
+			continue
+		}
+		if perm.IsFeature(item.Feature) {
+			if err := ensurePackageCapabilities(ctx, client, helper, item.PackageUID, perm.CapabilityCodesOfModule(item.Feature)); err != nil {
+				return err
+			}
+		}
+		if _, err := client.FeaturePackageItem.Delete().Where(featurepackageitem.UIDEQ(item.UID)).Exec(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+	}
+	rows, err := client.NamespaceFeature.Query().All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	for _, row := range rows {
+		// 能力只增不减：enabled=false 是旧的减法差异，整体删除，不再参与计算。
+		if row.Enabled && perm.IsCapability(row.Feature) {
+			continue
+		}
+		if row.Enabled && perm.IsFeature(row.Feature) {
+			for _, code := range perm.CapabilityCodesOfModule(row.Feature) {
+				exists, err := client.NamespaceFeature.Query().
+					Where(namespacefeature.NamespaceUIDEQ(row.NamespaceUID), namespacefeature.FeatureEQ(code)).
+					Exist(ctx)
+				if err != nil {
+					return databaseErr(helper, err)
+				}
+				if exists {
+					continue
+				}
+				if _, err := client.NamespaceFeature.Create().
+					SetUID(id.New()).
+					SetNamespaceUID(row.NamespaceUID).
+					SetFeature(code).
+					SetEnabled(true).
+					Save(ctx); err != nil {
+					return databaseErr(helper, err)
+				}
+			}
+		}
+		if _, err := client.NamespaceFeature.Delete().Where(namespacefeature.UIDEQ(row.UID)).Exec(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+	}
+	return nil
+}
+
 // migrateLegacyNamespaceFeatures 把升级前创建的租户迁到基础套餐，并加开
-// Kubernetes、机器与 SSH，保持升级前的能力不变。package_uid 为空只可能是存量租户：
-// 迁移后不会再次命中，可以重复执行。
+// Kubernetes、机器与 SSH 的全部能力，保持升级前的能力不变。package_uid 为空只可能是
+// 存量租户：迁移后不会再次命中，可以重复执行。
 func migrateLegacyNamespaceFeatures(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	base, err := client.FeaturePackage.Query().
 		Where(featurepackage.IsBase(true), featurepackage.DeletedAtIsNil()).
@@ -210,25 +298,29 @@ func migrateLegacyNamespaceFeatures(ctx context.Context, client *ent.Client, hel
 	if err != nil {
 		return databaseErr(helper, err)
 	}
+	legacyCapabilities := make([]string, 0, 15)
+	for _, module := range []string{perm.FeatureCluster, perm.FeatureAgent, perm.FeatureSSH} {
+		legacyCapabilities = append(legacyCapabilities, perm.CapabilityCodesOfModule(module)...)
+	}
 	for _, row := range rows {
-		if err := migrateLegacyNamespace(ctx, client, base.UID, row.UID); err != nil {
+		if err := migrateLegacyNamespace(ctx, client, base.UID, row.UID, legacyCapabilities); err != nil {
 			return databaseErr(helper, err)
 		}
 	}
 	return nil
 }
 
-// migrateLegacyNamespace 在同一个事务里换套餐并写加开差异。差异先查后写，
+// migrateLegacyNamespace 在同一个事务里换套餐并写加开能力。能力先查后写，
 // 允许上次迁移只完成一半后重试。
-func migrateLegacyNamespace(ctx context.Context, client *ent.Client, baseUID, namespaceUID string) error {
+func migrateLegacyNamespace(ctx context.Context, client *ent.Client, baseUID, namespaceUID string, capabilities []string) error {
 	tx, err := client.Tx(ctx)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = tx.Rollback() }()
-	// 先写差异再换套餐：中途崩溃后重试时 package_uid 仍为空，会重新走这段，
-	// 已经存在的差异由存在性检查跳过，不会漏掉加开的功能。
-	for _, code := range []string{perm.FeatureCluster, perm.FeatureAgent, perm.FeatureSSH} {
+	// 先写能力再换套餐：中途崩溃后重试时 package_uid 仍为空，会重新走这段，
+	// 已经存在的额外能力由存在性检查跳过，不会漏掉加开的能力。
+	for _, code := range capabilities {
 		exists, err := tx.NamespaceFeature.Query().
 			Where(namespacefeature.NamespaceUIDEQ(namespaceUID), namespacefeature.FeatureEQ(code)).
 			Exist(ctx)
@@ -255,16 +347,17 @@ func migrateLegacyNamespace(ctx context.Context, client *ent.Client, baseUID, na
 		return err
 	}
 	if n == 0 {
-		// 另一个迁移者已经换过套餐；它同样先写了差异，这里直接回滚本次写入。
+		// 另一个迁移者已经换过套餐；它同样先写了额外能力，这里直接回滚本次写入。
 		_ = tx.Rollback()
 		return nil
 	}
 	return tx.Commit()
 }
 
-// tenantEffectiveFeatures 计算租户当前的有效功能：套餐功能叠加租户差异。
-// 租户被删除或没有套餐时按空功能处理，预置角色只保留 namespace:*。
-func tenantEffectiveFeatures(ctx context.Context, client *ent.Client, helper *slog.Logger, namespaceUID string) ([]string, error) {
+// tenantConfiguredCapabilities 计算租户已配置的能力：套餐能力并上额外能力。
+// 不判断停用和到期：seed 补权限要保留租户的配置，停用期间不撤销已有授权。
+// 租户被删除或没有套餐时按空能力处理，预置角色只保留 namespace:*。
+func tenantConfiguredCapabilities(ctx context.Context, client *ent.Client, helper *slog.Logger, namespaceUID string) ([]string, error) {
 	row, err := client.Namespace.Query().Where(namespace.UIDEQ(namespaceUID), namespace.DeletedAtIsNil()).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -272,29 +365,15 @@ func tenantEffectiveFeatures(ctx context.Context, client *ent.Client, helper *sl
 		}
 		return nil, databaseErr(helper, err)
 	}
-	return effectiveFeaturesForNamespace(ctx, client, helper, namespaceUID, row.PackageUID)
-}
-
-func effectiveFeaturesForNamespace(ctx context.Context, client *ent.Client, helper *slog.Logger, namespaceUID, packageUID string) ([]string, error) {
-	packageFeatures := make([]string, 0, len(perm.FeatureCodes()))
-	if packageUID != "" {
-		rows, err := client.FeaturePackageItem.Query().Where(featurepackageitem.PackageUIDEQ(packageUID)).All(ctx)
-		if err != nil {
-			return nil, databaseErr(helper, err)
-		}
-		for _, row := range rows {
-			packageFeatures = append(packageFeatures, row.Feature)
-		}
-	}
-	rows, err := client.NamespaceFeature.Query().Where(namespacefeature.NamespaceUIDEQ(namespaceUID)).All(ctx)
+	packageCapabilities, err := packageCapabilityCodes(ctx, client, row.PackageUID)
 	if err != nil {
 		return nil, databaseErr(helper, err)
 	}
-	overrides := make(map[string]bool, len(rows))
-	for _, row := range rows {
-		overrides[row.Feature] = row.Enabled
+	extra, err := namespaceExtraCapabilityCodes(ctx, client, namespaceUID)
+	if err != nil {
+		return nil, databaseErr(helper, err)
 	}
-	return perm.EffectiveFeatures(packageFeatures, overrides), nil
+	return perm.EffectiveCapabilities(packageCapabilities, extra), nil
 }
 
 func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
@@ -306,7 +385,7 @@ func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logge
 	for _, row := range rows {
 		byName[row.Name] = row.UID
 	}
-	featuresByNamespace := make(map[string][]string)
+	capabilitiesByNamespace := make(map[string][]string)
 	roles, err := client.Role.Query().Where(role.IsSystem(true), role.DeletedAtIsNil()).All(ctx)
 	if err != nil {
 		return databaseErr(helper, err)
@@ -331,16 +410,16 @@ func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logge
 		for _, link := range links {
 			have[link.PermissionUID] = struct{}{}
 		}
-		features, ok := featuresByNamespace[item.NamespaceUID]
+		capabilities, ok := capabilitiesByNamespace[item.NamespaceUID]
 		if !ok {
-			features, err = tenantEffectiveFeatures(ctx, client, helper, item.NamespaceUID)
+			capabilities, err = tenantConfiguredCapabilities(ctx, client, helper, item.NamespaceUID)
 			if err != nil {
 				return err
 			}
-			featuresByNamespace[item.NamespaceUID] = features
+			capabilitiesByNamespace[item.NamespaceUID] = capabilities
 		}
-		// 只补租户已开通功能内的权限；未开通功能即使预置角色目录里有也不写。
-		for _, code := range perm.RolePermissionsForFeatures(item.Name, features) {
+		// 只补租户已开通能力内的权限与菜单权限；未开通能力即使预置角色目录里有也不写。
+		for _, code := range perm.RolePermissionsForCapabilities(item.Name, capabilities) {
 			permissionUID := byName[code]
 			if permissionUID == "" {
 				continue
@@ -359,6 +438,102 @@ func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logge
 		}
 	}
 	return nil
+}
+
+// migrateRoleMenuPermissions 给已经持有能力权限的角色补上对应菜单权限。
+// 升级前菜单按模块显示，没有 menu:* 权限；能力化后菜单入口由 menu:<能力> 控制。
+// 规则：角色持有能力的任一权限，就补该能力的菜单权限；只补缺失项，可重复执行。
+// 系统角色已经由 syncTenantRoles 按预置目录补齐，这里同样幂等处理。
+func migrateRoleMenuPermissions(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	permissions, err := client.Permission.Query().All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	uidToName := make(map[string]string, len(permissions))
+	nameToUID := make(map[string]string, len(permissions))
+	for _, item := range permissions {
+		uidToName[item.UID] = item.Name
+		nameToUID[item.Name] = item.UID
+	}
+	namespaces, err := client.Namespace.Query().Where(namespace.DeletedAtIsNil()).All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	capabilitiesByNamespace := make(map[string][]string, len(namespaces))
+	for _, item := range namespaces {
+		capabilities, err := tenantConfiguredCapabilities(ctx, client, helper, item.UID)
+		if err != nil {
+			return err
+		}
+		if len(capabilities) > 0 {
+			capabilitiesByNamespace[item.UID] = capabilities
+		}
+	}
+	roles, err := client.Role.Query().Where(role.DeletedAtIsNil()).All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	links, err := client.RolePermission.Query().All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	heldByRole := make(map[string]map[string]struct{}, len(roles))
+	for _, link := range links {
+		if heldByRole[link.RoleUID] == nil {
+			heldByRole[link.RoleUID] = make(map[string]struct{})
+		}
+		heldByRole[link.RoleUID][link.PermissionUID] = struct{}{}
+	}
+	for _, item := range roles {
+		capabilities := capabilitiesByNamespace[item.NamespaceUID]
+		if len(capabilities) == 0 {
+			continue
+		}
+		held := heldByRole[item.UID]
+		heldNames := make(map[string]struct{}, len(held))
+		for uid := range held {
+			if name := uidToName[uid]; name != "" {
+				heldNames[name] = struct{}{}
+			}
+		}
+		for _, code := range capabilities {
+			capability, ok := perm.CapabilityOf(code)
+			if !ok {
+				continue
+			}
+			if !holdsAnyPermission(heldNames, capability.Permissions) {
+				continue
+			}
+			menuPermission := perm.MenuPermission(code)
+			if _, ok := heldNames[menuPermission]; ok {
+				continue
+			}
+			permissionUID := nameToUID[menuPermission]
+			if permissionUID == "" {
+				continue
+			}
+			if _, err := client.RolePermission.Create().
+				SetUID(id.New()).
+				SetNamespaceUID(item.NamespaceUID).
+				SetRoleUID(item.UID).
+				SetPermissionUID(permissionUID).
+				Save(ctx); err != nil {
+				return databaseErr(helper, err)
+			}
+			heldNames[menuPermission] = struct{}{}
+		}
+	}
+	return nil
+}
+
+// holdsAnyPermission 判断角色是否持有能力权限里的任意一个。
+func holdsAnyPermission(held map[string]struct{}, permissions []string) bool {
+	for _, name := range permissions {
+		if _, ok := held[name]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 // migrateCustomRoleK8sPermissions 把集群级权限展开成 Kubernetes 资源级权限。

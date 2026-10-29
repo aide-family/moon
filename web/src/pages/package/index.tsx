@@ -1,5 +1,6 @@
 import { Package } from "lucide-react"
 import { useEffect, useState } from "react"
+import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { Navigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -45,7 +46,10 @@ import {
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { cn } from "@/lib/class-names"
-import { defaultFeatureCodes, sortFeatureCodes } from "@/lib/feature-catalog"
+import {
+  defaultCapabilityCodes,
+  sortCapabilityCodes,
+} from "@/lib/feature-catalog"
 import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 import {
@@ -57,6 +61,24 @@ import {
 const REMARK_MAX = 5000
 
 type CatalogStatus = "loading" | "ready" | "failed"
+
+/** 授权时长只接受 0（永久）或正整数天；非法输入返回 null，由表单报错。 */
+function parseDurationDays(value: string): number | null {
+  const trimmed = value.trim()
+  if (!/^\d+$/.test(trimmed)) {
+    return null
+  }
+  const days = Number(trimmed)
+  return Number.isSafeInteger(days) ? days : null
+}
+
+/** 列表 / 详情里的时长文案：0 天就是永久。 */
+function durationText(t: TFunction, days?: number): string {
+  const value = days ?? 0
+  return value > 0
+    ? t("packageAdmin.durationValue", { count: value })
+    : t("packageAdmin.permanent")
+}
 
 // 套餐管理：平台级页面，超级管理员把功能组合成套餐，再在租户管理里分配。
 // 基础套餐只有一个，名称固定、不能删除，但可以调整功能与备注。
@@ -73,6 +95,8 @@ export function PackagePage() {
   const [name, setName] = useState("")
   const [remark, setRemark] = useState("")
   const [features, setFeatures] = useState<string[]>([])
+  // 授权时长用字符串保存，空/非法输入在提交时统一校验，避免受控输入抖动。
+  const [durationDays, setDurationDays] = useState("0")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState("")
   const [pending, setPending] = useState(false)
@@ -135,19 +159,20 @@ export function PackagePage() {
     setCatalogTick((value) => value + 1)
   }
 
-  // 后端目录可用时以它为准；接口未部署或失败时回落到本地功能目录。
+  // 后端目录可用时以它为准；接口未部署或失败时回落到本地能力目录。
   const catalogCodes =
     catalogStatus === "ready" && catalog.length > 0
       ? catalog.map((item) => item.code)
-      : defaultFeatureCodes()
-  // 正在编辑的套餐里可能有本地目录还没有的新功能，一并展示，避免保存时被清掉。
-  const dialogCodes = sortFeatureCodes([...catalogCodes, ...features])
+      : defaultCapabilityCodes()
+  // 正在编辑的套餐里可能有本地目录还没有的新能力，一并展示，避免保存时被清掉。
+  const dialogCodes = sortCapabilityCodes([...catalogCodes, ...features])
 
   function openCreate() {
     setEditing(null)
     setName("")
     setRemark("")
     setFeatures([])
+    setDurationDays("0")
     setFieldErrors({})
     setFormError("")
     setDialogOpen(true)
@@ -158,6 +183,7 @@ export function PackagePage() {
     setName(item.name)
     setRemark(item.remark ?? "")
     setFeatures(item.features ?? [])
+    setDurationDays(String(item.durationDays ?? 0))
     setFieldErrors({})
     setFormError("")
     setDialogOpen(true)
@@ -170,6 +196,7 @@ export function PackagePage() {
       setName("")
       setRemark("")
       setFeatures([])
+      setDurationDays("0")
       setFieldErrors({})
       setFormError("")
     }
@@ -177,11 +204,16 @@ export function PackagePage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const duration = parseDurationDays(durationDays)
     const errors = collectFieldErrors([
       // 基础套餐名称由后端固定，前端不再校验改名。
       [
         "name",
         editing?.isBase ? null : requireTrimmed(name, t("form.required")),
+      ],
+      [
+        "durationDays",
+        duration === null ? t("packageAdmin.durationInvalid") : null,
       ],
     ])
     if (hasFieldErrors(errors)) {
@@ -195,7 +227,8 @@ export function PackagePage() {
       const payload = {
         name: editing?.isBase ? editing.name : name.trim(),
         remark: remark.trim(),
-        features: sortFeatureCodes(features),
+        features: sortCapabilityCodes(features),
+        durationDays: duration ?? 0,
       }
       if (editing) {
         await updatePackage({ uid: editing.uid, ...payload })
@@ -320,7 +353,7 @@ export function PackagePage() {
           </div>
         ) : null}
         {!loading && !failed && items.length > 0 ? (
-          <Table className={TABLE_MIN_WIDTH.default}>
+          <Table className={TABLE_MIN_WIDTH.wide}>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("packageAdmin.name")}</TableHead>
@@ -334,6 +367,11 @@ export function PackagePage() {
                   className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
                 >
                   {t("packageAdmin.type")}
+                </TableHead>
+                <TableHead
+                  className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
+                >
+                  {t("packageAdmin.duration")}
                 </TableHead>
                 <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
@@ -354,6 +392,11 @@ export function PackagePage() {
                     )}
                   </TableCell>
                   <TableCell className="max-w-0 whitespace-normal">
+                    <span className="mb-1 block text-xs text-muted-foreground tabular-nums">
+                      {t("packageAdmin.featureCount", {
+                        count: item.features?.length ?? 0,
+                      })}
+                    </span>
                     <FeatureTags
                       codes={item.features}
                       emptyLabel={t("packageAdmin.noFeatures")}
@@ -369,6 +412,11 @@ export function PackagePage() {
                       }
                       tone={item.isBase ? "primary" : "neutral"}
                     />
+                  </TableCell>
+                  <TableCell
+                    className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
+                  >
+                    {durationText(t, item.durationDays)}
                   </TableCell>
                   <TableCell>
                     <RowActions
@@ -425,6 +473,10 @@ export function PackagePage() {
             value: detail?.remark?.trim() || "—",
           },
           {
+            label: t("packageAdmin.duration"),
+            value: durationText(t, detail?.durationDays),
+          },
+          {
             label: t("packageAdmin.features"),
             span: 2,
             value: (
@@ -452,24 +504,46 @@ export function PackagePage() {
             onSubmit={onSave}
           >
             <DialogBody className="grid gap-4">
-              <FormField
-                label={t("packageAdmin.name")}
-                htmlFor="package-name"
-                required={!editing?.isBase}
-                hint={
-                  editing?.isBase ? t("packageAdmin.baseNameLocked") : undefined
-                }
-                error={fieldErrors.name}
-              >
-                <Input
-                  id="package-name"
-                  value={name}
-                  disabled={editing?.isBase}
-                  placeholder={t("packageAdmin.namePlaceholder")}
-                  maxLength={64}
-                  onChange={(event) => setName(event.target.value)}
-                />
-              </FormField>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  label={t("packageAdmin.name")}
+                  htmlFor="package-name"
+                  required={!editing?.isBase}
+                  hint={
+                    editing?.isBase
+                      ? t("packageAdmin.baseNameLocked")
+                      : undefined
+                  }
+                  error={fieldErrors.name}
+                >
+                  <Input
+                    id="package-name"
+                    value={name}
+                    disabled={editing?.isBase}
+                    placeholder={t("packageAdmin.namePlaceholder")}
+                    maxLength={64}
+                    onChange={(event) => setName(event.target.value)}
+                  />
+                </FormField>
+                <FormField
+                  label={t("packageAdmin.durationDays")}
+                  htmlFor="package-duration"
+                  required
+                  hint={t("packageAdmin.durationHint")}
+                  error={fieldErrors.durationDays}
+                >
+                  <Input
+                    id="package-duration"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    step={1}
+                    value={durationDays}
+                    placeholder="0"
+                    onChange={(event) => setDurationDays(event.target.value)}
+                  />
+                </FormField>
+              </div>
               <FormField
                 label={t("packageAdmin.remark")}
                 htmlFor="package-remark"

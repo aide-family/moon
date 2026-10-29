@@ -27,13 +27,30 @@ func (testNamespaces) GetNamespace(_ context.Context, uid string) (*bo.Namespace
 type testRoles struct{ repository.RoleRepo }
 
 func (testRoles) Permissions(context.Context, string, string) (map[string]struct{}, error) {
-	return map[string]struct{}{perm.DatasourceWrite: {}, perm.DatasourceRead: {}}, nil
+	return map[string]struct{}{
+		perm.DatasourceWrite:                           {},
+		perm.DatasourceRead:                            {},
+		perm.MenuPermission(perm.CapabilityDatasource): {},
+	}, nil
 }
 
 type testFeatures struct{ repository.FeatureRepo }
 
 func (testFeatures) EffectiveFeatures(context.Context, string) ([]string, error) {
 	return perm.FeatureCodes(), nil
+}
+
+func (testFeatures) EffectiveModules(context.Context, string) ([]string, error) {
+	return perm.FeatureCodes(), nil
+}
+
+func (testFeatures) EffectiveCapabilities(context.Context, string) ([]string, error) {
+	items := perm.Capabilities()
+	codes := make([]string, 0, len(items))
+	for _, item := range items {
+		codes = append(codes, item.Code)
+	}
+	return codes, nil
 }
 
 // TestUpdateDatasourceLevelRecoversEvents 校验修改数据源等级后，旧的 FIRING 事件

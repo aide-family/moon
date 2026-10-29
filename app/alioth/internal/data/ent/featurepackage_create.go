@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 )
 
@@ -117,6 +116,20 @@ func (_c *FeaturePackageCreate) SetNillableStatus(v *featurepackage.Status) *Fea
 	return _c
 }
 
+// SetDurationDays sets the "duration_days" field.
+func (_c *FeaturePackageCreate) SetDurationDays(v int32) *FeaturePackageCreate {
+	_c.mutation.SetDurationDays(v)
+	return _c
+}
+
+// SetNillableDurationDays sets the "duration_days" field if the given value is not nil.
+func (_c *FeaturePackageCreate) SetNillableDurationDays(v *int32) *FeaturePackageCreate {
+	if v != nil {
+		_c.SetDurationDays(*v)
+	}
+	return _c
+}
+
 // Mutation returns the FeaturePackageMutation object of the builder.
 func (_c *FeaturePackageCreate) Mutation() *FeaturePackageMutation {
 	return _c.mutation
@@ -172,6 +185,10 @@ func (_c *FeaturePackageCreate) defaults() {
 		v := featurepackage.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
+	if _, ok := _c.mutation.DurationDays(); !ok {
+		v := featurepackage.DefaultDurationDays
+		_c.mutation.SetDurationDays(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -215,6 +232,14 @@ func (_c *FeaturePackageCreate) check() error {
 	if v, ok := _c.mutation.Status(); ok {
 		if err := featurepackage.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.status": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.DurationDays(); !ok {
+		return &ValidationError{Name: "duration_days", err: errors.New(`ent: missing required field "FeaturePackage.duration_days"`)}
+	}
+	if v, ok := _c.mutation.DurationDays(); ok {
+		if err := featurepackage.DurationDaysValidator(v); err != nil {
+			return &ValidationError{Name: "duration_days", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.duration_days": %w`, err)}
 		}
 	}
 	return nil
@@ -274,6 +299,10 @@ func (_c *FeaturePackageCreate) createSpec() (*FeaturePackage, *sqlgraph.CreateS
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(featurepackage.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := _c.mutation.DurationDays(); ok {
+		_spec.SetField(featurepackage.FieldDurationDays, field.TypeInt32, value)
+		_node.DurationDays = value
 	}
 	return _node, _spec
 }

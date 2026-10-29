@@ -36,6 +36,10 @@ const (
 	FieldRemark = "remark"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldPackageExpiresAt holds the string denoting the package_expires_at field in the database.
+	FieldPackageExpiresAt = "package_expires_at"
+	// FieldDisableReason holds the string denoting the disable_reason field in the database.
+	FieldDisableReason = "disable_reason"
 	// Table holds the table name of the namespace in the database.
 	Table = "namespaces"
 )
@@ -54,6 +58,8 @@ var Columns = []string{
 	FieldLogo,
 	FieldRemark,
 	FieldStatus,
+	FieldPackageExpiresAt,
+	FieldDisableReason,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -87,6 +93,10 @@ var (
 	DefaultLogo string
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
+	// DefaultDisableReason holds the default value on creation for the "disable_reason" field.
+	DefaultDisableReason string
+	// DisableReasonValidator is a validator for the "disable_reason" field. It is called by the builders before save.
+	DisableReasonValidator func(string) error
 )
 
 // Status defines the type for the "status" enum field.
@@ -176,4 +186,14 @@ func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByPackageExpiresAt orders the results by the package_expires_at field.
+func ByPackageExpiresAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPackageExpiresAt, opts...).ToFunc()
+}
+
+// ByDisableReason orders the results by the disable_reason field.
+func ByDisableReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDisableReason, opts...).ToFunc()
 }

@@ -11,6 +11,12 @@ export type NamespaceItem = {
   memberCount?: number
   /** Unix 秒（int64），展示时 *1000。 */
   createdAt?: number
+  /** 当前套餐名称；系统租户列表返回，成员视角可能缺省。 */
+  packageName?: string
+  /** 套餐到期时间（Unix 秒，0 表示永久）。 */
+  packageExpiresAt?: number
+  /** 停用原因；仅 DISABLED 租户有值，后端会据此发邮件通知负责人。 */
+  disableReason?: string
 }
 
 export type ListNamespacesParams = {

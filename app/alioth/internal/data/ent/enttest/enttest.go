@@ -7,11 +7,9 @@ import (
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	// required by schema hooks.
-
 	_ "github.com/aide-family/moon/app/alioth/internal/data/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/migrate"
 )
 

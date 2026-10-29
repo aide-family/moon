@@ -23,6 +23,8 @@ interface RowActionsProps {
   forceMenu?: boolean
   // 为真时按钮不换行，用于列宽固定、需要保持一行两个按钮的表格。
   nowrap?: boolean
+  // 为真时禁用「详情」入口（例如已停用租户不允许只读查看），但仍展示按钮。
+  detailDisabled?: boolean
 }
 
 export function RowActions({
@@ -32,6 +34,7 @@ export function RowActions({
   actions,
   forceMenu = false,
   nowrap = false,
+  detailDisabled = false,
 }: RowActionsProps) {
   const inline = [
     {
@@ -52,7 +55,13 @@ export function RowActions({
   if (inline.length > 2 || (forceMenu && actions.length > 0)) {
     return (
       <div className={rowClass}>
-        <Button variant="link" size="sm" className="h-auto px-0" onClick={onDetail}>
+        <Button
+          variant="link"
+          size="sm"
+          className="h-auto px-0"
+          disabled={detailDisabled}
+          onClick={onDetail}
+        >
           {detailLabel}
         </Button>
         <DropdownMenu>
@@ -96,6 +105,7 @@ export function RowActions({
           variant={action.destructive ? "destructive" : "link"}
           size="sm"
           className={action.destructive ? undefined : "h-auto px-0"}
+          disabled={action.key === "detail" && detailDisabled}
           onClick={action.onSelect}
         >
           {action.label}

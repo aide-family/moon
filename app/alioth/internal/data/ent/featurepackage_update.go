@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 )
@@ -111,6 +110,27 @@ func (_u *FeaturePackageUpdate) SetNillableStatus(v *featurepackage.Status) *Fea
 	return _u
 }
 
+// SetDurationDays sets the "duration_days" field.
+func (_u *FeaturePackageUpdate) SetDurationDays(v int32) *FeaturePackageUpdate {
+	_u.mutation.ResetDurationDays()
+	_u.mutation.SetDurationDays(v)
+	return _u
+}
+
+// SetNillableDurationDays sets the "duration_days" field if the given value is not nil.
+func (_u *FeaturePackageUpdate) SetNillableDurationDays(v *int32) *FeaturePackageUpdate {
+	if v != nil {
+		_u.SetDurationDays(*v)
+	}
+	return _u
+}
+
+// AddDurationDays adds value to the "duration_days" field.
+func (_u *FeaturePackageUpdate) AddDurationDays(v int32) *FeaturePackageUpdate {
+	_u.mutation.AddDurationDays(v)
+	return _u
+}
+
 // Mutation returns the FeaturePackageMutation object of the builder.
 func (_u *FeaturePackageUpdate) Mutation() *FeaturePackageMutation {
 	return _u.mutation
@@ -169,6 +189,11 @@ func (_u *FeaturePackageUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DurationDays(); ok {
+		if err := featurepackage.DurationDaysValidator(v); err != nil {
+			return &ValidationError{Name: "duration_days", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.duration_days": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -204,6 +229,12 @@ func (_u *FeaturePackageUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(featurepackage.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.DurationDays(); ok {
+		_spec.SetField(featurepackage.FieldDurationDays, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedDurationDays(); ok {
+		_spec.AddField(featurepackage.FieldDurationDays, field.TypeInt32, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -307,6 +338,27 @@ func (_u *FeaturePackageUpdateOne) SetNillableStatus(v *featurepackage.Status) *
 	return _u
 }
 
+// SetDurationDays sets the "duration_days" field.
+func (_u *FeaturePackageUpdateOne) SetDurationDays(v int32) *FeaturePackageUpdateOne {
+	_u.mutation.ResetDurationDays()
+	_u.mutation.SetDurationDays(v)
+	return _u
+}
+
+// SetNillableDurationDays sets the "duration_days" field if the given value is not nil.
+func (_u *FeaturePackageUpdateOne) SetNillableDurationDays(v *int32) *FeaturePackageUpdateOne {
+	if v != nil {
+		_u.SetDurationDays(*v)
+	}
+	return _u
+}
+
+// AddDurationDays adds value to the "duration_days" field.
+func (_u *FeaturePackageUpdateOne) AddDurationDays(v int32) *FeaturePackageUpdateOne {
+	_u.mutation.AddDurationDays(v)
+	return _u
+}
+
 // Mutation returns the FeaturePackageMutation object of the builder.
 func (_u *FeaturePackageUpdateOne) Mutation() *FeaturePackageMutation {
 	return _u.mutation
@@ -378,6 +430,11 @@ func (_u *FeaturePackageUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DurationDays(); ok {
+		if err := featurepackage.DurationDaysValidator(v); err != nil {
+			return &ValidationError{Name: "duration_days", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.duration_days": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -430,6 +487,12 @@ func (_u *FeaturePackageUpdateOne) sqlSave(ctx context.Context) (_node *FeatureP
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(featurepackage.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.DurationDays(); ok {
+		_spec.SetField(featurepackage.FieldDurationDays, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedDurationDays(); ok {
+		_spec.AddField(featurepackage.FieldDurationDays, field.TypeInt32, value)
 	}
 	_node = &FeaturePackage{config: _u.config}
 	_spec.Assign = _node.assignValues
