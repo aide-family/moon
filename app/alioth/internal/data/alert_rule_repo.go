@@ -629,7 +629,8 @@ func groupStatus(status string) (alertrulegroup.Status, error) {
 func ruleDriver(driver string) (alertrule.Driver, error) {
 	parsedDriver := alertrule.Driver(driver)
 	switch parsedDriver {
-	case alertrule.DriverMETRICS_PROMETHEUS, alertrule.DriverMETRICS_VICTORIA_METRICS, alertrule.DriverLOGS_ELASTICSEARCH, alertrule.DriverLOGS_LOKI, alertrule.DriverLOGS_VLOGS, alertrule.DriverTRACE_JAEGER:
+	case alertrule.DriverMETRICS_PROMETHEUS, alertrule.DriverMETRICS_VICTORIA_METRICS, alertrule.DriverLOGS_ELASTICSEARCH,
+		alertrule.DriverLOGS_LOKI, alertrule.DriverLOGS_VLOGS, alertrule.DriverTRACE_JAEGER, alertrule.DriverPROBE_HTTP:
 		return parsedDriver, nil
 	default:
 		return "", merr.Invalid("invalid request")
