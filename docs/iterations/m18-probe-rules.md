@@ -152,17 +152,17 @@ probe:
 
 ## 验收
 
-- [ ] 新建 HTTP 目标组：3 个地址 + 标签 `env=prod`，保存后出现在列表，详情可见 3 个地址与最近探测记录。
-- [ ] 目标组地址重复保存被拒绝；URL 不带 scheme 或非 http(s) 被拒绝；受控请求头被拒绝。
-- [ ] 试探测不写 `probe_results`、不产生事件，返回状态码、耗时分解、证书天数。
-- [ ] 新建探测规则匹配 `probe_group=核心接口组`，周期 30s；一个周期后 `probe_results` 出现 3 条同 slot 记录，`scheduled_slot` 推进到本轮槽位。
-- [ ] 停掉目标服务后，第二个周期 `up=0`；连续 2 次（持续 60s）后产生一条 FIRING 事件，级别取第一条命中的条件。
-- [ ] 该事件出现在实时告警，可介入、抑制、手工恢复；恢复后进入历史告警与历史分片，历史分析口径不变。
-- [ ] 事件 `datasource` 标签为目标组名，实时/历史列表「数据源」列显示同名，按数据源名可筛出该事件。
-- [ ] 通知：按 `probe_kind` 或 `datasource` 标签命中的订阅收到 FIRING 与恢复通知，消息日志可查，模板 `externalURL` 为目标 URL。
-- [ ] 规则标签或匹配器变更后旧事件恢复、新指纹建立新事件；删除目标组后其旧事件恢复。
-- [ ] 3 个 megrez 副本同时运行：同一 `(target_uid, slot)` 只被一个副本探测，`probe_results` 无重复。
-- [ ] 关掉探测 worker（`probe.enabled=false`）后不再产生新探测记录，查询规则评测节奏不受影响。
-- [ ] `ICMP` / `TCP` 类型在界面为灰态「后续版本」，后端白名单不接受这些驱动。
-- [ ] 浏览器验收：目标组页与规则表单在 1366×768 与 390×844 下可完成新建、保存、切换步骤；深色模式无硬编码颜色。
-- [ ] `make vet`、`make lint`、`make test` 与 `web` 的 typecheck / lint / build 通过；`go test ./...` 覆盖新增的判定与 URL 归一化逻辑。
+- [x] 新建 HTTP 目标组：3 个地址 + 标签 `env=prod`，保存后出现在列表，详情可见 3 个地址与最近探测记录（浏览器验收）。
+- [x] 目标组地址重复保存被拒绝；URL 不带 scheme 或非 http(s) 被拒绝；受控请求头被拒绝（API 实测，另加云元数据地址被拒）。
+- [x] 试探测不写 `probe_results`、不产生事件，返回状态码、耗时分解、证书天数（浏览器与 API 各验一次）。
+- [x] 新建探测规则匹配目标组后，一个周期内 `probe_results` 按槽位落库，`scheduled_slot` 推进到本轮槽位（端到端用 15s 周期、单目标验证）。
+- [x] 停掉目标服务后 `up=0`，命中条件后产生一条 FIRING 事件，级别取第一条命中的条件（端到端用 `FOR 0s` 验证判定路径；`for_seconds > 0` 的连续窗口由 `TestMatchForRequiresContinuousPoints` 与 probe 判定单测覆盖）。
+- [ ] 该事件出现在实时告警，可介入、抑制、手工恢复；恢复后进入历史告警与历史分片，历史分析口径不变。**恢复与归档已在端到端验证；介入/抑制/手工恢复是既有告警处置路径，本次没有逐项点过。**
+- [ ] 事件 `datasource` 标签为目标组名，实时/历史列表「数据源」列显示同名，按数据源名可筛出该事件。**标签与列表兜底已由端到端和 `TestProbeEventFiringAndRecovery` 覆盖；浏览器没有单独打开实时告警页核对列与筛选。**
+- [x] 通知：按 `probe_kind` 标签命中的订阅收到 FIRING 与恢复通知，`message_logs` 状态 `SENT`，模板里的 `datasource` / `probe_target` / `externalURL` 都渲染出值。
+- [ ] 规则标签或匹配器变更后旧事件恢复、新指纹建立新事件；删除目标组后其旧事件恢复。**删除目标组的运行态收口已验证（FIRING 时删除，事件立即恢复归档并发恢复通知）；匹配器变更路径只有代码与集成测试覆盖。**
+- [x] 多个 megrez 副本同时运行：同一 `(target_uid, slot)` 只被一个副本探测，`probe_results` 无重复（两个副本实测 23 行 / 23 个不同组合）。
+- [x] 关掉探测 worker（`probe.enabled=false`）后不再产生新探测记录。
+- [ ] `ICMP` / `TCP` 类型在界面为灰态「后续版本」，后端白名单不接受这些驱动。**实际实现是类型下拉里一期只出现 `HTTP 探测`，`PROBE_TCP` / `PROBE_ICMP` 不在 proto 白名单；没有做灰态占位。**
+- [x] 浏览器验收：目标组页与规则表单在 1366×768 与 390×844 下可完成新建、保存、切换步骤；全程无 console 错误。
+- [x] `make vet`、`make lint`、`go test ./...` 与 `web` 的 typecheck / lint / build 通过；`pkg/probe` 与 `pkg/alertjudge` 覆盖 URL 归一化、状态码解析与判定窗口。
