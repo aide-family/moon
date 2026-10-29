@@ -367,7 +367,11 @@ func (coordinator *Coordinator) Chart(ctx context.Context, uid string) (*bo.Aler
 	if err != nil {
 		return nil, coordinator.access.Wrap(err)
 	}
-	if event.DatasourceUID == "" || strings.TrimSpace(event.Expr) == "" {
+	if event.DatasourceUID == "" {
+		// 探测事件没有数据源，图表改成探测记录里的观测值序列。
+		return coordinator.probeChart(ctx, ns, *event)
+	}
+	if strings.TrimSpace(event.Expr) == "" {
 		return nil, merr.Invalid("invalid request")
 	}
 	source, err := coordinator.datasources.GetDatasource(ctx, ns, event.DatasourceUID)
