@@ -29,8 +29,24 @@ const Defs = "{{$labels := .Labels}}{{$externalLabels := .ExternalLabels}}{{$ext
 var varNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]{0,31}$`)
 
 // Data 是模板数据。大写字段是 Prometheus 原生写法，小写字段是 Alioth 消息
-// 字段：labels 是事件里保存的标签 JSON 字符串，Labels 是解析后的标签 map。
+// 字段：labels 是事件里保存的标签 JSON 字符串，Labels 是解析后的标签集合。
 type Data map[string]any
+
+// Labels 是模板数据里的标签集合。String 以 JSON 输出，{{
+// $labels}} 不会打印成 Go 的 map[...]；键索引（$labels.job）不受影响，
+// 输出与事件的「标签」字段一致。
+type Labels map[string]string
+
+func (l Labels) String() string {
+	if len(l) == 0 {
+		return "{}"
+	}
+	encoded, err := json.Marshal(l)
+	if err != nil {
+		return "{}"
+	}
+	return string(encoded)
+}
 
 // String 让 {{ . }} 得到采样值，与 {{ $value }} 保持一致。
 // Prometheus 的 AlertTemplateData 没有这个方法，{{ . }} 会打印整个结构体；
@@ -49,7 +65,7 @@ func NewData(labels map[string]string, labelsJSON string, value float64, externa
 	}
 	externalLabels := map[string]string{}
 	data := Data{
-		"Labels": labels, "ExternalLabels": externalLabels, "ExternalURL": externalURL, "Value": value,
+		"Labels": Labels(labels), "ExternalLabels": externalLabels, "ExternalURL": externalURL, "Value": value,
 		"labels": labelsJSON, "externalLabels": externalLabels, "externalURL": externalURL, "value": value,
 	}
 	for key, item := range extra {
@@ -68,7 +84,7 @@ func FromParams(params map[string]any) Data {
 		data[key] = item
 	}
 	labelsJSON, _ := data["labels"].(string)
-	labels := map[string]any{}
+	labels := Labels{}
 	if labelsJSON != "" {
 		_ = json.Unmarshal([]byte(labelsJSON), &labels)
 	}

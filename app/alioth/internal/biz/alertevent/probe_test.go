@@ -74,12 +74,25 @@ func TestRenderProbeAlertUsesTemplateEngine(t *testing.T) {
 		t.Fatalf("summary should expand $value, got %q", summary)
 	}
 
-	description := renderProbeAlert(contextBackground(), rule, target, "探测 {{$labels}} 值 {{$value}} 地址 {{$externalURL}}", 7, labels, string(encoded), at)
+	// $labels 输出 JSON，且包含事件层才注入的 datasource / alert_level。
+	renderLabels, renderJSON := probeRenderLabels(labels, "玉衡服务本地探测", "P0")
+	description := renderProbeAlert(contextBackground(), rule, target, "探测 {{$labels}} 值 {{$value}} 地址 {{$externalURL}}", 7, renderLabels, renderJSON, at)
 	if strings.Contains(description, "{{") {
 		t.Fatalf("description still contains a raw template: %q", description)
 	}
-	if !strings.Contains(description, "probe_kind") || !strings.Contains(description, "http://127.0.0.1:8002/health") {
-		t.Fatalf("description should expand $labels and $externalURL, got %q", description)
+	if strings.Contains(description, "map[") {
+		t.Fatalf("$labels should render as JSON, got %q", description)
+	}
+	for _, want := range []string{"probe_kind", "玉衡服务本地探测", `"alert_level":"P0"`, "http://127.0.0.1:8002/health"} {
+		if !strings.Contains(description, want) {
+			t.Fatalf("description should expand $labels and $externalURL, got %q", description)
+		}
+	}
+
+	// 键索引仍然可用。
+	single := renderProbeAlert(contextBackground(), rule, target, "{{$labels.datasource}}/{{$labels.alert_level}}", 0, renderLabels, renderJSON, at)
+	if single != "玉衡服务本地探测/P0" {
+		t.Fatalf("label index should work, got %q", single)
 	}
 
 	// 不含模板的文案原样返回，避免无谓的模板开销。

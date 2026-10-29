@@ -1141,6 +1141,11 @@ func (r *alertEventRepo) ruleNames(ctx context.Context, uids []string) map[strin
 
 // levelNames 一次取出事件用到的告警级别名称。查询不排除软删除，
 // 级别被删除后历史事件仍能显示名称。
+// ResolveLevelNames 是 levelNames 的导出版本，写事件前渲染模板要用。
+func (r *alertEventRepo) ResolveLevelNames(ctx context.Context, uids []string) (map[string]string, error) {
+	return r.levelNames(ctx, uids), nil
+}
+
 func (r *alertEventRepo) levelNames(ctx context.Context, uids []string) map[string]string {
 	names := map[string]string{}
 	if len(uids) == 0 {

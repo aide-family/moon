@@ -22,6 +22,9 @@ const (
 	probeTargetUIDLabel = "probe_target_uid"
 	probeTargetLabel    = "probe_target"
 	probeKindLabel      = "probe_kind"
+	// 事件最终会注入的数据源名与级别名，渲染模板时要一起放进 $labels。
+	renderDatasourceLabel = "datasource"
+	renderAlertLevelLabel = "alert_level"
 )
 
 // defaultProbeInterval 是规则没写周期时的兜底值，与表单默认一致。
@@ -215,13 +218,20 @@ func (coordinator *Coordinator) judgeProbeTarget(ctx context.Context, rule bo.Al
 		if !ok {
 			continue
 		}
+		// 渲染时把事件层才注入的 datasource / alert_level 也放进 $labels，
+		// 否则用户在摘要里写 {{$labels.datasource}} 永远拿不到值。
+		levelName := ""
+		if names, err := coordinator.events.ResolveLevelNames(ctx, []string{level.LevelUID}); err == nil {
+			levelName = names[level.LevelUID]
+		}
+		renderLabels, renderJSON := probeRenderLabels(labelMap, group.Name, levelName)
 		hits = append(hits, bo.EvalHit{
 			Fingerprint: fingerprint.Of(rule.UID, target.UID, labelMap),
 			Labels:      labels,
 			Value:       raw,
 			LevelUID:    level.LevelUID,
-			Summary:     renderProbeAlert(ctx, rule, target, rule.Summary, matchedValue, labelMap, labels, slot),
-			Description: renderProbeAlert(ctx, rule, target, rule.Description, matchedValue, labelMap, labels, slot),
+			Summary:     renderProbeAlert(ctx, rule, target, rule.Summary, matchedValue, renderLabels, renderJSON, slot),
+			Description: renderProbeAlert(ctx, rule, target, rule.Description, matchedValue, renderLabels, renderJSON, slot),
 		})
 		break
 	}
@@ -267,6 +277,26 @@ func probeLabels(rule bo.AlertRule, group bo.ProbeTargetGroup, target bo.ProbeTa
 	merged[probeKindLabel] = "HTTP"
 	merged[probeTargetLabel] = target.Spec
 	merged[probeTargetUIDLabel] = target.UID
+	encoded, err := json.Marshal(merged)
+	if err != nil {
+		return merged, "{}"
+	}
+	return merged, string(encoded)
+}
+
+// probeRenderLabels 在命中标签之外补上事件最终会带的数据源名与告警级别名，
+// 让 $labels 与事件「标签」字段看到的是同一组键值。
+func probeRenderLabels(labels map[string]string, datasource, levelName string) (map[string]string, string) {
+	merged := make(map[string]string, len(labels)+2)
+	for key, value := range labels {
+		merged[key] = value
+	}
+	if datasource != "" {
+		merged[renderDatasourceLabel] = datasource
+	}
+	if levelName != "" {
+		merged[renderAlertLevelLabel] = levelName
+	}
 	encoded, err := json.Marshal(merged)
 	if err != nil {
 		return merged, "{}"
