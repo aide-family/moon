@@ -1082,6 +1082,7 @@ export function ProbeTargetPage() {
                     <h3 className="text-sm font-medium">
                       {t("probeTarget.targetsSection")}
                     </h3>
+                    <div className="flex max-h-[18rem] min-h-0 flex-col">
                     <Table className={TABLE_MIN_WIDTH.default}>
                       <TableHeader>
                         <TableRow>
@@ -1203,6 +1204,7 @@ export function ProbeTargetPage() {
                                     </p>
                                   ) : null}
                                   {(records?.items.length ?? 0) > 0 ? (
+                                    <div className="flex max-h-64 min-h-0 flex-col">
                                     <Table className={TABLE_MIN_WIDTH.wide}>
                                       <TableHeader>
                                         <TableRow>
@@ -1247,7 +1249,10 @@ export function ProbeTargetPage() {
                                               )}
                                             </TableCell>
                                             <TableCell className="min-w-0 break-words">
-                                              {item.ruleName || "—"}
+                                              {item.ruleName ||
+                                                (item.ruleUid
+                                                  ? "—"
+                                                  : t("probeTarget.manualProbe"))}
                                             </TableCell>
                                             <TableCell className={TABLE_NOWRAP}>
                                               <StatusBadge
@@ -1276,6 +1281,7 @@ export function ProbeTargetPage() {
                                         ))}
                                       </TableBody>
                                     </Table>
+                                    </div>
                                   ) : null}
                                 </div>
                               </TableCell>
@@ -1286,6 +1292,7 @@ export function ProbeTargetPage() {
                         })}
                       </TableBody>
                     </Table>
+                    </div>
                   </section>
                 </div>
               </div>

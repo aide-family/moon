@@ -96,6 +96,7 @@ All list tables share one width model, defined in `web/src/lib/table-layout.ts`:
 - Identity columns (owner / admin, name + email): `TABLE_COLUMN_WIDTH.identity`, wrap with `break-all`.
 - Actions column: render its header with `TableActionsHead` (7rem, nowrap, centered) and pass `nowrap` to `RowActions`. At most two inline actions; more collapse into the "more" menu. Action buttons must never wrap to a second line.
 - Table minimum width picks a tier from `TABLE_MIN_WIDTH.compact|default|wide` by column count. Horizontal overflow scrolls inside the Table/ListFrame viewport with a sticky header.
+- 表格的高度也必须由有界容器决定：把 `Table` 放进 `flex min-h-0 flex-col`（配 `max-h-*` 或 `flex-1`）里，让 `Table` 自身的 `overflow-auto` 滚动。不要把表格塞进会随内容增长的父级（普通 `div`、`grid` 子项、`overflow-y-auto` 的详情卡正文），否则展开/翻页会把外层卡片或整页撑高，表格反而没有自己的滚动条。
 - CSS-grid "tables" (tenant list style) reuse `TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS`. The header and every row must use the identical literal grid template — separate grid containers compute `fr`/`auto` tracks independently and drift apart otherwise.
 
 ## Historical alert view contract
