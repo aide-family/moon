@@ -21,6 +21,8 @@ type ProbeTargetRepo interface {
 	// ListProbeTargetGroupsByExecutor 返回某个执行器负责的目标组：executor_labels
 	// 为空的目标组由集群内执行器负责。
 	ListProbeTargetGroupsByExecutor(ctx context.Context, executorKind, executorLabels string) ([]bo.ProbeTargetGroup, error)
+	// GetProbeTarget 按 UID 返回目标，用于从探测事件反查目标与目标组。
+	GetProbeTarget(ctx context.Context, namespaceUID, uid string) (*bo.ProbeTarget, error)
 	// ListProbeTargets 返回目标组内启用中的地址。
 	ListProbeTargets(ctx context.Context, namespaceUID, groupUID string) ([]bo.ProbeTarget, error)
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
@@ -272,6 +273,19 @@ func (r *probeRepo) ListProbeTargetGroupsByExecutor(ctx context.Context, executo
 	return items, nil
 }
 
+func (r *probeRepo) GetProbeTarget(ctx context.Context, namespaceUID, uid string) (*bo.ProbeTarget, error) {
+	row, err := r.client.ProbeTarget.Query().Where(
+		probetarget.NamespaceUIDEQ(namespaceUID),
+		probetarget.UIDEQ(uid),
+		probetarget.DeletedAtIsNil(),
+	).Only(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	item := toProbeTarget(row)
+	return &item, nil
+}
+
 func (r *probeRepo) ListProbeTargets(ctx context.Context, namespaceUID, groupUID string) ([]bo.ProbeTarget, error) {
 	rows, err := r.client.ProbeTarget.Query().Where(
 		probetarget.NamespaceUIDEQ(namespaceUID),
@@ -433,6 +447,7 @@ func (r *probeRepo) ListProbeTargetResults(ctx context.Context, namespaceUID, gr
 	for _, row := range rows {
 		out = append(out, toProbeResult(row))
 	}
+	r.fillRuleNames(ctx, out)
 	return out, total, nil
 }
 
@@ -454,6 +469,40 @@ func (r *probeRepo) LatestProbeResults(ctx context.Context, targetUIDs []string)
 		out[row.TargetUID] = toProbeResult(row)
 	}
 	return out, nil
+}
+
+// fillRuleNames 给探测记录补上规则名称。目标组可以被多条规则匹配，记录按规则产生，
+// 列表里需要显示是哪条规则判定的。
+func (r *probeRepo) fillRuleNames(ctx context.Context, results []bo.ProbeResult) {
+	if len(results) == 0 {
+		return
+	}
+	seen := make(map[string]struct{}, len(results))
+	uids := make([]string, 0, len(results))
+	for _, item := range results {
+		if item.RuleUID == "" {
+			continue
+		}
+		if _, ok := seen[item.RuleUID]; ok {
+			continue
+		}
+		seen[item.RuleUID] = struct{}{}
+		uids = append(uids, item.RuleUID)
+	}
+	if len(uids) == 0 {
+		return
+	}
+	rows, err := r.client.AlertRule.Query().Where(alertrule.UIDIn(uids...)).All(ctx)
+	if err != nil {
+		return
+	}
+	names := make(map[string]string, len(rows))
+	for _, row := range rows {
+		names[row.UID] = row.Name
+	}
+	for index := range results {
+		results[index].RuleName = names[results[index].RuleUID]
+	}
 }
 
 func (r *probeRepo) PruneProbeResults(ctx context.Context, before time.Time, keepPerTarget int) (int, error) {
