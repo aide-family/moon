@@ -3,11 +3,14 @@ package alertevent
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/pkg/alertjudge"
+	"github.com/aide-family/moon/pkg/alerttmpl"
 	"github.com/aide-family/moon/pkg/fingerprint"
 	labelsutil "github.com/aide-family/moon/pkg/labels"
 	"github.com/aide-family/moon/pkg/merr"
@@ -205,7 +208,7 @@ func (coordinator *Coordinator) judgeProbeTarget(ctx context.Context, rule bo.Al
 	hits := make([]bo.EvalHit, 0, 1)
 	for _, level := range rule.Levels {
 		windowed := filterProbePoints(points, slot.Add(-probeLevelWindow(level, interval)))
-		_, raw, ok := alertjudge.Match(alertjudge.Level{
+		matchedValue, raw, ok := alertjudge.Match(alertjudge.Level{
 			Condition: level.Condition, Sample: level.Sample,
 			Threshold: level.Threshold, ForSeconds: level.ForSeconds,
 		}, windowed, int64(interval.Seconds()))
@@ -217,8 +220,8 @@ func (coordinator *Coordinator) judgeProbeTarget(ctx context.Context, rule bo.Al
 			Labels:      labels,
 			Value:       raw,
 			LevelUID:    level.LevelUID,
-			Summary:     renderProbeTemplate(rule.Summary, target, group),
-			Description: renderProbeTemplate(rule.Description, target, group),
+			Summary:     renderProbeAlert(ctx, rule, target, rule.Summary, matchedValue, labelMap, labels, slot),
+			Description: renderProbeAlert(ctx, rule, target, rule.Description, matchedValue, labelMap, labels, slot),
 		})
 		break
 	}
@@ -271,18 +274,23 @@ func probeLabels(rule bo.AlertRule, group bo.ProbeTargetGroup, target bo.ProbeTa
 	return merged, string(encoded)
 }
 
-// renderProbeTemplate 只做最小替换：探测事件不引入自定义变量与查询函数，
-// 模板里的 $labels.* 与 $value 直接取这次命中可用的值。
-func renderProbeTemplate(raw string, target bo.ProbeTarget, group bo.ProbeTargetGroup) string {
-	if strings.TrimSpace(raw) == "" {
+// renderProbeAlert 用查询规则同一套模板引擎展开摘要/描述，支持 $labels、$value、
+// $externalURL 与内置函数。探测规则没有数据源，query 函数不注入；模板出错时与
+// 查询规则一致，返回可读的错误串而不是让事件写入失败。
+func renderProbeAlert(ctx context.Context, rule bo.AlertRule, target bo.ProbeTarget, raw string, value float64, labels map[string]string, labelsJSON string, at time.Time) string {
+	if raw == "" || !strings.Contains(raw, "{{") {
 		return raw
 	}
-	replacer := strings.NewReplacer(
-		"{{ $labels.probe_target }}", target.Spec,
-		"{{ $labels.probe_group }}", group.Name,
-		"{{ $labels.datasource }}", group.Name,
-	)
-	return replacer.Replace(raw)
+	externalURL, err := url.Parse(target.Spec)
+	if err != nil {
+		externalURL = &url.URL{}
+	}
+	data := alerttmpl.NewData(labels, labelsJSON, value, externalURL.String(), nil)
+	result, err := alerttmpl.Render(ctx, raw, data, "__alert_"+rule.Name, at, nil, externalURL)
+	if err != nil {
+		return fmt.Sprintf("<error expanding template: %s>", err)
+	}
+	return result
 }
 
 // probeInterval 返回规则的探测周期。

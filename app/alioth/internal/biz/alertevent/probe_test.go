@@ -1,6 +1,9 @@
 package alertevent
 
 import (
+	"context"
+	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -46,5 +49,41 @@ func TestFilterProbePoints(t *testing.T) {
 	}
 	if _, _, ok := alertjudge.Match(level, points, 15); ok {
 		t.Fatal("window containing an old success should not hit")
+	}
+}
+
+// TestRenderProbeAlertUsesTemplateEngine 固定探测事件的摘要/描述渲染：与查询规则
+// 共用 alerttmpl，支持 $value、$labels、$externalURL，不能把模板原样写进事件。
+func contextBackground() context.Context { return context.Background() }
+
+func TestRenderProbeAlertUsesTemplateEngine(t *testing.T) {
+	rule := bo.AlertRule{UID: "rule-1", NamespaceUID: "ns-1", Name: "玉衡服务探测监控", Driver: bo.ProbeDriverHTTP}
+	target := bo.ProbeTarget{UID: "target-1", Spec: "http://127.0.0.1:8002/health"}
+	labels := map[string]string{"probe_kind": "HTTP", "probe_target": target.Spec}
+	encoded, err := json.Marshal(labels)
+	if err != nil {
+		t.Fatal(err)
+	}
+	at := time.Date(2026, 10, 29, 19, 0, 0, 0, time.UTC)
+
+	summary := renderProbeAlert(contextBackground(), rule, target, "玉衡服务探测监控  {{$value}}", 12.5, labels, string(encoded), at)
+	if strings.Contains(summary, "{{") {
+		t.Fatalf("summary still contains a raw template: %q", summary)
+	}
+	if !strings.Contains(summary, "12.5") {
+		t.Fatalf("summary should expand $value, got %q", summary)
+	}
+
+	description := renderProbeAlert(contextBackground(), rule, target, "探测 {{$labels}} 值 {{$value}} 地址 {{$externalURL}}", 7, labels, string(encoded), at)
+	if strings.Contains(description, "{{") {
+		t.Fatalf("description still contains a raw template: %q", description)
+	}
+	if !strings.Contains(description, "probe_kind") || !strings.Contains(description, "http://127.0.0.1:8002/health") {
+		t.Fatalf("description should expand $labels and $externalURL, got %q", description)
+	}
+
+	// 不含模板的文案原样返回，避免无谓的模板开销。
+	if got := renderProbeAlert(contextBackground(), rule, target, "纯文本", 1, labels, string(encoded), at); got != "纯文本" {
+		t.Fatalf("plain summary should be returned as-is, got %q", got)
 	}
 }
