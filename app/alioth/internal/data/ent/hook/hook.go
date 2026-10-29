@@ -189,6 +189,30 @@ func (f EmailLoginCodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmailLoginCodeMutation", m)
 }
 
+// The FeaturePackageFunc type is an adapter to allow the use of ordinary
+// function as FeaturePackage mutator.
+type FeaturePackageFunc func(context.Context, *ent.FeaturePackageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FeaturePackageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FeaturePackageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeaturePackageMutation", m)
+}
+
+// The FeaturePackageItemFunc type is an adapter to allow the use of ordinary
+// function as FeaturePackageItem mutator.
+type FeaturePackageItemFunc func(context.Context, *ent.FeaturePackageItemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FeaturePackageItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FeaturePackageItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeaturePackageItemMutation", m)
+}
+
 // The MemberFunc type is an adapter to allow the use of ordinary
 // function as Member mutator.
 type MemberFunc func(context.Context, *ent.MemberMutation) (ent.Value, error)
@@ -259,6 +283,18 @@ func (f NamespaceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NamespaceMutation", m)
+}
+
+// The NamespaceFeatureFunc type is an adapter to allow the use of ordinary
+// function as NamespaceFeature mutator.
+type NamespaceFeatureFunc func(context.Context, *ent.NamespaceFeatureMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NamespaceFeatureFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NamespaceFeatureMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NamespaceFeatureMutation", m)
 }
 
 // The NotificationChannelFunc type is an adapter to allow the use of ordinary

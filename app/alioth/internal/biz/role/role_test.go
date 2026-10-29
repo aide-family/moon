@@ -36,13 +36,23 @@ func (s userRepoStub) UserByUID(context.Context, string) (*bo.Account, error) {
 	return s.account, nil
 }
 
+type featureRepoStub struct {
+	repository.FeatureRepo
+	features []string
+}
+
+func (s featureRepoStub) EffectiveFeatures(context.Context, string) ([]string, error) {
+	return s.features, nil
+}
+
 func authorityFor(account *bo.Account, member bool, permissions ...string) *Authority {
 	granted := make(map[string]struct{}, len(permissions))
 	for _, name := range permissions {
 		granted[name] = struct{}{}
 	}
 	return &Authority{
-		roles: roleRepoStub{permissions: granted, member: member},
+		roles:    roleRepoStub{permissions: granted, member: member},
+		features: featureRepoStub{features: perm.FeatureCodes()},
 		access: access.Checker{
 			Users: userRepoStub{account: account},
 			Log:   slog.New(slog.DiscardHandler),
@@ -58,7 +68,7 @@ func requestContext(namespace string) context.Context {
 // TestMineReadOnlyForSystemAdmin 确认非成员的系统管理员拿到租户只读目录，并被标记 readOnly。
 func TestMineReadOnlyForSystemAdmin(t *testing.T) {
 	authority := authorityFor(&bo.Account{UID: "user-1", Status: "ACTIVE", SystemRole: perm.SystemRoleSystemAdmin}, false)
-	names, readOnly, err := authority.Mine(requestContext("namespace-1"))
+	names, _, readOnly, err := authority.Mine(requestContext("namespace-1"))
 	if err != nil {
 		t.Fatalf("mine: %v", err)
 	}
@@ -77,7 +87,7 @@ func TestMineMemberKeepsRolePermissions(t *testing.T) {
 		true,
 		perm.RoleRead,
 	)
-	names, readOnly, err := authority.Mine(requestContext("namespace-1"))
+	names, _, readOnly, err := authority.Mine(requestContext("namespace-1"))
 	if err != nil {
 		t.Fatalf("mine: %v", err)
 	}
@@ -91,7 +101,7 @@ func TestMineMemberKeepsRolePermissions(t *testing.T) {
 
 func TestMineEmptyForNormalUser(t *testing.T) {
 	authority := authorityFor(&bo.Account{UID: "user-1", Status: "ACTIVE", SystemRole: perm.SystemRoleUser}, false)
-	names, readOnly, err := authority.Mine(requestContext("namespace-1"))
+	names, _, readOnly, err := authority.Mine(requestContext("namespace-1"))
 	if err != nil {
 		t.Fatalf("mine: %v", err)
 	}
@@ -103,7 +113,7 @@ func TestMineEmptyForNormalUser(t *testing.T) {
 // TestMineMemberWithoutPermissionsIsNotReadOnly 确认「成员但没有有效权限」不会被当成只读切入。
 func TestMineMemberWithoutPermissionsIsNotReadOnly(t *testing.T) {
 	authority := authorityFor(&bo.Account{UID: "user-1", Status: "ACTIVE", SystemRole: perm.SystemRoleSystemAdmin}, true)
-	names, readOnly, err := authority.Mine(requestContext("namespace-1"))
+	names, _, readOnly, err := authority.Mine(requestContext("namespace-1"))
 	if err != nil {
 		t.Fatalf("mine: %v", err)
 	}
@@ -115,7 +125,7 @@ func TestMineMemberWithoutPermissionsIsNotReadOnly(t *testing.T) {
 func TestMineWithoutNamespace(t *testing.T) {
 	authority := authorityFor(&bo.Account{UID: "user-1", Status: "ACTIVE", SystemRole: perm.SystemRoleSuperAdmin}, true)
 	ctx := actor.WithUser(context.Background(), "user-1")
-	names, readOnly, err := authority.Mine(ctx)
+	names, _, readOnly, err := authority.Mine(ctx)
 	if err != nil {
 		t.Fatalf("mine: %v", err)
 	}

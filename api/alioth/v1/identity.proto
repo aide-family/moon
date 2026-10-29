@@ -201,6 +201,48 @@ service NamespaceService {
       body: "*"
     };
   }
+
+  // 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
+  rpc ListFeatures(ListFeaturesRequest) returns (ListFeaturesResponse) {
+    option (google.api.http) = {get: "/v1/system/features"};
+  }
+  // 平台管理员分页列出功能套餐。需要 system:package:read。
+  rpc ListFeaturePackages(ListFeaturePackagesRequest) returns (ListFeaturePackagesResponse) {
+    option (google.api.http) = {get: "/v1/system/packages"};
+  }
+  // 获取一个功能套餐。需要 system:package:read。
+  rpc GetFeaturePackage(GetFeaturePackageRequest) returns (GetFeaturePackageResponse) {
+    option (google.api.http) = {get: "/v1/system/package/{uid}"};
+  }
+  // 新建功能套餐。需要 system:package:write，仅超级管理员。
+  rpc CreateFeaturePackage(CreateFeaturePackageRequest) returns (CreateFeaturePackageResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/package"
+      body: "*"
+    };
+  }
+  // 修改功能套餐。需要 system:package:write；基础套餐不能改名。
+  rpc UpdateFeaturePackage(UpdateFeaturePackageRequest) returns (UpdateFeaturePackageResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/package/{uid}"
+      body: "*"
+    };
+  }
+  // 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
+  rpc DeleteFeaturePackage(DeleteFeaturePackageRequest) returns (DeleteFeaturePackageResponse) {
+    option (google.api.http) = {delete: "/v1/system/package/{uid}"};
+  }
+  // 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
+  rpc GetNamespaceFeatures(GetNamespaceFeaturesRequest) returns (GetNamespaceFeaturesResponse) {
+    option (google.api.http) = {get: "/v1/system/namespace/{uid}/features"};
+  }
+  // 原子设置租户的套餐和目标有效功能。需要 system:package:write。
+  rpc UpdateNamespaceFeatures(UpdateNamespaceFeaturesRequest) returns (UpdateNamespaceFeaturesResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/namespace/{uid}/features"
+      body: "*"
+    };
+  }
 }
 
 // 租户成员管理。
@@ -773,15 +815,17 @@ message ChangePhoneResponse {
 // 获取个人权限不需要参数。
 message GetSelfPermissionsRequest {}
 
-// 当前用户在当前租户的权限名。
+// 当前用户在当前租户的权限名和功能。
 message GetSelfPermissionsResponse {
-  // 权限名列表。
+  // 权限名列表。只含当前租户已开通功能内的权限。
   repeated string permissions = 1;
   // 是否只是平台管理员的只读视角。true 时 permissions 只含租户目录中的只读权限，
   // 写操作仍要求该租户的成员角色。
   bool read_only = 2 [json_name = "readOnly"];
   // 当前租户。没有选择租户时为空。
   NamespaceItem namespace = 3;
+  // 当前租户的有效功能编码列表。没有选择租户时为空。
+  repeated string features = 4;
 }
 
 // 当前账号绑定的一条第三方身份。
@@ -1464,3 +1508,159 @@ message MarkMessageReadResponse {}
 
 message MarkAllMessagesReadRequest {}
 message MarkAllMessagesReadResponse {}
+
+// 一个功能。权限名是该功能包含的租户权限，供角色授权页按功能分组。
+message FeatureItem {
+  // 功能编码，如 alert、alert_rule、datasource。
+  string code = 1;
+  // 功能名称。
+  string name = 2;
+  // 功能说明。
+  string description = 3;
+  // 该功能包含的租户权限名。
+  repeated string permissions = 4;
+}
+
+// 一个功能套餐。features 是套餐携带的功能编码。
+message FeaturePackageItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 备注。
+  string remark = 3;
+  // 套餐功能编码列表。
+  repeated string features = 4;
+  // 是否基础套餐。基础套餐只有一个，不能改名或删除。
+  bool is_base = 5 [json_name = "isBase"];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 6;
+  // 创建时间，Unix 秒。
+  int64 created_at = 7 [json_name = "createdAt"];
+}
+
+// 列出功能目录不需要参数。
+message ListFeaturesRequest {}
+
+// 功能目录。
+message ListFeaturesResponse {
+  // 功能列表。
+  repeated FeatureItem items = 1;
+}
+
+// 功能套餐分页查询。
+message ListFeaturePackagesRequest {
+  // 页码。0 表示使用默认页。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+}
+
+// 功能套餐分页结果。
+message ListFeaturePackagesResponse {
+  // 当前页数据。
+  repeated FeaturePackageItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。0 表示使用默认页。
+  int32 page = 3;
+  // 每页条数，最大 100。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 获取功能套餐的参数。
+message GetFeaturePackageRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 功能套餐。
+message GetFeaturePackageResponse {
+  // 套餐。
+  FeaturePackageItem package = 1;
+}
+
+// 新建功能套餐的参数。
+message CreateFeaturePackageRequest {
+  // 名称，未删除记录上唯一。
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+  // 备注。
+  string remark = 2;
+  // 套餐功能编码列表。
+  repeated string features = 3;
+}
+
+// 新建后的功能套餐。
+message CreateFeaturePackageResponse {
+  // 套餐。
+  FeaturePackageItem package = 1;
+}
+
+// 修改功能套餐的参数。
+message UpdateFeaturePackageRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。基础套餐必须保持原名。
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  // 备注。
+  string remark = 3;
+  // 套餐功能编码列表。
+  repeated string features = 4;
+}
+
+// 修改后的功能套餐。
+message UpdateFeaturePackageResponse {
+  // 套餐。
+  FeaturePackageItem package = 1;
+}
+
+// 删除功能套餐的参数。
+message DeleteFeaturePackageRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除功能套餐不需要返回内容。
+message DeleteFeaturePackageResponse {}
+
+// 读取租户功能的参数。
+message GetNamespaceFeaturesRequest {
+  // 租户标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 租户的功能开通情况。有效功能 = 套餐功能 + 租户差异。
+message GetNamespaceFeaturesResponse {
+  // 当前套餐标识。
+  string package_uid = 1 [json_name = "packageUid"];
+  // 当前套餐名称。
+  string package_name = 2 [json_name = "packageName"];
+  // 目标有效功能编码列表。
+  repeated string features = 3;
+  // 套餐自带的功能编码列表。
+  repeated string package_features = 4 [json_name = "packageFeatures"];
+}
+
+// 设置租户功能的参数。features 是目标有效功能，服务端换算相对套餐的差异。
+message UpdateNamespaceFeaturesRequest {
+  // 租户标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 目标套餐标识。
+  string package_uid = 2 [json_name = "packageUid", (buf.validate.field).string.min_len = 1];
+  // 目标有效功能编码列表。
+  repeated string features = 3;
+}
+
+// 设置后的租户功能开通情况。
+message UpdateNamespaceFeaturesResponse {
+  // 当前套餐标识。
+  string package_uid = 1 [json_name = "packageUid"];
+  // 当前套餐名称。
+  string package_name = 2 [json_name = "packageName"];
+  // 目标有效功能编码列表。
+  repeated string features = 3;
+  // 套餐自带的功能编码列表。
+  repeated string package_features = 4 [json_name = "packageFeatures"];
+}

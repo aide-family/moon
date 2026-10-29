@@ -32,6 +32,8 @@ type Namespace struct {
 	Secret string `json:"-"`
 	// OwnerUID holds the value of the "owner_uid" field.
 	OwnerUID string `json:"owner_uid,omitempty"`
+	// PackageUID holds the value of the "package_uid" field.
+	PackageUID string `json:"package_uid,omitempty"`
 	// Logo holds the value of the "logo" field.
 	Logo string `json:"logo,omitempty"`
 	// Remark holds the value of the "remark" field.
@@ -48,7 +50,7 @@ func (*Namespace) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case namespace.FieldID:
 			values[i] = new(sql.NullInt64)
-		case namespace.FieldUID, namespace.FieldName, namespace.FieldSecret, namespace.FieldOwnerUID, namespace.FieldLogo, namespace.FieldRemark, namespace.FieldStatus:
+		case namespace.FieldUID, namespace.FieldName, namespace.FieldSecret, namespace.FieldOwnerUID, namespace.FieldPackageUID, namespace.FieldLogo, namespace.FieldRemark, namespace.FieldStatus:
 			values[i] = new(sql.NullString)
 		case namespace.FieldCreatedAt, namespace.FieldUpdatedAt, namespace.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -115,6 +117,12 @@ func (_m *Namespace) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field owner_uid", values[i])
 			} else if value.Valid {
 				_m.OwnerUID = value.String
+			}
+		case namespace.FieldPackageUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field package_uid", values[i])
+			} else if value.Valid {
+				_m.PackageUID = value.String
 			}
 		case namespace.FieldLogo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -191,6 +199,9 @@ func (_m *Namespace) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("owner_uid=")
 	builder.WriteString(_m.OwnerUID)
+	builder.WriteString(", ")
+	builder.WriteString("package_uid=")
+	builder.WriteString(_m.PackageUID)
 	builder.WriteString(", ")
 	builder.WriteString("logo=")
 	builder.WriteString(_m.Logo)

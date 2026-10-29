@@ -28,12 +28,15 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
@@ -131,12 +134,15 @@ func checkColumn(t, c string) error {
 			cluster.Table:                       cluster.ValidColumn,
 			datasource.Table:                    datasource.ValidColumn,
 			emaillogincode.Table:                emaillogincode.ValidColumn,
+			featurepackage.Table:                featurepackage.ValidColumn,
+			featurepackageitem.Table:            featurepackageitem.ValidColumn,
 			member.Table:                        member.ValidColumn,
 			memberinvite.Table:                  memberinvite.ValidColumn,
 			memberrole.Table:                    memberrole.ValidColumn,
 			messagelog.Table:                    messagelog.ValidColumn,
 			messagelogshard.Table:               messagelogshard.ValidColumn,
 			namespace.Table:                     namespace.ValidColumn,
+			namespacefeature.Table:              namespacefeature.ValidColumn,
 			notificationchannel.Table:           notificationchannel.ValidColumn,
 			notificationgroup.Table:             notificationgroup.ValidColumn,
 			notificationoncall.Table:            notificationoncall.ValidColumn,

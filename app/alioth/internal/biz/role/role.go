@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"slices"
 
 	"github.com/google/wire"
 
@@ -16,14 +17,15 @@ import (
 
 var ProviderSet = wire.NewSet(NewAuthority)
 
-// Authority 管理角色和角色的权限授予。
+// Authority 管理角色和角色的权限授予。租户只能基于已开通功能授权。
 type Authority struct {
-	roles  repository.RoleRepo
-	access access.Checker
+	roles    repository.RoleRepo
+	features repository.FeatureRepo
+	access   access.Checker
 }
 
-func NewAuthority(roles repository.RoleRepo, checker access.Checker) *Authority {
-	return &Authority{roles: roles, access: checker}
+func NewAuthority(roles repository.RoleRepo, features repository.FeatureRepo, checker access.Checker) *Authority {
+	return &Authority{roles: roles, features: features, access: checker}
 }
 
 func (authority *Authority) CreateRole(ctx context.Context, name, remark string) (*bo.Role, error) {
@@ -138,61 +140,99 @@ func (authority *Authority) UpdateRolePermissions(ctx context.Context, uid strin
 	if current.IsSystem {
 		return nil, merr.Client("invalid request")
 	}
+	features, err := authority.features.EffectiveFeatures(ctx, ns)
+	if err != nil {
+		return nil, authority.access.Wrap(err)
+	}
+	// 已关闭功能的旧授权可以保留：编辑角色时前端会把当前权限原样回传，
+	// 一律拒绝会让保存失败，静默丢弃又会丢数据。只拒绝新增的未开通功能权限。
+	held := make(map[string]struct{}, len(current.Permissions))
+	for _, name := range current.Permissions {
+		held[name] = struct{}{}
+	}
 	for _, name := range names {
 		if !perm.IsTenantPermission(name) || name == perm.NamespaceDelete || name == perm.NamespaceTransfer {
 			return nil, merr.Client("invalid request")
+		}
+		// 未开通功能的权限不能新授给角色：租户管理员不能绕过套餐自己加开功能。
+		if code := perm.FeatureOf(name); code != "" && !slices.Contains(features, code) {
+			if _, ok := held[name]; !ok {
+				return nil, merr.Client("feature not enabled")
+			}
 		}
 	}
 	item, err := authority.roles.UpdateRolePermissions(ctx, ns, uid, names)
 	return item, authority.access.Wrap(err)
 }
 
+// ListPermissions 只返回当前租户已开通功能的权限，授权页看不到未开通功能。
 func (authority *Authority) ListPermissions(ctx context.Context) ([]bo.Permission, error) {
-	if _, err := authority.access.Allow(ctx, perm.RoleRead); err != nil {
+	ns, err := authority.access.Allow(ctx, perm.RoleRead)
+	if err != nil {
 		return nil, err
 	}
+	features, err := authority.features.EffectiveFeatures(ctx, ns)
+	if err != nil {
+		return nil, authority.access.Wrap(err)
+	}
 	items, err := authority.roles.ListPermissions(ctx)
-	return items, authority.access.Wrap(err)
+	if err != nil {
+		return nil, authority.access.Wrap(err)
+	}
+	out := make([]bo.Permission, 0, len(items))
+	for _, item := range items {
+		code := perm.FeatureOf(item.Name)
+		if code != "" && !slices.Contains(features, code) {
+			continue
+		}
+		out = append(out, item)
+	}
+	return out, nil
 }
 
 // Mine 返回当前用户在当前租户的权限名，以及是否只是平台管理员的只读视角。
 // 没有选择租户时返回空列表和 false，而不是报错。
 // 不是该租户成员、但持有平台管理员角色时，返回租户目录中的全部只读权限，
 // 调用方据此展示只读横幅；写操作仍由 access 按成员角色拒绝。
-func (authority *Authority) Mine(ctx context.Context) ([]string, bool, error) {
+func (authority *Authority) Mine(ctx context.Context) ([]string, []string, bool, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
-		return nil, false, merr.Unauthenticated("missing token")
+		return nil, nil, false, merr.Unauthenticated("missing token")
 	}
 	namespace, ok := actor.NamespaceID(ctx)
 	if !ok {
-		return []string{}, false, nil
+		return []string{}, []string{}, false, nil
+	}
+	features, err := authority.features.EffectiveFeatures(ctx, namespace)
+	if err != nil {
+		return nil, nil, false, authority.access.Wrap(err)
 	}
 	perms, err := authority.roles.Permissions(ctx, namespace, uid)
 	if err != nil {
-		return nil, false, authority.access.Wrap(err)
+		return nil, nil, false, authority.access.Wrap(err)
 	}
 	if len(perms) == 0 {
 		// 权限为空时区分两种情况：成员只是没有有效权限，仍然按成员返回空列表；
-		// 非成员的平台管理员才能拿到只读目录。
+		// 非成员的平台管理员才能拿到只读目录。只读目录同样按已开通功能过滤，
+		// 否则前端会展示点进去就被 403 的菜单。
 		member, err := authority.roles.IsMember(ctx, namespace, uid)
 		if err != nil {
-			return nil, false, authority.access.Wrap(err)
+			return nil, nil, false, authority.access.Wrap(err)
 		}
 		if !member {
 			admin, err := authority.access.SystemAdmin(ctx)
 			if err != nil {
-				return nil, false, err
+				return nil, nil, false, err
 			}
 			if admin {
-				return perm.ReadOnlyNames(), true, nil
+				return perm.FilterPermissionsByFeatures(perm.ReadOnlyNames(), features), features, true, nil
 			}
 		}
-		return []string{}, false, nil
+		return []string{}, features, false, nil
 	}
 	names := make([]string, 0, len(perms))
 	for name := range perms {
 		names = append(names, name)
 	}
-	return names, false, nil
+	return perm.FilterPermissionsByFeatures(names, features), features, false, nil
 }

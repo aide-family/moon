@@ -50,6 +50,15 @@ func (s roleRepoStub) Permissions(context.Context, string, string) (map[string]s
 	return s.permissions, nil
 }
 
+type featureRepoStub struct {
+	repository.FeatureRepo
+	features []string
+}
+
+func (s featureRepoStub) EffectiveFeatures(context.Context, string) ([]string, error) {
+	return s.features, nil
+}
+
 func checkerFor(systemRole string, permissions ...string) Checker {
 	granted := make(map[string]struct{}, len(permissions))
 	for _, name := range permissions {
@@ -59,7 +68,9 @@ func checkerFor(systemRole string, permissions ...string) Checker {
 		Users:      userRepoStub{account: &bo.Account{UID: "user-1", Status: "ACTIVE", SystemRole: systemRole}},
 		Namespaces: namespaceRepoStub{},
 		Roles:      roleRepoStub{permissions: granted},
-		Log:        slog.New(slog.DiscardHandler),
+		// 默认租户已开通全部功能，权限相关的用例只关心权限判断本身。
+		Features: featureRepoStub{features: perm.FeatureCodes()},
+		Log:      slog.New(slog.DiscardHandler),
 	}
 }
 
@@ -132,6 +143,27 @@ func TestRequireReadOnlyOnDisabledNamespace(t *testing.T) {
 	checker.Namespaces = namespaceRepoStub{status: "DISABLED"}
 	if err := checker.Require(ctx, perm.AlertRuleRead); kerrors.Reason(err) != merr.ReasonForbidden {
 		t.Fatalf("read-only on disabled namespace: %v", err)
+	}
+}
+
+// TestRequireChecksFeature 确认权限通过后仍要求租户开通对应功能，系统管理员只读同样受限。
+func TestRequireChecksFeature(t *testing.T) {
+	ctx := tenantContext()
+	checker := checkerFor(perm.SystemRoleUser, perm.ClusterRead, perm.AlertRuleRead)
+	checker.Features = featureRepoStub{features: perm.BaseFeatures()}
+	if err := checker.Require(ctx, perm.AlertRuleRead); err != nil {
+		t.Fatalf("base feature permission: %v", err)
+	}
+	if err := checker.Require(ctx, perm.ClusterRead); kerrors.Reason(err) != merr.ReasonForbidden {
+		t.Fatalf("disabled feature permission err = %v, want forbidden", err)
+	}
+	admin := checkerFor(perm.SystemRoleSystemAdmin)
+	admin.Features = featureRepoStub{features: perm.BaseFeatures()}
+	if err := admin.Require(ctx, perm.ClusterRead); kerrors.Reason(err) != merr.ReasonForbidden {
+		t.Fatalf("system admin read-only disabled feature err = %v, want forbidden", err)
+	}
+	if err := admin.Require(ctx, perm.AlertRuleRead); err != nil {
+		t.Fatalf("system admin read-only base feature: %v", err)
 	}
 }
 

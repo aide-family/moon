@@ -44,6 +44,8 @@ type SessionValue = {
   user: UserItem | null
   namespaces: NamespaceItem[]
   permissions: string[]
+  /** 当前租户已开通的功能；旧后端未返回 features 时为空数组且按「不过滤」处理。 */
+  features: string[]
   systemPermissions: string[]
   systemRole: string
   isSystemAdmin: boolean
@@ -70,6 +72,11 @@ type SessionValue = {
   clearSwitchError: () => void
   can: (code: string) => boolean
   canSystem: (code: string) => boolean
+  /**
+   * 当前租户是否开通了某个功能。后端未返回 features 时返回 true（不拦截菜单），
+   * 避免升级期间旧后端把租户菜单全部隐藏。
+   */
+  hasFeature: (code: string) => boolean
   refreshUnreadMessages: () => void
 }
 
@@ -80,6 +87,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserItem | null>(null)
   const [namespaces, setNamespaces] = useState<NamespaceItem[]>([])
   const [permissions, setPermissions] = useState<string[]>([])
+  // features 为当前租户已开通功能；featuresKnown 区分「后端明确返回空数组」与
+  // 「旧后端没有 features 字段」，后者不做功能过滤，避免升级期间菜单消失。
+  const [features, setFeatures] = useState<string[]>([])
+  const [featuresKnown, setFeaturesKnown] = useState(false)
   const [systemPermissions, setSystemPermissions] = useState<string[]>([])
   const [systemRole, setSystemRole] = useState("USER")
   const [unreadMessages, setUnreadMessages] = useState(0)
@@ -158,6 +169,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         // 权限按目标租户读取，但不提前改 localStorage / namespaceUid：
         // 拉起中的页面轮询仍然使用旧租户，避免新旧权限交叉。
         let granted: string[] = []
+        let grantedFeatures: string[] = []
+        let featureFilterKnown = false
         let nextReadOnly = false
         let nextViewing: NamespaceItem | null = null
         if (next) {
@@ -169,6 +182,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             return
           }
           granted = result.permissions ?? []
+          // features 是后端新增字段：只有它出现时才启用菜单功能过滤。
+          if (result.features !== undefined) {
+            grantedFeatures = result.features ?? []
+            featureFilterKnown = true
+          }
           // 只有只读视角才把租户信息放进会话；成员视角的租户信息以成员列表为准。
           if (result.readOnly && result.namespace) {
             nextReadOnly = true
@@ -184,6 +202,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setSystemRole(info.systemRole ?? "USER")
         setUnreadMessages(unread)
         setPermissions(granted)
+        setFeatures(grantedFeatures)
+        setFeaturesKnown(featureFilterKnown)
         setReadOnly(nextReadOnly)
         setViewingNamespace(nextViewing)
         namespaceUidRef.current = next
@@ -280,6 +300,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     namespaceUidRef.current = ""
     setNamespaceUid("")
     setPermissions([])
+    setFeatures([])
+    setFeaturesKnown(false)
     setReadOnly(false)
     setViewingNamespace(null)
     setSwitchError("")
@@ -306,6 +328,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       user,
       namespaces,
       permissions,
+      features,
       systemPermissions,
       systemRole,
       isSystemAdmin:
@@ -329,12 +352,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       clearSwitchError,
       can: (code: string) => permissions.includes(code),
       canSystem: (code: string) => systemPermissions.includes(code),
+      hasFeature: (code: string) => !featuresKnown || features.includes(code),
       refreshUnreadMessages,
     }),
     [
       user,
       namespaces,
       permissions,
+      features,
+      featuresKnown,
       systemPermissions,
       systemRole,
       unreadMessages,

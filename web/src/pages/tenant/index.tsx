@@ -8,7 +8,7 @@ import type { SystemNamespaceItem } from "@/api/system-namespace/types"
 import { useSession } from "@/auth/session"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
-import { RowActions } from "@/components/row-actions"
+import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,7 @@ import {
   TABLE_MIN_WIDTH,
   TABLE_NOWRAP,
 } from "@/lib/table-layout"
+import { TenantFeaturesDialog } from "./features-dialog"
 
 // 系统管理员租户列表：平台级只读入口。点「只读查看」把会话切到目标租户的
 // 只读视角（permissions 只有 :read）并跳到概览，写按钮随之自动隐藏。
@@ -40,7 +41,12 @@ export function TenantPage() {
   const [draft, setDraft] = useState(query.name)
   const [entering, setEntering] = useState("")
   const [enterError, setEnterError] = useState("")
+  // 功能授权弹窗只对超级管理员开放；系统管理员只读视角不显示该操作。
+  const [featuresTenant, setFeaturesTenant] =
+    useState<SystemNamespaceItem | null>(null)
   const canManage = session.canSystem("system:namespace:read")
+  const canAssignFeatures =
+    session.canSystem("system:package:write") && !session.readOnly
 
   const {
     items,
@@ -76,6 +82,27 @@ export function TenantPage() {
       return
     }
     setEnterError(t("tenantAdmin.enterFailed"))
+  }
+
+  function featureActions(item: SystemNamespaceItem): RowAction[] {
+    if (!canAssignFeatures) {
+      return []
+    }
+    return [
+      {
+        key: "features",
+        label: t("tenantAdmin.featuresAction"),
+        onSelect: () => setFeaturesTenant(item),
+      },
+    ]
+  }
+
+  function onFeaturesSaved(uid: string) {
+    reload()
+    // 当前正停在这个租户时，菜单功能要立刻跟随新的授权刷新。
+    if (uid === session.namespaceUid) {
+      session.reload()
+    }
   }
 
   if (!session.loading && !canManage) {
@@ -227,7 +254,7 @@ export function TenantPage() {
                       detailLabel={t("tenantAdmin.view")}
                       moreLabel={t("action.more")}
                       onDetail={() => void onView(item)}
-                      actions={[]}
+                      actions={featureActions(item)}
                     />
                   </TableCell>
                 </TableRow>
@@ -236,6 +263,16 @@ export function TenantPage() {
           </Table>
         ) : null}
       </ListFrame>
+      <TenantFeaturesDialog
+        key={featuresTenant?.uid ?? "none"}
+        tenant={featuresTenant}
+        onOpenChange={(open) => {
+          if (!open) {
+            setFeaturesTenant(null)
+          }
+        }}
+        onSaved={onFeaturesSaved}
+      />
     </section>
   )
 }

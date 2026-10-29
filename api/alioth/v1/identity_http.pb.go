@@ -979,24 +979,44 @@ func (c *SelfServiceHTTPClientImpl) UnbindSelfOAuth(ctx context.Context, in *Unb
 	return &out, nil
 }
 
+const OperationNamespaceServiceCreateFeaturePackage = "/alioth.v1.NamespaceService/CreateFeaturePackage"
 const OperationNamespaceServiceCreateNamespace = "/alioth.v1.NamespaceService/CreateNamespace"
+const OperationNamespaceServiceDeleteFeaturePackage = "/alioth.v1.NamespaceService/DeleteFeaturePackage"
 const OperationNamespaceServiceDeleteNamespace = "/alioth.v1.NamespaceService/DeleteNamespace"
+const OperationNamespaceServiceGetFeaturePackage = "/alioth.v1.NamespaceService/GetFeaturePackage"
 const OperationNamespaceServiceGetNamespace = "/alioth.v1.NamespaceService/GetNamespace"
+const OperationNamespaceServiceGetNamespaceFeatures = "/alioth.v1.NamespaceService/GetNamespaceFeatures"
+const OperationNamespaceServiceListFeaturePackages = "/alioth.v1.NamespaceService/ListFeaturePackages"
+const OperationNamespaceServiceListFeatures = "/alioth.v1.NamespaceService/ListFeatures"
 const OperationNamespaceServiceListNamespaces = "/alioth.v1.NamespaceService/ListNamespaces"
 const OperationNamespaceServiceListSimpleNamespaces = "/alioth.v1.NamespaceService/ListSimpleNamespaces"
 const OperationNamespaceServiceListSystemNamespaces = "/alioth.v1.NamespaceService/ListSystemNamespaces"
 const OperationNamespaceServiceSelectNamespaces = "/alioth.v1.NamespaceService/SelectNamespaces"
 const OperationNamespaceServiceTransferNamespaceOwner = "/alioth.v1.NamespaceService/TransferNamespaceOwner"
+const OperationNamespaceServiceUpdateFeaturePackage = "/alioth.v1.NamespaceService/UpdateFeaturePackage"
 const OperationNamespaceServiceUpdateNamespace = "/alioth.v1.NamespaceService/UpdateNamespace"
+const OperationNamespaceServiceUpdateNamespaceFeatures = "/alioth.v1.NamespaceService/UpdateNamespaceFeatures"
 const OperationNamespaceServiceUpdateNamespaceStatus = "/alioth.v1.NamespaceService/UpdateNamespaceStatus"
 
 type NamespaceServiceHTTPServer interface {
+	// CreateFeaturePackage 新建功能套餐。需要 system:package:write，仅超级管理员。
+	CreateFeaturePackage(context.Context, *CreateFeaturePackageRequest) (*CreateFeaturePackageResponse, error)
 	// CreateNamespace 创建租户，当前用户成为负责人。
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error)
+	// DeleteFeaturePackage 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
+	DeleteFeaturePackage(context.Context, *DeleteFeaturePackageRequest) (*DeleteFeaturePackageResponse, error)
 	// DeleteNamespace 删除当前租户。需要 namespace:delete。
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*DeleteNamespaceResponse, error)
+	// GetFeaturePackage 获取一个功能套餐。需要 system:package:read。
+	GetFeaturePackage(context.Context, *GetFeaturePackageRequest) (*GetFeaturePackageResponse, error)
 	// GetNamespace 获取当前租户。
 	GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error)
+	// GetNamespaceFeatures 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
+	GetNamespaceFeatures(context.Context, *GetNamespaceFeaturesRequest) (*GetNamespaceFeaturesResponse, error)
+	// ListFeaturePackages 平台管理员分页列出功能套餐。需要 system:package:read。
+	ListFeaturePackages(context.Context, *ListFeaturePackagesRequest) (*ListFeaturePackagesResponse, error)
+	// ListFeatures 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
+	ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error)
 	// ListNamespaces 分页列出当前用户加入的租户。
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
 	// ListSimpleNamespaces 按页返回租户简表。
@@ -1007,8 +1027,12 @@ type NamespaceServiceHTTPServer interface {
 	SelectNamespaces(context.Context, *SelectNamespacesRequest) (*SelectNamespacesResponse, error)
 	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error)
+	// UpdateFeaturePackage 修改功能套餐。需要 system:package:write；基础套餐不能改名。
+	UpdateFeaturePackage(context.Context, *UpdateFeaturePackageRequest) (*UpdateFeaturePackageResponse, error)
 	// UpdateNamespace 修改当前租户的名称、备注和标志。
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceResponse, error)
+	// UpdateNamespaceFeatures 原子设置租户的套餐和目标有效功能。需要 system:package:write。
+	UpdateNamespaceFeatures(context.Context, *UpdateNamespaceFeaturesRequest) (*UpdateNamespaceFeaturesResponse, error)
 	// UpdateNamespaceStatus 启用或停用当前租户。
 	UpdateNamespaceStatus(context.Context, *UpdateNamespaceStatusRequest) (*UpdateNamespaceStatusResponse, error)
 }
@@ -1025,6 +1049,14 @@ func RegisterNamespaceServiceHTTPServer(s *http.Server, srv NamespaceServiceHTTP
 	r.Handle("GET", "/v1/namespaces/simple", _NamespaceService_ListSimpleNamespaces0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/system/namespaces", _NamespaceService_ListSystemNamespaces0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/namespace/{uid}/owner", _NamespaceService_TransferNamespaceOwner0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/features", _NamespaceService_ListFeatures0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/packages", _NamespaceService_ListFeaturePackages0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/package/{uid}", _NamespaceService_GetFeaturePackage0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/system/package", _NamespaceService_CreateFeaturePackage0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/system/package/{uid}", _NamespaceService_UpdateFeaturePackage0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/system/package/{uid}", _NamespaceService_DeleteFeaturePackage0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/namespace/{uid}/features", _NamespaceService_GetNamespaceFeatures0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/system/namespace/{uid}/features", _NamespaceService_UpdateNamespaceFeatures0_HTTP_Handler(srv))
 }
 
 func _NamespaceService_CreateNamespace0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
@@ -1232,13 +1264,192 @@ func _NamespaceService_TransferNamespaceOwner0_HTTP_Handler(srv NamespaceService
 	}
 }
 
+func _NamespaceService_ListFeatures0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFeaturesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceListFeatures)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFeatures(ctx, req.(*ListFeaturesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFeaturesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_ListFeaturePackages0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFeaturePackagesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceListFeaturePackages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFeaturePackages(ctx, req.(*ListFeaturePackagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFeaturePackagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_GetFeaturePackage0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetFeaturePackageRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceGetFeaturePackage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetFeaturePackage(ctx, req.(*GetFeaturePackageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetFeaturePackageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_CreateFeaturePackage0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateFeaturePackageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceCreateFeaturePackage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateFeaturePackage(ctx, req.(*CreateFeaturePackageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateFeaturePackageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_UpdateFeaturePackage0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateFeaturePackageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceUpdateFeaturePackage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateFeaturePackage(ctx, req.(*UpdateFeaturePackageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateFeaturePackageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_DeleteFeaturePackage0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteFeaturePackageRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceDeleteFeaturePackage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteFeaturePackage(ctx, req.(*DeleteFeaturePackageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteFeaturePackageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_GetNamespaceFeatures0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetNamespaceFeaturesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceGetNamespaceFeatures)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetNamespaceFeatures(ctx, req.(*GetNamespaceFeaturesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetNamespaceFeaturesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_UpdateNamespaceFeatures0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateNamespaceFeaturesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceUpdateNamespaceFeatures)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateNamespaceFeatures(ctx, req.(*UpdateNamespaceFeaturesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateNamespaceFeaturesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type NamespaceServiceHTTPClient interface {
+	// CreateFeaturePackage 新建功能套餐。需要 system:package:write，仅超级管理员。
+	CreateFeaturePackage(ctx context.Context, req *CreateFeaturePackageRequest, opts ...http.CallOption) (rsp *CreateFeaturePackageResponse, err error)
 	// CreateNamespace 创建租户，当前用户成为负责人。
 	CreateNamespace(ctx context.Context, req *CreateNamespaceRequest, opts ...http.CallOption) (rsp *CreateNamespaceResponse, err error)
+	// DeleteFeaturePackage 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
+	DeleteFeaturePackage(ctx context.Context, req *DeleteFeaturePackageRequest, opts ...http.CallOption) (rsp *DeleteFeaturePackageResponse, err error)
 	// DeleteNamespace 删除当前租户。需要 namespace:delete。
 	DeleteNamespace(ctx context.Context, req *DeleteNamespaceRequest, opts ...http.CallOption) (rsp *DeleteNamespaceResponse, err error)
+	// GetFeaturePackage 获取一个功能套餐。需要 system:package:read。
+	GetFeaturePackage(ctx context.Context, req *GetFeaturePackageRequest, opts ...http.CallOption) (rsp *GetFeaturePackageResponse, err error)
 	// GetNamespace 获取当前租户。
 	GetNamespace(ctx context.Context, req *GetNamespaceRequest, opts ...http.CallOption) (rsp *GetNamespaceResponse, err error)
+	// GetNamespaceFeatures 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
+	GetNamespaceFeatures(ctx context.Context, req *GetNamespaceFeaturesRequest, opts ...http.CallOption) (rsp *GetNamespaceFeaturesResponse, err error)
+	// ListFeaturePackages 平台管理员分页列出功能套餐。需要 system:package:read。
+	ListFeaturePackages(ctx context.Context, req *ListFeaturePackagesRequest, opts ...http.CallOption) (rsp *ListFeaturePackagesResponse, err error)
+	// ListFeatures 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
+	ListFeatures(ctx context.Context, req *ListFeaturesRequest, opts ...http.CallOption) (rsp *ListFeaturesResponse, err error)
 	// ListNamespaces 分页列出当前用户加入的租户。
 	ListNamespaces(ctx context.Context, req *ListNamespacesRequest, opts ...http.CallOption) (rsp *ListNamespacesResponse, err error)
 	// ListSimpleNamespaces 按页返回租户简表。
@@ -1249,8 +1460,12 @@ type NamespaceServiceHTTPClient interface {
 	SelectNamespaces(ctx context.Context, req *SelectNamespacesRequest, opts ...http.CallOption) (rsp *SelectNamespacesResponse, err error)
 	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(ctx context.Context, req *TransferNamespaceOwnerRequest, opts ...http.CallOption) (rsp *TransferNamespaceOwnerResponse, err error)
+	// UpdateFeaturePackage 修改功能套餐。需要 system:package:write；基础套餐不能改名。
+	UpdateFeaturePackage(ctx context.Context, req *UpdateFeaturePackageRequest, opts ...http.CallOption) (rsp *UpdateFeaturePackageResponse, err error)
 	// UpdateNamespace 修改当前租户的名称、备注和标志。
 	UpdateNamespace(ctx context.Context, req *UpdateNamespaceRequest, opts ...http.CallOption) (rsp *UpdateNamespaceResponse, err error)
+	// UpdateNamespaceFeatures 原子设置租户的套餐和目标有效功能。需要 system:package:write。
+	UpdateNamespaceFeatures(ctx context.Context, req *UpdateNamespaceFeaturesRequest, opts ...http.CallOption) (rsp *UpdateNamespaceFeaturesResponse, err error)
 	// UpdateNamespaceStatus 启用或停用当前租户。
 	UpdateNamespaceStatus(ctx context.Context, req *UpdateNamespaceStatusRequest, opts ...http.CallOption) (rsp *UpdateNamespaceStatusResponse, err error)
 }
@@ -1261,6 +1476,24 @@ type NamespaceServiceHTTPClientImpl struct {
 
 func NewNamespaceServiceHTTPClient(client *http.Client) NamespaceServiceHTTPClient {
 	return &NamespaceServiceHTTPClientImpl{client}
+}
+
+// CreateFeaturePackage 新建功能套餐。需要 system:package:write，仅超级管理员。
+func (c *NamespaceServiceHTTPClientImpl) CreateFeaturePackage(ctx context.Context, in *CreateFeaturePackageRequest, opts ...http.CallOption) (*CreateFeaturePackageResponse, error) {
+	var out CreateFeaturePackageResponse
+	pattern := "/v1/system/package"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNamespaceServiceCreateFeaturePackage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // CreateNamespace 创建租户，当前用户成为负责人。
@@ -1275,6 +1508,23 @@ func (c *NamespaceServiceHTTPClientImpl) CreateNamespace(ctx context.Context, in
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteFeaturePackage 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
+func (c *NamespaceServiceHTTPClientImpl) DeleteFeaturePackage(ctx context.Context, in *DeleteFeaturePackageRequest, opts ...http.CallOption) (*DeleteFeaturePackageResponse, error) {
+	var out DeleteFeaturePackageResponse
+	pattern := "/v1/system/package/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceDeleteFeaturePackage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1298,6 +1548,23 @@ func (c *NamespaceServiceHTTPClientImpl) DeleteNamespace(ctx context.Context, in
 	return &out, nil
 }
 
+// GetFeaturePackage 获取一个功能套餐。需要 system:package:read。
+func (c *NamespaceServiceHTTPClientImpl) GetFeaturePackage(ctx context.Context, in *GetFeaturePackageRequest, opts ...http.CallOption) (*GetFeaturePackageResponse, error) {
+	var out GetFeaturePackageResponse
+	pattern := "/v1/system/package/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceGetFeaturePackage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetNamespace 获取当前租户。
 func (c *NamespaceServiceHTTPClientImpl) GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...http.CallOption) (*GetNamespaceResponse, error) {
 	var out GetNamespaceResponse
@@ -1306,6 +1573,57 @@ func (c *NamespaceServiceHTTPClientImpl) GetNamespace(ctx context.Context, in *G
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationNamespaceServiceGetNamespace),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetNamespaceFeatures 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
+func (c *NamespaceServiceHTTPClientImpl) GetNamespaceFeatures(ctx context.Context, in *GetNamespaceFeaturesRequest, opts ...http.CallOption) (*GetNamespaceFeaturesResponse, error) {
+	var out GetNamespaceFeaturesResponse
+	pattern := "/v1/system/namespace/{uid}/features"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceGetNamespaceFeatures),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListFeaturePackages 平台管理员分页列出功能套餐。需要 system:package:read。
+func (c *NamespaceServiceHTTPClientImpl) ListFeaturePackages(ctx context.Context, in *ListFeaturePackagesRequest, opts ...http.CallOption) (*ListFeaturePackagesResponse, error) {
+	var out ListFeaturePackagesResponse
+	pattern := "/v1/system/packages"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceListFeaturePackages),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListFeatures 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
+func (c *NamespaceServiceHTTPClientImpl) ListFeatures(ctx context.Context, in *ListFeaturesRequest, opts ...http.CallOption) (*ListFeaturesResponse, error) {
+	var out ListFeaturesResponse
+	pattern := "/v1/system/features"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceListFeatures),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -1401,6 +1719,24 @@ func (c *NamespaceServiceHTTPClientImpl) TransferNamespaceOwner(ctx context.Cont
 	return &out, nil
 }
 
+// UpdateFeaturePackage 修改功能套餐。需要 system:package:write；基础套餐不能改名。
+func (c *NamespaceServiceHTTPClientImpl) UpdateFeaturePackage(ctx context.Context, in *UpdateFeaturePackageRequest, opts ...http.CallOption) (*UpdateFeaturePackageResponse, error) {
+	var out UpdateFeaturePackageResponse
+	pattern := "/v1/system/package/{uid}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNamespaceServiceUpdateFeaturePackage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // UpdateNamespace 修改当前租户的名称、备注和标志。
 func (c *NamespaceServiceHTTPClientImpl) UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...http.CallOption) (*UpdateNamespaceResponse, error) {
 	var out UpdateNamespaceResponse
@@ -1410,6 +1746,24 @@ func (c *NamespaceServiceHTTPClientImpl) UpdateNamespace(ctx context.Context, in
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationNamespaceServiceUpdateNamespace),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateNamespaceFeatures 原子设置租户的套餐和目标有效功能。需要 system:package:write。
+func (c *NamespaceServiceHTTPClientImpl) UpdateNamespaceFeatures(ctx context.Context, in *UpdateNamespaceFeaturesRequest, opts ...http.CallOption) (*UpdateNamespaceFeaturesResponse, error) {
+	var out UpdateNamespaceFeaturesResponse
+	pattern := "/v1/system/namespace/{uid}/features"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNamespaceServiceUpdateNamespaceFeatures),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

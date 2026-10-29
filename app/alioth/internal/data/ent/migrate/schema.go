@@ -614,6 +614,74 @@ var (
 			},
 		},
 	}
+	// FeaturePackagesColumns holds the columns for the "feature_packages" table.
+	FeaturePackagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "remark", Type: field.TypeString, Size: 5000, Default: ""},
+		{Name: "is_base", Type: field.TypeBool, Default: false},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+	}
+	// FeaturePackagesTable holds the schema information for the "feature_packages" table.
+	FeaturePackagesTable = &schema.Table{
+		Name:       "feature_packages",
+		Columns:    FeaturePackagesColumns,
+		PrimaryKey: []*schema.Column{FeaturePackagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "featurepackage_uid",
+				Unique:  true,
+				Columns: []*schema.Column{FeaturePackagesColumns[4]},
+			},
+			{
+				Name:    "featurepackage_name",
+				Unique:  true,
+				Columns: []*schema.Column{FeaturePackagesColumns[5]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "featurepackage_is_base",
+				Unique:  true,
+				Columns: []*schema.Column{FeaturePackagesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_base = true AND deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// FeaturePackageItemsColumns holds the columns for the "feature_package_items" table.
+	FeaturePackageItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "package_uid", Type: field.TypeString},
+		{Name: "feature", Type: field.TypeString},
+	}
+	// FeaturePackageItemsTable holds the schema information for the "feature_package_items" table.
+	FeaturePackageItemsTable = &schema.Table{
+		Name:       "feature_package_items",
+		Columns:    FeaturePackageItemsColumns,
+		PrimaryKey: []*schema.Column{FeaturePackageItemsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "featurepackageitem_uid",
+				Unique:  true,
+				Columns: []*schema.Column{FeaturePackageItemsColumns[3]},
+			},
+			{
+				Name:    "featurepackageitem_package_uid_feature",
+				Unique:  true,
+				Columns: []*schema.Column{FeaturePackageItemsColumns[4], FeaturePackageItemsColumns[5]},
+			},
+		},
+	}
 	// MembersColumns holds the columns for the "members" table.
 	MembersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -811,6 +879,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "secret", Type: field.TypeString, Default: ""},
 		{Name: "owner_uid", Type: field.TypeString},
+		{Name: "package_uid", Type: field.TypeString, Default: ""},
 		{Name: "logo", Type: field.TypeString, Default: ""},
 		{Name: "remark", Type: field.TypeString, Default: ""},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
@@ -833,6 +902,34 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
+			},
+		},
+	}
+	// NamespaceFeaturesColumns holds the columns for the "namespace_features" table.
+	NamespaceFeaturesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "feature", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+	}
+	// NamespaceFeaturesTable holds the schema information for the "namespace_features" table.
+	NamespaceFeaturesTable = &schema.Table{
+		Name:       "namespace_features",
+		Columns:    NamespaceFeaturesColumns,
+		PrimaryKey: []*schema.Column{NamespaceFeaturesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "namespacefeature_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NamespaceFeaturesColumns[3]},
+			},
+			{
+				Name:    "namespacefeature_namespace_uid_feature",
+				Unique:  true,
+				Columns: []*schema.Column{NamespaceFeaturesColumns[4], NamespaceFeaturesColumns[5]},
 			},
 		},
 	}
@@ -1779,12 +1876,15 @@ var (
 		ClustersTable,
 		DatasourcesTable,
 		EmailLoginCodesTable,
+		FeaturePackagesTable,
+		FeaturePackageItemsTable,
 		MembersTable,
 		MemberInvitesTable,
 		MemberRolesTable,
 		MessageLogsTable,
 		MessageLogShardsTable,
 		NamespacesTable,
+		NamespaceFeaturesTable,
 		NotificationChannelsTable,
 		NotificationGroupsTable,
 		NotificationOnCallsTable,

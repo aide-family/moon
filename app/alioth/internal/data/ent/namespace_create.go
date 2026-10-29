@@ -95,6 +95,20 @@ func (_c *NamespaceCreate) SetOwnerUID(v string) *NamespaceCreate {
 	return _c
 }
 
+// SetPackageUID sets the "package_uid" field.
+func (_c *NamespaceCreate) SetPackageUID(v string) *NamespaceCreate {
+	_c.mutation.SetPackageUID(v)
+	return _c
+}
+
+// SetNillablePackageUID sets the "package_uid" field if the given value is not nil.
+func (_c *NamespaceCreate) SetNillablePackageUID(v *string) *NamespaceCreate {
+	if v != nil {
+		_c.SetPackageUID(*v)
+	}
+	return _c
+}
+
 // SetLogo sets the "logo" field.
 func (_c *NamespaceCreate) SetLogo(v string) *NamespaceCreate {
 	_c.mutation.SetLogo(v)
@@ -184,6 +198,10 @@ func (_c *NamespaceCreate) defaults() {
 		v := namespace.DefaultSecret
 		_c.mutation.SetSecret(v)
 	}
+	if _, ok := _c.mutation.PackageUID(); !ok {
+		v := namespace.DefaultPackageUID
+		_c.mutation.SetPackageUID(v)
+	}
 	if _, ok := _c.mutation.Logo(); !ok {
 		v := namespace.DefaultLogo
 		_c.mutation.SetLogo(v)
@@ -232,6 +250,9 @@ func (_c *NamespaceCreate) check() error {
 		if err := namespace.OwnerUIDValidator(v); err != nil {
 			return &ValidationError{Name: "owner_uid", err: fmt.Errorf(`ent: validator failed for field "Namespace.owner_uid": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.PackageUID(); !ok {
+		return &ValidationError{Name: "package_uid", err: errors.New(`ent: missing required field "Namespace.package_uid"`)}
 	}
 	if _, ok := _c.mutation.Logo(); !ok {
 		return &ValidationError{Name: "logo", err: errors.New(`ent: missing required field "Namespace.logo"`)}
@@ -300,6 +321,10 @@ func (_c *NamespaceCreate) createSpec() (*Namespace, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OwnerUID(); ok {
 		_spec.SetField(namespace.FieldOwnerUID, field.TypeString, value)
 		_node.OwnerUID = value
+	}
+	if value, ok := _c.mutation.PackageUID(); ok {
+		_spec.SetField(namespace.FieldPackageUID, field.TypeString, value)
+		_node.PackageUID = value
 	}
 	if value, ok := _c.mutation.Logo(); ok {
 		_spec.SetField(namespace.FieldLogo, field.TypeString, value)

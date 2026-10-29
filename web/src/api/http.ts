@@ -186,6 +186,11 @@ const messageKeys: Record<string, string> = {
   "resource name is required": "error.resourceNameRequired",
   "resource yaml is too large to preview": "error.yamlTooLarge",
   "namespace and name are required": "error.namespaceNameRequired",
+  // 功能套餐：基础套餐不可改名 / 删除，被租户使用的套餐不可删除。
+  "base package cannot be renamed": "packageAdmin.baseNameLocked",
+  "base package cannot be deleted": "packageAdmin.baseNotDeletable",
+  "package is in use": "packageAdmin.packageInUse",
+  "invalid feature": "packageAdmin.invalidFeature",
 }
 
 // 服务端错误带 reason（CLIENT / INVALID / CONFLICT 等）。message 没有具体映射时用它兜底，

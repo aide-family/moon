@@ -15,6 +15,12 @@ export type SelfNamespaces = {
 export type SelfPermissions = {
   permissions?: string[]
   /**
+   * 当前租户已开通的功能 code（GET /v1/self/permissions 的 features 字段）。
+   * 旧版本后端不返回该字段时保持 undefined，前端按「功能未启用过滤」处理，
+   * 避免升级过程中整个租户菜单突然消失。
+   */
+  features?: string[]
+  /**
    * 系统管理员只读视角：调用者不是该租户成员，但仍可查看租户数据。
    * 为真时 permissions 只包含租户的 :read 权限；写接口仍由服务端 403 拒绝。
    */

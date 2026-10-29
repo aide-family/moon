@@ -16,6 +16,7 @@ import {
   LogOut,
   Mail,
   MessageSquare,
+  Package,
   Server,
   Settings,
   Shield,
@@ -88,6 +89,7 @@ const repositoryURL = "https://github.com/aide-family/moon"
 const tenantFreePaths = new Set([
   "/namespaces",
   "/tenants",
+  "/packages",
   "/users",
   "/workers",
   "/invitations",
@@ -100,6 +102,8 @@ const links: {
   to: string
   label: string
   permission: string
+  /** 租户功能开关：配置后还要求当前租户已开通该功能（system 菜单不配置）。 */
+  feature?: string
   icon: LucideIcon
 }[] = [
   {
@@ -115,6 +119,12 @@ const links: {
     icon: Landmark,
   },
   {
+    to: "/packages",
+    label: "nav.packages",
+    permission: "system:package:read",
+    icon: Package,
+  },
+  {
     to: "/users",
     label: "nav.users",
     permission: "system:user:read",
@@ -124,9 +134,16 @@ const links: {
     to: "/members",
     label: "nav.members",
     permission: "member:read",
+    feature: "member",
     icon: UserRound,
   },
-  { to: "/roles", label: "nav.roles", permission: "role:read", icon: Shield },
+  {
+    to: "/roles",
+    label: "nav.roles",
+    permission: "role:read",
+    feature: "role",
+    icon: Shield,
+  },
   {
     to: "/workers",
     label: "nav.workers",
@@ -139,48 +156,56 @@ const alertLinks: {
   to: string
   label: string
   permission: string
+  feature?: string
   icon: LucideIcon
 }[] = [
   {
     to: "/alerts",
     label: "nav.realtime",
     permission: "alert:read",
+    feature: "alert",
     icon: Activity,
   },
   {
     to: "/alert-history",
     label: "nav.history",
     permission: "alert:read",
+    feature: "alert",
     icon: History,
   },
   {
     to: "/datasources",
     label: "nav.datasources",
     permission: "datasource:read",
+    feature: "datasource",
     icon: Database,
   },
   {
     to: "/probe-targets",
     label: "nav.probeTargets",
     permission: "probe:read",
+    feature: "probe",
     icon: Target,
   },
   {
     to: "/alert-rules",
     label: "nav.alertRules",
     permission: "alert_rule:read",
+    feature: "alert_rule",
     icon: Bell,
   },
   {
     to: "/alert-dictionaries",
     label: "nav.alertDictionaries",
     permission: "alert_rule:read",
+    feature: "alert_rule",
     icon: Gauge,
   },
   {
     to: "/alert-pages",
     label: "nav.alertPages",
     permission: "alert:read",
+    feature: "alert",
     icon: LayoutList,
   },
 ]
@@ -189,42 +214,49 @@ const notifyLinks: {
   to: string
   label: string
   permission: string
+  feature?: string
   icon: LucideIcon
 }[] = [
   {
     to: "/notification-channels",
     label: "nav.channels",
     permission: "notification:read",
+    feature: "notification",
     icon: Mail,
   },
   {
     to: "/notification-templates",
     label: "nav.templates",
     permission: "notification:read",
+    feature: "notification",
     icon: FileText,
   },
   {
     to: "/notification-groups",
     label: "nav.groups",
     permission: "notification:read",
+    feature: "notification",
     icon: UsersRound,
   },
   {
     to: "/notification-subscriptions",
     label: "nav.subscriptions",
     permission: "notification:read",
+    feature: "notification",
     icon: BellRing,
   },
   {
     to: "/notification-oncalls",
     label: "nav.onCalls",
     permission: "notification:read",
+    feature: "notification",
     icon: CalendarClock,
   },
   {
     to: "/message-logs",
     label: "nav.messageLogs",
     permission: "notification:read",
+    feature: "notification",
     icon: MessageSquare,
   },
 ]
@@ -233,12 +265,14 @@ const kubeLinks: {
   to: string
   label: string
   permission: string
+  feature?: string
   icon: LucideIcon
 }[] = [
   {
     to: "/clusters",
     label: "nav.clusters",
     permission: "cluster:read",
+    feature: "cluster",
     icon: Boxes,
   },
 ]
@@ -247,18 +281,21 @@ const edgeLinks: {
   to: string
   label: string
   permission: string
+  feature?: string
   icon: LucideIcon
 }[] = [
   {
     to: "/agents",
     label: "nav.agents",
     permission: "agent:read",
+    feature: "agent",
     icon: Server,
   },
   {
     to: "/ssh-commands",
     label: "nav.sshCommands",
     permission: "ssh:read",
+    feature: "ssh",
     icon: Terminal,
   },
 ]
@@ -372,6 +409,9 @@ function ShellFrame() {
   const accountName = session.user?.nickname || session.user?.name || ""
   const accountLabel = accountName || session.user?.email || t("shell.account")
   const avatarName = accountName || session.user?.email || "Alioth"
+  // 租户功能开关：只有后端返回了 features 时才过滤（旧后端不返回，hasFeature 为真）。
+  const featureVisible = (link: { feature?: string }) =>
+    !link.feature || session.hasFeature(link.feature)
   const visible = links.filter((link) => {
     if (link.to === "/namespaces") {
       return true
@@ -379,19 +419,35 @@ function ShellFrame() {
     if (link.permission.startsWith("system:")) {
       return session.canSystem(link.permission)
     }
-    return session.namespaceUid !== "" && session.can(link.permission)
+    return (
+      session.namespaceUid !== "" &&
+      session.can(link.permission) &&
+      featureVisible(link)
+    )
   })
   const alerts = alertLinks.filter(
-    (link) => session.namespaceUid !== "" && session.can(link.permission)
+    (link) =>
+      session.namespaceUid !== "" &&
+      session.can(link.permission) &&
+      featureVisible(link)
   )
   const notifies = notifyLinks.filter(
-    (link) => session.namespaceUid !== "" && session.can(link.permission)
+    (link) =>
+      session.namespaceUid !== "" &&
+      session.can(link.permission) &&
+      featureVisible(link)
   )
   const kubes = kubeLinks.filter(
-    (link) => session.namespaceUid !== "" && session.can(link.permission)
+    (link) =>
+      session.namespaceUid !== "" &&
+      session.can(link.permission) &&
+      featureVisible(link)
   )
   const edges = edgeLinks.filter(
-    (link) => session.namespaceUid !== "" && session.can(link.permission)
+    (link) =>
+      session.namespaceUid !== "" &&
+      session.can(link.permission) &&
+      featureVisible(link)
   )
   const systemActive = visible.some((link) => location.pathname === link.to)
   const alertActive = alerts.some((link) => location.pathname === link.to)
@@ -408,7 +464,10 @@ function ShellFrame() {
   )
   // 概览是唯一不带领域前缀的一级入口：它是值班着陆页，不属于某个资源域。
   const overviewActive = location.pathname === "/overview"
-  const canOverview = session.namespaceUid !== "" && session.can("alert:read")
+  const canOverview =
+    session.namespaceUid !== "" &&
+    session.can("alert:read") &&
+    session.hasFeature("alert")
   const token = localStorage.getItem("token")
   if (!token) {
     return <Navigate to="/login" replace />

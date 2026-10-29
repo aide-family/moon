@@ -43,6 +43,7 @@ type alertPageRepo struct{ *repoBase }
 type notificationRepo struct{ *repoBase }
 type agentRepo struct{ *repoBase }
 type sshCommandRepo struct{ *repoBase }
+type featureRepo struct{ *repoBase }
 
 func NewUserRepo(deps *Dependencies, logger *slog.Logger) repository.UserRepo {
 	return &userRepo{newBase(deps, logger)}
@@ -115,4 +116,9 @@ func NewAgentRepo(deps *Dependencies, logger *slog.Logger) repository.AgentRepo 
 
 func NewSSHCommandRepo(deps *Dependencies, logger *slog.Logger) repository.SSHCommandRepo {
 	return &sshCommandRepo{newBase(deps, logger)}
+}
+
+// NewFeatureRepo 返回功能套餐和租户功能差异的仓储实现。
+func NewFeatureRepo(deps *Dependencies, logger *slog.Logger) repository.FeatureRepo {
+	return &featureRepo{newBase(deps, logger)}
 }

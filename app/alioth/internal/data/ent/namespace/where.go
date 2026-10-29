@@ -90,6 +90,11 @@ func OwnerUID(v string) predicate.Namespace {
 	return predicate.Namespace(sql.FieldEQ(FieldOwnerUID, v))
 }
 
+// PackageUID applies equality check predicate on the "package_uid" field. It's identical to PackageUIDEQ.
+func PackageUID(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldEQ(FieldPackageUID, v))
+}
+
 // Logo applies equality check predicate on the "logo" field. It's identical to LogoEQ.
 func Logo(v string) predicate.Namespace {
 	return predicate.Namespace(sql.FieldEQ(FieldLogo, v))
@@ -488,6 +493,71 @@ func OwnerUIDEqualFold(v string) predicate.Namespace {
 // OwnerUIDContainsFold applies the ContainsFold predicate on the "owner_uid" field.
 func OwnerUIDContainsFold(v string) predicate.Namespace {
 	return predicate.Namespace(sql.FieldContainsFold(FieldOwnerUID, v))
+}
+
+// PackageUIDEQ applies the EQ predicate on the "package_uid" field.
+func PackageUIDEQ(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldEQ(FieldPackageUID, v))
+}
+
+// PackageUIDNEQ applies the NEQ predicate on the "package_uid" field.
+func PackageUIDNEQ(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldNEQ(FieldPackageUID, v))
+}
+
+// PackageUIDIn applies the In predicate on the "package_uid" field.
+func PackageUIDIn(vs ...string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldIn(FieldPackageUID, vs...))
+}
+
+// PackageUIDNotIn applies the NotIn predicate on the "package_uid" field.
+func PackageUIDNotIn(vs ...string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldNotIn(FieldPackageUID, vs...))
+}
+
+// PackageUIDGT applies the GT predicate on the "package_uid" field.
+func PackageUIDGT(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldGT(FieldPackageUID, v))
+}
+
+// PackageUIDGTE applies the GTE predicate on the "package_uid" field.
+func PackageUIDGTE(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldGTE(FieldPackageUID, v))
+}
+
+// PackageUIDLT applies the LT predicate on the "package_uid" field.
+func PackageUIDLT(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldLT(FieldPackageUID, v))
+}
+
+// PackageUIDLTE applies the LTE predicate on the "package_uid" field.
+func PackageUIDLTE(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldLTE(FieldPackageUID, v))
+}
+
+// PackageUIDContains applies the Contains predicate on the "package_uid" field.
+func PackageUIDContains(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldContains(FieldPackageUID, v))
+}
+
+// PackageUIDHasPrefix applies the HasPrefix predicate on the "package_uid" field.
+func PackageUIDHasPrefix(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldHasPrefix(FieldPackageUID, v))
+}
+
+// PackageUIDHasSuffix applies the HasSuffix predicate on the "package_uid" field.
+func PackageUIDHasSuffix(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldHasSuffix(FieldPackageUID, v))
+}
+
+// PackageUIDEqualFold applies the EqualFold predicate on the "package_uid" field.
+func PackageUIDEqualFold(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldEqualFold(FieldPackageUID, v))
+}
+
+// PackageUIDContainsFold applies the ContainsFold predicate on the "package_uid" field.
+func PackageUIDContainsFold(v string) predicate.Namespace {
+	return predicate.Namespace(sql.FieldContainsFold(FieldPackageUID, v))
 }
 
 // LogoEQ applies the EQ predicate on the "logo" field.

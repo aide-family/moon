@@ -97,6 +97,20 @@ func (_u *NamespaceUpdate) SetNillableOwnerUID(v *string) *NamespaceUpdate {
 	return _u
 }
 
+// SetPackageUID sets the "package_uid" field.
+func (_u *NamespaceUpdate) SetPackageUID(v string) *NamespaceUpdate {
+	_u.mutation.SetPackageUID(v)
+	return _u
+}
+
+// SetNillablePackageUID sets the "package_uid" field if the given value is not nil.
+func (_u *NamespaceUpdate) SetNillablePackageUID(v *string) *NamespaceUpdate {
+	if v != nil {
+		_u.SetPackageUID(*v)
+	}
+	return _u
+}
+
 // SetLogo sets the "logo" field.
 func (_u *NamespaceUpdate) SetLogo(v string) *NamespaceUpdate {
 	_u.mutation.SetLogo(v)
@@ -230,6 +244,9 @@ func (_u *NamespaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.OwnerUID(); ok {
 		_spec.SetField(namespace.FieldOwnerUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.PackageUID(); ok {
+		_spec.SetField(namespace.FieldPackageUID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Logo(); ok {
 		_spec.SetField(namespace.FieldLogo, field.TypeString, value)
 	}
@@ -323,6 +340,20 @@ func (_u *NamespaceUpdateOne) SetOwnerUID(v string) *NamespaceUpdateOne {
 func (_u *NamespaceUpdateOne) SetNillableOwnerUID(v *string) *NamespaceUpdateOne {
 	if v != nil {
 		_u.SetOwnerUID(*v)
+	}
+	return _u
+}
+
+// SetPackageUID sets the "package_uid" field.
+func (_u *NamespaceUpdateOne) SetPackageUID(v string) *NamespaceUpdateOne {
+	_u.mutation.SetPackageUID(v)
+	return _u
+}
+
+// SetNillablePackageUID sets the "package_uid" field if the given value is not nil.
+func (_u *NamespaceUpdateOne) SetNillablePackageUID(v *string) *NamespaceUpdateOne {
+	if v != nil {
+		_u.SetPackageUID(*v)
 	}
 	return _u
 }
@@ -489,6 +520,9 @@ func (_u *NamespaceUpdateOne) sqlSave(ctx context.Context) (_node *Namespace, er
 	}
 	if value, ok := _u.mutation.OwnerUID(); ok {
 		_spec.SetField(namespace.FieldOwnerUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PackageUID(); ok {
+		_spec.SetField(namespace.FieldPackageUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Logo(); ok {
 		_spec.SetField(namespace.FieldLogo, field.TypeString, value)

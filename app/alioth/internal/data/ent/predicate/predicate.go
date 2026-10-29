@@ -51,6 +51,12 @@ type Datasource func(*sql.Selector)
 // EmailLoginCode is the predicate function for emaillogincode builders.
 type EmailLoginCode func(*sql.Selector)
 
+// FeaturePackage is the predicate function for featurepackage builders.
+type FeaturePackage func(*sql.Selector)
+
+// FeaturePackageItem is the predicate function for featurepackageitem builders.
+type FeaturePackageItem func(*sql.Selector)
+
 // Member is the predicate function for member builders.
 type Member func(*sql.Selector)
 
@@ -68,6 +74,9 @@ type MessageLogShard func(*sql.Selector)
 
 // Namespace is the predicate function for namespace builders.
 type Namespace func(*sql.Selector)
+
+// NamespaceFeature is the predicate function for namespacefeature builders.
+type NamespaceFeature func(*sql.Selector)
 
 // NotificationChannel is the predicate function for notificationchannel builders.
 type NotificationChannel func(*sql.Selector)

@@ -94,11 +94,11 @@ func (s *SelfService) ChangePhone(ctx context.Context, req *v1.ChangePhoneReques
 }
 
 func (s *SelfService) GetSelfPermissions(ctx context.Context, _ *v1.GetSelfPermissionsRequest) (*v1.GetSelfPermissionsResponse, error) {
-	names, readOnly, err := s.authority.Mine(ctx)
+	names, features, readOnly, err := s.authority.Mine(ctx)
 	if err != nil {
 		return nil, err
 	}
-	response := &v1.GetSelfPermissionsResponse{Permissions: names, ReadOnly: readOnly}
+	response := &v1.GetSelfPermissionsResponse{Permissions: names, Features: features, ReadOnly: readOnly}
 	// 只读切入时前端用 namespace 展示横幅；成员视角也一并返回，便于切换后刷新租户信息。
 	current, err := s.tenancy.Current(ctx)
 	if err != nil {

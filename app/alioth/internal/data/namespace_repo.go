@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
@@ -26,6 +28,31 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	// 新租户默认基础套餐。套餐由 seed 保证存在；缺失属于部署问题，不建半个租户。
+	base, err := tx.FeaturePackage.Query().
+		Where(featurepackage.IsBase(true), featurepackage.DeletedAtIsNil()).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, merr.Server("base feature package is missing")
+		}
+		return nil, r.fail(err)
+	}
+	// 预置角色跟随基础套餐当前的功能，而不是代码里的常量：超级管理员调整基础套餐后，
+	// 新建租户的角色权限要立即一致。套餐明细缺失时回落到代码默认值。
+	baseItems, err := tx.FeaturePackageItem.Query().
+		Where(featurepackageitem.PackageUIDEQ(base.UID)).
+		All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	baseFeatures := make([]string, 0, len(baseItems))
+	for _, item := range baseItems {
+		baseFeatures = append(baseFeatures, item.Feature)
+	}
+	if len(baseFeatures) == 0 {
+		baseFeatures = perm.BaseFeatures()
+	}
 	secret := make([]byte, 24)
 	_, _ = rand.Read(secret)
 	ns, err := tx.Namespace.Create().
@@ -33,6 +60,7 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 		SetName(name).
 		SetRemark(remark).
 		SetOwnerUID(ownerUID).
+		SetPackageUID(base.UID).
 		SetSecret(hex.EncodeToString(secret)).
 		SetStatus(namespace.StatusACTIVE).
 		Save(ctx)
@@ -63,7 +91,8 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 		if roleName == perm.RoleOwner {
 			ownerRoleUID = created.UID
 		}
-		for _, code := range perm.RolePermissions(roleName) {
+		// 预置角色只授基础套餐范围内的权限；其余功能由租户开通后再授予角色。
+		for _, code := range perm.RolePermissionsForFeatures(roleName, baseFeatures) {
 			permissionUID, ok := byName[code]
 			if !ok {
 				return nil, merr.Invalid("invalid request")

@@ -122,3 +122,41 @@ func lastUID(items []bo.SelectItem) string {
 	}
 	return items[len(items)-1].UID
 }
+
+func featureItem(item bo.Feature) *v1.FeatureItem {
+	return &v1.FeatureItem{
+		Code: item.Code, Name: item.Name, Description: item.Description, Permissions: item.Permissions,
+	}
+}
+
+func featureItems(items []bo.Feature) []*v1.FeatureItem {
+	out := make([]*v1.FeatureItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, featureItem(item))
+	}
+	return out
+}
+
+func featurePackageItem(item bo.FeaturePackage) *v1.FeaturePackageItem {
+	createdAt := int64(0)
+	if !item.CreatedAt.IsZero() {
+		createdAt = item.CreatedAt.Unix()
+	}
+	return &v1.FeaturePackageItem{
+		Uid: item.UID, Name: item.Name, Remark: item.Remark, Features: item.Features,
+		IsBase: item.IsBase, Status: item.Status, CreatedAt: createdAt,
+	}
+}
+
+func featurePackageItems(items []bo.FeaturePackage) []*v1.FeaturePackageItem {
+	out := make([]*v1.FeaturePackageItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, featurePackageItem(item))
+	}
+	return out
+}
+
+// namespaceFeatureFields 拆出租户功能开通的四个响应字段，GET 和 PUT 共用同一份视图。
+func namespaceFeatureFields(item bo.NamespaceFeature) (packageUID, packageName string, features, packageFeatures []string) {
+	return item.PackageUID, item.PackageName, item.Features, item.PackageFeatures
+}

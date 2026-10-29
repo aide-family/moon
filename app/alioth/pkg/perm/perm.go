@@ -75,6 +75,9 @@ const (
 	SystemRoleRead      = "system:role:read"
 	SystemInviteRead    = "system:invite:read"
 	SystemNamespaceRead = "system:namespace:read"
+	// 功能套餐只由平台维护：读给系统管理员，写只给超级管理员。
+	SystemPackageRead  = "system:package:read"
+	SystemPackageWrite = "system:package:write"
 )
 
 const (
@@ -160,6 +163,8 @@ func SystemCatalog() []Item {
 		{Name: SystemRoleWrite, Resource: "system", Action: "role:write"},
 		{Name: SystemInviteRead, Resource: "system", Action: "invite:read"},
 		{Name: SystemNamespaceRead, Resource: "system", Action: "namespace:read"},
+		{Name: SystemPackageRead, Resource: "system", Action: "package:read"},
+		{Name: SystemPackageWrite, Resource: "system", Action: "package:write"},
 	}
 }
 
@@ -220,7 +225,7 @@ func SystemPermissions(role string) []string {
 	case SystemRoleSuperAdmin:
 		return SystemNames()
 	case SystemRoleSystemAdmin:
-		return []string{SystemUserRead, SystemUserWrite, SystemRoleRead, SystemInviteRead, SystemNamespaceRead}
+		return []string{SystemUserRead, SystemUserWrite, SystemRoleRead, SystemInviteRead, SystemNamespaceRead, SystemPackageRead}
 	default:
 		return nil
 	}

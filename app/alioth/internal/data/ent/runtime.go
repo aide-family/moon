@@ -20,12 +20,15 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
@@ -726,6 +729,66 @@ func init() {
 	emaillogincodeDescBindTokenHash := emaillogincodeFields[7].Descriptor()
 	// emaillogincode.DefaultBindTokenHash holds the default value on creation for the bind_token_hash field.
 	emaillogincode.DefaultBindTokenHash = emaillogincodeDescBindTokenHash.Default.(string)
+	featurepackageMixin := schema.FeaturePackage{}.Mixin()
+	featurepackageMixinFields0 := featurepackageMixin[0].Fields()
+	_ = featurepackageMixinFields0
+	featurepackageFields := schema.FeaturePackage{}.Fields()
+	_ = featurepackageFields
+	// featurepackageDescCreatedAt is the schema descriptor for created_at field.
+	featurepackageDescCreatedAt := featurepackageMixinFields0[0].Descriptor()
+	// featurepackage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	featurepackage.DefaultCreatedAt = featurepackageDescCreatedAt.Default.(func() time.Time)
+	// featurepackageDescUpdatedAt is the schema descriptor for updated_at field.
+	featurepackageDescUpdatedAt := featurepackageMixinFields0[1].Descriptor()
+	// featurepackage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	featurepackage.DefaultUpdatedAt = featurepackageDescUpdatedAt.Default.(func() time.Time)
+	// featurepackage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	featurepackage.UpdateDefaultUpdatedAt = featurepackageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// featurepackageDescUID is the schema descriptor for uid field.
+	featurepackageDescUID := featurepackageFields[0].Descriptor()
+	// featurepackage.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	featurepackage.UIDValidator = featurepackageDescUID.Validators[0].(func(string) error)
+	// featurepackageDescName is the schema descriptor for name field.
+	featurepackageDescName := featurepackageFields[1].Descriptor()
+	// featurepackage.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	featurepackage.NameValidator = featurepackageDescName.Validators[0].(func(string) error)
+	// featurepackageDescRemark is the schema descriptor for remark field.
+	featurepackageDescRemark := featurepackageFields[2].Descriptor()
+	// featurepackage.DefaultRemark holds the default value on creation for the remark field.
+	featurepackage.DefaultRemark = featurepackageDescRemark.Default.(string)
+	// featurepackage.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
+	featurepackage.RemarkValidator = featurepackageDescRemark.Validators[0].(func(string) error)
+	// featurepackageDescIsBase is the schema descriptor for is_base field.
+	featurepackageDescIsBase := featurepackageFields[3].Descriptor()
+	// featurepackage.DefaultIsBase holds the default value on creation for the is_base field.
+	featurepackage.DefaultIsBase = featurepackageDescIsBase.Default.(bool)
+	featurepackageitemMixin := schema.FeaturePackageItem{}.Mixin()
+	featurepackageitemMixinFields0 := featurepackageitemMixin[0].Fields()
+	_ = featurepackageitemMixinFields0
+	featurepackageitemFields := schema.FeaturePackageItem{}.Fields()
+	_ = featurepackageitemFields
+	// featurepackageitemDescCreatedAt is the schema descriptor for created_at field.
+	featurepackageitemDescCreatedAt := featurepackageitemMixinFields0[0].Descriptor()
+	// featurepackageitem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	featurepackageitem.DefaultCreatedAt = featurepackageitemDescCreatedAt.Default.(func() time.Time)
+	// featurepackageitemDescUpdatedAt is the schema descriptor for updated_at field.
+	featurepackageitemDescUpdatedAt := featurepackageitemMixinFields0[1].Descriptor()
+	// featurepackageitem.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	featurepackageitem.DefaultUpdatedAt = featurepackageitemDescUpdatedAt.Default.(func() time.Time)
+	// featurepackageitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	featurepackageitem.UpdateDefaultUpdatedAt = featurepackageitemDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// featurepackageitemDescUID is the schema descriptor for uid field.
+	featurepackageitemDescUID := featurepackageitemFields[0].Descriptor()
+	// featurepackageitem.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	featurepackageitem.UIDValidator = featurepackageitemDescUID.Validators[0].(func(string) error)
+	// featurepackageitemDescPackageUID is the schema descriptor for package_uid field.
+	featurepackageitemDescPackageUID := featurepackageitemFields[1].Descriptor()
+	// featurepackageitem.PackageUIDValidator is a validator for the "package_uid" field. It is called by the builders before save.
+	featurepackageitem.PackageUIDValidator = featurepackageitemDescPackageUID.Validators[0].(func(string) error)
+	// featurepackageitemDescFeature is the schema descriptor for feature field.
+	featurepackageitemDescFeature := featurepackageitemFields[2].Descriptor()
+	// featurepackageitem.FeatureValidator is a validator for the "feature" field. It is called by the builders before save.
+	featurepackageitem.FeatureValidator = featurepackageitemDescFeature.Validators[0].(func(string) error)
 	memberMixin := schema.Member{}.Mixin()
 	memberMixinFields0 := memberMixin[0].Fields()
 	_ = memberMixinFields0
@@ -948,14 +1011,49 @@ func init() {
 	namespaceDescOwnerUID := namespaceFields[3].Descriptor()
 	// namespace.OwnerUIDValidator is a validator for the "owner_uid" field. It is called by the builders before save.
 	namespace.OwnerUIDValidator = namespaceDescOwnerUID.Validators[0].(func(string) error)
+	// namespaceDescPackageUID is the schema descriptor for package_uid field.
+	namespaceDescPackageUID := namespaceFields[4].Descriptor()
+	// namespace.DefaultPackageUID holds the default value on creation for the package_uid field.
+	namespace.DefaultPackageUID = namespaceDescPackageUID.Default.(string)
 	// namespaceDescLogo is the schema descriptor for logo field.
-	namespaceDescLogo := namespaceFields[4].Descriptor()
+	namespaceDescLogo := namespaceFields[5].Descriptor()
 	// namespace.DefaultLogo holds the default value on creation for the logo field.
 	namespace.DefaultLogo = namespaceDescLogo.Default.(string)
 	// namespaceDescRemark is the schema descriptor for remark field.
-	namespaceDescRemark := namespaceFields[5].Descriptor()
+	namespaceDescRemark := namespaceFields[6].Descriptor()
 	// namespace.DefaultRemark holds the default value on creation for the remark field.
 	namespace.DefaultRemark = namespaceDescRemark.Default.(string)
+	namespacefeatureMixin := schema.NamespaceFeature{}.Mixin()
+	namespacefeatureMixinFields0 := namespacefeatureMixin[0].Fields()
+	_ = namespacefeatureMixinFields0
+	namespacefeatureFields := schema.NamespaceFeature{}.Fields()
+	_ = namespacefeatureFields
+	// namespacefeatureDescCreatedAt is the schema descriptor for created_at field.
+	namespacefeatureDescCreatedAt := namespacefeatureMixinFields0[0].Descriptor()
+	// namespacefeature.DefaultCreatedAt holds the default value on creation for the created_at field.
+	namespacefeature.DefaultCreatedAt = namespacefeatureDescCreatedAt.Default.(func() time.Time)
+	// namespacefeatureDescUpdatedAt is the schema descriptor for updated_at field.
+	namespacefeatureDescUpdatedAt := namespacefeatureMixinFields0[1].Descriptor()
+	// namespacefeature.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	namespacefeature.DefaultUpdatedAt = namespacefeatureDescUpdatedAt.Default.(func() time.Time)
+	// namespacefeature.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	namespacefeature.UpdateDefaultUpdatedAt = namespacefeatureDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// namespacefeatureDescUID is the schema descriptor for uid field.
+	namespacefeatureDescUID := namespacefeatureFields[0].Descriptor()
+	// namespacefeature.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	namespacefeature.UIDValidator = namespacefeatureDescUID.Validators[0].(func(string) error)
+	// namespacefeatureDescNamespaceUID is the schema descriptor for namespace_uid field.
+	namespacefeatureDescNamespaceUID := namespacefeatureFields[1].Descriptor()
+	// namespacefeature.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	namespacefeature.NamespaceUIDValidator = namespacefeatureDescNamespaceUID.Validators[0].(func(string) error)
+	// namespacefeatureDescFeature is the schema descriptor for feature field.
+	namespacefeatureDescFeature := namespacefeatureFields[2].Descriptor()
+	// namespacefeature.FeatureValidator is a validator for the "feature" field. It is called by the builders before save.
+	namespacefeature.FeatureValidator = namespacefeatureDescFeature.Validators[0].(func(string) error)
+	// namespacefeatureDescEnabled is the schema descriptor for enabled field.
+	namespacefeatureDescEnabled := namespacefeatureFields[3].Descriptor()
+	// namespacefeature.DefaultEnabled holds the default value on creation for the enabled field.
+	namespacefeature.DefaultEnabled = namespacefeatureDescEnabled.Default.(bool)
 	notificationchannelMixin := schema.NotificationChannel{}.Mixin()
 	notificationchannelMixinFields0 := notificationchannelMixin[0].Fields()
 	_ = notificationchannelMixinFields0

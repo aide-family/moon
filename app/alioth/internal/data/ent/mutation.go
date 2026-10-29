@@ -27,12 +27,15 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
@@ -82,12 +85,15 @@ const (
 	TypeCluster                       = "Cluster"
 	TypeDatasource                    = "Datasource"
 	TypeEmailLoginCode                = "EmailLoginCode"
+	TypeFeaturePackage                = "FeaturePackage"
+	TypeFeaturePackageItem            = "FeaturePackageItem"
 	TypeMember                        = "Member"
 	TypeMemberInvite                  = "MemberInvite"
 	TypeMemberRole                    = "MemberRole"
 	TypeMessageLog                    = "MessageLog"
 	TypeMessageLogShard               = "MessageLogShard"
 	TypeNamespace                     = "Namespace"
+	TypeNamespaceFeature              = "NamespaceFeature"
 	TypeNotificationChannel           = "NotificationChannel"
 	TypeNotificationGroup             = "NotificationGroup"
 	TypeNotificationOnCall            = "NotificationOnCall"
@@ -14279,6 +14285,1274 @@ func (m *EmailLoginCodeMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown EmailLoginCode edge %s", name)
 }
 
+// FeaturePackageMutation represents an operation that mutates the FeaturePackage nodes in the graph.
+type FeaturePackageMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	deleted_at    *time.Time
+	uid           *string
+	name          *string
+	remark        *string
+	is_base       *bool
+	status        *featurepackage.Status
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*FeaturePackage, error)
+	predicates    []predicate.FeaturePackage
+}
+
+var _ ent.Mutation = (*FeaturePackageMutation)(nil)
+
+// featurepackageOption allows management of the mutation configuration using functional options.
+type featurepackageOption func(*FeaturePackageMutation)
+
+// newFeaturePackageMutation creates new mutation for the FeaturePackage entity.
+func newFeaturePackageMutation(c config, op Op, opts ...featurepackageOption) *FeaturePackageMutation {
+	m := &FeaturePackageMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFeaturePackage,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFeaturePackageID sets the ID field of the mutation.
+func withFeaturePackageID(id int) featurepackageOption {
+	return func(m *FeaturePackageMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FeaturePackage
+		)
+		m.oldValue = func(ctx context.Context) (*FeaturePackage, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FeaturePackage.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFeaturePackage sets the old FeaturePackage of the mutation.
+func withFeaturePackage(node *FeaturePackage) featurepackageOption {
+	return func(m *FeaturePackageMutation) {
+		m.oldValue = func(context.Context) (*FeaturePackage, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FeaturePackageMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FeaturePackageMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FeaturePackageMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FeaturePackageMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FeaturePackage.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FeaturePackageMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FeaturePackageMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FeaturePackageMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FeaturePackageMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FeaturePackageMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FeaturePackageMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *FeaturePackageMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *FeaturePackageMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *FeaturePackageMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[featurepackage.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *FeaturePackageMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[featurepackage.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *FeaturePackageMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, featurepackage.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *FeaturePackageMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *FeaturePackageMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *FeaturePackageMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetName sets the "name" field.
+func (m *FeaturePackageMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *FeaturePackageMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *FeaturePackageMutation) ResetName() {
+	m.name = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *FeaturePackageMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *FeaturePackageMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *FeaturePackageMutation) ResetRemark() {
+	m.remark = nil
+}
+
+// SetIsBase sets the "is_base" field.
+func (m *FeaturePackageMutation) SetIsBase(b bool) {
+	m.is_base = &b
+}
+
+// IsBase returns the value of the "is_base" field in the mutation.
+func (m *FeaturePackageMutation) IsBase() (r bool, exists bool) {
+	v := m.is_base
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsBase returns the old "is_base" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldIsBase(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsBase is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsBase requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsBase: %w", err)
+	}
+	return oldValue.IsBase, nil
+}
+
+// ResetIsBase resets all changes to the "is_base" field.
+func (m *FeaturePackageMutation) ResetIsBase() {
+	m.is_base = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *FeaturePackageMutation) SetStatus(f featurepackage.Status) {
+	m.status = &f
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *FeaturePackageMutation) Status() (r featurepackage.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldStatus(ctx context.Context) (v featurepackage.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *FeaturePackageMutation) ResetStatus() {
+	m.status = nil
+}
+
+// Where appends a list predicates to the FeaturePackageMutation builder.
+func (m *FeaturePackageMutation) Where(ps ...predicate.FeaturePackage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FeaturePackageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FeaturePackageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FeaturePackage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FeaturePackageMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FeaturePackageMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FeaturePackage).
+func (m *FeaturePackageMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FeaturePackageMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.created_at != nil {
+		fields = append(fields, featurepackage.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, featurepackage.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, featurepackage.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, featurepackage.FieldUID)
+	}
+	if m.name != nil {
+		fields = append(fields, featurepackage.FieldName)
+	}
+	if m.remark != nil {
+		fields = append(fields, featurepackage.FieldRemark)
+	}
+	if m.is_base != nil {
+		fields = append(fields, featurepackage.FieldIsBase)
+	}
+	if m.status != nil {
+		fields = append(fields, featurepackage.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FeaturePackageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case featurepackage.FieldCreatedAt:
+		return m.CreatedAt()
+	case featurepackage.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case featurepackage.FieldDeletedAt:
+		return m.DeletedAt()
+	case featurepackage.FieldUID:
+		return m.UID()
+	case featurepackage.FieldName:
+		return m.Name()
+	case featurepackage.FieldRemark:
+		return m.Remark()
+	case featurepackage.FieldIsBase:
+		return m.IsBase()
+	case featurepackage.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FeaturePackageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case featurepackage.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case featurepackage.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case featurepackage.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case featurepackage.FieldUID:
+		return m.OldUID(ctx)
+	case featurepackage.FieldName:
+		return m.OldName(ctx)
+	case featurepackage.FieldRemark:
+		return m.OldRemark(ctx)
+	case featurepackage.FieldIsBase:
+		return m.OldIsBase(ctx)
+	case featurepackage.FieldStatus:
+		return m.OldStatus(ctx)
+	}
+	return nil, fmt.Errorf("unknown FeaturePackage field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FeaturePackageMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case featurepackage.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case featurepackage.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case featurepackage.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case featurepackage.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case featurepackage.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case featurepackage.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	case featurepackage.FieldIsBase:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsBase(v)
+		return nil
+	case featurepackage.FieldStatus:
+		v, ok := value.(featurepackage.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FeaturePackage field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FeaturePackageMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FeaturePackageMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FeaturePackageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown FeaturePackage numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FeaturePackageMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(featurepackage.FieldDeletedAt) {
+		fields = append(fields, featurepackage.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FeaturePackageMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FeaturePackageMutation) ClearField(name string) error {
+	switch name {
+	case featurepackage.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown FeaturePackage nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FeaturePackageMutation) ResetField(name string) error {
+	switch name {
+	case featurepackage.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case featurepackage.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case featurepackage.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case featurepackage.FieldUID:
+		m.ResetUID()
+		return nil
+	case featurepackage.FieldName:
+		m.ResetName()
+		return nil
+	case featurepackage.FieldRemark:
+		m.ResetRemark()
+		return nil
+	case featurepackage.FieldIsBase:
+		m.ResetIsBase()
+		return nil
+	case featurepackage.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown FeaturePackage field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FeaturePackageMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FeaturePackageMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FeaturePackageMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FeaturePackageMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FeaturePackageMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FeaturePackageMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FeaturePackageMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown FeaturePackage unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FeaturePackageMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown FeaturePackage edge %s", name)
+}
+
+// FeaturePackageItemMutation represents an operation that mutates the FeaturePackageItem nodes in the graph.
+type FeaturePackageItemMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	uid           *string
+	package_uid   *string
+	feature       *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*FeaturePackageItem, error)
+	predicates    []predicate.FeaturePackageItem
+}
+
+var _ ent.Mutation = (*FeaturePackageItemMutation)(nil)
+
+// featurepackageitemOption allows management of the mutation configuration using functional options.
+type featurepackageitemOption func(*FeaturePackageItemMutation)
+
+// newFeaturePackageItemMutation creates new mutation for the FeaturePackageItem entity.
+func newFeaturePackageItemMutation(c config, op Op, opts ...featurepackageitemOption) *FeaturePackageItemMutation {
+	m := &FeaturePackageItemMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFeaturePackageItem,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFeaturePackageItemID sets the ID field of the mutation.
+func withFeaturePackageItemID(id int) featurepackageitemOption {
+	return func(m *FeaturePackageItemMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FeaturePackageItem
+		)
+		m.oldValue = func(ctx context.Context) (*FeaturePackageItem, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FeaturePackageItem.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFeaturePackageItem sets the old FeaturePackageItem of the mutation.
+func withFeaturePackageItem(node *FeaturePackageItem) featurepackageitemOption {
+	return func(m *FeaturePackageItemMutation) {
+		m.oldValue = func(context.Context) (*FeaturePackageItem, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FeaturePackageItemMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FeaturePackageItemMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FeaturePackageItemMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FeaturePackageItemMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FeaturePackageItem.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FeaturePackageItemMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FeaturePackageItemMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FeaturePackageItem entity.
+// If the FeaturePackageItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageItemMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FeaturePackageItemMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FeaturePackageItemMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FeaturePackageItemMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FeaturePackageItem entity.
+// If the FeaturePackageItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageItemMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FeaturePackageItemMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *FeaturePackageItemMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *FeaturePackageItemMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the FeaturePackageItem entity.
+// If the FeaturePackageItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageItemMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *FeaturePackageItemMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetPackageUID sets the "package_uid" field.
+func (m *FeaturePackageItemMutation) SetPackageUID(s string) {
+	m.package_uid = &s
+}
+
+// PackageUID returns the value of the "package_uid" field in the mutation.
+func (m *FeaturePackageItemMutation) PackageUID() (r string, exists bool) {
+	v := m.package_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageUID returns the old "package_uid" field's value of the FeaturePackageItem entity.
+// If the FeaturePackageItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageItemMutation) OldPackageUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageUID: %w", err)
+	}
+	return oldValue.PackageUID, nil
+}
+
+// ResetPackageUID resets all changes to the "package_uid" field.
+func (m *FeaturePackageItemMutation) ResetPackageUID() {
+	m.package_uid = nil
+}
+
+// SetFeature sets the "feature" field.
+func (m *FeaturePackageItemMutation) SetFeature(s string) {
+	m.feature = &s
+}
+
+// Feature returns the value of the "feature" field in the mutation.
+func (m *FeaturePackageItemMutation) Feature() (r string, exists bool) {
+	v := m.feature
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeature returns the old "feature" field's value of the FeaturePackageItem entity.
+// If the FeaturePackageItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageItemMutation) OldFeature(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeature is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeature requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeature: %w", err)
+	}
+	return oldValue.Feature, nil
+}
+
+// ResetFeature resets all changes to the "feature" field.
+func (m *FeaturePackageItemMutation) ResetFeature() {
+	m.feature = nil
+}
+
+// Where appends a list predicates to the FeaturePackageItemMutation builder.
+func (m *FeaturePackageItemMutation) Where(ps ...predicate.FeaturePackageItem) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FeaturePackageItemMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FeaturePackageItemMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FeaturePackageItem, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FeaturePackageItemMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FeaturePackageItemMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FeaturePackageItem).
+func (m *FeaturePackageItemMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FeaturePackageItemMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, featurepackageitem.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, featurepackageitem.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, featurepackageitem.FieldUID)
+	}
+	if m.package_uid != nil {
+		fields = append(fields, featurepackageitem.FieldPackageUID)
+	}
+	if m.feature != nil {
+		fields = append(fields, featurepackageitem.FieldFeature)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FeaturePackageItemMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case featurepackageitem.FieldCreatedAt:
+		return m.CreatedAt()
+	case featurepackageitem.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case featurepackageitem.FieldUID:
+		return m.UID()
+	case featurepackageitem.FieldPackageUID:
+		return m.PackageUID()
+	case featurepackageitem.FieldFeature:
+		return m.Feature()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FeaturePackageItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case featurepackageitem.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case featurepackageitem.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case featurepackageitem.FieldUID:
+		return m.OldUID(ctx)
+	case featurepackageitem.FieldPackageUID:
+		return m.OldPackageUID(ctx)
+	case featurepackageitem.FieldFeature:
+		return m.OldFeature(ctx)
+	}
+	return nil, fmt.Errorf("unknown FeaturePackageItem field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FeaturePackageItemMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case featurepackageitem.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case featurepackageitem.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case featurepackageitem.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case featurepackageitem.FieldPackageUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageUID(v)
+		return nil
+	case featurepackageitem.FieldFeature:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeature(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FeaturePackageItem field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FeaturePackageItemMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FeaturePackageItemMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FeaturePackageItemMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown FeaturePackageItem numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FeaturePackageItemMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FeaturePackageItemMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FeaturePackageItemMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown FeaturePackageItem nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FeaturePackageItemMutation) ResetField(name string) error {
+	switch name {
+	case featurepackageitem.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case featurepackageitem.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case featurepackageitem.FieldUID:
+		m.ResetUID()
+		return nil
+	case featurepackageitem.FieldPackageUID:
+		m.ResetPackageUID()
+		return nil
+	case featurepackageitem.FieldFeature:
+		m.ResetFeature()
+		return nil
+	}
+	return fmt.Errorf("unknown FeaturePackageItem field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FeaturePackageItemMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FeaturePackageItemMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FeaturePackageItemMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FeaturePackageItemMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FeaturePackageItemMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FeaturePackageItemMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FeaturePackageItemMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown FeaturePackageItem unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FeaturePackageItemMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown FeaturePackageItem edge %s", name)
+}
+
 // MemberMutation represents an operation that mutates the Member nodes in the graph.
 type MemberMutation struct {
 	config
@@ -18180,6 +19454,7 @@ type NamespaceMutation struct {
 	name          *string
 	secret        *string
 	owner_uid     *string
+	package_uid   *string
 	logo          *string
 	remark        *string
 	status        *namespace.Status
@@ -18552,6 +19827,42 @@ func (m *NamespaceMutation) ResetOwnerUID() {
 	m.owner_uid = nil
 }
 
+// SetPackageUID sets the "package_uid" field.
+func (m *NamespaceMutation) SetPackageUID(s string) {
+	m.package_uid = &s
+}
+
+// PackageUID returns the value of the "package_uid" field in the mutation.
+func (m *NamespaceMutation) PackageUID() (r string, exists bool) {
+	v := m.package_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageUID returns the old "package_uid" field's value of the Namespace entity.
+// If the Namespace object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceMutation) OldPackageUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageUID: %w", err)
+	}
+	return oldValue.PackageUID, nil
+}
+
+// ResetPackageUID resets all changes to the "package_uid" field.
+func (m *NamespaceMutation) ResetPackageUID() {
+	m.package_uid = nil
+}
+
 // SetLogo sets the "logo" field.
 func (m *NamespaceMutation) SetLogo(s string) {
 	m.logo = &s
@@ -18694,7 +20005,7 @@ func (m *NamespaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NamespaceMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, namespace.FieldCreatedAt)
 	}
@@ -18715,6 +20026,9 @@ func (m *NamespaceMutation) Fields() []string {
 	}
 	if m.owner_uid != nil {
 		fields = append(fields, namespace.FieldOwnerUID)
+	}
+	if m.package_uid != nil {
+		fields = append(fields, namespace.FieldPackageUID)
 	}
 	if m.logo != nil {
 		fields = append(fields, namespace.FieldLogo)
@@ -18747,6 +20061,8 @@ func (m *NamespaceMutation) Field(name string) (ent.Value, bool) {
 		return m.Secret()
 	case namespace.FieldOwnerUID:
 		return m.OwnerUID()
+	case namespace.FieldPackageUID:
+		return m.PackageUID()
 	case namespace.FieldLogo:
 		return m.Logo()
 	case namespace.FieldRemark:
@@ -18776,6 +20092,8 @@ func (m *NamespaceMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldSecret(ctx)
 	case namespace.FieldOwnerUID:
 		return m.OldOwnerUID(ctx)
+	case namespace.FieldPackageUID:
+		return m.OldPackageUID(ctx)
 	case namespace.FieldLogo:
 		return m.OldLogo(ctx)
 	case namespace.FieldRemark:
@@ -18839,6 +20157,13 @@ func (m *NamespaceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOwnerUID(v)
+		return nil
+	case namespace.FieldPackageUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageUID(v)
 		return nil
 	case namespace.FieldLogo:
 		v, ok := value.(string)
@@ -18940,6 +20265,9 @@ func (m *NamespaceMutation) ResetField(name string) error {
 	case namespace.FieldOwnerUID:
 		m.ResetOwnerUID()
 		return nil
+	case namespace.FieldPackageUID:
+		m.ResetPackageUID()
+		return nil
 	case namespace.FieldLogo:
 		m.ResetLogo()
 		return nil
@@ -18999,6 +20327,602 @@ func (m *NamespaceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *NamespaceMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Namespace edge %s", name)
+}
+
+// NamespaceFeatureMutation represents an operation that mutates the NamespaceFeature nodes in the graph.
+type NamespaceFeatureMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	uid           *string
+	namespace_uid *string
+	feature       *string
+	enabled       *bool
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*NamespaceFeature, error)
+	predicates    []predicate.NamespaceFeature
+}
+
+var _ ent.Mutation = (*NamespaceFeatureMutation)(nil)
+
+// namespacefeatureOption allows management of the mutation configuration using functional options.
+type namespacefeatureOption func(*NamespaceFeatureMutation)
+
+// newNamespaceFeatureMutation creates new mutation for the NamespaceFeature entity.
+func newNamespaceFeatureMutation(c config, op Op, opts ...namespacefeatureOption) *NamespaceFeatureMutation {
+	m := &NamespaceFeatureMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNamespaceFeature,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNamespaceFeatureID sets the ID field of the mutation.
+func withNamespaceFeatureID(id int) namespacefeatureOption {
+	return func(m *NamespaceFeatureMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NamespaceFeature
+		)
+		m.oldValue = func(ctx context.Context) (*NamespaceFeature, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NamespaceFeature.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNamespaceFeature sets the old NamespaceFeature of the mutation.
+func withNamespaceFeature(node *NamespaceFeature) namespacefeatureOption {
+	return func(m *NamespaceFeatureMutation) {
+		m.oldValue = func(context.Context) (*NamespaceFeature, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NamespaceFeatureMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NamespaceFeatureMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NamespaceFeatureMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NamespaceFeatureMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NamespaceFeature.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *NamespaceFeatureMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *NamespaceFeatureMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the NamespaceFeature entity.
+// If the NamespaceFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceFeatureMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *NamespaceFeatureMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *NamespaceFeatureMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *NamespaceFeatureMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the NamespaceFeature entity.
+// If the NamespaceFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceFeatureMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *NamespaceFeatureMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *NamespaceFeatureMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *NamespaceFeatureMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the NamespaceFeature entity.
+// If the NamespaceFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceFeatureMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *NamespaceFeatureMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *NamespaceFeatureMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *NamespaceFeatureMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the NamespaceFeature entity.
+// If the NamespaceFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceFeatureMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *NamespaceFeatureMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetFeature sets the "feature" field.
+func (m *NamespaceFeatureMutation) SetFeature(s string) {
+	m.feature = &s
+}
+
+// Feature returns the value of the "feature" field in the mutation.
+func (m *NamespaceFeatureMutation) Feature() (r string, exists bool) {
+	v := m.feature
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeature returns the old "feature" field's value of the NamespaceFeature entity.
+// If the NamespaceFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceFeatureMutation) OldFeature(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeature is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeature requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeature: %w", err)
+	}
+	return oldValue.Feature, nil
+}
+
+// ResetFeature resets all changes to the "feature" field.
+func (m *NamespaceFeatureMutation) ResetFeature() {
+	m.feature = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *NamespaceFeatureMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *NamespaceFeatureMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the NamespaceFeature entity.
+// If the NamespaceFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceFeatureMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *NamespaceFeatureMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// Where appends a list predicates to the NamespaceFeatureMutation builder.
+func (m *NamespaceFeatureMutation) Where(ps ...predicate.NamespaceFeature) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NamespaceFeatureMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NamespaceFeatureMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NamespaceFeature, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NamespaceFeatureMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NamespaceFeatureMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NamespaceFeature).
+func (m *NamespaceFeatureMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NamespaceFeatureMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, namespacefeature.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, namespacefeature.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, namespacefeature.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, namespacefeature.FieldNamespaceUID)
+	}
+	if m.feature != nil {
+		fields = append(fields, namespacefeature.FieldFeature)
+	}
+	if m.enabled != nil {
+		fields = append(fields, namespacefeature.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NamespaceFeatureMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case namespacefeature.FieldCreatedAt:
+		return m.CreatedAt()
+	case namespacefeature.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case namespacefeature.FieldUID:
+		return m.UID()
+	case namespacefeature.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case namespacefeature.FieldFeature:
+		return m.Feature()
+	case namespacefeature.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NamespaceFeatureMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case namespacefeature.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case namespacefeature.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case namespacefeature.FieldUID:
+		return m.OldUID(ctx)
+	case namespacefeature.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case namespacefeature.FieldFeature:
+		return m.OldFeature(ctx)
+	case namespacefeature.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown NamespaceFeature field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NamespaceFeatureMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case namespacefeature.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case namespacefeature.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case namespacefeature.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case namespacefeature.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case namespacefeature.FieldFeature:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeature(v)
+		return nil
+	case namespacefeature.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NamespaceFeature field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NamespaceFeatureMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NamespaceFeatureMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NamespaceFeatureMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown NamespaceFeature numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NamespaceFeatureMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NamespaceFeatureMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NamespaceFeatureMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown NamespaceFeature nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NamespaceFeatureMutation) ResetField(name string) error {
+	switch name {
+	case namespacefeature.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case namespacefeature.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case namespacefeature.FieldUID:
+		m.ResetUID()
+		return nil
+	case namespacefeature.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case namespacefeature.FieldFeature:
+		m.ResetFeature()
+		return nil
+	case namespacefeature.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown NamespaceFeature field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NamespaceFeatureMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NamespaceFeatureMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NamespaceFeatureMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NamespaceFeatureMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NamespaceFeatureMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NamespaceFeatureMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NamespaceFeatureMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown NamespaceFeature unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NamespaceFeatureMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown NamespaceFeature edge %s", name)
 }
 
 // NotificationChannelMutation represents an operation that mutates the NotificationChannel nodes in the graph.

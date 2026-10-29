@@ -42,6 +42,10 @@ type Tx struct {
 	Datasource *DatasourceClient
 	// EmailLoginCode is the client for interacting with the EmailLoginCode builders.
 	EmailLoginCode *EmailLoginCodeClient
+	// FeaturePackage is the client for interacting with the FeaturePackage builders.
+	FeaturePackage *FeaturePackageClient
+	// FeaturePackageItem is the client for interacting with the FeaturePackageItem builders.
+	FeaturePackageItem *FeaturePackageItemClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
 	// MemberInvite is the client for interacting with the MemberInvite builders.
@@ -54,6 +58,8 @@ type Tx struct {
 	MessageLogShard *MessageLogShardClient
 	// Namespace is the client for interacting with the Namespace builders.
 	Namespace *NamespaceClient
+	// NamespaceFeature is the client for interacting with the NamespaceFeature builders.
+	NamespaceFeature *NamespaceFeatureClient
 	// NotificationChannel is the client for interacting with the NotificationChannel builders.
 	NotificationChannel *NotificationChannelClient
 	// NotificationGroup is the client for interacting with the NotificationGroup builders.
@@ -244,12 +250,15 @@ func (tx *Tx) init() {
 	tx.Cluster = NewClusterClient(tx.config)
 	tx.Datasource = NewDatasourceClient(tx.config)
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
+	tx.FeaturePackage = NewFeaturePackageClient(tx.config)
+	tx.FeaturePackageItem = NewFeaturePackageItemClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
 	tx.MemberInvite = NewMemberInviteClient(tx.config)
 	tx.MemberRole = NewMemberRoleClient(tx.config)
 	tx.MessageLog = NewMessageLogClient(tx.config)
 	tx.MessageLogShard = NewMessageLogShardClient(tx.config)
 	tx.Namespace = NewNamespaceClient(tx.config)
+	tx.NamespaceFeature = NewNamespaceFeatureClient(tx.config)
 	tx.NotificationChannel = NewNotificationChannelClient(tx.config)
 	tx.NotificationGroup = NewNotificationGroupClient(tx.config)
 	tx.NotificationOnCall = NewNotificationOnCallClient(tx.config)

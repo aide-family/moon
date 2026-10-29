@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/auth"
 	"github.com/aide-family/moon/app/alioth/internal/biz/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/biz/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/biz/feature"
 	"github.com/aide-family/moon/app/alioth/internal/biz/health"
 	"github.com/aide-family/moon/app/alioth/internal/biz/member"
 	"github.com/aide-family/moon/app/alioth/internal/biz/message"
@@ -64,7 +65,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	hub := agenthub.NewHub()
 	namespaceRepo := data.NewNamespaceRepo(dependencies, logger)
 	roleRepo := data.NewRoleRepo(dependencies, logger)
-	accessChecker := access.NewChecker(userRepo, namespaceRepo, roleRepo, logger)
+	featureRepo := data.NewFeatureRepo(dependencies, logger)
+	accessChecker := access.NewChecker(userRepo, namespaceRepo, roleRepo, featureRepo, logger)
 	registry := agent.NewRegistry(agentRepo, hub, accessChecker)
 	sender := mailer.NewSender(confAuth, logger)
 	authenticator, err := auth.NewAuthenticator(userRepo, captchaRepo, emailCodeRepo, oAuthRepo, registry, sender, confAuth, logger)
@@ -76,9 +78,10 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	captchaService := service.NewCaptchaService(authenticator)
 	authService := service.NewAuthService(authenticator)
 	tenancy := namespace.NewTenancy(namespaceRepo, accessChecker)
-	authority := role.NewAuthority(roleRepo, accessChecker)
+	authority := role.NewAuthority(roleRepo, featureRepo, accessChecker)
 	selfService := service.NewSelfService(authenticator, tenancy, authority)
-	namespaceService := service.NewNamespaceService(tenancy)
+	provisioning := feature.NewProvisioning(featureRepo, accessChecker)
+	namespaceService := service.NewNamespaceService(tenancy, provisioning)
 	memberRepo := data.NewMemberRepo(dependencies, logger)
 	inviteRepo := data.NewInviteRepo(dependencies, logger)
 	membership := member.NewMembership(memberRepo, inviteRepo, userRepo, roleRepo, accessChecker, sender, confAuth, logger)

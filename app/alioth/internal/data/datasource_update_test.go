@@ -30,6 +30,12 @@ func (testRoles) Permissions(context.Context, string, string) (map[string]struct
 	return map[string]struct{}{perm.DatasourceWrite: {}, perm.DatasourceRead: {}}, nil
 }
 
+type testFeatures struct{ repository.FeatureRepo }
+
+func (testFeatures) EffectiveFeatures(context.Context, string) ([]string, error) {
+	return perm.FeatureCodes(), nil
+}
+
 // TestUpdateDatasourceLevelRecoversEvents 校验修改数据源等级后，旧的 FIRING 事件
 // 会先收口到历史库，下一次评测才能按新等级生成新事件，而不是一直显示旧等级。
 func TestUpdateDatasourceLevelRecoversEvents(t *testing.T) {
@@ -89,7 +95,7 @@ func TestUpdateDatasourceLevelRecoversEvents(t *testing.T) {
 
 	notifications := NewNotificationRepo(store, slog.Default())
 	gateway := datasource.NewGateway(sources, dictionaries, events, notifications, access.Checker{
-		Namespaces: testNamespaces{}, Roles: testRoles{}, Log: slog.Default(),
+		Namespaces: testNamespaces{}, Roles: testRoles{}, Features: testFeatures{}, Log: slog.Default(),
 	})
 	runCtx := actor.WithUser(actor.WithNamespace(ctx, ns), userUID)
 	if _, err := gateway.UpdateDatasource(runCtx, bo.Datasource{

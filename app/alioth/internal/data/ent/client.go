@@ -30,12 +30,15 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
@@ -95,6 +98,10 @@ type Client struct {
 	Datasource *DatasourceClient
 	// EmailLoginCode is the client for interacting with the EmailLoginCode builders.
 	EmailLoginCode *EmailLoginCodeClient
+	// FeaturePackage is the client for interacting with the FeaturePackage builders.
+	FeaturePackage *FeaturePackageClient
+	// FeaturePackageItem is the client for interacting with the FeaturePackageItem builders.
+	FeaturePackageItem *FeaturePackageItemClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
 	// MemberInvite is the client for interacting with the MemberInvite builders.
@@ -107,6 +114,8 @@ type Client struct {
 	MessageLogShard *MessageLogShardClient
 	// Namespace is the client for interacting with the Namespace builders.
 	Namespace *NamespaceClient
+	// NamespaceFeature is the client for interacting with the NamespaceFeature builders.
+	NamespaceFeature *NamespaceFeatureClient
 	// NotificationChannel is the client for interacting with the NotificationChannel builders.
 	NotificationChannel *NotificationChannelClient
 	// NotificationGroup is the client for interacting with the NotificationGroup builders.
@@ -177,12 +186,15 @@ func (c *Client) init() {
 	c.Cluster = NewClusterClient(c.config)
 	c.Datasource = NewDatasourceClient(c.config)
 	c.EmailLoginCode = NewEmailLoginCodeClient(c.config)
+	c.FeaturePackage = NewFeaturePackageClient(c.config)
+	c.FeaturePackageItem = NewFeaturePackageItemClient(c.config)
 	c.Member = NewMemberClient(c.config)
 	c.MemberInvite = NewMemberInviteClient(c.config)
 	c.MemberRole = NewMemberRoleClient(c.config)
 	c.MessageLog = NewMessageLogClient(c.config)
 	c.MessageLogShard = NewMessageLogShardClient(c.config)
 	c.Namespace = NewNamespaceClient(c.config)
+	c.NamespaceFeature = NewNamespaceFeatureClient(c.config)
 	c.NotificationChannel = NewNotificationChannelClient(c.config)
 	c.NotificationGroup = NewNotificationGroupClient(c.config)
 	c.NotificationOnCall = NewNotificationOnCallClient(c.config)
@@ -312,12 +324,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Cluster:                       NewClusterClient(cfg),
 		Datasource:                    NewDatasourceClient(cfg),
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
+		FeaturePackage:                NewFeaturePackageClient(cfg),
+		FeaturePackageItem:            NewFeaturePackageItemClient(cfg),
 		Member:                        NewMemberClient(cfg),
 		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
 		MessageLog:                    NewMessageLogClient(cfg),
 		MessageLogShard:               NewMessageLogShardClient(cfg),
 		Namespace:                     NewNamespaceClient(cfg),
+		NamespaceFeature:              NewNamespaceFeatureClient(cfg),
 		NotificationChannel:           NewNotificationChannelClient(cfg),
 		NotificationGroup:             NewNotificationGroupClient(cfg),
 		NotificationOnCall:            NewNotificationOnCallClient(cfg),
@@ -374,12 +389,15 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Cluster:                       NewClusterClient(cfg),
 		Datasource:                    NewDatasourceClient(cfg),
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
+		FeaturePackage:                NewFeaturePackageClient(cfg),
+		FeaturePackageItem:            NewFeaturePackageItemClient(cfg),
 		Member:                        NewMemberClient(cfg),
 		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
 		MessageLog:                    NewMessageLogClient(cfg),
 		MessageLogShard:               NewMessageLogShardClient(cfg),
 		Namespace:                     NewNamespaceClient(cfg),
+		NamespaceFeature:              NewNamespaceFeatureClient(cfg),
 		NotificationChannel:           NewNotificationChannelClient(cfg),
 		NotificationGroup:             NewNotificationGroupClient(cfg),
 		NotificationOnCall:            NewNotificationOnCallClient(cfg),
@@ -434,8 +452,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
 		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Cluster, c.Datasource,
-		c.EmailLoginCode, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
-		c.MessageLogShard, c.Namespace, c.NotificationChannel, c.NotificationGroup,
+		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
+		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
+		c.NamespaceFeature, c.NotificationChannel, c.NotificationGroup,
 		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
 		c.NotificationSubscription, c.NotificationSubscriptionGroup,
 		c.NotificationTask, c.NotificationTemplate, c.Permission, c.ProbeResult,
@@ -454,8 +473,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
 		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Cluster, c.Datasource,
-		c.EmailLoginCode, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
-		c.MessageLogShard, c.Namespace, c.NotificationChannel, c.NotificationGroup,
+		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
+		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
+		c.NamespaceFeature, c.NotificationChannel, c.NotificationGroup,
 		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
 		c.NotificationSubscription, c.NotificationSubscriptionGroup,
 		c.NotificationTask, c.NotificationTemplate, c.Permission, c.ProbeResult,
@@ -500,6 +520,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Datasource.mutate(ctx, m)
 	case *EmailLoginCodeMutation:
 		return c.EmailLoginCode.mutate(ctx, m)
+	case *FeaturePackageMutation:
+		return c.FeaturePackage.mutate(ctx, m)
+	case *FeaturePackageItemMutation:
+		return c.FeaturePackageItem.mutate(ctx, m)
 	case *MemberMutation:
 		return c.Member.mutate(ctx, m)
 	case *MemberInviteMutation:
@@ -512,6 +536,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MessageLogShard.mutate(ctx, m)
 	case *NamespaceMutation:
 		return c.Namespace.mutate(ctx, m)
+	case *NamespaceFeatureMutation:
+		return c.NamespaceFeature.mutate(ctx, m)
 	case *NotificationChannelMutation:
 		return c.NotificationChannel.mutate(ctx, m)
 	case *NotificationGroupMutation:
@@ -2556,6 +2582,272 @@ func (c *EmailLoginCodeClient) mutate(ctx context.Context, m *EmailLoginCodeMuta
 	}
 }
 
+// FeaturePackageClient is a client for the FeaturePackage schema.
+type FeaturePackageClient struct {
+	config
+}
+
+// NewFeaturePackageClient returns a client for the FeaturePackage from the given config.
+func NewFeaturePackageClient(c config) *FeaturePackageClient {
+	return &FeaturePackageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `featurepackage.Hooks(f(g(h())))`.
+func (c *FeaturePackageClient) Use(hooks ...Hook) {
+	c.hooks.FeaturePackage = append(c.hooks.FeaturePackage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `featurepackage.Intercept(f(g(h())))`.
+func (c *FeaturePackageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FeaturePackage = append(c.inters.FeaturePackage, interceptors...)
+}
+
+// Create returns a builder for creating a FeaturePackage entity.
+func (c *FeaturePackageClient) Create() *FeaturePackageCreate {
+	mutation := newFeaturePackageMutation(c.config, OpCreate)
+	return &FeaturePackageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FeaturePackage entities.
+func (c *FeaturePackageClient) CreateBulk(builders ...*FeaturePackageCreate) *FeaturePackageCreateBulk {
+	return &FeaturePackageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FeaturePackageClient) MapCreateBulk(slice any, setFunc func(*FeaturePackageCreate, int)) *FeaturePackageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FeaturePackageCreateBulk{err: fmt.Errorf("calling to FeaturePackageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FeaturePackageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FeaturePackageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FeaturePackage.
+func (c *FeaturePackageClient) Update() *FeaturePackageUpdate {
+	mutation := newFeaturePackageMutation(c.config, OpUpdate)
+	return &FeaturePackageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FeaturePackageClient) UpdateOne(_m *FeaturePackage) *FeaturePackageUpdateOne {
+	mutation := newFeaturePackageMutation(c.config, OpUpdateOne, withFeaturePackage(_m))
+	return &FeaturePackageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FeaturePackageClient) UpdateOneID(id int) *FeaturePackageUpdateOne {
+	mutation := newFeaturePackageMutation(c.config, OpUpdateOne, withFeaturePackageID(id))
+	return &FeaturePackageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FeaturePackage.
+func (c *FeaturePackageClient) Delete() *FeaturePackageDelete {
+	mutation := newFeaturePackageMutation(c.config, OpDelete)
+	return &FeaturePackageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FeaturePackageClient) DeleteOne(_m *FeaturePackage) *FeaturePackageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FeaturePackageClient) DeleteOneID(id int) *FeaturePackageDeleteOne {
+	builder := c.Delete().Where(featurepackage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FeaturePackageDeleteOne{builder}
+}
+
+// Query returns a query builder for FeaturePackage.
+func (c *FeaturePackageClient) Query() *FeaturePackageQuery {
+	return &FeaturePackageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFeaturePackage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FeaturePackage entity by its id.
+func (c *FeaturePackageClient) Get(ctx context.Context, id int) (*FeaturePackage, error) {
+	return c.Query().Where(featurepackage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FeaturePackageClient) GetX(ctx context.Context, id int) *FeaturePackage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *FeaturePackageClient) Hooks() []Hook {
+	return c.hooks.FeaturePackage
+}
+
+// Interceptors returns the client interceptors.
+func (c *FeaturePackageClient) Interceptors() []Interceptor {
+	return c.inters.FeaturePackage
+}
+
+func (c *FeaturePackageClient) mutate(ctx context.Context, m *FeaturePackageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FeaturePackageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FeaturePackageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FeaturePackageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FeaturePackageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FeaturePackage mutation op: %q", m.Op())
+	}
+}
+
+// FeaturePackageItemClient is a client for the FeaturePackageItem schema.
+type FeaturePackageItemClient struct {
+	config
+}
+
+// NewFeaturePackageItemClient returns a client for the FeaturePackageItem from the given config.
+func NewFeaturePackageItemClient(c config) *FeaturePackageItemClient {
+	return &FeaturePackageItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `featurepackageitem.Hooks(f(g(h())))`.
+func (c *FeaturePackageItemClient) Use(hooks ...Hook) {
+	c.hooks.FeaturePackageItem = append(c.hooks.FeaturePackageItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `featurepackageitem.Intercept(f(g(h())))`.
+func (c *FeaturePackageItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FeaturePackageItem = append(c.inters.FeaturePackageItem, interceptors...)
+}
+
+// Create returns a builder for creating a FeaturePackageItem entity.
+func (c *FeaturePackageItemClient) Create() *FeaturePackageItemCreate {
+	mutation := newFeaturePackageItemMutation(c.config, OpCreate)
+	return &FeaturePackageItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FeaturePackageItem entities.
+func (c *FeaturePackageItemClient) CreateBulk(builders ...*FeaturePackageItemCreate) *FeaturePackageItemCreateBulk {
+	return &FeaturePackageItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FeaturePackageItemClient) MapCreateBulk(slice any, setFunc func(*FeaturePackageItemCreate, int)) *FeaturePackageItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FeaturePackageItemCreateBulk{err: fmt.Errorf("calling to FeaturePackageItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FeaturePackageItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FeaturePackageItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FeaturePackageItem.
+func (c *FeaturePackageItemClient) Update() *FeaturePackageItemUpdate {
+	mutation := newFeaturePackageItemMutation(c.config, OpUpdate)
+	return &FeaturePackageItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FeaturePackageItemClient) UpdateOne(_m *FeaturePackageItem) *FeaturePackageItemUpdateOne {
+	mutation := newFeaturePackageItemMutation(c.config, OpUpdateOne, withFeaturePackageItem(_m))
+	return &FeaturePackageItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FeaturePackageItemClient) UpdateOneID(id int) *FeaturePackageItemUpdateOne {
+	mutation := newFeaturePackageItemMutation(c.config, OpUpdateOne, withFeaturePackageItemID(id))
+	return &FeaturePackageItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FeaturePackageItem.
+func (c *FeaturePackageItemClient) Delete() *FeaturePackageItemDelete {
+	mutation := newFeaturePackageItemMutation(c.config, OpDelete)
+	return &FeaturePackageItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FeaturePackageItemClient) DeleteOne(_m *FeaturePackageItem) *FeaturePackageItemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FeaturePackageItemClient) DeleteOneID(id int) *FeaturePackageItemDeleteOne {
+	builder := c.Delete().Where(featurepackageitem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FeaturePackageItemDeleteOne{builder}
+}
+
+// Query returns a query builder for FeaturePackageItem.
+func (c *FeaturePackageItemClient) Query() *FeaturePackageItemQuery {
+	return &FeaturePackageItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFeaturePackageItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FeaturePackageItem entity by its id.
+func (c *FeaturePackageItemClient) Get(ctx context.Context, id int) (*FeaturePackageItem, error) {
+	return c.Query().Where(featurepackageitem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FeaturePackageItemClient) GetX(ctx context.Context, id int) *FeaturePackageItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *FeaturePackageItemClient) Hooks() []Hook {
+	return c.hooks.FeaturePackageItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *FeaturePackageItemClient) Interceptors() []Interceptor {
+	return c.inters.FeaturePackageItem
+}
+
+func (c *FeaturePackageItemClient) mutate(ctx context.Context, m *FeaturePackageItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FeaturePackageItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FeaturePackageItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FeaturePackageItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FeaturePackageItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FeaturePackageItem mutation op: %q", m.Op())
+	}
+}
+
 // MemberClient is a client for the Member schema.
 type MemberClient struct {
 	config
@@ -3351,6 +3643,139 @@ func (c *NamespaceClient) mutate(ctx context.Context, m *NamespaceMutation) (Val
 		return (&NamespaceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Namespace mutation op: %q", m.Op())
+	}
+}
+
+// NamespaceFeatureClient is a client for the NamespaceFeature schema.
+type NamespaceFeatureClient struct {
+	config
+}
+
+// NewNamespaceFeatureClient returns a client for the NamespaceFeature from the given config.
+func NewNamespaceFeatureClient(c config) *NamespaceFeatureClient {
+	return &NamespaceFeatureClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `namespacefeature.Hooks(f(g(h())))`.
+func (c *NamespaceFeatureClient) Use(hooks ...Hook) {
+	c.hooks.NamespaceFeature = append(c.hooks.NamespaceFeature, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `namespacefeature.Intercept(f(g(h())))`.
+func (c *NamespaceFeatureClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NamespaceFeature = append(c.inters.NamespaceFeature, interceptors...)
+}
+
+// Create returns a builder for creating a NamespaceFeature entity.
+func (c *NamespaceFeatureClient) Create() *NamespaceFeatureCreate {
+	mutation := newNamespaceFeatureMutation(c.config, OpCreate)
+	return &NamespaceFeatureCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NamespaceFeature entities.
+func (c *NamespaceFeatureClient) CreateBulk(builders ...*NamespaceFeatureCreate) *NamespaceFeatureCreateBulk {
+	return &NamespaceFeatureCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NamespaceFeatureClient) MapCreateBulk(slice any, setFunc func(*NamespaceFeatureCreate, int)) *NamespaceFeatureCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NamespaceFeatureCreateBulk{err: fmt.Errorf("calling to NamespaceFeatureClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NamespaceFeatureCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NamespaceFeatureCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NamespaceFeature.
+func (c *NamespaceFeatureClient) Update() *NamespaceFeatureUpdate {
+	mutation := newNamespaceFeatureMutation(c.config, OpUpdate)
+	return &NamespaceFeatureUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NamespaceFeatureClient) UpdateOne(_m *NamespaceFeature) *NamespaceFeatureUpdateOne {
+	mutation := newNamespaceFeatureMutation(c.config, OpUpdateOne, withNamespaceFeature(_m))
+	return &NamespaceFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NamespaceFeatureClient) UpdateOneID(id int) *NamespaceFeatureUpdateOne {
+	mutation := newNamespaceFeatureMutation(c.config, OpUpdateOne, withNamespaceFeatureID(id))
+	return &NamespaceFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NamespaceFeature.
+func (c *NamespaceFeatureClient) Delete() *NamespaceFeatureDelete {
+	mutation := newNamespaceFeatureMutation(c.config, OpDelete)
+	return &NamespaceFeatureDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NamespaceFeatureClient) DeleteOne(_m *NamespaceFeature) *NamespaceFeatureDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NamespaceFeatureClient) DeleteOneID(id int) *NamespaceFeatureDeleteOne {
+	builder := c.Delete().Where(namespacefeature.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NamespaceFeatureDeleteOne{builder}
+}
+
+// Query returns a query builder for NamespaceFeature.
+func (c *NamespaceFeatureClient) Query() *NamespaceFeatureQuery {
+	return &NamespaceFeatureQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNamespaceFeature},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NamespaceFeature entity by its id.
+func (c *NamespaceFeatureClient) Get(ctx context.Context, id int) (*NamespaceFeature, error) {
+	return c.Query().Where(namespacefeature.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NamespaceFeatureClient) GetX(ctx context.Context, id int) *NamespaceFeature {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NamespaceFeatureClient) Hooks() []Hook {
+	return c.hooks.NamespaceFeature
+}
+
+// Interceptors returns the client interceptors.
+func (c *NamespaceFeatureClient) Interceptors() []Interceptor {
+	return c.inters.NamespaceFeature
+}
+
+func (c *NamespaceFeatureClient) mutate(ctx context.Context, m *NamespaceFeatureMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NamespaceFeatureCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NamespaceFeatureUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NamespaceFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NamespaceFeatureDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NamespaceFeature mutation op: %q", m.Op())
 	}
 }
 
@@ -6285,25 +6710,25 @@ type (
 	hooks struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
-		AlertRuleLevel, Captcha, Cluster, Datasource, EmailLoginCode, Member,
-		MemberInvite, MemberRole, MessageLog, MessageLogShard, Namespace,
-		NotificationChannel, NotificationGroup, NotificationOnCall,
-		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, ProbeResult, ProbeTarget, ProbeTargetGroup, Role, RolePermission,
-		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Hook
+		AlertRuleLevel, Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
+		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
+		MessageLogShard, Namespace, NamespaceFeature, NotificationChannel,
+		NotificationGroup, NotificationOnCall, NotificationOnCallGroup,
+		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
+		NotificationTask, NotificationTemplate, Permission, ProbeResult, ProbeTarget,
+		ProbeTargetGroup, Role, RolePermission, SSHCommand, SSHCommandAudit,
+		SystemMessage, User, UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
-		AlertRuleLevel, Captcha, Cluster, Datasource, EmailLoginCode, Member,
-		MemberInvite, MemberRole, MessageLog, MessageLogShard, Namespace,
-		NotificationChannel, NotificationGroup, NotificationOnCall,
-		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, ProbeResult, ProbeTarget, ProbeTargetGroup, Role, RolePermission,
-		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Interceptor
+		AlertRuleLevel, Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
+		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
+		MessageLogShard, Namespace, NamespaceFeature, NotificationChannel,
+		NotificationGroup, NotificationOnCall, NotificationOnCallGroup,
+		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
+		NotificationTask, NotificationTemplate, Permission, ProbeResult, ProbeTarget,
+		ProbeTargetGroup, Role, RolePermission, SSHCommand, SSHCommandAudit,
+		SystemMessage, User, UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
 	}
 )

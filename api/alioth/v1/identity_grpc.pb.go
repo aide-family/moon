@@ -1067,16 +1067,24 @@ var SelfService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	NamespaceService_CreateNamespace_FullMethodName        = "/alioth.v1.NamespaceService/CreateNamespace"
-	NamespaceService_UpdateNamespace_FullMethodName        = "/alioth.v1.NamespaceService/UpdateNamespace"
-	NamespaceService_UpdateNamespaceStatus_FullMethodName  = "/alioth.v1.NamespaceService/UpdateNamespaceStatus"
-	NamespaceService_DeleteNamespace_FullMethodName        = "/alioth.v1.NamespaceService/DeleteNamespace"
-	NamespaceService_GetNamespace_FullMethodName           = "/alioth.v1.NamespaceService/GetNamespace"
-	NamespaceService_ListNamespaces_FullMethodName         = "/alioth.v1.NamespaceService/ListNamespaces"
-	NamespaceService_SelectNamespaces_FullMethodName       = "/alioth.v1.NamespaceService/SelectNamespaces"
-	NamespaceService_ListSimpleNamespaces_FullMethodName   = "/alioth.v1.NamespaceService/ListSimpleNamespaces"
-	NamespaceService_ListSystemNamespaces_FullMethodName   = "/alioth.v1.NamespaceService/ListSystemNamespaces"
-	NamespaceService_TransferNamespaceOwner_FullMethodName = "/alioth.v1.NamespaceService/TransferNamespaceOwner"
+	NamespaceService_CreateNamespace_FullMethodName         = "/alioth.v1.NamespaceService/CreateNamespace"
+	NamespaceService_UpdateNamespace_FullMethodName         = "/alioth.v1.NamespaceService/UpdateNamespace"
+	NamespaceService_UpdateNamespaceStatus_FullMethodName   = "/alioth.v1.NamespaceService/UpdateNamespaceStatus"
+	NamespaceService_DeleteNamespace_FullMethodName         = "/alioth.v1.NamespaceService/DeleteNamespace"
+	NamespaceService_GetNamespace_FullMethodName            = "/alioth.v1.NamespaceService/GetNamespace"
+	NamespaceService_ListNamespaces_FullMethodName          = "/alioth.v1.NamespaceService/ListNamespaces"
+	NamespaceService_SelectNamespaces_FullMethodName        = "/alioth.v1.NamespaceService/SelectNamespaces"
+	NamespaceService_ListSimpleNamespaces_FullMethodName    = "/alioth.v1.NamespaceService/ListSimpleNamespaces"
+	NamespaceService_ListSystemNamespaces_FullMethodName    = "/alioth.v1.NamespaceService/ListSystemNamespaces"
+	NamespaceService_TransferNamespaceOwner_FullMethodName  = "/alioth.v1.NamespaceService/TransferNamespaceOwner"
+	NamespaceService_ListFeatures_FullMethodName            = "/alioth.v1.NamespaceService/ListFeatures"
+	NamespaceService_ListFeaturePackages_FullMethodName     = "/alioth.v1.NamespaceService/ListFeaturePackages"
+	NamespaceService_GetFeaturePackage_FullMethodName       = "/alioth.v1.NamespaceService/GetFeaturePackage"
+	NamespaceService_CreateFeaturePackage_FullMethodName    = "/alioth.v1.NamespaceService/CreateFeaturePackage"
+	NamespaceService_UpdateFeaturePackage_FullMethodName    = "/alioth.v1.NamespaceService/UpdateFeaturePackage"
+	NamespaceService_DeleteFeaturePackage_FullMethodName    = "/alioth.v1.NamespaceService/DeleteFeaturePackage"
+	NamespaceService_GetNamespaceFeatures_FullMethodName    = "/alioth.v1.NamespaceService/GetNamespaceFeatures"
+	NamespaceService_UpdateNamespaceFeatures_FullMethodName = "/alioth.v1.NamespaceService/UpdateNamespaceFeatures"
 )
 
 // NamespaceServiceClient is the client API for NamespaceService service.
@@ -1105,6 +1113,22 @@ type NamespaceServiceClient interface {
 	ListSystemNamespaces(ctx context.Context, in *ListSystemNamespacesRequest, opts ...grpc.CallOption) (*ListSystemNamespacesResponse, error)
 	// 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(ctx context.Context, in *TransferNamespaceOwnerRequest, opts ...grpc.CallOption) (*TransferNamespaceOwnerResponse, error)
+	// 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
+	ListFeatures(ctx context.Context, in *ListFeaturesRequest, opts ...grpc.CallOption) (*ListFeaturesResponse, error)
+	// 平台管理员分页列出功能套餐。需要 system:package:read。
+	ListFeaturePackages(ctx context.Context, in *ListFeaturePackagesRequest, opts ...grpc.CallOption) (*ListFeaturePackagesResponse, error)
+	// 获取一个功能套餐。需要 system:package:read。
+	GetFeaturePackage(ctx context.Context, in *GetFeaturePackageRequest, opts ...grpc.CallOption) (*GetFeaturePackageResponse, error)
+	// 新建功能套餐。需要 system:package:write，仅超级管理员。
+	CreateFeaturePackage(ctx context.Context, in *CreateFeaturePackageRequest, opts ...grpc.CallOption) (*CreateFeaturePackageResponse, error)
+	// 修改功能套餐。需要 system:package:write；基础套餐不能改名。
+	UpdateFeaturePackage(ctx context.Context, in *UpdateFeaturePackageRequest, opts ...grpc.CallOption) (*UpdateFeaturePackageResponse, error)
+	// 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
+	DeleteFeaturePackage(ctx context.Context, in *DeleteFeaturePackageRequest, opts ...grpc.CallOption) (*DeleteFeaturePackageResponse, error)
+	// 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
+	GetNamespaceFeatures(ctx context.Context, in *GetNamespaceFeaturesRequest, opts ...grpc.CallOption) (*GetNamespaceFeaturesResponse, error)
+	// 原子设置租户的套餐和目标有效功能。需要 system:package:write。
+	UpdateNamespaceFeatures(ctx context.Context, in *UpdateNamespaceFeaturesRequest, opts ...grpc.CallOption) (*UpdateNamespaceFeaturesResponse, error)
 }
 
 type namespaceServiceClient struct {
@@ -1215,6 +1239,86 @@ func (c *namespaceServiceClient) TransferNamespaceOwner(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *namespaceServiceClient) ListFeatures(ctx context.Context, in *ListFeaturesRequest, opts ...grpc.CallOption) (*ListFeaturesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFeaturesResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_ListFeatures_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) ListFeaturePackages(ctx context.Context, in *ListFeaturePackagesRequest, opts ...grpc.CallOption) (*ListFeaturePackagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFeaturePackagesResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_ListFeaturePackages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) GetFeaturePackage(ctx context.Context, in *GetFeaturePackageRequest, opts ...grpc.CallOption) (*GetFeaturePackageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFeaturePackageResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_GetFeaturePackage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) CreateFeaturePackage(ctx context.Context, in *CreateFeaturePackageRequest, opts ...grpc.CallOption) (*CreateFeaturePackageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateFeaturePackageResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_CreateFeaturePackage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) UpdateFeaturePackage(ctx context.Context, in *UpdateFeaturePackageRequest, opts ...grpc.CallOption) (*UpdateFeaturePackageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateFeaturePackageResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_UpdateFeaturePackage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) DeleteFeaturePackage(ctx context.Context, in *DeleteFeaturePackageRequest, opts ...grpc.CallOption) (*DeleteFeaturePackageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteFeaturePackageResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_DeleteFeaturePackage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) GetNamespaceFeatures(ctx context.Context, in *GetNamespaceFeaturesRequest, opts ...grpc.CallOption) (*GetNamespaceFeaturesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetNamespaceFeaturesResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_GetNamespaceFeatures_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) UpdateNamespaceFeatures(ctx context.Context, in *UpdateNamespaceFeaturesRequest, opts ...grpc.CallOption) (*UpdateNamespaceFeaturesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateNamespaceFeaturesResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_UpdateNamespaceFeatures_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NamespaceServiceServer is the server API for NamespaceService service.
 // All implementations must embed UnimplementedNamespaceServiceServer
 // for forward compatibility.
@@ -1241,6 +1345,22 @@ type NamespaceServiceServer interface {
 	ListSystemNamespaces(context.Context, *ListSystemNamespacesRequest) (*ListSystemNamespacesResponse, error)
 	// 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error)
+	// 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
+	ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error)
+	// 平台管理员分页列出功能套餐。需要 system:package:read。
+	ListFeaturePackages(context.Context, *ListFeaturePackagesRequest) (*ListFeaturePackagesResponse, error)
+	// 获取一个功能套餐。需要 system:package:read。
+	GetFeaturePackage(context.Context, *GetFeaturePackageRequest) (*GetFeaturePackageResponse, error)
+	// 新建功能套餐。需要 system:package:write，仅超级管理员。
+	CreateFeaturePackage(context.Context, *CreateFeaturePackageRequest) (*CreateFeaturePackageResponse, error)
+	// 修改功能套餐。需要 system:package:write；基础套餐不能改名。
+	UpdateFeaturePackage(context.Context, *UpdateFeaturePackageRequest) (*UpdateFeaturePackageResponse, error)
+	// 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
+	DeleteFeaturePackage(context.Context, *DeleteFeaturePackageRequest) (*DeleteFeaturePackageResponse, error)
+	// 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
+	GetNamespaceFeatures(context.Context, *GetNamespaceFeaturesRequest) (*GetNamespaceFeaturesResponse, error)
+	// 原子设置租户的套餐和目标有效功能。需要 system:package:write。
+	UpdateNamespaceFeatures(context.Context, *UpdateNamespaceFeaturesRequest) (*UpdateNamespaceFeaturesResponse, error)
 	mustEmbedUnimplementedNamespaceServiceServer()
 }
 
@@ -1280,6 +1400,30 @@ func (UnimplementedNamespaceServiceServer) ListSystemNamespaces(context.Context,
 }
 func (UnimplementedNamespaceServiceServer) TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TransferNamespaceOwner not implemented")
+}
+func (UnimplementedNamespaceServiceServer) ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFeatures not implemented")
+}
+func (UnimplementedNamespaceServiceServer) ListFeaturePackages(context.Context, *ListFeaturePackagesRequest) (*ListFeaturePackagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFeaturePackages not implemented")
+}
+func (UnimplementedNamespaceServiceServer) GetFeaturePackage(context.Context, *GetFeaturePackageRequest) (*GetFeaturePackageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFeaturePackage not implemented")
+}
+func (UnimplementedNamespaceServiceServer) CreateFeaturePackage(context.Context, *CreateFeaturePackageRequest) (*CreateFeaturePackageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateFeaturePackage not implemented")
+}
+func (UnimplementedNamespaceServiceServer) UpdateFeaturePackage(context.Context, *UpdateFeaturePackageRequest) (*UpdateFeaturePackageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateFeaturePackage not implemented")
+}
+func (UnimplementedNamespaceServiceServer) DeleteFeaturePackage(context.Context, *DeleteFeaturePackageRequest) (*DeleteFeaturePackageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteFeaturePackage not implemented")
+}
+func (UnimplementedNamespaceServiceServer) GetNamespaceFeatures(context.Context, *GetNamespaceFeaturesRequest) (*GetNamespaceFeaturesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetNamespaceFeatures not implemented")
+}
+func (UnimplementedNamespaceServiceServer) UpdateNamespaceFeatures(context.Context, *UpdateNamespaceFeaturesRequest) (*UpdateNamespaceFeaturesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateNamespaceFeatures not implemented")
 }
 func (UnimplementedNamespaceServiceServer) mustEmbedUnimplementedNamespaceServiceServer() {}
 func (UnimplementedNamespaceServiceServer) testEmbeddedByValue()                          {}
@@ -1482,6 +1626,150 @@ func _NamespaceService_TransferNamespaceOwner_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NamespaceService_ListFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFeaturesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).ListFeatures(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_ListFeatures_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).ListFeatures(ctx, req.(*ListFeaturesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_ListFeaturePackages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFeaturePackagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).ListFeaturePackages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_ListFeaturePackages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).ListFeaturePackages(ctx, req.(*ListFeaturePackagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_GetFeaturePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeaturePackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).GetFeaturePackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_GetFeaturePackage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).GetFeaturePackage(ctx, req.(*GetFeaturePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_CreateFeaturePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateFeaturePackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).CreateFeaturePackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_CreateFeaturePackage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).CreateFeaturePackage(ctx, req.(*CreateFeaturePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_UpdateFeaturePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateFeaturePackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).UpdateFeaturePackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_UpdateFeaturePackage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).UpdateFeaturePackage(ctx, req.(*UpdateFeaturePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_DeleteFeaturePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteFeaturePackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).DeleteFeaturePackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_DeleteFeaturePackage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).DeleteFeaturePackage(ctx, req.(*DeleteFeaturePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_GetNamespaceFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNamespaceFeaturesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).GetNamespaceFeatures(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_GetNamespaceFeatures_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).GetNamespaceFeatures(ctx, req.(*GetNamespaceFeaturesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_UpdateNamespaceFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateNamespaceFeaturesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).UpdateNamespaceFeatures(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_UpdateNamespaceFeatures_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).UpdateNamespaceFeatures(ctx, req.(*UpdateNamespaceFeaturesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NamespaceService_ServiceDesc is the grpc.ServiceDesc for NamespaceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1528,6 +1816,38 @@ var NamespaceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TransferNamespaceOwner",
 			Handler:    _NamespaceService_TransferNamespaceOwner_Handler,
+		},
+		{
+			MethodName: "ListFeatures",
+			Handler:    _NamespaceService_ListFeatures_Handler,
+		},
+		{
+			MethodName: "ListFeaturePackages",
+			Handler:    _NamespaceService_ListFeaturePackages_Handler,
+		},
+		{
+			MethodName: "GetFeaturePackage",
+			Handler:    _NamespaceService_GetFeaturePackage_Handler,
+		},
+		{
+			MethodName: "CreateFeaturePackage",
+			Handler:    _NamespaceService_CreateFeaturePackage_Handler,
+		},
+		{
+			MethodName: "UpdateFeaturePackage",
+			Handler:    _NamespaceService_UpdateFeaturePackage_Handler,
+		},
+		{
+			MethodName: "DeleteFeaturePackage",
+			Handler:    _NamespaceService_DeleteFeaturePackage_Handler,
+		},
+		{
+			MethodName: "GetNamespaceFeatures",
+			Handler:    _NamespaceService_GetNamespaceFeatures_Handler,
+		},
+		{
+			MethodName: "UpdateNamespaceFeatures",
+			Handler:    _NamespaceService_UpdateNamespaceFeatures_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

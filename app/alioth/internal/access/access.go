@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/wire"
@@ -17,16 +18,17 @@ import (
 
 var ProviderSet = wire.NewSet(NewChecker)
 
-// Checker 在具体用例之前确认操作者和租户。
+// Checker 在具体用例之前确认操作者和租户，以及租户是否开通了对应功能。
 type Checker struct {
 	Users      repository.UserRepo
 	Namespaces repository.NamespaceRepo
 	Roles      repository.RoleRepo
+	Features   repository.FeatureRepo
 	Log        *slog.Logger
 }
 
-func NewChecker(users repository.UserRepo, namespaces repository.NamespaceRepo, roles repository.RoleRepo, logger *slog.Logger) Checker {
-	return Checker{Users: users, Namespaces: namespaces, Roles: roles, Log: logger}
+func NewChecker(users repository.UserRepo, namespaces repository.NamespaceRepo, roles repository.RoleRepo, features repository.FeatureRepo, logger *slog.Logger) Checker {
+	return Checker{Users: users, Namespaces: namespaces, Roles: roles, Features: features, Log: logger}
 }
 
 // RequireSystem 校验平台权限。它不读取 X-Namespace，也不依赖租户成员身份。
@@ -105,22 +107,35 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 	if err != nil {
 		return c.Wrap(err)
 	}
-	if _, ok := perms[code]; ok {
-		return nil
-	}
-	// 平台管理员可以只读切入不是自己成员的租户：只有租户目录里的 :read 放行，
-	// 写、删除、介入和执行动作仍然要求该租户的成员角色。
-	if perm.IsReadOnly(code) {
+	if _, ok := perms[code]; !ok {
+		// 平台管理员可以只读切入不是自己成员的租户：只有租户目录里的 :read 放行，
+		// 写、删除、介入和执行动作仍然要求该租户的成员角色。
+		if !perm.IsReadOnly(code) {
+			return merr.Forbidden("permission denied")
+		}
 		admin, err := c.SystemAdmin(ctx)
 		if err != nil {
 			return err
 		}
-		if admin {
-			c.Log.Debug(fmt.Sprintf("access: system admin read-only user=%s namespace=%s permission=%s", uid, ns, code))
-			return nil
+		if !admin {
+			return merr.Forbidden("permission denied")
 		}
+		c.Log.Debug(fmt.Sprintf("access: system admin read-only user=%s namespace=%s permission=%s", uid, ns, code))
 	}
-	return merr.Forbidden("permission denied")
+	// 权限通过后再看功能开通情况：租户没开通的功能，成员持有权限也不能用，
+	// 平台管理员的只读视角同样受限。
+	featureCode := perm.FeatureOf(code)
+	if featureCode == "" {
+		return nil
+	}
+	features, err := c.Features.EffectiveFeatures(ctx, ns)
+	if err != nil {
+		return c.Wrap(err)
+	}
+	if slices.Contains(features, featureCode) {
+		return nil
+	}
+	return merr.Forbidden("feature not enabled")
 }
 
 // SystemAdmin 判断当前登录用户是否持有平台管理员角色。

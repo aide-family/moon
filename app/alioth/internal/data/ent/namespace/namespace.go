@@ -28,6 +28,8 @@ const (
 	FieldSecret = "secret"
 	// FieldOwnerUID holds the string denoting the owner_uid field in the database.
 	FieldOwnerUID = "owner_uid"
+	// FieldPackageUID holds the string denoting the package_uid field in the database.
+	FieldPackageUID = "package_uid"
 	// FieldLogo holds the string denoting the logo field in the database.
 	FieldLogo = "logo"
 	// FieldRemark holds the string denoting the remark field in the database.
@@ -48,6 +50,7 @@ var Columns = []string{
 	FieldName,
 	FieldSecret,
 	FieldOwnerUID,
+	FieldPackageUID,
 	FieldLogo,
 	FieldRemark,
 	FieldStatus,
@@ -78,6 +81,8 @@ var (
 	DefaultSecret string
 	// OwnerUIDValidator is a validator for the "owner_uid" field. It is called by the builders before save.
 	OwnerUIDValidator func(string) error
+	// DefaultPackageUID holds the default value on creation for the "package_uid" field.
+	DefaultPackageUID string
 	// DefaultLogo holds the default value on creation for the "logo" field.
 	DefaultLogo string
 	// DefaultRemark holds the default value on creation for the "remark" field.
@@ -151,6 +156,11 @@ func BySecret(opts ...sql.OrderTermOption) OrderOption {
 // ByOwnerUID orders the results by the owner_uid field.
 func ByOwnerUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOwnerUID, opts...).ToFunc()
+}
+
+// ByPackageUID orders the results by the package_uid field.
+func ByPackageUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPackageUID, opts...).ToFunc()
 }
 
 // ByLogo orders the results by the logo field.
