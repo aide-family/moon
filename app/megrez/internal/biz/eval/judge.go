@@ -4,13 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/aide-family/moon/app/megrez/pkg/bo"
+	"github.com/aide-family/moon/pkg/alertjudge"
 	"github.com/aide-family/moon/pkg/alerttmpl"
 	"github.com/aide-family/moon/pkg/fingerprint"
 )
@@ -59,106 +58,21 @@ func HitsWithQuery(ctx context.Context, rule bo.RuleSnapshot, samples []bo.Sampl
 	return hits
 }
 
-// matchLevel 按级别条件比较采样点。step 是数据源的时间桶秒数，只有
-// VictoriaLogs stats 这类按桶返回的数据才非 0；FOR 必须保证桶连续，
-// 否则窗口中间缺失的桶会被首末点跨度掩盖，形成误告警。
+// matchLevel 按级别条件比较采样点，比较逻辑与探测规则共用 pkg/alertjudge。
 func matchLevel(level bo.Level, points []bo.Point, step int64) (float64, string, bool) {
 	if len(points) == 0 {
 		return 0, "", false
 	}
-	switch level.Sample {
-	case "MAX":
-		best := points[0]
-		for _, point := range points[1:] {
-			if point.Value > best.Value {
-				best = point
-			}
-		}
-		if compare(level.Condition, best.Value, level.Threshold) {
-			return best.Value, best.Raw, true
-		}
-	case "MIN":
-		best := points[0]
-		for _, point := range points[1:] {
-			if point.Value < best.Value {
-				best = point
-			}
-		}
-		if compare(level.Condition, best.Value, level.Threshold) {
-			return best.Value, best.Raw, true
-		}
-	case "FOR":
-		for _, point := range points {
-			if !compare(level.Condition, point.Value, level.Threshold) {
-				return 0, "", false
-			}
-		}
-		if step > 0 {
-			// 允许半个步长的容差：上游可能把桶时间戳编码成浮点
-			// 秒或毫秒，换回纳秒时有微小抖动；超过一个半步长仍然说明
-			// 中间缺桶。
-			gap := time.Duration(step) * time.Second
-			for index := 1; index < len(points); index++ {
-				if points[index].At.Sub(points[index-1].At) > gap+gap/2 {
-					return 0, "", false
-				}
-			}
-		}
-		span := points[len(points)-1].At.Sub(points[0].At)
-		if level.ForSeconds > 0 && span < time.Duration(level.ForSeconds)*time.Second {
-			return 0, "", false
-		}
-		last := points[len(points)-1]
-		return last.Value, last.Raw, true
+	converted := make([]alertjudge.Point, 0, len(points))
+	for _, point := range points {
+		converted = append(converted, alertjudge.Point{Value: point.Value, At: point.At, Raw: point.Raw})
 	}
-	return 0, "", false
-}
-
-func compare(condition string, value float64, threshold string) bool {
-	switch condition {
-	case "EQ":
-		n, ok := atof(threshold)
-		return ok && value == n
-	case "NE":
-		n, ok := atof(threshold)
-		return ok && value != n
-	case "GT":
-		n, ok := atof(threshold)
-		return ok && value > n
-	case "GTE":
-		n, ok := atof(threshold)
-		return ok && value >= n
-	case "LT":
-		n, ok := atof(threshold)
-		return ok && value < n
-	case "LTE":
-		n, ok := atof(threshold)
-		return ok && value <= n
-	case "IN":
-		return inList(value, threshold)
-	case "NOT_IN":
-		return !inList(value, threshold)
-	default:
-		return false
-	}
-}
-
-func inList(value float64, threshold string) bool {
-	for _, part := range strings.Split(threshold, ",") {
-		n, ok := atof(strings.TrimSpace(part))
-		if ok && value == n {
-			return true
-		}
-	}
-	return false
-}
-
-func atof(value string) (float64, bool) {
-	n, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
-	if err != nil || math.IsNaN(n) {
-		return 0, false
-	}
-	return n, true
+	return alertjudge.Match(alertjudge.Level{
+		Condition:  level.Condition,
+		Sample:     level.Sample,
+		Threshold:  level.Threshold,
+		ForSeconds: level.ForSeconds,
+	}, converted, step)
 }
 
 func window(rule bo.RuleSnapshot, now time.Time) (int64, int64, int64) {
