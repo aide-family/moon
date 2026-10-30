@@ -10,6 +10,9 @@ import (
 type NamespaceRepo interface {
 	CreateNamespace(ctx context.Context, name, remark, ownerUID string) (*bo.Namespace, error)
 	ListUserNamespaces(ctx context.Context, userUID string) ([]bo.Namespace, error)
+	// ListUserNamespacesIncludingDisabled 与 ListUserNamespaces 相同，但保留已停用的租户。
+	// 只用于切换失败时解释原因，调用方不得把停用租户当成可切换目标。
+	ListUserNamespacesIncludingDisabled(ctx context.Context, userUID string) ([]bo.Namespace, error)
 	ListNamespaces(ctx context.Context, userUID string, page, pageSize int, name string) ([]bo.Namespace, int, error)
 	// ListAllNamespaces 列出平台全部租户，供系统管理员查看。不按成员身份过滤。
 	ListAllNamespaces(ctx context.Context, page, pageSize int, name, status string) ([]bo.Namespace, int, error)

@@ -205,13 +205,22 @@ func (tenancy *Tenancy) ListAllNamespaces(ctx context.Context, pageNo, pageSize 
 	return items, total, p, s, tenancy.access.Wrap(err)
 }
 
-// ListMine 返回当前用户加入的租户，供个人资料使用，不要求已经选定租户。
-func (tenancy *Tenancy) ListMine(ctx context.Context) ([]bo.Namespace, error) {
+// ListMine 返回当前用户加入的租户，供切换器使用，不要求已经选定租户。
+// includeDisabled 只用于切换失败时解释原因；正常切换列表不包含停用租户。
+func (tenancy *Tenancy) ListMine(ctx context.Context, includeDisabled bool) ([]bo.Namespace, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
 	}
-	items, err := tenancy.namespaces.ListUserNamespaces(ctx, uid)
+	var (
+		items []bo.Namespace
+		err   error
+	)
+	if includeDisabled {
+		items, err = tenancy.namespaces.ListUserNamespacesIncludingDisabled(ctx, uid)
+	} else {
+		items, err = tenancy.namespaces.ListUserNamespaces(ctx, uid)
+	}
 	return items, tenancy.access.Wrap(err)
 }
 

@@ -237,13 +237,26 @@ func (r *namespaceRepo) joinedNamespaceUIDs(ctx context.Context, userUID string)
 }
 
 func (r *namespaceRepo) ListUserNamespaces(ctx context.Context, userUID string) ([]bo.Namespace, error) {
+	// 停用租户不可切换进入：只列出 ACTIVE 的租户，停用后前端会自动回落到其他租户。
+	return r.userNamespaces(ctx, userUID, false)
+}
+
+// ListUserNamespacesIncludingDisabled 保留停用租户，仅用于解释切换失败的原因。
+func (r *namespaceRepo) ListUserNamespacesIncludingDisabled(ctx context.Context, userUID string) ([]bo.Namespace, error) {
+	return r.userNamespaces(ctx, userUID, true)
+}
+
+func (r *namespaceRepo) userNamespaces(ctx context.Context, userUID string, includeDisabled bool) ([]bo.Namespace, error) {
 	uids, err := r.joinedNamespaceUIDs(ctx, userUID)
 	if err != nil || len(uids) == 0 {
 		return nil, err
 	}
-	// 停用租户不可切换进入：只列出 ACTIVE 的租户，停用后前端会自动回落到其他租户。
+	preds := []predicate.Namespace{namespace.UIDIn(uids...), namespace.DeletedAtIsNil()}
+	if !includeDisabled {
+		preds = append(preds, namespace.StatusNEQ(namespace.StatusDISABLED))
+	}
 	rows, err := r.client.Namespace.Query().
-		Where(namespace.UIDIn(uids...), namespace.DeletedAtIsNil(), namespace.StatusNEQ(namespace.StatusDISABLED)).
+		Where(preds...).
 		Order(ent.Asc(namespace.FieldName)).
 		All(ctx)
 	if err != nil {

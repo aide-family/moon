@@ -21,6 +21,21 @@ export function listSelfNamespaces(
   return get<SelfNamespaces>("/self/namespaces", undefined, undefined, options)
 }
 
+/**
+ * GET /v1/self/namespaces，可要求包含已停用的租户。
+ * includeDisabled 只用于切换失败时解释原因；切换器本身不展示停用租户。
+ */
+export function listSelfNamespacesIncludingDisabled(
+  options?: RequestOptions
+): Promise<SelfNamespaces> {
+  return get<SelfNamespaces>(
+    "/self/namespaces",
+    { includeDisabled: true },
+    undefined,
+    options
+  )
+}
+
 /** GET /v1/self/permissions */
 export function getSelfPermissions(
   namespace?: string,

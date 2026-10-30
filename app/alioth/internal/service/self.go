@@ -38,8 +38,8 @@ func (s *SelfService) GetSelfInfo(ctx context.Context, _ *v1.GetSelfInfoRequest)
 	}, nil
 }
 
-func (s *SelfService) ListSelfNamespaces(ctx context.Context, _ *v1.ListSelfNamespacesRequest) (*v1.ListSelfNamespacesResponse, error) {
-	items, err := s.tenancy.ListMine(ctx)
+func (s *SelfService) ListSelfNamespaces(ctx context.Context, req *v1.ListSelfNamespacesRequest) (*v1.ListSelfNamespacesResponse, error) {
+	items, err := s.tenancy.ListMine(ctx, req.GetIncludeDisabled())
 	if err != nil {
 		return nil, err
 	}

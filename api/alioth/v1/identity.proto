@@ -748,7 +748,11 @@ message GetSelfInfoResponse {
 }
 
 // 列出租户不需要参数。
-message ListSelfNamespacesRequest {}
+message ListSelfNamespacesRequest {
+  // 是否包含调用者仍是成员、但已被平台停用的租户。
+  // 切换租户失败时用它区分「租户停用」和「已不是成员」，平时不返回停用租户。
+  bool include_disabled = 1 [json_name = "includeDisabled"];
+}
 
 // 当前用户加入的租户。
 message ListSelfNamespacesResponse {

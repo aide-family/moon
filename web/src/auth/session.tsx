@@ -10,7 +10,12 @@ import {
 } from "react"
 
 import { ApiError } from "@/api/http"
-import { listSelfNamespaces, getSelfInfo, getSelfPermissions } from "@/api/self"
+import {
+  listSelfNamespaces,
+  listSelfNamespacesIncludingDisabled,
+  getSelfInfo,
+  getSelfPermissions,
+} from "@/api/self"
 import { getUnreadMessageCount } from "@/api/message"
 import i18n from "@/i18n"
 import { failureMessage } from "@/lib/form-error"
@@ -40,6 +45,34 @@ function isSystemAdmin(info: {
   )
 }
 
+// 切换目标不可用时给出可以行动的原因：停用、已不是成员或已删除。
+// 只读切入（系统管理员）没有成员身份，停用原因取 /self/permissions 的 403 原文。
+async function unavailableReason(
+  kind: SwitchKind,
+  uid: string,
+  probeError: unknown
+): Promise<string> {
+  if (
+    kind === "readonly" &&
+    probeError instanceof ApiError &&
+    probeError.raw === "namespace is disabled"
+  ) {
+    return "namespace.switcher.disabled"
+  }
+  try {
+    const all = await listSelfNamespacesIncludingDisabled({ silent: true })
+    const target = (all.items ?? []).find((item) => item.uid === uid)
+    if (target && target.status !== "ACTIVE") {
+      return "namespace.switcher.disabled"
+    }
+  } catch {
+    // 判断不出来就用通用文案，不影响失败提示。
+  }
+  return kind === "readonly"
+    ? "readonly.unavailable"
+    : "namespace.switcher.missing"
+}
+
 type SessionValue = {
   user: UserItem | null
   namespaces: NamespaceItem[]
@@ -65,6 +98,8 @@ type SessionValue = {
   loadStatus: number
   reload: () => void
   setNamespace: (uid: string) => void
+  /** 重新拉取可切换租户；停用或已移除的租户会从切换器列表里消失。 */
+  refreshNamespaces: () => Promise<void>
   /** 系统管理员以只读身份切入任意租户；resolve(false) 表示没有只读权限或租户不存在。 */
   enterNamespace: (uid: string) => Promise<boolean>
   /** 退出只读视角，回落到第一个成员租户（没有则空），并清掉持久化的租户。 */
@@ -146,11 +181,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             ? requested
             : ""
         let probed: SelfPermissions | null = null
+        let probeError: unknown = null
         if (!next && requested && canProbeReadOnly) {
           try {
             probed = await getSelfPermissions(requested, { silent: true })
-          } catch {
+          } catch (err) {
             probed = null
+            probeError = err
           }
           if (!active) {
             return
@@ -159,13 +196,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             next = requested
           }
         }
-        // 切换目标可能已被删除或成员身份被撤销，这时不要静默落到别的租户。
+        // 切换目标可能已被删除、停用或成员身份被撤销，这时不要静默落到别的租户。
+        // 顺便把切换器列表刷成最新结果：停用/移除的租户不再留在选项里。
         if (transition && next !== transition.to) {
+          setNamespaces(items)
           throw new Error(
             i18n.t(
-              transition.kind === "readonly"
-                ? "readonly.unavailable"
-                : "namespace.switcher.missing"
+              await unavailableReason(transition.kind, transition.to, probeError)
             )
           )
         }
@@ -328,6 +365,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [switchNamespace]
   )
 
+  // 重新拉取可切换租户。切换器打开时调用，避免平台停用租户后列表还停留在旧数据。
+  // 当前租户已不可用时交给 reload 回落到其他成员租户；只读视角本来就不在成员列表里。
+  const refreshNamespaces = useCallback(async () => {
+    if (switchRef.current) {
+      return
+    }
+    try {
+      const spaces = await listSelfNamespaces({ silent: true })
+      const items = spaces.items ?? []
+      setNamespaces(items)
+      const current = namespaceUidRef.current
+      if (!readOnly && current && !items.some((item) => item.uid === current)) {
+        reload()
+      }
+    } catch {
+      // 刷新失败保留旧列表；真正切换时后端仍会拒绝停用租户。
+    }
+  }, [readOnly, reload])
+
   const enterNamespace = useCallback(
     (uid: string) => switchNamespace(uid, "readonly"),
     [switchNamespace]
@@ -389,6 +445,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       loadStatus,
       reload,
       setNamespace,
+      refreshNamespaces,
       enterNamespace,
       exitReadOnly,
       clearSwitchError,
@@ -422,6 +479,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       loadStatus,
       reload,
       setNamespace,
+      refreshNamespaces,
       enterNamespace,
       exitReadOnly,
       clearSwitchError,

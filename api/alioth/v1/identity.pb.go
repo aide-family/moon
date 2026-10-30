@@ -1908,9 +1908,12 @@ func (x *GetSelfInfoResponse) GetSystemPermissions() []string {
 
 // 列出租户不需要参数。
 type ListSelfNamespacesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 是否包含调用者仍是成员、但已被平台停用的租户。
+	// 切换租户失败时用它区分「租户停用」和「已不是成员」，平时不返回停用租户。
+	IncludeDisabled bool `protobuf:"varint,1,opt,name=include_disabled,json=includeDisabled,proto3" json:"include_disabled,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ListSelfNamespacesRequest) Reset() {
@@ -1941,6 +1944,13 @@ func (x *ListSelfNamespacesRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListSelfNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*ListSelfNamespacesRequest) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *ListSelfNamespacesRequest) GetIncludeDisabled() bool {
+	if x != nil {
+		return x.IncludeDisabled
+	}
+	return false
 }
 
 // 当前用户加入的租户。
@@ -9256,8 +9266,9 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\x04user\x18\x01 \x01(\v2\x13.alioth.v1.UserItemR\x04user\x12\x1f\n" +
 	"\vsystem_role\x18\x02 \x01(\tR\n" +
 	"systemRole\x12-\n" +
-	"\x12system_permissions\x18\x03 \x03(\tR\x11systemPermissions\"\x1b\n" +
-	"\x19ListSelfNamespacesRequest\"L\n" +
+	"\x12system_permissions\x18\x03 \x03(\tR\x11systemPermissions\"F\n" +
+	"\x19ListSelfNamespacesRequest\x12)\n" +
+	"\x10include_disabled\x18\x01 \x01(\bR\x0fincludeDisabled\"L\n" +
 	"\x1aListSelfNamespacesResponse\x12.\n" +
 	"\x05items\x18\x01 \x03(\v2\x18.alioth.v1.NamespaceItemR\x05items\"\x15\n" +
 	"\x13RefreshTokenRequest\"9\n" +

@@ -131,7 +131,7 @@ function TenantAvatar({
 export function TenantSwitcher() {
   const { t } = useTranslation()
   const session = useSession()
-  const { clearSwitchError, switchError } = session
+  const { clearSwitchError, refreshNamespaces, switchError } = session
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [activeIndex, setActiveIndex] = useState(0)
@@ -223,6 +223,14 @@ export function TenantSwitcher() {
       ?.scrollIntoView({ block: "nearest" })
   }, [activeUid, open, query])
 
+  // 打开切换器时重新拉租户列表：平台停用或移除成员后，旧选项不会继续留在下拉里。
+  // refreshNamespaces 是 session 里稳定的回调，列表刷新不会反过来触发这个 effect。
+  useEffect(() => {
+    if (open) {
+      void refreshNamespaces()
+    }
+  }, [open, refreshNamespaces])
+
   useEffect(() => {
     const previous = previousSwitchingToRef.current
     previousSwitchingToRef.current = session.switchingTo
@@ -262,6 +270,14 @@ export function TenantSwitcher() {
 
   function choose(item: NamespaceItem) {
     if (session.switching || session.loading) {
+      return
+    }
+    // 停用租户不允许切换进入：说明原因并重新拉取列表，让它从选项里消失。
+    if (item.status !== "ACTIVE") {
+      toast.error(t("namespace.switcher.disabled"), {
+        description: t("namespace.switcher.disabledHint"),
+      })
+      void refreshNamespaces()
       return
     }
     handleOpenChange(false)
@@ -500,16 +516,21 @@ export function TenantSwitcher() {
                       const isActive = index === safeActiveIndex
                       const owner =
                         item.ownerName || item.ownerEmail || item.ownerUid
+                      const disabled = item.status !== "ACTIVE"
                       return (
                         <div
                           key={item.uid}
                           id={optionId(item.uid)}
                           role="option"
                           aria-selected={isCurrent}
+                          aria-disabled={disabled || undefined}
                           data-active={isActive}
                           title={item.remark || item.name}
                           className={cn(
-                            "group/tenant relative flex min-h-11 cursor-default items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors select-none",
+                            "group/tenant relative flex min-h-11 items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors select-none",
+                            disabled
+                              ? "cursor-not-allowed opacity-70"
+                              : "cursor-default",
                             isActive && "bg-accent text-accent-foreground"
                           )}
                           onPointerMove={() => setActiveIndex(index)}
