@@ -31,30 +31,32 @@ const inviteTTL = 7 * 24 * time.Hour
 // Membership 管理租户成员和平台邀请消息。
 // 邀请不会直接产生成员：必须由被邀请人在平台点击同意。
 type Membership struct {
-	members repository.MemberRepo
-	invites repository.InviteRepo
-	users   repository.UserRepo
-	roles   repository.RoleRepo
-	access  access.Checker
-	mail    *mailer.Sender
-	webURL  string
-	log     *slog.Logger
+	members  repository.MemberRepo
+	invites  repository.InviteRepo
+	users    repository.UserRepo
+	roles    repository.RoleRepo
+	features repository.FeatureRepo
+	access   access.Checker
+	mail     *mailer.Sender
+	webURL   string
+	log      *slog.Logger
 }
 
-func NewMembership(members repository.MemberRepo, invites repository.InviteRepo, users repository.UserRepo, roles repository.RoleRepo, checker access.Checker, mail *mailer.Sender, auth *conf.Auth, logger *slog.Logger) *Membership {
+func NewMembership(members repository.MemberRepo, invites repository.InviteRepo, users repository.UserRepo, roles repository.RoleRepo, features repository.FeatureRepo, checker access.Checker, mail *mailer.Sender, auth *conf.Auth, logger *slog.Logger) *Membership {
 	webURL := "http://127.0.0.1:8080"
 	if auth != nil && strings.TrimSpace(auth.GetWebUrl()) != "" {
 		webURL = strings.TrimRight(strings.TrimSpace(auth.GetWebUrl()), "/")
 	}
 	return &Membership{
-		members: members,
-		invites: invites,
-		users:   users,
-		roles:   roles,
-		access:  checker,
-		mail:    mail,
-		webURL:  webURL,
-		log:     logger,
+		members:  members,
+		invites:  invites,
+		users:    users,
+		roles:    roles,
+		features: features,
+		access:   checker,
+		mail:     mail,
+		webURL:   webURL,
+		log:      logger,
 	}
 }
 
@@ -115,6 +117,11 @@ func (membership *Membership) InviteMember(ctx context.Context, email, roleUID s
 	if role.Name == perm.RoleOwner || role.Status != "ACTIVE" {
 		return nil, false, merr.Client("invalid request")
 	}
+	// 邀请前先按当前套餐容量拦住明显超限的操作，给出比「确认时才发现」更早的提示。
+	// 真正防止并发放大的检查在确认邀请的事务里，以那里的结果为准。
+	if err := membership.checkMemberLimit(ctx, ns); err != nil {
+		return nil, false, err
+	}
 	inviterUID, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, false, merr.Unauthenticated("missing token")
@@ -135,6 +142,26 @@ func (membership *Membership) InviteMember(ctx context.Context, email, roleUID s
 	}
 	sent := membership.sendInviteMail(item, token)
 	return item, sent, nil
+}
+
+// checkMemberLimit 校验租户当前 JOINED 成员数没有达到套餐上限。
+// 上限 0 表示不限制；邀请中的成员不占名额，只有确认后成为 JOINED 成员才计入。
+func (membership *Membership) checkMemberLimit(ctx context.Context, namespaceUID string) error {
+	limit, err := membership.features.NamespaceMemberLimit(ctx, namespaceUID)
+	if err != nil {
+		return membership.access.Wrap(err)
+	}
+	if limit == 0 {
+		return nil
+	}
+	joined, err := membership.members.CountJoined(ctx, namespaceUID)
+	if err != nil {
+		return membership.access.Wrap(err)
+	}
+	if int32(joined) >= limit {
+		return merr.Client("member limit reached")
+	}
+	return nil
 }
 
 // ListInvites 返回当前租户还在等待确认的邀请，供成员页展示和撤销。

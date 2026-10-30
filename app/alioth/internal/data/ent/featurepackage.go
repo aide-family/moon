@@ -35,6 +35,12 @@ type FeaturePackage struct {
 	Status featurepackage.Status `json:"status,omitempty"`
 	// DurationDays holds the value of the "duration_days" field.
 	DurationDays int32 `json:"duration_days,omitempty"`
+	// Visibility holds the value of the "visibility" field.
+	Visibility featurepackage.Visibility `json:"visibility,omitempty"`
+	// MaxMembers holds the value of the "max_members" field.
+	MaxMembers int32 `json:"max_members,omitempty"`
+	// PriceCents holds the value of the "price_cents" field.
+	PriceCents   int64 `json:"price_cents,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -45,9 +51,9 @@ func (*FeaturePackage) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case featurepackage.FieldIsBase:
 			values[i] = new(sql.NullBool)
-		case featurepackage.FieldID, featurepackage.FieldDurationDays:
+		case featurepackage.FieldID, featurepackage.FieldDurationDays, featurepackage.FieldMaxMembers, featurepackage.FieldPriceCents:
 			values[i] = new(sql.NullInt64)
-		case featurepackage.FieldUID, featurepackage.FieldName, featurepackage.FieldRemark, featurepackage.FieldStatus:
+		case featurepackage.FieldUID, featurepackage.FieldName, featurepackage.FieldRemark, featurepackage.FieldStatus, featurepackage.FieldVisibility:
 			values[i] = new(sql.NullString)
 		case featurepackage.FieldCreatedAt, featurepackage.FieldUpdatedAt, featurepackage.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -127,6 +133,24 @@ func (_m *FeaturePackage) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DurationDays = int32(value.Int64)
 			}
+		case featurepackage.FieldVisibility:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field visibility", values[i])
+			} else if value.Valid {
+				_m.Visibility = featurepackage.Visibility(value.String)
+			}
+		case featurepackage.FieldMaxMembers:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field max_members", values[i])
+			} else if value.Valid {
+				_m.MaxMembers = int32(value.Int64)
+			}
+		case featurepackage.FieldPriceCents:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field price_cents", values[i])
+			} else if value.Valid {
+				_m.PriceCents = value.Int64
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -191,6 +215,15 @@ func (_m *FeaturePackage) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("duration_days=")
 	builder.WriteString(fmt.Sprintf("%v", _m.DurationDays))
+	builder.WriteString(", ")
+	builder.WriteString("visibility=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Visibility))
+	builder.WriteString(", ")
+	builder.WriteString("max_members=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MaxMembers))
+	builder.WriteString(", ")
+	builder.WriteString("price_cents=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PriceCents))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -130,6 +130,48 @@ func (_c *FeaturePackageCreate) SetNillableDurationDays(v *int32) *FeaturePackag
 	return _c
 }
 
+// SetVisibility sets the "visibility" field.
+func (_c *FeaturePackageCreate) SetVisibility(v featurepackage.Visibility) *FeaturePackageCreate {
+	_c.mutation.SetVisibility(v)
+	return _c
+}
+
+// SetNillableVisibility sets the "visibility" field if the given value is not nil.
+func (_c *FeaturePackageCreate) SetNillableVisibility(v *featurepackage.Visibility) *FeaturePackageCreate {
+	if v != nil {
+		_c.SetVisibility(*v)
+	}
+	return _c
+}
+
+// SetMaxMembers sets the "max_members" field.
+func (_c *FeaturePackageCreate) SetMaxMembers(v int32) *FeaturePackageCreate {
+	_c.mutation.SetMaxMembers(v)
+	return _c
+}
+
+// SetNillableMaxMembers sets the "max_members" field if the given value is not nil.
+func (_c *FeaturePackageCreate) SetNillableMaxMembers(v *int32) *FeaturePackageCreate {
+	if v != nil {
+		_c.SetMaxMembers(*v)
+	}
+	return _c
+}
+
+// SetPriceCents sets the "price_cents" field.
+func (_c *FeaturePackageCreate) SetPriceCents(v int64) *FeaturePackageCreate {
+	_c.mutation.SetPriceCents(v)
+	return _c
+}
+
+// SetNillablePriceCents sets the "price_cents" field if the given value is not nil.
+func (_c *FeaturePackageCreate) SetNillablePriceCents(v *int64) *FeaturePackageCreate {
+	if v != nil {
+		_c.SetPriceCents(*v)
+	}
+	return _c
+}
+
 // Mutation returns the FeaturePackageMutation object of the builder.
 func (_c *FeaturePackageCreate) Mutation() *FeaturePackageMutation {
 	return _c.mutation
@@ -189,6 +231,18 @@ func (_c *FeaturePackageCreate) defaults() {
 		v := featurepackage.DefaultDurationDays
 		_c.mutation.SetDurationDays(v)
 	}
+	if _, ok := _c.mutation.Visibility(); !ok {
+		v := featurepackage.DefaultVisibility
+		_c.mutation.SetVisibility(v)
+	}
+	if _, ok := _c.mutation.MaxMembers(); !ok {
+		v := featurepackage.DefaultMaxMembers
+		_c.mutation.SetMaxMembers(v)
+	}
+	if _, ok := _c.mutation.PriceCents(); !ok {
+		v := featurepackage.DefaultPriceCents
+		_c.mutation.SetPriceCents(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -240,6 +294,30 @@ func (_c *FeaturePackageCreate) check() error {
 	if v, ok := _c.mutation.DurationDays(); ok {
 		if err := featurepackage.DurationDaysValidator(v); err != nil {
 			return &ValidationError{Name: "duration_days", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.duration_days": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Visibility(); !ok {
+		return &ValidationError{Name: "visibility", err: errors.New(`ent: missing required field "FeaturePackage.visibility"`)}
+	}
+	if v, ok := _c.mutation.Visibility(); ok {
+		if err := featurepackage.VisibilityValidator(v); err != nil {
+			return &ValidationError{Name: "visibility", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.visibility": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.MaxMembers(); !ok {
+		return &ValidationError{Name: "max_members", err: errors.New(`ent: missing required field "FeaturePackage.max_members"`)}
+	}
+	if v, ok := _c.mutation.MaxMembers(); ok {
+		if err := featurepackage.MaxMembersValidator(v); err != nil {
+			return &ValidationError{Name: "max_members", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.max_members": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.PriceCents(); !ok {
+		return &ValidationError{Name: "price_cents", err: errors.New(`ent: missing required field "FeaturePackage.price_cents"`)}
+	}
+	if v, ok := _c.mutation.PriceCents(); ok {
+		if err := featurepackage.PriceCentsValidator(v); err != nil {
+			return &ValidationError{Name: "price_cents", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.price_cents": %w`, err)}
 		}
 	}
 	return nil
@@ -303,6 +381,18 @@ func (_c *FeaturePackageCreate) createSpec() (*FeaturePackage, *sqlgraph.CreateS
 	if value, ok := _c.mutation.DurationDays(); ok {
 		_spec.SetField(featurepackage.FieldDurationDays, field.TypeInt32, value)
 		_node.DurationDays = value
+	}
+	if value, ok := _c.mutation.Visibility(); ok {
+		_spec.SetField(featurepackage.FieldVisibility, field.TypeEnum, value)
+		_node.Visibility = value
+	}
+	if value, ok := _c.mutation.MaxMembers(); ok {
+		_spec.SetField(featurepackage.FieldMaxMembers, field.TypeInt32, value)
+		_node.MaxMembers = value
+	}
+	if value, ok := _c.mutation.PriceCents(); ok {
+		_spec.SetField(featurepackage.FieldPriceCents, field.TypeInt64, value)
+		_node.PriceCents = value
 	}
 	return _node, _spec
 }

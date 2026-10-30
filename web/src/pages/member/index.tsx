@@ -31,6 +31,7 @@ import {
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { ListFrame } from "@/components/list-frame"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -278,24 +279,44 @@ export function MemberPage() {
     }
   }
 
+  // 套餐人数上限来自会话里的租户快照；跨租户切换后由 session.reload 刷新。
+  const currentNamespace = session.namespaces.find(
+    (item) => item.uid === session.namespaceUid
+  )
+  const capacityLabel = currentNamespace
+    ? t("member.capacity", {
+        used: currentNamespace.memberCount ?? 0,
+        limit: currentNamespace.maxMembers
+          ? currentNamespace.maxMembers
+          : t("member.capacityUnlimited"),
+      })
+    : ""
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
         title={t("member.title")}
         description={t("member.description")}
       >
-        {session.can("member:write") ? (
-          <Button
-            onClick={() => {
-              setEmail("")
-              setError("")
-              setFieldErrors({})
-              setOpen(true)
-            }}
-          >
-            {t("action.invite")}
-          </Button>
-        ) : null}
+        <div className="flex shrink-0 items-center gap-2">
+          {capacityLabel ? (
+            <Badge variant="outline" className="font-normal tabular-nums">
+              {capacityLabel}
+            </Badge>
+          ) : null}
+          {session.can("member:write") ? (
+            <Button
+              onClick={() => {
+                setEmail("")
+                setError("")
+                setFieldErrors({})
+                setOpen(true)
+              }}
+            >
+              {t("action.invite")}
+            </Button>
+          ) : null}
+        </div>
       </PageHeader>
       <form
         className="flex gap-2"

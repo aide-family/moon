@@ -28,6 +28,7 @@ import { NotificationSubscriptionPage } from "@/pages/notification-subscription"
 import { NotificationTemplatePage } from "@/pages/notification-template"
 import { NotificationPresetPage } from "@/pages/notification-template/presets"
 import { OAuthCallbackPage } from "@/pages/oauth-callback"
+import { OrderPage } from "@/pages/order"
 import { OverviewPage } from "@/pages/overview"
 import { PackagePage } from "@/pages/package"
 import { ProfilePage } from "@/pages/profile"
@@ -54,6 +55,7 @@ export function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/forbidden" element={<ForbiddenPage />} />
         <Route path="/namespaces" element={<NamespacePage />} />
+        <Route path="/orders" element={<OrderPage />} />
         <Route path="/tenants" element={<TenantPage />} />
         <Route path="/packages" element={<PackagePage />} />
         <Route path="/users" element={<UserPage />} />

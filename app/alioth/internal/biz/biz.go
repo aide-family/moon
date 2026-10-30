@@ -18,6 +18,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/message"
 	"github.com/aide-family/moon/app/alioth/internal/biz/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
+	"github.com/aide-family/moon/app/alioth/internal/biz/order"
 	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
 	"github.com/aide-family/moon/app/alioth/internal/biz/probe"
 	"github.com/aide-family/moon/app/alioth/internal/biz/role"
@@ -36,6 +37,7 @@ var ProviderSet = wire.NewSet(
 	worker.ProviderSet,
 	role.ProviderSet,
 	feature.ProviderSet,
+	order.ProviderSet,
 	datasource.ProviderSet,
 	probe.ProviderSet,
 	alertdictionary.ProviderSet,

@@ -34,14 +34,31 @@ func NewTenancy(namespaces repository.NamespaceRepo, features repository.Feature
 	return &Tenancy{namespaces: namespaces, features: features, access: checker, mail: mail, log: logger}
 }
 
-// CreateNamespace 用当前登录用户作为负责人。创建租户不要求已有租户上下文。
-func (tenancy *Tenancy) CreateNamespace(ctx context.Context, name, remark string) (*bo.Namespace, error) {
+// CreateNamespace 用当前登录用户作为负责人，并绑定选择的功能套餐。
+// 创建租户不要求已有租户上下文；只有公开且启用的套餐可以被用户选择，
+// 内测套餐只能由平台在租户功能授权里分配。
+func (tenancy *Tenancy) CreateNamespace(ctx context.Context, name, remark, packageUID string) (*bo.Namespace, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
 	}
-	item, err := tenancy.namespaces.CreateNamespace(ctx, name, remark, uid)
+	if err := tenancy.checkPublicPackage(ctx, packageUID); err != nil {
+		return nil, err
+	}
+	item, err := tenancy.namespaces.CreateNamespace(ctx, name, remark, uid, packageUID)
 	return item, tenancy.access.Wrap(err)
+}
+
+// checkPublicPackage 确认套餐仍公开可售：停用、删除或内测套餐都会拒绝创建/下单。
+func (tenancy *Tenancy) checkPublicPackage(ctx context.Context, packageUID string) error {
+	pkg, err := tenancy.features.GetPackage(ctx, packageUID)
+	if err != nil {
+		return tenancy.access.Wrap(err)
+	}
+	if pkg.Status != "ACTIVE" || pkg.Visibility != perm.PackageVisibilityPublic {
+		return merr.Client("package is not available")
+	}
+	return nil
 }
 
 func (tenancy *Tenancy) UpdateNamespace(ctx context.Context, uid, name, remark, logo string) (*bo.Namespace, error) {

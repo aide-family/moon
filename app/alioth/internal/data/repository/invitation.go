@@ -18,6 +18,8 @@ type InviteRepo interface {
 	// ListInvitesForNamespace 返回当前租户还在等待确认的邀请。
 	ListInvitesForNamespace(ctx context.Context, namespaceUID string) ([]bo.MemberInvite, error)
 	// AcceptInvite 校验身份和有效期后把用户变成 JOINED 成员并授予角色。
+	// 租户套餐的人数上限在事务内锁定租户后重新统计 JOINED 成员再判断，
+	// 避免并发确认把成员数顶过上限；超限返回 member limit reached。
 	AcceptInvite(ctx context.Context, tokenHash, inviteUID, userUID, email string) (*bo.Member, error)
 	// DeclineInvite 记录用户拒绝，不创建成员。
 	DeclineInvite(ctx context.Context, tokenHash, inviteUID, userUID, email string) error

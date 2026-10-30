@@ -23,6 +23,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/message"
 	"github.com/aide-family/moon/app/alioth/internal/biz/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
+	"github.com/aide-family/moon/app/alioth/internal/biz/order"
 	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
 	"github.com/aide-family/moon/app/alioth/internal/biz/probe"
 	"github.com/aide-family/moon/app/alioth/internal/biz/role"
@@ -81,10 +82,12 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	authority := role.NewAuthority(roleRepo, featureRepo, accessChecker)
 	selfService := service.NewSelfService(authenticator, tenancy, authority)
 	provisioning := feature.NewProvisioning(featureRepo, accessChecker)
-	namespaceService := service.NewNamespaceService(tenancy, provisioning)
+	namespaceOrderRepo := data.NewNamespaceOrderRepo(dependencies, logger)
+	purchasing := order.NewPurchasing(namespaceOrderRepo, featureRepo, accessChecker)
+	namespaceService := service.NewNamespaceService(tenancy, provisioning, purchasing)
 	memberRepo := data.NewMemberRepo(dependencies, logger)
 	inviteRepo := data.NewInviteRepo(dependencies, logger)
-	membership := member.NewMembership(memberRepo, inviteRepo, userRepo, roleRepo, accessChecker, sender, confAuth, logger)
+	membership := member.NewMembership(memberRepo, inviteRepo, userRepo, roleRepo, featureRepo, accessChecker, sender, confAuth, logger)
 	memberService := service.NewMemberService(membership)
 	invitationService := service.NewInvitationService(membership)
 	messageRepo := data.NewMessageRepo(dependencies, logger)

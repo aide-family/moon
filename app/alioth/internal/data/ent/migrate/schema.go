@@ -626,6 +626,9 @@ var (
 		{Name: "is_base", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
 		{Name: "duration_days", Type: field.TypeInt32, Default: 0},
+		{Name: "visibility", Type: field.TypeEnum, Enums: []string{"PUBLIC", "BETA"}, Default: "BETA"},
+		{Name: "max_members", Type: field.TypeInt32, Default: 0},
+		{Name: "price_cents", Type: field.TypeInt64, Default: 0},
 	}
 	// FeaturePackagesTable holds the schema information for the "feature_packages" table.
 	FeaturePackagesTable = &schema.Table{
@@ -933,6 +936,47 @@ var (
 				Name:    "namespacefeature_namespace_uid_feature",
 				Unique:  true,
 				Columns: []*schema.Column{NamespaceFeaturesColumns[4], NamespaceFeaturesColumns[5]},
+			},
+		},
+	}
+	// NamespaceOrdersColumns holds the columns for the "namespace_orders" table.
+	NamespaceOrdersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "user_uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString, Default: ""},
+		{Name: "namespace_name", Type: field.TypeString},
+		{Name: "namespace_remark", Type: field.TypeString, Size: 200, Default: ""},
+		{Name: "package_uid", Type: field.TypeString},
+		{Name: "package_name", Type: field.TypeString},
+		{Name: "price_cents", Type: field.TypeInt64, Default: 0},
+		{Name: "duration_days", Type: field.TypeInt32, Default: 0},
+		{Name: "max_members", Type: field.TypeInt32, Default: 0},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "PAID", "CANCELLED"}, Default: "PENDING"},
+		{Name: "paid_at", Type: field.TypeTime, Nullable: true},
+	}
+	// NamespaceOrdersTable holds the schema information for the "namespace_orders" table.
+	NamespaceOrdersTable = &schema.Table{
+		Name:       "namespace_orders",
+		Columns:    NamespaceOrdersColumns,
+		PrimaryKey: []*schema.Column{NamespaceOrdersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "namespaceorder_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NamespaceOrdersColumns[3]},
+			},
+			{
+				Name:    "namespaceorder_user_uid",
+				Unique:  false,
+				Columns: []*schema.Column{NamespaceOrdersColumns[4]},
+			},
+			{
+				Name:    "namespaceorder_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{NamespaceOrdersColumns[5]},
 			},
 		},
 	}
@@ -1888,6 +1932,7 @@ var (
 		MessageLogShardsTable,
 		NamespacesTable,
 		NamespaceFeaturesTable,
+		NamespaceOrdersTable,
 		NotificationChannelsTable,
 		NotificationGroupsTable,
 		NotificationOnCallsTable,

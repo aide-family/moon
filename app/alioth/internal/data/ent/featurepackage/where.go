@@ -94,6 +94,16 @@ func DurationDays(v int32) predicate.FeaturePackage {
 	return predicate.FeaturePackage(sql.FieldEQ(FieldDurationDays, v))
 }
 
+// MaxMembers applies equality check predicate on the "max_members" field. It's identical to MaxMembersEQ.
+func MaxMembers(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldEQ(FieldMaxMembers, v))
+}
+
+// PriceCents applies equality check predicate on the "price_cents" field. It's identical to PriceCentsEQ.
+func PriceCents(v int64) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldEQ(FieldPriceCents, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.FeaturePackage {
 	return predicate.FeaturePackage(sql.FieldEQ(FieldCreatedAt, v))
@@ -487,6 +497,106 @@ func DurationDaysLT(v int32) predicate.FeaturePackage {
 // DurationDaysLTE applies the LTE predicate on the "duration_days" field.
 func DurationDaysLTE(v int32) predicate.FeaturePackage {
 	return predicate.FeaturePackage(sql.FieldLTE(FieldDurationDays, v))
+}
+
+// VisibilityEQ applies the EQ predicate on the "visibility" field.
+func VisibilityEQ(v Visibility) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldEQ(FieldVisibility, v))
+}
+
+// VisibilityNEQ applies the NEQ predicate on the "visibility" field.
+func VisibilityNEQ(v Visibility) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNEQ(FieldVisibility, v))
+}
+
+// VisibilityIn applies the In predicate on the "visibility" field.
+func VisibilityIn(vs ...Visibility) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldIn(FieldVisibility, vs...))
+}
+
+// VisibilityNotIn applies the NotIn predicate on the "visibility" field.
+func VisibilityNotIn(vs ...Visibility) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNotIn(FieldVisibility, vs...))
+}
+
+// MaxMembersEQ applies the EQ predicate on the "max_members" field.
+func MaxMembersEQ(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldEQ(FieldMaxMembers, v))
+}
+
+// MaxMembersNEQ applies the NEQ predicate on the "max_members" field.
+func MaxMembersNEQ(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNEQ(FieldMaxMembers, v))
+}
+
+// MaxMembersIn applies the In predicate on the "max_members" field.
+func MaxMembersIn(vs ...int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldIn(FieldMaxMembers, vs...))
+}
+
+// MaxMembersNotIn applies the NotIn predicate on the "max_members" field.
+func MaxMembersNotIn(vs ...int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNotIn(FieldMaxMembers, vs...))
+}
+
+// MaxMembersGT applies the GT predicate on the "max_members" field.
+func MaxMembersGT(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldGT(FieldMaxMembers, v))
+}
+
+// MaxMembersGTE applies the GTE predicate on the "max_members" field.
+func MaxMembersGTE(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldGTE(FieldMaxMembers, v))
+}
+
+// MaxMembersLT applies the LT predicate on the "max_members" field.
+func MaxMembersLT(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldLT(FieldMaxMembers, v))
+}
+
+// MaxMembersLTE applies the LTE predicate on the "max_members" field.
+func MaxMembersLTE(v int32) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldLTE(FieldMaxMembers, v))
+}
+
+// PriceCentsEQ applies the EQ predicate on the "price_cents" field.
+func PriceCentsEQ(v int64) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldEQ(FieldPriceCents, v))
+}
+
+// PriceCentsNEQ applies the NEQ predicate on the "price_cents" field.
+func PriceCentsNEQ(v int64) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNEQ(FieldPriceCents, v))
+}
+
+// PriceCentsIn applies the In predicate on the "price_cents" field.
+func PriceCentsIn(vs ...int64) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldIn(FieldPriceCents, vs...))
+}
+
+// PriceCentsNotIn applies the NotIn predicate on the "price_cents" field.
+func PriceCentsNotIn(vs ...int64) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNotIn(FieldPriceCents, vs...))
+}
+
+// PriceCentsGT applies the GT predicate on the "price_cents" field.
+func PriceCentsGT(v int64) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldGT(FieldPriceCents, v))
+}
+
+// PriceCentsGTE applies the GTE predicate on the "price_cents" field.
+func PriceCentsGTE(v int64) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldGTE(FieldPriceCents, v))
+}
+
+// PriceCentsLT applies the LT predicate on the "price_cents" field.
+func PriceCentsLT(v int64) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldLT(FieldPriceCents, v))
+}
+
+// PriceCentsLTE applies the LTE predicate on the "price_cents" field.
+func PriceCentsLTE(v int64) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldLTE(FieldPriceCents, v))
 }
 
 // And groups predicates with the AND operator between them.

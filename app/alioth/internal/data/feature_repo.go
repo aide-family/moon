@@ -50,7 +50,32 @@ func (r *featureRepo) GetPackage(ctx context.Context, uid string) (*bo.FeaturePa
 	return &items[0], nil
 }
 
-func (r *featureRepo) CreatePackage(ctx context.Context, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error) {
+// ListPublicPackages 返回用户创建租户时可选的功能套餐：公开、启用且未删除。
+// 按价格升序，同价按名称升序，让免费和低价套餐排在前面。
+func (r *featureRepo) ListPublicPackages(ctx context.Context) ([]bo.FeaturePackage, error) {
+	rows, err := r.client.FeaturePackage.Query().
+		Where(
+			featurepackage.DeletedAtIsNil(),
+			featurepackage.StatusEQ(featurepackage.StatusACTIVE),
+			featurepackage.VisibilityEQ(featurepackage.VisibilityPUBLIC),
+		).
+		Order(ent.Asc(featurepackage.FieldPriceCents), ent.Asc(featurepackage.FieldName)).
+		All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items, err := r.packageViews(ctx, rows)
+	if err != nil {
+		return nil, err
+	}
+	// 列表接口对空结果返回空数组而不是 null，前端不需要额外判空。
+	if items == nil {
+		items = []bo.FeaturePackage{}
+	}
+	return items, nil
+}
+
+func (r *featureRepo) CreatePackage(ctx context.Context, pkg bo.FeaturePackage) (*bo.FeaturePackage, error) {
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -58,16 +83,19 @@ func (r *featureRepo) CreatePackage(ctx context.Context, name, remark string, du
 	defer func() { _ = tx.Rollback() }()
 	row, err := tx.FeaturePackage.Create().
 		SetUID(id.New()).
-		SetName(name).
-		SetRemark(remark).
+		SetName(pkg.Name).
+		SetRemark(pkg.Remark).
 		SetIsBase(false).
 		SetStatus(featurepackage.StatusACTIVE).
-		SetDurationDays(durationDays).
+		SetDurationDays(pkg.DurationDays).
+		SetVisibility(featurepackage.Visibility(pkg.Visibility)).
+		SetMaxMembers(pkg.MaxMembers).
+		SetPriceCents(pkg.PriceCents).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	if err := r.createPackageItems(ctx, tx, row.UID, features); err != nil {
+	if err := r.createPackageItems(ctx, tx, row.UID, pkg.Features); err != nil {
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -76,19 +104,22 @@ func (r *featureRepo) CreatePackage(ctx context.Context, name, remark string, du
 	return r.GetPackage(ctx, row.UID)
 }
 
-// UpdatePackage 同时替换名称、备注、默认时长和能力明细。基础套餐的改名由用例层拒绝，
-// 这里只负责在一个事务里写入，避免能力明细出现半更新。
-func (r *featureRepo) UpdatePackage(ctx context.Context, uid, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error) {
+// UpdatePackage 同时替换名称、备注、默认时长、版本、人数上限、价格和能力明细。
+// 基础套餐的改名由用例层拒绝，这里只负责在一个事务里写入，避免能力明细出现半更新。
+func (r *featureRepo) UpdatePackage(ctx context.Context, pkg bo.FeaturePackage) (*bo.FeaturePackage, error) {
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
 	defer func() { _ = tx.Rollback() }()
 	n, err := tx.FeaturePackage.Update().
-		Where(featurepackage.UIDEQ(uid), featurepackage.DeletedAtIsNil()).
-		SetName(name).
-		SetRemark(remark).
-		SetDurationDays(durationDays).
+		Where(featurepackage.UIDEQ(pkg.UID), featurepackage.DeletedAtIsNil()).
+		SetName(pkg.Name).
+		SetRemark(pkg.Remark).
+		SetDurationDays(pkg.DurationDays).
+		SetVisibility(featurepackage.Visibility(pkg.Visibility)).
+		SetMaxMembers(pkg.MaxMembers).
+		SetPriceCents(pkg.PriceCents).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -96,16 +127,16 @@ func (r *featureRepo) UpdatePackage(ctx context.Context, uid, name, remark strin
 	if n == 0 {
 		return nil, merr.NotFound("not found")
 	}
-	if _, err := tx.FeaturePackageItem.Delete().Where(featurepackageitem.PackageUIDEQ(uid)).Exec(ctx); err != nil {
+	if _, err := tx.FeaturePackageItem.Delete().Where(featurepackageitem.PackageUIDEQ(pkg.UID)).Exec(ctx); err != nil {
 		return nil, r.fail(err)
 	}
-	if err := r.createPackageItems(ctx, tx, uid, features); err != nil {
+	if err := r.createPackageItems(ctx, tx, pkg.UID, pkg.Features); err != nil {
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
-	return r.GetPackage(ctx, uid)
+	return r.GetPackage(ctx, pkg.UID)
 }
 
 func (r *featureRepo) DeletePackage(ctx context.Context, uid string) error {
@@ -349,6 +380,36 @@ func (r *featureRepo) CountNamespacesUsingPackage(ctx context.Context, packageUI
 	return total, nil
 }
 
+// NamespaceMemberLimit 返回租户当前套餐的成员数上限。套餐缺失或为空时返回 0（不限制），
+// 与「0 表示不限制」的字段语义一致。
+func (r *featureRepo) NamespaceMemberLimit(ctx context.Context, namespaceUID string) (int32, error) {
+	limit, err := namespaceMemberLimit(ctx, r.client, namespaceUID)
+	if err != nil {
+		return 0, r.fail(err)
+	}
+	return limit, nil
+}
+
+// namespaceMemberLimit 按租户当前套餐读成员数上限。传 tx.Client() 时在事务内读取，
+// 邀请确认用它和成员计数保持同一个快照。套餐已删除或未绑定按不限制处理。
+func namespaceMemberLimit(ctx context.Context, client *ent.Client, namespaceUID string) (int32, error) {
+	ns, err := client.Namespace.Query().Where(namespace.UIDEQ(namespaceUID), namespace.DeletedAtIsNil()).Only(ctx)
+	if err != nil {
+		return 0, err
+	}
+	if ns.PackageUID == "" {
+		return 0, nil
+	}
+	pkg, err := client.FeaturePackage.Query().Where(featurepackage.UIDEQ(ns.PackageUID)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return pkg.MaxMembers, nil
+}
+
 // packageViews 批量补齐套餐的能力明细，并把能力按目录顺序排列。
 func (r *featureRepo) packageViews(ctx context.Context, rows []*ent.FeaturePackage) ([]bo.FeaturePackage, error) {
 	if len(rows) == 0 {
@@ -374,7 +435,10 @@ func (r *featureRepo) packageViews(ctx context.Context, rows []*ent.FeaturePacka
 			Remark:       row.Remark,
 			IsBase:       row.IsBase,
 			Status:       string(row.Status),
+			Visibility:   string(row.Visibility),
 			DurationDays: row.DurationDays,
+			MaxMembers:   row.MaxMembers,
+			PriceCents:   row.PriceCents,
 			Features:     capabilityCodesOf(codesByPackage[row.UID]),
 			CreatedAt:    row.CreatedAt,
 		})

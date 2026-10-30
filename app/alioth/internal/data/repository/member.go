@@ -16,4 +16,6 @@ type MemberRepo interface {
 	DeleteMember(ctx context.Context, namespaceUID, uid, actorUID string) error
 	UpdateMemberStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.Member, error)
 	UpdateMemberRoles(ctx context.Context, namespaceUID, memberUID string, roleUIDs []string) (*bo.Member, error)
+	// CountJoined 统计租户当前 JOINED 成员数，用于校验套餐人数上限。
+	CountJoined(ctx context.Context, namespaceUID string) (int, error)
 }

@@ -29,6 +29,15 @@ func (FeaturePackage) Fields() []ent.Field {
 		// duration_days 是租户使用该套餐时的默认授权时长；0 表示永久。
 		// 套餐只给默认值，真正到期时间落在 namespaces.package_expires_at。
 		field.Int32("duration_days").Default(0).NonNegative(),
+		// visibility 决定套餐出现在哪里：PUBLIC 可被用户在创建租户时选择，
+		// BETA 只由平台管理员在租户功能授权里分配。默认内测，避免误上架。
+		field.Enum("visibility").Values("PUBLIC", "BETA").Default("BETA"),
+		// max_members 是使用该套餐的租户可容纳的 JOINED 成员数上限；0 表示不限制。
+		// 容量跟着租户当前套餐实时计算，不在 namespaces 上冗余。
+		field.Int32("max_members").Default(0).NonNegative(),
+		// price_cents 是套餐价格，单位为人民币分；0 表示免费。
+		// 下单时快照到订单，之后改价不影响已下的订单。
+		field.Int64("price_cents").Default(0).NonNegative(),
 	}
 }
 

@@ -37,7 +37,7 @@ func namespaceItem(item bo.Namespace) *v1.NamespaceItem {
 		Logo: item.Logo, Remark: item.Remark, Status: item.Status,
 		MemberCount: int32(item.MemberCount), CreatedAt: createdAt,
 		PackageName: item.PackageName, PackageExpiresAt: packageExpiresAt,
-		DisableReason: item.DisableReason,
+		DisableReason: item.DisableReason, MaxMembers: item.MaxMembers,
 	}
 }
 
@@ -153,8 +153,37 @@ func featurePackageItem(item bo.FeaturePackage) *v1.FeaturePackageItem {
 	return &v1.FeaturePackageItem{
 		Uid: item.UID, Name: item.Name, Remark: item.Remark, Features: item.Features,
 		IsBase: item.IsBase, Status: item.Status, CreatedAt: createdAt,
-		DurationDays: item.DurationDays,
+		DurationDays: item.DurationDays, Visibility: item.Visibility,
+		MaxMembers: item.MaxMembers, PriceCents: item.PriceCents,
 	}
+}
+
+// namespaceOrderItem 把订单快照转成接口视图。时间字段零值统一输出 0。
+func namespaceOrderItem(item bo.NamespaceOrder) *v1.NamespaceOrderItem {
+	createdAt := int64(0)
+	if !item.CreatedAt.IsZero() {
+		createdAt = item.CreatedAt.Unix()
+	}
+	paidAt := int64(0)
+	if !item.PaidAt.IsZero() {
+		paidAt = item.PaidAt.Unix()
+	}
+	return &v1.NamespaceOrderItem{
+		Uid: item.UID, NamespaceUid: item.NamespaceUID,
+		NamespaceName: item.NamespaceName, NamespaceRemark: item.NamespaceRemark,
+		PackageUid: item.PackageUID, PackageName: item.PackageName,
+		PriceCents: item.PriceCents, DurationDays: item.DurationDays,
+		MaxMembers: item.MaxMembers, Status: item.Status,
+		CreatedAt: createdAt, PaidAt: paidAt,
+	}
+}
+
+func namespaceOrderItems(items []bo.NamespaceOrder) []*v1.NamespaceOrderItem {
+	out := make([]*v1.NamespaceOrderItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, namespaceOrderItem(item))
+	}
+	return out
 }
 
 func featurePackageItems(items []bo.FeaturePackage) []*v1.FeaturePackageItem {

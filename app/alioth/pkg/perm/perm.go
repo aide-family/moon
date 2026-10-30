@@ -88,6 +88,13 @@ const (
 	SystemPackageWrite = "system:package:write"
 )
 
+// 套餐版本决定套餐出现在哪里：公开套餐可被用户在创建租户时选择，
+// 内测套餐只由平台管理员在租户功能授权里分配。
+const (
+	PackageVisibilityPublic = "PUBLIC"
+	PackageVisibilityBeta   = "BETA"
+)
+
 const (
 	RoleOwner  = "owner"
 	RoleAdmin  = "admin"

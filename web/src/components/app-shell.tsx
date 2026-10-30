@@ -17,6 +17,7 @@ import {
   Mail,
   MessageSquare,
   Package,
+  ReceiptText,
   Server,
   Settings,
   Shield,
@@ -89,6 +90,7 @@ const repositoryURL = "https://github.com/aide-family/moon"
 // 这些页面不依赖当前租户，没有租户也可以直接打开；其余登录内页面会被送回租户页。
 const tenantFreePaths = new Set([
   "/namespaces",
+  "/orders",
   "/tenants",
   "/packages",
   "/users",
@@ -112,6 +114,13 @@ const links: {
     label: "nav.namespaces",
     permission: "namespace:read",
     icon: Building2,
+  },
+  {
+    to: "/orders",
+    label: "nav.orders",
+    // 订单只属于当前登录用户，刚注册、还没有任何租户权限的用户也要能查看。
+    permission: "",
+    icon: ReceiptText,
   },
   {
     to: "/tenants",
@@ -425,7 +434,8 @@ function ShellFrame() {
     )
   }
   const visible = links.filter((link) => {
-    if (link.to === "/namespaces") {
+    // 租户页和订单页不依赖任何租户权限：还没有加入租户的用户也要能看到入口。
+    if (link.to === "/namespaces" || link.to === "/orders") {
       return true
     }
     if (link.permission.startsWith("system:")) {

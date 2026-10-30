@@ -65,40 +65,34 @@ func (provisioning *Provisioning) GetPackage(ctx context.Context, uid string) (*
 	return item, provisioning.access.Wrap(err)
 }
 
-func (provisioning *Provisioning) CreatePackage(ctx context.Context, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error) {
+func (provisioning *Provisioning) CreatePackage(ctx context.Context, pkg bo.FeaturePackage) (*bo.FeaturePackage, error) {
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageWrite); err != nil {
 		return nil, err
 	}
-	if err := validateDuration(durationDays); err != nil {
+	if err := validatePackage(pkg); err != nil {
 		return nil, err
 	}
-	if err := validateCapabilities(features); err != nil {
-		return nil, err
-	}
-	item, err := provisioning.features.CreatePackage(ctx, name, remark, durationDays, features)
+	item, err := provisioning.features.CreatePackage(ctx, pkg)
 	return item, provisioning.access.Wrap(err)
 }
 
 // UpdatePackage 更新套餐。基础套餐只允许改功能和备注：改名会破坏它的识别，
 // 所以名称必须保持原值。
-func (provisioning *Provisioning) UpdatePackage(ctx context.Context, uid, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error) {
+func (provisioning *Provisioning) UpdatePackage(ctx context.Context, pkg bo.FeaturePackage) (*bo.FeaturePackage, error) {
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageWrite); err != nil {
 		return nil, err
 	}
-	if err := validateDuration(durationDays); err != nil {
+	if err := validatePackage(pkg); err != nil {
 		return nil, err
 	}
-	current, err := provisioning.features.GetPackage(ctx, uid)
+	current, err := provisioning.features.GetPackage(ctx, pkg.UID)
 	if err != nil {
 		return nil, provisioning.access.Wrap(err)
 	}
-	if current.IsBase && name != current.Name {
+	if current.IsBase && pkg.Name != current.Name {
 		return nil, merr.Client("base package cannot be renamed")
 	}
-	if err := validateCapabilities(features); err != nil {
-		return nil, err
-	}
-	item, err := provisioning.features.UpdatePackage(ctx, uid, name, remark, durationDays, features)
+	item, err := provisioning.features.UpdatePackage(ctx, pkg)
 	return item, provisioning.access.Wrap(err)
 }
 
@@ -175,6 +169,24 @@ func resolveExpiresAt(durationDays int32, expiresAt int64) time.Time {
 		return time.Now().AddDate(0, 0, int(durationDays))
 	}
 	return time.Time{}
+}
+
+// validatePackage 校验套餐的可售属性：版本、授权时长、人数上限、价格和能力目录。
+// proto 已经做过一次格式校验，这里保证内部调用（seed、测试）也走同一套规则。
+func validatePackage(pkg bo.FeaturePackage) error {
+	if err := validateDuration(pkg.DurationDays); err != nil {
+		return err
+	}
+	if pkg.Visibility != perm.PackageVisibilityPublic && pkg.Visibility != perm.PackageVisibilityBeta {
+		return merr.Invalid("invalid visibility")
+	}
+	if pkg.MaxMembers < 0 {
+		return merr.Invalid("invalid max members")
+	}
+	if pkg.PriceCents < 0 {
+		return merr.Invalid("invalid price")
+	}
+	return validateCapabilities(pkg.Features)
 }
 
 // validateDuration 拒绝负数授权天数；0 表示永久。

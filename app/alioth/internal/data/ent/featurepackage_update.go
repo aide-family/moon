@@ -131,6 +131,62 @@ func (_u *FeaturePackageUpdate) AddDurationDays(v int32) *FeaturePackageUpdate {
 	return _u
 }
 
+// SetVisibility sets the "visibility" field.
+func (_u *FeaturePackageUpdate) SetVisibility(v featurepackage.Visibility) *FeaturePackageUpdate {
+	_u.mutation.SetVisibility(v)
+	return _u
+}
+
+// SetNillableVisibility sets the "visibility" field if the given value is not nil.
+func (_u *FeaturePackageUpdate) SetNillableVisibility(v *featurepackage.Visibility) *FeaturePackageUpdate {
+	if v != nil {
+		_u.SetVisibility(*v)
+	}
+	return _u
+}
+
+// SetMaxMembers sets the "max_members" field.
+func (_u *FeaturePackageUpdate) SetMaxMembers(v int32) *FeaturePackageUpdate {
+	_u.mutation.ResetMaxMembers()
+	_u.mutation.SetMaxMembers(v)
+	return _u
+}
+
+// SetNillableMaxMembers sets the "max_members" field if the given value is not nil.
+func (_u *FeaturePackageUpdate) SetNillableMaxMembers(v *int32) *FeaturePackageUpdate {
+	if v != nil {
+		_u.SetMaxMembers(*v)
+	}
+	return _u
+}
+
+// AddMaxMembers adds value to the "max_members" field.
+func (_u *FeaturePackageUpdate) AddMaxMembers(v int32) *FeaturePackageUpdate {
+	_u.mutation.AddMaxMembers(v)
+	return _u
+}
+
+// SetPriceCents sets the "price_cents" field.
+func (_u *FeaturePackageUpdate) SetPriceCents(v int64) *FeaturePackageUpdate {
+	_u.mutation.ResetPriceCents()
+	_u.mutation.SetPriceCents(v)
+	return _u
+}
+
+// SetNillablePriceCents sets the "price_cents" field if the given value is not nil.
+func (_u *FeaturePackageUpdate) SetNillablePriceCents(v *int64) *FeaturePackageUpdate {
+	if v != nil {
+		_u.SetPriceCents(*v)
+	}
+	return _u
+}
+
+// AddPriceCents adds value to the "price_cents" field.
+func (_u *FeaturePackageUpdate) AddPriceCents(v int64) *FeaturePackageUpdate {
+	_u.mutation.AddPriceCents(v)
+	return _u
+}
+
 // Mutation returns the FeaturePackageMutation object of the builder.
 func (_u *FeaturePackageUpdate) Mutation() *FeaturePackageMutation {
 	return _u.mutation
@@ -194,6 +250,21 @@ func (_u *FeaturePackageUpdate) check() error {
 			return &ValidationError{Name: "duration_days", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.duration_days": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Visibility(); ok {
+		if err := featurepackage.VisibilityValidator(v); err != nil {
+			return &ValidationError{Name: "visibility", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.visibility": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.MaxMembers(); ok {
+		if err := featurepackage.MaxMembersValidator(v); err != nil {
+			return &ValidationError{Name: "max_members", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.max_members": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PriceCents(); ok {
+		if err := featurepackage.PriceCentsValidator(v); err != nil {
+			return &ValidationError{Name: "price_cents", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.price_cents": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -235,6 +306,21 @@ func (_u *FeaturePackageUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.AddedDurationDays(); ok {
 		_spec.AddField(featurepackage.FieldDurationDays, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.Visibility(); ok {
+		_spec.SetField(featurepackage.FieldVisibility, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.MaxMembers(); ok {
+		_spec.SetField(featurepackage.FieldMaxMembers, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedMaxMembers(); ok {
+		_spec.AddField(featurepackage.FieldMaxMembers, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.PriceCents(); ok {
+		_spec.SetField(featurepackage.FieldPriceCents, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedPriceCents(); ok {
+		_spec.AddField(featurepackage.FieldPriceCents, field.TypeInt64, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -359,6 +445,62 @@ func (_u *FeaturePackageUpdateOne) AddDurationDays(v int32) *FeaturePackageUpdat
 	return _u
 }
 
+// SetVisibility sets the "visibility" field.
+func (_u *FeaturePackageUpdateOne) SetVisibility(v featurepackage.Visibility) *FeaturePackageUpdateOne {
+	_u.mutation.SetVisibility(v)
+	return _u
+}
+
+// SetNillableVisibility sets the "visibility" field if the given value is not nil.
+func (_u *FeaturePackageUpdateOne) SetNillableVisibility(v *featurepackage.Visibility) *FeaturePackageUpdateOne {
+	if v != nil {
+		_u.SetVisibility(*v)
+	}
+	return _u
+}
+
+// SetMaxMembers sets the "max_members" field.
+func (_u *FeaturePackageUpdateOne) SetMaxMembers(v int32) *FeaturePackageUpdateOne {
+	_u.mutation.ResetMaxMembers()
+	_u.mutation.SetMaxMembers(v)
+	return _u
+}
+
+// SetNillableMaxMembers sets the "max_members" field if the given value is not nil.
+func (_u *FeaturePackageUpdateOne) SetNillableMaxMembers(v *int32) *FeaturePackageUpdateOne {
+	if v != nil {
+		_u.SetMaxMembers(*v)
+	}
+	return _u
+}
+
+// AddMaxMembers adds value to the "max_members" field.
+func (_u *FeaturePackageUpdateOne) AddMaxMembers(v int32) *FeaturePackageUpdateOne {
+	_u.mutation.AddMaxMembers(v)
+	return _u
+}
+
+// SetPriceCents sets the "price_cents" field.
+func (_u *FeaturePackageUpdateOne) SetPriceCents(v int64) *FeaturePackageUpdateOne {
+	_u.mutation.ResetPriceCents()
+	_u.mutation.SetPriceCents(v)
+	return _u
+}
+
+// SetNillablePriceCents sets the "price_cents" field if the given value is not nil.
+func (_u *FeaturePackageUpdateOne) SetNillablePriceCents(v *int64) *FeaturePackageUpdateOne {
+	if v != nil {
+		_u.SetPriceCents(*v)
+	}
+	return _u
+}
+
+// AddPriceCents adds value to the "price_cents" field.
+func (_u *FeaturePackageUpdateOne) AddPriceCents(v int64) *FeaturePackageUpdateOne {
+	_u.mutation.AddPriceCents(v)
+	return _u
+}
+
 // Mutation returns the FeaturePackageMutation object of the builder.
 func (_u *FeaturePackageUpdateOne) Mutation() *FeaturePackageMutation {
 	return _u.mutation
@@ -435,6 +577,21 @@ func (_u *FeaturePackageUpdateOne) check() error {
 			return &ValidationError{Name: "duration_days", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.duration_days": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Visibility(); ok {
+		if err := featurepackage.VisibilityValidator(v); err != nil {
+			return &ValidationError{Name: "visibility", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.visibility": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.MaxMembers(); ok {
+		if err := featurepackage.MaxMembersValidator(v); err != nil {
+			return &ValidationError{Name: "max_members", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.max_members": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PriceCents(); ok {
+		if err := featurepackage.PriceCentsValidator(v); err != nil {
+			return &ValidationError{Name: "price_cents", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.price_cents": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -493,6 +650,21 @@ func (_u *FeaturePackageUpdateOne) sqlSave(ctx context.Context) (_node *FeatureP
 	}
 	if value, ok := _u.mutation.AddedDurationDays(); ok {
 		_spec.AddField(featurepackage.FieldDurationDays, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.Visibility(); ok {
+		_spec.SetField(featurepackage.FieldVisibility, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.MaxMembers(); ok {
+		_spec.SetField(featurepackage.FieldMaxMembers, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedMaxMembers(); ok {
+		_spec.AddField(featurepackage.FieldMaxMembers, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.PriceCents(); ok {
+		_spec.SetField(featurepackage.FieldPriceCents, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedPriceCents(); ok {
+		_spec.AddField(featurepackage.FieldPriceCents, field.TypeInt64, value)
 	}
 	_node = &FeaturePackage{config: _u.config}
 	_spec.Assign = _node.assignValues

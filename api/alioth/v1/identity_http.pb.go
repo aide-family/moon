@@ -980,8 +980,10 @@ func (c *SelfServiceHTTPClientImpl) UnbindSelfOAuth(ctx context.Context, in *Unb
 }
 
 const OperationNamespaceServiceArchiveSystemNamespace = "/alioth.v1.NamespaceService/ArchiveSystemNamespace"
+const OperationNamespaceServiceCancelNamespaceOrder = "/alioth.v1.NamespaceService/CancelNamespaceOrder"
 const OperationNamespaceServiceCreateFeaturePackage = "/alioth.v1.NamespaceService/CreateFeaturePackage"
 const OperationNamespaceServiceCreateNamespace = "/alioth.v1.NamespaceService/CreateNamespace"
+const OperationNamespaceServiceCreateNamespaceOrder = "/alioth.v1.NamespaceService/CreateNamespaceOrder"
 const OperationNamespaceServiceDeleteFeaturePackage = "/alioth.v1.NamespaceService/DeleteFeaturePackage"
 const OperationNamespaceServiceDeleteNamespace = "/alioth.v1.NamespaceService/DeleteNamespace"
 const OperationNamespaceServiceGetFeaturePackage = "/alioth.v1.NamespaceService/GetFeaturePackage"
@@ -989,9 +991,13 @@ const OperationNamespaceServiceGetNamespace = "/alioth.v1.NamespaceService/GetNa
 const OperationNamespaceServiceGetNamespaceFeatures = "/alioth.v1.NamespaceService/GetNamespaceFeatures"
 const OperationNamespaceServiceListFeaturePackages = "/alioth.v1.NamespaceService/ListFeaturePackages"
 const OperationNamespaceServiceListFeatures = "/alioth.v1.NamespaceService/ListFeatures"
+const OperationNamespaceServiceListNamespaceOrders = "/alioth.v1.NamespaceService/ListNamespaceOrders"
 const OperationNamespaceServiceListNamespaces = "/alioth.v1.NamespaceService/ListNamespaces"
+const OperationNamespaceServiceListPublicPackages = "/alioth.v1.NamespaceService/ListPublicPackages"
 const OperationNamespaceServiceListSimpleNamespaces = "/alioth.v1.NamespaceService/ListSimpleNamespaces"
+const OperationNamespaceServiceListSystemNamespaceOrders = "/alioth.v1.NamespaceService/ListSystemNamespaceOrders"
 const OperationNamespaceServiceListSystemNamespaces = "/alioth.v1.NamespaceService/ListSystemNamespaces"
+const OperationNamespaceServicePayNamespaceOrder = "/alioth.v1.NamespaceService/PayNamespaceOrder"
 const OperationNamespaceServiceSelectNamespaces = "/alioth.v1.NamespaceService/SelectNamespaces"
 const OperationNamespaceServiceTransferNamespaceOwner = "/alioth.v1.NamespaceService/TransferNamespaceOwner"
 const OperationNamespaceServiceUpdateFeaturePackage = "/alioth.v1.NamespaceService/UpdateFeaturePackage"
@@ -1004,10 +1010,15 @@ type NamespaceServiceHTTPServer interface {
 	// ArchiveSystemNamespace 归档租户：软删除租户及其全部业务数据。不读 X-Namespace，需要 system:namespace:write。
 	// 归档不可恢复，也不提供取消归档的接口。
 	ArchiveSystemNamespace(context.Context, *ArchiveSystemNamespaceRequest) (*ArchiveSystemNamespaceResponse, error)
+	// CancelNamespaceOrder 取消一笔待支付的租户订单。
+	CancelNamespaceOrder(context.Context, *CancelNamespaceOrderRequest) (*CancelNamespaceOrderResponse, error)
 	// CreateFeaturePackage 新建功能套餐。需要 system:package:write，仅超级管理员。
 	CreateFeaturePackage(context.Context, *CreateFeaturePackageRequest) (*CreateFeaturePackageResponse, error)
-	// CreateNamespace 创建租户，当前用户成为负责人。
+	// CreateNamespace 直接创建租户，当前用户成为负责人。只接受公开且启用的套餐。
+	// 面向用户的标准入口是「创建订单 -> 支付」，本接口保留给平台内部开通。
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error)
+	// CreateNamespaceOrder 创建租户订单。订单快照套餐价格和时长，创建后为待支付，不代表已付款。
+	CreateNamespaceOrder(context.Context, *CreateNamespaceOrderRequest) (*CreateNamespaceOrderResponse, error)
 	// DeleteFeaturePackage 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
 	DeleteFeaturePackage(context.Context, *DeleteFeaturePackageRequest) (*DeleteFeaturePackageResponse, error)
 	// DeleteNamespace 删除当前租户。需要 namespace:delete。
@@ -1022,12 +1033,21 @@ type NamespaceServiceHTTPServer interface {
 	ListFeaturePackages(context.Context, *ListFeaturePackagesRequest) (*ListFeaturePackagesResponse, error)
 	// ListFeatures 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
 	ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error)
+	// ListNamespaceOrders 分页列出当前用户自己的租户订单。不要求 X-Namespace。
+	ListNamespaceOrders(context.Context, *ListNamespaceOrdersRequest) (*ListNamespaceOrdersResponse, error)
 	// ListNamespaces 分页列出当前用户加入的租户。
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
+	// ListPublicPackages 列出创建租户时可选的功能套餐。只返回公开且启用的套餐，不要求系统权限。
+	ListPublicPackages(context.Context, *ListPublicPackagesRequest) (*ListPublicPackagesResponse, error)
 	// ListSimpleNamespaces 按页返回租户简表。
 	ListSimpleNamespaces(context.Context, *ListSimpleNamespacesRequest) (*ListSimpleNamespacesResponse, error)
+	// ListSystemNamespaceOrders 平台管理员分页列出某个租户的订单。不读 X-Namespace，需要 system:namespace:read。
+	ListSystemNamespaceOrders(context.Context, *ListSystemNamespaceOrdersRequest) (*ListSystemNamespaceOrdersResponse, error)
 	// ListSystemNamespaces 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
 	ListSystemNamespaces(context.Context, *ListSystemNamespacesRequest) (*ListSystemNamespacesResponse, error)
+	// PayNamespaceOrder 虚拟支付订单。当前没有对接支付渠道，调用成功即视为付款完成，
+	// 并在同一事务里创建租户、绑定套餐、把订单置为已支付。
+	PayNamespaceOrder(context.Context, *PayNamespaceOrderRequest) (*PayNamespaceOrderResponse, error)
 	// SelectNamespaces 按游标列出当前用户可切换的租户。
 	SelectNamespaces(context.Context, *SelectNamespacesRequest) (*SelectNamespacesResponse, error)
 	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
@@ -1049,6 +1069,12 @@ type NamespaceServiceHTTPServer interface {
 func RegisterNamespaceServiceHTTPServer(s *http.Server, srv NamespaceServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("POST", "/v1/namespace", _NamespaceService_CreateNamespace0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/packages", _NamespaceService_ListPublicPackages0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/orders", _NamespaceService_CreateNamespaceOrder0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/orders/{uid}/pay", _NamespaceService_PayNamespaceOrder0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/orders/{uid}/cancel", _NamespaceService_CancelNamespaceOrder0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/orders", _NamespaceService_ListNamespaceOrders0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/namespace/{uid}/orders", _NamespaceService_ListSystemNamespaceOrders0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/namespace/{uid}", _NamespaceService_UpdateNamespace0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/namespace/{uid}/status", _NamespaceService_UpdateNamespaceStatus0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/namespace/{uid}", _NamespaceService_DeleteNamespace0_HTTP_Handler(srv))
@@ -1085,6 +1111,129 @@ func _NamespaceService_CreateNamespace0_HTTP_Handler(srv NamespaceServiceHTTPSer
 			return err
 		}
 		reply := out.(*CreateNamespaceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_ListPublicPackages0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPublicPackagesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceListPublicPackages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPublicPackages(ctx, req.(*ListPublicPackagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListPublicPackagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_CreateNamespaceOrder0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateNamespaceOrderRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceCreateNamespaceOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateNamespaceOrder(ctx, req.(*CreateNamespaceOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateNamespaceOrderResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_PayNamespaceOrder0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PayNamespaceOrderRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServicePayNamespaceOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PayNamespaceOrder(ctx, req.(*PayNamespaceOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PayNamespaceOrderResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_CancelNamespaceOrder0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CancelNamespaceOrderRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceCancelNamespaceOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CancelNamespaceOrder(ctx, req.(*CancelNamespaceOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CancelNamespaceOrderResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_ListNamespaceOrders0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListNamespaceOrdersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceListNamespaceOrders)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListNamespaceOrders(ctx, req.(*ListNamespaceOrdersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListNamespaceOrdersResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_ListSystemNamespaceOrders0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListSystemNamespaceOrdersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceListSystemNamespaceOrders)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSystemNamespaceOrders(ctx, req.(*ListSystemNamespaceOrdersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSystemNamespaceOrdersResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1490,10 +1639,15 @@ type NamespaceServiceHTTPClient interface {
 	// ArchiveSystemNamespace 归档租户：软删除租户及其全部业务数据。不读 X-Namespace，需要 system:namespace:write。
 	// 归档不可恢复，也不提供取消归档的接口。
 	ArchiveSystemNamespace(ctx context.Context, req *ArchiveSystemNamespaceRequest, opts ...http.CallOption) (rsp *ArchiveSystemNamespaceResponse, err error)
+	// CancelNamespaceOrder 取消一笔待支付的租户订单。
+	CancelNamespaceOrder(ctx context.Context, req *CancelNamespaceOrderRequest, opts ...http.CallOption) (rsp *CancelNamespaceOrderResponse, err error)
 	// CreateFeaturePackage 新建功能套餐。需要 system:package:write，仅超级管理员。
 	CreateFeaturePackage(ctx context.Context, req *CreateFeaturePackageRequest, opts ...http.CallOption) (rsp *CreateFeaturePackageResponse, err error)
-	// CreateNamespace 创建租户，当前用户成为负责人。
+	// CreateNamespace 直接创建租户，当前用户成为负责人。只接受公开且启用的套餐。
+	// 面向用户的标准入口是「创建订单 -> 支付」，本接口保留给平台内部开通。
 	CreateNamespace(ctx context.Context, req *CreateNamespaceRequest, opts ...http.CallOption) (rsp *CreateNamespaceResponse, err error)
+	// CreateNamespaceOrder 创建租户订单。订单快照套餐价格和时长，创建后为待支付，不代表已付款。
+	CreateNamespaceOrder(ctx context.Context, req *CreateNamespaceOrderRequest, opts ...http.CallOption) (rsp *CreateNamespaceOrderResponse, err error)
 	// DeleteFeaturePackage 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
 	DeleteFeaturePackage(ctx context.Context, req *DeleteFeaturePackageRequest, opts ...http.CallOption) (rsp *DeleteFeaturePackageResponse, err error)
 	// DeleteNamespace 删除当前租户。需要 namespace:delete。
@@ -1508,12 +1662,21 @@ type NamespaceServiceHTTPClient interface {
 	ListFeaturePackages(ctx context.Context, req *ListFeaturePackagesRequest, opts ...http.CallOption) (rsp *ListFeaturePackagesResponse, err error)
 	// ListFeatures 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
 	ListFeatures(ctx context.Context, req *ListFeaturesRequest, opts ...http.CallOption) (rsp *ListFeaturesResponse, err error)
+	// ListNamespaceOrders 分页列出当前用户自己的租户订单。不要求 X-Namespace。
+	ListNamespaceOrders(ctx context.Context, req *ListNamespaceOrdersRequest, opts ...http.CallOption) (rsp *ListNamespaceOrdersResponse, err error)
 	// ListNamespaces 分页列出当前用户加入的租户。
 	ListNamespaces(ctx context.Context, req *ListNamespacesRequest, opts ...http.CallOption) (rsp *ListNamespacesResponse, err error)
+	// ListPublicPackages 列出创建租户时可选的功能套餐。只返回公开且启用的套餐，不要求系统权限。
+	ListPublicPackages(ctx context.Context, req *ListPublicPackagesRequest, opts ...http.CallOption) (rsp *ListPublicPackagesResponse, err error)
 	// ListSimpleNamespaces 按页返回租户简表。
 	ListSimpleNamespaces(ctx context.Context, req *ListSimpleNamespacesRequest, opts ...http.CallOption) (rsp *ListSimpleNamespacesResponse, err error)
+	// ListSystemNamespaceOrders 平台管理员分页列出某个租户的订单。不读 X-Namespace，需要 system:namespace:read。
+	ListSystemNamespaceOrders(ctx context.Context, req *ListSystemNamespaceOrdersRequest, opts ...http.CallOption) (rsp *ListSystemNamespaceOrdersResponse, err error)
 	// ListSystemNamespaces 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
 	ListSystemNamespaces(ctx context.Context, req *ListSystemNamespacesRequest, opts ...http.CallOption) (rsp *ListSystemNamespacesResponse, err error)
+	// PayNamespaceOrder 虚拟支付订单。当前没有对接支付渠道，调用成功即视为付款完成，
+	// 并在同一事务里创建租户、绑定套餐、把订单置为已支付。
+	PayNamespaceOrder(ctx context.Context, req *PayNamespaceOrderRequest, opts ...http.CallOption) (rsp *PayNamespaceOrderResponse, err error)
 	// SelectNamespaces 按游标列出当前用户可切换的租户。
 	SelectNamespaces(ctx context.Context, req *SelectNamespacesRequest, opts ...http.CallOption) (rsp *SelectNamespacesResponse, err error)
 	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
@@ -1558,6 +1721,23 @@ func (c *NamespaceServiceHTTPClientImpl) ArchiveSystemNamespace(ctx context.Cont
 	return &out, nil
 }
 
+// CancelNamespaceOrder 取消一笔待支付的租户订单。
+func (c *NamespaceServiceHTTPClientImpl) CancelNamespaceOrder(ctx context.Context, in *CancelNamespaceOrderRequest, opts ...http.CallOption) (*CancelNamespaceOrderResponse, error) {
+	var out CancelNamespaceOrderResponse
+	pattern := "/v1/orders/{uid}/cancel"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceCancelNamespaceOrder),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // CreateFeaturePackage 新建功能套餐。需要 system:package:write，仅超级管理员。
 func (c *NamespaceServiceHTTPClientImpl) CreateFeaturePackage(ctx context.Context, in *CreateFeaturePackageRequest, opts ...http.CallOption) (*CreateFeaturePackageResponse, error) {
 	var out CreateFeaturePackageResponse
@@ -1576,7 +1756,8 @@ func (c *NamespaceServiceHTTPClientImpl) CreateFeaturePackage(ctx context.Contex
 	return &out, nil
 }
 
-// CreateNamespace 创建租户，当前用户成为负责人。
+// CreateNamespace 直接创建租户，当前用户成为负责人。只接受公开且启用的套餐。
+// 面向用户的标准入口是「创建订单 -> 支付」，本接口保留给平台内部开通。
 func (c *NamespaceServiceHTTPClientImpl) CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...http.CallOption) (*CreateNamespaceResponse, error) {
 	var out CreateNamespaceResponse
 	pattern := "/v1/namespace"
@@ -1585,6 +1766,24 @@ func (c *NamespaceServiceHTTPClientImpl) CreateNamespace(ctx context.Context, in
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationNamespaceServiceCreateNamespace),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CreateNamespaceOrder 创建租户订单。订单快照套餐价格和时长，创建后为待支付，不代表已付款。
+func (c *NamespaceServiceHTTPClientImpl) CreateNamespaceOrder(ctx context.Context, in *CreateNamespaceOrderRequest, opts ...http.CallOption) (*CreateNamespaceOrderResponse, error) {
+	var out CreateNamespaceOrderResponse
+	pattern := "/v1/orders"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNamespaceServiceCreateNamespaceOrder),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -1713,6 +1912,23 @@ func (c *NamespaceServiceHTTPClientImpl) ListFeatures(ctx context.Context, in *L
 	return &out, nil
 }
 
+// ListNamespaceOrders 分页列出当前用户自己的租户订单。不要求 X-Namespace。
+func (c *NamespaceServiceHTTPClientImpl) ListNamespaceOrders(ctx context.Context, in *ListNamespaceOrdersRequest, opts ...http.CallOption) (*ListNamespaceOrdersResponse, error) {
+	var out ListNamespaceOrdersResponse
+	pattern := "/v1/orders"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceListNamespaceOrders),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListNamespaces 分页列出当前用户加入的租户。
 func (c *NamespaceServiceHTTPClientImpl) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...http.CallOption) (*ListNamespacesResponse, error) {
 	var out ListNamespacesResponse
@@ -1721,6 +1937,23 @@ func (c *NamespaceServiceHTTPClientImpl) ListNamespaces(ctx context.Context, in 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationNamespaceServiceListNamespaces),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListPublicPackages 列出创建租户时可选的功能套餐。只返回公开且启用的套餐，不要求系统权限。
+func (c *NamespaceServiceHTTPClientImpl) ListPublicPackages(ctx context.Context, in *ListPublicPackagesRequest, opts ...http.CallOption) (*ListPublicPackagesResponse, error) {
+	var out ListPublicPackagesResponse
+	pattern := "/v1/packages"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceListPublicPackages),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -1747,6 +1980,23 @@ func (c *NamespaceServiceHTTPClientImpl) ListSimpleNamespaces(ctx context.Contex
 	return &out, nil
 }
 
+// ListSystemNamespaceOrders 平台管理员分页列出某个租户的订单。不读 X-Namespace，需要 system:namespace:read。
+func (c *NamespaceServiceHTTPClientImpl) ListSystemNamespaceOrders(ctx context.Context, in *ListSystemNamespaceOrdersRequest, opts ...http.CallOption) (*ListSystemNamespaceOrdersResponse, error) {
+	var out ListSystemNamespaceOrdersResponse
+	pattern := "/v1/system/namespace/{uid}/orders"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceListSystemNamespaceOrders),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListSystemNamespaces 平台管理员分页列出全部租户。不读 X-Namespace，需要 system:namespace:read。
 func (c *NamespaceServiceHTTPClientImpl) ListSystemNamespaces(ctx context.Context, in *ListSystemNamespacesRequest, opts ...http.CallOption) (*ListSystemNamespacesResponse, error) {
 	var out ListSystemNamespacesResponse
@@ -1758,6 +2008,24 @@ func (c *NamespaceServiceHTTPClientImpl) ListSystemNamespaces(ctx context.Contex
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PayNamespaceOrder 虚拟支付订单。当前没有对接支付渠道，调用成功即视为付款完成，
+// 并在同一事务里创建租户、绑定套餐、把订单置为已支付。
+func (c *NamespaceServiceHTTPClientImpl) PayNamespaceOrder(ctx context.Context, in *PayNamespaceOrderRequest, opts ...http.CallOption) (*PayNamespaceOrderResponse, error) {
+	var out PayNamespaceOrderResponse
+	pattern := "/v1/orders/{uid}/pay"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServicePayNamespaceOrder),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

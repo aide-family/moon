@@ -14,15 +14,20 @@ type Feature struct {
 }
 
 // FeaturePackage 是平台级的功能套餐。Features 是套餐携带的能力编码。
-// DurationDays 是租户使用该套餐时的默认授权时长，0 表示永久。
+// DurationDays 是租户使用该套餐时的默认授权时长，0 表示永久；
+// Visibility 决定套餐出现在哪里（PUBLIC 可被用户创建租户时选择，BETA 只由平台分配）；
+// MaxMembers 是租户可容纳的成员数上限，0 表示不限制；PriceCents 是价格，单位为人民币分。
 type FeaturePackage struct {
 	UID          string
 	Name         string
 	Remark       string
 	IsBase       bool
 	Status       string
+	Visibility   string
 	Features     []string
 	DurationDays int32
+	MaxMembers   int32
+	PriceCents   int64
 	CreatedAt    time.Time
 }
 

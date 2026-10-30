@@ -39,6 +39,12 @@ export type PackageItem = {
   createdAt?: number
   /** 授权时长（天）：0 表示永久。新套餐未返回时按 0 处理。 */
   durationDays?: number
+  /** 版本：PUBLIC 可被用户创建租户时选择，BETA 只由平台管理员分配。 */
+  visibility: "PUBLIC" | "BETA"
+  /** 可容纳的成员数上限，0 表示不限制。 */
+  maxMembers: number
+  /** 价格，单位为人民币分；0 表示免费。 */
+  priceCents: number
 }
 
 export type ListPackagesParams = {
@@ -61,6 +67,12 @@ export type PackagePayload = {
   features: string[]
   /** 授权时长（天），0 表示永久。 */
   durationDays: number
+  /** 版本：PUBLIC 公开可购买，BETA 内测只由平台分配。 */
+  visibility: "PUBLIC" | "BETA"
+  /** 可容纳的成员数上限，0 表示不限制。 */
+  maxMembers: number
+  /** 价格，单位为人民币分；0 表示免费。 */
+  priceCents: number
 }
 
 export type UpdatePackagePayload = PackagePayload & {

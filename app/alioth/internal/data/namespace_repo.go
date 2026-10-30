@@ -22,38 +22,52 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 )
 
-func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, ownerUID string) (*bo.Namespace, error) {
+func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, ownerUID, packageUID string) (*bo.Namespace, error) {
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
 	defer func() { _ = tx.Rollback() }()
-
-	// 新租户默认基础套餐。套餐由 seed 保证存在；缺失属于部署问题，不建半个租户。
-	base, err := tx.FeaturePackage.Query().
-		Where(featurepackage.IsBase(true), featurepackage.DeletedAtIsNil()).
+	pkg, err := tx.FeaturePackage.Query().
+		Where(featurepackage.UIDEQ(packageUID), featurepackage.DeletedAtIsNil(), featurepackage.StatusEQ(featurepackage.StatusACTIVE)).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, merr.Server("base feature package is missing")
+			return nil, merr.NotFound("package not found")
 		}
 		return nil, r.fail(err)
 	}
-	// 预置角色跟随基础套餐当前的能力，而不是代码里的常量：超级管理员调整基础套餐后，
-	// 新建租户的角色权限要立即一致。套餐明细缺失时回落到代码默认能力。
-	baseItems, err := tx.FeaturePackageItem.Query().
-		Where(featurepackageitem.PackageUIDEQ(base.UID)).
-		All(ctx)
+	// 直接创建按套餐当前的授权时长计算到期时间；订单支付传的是下单时的时长快照。
+	namespaceUID, err := r.createNamespaceTx(ctx, tx, name, remark, ownerUID, pkg, pkg.DurationDays)
 	if err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
-	baseCodes := make([]string, 0, len(baseItems))
-	for _, item := range baseItems {
-		baseCodes = append(baseCodes, item.Feature)
+	return r.GetNamespace(ctx, namespaceUID)
+}
+
+// createNamespaceTx 在调用方的事务里创建一个完整租户：绑定套餐、按套餐能力创建预置角色、
+// 写入负责人成员和 owner 角色。直接把租户创建和订单支付放在同一个事务里，避免出现
+// 「租户建好但订单没置为已支付」的中间状态。调用方负责提交事务。
+// durationDays 是本次授权的时长（0 表示永久），由调用方决定用套餐当前值还是订单快照。
+func (base *repoBase) createNamespaceTx(ctx context.Context, tx *ent.Tx, name, remark, ownerUID string, pkg *ent.FeaturePackage, durationDays int32) (string, error) {
+	// 预置角色跟随套餐当前的能力，而不是代码里的常量：超级管理员调整套餐后，
+	// 新建租户的角色权限要立即一致。只有基础套餐在明细缺失时才回落到代码默认能力。
+	items, err := tx.FeaturePackageItem.Query().
+		Where(featurepackageitem.PackageUIDEQ(pkg.UID)).
+		All(ctx)
+	if err != nil {
+		return "", base.fail(err)
 	}
-	baseCapabilities := capabilityCodesOf(baseCodes)
-	if len(baseCapabilities) == 0 {
-		baseCapabilities = perm.BaseCapabilities()
+	codes := make([]string, 0, len(items))
+	for _, item := range items {
+		codes = append(codes, item.Feature)
+	}
+	capabilities := capabilityCodesOf(codes)
+	if len(capabilities) == 0 && pkg.IsBase {
+		capabilities = perm.BaseCapabilities()
 	}
 	secret := make([]byte, 24)
 	_, _ = rand.Read(secret)
@@ -62,20 +76,19 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 		SetName(name).
 		SetRemark(remark).
 		SetOwnerUID(ownerUID).
-		SetPackageUID(base.UID).
+		SetPackageUID(pkg.UID).
 		SetSecret(hex.EncodeToString(secret)).
 		SetStatus(namespace.StatusACTIVE)
-	// 新租户的到期时间由基础套餐的默认时长决定；0 表示永久。
-	if base.DurationDays > 0 {
-		create = create.SetPackageExpiresAt(time.Now().Add(time.Duration(base.DurationDays) * 24 * time.Hour))
+	if durationDays > 0 {
+		create = create.SetPackageExpiresAt(time.Now().Add(time.Duration(durationDays) * 24 * time.Hour))
 	}
 	ns, err := create.Save(ctx)
 	if err != nil {
-		return nil, r.fail(err)
+		return "", base.fail(err)
 	}
 	catalog, err := tx.Permission.Query().All(ctx)
 	if err != nil {
-		return nil, r.fail(err)
+		return "", base.fail(err)
 	}
 	byName := make(map[string]string, len(catalog))
 	for _, item := range catalog {
@@ -92,16 +105,16 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 			SetStatus(role.StatusACTIVE).
 			Save(ctx)
 		if err != nil {
-			return nil, r.fail(err)
+			return "", base.fail(err)
 		}
 		if roleName == perm.RoleOwner {
 			ownerRoleUID = created.UID
 		}
-		// 预置角色只授基础套餐能力范围内的权限；其余能力由租户开通后再授予角色。
-		for _, code := range perm.RolePermissionsForCapabilities(roleName, baseCapabilities) {
+		// 预置角色只授套餐能力范围内的权限；其余能力由租户开通后再授予角色。
+		for _, code := range perm.RolePermissionsForCapabilities(roleName, capabilities) {
 			permissionUID, ok := byName[code]
 			if !ok {
-				return nil, merr.Invalid("invalid request")
+				return "", merr.Invalid("invalid request")
 			}
 			if _, err := tx.RolePermission.Create().
 				SetUID(id.New()).
@@ -109,7 +122,7 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 				SetRoleUID(created.UID).
 				SetPermissionUID(permissionUID).
 				Save(ctx); err != nil {
-				return nil, r.fail(err)
+				return "", base.fail(err)
 			}
 		}
 	}
@@ -120,7 +133,7 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 		SetStatus(member.StatusJOINED).
 		Save(ctx)
 	if err != nil {
-		return nil, r.fail(err)
+		return "", base.fail(err)
 	}
 	if _, err := tx.MemberRole.Create().
 		SetUID(id.New()).
@@ -128,12 +141,9 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 		SetMemberUID(memberRow.UID).
 		SetRoleUID(ownerRoleUID).
 		Save(ctx); err != nil {
-		return nil, r.fail(err)
+		return "", base.fail(err)
 	}
-	if err := tx.Commit(); err != nil {
-		return nil, r.fail(err)
-	}
-	return r.GetNamespace(ctx, ns.UID)
+	return ns.UID, nil
 }
 
 // GetNamespace 返回租户，并补齐负责人的名称和邮箱。
@@ -146,7 +156,7 @@ func (r *namespaceRepo) GetNamespace(ctx context.Context, uid string) (*bo.Names
 	if err := r.fillOwners(ctx, items); err != nil {
 		return nil, err
 	}
-	if err := r.fillPackageNames(ctx, items); err != nil {
+	if err := r.fillPackageInfo(ctx, items); err != nil {
 		return nil, err
 	}
 	return &items[0], nil
@@ -188,9 +198,9 @@ func (r *namespaceRepo) fillOwners(ctx context.Context, items []bo.Namespace) er
 	return nil
 }
 
-// fillPackageNames 按套餐 UID 批量补齐套餐名称。套餐可能已被软删除，这里不过滤删除标记，
-// 保证历史租户仍能显示当初选择的套餐名。
-func (r *namespaceRepo) fillPackageNames(ctx context.Context, items []bo.Namespace) error {
+// fillPackageInfo 按套餐 UID 批量补齐套餐名称和成员数上限。套餐可能已被软删除，
+// 这里不过滤删除标记，保证历史租户仍能显示当初选择的套餐名；已删除套餐的容量按不限制处理。
+func (r *namespaceRepo) fillPackageInfo(ctx context.Context, items []bo.Namespace) error {
 	packageUIDs := make([]string, 0, len(items))
 	seen := make(map[string]struct{}, len(items))
 	for _, item := range items {
@@ -210,12 +220,17 @@ func (r *namespaceRepo) fillPackageNames(ctx context.Context, items []bo.Namespa
 	if err != nil {
 		return r.fail(err)
 	}
-	byUID := make(map[string]string, len(rows))
+	byUID := make(map[string]*ent.FeaturePackage, len(rows))
 	for _, row := range rows {
-		byUID[row.UID] = row.Name
+		byUID[row.UID] = row
 	}
 	for i := range items {
-		items[i].PackageName = byUID[items[i].PackageUID]
+		row, ok := byUID[items[i].PackageUID]
+		if !ok {
+			continue
+		}
+		items[i].PackageName = row.Name
+		items[i].MaxMembers = row.MaxMembers
 	}
 	return nil
 }
@@ -266,6 +281,13 @@ func (r *namespaceRepo) userNamespaces(ctx context.Context, userUID string, incl
 	if err := r.fillOwners(ctx, items); err != nil {
 		return nil, err
 	}
+	// 切换器和成员页要显示「已用 / 上限」，所以用户自己的租户列表也补齐容量和成员数。
+	if err := r.fillMemberCounts(ctx, items); err != nil {
+		return nil, err
+	}
+	if err := r.fillPackageInfo(ctx, items); err != nil {
+		return nil, err
+	}
 	return items, nil
 }
 
@@ -291,11 +313,18 @@ func (r *namespaceRepo) ListNamespaces(ctx context.Context, userUID string, page
 	if err := r.fillOwners(ctx, items); err != nil {
 		return nil, 0, err
 	}
+	if err := r.fillMemberCounts(ctx, items); err != nil {
+		return nil, 0, err
+	}
+	if err := r.fillPackageInfo(ctx, items); err != nil {
+		return nil, 0, err
+	}
 	return items, total, nil
 }
 
 // ListAllNamespaces 列出平台全部租户，供系统管理员查看。不按成员身份过滤。
-// 成员数只在这个列表补齐：GetNamespace 在每次业务请求的租户校验里都会调用，不做额外统计。
+// 成员数与套餐容量在租户列表里补齐；GetNamespace 在每次业务请求的租户校验里都会调用，
+// 不做额外统计，只有平台列表和成员自己的租户列表需要这两项展示信息。
 func (r *namespaceRepo) ListAllNamespaces(ctx context.Context, page, pageSize int, name, status string) ([]bo.Namespace, int, error) {
 	preds := []predicate.Namespace{namespace.DeletedAtIsNil()}
 	if name != "" {
@@ -320,7 +349,7 @@ func (r *namespaceRepo) ListAllNamespaces(ctx context.Context, page, pageSize in
 	if err := r.fillMemberCounts(ctx, items); err != nil {
 		return nil, 0, err
 	}
-	if err := r.fillPackageNames(ctx, items); err != nil {
+	if err := r.fillPackageInfo(ctx, items); err != nil {
 		return nil, 0, err
 	}
 	return items, total, nil

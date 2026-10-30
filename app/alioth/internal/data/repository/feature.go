@@ -11,11 +11,14 @@ import (
 // 套餐与租户差异都只存能力编码；有效能力由套餐能力并上租户额外能力计算，不落表。
 type FeatureRepo interface {
 	ListPackages(ctx context.Context, page, pageSize int, name string) ([]bo.FeaturePackage, int, error)
+	// ListPublicPackages 返回公开且启用的套餐，供用户创建租户时选择，按价格和名称排序。
+	ListPublicPackages(ctx context.Context) ([]bo.FeaturePackage, error)
 	GetPackage(ctx context.Context, uid string) (*bo.FeaturePackage, error)
-	// CreatePackage 新建套餐。features 是能力编码，durationDays 是默认授权时长（0=永久）。
-	CreatePackage(ctx context.Context, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error)
-	// UpdatePackage 同时替换名称、备注、能力明细和默认时长。
-	UpdatePackage(ctx context.Context, uid, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error)
+	// CreatePackage 新建套餐。pkg.Features 是能力编码，pkg.DurationDays 是默认授权时长（0=永久），
+	// pkg.Visibility 决定公开/内测，pkg.MaxMembers 是成员数上限（0=不限），pkg.PriceCents 是价格（分）。
+	CreatePackage(ctx context.Context, pkg bo.FeaturePackage) (*bo.FeaturePackage, error)
+	// UpdatePackage 同时替换名称、备注、能力明细、默认时长、版本、人数上限和价格。
+	UpdatePackage(ctx context.Context, pkg bo.FeaturePackage) (*bo.FeaturePackage, error)
 	DeletePackage(ctx context.Context, uid string) error
 	// NamespaceFeatureState 返回租户的套餐、套餐能力、额外能力、已配置的合并能力和到期状态。
 	// 它用于平台管理端展示，即使租户停用或已到期也返回配置；是否生效由 EffectiveCapabilities 判断。
@@ -38,4 +41,7 @@ type FeatureRepo interface {
 	ArchiveNamespace(ctx context.Context, namespaceUID string) error
 	// CountNamespacesUsingPackage 统计使用该套餐的未删除租户数，被使用的套餐不能删除。
 	CountNamespacesUsingPackage(ctx context.Context, packageUID string) (int, error)
+	// NamespaceMemberLimit 返回租户当前套餐的成员数上限，0 表示不限制。
+	// 容量跟着套餐实时变化，不在 namespaces 上冗余；套餐缺失时按不限制处理。
+	NamespaceMemberLimit(ctx context.Context, namespaceUID string) (int32, error)
 }

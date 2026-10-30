@@ -297,6 +297,18 @@ func (f NamespaceFeatureFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NamespaceFeatureMutation", m)
 }
 
+// The NamespaceOrderFunc type is an adapter to allow the use of ordinary
+// function as NamespaceOrder mutator.
+type NamespaceOrderFunc func(context.Context, *ent.NamespaceOrderMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NamespaceOrderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NamespaceOrderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NamespaceOrderMutation", m)
+}
+
 // The NotificationChannelFunc type is an adapter to allow the use of ordinary
 // function as NotificationChannel mutator.
 type NotificationChannelFunc func(context.Context, *ent.NotificationChannelMutation) (ent.Value, error)

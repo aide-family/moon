@@ -34,6 +34,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Table,
@@ -80,6 +87,41 @@ function durationText(t: TFunction, days?: number): string {
     : t("packageAdmin.permanent")
 }
 
+/** 人数上限只接受 0（不限）或正整数；非法输入返回 null，由表单报错。 */
+function parseMaxMembers(value: string): number | null {
+  const trimmed = value.trim()
+  if (!/^\d+$/.test(trimmed)) {
+    return null
+  }
+  const members = Number(trimmed)
+  return Number.isSafeInteger(members) ? members : null
+}
+
+/**
+ * 价格输入以「元」为单位，最多两位小数，提交时换算成人民币分。
+ * 用字符串拆分计算，避免 Number 浮点误差把 12.30 算成 1229 分。
+ */
+function parsePriceCents(value: string): number | null {
+  const trimmed = value.trim()
+  if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
+    return null
+  }
+  const [yuan, fraction = ""] = trimmed.split(".")
+  const cents = Number(yuan) * 100 + Number(fraction.padEnd(2, "0"))
+  return Number.isSafeInteger(cents) ? cents : null
+}
+
+/** 列表 / 详情里的价格文案：0 分就是免费，其余按 ¥xx.xx 展示。 */
+function priceText(t: TFunction, cents?: number): string {
+  const value = cents ?? 0
+  if (value <= 0) {
+    return t("packageAdmin.free")
+  }
+  return t("packageAdmin.priceValue", {
+    amount: (value / 100).toFixed(2),
+  })
+}
+
 // 套餐管理：平台级页面，超级管理员把功能组合成套餐，再在租户管理里分配。
 // 基础套餐只有一个，名称固定、不能删除，但可以调整功能与备注。
 export function PackagePage() {
@@ -97,6 +139,11 @@ export function PackagePage() {
   const [features, setFeatures] = useState<string[]>([])
   // 授权时长用字符串保存，空/非法输入在提交时统一校验，避免受控输入抖动。
   const [durationDays, setDurationDays] = useState("0")
+  // 版本决定套餐出现在哪里：新套餐默认内测，确认要售卖后再改成公开。
+  const [visibility, setVisibility] = useState<"PUBLIC" | "BETA">("BETA")
+  // 人数上限 0 表示不限制；价格以「元」输入，提交时换算成分。
+  const [maxMembers, setMaxMembers] = useState("0")
+  const [priceYuan, setPriceYuan] = useState("0")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState("")
   const [pending, setPending] = useState(false)
@@ -173,6 +220,9 @@ export function PackagePage() {
     setRemark("")
     setFeatures([])
     setDurationDays("0")
+    setVisibility("BETA")
+    setMaxMembers("0")
+    setPriceYuan("0")
     setFieldErrors({})
     setFormError("")
     setDialogOpen(true)
@@ -184,6 +234,9 @@ export function PackagePage() {
     setRemark(item.remark ?? "")
     setFeatures(item.features ?? [])
     setDurationDays(String(item.durationDays ?? 0))
+    setVisibility(item.visibility === "PUBLIC" ? "PUBLIC" : "BETA")
+    setMaxMembers(String(item.maxMembers ?? 0))
+    setPriceYuan(((item.priceCents ?? 0) / 100).toFixed(2))
     setFieldErrors({})
     setFormError("")
     setDialogOpen(true)
@@ -197,6 +250,9 @@ export function PackagePage() {
       setRemark("")
       setFeatures([])
       setDurationDays("0")
+      setVisibility("BETA")
+      setMaxMembers("0")
+      setPriceYuan("0")
       setFieldErrors({})
       setFormError("")
     }
@@ -205,6 +261,8 @@ export function PackagePage() {
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const duration = parseDurationDays(durationDays)
+    const members = parseMaxMembers(maxMembers)
+    const priceCents = parsePriceCents(priceYuan)
     const errors = collectFieldErrors([
       // 基础套餐名称由后端固定，前端不再校验改名。
       [
@@ -215,6 +273,11 @@ export function PackagePage() {
         "durationDays",
         duration === null ? t("packageAdmin.durationInvalid") : null,
       ],
+      [
+        "maxMembers",
+        members === null ? t("packageAdmin.maxMembersInvalid") : null,
+      ],
+      ["price", priceCents === null ? t("packageAdmin.priceInvalid") : null],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -229,6 +292,9 @@ export function PackagePage() {
         remark: remark.trim(),
         features: sortCapabilityCodes(features),
         durationDays: duration ?? 0,
+        visibility,
+        maxMembers: members ?? 0,
+        priceCents: priceCents ?? 0,
       }
       if (editing) {
         await updatePackage({ uid: editing.uid, ...payload })
@@ -371,6 +437,21 @@ export function PackagePage() {
                 <TableHead
                   className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
                 >
+                  {t("packageAdmin.visibility")}
+                </TableHead>
+                <TableHead
+                  className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
+                >
+                  {t("packageAdmin.price")}
+                </TableHead>
+                <TableHead
+                  className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
+                >
+                  {t("packageAdmin.maxMembers")}
+                </TableHead>
+                <TableHead
+                  className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
+                >
                   {t("packageAdmin.duration")}
                 </TableHead>
                 <TableActionsHead>{t("action.actions")}</TableActionsHead>
@@ -412,6 +493,37 @@ export function PackagePage() {
                       }
                       tone={item.isBase ? "primary" : "neutral"}
                     />
+                  </TableCell>
+                  <TableCell
+                    className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
+                  >
+                    <StatusBadge
+                      value={item.visibility}
+                      label={
+                        item.visibility === "PUBLIC"
+                          ? t("packageAdmin.visibilityPublic")
+                          : t("packageAdmin.visibilityBeta")
+                      }
+                      tone={item.visibility === "PUBLIC" ? "primary" : "neutral"}
+                    />
+                  </TableCell>
+                  <TableCell
+                    className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
+                  >
+                    <span className="tabular-nums">
+                      {priceText(t, item.priceCents)}
+                    </span>
+                  </TableCell>
+                  <TableCell
+                    className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
+                  >
+                    <span className="tabular-nums">
+                      {item.maxMembers
+                        ? t("packageAdmin.maxMembersValue", {
+                            count: item.maxMembers,
+                          })
+                        : t("packageAdmin.maxMembersUnlimited")}
+                    </span>
                   </TableCell>
                   <TableCell
                     className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
@@ -471,6 +583,32 @@ export function PackagePage() {
           {
             label: t("packageAdmin.remark"),
             value: detail?.remark?.trim() || "—",
+          },
+          {
+            label: t("packageAdmin.visibility"),
+            value: detail ? (
+              <StatusBadge
+                value={detail.visibility}
+                label={
+                  detail.visibility === "PUBLIC"
+                    ? t("packageAdmin.visibilityPublic")
+                    : t("packageAdmin.visibilityBeta")
+                }
+                tone={detail.visibility === "PUBLIC" ? "primary" : "neutral"}
+              />
+            ) : (
+              ""
+            ),
+          },
+          {
+            label: t("packageAdmin.price"),
+            value: priceText(t, detail?.priceCents),
+          },
+          {
+            label: t("packageAdmin.maxMembers"),
+            value: detail?.maxMembers
+              ? t("packageAdmin.maxMembersValue", { count: detail.maxMembers })
+              : t("packageAdmin.maxMembersUnlimited"),
           },
           {
             label: t("packageAdmin.duration"),
@@ -544,6 +682,66 @@ export function PackagePage() {
                   />
                 </FormField>
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  label={t("packageAdmin.visibility")}
+                  hint={t("packageAdmin.visibilityHint")}
+                >
+                  <Select
+                    value={visibility}
+                    onValueChange={(value) =>
+                      setVisibility(value === "PUBLIC" ? "PUBLIC" : "BETA")
+                    }
+                  >
+                    <SelectTrigger
+                      className="w-full"
+                      aria-label={t("packageAdmin.visibility")}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PUBLIC">
+                        {t("packageAdmin.visibilityPublic")}
+                      </SelectItem>
+                      <SelectItem value="BETA">
+                        {t("packageAdmin.visibilityBeta")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormField>
+                <FormField
+                  label={t("packageAdmin.maxMembers")}
+                  htmlFor="package-max-members"
+                  hint={t("packageAdmin.maxMembersHint")}
+                  error={fieldErrors.maxMembers}
+                >
+                  <Input
+                    id="package-max-members"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    step={1}
+                    value={maxMembers}
+                    placeholder="0"
+                    onChange={(event) => setMaxMembers(event.target.value)}
+                  />
+                </FormField>
+              </div>
+              <FormField
+                label={t("packageAdmin.price")}
+                htmlFor="package-price"
+                hint={t("packageAdmin.priceHint")}
+                error={fieldErrors.price}
+              >
+                <Input
+                  id="package-price"
+                  type="text"
+                  inputMode="decimal"
+                  value={priceYuan}
+                  placeholder="0.00"
+                  onChange={(event) => setPriceYuan(event.target.value)}
+                />
+              </FormField>
               <FormField
                 label={t("packageAdmin.remark")}
                 htmlFor="package-remark"

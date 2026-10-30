@@ -78,6 +78,9 @@ type Namespace func(*sql.Selector)
 // NamespaceFeature is the predicate function for namespacefeature builders.
 type NamespaceFeature func(*sql.Selector)
 
+// NamespaceOrder is the predicate function for namespaceorder builders.
+type NamespaceOrder func(*sql.Selector)
+
 // NotificationChannel is the predicate function for notificationchannel builders.
 type NotificationChannel func(*sql.Selector)
 

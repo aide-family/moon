@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/perm"
 )
 
@@ -60,7 +61,11 @@ func TestFeatureRepoCapabilitiesAndLifecycle(t *testing.T) {
 
 	// 套餐：30 天，能力为实时告警 + 集群接入。
 	packageName := "it-caps-pkg-" + stamp
-	created, err := features.CreatePackage(ctx, packageName, "it", 30, []string{perm.CapabilityAlertRealtime, perm.CapabilityClusterAccess})
+	created, err := features.CreatePackage(ctx, bo.FeaturePackage{
+		Name: packageName, Remark: "it", DurationDays: 30,
+		Visibility: perm.PackageVisibilityPublic, MaxMembers: 5, PriceCents: 9900,
+		Features: []string{perm.CapabilityAlertRealtime, perm.CapabilityClusterAccess},
+	})
 	if err != nil {
 		t.Fatalf("create package: %v", err)
 	}
@@ -75,8 +80,8 @@ func TestFeatureRepoCapabilitiesAndLifecycle(t *testing.T) {
 		t.Fatalf("package features = %v, want 2 capabilities", created.Features)
 	}
 
-	// 新租户默认基础套餐：有效能力就是 15 个基础能力，没有到期时间。
-	ns, err := namespaces.CreateNamespace(ctx, namespaceUID, "it", ownerUID)
+	// 新租户绑定显式选择的套餐：先按基础套餐验证默认能力与无到期时间。
+	ns, err := namespaces.CreateNamespace(ctx, namespaceUID, "it", ownerUID, base.UID)
 	if err != nil {
 		t.Fatalf("create namespace: %v", err)
 	}

@@ -143,6 +143,9 @@ export function TenantFeaturesDialog({
             features: baseFeatures,
             isBase: false,
             status: "ACTIVE",
+            visibility: "BETA",
+            maxMembers: 0,
+            priceCents: 0,
             durationDays: assignment.durationDays ?? 0,
           })
         }

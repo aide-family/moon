@@ -122,3 +122,8 @@ func NewSSHCommandRepo(deps *Dependencies, logger *slog.Logger) repository.SSHCo
 func NewFeatureRepo(deps *Dependencies, logger *slog.Logger) repository.FeatureRepo {
 	return &featureRepo{newBase(deps, logger)}
 }
+
+// NewNamespaceOrderRepo 返回租户创建订单的仓储实现。
+func NewNamespaceOrderRepo(deps *Dependencies, logger *slog.Logger) repository.NamespaceOrderRepo {
+	return &namespaceOrderRepo{newBase(deps, logger)}
+}

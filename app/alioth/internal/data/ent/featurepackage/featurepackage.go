@@ -32,6 +32,12 @@ const (
 	FieldStatus = "status"
 	// FieldDurationDays holds the string denoting the duration_days field in the database.
 	FieldDurationDays = "duration_days"
+	// FieldVisibility holds the string denoting the visibility field in the database.
+	FieldVisibility = "visibility"
+	// FieldMaxMembers holds the string denoting the max_members field in the database.
+	FieldMaxMembers = "max_members"
+	// FieldPriceCents holds the string denoting the price_cents field in the database.
+	FieldPriceCents = "price_cents"
 	// Table holds the table name of the featurepackage in the database.
 	Table = "feature_packages"
 )
@@ -48,6 +54,9 @@ var Columns = []string{
 	FieldIsBase,
 	FieldStatus,
 	FieldDurationDays,
+	FieldVisibility,
+	FieldMaxMembers,
+	FieldPriceCents,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -81,6 +90,14 @@ var (
 	DefaultDurationDays int32
 	// DurationDaysValidator is a validator for the "duration_days" field. It is called by the builders before save.
 	DurationDaysValidator func(int32) error
+	// DefaultMaxMembers holds the default value on creation for the "max_members" field.
+	DefaultMaxMembers int32
+	// MaxMembersValidator is a validator for the "max_members" field. It is called by the builders before save.
+	MaxMembersValidator func(int32) error
+	// DefaultPriceCents holds the default value on creation for the "price_cents" field.
+	DefaultPriceCents int64
+	// PriceCentsValidator is a validator for the "price_cents" field. It is called by the builders before save.
+	PriceCentsValidator func(int64) error
 )
 
 // Status defines the type for the "status" enum field.
@@ -106,6 +123,32 @@ func StatusValidator(s Status) error {
 		return nil
 	default:
 		return fmt.Errorf("featurepackage: invalid enum value for status field: %q", s)
+	}
+}
+
+// Visibility defines the type for the "visibility" enum field.
+type Visibility string
+
+// VisibilityBETA is the default value of the Visibility enum.
+const DefaultVisibility = VisibilityBETA
+
+// Visibility values.
+const (
+	VisibilityPUBLIC Visibility = "PUBLIC"
+	VisibilityBETA   Visibility = "BETA"
+)
+
+func (v Visibility) String() string {
+	return string(v)
+}
+
+// VisibilityValidator is a validator for the "visibility" field enum values. It is called by the builders before save.
+func VisibilityValidator(v Visibility) error {
+	switch v {
+	case VisibilityPUBLIC, VisibilityBETA:
+		return nil
+	default:
+		return fmt.Errorf("featurepackage: invalid enum value for visibility field: %q", v)
 	}
 }
 
@@ -160,4 +203,19 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByDurationDays orders the results by the duration_days field.
 func ByDurationDays(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDurationDays, opts...).ToFunc()
+}
+
+// ByVisibility orders the results by the visibility field.
+func ByVisibility(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVisibility, opts...).ToFunc()
+}
+
+// ByMaxMembers orders the results by the max_members field.
+func ByMaxMembers(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxMembers, opts...).ToFunc()
+}
+
+// ByPriceCents orders the results by the price_cents field.
+func ByPriceCents(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPriceCents, opts...).ToFunc()
 }

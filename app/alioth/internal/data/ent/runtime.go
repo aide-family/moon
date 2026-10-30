@@ -29,6 +29,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespaceorder"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
@@ -768,6 +769,18 @@ func init() {
 	featurepackage.DefaultDurationDays = featurepackageDescDurationDays.Default.(int32)
 	// featurepackage.DurationDaysValidator is a validator for the "duration_days" field. It is called by the builders before save.
 	featurepackage.DurationDaysValidator = featurepackageDescDurationDays.Validators[0].(func(int32) error)
+	// featurepackageDescMaxMembers is the schema descriptor for max_members field.
+	featurepackageDescMaxMembers := featurepackageFields[7].Descriptor()
+	// featurepackage.DefaultMaxMembers holds the default value on creation for the max_members field.
+	featurepackage.DefaultMaxMembers = featurepackageDescMaxMembers.Default.(int32)
+	// featurepackage.MaxMembersValidator is a validator for the "max_members" field. It is called by the builders before save.
+	featurepackage.MaxMembersValidator = featurepackageDescMaxMembers.Validators[0].(func(int32) error)
+	// featurepackageDescPriceCents is the schema descriptor for price_cents field.
+	featurepackageDescPriceCents := featurepackageFields[8].Descriptor()
+	// featurepackage.DefaultPriceCents holds the default value on creation for the price_cents field.
+	featurepackage.DefaultPriceCents = featurepackageDescPriceCents.Default.(int64)
+	// featurepackage.PriceCentsValidator is a validator for the "price_cents" field. It is called by the builders before save.
+	featurepackage.PriceCentsValidator = featurepackageDescPriceCents.Validators[0].(func(int64) error)
 	featurepackageitemMixin := schema.FeaturePackageItem{}.Mixin()
 	featurepackageitemMixinFields0 := featurepackageitemMixin[0].Fields()
 	_ = featurepackageitemMixinFields0
@@ -1066,6 +1079,69 @@ func init() {
 	namespacefeatureDescEnabled := namespacefeatureFields[3].Descriptor()
 	// namespacefeature.DefaultEnabled holds the default value on creation for the enabled field.
 	namespacefeature.DefaultEnabled = namespacefeatureDescEnabled.Default.(bool)
+	namespaceorderMixin := schema.NamespaceOrder{}.Mixin()
+	namespaceorderMixinFields0 := namespaceorderMixin[0].Fields()
+	_ = namespaceorderMixinFields0
+	namespaceorderFields := schema.NamespaceOrder{}.Fields()
+	_ = namespaceorderFields
+	// namespaceorderDescCreatedAt is the schema descriptor for created_at field.
+	namespaceorderDescCreatedAt := namespaceorderMixinFields0[0].Descriptor()
+	// namespaceorder.DefaultCreatedAt holds the default value on creation for the created_at field.
+	namespaceorder.DefaultCreatedAt = namespaceorderDescCreatedAt.Default.(func() time.Time)
+	// namespaceorderDescUpdatedAt is the schema descriptor for updated_at field.
+	namespaceorderDescUpdatedAt := namespaceorderMixinFields0[1].Descriptor()
+	// namespaceorder.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	namespaceorder.DefaultUpdatedAt = namespaceorderDescUpdatedAt.Default.(func() time.Time)
+	// namespaceorder.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	namespaceorder.UpdateDefaultUpdatedAt = namespaceorderDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// namespaceorderDescUID is the schema descriptor for uid field.
+	namespaceorderDescUID := namespaceorderFields[0].Descriptor()
+	// namespaceorder.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	namespaceorder.UIDValidator = namespaceorderDescUID.Validators[0].(func(string) error)
+	// namespaceorderDescUserUID is the schema descriptor for user_uid field.
+	namespaceorderDescUserUID := namespaceorderFields[1].Descriptor()
+	// namespaceorder.UserUIDValidator is a validator for the "user_uid" field. It is called by the builders before save.
+	namespaceorder.UserUIDValidator = namespaceorderDescUserUID.Validators[0].(func(string) error)
+	// namespaceorderDescNamespaceUID is the schema descriptor for namespace_uid field.
+	namespaceorderDescNamespaceUID := namespaceorderFields[2].Descriptor()
+	// namespaceorder.DefaultNamespaceUID holds the default value on creation for the namespace_uid field.
+	namespaceorder.DefaultNamespaceUID = namespaceorderDescNamespaceUID.Default.(string)
+	// namespaceorderDescNamespaceName is the schema descriptor for namespace_name field.
+	namespaceorderDescNamespaceName := namespaceorderFields[3].Descriptor()
+	// namespaceorder.NamespaceNameValidator is a validator for the "namespace_name" field. It is called by the builders before save.
+	namespaceorder.NamespaceNameValidator = namespaceorderDescNamespaceName.Validators[0].(func(string) error)
+	// namespaceorderDescNamespaceRemark is the schema descriptor for namespace_remark field.
+	namespaceorderDescNamespaceRemark := namespaceorderFields[4].Descriptor()
+	// namespaceorder.DefaultNamespaceRemark holds the default value on creation for the namespace_remark field.
+	namespaceorder.DefaultNamespaceRemark = namespaceorderDescNamespaceRemark.Default.(string)
+	// namespaceorder.NamespaceRemarkValidator is a validator for the "namespace_remark" field. It is called by the builders before save.
+	namespaceorder.NamespaceRemarkValidator = namespaceorderDescNamespaceRemark.Validators[0].(func(string) error)
+	// namespaceorderDescPackageUID is the schema descriptor for package_uid field.
+	namespaceorderDescPackageUID := namespaceorderFields[5].Descriptor()
+	// namespaceorder.PackageUIDValidator is a validator for the "package_uid" field. It is called by the builders before save.
+	namespaceorder.PackageUIDValidator = namespaceorderDescPackageUID.Validators[0].(func(string) error)
+	// namespaceorderDescPackageName is the schema descriptor for package_name field.
+	namespaceorderDescPackageName := namespaceorderFields[6].Descriptor()
+	// namespaceorder.PackageNameValidator is a validator for the "package_name" field. It is called by the builders before save.
+	namespaceorder.PackageNameValidator = namespaceorderDescPackageName.Validators[0].(func(string) error)
+	// namespaceorderDescPriceCents is the schema descriptor for price_cents field.
+	namespaceorderDescPriceCents := namespaceorderFields[7].Descriptor()
+	// namespaceorder.DefaultPriceCents holds the default value on creation for the price_cents field.
+	namespaceorder.DefaultPriceCents = namespaceorderDescPriceCents.Default.(int64)
+	// namespaceorder.PriceCentsValidator is a validator for the "price_cents" field. It is called by the builders before save.
+	namespaceorder.PriceCentsValidator = namespaceorderDescPriceCents.Validators[0].(func(int64) error)
+	// namespaceorderDescDurationDays is the schema descriptor for duration_days field.
+	namespaceorderDescDurationDays := namespaceorderFields[8].Descriptor()
+	// namespaceorder.DefaultDurationDays holds the default value on creation for the duration_days field.
+	namespaceorder.DefaultDurationDays = namespaceorderDescDurationDays.Default.(int32)
+	// namespaceorder.DurationDaysValidator is a validator for the "duration_days" field. It is called by the builders before save.
+	namespaceorder.DurationDaysValidator = namespaceorderDescDurationDays.Validators[0].(func(int32) error)
+	// namespaceorderDescMaxMembers is the schema descriptor for max_members field.
+	namespaceorderDescMaxMembers := namespaceorderFields[9].Descriptor()
+	// namespaceorder.DefaultMaxMembers holds the default value on creation for the max_members field.
+	namespaceorder.DefaultMaxMembers = namespaceorderDescMaxMembers.Default.(int32)
+	// namespaceorder.MaxMembersValidator is a validator for the "max_members" field. It is called by the builders before save.
+	namespaceorder.MaxMembersValidator = namespaceorderDescMaxMembers.Validators[0].(func(int32) error)
 	notificationchannelMixin := schema.NotificationChannel{}.Mixin()
 	notificationchannelMixinFields0 := notificationchannelMixin[0].Fields()
 	_ = notificationchannelMixinFields0

@@ -28,12 +28,14 @@ func (s userRepoStub) UserByUID(context.Context, string) (*bo.Account, error) {
 
 type featureRepoStub struct {
 	repository.FeatureRepo
-	pkg     *bo.FeaturePackage
-	state   *bo.NamespaceFeature
-	set     bool
-	args    setNamespaceFeatureArgs
-	created int32
-	updated int32
+	pkg               *bo.FeaturePackage
+	state             *bo.NamespaceFeature
+	set               bool
+	args              setNamespaceFeatureArgs
+	created           int32
+	createdMaxMembers int32
+	createdPriceCents int64
+	updated           int32
 }
 
 type setNamespaceFeatureArgs struct {
@@ -66,14 +68,24 @@ func (s *featureRepoStub) NamespaceFeatureState(context.Context, string) (*bo.Na
 	return s.state, nil
 }
 
-func (s *featureRepoStub) CreatePackage(_ context.Context, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error) {
-	s.created = durationDays
-	return &bo.FeaturePackage{Name: name, Remark: remark, DurationDays: durationDays, Features: features}, nil
+func (s *featureRepoStub) CreatePackage(_ context.Context, pkg bo.FeaturePackage) (*bo.FeaturePackage, error) {
+	s.created = pkg.DurationDays
+	s.createdMaxMembers = pkg.MaxMembers
+	s.createdPriceCents = pkg.PriceCents
+	return &bo.FeaturePackage{
+		Name: pkg.Name, Remark: pkg.Remark, DurationDays: pkg.DurationDays,
+		Visibility: pkg.Visibility, MaxMembers: pkg.MaxMembers,
+		PriceCents: pkg.PriceCents, Features: pkg.Features,
+	}, nil
 }
 
-func (s *featureRepoStub) UpdatePackage(_ context.Context, uid, name, remark string, durationDays int32, features []string) (*bo.FeaturePackage, error) {
-	s.updated = durationDays
-	return &bo.FeaturePackage{UID: uid, Name: name, Remark: remark, DurationDays: durationDays, Features: features}, nil
+func (s *featureRepoStub) UpdatePackage(_ context.Context, pkg bo.FeaturePackage) (*bo.FeaturePackage, error) {
+	s.updated = pkg.DurationDays
+	return &bo.FeaturePackage{
+		UID: pkg.UID, Name: pkg.Name, Remark: pkg.Remark,
+		DurationDays: pkg.DurationDays, Visibility: pkg.Visibility,
+		MaxMembers: pkg.MaxMembers, PriceCents: pkg.PriceCents, Features: pkg.Features,
+	}, nil
 }
 
 func provisioningFor(features repository.FeatureRepo) *Provisioning {
@@ -158,24 +170,71 @@ func TestUpdateNamespaceFeaturesRejectsUnknownCapability(t *testing.T) {
 	}
 }
 
-func TestPackageDurationDaysPassedThrough(t *testing.T) {
+func TestPackageSaleAttributesPassedThrough(t *testing.T) {
 	repo := &featureRepoStub{}
 	provisioning := provisioningFor(repo)
-	if _, err := provisioning.CreatePackage(systemContext(), "name", "remark", 90, []string{perm.CapabilityMember}); err != nil {
+	pkg := bo.FeaturePackage{
+		Name: "专业版", Remark: "remark", DurationDays: 90,
+		Visibility: perm.PackageVisibilityPublic, MaxMembers: 20, PriceCents: 9900,
+		Features: []string{perm.CapabilityMember},
+	}
+	if _, err := provisioning.CreatePackage(systemContext(), pkg); err != nil {
 		t.Fatalf("create package: %v", err)
 	}
 	if repo.created != 90 {
 		t.Fatalf("created durationDays = %d, want 90", repo.created)
 	}
+	if repo.createdMaxMembers != 20 || repo.createdPriceCents != 9900 {
+		t.Fatalf("created maxMembers/price = %d/%d, want 20/9900",
+			repo.createdMaxMembers, repo.createdPriceCents)
+	}
 	repo.pkg = &bo.FeaturePackage{UID: "package-1", Name: "name", Features: []string{perm.CapabilityMember}}
-	if _, err := provisioning.UpdatePackage(systemContext(), "package-1", "name", "remark", 7, []string{perm.CapabilityMember}); err != nil {
+	pkg.UID = "package-1"
+	pkg.Name = "name"
+	pkg.DurationDays = 7
+	if _, err := provisioning.UpdatePackage(systemContext(), pkg); err != nil {
 		t.Fatalf("update package: %v", err)
 	}
 	if repo.updated != 7 {
 		t.Fatalf("updated durationDays = %d, want 7", repo.updated)
 	}
-	if _, err := provisioning.CreatePackage(systemContext(), "name", "remark", -1, nil); err == nil {
-		t.Fatal("negative durationDays accepted")
+}
+
+func TestCreatePackageRejectsInvalidAttributes(t *testing.T) {
+	provisioning := provisioningFor(&featureRepoStub{})
+	valid := bo.FeaturePackage{
+		Name: "name", Visibility: perm.PackageVisibilityPublic,
+		Features: []string{perm.CapabilityMember},
+	}
+	cases := []struct {
+		name string
+		pkg  bo.FeaturePackage
+	}{
+		{name: "negative duration", pkg: func() bo.FeaturePackage {
+			item := valid
+			item.DurationDays = -1
+			return item
+		}()},
+		{name: "missing visibility", pkg: func() bo.FeaturePackage {
+			item := valid
+			item.Visibility = ""
+			return item
+		}()},
+		{name: "negative max members", pkg: func() bo.FeaturePackage {
+			item := valid
+			item.MaxMembers = -1
+			return item
+		}()},
+		{name: "negative price", pkg: func() bo.FeaturePackage {
+			item := valid
+			item.PriceCents = -1
+			return item
+		}()},
+	}
+	for _, item := range cases {
+		if _, err := provisioning.CreatePackage(systemContext(), item.pkg); err == nil {
+			t.Fatalf("%s accepted", item.name)
+		}
 	}
 }
 

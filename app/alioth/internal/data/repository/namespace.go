@@ -8,7 +8,9 @@ import (
 
 // NamespaceRepo 读写租户，以及用户加入过的租户。
 type NamespaceRepo interface {
-	CreateNamespace(ctx context.Context, name, remark, ownerUID string) (*bo.Namespace, error)
+	// CreateNamespace 创建租户并绑定 packageUID 指向的套餐，到期时间按该套餐的授权时长计算。
+	// packageUID 必须是公开且启用的套餐，由用例层校验。
+	CreateNamespace(ctx context.Context, name, remark, ownerUID, packageUID string) (*bo.Namespace, error)
 	ListUserNamespaces(ctx context.Context, userUID string) ([]bo.Namespace, error)
 	// ListUserNamespacesIncludingDisabled 与 ListUserNamespaces 相同，但保留已停用的租户。
 	// 只用于切换失败时解释原因，调用方不得把停用租户当成可切换目标。

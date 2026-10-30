@@ -45,6 +45,7 @@ var ProviderSet = wire.NewSet(
 	NewReadinessChecker,
 	NewPartitionRepo,
 	NewFeatureRepo,
+	NewNamespaceOrderRepo,
 )
 
 // Dependencies 持有数据层共享的数据库连接、ent 客户端、加密盒、分片存储

@@ -6,13 +6,17 @@ import { formErrorMessage, readFormError } from "@/lib/form-error"
 import { listMembers } from "@/api/member"
 import type { MemberItem } from "@/api/member/types"
 import {
-  createNamespace,
   deleteNamespace,
   listNamespaces,
   transferNamespaceOwner,
   updateNamespace,
 } from "@/api/namespace"
 import type { NamespaceItem } from "@/api/namespace/types"
+import { createOrder, listPublicPackages, payOrder } from "@/api/order"
+import type { OrderItem, PublicPackageItem } from "@/api/order/types"
+import { cn } from "@/lib/class-names"
+import { formatPriceCents } from "@/lib/price"
+import { toast } from "sonner"
 import { TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS } from "@/lib/table-layout"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
@@ -58,6 +62,14 @@ export function NamespacePage() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [remark, setRemark] = useState("")
+  // 创建租户分两步：先填资料并选套餐生成待支付订单，再虚拟支付完成创建。
+  const [createStep, setCreateStep] = useState<"form" | "pay">("form")
+  const [packages, setPackages] = useState<PublicPackageItem[]>([])
+  const [packagesState, setPackagesState] = useState<
+    "idle" | "loading" | "ready" | "failed"
+  >("idle")
+  const [packageUid, setPackageUid] = useState("")
+  const [order, setOrder] = useState<OrderItem | null>(null)
   const [editing, setEditing] = useState<string | null>(null)
   const [transferUid, setTransferUid] = useState<string | null>(null)
   const [members, setMembers] = useState<MemberItem[]>([])
@@ -114,10 +126,43 @@ export function NamespacePage() {
     session.reload()
   }
 
+  // 打开创建弹窗时拉取公开套餐；失败时留在表单里让用户重试，不阻塞填写名称。
+  async function loadPackages() {
+    setPackagesState("loading")
+    try {
+      const result = await listPublicPackages()
+      const items = result.items ?? []
+      setPackages(items)
+      setPackagesState("ready")
+      setPackageUid((current) =>
+        current && items.some((item) => item.uid === current)
+          ? current
+          : (items[0]?.uid ?? "")
+      )
+    } catch {
+      setPackages([])
+      setPackagesState("failed")
+    }
+  }
+
+  function openCreate() {
+    setName("")
+    setRemark("")
+    setError("")
+    setFieldErrors({})
+    setCreateStep("form")
+    setOrder(null)
+    setPackageUid("")
+    setOpen(true)
+    void loadPackages()
+  }
+
+  // 第一步：校验收资料与套餐，生成待支付订单；租户要等支付成功才创建。
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
       ["name", requireTrimmed(name, t("form.required"))],
+      ["package", requireSelected(packageUid, t("form.required"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -127,16 +172,37 @@ export function NamespacePage() {
     setError("")
     setFieldErrors({})
     try {
-      const result = await createNamespace({ name: name.trim(), remark })
-      localStorage.setItem("namespace", result.namespace.uid)
-      setOpen(false)
-      setName("")
-      setRemark("")
-      refresh()
+      const result = await createOrder({
+        name: name.trim(),
+        remark: remark.trim(),
+        packageUid,
+      })
+      setOrder(result.order)
+      setCreateStep("pay")
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
       setError(failure.form)
+    } finally {
+      setPending(false)
+    }
+  }
+
+  // 第二步：虚拟支付。后端在同一个事务里创建租户、绑定套餐并把订单置为已支付。
+  async function onPay() {
+    if (!order) {
+      return
+    }
+    setPending(true)
+    setError("")
+    try {
+      const result = await payOrder(order.uid)
+      localStorage.setItem("namespace", result.namespace.uid)
+      toast.success(t("namespace.created"))
+      setOpen(false)
+      refresh()
+    } catch (err) {
+      setError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -228,10 +294,14 @@ export function NamespacePage() {
   function closeCreate(value: boolean) {
     setOpen(value)
     if (!value) {
+      // 关闭时丢弃本地订单状态；已经生成的待支付订单仍会出现在订单页，可以继续支付。
       setName("")
       setRemark("")
       setError("")
       setFieldErrors({})
+      setCreateStep("form")
+      setOrder(null)
+      setPackageUid("")
     }
   }
 
@@ -312,16 +382,7 @@ export function NamespacePage() {
             {t("namespace.description")}
           </p>
         </div>
-        <Button
-          className="shrink-0 self-start"
-          onClick={() => {
-            setName("")
-            setRemark("")
-            setError("")
-            setFieldErrors({})
-            setOpen(true)
-          }}
-        >
+        <Button className="shrink-0 self-start" onClick={openCreate}>
           <Building2 aria-hidden="true" className="mr-2 size-4" />
           {t("namespace.create")}
         </Button>
@@ -569,42 +630,266 @@ export function NamespacePage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={closeCreate}>
-        <DialogContent>
+        <DialogContent className={createStep === "form" ? "sm:max-w-2xl" : undefined}>
           <DialogHeader>
-            <DialogTitle>{t("namespace.create")}</DialogTitle>
+            <DialogTitle>
+              {createStep === "form"
+                ? t("namespace.create")
+                : t("namespace.payTitle")}
+            </DialogTitle>
           </DialogHeader>
-          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onCreate}>
-            <DialogBody className="grid gap-4">
-              <FormField
-                label={t("namespace.name")}
-                htmlFor="ns-name"
-                required
-                error={fieldErrors.name}
-              >
-                <Input
-                  id="ns-name"
-                  value={name}
-                  placeholder={t("namespace.namePlaceholder")}
-                  onChange={(event) => setName(event.target.value)}
-                  required
-                />
-              </FormField>
-              <FormField label={t("namespace.remark")} htmlFor="ns-remark">
-                <Input
-                  id="ns-remark"
-                  value={remark}
-                  placeholder={t("namespace.remarkPlaceholder")}
-                  onChange={(event) => setRemark(event.target.value)}
-                />
-              </FormField>
-            </DialogBody>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
-              <Button type="submit" disabled={pending}>
-                {t("action.create")}
-              </Button>
-            </DialogFooter>
-          </form>
+          {createStep === "form" ? (
+            <form
+              noValidate
+              className="flex min-h-0 flex-1 flex-col gap-4"
+              onSubmit={onCreate}
+            >
+              <DialogBody className="grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    label={t("namespace.name")}
+                    htmlFor="ns-name"
+                    required
+                    error={fieldErrors.name}
+                  >
+                    <Input
+                      id="ns-name"
+                      value={name}
+                      placeholder={t("namespace.namePlaceholder")}
+                      onChange={(event) => setName(event.target.value)}
+                      required
+                    />
+                  </FormField>
+                  <FormField label={t("namespace.remark")} htmlFor="ns-remark">
+                    <Input
+                      id="ns-remark"
+                      value={remark}
+                      placeholder={t("namespace.remarkPlaceholder")}
+                      onChange={(event) => setRemark(event.target.value)}
+                    />
+                  </FormField>
+                </div>
+                <div className="grid min-w-0 gap-2">
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <span className="text-sm font-medium">
+                      {t("namespace.package")}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {t("namespace.packageHint")}
+                    </span>
+                  </div>
+                  {packagesState === "loading" ? (
+                    <p className="text-sm text-muted-foreground">
+                      {t("state.loading")}
+                    </p>
+                  ) : null}
+                  {packagesState === "failed" ? (
+                    <div
+                      className="flex flex-col items-start gap-2 rounded-lg border border-destructive/25 bg-destructive/5 p-3 sm:flex-row sm:items-center sm:justify-between"
+                      role="alert"
+                    >
+                      <p className="text-sm text-destructive">
+                        {t("namespace.packageLoadFailed")}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void loadPackages()}
+                      >
+                        {t("action.retry")}
+                      </Button>
+                    </div>
+                  ) : null}
+                  {packagesState === "ready" && packages.length === 0 ? (
+                    <p className="rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">
+                      {t("namespace.noPublicPackages")}
+                    </p>
+                  ) : null}
+                  {packagesState === "ready" && packages.length > 0 ? (
+                    <div
+                      aria-label={t("namespace.package")}
+                      className="grid gap-2"
+                      role="radiogroup"
+                    >
+                      {packages.map((item) => {
+                        const checked = packageUid === item.uid
+                        return (
+                          <button
+                            aria-checked={checked}
+                            className={cn(
+                              "flex min-w-0 flex-col gap-1.5 rounded-lg border p-3 text-left transition-colors",
+                              checked
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:bg-muted/40"
+                            )}
+                            key={item.uid}
+                            role="radio"
+                            type="button"
+                            onClick={() => setPackageUid(item.uid)}
+                          >
+                            <span className="flex min-w-0 flex-wrap items-center gap-2">
+                              <span className="text-sm font-semibold">
+                                {item.name}
+                              </span>
+                              {item.isBase ? (
+                                <Badge
+                                  className="h-5 px-1.5 text-[10px]"
+                                  variant="secondary"
+                                >
+                                  {t("namespace.packageBase")}
+                                </Badge>
+                              ) : null}
+                              <span className="ml-auto font-mono text-sm font-semibold tabular-nums">
+                                {(item.priceCents ?? 0) > 0
+                                  ? t("namespace.priceValue", {
+                                      amount: formatPriceCents(item.priceCents),
+                                    })
+                                  : t("namespace.free")}
+                              </span>
+                            </span>
+                            <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                              <span>
+                                {(item.durationDays ?? 0) > 0
+                                  ? t("namespace.durationValue", {
+                                      count: item.durationDays,
+                                    })
+                                  : t("namespace.permanent")}
+                              </span>
+                              <span>
+                                {item.maxMembers
+                                  ? t("namespace.membersValue", {
+                                      count: item.maxMembers,
+                                    })
+                                  : t("namespace.membersUnlimited")}
+                              </span>
+                              <span>
+                                {t("namespace.featureCount", {
+                                  count: item.features?.length ?? 0,
+                                })}
+                              </span>
+                            </span>
+                            {item.remark?.trim() ? (
+                              <span className="line-clamp-2 text-xs text-muted-foreground">
+                                {item.remark}
+                              </span>
+                            ) : null}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              </DialogBody>
+              {error ? (
+                <p className="text-sm text-destructive">{error}</p>
+              ) : null}
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => closeCreate(false)}
+                >
+                  {t("action.cancel")}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    pending ||
+                    packagesState !== "ready" ||
+                    packages.length === 0
+                  }
+                >
+                  {pending ? t("action.saving") : t("namespace.createOrder")}
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <div className="flex min-h-0 flex-1 flex-col gap-4">
+              <DialogBody className="grid gap-4">
+                <p className="text-sm text-muted-foreground">
+                  {t("namespace.payHint")}
+                </p>
+                <dl className="grid gap-3 rounded-lg border border-border bg-muted/20 p-4 sm:grid-cols-2">
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">
+                      {t("namespace.name")}
+                    </dt>
+                    <dd className="mt-0.5 text-sm font-medium break-words">
+                      {order?.namespaceName ?? name}
+                    </dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">
+                      {t("namespace.package")}
+                    </dt>
+                    <dd className="mt-0.5 text-sm font-medium break-words">
+                      {order?.packageName ?? "—"}
+                    </dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">
+                      {t("namespace.amount")}
+                    </dt>
+                    <dd className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
+                      {(order?.priceCents ?? 0) > 0
+                        ? t("namespace.priceValue", {
+                            amount: formatPriceCents(order?.priceCents),
+                          })
+                        : t("namespace.free")}
+                    </dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">
+                      {t("namespace.duration")}
+                    </dt>
+                    <dd className="mt-0.5 text-sm">
+                      {(order?.durationDays ?? 0) > 0
+                        ? t("namespace.durationValue", {
+                            count: order?.durationDays,
+                          })
+                        : t("namespace.permanent")}
+                    </dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">
+                      {t("namespace.maxMembers")}
+                    </dt>
+                    <dd className="mt-0.5 text-sm">
+                      {order?.maxMembers
+                        ? t("namespace.membersValue", {
+                            count: order.maxMembers,
+                          })
+                        : t("namespace.membersUnlimited")}
+                    </dd>
+                  </div>
+                </dl>
+              </DialogBody>
+              {error ? (
+                <p className="text-sm text-destructive">{error}</p>
+              ) : null}
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={pending}
+                  onClick={() => {
+                    setError("")
+                    setCreateStep("form")
+                  }}
+                >
+                  {t("action.goBack")}
+                </Button>
+                <Button
+                  type="button"
+                  disabled={pending || !order}
+                  onClick={() => void onPay()}
+                >
+                  {pending ? t("namespace.paying") : t("namespace.pay")}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       <Dialog open={editing !== null} onOpenChange={closeEdit}>
@@ -713,6 +998,20 @@ export function NamespacePage() {
           {
             label: t("namespace.status"),
             value: <StatusBadge value={detail?.status ?? ""} />,
+          },
+          {
+            label: t("namespace.package"),
+            value: detail?.packageName || "—",
+          },
+          {
+            label: t("namespace.members"),
+            value: detail
+              ? `${detail.memberCount ?? 0} / ${
+                  detail.maxMembers
+                    ? detail.maxMembers
+                    : t("namespace.membersUnlimited")
+                }`
+              : "—",
           },
           { label: t("namespace.remark"), value: detail?.remark ?? "" },
           { label: t("detail.uid"), value: detail?.uid ?? "" },

@@ -36,6 +36,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespaceorder"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
@@ -142,6 +143,7 @@ func checkColumn(t, c string) error {
 			messagelogshard.Table:               messagelogshard.ValidColumn,
 			namespace.Table:                     namespace.ValidColumn,
 			namespacefeature.Table:              namespacefeature.ValidColumn,
+			namespaceorder.Table:                namespaceorder.ValidColumn,
 			notificationchannel.Table:           notificationchannel.ValidColumn,
 			notificationgroup.Table:             notificationgroup.ValidColumn,
 			notificationoncall.Table:            notificationoncall.ValidColumn,

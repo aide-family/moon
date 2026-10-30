@@ -60,6 +60,8 @@ type Tx struct {
 	Namespace *NamespaceClient
 	// NamespaceFeature is the client for interacting with the NamespaceFeature builders.
 	NamespaceFeature *NamespaceFeatureClient
+	// NamespaceOrder is the client for interacting with the NamespaceOrder builders.
+	NamespaceOrder *NamespaceOrderClient
 	// NotificationChannel is the client for interacting with the NotificationChannel builders.
 	NotificationChannel *NotificationChannelClient
 	// NotificationGroup is the client for interacting with the NotificationGroup builders.
@@ -259,6 +261,7 @@ func (tx *Tx) init() {
 	tx.MessageLogShard = NewMessageLogShardClient(tx.config)
 	tx.Namespace = NewNamespaceClient(tx.config)
 	tx.NamespaceFeature = NewNamespaceFeatureClient(tx.config)
+	tx.NamespaceOrder = NewNamespaceOrderClient(tx.config)
 	tx.NotificationChannel = NewNotificationChannelClient(tx.config)
 	tx.NotificationGroup = NewNotificationGroupClient(tx.config)
 	tx.NotificationOnCall = NewNotificationOnCallClient(tx.config)

@@ -38,6 +38,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespaceorder"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
@@ -115,6 +116,8 @@ type Client struct {
 	Namespace *NamespaceClient
 	// NamespaceFeature is the client for interacting with the NamespaceFeature builders.
 	NamespaceFeature *NamespaceFeatureClient
+	// NamespaceOrder is the client for interacting with the NamespaceOrder builders.
+	NamespaceOrder *NamespaceOrderClient
 	// NotificationChannel is the client for interacting with the NotificationChannel builders.
 	NotificationChannel *NotificationChannelClient
 	// NotificationGroup is the client for interacting with the NotificationGroup builders.
@@ -194,6 +197,7 @@ func (c *Client) init() {
 	c.MessageLogShard = NewMessageLogShardClient(c.config)
 	c.Namespace = NewNamespaceClient(c.config)
 	c.NamespaceFeature = NewNamespaceFeatureClient(c.config)
+	c.NamespaceOrder = NewNamespaceOrderClient(c.config)
 	c.NotificationChannel = NewNotificationChannelClient(c.config)
 	c.NotificationGroup = NewNotificationGroupClient(c.config)
 	c.NotificationOnCall = NewNotificationOnCallClient(c.config)
@@ -332,6 +336,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MessageLogShard:               NewMessageLogShardClient(cfg),
 		Namespace:                     NewNamespaceClient(cfg),
 		NamespaceFeature:              NewNamespaceFeatureClient(cfg),
+		NamespaceOrder:                NewNamespaceOrderClient(cfg),
 		NotificationChannel:           NewNotificationChannelClient(cfg),
 		NotificationGroup:             NewNotificationGroupClient(cfg),
 		NotificationOnCall:            NewNotificationOnCallClient(cfg),
@@ -397,6 +402,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MessageLogShard:               NewMessageLogShardClient(cfg),
 		Namespace:                     NewNamespaceClient(cfg),
 		NamespaceFeature:              NewNamespaceFeatureClient(cfg),
+		NamespaceOrder:                NewNamespaceOrderClient(cfg),
 		NotificationChannel:           NewNotificationChannelClient(cfg),
 		NotificationGroup:             NewNotificationGroupClient(cfg),
 		NotificationOnCall:            NewNotificationOnCallClient(cfg),
@@ -453,13 +459,13 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Cluster, c.Datasource,
 		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
 		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
-		c.NamespaceFeature, c.NotificationChannel, c.NotificationGroup,
-		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
-		c.NotificationSubscription, c.NotificationSubscriptionGroup,
-		c.NotificationTask, c.NotificationTemplate, c.Permission, c.ProbeResult,
-		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
-		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
-		c.WorkerInstance,
+		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
+		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
+		c.NotificationPreset, c.NotificationSubscription,
+		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
+		c.Permission, c.ProbeResult, c.ProbeTarget, c.ProbeTargetGroup, c.Role,
+		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
+		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -474,13 +480,13 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Cluster, c.Datasource,
 		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
 		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
-		c.NamespaceFeature, c.NotificationChannel, c.NotificationGroup,
-		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
-		c.NotificationSubscription, c.NotificationSubscriptionGroup,
-		c.NotificationTask, c.NotificationTemplate, c.Permission, c.ProbeResult,
-		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
-		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
-		c.WorkerInstance,
+		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
+		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
+		c.NotificationPreset, c.NotificationSubscription,
+		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
+		c.Permission, c.ProbeResult, c.ProbeTarget, c.ProbeTargetGroup, c.Role,
+		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
+		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -537,6 +543,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Namespace.mutate(ctx, m)
 	case *NamespaceFeatureMutation:
 		return c.NamespaceFeature.mutate(ctx, m)
+	case *NamespaceOrderMutation:
+		return c.NamespaceOrder.mutate(ctx, m)
 	case *NotificationChannelMutation:
 		return c.NotificationChannel.mutate(ctx, m)
 	case *NotificationGroupMutation:
@@ -3778,6 +3786,139 @@ func (c *NamespaceFeatureClient) mutate(ctx context.Context, m *NamespaceFeature
 	}
 }
 
+// NamespaceOrderClient is a client for the NamespaceOrder schema.
+type NamespaceOrderClient struct {
+	config
+}
+
+// NewNamespaceOrderClient returns a client for the NamespaceOrder from the given config.
+func NewNamespaceOrderClient(c config) *NamespaceOrderClient {
+	return &NamespaceOrderClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `namespaceorder.Hooks(f(g(h())))`.
+func (c *NamespaceOrderClient) Use(hooks ...Hook) {
+	c.hooks.NamespaceOrder = append(c.hooks.NamespaceOrder, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `namespaceorder.Intercept(f(g(h())))`.
+func (c *NamespaceOrderClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NamespaceOrder = append(c.inters.NamespaceOrder, interceptors...)
+}
+
+// Create returns a builder for creating a NamespaceOrder entity.
+func (c *NamespaceOrderClient) Create() *NamespaceOrderCreate {
+	mutation := newNamespaceOrderMutation(c.config, OpCreate)
+	return &NamespaceOrderCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NamespaceOrder entities.
+func (c *NamespaceOrderClient) CreateBulk(builders ...*NamespaceOrderCreate) *NamespaceOrderCreateBulk {
+	return &NamespaceOrderCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NamespaceOrderClient) MapCreateBulk(slice any, setFunc func(*NamespaceOrderCreate, int)) *NamespaceOrderCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NamespaceOrderCreateBulk{err: fmt.Errorf("calling to NamespaceOrderClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NamespaceOrderCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NamespaceOrderCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NamespaceOrder.
+func (c *NamespaceOrderClient) Update() *NamespaceOrderUpdate {
+	mutation := newNamespaceOrderMutation(c.config, OpUpdate)
+	return &NamespaceOrderUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NamespaceOrderClient) UpdateOne(_m *NamespaceOrder) *NamespaceOrderUpdateOne {
+	mutation := newNamespaceOrderMutation(c.config, OpUpdateOne, withNamespaceOrder(_m))
+	return &NamespaceOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NamespaceOrderClient) UpdateOneID(id int) *NamespaceOrderUpdateOne {
+	mutation := newNamespaceOrderMutation(c.config, OpUpdateOne, withNamespaceOrderID(id))
+	return &NamespaceOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NamespaceOrder.
+func (c *NamespaceOrderClient) Delete() *NamespaceOrderDelete {
+	mutation := newNamespaceOrderMutation(c.config, OpDelete)
+	return &NamespaceOrderDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NamespaceOrderClient) DeleteOne(_m *NamespaceOrder) *NamespaceOrderDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NamespaceOrderClient) DeleteOneID(id int) *NamespaceOrderDeleteOne {
+	builder := c.Delete().Where(namespaceorder.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NamespaceOrderDeleteOne{builder}
+}
+
+// Query returns a query builder for NamespaceOrder.
+func (c *NamespaceOrderClient) Query() *NamespaceOrderQuery {
+	return &NamespaceOrderQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNamespaceOrder},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NamespaceOrder entity by its id.
+func (c *NamespaceOrderClient) Get(ctx context.Context, id int) (*NamespaceOrder, error) {
+	return c.Query().Where(namespaceorder.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NamespaceOrderClient) GetX(ctx context.Context, id int) *NamespaceOrder {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NamespaceOrderClient) Hooks() []Hook {
+	return c.hooks.NamespaceOrder
+}
+
+// Interceptors returns the client interceptors.
+func (c *NamespaceOrderClient) Interceptors() []Interceptor {
+	return c.inters.NamespaceOrder
+}
+
+func (c *NamespaceOrderClient) mutate(ctx context.Context, m *NamespaceOrderMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NamespaceOrderCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NamespaceOrderUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NamespaceOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NamespaceOrderDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NamespaceOrder mutation op: %q", m.Op())
+	}
+}
+
 // NotificationChannelClient is a client for the NotificationChannel schema.
 type NotificationChannelClient struct {
 	config
@@ -6711,23 +6852,25 @@ type (
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
 		AlertRuleLevel, Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
 		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
-		MessageLogShard, Namespace, NamespaceFeature, NotificationChannel,
-		NotificationGroup, NotificationOnCall, NotificationOnCallGroup,
-		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
-		NotificationTask, NotificationTemplate, Permission, ProbeResult, ProbeTarget,
-		ProbeTargetGroup, Role, RolePermission, SSHCommand, SSHCommandAudit,
-		SystemMessage, User, UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
+		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		NotificationChannel, NotificationGroup, NotificationOnCall,
+		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		Permission, ProbeResult, ProbeTarget, ProbeTargetGroup, Role, RolePermission,
+		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
 		AlertRuleLevel, Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
 		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
-		MessageLogShard, Namespace, NamespaceFeature, NotificationChannel,
-		NotificationGroup, NotificationOnCall, NotificationOnCallGroup,
-		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
-		NotificationTask, NotificationTemplate, Permission, ProbeResult, ProbeTarget,
-		ProbeTargetGroup, Role, RolePermission, SSHCommand, SSHCommandAudit,
-		SystemMessage, User, UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
+		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		NotificationChannel, NotificationGroup, NotificationOnCall,
+		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		Permission, ProbeResult, ProbeTarget, ProbeTargetGroup, Role, RolePermission,
+		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Interceptor
 	}
 )

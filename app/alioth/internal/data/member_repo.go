@@ -17,6 +17,20 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 )
 
+// CountJoined 统计租户当前 JOINED 成员数，用于校验套餐人数上限。
+// 邀请中、已移除和已过期的成员都不占名额。
+func (r *memberRepo) CountJoined(ctx context.Context, namespaceUID string) (int, error) {
+	total, err := r.client.Member.Query().Where(
+		member.NamespaceUIDEQ(namespaceUID),
+		member.DeletedAtIsNil(),
+		member.StatusEQ(member.StatusJOINED),
+	).Count(ctx)
+	if err != nil {
+		return 0, r.fail(err)
+	}
+	return total, nil
+}
+
 func (r *memberRepo) ListMembers(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.Member, int, error) {
 	preds := []predicate.Member{member.NamespaceUIDEQ(namespaceUID), member.DeletedAtIsNil()}
 	if name != "" {

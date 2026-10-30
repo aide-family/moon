@@ -1,0 +1,300 @@
+package data
+
+import (
+	"context"
+	"log/slog"
+	"testing"
+	"time"
+
+	kerrors "github.com/go-kratos/kratos/v3/errors"
+
+	"github.com/aide-family/moon/app/alioth/internal/conf"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespaceorder"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/systemmessage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
+)
+
+// TestNamespaceOrderPaymentFlow 用真库覆盖「下单 -> 支付 -> 创建租户」：
+// 订单快照、支付事务、重复支付幂等、取消、本人订单列表和平台按租户查询。
+func TestNamespaceOrderPaymentFlow(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	if err := Migrate(ctx, source); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	store, cleanup, err := NewDependencies(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("dependencies: %v", err)
+	}
+	t.Cleanup(cleanup)
+	logger := slog.Default()
+	features := NewFeatureRepo(store, logger)
+	members := NewMemberRepo(store, logger)
+	orders := NewNamespaceOrderRepo(store, logger)
+
+	stamp := time.Now().Format("150405.000000000")
+	userUID := "it-order-user-" + stamp
+	pkg, err := features.CreatePackage(ctx, bo.FeaturePackage{
+		Name: "it-order-pkg-" + stamp, Remark: "it", DurationDays: 30,
+		Visibility: perm.PackageVisibilityPublic, MaxMembers: 3, PriceCents: 9900,
+		Features: []string{perm.CapabilityAlertRealtime},
+	})
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	namespaceName := "it-order-ns-" + stamp
+	t.Cleanup(func() {
+		// 真库测试自清理，避免污染下一次运行。
+		_, _ = store.client.NamespaceOrder.Delete().Where(namespaceorder.UserUIDEQ(userUID)).Exec(ctx)
+		nsRows, _ := store.client.Namespace.Query().Where(namespace.NameEQ(namespaceName)).All(ctx)
+		for _, row := range nsRows {
+			_, _ = store.client.MemberRole.Delete().Where(memberrole.NamespaceUIDEQ(row.UID)).Exec(ctx)
+			_, _ = store.client.Member.Delete().Where(member.NamespaceUIDEQ(row.UID)).Exec(ctx)
+			_, _ = store.client.RolePermission.Delete().Where(rolepermission.NamespaceUIDEQ(row.UID)).Exec(ctx)
+			_, _ = store.client.Role.Delete().Where(role.NamespaceUIDEQ(row.UID)).Exec(ctx)
+			_, _ = store.client.Namespace.Delete().Where(namespace.UIDEQ(row.UID)).Exec(ctx)
+		}
+		_, _ = store.client.FeaturePackageItem.Delete().Where(featurepackageitem.PackageUIDEQ(pkg.UID)).Exec(ctx)
+		_, _ = store.client.FeaturePackage.Delete().Where(featurepackage.UIDEQ(pkg.UID)).Exec(ctx)
+	})
+
+	order, err := orders.CreateOrder(ctx, bo.NamespaceOrder{
+		UserUID: userUID, NamespaceName: namespaceName, NamespaceRemark: "it",
+		PackageUID: pkg.UID, PackageName: pkg.Name, PriceCents: pkg.PriceCents,
+		DurationDays: pkg.DurationDays, MaxMembers: pkg.MaxMembers,
+	})
+	if err != nil {
+		t.Fatalf("create order: %v", err)
+	}
+	if order.Status != bo.NamespaceOrderPending || order.NamespaceUID != "" || !order.PaidAt.IsZero() {
+		t.Fatalf("new order = %+v, want PENDING without namespace", order)
+	}
+
+	// 支付前不得存在租户。
+	if count, err := store.client.Namespace.Query().Where(namespace.NameEQ(namespaceName)).Count(ctx); err != nil || count != 0 {
+		t.Fatalf("namespace count before pay = %d, err = %v", count, err)
+	}
+
+	paid, ns, err := orders.PayOrder(ctx, order.UID, userUID)
+	if err != nil {
+		t.Fatalf("pay order: %v", err)
+	}
+	if paid.Status != bo.NamespaceOrderPaid || paid.NamespaceUID != ns.UID || paid.PaidAt.IsZero() {
+		t.Fatalf("paid order = %+v, want PAID with namespace %q", paid, ns.UID)
+	}
+	if ns.PackageUID != pkg.UID {
+		t.Fatalf("namespace package = %q, want %q", ns.PackageUID, pkg.UID)
+	}
+	state, err := features.NamespaceFeatureState(ctx, ns.UID)
+	if err != nil {
+		t.Fatalf("namespace feature state: %v", err)
+	}
+	if state.PackageUID != pkg.UID || state.Expired {
+		t.Fatalf("feature state = %+v", state)
+	}
+	if delta := time.Until(state.ExpiresAt); delta < 29*24*time.Hour || delta > 31*24*time.Hour {
+		t.Fatalf("expires in %v, want about 30 days", delta)
+	}
+	seats, err := members.CountJoined(ctx, ns.UID)
+	if err != nil {
+		t.Fatalf("count joined: %v", err)
+	}
+	if seats != 1 {
+		t.Fatalf("owner seats = %d, want 1", seats)
+	}
+
+	// 重复支付返回同一个租户，不重复创建。
+	againOrder, againNS, err := orders.PayOrder(ctx, order.UID, userUID)
+	if err != nil {
+		t.Fatalf("pay order again: %v", err)
+	}
+	if againOrder.NamespaceUID != ns.UID || againNS.UID != ns.UID {
+		t.Fatalf("replay pay = %q/%q, want %q", againOrder.NamespaceUID, againNS.UID, ns.UID)
+	}
+	if count, err := store.client.Namespace.Query().Where(namespace.NameEQ(namespaceName)).Count(ctx); err != nil || count != 1 {
+		t.Fatalf("namespace count after replay = %d, err = %v", count, err)
+	}
+
+	// 别人的订单不能支付，也不能取消。
+	otherOrder, err := orders.CreateOrder(ctx, bo.NamespaceOrder{
+		UserUID: userUID + "-other", NamespaceName: namespaceName + "-other",
+		PackageUID: pkg.UID, PackageName: pkg.Name, PriceCents: pkg.PriceCents,
+		DurationDays: pkg.DurationDays, MaxMembers: pkg.MaxMembers,
+	})
+	if err != nil {
+		t.Fatalf("create other order: %v", err)
+	}
+	if _, _, err := orders.PayOrder(ctx, otherOrder.UID, userUID); err == nil || !kerrors.IsNotFound(err) {
+		t.Fatalf("pay other order err = %v, want not found", err)
+	}
+	if _, err := orders.CancelOrder(ctx, otherOrder.UID, userUID); err == nil || !kerrors.IsNotFound(err) {
+		t.Fatalf("cancel other order err = %v, want not found", err)
+	}
+
+	// 取消待支付订单；已支付订单不能取消。
+	cancelled, err := orders.CancelOrder(ctx, otherOrder.UID, otherOrder.UserUID)
+	if err != nil {
+		t.Fatalf("cancel order: %v", err)
+	}
+	if cancelled.Status != bo.NamespaceOrderCancelled {
+		t.Fatalf("cancelled order status = %q", cancelled.Status)
+	}
+	if _, _, err := orders.PayOrder(ctx, cancelled.UID, cancelled.UserUID); err == nil ||
+		kerrors.FromError(err).Message != "order is cancelled" {
+		t.Fatalf("pay cancelled order err = %v", err)
+	}
+	if _, err := orders.CancelOrder(ctx, order.UID, userUID); err == nil ||
+		kerrors.FromError(err).Message != "paid order cannot be cancelled" {
+		t.Fatalf("cancel paid order err = %v", err)
+	}
+
+	// 本人订单列表按创建时间倒序；平台按租户查订单只返回该租户的已支付订单。
+	items, total, err := orders.ListOrders(ctx, userUID, 1, 10, "")
+	if err != nil {
+		t.Fatalf("list orders: %v", err)
+	}
+	if total != 1 || len(items) != 1 || items[0].UID != order.UID {
+		t.Fatalf("own orders = %d/%v, want only paid order %q", total, items, order.UID)
+	}
+	nsItems, nsTotal, err := orders.ListNamespaceOrders(ctx, ns.UID, 1, 10)
+	if err != nil {
+		t.Fatalf("list namespace orders: %v", err)
+	}
+	if nsTotal != 1 || len(nsItems) != 1 || nsItems[0].UID != order.UID {
+		t.Fatalf("namespace orders = %d/%v", nsTotal, nsItems)
+	}
+}
+
+// TestMemberCapacityLimit 用真库验证套餐人数上限：
+// JOINED 成员数达到上限后确认邀请被拒绝；把租户换到上限更小的套餐后同样拒绝。
+func TestMemberCapacityLimit(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	if err := Migrate(ctx, source); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	store, cleanup, err := NewDependencies(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("dependencies: %v", err)
+	}
+	t.Cleanup(cleanup)
+	logger := slog.Default()
+	features := NewFeatureRepo(store, logger)
+	namespaces := NewNamespaceRepo(store, logger)
+	invites := NewInviteRepo(store, logger)
+	members := NewMemberRepo(store, logger)
+
+	stamp := time.Now().Format("150405.000000000")
+	ownerUID := "it-seat-owner-" + stamp
+	userA := "it-seat-a-" + stamp
+	userB := "it-seat-b-" + stamp
+	emailA := userA + "@example.com"
+	emailB := userB + "@example.com"
+	pkg, err := features.CreatePackage(ctx, bo.FeaturePackage{
+		Name: "it-seat-pkg-" + stamp, DurationDays: 0,
+		Visibility: perm.PackageVisibilityPublic, MaxMembers: 2,
+		Features: []string{perm.CapabilityMember},
+	})
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	smallPkg, err := features.CreatePackage(ctx, bo.FeaturePackage{
+		Name: "it-seat-small-" + stamp, DurationDays: 0,
+		Visibility: perm.PackageVisibilityBeta, MaxMembers: 1,
+		Features: []string{perm.CapabilityMember},
+	})
+	if err != nil {
+		t.Fatalf("create small package: %v", err)
+	}
+	nsRow, err := namespaces.CreateNamespace(ctx, "it-seat-ns-"+stamp, "it", ownerUID, pkg.UID)
+	if err != nil {
+		t.Fatalf("create namespace: %v", err)
+	}
+	namespaceUID := nsRow.UID
+	if _, err := store.client.User.Create().SetUID(userA).SetEmail(emailA).Save(ctx); err != nil {
+		t.Fatalf("create user a: %v", err)
+	}
+	if _, err := store.client.User.Create().SetUID(userB).SetEmail(emailB).Save(ctx); err != nil {
+		t.Fatalf("create user b: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = store.client.SystemMessage.Delete().Where(systemmessage.NamespaceUIDEQ(namespaceUID)).Exec(ctx)
+		_, _ = store.client.MemberInvite.Delete().Where(memberinvite.NamespaceUIDEQ(namespaceUID)).Exec(ctx)
+		_, _ = store.client.MemberRole.Delete().Where(memberrole.NamespaceUIDEQ(namespaceUID)).Exec(ctx)
+		_, _ = store.client.Member.Delete().Where(member.NamespaceUIDEQ(namespaceUID)).Exec(ctx)
+		_, _ = store.client.RolePermission.Delete().Where(rolepermission.NamespaceUIDEQ(namespaceUID)).Exec(ctx)
+		_, _ = store.client.Role.Delete().Where(role.NamespaceUIDEQ(namespaceUID)).Exec(ctx)
+		_, _ = store.client.Namespace.Delete().Where(namespace.UIDEQ(namespaceUID)).Exec(ctx)
+		_, _ = store.client.User.Delete().Where(user.UIDIn(userA, userB)).Exec(ctx)
+		for _, uid := range []string{pkg.UID, smallPkg.UID} {
+			_, _ = store.client.FeaturePackageItem.Delete().Where(featurepackageitem.PackageUIDEQ(uid)).Exec(ctx)
+			_, _ = store.client.FeaturePackage.Delete().Where(featurepackage.UIDEQ(uid)).Exec(ctx)
+		}
+	})
+	memberRole, err := store.client.Role.Query().Where(
+		role.NamespaceUIDEQ(namespaceUID), role.NameEQ(perm.RoleMember),
+	).Only(ctx)
+	if err != nil {
+		t.Fatalf("member role: %v", err)
+	}
+
+	// 负责人已占 1 个名额：再确认 1 位成员后到达上限 2。
+	inviteA, err := invites.UpsertInvite(ctx, bo.MemberInvite{
+		NamespaceUID: namespaceUID, Email: emailA, RoleUID: memberRole.UID,
+		InviterUID: ownerUID, ExpiresAt: time.Now().Add(time.Hour),
+	}, "it-seat-hash-a-"+stamp)
+	if err != nil {
+		t.Fatalf("invite a: %v", err)
+	}
+	if _, err := invites.AcceptInvite(ctx, "it-seat-hash-a-"+stamp, inviteA.UID, userA, emailA); err != nil {
+		t.Fatalf("accept a: %v", err)
+	}
+	if seats, err := members.CountJoined(ctx, namespaceUID); err != nil || seats != 2 {
+		t.Fatalf("seats after a = %d, err = %v", seats, err)
+	}
+
+	inviteB, err := invites.UpsertInvite(ctx, bo.MemberInvite{
+		NamespaceUID: namespaceUID, Email: emailB, RoleUID: memberRole.UID,
+		InviterUID: ownerUID, ExpiresAt: time.Now().Add(time.Hour),
+	}, "it-seat-hash-b-"+stamp)
+	if err != nil {
+		t.Fatalf("invite b: %v", err)
+	}
+	if _, err := invites.AcceptInvite(ctx, "it-seat-hash-b-"+stamp, inviteB.UID, userB, emailB); err == nil ||
+		kerrors.FromError(err).Message != "member limit reached" {
+		t.Fatalf("accept b err = %v, want member limit reached", err)
+	}
+	if seats, err := members.CountJoined(ctx, namespaceUID); err != nil || seats != 2 {
+		t.Fatalf("seats after rejected b = %d, err = %v", seats, err)
+	}
+
+	// 换到上限 1 的套餐：已有 2 名成员保留，新的确认继续被拒绝。
+	if err := features.SetNamespaceFeatureState(ctx, namespaceUID, smallPkg.UID, []string{perm.CapabilityMember}, time.Time{}); err != nil {
+		t.Fatalf("switch package: %v", err)
+	}
+	if limit, err := features.NamespaceMemberLimit(ctx, namespaceUID); err != nil || limit != 1 {
+		t.Fatalf("limit after switch = %d, err = %v", limit, err)
+	}
+	if _, err := invites.AcceptInvite(ctx, "it-seat-hash-b-"+stamp, inviteB.UID, userB, emailB); err == nil ||
+		kerrors.FromError(err).Message != "member limit reached" {
+		t.Fatalf("accept b after downgrade err = %v, want member limit reached", err)
+	}
+}

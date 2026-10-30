@@ -1068,6 +1068,12 @@ var SelfService_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	NamespaceService_CreateNamespace_FullMethodName             = "/alioth.v1.NamespaceService/CreateNamespace"
+	NamespaceService_ListPublicPackages_FullMethodName          = "/alioth.v1.NamespaceService/ListPublicPackages"
+	NamespaceService_CreateNamespaceOrder_FullMethodName        = "/alioth.v1.NamespaceService/CreateNamespaceOrder"
+	NamespaceService_PayNamespaceOrder_FullMethodName           = "/alioth.v1.NamespaceService/PayNamespaceOrder"
+	NamespaceService_CancelNamespaceOrder_FullMethodName        = "/alioth.v1.NamespaceService/CancelNamespaceOrder"
+	NamespaceService_ListNamespaceOrders_FullMethodName         = "/alioth.v1.NamespaceService/ListNamespaceOrders"
+	NamespaceService_ListSystemNamespaceOrders_FullMethodName   = "/alioth.v1.NamespaceService/ListSystemNamespaceOrders"
 	NamespaceService_UpdateNamespace_FullMethodName             = "/alioth.v1.NamespaceService/UpdateNamespace"
 	NamespaceService_UpdateNamespaceStatus_FullMethodName       = "/alioth.v1.NamespaceService/UpdateNamespaceStatus"
 	NamespaceService_DeleteNamespace_FullMethodName             = "/alioth.v1.NamespaceService/DeleteNamespace"
@@ -1095,8 +1101,22 @@ const (
 //
 // 租户管理。
 type NamespaceServiceClient interface {
-	// 创建租户，当前用户成为负责人。
+	// 直接创建租户，当前用户成为负责人。只接受公开且启用的套餐。
+	// 面向用户的标准入口是「创建订单 -> 支付」，本接口保留给平台内部开通。
 	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*CreateNamespaceResponse, error)
+	// 列出创建租户时可选的功能套餐。只返回公开且启用的套餐，不要求系统权限。
+	ListPublicPackages(ctx context.Context, in *ListPublicPackagesRequest, opts ...grpc.CallOption) (*ListPublicPackagesResponse, error)
+	// 创建租户订单。订单快照套餐价格和时长，创建后为待支付，不代表已付款。
+	CreateNamespaceOrder(ctx context.Context, in *CreateNamespaceOrderRequest, opts ...grpc.CallOption) (*CreateNamespaceOrderResponse, error)
+	// 虚拟支付订单。当前没有对接支付渠道，调用成功即视为付款完成，
+	// 并在同一事务里创建租户、绑定套餐、把订单置为已支付。
+	PayNamespaceOrder(ctx context.Context, in *PayNamespaceOrderRequest, opts ...grpc.CallOption) (*PayNamespaceOrderResponse, error)
+	// 取消一笔待支付的租户订单。
+	CancelNamespaceOrder(ctx context.Context, in *CancelNamespaceOrderRequest, opts ...grpc.CallOption) (*CancelNamespaceOrderResponse, error)
+	// 分页列出当前用户自己的租户订单。不要求 X-Namespace。
+	ListNamespaceOrders(ctx context.Context, in *ListNamespaceOrdersRequest, opts ...grpc.CallOption) (*ListNamespaceOrdersResponse, error)
+	// 平台管理员分页列出某个租户的订单。不读 X-Namespace，需要 system:namespace:read。
+	ListSystemNamespaceOrders(ctx context.Context, in *ListSystemNamespaceOrdersRequest, opts ...grpc.CallOption) (*ListSystemNamespaceOrdersResponse, error)
 	// 修改当前租户的名称、备注和标志。
 	UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*UpdateNamespaceResponse, error)
 	// 租户侧启停已由平台接管，该接口固定拒绝，避免租户自行解封。
@@ -1152,6 +1172,66 @@ func (c *namespaceServiceClient) CreateNamespace(ctx context.Context, in *Create
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateNamespaceResponse)
 	err := c.cc.Invoke(ctx, NamespaceService_CreateNamespace_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) ListPublicPackages(ctx context.Context, in *ListPublicPackagesRequest, opts ...grpc.CallOption) (*ListPublicPackagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPublicPackagesResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_ListPublicPackages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) CreateNamespaceOrder(ctx context.Context, in *CreateNamespaceOrderRequest, opts ...grpc.CallOption) (*CreateNamespaceOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateNamespaceOrderResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_CreateNamespaceOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) PayNamespaceOrder(ctx context.Context, in *PayNamespaceOrderRequest, opts ...grpc.CallOption) (*PayNamespaceOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PayNamespaceOrderResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_PayNamespaceOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) CancelNamespaceOrder(ctx context.Context, in *CancelNamespaceOrderRequest, opts ...grpc.CallOption) (*CancelNamespaceOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelNamespaceOrderResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_CancelNamespaceOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) ListNamespaceOrders(ctx context.Context, in *ListNamespaceOrdersRequest, opts ...grpc.CallOption) (*ListNamespaceOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNamespaceOrdersResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_ListNamespaceOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) ListSystemNamespaceOrders(ctx context.Context, in *ListSystemNamespaceOrdersRequest, opts ...grpc.CallOption) (*ListSystemNamespaceOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSystemNamespaceOrdersResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_ListSystemNamespaceOrders_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1354,8 +1434,22 @@ func (c *namespaceServiceClient) UpdateNamespaceFeatures(ctx context.Context, in
 //
 // 租户管理。
 type NamespaceServiceServer interface {
-	// 创建租户，当前用户成为负责人。
+	// 直接创建租户，当前用户成为负责人。只接受公开且启用的套餐。
+	// 面向用户的标准入口是「创建订单 -> 支付」，本接口保留给平台内部开通。
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error)
+	// 列出创建租户时可选的功能套餐。只返回公开且启用的套餐，不要求系统权限。
+	ListPublicPackages(context.Context, *ListPublicPackagesRequest) (*ListPublicPackagesResponse, error)
+	// 创建租户订单。订单快照套餐价格和时长，创建后为待支付，不代表已付款。
+	CreateNamespaceOrder(context.Context, *CreateNamespaceOrderRequest) (*CreateNamespaceOrderResponse, error)
+	// 虚拟支付订单。当前没有对接支付渠道，调用成功即视为付款完成，
+	// 并在同一事务里创建租户、绑定套餐、把订单置为已支付。
+	PayNamespaceOrder(context.Context, *PayNamespaceOrderRequest) (*PayNamespaceOrderResponse, error)
+	// 取消一笔待支付的租户订单。
+	CancelNamespaceOrder(context.Context, *CancelNamespaceOrderRequest) (*CancelNamespaceOrderResponse, error)
+	// 分页列出当前用户自己的租户订单。不要求 X-Namespace。
+	ListNamespaceOrders(context.Context, *ListNamespaceOrdersRequest) (*ListNamespaceOrdersResponse, error)
+	// 平台管理员分页列出某个租户的订单。不读 X-Namespace，需要 system:namespace:read。
+	ListSystemNamespaceOrders(context.Context, *ListSystemNamespaceOrdersRequest) (*ListSystemNamespaceOrdersResponse, error)
 	// 修改当前租户的名称、备注和标志。
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceResponse, error)
 	// 租户侧启停已由平台接管，该接口固定拒绝，避免租户自行解封。
@@ -1409,6 +1503,24 @@ type UnimplementedNamespaceServiceServer struct{}
 
 func (UnimplementedNamespaceServiceServer) CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateNamespace not implemented")
+}
+func (UnimplementedNamespaceServiceServer) ListPublicPackages(context.Context, *ListPublicPackagesRequest) (*ListPublicPackagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPublicPackages not implemented")
+}
+func (UnimplementedNamespaceServiceServer) CreateNamespaceOrder(context.Context, *CreateNamespaceOrderRequest) (*CreateNamespaceOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateNamespaceOrder not implemented")
+}
+func (UnimplementedNamespaceServiceServer) PayNamespaceOrder(context.Context, *PayNamespaceOrderRequest) (*PayNamespaceOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PayNamespaceOrder not implemented")
+}
+func (UnimplementedNamespaceServiceServer) CancelNamespaceOrder(context.Context, *CancelNamespaceOrderRequest) (*CancelNamespaceOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelNamespaceOrder not implemented")
+}
+func (UnimplementedNamespaceServiceServer) ListNamespaceOrders(context.Context, *ListNamespaceOrdersRequest) (*ListNamespaceOrdersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListNamespaceOrders not implemented")
+}
+func (UnimplementedNamespaceServiceServer) ListSystemNamespaceOrders(context.Context, *ListSystemNamespaceOrdersRequest) (*ListSystemNamespaceOrdersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSystemNamespaceOrders not implemented")
 }
 func (UnimplementedNamespaceServiceServer) UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateNamespace not implemented")
@@ -1502,6 +1614,114 @@ func _NamespaceService_CreateNamespace_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NamespaceServiceServer).CreateNamespace(ctx, req.(*CreateNamespaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_ListPublicPackages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPublicPackagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).ListPublicPackages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_ListPublicPackages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).ListPublicPackages(ctx, req.(*ListPublicPackagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_CreateNamespaceOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateNamespaceOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).CreateNamespaceOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_CreateNamespaceOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).CreateNamespaceOrder(ctx, req.(*CreateNamespaceOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_PayNamespaceOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PayNamespaceOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).PayNamespaceOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_PayNamespaceOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).PayNamespaceOrder(ctx, req.(*PayNamespaceOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_CancelNamespaceOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelNamespaceOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).CancelNamespaceOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_CancelNamespaceOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).CancelNamespaceOrder(ctx, req.(*CancelNamespaceOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_ListNamespaceOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNamespaceOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).ListNamespaceOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_ListNamespaceOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).ListNamespaceOrders(ctx, req.(*ListNamespaceOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_ListSystemNamespaceOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSystemNamespaceOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).ListSystemNamespaceOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_ListSystemNamespaceOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).ListSystemNamespaceOrders(ctx, req.(*ListSystemNamespaceOrdersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1858,6 +2078,30 @@ var NamespaceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateNamespace",
 			Handler:    _NamespaceService_CreateNamespace_Handler,
+		},
+		{
+			MethodName: "ListPublicPackages",
+			Handler:    _NamespaceService_ListPublicPackages_Handler,
+		},
+		{
+			MethodName: "CreateNamespaceOrder",
+			Handler:    _NamespaceService_CreateNamespaceOrder_Handler,
+		},
+		{
+			MethodName: "PayNamespaceOrder",
+			Handler:    _NamespaceService_PayNamespaceOrder_Handler,
+		},
+		{
+			MethodName: "CancelNamespaceOrder",
+			Handler:    _NamespaceService_CancelNamespaceOrder_Handler,
+		},
+		{
+			MethodName: "ListNamespaceOrders",
+			Handler:    _NamespaceService_ListNamespaceOrders_Handler,
+		},
+		{
+			MethodName: "ListSystemNamespaceOrders",
+			Handler:    _NamespaceService_ListSystemNamespaceOrders_Handler,
 		},
 		{
 			MethodName: "UpdateNamespace",

@@ -43,6 +43,8 @@ type Namespace struct {
 	PackageExpiresAt time.Time
 	// DisableReason 是租户被停用的原因；启用时清空。
 	DisableReason string
+	// MaxMembers 是租户当前套餐的成员数上限，0 表示不限制。按套餐实时计算。
+	MaxMembers int32
 }
 
 // Member 是用户在某个租户中的成员身份。

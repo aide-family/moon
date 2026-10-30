@@ -7,24 +7,76 @@ import (
 	v1 "github.com/aide-family/moon/api/alioth/v1"
 	"github.com/aide-family/moon/app/alioth/internal/biz/feature"
 	"github.com/aide-family/moon/app/alioth/internal/biz/namespace"
+	"github.com/aide-family/moon/app/alioth/internal/biz/order"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
 
 type NamespaceService struct {
 	v1.UnimplementedNamespaceServiceServer
 	tenancy      *namespace.Tenancy
 	provisioning *feature.Provisioning
+	purchasing   *order.Purchasing
 }
 
-func NewNamespaceService(tenancy *namespace.Tenancy, provisioning *feature.Provisioning) *NamespaceService {
-	return &NamespaceService{tenancy: tenancy, provisioning: provisioning}
+func NewNamespaceService(tenancy *namespace.Tenancy, provisioning *feature.Provisioning, purchasing *order.Purchasing) *NamespaceService {
+	return &NamespaceService{tenancy: tenancy, provisioning: provisioning, purchasing: purchasing}
 }
 
 func (s *NamespaceService) CreateNamespace(ctx context.Context, req *v1.CreateNamespaceRequest) (*v1.CreateNamespaceResponse, error) {
-	item, err := s.tenancy.CreateNamespace(ctx, req.GetName(), req.GetRemark())
+	item, err := s.tenancy.CreateNamespace(ctx, strings.TrimSpace(req.GetName()), strings.TrimSpace(req.GetRemark()), req.GetPackageUid())
 	if err != nil {
 		return nil, err
 	}
 	return &v1.CreateNamespaceResponse{Namespace: namespaceItem(*item)}, nil
+}
+
+// ListPublicPackages 返回创建租户时可选的功能套餐。登录即可调用，不需要系统权限。
+func (s *NamespaceService) ListPublicPackages(ctx context.Context, _ *v1.ListPublicPackagesRequest) (*v1.ListPublicPackagesResponse, error) {
+	items, err := s.purchasing.ListPublicPackages(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListPublicPackagesResponse{Items: featurePackageItems(items)}, nil
+}
+
+func (s *NamespaceService) CreateNamespaceOrder(ctx context.Context, req *v1.CreateNamespaceOrderRequest) (*v1.CreateNamespaceOrderResponse, error) {
+	item, err := s.purchasing.CreateOrder(ctx, req.GetName(), req.GetRemark(), req.GetPackageUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateNamespaceOrderResponse{Order: namespaceOrderItem(*item)}, nil
+}
+
+func (s *NamespaceService) PayNamespaceOrder(ctx context.Context, req *v1.PayNamespaceOrderRequest) (*v1.PayNamespaceOrderResponse, error) {
+	item, ns, err := s.purchasing.PayOrder(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PayNamespaceOrderResponse{Order: namespaceOrderItem(*item), Namespace: namespaceItem(*ns)}, nil
+}
+
+func (s *NamespaceService) CancelNamespaceOrder(ctx context.Context, req *v1.CancelNamespaceOrderRequest) (*v1.CancelNamespaceOrderResponse, error) {
+	item, err := s.purchasing.CancelOrder(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CancelNamespaceOrderResponse{Order: namespaceOrderItem(*item)}, nil
+}
+
+func (s *NamespaceService) ListNamespaceOrders(ctx context.Context, req *v1.ListNamespaceOrdersRequest) (*v1.ListNamespaceOrdersResponse, error) {
+	items, total, page, pageSize, err := s.purchasing.ListOrders(ctx, req.GetPage(), req.GetPageSize(), req.GetStatus())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListNamespaceOrdersResponse{Items: namespaceOrderItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
+}
+
+func (s *NamespaceService) ListSystemNamespaceOrders(ctx context.Context, req *v1.ListSystemNamespaceOrdersRequest) (*v1.ListSystemNamespaceOrdersResponse, error) {
+	items, total, page, pageSize, err := s.purchasing.ListNamespaceOrders(ctx, req.GetUid(), req.GetPage(), req.GetPageSize())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListSystemNamespaceOrdersResponse{Items: namespaceOrderItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
 }
 
 func (s *NamespaceService) UpdateNamespace(ctx context.Context, req *v1.UpdateNamespaceRequest) (*v1.UpdateNamespaceResponse, error) {
@@ -140,7 +192,15 @@ func (s *NamespaceService) GetFeaturePackage(ctx context.Context, req *v1.GetFea
 }
 
 func (s *NamespaceService) CreateFeaturePackage(ctx context.Context, req *v1.CreateFeaturePackageRequest) (*v1.CreateFeaturePackageResponse, error) {
-	item, err := s.provisioning.CreatePackage(ctx, strings.TrimSpace(req.GetName()), strings.TrimSpace(req.GetRemark()), req.GetDurationDays(), req.GetFeatures())
+	item, err := s.provisioning.CreatePackage(ctx, bo.FeaturePackage{
+		Name:         strings.TrimSpace(req.GetName()),
+		Remark:       strings.TrimSpace(req.GetRemark()),
+		DurationDays: req.GetDurationDays(),
+		Visibility:   req.GetVisibility(),
+		MaxMembers:   req.GetMaxMembers(),
+		PriceCents:   req.GetPriceCents(),
+		Features:     req.GetFeatures(),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +208,16 @@ func (s *NamespaceService) CreateFeaturePackage(ctx context.Context, req *v1.Cre
 }
 
 func (s *NamespaceService) UpdateFeaturePackage(ctx context.Context, req *v1.UpdateFeaturePackageRequest) (*v1.UpdateFeaturePackageResponse, error) {
-	item, err := s.provisioning.UpdatePackage(ctx, req.GetUid(), strings.TrimSpace(req.GetName()), strings.TrimSpace(req.GetRemark()), req.GetDurationDays(), req.GetFeatures())
+	item, err := s.provisioning.UpdatePackage(ctx, bo.FeaturePackage{
+		UID:          req.GetUid(),
+		Name:         strings.TrimSpace(req.GetName()),
+		Remark:       strings.TrimSpace(req.GetRemark()),
+		DurationDays: req.GetDurationDays(),
+		Visibility:   req.GetVisibility(),
+		MaxMembers:   req.GetMaxMembers(),
+		PriceCents:   req.GetPriceCents(),
+		Features:     req.GetFeatures(),
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -200,6 +200,38 @@ func (r *inviteRepo) AcceptInvite(ctx context.Context, tokenHash, inviteUID, use
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, r.fail(err)
 	}
+	// 只有真正新增一个 JOINED 成员才占套餐名额：已加入的用户重复确认邀请不重复占位。
+	if ent.IsNotFound(err) || memberRow.Status != member.StatusJOINED {
+		limit, err := namespaceMemberLimit(ctx, tx.Client(), invite.NamespaceUID)
+		if err != nil {
+			return nil, r.fail(err)
+		}
+		if limit > 0 {
+			// 先锁租户行再数成员，让同一租户的并发确认串行执行，避免两个人同时看到
+			// 「还差一个名额」而把成员数顶过上限。更新 updated_at 只用于取得行锁。
+			locked, err := tx.Namespace.Update().
+				Where(namespace.UIDEQ(invite.NamespaceUID), namespace.DeletedAtIsNil()).
+				SetUpdatedAt(time.Now()).
+				Save(ctx)
+			if err != nil {
+				return nil, r.fail(err)
+			}
+			if locked == 0 {
+				return nil, merr.NotFound("not found")
+			}
+			seats, err := tx.Member.Query().Where(
+				member.NamespaceUIDEQ(invite.NamespaceUID),
+				member.DeletedAtIsNil(),
+				member.StatusEQ(member.StatusJOINED),
+			).Count(ctx)
+			if err != nil {
+				return nil, r.fail(err)
+			}
+			if int32(seats) >= limit {
+				return nil, merr.Client("member limit reached")
+			}
+		}
+	}
 	if ent.IsNotFound(err) {
 		memberRow, err = tx.Member.Create().
 			SetUID(id.New()).

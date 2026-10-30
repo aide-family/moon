@@ -149,12 +149,41 @@ service SelfService {
 
 // 租户管理。
 service NamespaceService {
-  // 创建租户，当前用户成为负责人。
+  // 直接创建租户，当前用户成为负责人。只接受公开且启用的套餐。
+  // 面向用户的标准入口是「创建订单 -> 支付」，本接口保留给平台内部开通。
   rpc CreateNamespace(CreateNamespaceRequest) returns (CreateNamespaceResponse) {
     option (google.api.http) = {
       post: "/v1/namespace"
       body: "*"
     };
+  }
+  // 列出创建租户时可选的功能套餐。只返回公开且启用的套餐，不要求系统权限。
+  rpc ListPublicPackages(ListPublicPackagesRequest) returns (ListPublicPackagesResponse) {
+    option (google.api.http) = {get: "/v1/packages"};
+  }
+  // 创建租户订单。订单快照套餐价格和时长，创建后为待支付，不代表已付款。
+  rpc CreateNamespaceOrder(CreateNamespaceOrderRequest) returns (CreateNamespaceOrderResponse) {
+    option (google.api.http) = {
+      post: "/v1/orders"
+      body: "*"
+    };
+  }
+  // 虚拟支付订单。当前没有对接支付渠道，调用成功即视为付款完成，
+  // 并在同一事务里创建租户、绑定套餐、把订单置为已支付。
+  rpc PayNamespaceOrder(PayNamespaceOrderRequest) returns (PayNamespaceOrderResponse) {
+    option (google.api.http) = {post: "/v1/orders/{uid}/pay"};
+  }
+  // 取消一笔待支付的租户订单。
+  rpc CancelNamespaceOrder(CancelNamespaceOrderRequest) returns (CancelNamespaceOrderResponse) {
+    option (google.api.http) = {post: "/v1/orders/{uid}/cancel"};
+  }
+  // 分页列出当前用户自己的租户订单。不要求 X-Namespace。
+  rpc ListNamespaceOrders(ListNamespaceOrdersRequest) returns (ListNamespaceOrdersResponse) {
+    option (google.api.http) = {get: "/v1/orders"};
+  }
+  // 平台管理员分页列出某个租户的订单。不读 X-Namespace，需要 system:namespace:read。
+  rpc ListSystemNamespaceOrders(ListSystemNamespaceOrdersRequest) returns (ListSystemNamespaceOrdersResponse) {
+    option (google.api.http) = {get: "/v1/system/namespace/{uid}/orders"};
   }
   // 修改当前租户的名称、备注和标志。
   rpc UpdateNamespace(UpdateNamespaceRequest) returns (UpdateNamespaceResponse) {
@@ -500,6 +529,8 @@ message NamespaceItem {
   int64 package_expires_at = 12 [json_name = "packageExpiresAt"];
   // 停用原因。只在平台租户列表返回，租户启用时为空。
   string disable_reason = 13 [json_name = "disableReason"];
+  // 当前套餐的成员数上限，0 表示不限制。按租户当前套餐实时计算。
+  int32 max_members = 14 [json_name = "maxMembers"];
 }
 
 // 租户成员。
@@ -906,12 +937,137 @@ message CreateNamespaceRequest {
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   // 备注。
   string remark = 2 [(buf.validate.field).string.max_len = 200];
+  // 套餐标识。必须是公开且启用的套餐。
+  string package_uid = 3 [json_name = "packageUid", (buf.validate.field).string.min_len = 1];
 }
 
 // 新建的租户。
 message CreateNamespaceResponse {
   // 租户。
   NamespaceItem namespace = 1;
+}
+
+// 创建租户时可选的套餐列表不需要参数。
+message ListPublicPackagesRequest {}
+
+// 公开套餐列表。
+message ListPublicPackagesResponse {
+  // 套餐列表，按价格升序。
+  repeated FeaturePackageItem items = 1;
+}
+
+// 创建租户订单的参数。
+message CreateNamespaceOrderRequest {
+  // 租户名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 租户备注。
+  string remark = 2 [(buf.validate.field).string.max_len = 200];
+  // 要购买的套餐标识。必须是公开且启用的套餐。
+  string package_uid = 3 [json_name = "packageUid", (buf.validate.field).string.min_len = 1];
+}
+
+// 新建的租户订单。
+message CreateNamespaceOrderResponse {
+  // 订单。
+  NamespaceOrderItem order = 1;
+}
+
+// 支付租户订单的参数。
+message PayNamespaceOrderRequest {
+  // 订单标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 支付结果。已支付的订单重复支付时原样返回，不会重复创建租户。
+message PayNamespaceOrderResponse {
+  // 订单。
+  NamespaceOrderItem order = 1;
+  // 支付完成后创建并绑定套餐的租户。已支付订单重复支付时返回当时创建的租户。
+  NamespaceItem namespace = 2;
+}
+
+// 取消租户订单的参数。
+message CancelNamespaceOrderRequest {
+  // 订单标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 取消后的订单。
+message CancelNamespaceOrderResponse {
+  // 订单。
+  NamespaceOrderItem order = 1;
+}
+
+// 当前用户订单分页查询。
+message ListNamespaceOrdersRequest {
+  // 页码。0 表示使用默认页。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 状态。留空表示全部，取值为 PENDING、PAID 或 CANCELLED。
+  string status = 3 [(buf.validate.field).string = {in: ["", "PENDING", "PAID", "CANCELLED"]}];
+}
+
+// 当前用户订单分页结果。
+message ListNamespaceOrdersResponse {
+  // 当前页数据。
+  repeated NamespaceOrderItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。0 表示使用默认页。
+  int32 page = 3;
+  // 每页条数，最大 100。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 平台按租户查询订单的参数。
+message ListSystemNamespaceOrdersRequest {
+  // 租户标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 页码。0 表示使用默认页。
+  int32 page = 2 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 3 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// 平台按租户查询的订单分页结果。
+message ListSystemNamespaceOrdersResponse {
+  // 当前页数据。
+  repeated NamespaceOrderItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。0 表示使用默认页。
+  int32 page = 3;
+  // 每页条数，最大 100。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 一笔租户创建订单。价格、时长和人数上限是下单时的套餐快照，后续改套餐不影响已下的订单。
+message NamespaceOrderItem {
+  // 标识。
+  string uid = 1;
+  // 支付后创建的租户标识。待支付或已取消时为空。
+  string namespace_uid = 2 [json_name = "namespaceUid"];
+  // 下单时填写的租户名称。
+  string namespace_name = 3 [json_name = "namespaceName"];
+  // 下单时填写的租户备注。
+  string namespace_remark = 4 [json_name = "namespaceRemark"];
+  // 套餐标识。
+  string package_uid = 5 [json_name = "packageUid"];
+  // 套餐名称快照。
+  string package_name = 6 [json_name = "packageName"];
+  // 订单金额，单位为人民币分，0 表示免费。
+  int64 price_cents = 7 [json_name = "priceCents"];
+  // 授权时长（天）快照，0 表示永久。
+  int32 duration_days = 8 [json_name = "durationDays"];
+  // 成员数上限快照，0 表示不限制。
+  int32 max_members = 9 [json_name = "maxMembers"];
+  // 状态，取值为 PENDING、PAID 或 CANCELLED。
+  string status = 10;
+  // 创建时间，Unix 秒。
+  int64 created_at = 11 [json_name = "createdAt"];
+  // 支付时间，Unix 秒。未支付时为 0。
+  int64 paid_at = 12 [json_name = "paidAt"];
 }
 
 // 修改租户的参数。
@@ -1588,8 +1744,14 @@ message FeaturePackageItem {
   string status = 6;
   // 创建时间，Unix 秒。
   int64 created_at = 7 [json_name = "createdAt"];
-  // 授权时长（天），0 表示永久。
+  // 授权时长（天），0 表示永久。同时也是该套餐的计费周期。
   int32 duration_days = 8 [json_name = "durationDays"];
+  // 版本。PUBLIC 可被用户在创建租户时选择，BETA 只由平台管理员分配。
+  string visibility = 9;
+  // 可容纳的成员数上限，0 表示不限制。
+  int32 max_members = 10 [json_name = "maxMembers"];
+  // 价格，单位为人民币分，0 表示免费。
+  int64 price_cents = 11 [json_name = "priceCents"];
 }
 
 // 列出功能目录不需要参数。
@@ -1645,6 +1807,12 @@ message CreateFeaturePackageRequest {
   repeated string features = 3;
   // 授权时长（天），0 表示永久。
   int32 duration_days = 4 [json_name = "durationDays", (buf.validate.field).int32.gte = 0];
+  // 版本。PUBLIC 可被用户在创建租户时选择，BETA 只由平台管理员分配。
+  string visibility = 5 [(buf.validate.field).string = {in: ["PUBLIC", "BETA"]}];
+  // 可容纳的成员数上限，0 表示不限制。
+  int32 max_members = 6 [json_name = "maxMembers", (buf.validate.field).int32.gte = 0];
+  // 价格，单位为人民币分，0 表示免费。
+  int64 price_cents = 7 [json_name = "priceCents", (buf.validate.field).int64.gte = 0];
 }
 
 // 新建后的功能套餐。
@@ -1665,6 +1833,12 @@ message UpdateFeaturePackageRequest {
   repeated string features = 4;
   // 授权时长（天），0 表示永久。
   int32 duration_days = 5 [json_name = "durationDays", (buf.validate.field).int32.gte = 0];
+  // 版本。PUBLIC 可被用户在创建租户时选择，BETA 只由平台管理员分配。
+  string visibility = 6 [(buf.validate.field).string = {in: ["PUBLIC", "BETA"]}];
+  // 可容纳的成员数上限，0 表示不限制。
+  int32 max_members = 7 [json_name = "maxMembers", (buf.validate.field).int32.gte = 0];
+  // 价格，单位为人民币分，0 表示免费。
+  int64 price_cents = 8 [json_name = "priceCents", (buf.validate.field).int64.gte = 0];
 }
 
 // 修改后的功能套餐。

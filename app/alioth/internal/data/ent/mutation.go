@@ -35,6 +35,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/messagelogshard"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespaceorder"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
@@ -93,6 +94,7 @@ const (
 	TypeMessageLogShard               = "MessageLogShard"
 	TypeNamespace                     = "Namespace"
 	TypeNamespaceFeature              = "NamespaceFeature"
+	TypeNamespaceOrder                = "NamespaceOrder"
 	TypeNotificationChannel           = "NotificationChannel"
 	TypeNotificationGroup             = "NotificationGroup"
 	TypeNotificationOnCall            = "NotificationOnCall"
@@ -14300,6 +14302,11 @@ type FeaturePackageMutation struct {
 	status           *featurepackage.Status
 	duration_days    *int32
 	addduration_days *int32
+	visibility       *featurepackage.Visibility
+	max_members      *int32
+	addmax_members   *int32
+	price_cents      *int64
+	addprice_cents   *int64
 	clearedFields    map[string]struct{}
 	done             bool
 	oldValue         func(context.Context) (*FeaturePackage, error)
@@ -14761,6 +14768,154 @@ func (m *FeaturePackageMutation) ResetDurationDays() {
 	m.addduration_days = nil
 }
 
+// SetVisibility sets the "visibility" field.
+func (m *FeaturePackageMutation) SetVisibility(f featurepackage.Visibility) {
+	m.visibility = &f
+}
+
+// Visibility returns the value of the "visibility" field in the mutation.
+func (m *FeaturePackageMutation) Visibility() (r featurepackage.Visibility, exists bool) {
+	v := m.visibility
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVisibility returns the old "visibility" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldVisibility(ctx context.Context) (v featurepackage.Visibility, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVisibility is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVisibility requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVisibility: %w", err)
+	}
+	return oldValue.Visibility, nil
+}
+
+// ResetVisibility resets all changes to the "visibility" field.
+func (m *FeaturePackageMutation) ResetVisibility() {
+	m.visibility = nil
+}
+
+// SetMaxMembers sets the "max_members" field.
+func (m *FeaturePackageMutation) SetMaxMembers(i int32) {
+	m.max_members = &i
+	m.addmax_members = nil
+}
+
+// MaxMembers returns the value of the "max_members" field in the mutation.
+func (m *FeaturePackageMutation) MaxMembers() (r int32, exists bool) {
+	v := m.max_members
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxMembers returns the old "max_members" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldMaxMembers(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxMembers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxMembers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxMembers: %w", err)
+	}
+	return oldValue.MaxMembers, nil
+}
+
+// AddMaxMembers adds i to the "max_members" field.
+func (m *FeaturePackageMutation) AddMaxMembers(i int32) {
+	if m.addmax_members != nil {
+		*m.addmax_members += i
+	} else {
+		m.addmax_members = &i
+	}
+}
+
+// AddedMaxMembers returns the value that was added to the "max_members" field in this mutation.
+func (m *FeaturePackageMutation) AddedMaxMembers() (r int32, exists bool) {
+	v := m.addmax_members
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxMembers resets all changes to the "max_members" field.
+func (m *FeaturePackageMutation) ResetMaxMembers() {
+	m.max_members = nil
+	m.addmax_members = nil
+}
+
+// SetPriceCents sets the "price_cents" field.
+func (m *FeaturePackageMutation) SetPriceCents(i int64) {
+	m.price_cents = &i
+	m.addprice_cents = nil
+}
+
+// PriceCents returns the value of the "price_cents" field in the mutation.
+func (m *FeaturePackageMutation) PriceCents() (r int64, exists bool) {
+	v := m.price_cents
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPriceCents returns the old "price_cents" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldPriceCents(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPriceCents is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPriceCents requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPriceCents: %w", err)
+	}
+	return oldValue.PriceCents, nil
+}
+
+// AddPriceCents adds i to the "price_cents" field.
+func (m *FeaturePackageMutation) AddPriceCents(i int64) {
+	if m.addprice_cents != nil {
+		*m.addprice_cents += i
+	} else {
+		m.addprice_cents = &i
+	}
+}
+
+// AddedPriceCents returns the value that was added to the "price_cents" field in this mutation.
+func (m *FeaturePackageMutation) AddedPriceCents() (r int64, exists bool) {
+	v := m.addprice_cents
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPriceCents resets all changes to the "price_cents" field.
+func (m *FeaturePackageMutation) ResetPriceCents() {
+	m.price_cents = nil
+	m.addprice_cents = nil
+}
+
 // Where appends a list predicates to the FeaturePackageMutation builder.
 func (m *FeaturePackageMutation) Where(ps ...predicate.FeaturePackage) {
 	m.predicates = append(m.predicates, ps...)
@@ -14795,7 +14950,7 @@ func (m *FeaturePackageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FeaturePackageMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, featurepackage.FieldCreatedAt)
 	}
@@ -14823,6 +14978,15 @@ func (m *FeaturePackageMutation) Fields() []string {
 	if m.duration_days != nil {
 		fields = append(fields, featurepackage.FieldDurationDays)
 	}
+	if m.visibility != nil {
+		fields = append(fields, featurepackage.FieldVisibility)
+	}
+	if m.max_members != nil {
+		fields = append(fields, featurepackage.FieldMaxMembers)
+	}
+	if m.price_cents != nil {
+		fields = append(fields, featurepackage.FieldPriceCents)
+	}
 	return fields
 }
 
@@ -14849,6 +15013,12 @@ func (m *FeaturePackageMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case featurepackage.FieldDurationDays:
 		return m.DurationDays()
+	case featurepackage.FieldVisibility:
+		return m.Visibility()
+	case featurepackage.FieldMaxMembers:
+		return m.MaxMembers()
+	case featurepackage.FieldPriceCents:
+		return m.PriceCents()
 	}
 	return nil, false
 }
@@ -14876,6 +15046,12 @@ func (m *FeaturePackageMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldStatus(ctx)
 	case featurepackage.FieldDurationDays:
 		return m.OldDurationDays(ctx)
+	case featurepackage.FieldVisibility:
+		return m.OldVisibility(ctx)
+	case featurepackage.FieldMaxMembers:
+		return m.OldMaxMembers(ctx)
+	case featurepackage.FieldPriceCents:
+		return m.OldPriceCents(ctx)
 	}
 	return nil, fmt.Errorf("unknown FeaturePackage field %s", name)
 }
@@ -14948,6 +15124,27 @@ func (m *FeaturePackageMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDurationDays(v)
 		return nil
+	case featurepackage.FieldVisibility:
+		v, ok := value.(featurepackage.Visibility)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVisibility(v)
+		return nil
+	case featurepackage.FieldMaxMembers:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxMembers(v)
+		return nil
+	case featurepackage.FieldPriceCents:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPriceCents(v)
+		return nil
 	}
 	return fmt.Errorf("unknown FeaturePackage field %s", name)
 }
@@ -14959,6 +15156,12 @@ func (m *FeaturePackageMutation) AddedFields() []string {
 	if m.addduration_days != nil {
 		fields = append(fields, featurepackage.FieldDurationDays)
 	}
+	if m.addmax_members != nil {
+		fields = append(fields, featurepackage.FieldMaxMembers)
+	}
+	if m.addprice_cents != nil {
+		fields = append(fields, featurepackage.FieldPriceCents)
+	}
 	return fields
 }
 
@@ -14969,6 +15172,10 @@ func (m *FeaturePackageMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case featurepackage.FieldDurationDays:
 		return m.AddedDurationDays()
+	case featurepackage.FieldMaxMembers:
+		return m.AddedMaxMembers()
+	case featurepackage.FieldPriceCents:
+		return m.AddedPriceCents()
 	}
 	return nil, false
 }
@@ -14984,6 +15191,20 @@ func (m *FeaturePackageMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddDurationDays(v)
+		return nil
+	case featurepackage.FieldMaxMembers:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxMembers(v)
+		return nil
+	case featurepackage.FieldPriceCents:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPriceCents(v)
 		return nil
 	}
 	return fmt.Errorf("unknown FeaturePackage numeric field %s", name)
@@ -15047,6 +15268,15 @@ func (m *FeaturePackageMutation) ResetField(name string) error {
 		return nil
 	case featurepackage.FieldDurationDays:
 		m.ResetDurationDays()
+		return nil
+	case featurepackage.FieldVisibility:
+		m.ResetVisibility()
+		return nil
+	case featurepackage.FieldMaxMembers:
+		m.ResetMaxMembers()
+		return nil
+	case featurepackage.FieldPriceCents:
+		m.ResetPriceCents()
 		return nil
 	}
 	return fmt.Errorf("unknown FeaturePackage field %s", name)
@@ -21139,6 +21369,1158 @@ func (m *NamespaceFeatureMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *NamespaceFeatureMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown NamespaceFeature edge %s", name)
+}
+
+// NamespaceOrderMutation represents an operation that mutates the NamespaceOrder nodes in the graph.
+type NamespaceOrderMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	created_at       *time.Time
+	updated_at       *time.Time
+	uid              *string
+	user_uid         *string
+	namespace_uid    *string
+	namespace_name   *string
+	namespace_remark *string
+	package_uid      *string
+	package_name     *string
+	price_cents      *int64
+	addprice_cents   *int64
+	duration_days    *int32
+	addduration_days *int32
+	max_members      *int32
+	addmax_members   *int32
+	status           *namespaceorder.Status
+	paid_at          *time.Time
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*NamespaceOrder, error)
+	predicates       []predicate.NamespaceOrder
+}
+
+var _ ent.Mutation = (*NamespaceOrderMutation)(nil)
+
+// namespaceorderOption allows management of the mutation configuration using functional options.
+type namespaceorderOption func(*NamespaceOrderMutation)
+
+// newNamespaceOrderMutation creates new mutation for the NamespaceOrder entity.
+func newNamespaceOrderMutation(c config, op Op, opts ...namespaceorderOption) *NamespaceOrderMutation {
+	m := &NamespaceOrderMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNamespaceOrder,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNamespaceOrderID sets the ID field of the mutation.
+func withNamespaceOrderID(id int) namespaceorderOption {
+	return func(m *NamespaceOrderMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NamespaceOrder
+		)
+		m.oldValue = func(ctx context.Context) (*NamespaceOrder, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NamespaceOrder.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNamespaceOrder sets the old NamespaceOrder of the mutation.
+func withNamespaceOrder(node *NamespaceOrder) namespaceorderOption {
+	return func(m *NamespaceOrderMutation) {
+		m.oldValue = func(context.Context) (*NamespaceOrder, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NamespaceOrderMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NamespaceOrderMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NamespaceOrderMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NamespaceOrderMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NamespaceOrder.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *NamespaceOrderMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *NamespaceOrderMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *NamespaceOrderMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *NamespaceOrderMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *NamespaceOrderMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *NamespaceOrderMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *NamespaceOrderMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *NamespaceOrderMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *NamespaceOrderMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetUserUID sets the "user_uid" field.
+func (m *NamespaceOrderMutation) SetUserUID(s string) {
+	m.user_uid = &s
+}
+
+// UserUID returns the value of the "user_uid" field in the mutation.
+func (m *NamespaceOrderMutation) UserUID() (r string, exists bool) {
+	v := m.user_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserUID returns the old "user_uid" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldUserUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserUID: %w", err)
+	}
+	return oldValue.UserUID, nil
+}
+
+// ResetUserUID resets all changes to the "user_uid" field.
+func (m *NamespaceOrderMutation) ResetUserUID() {
+	m.user_uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *NamespaceOrderMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *NamespaceOrderMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *NamespaceOrderMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetNamespaceName sets the "namespace_name" field.
+func (m *NamespaceOrderMutation) SetNamespaceName(s string) {
+	m.namespace_name = &s
+}
+
+// NamespaceName returns the value of the "namespace_name" field in the mutation.
+func (m *NamespaceOrderMutation) NamespaceName() (r string, exists bool) {
+	v := m.namespace_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceName returns the old "namespace_name" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldNamespaceName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceName: %w", err)
+	}
+	return oldValue.NamespaceName, nil
+}
+
+// ResetNamespaceName resets all changes to the "namespace_name" field.
+func (m *NamespaceOrderMutation) ResetNamespaceName() {
+	m.namespace_name = nil
+}
+
+// SetNamespaceRemark sets the "namespace_remark" field.
+func (m *NamespaceOrderMutation) SetNamespaceRemark(s string) {
+	m.namespace_remark = &s
+}
+
+// NamespaceRemark returns the value of the "namespace_remark" field in the mutation.
+func (m *NamespaceOrderMutation) NamespaceRemark() (r string, exists bool) {
+	v := m.namespace_remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceRemark returns the old "namespace_remark" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldNamespaceRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceRemark: %w", err)
+	}
+	return oldValue.NamespaceRemark, nil
+}
+
+// ResetNamespaceRemark resets all changes to the "namespace_remark" field.
+func (m *NamespaceOrderMutation) ResetNamespaceRemark() {
+	m.namespace_remark = nil
+}
+
+// SetPackageUID sets the "package_uid" field.
+func (m *NamespaceOrderMutation) SetPackageUID(s string) {
+	m.package_uid = &s
+}
+
+// PackageUID returns the value of the "package_uid" field in the mutation.
+func (m *NamespaceOrderMutation) PackageUID() (r string, exists bool) {
+	v := m.package_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageUID returns the old "package_uid" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldPackageUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageUID: %w", err)
+	}
+	return oldValue.PackageUID, nil
+}
+
+// ResetPackageUID resets all changes to the "package_uid" field.
+func (m *NamespaceOrderMutation) ResetPackageUID() {
+	m.package_uid = nil
+}
+
+// SetPackageName sets the "package_name" field.
+func (m *NamespaceOrderMutation) SetPackageName(s string) {
+	m.package_name = &s
+}
+
+// PackageName returns the value of the "package_name" field in the mutation.
+func (m *NamespaceOrderMutation) PackageName() (r string, exists bool) {
+	v := m.package_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageName returns the old "package_name" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldPackageName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageName: %w", err)
+	}
+	return oldValue.PackageName, nil
+}
+
+// ResetPackageName resets all changes to the "package_name" field.
+func (m *NamespaceOrderMutation) ResetPackageName() {
+	m.package_name = nil
+}
+
+// SetPriceCents sets the "price_cents" field.
+func (m *NamespaceOrderMutation) SetPriceCents(i int64) {
+	m.price_cents = &i
+	m.addprice_cents = nil
+}
+
+// PriceCents returns the value of the "price_cents" field in the mutation.
+func (m *NamespaceOrderMutation) PriceCents() (r int64, exists bool) {
+	v := m.price_cents
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPriceCents returns the old "price_cents" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldPriceCents(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPriceCents is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPriceCents requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPriceCents: %w", err)
+	}
+	return oldValue.PriceCents, nil
+}
+
+// AddPriceCents adds i to the "price_cents" field.
+func (m *NamespaceOrderMutation) AddPriceCents(i int64) {
+	if m.addprice_cents != nil {
+		*m.addprice_cents += i
+	} else {
+		m.addprice_cents = &i
+	}
+}
+
+// AddedPriceCents returns the value that was added to the "price_cents" field in this mutation.
+func (m *NamespaceOrderMutation) AddedPriceCents() (r int64, exists bool) {
+	v := m.addprice_cents
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPriceCents resets all changes to the "price_cents" field.
+func (m *NamespaceOrderMutation) ResetPriceCents() {
+	m.price_cents = nil
+	m.addprice_cents = nil
+}
+
+// SetDurationDays sets the "duration_days" field.
+func (m *NamespaceOrderMutation) SetDurationDays(i int32) {
+	m.duration_days = &i
+	m.addduration_days = nil
+}
+
+// DurationDays returns the value of the "duration_days" field in the mutation.
+func (m *NamespaceOrderMutation) DurationDays() (r int32, exists bool) {
+	v := m.duration_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationDays returns the old "duration_days" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldDurationDays(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationDays: %w", err)
+	}
+	return oldValue.DurationDays, nil
+}
+
+// AddDurationDays adds i to the "duration_days" field.
+func (m *NamespaceOrderMutation) AddDurationDays(i int32) {
+	if m.addduration_days != nil {
+		*m.addduration_days += i
+	} else {
+		m.addduration_days = &i
+	}
+}
+
+// AddedDurationDays returns the value that was added to the "duration_days" field in this mutation.
+func (m *NamespaceOrderMutation) AddedDurationDays() (r int32, exists bool) {
+	v := m.addduration_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationDays resets all changes to the "duration_days" field.
+func (m *NamespaceOrderMutation) ResetDurationDays() {
+	m.duration_days = nil
+	m.addduration_days = nil
+}
+
+// SetMaxMembers sets the "max_members" field.
+func (m *NamespaceOrderMutation) SetMaxMembers(i int32) {
+	m.max_members = &i
+	m.addmax_members = nil
+}
+
+// MaxMembers returns the value of the "max_members" field in the mutation.
+func (m *NamespaceOrderMutation) MaxMembers() (r int32, exists bool) {
+	v := m.max_members
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxMembers returns the old "max_members" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldMaxMembers(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxMembers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxMembers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxMembers: %w", err)
+	}
+	return oldValue.MaxMembers, nil
+}
+
+// AddMaxMembers adds i to the "max_members" field.
+func (m *NamespaceOrderMutation) AddMaxMembers(i int32) {
+	if m.addmax_members != nil {
+		*m.addmax_members += i
+	} else {
+		m.addmax_members = &i
+	}
+}
+
+// AddedMaxMembers returns the value that was added to the "max_members" field in this mutation.
+func (m *NamespaceOrderMutation) AddedMaxMembers() (r int32, exists bool) {
+	v := m.addmax_members
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxMembers resets all changes to the "max_members" field.
+func (m *NamespaceOrderMutation) ResetMaxMembers() {
+	m.max_members = nil
+	m.addmax_members = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *NamespaceOrderMutation) SetStatus(n namespaceorder.Status) {
+	m.status = &n
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *NamespaceOrderMutation) Status() (r namespaceorder.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldStatus(ctx context.Context) (v namespaceorder.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *NamespaceOrderMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetPaidAt sets the "paid_at" field.
+func (m *NamespaceOrderMutation) SetPaidAt(t time.Time) {
+	m.paid_at = &t
+}
+
+// PaidAt returns the value of the "paid_at" field in the mutation.
+func (m *NamespaceOrderMutation) PaidAt() (r time.Time, exists bool) {
+	v := m.paid_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPaidAt returns the old "paid_at" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldPaidAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPaidAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPaidAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPaidAt: %w", err)
+	}
+	return oldValue.PaidAt, nil
+}
+
+// ClearPaidAt clears the value of the "paid_at" field.
+func (m *NamespaceOrderMutation) ClearPaidAt() {
+	m.paid_at = nil
+	m.clearedFields[namespaceorder.FieldPaidAt] = struct{}{}
+}
+
+// PaidAtCleared returns if the "paid_at" field was cleared in this mutation.
+func (m *NamespaceOrderMutation) PaidAtCleared() bool {
+	_, ok := m.clearedFields[namespaceorder.FieldPaidAt]
+	return ok
+}
+
+// ResetPaidAt resets all changes to the "paid_at" field.
+func (m *NamespaceOrderMutation) ResetPaidAt() {
+	m.paid_at = nil
+	delete(m.clearedFields, namespaceorder.FieldPaidAt)
+}
+
+// Where appends a list predicates to the NamespaceOrderMutation builder.
+func (m *NamespaceOrderMutation) Where(ps ...predicate.NamespaceOrder) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NamespaceOrderMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NamespaceOrderMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NamespaceOrder, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NamespaceOrderMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NamespaceOrderMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NamespaceOrder).
+func (m *NamespaceOrderMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NamespaceOrderMutation) Fields() []string {
+	fields := make([]string, 0, 14)
+	if m.created_at != nil {
+		fields = append(fields, namespaceorder.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, namespaceorder.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, namespaceorder.FieldUID)
+	}
+	if m.user_uid != nil {
+		fields = append(fields, namespaceorder.FieldUserUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, namespaceorder.FieldNamespaceUID)
+	}
+	if m.namespace_name != nil {
+		fields = append(fields, namespaceorder.FieldNamespaceName)
+	}
+	if m.namespace_remark != nil {
+		fields = append(fields, namespaceorder.FieldNamespaceRemark)
+	}
+	if m.package_uid != nil {
+		fields = append(fields, namespaceorder.FieldPackageUID)
+	}
+	if m.package_name != nil {
+		fields = append(fields, namespaceorder.FieldPackageName)
+	}
+	if m.price_cents != nil {
+		fields = append(fields, namespaceorder.FieldPriceCents)
+	}
+	if m.duration_days != nil {
+		fields = append(fields, namespaceorder.FieldDurationDays)
+	}
+	if m.max_members != nil {
+		fields = append(fields, namespaceorder.FieldMaxMembers)
+	}
+	if m.status != nil {
+		fields = append(fields, namespaceorder.FieldStatus)
+	}
+	if m.paid_at != nil {
+		fields = append(fields, namespaceorder.FieldPaidAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NamespaceOrderMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case namespaceorder.FieldCreatedAt:
+		return m.CreatedAt()
+	case namespaceorder.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case namespaceorder.FieldUID:
+		return m.UID()
+	case namespaceorder.FieldUserUID:
+		return m.UserUID()
+	case namespaceorder.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case namespaceorder.FieldNamespaceName:
+		return m.NamespaceName()
+	case namespaceorder.FieldNamespaceRemark:
+		return m.NamespaceRemark()
+	case namespaceorder.FieldPackageUID:
+		return m.PackageUID()
+	case namespaceorder.FieldPackageName:
+		return m.PackageName()
+	case namespaceorder.FieldPriceCents:
+		return m.PriceCents()
+	case namespaceorder.FieldDurationDays:
+		return m.DurationDays()
+	case namespaceorder.FieldMaxMembers:
+		return m.MaxMembers()
+	case namespaceorder.FieldStatus:
+		return m.Status()
+	case namespaceorder.FieldPaidAt:
+		return m.PaidAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NamespaceOrderMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case namespaceorder.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case namespaceorder.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case namespaceorder.FieldUID:
+		return m.OldUID(ctx)
+	case namespaceorder.FieldUserUID:
+		return m.OldUserUID(ctx)
+	case namespaceorder.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case namespaceorder.FieldNamespaceName:
+		return m.OldNamespaceName(ctx)
+	case namespaceorder.FieldNamespaceRemark:
+		return m.OldNamespaceRemark(ctx)
+	case namespaceorder.FieldPackageUID:
+		return m.OldPackageUID(ctx)
+	case namespaceorder.FieldPackageName:
+		return m.OldPackageName(ctx)
+	case namespaceorder.FieldPriceCents:
+		return m.OldPriceCents(ctx)
+	case namespaceorder.FieldDurationDays:
+		return m.OldDurationDays(ctx)
+	case namespaceorder.FieldMaxMembers:
+		return m.OldMaxMembers(ctx)
+	case namespaceorder.FieldStatus:
+		return m.OldStatus(ctx)
+	case namespaceorder.FieldPaidAt:
+		return m.OldPaidAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown NamespaceOrder field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NamespaceOrderMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case namespaceorder.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case namespaceorder.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case namespaceorder.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case namespaceorder.FieldUserUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserUID(v)
+		return nil
+	case namespaceorder.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case namespaceorder.FieldNamespaceName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceName(v)
+		return nil
+	case namespaceorder.FieldNamespaceRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceRemark(v)
+		return nil
+	case namespaceorder.FieldPackageUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageUID(v)
+		return nil
+	case namespaceorder.FieldPackageName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageName(v)
+		return nil
+	case namespaceorder.FieldPriceCents:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPriceCents(v)
+		return nil
+	case namespaceorder.FieldDurationDays:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationDays(v)
+		return nil
+	case namespaceorder.FieldMaxMembers:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxMembers(v)
+		return nil
+	case namespaceorder.FieldStatus:
+		v, ok := value.(namespaceorder.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case namespaceorder.FieldPaidAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPaidAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NamespaceOrder field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NamespaceOrderMutation) AddedFields() []string {
+	var fields []string
+	if m.addprice_cents != nil {
+		fields = append(fields, namespaceorder.FieldPriceCents)
+	}
+	if m.addduration_days != nil {
+		fields = append(fields, namespaceorder.FieldDurationDays)
+	}
+	if m.addmax_members != nil {
+		fields = append(fields, namespaceorder.FieldMaxMembers)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NamespaceOrderMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case namespaceorder.FieldPriceCents:
+		return m.AddedPriceCents()
+	case namespaceorder.FieldDurationDays:
+		return m.AddedDurationDays()
+	case namespaceorder.FieldMaxMembers:
+		return m.AddedMaxMembers()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NamespaceOrderMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case namespaceorder.FieldPriceCents:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPriceCents(v)
+		return nil
+	case namespaceorder.FieldDurationDays:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDurationDays(v)
+		return nil
+	case namespaceorder.FieldMaxMembers:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxMembers(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NamespaceOrder numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NamespaceOrderMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(namespaceorder.FieldPaidAt) {
+		fields = append(fields, namespaceorder.FieldPaidAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NamespaceOrderMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NamespaceOrderMutation) ClearField(name string) error {
+	switch name {
+	case namespaceorder.FieldPaidAt:
+		m.ClearPaidAt()
+		return nil
+	}
+	return fmt.Errorf("unknown NamespaceOrder nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NamespaceOrderMutation) ResetField(name string) error {
+	switch name {
+	case namespaceorder.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case namespaceorder.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case namespaceorder.FieldUID:
+		m.ResetUID()
+		return nil
+	case namespaceorder.FieldUserUID:
+		m.ResetUserUID()
+		return nil
+	case namespaceorder.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case namespaceorder.FieldNamespaceName:
+		m.ResetNamespaceName()
+		return nil
+	case namespaceorder.FieldNamespaceRemark:
+		m.ResetNamespaceRemark()
+		return nil
+	case namespaceorder.FieldPackageUID:
+		m.ResetPackageUID()
+		return nil
+	case namespaceorder.FieldPackageName:
+		m.ResetPackageName()
+		return nil
+	case namespaceorder.FieldPriceCents:
+		m.ResetPriceCents()
+		return nil
+	case namespaceorder.FieldDurationDays:
+		m.ResetDurationDays()
+		return nil
+	case namespaceorder.FieldMaxMembers:
+		m.ResetMaxMembers()
+		return nil
+	case namespaceorder.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case namespaceorder.FieldPaidAt:
+		m.ResetPaidAt()
+		return nil
+	}
+	return fmt.Errorf("unknown NamespaceOrder field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NamespaceOrderMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NamespaceOrderMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NamespaceOrderMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NamespaceOrderMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NamespaceOrderMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NamespaceOrderMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NamespaceOrderMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown NamespaceOrder unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NamespaceOrderMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown NamespaceOrder edge %s", name)
 }
 
 // NotificationChannelMutation represents an operation that mutates the NotificationChannel nodes in the graph.

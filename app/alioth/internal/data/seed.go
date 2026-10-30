@@ -156,6 +156,15 @@ func ensureBasePackage(ctx context.Context, client *ent.Client, helper *slog.Log
 		Only(ctx)
 	switch {
 	case err == nil:
+		// 基础套餐是平台默认的免费套餐，必须对创建租户的用户公开。
+		// 其它属性（价格、人数上限、时长）保持管理员配置，不在这里覆盖。
+		if base.Visibility != featurepackage.VisibilityPUBLIC {
+			if _, err := client.FeaturePackage.UpdateOne(base).
+				SetVisibility(featurepackage.VisibilityPUBLIC).
+				Save(ctx); err != nil {
+				return databaseErr(helper, err)
+			}
+		}
 		return ensurePackageCapabilities(ctx, client, helper, base.UID, perm.BaseCapabilities())
 	case !ent.IsNotFound(err):
 		return databaseErr(helper, err)
@@ -171,6 +180,10 @@ func ensureBasePackage(ctx context.Context, client *ent.Client, helper *slog.Log
 		SetRemark(basePackageRemark).
 		SetIsBase(true).
 		SetStatus(featurepackage.StatusACTIVE).
+		// 基础套餐是免费、公开的默认套餐；人数上限 0 表示不限制，保持升级前行为。
+		SetVisibility(featurepackage.VisibilityPUBLIC).
+		SetPriceCents(0).
+		SetMaxMembers(0).
 		Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()

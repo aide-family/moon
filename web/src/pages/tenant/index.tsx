@@ -41,6 +41,7 @@ import {
   TABLE_NOWRAP,
 } from "@/lib/table-layout"
 import { TenantFeaturesDialog } from "./features-dialog"
+import { TenantOrdersDialog } from "./orders-dialog"
 import { TenantStatusDialog } from "./status-dialog"
 
 type StatusAction = "disable" | "enable"
@@ -63,6 +64,9 @@ export function TenantPage() {
   const [enterError, setEnterError] = useState("")
   // 功能授权弹窗只对超级管理员开放；系统管理员只读视角不显示该操作。
   const [featuresTenant, setFeaturesTenant] =
+    useState<SystemNamespaceItem | null>(null)
+  // 订单查询是只读能力，系统只读视角也可以打开。
+  const [ordersTenant, setOrdersTenant] =
     useState<SystemNamespaceItem | null>(null)
   const [statusTarget, setStatusTarget] = useState<{
     item: SystemNamespaceItem
@@ -120,6 +124,12 @@ export function TenantPage() {
 
   function rowActions(item: SystemNamespaceItem): RowAction[] {
     const actions: RowAction[] = []
+    // 订单查询只读，任何平台角色都能看；不需要 system:package 权限。
+    actions.push({
+      key: "orders",
+      label: t("tenantAdmin.ordersAction"),
+      onSelect: () => setOrdersTenant(item),
+    })
     // 停用 / 归档的租户不能调整功能授权（后端也会拒绝）。
     if (canAssignFeatures && item.status === "ACTIVE") {
       actions.push({
@@ -426,6 +436,15 @@ export function TenantPage() {
           }
         }}
         onSaved={onFeaturesSaved}
+      />
+      <TenantOrdersDialog
+        key={ordersTenant?.uid ?? "none"}
+        tenant={ordersTenant}
+        onOpenChange={(open) => {
+          if (!open) {
+            setOrdersTenant(null)
+          }
+        }}
       />
       <TenantStatusDialog
         key={`${statusTarget?.item.uid ?? "none"}-${statusTarget?.action ?? ""}`}

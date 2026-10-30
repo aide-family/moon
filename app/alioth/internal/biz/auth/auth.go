@@ -754,6 +754,13 @@ func namespaceOptional(operation string) bool {
 		v1.OperationSelfServiceBindSelfOAuth,
 		v1.OperationSelfServiceUnbindSelfOAuth,
 		v1.OperationNamespaceServiceCreateNamespace,
+		// 创建租户要选套餐并付款：公开套餐、订单和平台订单查询都按登录用户定位，
+		// 不读 X-Namespace，刚注册还没加入任何租户的用户也能走完购买流程。
+		v1.OperationNamespaceServiceListPublicPackages,
+		v1.OperationNamespaceServiceCreateNamespaceOrder,
+		v1.OperationNamespaceServicePayNamespaceOrder,
+		v1.OperationNamespaceServiceCancelNamespaceOrder,
+		v1.OperationNamespaceServiceListNamespaceOrders,
 		// 平台租户列表不读 X-Namespace：系统管理员还没有加入任何租户时，
 		// 也要能从租户管理页只读切入，所以不要求租户头。
 		v1.OperationNamespaceServiceListSystemNamespaces,
@@ -769,6 +776,8 @@ func namespaceOptional(operation string) bool {
 		v1.OperationNamespaceServiceDeleteFeaturePackage,
 		v1.OperationNamespaceServiceGetNamespaceFeatures,
 		v1.OperationNamespaceServiceUpdateNamespaceFeatures,
+		// 平台按租户查订单同样按路径参数定位租户。
+		v1.OperationNamespaceServiceListSystemNamespaceOrders,
 		v1.OperationInvitationServiceListSelfInvitations,
 		v1.OperationInvitationServiceAcceptInvitation,
 		v1.OperationInvitationServiceDeclineInvitation,
