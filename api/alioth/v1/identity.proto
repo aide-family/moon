@@ -185,6 +185,21 @@ service NamespaceService {
   rpc ListSystemNamespaceOrders(ListSystemNamespaceOrdersRequest) returns (ListSystemNamespaceOrdersResponse) {
     option (google.api.http) = {get: "/v1/system/namespace/{uid}/orders"};
   }
+  // 为当前租户创建套餐升级订单。需要 namespace:write，只接受公开且启用的套餐。
+  rpc CreateNamespaceUpgradeOrder(CreateNamespaceUpgradeOrderRequest) returns (CreateNamespaceUpgradeOrderResponse) {
+    option (google.api.http) = {
+      post: "/v1/namespace/orders/upgrade"
+      body: "*"
+    };
+  }
+  // 为当前租户创建套餐续期订单。需要 namespace:write，永久套餐不能续期。
+  rpc CreateNamespaceRenewalOrder(CreateNamespaceRenewalOrderRequest) returns (CreateNamespaceRenewalOrderResponse) {
+    option (google.api.http) = {post: "/v1/namespace/orders/renewal"};
+  }
+  // 读取当前租户的套餐、价格、人数上限和到期时间，供升级 / 续期入口使用。
+  rpc GetNamespacePackage(GetNamespacePackageRequest) returns (GetNamespacePackageResponse) {
+    option (google.api.http) = {get: "/v1/namespace/{uid}/package"};
+  }
   // 修改当前租户的名称、备注和标志。
   rpc UpdateNamespace(UpdateNamespaceRequest) returns (UpdateNamespaceResponse) {
     option (google.api.http) = {
@@ -998,6 +1013,55 @@ message CancelNamespaceOrderResponse {
   NamespaceOrderItem order = 1;
 }
 
+// 创建套餐升级订单的参数。
+message CreateNamespaceUpgradeOrderRequest {
+  // 目标套餐标识。必须是公开、启用且与当前套餐不同的套餐。
+  string package_uid = 1 [json_name = "packageUid", (buf.validate.field).string.min_len = 1];
+}
+
+// 新建的套餐升级订单。
+message CreateNamespaceUpgradeOrderResponse {
+  // 订单。支付成功后才会切换套餐。
+  NamespaceOrderItem order = 1;
+}
+
+// 创建套餐续期订单不需要参数：续期使用当前套餐。
+message CreateNamespaceRenewalOrderRequest {}
+
+// 新建的套餐续期订单。
+message CreateNamespaceRenewalOrderResponse {
+  // 订单。支付成功后才会延长授权。
+  NamespaceOrderItem order = 1;
+}
+
+// 读取当前租户套餐的参数。
+message GetNamespacePackageRequest {
+  // 租户标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 租户当前套餐。价格、时长和人数上限来自套餐当前配置，到期时间来自租户。
+message GetNamespacePackageResponse {
+  // 套餐标识。租户没有绑定套餐时为空。
+  string package_uid = 1 [json_name = "packageUid"];
+  // 套餐名称。
+  string package_name = 2 [json_name = "packageName"];
+  // 套餐状态，取值为 ACTIVE 或 DISABLED。
+  string status = 3;
+  // 套餐版本，取值为 PUBLIC 或 BETA。
+  string visibility = 4;
+  // 授权时长（天），0 表示永久。
+  int32 duration_days = 5 [json_name = "durationDays"];
+  // 成员数上限，0 表示不限制。
+  int32 max_members = 6 [json_name = "maxMembers"];
+  // 价格，单位为人民币分，0 表示免费。
+  int64 price_cents = 7 [json_name = "priceCents"];
+  // 到期时间，Unix 秒。0 表示永久。
+  int64 expires_at = 8 [json_name = "expiresAt"];
+  // 是否已过期。
+  bool expired = 9;
+}
+
 // 当前用户订单分页查询。
 message ListNamespaceOrdersRequest {
   // 页码。0 表示使用默认页。
@@ -1068,6 +1132,8 @@ message NamespaceOrderItem {
   int64 created_at = 11 [json_name = "createdAt"];
   // 支付时间，Unix 秒。未支付时为 0。
   int64 paid_at = 12 [json_name = "paidAt"];
+  // 订单类型，取值为 CREATE、UPGRADE 或 RENEW。
+  string kind = 13;
 }
 
 // 修改租户的参数。

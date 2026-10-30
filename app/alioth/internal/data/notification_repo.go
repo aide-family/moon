@@ -165,7 +165,7 @@ func (r *notificationRepo) GetChannel(ctx context.Context, namespaceUID, uid str
 	return &item, nil
 }
 
-func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string) ([]bo.NotificationChannel, int, error) {
+func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string, types []string) ([]bo.NotificationChannel, int, error) {
 	query := r.client.NotificationChannel.Query().Where(notificationchannel.NamespaceUIDEQ(namespaceUID), notificationchannel.DeletedAtIsNil())
 	if name != "" {
 		query = query.Where(notificationchannel.NameContainsFold(name))
@@ -175,6 +175,13 @@ func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string
 	}
 	if app = strings.ToUpper(strings.TrimSpace(app)); app != "" {
 		query = query.Where(notificationchannel.AppEQ(notificationchannel.App(app)))
+	}
+	if len(types) > 0 {
+		values := make([]notificationchannel.Type, 0, len(types))
+		for _, item := range types {
+			values = append(values, notificationchannel.Type(item))
+		}
+		query = query.Where(notificationchannel.TypeIn(values...))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {
@@ -191,7 +198,26 @@ func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string
 	return items, total, nil
 }
 
-func (r *notificationRepo) SelectChannels(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error) {
+func (r *notificationRepo) ListChannelsByUIDs(ctx context.Context, namespaceUID string, uids []string) ([]bo.NotificationChannel, error) {
+	if len(uids) == 0 {
+		return nil, nil
+	}
+	rows, err := r.client.NotificationChannel.Query().Where(
+		notificationchannel.NamespaceUIDEQ(namespaceUID),
+		notificationchannel.UIDIn(uids...),
+		notificationchannel.DeletedAtIsNil(),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items := make([]bo.NotificationChannel, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, toNotificationChannel(row))
+	}
+	return items, nil
+}
+
+func (r *notificationRepo) SelectChannels(ctx context.Context, namespaceUID string, limit int, lastUID string, types []string) ([]bo.SelectItem, error) {
 	query := r.client.NotificationChannel.Query().Where(
 		notificationchannel.NamespaceUIDEQ(namespaceUID),
 		notificationchannel.DeletedAtIsNil(),
@@ -199,6 +225,13 @@ func (r *notificationRepo) SelectChannels(ctx context.Context, namespaceUID stri
 	)
 	if lastUID != "" {
 		query = query.Where(notificationchannel.UIDGT(lastUID))
+	}
+	if len(types) > 0 {
+		values := make([]notificationchannel.Type, 0, len(types))
+		for _, item := range types {
+			values = append(values, notificationchannel.Type(item))
+		}
+		query = query.Where(notificationchannel.TypeIn(values...))
 	}
 	rows, err := query.Order(ent.Asc(notificationchannel.FieldUID)).Limit(limit).All(ctx)
 	if err != nil {
@@ -331,7 +364,7 @@ func (r *notificationRepo) GetTemplate(ctx context.Context, namespaceUID, uid st
 	return &item, nil
 }
 
-func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string) ([]bo.NotificationTemplate, int, error) {
+func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string, types []string) ([]bo.NotificationTemplate, int, error) {
 	query := r.client.NotificationTemplate.Query().Where(notificationtemplate.NamespaceUIDEQ(namespaceUID), notificationtemplate.DeletedAtIsNil())
 	if name != "" {
 		query = query.Where(notificationtemplate.NameContainsFold(name))
@@ -341,6 +374,13 @@ func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID strin
 	}
 	if app = strings.ToUpper(strings.TrimSpace(app)); app != "" {
 		query = query.Where(notificationtemplate.AppEQ(notificationtemplate.App(app)))
+	}
+	if len(types) > 0 {
+		values := make([]notificationtemplate.Type, 0, len(types))
+		for _, item := range types {
+			values = append(values, notificationtemplate.Type(item))
+		}
+		query = query.Where(notificationtemplate.TypeIn(values...))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {
@@ -357,7 +397,26 @@ func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID strin
 	return items, total, nil
 }
 
-func (r *notificationRepo) SelectTemplates(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error) {
+func (r *notificationRepo) ListTemplatesByUIDs(ctx context.Context, namespaceUID string, uids []string) ([]bo.NotificationTemplate, error) {
+	if len(uids) == 0 {
+		return nil, nil
+	}
+	rows, err := r.client.NotificationTemplate.Query().Where(
+		notificationtemplate.NamespaceUIDEQ(namespaceUID),
+		notificationtemplate.UIDIn(uids...),
+		notificationtemplate.DeletedAtIsNil(),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items := make([]bo.NotificationTemplate, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, toNotificationTemplate(row))
+	}
+	return items, nil
+}
+
+func (r *notificationRepo) SelectTemplates(ctx context.Context, namespaceUID string, limit int, lastUID string, types []string) ([]bo.SelectItem, error) {
 	query := r.client.NotificationTemplate.Query().Where(
 		notificationtemplate.NamespaceUIDEQ(namespaceUID),
 		notificationtemplate.DeletedAtIsNil(),
@@ -365,6 +424,13 @@ func (r *notificationRepo) SelectTemplates(ctx context.Context, namespaceUID str
 	)
 	if lastUID != "" {
 		query = query.Where(notificationtemplate.UIDGT(lastUID))
+	}
+	if len(types) > 0 {
+		values := make([]notificationtemplate.Type, 0, len(types))
+		for _, item := range types {
+			values = append(values, notificationtemplate.Type(item))
+		}
+		query = query.Where(notificationtemplate.TypeIn(values...))
 	}
 	rows, err := query.Order(ent.Asc(notificationtemplate.FieldUID)).Limit(limit).All(ctx)
 	if err != nil {

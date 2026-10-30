@@ -41,6 +41,11 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	if err := ensureBasePackage(ctx, client, helper); err != nil {
 		return err
 	}
+	// 必须排在 migrateLegacyFeatureCodes 之前：旧能力码在新目录里已不存在，
+	// 先展开才能避免它们被当成无效编码删除。
+	if err := migrateTypedCapabilities(ctx, client, helper); err != nil {
+		return err
+	}
 	if err := migrateLegacyFeatureCodes(ctx, client, helper); err != nil {
 		return err
 	}
@@ -51,6 +56,9 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 		return err
 	}
 	if err := migrateRoleMenuPermissions(ctx, client, helper); err != nil {
+		return err
+	}
+	if err := pruneStaleMenuPermissions(ctx, client, helper); err != nil {
 		return err
 	}
 	if err := migrateCustomRoleK8sPermissions(ctx, client, helper); err != nil {
@@ -229,6 +237,103 @@ func ensurePackageCapabilities(ctx context.Context, client *ent.Client, helper *
 			SetPackageUID(packageUID).
 			SetFeature(code).
 			Save(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+	}
+	return nil
+}
+
+// legacyTypedCapabilityExpansion 把拆分前的单能力展开成按类型的能力：
+// 旧「数据源」覆盖全部驱动，旧「探测目标」只有 HTTP，旧「通知渠道」覆盖三种渠道类型。
+// 保持升级前租户的能力范围不变；管理员之后可以在套餐里按类型收窄。
+var legacyTypedCapabilityExpansion = map[string][]string{
+	"datasource":   perm.CapabilityCodesOfModule(perm.FeatureDatasource),
+	"probe_target": {perm.CapabilityProbeHTTP},
+	"notify_channel": {
+		perm.CapabilityNotifyChannelSMTP,
+		perm.CapabilityNotifyChannelWebhook,
+		perm.CapabilityNotifyChannelSMS,
+	},
+}
+
+// migrateTypedCapabilities 把数据源 / 探测 / 通知渠道的旧能力码展开成按类型的能力码，
+// 再删除旧行。套餐明细与租户加开能力都处理，可重复执行。
+func migrateTypedCapabilities(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	items, err := client.FeaturePackageItem.Query().All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	for _, item := range items {
+		codes, ok := legacyTypedCapabilityExpansion[item.Feature]
+		if !ok {
+			continue
+		}
+		if err := ensurePackageCapabilities(ctx, client, helper, item.PackageUID, codes); err != nil {
+			return err
+		}
+		if _, err := client.FeaturePackageItem.Delete().Where(featurepackageitem.UIDEQ(item.UID)).Exec(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+	}
+	rows, err := client.NamespaceFeature.Query().All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	for _, row := range rows {
+		codes, ok := legacyTypedCapabilityExpansion[row.Feature]
+		if !ok {
+			continue
+		}
+		if row.Enabled {
+			for _, code := range codes {
+				exists, err := client.NamespaceFeature.Query().
+					Where(namespacefeature.NamespaceUIDEQ(row.NamespaceUID), namespacefeature.FeatureEQ(code)).
+					Exist(ctx)
+				if err != nil {
+					return databaseErr(helper, err)
+				}
+				if exists {
+					continue
+				}
+				if _, err := client.NamespaceFeature.Create().
+					SetUID(id.New()).
+					SetNamespaceUID(row.NamespaceUID).
+					SetFeature(code).
+					SetEnabled(true).
+					Save(ctx); err != nil {
+					return databaseErr(helper, err)
+				}
+			}
+		}
+		if _, err := client.NamespaceFeature.Delete().Where(namespacefeature.UIDEQ(row.UID)).Exec(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+	}
+	return nil
+}
+
+// pruneStaleMenuPermissions 删除能力目录里已经不存在的菜单权限及其角色授权。
+// 数据源、探测和通知渠道拆分后，旧 menu:datasource / menu:probe_target /
+// menu:notify_channel 不再参与鉴权，留着只会让权限目录与角色授权不一致。
+func pruneStaleMenuPermissions(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	valid := make(map[string]struct{}, len(perm.MenuPermissions()))
+	for _, name := range perm.MenuPermissions() {
+		valid[name] = struct{}{}
+	}
+	rows, err := client.Permission.Query().Where(permission.ResourceEQ("menu")).All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	for _, row := range rows {
+		if _, ok := valid[row.Name]; ok {
+			continue
+		}
+		if _, err := client.RolePermission.Delete().
+			Where(rolepermission.PermissionUIDEQ(row.UID)).
+			Exec(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+		if _, err := client.Permission.Delete().Where(permission.UIDEQ(row.UID)).Exec(ctx); err != nil {
 			return databaseErr(helper, err)
 		}
 	}

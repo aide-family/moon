@@ -59,6 +59,9 @@ func (gateway *Gateway) CreateDatasource(ctx context.Context, in bo.Datasource) 
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
+	if err := gateway.requireDriverCapability(ctx, in.Driver); err != nil {
+		return nil, err
+	}
 	if err := gateway.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
@@ -84,6 +87,9 @@ func (gateway *Gateway) UpdateDatasource(ctx context.Context, in bo.Datasource) 
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
+	if err := gateway.requireDriverCapability(ctx, in.Driver); err != nil {
+		return nil, err
+	}
 	if err := gateway.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
@@ -99,6 +105,10 @@ func (gateway *Gateway) UpdateDatasource(ctx context.Context, in bo.Datasource) 
 	previous, err := gateway.datasources.GetDatasource(ctx, ns, in.UID)
 	if err != nil {
 		return nil, gateway.access.Wrap(err)
+	}
+	// 原类型也必须已开通：未授权类型的数据源不应因为知道 UID 就能修改。
+	if err := gateway.requireDriverCapability(ctx, previous.Driver); err != nil {
+		return nil, err
 	}
 	item, err := gateway.datasources.UpdateDatasource(ctx, in)
 	if err != nil {
@@ -128,6 +138,13 @@ func (gateway *Gateway) UpdateDatasourceStatus(ctx context.Context, uid, status 
 	if err != nil {
 		return nil, err
 	}
+	current, err := gateway.datasources.GetDatasource(ctx, ns, uid)
+	if err != nil {
+		return nil, gateway.access.Wrap(err)
+	}
+	if err := gateway.requireDriverCapability(ctx, current.Driver); err != nil {
+		return nil, err
+	}
 	item, err := gateway.datasources.UpdateDatasourceStatus(ctx, ns, uid, status)
 	if err != nil {
 		return nil, gateway.access.Wrap(err)
@@ -145,6 +162,13 @@ func (gateway *Gateway) DeleteDatasource(ctx context.Context, uid string) error 
 	if err != nil {
 		return err
 	}
+	current, err := gateway.datasources.GetDatasource(ctx, ns, uid)
+	if err != nil {
+		return gateway.access.Wrap(err)
+	}
+	if err := gateway.requireDriverCapability(ctx, current.Driver); err != nil {
+		return err
+	}
 	if err := gateway.events.RecoverSource(ctx, ns, nil, []string{uid}, nil); err != nil {
 		return gateway.access.Wrap(err)
 	}
@@ -157,7 +181,13 @@ func (gateway *Gateway) GetDatasource(ctx context.Context, uid string) (*bo.Data
 		return nil, err
 	}
 	item, err := gateway.datasources.GetDatasource(ctx, ns, uid)
-	return redact(item), gateway.access.Wrap(err)
+	if err != nil {
+		return nil, gateway.access.Wrap(err)
+	}
+	if err := gateway.requireDriverCapability(ctx, item.Driver); err != nil {
+		return nil, err
+	}
+	return redact(item), nil
 }
 
 func (gateway *Gateway) ListDatasources(ctx context.Context, pageNo, pageSize int32, name, kind string) ([]bo.Datasource, int, int, int, error) {
@@ -166,7 +196,14 @@ func (gateway *Gateway) ListDatasources(ctx context.Context, pageNo, pageSize in
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := gateway.datasources.ListDatasources(ctx, ns, p, s, strings.TrimSpace(name), kind)
+	drivers, err := gateway.authorizedDrivers(ctx)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	if len(drivers) == 0 {
+		return []bo.Datasource{}, 0, p, s, nil
+	}
+	items, total, err := gateway.datasources.ListDatasources(ctx, ns, p, s, strings.TrimSpace(name), kind, drivers)
 	return items, total, p, s, gateway.access.Wrap(err)
 }
 
@@ -175,7 +212,14 @@ func (gateway *Gateway) SelectDatasources(ctx context.Context, limit int32, last
 	if err != nil {
 		return nil, err
 	}
-	items, err := gateway.datasources.SelectDatasources(ctx, ns, page.Limit(limit), lastUID, kind)
+	drivers, err := gateway.authorizedDrivers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(drivers) == 0 {
+		return []bo.SelectItem{}, nil
+	}
+	items, err := gateway.datasources.SelectDatasources(ctx, ns, page.Limit(limit), lastUID, kind, drivers)
 	return items, gateway.access.Wrap(err)
 }
 
@@ -323,10 +367,32 @@ func (gateway *Gateway) readSource(ctx context.Context, uid string) (*bo.Datasou
 	if err != nil {
 		return nil, gateway.access.Wrap(err)
 	}
+	if err := gateway.requireDriverCapability(ctx, item.Driver); err != nil {
+		return nil, err
+	}
 	if item.Status != "ACTIVE" {
 		return nil, merr.Invalid("datasource is disabled")
 	}
 	return item, nil
+}
+
+// requireDriverCapability 要求当前租户已开通该数据源驱动对应的能力。
+// 数据源增删改查和查询入口都走这里，套餐降级后未授权类型不能通过已知 UID 继续访问。
+func (gateway *Gateway) requireDriverCapability(ctx context.Context, driver string) error {
+	capability := perm.DatasourceCapabilityOf(driver)
+	if capability == "" {
+		return merr.Invalid("invalid request")
+	}
+	return gateway.access.RequireCapability(ctx, capability)
+}
+
+// authorizedDrivers 返回当前租户已开通的数据源驱动，供列表和选择器过滤。
+func (gateway *Gateway) authorizedDrivers(ctx context.Context) ([]string, error) {
+	capabilities, err := gateway.access.Capabilities(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return perm.DatasourceDriversOf(capabilities), nil
 }
 
 func (gateway *Gateway) requireDatasourceLevel(ctx context.Context, namespaceUID, levelUID string) error {

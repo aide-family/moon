@@ -298,3 +298,152 @@ func TestMemberCapacityLimit(t *testing.T) {
 		t.Fatalf("accept b after downgrade err = %v, want member limit reached", err)
 	}
 }
+
+// TestNamespaceUpgradeAndRenewalFlow 用真库验证升级 / 续期的支付事务：
+// 升级切换套餐并重算到期时间，续期在原到期时间上累加，永久套餐不能续期。
+func TestNamespaceUpgradeAndRenewalFlow(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	if err := Migrate(ctx, source); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	store, cleanup, err := NewDependencies(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("dependencies: %v", err)
+	}
+	t.Cleanup(cleanup)
+	logger := slog.Default()
+	features := NewFeatureRepo(store, logger)
+	namespaces := NewNamespaceRepo(store, logger)
+	orders := NewNamespaceOrderRepo(store, logger)
+
+	stamp := time.Now().Format("150405.000000000")
+	userUID := "it-upgrade-user-" + stamp
+	ownerUID := "it-upgrade-owner-" + stamp
+	basePkg, err := features.CreatePackage(ctx, bo.FeaturePackage{
+		Name: "it-upgrade-base-" + stamp, DurationDays: 30,
+		Visibility: perm.PackageVisibilityPublic, MaxMembers: 2, PriceCents: 1000,
+		Features: []string{perm.CapabilityAlertRealtime},
+	})
+	if err != nil {
+		t.Fatalf("create base package: %v", err)
+	}
+	upgradePkg, err := features.CreatePackage(ctx, bo.FeaturePackage{
+		Name: "it-upgrade-pro-" + stamp, DurationDays: 30,
+		Visibility: perm.PackageVisibilityPublic, MaxMembers: 5, PriceCents: 9900,
+		Features: []string{perm.CapabilityAlertRealtime, perm.CapabilityMember},
+	})
+	if err != nil {
+		t.Fatalf("create upgrade package: %v", err)
+	}
+	permanentPkg, err := features.CreatePackage(ctx, bo.FeaturePackage{
+		Name: "it-upgrade-permanent-" + stamp, DurationDays: 0,
+		Visibility: perm.PackageVisibilityPublic, MaxMembers: 0, PriceCents: 19900,
+		Features: []string{perm.CapabilityAlertRealtime},
+	})
+	if err != nil {
+		t.Fatalf("create permanent package: %v", err)
+	}
+	nsRow, err := namespaces.CreateNamespace(ctx, "it-upgrade-ns-"+stamp, "it", ownerUID, basePkg.UID)
+	if err != nil {
+		t.Fatalf("create namespace: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = store.client.NamespaceOrder.Delete().Where(namespaceorder.UserUIDEQ(userUID)).Exec(ctx)
+		_, _ = store.client.MemberRole.Delete().Where(memberrole.NamespaceUIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.Member.Delete().Where(member.NamespaceUIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.RolePermission.Delete().Where(rolepermission.NamespaceUIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.Role.Delete().Where(role.NamespaceUIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.Namespace.Delete().Where(namespace.UIDEQ(nsRow.UID)).Exec(ctx)
+		for _, uid := range []string{basePkg.UID, upgradePkg.UID, permanentPkg.UID} {
+			_, _ = store.client.FeaturePackageItem.Delete().Where(featurepackageitem.PackageUIDEQ(uid)).Exec(ctx)
+			_, _ = store.client.FeaturePackage.Delete().Where(featurepackage.UIDEQ(uid)).Exec(ctx)
+		}
+	})
+
+	beforeUpgrade, err := features.NamespaceFeatureState(ctx, nsRow.UID)
+	if err != nil {
+		t.Fatalf("base state: %v", err)
+	}
+	upgrade, err := orders.CreateOrder(ctx, bo.NamespaceOrder{
+		UserUID: userUID, Kind: bo.NamespaceOrderUpgrade, NamespaceUID: nsRow.UID,
+		NamespaceName: nsRow.Name, PackageUID: upgradePkg.UID, PackageName: upgradePkg.Name,
+		PriceCents: upgradePkg.PriceCents, DurationDays: upgradePkg.DurationDays, MaxMembers: upgradePkg.MaxMembers,
+	})
+	if err != nil {
+		t.Fatalf("create upgrade order: %v", err)
+	}
+	paidUpgrade, upgradedNS, err := orders.PayOrder(ctx, upgrade.UID, userUID)
+	if err != nil {
+		t.Fatalf("pay upgrade: %v", err)
+	}
+	if paidUpgrade.Kind != bo.NamespaceOrderUpgrade || upgradedNS.PackageUID != upgradePkg.UID {
+		t.Fatalf("upgraded order/namespace = %+v / %+v", paidUpgrade, upgradedNS)
+	}
+	afterUpgrade, err := features.NamespaceFeatureState(ctx, nsRow.UID)
+	if err != nil {
+		t.Fatalf("upgraded state: %v", err)
+	}
+	if afterUpgrade.PackageUID != upgradePkg.UID {
+		t.Fatalf("package after upgrade = %q", afterUpgrade.PackageUID)
+	}
+	if !afterUpgrade.ExpiresAt.After(beforeUpgrade.ExpiresAt) {
+		t.Fatalf("upgrade expiry = %v, want later than %v", afterUpgrade.ExpiresAt, beforeUpgrade.ExpiresAt)
+	}
+	if count, err := store.client.Namespace.Query().Where(namespace.NameEQ(nsRow.Name)).Count(ctx); err != nil || count != 1 {
+		t.Fatalf("namespace count after upgrade = %d, err = %v", count, err)
+	}
+
+	renewal, err := orders.CreateOrder(ctx, bo.NamespaceOrder{
+		UserUID: userUID, Kind: bo.NamespaceOrderRenew, NamespaceUID: nsRow.UID,
+		NamespaceName: nsRow.Name, PackageUID: upgradePkg.UID, PackageName: upgradePkg.Name,
+		PriceCents: upgradePkg.PriceCents, DurationDays: upgradePkg.DurationDays, MaxMembers: upgradePkg.MaxMembers,
+	})
+	if err != nil {
+		t.Fatalf("create renewal order: %v", err)
+	}
+	if _, renewedNS, err := orders.PayOrder(ctx, renewal.UID, userUID); err != nil {
+		t.Fatalf("pay renewal: %v", err)
+	} else if renewedNS.PackageUID != upgradePkg.UID {
+		t.Fatalf("package after renewal = %q", renewedNS.PackageUID)
+	}
+	afterRenewal, err := features.NamespaceFeatureState(ctx, nsRow.UID)
+	if err != nil {
+		t.Fatalf("renewed state: %v", err)
+	}
+	wantRenewal := afterUpgrade.ExpiresAt.AddDate(0, 0, int(upgradePkg.DurationDays))
+	if delta := afterRenewal.ExpiresAt.Sub(wantRenewal); delta < -time.Minute || delta > time.Minute {
+		t.Fatalf("renewed expiry = %v, want about %v", afterRenewal.ExpiresAt, wantRenewal)
+	}
+
+	// 升级到永久套餐后，续期订单在支付时被拒绝。
+	permanentOrder, err := orders.CreateOrder(ctx, bo.NamespaceOrder{
+		UserUID: userUID, Kind: bo.NamespaceOrderUpgrade, NamespaceUID: nsRow.UID,
+		NamespaceName: nsRow.Name, PackageUID: permanentPkg.UID, PackageName: permanentPkg.Name,
+		PriceCents: permanentPkg.PriceCents, DurationDays: permanentPkg.DurationDays, MaxMembers: permanentPkg.MaxMembers,
+	})
+	if err != nil {
+		t.Fatalf("create permanent order: %v", err)
+	}
+	if _, permanentNS, err := orders.PayOrder(ctx, permanentOrder.UID, userUID); err != nil {
+		t.Fatalf("pay permanent upgrade: %v", err)
+	} else if !permanentNS.PackageExpiresAt.IsZero() {
+		t.Fatalf("permanent package expiry = %v", permanentNS.PackageExpiresAt)
+	}
+	renewPermanent, err := orders.CreateOrder(ctx, bo.NamespaceOrder{
+		UserUID: userUID, Kind: bo.NamespaceOrderRenew, NamespaceUID: nsRow.UID,
+		NamespaceName: nsRow.Name, PackageUID: permanentPkg.UID, PackageName: permanentPkg.Name,
+		PriceCents: permanentPkg.PriceCents, DurationDays: 0, MaxMembers: permanentPkg.MaxMembers,
+	})
+	if err != nil {
+		t.Fatalf("create permanent renewal order: %v", err)
+	}
+	if _, _, err := orders.PayOrder(ctx, renewPermanent.UID, userUID); err == nil ||
+		kerrors.FromError(err).Message != "package is permanent" {
+		t.Fatalf("pay permanent renewal err = %v, want package is permanent", err)
+	}
+}

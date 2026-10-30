@@ -54,6 +54,9 @@ func (gateway *Gateway) CreateProbeTargetGroup(ctx context.Context, in bo.ProbeT
 	if err := normalizeGroup(&in); err != nil {
 		return nil, err
 	}
+	if err := gateway.requireDriverCapability(ctx, in.Driver); err != nil {
+		return nil, err
+	}
 	item, err := gateway.targets.CreateProbeTargetGroup(ctx, in)
 	return item, gateway.access.Wrap(err)
 }
@@ -72,6 +75,10 @@ func (gateway *Gateway) UpdateProbeTargetGroup(ctx context.Context, in bo.ProbeT
 	if err != nil {
 		return nil, gateway.access.Wrap(err)
 	}
+	// 新驱动和原驱动都必须已开通：未授权类型的目标组不能通过已知 UID 修改。
+	if err := gateway.requireDriverCapability(ctx, previous.Driver); err != nil {
+		return nil, err
+	}
 	item, err := gateway.targets.UpdateProbeTargetGroup(ctx, in)
 	if err != nil {
 		return nil, gateway.access.Wrap(err)
@@ -88,6 +95,13 @@ func (gateway *Gateway) UpdateProbeTargetGroupStatus(ctx context.Context, uid, s
 	}
 	if status != "ACTIVE" && status != "DISABLED" {
 		return nil, merr.Invalid("invalid status")
+	}
+	current, err := gateway.targets.GetProbeTargetGroup(ctx, ns, uid)
+	if err != nil {
+		return nil, gateway.access.Wrap(err)
+	}
+	if err := gateway.requireDriverCapability(ctx, current.Driver); err != nil {
+		return nil, err
 	}
 	item, err := gateway.targets.UpdateProbeTargetGroupStatus(ctx, ns, uid, status)
 	if err != nil {
@@ -109,6 +123,9 @@ func (gateway *Gateway) DeleteProbeTargetGroup(ctx context.Context, uid string) 
 	if err != nil {
 		return gateway.access.Wrap(err)
 	}
+	if err := gateway.requireDriverCapability(ctx, item.Driver); err != nil {
+		return err
+	}
 	if err := gateway.targets.DeleteProbeTargetGroup(ctx, ns, uid); err != nil {
 		return gateway.access.Wrap(err)
 	}
@@ -123,7 +140,13 @@ func (gateway *Gateway) GetProbeTargetGroup(ctx context.Context, uid string) (*b
 		return nil, err
 	}
 	item, err := gateway.targets.GetProbeTargetGroup(ctx, ns, uid)
-	return item, gateway.access.Wrap(err)
+	if err != nil {
+		return nil, gateway.access.Wrap(err)
+	}
+	if err := gateway.requireDriverCapability(ctx, item.Driver); err != nil {
+		return nil, err
+	}
+	return item, nil
 }
 
 // ListProbeTargetGroups 分页列出目标组。
@@ -133,14 +156,59 @@ func (gateway *Gateway) ListProbeTargetGroups(ctx context.Context, pageNo, pageS
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := gateway.targets.ListProbeTargetGroups(ctx, ns, p, s, strings.TrimSpace(name), strings.TrimSpace(driver))
+	drivers, err := gateway.authorizedDrivers(ctx)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	if requested := strings.TrimSpace(driver); requested != "" {
+		drivers = filterDriver(drivers, requested)
+	}
+	if len(drivers) == 0 {
+		return []bo.ProbeTargetGroup{}, 0, p, s, nil
+	}
+	items, total, err := gateway.targets.ListProbeTargetGroups(ctx, ns, p, s, strings.TrimSpace(name), drivers)
 	return items, total, p, s, gateway.access.Wrap(err)
+}
+
+// requireDriverCapability 要求当前租户已开通该探测驱动对应的能力。
+func (gateway *Gateway) requireDriverCapability(ctx context.Context, driver string) error {
+	capability := perm.ProbeCapabilityOf(driver)
+	if capability == "" {
+		return merr.Invalid("invalid request")
+	}
+	return gateway.access.RequireCapability(ctx, capability)
+}
+
+// authorizedDrivers 返回当前租户已开通的探测驱动。
+func (gateway *Gateway) authorizedDrivers(ctx context.Context) ([]string, error) {
+	capabilities, err := gateway.access.Capabilities(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return perm.ProbeDriversOf(capabilities), nil
+}
+
+// filterDriver 只保留请求的类型；类型未开通时返回空，列表不会退回全量。
+func filterDriver(drivers []string, wanted string) []string {
+	for _, driver := range drivers {
+		if driver == wanted {
+			return []string{wanted}
+		}
+	}
+	return nil
 }
 
 // ListProbeTargetResults 分页返回某个目标组的探测记录。
 func (gateway *Gateway) ListProbeTargetResults(ctx context.Context, groupUID, targetUID string, pageNo, pageSize int32) ([]bo.ProbeResult, int, int, int, error) {
 	ns, err := gateway.access.Allow(ctx, perm.ProbeRead)
 	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	group, err := gateway.targets.GetProbeTargetGroup(ctx, ns, groupUID)
+	if err != nil {
+		return nil, 0, 0, 0, gateway.access.Wrap(err)
+	}
+	if err := gateway.requireDriverCapability(ctx, group.Driver); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
@@ -157,6 +225,9 @@ func (gateway *Gateway) ProbeTargetGroupNow(ctx context.Context, uid string) ([]
 	group, err := gateway.targets.GetProbeTargetGroup(ctx, ns, uid)
 	if err != nil {
 		return nil, gateway.access.Wrap(err)
+	}
+	if err := gateway.requireDriverCapability(ctx, group.Driver); err != nil {
+		return nil, err
 	}
 	request, err := probe.ParseRequest(group.Request)
 	if err != nil {
@@ -183,6 +254,9 @@ func (gateway *Gateway) ProbeTargetGroupNow(ctx context.Context, uid string) ([]
 // ProbeTrial 对单个地址试探测：不落库、不判定、不产生事件。
 func (gateway *Gateway) ProbeTrial(ctx context.Context, spec string, request probe.Request) (*bo.ProbeResult, error) {
 	if _, err := gateway.access.Allow(ctx, perm.ProbeWrite); err != nil {
+		return nil, err
+	}
+	if err := gateway.requireDriverCapability(ctx, bo.ProbeDriverHTTP); err != nil {
 		return nil, err
 	}
 	normalized, err := probe.NormalizeSpec(spec)

@@ -25,6 +25,8 @@ type NamespaceOrder struct {
 	UID string `json:"uid,omitempty"`
 	// UserUID holds the value of the "user_uid" field.
 	UserUID string `json:"user_uid,omitempty"`
+	// Kind holds the value of the "kind" field.
+	Kind namespaceorder.Kind `json:"kind,omitempty"`
 	// NamespaceUID holds the value of the "namespace_uid" field.
 	NamespaceUID string `json:"namespace_uid,omitempty"`
 	// NamespaceName holds the value of the "namespace_name" field.
@@ -55,7 +57,7 @@ func (*NamespaceOrder) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case namespaceorder.FieldID, namespaceorder.FieldPriceCents, namespaceorder.FieldDurationDays, namespaceorder.FieldMaxMembers:
 			values[i] = new(sql.NullInt64)
-		case namespaceorder.FieldUID, namespaceorder.FieldUserUID, namespaceorder.FieldNamespaceUID, namespaceorder.FieldNamespaceName, namespaceorder.FieldNamespaceRemark, namespaceorder.FieldPackageUID, namespaceorder.FieldPackageName, namespaceorder.FieldStatus:
+		case namespaceorder.FieldUID, namespaceorder.FieldUserUID, namespaceorder.FieldKind, namespaceorder.FieldNamespaceUID, namespaceorder.FieldNamespaceName, namespaceorder.FieldNamespaceRemark, namespaceorder.FieldPackageUID, namespaceorder.FieldPackageName, namespaceorder.FieldStatus:
 			values[i] = new(sql.NullString)
 		case namespaceorder.FieldCreatedAt, namespaceorder.FieldUpdatedAt, namespaceorder.FieldPaidAt:
 			values[i] = new(sql.NullTime)
@@ -103,6 +105,12 @@ func (_m *NamespaceOrder) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field user_uid", values[i])
 			} else if value.Valid {
 				_m.UserUID = value.String
+			}
+		case namespaceorder.FieldKind:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field kind", values[i])
+			} else if value.Valid {
+				_m.Kind = namespaceorder.Kind(value.String)
 			}
 		case namespaceorder.FieldNamespaceUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -212,6 +220,9 @@ func (_m *NamespaceOrder) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_uid=")
 	builder.WriteString(_m.UserUID)
+	builder.WriteString(", ")
+	builder.WriteString("kind=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Kind))
 	builder.WriteString(", ")
 	builder.WriteString("namespace_uid=")
 	builder.WriteString(_m.NamespaceUID)

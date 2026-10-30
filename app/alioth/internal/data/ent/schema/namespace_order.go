@@ -6,9 +6,9 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// NamespaceOrder 是一次「先下单、后虚拟支付」的租户创建记录。
-// 下单时快照套餐名称、价格、授权时长和人数上限，后续改套餐不影响已下的订单；
-// 支付成功时在同一个事务里创建租户并把订单置为 PAID。
+// NamespaceOrder 是一次「先下单、后虚拟支付」的租户购买记录。
+// kind 区分新建租户、套餐升级和套餐续期；价格、时长和人数上限都是下单时的快照。
+// 支付成功时在同一个事务里创建租户或更新租户套餐，并把订单置为 PAID。
 type NamespaceOrder struct {
 	ent.Schema
 }
@@ -22,7 +22,9 @@ func (NamespaceOrder) Fields() []ent.Field {
 		field.String("uid").NotEmpty().Immutable(),
 		// user_uid 是下单人，只有本人可以支付和取消自己的订单。
 		field.String("user_uid").NotEmpty(),
-		// namespace_uid 在支付成功后才写入；待支付和已取消时为空。
+		// kind 决定支付时做什么：CREATE 创建租户，UPGRADE 换套餐，RENEW 延长授权。
+		field.Enum("kind").Values("CREATE", "UPGRADE", "RENEW").Default("CREATE"),
+		// namespace_uid：CREATE 在支付成功后写入；UPGRADE / RENEW 在下单时写入目标租户。
 		field.String("namespace_uid").Default(""),
 		field.String("namespace_name").NotEmpty(),
 		field.String("namespace_remark").MaxRuneLen(200).Default(""),

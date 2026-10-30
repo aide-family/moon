@@ -206,6 +206,30 @@ func TestRequireChecksFeature(t *testing.T) {
 	}
 }
 
+// TestRequireCapability 确认类型级检查只在租户开通对应能力时放行。
+func TestRequireCapability(t *testing.T) {
+	ctx := tenantContext()
+	checker := checkerFor(perm.SystemRoleUser)
+	checker.Features = featureRepoStub{
+		capabilities: []string{perm.CapabilityDatasourcePrometheus},
+		modules:      []string{perm.FeatureDatasource},
+	}
+	if err := checker.RequireCapability(ctx, perm.CapabilityDatasourcePrometheus); err != nil {
+		t.Fatalf("require authorized capability: %v", err)
+	}
+	err := checker.RequireCapability(ctx, perm.CapabilityDatasourceLoki)
+	if err == nil || kerrors.Reason(err) != merr.ReasonForbidden {
+		t.Fatalf("require unauthorized capability err = %v, want forbidden", err)
+	}
+	capabilities, err := checker.Capabilities(ctx)
+	if err != nil {
+		t.Fatalf("capabilities: %v", err)
+	}
+	if !slices.Equal(capabilities, []string{perm.CapabilityDatasourcePrometheus}) {
+		t.Fatalf("capabilities = %v", capabilities)
+	}
+}
+
 // TestRequireChecksMenuPermission 确认成员即使持有接口权限，也要持有对应能力的菜单权限。
 func TestRequireChecksMenuPermission(t *testing.T) {
 	ctx := tenantContext()

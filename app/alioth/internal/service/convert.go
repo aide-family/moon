@@ -173,7 +173,7 @@ func namespaceOrderItem(item bo.NamespaceOrder) *v1.NamespaceOrderItem {
 		NamespaceName: item.NamespaceName, NamespaceRemark: item.NamespaceRemark,
 		PackageUid: item.PackageUID, PackageName: item.PackageName,
 		PriceCents: item.PriceCents, DurationDays: item.DurationDays,
-		MaxMembers: item.MaxMembers, Status: item.Status,
+		MaxMembers: item.MaxMembers, Status: item.Status, Kind: item.Kind,
 		CreatedAt: createdAt, PaidAt: paidAt,
 	}
 }
@@ -202,4 +202,13 @@ func namespaceFeatureFields(item bo.NamespaceFeature) (packageUID, packageName s
 	}
 	return item.PackageUID, item.PackageName, item.Features, item.PackageFeatures,
 		item.ExtraFeatures, expiresAt, item.Expired, item.DurationDays
+}
+
+// namespacePackageFields 把租户当前套餐拆成响应字段；零值时间对外统一输出 0。
+func namespacePackageFields(item bo.NamespacePackage) (packageUID, packageName, status, visibility string, durationDays, maxMembers int32, priceCents, expiresAt int64, expired bool) {
+	if !item.ExpiresAt.IsZero() {
+		expiresAt = item.ExpiresAt.Unix()
+	}
+	return item.PackageUID, item.Name, item.Status, item.Visibility,
+		item.DurationDays, item.MaxMembers, item.PriceCents, expiresAt, item.Expired
 }

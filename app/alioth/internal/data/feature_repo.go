@@ -315,10 +315,10 @@ func (r *featureRepo) SetNamespaceFeatureState(ctx context.Context, namespaceUID
 
 // grantPresetRolePermissions 给租户的预置系统角色补上当前能力范围内缺失的权限。
 // 只加不删，和 seed 的 syncTenantRoles 保持同一套规则；重复执行不会产生重复授权。
-func (r *featureRepo) grantPresetRolePermissions(ctx context.Context, tx *ent.Tx, namespaceUID string, capabilities []string) error {
+func (base *repoBase) grantPresetRolePermissions(ctx context.Context, tx *ent.Tx, namespaceUID string, capabilities []string) error {
 	permissions, err := tx.Permission.Query().All(ctx)
 	if err != nil {
-		return r.fail(err)
+		return base.fail(err)
 	}
 	byName := make(map[string]string, len(permissions))
 	for _, item := range permissions {
@@ -328,7 +328,7 @@ func (r *featureRepo) grantPresetRolePermissions(ctx context.Context, tx *ent.Tx
 		Where(role.NamespaceUIDEQ(namespaceUID), role.IsSystem(true), role.DeletedAtIsNil()).
 		All(ctx)
 	if err != nil {
-		return r.fail(err)
+		return base.fail(err)
 	}
 	if len(roles) == 0 {
 		return nil
@@ -339,7 +339,7 @@ func (r *featureRepo) grantPresetRolePermissions(ctx context.Context, tx *ent.Tx
 	}
 	links, err := tx.RolePermission.Query().Where(rolepermission.RoleUIDIn(roleUIDs...)).All(ctx)
 	if err != nil {
-		return r.fail(err)
+		return base.fail(err)
 	}
 	held := make(map[string]map[string]struct{}, len(roles))
 	for _, link := range links {
@@ -363,7 +363,7 @@ func (r *featureRepo) grantPresetRolePermissions(ctx context.Context, tx *ent.Tx
 				SetRoleUID(item.UID).
 				SetPermissionUID(permissionUID).
 				Save(ctx); err != nil {
-				return r.fail(err)
+				return base.fail(err)
 			}
 		}
 	}

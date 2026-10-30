@@ -3,8 +3,11 @@ import type { NamespaceItem } from "@/api/namespace/types"
 /** 套餐版本：PUBLIC 可被用户创建租户时选择，BETA 只由平台管理员分配。 */
 export type PackageVisibility = "PUBLIC" | "BETA"
 
-/** 订单状态：待支付、已支付（已创建租户）、已取消。 */
+/** 订单状态：待支付、已支付、已取消。 */
 export type OrderStatus = "PENDING" | "PAID" | "CANCELLED"
+
+/** 订单类型：新建租户、套餐升级、套餐续期。 */
+export type OrderKind = "CREATE" | "UPGRADE" | "RENEW"
 
 /**
  * 创建租户时可选的功能套餐。字段与 FeaturePackageItem 对齐，
@@ -42,6 +45,7 @@ export type OrderItem = {
   /** 成员数上限快照，0 表示不限制。 */
   maxMembers: number
   status: OrderStatus
+  kind: OrderKind
   /** Unix 秒（int64），展示时 *1000。 */
   createdAt?: number
   /** Unix 秒；未支付时为 0。 */
@@ -70,4 +74,18 @@ export type ListOrdersResult = {
 export type PayOrderResult = {
   order: OrderItem
   namespace: NamespaceItem
+}
+
+/** 租户当前套餐。升级 / 续期入口用它展示当前价格、时长和到期时间。 */
+export type NamespacePackageInfo = {
+  packageUid?: string
+  packageName?: string
+  status?: string
+  visibility?: string
+  durationDays?: number
+  maxMembers?: number
+  priceCents?: number
+  /** Unix 秒；0 表示永久。 */
+  expiresAt?: number
+  expired?: boolean
 }

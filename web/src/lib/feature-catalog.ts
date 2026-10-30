@@ -89,30 +89,93 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     },
   },
   {
-    code: "probe_target",
+    code: "probe_http",
     module: "probe",
-    label: { zh: "探测目标", en: "Probe targets" },
+    label: { zh: "HTTP 探测", en: "HTTP probes" },
     description: {
-      zh: "HTTP / TCP / ICMP 探测目标组",
-      en: "Probe target groups for HTTP, TCP, and ICMP",
+      zh: "HTTP 探测目标组与探测地址",
+      en: "HTTP probe target groups and addresses",
     },
   },
   {
-    code: "datasource",
+    code: "datasource_prometheus",
     module: "datasource",
-    label: { zh: "数据源", en: "Datasources" },
+    label: { zh: "Prometheus 指标", en: "Prometheus metrics" },
     description: {
-      zh: "指标与日志数据源接入",
-      en: "Metrics and log datasource connections",
+      zh: "Prometheus 兼容的 PromQL 指标数据源",
+      en: "Prometheus-compatible PromQL datasources",
     },
   },
   {
-    code: "notify_channel",
-    module: "notification",
-    label: { zh: "通知渠道", en: "Notification channels" },
+    code: "datasource_victoria_metrics",
+    module: "datasource",
+    label: { zh: "VictoriaMetrics 指标", en: "VictoriaMetrics metrics" },
     description: {
-      zh: "邮件、Webhook、钉钉等发送渠道",
-      en: "Email, webhook, DingTalk, and other channels",
+      zh: "VictoriaMetrics 指标数据源",
+      en: "VictoriaMetrics metrics datasources",
+    },
+  },
+  {
+    code: "datasource_elasticsearch",
+    module: "datasource",
+    label: { zh: "Elasticsearch 日志", en: "Elasticsearch logs" },
+    description: {
+      zh: "Elasticsearch 日志数据源与时间桶评测",
+      en: "Elasticsearch log datasources and time-bucket evaluation",
+    },
+  },
+  {
+    code: "datasource_loki",
+    module: "datasource",
+    label: { zh: "Loki 日志", en: "Loki logs" },
+    description: {
+      zh: "Loki 日志数据源与 LogQL 评测",
+      en: "Loki log datasources and LogQL evaluation",
+    },
+  },
+  {
+    code: "datasource_vlogs",
+    module: "datasource",
+    label: { zh: "VictoriaLogs 日志", en: "VictoriaLogs logs" },
+    description: {
+      zh: "VictoriaLogs 日志数据源与 LogsQL 评测",
+      en: "VictoriaLogs datasources and LogsQL evaluation",
+    },
+  },
+  {
+    code: "datasource_jaeger",
+    module: "datasource",
+    label: { zh: "Jaeger 链路", en: "Jaeger traces" },
+    description: {
+      zh: "Jaeger 链路数据源",
+      en: "Jaeger trace datasources",
+    },
+  },
+  {
+    code: "notify_channel_smtp",
+    module: "notification",
+    label: { zh: "邮件渠道", en: "Email channels" },
+    description: {
+      zh: "SMTP 邮件通知渠道",
+      en: "SMTP email notification channels",
+    },
+  },
+  {
+    code: "notify_channel_webhook",
+    module: "notification",
+    label: { zh: "Webhook 渠道", en: "Webhook channels" },
+    description: {
+      zh: "Webhook 通知渠道（含钉钉、企业微信、飞书）",
+      en: "Webhook channels including DingTalk, WeCom, and Feishu",
+    },
+  },
+  {
+    code: "notify_channel_sms",
+    module: "notification",
+    label: { zh: "短信渠道", en: "SMS channels" },
+    description: {
+      zh: "短信通知渠道",
+      en: "SMS notification channels",
     },
   },
   {
@@ -291,7 +354,7 @@ export const CAPABILITIES: CapabilityDefinition[] = [
   },
 ]
 
-/** 基础套餐包含的模块：前 7 个模块的全部能力（15 项）。 */
+/** 基础套餐包含的模块：前 7 个模块的全部能力（数据源和通知渠道按类型展开后共 22 项）。 */
 export const BASE_MODULES = [
   "alert",
   "alert_rule",
@@ -318,9 +381,10 @@ export const MENU_CAPABILITIES: Record<string, string> = {
   "/alert-pages": "alert_page",
   "/alert-rules": "alert_rule",
   "/alert-dictionaries": "alert_dictionary",
-  "/probe-targets": "probe_target",
+  // 探测、数据源和通知渠道按类型拆分后，菜单入口用模块码：任一类型开通即显示。
+  "/probe-targets": "probe",
   "/datasources": "datasource",
-  "/notification-channels": "notify_channel",
+  "/notification-channels": "notification",
   "/notification-templates": "notify_template",
   "/notification-groups": "notify_group",
   "/notification-subscriptions": "notify_subscription",
@@ -346,6 +410,99 @@ export const CLUSTER_SECTION_CAPABILITIES: Record<string, string> = {
   pvcs: "k8s_pvc",
   jobs: "k8s_job",
   cronjobs: "k8s_cronjob",
+}
+
+/** 能力编码 → 数据源驱动。与后端 perm.datasourceCapabilityDrivers 保持一致。 */
+export const DATASOURCE_CAPABILITY_DRIVERS: Record<string, string> = {
+  datasource_prometheus: "METRICS_PROMETHEUS",
+  datasource_victoria_metrics: "METRICS_VICTORIA_METRICS",
+  datasource_elasticsearch: "LOGS_ELASTICSEARCH",
+  datasource_loki: "LOGS_LOKI",
+  datasource_vlogs: "LOGS_VLOGS",
+  datasource_jaeger: "TRACE_JAEGER",
+}
+
+/** 能力编码 → 探测驱动。一期只有 HTTP。 */
+export const PROBE_CAPABILITY_DRIVERS: Record<string, string> = {
+  probe_http: "PROBE_HTTP",
+}
+
+/** 能力编码 → 通知渠道类型。 */
+export const CHANNEL_CAPABILITY_TYPES: Record<string, string> = {
+  notify_channel_smtp: "SMTP",
+  notify_channel_webhook: "WEBHOOK",
+  notify_channel_sms: "SMS",
+}
+
+/** 通知渠道类型 → 模板类型。模板是渠道的正文，渠道类型没开通时模板也不展示。 */
+export const CHANNEL_TYPE_TEMPLATE_TYPES: Record<string, string[]> = {
+  SMTP: ["EMAIL"],
+  WEBHOOK: ["WEBHOOK"],
+  SMS: ["SMS_ALICLOUD"],
+}
+
+/** 某个模块下的全部能力编码，用于把模块级菜单入口展开成任一能力。 */
+export function capabilitiesOfModule(module: string): string[] {
+  return CAPABILITIES.filter((item) => item.module === module).map(
+    (item) => item.code
+  )
+}
+
+/** 判断一个菜单能力键是模块码还是能力码。 */
+export function isModuleCode(code: string): boolean {
+  return MODULES.some((item) => item.code === code)
+}
+
+/** 从已开通能力里取出某项映射对应的值，保持映射声明顺序。 */
+export function authorizedValues(
+  features: string[],
+  mapping: Record<string, string>
+): string[] {
+  const enabled = new Set(features)
+  return Object.entries(mapping)
+    .filter(([capability]) => enabled.has(capability))
+    .map(([, value]) => value)
+}
+
+/** 已开通的数据源驱动。 */
+export function authorizedDatasourceDrivers(features: string[]): string[] {
+  return authorizedValues(features, DATASOURCE_CAPABILITY_DRIVERS)
+}
+
+/** 已开通的探测驱动。 */
+export function authorizedProbeDrivers(features: string[]): string[] {
+  return authorizedValues(features, PROBE_CAPABILITY_DRIVERS)
+}
+
+/** 已开通的通知渠道类型。 */
+export function authorizedChannelTypes(features: string[]): string[] {
+  return authorizedValues(features, CHANNEL_CAPABILITY_TYPES)
+}
+
+/** 已开通渠道类型可用的模板类型。 */
+export function authorizedTemplateTypes(features: string[]): string[] {
+  const types = new Set<string>()
+  for (const channelType of authorizedChannelTypes(features)) {
+    for (const templateType of CHANNEL_TYPE_TEMPLATE_TYPES[channelType] ?? []) {
+      types.add(templateType)
+    }
+  }
+  return [...types]
+}
+
+/** 菜单入口是否可用：模块码看任一能力，能力码看自身。 */
+export function menuEntryAuthorized(
+  entry: string,
+  features: string[],
+  permissions: string[]
+): boolean {
+  const codes = isModuleCode(entry) ? capabilitiesOfModule(entry) : [entry]
+  const enabled = new Set(features)
+  const held = new Set(permissions)
+  return codes.some(
+    (capability) =>
+      enabled.has(capability) && held.has(`menu:${capability}`)
+  )
 }
 
 const BY_CODE = new Map(CAPABILITIES.map((item) => [item.code, item]))

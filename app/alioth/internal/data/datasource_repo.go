@@ -199,7 +199,7 @@ func (r *datasourceRepo) GetDatasource(ctx context.Context, namespaceUID, uid st
 	return r.present(ctx, row, true)
 }
 
-func (r *datasourceRepo) ListDatasources(ctx context.Context, namespaceUID string, page, pageSize int, name, kind string) ([]bo.Datasource, int, error) {
+func (r *datasourceRepo) ListDatasources(ctx context.Context, namespaceUID string, page, pageSize int, name, kind string, drivers []string) ([]bo.Datasource, int, error) {
 	query := r.client.Datasource.Query().Where(datasource.NamespaceUIDEQ(namespaceUID), datasource.DeletedAtIsNil())
 	if name != "" {
 		query = query.Where(datasource.NameContainsFold(name))
@@ -209,6 +209,14 @@ func (r *datasourceRepo) ListDatasources(ctx context.Context, namespaceUID strin
 			return nil, 0, merr.Invalid("invalid request")
 		}
 		query = query.Where(datasource.TypeEQ(datasource.Type(kind)))
+	}
+	// 只返回租户套餐里已开通的驱动；调用方保证 drivers 非空，空集合不会走到这里。
+	if len(drivers) > 0 {
+		values := make([]datasource.Driver, 0, len(drivers))
+		for _, driver := range drivers {
+			values = append(values, datasource.Driver(driver))
+		}
+		query = query.Where(datasource.DriverIn(values...))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {
@@ -313,13 +321,20 @@ func (r *datasourceRepo) ListDatasourceUIDsByLevel(ctx context.Context, namespac
 	return uids, nil
 }
 
-func (r *datasourceRepo) SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string) ([]bo.SelectItem, error) {
+func (r *datasourceRepo) SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string, drivers []string) ([]bo.SelectItem, error) {
 	query := r.client.Datasource.Query().Where(datasource.NamespaceUIDEQ(namespaceUID), datasource.DeletedAtIsNil())
 	if lastUID != "" {
 		query = query.Where(datasource.UIDGT(lastUID))
 	}
 	if kind == "METRICS" || kind == "LOGS" || kind == "TRACE" {
 		query = query.Where(datasource.TypeEQ(datasource.Type(kind)))
+	}
+	if len(drivers) > 0 {
+		values := make([]datasource.Driver, 0, len(drivers))
+		for _, driver := range drivers {
+			values = append(values, datasource.Driver(driver))
+		}
+		query = query.Where(datasource.DriverIn(values...))
 	}
 	rows, err := query.Order(ent.Asc(datasource.FieldUID)).Limit(limit).All(ctx)
 	if err != nil {

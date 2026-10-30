@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/merr"
 	pkgnotify "github.com/aide-family/moon/pkg/notify"
 )
@@ -23,6 +24,19 @@ func (center *Center) normalizeGroup(ctx context.Context, in *bo.NotificationGro
 		return merr.Invalid("name is required")
 	}
 	in.Name = strings.TrimSpace(in.Name)
+	// 渠道类型和对应模板类型必须在套餐范围内：未授权渠道的模板不能绑定到通知组。
+	channelTypes, err := center.authorizedChannelTypes(ctx)
+	if err != nil {
+		return err
+	}
+	allowedChannels := make(map[string]struct{}, len(channelTypes))
+	for _, item := range channelTypes {
+		allowedChannels[item] = struct{}{}
+	}
+	allowedTemplates := make(map[string]struct{})
+	for _, item := range perm.TemplateTypesOfChannelTypes(channelTypes) {
+		allowedTemplates[item] = struct{}{}
+	}
 	normalizeLegacyGroup(in)
 	// channel_uids 与 template_uids 按下标对应，去重时必须成对删除。
 	dedupedChannels := make([]string, 0, len(in.ChannelUIDs))
@@ -83,6 +97,12 @@ func (center *Center) normalizeGroup(ctx context.Context, in *bo.NotificationGro
 		template, err := center.repo.GetTemplate(ctx, in.NamespaceUID, in.TemplateUIDs[index])
 		if err != nil {
 			return center.access.Wrap(err)
+		}
+		if _, ok := allowedChannels[channel.Type]; !ok {
+			return merr.Forbidden("feature not enabled")
+		}
+		if _, ok := allowedTemplates[template.Type]; !ok {
+			return merr.Forbidden("feature not enabled")
 		}
 		if err := validateGroupBinding(*channel, *template); err != nil {
 			return err

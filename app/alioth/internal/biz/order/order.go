@@ -71,6 +71,142 @@ func (purchasing *Purchasing) CreateOrder(ctx context.Context, name, remark, pac
 	return item, purchasing.access.Wrap(err)
 }
 
+// CreateUpgradeOrder 为当前租户下升级套餐的订单。升级只能选公开且启用的套餐，
+// 当前套餐本身不算升级；支付后从支付时刻按新套餐时长重新计算到期时间。
+func (purchasing *Purchasing) CreateUpgradeOrder(ctx context.Context, packageUID string) (*bo.NamespaceOrder, error) {
+	userUID, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("missing token")
+	}
+	namespaceUID, err := purchasing.access.Allow(ctx, perm.NamespaceWrite)
+	if err != nil {
+		return nil, err
+	}
+	current, err := purchasing.features.NamespaceFeatureState(ctx, namespaceUID)
+	if err != nil {
+		return nil, purchasing.access.Wrap(err)
+	}
+	pkg, err := purchasing.features.GetPackage(ctx, packageUID)
+	if err != nil {
+		return nil, purchasing.access.Wrap(err)
+	}
+	if pkg.Status != "ACTIVE" || pkg.Visibility != perm.PackageVisibilityPublic {
+		return nil, merr.Client("package is not available")
+	}
+	if current.PackageUID == pkg.UID {
+		return nil, merr.Client("package is already in use")
+	}
+	namespace, err := purchasing.access.CurrentNamespace(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if namespace == nil {
+		return nil, merr.Client("namespace is required")
+	}
+	item, err := purchasing.orders.CreateOrder(ctx, bo.NamespaceOrder{
+		UserUID:         userUID,
+		Kind:            bo.NamespaceOrderUpgrade,
+		NamespaceUID:    namespaceUID,
+		NamespaceName:   namespace.Name,
+		NamespaceRemark: namespace.Remark,
+		PackageUID:      pkg.UID,
+		PackageName:     pkg.Name,
+		PriceCents:      pkg.PriceCents,
+		DurationDays:    pkg.DurationDays,
+		MaxMembers:      pkg.MaxMembers,
+	})
+	return item, purchasing.access.Wrap(err)
+}
+
+// CreateRenewalOrder 为当前租户下续期订单：套餐不变，支付后按当前套餐时长延长授权。
+// 永久套餐没有续期概念，直接拒绝。
+func (purchasing *Purchasing) CreateRenewalOrder(ctx context.Context) (*bo.NamespaceOrder, error) {
+	userUID, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("missing token")
+	}
+	namespaceUID, err := purchasing.access.Allow(ctx, perm.NamespaceWrite)
+	if err != nil {
+		return nil, err
+	}
+	current, err := purchasing.features.NamespaceFeatureState(ctx, namespaceUID)
+	if err != nil {
+		return nil, purchasing.access.Wrap(err)
+	}
+	if current.PackageUID == "" {
+		return nil, merr.Client("package is not available")
+	}
+	pkg, err := purchasing.features.GetPackage(ctx, current.PackageUID)
+	if err != nil {
+		return nil, purchasing.access.Wrap(err)
+	}
+	if pkg.Status != "ACTIVE" {
+		return nil, merr.Client("package is not available")
+	}
+	if pkg.DurationDays <= 0 {
+		return nil, merr.Client("package is permanent")
+	}
+	namespace, err := purchasing.access.CurrentNamespace(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if namespace == nil {
+		return nil, merr.Client("namespace is required")
+	}
+	item, err := purchasing.orders.CreateOrder(ctx, bo.NamespaceOrder{
+		UserUID:         userUID,
+		Kind:            bo.NamespaceOrderRenew,
+		NamespaceUID:    namespaceUID,
+		NamespaceName:   namespace.Name,
+		NamespaceRemark: namespace.Remark,
+		PackageUID:      pkg.UID,
+		PackageName:     pkg.Name,
+		PriceCents:      pkg.PriceCents,
+		DurationDays:    pkg.DurationDays,
+		MaxMembers:      pkg.MaxMembers,
+	})
+	return item, purchasing.access.Wrap(err)
+}
+
+// CurrentPackage 返回当前租户的套餐、价格、人数上限和到期时间，
+// 供租户页展示升级 / 续期入口。租户停用后仍可读取，便于解释为什么不能升级。
+func (purchasing *Purchasing) CurrentPackage(ctx context.Context, namespaceUID string) (*bo.NamespacePackage, error) {
+	ns, err := purchasing.access.AllowAnyStatus(ctx, perm.NamespaceRead)
+	if err != nil {
+		return nil, err
+	}
+	if ns != namespaceUID {
+		return nil, merr.Client("namespace mismatch")
+	}
+	state, err := purchasing.features.NamespaceFeatureState(ctx, namespaceUID)
+	if err != nil {
+		return nil, purchasing.access.Wrap(err)
+	}
+	item := &bo.NamespacePackage{
+		NamespaceUID: namespaceUID,
+		PackageUID:   state.PackageUID,
+		Name:         state.PackageName,
+		DurationDays: state.DurationDays,
+		ExpiresAt:    state.ExpiresAt,
+		Expired:      state.Expired,
+	}
+	if state.PackageUID != "" {
+		pkg, err := purchasing.features.GetPackage(ctx, state.PackageUID)
+		if err != nil && !merr.IsNotFound(err) {
+			return nil, purchasing.access.Wrap(err)
+		}
+		if err == nil {
+			item.Name = pkg.Name
+			item.Status = pkg.Status
+			item.Visibility = pkg.Visibility
+			item.MaxMembers = pkg.MaxMembers
+			item.PriceCents = pkg.PriceCents
+			item.DurationDays = pkg.DurationDays
+		}
+	}
+	return item, nil
+}
+
 // PayOrder 是虚拟支付。仓储保证「创建租户 + 绑定套餐 + 订单置为已支付」在同一个事务里，
 // 重复支付已支付订单会返回当时创建的租户，不会创建第二个租户。
 func (purchasing *Purchasing) PayOrder(ctx context.Context, uid string) (*bo.NamespaceOrder, *bo.Namespace, error) {

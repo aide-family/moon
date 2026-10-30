@@ -19,6 +19,7 @@ import {
 import { getUnreadMessageCount } from "@/api/message"
 import i18n from "@/i18n"
 import { failureMessage } from "@/lib/form-error"
+import { menuEntryAuthorized } from "@/lib/feature-catalog"
 import type { SelfPermissions } from "@/api/self/types"
 import type { NamespaceItem } from "@/api/namespace/types"
 import type { UserItem } from "@/api/user/types"
@@ -118,6 +119,11 @@ type SessionValue = {
    * 新后端严格按 menu:<能力> 判断。
    */
   canMenu: (capability: string) => boolean
+  /**
+   * 菜单入口是否可用。入口可以是能力码，也可以是模块码：
+   * 数据源、探测和通知渠道按类型拆分后，模块下任一能力开通即可显示入口。
+   */
+  canFeatureEntry: (entry: string) => boolean
   refreshUnreadMessages: () => void
 }
 
@@ -456,6 +462,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       // 旧后端（没有 features 字段）按未启用菜单权限放行；新后端严格判断。
       canMenu: (capability: string) =>
         !featuresKnown || permissions.includes(`menu:${capability}`),
+      canFeatureEntry: (entry: string) =>
+        !featuresKnown || menuEntryAuthorized(entry, features, permissions),
       refreshUnreadMessages,
     }),
     [

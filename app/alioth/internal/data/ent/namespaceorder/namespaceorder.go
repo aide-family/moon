@@ -22,6 +22,8 @@ const (
 	FieldUID = "uid"
 	// FieldUserUID holds the string denoting the user_uid field in the database.
 	FieldUserUID = "user_uid"
+	// FieldKind holds the string denoting the kind field in the database.
+	FieldKind = "kind"
 	// FieldNamespaceUID holds the string denoting the namespace_uid field in the database.
 	FieldNamespaceUID = "namespace_uid"
 	// FieldNamespaceName holds the string denoting the namespace_name field in the database.
@@ -53,6 +55,7 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldUID,
 	FieldUserUID,
+	FieldKind,
 	FieldNamespaceUID,
 	FieldNamespaceName,
 	FieldNamespaceRemark,
@@ -112,6 +115,33 @@ var (
 	MaxMembersValidator func(int32) error
 )
 
+// Kind defines the type for the "kind" enum field.
+type Kind string
+
+// KindCREATE is the default value of the Kind enum.
+const DefaultKind = KindCREATE
+
+// Kind values.
+const (
+	KindCREATE  Kind = "CREATE"
+	KindUPGRADE Kind = "UPGRADE"
+	KindRENEW   Kind = "RENEW"
+)
+
+func (k Kind) String() string {
+	return string(k)
+}
+
+// KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
+func KindValidator(k Kind) error {
+	switch k {
+	case KindCREATE, KindUPGRADE, KindRENEW:
+		return nil
+	default:
+		return fmt.Errorf("namespaceorder: invalid enum value for kind field: %q", k)
+	}
+}
+
 // Status defines the type for the "status" enum field.
 type Status string
 
@@ -165,6 +195,11 @@ func ByUID(opts ...sql.OrderTermOption) OrderOption {
 // ByUserUID orders the results by the user_uid field.
 func ByUserUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserUID, opts...).ToFunc()
+}
+
+// ByKind orders the results by the kind field.
+func ByKind(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKind, opts...).ToFunc()
 }
 
 // ByNamespaceUID orders the results by the namespace_uid field.

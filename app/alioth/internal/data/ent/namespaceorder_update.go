@@ -48,6 +48,20 @@ func (_u *NamespaceOrderUpdate) SetNillableUserUID(v *string) *NamespaceOrderUpd
 	return _u
 }
 
+// SetKind sets the "kind" field.
+func (_u *NamespaceOrderUpdate) SetKind(v namespaceorder.Kind) *NamespaceOrderUpdate {
+	_u.mutation.SetKind(v)
+	return _u
+}
+
+// SetNillableKind sets the "kind" field if the given value is not nil.
+func (_u *NamespaceOrderUpdate) SetNillableKind(v *namespaceorder.Kind) *NamespaceOrderUpdate {
+	if v != nil {
+		_u.SetKind(*v)
+	}
+	return _u
+}
+
 // SetNamespaceUID sets the "namespace_uid" field.
 func (_u *NamespaceOrderUpdate) SetNamespaceUID(v string) *NamespaceOrderUpdate {
 	_u.mutation.SetNamespaceUID(v)
@@ -263,6 +277,11 @@ func (_u *NamespaceOrderUpdate) check() error {
 			return &ValidationError{Name: "user_uid", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.user_uid": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Kind(); ok {
+		if err := namespaceorder.KindValidator(v); err != nil {
+			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.kind": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.NamespaceName(); ok {
 		if err := namespaceorder.NamespaceNameValidator(v); err != nil {
 			return &ValidationError{Name: "namespace_name", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.namespace_name": %w`, err)}
@@ -323,6 +342,9 @@ func (_u *NamespaceOrderUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.UserUID(); ok {
 		_spec.SetField(namespaceorder.FieldUserUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Kind(); ok {
+		_spec.SetField(namespaceorder.FieldKind, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.NamespaceUID(); ok {
 		_spec.SetField(namespaceorder.FieldNamespaceUID, field.TypeString, value)
@@ -402,6 +424,20 @@ func (_u *NamespaceOrderUpdateOne) SetUserUID(v string) *NamespaceOrderUpdateOne
 func (_u *NamespaceOrderUpdateOne) SetNillableUserUID(v *string) *NamespaceOrderUpdateOne {
 	if v != nil {
 		_u.SetUserUID(*v)
+	}
+	return _u
+}
+
+// SetKind sets the "kind" field.
+func (_u *NamespaceOrderUpdateOne) SetKind(v namespaceorder.Kind) *NamespaceOrderUpdateOne {
+	_u.mutation.SetKind(v)
+	return _u
+}
+
+// SetNillableKind sets the "kind" field if the given value is not nil.
+func (_u *NamespaceOrderUpdateOne) SetNillableKind(v *namespaceorder.Kind) *NamespaceOrderUpdateOne {
+	if v != nil {
+		_u.SetKind(*v)
 	}
 	return _u
 }
@@ -634,6 +670,11 @@ func (_u *NamespaceOrderUpdateOne) check() error {
 			return &ValidationError{Name: "user_uid", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.user_uid": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Kind(); ok {
+		if err := namespaceorder.KindValidator(v); err != nil {
+			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.kind": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.NamespaceName(); ok {
 		if err := namespaceorder.NamespaceNameValidator(v); err != nil {
 			return &ValidationError{Name: "namespace_name", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.namespace_name": %w`, err)}
@@ -711,6 +752,9 @@ func (_u *NamespaceOrderUpdateOne) sqlSave(ctx context.Context) (_node *Namespac
 	}
 	if value, ok := _u.mutation.UserUID(); ok {
 		_spec.SetField(namespaceorder.FieldUserUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Kind(); ok {
+		_spec.SetField(namespaceorder.FieldKind, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.NamespaceUID(); ok {
 		_spec.SetField(namespaceorder.FieldNamespaceUID, field.TypeString, value)

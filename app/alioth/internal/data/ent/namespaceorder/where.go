@@ -329,6 +329,26 @@ func UserUIDContainsFold(v string) predicate.NamespaceOrder {
 	return predicate.NamespaceOrder(sql.FieldContainsFold(FieldUserUID, v))
 }
 
+// KindEQ applies the EQ predicate on the "kind" field.
+func KindEQ(v Kind) predicate.NamespaceOrder {
+	return predicate.NamespaceOrder(sql.FieldEQ(FieldKind, v))
+}
+
+// KindNEQ applies the NEQ predicate on the "kind" field.
+func KindNEQ(v Kind) predicate.NamespaceOrder {
+	return predicate.NamespaceOrder(sql.FieldNEQ(FieldKind, v))
+}
+
+// KindIn applies the In predicate on the "kind" field.
+func KindIn(vs ...Kind) predicate.NamespaceOrder {
+	return predicate.NamespaceOrder(sql.FieldIn(FieldKind, vs...))
+}
+
+// KindNotIn applies the NotIn predicate on the "kind" field.
+func KindNotIn(vs ...Kind) predicate.NamespaceOrder {
+	return predicate.NamespaceOrder(sql.FieldNotIn(FieldKind, vs...))
+}
+
 // NamespaceUIDEQ applies the EQ predicate on the "namespace_uid" field.
 func NamespaceUIDEQ(v string) predicate.NamespaceOrder {
 	return predicate.NamespaceOrder(sql.FieldEQ(FieldNamespaceUID, v))

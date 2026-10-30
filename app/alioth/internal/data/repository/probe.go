@@ -14,7 +14,7 @@ type ProbeTargetRepo interface {
 	UpdateProbeTargetGroupStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.ProbeTargetGroup, error)
 	DeleteProbeTargetGroup(ctx context.Context, namespaceUID, uid string) error
 	GetProbeTargetGroup(ctx context.Context, namespaceUID, uid string) (*bo.ProbeTargetGroup, error)
-	ListProbeTargetGroups(ctx context.Context, namespaceUID string, page, pageSize int, name, driver string) ([]bo.ProbeTargetGroup, int, error)
+	ListProbeTargetGroups(ctx context.Context, namespaceUID string, page, pageSize int, name string, drivers []string) ([]bo.ProbeTargetGroup, int, error)
 	// ListProbeTargetGroupsByMatchers 按驱动与标签匹配器返回启用中的目标组，
 	// 语义与数据源标签匹配一致：匹配器为空表示该驱动下全部启用目标组。
 	ListProbeTargetGroupsByMatchers(ctx context.Context, namespaceUID, driver, matchersJSON string) ([]bo.ProbeTargetGroup, error)

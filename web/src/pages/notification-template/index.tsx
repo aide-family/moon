@@ -15,6 +15,7 @@ import {
 } from "@/api/notification-template"
 import type { NotificationTemplateItem } from "@/api/notification-template/types"
 import { useSession } from "@/auth/session"
+import { authorizedTemplateTypes } from "@/lib/feature-catalog"
 import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -62,7 +63,6 @@ import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { runAction } from "@/lib/action"
 
-const types = ["EMAIL", "WEBHOOK", "SMS_ALICLOUD"]
 const webhookApps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU"]
 
 function templateAppLabel(t: TFunction, type: string, app: string): string {
@@ -97,6 +97,11 @@ export function NotificationTemplatePage() {
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationTemplateItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const canWrite = session.can("notification:write")
+  // 模板类型跟着渠道类型走：未授权渠道对应的模板不出现在新建和筛选里。
+  const allowedTypes = useMemo(
+    () => authorizedTemplateTypes(session.features),
+    [session.features]
+  )
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationTemplateItem>({
     page: query.page,
     pageSize: query.pageSize,
@@ -123,7 +128,7 @@ export function NotificationTemplatePage() {
   function openCreate() {
     setEditing(null)
     setName("")
-    setType("EMAIL")
+    setType(allowedTypes[0] ?? "EMAIL")
     setApp("OTHER")
     setSubject("")
     setBody("")
@@ -263,7 +268,9 @@ export function NotificationTemplatePage() {
             <Button variant="outline" onClick={() => navigate("/notification-templates/presets")}>
               {t("template.presets")}
             </Button>
-            <Button onClick={openCreate}>{t("action.create")}</Button>
+            {allowedTypes.length > 0 ? (
+              <Button onClick={openCreate}>{t("action.create")}</Button>
+            ) : null}
           </div>
         ) : null}
       </PageHeader>
@@ -286,7 +293,7 @@ export function NotificationTemplatePage() {
           </SelectTrigger>
           <SelectContent>
             <SelectOption value="ALL">{t("template.allTypes")}</SelectOption>
-            {types.map((item) => (
+            {allowedTypes.map((item) => (
               <SelectOption key={item} value={item}>
                 <span className="flex items-center gap-2">
                   <ChannelLogo type={item} className="size-4" />
@@ -399,7 +406,7 @@ export function NotificationTemplatePage() {
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {types.map((item) => (
+                    {allowedTypes.map((item) => (
                       <SelectOption key={item} value={item}>
                         <span className="flex items-center gap-2">
                           <ChannelLogo type={item} className="size-4" />

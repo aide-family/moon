@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
@@ -69,7 +70,7 @@ func TestAlertStore(t *testing.T) {
 	if row.PasswordCipher == "plain-password" || row.SecretCipher == "plain-secret" || row.PasswordCipher == "" {
 		t.Fatal("password is not stored as ciphertext")
 	}
-	listed, _, err := sources.ListDatasources(ctx, ns, 1, 20, "", "")
+	listed, _, err := sources.ListDatasources(ctx, ns, 1, 20, "", "", perm.DatasourceDrivers())
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -7,12 +7,16 @@
 // - POST /v1/orders/{uid}/cancel             取消待支付订单
 // - GET  /v1/orders?page&pageSize&status     当前用户自己的订单
 // - GET  /v1/system/namespace/{uid}/orders   平台按租户查订单
+// - POST /v1/namespace/orders/upgrade        当前租户套餐升级订单
+// - POST /v1/namespace/orders/renewal        当前租户套餐续期订单
+// - GET  /v1/namespace/{uid}/package         当前租户套餐详情
 import { get, post, type RequestOptions } from "@/api/http"
 
 import type {
   CreateOrderParams,
   ListOrdersParams,
   ListOrdersResult,
+  NamespacePackageInfo,
   OrderItem,
   PayOrderResult,
   PublicPackageItem,
@@ -60,4 +64,24 @@ export function listSystemNamespaceOrders(
     undefined,
     options
   )
+}
+
+/** POST /v1/namespace/orders/upgrade。需要 namespace:write；支付后才切换套餐。 */
+export function createUpgradeOrder(
+  packageUid: string
+): Promise<{ order: OrderItem }> {
+  return post("/namespace/orders/upgrade", { packageUid })
+}
+
+/** POST /v1/namespace/orders/renewal。需要 namespace:write；支付后才延长授权。 */
+export function createRenewalOrder(): Promise<{ order: OrderItem }> {
+  return post("/namespace/orders/renewal")
+}
+
+/** GET /v1/namespace/{uid}/package。当前租户套餐、价格、人数上限与到期时间。 */
+export function getNamespacePackage(
+  uid: string,
+  options?: RequestOptions
+): Promise<NamespacePackageInfo> {
+  return get(`/namespace/${uid}/package`, undefined, undefined, options)
 }

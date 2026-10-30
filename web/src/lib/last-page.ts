@@ -46,6 +46,7 @@ const knownPaths = new Set([
 // 带 uid 的详情页无法穷举，用模式匹配。
 const knownPatterns = [
   /^\/clusters\/[^/]+$/,
+  /^\/tenants\/[^/]+\/orders$/,
   /^\/agents\/[^/]+\/shell$/,
   /^\/ssh-commands\/[^/]+\/results$/,
 ]

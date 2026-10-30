@@ -294,13 +294,21 @@ func (r *alertRuleRepo) GetAlertRule(ctx context.Context, namespaceUID, uid stri
 	return &items[0], nil
 }
 
-func (r *alertRuleRepo) ListAlertRules(ctx context.Context, namespaceUID string, page, pageSize int, groupUID, name string) ([]bo.AlertRule, int, error) {
+func (r *alertRuleRepo) ListAlertRules(ctx context.Context, namespaceUID string, page, pageSize int, groupUID, name string, drivers []string) ([]bo.AlertRule, int, error) {
 	query := r.client.AlertRule.Query().Where(alertrule.NamespaceUIDEQ(namespaceUID), alertrule.DeletedAtIsNil())
 	if groupUID != "" {
 		query = query.Where(alertrule.GroupUIDEQ(groupUID))
 	}
 	if name != "" {
 		query = query.Where(alertrule.NameContainsFold(name))
+	}
+	// 只返回租户套餐里已开通的数据源 / 探测类型对应的规则。
+	if len(drivers) > 0 {
+		values := make([]alertrule.Driver, 0, len(drivers))
+		for _, driver := range drivers {
+			values = append(values, alertrule.Driver(driver))
+		}
+		query = query.Where(alertrule.DriverIn(values...))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {

@@ -32,7 +32,11 @@ import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { cn } from "@/lib/class-names"
 import { formErrorMessage } from "@/lib/form-error"
-import { orderStatusLabel, orderStatusTone } from "@/lib/order"
+import {
+  orderKindLabel,
+  orderStatusLabel,
+  orderStatusTone,
+} from "@/lib/order"
 import { formatPriceCents } from "@/lib/price"
 import {
   TABLE_COLUMN_WIDTH,
@@ -208,6 +212,11 @@ export function OrderPage() {
                 <TableHead
                   className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
                 >
+                  {t("order.kind")}
+                </TableHead>
+                <TableHead
+                  className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
+                >
                   {t("order.amount")}
                 </TableHead>
                 <TableHead
@@ -234,6 +243,9 @@ export function OrderPage() {
                   </TableCell>
                   <TableCell className="break-words">
                     {item.packageName}
+                  </TableCell>
+                  <TableCell className={cn(TABLE_NOWRAP)}>
+                    {orderKindLabel(t, item.kind)}
                   </TableCell>
                   <TableCell className={cn(TABLE_NOWRAP, "tabular-nums")}>
                     {item.priceCents > 0
@@ -292,6 +304,10 @@ export function OrderPage() {
             value: detail?.namespaceUid || "—",
           },
           { label: t("order.package"), value: detail?.packageName ?? "" },
+          {
+            label: t("order.kind"),
+            value: detail ? orderKindLabel(t, detail.kind) : "—",
+          },
           {
             label: t("order.amount"),
             value: detail

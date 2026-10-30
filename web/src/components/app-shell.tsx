@@ -429,9 +429,9 @@ function ShellFrame() {
     if (!link.capability) {
       return true
     }
-    return (
-      session.canMenu(link.capability) && session.hasFeature(link.capability)
-    )
+    // 入口可能是能力码，也可能是模块码（数据源 / 探测 / 通知渠道按类型拆分后），
+    // 由 session.canFeatureEntry 统一判断「任一类型 + 菜单授权」。
+    return session.canFeatureEntry(link.capability)
   }
   const visible = links.filter((link) => {
     // 租户页和订单页不依赖任何租户权限：还没有加入租户的用户也要能看到入口。
@@ -447,7 +447,11 @@ function ShellFrame() {
   const notifies = notifyLinks.filter(tenantVisible)
   const kubes = kubeLinks.filter(tenantVisible)
   const edges = edgeLinks.filter(tenantVisible)
-  const systemActive = visible.some((link) => location.pathname === link.to)
+  const systemActive = visible.some(
+    (link) =>
+      location.pathname === link.to ||
+      location.pathname.startsWith(`${link.to}/`)
+  )
   const alertActive = alerts.some((link) => location.pathname === link.to)
   const notifyActive = notifies.some((link) => location.pathname === link.to)
   const kubeActive = kubes.some(
@@ -484,12 +488,15 @@ function ShellFrame() {
   // 租户无关页面（用户、边缘节点、消息、个人中心等）和 "/" 着陆页不受此守卫影响，
   // 因此不会与 LandingRedirect 互相跳转。路径先归一化，尾斜杠地址不会误判。
   const appPath = normalizeAppPath(location.pathname)
+  // 租户订单是 /tenants 的子路由，和租户管理页一样不依赖当前租户。
+  const tenantFree =
+    tenantFreePaths.has(appPath) || appPath.startsWith("/tenants/")
   if (
     !session.loading &&
     !session.switching &&
     session.namespaceUid === "" &&
     isKnownAppPath(appPath) &&
-    !tenantFreePaths.has(appPath)
+    !tenantFree
   ) {
     return <Navigate to="/namespaces" replace />
   }

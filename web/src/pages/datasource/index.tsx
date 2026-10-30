@@ -20,6 +20,7 @@ import type {
 import { selectNotificationGroups } from "@/api/notification-group"
 import type { SelectItem as NotificationGroupSelectItem } from "@/api/notification-group/types"
 import { useSession } from "@/auth/session"
+import { authorizedDatasourceDrivers } from "@/lib/feature-catalog"
 import { BrandIcon } from "@/components/brand-icon"
 import { ConfirmAction } from "@/components/confirm-action"
 import { FormField } from "@/components/form-field"
@@ -170,6 +171,25 @@ export function DatasourcePage() {
     "disable"
   )
   const canWrite = session.can("datasource:write")
+  // 套餐按驱动细分：只展示租户已开通的数据源类型，未授权类型既不出现也不能新建。
+  const allowedDrivers = useMemo(
+    () => authorizedDatasourceDrivers(session.features),
+    [session.features]
+  )
+  const allowedTypes = useMemo(
+    () =>
+      types.filter((item) =>
+        (drivers[item] ?? []).some((driver) => allowedDrivers.includes(driver))
+      ),
+    [allowedDrivers]
+  )
+
+  function draftForAllowedTypes(): Draft {
+    const type = allowedTypes[0] ?? "METRICS"
+    const driver =
+      (drivers[type] ?? []).find((item) => allowedDrivers.includes(item)) ?? ""
+    return { ...emptyDraft, type, driver }
+  }
   const {
     items,
     total,
@@ -294,7 +314,7 @@ export function DatasourcePage() {
 
   function openCreate() {
     setEditing(false)
-    setForm(emptyDraft)
+    setForm(draftForAllowedTypes())
     setError("")
     setFieldErrors({})
     setFormStep(0)
@@ -511,7 +531,7 @@ export function DatasourcePage() {
         title={t("datasource.title")}
         description={t("datasource.description")}
       >
-        {canWrite ? (
+        {canWrite && allowedDrivers.length > 0 ? (
           <Button onClick={openCreate}>{t("action.create")}</Button>
         ) : null}
       </PageHeader>
@@ -539,7 +559,7 @@ export function DatasourcePage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">{t("datasource.typeAll")}</SelectItem>
-            {types.map((item) => (
+            {allowedTypes.map((item) => (
               <SelectItem key={item} value={item}>
                 {enumLabel(t, item)}
               </SelectItem>
@@ -869,7 +889,10 @@ export function DatasourcePage() {
                       setForm({
                         ...form,
                         type: value,
-                        driver: drivers[value][0],
+                        driver:
+                          (drivers[value] ?? []).find((item) =>
+                            allowedDrivers.includes(item)
+                          ) ?? "",
                       })
                     }
                   >
@@ -879,7 +902,7 @@ export function DatasourcePage() {
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      {types.map((item) => (
+                      {allowedTypes.map((item) => (
                         <SelectItem key={item} value={item}>
                           {enumLabel(t, item)}
                         </SelectItem>
@@ -904,7 +927,9 @@ export function DatasourcePage() {
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      {(drivers[form.type] ?? []).map((item) => (
+                      {(drivers[form.type] ?? [])
+                        .filter((item) => allowedDrivers.includes(item))
+                        .map((item) => (
                         <SelectItem key={item} value={item}>
                           <span className="flex items-center gap-2">
                             <BrandIcon driver={item} className="size-4" />

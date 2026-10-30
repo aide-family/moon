@@ -14,32 +14,44 @@ const (
 	CapabilityAlertPage       = "alert_page"
 	CapabilityAlertRule       = "alert_rule"
 	CapabilityAlertDictionary = "alert_dictionary"
-	CapabilityProbeTarget     = "probe_target"
-	CapabilityDatasource      = "datasource"
-	// 通知模块按菜单拆成六项能力，权限相同，由菜单权限区分入口。
-	CapabilityNotifyChannel      = "notify_channel"
-	CapabilityNotifyTemplate     = "notify_template"
-	CapabilityNotifyGroup        = "notify_group"
-	CapabilityNotifySubscription = "notify_subscription"
-	CapabilityNotifyOnCall       = "notify_oncall"
-	CapabilityMessageLog         = "message_log"
-	CapabilityMember             = "member"
-	CapabilityRole               = "role"
-	CapabilityClusterAccess      = "cluster_access"
-	CapabilityK8sNode            = "k8s_node"
-	CapabilityK8sWorkload        = "k8s_workload"
-	CapabilityK8sPod             = "k8s_pod"
-	CapabilityK8sIngress         = "k8s_ingress"
-	CapabilityK8sService         = "k8s_service"
-	CapabilityK8sConfigMap       = "k8s_configmap"
-	CapabilityK8sSecret          = "k8s_secret"
-	CapabilityK8sPV              = "k8s_pv"
-	CapabilityK8sPVC             = "k8s_pvc"
-	CapabilityK8sJob             = "k8s_job"
-	CapabilityK8sCronJob         = "k8s_cronjob"
-	CapabilityAgentMachine       = "agent_machine"
-	CapabilitySSHCommand         = "ssh_command"
-	CapabilityWebShell           = "web_shell"
+	// 探测目标按驱动细分。当前只有 HTTP，TCP / ICMP 在实现探测执行器后新增能力，
+	// 旧能力码不再复用，避免套餐把未实现的类型卖给租户。
+	CapabilityProbeHTTP = "probe_http"
+	// 数据源按驱动细分：一个套餐可以只买 Prometheus，不买 Loki 或 ES。
+	// 六个编码与 datasource.driver 枚举一一对应，权限相同，由能力决定可用类型。
+	CapabilityDatasourcePrometheus      = "datasource_prometheus"
+	CapabilityDatasourceVictoriaMetrics = "datasource_victoria_metrics"
+	CapabilityDatasourceElasticsearch   = "datasource_elasticsearch"
+	CapabilityDatasourceLoki            = "datasource_loki"
+	CapabilityDatasourceVictoriaLogs    = "datasource_vlogs"
+	CapabilityDatasourceJaeger          = "datasource_jaeger"
+	// 通知模块按菜单拆成七类能力，权限相同，由菜单权限区分入口；
+	// 通知渠道再按渠道类型细分，未授权的渠道类型不出现在渠道、模板和通知组里。
+	CapabilityNotifyChannelSMTP    = "notify_channel_smtp"
+	CapabilityNotifyChannelWebhook = "notify_channel_webhook"
+	CapabilityNotifyChannelSMS     = "notify_channel_sms"
+	CapabilityNotifyTemplate       = "notify_template"
+	CapabilityNotifyGroup          = "notify_group"
+	CapabilityNotifySubscription   = "notify_subscription"
+	CapabilityNotifyOnCall         = "notify_oncall"
+	CapabilityMessageLog           = "message_log"
+	CapabilityMember               = "member"
+	CapabilityRole                 = "role"
+	CapabilityClusterAccess        = "cluster_access"
+	CapabilityK8sNode              = "k8s_node"
+	CapabilityK8sWorkload          = "k8s_workload"
+	CapabilityK8sPod               = "k8s_pod"
+	CapabilityK8sIngress           = "k8s_ingress"
+	CapabilityK8sService           = "k8s_service"
+	CapabilityK8sConfigMap         = "k8s_configmap"
+	CapabilityK8sSecret            = "k8s_secret"
+	CapabilityK8sPV                = "k8s_pv"
+	CapabilityK8sPVC               = "k8s_pvc"
+	CapabilityK8sJob               = "k8s_job"
+	CapabilityK8sCronJob           = "k8s_cronjob"
+	CapabilityAgentMachine         = "agent_machine"
+	CapabilitySSHCommand           = "ssh_command"
+	CapabilityWebShell             = "web_shell"
 )
 
 // Capability 是一个能力及其包含的租户权限。
@@ -81,18 +93,53 @@ var capabilitySpecs = []Capability{
 		Permissions: []string{AlertRuleRead, AlertRuleWrite, AlertRuleDelete},
 	},
 	{
-		Code: CapabilityProbeTarget, Module: FeatureProbe, Name: "探测目标",
-		Description: "管理探测目标组和探测地址。",
+		Code: CapabilityProbeHTTP, Module: FeatureProbe, Name: "HTTP 探测",
+		Description: "管理 HTTP 探测目标组、探测地址与立即探测。",
 		Permissions: []string{ProbeRead, ProbeWrite, ProbeDelete},
 	},
 	{
-		Code: CapabilityDatasource, Module: FeatureDatasource, Name: "数据源",
-		Description: "接入指标与日志数据源。",
+		Code: CapabilityDatasourcePrometheus, Module: FeatureDatasource, Name: "Prometheus 指标",
+		Description: "接入 Prometheus 兼容的 PromQL 指标数据源。",
 		Permissions: []string{DatasourceRead, DatasourceWrite, DatasourceDelete},
 	},
 	{
-		Code: CapabilityNotifyChannel, Module: FeatureNotification, Name: "通知渠道",
-		Description: "配置邮件、Webhook 与短信通知渠道。",
+		Code: CapabilityDatasourceVictoriaMetrics, Module: FeatureDatasource, Name: "VictoriaMetrics 指标",
+		Description: "接入 VictoriaMetrics 指标数据源。",
+		Permissions: []string{DatasourceRead, DatasourceWrite, DatasourceDelete},
+	},
+	{
+		Code: CapabilityDatasourceElasticsearch, Module: FeatureDatasource, Name: "Elasticsearch 日志",
+		Description: "接入 Elasticsearch 日志数据源并按时间桶评测。",
+		Permissions: []string{DatasourceRead, DatasourceWrite, DatasourceDelete},
+	},
+	{
+		Code: CapabilityDatasourceLoki, Module: FeatureDatasource, Name: "Loki 日志",
+		Description: "接入 Loki 日志数据源并执行 LogQL 数值型评测。",
+		Permissions: []string{DatasourceRead, DatasourceWrite, DatasourceDelete},
+	},
+	{
+		Code: CapabilityDatasourceVictoriaLogs, Module: FeatureDatasource, Name: "VictoriaLogs 日志",
+		Description: "接入 VictoriaLogs 数据源并执行 LogsQL 数值型评测。",
+		Permissions: []string{DatasourceRead, DatasourceWrite, DatasourceDelete},
+	},
+	{
+		Code: CapabilityDatasourceJaeger, Module: FeatureDatasource, Name: "Jaeger 链路",
+		Description: "接入 Jaeger 链路数据源。",
+		Permissions: []string{DatasourceRead, DatasourceWrite, DatasourceDelete},
+	},
+	{
+		Code: CapabilityNotifyChannelSMTP, Module: FeatureNotification, Name: "邮件渠道",
+		Description: "配置 SMTP 邮件通知渠道。",
+		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+	},
+	{
+		Code: CapabilityNotifyChannelWebhook, Module: FeatureNotification, Name: "Webhook 渠道",
+		Description: "配置 Webhook 通知渠道（含钉钉、企业微信、飞书应用）。",
+		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+	},
+	{
+		Code: CapabilityNotifyChannelSMS, Module: FeatureNotification, Name: "短信渠道",
+		Description: "配置短信通知渠道。",
 		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
 	},
 	{
@@ -207,8 +254,9 @@ var capabilitySpecs = []Capability{
 	},
 }
 
-// CapabilityDatasource、CapabilityMember 等能力码与模块码同名，是刻意为之：
+// CapabilityMember、CapabilityRole 等能力码与模块码同名，是刻意为之：
 // 模块下只有一个能力时，两者语义完全一致，前端可以直接复用编码。
+// 数据源、探测和通知渠道拆成多个能力后，模块下不再只有一个能力，模块由能力反推。
 var (
 	capabilityIndex = func() map[string]Capability {
 		index := make(map[string]Capability, len(capabilitySpecs))
@@ -283,14 +331,15 @@ func CapabilityCodesOfModule(module string) []string {
 	return codes
 }
 
-// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 15 项。
-// 新租户默认使用基础套餐，Kubernetes、机器和 SSH 能力由超级管理员另行开通。
+// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 22 项。
+// 数据源和通知渠道按类型展开后全部包含在基础套餐里，保持升级前「基础套餐可用全部
+// 数据源与通知渠道类型」的行为；Kubernetes、机器和 SSH 能力由超级管理员另行开通。
 func BaseCapabilities() []string {
 	modules := make(map[string]struct{}, len(BaseFeatures()))
 	for _, code := range BaseFeatures() {
 		modules[code] = struct{}{}
 	}
-	codes := make([]string, 0, 15)
+	codes := make([]string, 0, 22)
 	for _, item := range capabilitySpecs {
 		if _, ok := modules[item.Module]; ok {
 			codes = append(codes, item.Code)
@@ -435,4 +484,194 @@ func ModulesOfCapabilities(capabilities []string) []string {
 		}
 	}
 	return modules
+}
+
+// datasourceCapabilityDrivers 是数据源驱动与能力编码的唯一映射，顺序与
+// datasource.driver 枚举和告警规则 driver 的展示顺序一致。
+var datasourceCapabilityDrivers = []struct {
+	driver     string
+	capability string
+}{
+	{"METRICS_PROMETHEUS", CapabilityDatasourcePrometheus},
+	{"METRICS_VICTORIA_METRICS", CapabilityDatasourceVictoriaMetrics},
+	{"LOGS_ELASTICSEARCH", CapabilityDatasourceElasticsearch},
+	{"LOGS_LOKI", CapabilityDatasourceLoki},
+	{"LOGS_VLOGS", CapabilityDatasourceVictoriaLogs},
+	{"TRACE_JAEGER", CapabilityDatasourceJaeger},
+}
+
+// DatasourceDrivers 按固定顺序返回全部数据源驱动编码。
+func DatasourceDrivers() []string {
+	out := make([]string, 0, len(datasourceCapabilityDrivers))
+	for _, item := range datasourceCapabilityDrivers {
+		out = append(out, item.driver)
+	}
+	return out
+}
+
+// DatasourceCapabilityOf 返回数据源驱动对应的能力编码；未知驱动返回空字符串。
+// 数据源创建、数据源列表过滤和告警规则的类型检查都从这里取能力。
+func DatasourceCapabilityOf(driver string) string {
+	for _, item := range datasourceCapabilityDrivers {
+		if item.driver == driver {
+			return item.capability
+		}
+	}
+	return ""
+}
+
+// DatasourceDriverOf 返回能力编码对应的数据源驱动；不是数据源能力时返回空。
+func DatasourceDriverOf(capability string) (string, bool) {
+	for _, item := range datasourceCapabilityDrivers {
+		if item.capability == capability {
+			return item.driver, true
+		}
+	}
+	return "", false
+}
+
+// DatasourceDriversOf 返回已开通的数据源驱动，按目录顺序；空结果表示一个类型都没开通。
+func DatasourceDriversOf(capabilities []string) []string {
+	enabled := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
+		enabled[code] = struct{}{}
+	}
+	drivers := make([]string, 0, len(datasourceCapabilityDrivers))
+	for _, item := range datasourceCapabilityDrivers {
+		if _, ok := enabled[item.capability]; ok {
+			drivers = append(drivers, item.driver)
+		}
+	}
+	return drivers
+}
+
+// probeCapabilityDrivers 是探测驱动与能力编码的映射。一期只有 HTTP；
+// 新增 TCP / ICMP 时在这里追加一行并同时实现执行器，不能先卖能力。
+var probeCapabilityDrivers = []struct {
+	driver     string
+	capability string
+}{
+	{"PROBE_HTTP", CapabilityProbeHTTP},
+}
+
+// ProbeDrivers 按固定顺序返回全部探测驱动编码。
+func ProbeDrivers() []string {
+	out := make([]string, 0, len(probeCapabilityDrivers))
+	for _, item := range probeCapabilityDrivers {
+		out = append(out, item.driver)
+	}
+	return out
+}
+
+// ProbeCapabilityOf 返回探测驱动对应的能力编码；未知驱动返回空字符串。
+func ProbeCapabilityOf(driver string) string {
+	for _, item := range probeCapabilityDrivers {
+		if item.driver == driver {
+			return item.capability
+		}
+	}
+	return ""
+}
+
+// ProbeDriversOf 返回已开通的探测驱动，按目录顺序。
+func ProbeDriversOf(capabilities []string) []string {
+	enabled := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
+		enabled[code] = struct{}{}
+	}
+	drivers := make([]string, 0, len(probeCapabilityDrivers))
+	for _, item := range probeCapabilityDrivers {
+		if _, ok := enabled[item.capability]; ok {
+			drivers = append(drivers, item.driver)
+		}
+	}
+	return drivers
+}
+
+// channelCapabilityTypes 是通知渠道类型与能力编码的映射，顺序与渠道类型枚举一致。
+var channelCapabilityTypes = []struct {
+	channelType string
+	capability  string
+}{
+	{"SMTP", CapabilityNotifyChannelSMTP},
+	{"WEBHOOK", CapabilityNotifyChannelWebhook},
+	{"SMS", CapabilityNotifyChannelSMS},
+}
+
+// ChannelTypes 按固定顺序返回全部通知渠道类型。
+func ChannelTypes() []string {
+	out := make([]string, 0, len(channelCapabilityTypes))
+	for _, item := range channelCapabilityTypes {
+		out = append(out, item.channelType)
+	}
+	return out
+}
+
+// ChannelCapabilityOf 返回通知渠道类型对应的能力编码；未知类型返回空字符串。
+func ChannelCapabilityOf(channelType string) string {
+	for _, item := range channelCapabilityTypes {
+		if item.channelType == channelType {
+			return item.capability
+		}
+	}
+	return ""
+}
+
+// ChannelTypesOf 返回已开通的通知渠道类型，按目录顺序。
+func ChannelTypesOf(capabilities []string) []string {
+	enabled := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
+		enabled[code] = struct{}{}
+	}
+	types := make([]string, 0, len(channelCapabilityTypes))
+	for _, item := range channelCapabilityTypes {
+		if _, ok := enabled[item.capability]; ok {
+			types = append(types, item.channelType)
+		}
+	}
+	return types
+}
+
+// channelTypeOfTemplate 把模板类型映射到渠道类型：模板是渠道的正文，
+// 渠道类型没开通时，对应模板也不应该出现在列表和绑定选择里。
+var channelTypeOfTemplate = map[string]string{
+	"EMAIL":        "SMTP",
+	"WEBHOOK":      "WEBHOOK",
+	"SMS_ALICLOUD": "SMS",
+}
+
+// ChannelTypeOfTemplate 返回模板类型对应的渠道类型；未知模板类型返回空字符串。
+func ChannelTypeOfTemplate(templateType string) string {
+	return channelTypeOfTemplate[templateType]
+}
+
+// TemplateTypesOfChannelTypes 返回一批渠道类型下可用的模板类型，按模板类型枚举顺序。
+func TemplateTypesOfChannelTypes(channelTypes []string) []string {
+	allowed := make(map[string]struct{}, len(channelTypes))
+	for _, channelType := range channelTypes {
+		if templateType := templateTypeOfChannel(channelType); templateType != "" {
+			allowed[templateType] = struct{}{}
+		}
+	}
+	types := make([]string, 0, len(allowed))
+	for _, templateType := range []string{"EMAIL", "WEBHOOK", "SMS_ALICLOUD"} {
+		if _, ok := allowed[templateType]; ok {
+			types = append(types, templateType)
+		}
+	}
+	return types
+}
+
+// templateTypeOfChannel 把渠道类型映射回模板类型，空字符串表示不支持的渠道。
+func templateTypeOfChannel(channelType string) string {
+	switch channelType {
+	case "SMTP":
+		return "EMAIL"
+	case "WEBHOOK":
+		return "WEBHOOK"
+	case "SMS":
+		return "SMS_ALICLOUD"
+	default:
+		return ""
+	}
 }

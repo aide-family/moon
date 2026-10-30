@@ -25,3 +25,15 @@ export function orderStatusTone(status: string): "warning" | "success" | "neutra
       return "neutral"
   }
 }
+
+/** 订单类型文案：新建租户 / 套餐升级 / 套餐续期。 */
+export function orderKindLabel(t: TFunction, kind: string): string {
+  switch (kind) {
+    case "UPGRADE":
+      return t("order.kindUpgrade")
+    case "RENEW":
+      return t("order.kindRenew")
+    default:
+      return t("order.kindCreate")
+  }
+}

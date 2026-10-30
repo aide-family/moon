@@ -12,8 +12,19 @@ import {
   updateNamespace,
 } from "@/api/namespace"
 import type { NamespaceItem } from "@/api/namespace/types"
-import { createOrder, listPublicPackages, payOrder } from "@/api/order"
-import type { OrderItem, PublicPackageItem } from "@/api/order/types"
+import {
+  createOrder,
+  createRenewalOrder,
+  createUpgradeOrder,
+  getNamespacePackage,
+  listPublicPackages,
+  payOrder,
+} from "@/api/order"
+import type {
+  NamespacePackageInfo,
+  OrderItem,
+  PublicPackageItem,
+} from "@/api/order/types"
 import { cn } from "@/lib/class-names"
 import { formatPriceCents } from "@/lib/price"
 import { toast } from "sonner"
@@ -70,6 +81,20 @@ export function NamespacePage() {
   >("idle")
   const [packageUid, setPackageUid] = useState("")
   const [order, setOrder] = useState<OrderItem | null>(null)
+  // 当前租户套餐：升级/续期入口展示名称、价格、人数上限和到期时间。
+  const [currentPackage, setCurrentPackage] = useState<NamespacePackageInfo | null>(null)
+  const [packageReload, setPackageReload] = useState(0)
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [renewOpen, setRenewOpen] = useState(false)
+  // 打开续费弹窗时固定「现在」，渲染阶段不再调用 Date.now（保持组件纯函数）。
+  const [renewBaseMs, setRenewBaseMs] = useState(0)
+  const [upgradePackages, setUpgradePackages] = useState<PublicPackageItem[]>([])
+  const [upgradePackagesState, setUpgradePackagesState] = useState<
+    "idle" | "loading" | "ready" | "failed"
+  >("idle")
+  const [upgradeUid, setUpgradeUid] = useState("")
+  const [packagePending, setPackagePending] = useState(false)
+  const [packageError, setPackageError] = useState("")
   const [editing, setEditing] = useState<string | null>(null)
   const [transferUid, setTransferUid] = useState<string | null>(null)
   const [members, setMembers] = useState<MemberItem[]>([])
@@ -124,6 +149,95 @@ export function NamespacePage() {
   function refresh() {
     reload()
     session.reload()
+  }
+
+  // 切换租户后重新读取当前套餐；升级/续期支付成功后也会刷新。
+  useEffect(() => {
+    const uid = session.namespaceUid
+    if (!uid) {
+      return
+    }
+    let active = true
+    void getNamespacePackage(uid, { silent: true })
+      .then((result) => {
+        if (active) {
+          setCurrentPackage(result)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setCurrentPackage(null)
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [session.namespaceUid, packageReload])
+
+  async function openUpgrade() {
+    setPackageError("")
+    setUpgradeUid("")
+    setUpgradeOpen(true)
+    setUpgradePackagesState("loading")
+    try {
+      const result = await listPublicPackages()
+      const items = (result.items ?? []).filter(
+        (item) => item.uid !== currentPackage?.packageUid
+      )
+      setUpgradePackages(items)
+      setUpgradePackagesState("ready")
+      setUpgradeUid(items[0]?.uid ?? "")
+    } catch {
+      setUpgradePackages([])
+      setUpgradePackagesState("failed")
+    }
+  }
+
+  function openRenew() {
+    setPackageError("")
+    setRenewBaseMs(Date.now())
+    setRenewOpen(true)
+  }
+
+  // 升级/续期都是一次「下单 + 虚拟支付」：支付失败时订单保留在订单页，可以稍后支付。
+  async function runPackageOrder(
+    create: () => Promise<{ order: OrderItem }>,
+    successMessage: string
+  ) {
+    setPackagePending(true)
+    setPackageError("")
+    try {
+      const { order: placed } = await create()
+      await payOrder(placed.uid)
+      toast.success(successMessage)
+      setUpgradeOpen(false)
+      setRenewOpen(false)
+      setPackageReload((value) => value + 1)
+      refresh()
+    } catch (err) {
+      setPackageError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setPackagePending(false)
+    }
+  }
+
+  // 套餐到期时间：0 / 缺省表示永久。续期从当前到期时间（未过期）或现在起算。
+  function packageExpiryText(): string {
+    if (!currentPackage?.expiresAt) {
+      return t("namespace.permanent")
+    }
+    return new Date(currentPackage.expiresAt * 1000).toLocaleDateString()
+  }
+
+  function renewalTargetText(): string {
+    if (!currentPackage) {
+      return "—"
+    }
+    const base = new Date(
+      Math.max(renewBaseMs, (currentPackage.expiresAt ?? 0) * 1000)
+    )
+    base.setDate(base.getDate() + (currentPackage.durationDays ?? 0))
+    return base.toLocaleDateString()
   }
 
   // 打开创建弹窗时拉取公开套餐；失败时留在表单里让用户重试，不阻塞填写名称。
@@ -449,6 +563,63 @@ export function NamespacePage() {
         </section>
       </div>
 
+      <section
+        aria-label={t("namespace.packageSection")}
+        className="glass-card flex flex-wrap items-center justify-between gap-3 rounded-xl p-4"
+      >
+        <div className="min-w-0">
+          <p className="text-xs font-medium tracking-[0.12em] text-muted-foreground uppercase">
+            {t("namespace.packageSection")}
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold">
+            {currentPackage?.packageName || "—"}
+          </p>
+          <p className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span>
+              {t("namespace.expiresAt")}：{packageExpiryText()}
+            </span>
+            <span>
+              {t("namespace.maxMembers")}：
+              {currentPackage?.maxMembers
+                ? t("namespace.membersValue", {
+                    count: currentPackage.maxMembers,
+                  })
+                : t("namespace.membersUnlimited")}
+            </span>
+            <span className="tabular-nums">
+              {currentPackage
+                ? (currentPackage.priceCents ?? 0) > 0
+                  ? t("namespace.priceValue", {
+                      amount: formatPriceCents(currentPackage.priceCents),
+                    })
+                  : t("namespace.free")
+                : ""}
+            </span>
+          </p>
+        </div>
+        {session.can("namespace:write") &&
+        currentNamespace?.status === "ACTIVE" ? (
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => void openUpgrade()}>
+              {t("namespace.upgrade")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={(currentPackage?.durationDays ?? 0) <= 0}
+              title={
+                (currentPackage?.durationDays ?? 0) <= 0
+                  ? t("namespace.renewPermanentHint")
+                  : undefined
+              }
+              onClick={openRenew}
+            >
+              {t("namespace.renew")}
+            </Button>
+          </div>
+        ) : null}
+      </section>
+
       <form
         className="flex gap-2"
         onSubmit={(event) => {
@@ -629,6 +800,224 @@ export function NamespacePage() {
           </div>
         ) : null}
       </ListFrame>
+      <Dialog
+        open={upgradeOpen}
+        onOpenChange={(value) => {
+          if (!value && !packagePending) {
+            setUpgradeOpen(false)
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("namespace.upgradeTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="flex min-h-0 flex-1 flex-col gap-4">
+            <DialogBody className="grid gap-3">
+              <p className="text-sm text-muted-foreground">
+                {t("namespace.upgradeHint")}
+              </p>
+              {upgradePackagesState === "loading" ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("state.loading")}
+                </p>
+              ) : null}
+              {upgradePackagesState === "failed" ? (
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-destructive/25 bg-destructive/5 p-3">
+                  <p className="text-sm text-destructive">
+                    {t("namespace.packageLoadFailed")}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void openUpgrade()}
+                  >
+                    {t("action.retry")}
+                  </Button>
+                </div>
+              ) : null}
+              {upgradePackagesState === "ready" &&
+              upgradePackages.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">
+                  {t("namespace.noUpgradePackages")}
+                </p>
+              ) : null}
+              {upgradePackagesState === "ready" && upgradePackages.length > 0 ? (
+                <div
+                  aria-label={t("namespace.upgradeTitle")}
+                  className="grid gap-2"
+                  role="radiogroup"
+                >
+                  {upgradePackages.map((item) => {
+                    const checked = upgradeUid === item.uid
+                    return (
+                      <button
+                        aria-checked={checked}
+                        className={cn(
+                          "flex min-w-0 flex-col gap-1.5 rounded-lg border p-3 text-left transition-colors",
+                          checked
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:bg-muted/40"
+                        )}
+                        key={item.uid}
+                        role="radio"
+                        type="button"
+                        onClick={() => setUpgradeUid(item.uid)}
+                      >
+                        <span className="flex min-w-0 flex-wrap items-center gap-2">
+                          <span className="text-sm font-semibold">
+                            {item.name}
+                          </span>
+                          <span className="ml-auto font-mono text-sm font-semibold tabular-nums">
+                            {(item.priceCents ?? 0) > 0
+                              ? t("namespace.priceValue", {
+                                  amount: formatPriceCents(item.priceCents),
+                                })
+                              : t("namespace.free")}
+                          </span>
+                        </span>
+                        <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <span>
+                            {(item.durationDays ?? 0) > 0
+                              ? t("namespace.durationValue", {
+                                  count: item.durationDays,
+                                })
+                              : t("namespace.permanent")}
+                          </span>
+                          <span>
+                            {item.maxMembers
+                              ? t("namespace.membersValue", {
+                                  count: item.maxMembers,
+                                })
+                              : t("namespace.membersUnlimited")}
+                          </span>
+                          <span>
+                            {t("namespace.featureCount", {
+                              count: item.features?.length ?? 0,
+                            })}
+                          </span>
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : null}
+            </DialogBody>
+            {packageError ? (
+              <p className="text-sm text-destructive">{packageError}</p>
+            ) : null}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={packagePending}
+                onClick={() => setUpgradeOpen(false)}
+              >
+                {t("action.cancel")}
+              </Button>
+              <Button
+                type="button"
+                disabled={
+                  packagePending ||
+                  upgradePackagesState !== "ready" ||
+                  !upgradeUid
+                }
+                onClick={() =>
+                  void runPackageOrder(
+                    () => createUpgradeOrder(upgradeUid),
+                    t("namespace.upgraded")
+                  )
+                }
+              >
+                {packagePending ? t("namespace.paying") : t("namespace.payUpgrade")}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={renewOpen}
+        onOpenChange={(value) => {
+          if (!value && !packagePending) {
+            setRenewOpen(false)
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("namespace.renewTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="flex min-h-0 flex-1 flex-col gap-4">
+            <DialogBody className="grid gap-3">
+              <p className="text-sm text-muted-foreground">
+                {t("namespace.renewHint")}
+              </p>
+              <dl className="grid gap-3 rounded-lg border border-border bg-muted/20 p-4 sm:grid-cols-2">
+                <div className="min-w-0">
+                  <dt className="text-xs text-muted-foreground">
+                    {t("namespace.package")}
+                  </dt>
+                  <dd className="mt-0.5 text-sm font-medium break-words">
+                    {currentPackage?.packageName || "—"}
+                  </dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-xs text-muted-foreground">
+                    {t("namespace.amount")}
+                  </dt>
+                  <dd className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
+                    {(currentPackage?.priceCents ?? 0) > 0
+                      ? t("namespace.priceValue", {
+                          amount: formatPriceCents(currentPackage?.priceCents),
+                        })
+                      : t("namespace.free")}
+                  </dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-xs text-muted-foreground">
+                    {t("namespace.expiresAt")}
+                  </dt>
+                  <dd className="mt-0.5 text-sm">{packageExpiryText()}</dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-xs text-muted-foreground">
+                    {t("namespace.renewTo")}
+                  </dt>
+                  <dd className="mt-0.5 text-sm">{renewalTargetText()}</dd>
+                </div>
+              </dl>
+            </DialogBody>
+            {packageError ? (
+              <p className="text-sm text-destructive">{packageError}</p>
+            ) : null}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={packagePending}
+                onClick={() => setRenewOpen(false)}
+              >
+                {t("action.cancel")}
+              </Button>
+              <Button
+                type="button"
+                disabled={packagePending}
+                onClick={() =>
+                  void runPackageOrder(
+                    () => createRenewalOrder(),
+                    t("namespace.renewed")
+                  )
+                }
+              >
+                {packagePending ? t("namespace.paying") : t("namespace.payRenew")}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={open} onOpenChange={closeCreate}>
         <DialogContent className={createStep === "form" ? "sm:max-w-2xl" : undefined}>
           <DialogHeader>

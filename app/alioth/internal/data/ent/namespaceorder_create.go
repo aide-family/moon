@@ -60,6 +60,20 @@ func (_c *NamespaceOrderCreate) SetUserUID(v string) *NamespaceOrderCreate {
 	return _c
 }
 
+// SetKind sets the "kind" field.
+func (_c *NamespaceOrderCreate) SetKind(v namespaceorder.Kind) *NamespaceOrderCreate {
+	_c.mutation.SetKind(v)
+	return _c
+}
+
+// SetNillableKind sets the "kind" field if the given value is not nil.
+func (_c *NamespaceOrderCreate) SetNillableKind(v *namespaceorder.Kind) *NamespaceOrderCreate {
+	if v != nil {
+		_c.SetKind(*v)
+	}
+	return _c
+}
+
 // SetNamespaceUID sets the "namespace_uid" field.
 func (_c *NamespaceOrderCreate) SetNamespaceUID(v string) *NamespaceOrderCreate {
 	_c.mutation.SetNamespaceUID(v)
@@ -219,6 +233,10 @@ func (_c *NamespaceOrderCreate) defaults() {
 		v := namespaceorder.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Kind(); !ok {
+		v := namespaceorder.DefaultKind
+		_c.mutation.SetKind(v)
+	}
 	if _, ok := _c.mutation.NamespaceUID(); !ok {
 		v := namespaceorder.DefaultNamespaceUID
 		_c.mutation.SetNamespaceUID(v)
@@ -267,6 +285,14 @@ func (_c *NamespaceOrderCreate) check() error {
 	if v, ok := _c.mutation.UserUID(); ok {
 		if err := namespaceorder.UserUIDValidator(v); err != nil {
 			return &ValidationError{Name: "user_uid", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.user_uid": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Kind(); !ok {
+		return &ValidationError{Name: "kind", err: errors.New(`ent: missing required field "NamespaceOrder.kind"`)}
+	}
+	if v, ok := _c.mutation.Kind(); ok {
+		if err := namespaceorder.KindValidator(v); err != nil {
+			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.kind": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.NamespaceUID(); !ok {
@@ -377,6 +403,10 @@ func (_c *NamespaceOrderCreate) createSpec() (*NamespaceOrder, *sqlgraph.CreateS
 	if value, ok := _c.mutation.UserUID(); ok {
 		_spec.SetField(namespaceorder.FieldUserUID, field.TypeString, value)
 		_node.UserUID = value
+	}
+	if value, ok := _c.mutation.Kind(); ok {
+		_spec.SetField(namespaceorder.FieldKind, field.TypeEnum, value)
+		_node.Kind = value
 	}
 	if value, ok := _c.mutation.NamespaceUID(); ok {
 		_spec.SetField(namespaceorder.FieldNamespaceUID, field.TypeString, value)

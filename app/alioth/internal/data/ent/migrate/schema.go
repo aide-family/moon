@@ -946,6 +946,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "uid", Type: field.TypeString},
 		{Name: "user_uid", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"CREATE", "UPGRADE", "RENEW"}, Default: "CREATE"},
 		{Name: "namespace_uid", Type: field.TypeString, Default: ""},
 		{Name: "namespace_name", Type: field.TypeString},
 		{Name: "namespace_remark", Type: field.TypeString, Size: 200, Default: ""},
@@ -976,7 +977,7 @@ var (
 			{
 				Name:    "namespaceorder_namespace_uid",
 				Unique:  false,
-				Columns: []*schema.Column{NamespaceOrdersColumns[5]},
+				Columns: []*schema.Column{NamespaceOrdersColumns[6]},
 			},
 		},
 	}

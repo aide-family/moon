@@ -11,15 +11,22 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
 type namespaceOrderRepo struct{ *repoBase }
 
 func (r *namespaceOrderRepo) CreateOrder(ctx context.Context, order bo.NamespaceOrder) (*bo.NamespaceOrder, error) {
+	kind := namespaceorder.Kind(order.Kind)
+	if order.Kind == "" {
+		kind = namespaceorder.KindCREATE
+	}
 	row, err := r.client.NamespaceOrder.Create().
 		SetUID(id.New()).
 		SetUserUID(order.UserUID).
+		SetKind(kind).
+		SetNamespaceUID(order.NamespaceUID).
 		SetNamespaceName(order.NamespaceName).
 		SetNamespaceRemark(order.NamespaceRemark).
 		SetPackageUID(order.PackageUID).
@@ -77,9 +84,9 @@ func (r *namespaceOrderRepo) listOrders(ctx context.Context, preds []predicate.N
 	return items, total, nil
 }
 
-// PayOrder 是虚拟支付：订单必须属于下单人。创建租户、绑定套餐和把订单置为已支付
-// 在同一个事务里完成，避免出现「租户建好但订单仍是待支付」的状态。
-// 已支付的订单原样返回（含当时创建的租户），重复点击支付不会创建第二个租户。
+// PayOrder 是虚拟支付：订单必须属于下单人。不同订单类型在同一个事务里执行不同动作：
+// CREATE 创建租户，UPGRADE 换套餐，RENEW 延长授权；随后把订单置为已支付。
+// 已支付的订单原样返回，重复支付不会重复创建或重复延长。
 func (r *namespaceOrderRepo) PayOrder(ctx context.Context, uid, userUID string) (*bo.NamespaceOrder, *bo.Namespace, error) {
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
@@ -115,12 +122,20 @@ func (r *namespaceOrderRepo) PayOrder(ctx context.Context, uid, userUID string) 
 		}
 		return nil, nil, r.fail(err)
 	}
-	// 到期时间用订单快照的时长，而不是套餐当前时长：用户按当时的条件付款。
-	namespaceUID, err := r.createNamespaceTx(ctx, tx, order.NamespaceName, order.NamespaceRemark, userUID, pkg, order.DurationDays)
-	if err != nil {
-		return nil, nil, err
-	}
 	paidAt := time.Now()
+	namespaceUID := order.NamespaceUID
+	switch order.Kind {
+	case namespaceorder.KindUPGRADE, namespaceorder.KindRENEW:
+		if err := r.payPackageChange(ctx, tx, order, pkg, paidAt); err != nil {
+			return nil, nil, err
+		}
+	default:
+		// 到期时间用订单快照的时长，而不是套餐当前时长：用户按当时的条件付款。
+		namespaceUID, err = r.createNamespaceTx(ctx, tx, order.NamespaceName, order.NamespaceRemark, userUID, pkg, order.DurationDays)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
 	// 条件更新保证同一订单只有一个支付能成功；并发的第二次支付会回滚整个事务。
 	updated, err := tx.NamespaceOrder.Update().
 		Where(namespaceorder.UIDEQ(uid), namespaceorder.StatusEQ(namespaceorder.StatusPENDING)).
@@ -146,6 +161,71 @@ func (r *namespaceOrderRepo) PayOrder(ctx context.Context, uid, userUID string) 
 	order.PaidAt = &paidAt
 	item := toNamespace(ns)
 	return orderView(order), &item, nil
+}
+
+// payPackageChange 处理套餐升级 / 续期：更新租户套餐和到期时间，并给预置角色补齐
+// 新套餐能力范围内的权限。租户额外能力保留，升级不会清掉管理员加开的能力。
+func (r *namespaceOrderRepo) payPackageChange(ctx context.Context, tx *ent.Tx, order *ent.NamespaceOrder, pkg *ent.FeaturePackage, now time.Time) error {
+	ns, err := tx.Namespace.Query().Where(
+		namespace.UIDEQ(order.NamespaceUID),
+		namespace.DeletedAtIsNil(),
+	).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return merr.Client("namespace is no longer available")
+		}
+		return r.fail(err)
+	}
+	if ns.Status != namespace.StatusACTIVE {
+		return merr.Client("namespace is disabled")
+	}
+	expiresAt, err := packageChangeExpiry(order, ns.PackageExpiresAt, now)
+	if err != nil {
+		return err
+	}
+	update := tx.Namespace.UpdateOne(ns).SetPackageUID(order.PackageUID)
+	if expiresAt.IsZero() {
+		update = update.ClearPackageExpiresAt()
+	} else {
+		update = update.SetPackageExpiresAt(expiresAt)
+	}
+	if _, err := update.Save(ctx); err != nil {
+		return r.fail(err)
+	}
+	packageFeatures, err := packageCapabilityCodes(ctx, tx.Client(), pkg.UID)
+	if err != nil {
+		return r.fail(err)
+	}
+	extra, err := namespaceExtraCapabilityCodes(ctx, tx.Client(), order.NamespaceUID)
+	if err != nil {
+		return r.fail(err)
+	}
+	effective := perm.EffectiveCapabilities(packageFeatures, extra)
+	return r.grantPresetRolePermissions(ctx, tx, order.NamespaceUID, effective)
+}
+
+// packageChangeExpiry 计算升级 / 续期后的到期时间：
+// 升级从支付时刻按新套餐时长重新计算；续期在原到期时间（未过期时）或现在的基础上累加。
+// 0 天表示永久，只有升级可以买到永久套餐，续期永久套餐没有意义。
+func packageChangeExpiry(order *ent.NamespaceOrder, current *time.Time, now time.Time) (time.Time, error) {
+	switch order.Kind {
+	case namespaceorder.KindUPGRADE:
+		if order.DurationDays <= 0 {
+			return time.Time{}, nil
+		}
+		return now.AddDate(0, 0, int(order.DurationDays)), nil
+	case namespaceorder.KindRENEW:
+		if order.DurationDays <= 0 {
+			return time.Time{}, merr.Client("package is permanent")
+		}
+		base := now
+		if current != nil && current.After(now) {
+			base = *current
+		}
+		return base.AddDate(0, 0, int(order.DurationDays)), nil
+	default:
+		return time.Time{}, merr.Invalid("invalid request")
+	}
 }
 
 // CancelOrder 只能取消自己的待支付订单。取消后订单保留，方便租户订单查询里解释结果。
@@ -182,6 +262,7 @@ func orderView(row *ent.NamespaceOrder) *bo.NamespaceOrder {
 	item := &bo.NamespaceOrder{
 		UID:             row.UID,
 		UserUID:         row.UserUID,
+		Kind:            string(row.Kind),
 		NamespaceUID:    row.NamespaceUID,
 		NamespaceName:   row.NamespaceName,
 		NamespaceRemark: row.NamespaceRemark,

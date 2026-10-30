@@ -14,16 +14,20 @@ type NotificationRepo interface {
 	UpdateChannelStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.NotificationChannel, error)
 	DeleteChannel(ctx context.Context, namespaceUID, uid string) error
 	GetChannel(ctx context.Context, namespaceUID, uid string) (*bo.NotificationChannel, error)
-	ListChannels(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string) ([]bo.NotificationChannel, int, error)
-	SelectChannels(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error)
+	ListChannels(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string, types []string) ([]bo.NotificationChannel, int, error)
+	// ListChannelsByUIDs 按 UID 批量读取渠道，用于过滤通知组里已不再授权的渠道。
+	ListChannelsByUIDs(ctx context.Context, namespaceUID string, uids []string) ([]bo.NotificationChannel, error)
+	SelectChannels(ctx context.Context, namespaceUID string, limit int, lastUID string, types []string) ([]bo.SelectItem, error)
 
 	CreateTemplate(ctx context.Context, in bo.NotificationTemplate) (*bo.NotificationTemplate, error)
 	UpdateTemplate(ctx context.Context, in bo.NotificationTemplate) (*bo.NotificationTemplate, error)
 	UpdateTemplateStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.NotificationTemplate, error)
 	DeleteTemplate(ctx context.Context, namespaceUID, uid string) error
 	GetTemplate(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTemplate, error)
-	ListTemplates(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string) ([]bo.NotificationTemplate, int, error)
-	SelectTemplates(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error)
+	ListTemplates(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string, types []string) ([]bo.NotificationTemplate, int, error)
+	// ListTemplatesByUIDs 按 UID 批量读取模板，用于过滤通知组里已不再授权的模板。
+	ListTemplatesByUIDs(ctx context.Context, namespaceUID string, uids []string) ([]bo.NotificationTemplate, error)
+	SelectTemplates(ctx context.Context, namespaceUID string, limit int, lastUID string, types []string) ([]bo.SelectItem, error)
 	ListPresets(ctx context.Context) ([]bo.NotificationPreset, error)
 
 	CreateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error)

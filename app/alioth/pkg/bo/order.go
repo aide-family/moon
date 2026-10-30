@@ -8,6 +8,11 @@ const (
 	NamespaceOrderPending   = "PENDING"
 	NamespaceOrderPaid      = "PAID"
 	NamespaceOrderCancelled = "CANCELLED"
+
+	// 订单类型：新建租户 / 套餐升级 / 套餐续期。支付时按类型执行不同动作。
+	NamespaceOrderCreate  = "CREATE"
+	NamespaceOrderUpgrade = "UPGRADE"
+	NamespaceOrderRenew   = "RENEW"
 )
 
 // NamespaceOrder 是一笔租户创建订单。价格、授权时长和人数上限都是下单时的
@@ -16,6 +21,7 @@ const (
 type NamespaceOrder struct {
 	UID             string
 	UserUID         string
+	Kind            string
 	NamespaceUID    string
 	NamespaceName   string
 	NamespaceRemark string
@@ -27,4 +33,19 @@ type NamespaceOrder struct {
 	Status          string
 	CreatedAt       time.Time
 	PaidAt          time.Time
+}
+
+// NamespacePackage 是租户当前套餐的只读视图，供租户页展示升级 / 续期入口。
+// ExpiresAt 零值表示永久，Expired 表示当前是否已经过期。
+type NamespacePackage struct {
+	NamespaceUID string
+	PackageUID   string
+	Name         string
+	Status       string
+	Visibility   string
+	DurationDays int32
+	MaxMembers   int32
+	PriceCents   int64
+	ExpiresAt    time.Time
+	Expired      bool
 }

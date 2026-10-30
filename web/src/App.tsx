@@ -38,6 +38,7 @@ import { RolePage } from "@/pages/role"
 import { SSHCommandPage } from "@/pages/ssh-command"
 import { SSHCommandResultsPage } from "@/pages/ssh-command/results"
 import { TenantPage } from "@/pages/tenant"
+import { TenantOrdersPage } from "@/pages/tenant/orders"
 import { UserPage } from "@/pages/user"
 import { WorkerStatusPage } from "@/pages/workers"
 
@@ -57,6 +58,7 @@ export function App() {
         <Route path="/namespaces" element={<NamespacePage />} />
         <Route path="/orders" element={<OrderPage />} />
         <Route path="/tenants" element={<TenantPage />} />
+        <Route path="/tenants/:uid/orders" element={<TenantOrdersPage />} />
         <Route path="/packages" element={<PackagePage />} />
         <Route path="/users" element={<UserPage />} />
         <Route path="/workers" element={<WorkerStatusPage />} />

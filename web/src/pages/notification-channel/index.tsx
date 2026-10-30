@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
@@ -11,6 +11,7 @@ import {
 } from "@/api/notification-channel"
 import type { NotificationChannelItem } from "@/api/notification-channel/types"
 import { useSession } from "@/auth/session"
+import { authorizedChannelTypes } from "@/lib/feature-catalog"
 import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
 import { NotificationTestDialog } from "@/components/notification-test-dialog"
@@ -58,7 +59,6 @@ import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { runAction } from "@/lib/action"
 
-const types = ["SMTP", "SMS", "WEBHOOK"]
 const webhookApps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU"]
 
 function appFor(type: string, app: string): string {
@@ -95,6 +95,11 @@ export function NotificationChannelPage() {
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationChannelItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const canWrite = session.can("notification:write")
+  // 渠道类型按套餐细分：未授权类型不出现在新建、筛选和编辑入口里。
+  const allowedTypes = useMemo(
+    () => authorizedChannelTypes(session.features),
+    [session.features]
+  )
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationChannelItem>({
     page: query.page,
     pageSize: query.pageSize,
@@ -105,7 +110,7 @@ export function NotificationChannelPage() {
   function openCreate() {
     setEditing(null)
     setName("")
-    setType("SMTP")
+    setType(allowedTypes[0] ?? "SMTP")
     setApp("OTHER")
     setEndpoint("")
     setUsername("")
@@ -244,7 +249,9 @@ export function NotificationChannelPage() {
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("channel.title")} description={t("channel.description")}>
-        {canWrite ? <Button onClick={openCreate}>{t("action.create")}</Button> : null}
+        {canWrite && allowedTypes.length > 0 ? (
+          <Button onClick={openCreate}>{t("action.create")}</Button>
+        ) : null}
       </PageHeader>
       <form
         className="flex flex-wrap gap-2"
@@ -265,7 +272,7 @@ export function NotificationChannelPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">{t("channel.allTypes")}</SelectItem>
-            {types.map((item) => (
+            {allowedTypes.map((item) => (
               <SelectItem key={item} value={item}>
                 <span className="flex items-center gap-2">
                   <ChannelLogo type={item} className="size-4" />
@@ -404,7 +411,7 @@ export function NotificationChannelPage() {
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {types.map((item) => (
+                    {allowedTypes.map((item) => (
                       <SelectItem key={item} value={item}>
                         <span className="flex items-center gap-2">
                           <ChannelLogo type={item} className="size-4" />

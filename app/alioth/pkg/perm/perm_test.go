@@ -237,12 +237,12 @@ func TestSystemRoles(t *testing.T) {
 	}
 }
 
-// TestCapabilityCatalog 确认两级功能模型：30 个能力都挂在 10 个模块下，
+// TestCapabilityCatalog 确认两级功能模型：37 个能力都挂在 10 个模块下，
 // 权限都在租户目录里，菜单权限与能力一一对应。
 func TestCapabilityCatalog(t *testing.T) {
 	items := Capabilities()
-	if len(items) != 30 {
-		t.Fatalf("capabilities = %d, want 30", len(items))
+	if len(items) != 37 {
+		t.Fatalf("capabilities = %d, want 37", len(items))
 	}
 	if items[0].Code != CapabilityAlertRealtime || items[len(items)-1].Code != CapabilityWebShell {
 		t.Fatalf("unexpected capability order: first %s last %s", items[0].Code, items[len(items)-1].Code)
@@ -284,8 +284,18 @@ func TestCapabilityCatalog(t *testing.T) {
 		t.Fatal("menu permission count does not match capability count")
 	}
 	base := BaseCapabilities()
-	if len(base) != 15 {
-		t.Fatalf("base capabilities = %d, want 15", len(base))
+	if len(base) != 22 {
+		t.Fatalf("base capabilities = %d, want 22", len(base))
+	}
+	// 数据源、探测和通知渠道按类型展开后，基础套餐要覆盖全部现有类型。
+	if got := DatasourceDriversOf(base); len(got) != 6 {
+		t.Fatalf("base datasource drivers = %v, want 6", got)
+	}
+	if got := ProbeDriversOf(base); len(got) != 1 || got[0] != "PROBE_HTTP" {
+		t.Fatalf("base probe drivers = %v, want [PROBE_HTTP]", got)
+	}
+	if got := ChannelTypesOf(base); len(got) != 3 {
+		t.Fatalf("base channel types = %v, want 3", got)
 	}
 	baseModules := set(BaseFeatures())
 	for _, code := range base {
@@ -294,7 +304,7 @@ func TestCapabilityCatalog(t *testing.T) {
 			t.Fatalf("base capability %s module %s is not a base feature", code, item.Module)
 		}
 	}
-	if got := CapabilityPermissions([]string{CapabilityNotifyChannel, CapabilityNotifyGroup}); len(got) != 3 {
+	if got := CapabilityPermissions([]string{CapabilityNotifyChannelSMTP, CapabilityNotifyGroup}); len(got) != 3 {
 		t.Fatalf("notification permissions = %v, want 3 unique", got)
 	}
 	if got := CapabilityCodesOfModule(FeatureCluster); len(got) != 12 {

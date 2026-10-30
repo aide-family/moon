@@ -158,6 +158,10 @@ func (rulebook *Rulebook) UpdateRule(ctx context.Context, in bo.AlertRule) (*bo.
 	if err != nil {
 		return nil, rulebook.access.Wrap(err)
 	}
+	// 原类型也必须已开通，避免通过已知 UID 修改未授权类型的规则。
+	if err := rulebook.requireDriverCapability(ctx, previous.Driver); err != nil {
+		return nil, err
+	}
 	item, err := rulebook.rules.UpdateAlertRule(ctx, in)
 	if err != nil {
 		return nil, rulebook.access.Wrap(err)
@@ -172,6 +176,13 @@ func (rulebook *Rulebook) UpdateRule(ctx context.Context, in bo.AlertRule) (*bo.
 func (rulebook *Rulebook) UpdateRuleStatus(ctx context.Context, uid, status string) (*bo.AlertRule, error) {
 	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
+		return nil, err
+	}
+	current, err := rulebook.rules.GetAlertRule(ctx, ns, uid)
+	if err != nil {
+		return nil, rulebook.access.Wrap(err)
+	}
+	if err := rulebook.requireDriverCapability(ctx, current.Driver); err != nil {
 		return nil, err
 	}
 	// 先收口事件再停用规则：恢复走 events.RecoverSource 会归档到历史库，
@@ -193,6 +204,13 @@ func (rulebook *Rulebook) DeleteRule(ctx context.Context, uid string) error {
 	if err != nil {
 		return err
 	}
+	current, err := rulebook.rules.GetAlertRule(ctx, ns, uid)
+	if err != nil {
+		return rulebook.access.Wrap(err)
+	}
+	if err := rulebook.requireDriverCapability(ctx, current.Driver); err != nil {
+		return err
+	}
 	if err := rulebook.events.RecoverSource(ctx, ns, []string{uid}, nil, nil); err != nil {
 		return rulebook.access.Wrap(err)
 	}
@@ -205,7 +223,13 @@ func (rulebook *Rulebook) GetRule(ctx context.Context, uid string) (*bo.AlertRul
 		return nil, err
 	}
 	item, err := rulebook.rules.GetAlertRule(ctx, ns, uid)
-	return item, rulebook.access.Wrap(err)
+	if err != nil {
+		return nil, rulebook.access.Wrap(err)
+	}
+	if err := rulebook.requireDriverCapability(ctx, item.Driver); err != nil {
+		return nil, err
+	}
+	return item, nil
 }
 
 func (rulebook *Rulebook) ListRules(ctx context.Context, pageNo, pageSize int32, groupUID, name string) ([]bo.AlertRule, int, int, int, error) {
@@ -214,8 +238,37 @@ func (rulebook *Rulebook) ListRules(ctx context.Context, pageNo, pageSize int32,
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := rulebook.rules.ListAlertRules(ctx, ns, p, s, groupUID, strings.TrimSpace(name))
+	drivers, err := rulebook.authorizedDrivers(ctx)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	if len(drivers) == 0 {
+		return []bo.AlertRule{}, 0, p, s, nil
+	}
+	items, total, err := rulebook.rules.ListAlertRules(ctx, ns, p, s, groupUID, strings.TrimSpace(name), drivers)
 	return items, total, p, s, rulebook.access.Wrap(err)
+}
+
+// authorizedDrivers 返回租户已开通的数据源驱动和探测驱动，规则列表只展示这些类型的规则。
+func (rulebook *Rulebook) authorizedDrivers(ctx context.Context) ([]string, error) {
+	capabilities, err := rulebook.access.Capabilities(ctx)
+	if err != nil {
+		return nil, err
+	}
+	drivers := perm.DatasourceDriversOf(capabilities)
+	return append(drivers, perm.ProbeDriversOf(capabilities)...), nil
+}
+
+// requireDriverCapability 要求当前租户已开通规则驱动对应的能力。
+func (rulebook *Rulebook) requireDriverCapability(ctx context.Context, driver string) error {
+	capability := perm.DatasourceCapabilityOf(driver)
+	if capability == "" {
+		capability = perm.ProbeCapabilityOf(driver)
+	}
+	if capability == "" {
+		return merr.Invalid("invalid request")
+	}
+	return rulebook.access.RequireCapability(ctx, capability)
 }
 
 // validateRuleTemplates 在保存前用评测期同一套模板实现做语法校验。摘要和描述
@@ -273,6 +326,10 @@ func validateRuleVariables(in *bo.AlertRule) error {
 }
 
 func (rulebook *Rulebook) prepare(ctx context.Context, namespaceUID string, in *bo.AlertRule) error {
+	// 规则跟随数据源 / 探测类型：对应类型没开通时不能新建或改成该类型的规则。
+	if err := rulebook.requireDriverCapability(ctx, in.Driver); err != nil {
+		return err
+	}
 	if in.Driver == bo.ProbeDriverHTTP {
 		return rulebook.prepareProbe(ctx, namespaceUID, in)
 	}

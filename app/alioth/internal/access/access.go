@@ -155,6 +155,34 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 	return merr.Forbidden("menu permission denied")
 }
 
+// Capabilities 返回当前租户当前生效的能力。租户停用、归档或套餐到期时为空。
+// 数据源、探测和通知渠道按类型过滤资源时用它决定哪些类型可见。
+func (c Checker) Capabilities(ctx context.Context) ([]string, error) {
+	ns, err := c.currentNamespace(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+	capabilities, err := c.Features.EffectiveCapabilities(ctx, ns)
+	if err != nil {
+		return nil, c.Wrap(err)
+	}
+	return capabilities, nil
+}
+
+// RequireCapability 要求当前租户已开通某个能力。它用于资源类型级检查：
+// 模块权限通过之后，具体类型（某个数据源驱动 / 探测驱动 / 通知渠道类型）
+// 还要在套餐范围内，否则返回 403 feature not enabled。
+func (c Checker) RequireCapability(ctx context.Context, capability string) error {
+	capabilities, err := c.Capabilities(ctx)
+	if err != nil {
+		return err
+	}
+	if !slices.Contains(capabilities, capability) {
+		return merr.Forbidden("feature not enabled")
+	}
+	return nil
+}
+
 // hasMenuPermission 判断角色是否持有能覆盖 code 的菜单权限。
 // 能力必须已在租户开通范围内，且角色的权限集合里出现对应的 menu:<能力>。
 func (c Checker) hasMenuPermission(perms map[string]struct{}, capabilities []string, code string) bool {

@@ -71,6 +71,35 @@ func (s *NamespaceService) ListNamespaceOrders(ctx context.Context, req *v1.List
 	return &v1.ListNamespaceOrdersResponse{Items: namespaceOrderItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
 }
 
+func (s *NamespaceService) CreateNamespaceUpgradeOrder(ctx context.Context, req *v1.CreateNamespaceUpgradeOrderRequest) (*v1.CreateNamespaceUpgradeOrderResponse, error) {
+	item, err := s.purchasing.CreateUpgradeOrder(ctx, req.GetPackageUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateNamespaceUpgradeOrderResponse{Order: namespaceOrderItem(*item)}, nil
+}
+
+func (s *NamespaceService) CreateNamespaceRenewalOrder(ctx context.Context, _ *v1.CreateNamespaceRenewalOrderRequest) (*v1.CreateNamespaceRenewalOrderResponse, error) {
+	item, err := s.purchasing.CreateRenewalOrder(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateNamespaceRenewalOrderResponse{Order: namespaceOrderItem(*item)}, nil
+}
+
+func (s *NamespaceService) GetNamespacePackage(ctx context.Context, req *v1.GetNamespacePackageRequest) (*v1.GetNamespacePackageResponse, error) {
+	item, err := s.purchasing.CurrentPackage(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	packageUID, packageName, status, visibility, durationDays, maxMembers, priceCents, expiresAt, expired := namespacePackageFields(*item)
+	return &v1.GetNamespacePackageResponse{
+		PackageUid: packageUID, PackageName: packageName, Status: status,
+		Visibility: visibility, DurationDays: durationDays, MaxMembers: maxMembers,
+		PriceCents: priceCents, ExpiresAt: expiresAt, Expired: expired,
+	}, nil
+}
+
 func (s *NamespaceService) ListSystemNamespaceOrders(ctx context.Context, req *v1.ListSystemNamespaceOrdersRequest) (*v1.ListSystemNamespaceOrdersResponse, error) {
 	items, total, page, pageSize, err := s.purchasing.ListNamespaceOrders(ctx, req.GetUid(), req.GetPage(), req.GetPageSize())
 	if err != nil {

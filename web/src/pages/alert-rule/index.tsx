@@ -32,6 +32,10 @@ import { ApiError } from "@/api/http"
 import { listProbeTargetGroups } from "@/api/probe-target"
 import type { ProbeTargetGroupItem } from "@/api/probe-target/types"
 import { useSession } from "@/auth/session"
+import {
+  authorizedDatasourceDrivers,
+  authorizedProbeDrivers,
+} from "@/lib/feature-catalog"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
@@ -291,6 +295,19 @@ export function AlertRulePage() {
   const [ruleOpen, setRuleOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<AlertRuleItem | null>(null)
   const [form, setForm] = useState<RuleDraft>(emptyRule)
+  // 规则跟随数据源 / 探测类型：只提供套餐已开通的驱动，未授权类型不出现在规则里。
+  const allowedDrivers = useMemo(
+    () => [
+      ...authorizedDatasourceDrivers(session.features),
+      ...authorizedProbeDrivers(session.features),
+    ],
+    [session.features]
+  )
+  const canCreateProbeRule = allowedDrivers.includes(PROBE_DRIVER)
+
+  function defaultRule(): RuleDraft {
+    return { ...emptyRule, driver: allowedDrivers[0] ?? "METRICS_PROMETHEUS" }
+  }
   const [formStep, setFormStep] = useState(0)
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
@@ -655,7 +672,7 @@ export function AlertRulePage() {
                 }))
               : [{ ...emptyLevel }],
           }
-        : emptyRule
+        : defaultRule()
     )
     setError("")
     setFieldErrors({})
@@ -1252,9 +1269,11 @@ export function AlertRulePage() {
                     <TabsTrigger value="query">
                       {t("alertRule.ruleTypeQuery")}
                     </TabsTrigger>
-                    <TabsTrigger value="probe">
-                      {t("alertRule.ruleTypeProbe")}
-                    </TabsTrigger>
+                    {canCreateProbeRule ? (
+                      <TabsTrigger value="probe">
+                        {t("alertRule.ruleTypeProbe")}
+                      </TabsTrigger>
+                    ) : null}
                   </TabsList>
                 </Tabs>
                 {canWrite ? (
@@ -1445,7 +1464,9 @@ export function AlertRulePage() {
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      {drivers.map((item) => (
+                      {drivers
+                        .filter((item) => allowedDrivers.includes(item))
+                        .map((item) => (
                         <SelectItem key={item} value={item}>
                           {enumLabel(t, item)}
                         </SelectItem>

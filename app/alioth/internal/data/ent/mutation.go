@@ -21381,6 +21381,7 @@ type NamespaceOrderMutation struct {
 	updated_at       *time.Time
 	uid              *string
 	user_uid         *string
+	kind             *namespaceorder.Kind
 	namespace_uid    *string
 	namespace_name   *string
 	namespace_remark *string
@@ -21640,6 +21641,42 @@ func (m *NamespaceOrderMutation) OldUserUID(ctx context.Context) (v string, err 
 // ResetUserUID resets all changes to the "user_uid" field.
 func (m *NamespaceOrderMutation) ResetUserUID() {
 	m.user_uid = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *NamespaceOrderMutation) SetKind(n namespaceorder.Kind) {
+	m.kind = &n
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *NamespaceOrderMutation) Kind() (r namespaceorder.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldKind(ctx context.Context) (v namespaceorder.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *NamespaceOrderMutation) ResetKind() {
+	m.kind = nil
 }
 
 // SetNamespaceUID sets the "namespace_uid" field.
@@ -22109,7 +22146,7 @@ func (m *NamespaceOrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NamespaceOrderMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.created_at != nil {
 		fields = append(fields, namespaceorder.FieldCreatedAt)
 	}
@@ -22121,6 +22158,9 @@ func (m *NamespaceOrderMutation) Fields() []string {
 	}
 	if m.user_uid != nil {
 		fields = append(fields, namespaceorder.FieldUserUID)
+	}
+	if m.kind != nil {
+		fields = append(fields, namespaceorder.FieldKind)
 	}
 	if m.namespace_uid != nil {
 		fields = append(fields, namespaceorder.FieldNamespaceUID)
@@ -22168,6 +22208,8 @@ func (m *NamespaceOrderMutation) Field(name string) (ent.Value, bool) {
 		return m.UID()
 	case namespaceorder.FieldUserUID:
 		return m.UserUID()
+	case namespaceorder.FieldKind:
+		return m.Kind()
 	case namespaceorder.FieldNamespaceUID:
 		return m.NamespaceUID()
 	case namespaceorder.FieldNamespaceName:
@@ -22205,6 +22247,8 @@ func (m *NamespaceOrderMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldUID(ctx)
 	case namespaceorder.FieldUserUID:
 		return m.OldUserUID(ctx)
+	case namespaceorder.FieldKind:
+		return m.OldKind(ctx)
 	case namespaceorder.FieldNamespaceUID:
 		return m.OldNamespaceUID(ctx)
 	case namespaceorder.FieldNamespaceName:
@@ -22261,6 +22305,13 @@ func (m *NamespaceOrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUserUID(v)
+		return nil
+	case namespaceorder.FieldKind:
+		v, ok := value.(namespaceorder.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
 		return nil
 	case namespaceorder.FieldNamespaceUID:
 		v, ok := value.(string)
@@ -22440,6 +22491,9 @@ func (m *NamespaceOrderMutation) ResetField(name string) error {
 		return nil
 	case namespaceorder.FieldUserUID:
 		m.ResetUserUID()
+		return nil
+	case namespaceorder.FieldKind:
+		m.ResetKind()
 		return nil
 	case namespaceorder.FieldNamespaceUID:
 		m.ResetNamespaceUID()

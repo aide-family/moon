@@ -14,11 +14,11 @@ type DatasourceRepo interface {
 	UpdateDatasourceStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.Datasource, error)
 	DeleteDatasource(ctx context.Context, namespaceUID, uid string) error
 	GetDatasource(ctx context.Context, namespaceUID, uid string) (*bo.Datasource, error)
-	ListDatasources(ctx context.Context, namespaceUID string, page, pageSize int, name, kind string) ([]bo.Datasource, int, error)
+	ListDatasources(ctx context.Context, namespaceUID string, page, pageSize int, name, kind string, drivers []string) ([]bo.Datasource, int, error)
 	ListDatasourcesByMatchers(ctx context.Context, namespaceUID, driver, matchersJSON string) ([]bo.Datasource, error)
 	// ListDatasourceUIDsByLevel 返回使用某个数据源等级的数据源，等级改名或删除后用于收口事件。
 	ListDatasourceUIDsByLevel(ctx context.Context, namespaceUID, levelUID string) ([]string, error)
-	SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string) ([]bo.SelectItem, error)
+	SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string, drivers []string) ([]bo.SelectItem, error)
 	DatasourceStatus(ctx context.Context, item bo.Datasource) (string, error)
 	DatasourceMetadata(ctx context.Context, item bo.Datasource) (*bo.DatasourceMetadata, error)
 	ListMetrics(ctx context.Context, item bo.Datasource) ([]bo.DatasourceMetric, error)
@@ -52,7 +52,7 @@ type AlertRuleRepo interface {
 	UpdateAlertRuleStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.AlertRule, error)
 	DeleteAlertRule(ctx context.Context, namespaceUID, uid string) error
 	GetAlertRule(ctx context.Context, namespaceUID, uid string) (*bo.AlertRule, error)
-	ListAlertRules(ctx context.Context, namespaceUID string, page, pageSize int, groupUID, name string) ([]bo.AlertRule, int, error)
+	ListAlertRules(ctx context.Context, namespaceUID string, page, pageSize int, groupUID, name string, drivers []string) ([]bo.AlertRule, int, error)
 	ListRuleUIDs(ctx context.Context, namespaceUID, groupUID string) ([]string, error)
 	ListEvalCandidates(ctx context.Context, now time.Time) ([]bo.AlertRule, error)
 	ScheduleDue(ctx context.Context, now, next time.Time) error

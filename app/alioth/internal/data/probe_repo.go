@@ -182,7 +182,7 @@ func (r *probeRepo) GetProbeTargetGroup(ctx context.Context, namespaceUID, uid s
 	return &item, nil
 }
 
-func (r *probeRepo) ListProbeTargetGroups(ctx context.Context, namespaceUID string, page, pageSize int, name, driver string) ([]bo.ProbeTargetGroup, int, error) {
+func (r *probeRepo) ListProbeTargetGroups(ctx context.Context, namespaceUID string, page, pageSize int, name string, drivers []string) ([]bo.ProbeTargetGroup, int, error) {
 	query := r.client.ProbeTargetGroup.Query().Where(
 		probetargetgroup.NamespaceUIDEQ(namespaceUID),
 		probetargetgroup.DeletedAtIsNil(),
@@ -190,8 +190,12 @@ func (r *probeRepo) ListProbeTargetGroups(ctx context.Context, namespaceUID stri
 	if name != "" {
 		query = query.Where(probetargetgroup.NameContainsFold(name))
 	}
-	if driver != "" {
-		query = query.Where(probetargetgroup.DriverEQ(probetargetgroup.Driver(driver)))
+	if len(drivers) > 0 {
+		values := make([]probetargetgroup.Driver, 0, len(drivers))
+		for _, driver := range drivers {
+			values = append(values, probetargetgroup.Driver(driver))
+		}
+		query = query.Where(probetargetgroup.DriverIn(values...))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {

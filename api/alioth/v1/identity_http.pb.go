@@ -984,11 +984,14 @@ const OperationNamespaceServiceCancelNamespaceOrder = "/alioth.v1.NamespaceServi
 const OperationNamespaceServiceCreateFeaturePackage = "/alioth.v1.NamespaceService/CreateFeaturePackage"
 const OperationNamespaceServiceCreateNamespace = "/alioth.v1.NamespaceService/CreateNamespace"
 const OperationNamespaceServiceCreateNamespaceOrder = "/alioth.v1.NamespaceService/CreateNamespaceOrder"
+const OperationNamespaceServiceCreateNamespaceRenewalOrder = "/alioth.v1.NamespaceService/CreateNamespaceRenewalOrder"
+const OperationNamespaceServiceCreateNamespaceUpgradeOrder = "/alioth.v1.NamespaceService/CreateNamespaceUpgradeOrder"
 const OperationNamespaceServiceDeleteFeaturePackage = "/alioth.v1.NamespaceService/DeleteFeaturePackage"
 const OperationNamespaceServiceDeleteNamespace = "/alioth.v1.NamespaceService/DeleteNamespace"
 const OperationNamespaceServiceGetFeaturePackage = "/alioth.v1.NamespaceService/GetFeaturePackage"
 const OperationNamespaceServiceGetNamespace = "/alioth.v1.NamespaceService/GetNamespace"
 const OperationNamespaceServiceGetNamespaceFeatures = "/alioth.v1.NamespaceService/GetNamespaceFeatures"
+const OperationNamespaceServiceGetNamespacePackage = "/alioth.v1.NamespaceService/GetNamespacePackage"
 const OperationNamespaceServiceListFeaturePackages = "/alioth.v1.NamespaceService/ListFeaturePackages"
 const OperationNamespaceServiceListFeatures = "/alioth.v1.NamespaceService/ListFeatures"
 const OperationNamespaceServiceListNamespaceOrders = "/alioth.v1.NamespaceService/ListNamespaceOrders"
@@ -1019,6 +1022,10 @@ type NamespaceServiceHTTPServer interface {
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error)
 	// CreateNamespaceOrder 创建租户订单。订单快照套餐价格和时长，创建后为待支付，不代表已付款。
 	CreateNamespaceOrder(context.Context, *CreateNamespaceOrderRequest) (*CreateNamespaceOrderResponse, error)
+	// CreateNamespaceRenewalOrder 为当前租户创建套餐续期订单。需要 namespace:write，永久套餐不能续期。
+	CreateNamespaceRenewalOrder(context.Context, *CreateNamespaceRenewalOrderRequest) (*CreateNamespaceRenewalOrderResponse, error)
+	// CreateNamespaceUpgradeOrder 为当前租户创建套餐升级订单。需要 namespace:write，只接受公开且启用的套餐。
+	CreateNamespaceUpgradeOrder(context.Context, *CreateNamespaceUpgradeOrderRequest) (*CreateNamespaceUpgradeOrderResponse, error)
 	// DeleteFeaturePackage 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
 	DeleteFeaturePackage(context.Context, *DeleteFeaturePackageRequest) (*DeleteFeaturePackageResponse, error)
 	// DeleteNamespace 删除当前租户。需要 namespace:delete。
@@ -1029,6 +1036,8 @@ type NamespaceServiceHTTPServer interface {
 	GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error)
 	// GetNamespaceFeatures 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
 	GetNamespaceFeatures(context.Context, *GetNamespaceFeaturesRequest) (*GetNamespaceFeaturesResponse, error)
+	// GetNamespacePackage 读取当前租户的套餐、价格、人数上限和到期时间，供升级 / 续期入口使用。
+	GetNamespacePackage(context.Context, *GetNamespacePackageRequest) (*GetNamespacePackageResponse, error)
 	// ListFeaturePackages 平台管理员分页列出功能套餐。需要 system:package:read。
 	ListFeaturePackages(context.Context, *ListFeaturePackagesRequest) (*ListFeaturePackagesResponse, error)
 	// ListFeatures 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
@@ -1075,6 +1084,9 @@ func RegisterNamespaceServiceHTTPServer(s *http.Server, srv NamespaceServiceHTTP
 	r.Handle("POST", "/v1/orders/{uid}/cancel", _NamespaceService_CancelNamespaceOrder0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/orders", _NamespaceService_ListNamespaceOrders0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/system/namespace/{uid}/orders", _NamespaceService_ListSystemNamespaceOrders0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/namespace/orders/upgrade", _NamespaceService_CreateNamespaceUpgradeOrder0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/namespace/orders/renewal", _NamespaceService_CreateNamespaceRenewalOrder0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/namespace/{uid}/package", _NamespaceService_GetNamespacePackage0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/namespace/{uid}", _NamespaceService_UpdateNamespace0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/namespace/{uid}/status", _NamespaceService_UpdateNamespaceStatus0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/namespace/{uid}", _NamespaceService_DeleteNamespace0_HTTP_Handler(srv))
@@ -1234,6 +1246,66 @@ func _NamespaceService_ListSystemNamespaceOrders0_HTTP_Handler(srv NamespaceServ
 			return err
 		}
 		reply := out.(*ListSystemNamespaceOrdersResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_CreateNamespaceUpgradeOrder0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateNamespaceUpgradeOrderRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceCreateNamespaceUpgradeOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateNamespaceUpgradeOrder(ctx, req.(*CreateNamespaceUpgradeOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateNamespaceUpgradeOrderResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_CreateNamespaceRenewalOrder0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateNamespaceRenewalOrderRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceCreateNamespaceRenewalOrder)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateNamespaceRenewalOrder(ctx, req.(*CreateNamespaceRenewalOrderRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateNamespaceRenewalOrderResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_GetNamespacePackage0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetNamespacePackageRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceGetNamespacePackage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetNamespacePackage(ctx, req.(*GetNamespacePackageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetNamespacePackageResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1648,6 +1720,10 @@ type NamespaceServiceHTTPClient interface {
 	CreateNamespace(ctx context.Context, req *CreateNamespaceRequest, opts ...http.CallOption) (rsp *CreateNamespaceResponse, err error)
 	// CreateNamespaceOrder 创建租户订单。订单快照套餐价格和时长，创建后为待支付，不代表已付款。
 	CreateNamespaceOrder(ctx context.Context, req *CreateNamespaceOrderRequest, opts ...http.CallOption) (rsp *CreateNamespaceOrderResponse, err error)
+	// CreateNamespaceRenewalOrder 为当前租户创建套餐续期订单。需要 namespace:write，永久套餐不能续期。
+	CreateNamespaceRenewalOrder(ctx context.Context, req *CreateNamespaceRenewalOrderRequest, opts ...http.CallOption) (rsp *CreateNamespaceRenewalOrderResponse, err error)
+	// CreateNamespaceUpgradeOrder 为当前租户创建套餐升级订单。需要 namespace:write，只接受公开且启用的套餐。
+	CreateNamespaceUpgradeOrder(ctx context.Context, req *CreateNamespaceUpgradeOrderRequest, opts ...http.CallOption) (rsp *CreateNamespaceUpgradeOrderResponse, err error)
 	// DeleteFeaturePackage 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
 	DeleteFeaturePackage(ctx context.Context, req *DeleteFeaturePackageRequest, opts ...http.CallOption) (rsp *DeleteFeaturePackageResponse, err error)
 	// DeleteNamespace 删除当前租户。需要 namespace:delete。
@@ -1658,6 +1734,8 @@ type NamespaceServiceHTTPClient interface {
 	GetNamespace(ctx context.Context, req *GetNamespaceRequest, opts ...http.CallOption) (rsp *GetNamespaceResponse, err error)
 	// GetNamespaceFeatures 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
 	GetNamespaceFeatures(ctx context.Context, req *GetNamespaceFeaturesRequest, opts ...http.CallOption) (rsp *GetNamespaceFeaturesResponse, err error)
+	// GetNamespacePackage 读取当前租户的套餐、价格、人数上限和到期时间，供升级 / 续期入口使用。
+	GetNamespacePackage(ctx context.Context, req *GetNamespacePackageRequest, opts ...http.CallOption) (rsp *GetNamespacePackageResponse, err error)
 	// ListFeaturePackages 平台管理员分页列出功能套餐。需要 system:package:read。
 	ListFeaturePackages(ctx context.Context, req *ListFeaturePackagesRequest, opts ...http.CallOption) (rsp *ListFeaturePackagesResponse, err error)
 	// ListFeatures 列出代码维护的功能目录。不读 X-Namespace，需要 system:package:read。
@@ -1793,6 +1871,41 @@ func (c *NamespaceServiceHTTPClientImpl) CreateNamespaceOrder(ctx context.Contex
 	return &out, nil
 }
 
+// CreateNamespaceRenewalOrder 为当前租户创建套餐续期订单。需要 namespace:write，永久套餐不能续期。
+func (c *NamespaceServiceHTTPClientImpl) CreateNamespaceRenewalOrder(ctx context.Context, in *CreateNamespaceRenewalOrderRequest, opts ...http.CallOption) (*CreateNamespaceRenewalOrderResponse, error) {
+	var out CreateNamespaceRenewalOrderResponse
+	pattern := "/v1/namespace/orders/renewal"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceCreateNamespaceRenewalOrder),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CreateNamespaceUpgradeOrder 为当前租户创建套餐升级订单。需要 namespace:write，只接受公开且启用的套餐。
+func (c *NamespaceServiceHTTPClientImpl) CreateNamespaceUpgradeOrder(ctx context.Context, in *CreateNamespaceUpgradeOrderRequest, opts ...http.CallOption) (*CreateNamespaceUpgradeOrderResponse, error) {
+	var out CreateNamespaceUpgradeOrderResponse
+	pattern := "/v1/namespace/orders/upgrade"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNamespaceServiceCreateNamespaceUpgradeOrder),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // DeleteFeaturePackage 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
 func (c *NamespaceServiceHTTPClientImpl) DeleteFeaturePackage(ctx context.Context, in *DeleteFeaturePackageRequest, opts ...http.CallOption) (*DeleteFeaturePackageResponse, error) {
 	var out DeleteFeaturePackageResponse
@@ -1869,6 +1982,23 @@ func (c *NamespaceServiceHTTPClientImpl) GetNamespaceFeatures(ctx context.Contex
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationNamespaceServiceGetNamespaceFeatures),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetNamespacePackage 读取当前租户的套餐、价格、人数上限和到期时间，供升级 / 续期入口使用。
+func (c *NamespaceServiceHTTPClientImpl) GetNamespacePackage(ctx context.Context, in *GetNamespacePackageRequest, opts ...http.CallOption) (*GetNamespacePackageResponse, error) {
+	var out GetNamespacePackageResponse
+	pattern := "/v1/namespace/{uid}/package"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceGetNamespacePackage),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
