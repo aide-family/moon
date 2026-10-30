@@ -104,6 +104,10 @@ const zh = {
   shell: {
     account: "账户",
     github: "项目 GitHub 仓库",
+    githubStar: "在 GitHub 上 Star",
+    githubStarWithCount: "在 GitHub 上 Star（当前 {{count}}）",
+    // GitHub 术语，中文界面同样显示 Star；数量未取到时用它当按钮文案，宽度与 1.2k 接近。
+    star: "Star",
   },
   state: {
     loading: "加载中",
@@ -403,7 +407,6 @@ const zh = {
     oauthOr: "或",
     emailLoginShow: "使用邮箱验证码登录",
     oauthLoginShow: "使用第三方账号登录",
-    githubStar: "在 GitHub 上 Star",
     // 备案号暂用占位值，接入真实备案后只改这里。
     icp: "京ICP备00000000号-1",
   },
@@ -2732,6 +2735,9 @@ const en = {
   shell: {
     account: "Account",
     github: "Project GitHub repository",
+    githubStar: "Star on GitHub",
+    githubStarWithCount: "Star on GitHub ({{count}})",
+    star: "Star",
   },
   state: {
     loading: "Loading",
@@ -3056,7 +3062,6 @@ const en = {
     oauthOr: "or",
     emailLoginShow: "Sign in with an email code",
     oauthLoginShow: "Sign in with a third-party account",
-    githubStar: "Star on GitHub",
     // Placeholder filing number until the real ICP filing is issued.
     icp: "ICP Filing No. 00000000-1",
   },

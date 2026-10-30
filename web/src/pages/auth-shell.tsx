@@ -14,6 +14,7 @@ import teamPermissionsIllustration from "@/assets/undraw/team-permissions.svg"
 import { AppearanceMenu } from "@/components/appearance-menu"
 import { GitHubIcon } from "@/components/github-icon"
 import { LocaleMenu } from "@/components/locale-menu"
+import { RepositoryStarLink } from "@/components/repository-star-link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -131,13 +132,13 @@ export function AuthShell({
   title: string
   subtitle: string
   children: ReactNode
-  /** 传入后右上角显示 GitHub 仓库引导入口；登录页使用。 */
+  /** 传入后右上角显示 GitHub 仓库入口与 Star 数量；登录页使用。 */
   repositoryURL?: string
 }) {
   const { t } = useTranslation()
   return (
     <main className="relative flex min-h-svh">
-      {/* 品牌标识固定在左上角，与右上角的主题/语言/GitHub 入口同一行；
+      {/* 品牌标识固定在左上角，与右上角的主题/语言/GitHub/Star 入口同一行；
           窄屏只保留图标，内容区多留顶部内边距，避免遮挡表单。 */}
       <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-4 sm:p-6">
         <div className="inline-flex items-center gap-2">
@@ -157,17 +158,21 @@ export function AuthShell({
           <AppearanceMenu />
           <LocaleMenu />
           {repositoryURL ? (
-            <Button variant="ghost" size="icon" className="shrink-0" asChild>
-              <a
-                href={repositoryURL}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={t("shell.github")}
-                title={t("shell.github")}
-              >
-                <GitHubIcon />
-              </a>
-            </Button>
+            <>
+              <Button variant="ghost" size="icon" className="shrink-0" asChild>
+                <a
+                  href={repositoryURL}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={t("shell.github")}
+                  title={t("shell.github")}
+                >
+                  <GitHubIcon />
+                </a>
+              </Button>
+              {/* Star 入口与仓库 icon 同一行；数量拿不到时只显示 Star 文案。 */}
+              <RepositoryStarLink repositoryURL={repositoryURL} />
+            </>
           ) : null}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { ArrowUpRight, KeyRound, Loader2, Mail, Star } from "lucide-react"
+import { KeyRound, Loader2, Mail } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
@@ -56,7 +56,7 @@ const fieldIds: Record<string, string> = {
   code: "code",
 }
 
-// 与 README 徽章和 git remote 一致的仓库地址；登录页的两个 GitHub 入口共用。
+// 与 README 徽章和 git remote 一致的仓库地址；AuthShell 的仓库 icon 与 Star 摘要共用。
 const repositoryURL = "https://github.com/aide-family/moon"
 
 /** 校验失败后把焦点移到第一个出错的输入框，键盘用户不用自己找。 */
@@ -446,23 +446,8 @@ export function LoginPage() {
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <a
-            href={repositoryURL}
-            target="_blank"
-            rel="noreferrer"
-            className="group inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            <Star
-              aria-hidden="true"
-              className="size-4 transition-[transform,color] duration-200 group-hover:scale-110 group-hover:fill-current motion-reduce:transition-none"
-            />
-            <span>{t("login.githubStar")}</span>
-            <ArrowUpRight
-              aria-hidden="true"
-              className="size-3.5 opacity-60 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
-            />
-          </a>
+        {/* 底部只留注册入口；GitHub 仓库与 Star 已收到右上角同一行。 */}
+        <div className="flex justify-center">
           <Link
             className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             to={
