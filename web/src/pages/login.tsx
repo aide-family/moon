@@ -1,5 +1,5 @@
-import { ChevronDown, Loader2, Mail } from "lucide-react"
-import { useEffect, useState } from "react"
+import { ArrowUpRight, KeyRound, Loader2, Mail, Star } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -16,11 +16,6 @@ import { CaptchaField } from "@/components/captcha-field"
 import { FormField } from "@/components/form-field"
 import { OAuthProviderButton } from "@/components/oauth-provider-button"
 import { Button } from "@/components/ui/button"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCaptcha } from "@/hooks/use-captcha"
@@ -61,6 +56,9 @@ const fieldIds: Record<string, string> = {
   code: "code",
 }
 
+// 与 README 徽章和 git remote 一致的仓库地址；登录页的两个 GitHub 入口共用。
+const repositoryURL = "https://github.com/aide-family/moon"
+
 /** 校验失败后把焦点移到第一个出错的输入框，键盘用户不用自己找。 */
 function focusFirstError(errors: FieldErrors) {
   const field = fieldOrder.find((name) => errors[name])
@@ -79,8 +77,10 @@ export function LoginPage() {
   const [oauthState] = useState(newOAuthState)
   const [providers, setProviders] = useState<OAuth2ProviderItem[]>([])
   const [providersReady, setProvidersReady] = useState(false)
-  // 邮箱验证码登录是次要入口：默认收起，用户主动展开后才显示表单。
-  const [emailOpen, setEmailOpen] = useState(false)
+  // 登录方式默认第三方；切到邮箱后第三方按钮收起，两个入口共用同一套开关。
+  const [emailMode, setEmailMode] = useState(false)
+  // 切换后把焦点送进新出现的面板，键盘用户不用逆着 DOM 顺序找回来。
+  const focusAfterSwitch = useRef<"email" | "oauth" | null>(null)
   const [email, setEmail] = useState("")
   const [code, setCode] = useState("")
   const [captchaCode, setCaptchaCode] = useState("")
@@ -92,10 +92,10 @@ export function LoginPage() {
   const cooldown = useSendCodeCooldown("login")
   const pending = sendingCode || submitting
   const hasProviders = providers.length > 0
-  // 有第三方登录时邮箱入口默认收起；没有配置（含接口不可用）时它是唯一入口，直接展开。
-  const emailPanelOpen = providersReady && !hasProviders ? true : emailOpen
-  // 列表加载中也保留「或使用邮箱验证码登录」入口，慢网下不必等第三方列表就能登录。
-  const showEmailToggle = !providersReady || hasProviders
+  // 没有配置第三方时邮箱是唯一入口，直接展开；有第三方时由用户选择登录方式。
+  const emailPanelOpen = providersReady && !hasProviders ? true : emailMode
+  const showMethodSwitch = !providersReady || hasProviders
+  const showOAuthSection = !providersReady || hasProviders
 
   useEffect(() => {
     let active = true
@@ -125,6 +125,31 @@ export function LoginPage() {
       active = false
     }
   }, [oauthState])
+
+  // 两个面板始终挂载（保留已填内容），切换后把焦点交给新面板的第一个控件。
+  useEffect(() => {
+    const target = focusAfterSwitch.current
+    if (!target) {
+      return
+    }
+    const node =
+      target === "email"
+        ? document.getElementById("email")
+        : document.querySelector<HTMLButtonElement>(
+            "#oauth-login-panel button[data-provider]"
+          )
+    if (!node) {
+      return
+    }
+    focusAfterSwitch.current = null
+    node.focus()
+  }, [emailPanelOpen, providersReady])
+
+  function switchLoginMethod() {
+    const nextEmailMode = !emailPanelOpen
+    focusAfterSwitch.current = nextEmailMode ? "email" : "oauth"
+    setEmailMode(nextEmailMode)
+  }
 
   function startOAuth(provider: OAuth2ProviderItem) {
     if (oauthPending) {
@@ -252,18 +277,23 @@ export function LoginPage() {
   }
 
   return (
-    <AuthShell title={t("login.welcome")} subtitle={t("login.welcomeSub")}>
+    <AuthShell
+      title={t("login.welcome")}
+      subtitle={t("login.welcomeSub")}
+      repositoryURL={repositoryURL}
+    >
       <div className="grid gap-6">
-        {/* 主操作：第三方登录置顶，整行 44px 按钮、品牌色图标，间距优先。
+        {/* 主操作：第三方登录置顶，48px 整行按钮、品牌图标块与清晰的外链提示。
             列表未就绪时用同高骨架占位，避免邮箱表单先展开再收起的层级闪动。 */}
-        {providersReady ? (
-          hasProviders ? (
-            <div
-              role="group"
-              aria-label={t("login.oauthGroupLabel")}
-              className="grid gap-2.5"
-            >
-              {providers.map((provider) => (
+        {showOAuthSection ? (
+          <div
+            id="oauth-login-panel"
+            role="group"
+            aria-label={t("login.oauthGroupLabel")}
+            className={cn("grid gap-3", emailPanelOpen && "hidden")}
+          >
+            {providersReady ? (
+              providers.map((provider) => (
                 <OAuthProviderButton
                   key={provider.provider}
                   provider={provider}
@@ -274,151 +304,165 @@ export function LoginPage() {
                   disabled={oauthPending !== ""}
                   onClick={() => startOAuth(provider)}
                 />
-              ))}
-            </div>
-          ) : null
-        ) : (
-          <div className="grid gap-2.5" aria-hidden="true">
-            <Skeleton className="h-11 rounded-lg" />
-            <Skeleton className="h-11 rounded-lg" />
+              ))
+            ) : (
+              <div className="grid gap-3" aria-hidden="true">
+                <Skeleton className="h-12 rounded-xl" />
+                <Skeleton className="h-12 rounded-xl" />
+              </div>
+            )}
           </div>
-        )}
+        ) : null}
 
-        {/* 次操作：邮箱验证码登录。保留全部表单与校验，只降级为可收起的入口；
-            第三方列表还在加载时入口照常可用，慢网下也不会只剩骨架、无法登录。 */}
-        <Collapsible
-          open={emailPanelOpen}
-          onOpenChange={setEmailOpen}
-          className="grid gap-3"
+        {/* 次操作：邮箱验证码登录。两个面板都保持挂载，切换时只隐藏其中一个，
+            已填邮箱与验证码不会因切换而丢失；没有第三方配置时它是唯一入口。 */}
+        <div
+          id="email-login-panel"
+          className={cn("grid gap-4", !emailPanelOpen && "hidden")}
         >
-          {showEmailToggle ? (
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span aria-hidden="true" className="h-px flex-1 bg-border" />
-              <span>{t("login.oauthOr")}</span>
-              <span aria-hidden="true" className="h-px flex-1 bg-border" />
-            </div>
-          ) : null}
-          {showEmailToggle ? (
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                aria-controls="email-login-panel"
-                className="h-10 w-full justify-center gap-2 font-normal text-muted-foreground hover:text-foreground"
-              >
-                <Mail className="size-4" aria-hidden="true" />
-                <span>{t("login.emailLoginShow")}</span>
-                <ChevronDown
-                  aria-hidden="true"
-                  className={cn(
-                    "size-4 transition-transform duration-200 motion-reduce:transition-none",
-                    emailOpen && "rotate-180"
-                  )}
-                />
-              </Button>
-            </CollapsibleTrigger>
-          ) : null}
-          {/* forceMount 保住已填的邮箱与验证码；收起时用 hidden 移出布局与无障碍树
-              （Radix 在 forceMount 下不会自己隐藏内容，必须由受控状态补上）。 */}
-          <CollapsibleContent
-            forceMount
-            hidden={!emailPanelOpen}
-            id="email-login-panel"
-            className={showEmailToggle ? "pt-1" : undefined}
-          >
-            <form noValidate className="grid gap-4" onSubmit={onSubmit}>
-              <FormField
-                label={t("login.emailLabel")}
-                htmlFor="email"
+          <form noValidate className="grid gap-4" onSubmit={onSubmit}>
+            <FormField
+              label={t("login.emailLabel")}
+              htmlFor="email"
+              required
+              error={fieldErrors.email}
+            >
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={email}
+                placeholder={t("login.emailPlaceholder")}
+                autoComplete="email"
+                spellCheck={false}
+                aria-invalid={fieldErrors.email ? true : undefined}
+                onChange={(event) => setEmail(event.target.value)}
                 required
-                error={fieldErrors.email}
-              >
+              />
+            </FormField>
+            <CaptchaField
+              value={captchaCode}
+              onChange={setCaptchaCode}
+              captcha={captcha}
+              error={fieldErrors.captchaCode}
+            />
+            <FormField
+              label={t("login.codeLabel")}
+              htmlFor="code"
+              hint={t("login.codeHint")}
+              required
+              error={fieldErrors.code}
+            >
+              <div className="flex gap-2">
                 <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={email}
-                  placeholder={t("login.emailPlaceholder")}
-                  autoComplete="email"
+                  id="code"
+                  name="code"
+                  className="min-w-0 flex-1"
+                  value={code}
+                  placeholder={t("login.codePlaceholder")}
+                  autoComplete="one-time-code"
                   spellCheck={false}
-                  aria-invalid={fieldErrors.email ? true : undefined}
-                  onChange={(event) => setEmail(event.target.value)}
+                  aria-invalid={fieldErrors.code ? true : undefined}
+                  onChange={(event) => setCode(event.target.value)}
                   required
                 />
-              </FormField>
-              <CaptchaField
-                value={captchaCode}
-                onChange={setCaptchaCode}
-                captcha={captcha}
-                error={fieldErrors.captchaCode}
-              />
-              <FormField
-                label={t("login.codeLabel")}
-                htmlFor="code"
-                hint={t("login.codeHint")}
-                required
-                error={fieldErrors.code}
-              >
-                <div className="flex gap-2">
-                  <Input
-                    id="code"
-                    name="code"
-                    className="min-w-0 flex-1"
-                    value={code}
-                    placeholder={t("login.codePlaceholder")}
-                    autoComplete="one-time-code"
-                    spellCheck={false}
-                    aria-invalid={fieldErrors.code ? true : undefined}
-                    onChange={(event) => setCode(event.target.value)}
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="shrink-0"
-                    disabled={
-                      pending ||
-                      cooldown.remaining > 0 ||
-                      !email.trim() ||
-                      !captchaCode.trim()
-                    }
-                    aria-busy={sendingCode || undefined}
-                    onClick={() => void onSendCode()}
-                  >
-                    {sendingCode ? (
-                      <Loader2
-                        className="size-4 animate-spin"
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                    {sendingCode
-                      ? t("action.sendingCode")
-                      : cooldown.remaining > 0
-                        ? t("login.resendIn", { seconds: cooldown.remaining })
-                        : t("action.sendCode")}
-                  </Button>
-                </div>
-              </FormField>
-              <Button
-                className="w-full"
-                type="submit"
-                disabled={pending}
-                aria-busy={submitting || undefined}
-              >
-                {submitting ? (
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                ) : null}
-                {submitting ? t("login.loggingIn") : t("action.login")}
-              </Button>
-              {error ? (
-                <p role="alert" className="text-sm text-destructive">
-                  {error}
-                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0"
+                  disabled={
+                    pending ||
+                    cooldown.remaining > 0 ||
+                    !email.trim() ||
+                    !captchaCode.trim()
+                  }
+                  aria-busy={sendingCode || undefined}
+                  onClick={() => void onSendCode()}
+                >
+                  {sendingCode ? (
+                    <Loader2
+                      className="size-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  {sendingCode
+                    ? t("action.sendingCode")
+                    : cooldown.remaining > 0
+                      ? t("login.resendIn", { seconds: cooldown.remaining })
+                      : t("action.sendCode")}
+                </Button>
+              </div>
+            </FormField>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={pending}
+              aria-busy={submitting || undefined}
+            >
+              {submitting ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
               ) : null}
-            </form>
-          </CollapsibleContent>
-        </Collapsible>
+              {submitting ? t("login.loggingIn") : t("action.login")}
+            </Button>
+            {error ? (
+              <p role="alert" className="text-sm text-destructive">
+                {error}
+              </p>
+            ) : null}
+          </form>
+        </div>
 
-        <div className="flex justify-end">
+        {/* 登录方式开关：无论从第三方切到邮箱还是反向切换，都复用同一条分隔线与按钮。 */}
+        {showMethodSwitch ? (
+          <div className="grid gap-3">
+            <div
+              aria-hidden="true"
+              className="flex items-center gap-3 text-xs text-muted-foreground"
+            >
+              <span className="h-px flex-1 bg-border" />
+              <span>{t("login.oauthOr")}</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              aria-controls={
+                emailPanelOpen ? "oauth-login-panel" : "email-login-panel"
+              }
+              className="h-10 w-full justify-center gap-2 rounded-lg font-normal text-muted-foreground hover:text-foreground"
+              onClick={switchLoginMethod}
+            >
+              {emailPanelOpen ? (
+                <KeyRound className="size-4" aria-hidden="true" />
+              ) : (
+                <Mail className="size-4" aria-hidden="true" />
+              )}
+              <span>
+                {emailPanelOpen
+                  ? t("login.oauthLoginShow")
+                  : t("login.emailLoginShow")}
+              </span>
+            </Button>
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <a
+            href={repositoryURL}
+            target="_blank"
+            rel="noreferrer"
+            className="group inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            <Star
+              aria-hidden="true"
+              className="size-4 transition-[transform,color] duration-200 group-hover:scale-110 group-hover:fill-current motion-reduce:transition-none"
+            />
+            <span>{t("login.githubStar")}</span>
+            <ArrowUpRight
+              aria-hidden="true"
+              className="size-3.5 opacity-60 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+            />
+          </a>
           <Link
             className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             to={

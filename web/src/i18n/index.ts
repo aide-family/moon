@@ -402,6 +402,8 @@ const zh = {
     oauthContinue: "使用 {{provider}} 登录",
     oauthOr: "或",
     emailLoginShow: "使用邮箱验证码登录",
+    oauthLoginShow: "使用第三方账号登录",
+    githubStar: "在 GitHub 上 Star",
     // 备案号暂用占位值，接入真实备案后只改这里。
     icp: "京ICP备00000000号-1",
   },
@@ -3053,6 +3055,8 @@ const en = {
     oauthContinue: "Continue with {{provider}}",
     oauthOr: "or",
     emailLoginShow: "Sign in with an email code",
+    oauthLoginShow: "Sign in with a third-party account",
+    githubStar: "Star on GitHub",
     // Placeholder filing number until the real ICP filing is issued.
     icp: "ICP Filing No. 00000000-1",
   },

@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react"
+import { ArrowUpRight, Loader2 } from "lucide-react"
 import { createElement } from "react"
 
 import type { OAuth2ProviderItem } from "@/api/auth/types"
@@ -16,9 +16,11 @@ interface OAuthProviderButtonProps {
 }
 
 /**
- * 登录页的主操作按钮：整行宽度、44px 高，描边与底色带平台品牌色，
- * 图标用品牌色（飞书/钉钉的素材自带配色，GitHub/Gitee 走 currentColor）。
- * 文字保持前景色——品牌色只做点缀，浅色与深色模式下文字对比度都由 token 保证。
+ * 登录页的主操作按钮：48px 高、整行宽度，左侧品牌图标块、居中文案、右侧外链箭头。
+ *
+ * 图标块承接平台品牌色（飞书/钉钉素材自带配色，GitHub/Gitee 走 currentColor），
+ * 文案始终使用前景色；这样浅色与深色模式的文字对比度都由 token 保证。
+ * 品牌色只做描边、浅底和图标点缀，hover / focus / disabled 由 index.css 统一处理。
  */
 export function OAuthProviderButton({
   provider,
@@ -32,21 +34,26 @@ export function OAuthProviderButton({
       type="button"
       variant="outline"
       data-provider={provider.provider}
-      className="oauth-provider oauth-brand h-11 w-full justify-center gap-2.5 px-3 text-sm font-medium"
+      data-pending={pending || undefined}
+      className="oauth-provider oauth-brand group/oauth relative h-12 w-full justify-center rounded-xl px-3 text-sm font-medium shadow-xs focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-100"
       disabled={disabled}
       aria-busy={pending || undefined}
       onClick={onClick}
     >
-      <span aria-hidden="true" className="oauth-provider-icon">
+      <span aria-hidden="true" className="oauth-provider-badge absolute left-3">
         {pending ? (
-          <Loader2 className="size-5 animate-spin" />
+          <Loader2 className="size-[1.125rem] animate-spin" />
         ) : (
           createElement(oauthProviderIcon(provider.provider), {
-            className: "size-5",
+            className: "size-[1.125rem]",
           })
         )}
       </span>
-      <span className="truncate">{label}</span>
+      <span className="max-w-full min-w-0 truncate px-8">{label}</span>
+      <ArrowUpRight
+        aria-hidden="true"
+        className="absolute right-3 size-4 text-muted-foreground/60 transition-[color,transform] duration-200 group-hover/oauth:translate-x-0.5 group-hover/oauth:-translate-y-0.5 group-hover/oauth:text-foreground group-disabled/oauth:opacity-0 motion-reduce:transition-none"
+      />
     </Button>
   )
 }

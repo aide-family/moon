@@ -242,30 +242,110 @@
   --oauth-brand: var(--primary);
 }
 
-/* 登录页第三方登录主按钮：品牌色只落在描边、底色与图标上，按钮文字始终用前景色，
+/* 登录页第三方登录主按钮：品牌色只落在描边、底色与图标块上，按钮文字始终用前景色，
    这样浅色模式下白底、深色模式下深底两种情况都能靠 token 保证 AA 对比度。
    品牌色按平台给出两套取值——深色模式需要提亮，官方浅色值在深色卡片上分辨不出来。 */
 .oauth-provider {
-  border-color: color-mix(in oklab, var(--oauth-brand) 24%, var(--border));
-  background-color: color-mix(in oklab, var(--oauth-brand) 7%, transparent);
+  border-color: color-mix(in oklab, var(--oauth-brand) 22%, var(--border));
+  background-color: color-mix(in oklab, var(--oauth-brand) 6%, transparent);
+  box-shadow: 0 1px 2px 0 color-mix(in oklab, var(--foreground) 5%, transparent);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .oauth-provider:hover:not(:disabled) {
-  border-color: color-mix(in oklab, var(--oauth-brand) 42%, var(--border));
-  background-color: color-mix(in oklab, var(--oauth-brand) 12%, transparent);
+  border-color: color-mix(in oklab, var(--oauth-brand) 44%, var(--border));
+  background-color: color-mix(in oklab, var(--oauth-brand) 10%, transparent);
+  box-shadow:
+    0 8px 18px -14px color-mix(in oklab, var(--oauth-brand) 50%, transparent),
+    0 1px 2px 0 color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+
+.oauth-provider:focus-visible {
+  border-color: var(--ring);
+  background-color: color-mix(in oklab, var(--oauth-brand) 8%, transparent);
 }
 
 .oauth-provider:active:not(:disabled) {
-  background-color: color-mix(in oklab, var(--oauth-brand) 17%, transparent);
+  background-color: color-mix(in oklab, var(--oauth-brand) 14%, transparent);
+  box-shadow: none;
 }
 
-/* 图标容器：给品牌色，内联图标用 currentColor 时自动跟随；等待跳转时换成同尺寸的旋转图标。 */
+/* 其他平台正在跳转时按钮整体禁用：保留布局，只压低层级，避免多个品牌色同时抢注意力。 */
+.oauth-provider:disabled {
+  border-color: var(--border);
+  background-color: color-mix(in oklab, var(--muted) 45%, transparent);
+  box-shadow: none;
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+/* 正在跳转的这一个按钮继续保留品牌色，和旁边被禁用的平台区分开。 */
+.oauth-provider[data-pending] {
+  border-color: color-mix(in oklab, var(--oauth-brand) 34%, var(--border));
+  background-color: color-mix(in oklab, var(--oauth-brand) 8%, transparent);
+  color: var(--foreground);
+}
+
+/* 图标块：品牌色浅底 + 内描边。飞书/钉钉素材自带配色，GitHub/Gitee 用 currentColor。 */
+.oauth-provider-badge {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  border-radius: var(--radius-md);
+  color: var(--oauth-brand);
+  background-color: color-mix(in oklab, var(--oauth-brand) 10%, var(--background));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--oauth-brand) 20%, transparent);
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.oauth-provider:hover:not(:disabled) .oauth-provider-badge,
+.oauth-provider[data-pending] .oauth-provider-badge {
+  background-color: color-mix(in oklab, var(--oauth-brand) 15%, var(--background));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--oauth-brand) 30%, transparent);
+  transform: scale(1.04);
+}
+
+.oauth-provider:disabled .oauth-provider-badge {
+  color: var(--muted-foreground);
+  background-color: color-mix(in oklab, var(--muted) 55%, var(--background));
+  box-shadow: inset 0 0 0 1px var(--border);
+  transform: none;
+}
+
+.oauth-provider[data-pending] .oauth-provider-badge {
+  color: var(--oauth-brand);
+  background-color: color-mix(in oklab, var(--oauth-brand) 12%, var(--background));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--oauth-brand) 24%, transparent);
+  transform: none;
+}
+
+/* 图标容器（资料页的 OAuthProviderMark）：给品牌色，内联图标用 currentColor 时自动跟随。 */
 .oauth-provider-icon {
   display: inline-flex;
   flex: none;
   align-items: center;
   justify-content: center;
   color: var(--oauth-brand);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oauth-provider,
+  .oauth-provider-badge {
+    transition: none;
+  }
+
+  .oauth-provider:hover:not(:disabled) .oauth-provider-badge,
+  .oauth-provider[data-pending] .oauth-provider-badge {
+    transform: none;
+  }
 }
 
 /* 以下第三方平台色是各品牌方的官方标识色，不参与我们的 7 套主题轮换，只做明暗适配。 */
