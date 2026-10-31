@@ -156,23 +156,21 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 
 平台管理员不是某租户成员时，`access.Require` 仍放行租户目录里的 `:read` 权限（`perm.IsReadOnly`），写、删除、介入和执行动作返回 403；`menu:*` 判为只读，因此 `ReadOnlyNames` 含菜单权限；`/self/permissions` 据此返回 `readOnly = true` 和只读权限目录。
 
-租户预置角色：
+租户角色（M24 起）：
 
-| 角色 | 边界 |
-| --- | --- |
-| `owner` | 该 Namespace 的全部权限，含删除 Namespace、移交 owner |
-| `admin` | 管理资源。不含删除 Namespace、移交 owner |
-| `member` | 查看配置；处理告警；使用已授权的 SSH 与 Web Shell |
-| `viewer` | 只读 |
+- 新租户**不再预置** `owner`、`admin`、`member`、`viewer` 系统角色；存量预置角色由 seed 迁移删除。角色全部由租户自己创建，成员添加或分配时显式指定。
+- 租户负责人（`namespaces.owner_uid`）拥有该租户全部权限（含全部已开通能力的菜单权限，即 `perm.Names()`），由 `access` 按负责人身份隐式判定，不依赖角色；仍受套餐能力与模块开通限制。
+- 非负责人即使持有 `role:write`，也只能授予、分配「自己当前拥有的权限」的子集；`UpdateRolePermissions`、`InviteMember`、`UpdateMemberRoles` 都强制这个子集规则，负责人不受子集限制。
+- 移交负责人只修改 `namespace.owner_uid`，目标必须是 JOINED 成员；不再增删角色。
 
 权限名是 `resource:action`。租户资源为 `member`、`role`、`namespace`、`datasource`、`probe`、`alert_rule`、`alert`、`notification`、`cluster`、`agent`、`ssh`；`user` 不属于租户权限。Kubernetes 控制台按资源授权，权限名写成 `k8s:<资源>:<动作>`，资源为节点、工作负载、Pod、Ingress、Service、ConfigMap、Secret、PV、PVC、Job、CronJob；`cluster:*` 只负责集群接入与连接，进入控制台仍要求 `cluster:read`。动作至少有 `read` 与 `write`，Pod 日志是独立的只读动作 `k8s:pod:logs`。告警另有 `intervene`。执行动作为 `ssh:exec`。系统权限不写入 `permissions` 表，租户角色授权页也不返回它们。
 
 功能能力化约束（M19）：
 
-- 目录是两级：10 个模块 → 30 个能力 → 权限，全部在 `app/alioth/pkg/perm` 用代码维护（`feature.go`、`capability.go`、`perm.go`），不建表、不由接口增删；`namespace:*` 不属于任何能力，始终可用。
+- 目录是两级：10 个模块 → 41 个能力 → 权限，全部在 `app/alioth/pkg/perm` 用代码维护（`feature.go`、`capability.go`、`perm.go`），不建表、不由接口增删；`namespace:*` 不属于任何能力，始终可用。通知渠道按「类型 + 应用」细分：Webhook 分 `notify_channel_webhook_other/dingtalk/wechat/feishu`，短信分 `notify_channel_sms_alicloud/tencent`（腾讯云只进目录，不做表单与发送）。
 - 超级管理员用带 `duration_days`（0=永久）的「套餐」（`FeaturePackage` + `FeaturePackageItem`）给租户开通能力；`NamespaceFeature` 只存租户额外能力（`enabled` 恒为 true）。有效能力 = 套餐能力 ∪ 额外能力，按目录顺序排列，不落表；能力只增不减，设置接口的目标能力必须包含套餐全部能力。
 - 套餐到期（`namespaces.package_expires_at` 非空且已过）、租户停用或归档时，`EffectiveCapabilities`/`EffectiveModules` 返回空，配置保留；启用/续期后恢复。
-- 新租户默认基础套餐，只含前七个模块的全部能力（15 个）：`alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`。`cluster`、`agent`、`ssh` 能力需超级管理员开通；存量租户由 seed 迁到基础套餐并加开这三个模块的全部能力。
+- 新租户默认基础套餐，只含前七个模块的全部能力（M24 起 26 项）：`alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`。`cluster`、`agent`、`ssh` 能力需超级管理员开通；存量租户由 seed 迁到基础套餐并加开这三个模块的全部能力。
 - 菜单入口由 `menu:<能力>` 控制，角色授权页和 `/self/permissions` 都返回它；接口权限仍由能力里的权限决定。`access.Checker` 在权限通过后先校验 `perm.FeatureOf(code)` 在有效模块内（403 `feature not enabled`），租户成员还要持有覆盖该权限的菜单权限（403 `menu permission denied`）；新增受控接口不需要额外代码，映射由 `perm` 包维护。
 - 租户只能把已开通能力的权限授给角色；`ListPermissions`、`UpdateRolePermissions`、`/self/permissions` 都按有效能力过滤。
 - 租户生命周期由平台管理：`PUT /v1/system/namespace/{uid}/status` 停用/启用（停用必填原因并邮件通知负责人），`PUT /v1/system/namespace/{uid}/archive` 归档（软删除租户和全部业务数据，不可恢复）。停用租户不可切换进入，租户侧没有自行解封的接口。
