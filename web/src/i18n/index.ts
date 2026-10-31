@@ -5,9 +5,10 @@ const zh = {
   nav: {
     overview: "概览",
     profile: "个人资料",
-    namespaces: "租户",
+    namespaces: "我的租户",
     orders: "订单",
     tenants: "租户管理",
+    tenantSpace: "租户",
     packages: "套餐管理",
     users: "用户",
     invitations: "邀请函",
@@ -183,6 +184,10 @@ const zh = {
     cannotChangeAnotherSystemAdmin: "不能修改其他系统管理员。",
     cannotChangeOwnStatus: "不能修改自己的账号状态。",
     cannotChangeOwnSystemRole: "不能修改自己的系统角色。",
+    cannotDeleteSelf: "不能删除自己。",
+    cannotDeleteSuperAdmin: "不能删除平台超级管理员。",
+    cannotDeleteNamespaceOwner: "该用户仍是某个租户的负责人，不能删除。",
+    cannotDeleteUserOrders: "该用户还有租户订单，不能删除。",
     cannotChangeOwnerStatus: "不能修改 owner 的账号状态。",
     invalidSystemRole: "系统角色不合法。",
     ownerRoleByTransfer: "owner 角色只能通过移交所有权获得。",
@@ -908,7 +913,8 @@ const zh = {
     empty: "还没有成员。邀请一位用户加入当前租户。",
     emailPlaceholder: "name@example.com",
     rolePlaceholder: "选择角色",
-    roleHint: "不能把 owner 角色分配给成员。被邀请人同意后才会加入。",
+    roleHint:
+      "只能分配权限不超过你当前权限的角色；租户负责人可以分配全部角色。被邀请人同意后才会加入。",
     pendingTitle: "待确认邀请",
     pendingHint: "邀请已发出。被邀请人登录平台并同意后，才会出现在成员列表。",
     inviter: "邀请人",
@@ -926,6 +932,8 @@ const zh = {
     roleRemarkLabel: "{{name}} 的备注",
     roleRemarkMissing: "暂无备注",
     roleDisabled: "已停用",
+    ownerBadge: "负责人",
+    roleScopeHint: "只能分配权限不超过你当前权限的角色。",
   },
   invitation: {
     title: "邀请函",
@@ -1017,6 +1025,9 @@ const zh = {
       selectMenu: "勾选 {{menu}} 菜单权限",
       menuHint:
         "功能权限按菜单归类：勾选菜单默认拥有该菜单的读权限；菜单下的写、删除、执行权限按需勾选，菜单未勾选时不可用。",
+      scopeHint:
+        "你只能配置自己当前拥有的权限；超出范围的权限不会出现在这里。",
+      beyondOwn: "不能授予超出自己权限范围的角色权限。",
       menuOff: "未启用",
       menuCount: "{{count}} 个菜单",
       sharedPermissions: "组内共享权限（多个菜单共用，只需勾选一次）",
@@ -2337,6 +2348,9 @@ const zh = {
   confirm: {
     deleteTitle: "确认删除",
     deleteDescription: "删除后不能恢复。",
+    deleteUserTitle: "确认删除用户",
+    deleteUserDescription:
+      "删除后该用户的第三方绑定、成员关系和个人配置会被清理，且不能恢复。租户负责人、超级管理员和还有订单的用户不能删除。",
     banTitle: "确认封禁",
     banDescription: "封禁后该用户不能登录。",
     disableTitle: "确认停用",
@@ -2857,9 +2871,10 @@ const en = {
   nav: {
     overview: "Overview",
     profile: "Profile",
-    namespaces: "Namespaces",
+    namespaces: "My tenants",
     orders: "Orders",
-    tenants: "Tenants",
+    tenants: "Tenant admin",
+    tenantSpace: "Tenant",
     packages: "Packages",
     users: "Users",
     invitations: "Invitations",
@@ -3046,6 +3061,12 @@ const en = {
     cannotChangeAnotherSystemAdmin: "Another system admin cannot be changed.",
     cannotChangeOwnStatus: "You cannot change your own account status.",
     cannotChangeOwnSystemRole: "You cannot change your own system role.",
+    cannotDeleteSelf: "You cannot delete your own account.",
+    cannotDeleteSuperAdmin: "The platform super admin cannot be deleted.",
+    cannotDeleteNamespaceOwner:
+      "This user still owns a namespace and cannot be deleted.",
+    cannotDeleteUserOrders:
+      "This user still has namespace orders and cannot be deleted.",
     cannotChangeOwnerStatus: "The owner account status cannot be changed.",
     invalidSystemRole: "Invalid system role.",
     ownerRoleByTransfer: "The owner role is only granted by transferring ownership.",
@@ -3837,7 +3858,7 @@ const en = {
     emailPlaceholder: "name@example.com",
     rolePlaceholder: "Choose a role",
     roleHint:
-      "The owner role cannot be assigned here. The invitee joins after accepting.",
+      "Only roles within your own permissions can be assigned here; the tenant owner can assign any role. The invitee joins after accepting.",
     pendingTitle: "Pending invitations",
     pendingHint:
       "Invitations are sent. The invitee appears in the member list only after accepting on the platform.",
@@ -3858,6 +3879,9 @@ const en = {
     roleRemarkLabel: "Remark for {{name}}",
     roleRemarkMissing: "No remark",
     roleDisabled: "Disabled",
+    ownerBadge: "Owner",
+    roleScopeHint:
+      "You can only assign roles whose permissions are within your own.",
   },
   invitation: {
     title: "Invitations",
@@ -3958,6 +3982,9 @@ const en = {
       selectMenu: "Grant the {{menu}} menu permission",
       menuHint:
         "Functions are grouped by menu: granting a menu includes its read permissions by default. Write, delete, and execute permissions under the menu are optional and unavailable until the menu is granted.",
+      scopeHint:
+        "You can only configure permissions you currently hold; permissions outside your scope are not shown.",
+      beyondOwn: "You cannot grant permissions beyond your own.",
       menuOff: "Not granted",
       menuCount: "{{count}} menus",
       sharedPermissions:
@@ -5349,6 +5376,9 @@ const en = {
   confirm: {
     deleteTitle: "Confirm delete",
     deleteDescription: "This cannot be undone.",
+    deleteUserTitle: "Delete user",
+    deleteUserDescription:
+      "This removes the user's third-party bindings, memberships and personal settings, and cannot be undone. Namespace owners, the super admin and users with orders cannot be deleted.",
     banTitle: "Confirm ban",
     banDescription: "This user will not be able to log in.",
     disableTitle: "Confirm disable",
