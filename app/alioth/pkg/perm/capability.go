@@ -268,14 +268,12 @@ var (
 		}
 		return index
 	}()
-	menuPermissionIndex = func() map[string]string {
-		index := make(map[string]string, len(capabilitySpecs))
-		for _, item := range capabilitySpecs {
-			index[MenuPermission(item.Code)] = item.Code
-		}
-		return index
-	}()
 )
+
+// DatasourceCapabilities 按目录顺序返回全部数据源驱动能力。
+func DatasourceCapabilities() []string {
+	return CapabilityCodesOfModule(FeatureDatasource)
+}
 
 // Capabilities 按固定顺序返回全部能力，供套餐勾选和前端分组。
 func Capabilities() []Capability {
@@ -349,34 +347,6 @@ func BaseCapabilities() []string {
 		}
 	}
 	return codes
-}
-
-// MenuPermission 返回能力对应的菜单权限名。菜单权限是租户角色可见入口的开关：
-// 只有持有 menu:<能力> 的角色才进入该能力的页面，接口权限仍由能力里的权限决定。
-func MenuPermission(code string) string {
-	return "menu:" + code
-}
-
-// MenuPermissionCapability 返回菜单权限对应的能力编码；不是合法菜单权限时返回空字符串。
-func MenuPermissionCapability(permission string) string {
-	if !strings.HasPrefix(permission, "menu:") {
-		return ""
-	}
-	return menuPermissionIndex[permission]
-}
-
-// IsMenuPermission 判断权限名是不是能力目录里的菜单权限。
-func IsMenuPermission(permission string) bool {
-	return MenuPermissionCapability(permission) != ""
-}
-
-// MenuPermissions 按能力目录顺序返回全部菜单权限名。
-func MenuPermissions() []string {
-	names := make([]string, 0, len(capabilitySpecs))
-	for _, item := range capabilitySpecs {
-		names = append(names, MenuPermission(item.Code))
-	}
-	return names
 }
 
 // DefaultReadPermissions 返回能力默认勾选的读权限：以 :read 或 :logs 结尾的动作。
@@ -469,11 +439,11 @@ func RolePermissionsForCapabilities(role string, capabilities []string) []string
 		}
 		names = append(names, name)
 	}
-	for _, item := range capabilitySpecs {
-		if _, ok := allowedCapabilities[item.Code]; !ok {
+	for _, menu := range menuSpecs {
+		if !MenuLicensed(menu.Code, capabilities) {
 			continue
 		}
-		names = append(names, MenuPermission(item.Code))
+		names = append(names, MenuPermission(menu.Code))
 	}
 	return names
 }

@@ -2,7 +2,6 @@ package role
 
 import (
 	"context"
-	"slices"
 	"time"
 
 	"github.com/google/wire"
@@ -190,11 +189,11 @@ func normalizeRoleGrant(names, capabilities, modules []string) []string {
 		if perm.IsMenuPermission(name) || perm.FeatureOf(name) == "" {
 			continue
 		}
-		for _, capability := range perm.PermissionCapabilities(name) {
-			if !slices.Contains(capabilities, capability) {
+		for _, menu := range perm.MenusOfPermission(name) {
+			if !perm.MenuLicensed(menu, capabilities) {
 				continue
 			}
-			add(perm.MenuPermission(capability))
+			add(perm.MenuPermission(menu))
 			break
 		}
 	}
@@ -204,7 +203,7 @@ func normalizeRoleGrant(names, capabilities, modules []string) []string {
 		if capability == "" {
 			continue
 		}
-		for _, read := range perm.DefaultReadPermissions(capability) {
+		for _, read := range perm.DefaultReadsOfMenu(capability) {
 			if permissionInTenantScope(read, capabilities, modules) {
 				add(read)
 			}
@@ -236,6 +235,51 @@ func (authority *Authority) ListPermissions(ctx context.Context) ([]bo.Permissio
 		out = append(out, item)
 	}
 	return out, nil
+}
+
+// ListPermissionMenus 返回角色授权页需要的「菜单 → 子权限」目录。
+// 菜单只在租户已开通能力范围内返回；Always 菜单（租户设置）始终返回。
+// 共享权限会出现在多个菜单下，由前端按动作去重展示。
+func (authority *Authority) ListPermissionMenus(ctx context.Context) ([]bo.Permission, []bo.PermissionMenu, error) {
+	ns, err := authority.access.Allow(ctx, perm.RoleRead)
+	if err != nil {
+		return nil, nil, err
+	}
+	capabilities, modules, err := authority.tenantScope(ctx, ns)
+	if err != nil {
+		return nil, nil, err
+	}
+	items, err := authority.roles.ListPermissions(ctx)
+	if err != nil {
+		return nil, nil, authority.access.Wrap(err)
+	}
+	out := make([]bo.Permission, 0, len(items))
+	byName := make(map[string]bo.Permission, len(items))
+	for _, item := range items {
+		if !permissionInTenantScope(item.Name, capabilities, modules) {
+			continue
+		}
+		out = append(out, item)
+		byName[item.Name] = item
+	}
+	menus := make([]bo.PermissionMenu, 0, len(perm.Menus()))
+	for _, menu := range perm.Menus() {
+		if !perm.MenuLicensed(menu.Code, capabilities) {
+			continue
+		}
+		permissions := make([]bo.Permission, 0, len(menu.Permissions))
+		for _, name := range menu.Permissions {
+			if item, ok := byName[name]; ok {
+				permissions = append(permissions, item)
+			}
+		}
+		menus = append(menus, bo.PermissionMenu{
+			Code: menu.Code, Group: menu.Group, Name: menu.Name,
+			Always: menu.Always, Capabilities: menu.Capabilities,
+			DefaultReads: menu.DefaultReads, Permissions: permissions,
+		})
+	}
+	return out, menus, nil
 }
 
 // Mine 返回当前用户在当前租户的权限名、有效能力和是否只是平台管理员的只读视角。
@@ -335,10 +379,10 @@ func (authority *Authority) tenantScope(ctx context.Context, namespaceUID string
 // 菜单权限看对应能力；普通权限看所属模块；namespace:* 不属于任何能力，始终可用。
 func permissionInTenantScope(name string, capabilities, modules []string) bool {
 	if perm.IsMenuPermission(name) {
-		return slices.Contains(capabilities, perm.MenuPermissionCapability(name))
+		menu, ok := perm.MenuOfMenuPermission(name)
+		return ok && perm.MenuLicensed(menu, capabilities)
 	}
-	module := perm.FeatureOf(name)
-	return module == "" || slices.Contains(modules, module)
+	return perm.PermissionLicensed(name, capabilities)
 }
 
 // readOnlyPermissions 返回平台管理员只读切入时的权限目录：
@@ -356,8 +400,8 @@ func readOnlyPermissions(capabilities, modules []string) []string {
 		seen[name] = struct{}{}
 		out = append(out, name)
 	}
-	for _, capCode := range capabilities {
-		name := perm.MenuPermission(capCode)
+	for _, menu := range perm.EffectiveMenus(capabilities) {
+		name := perm.MenuPermission(menu)
 		if _, ok := seen[name]; ok {
 			continue
 		}

@@ -80,6 +80,18 @@ type Permission struct {
 	Action   string
 }
 
+// PermissionMenu 是角色授权页的菜单节点：菜单权限 + 菜单下的子权限。
+// DefaultReads 是勾选菜单时默认授予的读权限；Always 表示不受套餐能力限制。
+type PermissionMenu struct {
+	Code         string
+	Group        string
+	Name         string
+	Always       bool
+	Capabilities []string
+	DefaultReads []string
+	Permissions  []Permission
+}
+
 // MemberInvite 是平台发给用户的一条租户邀请消息。
 // 邀请只创建 INVITED 成员，用户确认后才成为 JOINED 成员。
 type MemberInvite struct {

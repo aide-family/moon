@@ -55,6 +55,9 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	if err := migrateNamespacePackageSnapshots(ctx, client, helper); err != nil {
 		return err
 	}
+	if err := migrateMenuPermissionCodes(ctx, client, helper); err != nil {
+		return err
+	}
 	if err := syncTenantRoles(ctx, client, helper); err != nil {
 		return err
 	}
@@ -592,10 +595,143 @@ func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logge
 	return nil
 }
 
-// migrateRoleMenuPermissions 给已经持有能力权限的角色补上对应菜单权限。
-// 升级前菜单按模块显示，没有 menu:* 权限；能力化后菜单入口由 menu:<能力> 控制。
-// 规则：角色持有能力的任一权限，就补该能力的菜单权限；只补缺失项，可重复执行。
-// 系统角色已经由 syncTenantRoles 按预置目录补齐，这里同样幂等处理。
+// legacyMenuPermissionName 把拆分前按能力生成的菜单权限映射到新的菜单目录：
+// 数据源的 6 个能力、探测的 HTTP 能力、通知渠道的 3 个类型都合并回一个菜单。
+func legacyMenuPermissionName(name string) string {
+	switch {
+	case strings.HasPrefix(name, "menu:datasource_"):
+		return perm.MenuPermission("datasource")
+	case name == perm.MenuPermission("probe_http"):
+		return perm.MenuPermission("probe")
+	case strings.HasPrefix(name, "menu:notify_channel_"):
+		return perm.MenuPermission("notification_channel")
+	case name == perm.MenuPermission("notify_template"):
+		return perm.MenuPermission("notification_template")
+	case name == perm.MenuPermission("notify_group"):
+		return perm.MenuPermission("notification_group")
+	case name == perm.MenuPermission("notify_subscription"):
+		return perm.MenuPermission("notification_subscription")
+	case name == perm.MenuPermission("notify_oncall"):
+		return perm.MenuPermission("notification_oncall")
+	case name == perm.MenuPermission("agent_machine"):
+		return perm.MenuPermission("agent")
+	default:
+		return name
+	}
+}
+
+// migrateMenuPermissionCodes 把角色旧的 menu:<能力> 授权迁移到新菜单：
+// 数据源 / 探测 / 通知渠道合并；持有 namespace:* 的角色补「租户设置」菜单。
+func migrateMenuPermissionCodes(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	rows, err := client.Permission.Query().All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	uidToName := make(map[string]string, len(rows))
+	nameToUID := make(map[string]string, len(rows))
+	for _, item := range rows {
+		uidToName[item.UID] = item.Name
+		nameToUID[item.Name] = item.UID
+	}
+	namespaceMenuUID := nameToUID[perm.MenuPermission("namespace")]
+	namespacePermissionNames := map[string]struct{}{
+		perm.NamespaceRead: {}, perm.NamespaceWrite: {}, perm.NamespaceDelete: {}, perm.NamespaceTransfer: {},
+	}
+	links, err := client.RolePermission.Query().All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	held := make(map[string]map[string]struct{}, len(rows))
+	for _, link := range links {
+		if held[link.RoleUID] == nil {
+			held[link.RoleUID] = make(map[string]struct{})
+		}
+		name := uidToName[link.PermissionUID]
+		held[link.RoleUID][name] = struct{}{}
+	}
+	for _, link := range links {
+		oldName := uidToName[link.PermissionUID]
+		newName := legacyMenuPermissionName(oldName)
+		if newName == oldName {
+			continue
+		}
+		newUID := nameToUID[newName]
+		if newUID == "" {
+			continue
+		}
+		if _, ok := held[link.RoleUID][newName]; !ok {
+			exists, err := client.RolePermission.Query().Where(
+				rolepermission.RoleUIDEQ(link.RoleUID),
+				rolepermission.PermissionUIDEQ(newUID),
+			).Exist(ctx)
+			if err != nil {
+				return databaseErr(helper, err)
+			}
+			if !exists {
+				if _, err := client.RolePermission.Create().
+					SetUID(id.New()).
+					SetNamespaceUID(link.NamespaceUID).
+					SetRoleUID(link.RoleUID).
+					SetPermissionUID(newUID).
+					Save(ctx); err != nil {
+					return databaseErr(helper, err)
+				}
+			}
+			held[link.RoleUID][newName] = struct{}{}
+		}
+		if _, err := client.RolePermission.Delete().Where(rolepermission.UIDEQ(link.UID)).Exec(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+	}
+	// 租户设置菜单：持有任意 namespace:* 的角色都归属到这个固定菜单。
+	if namespaceMenuUID != "" {
+		for roleUID, names := range held {
+			hasNamespace := false
+			for name := range names {
+				if _, ok := namespacePermissionNames[name]; ok {
+					hasNamespace = true
+					break
+				}
+			}
+			if !hasNamespace {
+				continue
+			}
+			if _, ok := names[perm.MenuPermission("namespace")]; ok {
+				continue
+			}
+			exists, err := client.RolePermission.Query().Where(
+				rolepermission.RoleUIDEQ(roleUID),
+				rolepermission.PermissionUIDEQ(namespaceMenuUID),
+			).Exist(ctx)
+			if err != nil {
+				return databaseErr(helper, err)
+			}
+			if exists {
+				continue
+			}
+			// namespace 角色一定属于某个租户：取该角色任一现有授权里的租户。
+			link, err := client.RolePermission.Query().
+				Where(rolepermission.RoleUIDEQ(roleUID)).
+				First(ctx)
+			if err != nil {
+				continue
+			}
+			if _, err := client.RolePermission.Create().
+				SetUID(id.New()).
+				SetNamespaceUID(link.NamespaceUID).
+				SetRoleUID(roleUID).
+				SetPermissionUID(namespaceMenuUID).
+				Save(ctx); err != nil {
+				return databaseErr(helper, err)
+			}
+		}
+	}
+	return nil
+}
+
+// migrateRoleMenuPermissions 给角色补菜单权限和菜单默认读权限。
+// 规则：角色持有菜单声明的任一权限，就补 menu:<菜单>；持有菜单就补默认读权限。
+// 只补缺失项，可重复执行；系统角色由 syncTenantRoles 先按预置目录补齐。
 func migrateRoleMenuPermissions(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	permissions, err := client.Permission.Query().All(ctx)
 	if err != nil {
@@ -648,21 +784,13 @@ func migrateRoleMenuPermissions(ctx context.Context, client *ent.Client, helper 
 				heldNames[name] = struct{}{}
 			}
 		}
-		for _, code := range capabilities {
-			capability, ok := perm.CapabilityOf(code)
-			if !ok {
-				continue
+		add := func(name string) error {
+			if _, ok := heldNames[name]; ok {
+				return nil
 			}
-			if !holdsAnyPermission(heldNames, capability.Permissions) {
-				continue
-			}
-			menuPermission := perm.MenuPermission(code)
-			if _, ok := heldNames[menuPermission]; ok {
-				continue
-			}
-			permissionUID := nameToUID[menuPermission]
+			permissionUID := nameToUID[name]
 			if permissionUID == "" {
-				continue
+				return nil
 			}
 			if _, err := client.RolePermission.Create().
 				SetUID(id.New()).
@@ -672,7 +800,36 @@ func migrateRoleMenuPermissions(ctx context.Context, client *ent.Client, helper 
 				Save(ctx); err != nil {
 				return databaseErr(helper, err)
 			}
-			heldNames[menuPermission] = struct{}{}
+			heldNames[name] = struct{}{}
+			return nil
+		}
+		for _, menuCode := range perm.EffectiveMenus(capabilities) {
+			menu, ok := perm.MenuOf(menuCode)
+			if !ok {
+				continue
+			}
+			// 角色持有菜单下任一权限，就认为它需要这个菜单入口。
+			if !holdsAnyPermission(heldNames, menu.Permissions) {
+				continue
+			}
+			if err := add(perm.MenuPermission(menuCode)); err != nil {
+				return err
+			}
+		}
+		// 菜单权限默认带读权限，只补租户能力范围内的读权限。
+		for _, menuCode := range perm.EffectiveMenus(capabilities) {
+			if _, ok := heldNames[perm.MenuPermission(menuCode)]; !ok {
+				continue
+			}
+			menu, _ := perm.MenuOf(menuCode)
+			for _, read := range menu.DefaultReads {
+				if !perm.PermissionLicensed(read, capabilities) {
+					continue
+				}
+				if err := add(read); err != nil {
+					return err
+				}
+			}
 		}
 	}
 	return nil

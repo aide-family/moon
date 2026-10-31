@@ -12,7 +12,11 @@ import {
   updateRoleRemark,
   updateRoleStatus,
 } from "@/api/role"
-import type { PermissionItem, RoleItem } from "@/api/role/types"
+import type {
+  PermissionItem,
+  PermissionMenu,
+  RoleItem,
+} from "@/api/role/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -63,6 +67,8 @@ export function RolePage() {
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
   const [catalog, setCatalog] = useState<PermissionItem[]>([])
+  // 菜单目录由后端返回，授权页按「分组 → 菜单 → 子权限」渲染。
+  const [menus, setMenus] = useState<PermissionMenu[]>([])
   const [catalogStatus, setCatalogStatus] = useState<"loading" | "ready" | "failed">("loading")
   const [catalogTick, setCatalogTick] = useState(0)
   const [open, setOpen] = useState(false)
@@ -94,11 +100,13 @@ export function RolePage() {
       .then((permissions) => {
         if (!active) return
         setCatalog(permissions.items ?? [])
+        setMenus(permissions.menus ?? [])
         setCatalogStatus("ready")
       })
       .catch(() => {
         if (!active) return
         setCatalog([])
+        setMenus([])
         setCatalogStatus("failed")
       })
     return () => {
@@ -509,6 +517,7 @@ export function RolePage() {
         open={granting !== null}
         role={granting}
         catalog={catalog}
+        menus={menus}
         catalogLoading={catalogStatus === "loading"}
         catalogFailed={catalogStatus === "failed"}
         onRetryCatalog={() => {
@@ -554,7 +563,11 @@ export function RolePage() {
             label: t("action.permissions"),
             span: 2,
             value: (
-              <PermissionSummary permissions={detail?.permissions ?? []} catalog={catalog} />
+              <PermissionSummary
+                permissions={detail?.permissions ?? []}
+                catalog={catalog}
+                menus={menus}
+              />
             ),
           },
           { label: t("detail.uid"), value: detail?.uid ?? "" },

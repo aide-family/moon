@@ -318,9 +318,9 @@ func TestEveryTenantPermissionBelongsToCapability(t *testing.T) {
 // TestReadOnlyNamesCoverCapabilities 确认只读目录包含菜单权限，平台只读能展示菜单。
 func TestReadOnlyNamesCoverCapabilities(t *testing.T) {
 	names := perm.ReadOnlyNames()
-	for _, capability := range perm.Capabilities() {
-		if !slices.Contains(names, perm.MenuPermission(capability.Code)) {
-			t.Fatalf("read-only names missing menu permission for %s", capability.Code)
+	for _, menu := range perm.Menus() {
+		if !slices.Contains(names, perm.MenuPermission(menu.Code)) {
+			t.Fatalf("read-only names missing menu permission for %s", menu.Code)
 		}
 	}
 }

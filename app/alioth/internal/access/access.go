@@ -186,12 +186,12 @@ func (c Checker) RequireCapability(ctx context.Context, capability string) error
 // hasMenuPermission 判断角色是否持有能覆盖 code 的菜单权限。
 // 能力必须已在租户开通范围内，且角色的权限集合里出现对应的 menu:<能力>。
 func (c Checker) hasMenuPermission(perms map[string]struct{}, capabilities []string, code string) bool {
-	for _, capCode := range capabilities {
-		capability, ok := perm.CapabilityOf(capCode)
-		if !ok || !slices.Contains(capability.Permissions, code) {
+	// 权限声明的菜单中，只要有一个被租户能力开通、且角色持有它的菜单权限，即可入口。
+	for _, menu := range perm.MenusOfPermission(code) {
+		if !perm.MenuLicensed(menu, capabilities) {
 			continue
 		}
-		if _, held := perms[perm.MenuPermission(capCode)]; held {
+		if _, held := perms[perm.MenuPermission(menu)]; held {
 			return true
 		}
 	}

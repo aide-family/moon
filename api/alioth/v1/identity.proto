@@ -1695,10 +1695,30 @@ message UpdateRolePermissionsResponse {
 // 列出权限不需要参数。
 message ListPermissionsRequest {}
 
-// 全部权限。
+// 授权菜单。菜单是角色授权的一级单位，子权限挂在菜单下。
+message PermissionMenu {
+  // 菜单编码，菜单权限名为 menu:<code>。
+  string code = 1;
+  // 菜单分组，用于授权页按模块归类。
+  string group = 2;
+  // 菜单名称。
+  string name = 3;
+  // 是否不受套餐能力限制（租户设置）。
+  bool always = 4;
+  // 可开通该菜单的能力编码。
+  repeated string capabilities = 5;
+  // 勾选菜单默认授予的读权限。
+  repeated string default_reads = 6 [json_name = "defaultReads"];
+  // 菜单下的子权限。
+  repeated PermissionItem permissions = 7;
+}
+
+// 全部权限与授权菜单。
 message ListPermissionsResponse {
   // 当前页数据。
   repeated PermissionItem items = 1;
+  // 菜单目录，按菜单顺序返回。
+  repeated PermissionMenu menus = 2;
 }
 
 // 当前用户的平台邀请消息。

@@ -89,13 +89,12 @@ func (s *RoleService) UpdateRolePermissions(ctx context.Context, req *v1.UpdateR
 }
 
 func (s *RoleService) ListPermissions(ctx context.Context, _ *v1.ListPermissionsRequest) (*v1.ListPermissionsResponse, error) {
-	items, err := s.authority.ListPermissions(ctx)
+	items, menus, err := s.authority.ListPermissionMenus(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := make([]*v1.PermissionItem, 0, len(items))
-	for _, item := range items {
-		out = append(out, &v1.PermissionItem{Uid: item.UID, Name: item.Name, Resource: item.Resource, Action: item.Action})
-	}
-	return &v1.ListPermissionsResponse{Items: out}, nil
+	return &v1.ListPermissionsResponse{
+		Items: permissionItems(items),
+		Menus: permissionMenus(menus),
+	}, nil
 }

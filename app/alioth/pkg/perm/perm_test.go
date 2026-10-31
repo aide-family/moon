@@ -1,6 +1,7 @@
 package perm
 
 import (
+	"slices"
 	"strings"
 	"testing"
 )
@@ -267,21 +268,32 @@ func TestCapabilityCatalog(t *testing.T) {
 				t.Fatalf("capability permission %s is not a tenant permission", name)
 			}
 		}
-		if got := FeatureOf(MenuPermission(item.Code)); got != item.Module {
-			t.Fatalf("FeatureOf(menu:%s) = %s, want %s", item.Code, got, item.Module)
-		}
 		if got := FeatureOf(item.Code); got != item.Module {
 			t.Fatalf("FeatureOf(%s) = %s, want %s", item.Code, got, item.Module)
 		}
-		if !IsMenuPermission(MenuPermission(item.Code)) {
-			t.Fatalf("menu permission for %s not recognized", item.Code)
+	}
+	menus := Menus()
+	for _, menu := range menus {
+		if !IsMenu(menu.Code) {
+			t.Fatalf("menu %s not recognized", menu.Code)
 		}
-		if !IsReadOnly(MenuPermission(item.Code)) {
-			t.Fatalf("menu permission for %s is not read-only", item.Code)
+		if got := FeatureOf(MenuPermission(menu.Code)); got != menu.Group {
+			t.Fatalf("FeatureOf(menu:%s) = %s, want %s", menu.Code, got, menu.Group)
+		}
+		if !IsMenuPermission(MenuPermission(menu.Code)) {
+			t.Fatalf("menu permission for %s not recognized", menu.Code)
+		}
+		if !IsReadOnly(MenuPermission(menu.Code)) {
+			t.Fatalf("menu permission for %s is not read-only", menu.Code)
+		}
+		for _, read := range menu.DefaultReads {
+			if !slices.Contains(menu.Permissions, read) {
+				t.Fatalf("menu %s default read %s is not one of its permissions", menu.Code, read)
+			}
 		}
 	}
-	if len(set(MenuPermissions())) != len(items) {
-		t.Fatal("menu permission count does not match capability count")
+	if len(set(MenuPermissions())) != len(menus) {
+		t.Fatal("menu permission count does not match menu count")
 	}
 	base := BaseCapabilities()
 	if len(base) != 22 {

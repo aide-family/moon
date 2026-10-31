@@ -28,10 +28,9 @@ type testRoles struct{ repository.RoleRepo }
 
 func (testRoles) Permissions(context.Context, string, string) (map[string]struct{}, error) {
 	return map[string]struct{}{
-		perm.DatasourceWrite: {},
-		perm.DatasourceRead:  {},
-		perm.MenuPermission(perm.CapabilityDatasourcePrometheus): {},
-		perm.MenuPermission(perm.CapabilityDatasourceLoki):       {},
+		perm.DatasourceWrite:              {},
+		perm.DatasourceRead:               {},
+		perm.MenuPermission("datasource"): {},
 	}, nil
 }
 

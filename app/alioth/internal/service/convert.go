@@ -226,3 +226,33 @@ func packageNamespaceItems(items []bo.Namespace) []*v1.PackageNamespaceItem {
 	}
 	return out
 }
+
+// permissionItem 把权限目录项转成接口视图。
+func permissionItem(item bo.Permission) *v1.PermissionItem {
+	return &v1.PermissionItem{Uid: item.UID, Name: item.Name, Resource: item.Resource, Action: item.Action}
+}
+
+func permissionItems(items []bo.Permission) []*v1.PermissionItem {
+	out := make([]*v1.PermissionItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, permissionItem(item))
+	}
+	return out
+}
+
+// permissionMenu 把菜单目录转成授权页的菜单节点。
+func permissionMenu(item bo.PermissionMenu) *v1.PermissionMenu {
+	return &v1.PermissionMenu{
+		Code: item.Code, Group: item.Group, Name: item.Name, Always: item.Always,
+		Capabilities: item.Capabilities, DefaultReads: item.DefaultReads,
+		Permissions: permissionItems(item.Permissions),
+	}
+}
+
+func permissionMenus(items []bo.PermissionMenu) []*v1.PermissionMenu {
+	out := make([]*v1.PermissionMenu, 0, len(items))
+	for _, item := range items {
+		out = append(out, permissionMenu(item))
+	}
+	return out
+}

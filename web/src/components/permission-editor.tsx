@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react"
-import { ChevronRight, Info, Loader2, Search } from "lucide-react"
+import { ChevronRight, Loader2, Search } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
-import type { PermissionItem, RoleItem } from "@/api/role/types"
+import type {
+  PermissionItem,
+  PermissionMenu,
+  RoleItem,
+} from "@/api/role/types"
 import { ConfirmAction } from "@/components/confirm-action"
 import { RoleTypeTag } from "@/components/role-type-tag"
 import { Button } from "@/components/ui/button"
@@ -22,21 +26,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { cn } from "@/lib/class-names"
-import {
-  CAPABILITY_PERMISSIONS,
-  capabilityDescription,
-  capabilityLabel,
-} from "@/lib/feature-catalog"
+import { menuLabel, moduleDefinition } from "@/lib/feature-catalog"
 import { formErrorMessage } from "@/lib/form-error"
 import {
   OWNER_ONLY,
-  actionLabel,
   matchesPermission,
   permissionActionLabel,
 } from "@/lib/permission-catalog"
@@ -44,24 +38,16 @@ import {
 interface PermissionEditorProps {
   open: boolean
   role: RoleItem | null
+  /** 后端返回的完整权限目录，用于显示没有菜单归属的旧授权。 */
   catalog: PermissionItem[]
+  /** 后端返回的菜单目录。授权页按「分组 → 菜单 → 子权限」渲染。 */
+  menus: PermissionMenu[]
   catalogLoading: boolean
   catalogFailed: boolean
   onRetryCatalog: () => void
   onOpenChange: (open: boolean) => void
   // 保存由页面负责：成功后页面需要 reload，失败则抛出错误，编辑器保留当前勾选。
   onSave: (permissions: string[]) => Promise<void>
-}
-
-interface MenuGroup {
-  key: string
-  title: string
-  /** 菜单权限名 menu:<能力>；租户设置和未归类分组没有菜单权限。 */
-  menuName?: string
-  children: PermissionItem[]
-  /** 菜单勾选后自动带上的读权限。 */
-  defaultReads: Set<string>
-  description?: string
 }
 
 function sameSet(left: Set<string>, right: Set<string>): boolean {
@@ -76,24 +62,20 @@ function sameSet(left: Set<string>, right: Set<string>): boolean {
   return true
 }
 
-function isDefaultRead(name: string): boolean {
-  return name.endsWith(":read") || name.endsWith(":logs")
-}
-
-/** 「租户设置」是固定菜单：namespace:* 不属于任何套餐能力，但仍要有归类的菜单。 */
-const NAMESPACE_MENU = "namespace"
-const NAMESPACE_READ = "namespace:read"
+const TENANT_GROUP = { zh: "租户与成员", en: "Tenant & members" }
 
 /**
- * 角色权限配置器：功能权限跟随菜单。
- * - 一级是菜单（能力）权限，勾选菜单默认带上读权限；
- * - 二级是菜单下的子权限（写、删除、执行等），菜单未勾选时不可选；
- * - `namespace:*` 归到固定的「租户设置」菜单；套餐外的旧授权单独展示、默认保留。
+ * 角色权限配置器：功能权限按菜单归类，布局为「分组 → 菜单 → 子权限」。
+ * - 勾选菜单默认包含该菜单的读权限（锁定不可取消）；
+ * - 菜单下的写/删/执行子权限须先勾选菜单；
+ * - 多个菜单共享的权限在分组顶部只出现一次，避免同一个权限出现多份勾选框；
+ * - `namespace:*` 归入固定「租户设置」菜单，套餐外旧授权单独展示并默认保留。
  */
 export function PermissionEditor({
   open,
   role,
   catalog,
+  menus,
   catalogLoading,
   catalogFailed,
   onRetryCatalog,
@@ -102,82 +84,38 @@ export function PermissionEditor({
 }: PermissionEditorProps) {
   const { t, i18n } = useTranslation()
   const available = new Set(catalog.map((item) => item.name))
-  const availableItem = new Map(catalog.map((item) => [item.name, item]))
-  const menuItems = catalog.filter((item) => item.resource === "menu")
-  const menuCodes = menuItems
-    .map((item) => item.action)
-    .filter((code) => CAPABILITY_PERMISSIONS[code] !== undefined)
-
-  // 每个子权限只挂在一个菜单下：多个能力共享同一组接口权限时归到目录里第一个能力。
-  const ownerByPermission = new Map<string, string>()
-  for (const code of menuCodes) {
-    for (const permission of CAPABILITY_PERMISSIONS[code] ?? []) {
-      if (!ownerByPermission.has(permission)) {
-        ownerByPermission.set(permission, code)
-      }
-    }
-  }
-
-  const namespaceItems = catalog.filter((item) => item.resource === "namespace")
-  const groups: MenuGroup[] = menuCodes.map((code) => {
-    const label = capabilityLabel(code)
-    return {
-      key: `cap-${code}`,
-      title: `${label.zh} / ${label.en}`,
-      menuName: `menu:${code}`,
-      children: [...ownerByPermission.entries()]
-        .filter(([permission, owner]) => owner === code && available.has(permission))
-        .map(([permission]) => availableItem.get(permission)!)
-        .filter(Boolean),
-      defaultReads: new Set(
-        (CAPABILITY_PERMISSIONS[code] ?? []).filter(
-          (permission) => available.has(permission) && isDefaultRead(permission)
-        )
-      ),
-      description: capabilityDescription(code, i18n.language),
-    }
-  })
-  if (namespaceItems.length > 0) {
-    groups.push({
-      key: `fixed-${NAMESPACE_MENU}`,
-      title: t("role.grant.namespaceMenu"),
-      children: namespaceItems,
-      defaultReads: available.has(NAMESPACE_READ)
-        ? new Set([NAMESPACE_READ])
-        : new Set(),
-    })
-  }
-  const unclassified = catalog.filter(
-    (item) =>
-      item.resource !== "menu" &&
-      item.resource !== "namespace" &&
-      !ownerByPermission.has(item.name)
-  )
-  if (unclassified.length > 0) {
-    groups.push({
-      key: "unclassified",
-      title: t("role.grant.unclassified"),
-      children: unclassified,
-      defaultReads: new Set(),
-    })
-  }
-
-  // 每次打开都由页面用 key 重新挂载，初始值直接取当前角色。
+  const menuByCode = new Map(menus.map((menu) => [menu.code, menu]))
   const held = role?.permissions ?? []
+  const heldMenus = new Set(
+    held
+      .filter((name) => name.startsWith("menu:"))
+      .map((name) => name.slice(5))
+      .filter((code) => menuByCode.has(code))
+  )
+  const heldPermissions = new Set(
+    held.filter((name) => !name.startsWith("menu:") && available.has(name))
+  )
   const preservedNames = held.filter((name) => !available.has(name))
-  const initialMenus = new Set(
-    held.filter((name) => name.startsWith("menu:") && available.has(name))
-  )
-  const initialPermissions = new Set(
-    held.filter((name) => !name.startsWith("menu:"))
-  )
+  // 旧授权可能只有子权限、没有菜单权限；打开时按子权限补上声明的菜单，
+  // 与后端 normalizeRoleGrant 的规则保持一致，避免保存时静默丢掉授权。
+  const initialMenus = new Set(heldMenus)
+  for (const name of heldPermissions) {
+    const declaring = menus.filter((menu) =>
+      menu.permissions.some((item) => item.name === name)
+    )
+    if (
+      declaring.length > 0 &&
+      !declaring.some((menu) => initialMenus.has(menu.code))
+    ) {
+      initialMenus.add(declaring[0].code)
+    }
+  }
+
   const [baseline] = useState(
-    () => new Set([...normalizeRolePermissions(held, available), ...preservedNames])
+    () => new Set(buildPayload(initialMenus, heldPermissions, new Set(preservedNames), menus, available))
   )
   const [selectedMenus, setSelectedMenus] = useState(initialMenus)
-  const [selectedPermissions, setSelectedPermissions] = useState(
-    initialPermissions
-  )
+  const [selectedPermissions, setSelectedPermissions] = useState(heldPermissions)
   const [selectedPreserved, setSelectedPreserved] = useState(
     new Set(preservedNames)
   )
@@ -196,43 +134,55 @@ export function PermissionEditor({
 
   useEffect(() => () => window.clearTimeout(undoTimer.current), [])
 
-  const selectedPayload = buildPayload({
-    menus: selectedMenus,
-    permissions: selectedPermissions,
-    preserved: selectedPreserved,
-    ownerByPermission,
-    available,
-  })
+  const selectedPayload = buildPayload(
+    selectedMenus,
+    selectedPermissions,
+    selectedPreserved,
+    menus,
+    available
+  )
   const dirty = !sameSet(baseline, selectedPayload)
   const added = [...selectedPayload].filter((name) => !baseline.has(name)).length
   const removed = [...baseline].filter((name) => !selectedPayload.has(name)).length
   const ownerOnly = OWNER_ONLY
+  const totalAssignable = [...available].filter(
+    (name) => !ownerOnly.has(name)
+  ).length
 
-  const filtered = groups
+  // 按后端菜单顺序分组；共享权限（被同组多个菜单声明）只在分组顶部出现一次。
+  const groups = buildGroups(menus)
+
+  const filteredGroups = groups
     .map((group) => {
-      const menuItem = group.menuName
-        ? availableItem.get(group.menuName)
-        : undefined
-      const menuMatches =
-        menuItem !== undefined && matchesPermission(menuItem, query)
-      const menuSelected = group.menuName
-        ? selectedMenus.has(group.menuName)
-        : true
-      const children = group.children.filter(
+      const groupMatches = group.title.toLowerCase().includes(query.trim().toLowerCase())
+      const visibleMenus = group.menus.filter((menu) => {
+        const label = menuLabelText(menu)
+        const menuMatches =
+          groupMatches ||
+          label.toLowerCase().includes(query.trim().toLowerCase()) ||
+          menu.permissions.some(
+            (item) =>
+              query.trim() === "" ||
+              matchesPermission(item, query) ||
+              permissionActionLabel(item).zh.includes(query.trim())
+          )
+        const selected =
+          selectedMenus.has(menu.code) ||
+          menu.permissions.some((item) => selectedPermissions.has(item.name))
+        return menuMatches && (!onlySelected || selected)
+      })
+      const sharedVisible = group.shared.filter(
         (item) =>
-          (query.trim() === "" || menuMatches || matchesPermission(item, query)) &&
-          (!onlySelected ||
-            menuSelected ||
-            selectedPermissions.has(item.name) ||
-            group.defaultReads.has(item.name))
+          !onlySelected ||
+          group.menus.some((menu) => selectedMenus.has(menu.code)) ||
+          selectedPermissions.has(item.name)
       )
-      const visible =
-        query.trim() === ""
-          ? !onlySelected || menuSelected ||
-            group.children.some((item) => selectedPermissions.has(item.name))
-          : menuMatches ||
-            group.children.some((item) => matchesPermission(item, query))
-      return { ...group, items: children, visible }
+      return {
+        ...group,
+        menus: visibleMenus,
+        shared: sharedVisible,
+        visible: visibleMenus.length > 0 || sharedVisible.length > 0,
+      }
     })
     .filter((group) => group.visible)
 
@@ -241,20 +191,25 @@ export function PermissionEditor({
       ? true
       : name.toLowerCase().includes(query.trim().toLowerCase())
   )
-  const visibleMenus = filtered
-    .map((group) => group.menuName)
-    .filter((name): name is string => name !== undefined && !ownerOnly.has(name))
-  const allVisibleMenusSelected =
-    visibleMenus.length > 0 &&
-    visibleMenus.every((name) => selectedMenus.has(name))
+  const visibleMenuCodes = filteredGroups.flatMap((group) =>
+    group.menus.map((menu) => menu.code).filter((code) => !ownerOnly.has(code))
+  )
+  const allVisibleSelected =
+    visibleMenuCodes.length > 0 &&
+    visibleMenuCodes.every((code) => selectedMenus.has(code))
 
-  function toggleMenu(name: string, checked: boolean) {
+  function menuLabelText(menu: PermissionMenu): string {
+    const label = menuLabel(menu.code, menu.name)
+    return i18n.language.startsWith("zh") ? label.zh : label.en
+  }
+
+  function toggleMenu(code: string, checked: boolean) {
     setSelectedMenus((current) => {
       const next = new Set(current)
       if (checked) {
-        next.add(name)
+        next.add(code)
       } else {
-        next.delete(name)
+        next.delete(code)
       }
       return next
     })
@@ -284,37 +239,30 @@ export function PermissionEditor({
     })
   }
 
-  function toggleCollapse(key: string) {
+  function readLocked(menu: PermissionMenu, name: string): boolean {
+    return menu.defaultReads.includes(name) && selectedMenus.has(menu.code)
+  }
+
+  function toggleCollapse(group: string) {
     if (query.trim() !== "" || onlySelected) {
       return
     }
     setCollapsed((current) => {
       const next = new Set(current)
-      if (next.has(key)) {
-        next.delete(key)
+      if (next.has(group)) {
+        next.delete(group)
       } else {
-        next.add(key)
+        next.add(group)
       }
       return next
     })
   }
 
-  function selectVisibleMenus() {
+  function selectAll() {
     setSelectedMenus((current) => {
       const next = new Set(current)
-      for (const name of visibleMenus) {
-        next.add(name)
-      }
-      return next
-    })
-    setSelectedPermissions((current) => {
-      const next = new Set(current)
-      for (const group of filtered) {
-        for (const item of group.items) {
-          if (!ownerOnly.has(item.name)) {
-            next.add(item.name)
-          }
-        }
+      for (const code of visibleMenuCodes) {
+        next.add(code)
       }
       return next
     })
@@ -381,10 +329,23 @@ export function PermissionEditor({
     onOpenChange(false)
   }
 
+  function groupTitle(group: string): string {
+    const label =
+      moduleDefinition(group)?.label ??
+      (group === "tenant" ? TENANT_GROUP : { zh: group, en: group })
+    return `${label.zh} · ${label.en}`
+  }
+
+  function menuCount(menu: PermissionMenu): string {
+    if (!selectedMenus.has(menu.code)) {
+      return t("role.grant.menuOff")
+    }
+    return t("role.permissionCount", {
+      count: menu.permissions.length,
+    })
+  }
+
   const selectedCount = [...selectedPayload].filter(
-    (name) => !ownerOnly.has(name)
-  ).length
-  const totalAssignable = [...available].filter(
     (name) => !ownerOnly.has(name)
   ).length
 
@@ -461,7 +422,7 @@ export function PermissionEditor({
               size="sm"
               variant="outline"
               onClick={() =>
-                setCollapsed(new Set(groups.map((group) => group.key)))
+                setCollapsed(new Set(groups.map((group) => group.group)))
               }
             >
               {t("role.grant.collapseAll")}
@@ -470,13 +431,11 @@ export function PermissionEditor({
               type="button"
               size="sm"
               variant="outline"
-              disabled={
-                pending || allVisibleMenusSelected || visibleMenus.length === 0
-              }
-              onClick={selectVisibleMenus}
+              disabled={pending || allVisibleSelected || visibleMenuCodes.length === 0}
+              onClick={selectAll}
             >
               {query.trim()
-                ? t("role.grant.selectMatches", { count: visibleMenus.length })
+                ? t("role.grant.selectMatches", { count: visibleMenuCodes.length })
                 : t("role.grant.selectAll")}
             </Button>
             {undoSnapshot ? (
@@ -517,7 +476,7 @@ export function PermissionEditor({
                 </Button>
               </div>
             ) : null}
-            {!catalogLoading && !catalogFailed && filtered.length === 0 ? (
+            {!catalogLoading && !catalogFailed && filteredGroups.length === 0 ? (
               <div className="grid justify-items-start gap-2">
                 <p className="text-sm text-muted-foreground">
                   {onlySelected && query.trim() === ""
@@ -537,152 +496,225 @@ export function PermissionEditor({
               </div>
             ) : null}
             {!catalogLoading && !catalogFailed ? (
-              <div className="grid gap-2">
-                {filtered.map((group) => {
-                  const menuSelected = group.menuName
-                    ? selectedMenus.has(group.menuName)
-                    : true
+              <div className="grid gap-3">
+                {filteredGroups.map((group) => {
                   const expanded =
                     query.trim() !== "" ||
                     onlySelected ||
-                    !collapsed.has(group.key)
-                  const groupSelected = group.children.filter(
-                    (item) =>
-                      group.defaultReads.has(item.name) ||
-                      (menuSelected && selectedPermissions.has(item.name))
-                  ).length
+                    !collapsed.has(group.group)
                   return (
                     <Collapsible
-                      key={group.key}
+                      key={group.group}
                       open={expanded}
-                      onOpenChange={() => toggleCollapse(group.key)}
+                      onOpenChange={() => toggleCollapse(group.group)}
                       className="rounded-md border"
                     >
-                      <div className="flex min-h-11 items-center gap-2 px-2">
-                        <CollapsibleTrigger asChild>
-                          <button
-                            type="button"
+                      <CollapsibleTrigger asChild>
+                        <button
+                          type="button"
+                          className={cn(
+                            "flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left",
+                            (query.trim() !== "" || onlySelected) &&
+                              "cursor-default"
+                          )}
+                          aria-label={groupTitle(group.group)}
+                        >
+                          <ChevronRight
                             className={cn(
-                              "flex min-w-0 flex-1 items-center gap-2 py-2 text-left",
-                              (query.trim() !== "" || onlySelected) &&
-                                "cursor-default"
+                              "size-4 shrink-0 text-muted-foreground transition-transform duration-150 motion-reduce:transition-none",
+                              expanded && "rotate-90"
                             )}
-                            aria-label={group.title}
-                          >
-                            <ChevronRight
-                              className={cn(
-                                "size-4 shrink-0 text-muted-foreground transition-transform duration-150 motion-reduce:transition-none",
-                                expanded && "rotate-90"
-                              )}
-                            />
-                            <span className="truncate text-sm font-medium">
-                              {group.title}
-                            </span>
-                            {group.description ? (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    type="button"
-                                    aria-label={group.description}
-                                    className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-foreground"
-                                    onClick={(event) =>
-                                      event.stopPropagation()
-                                    }
-                                  >
-                                    <Info className="size-3.5" />
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  {group.description}
-                                </TooltipContent>
-                              </Tooltip>
-                            ) : null}
-                            <span className="ml-auto text-xs text-muted-foreground">
-                              {t("role.grant.groupCount", {
-                                selected: groupSelected,
-                                total: group.children.length,
-                              })}
-                            </span>
-                          </button>
-                        </CollapsibleTrigger>
-                        {group.menuName ? (
-                          <Checkbox
-                            checked={menuSelected}
-                            disabled={pending}
-                            aria-label={t("role.grant.selectMenu", {
-                              menu: group.title,
-                            })}
-                            onCheckedChange={(checked) =>
-                              toggleMenu(group.menuName!, checked === true)
-                            }
                           />
-                        ) : null}
-                      </div>
+                          <span className="text-sm font-semibold">
+                            {groupTitle(group.group)}
+                          </span>
+                          <span className="ml-auto text-xs text-muted-foreground">
+                            {t("role.grant.menuCount", {
+                              count: group.menus.length,
+                            })}
+                          </span>
+                        </button>
+                      </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="grid gap-1 border-t p-2 sm:grid-cols-2">
-                          {group.items.length === 0 ? (
-                            <p className="text-xs text-muted-foreground">
-                              {t("role.grant.noChildren")}
-                            </p>
+                        <div className="grid gap-3 border-t p-3">
+                          {group.shared.length > 0 ? (
+                            <div className="grid gap-1.5 rounded-md border border-dashed border-border bg-muted/20 p-2">
+                              <span className="text-xs font-medium text-muted-foreground">
+                                {t("role.grant.sharedPermissions")}
+                              </span>
+                              <div className="grid gap-1 sm:grid-cols-2">
+                                {group.shared.map((item) => {
+                                  const locked =
+                                    isReadAction(item.name) &&
+                                    group.menus.some((menu) =>
+                                      selectedMenus.has(menu.code)
+                                    )
+                                  const checked =
+                                    group.menus.some((menu) =>
+                                      menu.defaultReads.includes(item.name) &&
+                                      selectedMenus.has(menu.code)
+                                    ) || selectedPermissions.has(item.name)
+                                  const anyMenuSelected = group.menus.some(
+                                    (menu) => selectedMenus.has(menu.code)
+                                  )
+                                  const action = permissionActionLabel(item)
+                                  return (
+                                    <div
+                                      key={item.name}
+                                      className={cn(
+                                        "flex min-h-9 items-center gap-2 rounded-sm px-2 py-1",
+                                        checked &&
+                                          "bg-primary/5 dark:bg-primary/10"
+                                      )}
+                                    >
+                                      <Checkbox
+                                        id={`shared-${item.name}`}
+                                        checked={checked}
+                                        disabled={
+                                          pending || locked || !anyMenuSelected
+                                        }
+                                        onCheckedChange={(value) =>
+                                          togglePermission(
+                                            item.name,
+                                            value === true
+                                          )
+                                        }
+                                      />
+                                      <Label
+                                        htmlFor={`shared-${item.name}`}
+                                        className="flex min-w-0 flex-1 items-center gap-2"
+                                      >
+                                        <span className="text-sm">{action.zh}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {action.en}
+                                        </span>
+                                        {locked ? (
+                                          <span className="rounded-4xl border px-1.5 text-[10px] whitespace-nowrap text-muted-foreground">
+                                            {t("role.grant.readDefault")}
+                                          </span>
+                                        ) : null}
+                                      </Label>
+                                      <span
+                                        aria-hidden="true"
+                                        className="hidden font-mono text-[11px] text-muted-foreground/60 sm:inline"
+                                      >
+                                        {item.name}
+                                      </span>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
                           ) : null}
-                          {group.items.map((item) => {
-                            const readLocked =
-                              group.defaultReads.has(item.name) && menuSelected
-                            const locked = ownerOnly.has(item.name) || readLocked
-                            const checked = locked
-                              ? true
-                              : menuSelected &&
-                                selectedPermissions.has(item.name)
-                            const action = permissionActionLabel(item)
+                          {group.menus.map((menu) => {
+                            const label = menuLabel(menu.code, menu.name)
+                            const selected = selectedMenus.has(menu.code)
+                            const specific = menu.permissions.filter(
+                              (item) =>
+                                !group.shared.some(
+                                  (shared) => shared.name === item.name
+                                )
+                            )
                             return (
                               <div
-                                key={item.name}
+                                key={menu.code}
                                 className={cn(
-                                  "flex min-h-11 items-center gap-2 rounded-sm border-l-2 border-transparent px-2 py-1",
-                                  checked &&
-                                    "border-primary bg-primary/5 dark:bg-primary/10",
-                                  locked && "opacity-80"
+                                  "grid gap-1.5 rounded-md border p-2",
+                                  selected && "border-primary/40 bg-primary/5"
                                 )}
                               >
-                                <Checkbox
-                                  id={`perm-${item.name}`}
-                                  checked={checked}
-                                  disabled={pending || locked || !menuSelected}
-                                  onCheckedChange={(value) =>
-                                    togglePermission(item.name, value === true)
-                                  }
-                                />
-                                <Label
-                                  htmlFor={`perm-${item.name}`}
-                                  className={cn(
-                                    "flex min-w-0 flex-1 items-center gap-2",
-                                    locked || !menuSelected
-                                      ? "cursor-default"
-                                      : "cursor-pointer"
-                                  )}
-                                >
-                                  <span className="text-sm">{action.zh}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {action.en}
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`menu-${menu.code}`}
+                                    checked={selected}
+                                    disabled={pending}
+                                    aria-label={t("role.grant.selectMenu", {
+                                      menu: label.zh,
+                                    })}
+                                    onCheckedChange={(checked) =>
+                                      toggleMenu(menu.code, checked === true)
+                                    }
+                                  />
+                                  <Label
+                                    htmlFor={`menu-${menu.code}`}
+                                    className="flex min-w-0 flex-1 items-center gap-2"
+                                  >
+                                    <span className="text-sm font-medium">
+                                      {label.zh}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {label.en}
+                                    </span>
+                                    {menu.always ? (
+                                      <span className="rounded-4xl border px-1.5 text-[10px] whitespace-nowrap text-muted-foreground">
+                                        {t("role.grant.alwaysMenu")}
+                                      </span>
+                                    ) : null}
+                                  </Label>
+                                  <span className="text-xs text-muted-foreground tabular-nums">
+                                    {menuCount(menu)}
                                   </span>
-                                  {readLocked ? (
-                                    <span className="rounded-4xl border px-1.5 text-[10px] whitespace-nowrap text-muted-foreground">
-                                      {t("role.grant.readDefault")}
+                                </div>
+                                <div className="grid gap-1 pl-6 sm:grid-cols-2">
+                                  {specific.length === 0 ? (
+                                    <span className="text-xs text-muted-foreground">
+                                      {t("role.grant.onlyShared")}
                                     </span>
                                   ) : null}
-                                </Label>
-                                {ownerOnly.has(item.name) ? (
-                                  <span className="rounded-4xl border px-1.5 text-[11px] whitespace-nowrap text-muted-foreground">
-                                    {t("role.grant.ownerOnlyBadge")}
-                                  </span>
-                                ) : (
-                                  <span
-                                    aria-hidden="true"
-                                    className="hidden font-mono text-[11px] text-muted-foreground/70 sm:inline"
-                                  >
-                                    {item.name}
-                                  </span>
-                                )}
+                                  {specific.map((item) => {
+                                    const locked = readLocked(menu, item.name)
+                                    const checked = locked
+                                      ? true
+                                      : selected &&
+                                        selectedPermissions.has(item.name)
+                                    const action = permissionActionLabel(item)
+                                    return (
+                                      <div
+                                        key={item.name}
+                                        className={cn(
+                                          "flex min-h-9 items-center gap-2 rounded-sm px-2 py-1",
+                                          checked &&
+                                            "bg-primary/5 dark:bg-primary/10"
+                                        )}
+                                      >
+                                        <Checkbox
+                                          id={`perm-${menu.code}-${item.name}`}
+                                          checked={checked}
+                                          disabled={
+                                            pending || locked || !selected
+                                          }
+                                          onCheckedChange={(value) =>
+                                            togglePermission(
+                                              item.name,
+                                              value === true
+                                            )
+                                          }
+                                        />
+                                        <Label
+                                          htmlFor={`perm-${menu.code}-${item.name}`}
+                                          className="flex min-w-0 flex-1 items-center gap-2"
+                                        >
+                                          <span className="text-sm">
+                                            {action.zh}
+                                          </span>
+                                          <span className="text-xs text-muted-foreground">
+                                            {action.en}
+                                          </span>
+                                          {locked ? (
+                                            <span className="rounded-4xl border px-1.5 text-[10px] whitespace-nowrap text-muted-foreground">
+                                              {t("role.grant.readDefault")}
+                                            </span>
+                                          ) : null}
+                                        </Label>
+                                        {ownerOnly.has(item.name) ? (
+                                          <span className="rounded-4xl border px-1.5 text-[11px] whitespace-nowrap text-muted-foreground">
+                                            {t("role.grant.ownerOnlyBadge")}
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
                               </div>
                             )
                           })}
@@ -693,15 +725,13 @@ export function PermissionEditor({
                 })}
                 {selectedPreserved.size > 0 && preservedItems.length > 0 ? (
                   <div className="rounded-md border">
-                    <div className="flex min-h-11 items-center gap-2 px-2">
-                      <span className="flex min-w-0 flex-1 items-center gap-2 py-2">
-                        <ChevronRight className="size-4 shrink-0 rotate-90 text-muted-foreground" />
-                        <span className="truncate text-sm font-medium">
-                          {t("role.grant.preserved")}
-                        </span>
-                        <span className="ml-auto text-xs text-muted-foreground">
-                          {selectedPreserved.size}
-                        </span>
+                    <div className="flex min-h-11 items-center gap-2 px-3 py-2">
+                      <ChevronRight className="size-4 shrink-0 rotate-90 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {t("role.grant.preserved")}
+                      </span>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {selectedPreserved.size}
                       </span>
                     </div>
                     <div className="grid gap-1 border-t p-2 sm:grid-cols-2">
@@ -710,7 +740,7 @@ export function PermissionEditor({
                         return (
                           <div
                             key={name}
-                            className="flex min-h-11 items-center gap-2 rounded-sm border-l-2 border-transparent px-2 py-1"
+                            className="flex min-h-9 items-center gap-2 rounded-sm px-2 py-1"
                           >
                             <Checkbox
                               id={`perm-${name}`}
@@ -731,7 +761,7 @@ export function PermissionEditor({
                             </Label>
                             <span
                               aria-hidden="true"
-                              className="hidden font-mono text-[11px] text-muted-foreground/70 sm:inline"
+                              className="hidden font-mono text-[11px] text-muted-foreground/60 sm:inline"
                             >
                               {name}
                             </span>
@@ -783,86 +813,104 @@ export function PermissionEditor({
     </>
   )
 
-  /** 套餐外权限的展示文案：菜单权限按能力标签，其它按 resource/action 拆分。 */
   function presetLabel(name: string) {
     if (name.startsWith("menu:")) {
-      return capabilityLabel(name.slice(5))
+      const label = menuLabel(name.slice(5))
+      return label
     }
     const parts = name.split(":")
-    return actionLabel(parts[parts.length - 1] ?? name)
+    return permissionActionLabel({
+      resource: parts.slice(0, -1).join(":"),
+      action: parts[parts.length - 1] ?? name,
+    })
   }
 }
 
-/** 打开时的权限集合：有菜单的补默认读权限，其它权限原样保留。 */
-function normalizeRolePermissions(
-  permissions: string[],
-  available: Set<string>
-): string[] {
-  const out = new Set<string>()
-  for (const name of permissions) {
-    if (available.has(name)) {
-      out.add(name)
-    }
-  }
-  for (const name of [...out]) {
-    if (!name.startsWith("menu:")) {
-      continue
-    }
-    const capability = name.slice(5)
-    for (const permission of CAPABILITY_PERMISSIONS[capability] ?? []) {
-      if (available.has(permission) && isDefaultRead(permission)) {
-        out.add(permission)
-      }
-    }
-  }
-  if (available.has(NAMESPACE_READ)) {
-    out.add(NAMESPACE_READ)
-  }
-  return [...out]
+type MenuGroupView = {
+  group: string
+  title: string
+  menus: PermissionMenu[]
+  shared: PermissionItem[]
 }
 
-interface BuildPayloadOptions {
-  menus: Set<string>
-  permissions: Set<string>
-  preserved: Set<string>
-  ownerByPermission: Map<string, string>
-  available: Set<string>
-}
-
-/** 由当前勾选推导最终提交的权限：菜单 + 默认读 + 已选子权限 + 固定菜单 + 保留项。 */
-function buildPayload({
-  menus,
-  permissions,
-  preserved,
-  ownerByPermission,
-  available,
-}: BuildPayloadOptions): Set<string> {
-  const out = new Set<string>()
+/** 按菜单分组，并把同组内被多个菜单共享的权限提取出来只展示一次。 */
+function buildGroups(menus: PermissionMenu[]): MenuGroupView[] {
+  const groups = new Map<string, PermissionMenu[]>()
   for (const menu of menus) {
-    if (!menu.startsWith("menu:") || !available.has(menu)) {
-      continue
+    const list = groups.get(menu.group)
+    if (list) {
+      list.push(menu)
+    } else {
+      groups.set(menu.group, [menu])
     }
-    out.add(menu)
-    const capability = menu.slice(5)
-    for (const permission of CAPABILITY_PERMISSIONS[capability] ?? []) {
-      if (available.has(permission) && isDefaultRead(permission)) {
-        out.add(permission)
+  }
+  return [...groups.entries()].map(([group, groupMenus]) => {
+    const counts = new Map<string, PermissionItem>()
+    const occurrences = new Map<string, number>()
+    for (const menu of groupMenus) {
+      for (const item of menu.permissions) {
+        counts.set(item.name, item)
+        occurrences.set(item.name, (occurrences.get(item.name) ?? 0) + 1)
+      }
+    }
+    const shared = [...counts.values()].filter(
+      (item) => (occurrences.get(item.name) ?? 0) > 1
+    )
+    return {
+      group,
+      title: group,
+      menus: groupMenus,
+      shared,
+    }
+  })
+}
+
+function isReadAction(name: string): boolean {
+  return name.endsWith(":read") || name.endsWith(":logs")
+}
+
+/** 由勾选推导提交内容：菜单 + 菜单默认读 + 已选子权限 + 保留项。 */
+function buildPayload(
+  menus: Set<string>,
+  permissions: Set<string>,
+  preserved: Set<string>,
+  menuList: PermissionMenu[],
+  available: Set<string>
+): Set<string> {
+  const out = new Set<string>()
+  const menuByCode = new Map(menuList.map((menu) => [menu.code, menu]))
+  const declaring = new Map<string, PermissionMenu[]>()
+  for (const menu of menuList) {
+    for (const item of menu.permissions) {
+      const list = declaring.get(item.name)
+      if (list) {
+        list.push(menu)
+      } else {
+        declaring.set(item.name, [menu])
       }
     }
   }
-  if (available.has(NAMESPACE_READ)) {
-    out.add(NAMESPACE_READ)
+  for (const code of menus) {
+    const menu = menuByCode.get(code)
+    if (!menu) {
+      continue
+    }
+    out.add(`menu:${code}`)
+    for (const read of menu.defaultReads) {
+      if (available.has(read)) {
+        out.add(read)
+      }
+    }
   }
   for (const permission of permissions) {
     if (!available.has(permission)) {
       continue
     }
-    if (permission.startsWith("namespace:")) {
-      out.add(permission)
-      continue
-    }
-    const owner = ownerByPermission.get(permission)
-    if (!owner || menus.has(`menu:${owner}`)) {
+    const declaringMenus = declaring.get(permission) ?? []
+    if (
+      declaringMenus.length === 0 ||
+      declaringMenus.some((menu) => menus.has(menu.code))
+    ) {
       out.add(permission)
     }
   }

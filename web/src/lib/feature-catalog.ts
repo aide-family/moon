@@ -441,6 +441,34 @@ export const MENU_CAPABILITIES: Record<string, string> = {
   "/ssh-commands": "ssh_command",
 }
 
+/**
+ * 授权菜单的中英标签。菜单是角色授权的一级单位，多数与能力同码；
+ * 数据源、探测、通知渠道和 namespace 等合并菜单需要单独命名。
+ */
+export const MENU_LABELS: Record<string, LocalizedLabel> = {
+  datasource: { zh: "数据源", en: "Datasources" },
+  probe: { zh: "探测目标", en: "Probe targets" },
+  notification_channel: { zh: "通知渠道", en: "Notification channels" },
+  notification_template: { zh: "消息模板", en: "Message templates" },
+  notification_group: { zh: "通知组", en: "Notification groups" },
+  notification_subscription: {
+    zh: "告警订阅",
+    en: "Alert subscriptions",
+  },
+  notification_oncall: { zh: "OnCall 值班", en: "On-call" },
+  message_log: { zh: "消息日志", en: "Message logs" },
+  namespace: { zh: "租户设置", en: "Namespace settings" },
+  agent: { zh: "机器", en: "Machines" },
+}
+
+/** 菜单标签：优先菜单目录，其次能力目录，最后回落后端名称或 code。 */
+export function menuLabel(code: string, fallback?: string): LocalizedLabel {
+  if (MENU_LABELS[code]) {
+    return MENU_LABELS[code]
+  }
+  return capabilityDefinition(code)?.label ?? { zh: fallback || code, en: fallback || code }
+}
+
 /** 集群详情资源视图 → 所需能力；概况不需要能力（跟随集群接入）。 */
 export const CLUSTER_SECTION_CAPABILITIES: Record<string, string> = {
   nodes: "k8s_node",

@@ -268,7 +268,7 @@ func TestNormalizeRoleGrant(t *testing.T) {
 	capabilities := []string{perm.CapabilityDatasourcePrometheus}
 	modules := []string{perm.FeatureDatasource}
 	got := normalizeRoleGrant(
-		[]string{perm.MenuPermission(perm.CapabilityDatasourcePrometheus)},
+		[]string{perm.MenuPermission("datasource")},
 		capabilities,
 		modules,
 	)
@@ -280,7 +280,7 @@ func TestNormalizeRoleGrant(t *testing.T) {
 	}
 	// 只提交写权限时补菜单权限和默认读权限，避免出现没有菜单的子权限。
 	got = normalizeRoleGrant([]string{perm.DatasourceWrite}, capabilities, modules)
-	if !slices.Contains(got, perm.MenuPermission(perm.CapabilityDatasourcePrometheus)) {
+	if !slices.Contains(got, perm.MenuPermission("datasource")) {
 		t.Fatalf("child grant missing menu: %v", got)
 	}
 	if !slices.Contains(got, perm.DatasourceRead) {

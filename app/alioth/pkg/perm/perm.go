@@ -150,10 +150,10 @@ func Catalog() []Item {
 	return items
 }
 
-// menuCatalog 返回全部能力的菜单权限，顺序与能力目录一致。
+// menuCatalog 返回全部菜单权限，顺序与菜单目录一致。
 func menuCatalog() []Item {
-	items := make([]Item, 0, len(capabilitySpecs))
-	for _, item := range capabilitySpecs {
+	items := make([]Item, 0, len(menuSpecs))
+	for _, item := range menuSpecs {
 		items = append(items, Item{Name: MenuPermission(item.Code), Resource: "menu", Action: item.Code})
 	}
 	return items

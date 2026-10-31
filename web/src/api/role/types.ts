@@ -16,6 +16,17 @@ export type PermissionItem = {
   action: string
 }
 
+/** 授权菜单：一级为菜单权限，子权限挂在菜单下。 */
+export type PermissionMenu = {
+  code: string
+  group: string
+  name: string
+  always: boolean
+  capabilities: string[]
+  defaultReads: string[]
+  permissions: PermissionItem[]
+}
+
 export type ListRolesParams = {
   page?: number
   pageSize?: number

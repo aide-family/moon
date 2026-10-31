@@ -1,6 +1,16 @@
 import { del, get, post, put } from "@/api/http"
 
-import type { CreateRoleParams, ListRolesParams, ListRolesResult, PermissionItem, RoleItem, SelectRolesResult, UpdateRoleParams, UpdateRoleRemarkParams } from "./types"
+import type {
+  CreateRoleParams,
+  ListRolesParams,
+  ListRolesResult,
+  PermissionItem,
+  PermissionMenu,
+  RoleItem,
+  SelectRolesResult,
+  UpdateRoleParams,
+  UpdateRoleRemarkParams,
+} from "./types"
 
 /** GET /v1/roles */
 export function listRoles(params: ListRolesParams = {}): Promise<ListRolesResult> {
@@ -43,6 +53,11 @@ export function updateRoleRemark(body: UpdateRoleRemarkParams): Promise<{ role: 
 }
 
 /** GET /v1/permissions */
-export function listPermissions(): Promise<{ items?: PermissionItem[] }> {
-  return get<{ items?: PermissionItem[] }>("/permissions")
+export function listPermissions(): Promise<{
+  items?: PermissionItem[]
+  menus?: PermissionMenu[]
+}> {
+  return get<{ items?: PermissionItem[]; menus?: PermissionMenu[] }>(
+    "/permissions"
+  )
 }

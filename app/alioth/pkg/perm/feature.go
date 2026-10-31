@@ -117,9 +117,11 @@ func featureForResource(resource string) string {
 // access 用它判断一次权限检查是否还要看租户的功能开通情况。
 // 菜单权限 menu:<能力> 返回该能力所属的模块；能力编码本身也返回所属模块。
 func FeatureOf(permission string) string {
-	if capability := MenuPermissionCapability(permission); capability != "" {
-		item, _ := CapabilityOf(capability)
-		return item.Module
+	if menuCode, ok := MenuOfMenuPermission(permission); ok {
+		if menu, exists := MenuOf(menuCode); exists {
+			return menu.Group
+		}
+		return ""
 	}
 	if item, ok := CapabilityOf(permission); ok {
 		return item.Module

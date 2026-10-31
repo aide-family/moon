@@ -1006,7 +1006,12 @@ const zh = {
       selectGroup: "全选 {{module}}",
       selectMenu: "勾选 {{menu}} 菜单权限",
       menuHint:
-        "功能权限跟随菜单：勾选菜单默认带读权限，菜单下的子权限按需勾选；菜单未勾选时子权限不可用。",
+        "功能权限按菜单归类：勾选菜单默认拥有该菜单的读权限；菜单下的写、删除、执行权限按需勾选，菜单未勾选时不可用。",
+      menuOff: "未启用",
+      menuCount: "{{count}} 个菜单",
+      sharedPermissions: "组内共享权限（多个菜单共用，只需勾选一次）",
+      alwaysMenu: "固定菜单",
+      onlyShared: "该菜单的读取权限已包含在共享权限中。",
       readDefault: "默认读权限",
       namespaceMenu: "租户设置",
       unclassified: "未归类权限",
@@ -3861,7 +3866,13 @@ const en = {
       selectGroup: "Select all {{module}}",
       selectMenu: "Grant the {{menu}} menu permission",
       menuHint:
-        "Function permissions follow menus: granting a menu includes its read permissions by default, and child permissions are optional. Child permissions stay unavailable until the menu is granted.",
+        "Functions are grouped by menu: granting a menu includes its read permissions by default. Write, delete, and execute permissions under the menu are optional and unavailable until the menu is granted.",
+      menuOff: "Not granted",
+      menuCount: "{{count}} menus",
+      sharedPermissions:
+        "Shared in this group (used by multiple menus, grant once)",
+      alwaysMenu: "Fixed menu",
+      onlyShared: "This menu's read permission is included in the shared section.",
       readDefault: "Default read",
       namespaceMenu: "Namespace settings",
       unclassified: "Unclassified permissions",
