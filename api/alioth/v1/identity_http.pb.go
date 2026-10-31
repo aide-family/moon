@@ -2844,6 +2844,7 @@ func (c *MemberServiceHTTPClientImpl) UpdateMemberStatus(ctx context.Context, in
 }
 
 const OperationUserServiceBanUser = "/alioth.v1.UserService/BanUser"
+const OperationUserServiceDeleteUser = "/alioth.v1.UserService/DeleteUser"
 const OperationUserServiceGetUser = "/alioth.v1.UserService/GetUser"
 const OperationUserServiceListUsers = "/alioth.v1.UserService/ListUsers"
 const OperationUserServicePermitUser = "/alioth.v1.UserService/PermitUser"
@@ -2853,6 +2854,10 @@ const OperationUserServiceUpdateUserSystemRole = "/alioth.v1.UserService/UpdateU
 type UserServiceHTTPServer interface {
 	// BanUser 封禁用户。封禁后不能登录。
 	BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error)
+	// DeleteUser 删除用户，用于清理错误数据。不能删除自己、超级管理员、仍是租户负责人的用户和还有租户订单的用户。
+	// 用户被软删除，第三方绑定、成员关系、告警页选择、告警列配置、系统消息和邀请记录一并清理；
+	// 其创建过的租户告警页面保留。
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	// GetUser 获取一名全局用户。
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 	// ListUsers 分页列出全局用户。
@@ -2873,6 +2878,7 @@ func RegisterUserServiceHTTPServer(s *http.Server, srv UserServiceHTTPServer) {
 	r.Handle("PUT", "/v1/user/ban/{uid}", _UserService_BanUser0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/user/permit/{uid}", _UserService_PermitUser0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/user/{uid}/system-role", _UserService_UpdateUserSystemRole0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/user/{uid}", _UserService_DeleteUser0_HTTP_Handler(srv))
 }
 
 func _UserService_GetUser0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
@@ -3001,9 +3007,35 @@ func _UserService_UpdateUserSystemRole0_HTTP_Handler(srv UserServiceHTTPServer) 
 	}
 }
 
+func _UserService_DeleteUser0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteUserRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserServiceDeleteUser)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteUser(ctx, req.(*DeleteUserRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteUserResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserServiceHTTPClient interface {
 	// BanUser 封禁用户。封禁后不能登录。
 	BanUser(ctx context.Context, req *BanUserRequest, opts ...http.CallOption) (rsp *BanUserResponse, err error)
+	// DeleteUser 删除用户，用于清理错误数据。不能删除自己、超级管理员、仍是租户负责人的用户和还有租户订单的用户。
+	// 用户被软删除，第三方绑定、成员关系、告警页选择、告警列配置、系统消息和邀请记录一并清理；
+	// 其创建过的租户告警页面保留。
+	DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...http.CallOption) (rsp *DeleteUserResponse, err error)
 	// GetUser 获取一名全局用户。
 	GetUser(ctx context.Context, req *GetUserRequest, opts ...http.CallOption) (rsp *GetUserResponse, err error)
 	// ListUsers 分页列出全局用户。
@@ -3035,6 +3067,25 @@ func (c *UserServiceHTTPClientImpl) BanUser(ctx context.Context, in *BanUserRequ
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteUser 删除用户，用于清理错误数据。不能删除自己、超级管理员、仍是租户负责人的用户和还有租户订单的用户。
+// 用户被软删除，第三方绑定、成员关系、告警页选择、告警列配置、系统消息和邀请记录一并清理；
+// 其创建过的租户告警页面保留。
+func (c *UserServiceHTTPClientImpl) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...http.CallOption) (*DeleteUserResponse, error) {
+	var out DeleteUserResponse
+	pattern := "/v1/user/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationUserServiceDeleteUser),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

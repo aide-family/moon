@@ -348,8 +348,9 @@ func (authenticator *Authenticator) resolveBindTarget(ctx context.Context, bindi
 	return account, nil
 }
 
-// attachOAuthBinding 把第三方身份落到目标账号。占位账号和邮箱账号不同时先合并租户成员与角色，
-// 再把绑定行改到目标账号；MergeAccounts 不处理 user_oauth，绑定统一由这里迁移。
+// attachOAuthBinding 把第三方身份落到目标账号。占位账号和邮箱账号不同时先全量合并账号：
+// MergeAccounts 会把成员、角色、租户负责人、平台角色、个人数据和源账号的第三方绑定一起并入目标，
+// 之后这里只需要把本次绑定的邮箱同步成刚验证过的邮箱。
 // 重复提交、并发请求和 0 行更新都按幂等处理，不能变成服务端错误。
 func (authenticator *Authenticator) attachOAuthBinding(ctx context.Context, binding oauthBindClaims, targetUID, email string) error {
 	if binding.PendingUserUID != "" && binding.PendingUserUID != targetUID {

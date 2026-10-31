@@ -801,6 +801,8 @@ func namespaceOptional(operation string) bool {
 		v1.OperationUserServiceBanUser,
 		v1.OperationUserServicePermitUser,
 		v1.OperationUserServiceUpdateUserSystemRole,
+		// 平台删除用户按路径参数定位用户，不读 X-Namespace。
+		v1.OperationUserServiceDeleteUser,
 		v1.OperationWorkerServiceListWorkerInstances,
 		v1.OperationWorkerServiceGetWorkerInstance:
 		return true

@@ -42,6 +42,8 @@ type userRepoStub struct {
 	created []bo.Account
 	// merged 记录 MergeAccounts 的调用参数，测试据此断言占位账号被并进了邮箱账号。
 	merged [][2]string
+	// oauth 是共享的第三方绑定桩，MergeAccounts 模拟真库把源账号的绑定改到目标账号。
+	oauth *oauthRepoStub
 }
 
 func (stub *userRepoStub) UserByEmail(_ context.Context, email string) (*bo.Account, error) {
@@ -95,9 +97,17 @@ func (stub *userRepoStub) UpdateUserProfile(_ context.Context, uid string, email
 	return &copied, nil
 }
 
-// MergeAccounts 只记录调用参数；事务细节不在这里断言，用例层只关心调用时机和参数。
+// MergeAccounts 模拟真库：把源账号的第三方绑定改到目标账号并记录调用参数。
+// 成员、个人数据的迁移由 data 层真库测试覆盖，用例层只关心调用时机和参数。
 func (stub *userRepoStub) MergeAccounts(_ context.Context, fromUID, toUID string) error {
 	stub.merged = append(stub.merged, [2]string{fromUID, toUID})
+	if stub.oauth != nil {
+		for i := range stub.oauth.links {
+			if stub.oauth.links[i].userUID == fromUID {
+				stub.oauth.links[i].userUID = toUID
+			}
+		}
+	}
 	return nil
 }
 
@@ -260,6 +270,7 @@ func newAuthFixture(t *testing.T) *authFixture {
 	emailCodes := newEmailCodeRepoStub()
 	mail := &codeMailerStub{}
 	oauth := newOAuthRepoStub(users)
+	users.oauth = oauth
 	authenticator, err := NewAuthenticator(users, captchas, emailCodes, oauth, nil, nil, &conf.Auth{JwtSecret: "test-secret"}, slog.Default())
 	if err != nil {
 		t.Fatalf("NewAuthenticator: %v", err)

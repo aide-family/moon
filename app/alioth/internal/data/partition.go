@@ -78,6 +78,10 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := ensureNotificationAuditFields(ctx, db); err != nil {
 		return err
 	}
+	// users 表的邮箱唯一索引改为只约束未删除行，老库的整列唯一索引要重建。
+	if err := ensureUserEmailIndex(ctx, db); err != nil {
+		return err
+	}
 	if err := recoverDisabledDatasourceFiring(ctx, client, disabledSources); err != nil {
 		return databaseErr(slog.Default(), err)
 	}
@@ -245,6 +249,45 @@ func ensureNotificationAuditFields(ctx context.Context, db *sql.DB) error {
 			slog.Default().Error(fmt.Sprintf("notification audit schema: %v", err))
 			return merr.Server("request failed")
 		}
+	}
+	return nil
+}
+
+// ensureUserEmailIndex 把 users.email 的唯一索引改成只约束未删除行（partial unique index）。
+// 软删用户在行上保留原邮箱，但不应继续占用这个邮箱；ent 的 Schema.Create 只会补缺失索引，
+// 不会改已有索引的定义，所以老库要在这里显式重建。新库由 ent 直接按 schema 建好，跳过。
+func ensureUserEmailIndex(ctx context.Context, db *sql.DB) error {
+	var definition string
+	err := db.QueryRowContext(ctx, `SELECT indexdef FROM pg_indexes WHERE schemaname = current_schema() AND indexname = 'user_email'`).Scan(&definition)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		slog.Default().Error(fmt.Sprintf("user email index: %v", err))
+		return merr.Server("request failed")
+	}
+	// 已经是只约束未删除行的部分索引时不需要重建。
+	if strings.Contains(definition, "deleted_at IS NULL") {
+		return nil
+	}
+	// 重建放在同一个事务里：DROP 成功但 CREATE 失败时整体回滚，不会留下没有唯一索引的窗口期。
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return databaseErr(slog.Default(), err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	statements := []string{
+		`DROP INDEX IF EXISTS user_email`,
+		`CREATE UNIQUE INDEX user_email ON users (email) WHERE deleted_at IS NULL`,
+	}
+	for _, statement := range statements {
+		if _, err := tx.ExecContext(ctx, statement); err != nil {
+			slog.Default().Error(fmt.Sprintf("user email index: %v", err))
+			return merr.Server("request failed")
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return databaseErr(slog.Default(), err)
 	}
 	return nil
 }

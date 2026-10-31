@@ -134,6 +134,27 @@ func (directory *Directory) setStatus(ctx context.Context, uid, status string) (
 	return account, nil
 }
 
+// DeleteUser 删除平台用户，用于清理错误数据。删除自己、平台超级管理员和
+// 仍在负责租户或还有租户订单的用户都会被拒绝；校验通过后由数据层在同一个事务里
+// 软删用户并清理它的第三方绑定、成员关系和个人配置。
+func (directory *Directory) DeleteUser(ctx context.Context, uid string) error {
+	actorAccount, err := directory.access.RequireSystem(ctx, perm.SystemUserWrite)
+	if err != nil {
+		return err
+	}
+	if actorAccount.UID == uid {
+		return merr.Client("cannot delete yourself")
+	}
+	target, err := directory.users.UserByUID(ctx, uid)
+	if err != nil {
+		return directory.access.Wrap(err)
+	}
+	if target.SystemRole == perm.SystemRoleSuperAdmin {
+		return merr.Forbidden("cannot delete super admin")
+	}
+	return directory.access.Wrap(directory.users.DeleteUser(ctx, uid))
+}
+
 // UpdateSystemRole 由超级管理员授权或撤销系统管理员和系统只读角色。
 // 超级管理员只能是最早注册的那个用户，不能通过接口再授予或转移。
 func (directory *Directory) UpdateSystemRole(ctx context.Context, uid, role string) (*bo.Account, error) {

@@ -340,7 +340,8 @@ func TestOAuthLoginPlaceholderAccountRequiresEmail(t *testing.T) {
 }
 
 // TestOAuthBindMergesPlaceholderIntoEmailAccount 覆盖补的邮箱已被另一个账号占用：
-// 调用 MergeAccounts 迁移成员和角色，再用 MoveOAuth 把绑定改到邮箱账号，会话属于邮箱账号。
+// 调用 MergeAccounts 以邮箱账号为母本全量合并（真库会把绑定一起并过去），
+// 再把本次绑定邮箱同步到邮箱账号，会话属于邮箱账号。
 // 重复提交同一份待绑定凭证仍应成功，不重复合并、不报服务端错误。
 func TestOAuthBindMergesPlaceholderIntoEmailAccount(t *testing.T) {
 	const (

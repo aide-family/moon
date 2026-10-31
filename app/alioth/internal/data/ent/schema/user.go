@@ -9,12 +9,13 @@ import (
 
 // User 是平台级用户，不隶属于任何租户。
 // SystemRole 只表达系统权限，和租户内的角色完全隔离。
+// 用户删除是软删：绑定、成员和配置由数据层清理，行本身保留供审计追溯。
 type User struct {
 	ent.Schema
 }
 
 func (User) Mixin() []ent.Mixin {
-	return []ent.Mixin{Audit{}}
+	return []ent.Mixin{Audit{}, SoftDelete{}}
 }
 
 func (User) Fields() []ent.Field {
@@ -38,7 +39,8 @@ func (User) Fields() []ent.Field {
 func (User) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("uid").Unique(),
-		index.Fields("email").Unique(),
+		// 软删用户不再占用邮箱：删除错误账号后，同一个邮箱可以重新注册。
+		index.Fields("email").Unique().Annotations(entsql.IndexWhere("deleted_at IS NULL")),
 		// 平台只能有一个超级管理员：第一个注册用户。
 		index.Fields("system_role").Unique().Annotations(entsql.IndexWhere("system_role = 'SUPER_ADMIN'")),
 	}

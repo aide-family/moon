@@ -18,8 +18,11 @@ type UserRepo interface {
 	UpdateUserSystemRole(ctx context.Context, uid, role, authorizedBy string) (*bo.Account, error)
 	ListUsers(ctx context.Context, page, pageSize int, name string) ([]bo.Account, int, error)
 	SelectUsers(ctx context.Context, limit int, lastUID string) ([]bo.SelectItem, error)
-	// MergeAccounts 把 fromUID 的租户成员、租户角色和平台系统角色迁移到 toUID。
+	// MergeAccounts 把 fromUID 的租户成员、租户角色、租户负责人、平台系统角色和全部个人数据
+	// 并入 toUID，并在同一事务里软删源账号。目标账号是母本：目标已有冲突行时保留目标、丢弃源行。
 	// 第三方占位账号补邮箱时邮箱已被另一个账号占用，会调用它合并账号。
-	// 个人数据（列表列、告警页选择、系统消息等）不迁移，源账号保留为空账号。
 	MergeAccounts(ctx context.Context, fromUID, toUID string) error
+	// DeleteUser 软删用户并清理其第三方绑定、成员与成员角色、告警页个人选择、告警列配置、
+	// 系统消息和邀请记录；保留其创建过的租户告警页面。用户仍是租户负责人或还有租户订单时拒绝。
+	DeleteUser(ctx context.Context, uid string) error
 }

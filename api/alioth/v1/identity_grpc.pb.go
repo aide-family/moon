@@ -2861,6 +2861,7 @@ const (
 	UserService_BanUser_FullMethodName              = "/alioth.v1.UserService/BanUser"
 	UserService_PermitUser_FullMethodName           = "/alioth.v1.UserService/PermitUser"
 	UserService_UpdateUserSystemRole_FullMethodName = "/alioth.v1.UserService/UpdateUserSystemRole"
+	UserService_DeleteUser_FullMethodName           = "/alioth.v1.UserService/DeleteUser"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -2881,6 +2882,10 @@ type UserServiceClient interface {
 	PermitUser(ctx context.Context, in *PermitUserRequest, opts ...grpc.CallOption) (*PermitUserResponse, error)
 	// 授权或撤销系统管理员。只有超级管理员可以调用。
 	UpdateUserSystemRole(ctx context.Context, in *UpdateUserSystemRoleRequest, opts ...grpc.CallOption) (*UpdateUserSystemRoleResponse, error)
+	// 删除用户，用于清理错误数据。不能删除自己、超级管理员、仍是租户负责人的用户和还有租户订单的用户。
+	// 用户被软删除，第三方绑定、成员关系、告警页选择、告警列配置、系统消息和邀请记录一并清理；
+	// 其创建过的租户告警页面保留。
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 }
 
 type userServiceClient struct {
@@ -2951,6 +2956,16 @@ func (c *userServiceClient) UpdateUserSystemRole(ctx context.Context, in *Update
 	return out, nil
 }
 
+func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteUserResponse)
+	err := c.cc.Invoke(ctx, UserService_DeleteUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -2969,6 +2984,10 @@ type UserServiceServer interface {
 	PermitUser(context.Context, *PermitUserRequest) (*PermitUserResponse, error)
 	// 授权或撤销系统管理员。只有超级管理员可以调用。
 	UpdateUserSystemRole(context.Context, *UpdateUserSystemRoleRequest) (*UpdateUserSystemRoleResponse, error)
+	// 删除用户，用于清理错误数据。不能删除自己、超级管理员、仍是租户负责人的用户和还有租户订单的用户。
+	// 用户被软删除，第三方绑定、成员关系、告警页选择、告警列配置、系统消息和邀请记录一并清理；
+	// 其创建过的租户告警页面保留。
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -2996,6 +3015,9 @@ func (UnimplementedUserServiceServer) PermitUser(context.Context, *PermitUserReq
 }
 func (UnimplementedUserServiceServer) UpdateUserSystemRole(context.Context, *UpdateUserSystemRoleRequest) (*UpdateUserSystemRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUserSystemRole not implemented")
+}
+func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -3126,6 +3148,24 @@ func _UserService_UpdateUserSystemRole_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_DeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3156,6 +3196,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUserSystemRole",
 			Handler:    _UserService_UpdateUserSystemRole_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _UserService_DeleteUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1775,6 +1775,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString, Default: ""},
 		{Name: "nickname", Type: field.TypeString, Default: ""},
@@ -1796,17 +1797,20 @@ var (
 			{
 				Name:    "user_uid",
 				Unique:  true,
-				Columns: []*schema.Column{UsersColumns[3]},
+				Columns: []*schema.Column{UsersColumns[4]},
 			},
 			{
 				Name:    "user_email",
 				Unique:  true,
-				Columns: []*schema.Column{UsersColumns[6]},
+				Columns: []*schema.Column{UsersColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
 			},
 			{
 				Name:    "user_system_role",
 				Unique:  true,
-				Columns: []*schema.Column{UsersColumns[12]},
+				Columns: []*schema.Column{UsersColumns[13]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "system_role = 'SUPER_ADMIN'",
 				},

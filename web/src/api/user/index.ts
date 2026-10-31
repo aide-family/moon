@@ -1,4 +1,4 @@
-import { get, put } from "@/api/http"
+import { del, get, put } from "@/api/http"
 
 import type { ListUsersParams, ListUsersResult, SelectUsersParams, SelectUsersResult, UserItem } from "./types"
 
@@ -30,4 +30,9 @@ export function permitUser(uid: string): Promise<{ user: UserItem }> {
 /** PUT /v1/user/{uid}/system-role */
 export function updateUserSystemRole(uid: string, role: string): Promise<{ user: UserItem }> {
   return put<{ user: UserItem }>(`/user/${uid}/system-role`, { uid, role })
+}
+
+/** DELETE /v1/user/{uid} */
+export function deleteUser(uid: string): Promise<Record<string, never>> {
+  return del<Record<string, never>>(`/user/${uid}`)
 }

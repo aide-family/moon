@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Navigate } from "react-router-dom"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
-import { banUser, listUsers, permitUser, updateUserSystemRole } from "@/api/user"
+import { banUser, deleteUser, listUsers, permitUser, updateUserSystemRole } from "@/api/user"
 import type { UserItem } from "@/api/user/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
@@ -66,6 +66,9 @@ export function UserPage() {
   const [draft, setDraft] = useState(query.name)
   const [detail, setDetail] = useState<UserItem | null>(null)
   const [banning, setBanning] = useState<UserItem | null>(null)
+  const [deleting, setDeleting] = useState<UserItem | null>(null)
+  const [deletePending, setDeletePending] = useState(false)
+  const [deleteError, setDeleteError] = useState("")
   const [granting, setGranting] = useState<UserItem | null>(null)
   const [role, setRole] = useState("")
   const [pending, setPending] = useState(false)
@@ -102,6 +105,25 @@ export function UserPage() {
       setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
+    }
+  }
+
+  // 删除用于清理错误账号。确认弹窗明确不可恢复；后端还会拒绝租户负责人和有订单的用户，
+  // 失败原因通过 messageKeys 映射成中文提示。
+  async function onDelete() {
+    if (!deleting) {
+      return
+    }
+    setDeletePending(true)
+    setDeleteError("")
+    try {
+      await deleteUser(deleting.uid)
+      setDeleting(null)
+      reload()
+    } catch (err) {
+      setDeleteError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setDeletePending(false)
     }
   }
 
@@ -158,6 +180,15 @@ export function UserPage() {
           onSelect: () => void onPermit(item),
         })
       }
+      actions.push({
+        key: "delete",
+        label: t("action.delete"),
+        destructive: true,
+        onSelect: () => {
+          setDeleteError("")
+          setDeleting(item)
+        },
+      })
     }
     if (
       session.isSuperAdmin &&
@@ -288,6 +319,22 @@ export function UserPage() {
           if (!value) {
             setBanning(null)
             setConfirmError("")
+          }
+        }}
+      />
+      <ConfirmAction
+        open={deleting !== null}
+        title={t("confirm.deleteUserTitle")}
+        description={t("confirm.deleteUserDescription")}
+        confirmLabel={t("action.delete")}
+        cancelLabel={t("action.cancel")}
+        pending={deletePending}
+        error={deleteError}
+        onConfirm={() => void onDelete()}
+        onOpenChange={(value) => {
+          if (!value) {
+            setDeleting(null)
+            setDeleteError("")
           }
         }}
       />

@@ -397,6 +397,12 @@ service UserService {
       body: "*"
     };
   }
+  // 删除用户，用于清理错误数据。不能删除自己、超级管理员、仍是租户负责人的用户和还有租户订单的用户。
+  // 用户被软删除，第三方绑定、成员关系、告警页选择、告警列配置、系统消息和邀请记录一并清理；
+  // 其创建过的租户告警页面保留。
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
+    option (google.api.http) = {delete: "/v1/user/{uid}"};
+  }
 }
 
 // 平台邀请消息。邀请独立于租户成员，必须由用户在平台确认。
@@ -1562,6 +1568,15 @@ message UpdateUserSystemRoleResponse {
   // 用户资料。
   UserItem user = 1;
 }
+
+// 要删除的用户。
+message DeleteUserRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 用户已删除。删除不可恢复。
+message DeleteUserResponse {}
 
 // 创建角色的参数。
 message CreateRoleRequest {

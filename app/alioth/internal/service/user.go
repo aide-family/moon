@@ -63,3 +63,10 @@ func (s *UserService) UpdateUserSystemRole(ctx context.Context, req *v1.UpdateUs
 	}
 	return &v1.UpdateUserSystemRoleResponse{User: userItem(*account)}, nil
 }
+
+func (s *UserService) DeleteUser(ctx context.Context, req *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error) {
+	if err := s.directory.DeleteUser(ctx, req.GetUid()); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteUserResponse{}, nil
+}
