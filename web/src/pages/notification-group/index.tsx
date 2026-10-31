@@ -124,7 +124,7 @@ export function NotificationGroupPage() {
   const [detail, setDetail] = useState<NotificationGroupItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationGroupItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const canWrite = session.can("notification:write")
+  const canWrite = session.can("notification_group:write")
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationGroupItem>({
     page: query.page,
     pageSize: query.pageSize,

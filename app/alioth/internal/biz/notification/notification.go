@@ -80,7 +80,7 @@ func (center *Center) ReapStale(ctx context.Context) error {
 }
 
 func (center *Center) CreateChannel(ctx context.Context, in bo.NotificationChannel) (*bo.NotificationChannel, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationChannelWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (center *Center) CreateChannel(ctx context.Context, in bo.NotificationChann
 }
 
 func (center *Center) UpdateChannel(ctx context.Context, in bo.NotificationChannel) (*bo.NotificationChannel, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationChannelWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (center *Center) UpdateChannel(ctx context.Context, in bo.NotificationChann
 }
 
 func (center *Center) UpdateChannelStatus(ctx context.Context, uid, status string) (*bo.NotificationChannel, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationChannelWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (center *Center) UpdateChannelStatus(ctx context.Context, uid, status strin
 }
 
 func (center *Center) DeleteChannel(ctx context.Context, uid string) error {
-	ns, err := center.access.Allow(ctx, perm.NotificationDelete)
+	ns, err := center.access.Allow(ctx, perm.NotificationChannelDelete)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (center *Center) DeleteChannel(ctx context.Context, uid string) error {
 }
 
 func (center *Center) GetChannel(ctx context.Context, uid string) (*bo.NotificationChannel, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (center *Center) GetChannel(ctx context.Context, uid string) (*bo.Notificat
 }
 
 func (center *Center) ListChannels(ctx context.Context, pageNo, pageSize int32, name, kind, app string) ([]bo.NotificationChannel, int, int, int, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
@@ -204,7 +204,7 @@ func (center *Center) ListChannels(ctx context.Context, pageNo, pageSize int32, 
 }
 
 func (center *Center) SelectChannels(ctx context.Context, limit int32, lastUID string) ([]bo.SelectItem, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func (center *Center) SelectChannels(ctx context.Context, limit int32, lastUID s
 
 // TestChannel 只写入 PENDING 任务。短信类型直接拒绝，避免被报成 SENT。
 func (center *Center) TestChannel(ctx context.Context, channelUID, templateUID, receivers, subject, body, params string) (string, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationChannelWrite)
 	if err != nil {
 		return "", err
 	}
@@ -284,7 +284,7 @@ func (center *Center) TestChannel(ctx context.Context, channelUID, templateUID, 
 }
 
 func (center *Center) CreateTemplate(ctx context.Context, in bo.NotificationTemplate) (*bo.NotificationTemplate, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationTemplateWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (center *Center) CreateTemplate(ctx context.Context, in bo.NotificationTemp
 }
 
 func (center *Center) UpdateTemplate(ctx context.Context, in bo.NotificationTemplate) (*bo.NotificationTemplate, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationTemplateWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func (center *Center) UpdateTemplate(ctx context.Context, in bo.NotificationTemp
 }
 
 func (center *Center) UpdateTemplateStatus(ctx context.Context, uid, status string) (*bo.NotificationTemplate, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationTemplateWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +349,7 @@ func (center *Center) UpdateTemplateStatus(ctx context.Context, uid, status stri
 }
 
 func (center *Center) DeleteTemplate(ctx context.Context, uid string) error {
-	ns, err := center.access.Allow(ctx, perm.NotificationDelete)
+	ns, err := center.access.Allow(ctx, perm.NotificationTemplateDelete)
 	if err != nil {
 		return err
 	}
@@ -364,7 +364,7 @@ func (center *Center) DeleteTemplate(ctx context.Context, uid string) error {
 }
 
 func (center *Center) GetTemplate(ctx context.Context, uid string) (*bo.NotificationTemplate, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...)
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +379,7 @@ func (center *Center) GetTemplate(ctx context.Context, uid string) (*bo.Notifica
 }
 
 func (center *Center) ListTemplates(ctx context.Context, pageNo, pageSize int32, name, kind, app string) ([]bo.NotificationTemplate, int, int, int, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
@@ -399,7 +399,7 @@ func (center *Center) ListTemplates(ctx context.Context, pageNo, pageSize int32,
 }
 
 func (center *Center) SelectTemplates(ctx context.Context, limit int32, lastUID string) ([]bo.SelectItem, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...)
 	if err != nil {
 		return nil, err
 	}
@@ -464,7 +464,7 @@ func filterString(items []string, wanted string) []string {
 
 // ListPresets 返回系统预设模板。预设是只读的，用户从预设创建自己的模板。
 func (center *Center) ListPresets(ctx context.Context) ([]bo.NotificationPreset, error) {
-	if _, err := center.access.Allow(ctx, perm.NotificationRead); err != nil {
+	if _, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...); err != nil {
 		return nil, err
 	}
 	items, err := center.repo.ListPresets(ctx)
@@ -497,7 +497,7 @@ func (center *Center) TestTemplate(ctx context.Context, templateUID, channelUID,
 // PreviewTemplate 用固定的 mock 事件渲染模板，只用于编辑器和预设页预览，不创建任务。
 // 渲染和投递共用 pkg/alerttmpl，因此预览里能用的字段、函数与真实发送一致。
 func (center *Center) PreviewTemplate(ctx context.Context, in bo.NotificationTemplate) (string, string, error) {
-	if _, err := center.access.Allow(ctx, perm.NotificationRead); err != nil {
+	if _, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...); err != nil {
 		return "", "", err
 	}
 	normalizeTemplate(&in)
@@ -571,7 +571,7 @@ func normalizeTemplate(in *bo.NotificationTemplate) {
 }
 
 func (center *Center) CreateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationGroupWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -584,7 +584,7 @@ func (center *Center) CreateGroup(ctx context.Context, in bo.NotificationGroup) 
 }
 
 func (center *Center) UpdateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationGroupWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -597,7 +597,7 @@ func (center *Center) UpdateGroup(ctx context.Context, in bo.NotificationGroup) 
 }
 
 func (center *Center) UpdateGroupStatus(ctx context.Context, uid, status string) (*bo.NotificationGroup, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationGroupWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -606,7 +606,7 @@ func (center *Center) UpdateGroupStatus(ctx context.Context, uid, status string)
 }
 
 func (center *Center) DeleteGroup(ctx context.Context, uid string) error {
-	ns, err := center.access.Allow(ctx, perm.NotificationDelete)
+	ns, err := center.access.Allow(ctx, perm.NotificationGroupDelete)
 	if err != nil {
 		return err
 	}
@@ -614,7 +614,7 @@ func (center *Center) DeleteGroup(ctx context.Context, uid string) error {
 }
 
 func (center *Center) GetGroup(ctx context.Context, uid string) (*bo.NotificationGroup, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...)
 	if err != nil {
 		return nil, err
 	}
@@ -630,7 +630,7 @@ func (center *Center) GetGroup(ctx context.Context, uid string) (*bo.Notificatio
 }
 
 func (center *Center) ListGroups(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.NotificationGroup, int, int, int, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
@@ -747,7 +747,7 @@ func filterGroupPairs(group *bo.NotificationGroup, channelTypeByUID, templateTyp
 }
 
 func (center *Center) SelectGroups(ctx context.Context, limit int32, lastUID string, activeOnly bool) ([]bo.SelectItem, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.AllowAny(ctx, perm.NotificationReadPermissions()...)
 	if err != nil {
 		return nil, err
 	}
@@ -756,7 +756,7 @@ func (center *Center) SelectGroups(ctx context.Context, limit int32, lastUID str
 }
 
 func (center *Center) ListMessageLogs(ctx context.Context, pageNo, pageSize int32, filter bo.MessageLogListFilter) ([]bo.MessageLog, int, int, int, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.Allow(ctx, perm.MessageLogRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
@@ -772,7 +772,7 @@ func (center *Center) ListMessageLogs(ctx context.Context, pageNo, pageSize int3
 }
 
 func (center *Center) GetMessageLog(ctx context.Context, uid string) (*bo.MessageLog, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.Allow(ctx, perm.MessageLogRead)
 	if err != nil {
 		return nil, err
 	}
@@ -781,7 +781,7 @@ func (center *Center) GetMessageLog(ctx context.Context, uid string) (*bo.Messag
 }
 
 func (center *Center) ListTasks(ctx context.Context, pageNo, pageSize int32, filter bo.NotificationTaskListFilter) ([]bo.NotificationTask, int, int, int, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.Allow(ctx, perm.MessageLogRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
@@ -797,7 +797,7 @@ func (center *Center) ListTasks(ctx context.Context, pageNo, pageSize int32, fil
 }
 
 func (center *Center) RetryTask(ctx context.Context, uid string) (*bo.NotificationTask, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.MessageLogWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -806,7 +806,7 @@ func (center *Center) RetryTask(ctx context.Context, uid string) (*bo.Notificati
 }
 
 func (center *Center) CancelTask(ctx context.Context, uid string) (*bo.NotificationTask, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.MessageLogWrite)
 	if err != nil {
 		return nil, err
 	}

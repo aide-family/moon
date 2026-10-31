@@ -1,6 +1,9 @@
 package perm
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 // 功能把菜单和接口按模块打包。功能由代码维护，超级管理员用套餐把功能开通给租户，
 // 租户只能基于已开通功能给角色授权。namespace:* 不属于任何功能，始终可用。
@@ -117,6 +120,10 @@ func featureForResource(resource string) string {
 // access 用它判断一次权限检查是否还要看租户的功能开通情况。
 // 菜单权限 menu:<能力> 返回该能力所属的模块；能力编码本身也返回所属模块。
 func FeatureOf(permission string) string {
+	// namespace:* 不属于任何功能，始终可用。
+	if strings.HasPrefix(permission, "namespace:") {
+		return ""
+	}
 	if menuCode, ok := MenuOfMenuPermission(permission); ok {
 		if menu, exists := MenuOf(menuCode); exists {
 			return menu.Group
@@ -125,6 +132,13 @@ func FeatureOf(permission string) string {
 	}
 	if item, ok := CapabilityOf(permission); ok {
 		return item.Module
+	}
+	// 权限名不再按资源共享资源：按菜单声明找到它归属的模块，
+	// 例如 alert_page:write 属于 alert，而不是空模块。
+	for _, menu := range menuSpecs {
+		if slices.Contains(menu.Permissions, permission) {
+			return menu.Group
+		}
 	}
 	for _, item := range Catalog() {
 		if item.Name == permission {

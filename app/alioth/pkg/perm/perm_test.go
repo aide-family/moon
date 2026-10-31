@@ -122,7 +122,7 @@ func TestReadOnlyCatalog(t *testing.T) {
 		}
 	}
 	for _, write := range []string{
-		MemberWrite, MemberDelete, AlertIntervene, SSHExec, NamespaceDelete, NamespaceTransfer,
+		MemberWrite, MemberDelete, AlertRealtimeIntervene, SSHExec, NamespaceDelete, NamespaceTransfer,
 		K8sPodWrite, K8sCronJobWrite,
 	} {
 		if IsReadOnly(write) {
@@ -316,7 +316,7 @@ func TestCapabilityCatalog(t *testing.T) {
 			t.Fatalf("base capability %s module %s is not a base feature", code, item.Module)
 		}
 	}
-	if got := CapabilityPermissions([]string{CapabilityNotifyChannelSMTP, CapabilityNotifyGroup}); len(got) != 3 {
+	if got := CapabilityPermissions([]string{CapabilityNotifyChannelSMTP, CapabilityNotifyGroup}); len(got) != 6 {
 		t.Fatalf("notification permissions = %v, want 3 unique", got)
 	}
 	if got := CapabilityCodesOfModule(FeatureCluster); len(got) != 12 {
@@ -329,12 +329,12 @@ func TestCapabilityCatalog(t *testing.T) {
 func TestRolePermissionsForCapabilities(t *testing.T) {
 	caps := []string{CapabilityAlertRealtime, CapabilityClusterAccess}
 	owner := set(RolePermissionsForCapabilities(RoleOwner, caps))
-	for _, name := range []string{AlertRead, AlertIntervene, MenuPermission(CapabilityAlertRealtime), MenuPermission(CapabilityClusterAccess), NamespaceWrite} {
+	for _, name := range []string{AlertRealtimeRead, AlertRealtimeIntervene, MenuPermission(CapabilityAlertRealtime), MenuPermission(CapabilityClusterAccess), NamespaceWrite} {
 		if _, ok := owner[name]; !ok {
 			t.Fatalf("owner missing %s", name)
 		}
 	}
-	for _, name := range []string{AlertWrite, AlertDelete, K8sNodeRead, MenuPermission(CapabilityAlertHistory)} {
+	for _, name := range []string{AlertPageWrite, AlertPageDelete, AlertHistoryRead, K8sNodeRead, MenuPermission(CapabilityAlertHistory)} {
 		if _, ok := owner[name]; ok {
 			t.Fatalf("owner has out-of-scope permission %s", name)
 		}

@@ -48,12 +48,13 @@ M22 修复套餐细化后暴露的六个问题，核心是两条：**套餐编�
 - 授权页按「分组 → 菜单 → 子权限」三级排版：
   - 勾选菜单即授予 `menu:<菜单>`，并默认带该菜单的读权限（`:read` / `:logs`），读权限行锁定并标记“默认读权限”；
   - 菜单下的写、删除、执行子权限必须先勾选菜单，否则不可选；
-  - 同组多个菜单共享的权限（例如 `alert:read`、`notification:*`）在分组顶部只展示一次，避免同一权限出现多份勾选框；
+  - 每个菜单拥有独立的权限名：实时告警 `alert_realtime:*`、历史告警 `alert_history:*`、告警页面 `alert_page:*`、告警字典 `alert_dictionary:*`、通知渠道 `notification_channel:*`、消息模板 `notification_template:*`、通知组 `notification_group:*`、告警订阅 `notification_subscription:*`、OnCall `notification_oncall:*`、消息日志 `message_log:*`；在某个菜单下授权的写/删除不会扩散到同组其他菜单；
   - `namespace:*` 归入固定「租户设置」菜单，`namespace:read` 是该菜单的默认读权限；
   - 套餐外旧授权单独展示并默认保留，不再出现“无菜单归属”的可见权限；
 - 后端 `normalizeRoleGrant` 统一执行三条规则：菜单补默认读权限；子权限补声明它的已开通菜单；owner-only 权限拒绝授予；
-- `access` 的菜单校验改为：权限声明菜单中只要有一个被套餐开通且角色持有 `menu:<菜单>` 即放行；`permissionInTenantScope` 改为按能力精确判断，避免共享权限借其他能力的菜单越权；
-- seed 增加 `migrateMenuPermissionCodes`：把旧的 `menu:datasource_*` / `menu:probe_http` / `menu:notify_channel_*` / `menu:notify_*` / `menu:agent_machine` 迁移到新菜单，并给持有 `namespace:*` 的角色补 `menu:namespace`，再补默认读权限、清理旧菜单权限；
+- `access` 的菜单校验：菜单被套餐开通且角色持有 `menu:<菜单>` 即放行；实时告警和历史告警共用的事件列表接口使用 `RequireAny` 同时接受两个菜单的读权限；
+- 权限名与菜单一一对应，不再存在跨菜单共享动作，因此也不需要按“共享权限只归一个菜单”做特殊处理；
+- **不做数据迁移**：本次权限名是破坏性变更，旧菜单权限和旧角色授权不兼容；seed 不再映射旧编码，测试环境直接清空表结构和数据后重建；
 - 预置角色由 `RolePermissionsForCapabilities` 按已开通菜单补齐 `menu:*`，不再按能力逐个生成。
 
 ## 7. 套餐授权同步（全部 / 指定租户）
@@ -74,6 +75,7 @@ M22 修复套餐细化后暴露的六个问题，核心是两条：**套餐编�
 3. 永久套餐在租户列表、租户页套餐卡片、功能授权弹窗都显示“永久”，不出现 1970/1/1。
 4. 套餐可以设置为 CNY/USD/EUR/JPY，价格输入框内显示币种符号；订单和页面按快照币种展示金额。
 5. 套餐能力每项有说明 tooltip。
-6. 角色权限按「分组 → 菜单 → 子权限」展示；数据源/通知渠道只出现一张菜单；勾选菜单自动带读权限且读权限锁定；子权限不能脱离菜单提交；同组共享权限只出现一次；`namespace:*` 归入「租户设置」；套餐外旧授权可见且默认保留。
+6. 角色权限按「分组 → 菜单 → 子权限」展示；数据源/通知渠道只出现一张菜单；勾选菜单自动带读权限且读权限锁定；子权限不能脱离菜单提交；每个菜单权限名独立（例如在消息模板菜单下授权写权限不会获得通知渠道写权限）；`namespace:*` 归入「租户设置」；套餐外旧授权可见且默认保留。
 7. 套餐「同步授权」支持全部或指定租户：指定同步只更新选中租户快照，全部同步覆盖套餐下全部租户，额外能力保留、已并入套餐的能力被清理，未使用该套餐的租户计入跳过。
-8. `go vet`、后端单元测试、真库集成测试（套餐编辑不影响租户快照、同步指定/全部租户）、`gofmt`、`check-naming`、`buf lint`、`make wire`、api build/test、web typecheck/lint/build 通过。
+8. 本次权限拆分不做数据迁移；测试环境已清空 `alioth_test` 的 schema 和数据后重新迁移、灌入种子数据。
+9. `go vet`、后端单元测试、真库集成测试（套餐编辑不影响租户快照、同步指定/全部租户）、`gofmt`、`check-naming`、`buf lint`、`make wire`、api build/test、web typecheck/lint/build 通过。

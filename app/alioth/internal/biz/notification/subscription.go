@@ -14,7 +14,7 @@ import (
 const maxSubscriptionFilterValues = 200
 
 func (center *Center) CreateSubscription(ctx context.Context, in bo.NotificationSubscription) (*bo.NotificationSubscription, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationSubscriptionWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (center *Center) CreateSubscription(ctx context.Context, in bo.Notification
 }
 
 func (center *Center) UpdateSubscription(ctx context.Context, in bo.NotificationSubscription) (*bo.NotificationSubscription, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationSubscriptionWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (center *Center) UpdateSubscription(ctx context.Context, in bo.Notification
 }
 
 func (center *Center) UpdateSubscriptionStatus(ctx context.Context, uid, status string) (*bo.NotificationSubscription, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationSubscriptionWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (center *Center) UpdateSubscriptionStatus(ctx context.Context, uid, status 
 }
 
 func (center *Center) DeleteSubscription(ctx context.Context, uid string) error {
-	ns, err := center.access.Allow(ctx, perm.NotificationDelete)
+	ns, err := center.access.Allow(ctx, perm.NotificationSubscriptionDelete)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (center *Center) DeleteSubscription(ctx context.Context, uid string) error 
 }
 
 func (center *Center) GetSubscription(ctx context.Context, uid string) (*bo.NotificationSubscription, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.Allow(ctx, perm.NotificationSubscriptionRead)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (center *Center) GetSubscription(ctx context.Context, uid string) (*bo.Noti
 }
 
 func (center *Center) ListSubscriptions(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.NotificationSubscription, int, int, int, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.Allow(ctx, perm.NotificationSubscriptionRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}

@@ -131,7 +131,7 @@ export function AlertDictionaryPage() {
   const [detail, setDetail] = useState<AlertDictionaryItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: AlertDictionaryItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const canWrite = session.can("alert_rule:write")
+  const canWrite = session.can("alert_dictionary:write")
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<AlertDictionaryItem>({
     page: query.page,
     pageSize: query.pageSize,

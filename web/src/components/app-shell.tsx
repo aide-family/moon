@@ -172,14 +172,14 @@ const alertLinks: {
   {
     to: "/alerts",
     label: "nav.realtime",
-    permission: "alert:read",
+    permission: "alert_realtime:read",
     capability: MENU_CAPABILITIES["/alerts"],
     icon: Activity,
   },
   {
     to: "/alert-history",
     label: "nav.history",
-    permission: "alert:read",
+    permission: "alert_history:read",
     capability: MENU_CAPABILITIES["/alert-history"],
     icon: History,
   },
@@ -207,14 +207,14 @@ const alertLinks: {
   {
     to: "/alert-dictionaries",
     label: "nav.alertDictionaries",
-    permission: "alert_rule:read",
+    permission: "alert_dictionary:read",
     capability: MENU_CAPABILITIES["/alert-dictionaries"],
     icon: Gauge,
   },
   {
     to: "/alert-pages",
     label: "nav.alertPages",
-    permission: "alert:read",
+    permission: "alert_page:read",
     capability: MENU_CAPABILITIES["/alert-pages"],
     icon: LayoutList,
   },
@@ -230,42 +230,42 @@ const notifyLinks: {
   {
     to: "/notification-channels",
     label: "nav.channels",
-    permission: "notification:read",
+    permission: "notification_channel:read",
     capability: MENU_CAPABILITIES["/notification-channels"],
     icon: Mail,
   },
   {
     to: "/notification-templates",
     label: "nav.templates",
-    permission: "notification:read",
+    permission: "notification_template:read",
     capability: MENU_CAPABILITIES["/notification-templates"],
     icon: FileText,
   },
   {
     to: "/notification-groups",
     label: "nav.groups",
-    permission: "notification:read",
+    permission: "notification_group:read",
     capability: MENU_CAPABILITIES["/notification-groups"],
     icon: UsersRound,
   },
   {
     to: "/notification-subscriptions",
     label: "nav.subscriptions",
-    permission: "notification:read",
+    permission: "notification_subscription:read",
     capability: MENU_CAPABILITIES["/notification-subscriptions"],
     icon: BellRing,
   },
   {
     to: "/notification-oncalls",
     label: "nav.onCalls",
-    permission: "notification:read",
+    permission: "notification_oncall:read",
     capability: MENU_CAPABILITIES["/notification-oncalls"],
     icon: CalendarClock,
   },
   {
     to: "/message-logs",
     label: "nav.messageLogs",
-    permission: "notification:read",
+    permission: "message_log:read",
     capability: MENU_CAPABILITIES["/message-logs"],
     icon: MessageSquare,
   },
@@ -467,7 +467,7 @@ function ShellFrame() {
   // 概览是唯一不带领域前缀的一级入口：它是值班着陆页，跟随实时告警能力。
   const overviewActive = location.pathname === "/overview"
   const canOverview = tenantVisible({
-    permission: "alert:read",
+    permission: "alert_realtime:read",
     capability: MENU_CAPABILITIES["/overview"],
   })
   const token = localStorage.getItem("token")

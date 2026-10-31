@@ -366,7 +366,7 @@ export function AlertEventList({
   // 勾选列的实际宽度，用来定位紧随其后的固定列。
   const checkHeadRef = useRef<HTMLTableCellElement | null>(null)
   const [checkColumnWidth, setCheckColumnWidth] = useState(0)
-  const canIntervene = view === "REALTIME" && session.can("alert:intervene")
+  const canIntervene = view === "REALTIME" && session.can("alert_realtime:intervene")
   const visibleColumns =
     columns && columns.length > 0
       ? columns

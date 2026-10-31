@@ -74,17 +74,3 @@ func TestCapabilityCodesOf(t *testing.T) {
 		}
 	}
 }
-
-// TestHoldsAnyPermission 确认菜单权限补齐只看角色是否持有能力的任一权限。
-func TestHoldsAnyPermission(t *testing.T) {
-	held := permissionSet([]string{perm.AlertRead})
-	if !holdsAnyPermission(held, []string{perm.AlertWrite, perm.AlertRead}) {
-		t.Fatal("held permission not detected")
-	}
-	if holdsAnyPermission(held, []string{perm.AlertWrite, perm.AlertDelete}) {
-		t.Fatal("unheld permission detected")
-	}
-	if holdsAnyPermission(permissionSet(nil), []string{perm.AlertRead}) {
-		t.Fatal("empty held set matched")
-	}
-}

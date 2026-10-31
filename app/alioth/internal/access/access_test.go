@@ -133,7 +133,7 @@ func TestRequireRejectsSystemAdminWrites(t *testing.T) {
 		checker := checkerFor(systemRole)
 		for _, code := range []string{
 			perm.MemberWrite, perm.MemberDelete, perm.AlertRuleWrite,
-			perm.AlertIntervene, perm.SSHExec, perm.NamespaceDelete, perm.NamespaceTransfer,
+			perm.AlertRealtimeIntervene, perm.SSHExec, perm.NamespaceDelete, perm.NamespaceTransfer,
 		} {
 			err := checker.Require(ctx, code)
 			if reason := kerrors.Reason(err); reason != merr.ReasonForbidden {

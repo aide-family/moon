@@ -103,7 +103,7 @@ func (catalog *Catalog) recoverLevelDatasources(ctx context.Context, namespaceUI
 }
 
 func (catalog *Catalog) ListAlertDictionaries(ctx context.Context, pageNo, pageSize int32, kind, name string) ([]bo.AlertDictionary, int, int, int, error) {
-	ns, err := catalog.access.Allow(ctx, perm.AlertRuleRead)
+	ns, err := catalog.access.AllowAny(ctx, perm.AlertDictionaryRead, perm.AlertRuleRead, perm.AlertPageRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}

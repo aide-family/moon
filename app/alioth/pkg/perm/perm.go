@@ -29,14 +29,43 @@ const (
 	AlertRuleWrite  = "alert_rule:write"
 	AlertRuleDelete = "alert_rule:delete"
 
-	AlertRead      = "alert:read"
-	AlertWrite     = "alert:write"
-	AlertDelete    = "alert:delete"
-	AlertIntervene = "alert:intervene"
+	// 告警按菜单拆分：实时、历史、告警页面、字典各自持有独立权限，
+	// 在某个菜单下授权的写/删除不会扩散到同模块的其他菜单。
+	AlertRealtimeRead      = "alert_realtime:read"
+	AlertRealtimeIntervene = "alert_realtime:intervene"
+	AlertHistoryRead       = "alert_history:read"
+	AlertPageRead          = "alert_page:read"
+	AlertPageWrite         = "alert_page:write"
+	AlertPageDelete        = "alert_page:delete"
 
-	NotificationRead   = "notification:read"
-	NotificationWrite  = "notification:write"
-	NotificationDelete = "notification:delete"
+	AlertDictionaryRead   = "alert_dictionary:read"
+	AlertDictionaryWrite  = "alert_dictionary:write"
+	AlertDictionaryDelete = "alert_dictionary:delete"
+
+	// 通知按菜单拆分：渠道、模板、通知组、订阅、OnCall、消息日志互不共享动作。
+	NotificationChannelRead   = "notification_channel:read"
+	NotificationChannelWrite  = "notification_channel:write"
+	NotificationChannelDelete = "notification_channel:delete"
+
+	NotificationTemplateRead   = "notification_template:read"
+	NotificationTemplateWrite  = "notification_template:write"
+	NotificationTemplateDelete = "notification_template:delete"
+
+	NotificationGroupRead   = "notification_group:read"
+	NotificationGroupWrite  = "notification_group:write"
+	NotificationGroupDelete = "notification_group:delete"
+
+	NotificationSubscriptionRead   = "notification_subscription:read"
+	NotificationSubscriptionWrite  = "notification_subscription:write"
+	NotificationSubscriptionDelete = "notification_subscription:delete"
+
+	NotificationOncallRead   = "notification_oncall:read"
+	NotificationOncallWrite  = "notification_oncall:write"
+	NotificationOncallDelete = "notification_oncall:delete"
+
+	MessageLogRead   = "message_log:read"
+	MessageLogWrite  = "message_log:write"
+	MessageLogDelete = "message_log:delete"
 
 	ClusterRead   = "cluster:read"
 	ClusterWrite  = "cluster:write"
@@ -72,6 +101,20 @@ const (
 	SSHDelete = "ssh:delete"
 	SSHExec   = "ssh:exec"
 )
+
+// NotificationReadPermissions 返回通知模块所有菜单的读权限。
+// 渠道、模板、通知组等元数据会被其他通知菜单引用，读接口允许任一通知菜单只读访问；
+// 写和删除仍然按各自菜单独立授权。
+func NotificationReadPermissions() []string {
+	return []string{
+		NotificationChannelRead,
+		NotificationTemplateRead,
+		NotificationGroupRead,
+		NotificationSubscriptionRead,
+		NotificationOncallRead,
+		MessageLogRead,
+	}
+}
 
 // 系统权限属于平台，不写入租户的 permission 表，也不参与租户角色授权。
 const (
@@ -111,43 +154,37 @@ const (
 	SystemRoleUser        = "USER"
 )
 
-// resources 只包含租户资源。user 是平台资源，不在租户权限目录里。
-var resources = []string{
-	"member", "role", "namespace", "datasource", "probe", "alert_rule",
-	"alert", "notification", "cluster", "agent", "ssh",
-}
-
 type Item struct {
 	Name     string
 	Resource string
 	Action   string
 }
 
-// Catalog 返回租户权限目录。
+// Catalog 返回租户权限目录。权限名全部来自菜单目录：每个菜单声明自己的子权限，
+// 因此一个权限只属于一个菜单，不再需要按资源共享资源来归类。
 func Catalog() []Item {
-	items := make([]Item, 0, len(resources)*2+4+len(k8sCatalog())+len(capabilitySpecs))
-	for _, resource := range resources {
-		items = append(items,
-			Item{Name: resource + ":read", Resource: resource, Action: "read"},
-			Item{Name: resource + ":write", Resource: resource, Action: "write"},
-		)
-		// 删除普通业务数据是可以单独授予的权限；删除租户是另一回事，
-		// namespace:delete 只属于 owner，仍在下面单独列出。
-		if resource != "namespace" {
-			items = append(items, Item{Name: resource + ":delete", Resource: resource, Action: "delete"})
+	items := make([]Item, 0, len(capabilitySpecs)*3)
+	seen := make(map[string]struct{}, len(capabilitySpecs)*3)
+	for _, menu := range menuSpecs {
+		for _, name := range menu.Permissions {
+			if _, ok := seen[name]; ok {
+				continue
+			}
+			seen[name] = struct{}{}
+			items = append(items, itemOf(name))
 		}
 	}
-	items = append(items,
-		Item{Name: AlertIntervene, Resource: "alert", Action: "intervene"},
-		Item{Name: SSHExec, Resource: "ssh", Action: "exec"},
-		Item{Name: NamespaceDelete, Resource: "namespace", Action: "delete"},
-		Item{Name: NamespaceTransfer, Resource: "namespace", Action: "transfer"},
-	)
-	items = append(items, k8sCatalog()...)
-	// 菜单权限追加在租户权限目录末尾。资源名固定为 menu，动作是能力编码，
-	// 因此 Name 仍是 Resource+":"+Action 的形式，前端可以直接按资源分组。
 	items = append(items, menuCatalog()...)
 	return items
+}
+
+// itemOf 把权限名拆成资源与动作：k8s:node:read -> resource k8s:node, action read。
+func itemOf(name string) Item {
+	index := strings.LastIndex(name, ":")
+	if index < 0 {
+		return Item{Name: name, Resource: name, Action: name}
+	}
+	return Item{Name: name, Resource: name[:index], Action: name[index+1:]}
 }
 
 // menuCatalog 返回全部菜单权限，顺序与菜单目录一致。
@@ -375,22 +412,29 @@ func K8sWritePermissions() []string {
 	return names
 }
 
-// readPermissions 返回 viewer 的只读权限：全部租户资源的读权限，加上 Kubernetes
-// 资源级只读权限（含读取 Pod 日志）。member 在此基础上再叠加告警干预与 SSH 执行。
+// readPermissions 返回 viewer 的只读权限：每个菜单声明的读权限（含 Pod 日志），
+// 加上菜单权限本身。member 在此基础上再叠加告警干预与 SSH 执行。
 func readPermissions() []string {
-	names := make([]string, 0, len(resources)+len(k8sCatalog())+len(capabilitySpecs))
-	for _, resource := range resources {
-		names = append(names, resource+":read")
+	names := make([]string, 0, len(capabilitySpecs)*2)
+	seen := make(map[string]struct{}, len(capabilitySpecs)*2)
+	for _, menu := range menuSpecs {
+		for _, name := range menu.Permissions {
+			if !IsReadOnly(name) {
+				continue
+			}
+			if _, ok := seen[name]; ok {
+				continue
+			}
+			seen[name] = struct{}{}
+			names = append(names, name)
+		}
 	}
-	names = append(names, K8sReadPermissions()...)
-	// 菜单权限只控制入口可见性，属于只读：viewer 与 member 默认持有全部菜单，
-	// 实际可见哪些入口仍由套餐开通的能力过滤。
 	return append(names, MenuPermissions()...)
 }
 
 func memberPermissions() []string {
 	names := readPermissions()
-	return append(names, AlertIntervene, SSHExec)
+	return append(names, AlertRealtimeIntervene, SSHExec)
 }
 
 func without(names []string, drop ...string) []string {

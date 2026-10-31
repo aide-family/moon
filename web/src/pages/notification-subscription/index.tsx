@@ -96,7 +96,7 @@ export function NotificationSubscriptionPage() {
   const [detail, setDetail] = useState<NotificationSubscriptionItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationSubscriptionItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const canWrite = session.can("notification:write")
+  const canWrite = session.can("notification_subscription:write")
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationSubscriptionItem>({
     page: query.page,
     pageSize: query.pageSize,
@@ -105,7 +105,7 @@ export function NotificationSubscriptionPage() {
   })
 
   // 订阅弹窗的附加选择器按模块权限加载，缺权限时跳过，避免 403 全局跳转。
-  const canReadLevels = session.can("alert_rule:read")
+  const canReadLevels = session.can("alert_dictionary:read")
   const canReadSources = session.can("datasource:read")
 
   useEffect(() => {

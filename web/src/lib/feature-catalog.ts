@@ -354,50 +354,6 @@ export const CAPABILITIES: CapabilityDefinition[] = [
   },
 ]
 
-/**
- * 能力包含的接口权限，与后端 perm.capabilitySpecs 保持一致。
- * 角色授权页把子权限挂在菜单（能力）下；多个能力共享权限时归到第一个能力。
- */
-export const CAPABILITY_PERMISSIONS: Record<string, string[]> = {
-  alert_realtime: ["alert:read", "alert:intervene"],
-  alert_history: ["alert:read"],
-  alert_page: ["alert:read", "alert:write", "alert:delete"],
-  alert_rule: ["alert_rule:read", "alert_rule:write", "alert_rule:delete"],
-  alert_dictionary: ["alert_rule:read", "alert_rule:write", "alert_rule:delete"],
-  probe_http: ["probe:read", "probe:write", "probe:delete"],
-  datasource_prometheus: ["datasource:read", "datasource:write", "datasource:delete"],
-  datasource_victoria_metrics: ["datasource:read", "datasource:write", "datasource:delete"],
-  datasource_elasticsearch: ["datasource:read", "datasource:write", "datasource:delete"],
-  datasource_loki: ["datasource:read", "datasource:write", "datasource:delete"],
-  datasource_vlogs: ["datasource:read", "datasource:write", "datasource:delete"],
-  datasource_jaeger: ["datasource:read", "datasource:write", "datasource:delete"],
-  notify_channel_smtp: ["notification:read", "notification:write", "notification:delete"],
-  notify_channel_webhook: ["notification:read", "notification:write", "notification:delete"],
-  notify_channel_sms: ["notification:read", "notification:write", "notification:delete"],
-  notify_template: ["notification:read", "notification:write", "notification:delete"],
-  notify_group: ["notification:read", "notification:write", "notification:delete"],
-  notify_subscription: ["notification:read", "notification:write", "notification:delete"],
-  notify_oncall: ["notification:read", "notification:write", "notification:delete"],
-  message_log: ["notification:read", "notification:write", "notification:delete"],
-  member: ["member:read", "member:write", "member:delete"],
-  role: ["role:read", "role:write", "role:delete"],
-  cluster_access: ["cluster:read", "cluster:write", "cluster:delete"],
-  k8s_node: ["k8s:node:read", "k8s:node:write"],
-  k8s_workload: ["k8s:workload:read", "k8s:workload:write"],
-  k8s_pod: ["k8s:pod:read", "k8s:pod:write", "k8s:pod:logs"],
-  k8s_ingress: ["k8s:ingress:read"],
-  k8s_service: ["k8s:service:read"],
-  k8s_configmap: ["k8s:configmap:read"],
-  k8s_secret: ["k8s:secret:read"],
-  k8s_pv: ["k8s:pv:read"],
-  k8s_pvc: ["k8s:pvc:read"],
-  k8s_job: ["k8s:job:read", "k8s:job:write"],
-  k8s_cronjob: ["k8s:cronjob:read", "k8s:cronjob:write"],
-  agent_machine: ["agent:read", "agent:write", "agent:delete"],
-  ssh_command: ["ssh:read", "ssh:write", "ssh:delete"],
-  web_shell: ["ssh:exec"],
-}
-
 /** 基础套餐包含的模块：前 7 个模块的全部能力（数据源和通知渠道按类型展开后共 22 项）。 */
 export const BASE_MODULES = [
   "alert",
@@ -425,19 +381,19 @@ export const MENU_CAPABILITIES: Record<string, string> = {
   "/alert-pages": "alert_page",
   "/alert-rules": "alert_rule",
   "/alert-dictionaries": "alert_dictionary",
-  // 探测、数据源和通知渠道按类型拆分后，菜单入口用模块码：任一类型开通即显示。
+  // 探测、数据源、通知渠道和机器按菜单授权：入口只看对应菜单。
   "/probe-targets": "probe",
   "/datasources": "datasource",
-  "/notification-channels": "notification",
-  "/notification-templates": "notify_template",
-  "/notification-groups": "notify_group",
-  "/notification-subscriptions": "notify_subscription",
-  "/notification-oncalls": "notify_oncall",
+  "/notification-channels": "notification_channel",
+  "/notification-templates": "notification_template",
+  "/notification-groups": "notification_group",
+  "/notification-subscriptions": "notification_subscription",
+  "/notification-oncalls": "notification_oncall",
   "/message-logs": "message_log",
   "/members": "member",
   "/roles": "role",
   "/clusters": "cluster_access",
-  "/agents": "agent_machine",
+  "/agents": "agent",
   "/ssh-commands": "ssh_command",
 }
 
@@ -562,19 +518,56 @@ export function authorizedTemplateTypes(features: string[]): string[] {
   return [...types]
 }
 
-/** 菜单入口是否可用：模块码看任一能力，能力码看自身。 */
+/**
+ * 能力 → 菜单的映射。多数能力与菜单同码；按类型拆分的驱动/渠道合并到一张菜单，
+ * 与后端 perm.menuSpecs 保持一致。
+ */
+const CAPABILITY_MENU_OVERRIDES: Record<string, string[]> = {
+  datasource_prometheus: ["datasource"],
+  datasource_victoria_metrics: ["datasource"],
+  datasource_elasticsearch: ["datasource"],
+  datasource_loki: ["datasource"],
+  datasource_vlogs: ["datasource"],
+  datasource_jaeger: ["datasource"],
+  probe_http: ["probe"],
+  notify_channel_smtp: ["notification_channel"],
+  notify_channel_webhook: ["notification_channel"],
+  notify_channel_sms: ["notification_channel"],
+  notify_template: ["notification_template"],
+  notify_group: ["notification_group"],
+  notify_subscription: ["notification_subscription"],
+  notify_oncall: ["notification_oncall"],
+  agent_machine: ["agent"],
+}
+
+/** 返回能力开通的菜单编码。 */
+export function menusOfCapability(capability: string): string[] {
+  return CAPABILITY_MENU_OVERRIDES[capability] ?? [capability]
+}
+
+const MENU_CAPABILITIES_BY_CODE = (() => {
+  const index: Record<string, string[]> = {}
+  for (const capability of CAPABILITIES) {
+    for (const menu of menusOfCapability(capability.code)) {
+      index[menu] = [...(index[menu] ?? []), capability.code]
+    }
+  }
+  return index
+})()
+
+/** 菜单入口是否可用：菜单被任一已开通能力覆盖，且角色持有该菜单权限。 */
 export function menuEntryAuthorized(
   entry: string,
   features: string[],
   permissions: string[]
 ): boolean {
-  const codes = isModuleCode(entry) ? capabilitiesOfModule(entry) : [entry]
-  const enabled = new Set(features)
-  const held = new Set(permissions)
-  return codes.some(
-    (capability) =>
-      enabled.has(capability) && held.has(`menu:${capability}`)
-  )
+  // 租户设置是固定菜单，不受套餐能力限制。
+  const licensed =
+    entry === "namespace" ||
+    (MENU_CAPABILITIES_BY_CODE[entry] ?? []).some((capability) =>
+      features.includes(capability)
+    )
+  return licensed && permissions.includes(`menu:${entry}`)
 }
 
 const BY_CODE = new Map(CAPABILITIES.map((item) => [item.code, item]))
@@ -723,15 +716,15 @@ export function menuCapability(path: string): string | undefined {
   return MENU_CAPABILITIES[path]
 }
 
-/** 能力对应的菜单权限码（权限目录里 resource=menu）。 */
-export function menuPermission(capability: string): string {
-  return `menu:${capability}`
+/** 菜单对应的菜单权限码（权限目录里 resource=menu）。 */
+export function menuPermission(menu: string): string {
+  return `menu:${menu}`
 }
 
 /** 菜单路径需要的菜单权限码。 */
 export function menuPermissionCode(path: string): string | undefined {
-  const capability = menuCapability(path)
-  return capability ? menuPermission(capability) : undefined
+  const menu = menuCapability(path)
+  return menu ? menuPermission(menu) : undefined
 }
 
 /** 集群详情资源视图需要的能力；概况返回 undefined。 */

@@ -112,7 +112,7 @@ export function MessageLogPage() {
   const appliedCount = Object.values(appliedFilters).filter(Boolean).length
   // 默认无筛选时展开，应用后收起；与历史告警明细一致。
   const [filtersOpen, setFiltersOpen] = useState(appliedCount === 0)
-  const canWrite = session.can("notification:write")
+  const canWrite = session.can("message_log:write")
   const taskStatuses = ["PENDING", "SENDING", "SENT", "FAILED", "CANCELLED"]
   const logStatuses = ["SENT", "FAILED"]
 

@@ -25,7 +25,7 @@ const (
 )
 
 func (center *Center) CreateOnCall(ctx context.Context, in bo.NotificationOnCall) (*bo.NotificationOnCall, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationOncallWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (center *Center) CreateOnCall(ctx context.Context, in bo.NotificationOnCall
 }
 
 func (center *Center) UpdateOnCall(ctx context.Context, in bo.NotificationOnCall) (*bo.NotificationOnCall, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationOncallWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (center *Center) UpdateOnCall(ctx context.Context, in bo.NotificationOnCall
 }
 
 func (center *Center) UpdateOnCallStatus(ctx context.Context, uid, status string) (*bo.NotificationOnCall, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
+	ns, err := center.access.Allow(ctx, perm.NotificationOncallWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (center *Center) UpdateOnCallStatus(ctx context.Context, uid, status string
 }
 
 func (center *Center) DeleteOnCall(ctx context.Context, uid string) error {
-	ns, err := center.access.Allow(ctx, perm.NotificationDelete)
+	ns, err := center.access.Allow(ctx, perm.NotificationOncallDelete)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (center *Center) DeleteOnCall(ctx context.Context, uid string) error {
 }
 
 func (center *Center) GetOnCall(ctx context.Context, uid string) (*bo.NotificationOnCall, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.Allow(ctx, perm.NotificationOncallRead)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (center *Center) GetOnCall(ctx context.Context, uid string) (*bo.Notificati
 }
 
 func (center *Center) ListOnCalls(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.NotificationOnCall, int, int, int, error) {
-	ns, err := center.access.Allow(ctx, perm.NotificationRead)
+	ns, err := center.access.Allow(ctx, perm.NotificationOncallRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}

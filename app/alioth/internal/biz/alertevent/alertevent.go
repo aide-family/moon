@@ -186,7 +186,7 @@ const InsightMaxDays int32 = 30
 // Insight 返回概览页的区间聚合。
 // 区间是「N 天前的本地零点」到「当前时刻」，所以今天那个桶是进行中的部分数据。
 func (coordinator *Coordinator) Insight(ctx context.Context, days int32, timeZone string) (bo.AlertInsight, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead, perm.AlertPageRead)
 	if err != nil {
 		return bo.AlertInsight{}, err
 	}
@@ -238,7 +238,7 @@ type ListQuery struct {
 }
 
 func (coordinator *Coordinator) List(ctx context.Context, query ListQuery, pageNo, pageSize int32) ([]bo.AlertEvent, int, int, int, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead, perm.AlertPageRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
@@ -359,7 +359,7 @@ func (coordinator *Coordinator) eventUIDsForCurrentUser(ctx context.Context, nam
 // Chart 用事件对应的数据源和规则表达式查询事件区间内的原始数据。
 // 图表是告警详情的只读部分，按告警读权限放行，不要求额外的数据源权限。
 func (coordinator *Coordinator) Chart(ctx context.Context, uid string) (*bo.AlertEventChart, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead, perm.AlertPageRead)
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +427,7 @@ func chartWindow(startsAt, now time.Time) (int64, int64, int64) {
 }
 
 func (coordinator *Coordinator) Get(ctx context.Context, uid string) (*bo.AlertEvent, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead, perm.AlertPageRead)
 	if err != nil {
 		return nil, err
 	}
@@ -436,7 +436,7 @@ func (coordinator *Coordinator) Get(ctx context.Context, uid string) (*bo.AlertE
 }
 
 func (coordinator *Coordinator) Stats(ctx context.Context) (bo.AlertStats, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead, perm.AlertPageRead)
 	if err != nil {
 		return bo.AlertStats{}, err
 	}
@@ -447,7 +447,7 @@ func (coordinator *Coordinator) Stats(ctx context.Context) (bo.AlertStats, error
 // RealtimeStats 返回实时告警页一次刷新所需的全部数量：已选 Tab 的数量和全局数量。
 // 只统计当前用户已选择显示的页面，未选择的页面不参与查询；这里只做 count，不读列表数据。
 func (coordinator *Coordinator) RealtimeStats(ctx context.Context) (bo.RealtimeAlertStats, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead, perm.AlertPageRead)
 	if err != nil {
 		return bo.RealtimeAlertStats{}, err
 	}
@@ -497,7 +497,7 @@ func (coordinator *Coordinator) RealtimeStats(ctx context.Context) (bo.RealtimeA
 }
 
 func (coordinator *Coordinator) Intervene(ctx context.Context, uids []string) error {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertIntervene)
+	ns, err := coordinator.access.Allow(ctx, perm.AlertRealtimeIntervene)
 	if err != nil {
 		return err
 	}
@@ -508,7 +508,7 @@ func (coordinator *Coordinator) Intervene(ctx context.Context, uids []string) er
 // Suppress 抑制一条实时告警，并返回抑制到期时间。permanent 为真时不设到期时间。
 // 时长为 0 时使用默认值，兼容还没传时长的旧客户端。
 func (coordinator *Coordinator) Suppress(ctx context.Context, uid string, seconds int64, permanent bool) (time.Time, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertIntervene)
+	ns, err := coordinator.access.Allow(ctx, perm.AlertRealtimeIntervene)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -526,7 +526,7 @@ func (coordinator *Coordinator) Suppress(ctx context.Context, uid string, second
 }
 
 func (coordinator *Coordinator) Recover(ctx context.Context, uids []string) error {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertIntervene)
+	ns, err := coordinator.access.Allow(ctx, perm.AlertRealtimeIntervene)
 	if err != nil {
 		return err
 	}

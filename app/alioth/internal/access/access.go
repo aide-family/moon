@@ -89,6 +89,33 @@ func (c Checker) allow(ctx context.Context, code string, activeOnly bool) (strin
 	return ns, nil
 }
 
+// RequireAny 只要命中任意一个权限就放行；用于同时服务多个菜单的接口，
+// 例如实时告警和历史告警共用的事件列表。返回最后一个错误，便于定位。
+func (c Checker) RequireAny(ctx context.Context, codes ...string) error {
+	_, err := c.requireAny(ctx, codes...)
+	return err
+}
+
+// AllowAny 与 Allow 相同，但允许传入多个权限，命中任意一个即返回租户。
+func (c Checker) AllowAny(ctx context.Context, codes ...string) (string, error) {
+	return c.requireAny(ctx, codes...)
+}
+
+func (c Checker) requireAny(ctx context.Context, codes ...string) (string, error) {
+	var last error
+	for _, code := range codes {
+		ns, err := c.allow(ctx, code, true)
+		if err == nil {
+			return ns, nil
+		}
+		last = err
+	}
+	if last == nil {
+		return "", merr.Forbidden("permission denied")
+	}
+	return "", last
+}
+
 // Require 只检查权限，不返回租户。权限来自该用户在该租户的角色，页面隐藏按钮不能代替这里的拒绝。
 func (c Checker) Require(ctx context.Context, code string) error {
 	return c.require(ctx, code, true)

@@ -94,7 +94,7 @@ export function NotificationChannelPage() {
   const [detail, setDetail] = useState<NotificationChannelItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationChannelItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const canWrite = session.can("notification:write")
+  const canWrite = session.can("notification_channel:write")
   // 渠道类型按套餐细分：未授权类型不出现在新建、筛选和编辑入口里。
   const allowedTypes = useMemo(
     () => authorizedChannelTypes(session.features),

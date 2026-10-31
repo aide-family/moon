@@ -64,8 +64,8 @@ export function OverviewPage() {
 
   const scope = useMemo<DashboardScope>(
     () => ({
-      alerts: permissions.includes("alert:read"),
-      delivery: permissions.includes("notification:read"),
+      alerts: permissions.includes("alert_realtime:read"),
+      delivery: permissions.includes("message_log:read"),
       workers: systemPermissions.includes("system:user:read"),
       datasources: permissions.includes("datasource:read"),
       rules: permissions.includes("alert_rule:read"),

@@ -253,8 +253,8 @@ export function DatasourcePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, loading, failed, items])
 
-  const canReadLevels = session.can("alert_rule:read")
-  const canReadNotificationGroups = session.can("notification:read")
+  const canReadLevels = session.can("alert_dictionary:read")
+  const canReadNotificationGroups = session.can("notification_group:read")
 
   useEffect(() => {
     let active = true

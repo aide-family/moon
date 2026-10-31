@@ -73,17 +73,17 @@ var capabilitySpecs = []Capability{
 	{
 		Code: CapabilityAlertRealtime, Module: FeatureAlert, Name: "实时告警",
 		Description: "查看实时告警，处理与干预告警事件。",
-		Permissions: []string{AlertRead, AlertIntervene},
+		Permissions: []string{AlertRealtimeRead, AlertRealtimeIntervene},
 	},
 	{
 		Code: CapabilityAlertHistory, Module: FeatureAlert, Name: "历史告警",
 		Description: "查看历史告警与恢复分析。",
-		Permissions: []string{AlertRead},
+		Permissions: []string{AlertHistoryRead},
 	},
 	{
 		Code: CapabilityAlertPage, Module: FeatureAlert, Name: "告警页面",
 		Description: "配置实时告警的标签页面。",
-		Permissions: []string{AlertRead, AlertWrite, AlertDelete},
+		Permissions: []string{AlertPageRead, AlertPageWrite, AlertPageDelete},
 	},
 	{
 		Code: CapabilityAlertRule, Module: FeatureAlertRule, Name: "告警规则",
@@ -93,7 +93,7 @@ var capabilitySpecs = []Capability{
 	{
 		Code: CapabilityAlertDictionary, Module: FeatureAlertRule, Name: "告警字典",
 		Description: "维护告警级别与数据源级别字典。",
-		Permissions: []string{AlertRuleRead, AlertRuleWrite, AlertRuleDelete},
+		Permissions: []string{AlertDictionaryRead, AlertDictionaryWrite, AlertDictionaryDelete},
 	},
 	{
 		Code: CapabilityProbeHTTP, Module: FeatureProbe, Name: "HTTP 探测",
@@ -133,42 +133,42 @@ var capabilitySpecs = []Capability{
 	{
 		Code: CapabilityNotifyChannelSMTP, Module: FeatureNotification, Name: "邮件渠道",
 		Description: "配置 SMTP 邮件通知渠道。",
-		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
 	},
 	{
 		Code: CapabilityNotifyChannelWebhook, Module: FeatureNotification, Name: "Webhook 渠道",
 		Description: "配置 Webhook 通知渠道（含钉钉、企业微信、飞书应用）。",
-		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
 	},
 	{
 		Code: CapabilityNotifyChannelSMS, Module: FeatureNotification, Name: "短信渠道",
 		Description: "配置短信通知渠道。",
-		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
 	},
 	{
 		Code: CapabilityNotifyTemplate, Module: FeatureNotification, Name: "消息模板",
 		Description: "维护通知消息模板。",
-		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+		Permissions: []string{NotificationTemplateRead, NotificationTemplateWrite, NotificationTemplateDelete},
 	},
 	{
 		Code: CapabilityNotifyGroup, Module: FeatureNotification, Name: "通知组",
 		Description: "组合渠道、模板与接收人。",
-		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+		Permissions: []string{NotificationGroupRead, NotificationGroupWrite, NotificationGroupDelete},
 	},
 	{
 		Code: CapabilityNotifySubscription, Module: FeatureNotification, Name: "告警订阅",
 		Description: "按标签与级别订阅告警并绑定通知组。",
-		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+		Permissions: []string{NotificationSubscriptionRead, NotificationSubscriptionWrite, NotificationSubscriptionDelete},
 	},
 	{
 		Code: CapabilityNotifyOnCall, Module: FeatureNotification, Name: "OnCall 值班",
 		Description: "按时段把告警路由给不同通知组。",
-		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+		Permissions: []string{NotificationOncallRead, NotificationOncallWrite, NotificationOncallDelete},
 	},
 	{
 		Code: CapabilityMessageLog, Module: FeatureNotification, Name: "消息日志",
 		Description: "查看通知投递记录与失败原因。",
-		Permissions: []string{NotificationRead, NotificationWrite, NotificationDelete},
+		Permissions: []string{MessageLogRead, MessageLogWrite, MessageLogDelete},
 	},
 	{
 		Code: CapabilityMember, Module: FeatureMember, Name: "成员",

@@ -63,7 +63,7 @@ export function AlertPageManagePage() {
   const [detail, setDetail] = useState<AlertPageItem | null>(null)
   const [confirm, setConfirm] = useState<AlertPageItem | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const canWrite = session.can("alert:write")
+  const canWrite = session.can("alert_page:write")
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<AlertPageItem>({
     page: query.page,
     pageSize: query.pageSize,

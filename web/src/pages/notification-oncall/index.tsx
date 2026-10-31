@@ -242,7 +242,7 @@ export function NotificationOnCallPage() {
     item: NotificationOnCallItem
   } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const canWrite = session.can("notification:write")
+  const canWrite = session.can("notification_oncall:write")
   // 列表与时间视图是同一份数据（同一套筛选），只是呈现方式不同。
   // 时间视图是默认视图，URL 只记录非默认的列表视图（?tab=list），地址栏保持干净。
   const [searchParams, setSearchParams] = useSearchParams()

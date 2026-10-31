@@ -96,7 +96,7 @@ export function NotificationTemplatePage() {
   const [detail, setDetail] = useState<NotificationTemplateItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationTemplateItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const canWrite = session.can("notification:write")
+  const canWrite = session.can("notification_template:write")
   // 模板类型跟着渠道类型走：未授权渠道对应的模板不出现在新建和筛选里。
   const allowedTypes = useMemo(
     () => authorizedTemplateTypes(session.features),

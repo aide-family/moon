@@ -33,7 +33,7 @@ type AnalysisQuery struct {
 
 // AnalysisSummary 返回分析页顶部的汇总指标：事件总数、去重指纹数和重复事件数。
 func (coordinator *Coordinator) AnalysisSummary(ctx context.Context, query AnalysisQuery) (bo.AlertAnalysisSummary, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead)
 	if err != nil {
 		return bo.AlertAnalysisSummary{}, err
 	}
@@ -47,7 +47,7 @@ func (coordinator *Coordinator) AnalysisSummary(ctx context.Context, query Analy
 
 // AnalysisTrend 返回分析页的趋势分桶。趋势只按日窗口分桶，忽略聚焦窗口。
 func (coordinator *Coordinator) AnalysisTrend(ctx context.Context, query AnalysisQuery) (bo.AlertAnalysisTrend, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead)
 	if err != nil {
 		return bo.AlertAnalysisTrend{}, err
 	}
@@ -68,7 +68,7 @@ func (coordinator *Coordinator) AnalysisTrend(ctx context.Context, query Analysi
 
 // AnalysisStatus 返回分析页的事件状态分布。
 func (coordinator *Coordinator) AnalysisStatus(ctx context.Context, query AnalysisQuery) (bo.AlertAnalysisStatus, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead)
 	if err != nil {
 		return bo.AlertAnalysisStatus{}, err
 	}
@@ -82,7 +82,7 @@ func (coordinator *Coordinator) AnalysisStatus(ctx context.Context, query Analys
 
 // AnalysisLevel 返回分析页的告警级别分布。
 func (coordinator *Coordinator) AnalysisLevel(ctx context.Context, query AnalysisQuery) (bo.AlertAnalysisLevel, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead)
 	if err != nil {
 		return bo.AlertAnalysisLevel{}, err
 	}
@@ -96,7 +96,7 @@ func (coordinator *Coordinator) AnalysisLevel(ctx context.Context, query Analysi
 
 // AnalysisFingerprints 返回出现 2 次及以上的指纹，按事件数降序取前 limit 个。
 func (coordinator *Coordinator) AnalysisFingerprints(ctx context.Context, query AnalysisQuery) (bo.AlertAnalysisFingerprints, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead)
 	if err != nil {
 		return bo.AlertAnalysisFingerprints{}, err
 	}
@@ -114,7 +114,7 @@ func (coordinator *Coordinator) AnalysisFingerprints(ctx context.Context, query 
 
 // AnalysisRecovery 返回自动恢复与人工恢复的闭环时长中位数和 P90。
 func (coordinator *Coordinator) AnalysisRecovery(ctx context.Context, query AnalysisQuery) (bo.AlertAnalysisRecovery, error) {
-	ns, err := coordinator.access.Allow(ctx, perm.AlertRead)
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead)
 	if err != nil {
 		return bo.AlertAnalysisRecovery{}, err
 	}

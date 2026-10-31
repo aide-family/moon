@@ -48,7 +48,7 @@ func NewLayout(pages repository.AlertPageRepo, checker access.Checker) *Layout {
 }
 
 func (layout *Layout) Create(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, error) {
-	ns, err := layout.access.Allow(ctx, perm.AlertWrite)
+	ns, err := layout.access.Allow(ctx, perm.AlertPageWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (layout *Layout) Create(ctx context.Context, in bo.AlertPage) (*bo.AlertPag
 }
 
 func (layout *Layout) Update(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, error) {
-	ns, err := layout.access.Allow(ctx, perm.AlertWrite)
+	ns, err := layout.access.Allow(ctx, perm.AlertPageWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (layout *Layout) Update(ctx context.Context, in bo.AlertPage) (*bo.AlertPag
 }
 
 func (layout *Layout) Delete(ctx context.Context, uid string) error {
-	ns, err := layout.access.Allow(ctx, perm.AlertDelete)
+	ns, err := layout.access.Allow(ctx, perm.AlertPageDelete)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (layout *Layout) Delete(ctx context.Context, uid string) error {
 }
 
 func (layout *Layout) Get(ctx context.Context, uid string) (*bo.AlertPage, error) {
-	ns, err := layout.access.Allow(ctx, perm.AlertRead)
+	ns, err := layout.access.Allow(ctx, perm.AlertPageRead)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (layout *Layout) Get(ctx context.Context, uid string) (*bo.AlertPage, error
 }
 
 func (layout *Layout) List(ctx context.Context, pageNo, pageSize int32, name, scope string) ([]bo.AlertPage, int, int, int, error) {
-	ns, err := layout.access.Allow(ctx, perm.AlertRead)
+	ns, err := layout.access.Allow(ctx, perm.AlertPageRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
@@ -156,7 +156,7 @@ func (layout *Layout) List(ctx context.Context, pageNo, pageSize int32, name, sc
 }
 
 func (layout *Layout) ListMyTabs(ctx context.Context) ([]bo.RealtimeAlertTab, error) {
-	ns, err := layout.access.Allow(ctx, perm.AlertRead)
+	ns, err := layout.access.Allow(ctx, perm.AlertPageRead)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (layout *Layout) ListMyTabs(ctx context.Context) ([]bo.RealtimeAlertTab, er
 }
 
 func (layout *Layout) SetMyTabs(ctx context.Context, pageUIDs []string) ([]bo.RealtimeAlertTab, error) {
-	ns, err := layout.access.Allow(ctx, perm.AlertRead)
+	ns, err := layout.access.Allow(ctx, perm.AlertPageRead)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +252,7 @@ var allowedFieldColumns = map[string]struct{}{
 
 // GetColumns 读取当前用户在 mine、history 或某个告警页面上的列配置。
 func (layout *Layout) GetColumns(ctx context.Context, scope string) ([]bo.AlertColumn, error) {
-	ns, err := layout.access.Allow(ctx, perm.AlertRead)
+	ns, err := layout.access.Allow(ctx, perm.AlertPageRead)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func (layout *Layout) GetColumns(ctx context.Context, scope string) ([]bo.AlertC
 
 // SetColumns 覆盖保存当前用户在 mine、history 或某个告警页面上的列配置。
 func (layout *Layout) SetColumns(ctx context.Context, scope string, columns []bo.AlertColumn) ([]bo.AlertColumn, error) {
-	ns, err := layout.access.Allow(ctx, perm.AlertRead)
+	ns, err := layout.access.Allow(ctx, perm.AlertPageRead)
 	if err != nil {
 		return nil, err
 	}
