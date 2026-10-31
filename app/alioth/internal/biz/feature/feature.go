@@ -69,6 +69,9 @@ func (provisioning *Provisioning) CreatePackage(ctx context.Context, pkg bo.Feat
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageWrite); err != nil {
 		return nil, err
 	}
+	if pkg.Currency == "" {
+		pkg.Currency = bo.CurrencyCNY
+	}
 	if err := validatePackage(pkg); err != nil {
 		return nil, err
 	}
@@ -81,6 +84,9 @@ func (provisioning *Provisioning) CreatePackage(ctx context.Context, pkg bo.Feat
 func (provisioning *Provisioning) UpdatePackage(ctx context.Context, pkg bo.FeaturePackage) (*bo.FeaturePackage, error) {
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageWrite); err != nil {
 		return nil, err
+	}
+	if pkg.Currency == "" {
+		pkg.Currency = bo.CurrencyCNY
 	}
 	if err := validatePackage(pkg); err != nil {
 		return nil, err
@@ -185,6 +191,9 @@ func validatePackage(pkg bo.FeaturePackage) error {
 	}
 	if pkg.PriceCents < 0 {
 		return merr.Invalid("invalid price")
+	}
+	if !bo.IsCurrency(pkg.Currency) {
+		return merr.Invalid("invalid currency")
 	}
 	return validateCapabilities(pkg.Features)
 }

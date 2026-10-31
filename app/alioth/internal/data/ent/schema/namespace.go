@@ -24,6 +24,10 @@ func (Namespace) Fields() []ent.Field {
 		// package_uid 指向租户当前使用的基础/自定义功能套餐；为空只出现在升级前的存量租户，
 		// seed 会把它们迁到基础套餐。
 		field.String("package_uid").Default(""),
+		// package_features 是租户购买套餐时的能力快照。授权与生效能力以快照为准，
+		// 之后管理员编辑套餐不会改变已生效租户的权益；换套餐时重新快照。
+		// 可空：升级前的存量租户没有快照，读取时回落到套餐当前明细。
+		field.Strings("package_features").Optional(),
 		field.String("logo").Default(""),
 		field.String("remark").Default(""),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),

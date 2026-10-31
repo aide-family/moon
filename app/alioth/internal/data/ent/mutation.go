@@ -14307,6 +14307,7 @@ type FeaturePackageMutation struct {
 	addmax_members   *int32
 	price_cents      *int64
 	addprice_cents   *int64
+	currency         *featurepackage.Currency
 	clearedFields    map[string]struct{}
 	done             bool
 	oldValue         func(context.Context) (*FeaturePackage, error)
@@ -14916,6 +14917,42 @@ func (m *FeaturePackageMutation) ResetPriceCents() {
 	m.addprice_cents = nil
 }
 
+// SetCurrency sets the "currency" field.
+func (m *FeaturePackageMutation) SetCurrency(f featurepackage.Currency) {
+	m.currency = &f
+}
+
+// Currency returns the value of the "currency" field in the mutation.
+func (m *FeaturePackageMutation) Currency() (r featurepackage.Currency, exists bool) {
+	v := m.currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrency returns the old "currency" field's value of the FeaturePackage entity.
+// If the FeaturePackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeaturePackageMutation) OldCurrency(ctx context.Context) (v featurepackage.Currency, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrency: %w", err)
+	}
+	return oldValue.Currency, nil
+}
+
+// ResetCurrency resets all changes to the "currency" field.
+func (m *FeaturePackageMutation) ResetCurrency() {
+	m.currency = nil
+}
+
 // Where appends a list predicates to the FeaturePackageMutation builder.
 func (m *FeaturePackageMutation) Where(ps ...predicate.FeaturePackage) {
 	m.predicates = append(m.predicates, ps...)
@@ -14950,7 +14987,7 @@ func (m *FeaturePackageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FeaturePackageMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, featurepackage.FieldCreatedAt)
 	}
@@ -14987,6 +15024,9 @@ func (m *FeaturePackageMutation) Fields() []string {
 	if m.price_cents != nil {
 		fields = append(fields, featurepackage.FieldPriceCents)
 	}
+	if m.currency != nil {
+		fields = append(fields, featurepackage.FieldCurrency)
+	}
 	return fields
 }
 
@@ -15019,6 +15059,8 @@ func (m *FeaturePackageMutation) Field(name string) (ent.Value, bool) {
 		return m.MaxMembers()
 	case featurepackage.FieldPriceCents:
 		return m.PriceCents()
+	case featurepackage.FieldCurrency:
+		return m.Currency()
 	}
 	return nil, false
 }
@@ -15052,6 +15094,8 @@ func (m *FeaturePackageMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldMaxMembers(ctx)
 	case featurepackage.FieldPriceCents:
 		return m.OldPriceCents(ctx)
+	case featurepackage.FieldCurrency:
+		return m.OldCurrency(ctx)
 	}
 	return nil, fmt.Errorf("unknown FeaturePackage field %s", name)
 }
@@ -15144,6 +15188,13 @@ func (m *FeaturePackageMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPriceCents(v)
+		return nil
+	case featurepackage.FieldCurrency:
+		v, ok := value.(featurepackage.Currency)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrency(v)
 		return nil
 	}
 	return fmt.Errorf("unknown FeaturePackage field %s", name)
@@ -15277,6 +15328,9 @@ func (m *FeaturePackageMutation) ResetField(name string) error {
 		return nil
 	case featurepackage.FieldPriceCents:
 		m.ResetPriceCents()
+		return nil
+	case featurepackage.FieldCurrency:
+		m.ResetCurrency()
 		return nil
 	}
 	return fmt.Errorf("unknown FeaturePackage field %s", name)
@@ -19763,26 +19817,28 @@ func (m *MessageLogShardMutation) ResetEdge(name string) error {
 // NamespaceMutation represents an operation that mutates the Namespace nodes in the graph.
 type NamespaceMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *int
-	created_at         *time.Time
-	updated_at         *time.Time
-	deleted_at         *time.Time
-	uid                *string
-	name               *string
-	secret             *string
-	owner_uid          *string
-	package_uid        *string
-	logo               *string
-	remark             *string
-	status             *namespace.Status
-	package_expires_at *time.Time
-	disable_reason     *string
-	clearedFields      map[string]struct{}
-	done               bool
-	oldValue           func(context.Context) (*Namespace, error)
-	predicates         []predicate.Namespace
+	op                     Op
+	typ                    string
+	id                     *int
+	created_at             *time.Time
+	updated_at             *time.Time
+	deleted_at             *time.Time
+	uid                    *string
+	name                   *string
+	secret                 *string
+	owner_uid              *string
+	package_uid            *string
+	package_features       *[]string
+	appendpackage_features []string
+	logo                   *string
+	remark                 *string
+	status                 *namespace.Status
+	package_expires_at     *time.Time
+	disable_reason         *string
+	clearedFields          map[string]struct{}
+	done                   bool
+	oldValue               func(context.Context) (*Namespace, error)
+	predicates             []predicate.Namespace
 }
 
 var _ ent.Mutation = (*NamespaceMutation)(nil)
@@ -20184,6 +20240,71 @@ func (m *NamespaceMutation) ResetPackageUID() {
 	m.package_uid = nil
 }
 
+// SetPackageFeatures sets the "package_features" field.
+func (m *NamespaceMutation) SetPackageFeatures(s []string) {
+	m.package_features = &s
+	m.appendpackage_features = nil
+}
+
+// PackageFeatures returns the value of the "package_features" field in the mutation.
+func (m *NamespaceMutation) PackageFeatures() (r []string, exists bool) {
+	v := m.package_features
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageFeatures returns the old "package_features" field's value of the Namespace entity.
+// If the Namespace object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceMutation) OldPackageFeatures(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageFeatures is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageFeatures requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageFeatures: %w", err)
+	}
+	return oldValue.PackageFeatures, nil
+}
+
+// AppendPackageFeatures adds s to the "package_features" field.
+func (m *NamespaceMutation) AppendPackageFeatures(s []string) {
+	m.appendpackage_features = append(m.appendpackage_features, s...)
+}
+
+// AppendedPackageFeatures returns the list of values that were appended to the "package_features" field in this mutation.
+func (m *NamespaceMutation) AppendedPackageFeatures() ([]string, bool) {
+	if len(m.appendpackage_features) == 0 {
+		return nil, false
+	}
+	return m.appendpackage_features, true
+}
+
+// ClearPackageFeatures clears the value of the "package_features" field.
+func (m *NamespaceMutation) ClearPackageFeatures() {
+	m.package_features = nil
+	m.appendpackage_features = nil
+	m.clearedFields[namespace.FieldPackageFeatures] = struct{}{}
+}
+
+// PackageFeaturesCleared returns if the "package_features" field was cleared in this mutation.
+func (m *NamespaceMutation) PackageFeaturesCleared() bool {
+	_, ok := m.clearedFields[namespace.FieldPackageFeatures]
+	return ok
+}
+
+// ResetPackageFeatures resets all changes to the "package_features" field.
+func (m *NamespaceMutation) ResetPackageFeatures() {
+	m.package_features = nil
+	m.appendpackage_features = nil
+	delete(m.clearedFields, namespace.FieldPackageFeatures)
+}
+
 // SetLogo sets the "logo" field.
 func (m *NamespaceMutation) SetLogo(s string) {
 	m.logo = &s
@@ -20411,7 +20532,7 @@ func (m *NamespaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NamespaceMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, namespace.FieldCreatedAt)
 	}
@@ -20435,6 +20556,9 @@ func (m *NamespaceMutation) Fields() []string {
 	}
 	if m.package_uid != nil {
 		fields = append(fields, namespace.FieldPackageUID)
+	}
+	if m.package_features != nil {
+		fields = append(fields, namespace.FieldPackageFeatures)
 	}
 	if m.logo != nil {
 		fields = append(fields, namespace.FieldLogo)
@@ -20475,6 +20599,8 @@ func (m *NamespaceMutation) Field(name string) (ent.Value, bool) {
 		return m.OwnerUID()
 	case namespace.FieldPackageUID:
 		return m.PackageUID()
+	case namespace.FieldPackageFeatures:
+		return m.PackageFeatures()
 	case namespace.FieldLogo:
 		return m.Logo()
 	case namespace.FieldRemark:
@@ -20510,6 +20636,8 @@ func (m *NamespaceMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldOwnerUID(ctx)
 	case namespace.FieldPackageUID:
 		return m.OldPackageUID(ctx)
+	case namespace.FieldPackageFeatures:
+		return m.OldPackageFeatures(ctx)
 	case namespace.FieldLogo:
 		return m.OldLogo(ctx)
 	case namespace.FieldRemark:
@@ -20585,6 +20713,13 @@ func (m *NamespaceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPackageUID(v)
 		return nil
+	case namespace.FieldPackageFeatures:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageFeatures(v)
+		return nil
 	case namespace.FieldLogo:
 		v, ok := value.(string)
 		if !ok {
@@ -20653,6 +20788,9 @@ func (m *NamespaceMutation) ClearedFields() []string {
 	if m.FieldCleared(namespace.FieldDeletedAt) {
 		fields = append(fields, namespace.FieldDeletedAt)
 	}
+	if m.FieldCleared(namespace.FieldPackageFeatures) {
+		fields = append(fields, namespace.FieldPackageFeatures)
+	}
 	if m.FieldCleared(namespace.FieldPackageExpiresAt) {
 		fields = append(fields, namespace.FieldPackageExpiresAt)
 	}
@@ -20672,6 +20810,9 @@ func (m *NamespaceMutation) ClearField(name string) error {
 	switch name {
 	case namespace.FieldDeletedAt:
 		m.ClearDeletedAt()
+		return nil
+	case namespace.FieldPackageFeatures:
+		m.ClearPackageFeatures()
 		return nil
 	case namespace.FieldPackageExpiresAt:
 		m.ClearPackageExpiresAt()
@@ -20707,6 +20848,9 @@ func (m *NamespaceMutation) ResetField(name string) error {
 		return nil
 	case namespace.FieldPackageUID:
 		m.ResetPackageUID()
+		return nil
+	case namespace.FieldPackageFeatures:
+		m.ResetPackageFeatures()
 		return nil
 	case namespace.FieldLogo:
 		m.ResetLogo()
@@ -21389,6 +21533,7 @@ type NamespaceOrderMutation struct {
 	package_name     *string
 	price_cents      *int64
 	addprice_cents   *int64
+	currency         *namespaceorder.Currency
 	duration_days    *int32
 	addduration_days *int32
 	max_members      *int32
@@ -21915,6 +22060,42 @@ func (m *NamespaceOrderMutation) ResetPriceCents() {
 	m.addprice_cents = nil
 }
 
+// SetCurrency sets the "currency" field.
+func (m *NamespaceOrderMutation) SetCurrency(n namespaceorder.Currency) {
+	m.currency = &n
+}
+
+// Currency returns the value of the "currency" field in the mutation.
+func (m *NamespaceOrderMutation) Currency() (r namespaceorder.Currency, exists bool) {
+	v := m.currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrency returns the old "currency" field's value of the NamespaceOrder entity.
+// If the NamespaceOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NamespaceOrderMutation) OldCurrency(ctx context.Context) (v namespaceorder.Currency, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrency: %w", err)
+	}
+	return oldValue.Currency, nil
+}
+
+// ResetCurrency resets all changes to the "currency" field.
+func (m *NamespaceOrderMutation) ResetCurrency() {
+	m.currency = nil
+}
+
 // SetDurationDays sets the "duration_days" field.
 func (m *NamespaceOrderMutation) SetDurationDays(i int32) {
 	m.duration_days = &i
@@ -22146,7 +22327,7 @@ func (m *NamespaceOrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NamespaceOrderMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, namespaceorder.FieldCreatedAt)
 	}
@@ -22179,6 +22360,9 @@ func (m *NamespaceOrderMutation) Fields() []string {
 	}
 	if m.price_cents != nil {
 		fields = append(fields, namespaceorder.FieldPriceCents)
+	}
+	if m.currency != nil {
+		fields = append(fields, namespaceorder.FieldCurrency)
 	}
 	if m.duration_days != nil {
 		fields = append(fields, namespaceorder.FieldDurationDays)
@@ -22222,6 +22406,8 @@ func (m *NamespaceOrderMutation) Field(name string) (ent.Value, bool) {
 		return m.PackageName()
 	case namespaceorder.FieldPriceCents:
 		return m.PriceCents()
+	case namespaceorder.FieldCurrency:
+		return m.Currency()
 	case namespaceorder.FieldDurationDays:
 		return m.DurationDays()
 	case namespaceorder.FieldMaxMembers:
@@ -22261,6 +22447,8 @@ func (m *NamespaceOrderMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldPackageName(ctx)
 	case namespaceorder.FieldPriceCents:
 		return m.OldPriceCents(ctx)
+	case namespaceorder.FieldCurrency:
+		return m.OldCurrency(ctx)
 	case namespaceorder.FieldDurationDays:
 		return m.OldDurationDays(ctx)
 	case namespaceorder.FieldMaxMembers:
@@ -22354,6 +22542,13 @@ func (m *NamespaceOrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPriceCents(v)
+		return nil
+	case namespaceorder.FieldCurrency:
+		v, ok := value.(namespaceorder.Currency)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrency(v)
 		return nil
 	case namespaceorder.FieldDurationDays:
 		v, ok := value.(int32)
@@ -22512,6 +22707,9 @@ func (m *NamespaceOrderMutation) ResetField(name string) error {
 		return nil
 	case namespaceorder.FieldPriceCents:
 		m.ResetPriceCents()
+		return nil
+	case namespaceorder.FieldCurrency:
+		m.ResetCurrency()
 		return nil
 	case namespaceorder.FieldDurationDays:
 		m.ResetDurationDays()

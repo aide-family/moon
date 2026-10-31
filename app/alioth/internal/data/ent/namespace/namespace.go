@@ -30,6 +30,8 @@ const (
 	FieldOwnerUID = "owner_uid"
 	// FieldPackageUID holds the string denoting the package_uid field in the database.
 	FieldPackageUID = "package_uid"
+	// FieldPackageFeatures holds the string denoting the package_features field in the database.
+	FieldPackageFeatures = "package_features"
 	// FieldLogo holds the string denoting the logo field in the database.
 	FieldLogo = "logo"
 	// FieldRemark holds the string denoting the remark field in the database.
@@ -55,6 +57,7 @@ var Columns = []string{
 	FieldSecret,
 	FieldOwnerUID,
 	FieldPackageUID,
+	FieldPackageFeatures,
 	FieldLogo,
 	FieldRemark,
 	FieldStatus,

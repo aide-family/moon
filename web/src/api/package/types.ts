@@ -43,8 +43,10 @@ export type PackageItem = {
   visibility: "PUBLIC" | "BETA"
   /** 可容纳的成员数上限，0 表示不限制。 */
   maxMembers: number
-  /** 价格，单位为人民币分；0 表示免费。 */
+  /** 价格，单位为该币种的最小单位（分）；0 表示免费。 */
   priceCents: number
+  /** 定价币种：CNY、USD、EUR 或 JPY。 */
+  currency: string
 }
 
 export type ListPackagesParams = {
@@ -71,8 +73,10 @@ export type PackagePayload = {
   visibility: "PUBLIC" | "BETA"
   /** 可容纳的成员数上限，0 表示不限制。 */
   maxMembers: number
-  /** 价格，单位为人民币分；0 表示免费。 */
+  /** 价格，单位为该币种的最小单位（分）；0 表示免费。 */
   priceCents: number
+  /** 定价币种：CNY、USD、EUR 或 JPY。 */
+  currency: string
 }
 
 export type UpdatePackagePayload = PackagePayload & {

@@ -1,9 +1,14 @@
-import { Lock } from "lucide-react"
+import { Info, Lock } from "lucide-react"
 import { useId } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { cn } from "@/lib/class-names"
 import {
   capabilityDescription,
@@ -149,12 +154,31 @@ export function FeaturePicker({
                           {capabilitySecondaryText(code, i18n.language)}
                         </span>
                       </span>
-                      {description ? (
-                        <span className="text-xs break-words text-muted-foreground">
-                          {description}
-                        </span>
-                      ) : null}
                     </Label>
+                    {description ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label={t("packageAdmin.featureTip", {
+                              feature: capabilityLabelText(
+                                code,
+                                i18n.language
+                              ),
+                            })}
+                            className="mt-0.5 shrink-0 rounded p-0.5 text-muted-foreground hover:text-foreground"
+                          >
+                            <Info aria-hidden="true" className="size-3.5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-xs font-medium">
+                            {capabilityLabelText(code, i18n.language)}
+                          </p>
+                          <p className="mt-1 text-xs">{description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : null}
                     {isLocked && lockedLabel ? (
                       <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-4xl border border-border px-1.5 text-[11px] whitespace-nowrap text-muted-foreground">
                         <Lock aria-hidden="true" className="size-3" />

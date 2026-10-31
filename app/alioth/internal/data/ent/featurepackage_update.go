@@ -187,6 +187,20 @@ func (_u *FeaturePackageUpdate) AddPriceCents(v int64) *FeaturePackageUpdate {
 	return _u
 }
 
+// SetCurrency sets the "currency" field.
+func (_u *FeaturePackageUpdate) SetCurrency(v featurepackage.Currency) *FeaturePackageUpdate {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *FeaturePackageUpdate) SetNillableCurrency(v *featurepackage.Currency) *FeaturePackageUpdate {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
 // Mutation returns the FeaturePackageMutation object of the builder.
 func (_u *FeaturePackageUpdate) Mutation() *FeaturePackageMutation {
 	return _u.mutation
@@ -265,6 +279,11 @@ func (_u *FeaturePackageUpdate) check() error {
 			return &ValidationError{Name: "price_cents", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.price_cents": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := featurepackage.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.currency": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -321,6 +340,9 @@ func (_u *FeaturePackageUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.AddedPriceCents(); ok {
 		_spec.AddField(featurepackage.FieldPriceCents, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(featurepackage.FieldCurrency, field.TypeEnum, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -501,6 +523,20 @@ func (_u *FeaturePackageUpdateOne) AddPriceCents(v int64) *FeaturePackageUpdateO
 	return _u
 }
 
+// SetCurrency sets the "currency" field.
+func (_u *FeaturePackageUpdateOne) SetCurrency(v featurepackage.Currency) *FeaturePackageUpdateOne {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *FeaturePackageUpdateOne) SetNillableCurrency(v *featurepackage.Currency) *FeaturePackageUpdateOne {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
 // Mutation returns the FeaturePackageMutation object of the builder.
 func (_u *FeaturePackageUpdateOne) Mutation() *FeaturePackageMutation {
 	return _u.mutation
@@ -592,6 +628,11 @@ func (_u *FeaturePackageUpdateOne) check() error {
 			return &ValidationError{Name: "price_cents", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.price_cents": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := featurepackage.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.currency": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -665,6 +706,9 @@ func (_u *FeaturePackageUpdateOne) sqlSave(ctx context.Context) (_node *FeatureP
 	}
 	if value, ok := _u.mutation.AddedPriceCents(); ok {
 		_spec.AddField(featurepackage.FieldPriceCents, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(featurepackage.FieldCurrency, field.TypeEnum, value)
 	}
 	_node = &FeaturePackage{config: _u.config}
 	_spec.Assign = _node.assignValues

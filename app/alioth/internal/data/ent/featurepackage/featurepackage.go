@@ -38,6 +38,8 @@ const (
 	FieldMaxMembers = "max_members"
 	// FieldPriceCents holds the string denoting the price_cents field in the database.
 	FieldPriceCents = "price_cents"
+	// FieldCurrency holds the string denoting the currency field in the database.
+	FieldCurrency = "currency"
 	// Table holds the table name of the featurepackage in the database.
 	Table = "feature_packages"
 )
@@ -57,6 +59,7 @@ var Columns = []string{
 	FieldVisibility,
 	FieldMaxMembers,
 	FieldPriceCents,
+	FieldCurrency,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -152,6 +155,34 @@ func VisibilityValidator(v Visibility) error {
 	}
 }
 
+// Currency defines the type for the "currency" enum field.
+type Currency string
+
+// CurrencyCNY is the default value of the Currency enum.
+const DefaultCurrency = CurrencyCNY
+
+// Currency values.
+const (
+	CurrencyCNY Currency = "CNY"
+	CurrencyUSD Currency = "USD"
+	CurrencyEUR Currency = "EUR"
+	CurrencyJPY Currency = "JPY"
+)
+
+func (c Currency) String() string {
+	return string(c)
+}
+
+// CurrencyValidator is a validator for the "currency" field enum values. It is called by the builders before save.
+func CurrencyValidator(c Currency) error {
+	switch c {
+	case CurrencyCNY, CurrencyUSD, CurrencyEUR, CurrencyJPY:
+		return nil
+	default:
+		return fmt.Errorf("featurepackage: invalid enum value for currency field: %q", c)
+	}
+}
+
 // OrderOption defines the ordering options for the FeaturePackage queries.
 type OrderOption func(*sql.Selector)
 
@@ -218,4 +249,9 @@ func ByMaxMembers(opts ...sql.OrderTermOption) OrderOption {
 // ByPriceCents orders the results by the price_cents field.
 func ByPriceCents(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPriceCents, opts...).ToFunc()
+}
+
+// ByCurrency orders the results by the currency field.
+func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
 }

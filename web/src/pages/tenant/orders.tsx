@@ -145,7 +145,10 @@ export function TenantOrdersPage() {
                   <TableCell className={cn(TABLE_NOWRAP, "tabular-nums")}>
                     {item.priceCents > 0
                       ? t("order.priceValue", {
-                          amount: formatPriceCents(item.priceCents),
+                          amount: formatPriceCents(
+                            item.priceCents,
+                            item.currency
+                          ),
                         })
                       : t("order.free")}
                   </TableCell>

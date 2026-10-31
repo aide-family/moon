@@ -146,6 +146,7 @@ export function TenantFeaturesDialog({
             visibility: "BETA",
             maxMembers: 0,
             priceCents: 0,
+            currency: "CNY",
             durationDays: assignment.durationDays ?? 0,
           })
         }

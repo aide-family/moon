@@ -40,7 +40,9 @@ type FeaturePackage struct {
 	// MaxMembers holds the value of the "max_members" field.
 	MaxMembers int32 `json:"max_members,omitempty"`
 	// PriceCents holds the value of the "price_cents" field.
-	PriceCents   int64 `json:"price_cents,omitempty"`
+	PriceCents int64 `json:"price_cents,omitempty"`
+	// Currency holds the value of the "currency" field.
+	Currency     featurepackage.Currency `json:"currency,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -53,7 +55,7 @@ func (*FeaturePackage) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case featurepackage.FieldID, featurepackage.FieldDurationDays, featurepackage.FieldMaxMembers, featurepackage.FieldPriceCents:
 			values[i] = new(sql.NullInt64)
-		case featurepackage.FieldUID, featurepackage.FieldName, featurepackage.FieldRemark, featurepackage.FieldStatus, featurepackage.FieldVisibility:
+		case featurepackage.FieldUID, featurepackage.FieldName, featurepackage.FieldRemark, featurepackage.FieldStatus, featurepackage.FieldVisibility, featurepackage.FieldCurrency:
 			values[i] = new(sql.NullString)
 		case featurepackage.FieldCreatedAt, featurepackage.FieldUpdatedAt, featurepackage.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -151,6 +153,12 @@ func (_m *FeaturePackage) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.PriceCents = value.Int64
 			}
+		case featurepackage.FieldCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field currency", values[i])
+			} else if value.Valid {
+				_m.Currency = featurepackage.Currency(value.String)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -224,6 +232,9 @@ func (_m *FeaturePackage) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("price_cents=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PriceCents))
+	builder.WriteString(", ")
+	builder.WriteString("currency=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Currency))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -253,39 +253,52 @@ export function DatasourcePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, loading, failed, items])
 
+  const canReadLevels = session.can("alert_rule:read")
+  const canReadNotificationGroups = session.can("notification:read")
+
   useEffect(() => {
     let active = true
     async function load() {
       if (!canWrite) {
         return
       }
-      try {
-        const result = await listAlertDictionaries({
-          page: 1,
-          pageSize: 100,
-          type: "DATASOURCE",
-        })
-        if (active) {
-          setLevels(result.items ?? [])
-        }
-      } catch {
-        if (active) {
-          setLevels([])
+      // 等级和通知组是跨模块的可选配置：当前租户没开通对应模块时跳过请求，
+      // 否则 403 会被全局拦截成「无权限」页。
+      if (canReadLevels) {
+        try {
+          const result = await listAlertDictionaries({
+            page: 1,
+            pageSize: 100,
+            type: "DATASOURCE",
+          })
+          if (active) {
+            setLevels(result.items ?? [])
+          }
+        } catch {
+          if (active) {
+            setLevels([])
+          }
         }
       }
       // 可用性告警只能绑定启用中的通知组；编辑时停用组的名称由详情响应补上。
-      try {
-        const groups = await loadAllSelectItems(
-          (lastUid) =>
-            selectNotificationGroups({ limit: 100, lastUid, activeOnly: true }),
-          100
-        )
-        if (active) {
-          setNotificationGroups(groups)
-        }
-      } catch {
-        if (active) {
-          setNotificationGroups([])
+      if (canReadNotificationGroups) {
+        try {
+          const groups = await loadAllSelectItems(
+            (lastUid) =>
+              selectNotificationGroups({
+                limit: 100,
+                lastUid,
+                activeOnly: true,
+              }),
+            100
+          )
+          if (active) {
+            setNotificationGroups(groups)
+          }
+        } catch {
+          if (active) {
+            setNotificationGroups([])
+          }
         }
       }
     }
@@ -293,7 +306,13 @@ export function DatasourcePage() {
     return () => {
       active = false
     }
-  }, [canWrite, session.namespaceUid, version])
+  }, [
+    canWrite,
+    canReadLevels,
+    canReadNotificationGroups,
+    session.namespaceUid,
+    version,
+  ])
 
   function setParam(
     key: string,

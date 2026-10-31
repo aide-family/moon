@@ -153,6 +153,20 @@ func (_u *NamespaceOrderUpdate) AddPriceCents(v int64) *NamespaceOrderUpdate {
 	return _u
 }
 
+// SetCurrency sets the "currency" field.
+func (_u *NamespaceOrderUpdate) SetCurrency(v namespaceorder.Currency) *NamespaceOrderUpdate {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *NamespaceOrderUpdate) SetNillableCurrency(v *namespaceorder.Currency) *NamespaceOrderUpdate {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
 // SetDurationDays sets the "duration_days" field.
 func (_u *NamespaceOrderUpdate) SetDurationDays(v int32) *NamespaceOrderUpdate {
 	_u.mutation.ResetDurationDays()
@@ -307,6 +321,11 @@ func (_u *NamespaceOrderUpdate) check() error {
 			return &ValidationError{Name: "price_cents", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.price_cents": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := namespaceorder.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.currency": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.DurationDays(); ok {
 		if err := namespaceorder.DurationDaysValidator(v); err != nil {
 			return &ValidationError{Name: "duration_days", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.duration_days": %w`, err)}
@@ -366,6 +385,9 @@ func (_u *NamespaceOrderUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.AddedPriceCents(); ok {
 		_spec.AddField(namespaceorder.FieldPriceCents, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(namespaceorder.FieldCurrency, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.DurationDays(); ok {
 		_spec.SetField(namespaceorder.FieldDurationDays, field.TypeInt32, value)
@@ -530,6 +552,20 @@ func (_u *NamespaceOrderUpdateOne) SetNillablePriceCents(v *int64) *NamespaceOrd
 // AddPriceCents adds value to the "price_cents" field.
 func (_u *NamespaceOrderUpdateOne) AddPriceCents(v int64) *NamespaceOrderUpdateOne {
 	_u.mutation.AddPriceCents(v)
+	return _u
+}
+
+// SetCurrency sets the "currency" field.
+func (_u *NamespaceOrderUpdateOne) SetCurrency(v namespaceorder.Currency) *NamespaceOrderUpdateOne {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *NamespaceOrderUpdateOne) SetNillableCurrency(v *namespaceorder.Currency) *NamespaceOrderUpdateOne {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
 	return _u
 }
 
@@ -700,6 +736,11 @@ func (_u *NamespaceOrderUpdateOne) check() error {
 			return &ValidationError{Name: "price_cents", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.price_cents": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := namespaceorder.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.currency": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.DurationDays(); ok {
 		if err := namespaceorder.DurationDaysValidator(v); err != nil {
 			return &ValidationError{Name: "duration_days", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.duration_days": %w`, err)}
@@ -776,6 +817,9 @@ func (_u *NamespaceOrderUpdateOne) sqlSave(ctx context.Context) (_node *Namespac
 	}
 	if value, ok := _u.mutation.AddedPriceCents(); ok {
 		_spec.AddField(namespaceorder.FieldPriceCents, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(namespaceorder.FieldCurrency, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.DurationDays(); ok {
 		_spec.SetField(namespaceorder.FieldDurationDays, field.TypeInt32, value)

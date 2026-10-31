@@ -65,6 +65,7 @@ func (purchasing *Purchasing) CreateOrder(ctx context.Context, name, remark, pac
 		PackageUID:      pkg.UID,
 		PackageName:     pkg.Name,
 		PriceCents:      pkg.PriceCents,
+		Currency:        pkg.Currency,
 		DurationDays:    pkg.DurationDays,
 		MaxMembers:      pkg.MaxMembers,
 	})
@@ -112,6 +113,7 @@ func (purchasing *Purchasing) CreateUpgradeOrder(ctx context.Context, packageUID
 		PackageUID:      pkg.UID,
 		PackageName:     pkg.Name,
 		PriceCents:      pkg.PriceCents,
+		Currency:        pkg.Currency,
 		DurationDays:    pkg.DurationDays,
 		MaxMembers:      pkg.MaxMembers,
 	})
@@ -162,6 +164,7 @@ func (purchasing *Purchasing) CreateRenewalOrder(ctx context.Context) (*bo.Names
 		PackageUID:      pkg.UID,
 		PackageName:     pkg.Name,
 		PriceCents:      pkg.PriceCents,
+		Currency:        pkg.Currency,
 		DurationDays:    pkg.DurationDays,
 		MaxMembers:      pkg.MaxMembers,
 	})
@@ -201,6 +204,7 @@ func (purchasing *Purchasing) CurrentPackage(ctx context.Context, namespaceUID s
 			item.Visibility = pkg.Visibility
 			item.MaxMembers = pkg.MaxMembers
 			item.PriceCents = pkg.PriceCents
+			item.Currency = pkg.Currency
 			item.DurationDays = pkg.DurationDays
 		}
 	}

@@ -25,8 +25,10 @@ export type PublicPackageItem = {
   durationDays?: number
   /** 可容纳的成员数上限，0 表示不限制。 */
   maxMembers?: number
-  /** 价格，单位为人民币分。 */
+  /** 价格，单位为该币种的最小单位（分）。 */
   priceCents?: number
+  /** 定价币种：CNY、USD、EUR 或 JPY。 */
+  currency?: string
 }
 
 /** 一笔租户创建订单。价格、时长和人数上限是下单时的套餐快照。 */
@@ -38,8 +40,10 @@ export type OrderItem = {
   namespaceRemark?: string
   packageUid: string
   packageName: string
-  /** 订单金额，单位为人民币分，0 表示免费。 */
+  /** 订单金额，单位为该币种的最小单位（分），0 表示免费。 */
   priceCents: number
+  /** 下单时的币种快照：CNY、USD、EUR 或 JPY。 */
+  currency: string
   /** 授权时长（天）快照，0 表示永久。 */
   durationDays: number
   /** 成员数上限快照，0 表示不限制。 */
@@ -85,6 +89,8 @@ export type NamespacePackageInfo = {
   durationDays?: number
   maxMembers?: number
   priceCents?: number
+  /** 定价币种：CNY、USD、EUR 或 JPY。 */
+  currency?: string
   /** Unix 秒；0 表示永久。 */
   expiresAt?: number
   expired?: boolean

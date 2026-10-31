@@ -35,9 +35,11 @@ func (FeaturePackage) Fields() []ent.Field {
 		// max_members 是使用该套餐的租户可容纳的 JOINED 成员数上限；0 表示不限制。
 		// 容量跟着租户当前套餐实时计算，不在 namespaces 上冗余。
 		field.Int32("max_members").Default(0).NonNegative(),
-		// price_cents 是套餐价格，单位为人民币分；0 表示免费。
-		// 下单时快照到订单，之后改价不影响已下的订单。
+		// price_cents 是套餐价格，单位是该货币的最小单位（分）；0 表示免费。
+		// 下单时把价格和币种一起快照到订单，之后改价不影响已下的订单。
 		field.Int64("price_cents").Default(0).NonNegative(),
+		// currency 是定价币种，只允许目录里的几种，展示时用对应符号。
+		field.Enum("currency").Values("CNY", "USD", "EUR", "JPY").Default("CNY"),
 	}
 }
 

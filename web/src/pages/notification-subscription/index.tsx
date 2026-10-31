@@ -104,23 +104,35 @@ export function NotificationSubscriptionPage() {
     fetch: (page, pageSize) => listNotificationSubscriptions({ page, pageSize, name: query.name }),
   })
 
+  // 订阅弹窗的附加选择器按模块权限加载，缺权限时跳过，避免 403 全局跳转。
+  const canReadLevels = session.can("alert_rule:read")
+  const canReadSources = session.can("datasource:read")
+
   useEffect(() => {
     let active = true
     void Promise.all([
-      loadAllSelectItems(
-        (lastUid) => selectNotificationGroups({ limit: 100, lastUid }),
-        100
-      ),
-      loadAllPagedItems((page, pageSize) =>
-        listAlertDictionaries({ page, pageSize, type: "ALERT" })
-      ),
-      loadAllPagedItems((page, pageSize) =>
-        listAlertDictionaries({ page, pageSize, type: "DATASOURCE" })
-      ),
-      loadAllSelectItems(
-        (lastUid) => selectDatasources({ limit: 100, lastUid }),
-        100
-      ),
+      canReadLevels
+        ? loadAllSelectItems(
+            (lastUid) => selectNotificationGroups({ limit: 100, lastUid }),
+            100
+          )
+        : Promise.resolve([]),
+      canReadLevels
+        ? loadAllPagedItems((page, pageSize) =>
+            listAlertDictionaries({ page, pageSize, type: "ALERT" })
+          )
+        : Promise.resolve([]),
+      canReadLevels
+        ? loadAllPagedItems((page, pageSize) =>
+            listAlertDictionaries({ page, pageSize, type: "DATASOURCE" })
+          )
+        : Promise.resolve([]),
+      canReadSources
+        ? loadAllSelectItems(
+            (lastUid) => selectDatasources({ limit: 100, lastUid }),
+            100
+          )
+        : Promise.resolve([]),
     ])
       .then(([groupResult, levelResult, datasourceLevelResult, datasourceResult]) => {
         if (active) {
@@ -141,7 +153,7 @@ export function NotificationSubscriptionPage() {
     return () => {
       active = false
     }
-  }, [session.namespaceUid])
+  }, [session.namespaceUid, canReadLevels, canReadSources])
 
   function selectionSummary(selected: number, total: number): string {
     return selected >= total && total > 0

@@ -1,6 +1,9 @@
 package perm
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 // 能力是模块下可单独开通的最小授权单位。两级功能模型里：
 //   - 模块（Feature）决定菜单分组，是租户差异与功能检查的语义单位；
@@ -374,6 +377,34 @@ func MenuPermissions() []string {
 		names = append(names, MenuPermission(item.Code))
 	}
 	return names
+}
+
+// DefaultReadPermissions 返回能力默认勾选的读权限：以 :read 或 :logs 结尾的动作。
+// 角色授权时勾选菜单权限就自动带上这些权限，保证「有菜单就能看」。
+func DefaultReadPermissions(code string) []string {
+	item, ok := CapabilityOf(code)
+	if !ok {
+		return nil
+	}
+	out := make([]string, 0, len(item.Permissions))
+	for _, name := range item.Permissions {
+		if strings.HasSuffix(name, ":read") || strings.HasSuffix(name, ":logs") {
+			out = append(out, name)
+		}
+	}
+	return out
+}
+
+// PermissionCapabilities 返回包含该权限的能力编码，按能力目录顺序。
+// 角色授权页用它把接口权限归到某个菜单/能力下；多个能力共享权限时取第一个。
+func PermissionCapabilities(permission string) []string {
+	out := make([]string, 0, 2)
+	for _, item := range capabilitySpecs {
+		if slices.Contains(item.Permissions, permission) {
+			out = append(out, item.Code)
+		}
+	}
+	return out
 }
 
 // CapabilityPermissions 返回一组能力的权限并集，按能力目录顺序去重。

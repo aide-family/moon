@@ -629,6 +629,7 @@ var (
 		{Name: "visibility", Type: field.TypeEnum, Enums: []string{"PUBLIC", "BETA"}, Default: "BETA"},
 		{Name: "max_members", Type: field.TypeInt32, Default: 0},
 		{Name: "price_cents", Type: field.TypeInt64, Default: 0},
+		{Name: "currency", Type: field.TypeEnum, Enums: []string{"CNY", "USD", "EUR", "JPY"}, Default: "CNY"},
 	}
 	// FeaturePackagesTable holds the schema information for the "feature_packages" table.
 	FeaturePackagesTable = &schema.Table{
@@ -884,6 +885,7 @@ var (
 		{Name: "secret", Type: field.TypeString, Default: ""},
 		{Name: "owner_uid", Type: field.TypeString},
 		{Name: "package_uid", Type: field.TypeString, Default: ""},
+		{Name: "package_features", Type: field.TypeJSON, Nullable: true},
 		{Name: "logo", Type: field.TypeString, Default: ""},
 		{Name: "remark", Type: field.TypeString, Default: ""},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
@@ -953,6 +955,7 @@ var (
 		{Name: "package_uid", Type: field.TypeString},
 		{Name: "package_name", Type: field.TypeString},
 		{Name: "price_cents", Type: field.TypeInt64, Default: 0},
+		{Name: "currency", Type: field.TypeEnum, Enums: []string{"CNY", "USD", "EUR", "JPY"}, Default: "CNY"},
 		{Name: "duration_days", Type: field.TypeInt32, Default: 0},
 		{Name: "max_members", Type: field.TypeInt32, Default: 0},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "PAID", "CANCELLED"}, Default: "PENDING"},

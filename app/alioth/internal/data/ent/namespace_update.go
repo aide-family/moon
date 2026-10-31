@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
@@ -107,6 +108,24 @@ func (_u *NamespaceUpdate) SetNillablePackageUID(v *string) *NamespaceUpdate {
 	if v != nil {
 		_u.SetPackageUID(*v)
 	}
+	return _u
+}
+
+// SetPackageFeatures sets the "package_features" field.
+func (_u *NamespaceUpdate) SetPackageFeatures(v []string) *NamespaceUpdate {
+	_u.mutation.SetPackageFeatures(v)
+	return _u
+}
+
+// AppendPackageFeatures appends value to the "package_features" field.
+func (_u *NamespaceUpdate) AppendPackageFeatures(v []string) *NamespaceUpdate {
+	_u.mutation.AppendPackageFeatures(v)
+	return _u
+}
+
+// ClearPackageFeatures clears the value of the "package_features" field.
+func (_u *NamespaceUpdate) ClearPackageFeatures() *NamespaceUpdate {
+	_u.mutation.ClearPackageFeatures()
 	return _u
 }
 
@@ -285,6 +304,17 @@ func (_u *NamespaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.PackageUID(); ok {
 		_spec.SetField(namespace.FieldPackageUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.PackageFeatures(); ok {
+		_spec.SetField(namespace.FieldPackageFeatures, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedPackageFeatures(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, namespace.FieldPackageFeatures, value)
+		})
+	}
+	if _u.mutation.PackageFeaturesCleared() {
+		_spec.ClearField(namespace.FieldPackageFeatures, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.Logo(); ok {
 		_spec.SetField(namespace.FieldLogo, field.TypeString, value)
 	}
@@ -402,6 +432,24 @@ func (_u *NamespaceUpdateOne) SetNillablePackageUID(v *string) *NamespaceUpdateO
 	if v != nil {
 		_u.SetPackageUID(*v)
 	}
+	return _u
+}
+
+// SetPackageFeatures sets the "package_features" field.
+func (_u *NamespaceUpdateOne) SetPackageFeatures(v []string) *NamespaceUpdateOne {
+	_u.mutation.SetPackageFeatures(v)
+	return _u
+}
+
+// AppendPackageFeatures appends value to the "package_features" field.
+func (_u *NamespaceUpdateOne) AppendPackageFeatures(v []string) *NamespaceUpdateOne {
+	_u.mutation.AppendPackageFeatures(v)
+	return _u
+}
+
+// ClearPackageFeatures clears the value of the "package_features" field.
+func (_u *NamespaceUpdateOne) ClearPackageFeatures() *NamespaceUpdateOne {
+	_u.mutation.ClearPackageFeatures()
 	return _u
 }
 
@@ -609,6 +657,17 @@ func (_u *NamespaceUpdateOne) sqlSave(ctx context.Context) (_node *Namespace, er
 	}
 	if value, ok := _u.mutation.PackageUID(); ok {
 		_spec.SetField(namespace.FieldPackageUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PackageFeatures(); ok {
+		_spec.SetField(namespace.FieldPackageFeatures, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedPackageFeatures(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, namespace.FieldPackageFeatures, value)
+		})
+	}
+	if _u.mutation.PackageFeaturesCleared() {
+		_spec.ClearField(namespace.FieldPackageFeatures, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.Logo(); ok {
 		_spec.SetField(namespace.FieldLogo, field.TypeString, value)

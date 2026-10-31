@@ -52,6 +52,9 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	if err := migrateLegacyNamespaceFeatures(ctx, client, helper); err != nil {
 		return err
 	}
+	if err := migrateNamespacePackageSnapshots(ctx, client, helper); err != nil {
+		return err
+	}
 	if err := syncTenantRoles(ctx, client, helper); err != nil {
 		return err
 	}
@@ -472,6 +475,37 @@ func migrateLegacyNamespace(ctx context.Context, client *ent.Client, baseUID, na
 	return tx.Commit()
 }
 
+// migrateNamespacePackageSnapshots 给升级前的租户补套餐能力快照。
+// 快照为空只可能出现在引入快照之前创建的租户；写入后管理员再编辑套餐也不会
+// 改变这些租户的授权。重复执行时已有快照的租户保持不变。
+func migrateNamespacePackageSnapshots(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	rows, err := client.Namespace.Query().
+		Where(namespace.DeletedAtIsNil(), namespace.PackageUIDNEQ("")).
+		All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	for _, row := range rows {
+		if len(row.PackageFeatures) > 0 {
+			continue
+		}
+		codes, err := packageSnapshotCapabilities(ctx, client, row.PackageUID)
+		if err != nil {
+			return databaseErr(helper, err)
+		}
+		if len(codes) == 0 {
+			continue
+		}
+		if _, err := client.Namespace.Update().
+			Where(namespace.UIDEQ(row.UID), namespace.DeletedAtIsNil()).
+			SetPackageFeatures(codes).
+			Save(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+	}
+	return nil
+}
+
 // tenantConfiguredCapabilities 计算租户已配置的能力：套餐能力并上额外能力。
 // 不判断停用和到期：seed 补权限要保留租户的配置，停用期间不撤销已有授权。
 // 租户被删除或没有套餐时按空能力处理，预置角色只保留 namespace:*。
@@ -483,7 +517,7 @@ func tenantConfiguredCapabilities(ctx context.Context, client *ent.Client, helpe
 		}
 		return nil, databaseErr(helper, err)
 	}
-	packageCapabilities, err := packageCapabilityCodes(ctx, client, row.PackageUID)
+	packageCapabilities, err := namespacePackageCapabilities(ctx, client, row.UID)
 	if err != nil {
 		return nil, databaseErr(helper, err)
 	}

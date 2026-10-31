@@ -36,6 +36,8 @@ const (
 	FieldPackageName = "package_name"
 	// FieldPriceCents holds the string denoting the price_cents field in the database.
 	FieldPriceCents = "price_cents"
+	// FieldCurrency holds the string denoting the currency field in the database.
+	FieldCurrency = "currency"
 	// FieldDurationDays holds the string denoting the duration_days field in the database.
 	FieldDurationDays = "duration_days"
 	// FieldMaxMembers holds the string denoting the max_members field in the database.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldPackageUID,
 	FieldPackageName,
 	FieldPriceCents,
+	FieldCurrency,
 	FieldDurationDays,
 	FieldMaxMembers,
 	FieldStatus,
@@ -139,6 +142,34 @@ func KindValidator(k Kind) error {
 		return nil
 	default:
 		return fmt.Errorf("namespaceorder: invalid enum value for kind field: %q", k)
+	}
+}
+
+// Currency defines the type for the "currency" enum field.
+type Currency string
+
+// CurrencyCNY is the default value of the Currency enum.
+const DefaultCurrency = CurrencyCNY
+
+// Currency values.
+const (
+	CurrencyCNY Currency = "CNY"
+	CurrencyUSD Currency = "USD"
+	CurrencyEUR Currency = "EUR"
+	CurrencyJPY Currency = "JPY"
+)
+
+func (c Currency) String() string {
+	return string(c)
+}
+
+// CurrencyValidator is a validator for the "currency" field enum values. It is called by the builders before save.
+func CurrencyValidator(c Currency) error {
+	switch c {
+	case CurrencyCNY, CurrencyUSD, CurrencyEUR, CurrencyJPY:
+		return nil
+	default:
+		return fmt.Errorf("namespaceorder: invalid enum value for currency field: %q", c)
 	}
 }
 
@@ -230,6 +261,11 @@ func ByPackageName(opts ...sql.OrderTermOption) OrderOption {
 // ByPriceCents orders the results by the price_cents field.
 func ByPriceCents(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPriceCents, opts...).ToFunc()
+}
+
+// ByCurrency orders the results by the currency field.
+func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
 }
 
 // ByDurationDays orders the results by the duration_days field.

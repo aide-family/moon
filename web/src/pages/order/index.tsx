@@ -250,7 +250,10 @@ export function OrderPage() {
                   <TableCell className={cn(TABLE_NOWRAP, "tabular-nums")}>
                     {item.priceCents > 0
                       ? t("order.priceValue", {
-                          amount: formatPriceCents(item.priceCents),
+                          amount: formatPriceCents(
+                            item.priceCents,
+                            item.currency
+                          ),
                         })
                       : t("order.free")}
                   </TableCell>
@@ -313,7 +316,10 @@ export function OrderPage() {
             value: detail
               ? detail.priceCents > 0
                 ? t("order.priceValue", {
-                    amount: formatPriceCents(detail.priceCents),
+                    amount: formatPriceCents(
+                      detail.priceCents,
+                      detail.currency
+                    ),
                   })
                 : t("order.free")
               : "—",

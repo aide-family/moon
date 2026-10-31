@@ -591,21 +591,38 @@ export function AlertRulePage() {
     setParams,
   ])
 
+  // 规则页的附加选择器按当前租户已授权的模块加载：没有对应权限时直接跳过，
+  // 避免可选列表的 403 触发全局「无权限」跳转。规则列表本身仍由 alert_rule 权限控制。
+  const canReadLevels = session.can("alert_rule:read")
+  const canReadSources = session.can("datasource:read")
+  const canReadProbeGroups =
+    session.can("probe:read") && session.hasFeature("probe_http")
+
   useEffect(() => {
     let active = true
     async function load() {
       try {
         const [levelResult, sourceResult, probeGroupResult] =
           await Promise.all([
-            loadAllPagedItems((page, pageSize) =>
-              listAlertDictionaries({ page, pageSize, type: "ALERT" })
-            ),
-            loadAllPagedItems((page, pageSize) =>
-              listDatasources({ page, pageSize })
-            ),
-            loadAllPagedItems((page, pageSize) =>
-              listProbeTargetGroups({ page, pageSize, driver: "PROBE_HTTP" })
-            ),
+            canReadLevels
+              ? loadAllPagedItems((page, pageSize) =>
+                  listAlertDictionaries({ page, pageSize, type: "ALERT" })
+                )
+              : Promise.resolve([]),
+            canReadSources
+              ? loadAllPagedItems((page, pageSize) =>
+                  listDatasources({ page, pageSize })
+                )
+              : Promise.resolve([]),
+            canReadProbeGroups
+              ? loadAllPagedItems((page, pageSize) =>
+                  listProbeTargetGroups({
+                    page,
+                    pageSize,
+                    driver: "PROBE_HTTP",
+                  })
+                )
+              : Promise.resolve([]),
           ])
         if (!active) {
           return
@@ -625,7 +642,13 @@ export function AlertRulePage() {
     return () => {
       active = false
     }
-  }, [session.namespaceUid, attempt])
+  }, [
+    session.namespaceUid,
+    attempt,
+    canReadLevels,
+    canReadSources,
+    canReadProbeGroups,
+  ])
 
   function setParam(key: string, value: string, replace = false) {
     setParams(

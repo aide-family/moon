@@ -599,6 +599,26 @@ func PriceCentsLTE(v int64) predicate.FeaturePackage {
 	return predicate.FeaturePackage(sql.FieldLTE(FieldPriceCents, v))
 }
 
+// CurrencyEQ applies the EQ predicate on the "currency" field.
+func CurrencyEQ(v Currency) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldEQ(FieldCurrency, v))
+}
+
+// CurrencyNEQ applies the NEQ predicate on the "currency" field.
+func CurrencyNEQ(v Currency) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNEQ(FieldCurrency, v))
+}
+
+// CurrencyIn applies the In predicate on the "currency" field.
+func CurrencyIn(vs ...Currency) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldIn(FieldCurrency, vs...))
+}
+
+// CurrencyNotIn applies the NotIn predicate on the "currency" field.
+func CurrencyNotIn(vs ...Currency) predicate.FeaturePackage {
+	return predicate.FeaturePackage(sql.FieldNotIn(FieldCurrency, vs...))
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.FeaturePackage) predicate.FeaturePackage {
 	return predicate.FeaturePackage(sql.AndPredicates(predicates...))

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -33,6 +34,8 @@ type Namespace struct {
 	OwnerUID string `json:"owner_uid,omitempty"`
 	// PackageUID holds the value of the "package_uid" field.
 	PackageUID string `json:"package_uid,omitempty"`
+	// PackageFeatures holds the value of the "package_features" field.
+	PackageFeatures []string `json:"package_features,omitempty"`
 	// Logo holds the value of the "logo" field.
 	Logo string `json:"logo,omitempty"`
 	// Remark holds the value of the "remark" field.
@@ -51,6 +54,8 @@ func (*Namespace) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case namespace.FieldPackageFeatures:
+			values[i] = new([]byte)
 		case namespace.FieldID:
 			values[i] = new(sql.NullInt64)
 		case namespace.FieldUID, namespace.FieldName, namespace.FieldSecret, namespace.FieldOwnerUID, namespace.FieldPackageUID, namespace.FieldLogo, namespace.FieldRemark, namespace.FieldStatus, namespace.FieldDisableReason:
@@ -126,6 +131,14 @@ func (_m *Namespace) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field package_uid", values[i])
 			} else if value.Valid {
 				_m.PackageUID = value.String
+			}
+		case namespace.FieldPackageFeatures:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field package_features", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.PackageFeatures); err != nil {
+					return fmt.Errorf("unmarshal field package_features: %w", err)
+				}
 			}
 		case namespace.FieldLogo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -218,6 +231,9 @@ func (_m *Namespace) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("package_uid=")
 	builder.WriteString(_m.PackageUID)
+	builder.WriteString(", ")
+	builder.WriteString("package_features=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PackageFeatures))
 	builder.WriteString(", ")
 	builder.WriteString("logo=")
 	builder.WriteString(_m.Logo)

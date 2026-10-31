@@ -90,8 +90,15 @@ export function MemberPage() {
     fetch: (page, pageSize) => listMembers({ page, pageSize, name: query.name }),
   })
 
+  const canReadRoles = session.can("role:read")
+
   useEffect(() => {
     let active = true
+    // 成员模块可以在没有角色模块时单独开通：没有 role:read 时跳过角色列表，
+    // 避免可选选择器的 403 把成员页跳转到无权限页。
+    if (!canReadRoles) {
+      return
+    }
     // 分配角色需要 isSystem 和 remark，selectRoles 只返回 uid/name，所以这里走列表接口。
     // 已知限制：pageSize 上限 100，角色超过 100 个时列表不完整；届时改成带搜索的分页选择器。
     void listRoles({ page: 1, pageSize: 100 })
@@ -107,7 +114,7 @@ export function MemberPage() {
     return () => {
       active = false
     }
-  }, [session.namespaceUid])
+  }, [session.namespaceUid, canReadRoles])
 
   useEffect(() => {
     let active = true

@@ -569,6 +569,16 @@ func PackageUIDContainsFold(v string) predicate.Namespace {
 	return predicate.Namespace(sql.FieldContainsFold(FieldPackageUID, v))
 }
 
+// PackageFeaturesIsNil applies the IsNil predicate on the "package_features" field.
+func PackageFeaturesIsNil() predicate.Namespace {
+	return predicate.Namespace(sql.FieldIsNull(FieldPackageFeatures))
+}
+
+// PackageFeaturesNotNil applies the NotNil predicate on the "package_features" field.
+func PackageFeaturesNotNil() predicate.Namespace {
+	return predicate.Namespace(sql.FieldNotNull(FieldPackageFeatures))
+}
+
 // LogoEQ applies the EQ predicate on the "logo" field.
 func LogoEQ(v string) predicate.Namespace {
 	return predicate.Namespace(sql.FieldEQ(FieldLogo, v))

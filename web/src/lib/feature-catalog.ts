@@ -354,6 +354,50 @@ export const CAPABILITIES: CapabilityDefinition[] = [
   },
 ]
 
+/**
+ * 能力包含的接口权限，与后端 perm.capabilitySpecs 保持一致。
+ * 角色授权页把子权限挂在菜单（能力）下；多个能力共享权限时归到第一个能力。
+ */
+export const CAPABILITY_PERMISSIONS: Record<string, string[]> = {
+  alert_realtime: ["alert:read", "alert:intervene"],
+  alert_history: ["alert:read"],
+  alert_page: ["alert:read", "alert:write", "alert:delete"],
+  alert_rule: ["alert_rule:read", "alert_rule:write", "alert_rule:delete"],
+  alert_dictionary: ["alert_rule:read", "alert_rule:write", "alert_rule:delete"],
+  probe_http: ["probe:read", "probe:write", "probe:delete"],
+  datasource_prometheus: ["datasource:read", "datasource:write", "datasource:delete"],
+  datasource_victoria_metrics: ["datasource:read", "datasource:write", "datasource:delete"],
+  datasource_elasticsearch: ["datasource:read", "datasource:write", "datasource:delete"],
+  datasource_loki: ["datasource:read", "datasource:write", "datasource:delete"],
+  datasource_vlogs: ["datasource:read", "datasource:write", "datasource:delete"],
+  datasource_jaeger: ["datasource:read", "datasource:write", "datasource:delete"],
+  notify_channel_smtp: ["notification:read", "notification:write", "notification:delete"],
+  notify_channel_webhook: ["notification:read", "notification:write", "notification:delete"],
+  notify_channel_sms: ["notification:read", "notification:write", "notification:delete"],
+  notify_template: ["notification:read", "notification:write", "notification:delete"],
+  notify_group: ["notification:read", "notification:write", "notification:delete"],
+  notify_subscription: ["notification:read", "notification:write", "notification:delete"],
+  notify_oncall: ["notification:read", "notification:write", "notification:delete"],
+  message_log: ["notification:read", "notification:write", "notification:delete"],
+  member: ["member:read", "member:write", "member:delete"],
+  role: ["role:read", "role:write", "role:delete"],
+  cluster_access: ["cluster:read", "cluster:write", "cluster:delete"],
+  k8s_node: ["k8s:node:read", "k8s:node:write"],
+  k8s_workload: ["k8s:workload:read", "k8s:workload:write"],
+  k8s_pod: ["k8s:pod:read", "k8s:pod:write", "k8s:pod:logs"],
+  k8s_ingress: ["k8s:ingress:read"],
+  k8s_service: ["k8s:service:read"],
+  k8s_configmap: ["k8s:configmap:read"],
+  k8s_secret: ["k8s:secret:read"],
+  k8s_pv: ["k8s:pv:read"],
+  k8s_pvc: ["k8s:pvc:read"],
+  k8s_job: ["k8s:job:read", "k8s:job:write"],
+  k8s_cronjob: ["k8s:cronjob:read", "k8s:cronjob:write"],
+  agent_machine: ["agent:read", "agent:write", "agent:delete"],
+  ssh_command: ["ssh:read", "ssh:write", "ssh:delete"],
+  web_shell: ["ssh:exec"],
+}
+
 /** 基础套餐包含的模块：前 7 个模块的全部能力（数据源和通知渠道按类型展开后共 22 项）。 */
 export const BASE_MODULES = [
   "alert",

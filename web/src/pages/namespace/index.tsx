@@ -590,7 +590,10 @@ export function NamespacePage() {
               {currentPackage
                 ? (currentPackage.priceCents ?? 0) > 0
                   ? t("namespace.priceValue", {
-                      amount: formatPriceCents(currentPackage.priceCents),
+                      amount: formatPriceCents(
+                        currentPackage.priceCents,
+                        currentPackage.currency
+                      ),
                     })
                   : t("namespace.free")
                 : ""}
@@ -872,7 +875,10 @@ export function NamespacePage() {
                           <span className="ml-auto font-mono text-sm font-semibold tabular-nums">
                             {(item.priceCents ?? 0) > 0
                               ? t("namespace.priceValue", {
-                                  amount: formatPriceCents(item.priceCents),
+                                  amount: formatPriceCents(
+                                    item.priceCents,
+                                    item.currency
+                                  ),
                                 })
                               : t("namespace.free")}
                           </span>
@@ -970,7 +976,10 @@ export function NamespacePage() {
                   <dd className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
                     {(currentPackage?.priceCents ?? 0) > 0
                       ? t("namespace.priceValue", {
-                          amount: formatPriceCents(currentPackage?.priceCents),
+                          amount: formatPriceCents(
+                            currentPackage?.priceCents,
+                            currentPackage?.currency
+                          ),
                         })
                       : t("namespace.free")}
                   </dd>
@@ -1132,7 +1141,10 @@ export function NamespacePage() {
                               <span className="ml-auto font-mono text-sm font-semibold tabular-nums">
                                 {(item.priceCents ?? 0) > 0
                                   ? t("namespace.priceValue", {
-                                      amount: formatPriceCents(item.priceCents),
+                                      amount: formatPriceCents(
+                                        item.priceCents,
+                                        item.currency
+                                      ),
                                     })
                                   : t("namespace.free")}
                               </span>
@@ -1223,7 +1235,10 @@ export function NamespacePage() {
                     <dd className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
                       {(order?.priceCents ?? 0) > 0
                         ? t("namespace.priceValue", {
-                            amount: formatPriceCents(order?.priceCents),
+                            amount: formatPriceCents(
+                              order?.priceCents,
+                              order?.currency
+                            ),
                           })
                         : t("namespace.free")}
                     </dd>

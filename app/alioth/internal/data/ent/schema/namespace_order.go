@@ -31,8 +31,9 @@ func (NamespaceOrder) Fields() []ent.Field {
 		field.String("package_uid").NotEmpty(),
 		// package_name 是下单时的套餐名称快照。
 		field.String("package_name").NotEmpty(),
-		// price_cents 是下单时的价格快照，单位为人民币分；0 表示免费。
+		// price_cents 和 currency 是下单时的价格与币种快照，0 表示免费。
 		field.Int64("price_cents").Default(0).NonNegative(),
+		field.Enum("currency").Values("CNY", "USD", "EUR", "JPY").Default("CNY"),
 		// duration_days 是下单时的授权时长快照；0 表示永久。
 		field.Int32("duration_days").Default(0).NonNegative(),
 		// max_members 是下单时的人数上限快照；0 表示不限制。

@@ -77,6 +77,8 @@ func (base *repoBase) createNamespaceTx(ctx context.Context, tx *ent.Tx, name, r
 		SetRemark(remark).
 		SetOwnerUID(ownerUID).
 		SetPackageUID(pkg.UID).
+		// 授权内容是购买时的能力快照，之后编辑套餐不影响这个租户。
+		SetPackageFeatures(capabilities).
 		SetSecret(hex.EncodeToString(secret)).
 		SetStatus(namespace.StatusACTIVE)
 	if durationDays > 0 {
@@ -575,7 +577,9 @@ func toNamespace(row *ent.Namespace) bo.Namespace {
 		PackageUID:    row.PackageUID,
 		DisableReason: row.DisableReason,
 	}
-	if row.PackageExpiresAt != nil {
+	// 1970-01-01 是历史数据里「未设置」的占位时间；统一按永久处理，
+	// 避免前端把 Unix 0 渲染成 1970/1/1。
+	if row.PackageExpiresAt != nil && row.PackageExpiresAt.Unix() > 0 {
 		item.PackageExpiresAt = *row.PackageExpiresAt
 	}
 	return item

@@ -262,3 +262,28 @@ func TestMineWithoutNamespace(t *testing.T) {
 		t.Fatalf("names without namespace = %v, readOnly = %v", names, readOnly)
 	}
 }
+
+// TestNormalizeRoleGrant 确认菜单权限默认带读权限，子权限归到已开通的菜单下。
+func TestNormalizeRoleGrant(t *testing.T) {
+	capabilities := []string{perm.CapabilityDatasourcePrometheus}
+	modules := []string{perm.FeatureDatasource}
+	got := normalizeRoleGrant(
+		[]string{perm.MenuPermission(perm.CapabilityDatasourcePrometheus)},
+		capabilities,
+		modules,
+	)
+	if !slices.Contains(got, perm.DatasourceRead) {
+		t.Fatalf("menu grant missing default read: %v", got)
+	}
+	if slices.Contains(got, perm.DatasourceWrite) {
+		t.Fatalf("menu grant added write without asking: %v", got)
+	}
+	// 只提交写权限时补菜单权限和默认读权限，避免出现没有菜单的子权限。
+	got = normalizeRoleGrant([]string{perm.DatasourceWrite}, capabilities, modules)
+	if !slices.Contains(got, perm.MenuPermission(perm.CapabilityDatasourcePrometheus)) {
+		t.Fatalf("child grant missing menu: %v", got)
+	}
+	if !slices.Contains(got, perm.DatasourceRead) {
+		t.Fatalf("child grant missing default read: %v", got)
+	}
+}

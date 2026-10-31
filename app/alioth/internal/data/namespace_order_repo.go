@@ -22,6 +22,10 @@ func (r *namespaceOrderRepo) CreateOrder(ctx context.Context, order bo.Namespace
 	if order.Kind == "" {
 		kind = namespaceorder.KindCREATE
 	}
+	currency := namespaceorder.Currency(order.Currency)
+	if order.Currency == "" {
+		currency = namespaceorder.CurrencyCNY
+	}
 	row, err := r.client.NamespaceOrder.Create().
 		SetUID(id.New()).
 		SetUserUID(order.UserUID).
@@ -32,6 +36,7 @@ func (r *namespaceOrderRepo) CreateOrder(ctx context.Context, order bo.Namespace
 		SetPackageUID(order.PackageUID).
 		SetPackageName(order.PackageName).
 		SetPriceCents(order.PriceCents).
+		SetCurrency(currency).
 		SetDurationDays(order.DurationDays).
 		SetMaxMembers(order.MaxMembers).
 		SetStatus(namespaceorder.StatusPENDING).
@@ -183,7 +188,16 @@ func (r *namespaceOrderRepo) payPackageChange(ctx context.Context, tx *ent.Tx, o
 	if err != nil {
 		return err
 	}
+	packageFeatures, err := packageSnapshotCapabilities(ctx, tx.Client(), pkg.UID)
+	if err != nil {
+		return r.fail(err)
+	}
 	update := tx.Namespace.UpdateOne(ns).SetPackageUID(order.PackageUID)
+	// 升级采用新套餐的能力快照；续期套餐不变，必须保留租户原来的快照，
+	// 否则管理员后来改过套餐明细，续期会顺带改变租户权益。
+	if order.Kind == namespaceorder.KindUPGRADE {
+		update = update.SetPackageFeatures(packageFeatures)
+	}
 	if expiresAt.IsZero() {
 		update = update.ClearPackageExpiresAt()
 	} else {
@@ -192,15 +206,20 @@ func (r *namespaceOrderRepo) payPackageChange(ctx context.Context, tx *ent.Tx, o
 	if _, err := update.Save(ctx); err != nil {
 		return r.fail(err)
 	}
-	packageFeatures, err := packageCapabilityCodes(ctx, tx.Client(), pkg.UID)
-	if err != nil {
-		return r.fail(err)
+	// 续期不改变授权内容：按租户已有快照补齐预置角色，避免管理员改过套餐后
+	// 续期顺带把新能力写进角色权限。
+	authorization := packageFeatures
+	if order.Kind == namespaceorder.KindRENEW {
+		authorization, err = namespacePackageCapabilities(ctx, tx.Client(), order.NamespaceUID)
+		if err != nil {
+			return r.fail(err)
+		}
 	}
 	extra, err := namespaceExtraCapabilityCodes(ctx, tx.Client(), order.NamespaceUID)
 	if err != nil {
 		return r.fail(err)
 	}
-	effective := perm.EffectiveCapabilities(packageFeatures, extra)
+	effective := perm.EffectiveCapabilities(authorization, extra)
 	return r.grantPresetRolePermissions(ctx, tx, order.NamespaceUID, effective)
 }
 
@@ -269,6 +288,7 @@ func orderView(row *ent.NamespaceOrder) *bo.NamespaceOrder {
 		PackageUID:      row.PackageUID,
 		PackageName:     row.PackageName,
 		PriceCents:      row.PriceCents,
+		Currency:        string(row.Currency),
 		DurationDays:    row.DurationDays,
 		MaxMembers:      row.MaxMembers,
 		Status:          string(row.Status),

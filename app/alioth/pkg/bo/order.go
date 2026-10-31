@@ -28,6 +28,7 @@ type NamespaceOrder struct {
 	PackageUID      string
 	PackageName     string
 	PriceCents      int64
+	Currency        string
 	DurationDays    int32
 	MaxMembers      int32
 	Status          string
@@ -46,6 +47,7 @@ type NamespacePackage struct {
 	DurationDays int32
 	MaxMembers   int32
 	PriceCents   int64
+	Currency     string
 	ExpiresAt    time.Time
 	Expired      bool
 }

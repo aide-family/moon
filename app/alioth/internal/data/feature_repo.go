@@ -81,6 +81,10 @@ func (r *featureRepo) CreatePackage(ctx context.Context, pkg bo.FeaturePackage) 
 		return nil, r.fail(err)
 	}
 	defer func() { _ = tx.Rollback() }()
+	currency := featurepackage.Currency(pkg.Currency)
+	if pkg.Currency == "" {
+		currency = featurepackage.CurrencyCNY
+	}
 	row, err := tx.FeaturePackage.Create().
 		SetUID(id.New()).
 		SetName(pkg.Name).
@@ -91,6 +95,7 @@ func (r *featureRepo) CreatePackage(ctx context.Context, pkg bo.FeaturePackage) 
 		SetVisibility(featurepackage.Visibility(pkg.Visibility)).
 		SetMaxMembers(pkg.MaxMembers).
 		SetPriceCents(pkg.PriceCents).
+		SetCurrency(currency).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -112,6 +117,10 @@ func (r *featureRepo) UpdatePackage(ctx context.Context, pkg bo.FeaturePackage) 
 		return nil, r.fail(err)
 	}
 	defer func() { _ = tx.Rollback() }()
+	currency := featurepackage.Currency(pkg.Currency)
+	if pkg.Currency == "" {
+		currency = featurepackage.CurrencyCNY
+	}
 	n, err := tx.FeaturePackage.Update().
 		Where(featurepackage.UIDEQ(pkg.UID), featurepackage.DeletedAtIsNil()).
 		SetName(pkg.Name).
@@ -120,6 +129,7 @@ func (r *featureRepo) UpdatePackage(ctx context.Context, pkg bo.FeaturePackage) 
 		SetVisibility(featurepackage.Visibility(pkg.Visibility)).
 		SetMaxMembers(pkg.MaxMembers).
 		SetPriceCents(pkg.PriceCents).
+		SetCurrency(currency).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -162,7 +172,8 @@ func (r *featureRepo) NamespaceFeatureState(ctx context.Context, namespaceUID st
 		return nil, r.fail(err)
 	}
 	state := &bo.NamespaceFeature{NamespaceUID: namespaceUID, PackageUID: ns.PackageUID}
-	if ns.PackageExpiresAt != nil {
+	// Unix <= 0 的 1970 占位时间按永久处理，和 namespaces 读取保持同一口径。
+	if ns.PackageExpiresAt != nil && ns.PackageExpiresAt.Unix() > 0 {
 		state.ExpiresAt = *ns.PackageExpiresAt
 		state.Expired = !ns.PackageExpiresAt.After(time.Now())
 	}
@@ -172,7 +183,8 @@ func (r *featureRepo) NamespaceFeatureState(ctx context.Context, namespaceUID st
 		case err == nil:
 			state.PackageName = pkg.Name
 			state.DurationDays = pkg.DurationDays
-			features, err := packageCapabilityCodes(ctx, r.client, pkg.UID)
+			// 授权内容读租户快照：管理员之后编辑套餐不会改变已生效租户的权益。
+			features, err := namespacePackageCapabilities(ctx, r.client, namespaceUID)
 			if err != nil {
 				return nil, r.fail(err)
 			}
@@ -206,10 +218,12 @@ func (r *featureRepo) EffectiveCapabilities(ctx context.Context, namespaceUID st
 	if ns.DeletedAt != nil || ns.Status == namespace.StatusDISABLED {
 		return nil, nil
 	}
-	if ns.PackageExpiresAt != nil && !ns.PackageExpiresAt.After(time.Now()) {
+	if ns.PackageExpiresAt != nil &&
+		ns.PackageExpiresAt.Unix() > 0 &&
+		!ns.PackageExpiresAt.After(time.Now()) {
 		return nil, nil
 	}
-	packageFeatures, err := packageCapabilityCodes(ctx, r.client, ns.PackageUID)
+	packageFeatures, err := namespacePackageCapabilities(ctx, r.client, namespaceUID)
 	if err != nil {
 		return nil, r.fail(err)
 	}
@@ -252,14 +266,21 @@ func (r *featureRepo) SetNamespaceFeatureState(ctx context.Context, namespaceUID
 	}
 	defer func() { _ = tx.Rollback() }()
 	// 先确认租户存在，避免给已删除或不存在的租户留下孤立的能力差异。
-	if _, err := tx.Namespace.Query().Where(namespace.UIDEQ(namespaceUID), namespace.DeletedAtIsNil()).Only(ctx); err != nil {
-		return r.fail(err)
-	}
-	pkg, err := tx.FeaturePackage.Query().Where(featurepackage.UIDEQ(packageUID), featurepackage.DeletedAtIsNil()).Only(ctx)
+	ns, err := tx.Namespace.Query().Where(namespace.UIDEQ(namespaceUID), namespace.DeletedAtIsNil()).Only(ctx)
 	if err != nil {
 		return r.fail(err)
 	}
-	packageFeatures, err := packageCapabilityCodes(ctx, tx.Client(), pkg.UID)
+	if _, err := tx.FeaturePackage.Query().Where(featurepackage.UIDEQ(packageUID), featurepackage.DeletedAtIsNil()).Only(ctx); err != nil {
+		return r.fail(err)
+	}
+	// 换套餐时按新套餐当前明细授权并重新快照；同一个套餐只调整额外能力时，
+	// 必须沿用租户已有快照，不能让管理员后来修改套餐内容反向影响租户权益。
+	var packageFeatures []string
+	if ns.PackageUID == packageUID {
+		packageFeatures, err = namespacePackageCapabilities(ctx, tx.Client(), namespaceUID)
+	} else {
+		packageFeatures, err = packageSnapshotCapabilities(ctx, tx.Client(), packageUID)
+	}
 	if err != nil {
 		return r.fail(err)
 	}
@@ -292,7 +313,8 @@ func (r *featureRepo) SetNamespaceFeatureState(ctx context.Context, namespaceUID
 	}
 	update := tx.Namespace.Update().
 		Where(namespace.UIDEQ(namespaceUID), namespace.DeletedAtIsNil()).
-		SetPackageUID(packageUID)
+		SetPackageUID(packageUID).
+		SetPackageFeatures(packageFeatures)
 	if expiresAt.IsZero() {
 		update = update.ClearPackageExpiresAt()
 	} else {
@@ -439,6 +461,7 @@ func (r *featureRepo) packageViews(ctx context.Context, rows []*ent.FeaturePacka
 			DurationDays: row.DurationDays,
 			MaxMembers:   row.MaxMembers,
 			PriceCents:   row.PriceCents,
+			Currency:     string(row.Currency),
 			Features:     capabilityCodesOf(codesByPackage[row.UID]),
 			CreatedAt:    row.CreatedAt,
 		})
@@ -476,6 +499,46 @@ func capabilityCodesOf(codes []string) []string {
 		}
 	}
 	return perm.EffectiveCapabilities(nil, expanded)
+}
+
+// packageSnapshotCapabilities 返回「现在把该套餐分配给租户」时应写入的能力快照。
+// 基础套餐缺少明细时回落到代码里的基础能力，与新建租户的预置角色保持一致；
+// 其他套餐只按当前明细快照，空套餐就是空授权。
+func packageSnapshotCapabilities(ctx context.Context, client *ent.Client, packageUID string) ([]string, error) {
+	if packageUID == "" {
+		return nil, nil
+	}
+	pkg, err := client.FeaturePackage.Query().Where(featurepackage.UIDEQ(packageUID)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	codes, err := packageCapabilityCodes(ctx, client, pkg.UID)
+	if err != nil {
+		return nil, err
+	}
+	if len(codes) == 0 && pkg.IsBase {
+		return perm.BaseCapabilities(), nil
+	}
+	return codes, nil
+}
+
+// namespacePackageCapabilities 返回租户购买套餐时的能力快照。
+// 快照为空只出现在升级前创建的租户：回落到套餐当前明细，并在下一次写入时补快照。
+func namespacePackageCapabilities(ctx context.Context, client *ent.Client, namespaceUID string) ([]string, error) {
+	ns, err := client.Namespace.Query().Where(namespace.UIDEQ(namespaceUID)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if len(ns.PackageFeatures) > 0 {
+		return capabilityCodesOf(ns.PackageFeatures), nil
+	}
+	return packageCapabilityCodes(ctx, client, ns.PackageUID)
 }
 
 // packageCapabilityCodes 返回套餐携带的能力。packageUID 为空时返回空。

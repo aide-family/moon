@@ -134,6 +134,20 @@ func (_c *NamespaceOrderCreate) SetNillablePriceCents(v *int64) *NamespaceOrderC
 	return _c
 }
 
+// SetCurrency sets the "currency" field.
+func (_c *NamespaceOrderCreate) SetCurrency(v namespaceorder.Currency) *NamespaceOrderCreate {
+	_c.mutation.SetCurrency(v)
+	return _c
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_c *NamespaceOrderCreate) SetNillableCurrency(v *namespaceorder.Currency) *NamespaceOrderCreate {
+	if v != nil {
+		_c.SetCurrency(*v)
+	}
+	return _c
+}
+
 // SetDurationDays sets the "duration_days" field.
 func (_c *NamespaceOrderCreate) SetDurationDays(v int32) *NamespaceOrderCreate {
 	_c.mutation.SetDurationDays(v)
@@ -249,6 +263,10 @@ func (_c *NamespaceOrderCreate) defaults() {
 		v := namespaceorder.DefaultPriceCents
 		_c.mutation.SetPriceCents(v)
 	}
+	if _, ok := _c.mutation.Currency(); !ok {
+		v := namespaceorder.DefaultCurrency
+		_c.mutation.SetCurrency(v)
+	}
 	if _, ok := _c.mutation.DurationDays(); !ok {
 		v := namespaceorder.DefaultDurationDays
 		_c.mutation.SetDurationDays(v)
@@ -336,6 +354,14 @@ func (_c *NamespaceOrderCreate) check() error {
 	if v, ok := _c.mutation.PriceCents(); ok {
 		if err := namespaceorder.PriceCentsValidator(v); err != nil {
 			return &ValidationError{Name: "price_cents", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.price_cents": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Currency(); !ok {
+		return &ValidationError{Name: "currency", err: errors.New(`ent: missing required field "NamespaceOrder.currency"`)}
+	}
+	if v, ok := _c.mutation.Currency(); ok {
+		if err := namespaceorder.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "NamespaceOrder.currency": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.DurationDays(); !ok {
@@ -431,6 +457,10 @@ func (_c *NamespaceOrderCreate) createSpec() (*NamespaceOrder, *sqlgraph.CreateS
 	if value, ok := _c.mutation.PriceCents(); ok {
 		_spec.SetField(namespaceorder.FieldPriceCents, field.TypeInt64, value)
 		_node.PriceCents = value
+	}
+	if value, ok := _c.mutation.Currency(); ok {
+		_spec.SetField(namespaceorder.FieldCurrency, field.TypeEnum, value)
+		_node.Currency = value
 	}
 	if value, ok := _c.mutation.DurationDays(); ok {
 		_spec.SetField(namespaceorder.FieldDurationDays, field.TypeInt32, value)

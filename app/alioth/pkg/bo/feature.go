@@ -2,6 +2,29 @@ package bo
 
 import "time"
 
+// 套餐定价支持的币种。价格按对应币种的最小单位（分）存储，展示时配符号。
+const (
+	CurrencyCNY = "CNY"
+	CurrencyUSD = "USD"
+	CurrencyEUR = "EUR"
+	CurrencyJPY = "JPY"
+)
+
+// Currencies 按固定顺序返回支持的币种编码。
+func Currencies() []string {
+	return []string{CurrencyCNY, CurrencyUSD, CurrencyEUR, CurrencyJPY}
+}
+
+// IsCurrency 判断币种是否在支持目录内。
+func IsCurrency(code string) bool {
+	for _, item := range Currencies() {
+		if item == code {
+			return true
+		}
+	}
+	return false
+}
+
 // Feature 是菜单模块化的功能。功能由代码维护，租户通过套餐开通后才能在角色上授权。
 // Module 是能力所属的模块编码，对模块本身等于 Code；能力化后 /v1/system/features
 // 返回能力，Module 用来把能力归到左侧菜单分组。
@@ -28,6 +51,7 @@ type FeaturePackage struct {
 	DurationDays int32
 	MaxMembers   int32
 	PriceCents   int64
+	Currency     string
 	CreatedAt    time.Time
 }
 

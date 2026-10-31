@@ -3793,7 +3793,9 @@ type GetNamespacePackageResponse struct {
 	// 到期时间，Unix 秒。0 表示永久。
 	ExpiresAt int64 `protobuf:"varint,8,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	// 是否已过期。
-	Expired       bool `protobuf:"varint,9,opt,name=expired,proto3" json:"expired,omitempty"`
+	Expired bool `protobuf:"varint,9,opt,name=expired,proto3" json:"expired,omitempty"`
+	// 定价币种，取值为 CNY、USD、EUR 或 JPY。
+	Currency      string `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3889,6 +3891,13 @@ func (x *GetNamespacePackageResponse) GetExpired() bool {
 		return x.Expired
 	}
 	return false
+}
+
+func (x *GetNamespacePackageResponse) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
 }
 
 // 当前用户订单分页查询。
@@ -4193,7 +4202,9 @@ type NamespaceOrderItem struct {
 	// 支付时间，Unix 秒。未支付时为 0。
 	PaidAt int64 `protobuf:"varint,12,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`
 	// 订单类型，取值为 CREATE、UPGRADE 或 RENEW。
-	Kind          string `protobuf:"bytes,13,opt,name=kind,proto3" json:"kind,omitempty"`
+	Kind string `protobuf:"bytes,13,opt,name=kind,proto3" json:"kind,omitempty"`
+	// 下单时的币种快照，取值为 CNY、USD、EUR 或 JPY。
+	Currency      string `protobuf:"bytes,14,opt,name=currency,proto3" json:"currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4315,6 +4326,13 @@ func (x *NamespaceOrderItem) GetPaidAt() int64 {
 func (x *NamespaceOrderItem) GetKind() string {
 	if x != nil {
 		return x.Kind
+	}
+	return ""
+}
+
+func (x *NamespaceOrderItem) GetCurrency() string {
+	if x != nil {
+		return x.Currency
 	}
 	return ""
 }
@@ -9227,8 +9245,10 @@ type FeaturePackageItem struct {
 	Visibility string `protobuf:"bytes,9,opt,name=visibility,proto3" json:"visibility,omitempty"`
 	// 可容纳的成员数上限，0 表示不限制。
 	MaxMembers int32 `protobuf:"varint,10,opt,name=max_members,json=maxMembers,proto3" json:"max_members,omitempty"`
-	// 价格，单位为人民币分，0 表示免费。
-	PriceCents    int64 `protobuf:"varint,11,opt,name=price_cents,json=priceCents,proto3" json:"price_cents,omitempty"`
+	// 价格，单位为该币种的最小单位（分），0 表示免费。
+	PriceCents int64 `protobuf:"varint,11,opt,name=price_cents,json=priceCents,proto3" json:"price_cents,omitempty"`
+	// 定价币种，取值为 CNY、USD、EUR 或 JPY。
+	Currency      string `protobuf:"bytes,12,opt,name=currency,proto3" json:"currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -9338,6 +9358,13 @@ func (x *FeaturePackageItem) GetPriceCents() int64 {
 		return x.PriceCents
 	}
 	return 0
+}
+
+func (x *FeaturePackageItem) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
 }
 
 // 列出功能目录不需要参数。
@@ -9667,8 +9694,10 @@ type CreateFeaturePackageRequest struct {
 	Visibility string `protobuf:"bytes,5,opt,name=visibility,proto3" json:"visibility,omitempty"`
 	// 可容纳的成员数上限，0 表示不限制。
 	MaxMembers int32 `protobuf:"varint,6,opt,name=max_members,json=maxMembers,proto3" json:"max_members,omitempty"`
-	// 价格，单位为人民币分，0 表示免费。
-	PriceCents    int64 `protobuf:"varint,7,opt,name=price_cents,json=priceCents,proto3" json:"price_cents,omitempty"`
+	// 价格，单位为该币种的最小单位（分），0 表示免费。
+	PriceCents int64 `protobuf:"varint,7,opt,name=price_cents,json=priceCents,proto3" json:"price_cents,omitempty"`
+	// 定价币种，取值为 CNY、USD、EUR 或 JPY；留空按 CNY 处理。
+	Currency      string `protobuf:"bytes,8,opt,name=currency,proto3" json:"currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -9752,6 +9781,13 @@ func (x *CreateFeaturePackageRequest) GetPriceCents() int64 {
 	return 0
 }
 
+func (x *CreateFeaturePackageRequest) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
 // 新建后的功能套餐。
 type CreateFeaturePackageResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -9815,8 +9851,10 @@ type UpdateFeaturePackageRequest struct {
 	Visibility string `protobuf:"bytes,6,opt,name=visibility,proto3" json:"visibility,omitempty"`
 	// 可容纳的成员数上限，0 表示不限制。
 	MaxMembers int32 `protobuf:"varint,7,opt,name=max_members,json=maxMembers,proto3" json:"max_members,omitempty"`
-	// 价格，单位为人民币分，0 表示免费。
-	PriceCents    int64 `protobuf:"varint,8,opt,name=price_cents,json=priceCents,proto3" json:"price_cents,omitempty"`
+	// 价格，单位为该币种的最小单位（分），0 表示免费。
+	PriceCents int64 `protobuf:"varint,8,opt,name=price_cents,json=priceCents,proto3" json:"price_cents,omitempty"`
+	// 定价币种，取值为 CNY、USD、EUR 或 JPY；留空按 CNY 处理。
+	Currency      string `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -9905,6 +9943,13 @@ func (x *UpdateFeaturePackageRequest) GetPriceCents() int64 {
 		return x.PriceCents
 	}
 	return 0
+}
+
+func (x *UpdateFeaturePackageRequest) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
 }
 
 // 修改后的功能套餐。
@@ -10613,7 +10658,7 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"#CreateNamespaceRenewalOrderResponse\x123\n" +
 	"\x05order\x18\x01 \x01(\v2\x1d.alioth.v1.NamespaceOrderItemR\x05order\"7\n" +
 	"\x1aGetNamespacePackageRequest\x12\x19\n" +
-	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"\xb9\x02\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"\xd5\x02\n" +
 	"\x1bGetNamespacePackageResponse\x12\x1f\n" +
 	"\vpackage_uid\x18\x01 \x01(\tR\n" +
 	"packageUid\x12!\n" +
@@ -10629,7 +10674,9 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"priceCents\x12\x1d\n" +
 	"\n" +
 	"expires_at\x18\b \x01(\x03R\texpiresAt\x12\x18\n" +
-	"\aexpired\x18\t \x01(\bR\aexpired\"\x9c\x01\n" +
+	"\aexpired\x18\t \x01(\bR\aexpired\x12\x1a\n" +
+	"\bcurrency\x18\n" +
+	" \x01(\tR\bcurrency\"\x9c\x01\n" +
 	"\x1aListNamespaceOrdersRequest\x12\x1b\n" +
 	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04page\x12&\n" +
 	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x129\n" +
@@ -10647,7 +10694,7 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x1d.alioth.v1.NamespaceOrderItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xac\x03\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xc8\x03\n" +
 	"\x12NamespaceOrderItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12#\n" +
 	"\rnamespace_uid\x18\x02 \x01(\tR\fnamespaceUid\x12%\n" +
@@ -10666,7 +10713,8 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\v \x01(\x03R\tcreatedAt\x12\x17\n" +
 	"\apaid_at\x18\f \x01(\x03R\x06paidAt\x12\x12\n" +
-	"\x04kind\x18\r \x01(\tR\x04kind\"\x88\x01\n" +
+	"\x04kind\x18\r \x01(\tR\x04kind\x12\x1a\n" +
+	"\bcurrency\x18\x0e \x01(\tR\bcurrency\"\x88\x01\n" +
 	"\x16UpdateNamespaceRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12 \n" +
@@ -10934,7 +10982,7 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12 \n" +
 	"\vpermissions\x18\x04 \x03(\tR\vpermissions\x12\x16\n" +
-	"\x06module\x18\x05 \x01(\tR\x06module\"\xc5\x02\n" +
+	"\x06module\x18\x05 \x01(\tR\x06module\"\xe1\x02\n" +
 	"\x12FeaturePackageItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
@@ -10952,7 +11000,8 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	" \x01(\x05R\n" +
 	"maxMembers\x12\x1f\n" +
 	"\vprice_cents\x18\v \x01(\x03R\n" +
-	"priceCents\"\x15\n" +
+	"priceCents\x12\x1a\n" +
+	"\bcurrency\x18\f \x01(\tR\bcurrency\"\x15\n" +
 	"\x13ListFeaturesRequest\"D\n" +
 	"\x14ListFeaturesResponse\x12,\n" +
 	"\x05items\x18\x01 \x03(\v2\x16.alioth.v1.FeatureItemR\x05items\"u\n" +
@@ -10968,7 +11017,7 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\x18GetFeaturePackageRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"T\n" +
 	"\x19GetFeaturePackageResponse\x127\n" +
-	"\apackage\x18\x01 \x01(\v2\x1d.alioth.v1.FeaturePackageItemR\apackage\"\xa5\x02\n" +
+	"\apackage\x18\x01 \x01(\v2\x1d.alioth.v1.FeaturePackageItemR\apackage\"\xde\x02\n" +
 	"\x1bCreateFeaturePackageRequest\x12\x1b\n" +
 	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12\x16\n" +
 	"\x06remark\x18\x02 \x01(\tR\x06remark\x12\x1a\n" +
@@ -10980,9 +11029,10 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\vmax_members\x18\x06 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\n" +
 	"maxMembers\x12(\n" +
 	"\vprice_cents\x18\a \x01(\x03B\a\xbaH\x04\"\x02(\x00R\n" +
-	"priceCents\"W\n" +
+	"priceCents\x127\n" +
+	"\bcurrency\x18\b \x01(\tB\x1b\xbaH\x18r\x16R\x00R\x03CNYR\x03USDR\x03EURR\x03JPYR\bcurrency\"W\n" +
 	"\x1cCreateFeaturePackageResponse\x127\n" +
-	"\apackage\x18\x01 \x01(\v2\x1d.alioth.v1.FeaturePackageItemR\apackage\"\xc0\x02\n" +
+	"\apackage\x18\x01 \x01(\v2\x1d.alioth.v1.FeaturePackageItemR\apackage\"\xf9\x02\n" +
 	"\x1bUpdateFeaturePackageRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1b\n" +
 	"\x04name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12\x16\n" +
@@ -10995,7 +11045,8 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"\vmax_members\x18\a \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\n" +
 	"maxMembers\x12(\n" +
 	"\vprice_cents\x18\b \x01(\x03B\a\xbaH\x04\"\x02(\x00R\n" +
-	"priceCents\"W\n" +
+	"priceCents\x127\n" +
+	"\bcurrency\x18\t \x01(\tB\x1b\xbaH\x18r\x16R\x00R\x03CNYR\x03USDR\x03EURR\x03JPYR\bcurrency\"W\n" +
 	"\x1cUpdateFeaturePackageResponse\x127\n" +
 	"\apackage\x18\x01 \x01(\v2\x1d.alioth.v1.FeaturePackageItemR\apackage\"8\n" +
 	"\x1bDeleteFeaturePackageRequest\x12\x19\n" +

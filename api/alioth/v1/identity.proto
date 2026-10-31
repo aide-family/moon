@@ -1060,6 +1060,8 @@ message GetNamespacePackageResponse {
   int64 expires_at = 8 [json_name = "expiresAt"];
   // 是否已过期。
   bool expired = 9;
+  // 定价币种，取值为 CNY、USD、EUR 或 JPY。
+  string currency = 10;
 }
 
 // 当前用户订单分页查询。
@@ -1134,6 +1136,8 @@ message NamespaceOrderItem {
   int64 paid_at = 12 [json_name = "paidAt"];
   // 订单类型，取值为 CREATE、UPGRADE 或 RENEW。
   string kind = 13;
+  // 下单时的币种快照，取值为 CNY、USD、EUR 或 JPY。
+  string currency = 14;
 }
 
 // 修改租户的参数。
@@ -1816,8 +1820,10 @@ message FeaturePackageItem {
   string visibility = 9;
   // 可容纳的成员数上限，0 表示不限制。
   int32 max_members = 10 [json_name = "maxMembers"];
-  // 价格，单位为人民币分，0 表示免费。
+  // 价格，单位为该币种的最小单位（分），0 表示免费。
   int64 price_cents = 11 [json_name = "priceCents"];
+  // 定价币种，取值为 CNY、USD、EUR 或 JPY。
+  string currency = 12;
 }
 
 // 列出功能目录不需要参数。
@@ -1877,8 +1883,10 @@ message CreateFeaturePackageRequest {
   string visibility = 5 [(buf.validate.field).string = {in: ["PUBLIC", "BETA"]}];
   // 可容纳的成员数上限，0 表示不限制。
   int32 max_members = 6 [json_name = "maxMembers", (buf.validate.field).int32.gte = 0];
-  // 价格，单位为人民币分，0 表示免费。
+  // 价格，单位为该币种的最小单位（分），0 表示免费。
   int64 price_cents = 7 [json_name = "priceCents", (buf.validate.field).int64.gte = 0];
+  // 定价币种，取值为 CNY、USD、EUR 或 JPY；留空按 CNY 处理。
+  string currency = 8 [(buf.validate.field).string = {in: ["", "CNY", "USD", "EUR", "JPY"]}];
 }
 
 // 新建后的功能套餐。
@@ -1903,8 +1911,10 @@ message UpdateFeaturePackageRequest {
   string visibility = 6 [(buf.validate.field).string = {in: ["PUBLIC", "BETA"]}];
   // 可容纳的成员数上限，0 表示不限制。
   int32 max_members = 7 [json_name = "maxMembers", (buf.validate.field).int32.gte = 0];
-  // 价格，单位为人民币分，0 表示免费。
+  // 价格，单位为该币种的最小单位（分），0 表示免费。
   int64 price_cents = 8 [json_name = "priceCents", (buf.validate.field).int64.gte = 0];
+  // 定价币种，取值为 CNY、USD、EUR 或 JPY；留空按 CNY 处理。
+  string currency = 9 [(buf.validate.field).string = {in: ["", "CNY", "USD", "EUR", "JPY"]}];
 }
 
 // 修改后的功能套餐。

@@ -39,6 +39,8 @@ type NamespaceOrder struct {
 	PackageName string `json:"package_name,omitempty"`
 	// PriceCents holds the value of the "price_cents" field.
 	PriceCents int64 `json:"price_cents,omitempty"`
+	// Currency holds the value of the "currency" field.
+	Currency namespaceorder.Currency `json:"currency,omitempty"`
 	// DurationDays holds the value of the "duration_days" field.
 	DurationDays int32 `json:"duration_days,omitempty"`
 	// MaxMembers holds the value of the "max_members" field.
@@ -57,7 +59,7 @@ func (*NamespaceOrder) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case namespaceorder.FieldID, namespaceorder.FieldPriceCents, namespaceorder.FieldDurationDays, namespaceorder.FieldMaxMembers:
 			values[i] = new(sql.NullInt64)
-		case namespaceorder.FieldUID, namespaceorder.FieldUserUID, namespaceorder.FieldKind, namespaceorder.FieldNamespaceUID, namespaceorder.FieldNamespaceName, namespaceorder.FieldNamespaceRemark, namespaceorder.FieldPackageUID, namespaceorder.FieldPackageName, namespaceorder.FieldStatus:
+		case namespaceorder.FieldUID, namespaceorder.FieldUserUID, namespaceorder.FieldKind, namespaceorder.FieldNamespaceUID, namespaceorder.FieldNamespaceName, namespaceorder.FieldNamespaceRemark, namespaceorder.FieldPackageUID, namespaceorder.FieldPackageName, namespaceorder.FieldCurrency, namespaceorder.FieldStatus:
 			values[i] = new(sql.NullString)
 		case namespaceorder.FieldCreatedAt, namespaceorder.FieldUpdatedAt, namespaceorder.FieldPaidAt:
 			values[i] = new(sql.NullTime)
@@ -147,6 +149,12 @@ func (_m *NamespaceOrder) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field price_cents", values[i])
 			} else if value.Valid {
 				_m.PriceCents = value.Int64
+			}
+		case namespaceorder.FieldCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field currency", values[i])
+			} else if value.Valid {
+				_m.Currency = namespaceorder.Currency(value.String)
 			}
 		case namespaceorder.FieldDurationDays:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -241,6 +249,9 @@ func (_m *NamespaceOrder) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("price_cents=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PriceCents))
+	builder.WriteString(", ")
+	builder.WriteString("currency=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Currency))
 	builder.WriteString(", ")
 	builder.WriteString("duration_days=")
 	builder.WriteString(fmt.Sprintf("%v", _m.DurationDays))

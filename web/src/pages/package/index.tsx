@@ -60,6 +60,12 @@ import {
 import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 import {
+  CURRENCIES,
+  currencySymbol,
+  formatPriceCents,
+  type CurrencyCode,
+} from "@/lib/price"
+import {
   TABLE_COLUMN_WIDTH,
   TABLE_MIN_WIDTH,
   TABLE_NOWRAP,
@@ -111,14 +117,14 @@ function parsePriceCents(value: string): number | null {
   return Number.isSafeInteger(cents) ? cents : null
 }
 
-/** 列表 / 详情里的价格文案：0 分就是免费，其余按 ¥xx.xx 展示。 */
-function priceText(t: TFunction, cents?: number): string {
+/** 列表 / 详情里的价格文案：0 分就是免费，其余按币种符号展示。 */
+function priceText(t: TFunction, cents?: number, currency = "CNY"): string {
   const value = cents ?? 0
   if (value <= 0) {
     return t("packageAdmin.free")
   }
   return t("packageAdmin.priceValue", {
-    amount: (value / 100).toFixed(2),
+    amount: formatPriceCents(value, currency),
   })
 }
 
@@ -143,6 +149,7 @@ export function PackagePage() {
   const [visibility, setVisibility] = useState<"PUBLIC" | "BETA">("BETA")
   // 人数上限 0 表示不限制；价格以「元」输入，提交时换算成分。
   const [maxMembers, setMaxMembers] = useState("0")
+  const [currency, setCurrency] = useState<CurrencyCode>("CNY")
   const [priceYuan, setPriceYuan] = useState("0")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState("")
@@ -222,6 +229,7 @@ export function PackagePage() {
     setDurationDays("0")
     setVisibility("BETA")
     setMaxMembers("0")
+    setCurrency("CNY")
     setPriceYuan("0")
     setFieldErrors({})
     setFormError("")
@@ -236,6 +244,11 @@ export function PackagePage() {
     setDurationDays(String(item.durationDays ?? 0))
     setVisibility(item.visibility === "PUBLIC" ? "PUBLIC" : "BETA")
     setMaxMembers(String(item.maxMembers ?? 0))
+    setCurrency(
+      CURRENCIES.includes((item.currency || "CNY") as CurrencyCode)
+        ? ((item.currency || "CNY") as CurrencyCode)
+        : "CNY"
+    )
     setPriceYuan(((item.priceCents ?? 0) / 100).toFixed(2))
     setFieldErrors({})
     setFormError("")
@@ -252,6 +265,7 @@ export function PackagePage() {
       setDurationDays("0")
       setVisibility("BETA")
       setMaxMembers("0")
+      setCurrency("CNY")
       setPriceYuan("0")
       setFieldErrors({})
       setFormError("")
@@ -295,6 +309,7 @@ export function PackagePage() {
         visibility,
         maxMembers: members ?? 0,
         priceCents: priceCents ?? 0,
+        currency,
       }
       if (editing) {
         await updatePackage({ uid: editing.uid, ...payload })
@@ -511,7 +526,7 @@ export function PackagePage() {
                     className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
                   >
                     <span className="tabular-nums">
-                      {priceText(t, item.priceCents)}
+                      {priceText(t, item.priceCents, item.currency)}
                     </span>
                   </TableCell>
                   <TableCell
@@ -602,7 +617,7 @@ export function PackagePage() {
           },
           {
             label: t("packageAdmin.price"),
-            value: priceText(t, detail?.priceCents),
+            value: priceText(t, detail?.priceCents, detail?.currency),
           },
           {
             label: t("packageAdmin.maxMembers"),
@@ -733,14 +748,51 @@ export function PackagePage() {
                 hint={t("packageAdmin.priceHint")}
                 error={fieldErrors.price}
               >
-                <Input
-                  id="package-price"
-                  type="text"
-                  inputMode="decimal"
-                  value={priceYuan}
-                  placeholder="0.00"
-                  onChange={(event) => setPriceYuan(event.target.value)}
-                />
+                <div className="flex h-8 w-full items-center rounded-md border border-input shadow-xs focus-within:ring-3 focus-within:ring-ring/50">
+                  <Select
+                    value={currency}
+                    onValueChange={(value) =>
+                      setCurrency(value as CurrencyCode)
+                    }
+                  >
+                    <SelectTrigger
+                      className="h-8 w-32 shrink-0 rounded-r-none border-0 bg-transparent px-2 shadow-none focus-visible:ring-0"
+                      aria-label={t("packageAdmin.currency")}
+                    >
+                      <SelectValue>
+                        <span className="flex items-center gap-1 tabular-nums">
+                          <span>{currencySymbol(currency)}</span>
+                          <span>{currency}</span>
+                        </span>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map((code) => (
+                        <SelectItem key={code} value={code}>
+                          <span className="flex items-center gap-2">
+                            <span className="w-4 tabular-nums">
+                              {currencySymbol(code)}
+                            </span>
+                            <span>{t(`currency.${code}`)}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span
+                    aria-hidden="true"
+                    className="h-4 w-px shrink-0 bg-border"
+                  />
+                  <Input
+                    id="package-price"
+                    type="text"
+                    inputMode="decimal"
+                    value={priceYuan}
+                    placeholder="0.00"
+                    className="h-8 min-w-0 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
+                    onChange={(event) => setPriceYuan(event.target.value)}
+                  />
+                </div>
               </FormField>
               <FormField
                 label={t("packageAdmin.remark")}

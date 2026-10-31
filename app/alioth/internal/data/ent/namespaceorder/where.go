@@ -714,6 +714,26 @@ func PriceCentsLTE(v int64) predicate.NamespaceOrder {
 	return predicate.NamespaceOrder(sql.FieldLTE(FieldPriceCents, v))
 }
 
+// CurrencyEQ applies the EQ predicate on the "currency" field.
+func CurrencyEQ(v Currency) predicate.NamespaceOrder {
+	return predicate.NamespaceOrder(sql.FieldEQ(FieldCurrency, v))
+}
+
+// CurrencyNEQ applies the NEQ predicate on the "currency" field.
+func CurrencyNEQ(v Currency) predicate.NamespaceOrder {
+	return predicate.NamespaceOrder(sql.FieldNEQ(FieldCurrency, v))
+}
+
+// CurrencyIn applies the In predicate on the "currency" field.
+func CurrencyIn(vs ...Currency) predicate.NamespaceOrder {
+	return predicate.NamespaceOrder(sql.FieldIn(FieldCurrency, vs...))
+}
+
+// CurrencyNotIn applies the NotIn predicate on the "currency" field.
+func CurrencyNotIn(vs ...Currency) predicate.NamespaceOrder {
+	return predicate.NamespaceOrder(sql.FieldNotIn(FieldCurrency, vs...))
+}
+
 // DurationDaysEQ applies the EQ predicate on the "duration_days" field.
 func DurationDaysEQ(v int32) predicate.NamespaceOrder {
 	return predicate.NamespaceOrder(sql.FieldEQ(FieldDurationDays, v))

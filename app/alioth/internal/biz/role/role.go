@@ -163,8 +163,54 @@ func (authority *Authority) UpdateRolePermissions(ctx context.Context, uid strin
 			}
 		}
 	}
+	// 菜单权限带默认读权限，子权限必须挂在某个已开通的菜单下：
+	// 前端已按这个规则提交，这里再归一化一次，避免直接调接口绕过。
+	names = normalizeRoleGrant(names, capabilities, modules)
 	item, err := authority.roles.UpdateRolePermissions(ctx, ns, uid, names)
 	return item, authority.access.Wrap(err)
+}
+
+// normalizeRoleGrant 给菜单补默认读权限，并给子权限补它所属的菜单权限。
+// 只有当前租户开通范围内的能力会补菜单；已关闭能力的旧授权保持原样。
+func normalizeRoleGrant(names, capabilities, modules []string) []string {
+	seen := make(map[string]struct{}, len(names)*2)
+	out := make([]string, 0, len(names)*2)
+	add := func(name string) {
+		if _, ok := seen[name]; ok {
+			return
+		}
+		seen[name] = struct{}{}
+		out = append(out, name)
+	}
+	for _, name := range names {
+		add(name)
+	}
+	// 先给子权限补所属菜单，再统一按菜单补默认读权限：两个方向的补全都落到最终集合。
+	for _, name := range append([]string(nil), out...) {
+		if perm.IsMenuPermission(name) || perm.FeatureOf(name) == "" {
+			continue
+		}
+		for _, capability := range perm.PermissionCapabilities(name) {
+			if !slices.Contains(capabilities, capability) {
+				continue
+			}
+			add(perm.MenuPermission(capability))
+			break
+		}
+	}
+	// 有菜单权限就默认带读权限（:read / :logs）。
+	for _, name := range append([]string(nil), out...) {
+		capability := perm.MenuPermissionCapability(name)
+		if capability == "" {
+			continue
+		}
+		for _, read := range perm.DefaultReadPermissions(capability) {
+			if permissionInTenantScope(read, capabilities, modules) {
+				add(read)
+			}
+		}
+	}
+	return out
 }
 
 // ListPermissions 只返回当前租户开通范围内的权限：模块权限按有效模块，

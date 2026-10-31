@@ -108,6 +108,12 @@ func (_c *NamespaceCreate) SetNillablePackageUID(v *string) *NamespaceCreate {
 	return _c
 }
 
+// SetPackageFeatures sets the "package_features" field.
+func (_c *NamespaceCreate) SetPackageFeatures(v []string) *NamespaceCreate {
+	_c.mutation.SetPackageFeatures(v)
+	return _c
+}
+
 // SetLogo sets the "logo" field.
 func (_c *NamespaceCreate) SetLogo(v string) *NamespaceCreate {
 	_c.mutation.SetLogo(v)
@@ -364,6 +370,10 @@ func (_c *NamespaceCreate) createSpec() (*Namespace, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.PackageUID(); ok {
 		_spec.SetField(namespace.FieldPackageUID, field.TypeString, value)
 		_node.PackageUID = value
+	}
+	if value, ok := _c.mutation.PackageFeatures(); ok {
+		_spec.SetField(namespace.FieldPackageFeatures, field.TypeJSON, value)
+		_node.PackageFeatures = value
 	}
 	if value, ok := _c.mutation.Logo(); ok {
 		_spec.SetField(namespace.FieldLogo, field.TypeString, value)

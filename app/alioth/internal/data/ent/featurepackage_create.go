@@ -172,6 +172,20 @@ func (_c *FeaturePackageCreate) SetNillablePriceCents(v *int64) *FeaturePackageC
 	return _c
 }
 
+// SetCurrency sets the "currency" field.
+func (_c *FeaturePackageCreate) SetCurrency(v featurepackage.Currency) *FeaturePackageCreate {
+	_c.mutation.SetCurrency(v)
+	return _c
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_c *FeaturePackageCreate) SetNillableCurrency(v *featurepackage.Currency) *FeaturePackageCreate {
+	if v != nil {
+		_c.SetCurrency(*v)
+	}
+	return _c
+}
+
 // Mutation returns the FeaturePackageMutation object of the builder.
 func (_c *FeaturePackageCreate) Mutation() *FeaturePackageMutation {
 	return _c.mutation
@@ -242,6 +256,10 @@ func (_c *FeaturePackageCreate) defaults() {
 	if _, ok := _c.mutation.PriceCents(); !ok {
 		v := featurepackage.DefaultPriceCents
 		_c.mutation.SetPriceCents(v)
+	}
+	if _, ok := _c.mutation.Currency(); !ok {
+		v := featurepackage.DefaultCurrency
+		_c.mutation.SetCurrency(v)
 	}
 }
 
@@ -320,6 +338,14 @@ func (_c *FeaturePackageCreate) check() error {
 			return &ValidationError{Name: "price_cents", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.price_cents": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.Currency(); !ok {
+		return &ValidationError{Name: "currency", err: errors.New(`ent: missing required field "FeaturePackage.currency"`)}
+	}
+	if v, ok := _c.mutation.Currency(); ok {
+		if err := featurepackage.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "FeaturePackage.currency": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -393,6 +419,10 @@ func (_c *FeaturePackageCreate) createSpec() (*FeaturePackage, *sqlgraph.CreateS
 	if value, ok := _c.mutation.PriceCents(); ok {
 		_spec.SetField(featurepackage.FieldPriceCents, field.TypeInt64, value)
 		_node.PriceCents = value
+	}
+	if value, ok := _c.mutation.Currency(); ok {
+		_spec.SetField(featurepackage.FieldCurrency, field.TypeEnum, value)
+		_node.Currency = value
 	}
 	return _node, _spec
 }

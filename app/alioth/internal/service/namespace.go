@@ -92,11 +92,12 @@ func (s *NamespaceService) GetNamespacePackage(ctx context.Context, req *v1.GetN
 	if err != nil {
 		return nil, err
 	}
-	packageUID, packageName, status, visibility, durationDays, maxMembers, priceCents, expiresAt, expired := namespacePackageFields(*item)
+	packageUID, packageName, status, visibility, currency, durationDays, maxMembers, priceCents, expiresAt, expired := namespacePackageFields(*item)
 	return &v1.GetNamespacePackageResponse{
 		PackageUid: packageUID, PackageName: packageName, Status: status,
-		Visibility: visibility, DurationDays: durationDays, MaxMembers: maxMembers,
-		PriceCents: priceCents, ExpiresAt: expiresAt, Expired: expired,
+		Visibility: visibility, Currency: currency, DurationDays: durationDays,
+		MaxMembers: maxMembers, PriceCents: priceCents, ExpiresAt: expiresAt,
+		Expired: expired,
 	}, nil
 }
 
@@ -228,6 +229,7 @@ func (s *NamespaceService) CreateFeaturePackage(ctx context.Context, req *v1.Cre
 		Visibility:   req.GetVisibility(),
 		MaxMembers:   req.GetMaxMembers(),
 		PriceCents:   req.GetPriceCents(),
+		Currency:     req.GetCurrency(),
 		Features:     req.GetFeatures(),
 	})
 	if err != nil {
@@ -245,6 +247,7 @@ func (s *NamespaceService) UpdateFeaturePackage(ctx context.Context, req *v1.Upd
 		Visibility:   req.GetVisibility(),
 		MaxMembers:   req.GetMaxMembers(),
 		PriceCents:   req.GetPriceCents(),
+		Currency:     req.GetCurrency(),
 		Features:     req.GetFeatures(),
 	})
 	if err != nil {

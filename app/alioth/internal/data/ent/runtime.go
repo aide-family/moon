@@ -1035,15 +1035,15 @@ func init() {
 	// namespace.DefaultPackageUID holds the default value on creation for the package_uid field.
 	namespace.DefaultPackageUID = namespaceDescPackageUID.Default.(string)
 	// namespaceDescLogo is the schema descriptor for logo field.
-	namespaceDescLogo := namespaceFields[5].Descriptor()
+	namespaceDescLogo := namespaceFields[6].Descriptor()
 	// namespace.DefaultLogo holds the default value on creation for the logo field.
 	namespace.DefaultLogo = namespaceDescLogo.Default.(string)
 	// namespaceDescRemark is the schema descriptor for remark field.
-	namespaceDescRemark := namespaceFields[6].Descriptor()
+	namespaceDescRemark := namespaceFields[7].Descriptor()
 	// namespace.DefaultRemark holds the default value on creation for the remark field.
 	namespace.DefaultRemark = namespaceDescRemark.Default.(string)
 	// namespaceDescDisableReason is the schema descriptor for disable_reason field.
-	namespaceDescDisableReason := namespaceFields[9].Descriptor()
+	namespaceDescDisableReason := namespaceFields[10].Descriptor()
 	// namespace.DefaultDisableReason holds the default value on creation for the disable_reason field.
 	namespace.DefaultDisableReason = namespaceDescDisableReason.Default.(string)
 	// namespace.DisableReasonValidator is a validator for the "disable_reason" field. It is called by the builders before save.
@@ -1131,13 +1131,13 @@ func init() {
 	// namespaceorder.PriceCentsValidator is a validator for the "price_cents" field. It is called by the builders before save.
 	namespaceorder.PriceCentsValidator = namespaceorderDescPriceCents.Validators[0].(func(int64) error)
 	// namespaceorderDescDurationDays is the schema descriptor for duration_days field.
-	namespaceorderDescDurationDays := namespaceorderFields[9].Descriptor()
+	namespaceorderDescDurationDays := namespaceorderFields[10].Descriptor()
 	// namespaceorder.DefaultDurationDays holds the default value on creation for the duration_days field.
 	namespaceorder.DefaultDurationDays = namespaceorderDescDurationDays.Default.(int32)
 	// namespaceorder.DurationDaysValidator is a validator for the "duration_days" field. It is called by the builders before save.
 	namespaceorder.DurationDaysValidator = namespaceorderDescDurationDays.Validators[0].(func(int32) error)
 	// namespaceorderDescMaxMembers is the schema descriptor for max_members field.
-	namespaceorderDescMaxMembers := namespaceorderFields[10].Descriptor()
+	namespaceorderDescMaxMembers := namespaceorderFields[11].Descriptor()
 	// namespaceorder.DefaultMaxMembers holds the default value on creation for the max_members field.
 	namespaceorder.DefaultMaxMembers = namespaceorderDescMaxMembers.Default.(int32)
 	// namespaceorder.MaxMembersValidator is a validator for the "max_members" field. It is called by the builders before save.

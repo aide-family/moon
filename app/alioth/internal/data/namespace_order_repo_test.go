@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespaceorder"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
@@ -445,5 +446,115 @@ func TestNamespaceUpgradeAndRenewalFlow(t *testing.T) {
 	if _, _, err := orders.PayOrder(ctx, renewPermanent.UID, userUID); err == nil ||
 		kerrors.FromError(err).Message != "package is permanent" {
 		t.Fatalf("pay permanent renewal err = %v, want package is permanent", err)
+	}
+}
+
+// TestPackageEditsDoNotChangeExistingTenant 用真库验证租户授权快照：
+// 管理员修改套餐内容不影响已生效租户；租户仍可加开/关闭套餐外的能力。
+func TestPackageEditsDoNotChangeExistingTenant(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	if err := Migrate(ctx, source); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	store, cleanup, err := NewDependencies(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("dependencies: %v", err)
+	}
+	t.Cleanup(cleanup)
+	logger := slog.Default()
+	features := NewFeatureRepo(store, logger)
+	namespaces := NewNamespaceRepo(store, logger)
+
+	stamp := time.Now().Format("150405.000000000")
+	ownerUID := "it-snapshot-owner-" + stamp
+	pkg, err := features.CreatePackage(ctx, bo.FeaturePackage{
+		Name: "it-snapshot-pkg-" + stamp, DurationDays: 30,
+		Visibility: perm.PackageVisibilityPublic, MaxMembers: 5,
+		Features: []string{perm.CapabilityAlertRealtime, perm.CapabilityDatasourcePrometheus},
+	})
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	nsRow, err := namespaces.CreateNamespace(ctx, "it-snapshot-ns-"+stamp, "it", ownerUID, pkg.UID)
+	if err != nil {
+		t.Fatalf("create namespace: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = store.client.NamespaceFeature.Delete().Where(namespacefeature.NamespaceUIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.MemberRole.Delete().Where(memberrole.NamespaceUIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.Member.Delete().Where(member.NamespaceUIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.RolePermission.Delete().Where(rolepermission.NamespaceUIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.Role.Delete().Where(role.NamespaceUIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.Namespace.Delete().Where(namespace.UIDEQ(nsRow.UID)).Exec(ctx)
+		_, _ = store.client.FeaturePackageItem.Delete().Where(featurepackageitem.PackageUIDEQ(pkg.UID)).Exec(ctx)
+		_, _ = store.client.FeaturePackage.Delete().Where(featurepackage.UIDEQ(pkg.UID)).Exec(ctx)
+	})
+
+	// 管理员把套餐能力改成历史告警：已有租户必须保持购买时的快照。
+	pkg.Features = []string{perm.CapabilityAlertHistory}
+	if _, err := features.UpdatePackage(ctx, *pkg); err != nil {
+		t.Fatalf("update package: %v", err)
+	}
+	state, err := features.NamespaceFeatureState(ctx, nsRow.UID)
+	if err != nil {
+		t.Fatalf("feature state: %v", err)
+	}
+	if !sameStrings(state.PackageFeatures, []string{perm.CapabilityAlertRealtime, perm.CapabilityDatasourcePrometheus}) {
+		t.Fatalf("tenant snapshot changed by package edit: %v", state.PackageFeatures)
+	}
+	capabilities, err := features.EffectiveCapabilities(ctx, nsRow.UID)
+	if err != nil {
+		t.Fatalf("effective capabilities: %v", err)
+	}
+	if !sameStrings(capabilities, []string{perm.CapabilityAlertRealtime, perm.CapabilityDatasourcePrometheus}) {
+		t.Fatalf("tenant capabilities changed by package edit: %v", capabilities)
+	}
+
+	// 同一套餐只调整额外能力时，不能把套餐快照改成新内容。
+	if err := features.SetNamespaceFeatureState(ctx, nsRow.UID, pkg.UID,
+		[]string{perm.CapabilityAlertHistory}, time.Time{}); err == nil {
+		t.Fatal("downgraded same-package assignment accepted")
+	}
+	// 加开套餐外能力可以：快照不变，历史告警只作为额外能力。
+	if err := features.SetNamespaceFeatureState(ctx, nsRow.UID, pkg.UID,
+		[]string{perm.CapabilityAlertRealtime, perm.CapabilityDatasourcePrometheus, perm.CapabilityAlertHistory},
+		time.Time{}); err != nil {
+		t.Fatalf("add extra capability: %v", err)
+	}
+	state, err = features.NamespaceFeatureState(ctx, nsRow.UID)
+	if err != nil {
+		t.Fatalf("feature state after extra: %v", err)
+	}
+	if !sameStrings(state.PackageFeatures, []string{perm.CapabilityAlertRealtime, perm.CapabilityDatasourcePrometheus}) {
+		t.Fatalf("snapshot changed by extra capability: %v", state.PackageFeatures)
+	}
+	if !sameStrings(state.ExtraFeatures, []string{perm.CapabilityAlertHistory}) {
+		t.Fatalf("extra capabilities = %v", state.ExtraFeatures)
+	}
+
+	// 新租户购买同一套餐时使用套餐当前内容（历史告警）。
+	newNS, err := namespaces.CreateNamespace(ctx, "it-snapshot-new-"+stamp, "it", ownerUID, pkg.UID)
+	if err != nil {
+		t.Fatalf("create new namespace: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = store.client.NamespaceFeature.Delete().Where(namespacefeature.NamespaceUIDEQ(newNS.UID)).Exec(ctx)
+		_, _ = store.client.MemberRole.Delete().Where(memberrole.NamespaceUIDEQ(newNS.UID)).Exec(ctx)
+		_, _ = store.client.Member.Delete().Where(member.NamespaceUIDEQ(newNS.UID)).Exec(ctx)
+		_, _ = store.client.RolePermission.Delete().Where(rolepermission.NamespaceUIDEQ(newNS.UID)).Exec(ctx)
+		_, _ = store.client.Role.Delete().Where(role.NamespaceUIDEQ(newNS.UID)).Exec(ctx)
+		_, _ = store.client.Namespace.Delete().Where(namespace.UIDEQ(newNS.UID)).Exec(ctx)
+	})
+	newCapabilities, err := features.EffectiveCapabilities(ctx, newNS.UID)
+	if err != nil {
+		t.Fatalf("new tenant capabilities: %v", err)
+	}
+	if !sameStrings(newCapabilities, []string{perm.CapabilityAlertHistory}) {
+		t.Fatalf("new tenant capabilities = %v", newCapabilities)
 	}
 }
