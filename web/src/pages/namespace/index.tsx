@@ -26,6 +26,7 @@ import type {
   PublicPackageItem,
 } from "@/api/order/types"
 import { cn } from "@/lib/class-names"
+import { formatUnixDate, unixSeconds } from "@/lib/date-time"
 import { formatPriceCents } from "@/lib/price"
 import { toast } from "sonner"
 import { TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS } from "@/lib/table-layout"
@@ -223,10 +224,7 @@ export function NamespacePage() {
 
   // 套餐到期时间：0 / 缺省表示永久。续期从当前到期时间（未过期）或现在起算。
   function packageExpiryText(): string {
-    if (!currentPackage?.expiresAt) {
-      return t("namespace.permanent")
-    }
-    return new Date(currentPackage.expiresAt * 1000).toLocaleDateString()
+    return formatUnixDate(currentPackage?.expiresAt) || t("namespace.permanent")
   }
 
   function renewalTargetText(): string {
@@ -234,7 +232,7 @@ export function NamespacePage() {
       return "—"
     }
     const base = new Date(
-      Math.max(renewBaseMs, (currentPackage.expiresAt ?? 0) * 1000)
+      Math.max(renewBaseMs, unixSeconds(currentPackage.expiresAt) * 1000)
     )
     base.setDate(base.getDate() + (currentPackage.durationDays ?? 0))
     return base.toLocaleDateString()

@@ -738,11 +738,11 @@ export function PackagePage() {
           </DialogHeader>
           <form
             noValidate
-            className="flex min-h-0 flex-1 flex-col gap-4"
+            className="flex min-h-0 min-w-0 flex-1 flex-col gap-4"
             onSubmit={onSave}
           >
             <DialogBody className="grid gap-4">
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid min-w-0 gap-4 sm:grid-cols-2">
                 <FormField
                   label={t("packageAdmin.name")}
                   htmlFor="package-name"
@@ -782,7 +782,7 @@ export function PackagePage() {
                   />
                 </FormField>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid min-w-0 gap-4 sm:grid-cols-2">
                 <FormField
                   label={t("packageAdmin.visibility")}
                   hint={t("packageAdmin.visibilityHint")}
@@ -833,37 +833,39 @@ export function PackagePage() {
                 hint={t("packageAdmin.priceHint")}
                 error={fieldErrors.price}
               >
-                <div className="flex h-8 w-full items-center rounded-md border border-input shadow-xs focus-within:ring-3 focus-within:ring-ring/50">
-                  <Select
-                    value={currency}
-                    onValueChange={(value) =>
-                      setCurrency(value as CurrencyCode)
-                    }
-                  >
-                    <SelectTrigger
-                      className="h-8 w-32 shrink-0 rounded-r-none border-0 bg-transparent px-2 shadow-none focus-visible:ring-0"
-                      aria-label={t("packageAdmin.currency")}
+                <div className="flex h-8 w-full min-w-0 items-center rounded-md border border-input shadow-xs focus-within:ring-3 focus-within:ring-ring/50">
+                  <div className="w-32 shrink-0">
+                    <Select
+                      value={currency}
+                      onValueChange={(value) =>
+                        setCurrency(value as CurrencyCode)
+                      }
                     >
-                      <SelectValue>
-                        <span className="flex items-center gap-1 tabular-nums">
-                          <span>{currencySymbol(currency)}</span>
-                          <span>{currency}</span>
-                        </span>
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CURRENCIES.map((code) => (
-                        <SelectItem key={code} value={code}>
-                          <span className="flex items-center gap-2">
-                            <span className="w-4 tabular-nums">
-                              {currencySymbol(code)}
-                            </span>
-                            <span>{t(`currency.${code}`)}</span>
+                      <SelectTrigger
+                        className="h-8 w-full rounded-r-none border-0 bg-transparent px-2 shadow-none focus-visible:ring-0"
+                        aria-label={t("packageAdmin.currency")}
+                      >
+                        <SelectValue>
+                          <span className="flex items-center gap-1 tabular-nums">
+                            <span>{currencySymbol(currency)}</span>
+                            <span>{currency}</span>
                           </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CURRENCIES.map((code) => (
+                          <SelectItem key={code} value={code}>
+                            <span className="flex items-center gap-2">
+                              <span className="w-4 tabular-nums">
+                                {currencySymbol(code)}
+                              </span>
+                              <span>{t(`currency.${code}`)}</span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <span
                     aria-hidden="true"
                     className="h-4 w-px shrink-0 bg-border"

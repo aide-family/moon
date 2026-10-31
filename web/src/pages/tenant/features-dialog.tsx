@@ -37,6 +37,7 @@ import {
   sortCapabilityCodes,
 } from "@/lib/feature-catalog"
 import { collectFieldErrors, hasFieldErrors, requireSelected } from "@/lib/form"
+import { unixSeconds } from "@/lib/date-time"
 import { failureMessage, readFormError } from "@/lib/form-error"
 
 // 套餐列表一次取够：平台套餐是人工维护的小集合，租户授权弹窗不需要分页。
@@ -45,11 +46,12 @@ const PACKAGE_PAGE_SIZE = 100
 type LoadStatus = "loading" | "ready" | "failed"
 
 /** Unix 秒 → <input type="date"> 的本地日期值。 */
-function dateValue(seconds?: number): string {
-  if (!seconds || seconds <= 0) {
+function dateValue(seconds?: number | string): string {
+  const value = unixSeconds(seconds)
+  if (value <= 0) {
     return ""
   }
-  const date = new Date(seconds * 1000)
+  const date = new Date(value * 1000)
   const pad = (value: number) => String(value).padStart(2, "0")
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }

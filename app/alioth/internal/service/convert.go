@@ -28,7 +28,7 @@ func namespaceItem(item bo.Namespace) *v1.NamespaceItem {
 	}
 	// 套餐到期时间为零表示永久，对外统一输出 0。
 	packageExpiresAt := int64(0)
-	if !item.PackageExpiresAt.IsZero() {
+	if item.PackageExpiresAt.Unix() > 0 {
 		packageExpiresAt = item.PackageExpiresAt.Unix()
 	}
 	return &v1.NamespaceItem{
@@ -198,7 +198,7 @@ func featurePackageItems(items []bo.FeaturePackage) []*v1.FeaturePackageItem {
 // namespaceFeatureFields 拆出租户能力开通的响应字段，GET 和 PUT 共用同一份视图。
 // 到期时间为零表示永久，对外统一输出 0。
 func namespaceFeatureFields(item bo.NamespaceFeature) (packageUID, packageName string, features, packageFeatures, extraFeatures []string, expiresAt int64, expired bool, durationDays int32) {
-	if !item.ExpiresAt.IsZero() {
+	if item.ExpiresAt.Unix() > 0 {
 		expiresAt = item.ExpiresAt.Unix()
 	}
 	return item.PackageUID, item.PackageName, item.Features, item.PackageFeatures,
@@ -207,7 +207,7 @@ func namespaceFeatureFields(item bo.NamespaceFeature) (packageUID, packageName s
 
 // namespacePackageFields 把租户当前套餐拆成响应字段；零值时间对外统一输出 0。
 func namespacePackageFields(item bo.NamespacePackage) (packageUID, packageName, status, visibility, currency string, durationDays, maxMembers int32, priceCents, expiresAt int64, expired bool) {
-	if !item.ExpiresAt.IsZero() {
+	if item.ExpiresAt.Unix() > 0 {
 		expiresAt = item.ExpiresAt.Unix()
 	}
 	return item.PackageUID, item.Name, item.Status, item.Visibility, item.Currency,

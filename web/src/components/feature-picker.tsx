@@ -172,10 +172,7 @@ export function FeaturePicker({
                           </button>
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p className="text-xs font-medium">
-                            {capabilityLabelText(code, i18n.language)}
-                          </p>
-                          <p className="mt-1 text-xs">{description}</p>
+                          <p className="text-xs">{description}</p>
                         </TooltipContent>
                       </Tooltip>
                     ) : null}

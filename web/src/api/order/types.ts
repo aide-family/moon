@@ -91,7 +91,7 @@ export type NamespacePackageInfo = {
   priceCents?: number
   /** 定价币种：CNY、USD、EUR 或 JPY。 */
   currency?: string
-  /** Unix 秒；0 表示永久。 */
-  expiresAt?: number
+  /** Unix 秒；0 表示永久。protojson 会把 int64 编码成字符串。 */
+  expiresAt?: number | string
   expired?: boolean
 }

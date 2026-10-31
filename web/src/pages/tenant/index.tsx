@@ -34,6 +34,7 @@ import {
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { cn } from "@/lib/class-names"
+import { unixSeconds } from "@/lib/date-time"
 import { formErrorMessage } from "@/lib/form-error"
 import {
   TABLE_COLUMN_WIDTH,
@@ -46,8 +47,9 @@ import { TenantStatusDialog } from "./status-dialog"
 type StatusAction = "disable" | "enable"
 
 /** 套餐到期时间（Unix 秒）是否已过期；0 / 缺省表示永久。 */
-function isExpired(seconds?: number): boolean {
-  return Boolean(seconds && seconds > 0 && seconds * 1000 < Date.now())
+function isExpired(seconds?: number | string): boolean {
+  const value = unixSeconds(seconds)
+  return value > 0 && value * 1000 < Date.now()
 }
 
 // 系统管理员租户列表：平台级只读入口。点「只读查看」把会话切到目标租户的
@@ -319,7 +321,7 @@ export function TenantPage() {
             </TableHeader>
             <TableBody>
               {items.map((item) => {
-                const expiresAt = item.packageExpiresAt ?? 0
+                const expiresAt = unixSeconds(item.packageExpiresAt)
                 const expired = isExpired(expiresAt)
                 const statusBadge = <StatusBadge value={item.status} />
                 return (

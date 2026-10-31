@@ -96,7 +96,7 @@ export type NamespaceFeatures = {
   features?: string[]
   packageFeatures?: string[]
   extraFeatures?: string[]
-  expiresAt?: number
+  expiresAt?: number | string
   expired?: boolean
   durationDays?: number
 }
@@ -106,7 +106,7 @@ export type UpdateNamespaceFeaturesPayload = {
   packageUid: string
   features: string[]
   /** Unix 秒；0 表示按套餐默认时长计算。 */
-  expiresAt: number
+  expiresAt: number | string
 }
 
 /** 正在使用某个套餐的租户。 */
