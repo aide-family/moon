@@ -112,19 +112,6 @@ const links: {
   icon: LucideIcon
 }[] = [
   {
-    to: "/namespaces",
-    label: "nav.namespaces",
-    permission: "namespace:read",
-    icon: Building2,
-  },
-  {
-    to: "/orders",
-    label: "nav.orders",
-    // 订单只属于当前登录用户，刚注册、还没有任何租户权限的用户也要能查看。
-    permission: "",
-    icon: ReceiptText,
-  },
-  {
     to: "/tenants",
     label: "nav.tenants",
     permission: "system:namespace:read",
@@ -143,6 +130,42 @@ const links: {
     icon: Users,
   },
   {
+    to: "/workers",
+    label: "nav.workers",
+    permission: "system:user:read",
+    icon: Activity,
+  },
+  {
+    to: "/system/upgrade",
+    label: "nav.systemUpgrade",
+    permission: "system:migration:read",
+    icon: DatabaseBackup,
+  },
+]
+
+// 租户功能独立成组：我的租户、订单、成员、角色。系统管理只保留平台级页面。
+// 我的租户和订单不依赖租户权限，没有加入任何租户的用户也要能进入。
+const tenantLinks: {
+  to: string
+  label: string
+  permission: string
+  capability?: string
+  icon: LucideIcon
+}[] = [
+  {
+    to: "/namespaces",
+    label: "nav.namespaces",
+    permission: "namespace:read",
+    icon: Building2,
+  },
+  {
+    to: "/orders",
+    label: "nav.orders",
+    // 订单只属于当前登录用户，刚注册、还没有任何租户权限的用户也要能查看。
+    permission: "",
+    icon: ReceiptText,
+  },
+  {
     to: "/members",
     label: "nav.members",
     permission: "member:read",
@@ -155,18 +178,6 @@ const links: {
     permission: "role:read",
     capability: MENU_CAPABILITIES["/roles"],
     icon: Shield,
-  },
-  {
-    to: "/workers",
-    label: "nav.workers",
-    permission: "system:user:read",
-    icon: Activity,
-  },
-  {
-    to: "/system/upgrade",
-    label: "nav.systemUpgrade",
-    permission: "system:migration:read",
-    icon: DatabaseBackup,
   },
 ]
 
@@ -442,12 +453,15 @@ function ShellFrame() {
     return session.canFeatureEntry(link.capability)
   }
   const visible = links.filter((link) => {
-    // 租户页和订单页不依赖任何租户权限：还没有加入租户的用户也要能看到入口。
-    if (link.to === "/namespaces" || link.to === "/orders") {
-      return true
-    }
     if (link.permission.startsWith("system:")) {
       return session.canSystem(link.permission)
+    }
+    return tenantVisible(link)
+  })
+  // 租户分组：我的租户和订单不依赖租户权限，没有加入任何租户的用户也要能看到入口。
+  const tenants = tenantLinks.filter((link) => {
+    if (link.to === "/namespaces" || link.to === "/orders") {
+      return true
     }
     return tenantVisible(link)
   })
@@ -456,6 +470,11 @@ function ShellFrame() {
   const kubes = kubeLinks.filter(tenantVisible)
   const edges = edgeLinks.filter(tenantVisible)
   const systemActive = visible.some(
+    (link) =>
+      location.pathname === link.to ||
+      location.pathname.startsWith(`${link.to}/`)
+  )
+  const tenantActive = tenants.some(
     (link) =>
       location.pathname === link.to ||
       location.pathname.startsWith(`${link.to}/`)
@@ -593,6 +612,13 @@ function ShellFrame() {
                     icon={Server}
                     active={edgeActive}
                     links={edges}
+                  />
+                  <NavGroup
+                    key={`tenant-${tenantActive}`}
+                    label="nav.tenantSpace"
+                    icon={Building2}
+                    active={tenantActive}
+                    links={tenants}
                   />
                   <NavGroup
                     key={`system-${systemActive}`}
