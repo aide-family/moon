@@ -996,12 +996,14 @@ const OperationNamespaceServiceListFeaturePackages = "/alioth.v1.NamespaceServic
 const OperationNamespaceServiceListFeatures = "/alioth.v1.NamespaceService/ListFeatures"
 const OperationNamespaceServiceListNamespaceOrders = "/alioth.v1.NamespaceService/ListNamespaceOrders"
 const OperationNamespaceServiceListNamespaces = "/alioth.v1.NamespaceService/ListNamespaces"
+const OperationNamespaceServiceListPackageNamespaces = "/alioth.v1.NamespaceService/ListPackageNamespaces"
 const OperationNamespaceServiceListPublicPackages = "/alioth.v1.NamespaceService/ListPublicPackages"
 const OperationNamespaceServiceListSimpleNamespaces = "/alioth.v1.NamespaceService/ListSimpleNamespaces"
 const OperationNamespaceServiceListSystemNamespaceOrders = "/alioth.v1.NamespaceService/ListSystemNamespaceOrders"
 const OperationNamespaceServiceListSystemNamespaces = "/alioth.v1.NamespaceService/ListSystemNamespaces"
 const OperationNamespaceServicePayNamespaceOrder = "/alioth.v1.NamespaceService/PayNamespaceOrder"
 const OperationNamespaceServiceSelectNamespaces = "/alioth.v1.NamespaceService/SelectNamespaces"
+const OperationNamespaceServiceSyncFeaturePackage = "/alioth.v1.NamespaceService/SyncFeaturePackage"
 const OperationNamespaceServiceTransferNamespaceOwner = "/alioth.v1.NamespaceService/TransferNamespaceOwner"
 const OperationNamespaceServiceUpdateFeaturePackage = "/alioth.v1.NamespaceService/UpdateFeaturePackage"
 const OperationNamespaceServiceUpdateNamespace = "/alioth.v1.NamespaceService/UpdateNamespace"
@@ -1046,6 +1048,8 @@ type NamespaceServiceHTTPServer interface {
 	ListNamespaceOrders(context.Context, *ListNamespaceOrdersRequest) (*ListNamespaceOrdersResponse, error)
 	// ListNamespaces 分页列出当前用户加入的租户。
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
+	// ListPackageNamespaces 列出正在使用该套餐的租户，供「同步套餐授权」选择指定租户。需要 system:package:read。
+	ListPackageNamespaces(context.Context, *ListPackageNamespacesRequest) (*ListPackageNamespacesResponse, error)
 	// ListPublicPackages 列出创建租户时可选的功能套餐。只返回公开且启用的套餐，不要求系统权限。
 	ListPublicPackages(context.Context, *ListPublicPackagesRequest) (*ListPublicPackagesResponse, error)
 	// ListSimpleNamespaces 按页返回租户简表。
@@ -1059,6 +1063,9 @@ type NamespaceServiceHTTPServer interface {
 	PayNamespaceOrder(context.Context, *PayNamespaceOrderRequest) (*PayNamespaceOrderResponse, error)
 	// SelectNamespaces 按游标列出当前用户可切换的租户。
 	SelectNamespaces(context.Context, *SelectNamespacesRequest) (*SelectNamespacesResponse, error)
+	// SyncFeaturePackage 把套餐当前能力和版本快照同步给使用它的租户：空列表表示全部租户。
+	// 只覆盖租户的套餐快照，不影响额外能力、到期时间和价格；需要 system:package:write。
+	SyncFeaturePackage(context.Context, *SyncFeaturePackageRequest) (*SyncFeaturePackageResponse, error)
 	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error)
 	// UpdateFeaturePackage 修改功能套餐。需要 system:package:write；基础套餐不能改名。
@@ -1104,6 +1111,8 @@ func RegisterNamespaceServiceHTTPServer(s *http.Server, srv NamespaceServiceHTTP
 	r.Handle("POST", "/v1/system/package", _NamespaceService_CreateFeaturePackage0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/system/package/{uid}", _NamespaceService_UpdateFeaturePackage0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/system/package/{uid}", _NamespaceService_DeleteFeaturePackage0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/package/{uid}/namespaces", _NamespaceService_ListPackageNamespaces0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/system/package/{uid}/sync", _NamespaceService_SyncFeaturePackage0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/system/namespace/{uid}/features", _NamespaceService_GetNamespaceFeatures0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/system/namespace/{uid}/features", _NamespaceService_UpdateNamespaceFeatures0_HTTP_Handler(srv))
 }
@@ -1663,6 +1672,50 @@ func _NamespaceService_DeleteFeaturePackage0_HTTP_Handler(srv NamespaceServiceHT
 	}
 }
 
+func _NamespaceService_ListPackageNamespaces0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPackageNamespacesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceListPackageNamespaces)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPackageNamespaces(ctx, req.(*ListPackageNamespacesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListPackageNamespacesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NamespaceService_SyncFeaturePackage0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SyncFeaturePackageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceServiceSyncFeaturePackage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SyncFeaturePackage(ctx, req.(*SyncFeaturePackageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SyncFeaturePackageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _NamespaceService_GetNamespaceFeatures0_HTTP_Handler(srv NamespaceServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetNamespaceFeaturesRequest
@@ -1744,6 +1797,8 @@ type NamespaceServiceHTTPClient interface {
 	ListNamespaceOrders(ctx context.Context, req *ListNamespaceOrdersRequest, opts ...http.CallOption) (rsp *ListNamespaceOrdersResponse, err error)
 	// ListNamespaces 分页列出当前用户加入的租户。
 	ListNamespaces(ctx context.Context, req *ListNamespacesRequest, opts ...http.CallOption) (rsp *ListNamespacesResponse, err error)
+	// ListPackageNamespaces 列出正在使用该套餐的租户，供「同步套餐授权」选择指定租户。需要 system:package:read。
+	ListPackageNamespaces(ctx context.Context, req *ListPackageNamespacesRequest, opts ...http.CallOption) (rsp *ListPackageNamespacesResponse, err error)
 	// ListPublicPackages 列出创建租户时可选的功能套餐。只返回公开且启用的套餐，不要求系统权限。
 	ListPublicPackages(ctx context.Context, req *ListPublicPackagesRequest, opts ...http.CallOption) (rsp *ListPublicPackagesResponse, err error)
 	// ListSimpleNamespaces 按页返回租户简表。
@@ -1757,6 +1812,9 @@ type NamespaceServiceHTTPClient interface {
 	PayNamespaceOrder(ctx context.Context, req *PayNamespaceOrderRequest, opts ...http.CallOption) (rsp *PayNamespaceOrderResponse, err error)
 	// SelectNamespaces 按游标列出当前用户可切换的租户。
 	SelectNamespaces(ctx context.Context, req *SelectNamespacesRequest, opts ...http.CallOption) (rsp *SelectNamespacesResponse, err error)
+	// SyncFeaturePackage 把套餐当前能力和版本快照同步给使用它的租户：空列表表示全部租户。
+	// 只覆盖租户的套餐快照，不影响额外能力、到期时间和价格；需要 system:package:write。
+	SyncFeaturePackage(ctx context.Context, req *SyncFeaturePackageRequest, opts ...http.CallOption) (rsp *SyncFeaturePackageResponse, err error)
 	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(ctx context.Context, req *TransferNamespaceOwnerRequest, opts ...http.CallOption) (rsp *TransferNamespaceOwnerResponse, err error)
 	// UpdateFeaturePackage 修改功能套餐。需要 system:package:write；基础套餐不能改名。
@@ -2076,6 +2134,23 @@ func (c *NamespaceServiceHTTPClientImpl) ListNamespaces(ctx context.Context, in 
 	return &out, nil
 }
 
+// ListPackageNamespaces 列出正在使用该套餐的租户，供「同步套餐授权」选择指定租户。需要 system:package:read。
+func (c *NamespaceServiceHTTPClientImpl) ListPackageNamespaces(ctx context.Context, in *ListPackageNamespacesRequest, opts ...http.CallOption) (*ListPackageNamespacesResponse, error) {
+	var out ListPackageNamespacesResponse
+	pattern := "/v1/system/package/{uid}/namespaces"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNamespaceServiceListPackageNamespaces),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListPublicPackages 列出创建租户时可选的功能套餐。只返回公开且启用的套餐，不要求系统权限。
 func (c *NamespaceServiceHTTPClientImpl) ListPublicPackages(ctx context.Context, in *ListPublicPackagesRequest, opts ...http.CallOption) (*ListPublicPackagesResponse, error) {
 	var out ListPublicPackagesResponse
@@ -2173,6 +2248,25 @@ func (c *NamespaceServiceHTTPClientImpl) SelectNamespaces(ctx context.Context, i
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SyncFeaturePackage 把套餐当前能力和版本快照同步给使用它的租户：空列表表示全部租户。
+// 只覆盖租户的套餐快照，不影响额外能力、到期时间和价格；需要 system:package:write。
+func (c *NamespaceServiceHTTPClientImpl) SyncFeaturePackage(ctx context.Context, in *SyncFeaturePackageRequest, opts ...http.CallOption) (*SyncFeaturePackageResponse, error) {
+	var out SyncFeaturePackageResponse
+	pattern := "/v1/system/package/{uid}/sync"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNamespaceServiceSyncFeaturePackage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

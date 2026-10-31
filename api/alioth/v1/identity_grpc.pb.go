@@ -1094,6 +1094,8 @@ const (
 	NamespaceService_CreateFeaturePackage_FullMethodName        = "/alioth.v1.NamespaceService/CreateFeaturePackage"
 	NamespaceService_UpdateFeaturePackage_FullMethodName        = "/alioth.v1.NamespaceService/UpdateFeaturePackage"
 	NamespaceService_DeleteFeaturePackage_FullMethodName        = "/alioth.v1.NamespaceService/DeleteFeaturePackage"
+	NamespaceService_ListPackageNamespaces_FullMethodName       = "/alioth.v1.NamespaceService/ListPackageNamespaces"
+	NamespaceService_SyncFeaturePackage_FullMethodName          = "/alioth.v1.NamespaceService/SyncFeaturePackage"
 	NamespaceService_GetNamespaceFeatures_FullMethodName        = "/alioth.v1.NamespaceService/GetNamespaceFeatures"
 	NamespaceService_UpdateNamespaceFeatures_FullMethodName     = "/alioth.v1.NamespaceService/UpdateNamespaceFeatures"
 )
@@ -1163,6 +1165,11 @@ type NamespaceServiceClient interface {
 	UpdateFeaturePackage(ctx context.Context, in *UpdateFeaturePackageRequest, opts ...grpc.CallOption) (*UpdateFeaturePackageResponse, error)
 	// 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
 	DeleteFeaturePackage(ctx context.Context, in *DeleteFeaturePackageRequest, opts ...grpc.CallOption) (*DeleteFeaturePackageResponse, error)
+	// 列出正在使用该套餐的租户，供「同步套餐授权」选择指定租户。需要 system:package:read。
+	ListPackageNamespaces(ctx context.Context, in *ListPackageNamespacesRequest, opts ...grpc.CallOption) (*ListPackageNamespacesResponse, error)
+	// 把套餐当前能力和版本快照同步给使用它的租户：空列表表示全部租户。
+	// 只覆盖租户的套餐快照，不影响额外能力、到期时间和价格；需要 system:package:write。
+	SyncFeaturePackage(ctx context.Context, in *SyncFeaturePackageRequest, opts ...grpc.CallOption) (*SyncFeaturePackageResponse, error)
 	// 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
 	GetNamespaceFeatures(ctx context.Context, in *GetNamespaceFeaturesRequest, opts ...grpc.CallOption) (*GetNamespaceFeaturesResponse, error)
 	// 原子设置租户的套餐和目标有效功能。需要 system:package:write。
@@ -1447,6 +1454,26 @@ func (c *namespaceServiceClient) DeleteFeaturePackage(ctx context.Context, in *D
 	return out, nil
 }
 
+func (c *namespaceServiceClient) ListPackageNamespaces(ctx context.Context, in *ListPackageNamespacesRequest, opts ...grpc.CallOption) (*ListPackageNamespacesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPackageNamespacesResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_ListPackageNamespaces_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *namespaceServiceClient) SyncFeaturePackage(ctx context.Context, in *SyncFeaturePackageRequest, opts ...grpc.CallOption) (*SyncFeaturePackageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SyncFeaturePackageResponse)
+	err := c.cc.Invoke(ctx, NamespaceService_SyncFeaturePackage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *namespaceServiceClient) GetNamespaceFeatures(ctx context.Context, in *GetNamespaceFeaturesRequest, opts ...grpc.CallOption) (*GetNamespaceFeaturesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetNamespaceFeaturesResponse)
@@ -1532,6 +1559,11 @@ type NamespaceServiceServer interface {
 	UpdateFeaturePackage(context.Context, *UpdateFeaturePackageRequest) (*UpdateFeaturePackageResponse, error)
 	// 删除功能套餐。需要 system:package:write；基础套餐和被租户使用的套餐不能删除。
 	DeleteFeaturePackage(context.Context, *DeleteFeaturePackageRequest) (*DeleteFeaturePackageResponse, error)
+	// 列出正在使用该套餐的租户，供「同步套餐授权」选择指定租户。需要 system:package:read。
+	ListPackageNamespaces(context.Context, *ListPackageNamespacesRequest) (*ListPackageNamespacesResponse, error)
+	// 把套餐当前能力和版本快照同步给使用它的租户：空列表表示全部租户。
+	// 只覆盖租户的套餐快照，不影响额外能力、到期时间和价格；需要 system:package:write。
+	SyncFeaturePackage(context.Context, *SyncFeaturePackageRequest) (*SyncFeaturePackageResponse, error)
 	// 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
 	GetNamespaceFeatures(context.Context, *GetNamespaceFeaturesRequest) (*GetNamespaceFeaturesResponse, error)
 	// 原子设置租户的套餐和目标有效功能。需要 system:package:write。
@@ -1626,6 +1658,12 @@ func (UnimplementedNamespaceServiceServer) UpdateFeaturePackage(context.Context,
 }
 func (UnimplementedNamespaceServiceServer) DeleteFeaturePackage(context.Context, *DeleteFeaturePackageRequest) (*DeleteFeaturePackageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteFeaturePackage not implemented")
+}
+func (UnimplementedNamespaceServiceServer) ListPackageNamespaces(context.Context, *ListPackageNamespacesRequest) (*ListPackageNamespacesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPackageNamespaces not implemented")
+}
+func (UnimplementedNamespaceServiceServer) SyncFeaturePackage(context.Context, *SyncFeaturePackageRequest) (*SyncFeaturePackageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SyncFeaturePackage not implemented")
 }
 func (UnimplementedNamespaceServiceServer) GetNamespaceFeatures(context.Context, *GetNamespaceFeaturesRequest) (*GetNamespaceFeaturesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetNamespaceFeatures not implemented")
@@ -2140,6 +2178,42 @@ func _NamespaceService_DeleteFeaturePackage_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NamespaceService_ListPackageNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPackageNamespacesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).ListPackageNamespaces(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_ListPackageNamespaces_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).ListPackageNamespaces(ctx, req.(*ListPackageNamespacesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NamespaceService_SyncFeaturePackage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncFeaturePackageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServiceServer).SyncFeaturePackage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NamespaceService_SyncFeaturePackage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServiceServer).SyncFeaturePackage(ctx, req.(*SyncFeaturePackageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _NamespaceService_GetNamespaceFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetNamespaceFeaturesRequest)
 	if err := dec(in); err != nil {
@@ -2290,6 +2364,14 @@ var NamespaceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteFeaturePackage",
 			Handler:    _NamespaceService_DeleteFeaturePackage_Handler,
+		},
+		{
+			MethodName: "ListPackageNamespaces",
+			Handler:    _NamespaceService_ListPackageNamespaces_Handler,
+		},
+		{
+			MethodName: "SyncFeaturePackage",
+			Handler:    _NamespaceService_SyncFeaturePackage_Handler,
 		},
 		{
 			MethodName: "GetNamespaceFeatures",

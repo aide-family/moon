@@ -558,3 +558,143 @@ func TestPackageEditsDoNotChangeExistingTenant(t *testing.T) {
 		t.Fatalf("new tenant capabilities = %v", newCapabilities)
 	}
 }
+
+// TestSyncPackageToNamespaces 用真库验证「同步套餐授权」：
+// 指定租户只更新选中的快照，全部租户覆盖该套餐下所有租户；额外能力保留，
+// 已并入套餐的额外能力会被清理，未使用该套餐的租户计入 skipped。
+func TestSyncPackageToNamespaces(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	if err := Migrate(ctx, source); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	store, cleanup, err := NewDependencies(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("dependencies: %v", err)
+	}
+	t.Cleanup(cleanup)
+	logger := slog.Default()
+	features := NewFeatureRepo(store, logger)
+	namespaces := NewNamespaceRepo(store, logger)
+
+	stamp := time.Now().Format("150405.000000000")
+	ownerUID := "it-sync-owner-" + stamp
+	pkg, err := features.CreatePackage(ctx, bo.FeaturePackage{
+		Name: "it-sync-pkg-" + stamp, DurationDays: 30,
+		Visibility: perm.PackageVisibilityPublic, MaxMembers: 5,
+		Features: []string{perm.CapabilityAlertRealtime},
+	})
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	newNamespace := func(name string) *bo.Namespace {
+		t.Helper()
+		ns, err := namespaces.CreateNamespace(ctx, name, "it", ownerUID, pkg.UID)
+		if err != nil {
+			t.Fatalf("create namespace %s: %v", name, err)
+		}
+		return ns
+	}
+	nsOne := newNamespace("it-sync-one-" + stamp)
+	nsTwo := newNamespace("it-sync-two-" + stamp)
+	otherNS, err := namespaces.CreateNamespace(ctx, "it-sync-other-"+stamp, "it", ownerUID,
+		basePackageUID(ctx, t, store))
+	if err != nil {
+		t.Fatalf("create other namespace: %v", err)
+	}
+	t.Cleanup(func() {
+		for _, uid := range []string{nsOne.UID, nsTwo.UID, otherNS.UID} {
+			_, _ = store.client.NamespaceFeature.Delete().Where(namespacefeature.NamespaceUIDEQ(uid)).Exec(ctx)
+			_, _ = store.client.MemberRole.Delete().Where(memberrole.NamespaceUIDEQ(uid)).Exec(ctx)
+			_, _ = store.client.Member.Delete().Where(member.NamespaceUIDEQ(uid)).Exec(ctx)
+			_, _ = store.client.RolePermission.Delete().Where(rolepermission.NamespaceUIDEQ(uid)).Exec(ctx)
+			_, _ = store.client.Role.Delete().Where(role.NamespaceUIDEQ(uid)).Exec(ctx)
+			_, _ = store.client.Namespace.Delete().Where(namespace.UIDEQ(uid)).Exec(ctx)
+		}
+		_, _ = store.client.FeaturePackageItem.Delete().Where(featurepackageitem.PackageUIDEQ(pkg.UID)).Exec(ctx)
+		_, _ = store.client.FeaturePackage.Delete().Where(featurepackage.UIDEQ(pkg.UID)).Exec(ctx)
+	})
+
+	// nsOne 额外开通历史告警，作为套餐外能力保留。
+	if err := features.SetNamespaceFeatureState(ctx, nsOne.UID, pkg.UID,
+		[]string{perm.CapabilityAlertRealtime, perm.CapabilityAlertHistory}, time.Time{}); err != nil {
+		t.Fatalf("add extra capability: %v", err)
+	}
+	// 套餐内容改为 Prometheus：同步前只有新租户会得到新内容。
+	pkg.Features = []string{perm.CapabilityDatasourcePrometheus}
+	if _, err := features.UpdatePackage(ctx, *pkg); err != nil {
+		t.Fatalf("update package: %v", err)
+	}
+	synced, skipped, err := features.SyncPackageToNamespaces(ctx, pkg.UID, []string{nsOne.UID, otherNS.UID})
+	if err != nil {
+		t.Fatalf("sync selected: %v", err)
+	}
+	if synced != 1 || skipped != 1 {
+		t.Fatalf("sync selected = %d/%d, want 1/1", synced, skipped)
+	}
+	oneState, err := features.NamespaceFeatureState(ctx, nsOne.UID)
+	if err != nil {
+		t.Fatalf("ns one state: %v", err)
+	}
+	if !sameStrings(oneState.PackageFeatures, []string{perm.CapabilityDatasourcePrometheus}) {
+		t.Fatalf("ns one snapshot = %v", oneState.PackageFeatures)
+	}
+	if !sameStrings(oneState.ExtraFeatures, []string{perm.CapabilityAlertHistory}) {
+		t.Fatalf("ns one extra = %v", oneState.ExtraFeatures)
+	}
+	twoState, err := features.NamespaceFeatureState(ctx, nsTwo.UID)
+	if err != nil {
+		t.Fatalf("ns two state: %v", err)
+	}
+	if !sameStrings(twoState.PackageFeatures, []string{perm.CapabilityAlertRealtime}) {
+		t.Fatalf("ns two snapshot changed without sync: %v", twoState.PackageFeatures)
+	}
+
+	// 全部同步：两个使用该套餐的租户都更新；其他套餐的租户不受影响。
+	synced, skipped, err = features.SyncPackageToNamespaces(ctx, pkg.UID, nil)
+	if err != nil {
+		t.Fatalf("sync all: %v", err)
+	}
+	if synced != 2 || skipped != 0 {
+		t.Fatalf("sync all = %d/%d, want 2/0", synced, skipped)
+	}
+	twoState, err = features.NamespaceFeatureState(ctx, nsTwo.UID)
+	if err != nil {
+		t.Fatalf("ns two state after all: %v", err)
+	}
+	if !sameStrings(twoState.PackageFeatures, []string{perm.CapabilityDatasourcePrometheus}) {
+		t.Fatalf("ns two snapshot after all = %v", twoState.PackageFeatures)
+	}
+	otherState, err := features.NamespaceFeatureState(ctx, otherNS.UID)
+	if err != nil {
+		t.Fatalf("other state: %v", err)
+	}
+	if sameStrings(otherState.PackageFeatures, []string{perm.CapabilityDatasourcePrometheus}) {
+		t.Fatal("other package tenant was synced")
+	}
+
+	// 套餐把历史告警并入后，nsOne 的额外能力被清理，不重复展示。
+	pkg.Features = []string{perm.CapabilityDatasourcePrometheus, perm.CapabilityAlertHistory}
+	if _, err := features.UpdatePackage(ctx, *pkg); err != nil {
+		t.Fatalf("update package again: %v", err)
+	}
+	if _, _, err := features.SyncPackageToNamespaces(ctx, pkg.UID, []string{nsOne.UID}); err != nil {
+		t.Fatalf("sync merged extra: %v", err)
+	}
+	oneState, err = features.NamespaceFeatureState(ctx, nsOne.UID)
+	if err != nil {
+		t.Fatalf("ns one state after merge: %v", err)
+	}
+	if len(oneState.ExtraFeatures) != 0 {
+		t.Fatalf("extra after merge = %v, want none", oneState.ExtraFeatures)
+	}
+	if !sameStrings(oneState.PackageFeatures, []string{
+		perm.CapabilityDatasourcePrometheus, perm.CapabilityAlertHistory,
+	}) {
+		t.Fatalf("ns one snapshot after merge = %v", oneState.PackageFeatures)
+	}
+}

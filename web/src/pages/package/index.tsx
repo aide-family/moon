@@ -9,10 +9,16 @@ import {
   createPackage,
   deletePackage,
   listFeatures,
+  listPackageNamespaces,
   listPackages,
+  syncPackage,
   updatePackage,
 } from "@/api/package"
-import type { FeatureItem, PackageItem } from "@/api/package/types"
+import type {
+  FeatureItem,
+  PackageItem,
+  PackageNamespaceItem,
+} from "@/api/package/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -33,7 +39,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -156,6 +164,15 @@ export function PackagePage() {
   const [pending, setPending] = useState(false)
   const [confirming, setConfirming] = useState<PackageItem | null>(null)
   const [confirmError, setConfirmError] = useState("")
+  // 同步套餐授权：把套餐当前能力快照写回使用它的租户，支持全部或指定租户。
+  const [syncing, setSyncing] = useState<PackageItem | null>(null)
+  const [syncTenants, setSyncTenants] = useState<PackageNamespaceItem[]>([])
+  const [syncLoading, setSyncLoading] = useState(false)
+  const [syncFailed, setSyncFailed] = useState(false)
+  const [syncScope, setSyncScope] = useState<"all" | "selected">("all")
+  const [syncSelected, setSyncSelected] = useState<string[]>([])
+  const [syncPending, setSyncPending] = useState(false)
+  const [syncError, setSyncError] = useState("")
   // 只有 system:package:read 的账号（如系统管理员）走只读详情，不打开可编辑弹窗。
   const [detail, setDetail] = useState<PackageItem | null>(null)
 
@@ -348,12 +365,79 @@ export function PackagePage() {
     }
   }
 
+  async function openSync(item: PackageItem) {
+    setSyncing(item)
+    setSyncScope("all")
+    setSyncSelected([])
+    setSyncError("")
+    setSyncFailed(false)
+    setSyncTenants([])
+    setSyncLoading(true)
+    try {
+      const result = await listPackageNamespaces(item.uid)
+      const items = result.items ?? []
+      setSyncTenants(items)
+      setSyncSelected(items.map((tenant) => tenant.uid))
+    } catch {
+      setSyncFailed(true)
+    } finally {
+      setSyncLoading(false)
+    }
+  }
+
+  async function onSync() {
+    if (!syncing) {
+      return
+    }
+    if (syncScope === "selected" && syncSelected.length === 0) {
+      setSyncError(t("packageAdmin.syncNeedSelection"))
+      return
+    }
+    setSyncPending(true)
+    setSyncError("")
+    try {
+      const result = await syncPackage(
+        syncing.uid,
+        syncScope === "all" ? [] : syncSelected
+      )
+      toast.success(
+        t("packageAdmin.syncResult", {
+          synced: result.synced,
+          skipped: result.skipped,
+        })
+      )
+      setSyncing(null)
+      reload()
+    } catch (err) {
+      setSyncError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setSyncPending(false)
+    }
+  }
+
+  function toggleSyncTenant(uid: string, checked: boolean) {
+    setSyncSelected((current) =>
+      checked ? [...new Set([...current, uid])] : current.filter((item) => item !== uid)
+    )
+  }
+
+  const allSyncSelected =
+    syncTenants.length > 0 &&
+    syncTenants.every((tenant) => syncSelected.includes(tenant.uid))
+
   function packageActions(item: PackageItem): RowAction[] {
-    if (!canWrite || item.isBase) {
+    if (!canWrite) {
       return []
     }
-    return [
+    const actions: RowAction[] = [
       {
+        key: "sync",
+        label: t("packageAdmin.syncAction"),
+        onSelect: () => void openSync(item),
+      },
+    ]
+    if (!item.isBase) {
+      actions.push({
         key: "delete",
         label: t("action.delete"),
         destructive: true,
@@ -361,8 +445,9 @@ export function PackagePage() {
           setConfirmError("")
           setConfirming(item)
         },
-      },
-    ]
+      })
+    }
+    return actions
   }
 
   return (
@@ -860,6 +945,189 @@ export function PackagePage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={syncing !== null}
+        onOpenChange={(open) => {
+          if (!open && !syncPending) {
+            setSyncing(null)
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {t("packageAdmin.syncTitle", { name: syncing?.name ?? "" })}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex min-h-0 flex-1 flex-col gap-4">
+            <DialogBody className="grid gap-4">
+              <p className="text-sm text-muted-foreground">
+                {t("packageAdmin.syncDescription")}
+              </p>
+              {syncLoading ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("state.loading")}
+                </p>
+              ) : null}
+              {!syncLoading && syncFailed ? (
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-destructive/25 bg-destructive/5 p-3">
+                  <p className="text-sm text-destructive">
+                    {t("packageAdmin.syncLoadFailed")}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (syncing) {
+                        void openSync(syncing)
+                      }
+                    }}
+                  >
+                    {t("action.retry")}
+                  </Button>
+                </div>
+              ) : null}
+              {!syncLoading && !syncFailed && syncTenants.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">
+                  {t("packageAdmin.syncNoTenants")}
+                </p>
+              ) : null}
+              {!syncLoading && !syncFailed && syncTenants.length > 0 ? (
+                <>
+                  <div
+                    aria-label={t("packageAdmin.syncScope")}
+                    className="grid gap-2 sm:grid-cols-2"
+                    role="radiogroup"
+                  >
+                    <button
+                      aria-checked={syncScope === "all"}
+                      className={cn(
+                        "flex min-w-0 flex-col gap-1 rounded-lg border p-3 text-left transition-colors",
+                        syncScope === "all"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:bg-muted/40"
+                      )}
+                      role="radio"
+                      type="button"
+                      onClick={() => setSyncScope("all")}
+                    >
+                      <span className="text-sm font-medium">
+                        {t("packageAdmin.syncScopeAll")}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("packageAdmin.syncAllHint", {
+                          count: syncTenants.length,
+                        })}
+                      </span>
+                    </button>
+                    <button
+                      aria-checked={syncScope === "selected"}
+                      className={cn(
+                        "flex min-w-0 flex-col gap-1 rounded-lg border p-3 text-left transition-colors",
+                        syncScope === "selected"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:bg-muted/40"
+                      )}
+                      role="radio"
+                      type="button"
+                      onClick={() => setSyncScope("selected")}
+                    >
+                      <span className="text-sm font-medium">
+                        {t("packageAdmin.syncScopeSelected")}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("packageAdmin.syncSelectedHint")}
+                      </span>
+                    </button>
+                  </div>
+                  {syncScope === "selected" ? (
+                    <div className="grid gap-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium">
+                          {t("packageAdmin.syncSelectedCount", {
+                            count: syncSelected.length,
+                          })}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setSyncSelected(
+                              allSyncSelected
+                                ? []
+                                : syncTenants.map((tenant) => tenant.uid)
+                            )
+                          }
+                        >
+                          {allSyncSelected
+                            ? t("action.cancel")
+                            : t("packageAdmin.syncSelectAll")}
+                        </Button>
+                      </div>
+                      <div className="grid max-h-64 gap-1 overflow-y-auto rounded-md border p-2 sm:grid-cols-2">
+                        {syncTenants.map((tenant) => (
+                          <div
+                            className="flex min-h-9 min-w-0 items-center gap-2 px-1"
+                            key={tenant.uid}
+                          >
+                            <Checkbox
+                              id={`sync-tenant-${tenant.uid}`}
+                              checked={syncSelected.includes(tenant.uid)}
+                              onCheckedChange={(checked) =>
+                                toggleSyncTenant(tenant.uid, checked === true)
+                              }
+                            />
+                            <Label
+                              htmlFor={`sync-tenant-${tenant.uid}`}
+                              className="flex min-w-0 flex-1 items-center gap-2"
+                            >
+                              <span className="truncate text-sm">
+                                {tenant.name}
+                              </span>
+                              <StatusBadge value={tenant.status} />
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+            </DialogBody>
+            {syncError ? (
+              <p className="text-sm text-destructive">{syncError}</p>
+            ) : null}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={syncPending}
+                onClick={() => setSyncing(null)}
+              >
+                {t("action.cancel")}
+              </Button>
+              <Button
+                type="button"
+                disabled={
+                  syncPending ||
+                  syncLoading ||
+                  syncFailed ||
+                  syncTenants.length === 0 ||
+                  (syncScope === "selected" && syncSelected.length === 0)
+                }
+                onClick={() => void onSync()}
+              >
+                {syncPending
+                  ? t("packageAdmin.syncPending")
+                  : t("packageAdmin.syncSubmit")}
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 

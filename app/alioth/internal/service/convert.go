@@ -213,3 +213,16 @@ func namespacePackageFields(item bo.NamespacePackage) (packageUID, packageName, 
 	return item.PackageUID, item.Name, item.Status, item.Visibility, item.Currency,
 		item.DurationDays, item.MaxMembers, item.PriceCents, expiresAt, item.Expired
 }
+
+// packageNamespaceItem 把套餐下的租户转成同步授权选择器的选项。
+func packageNamespaceItem(item bo.Namespace) *v1.PackageNamespaceItem {
+	return &v1.PackageNamespaceItem{Uid: item.UID, Name: item.Name, Status: item.Status}
+}
+
+func packageNamespaceItems(items []bo.Namespace) []*v1.PackageNamespaceItem {
+	out := make([]*v1.PackageNamespaceItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, packageNamespaceItem(item))
+	}
+	return out
+}

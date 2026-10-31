@@ -290,6 +290,18 @@ service NamespaceService {
   rpc DeleteFeaturePackage(DeleteFeaturePackageRequest) returns (DeleteFeaturePackageResponse) {
     option (google.api.http) = {delete: "/v1/system/package/{uid}"};
   }
+  // 列出正在使用该套餐的租户，供「同步套餐授权」选择指定租户。需要 system:package:read。
+  rpc ListPackageNamespaces(ListPackageNamespacesRequest) returns (ListPackageNamespacesResponse) {
+    option (google.api.http) = {get: "/v1/system/package/{uid}/namespaces"};
+  }
+  // 把套餐当前能力和版本快照同步给使用它的租户：空列表表示全部租户。
+  // 只覆盖租户的套餐快照，不影响额外能力、到期时间和价格；需要 system:package:write。
+  rpc SyncFeaturePackage(SyncFeaturePackageRequest) returns (SyncFeaturePackageResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/package/{uid}/sync"
+      body: "*"
+    };
+  }
   // 读取租户开通的套餐、套餐功能和有效功能。需要 system:package:read。
   rpc GetNamespaceFeatures(GetNamespaceFeaturesRequest) returns (GetNamespaceFeaturesResponse) {
     option (google.api.http) = {get: "/v1/system/namespace/{uid}/features"};
@@ -1931,6 +1943,44 @@ message DeleteFeaturePackageRequest {
 
 // 删除功能套餐不需要返回内容。
 message DeleteFeaturePackageResponse {}
+
+// 列出使用某个套餐的租户。
+message ListPackageNamespacesRequest {
+  // 套餐标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 一个正在使用套餐的租户。
+message PackageNamespaceItem {
+  // 租户标识。
+  string uid = 1;
+  // 租户名称。
+  string name = 2;
+  // 租户状态，取值为 ACTIVE 或 DISABLED。
+  string status = 3;
+}
+
+// 使用套餐的租户列表。
+message ListPackageNamespacesResponse {
+  // 租户列表，按名称排序。
+  repeated PackageNamespaceItem items = 1;
+}
+
+// 同步套餐授权的参数。
+message SyncFeaturePackageRequest {
+  // 套餐标识，来自路径。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 目标租户标识列表；留空表示使用该套餐的全部租户。
+  repeated string namespace_uids = 2 [json_name = "namespaceUids"];
+}
+
+// 同步结果。
+message SyncFeaturePackageResponse {
+  // 成功同步的租户数。
+  int32 synced = 1;
+  // 被跳过的租户数：指定租户中没有使用该套餐，或租户已删除。
+  int32 skipped = 2;
+}
 
 // 读取租户功能的参数。
 message GetNamespaceFeaturesRequest {

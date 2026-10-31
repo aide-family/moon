@@ -125,6 +125,31 @@ func (provisioning *Provisioning) DeletePackage(ctx context.Context, uid string)
 	return provisioning.access.Wrap(provisioning.features.DeletePackage(ctx, uid))
 }
 
+// ListPackageNamespaces 返回正在使用该套餐的租户，供同步授权选择目标。
+func (provisioning *Provisioning) ListPackageNamespaces(ctx context.Context, packageUID string) ([]bo.Namespace, error) {
+	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageRead); err != nil {
+		return nil, err
+	}
+	if _, err := provisioning.features.GetPackage(ctx, packageUID); err != nil {
+		return nil, provisioning.access.Wrap(err)
+	}
+	items, err := provisioning.features.ListPackageNamespaces(ctx, packageUID)
+	return items, provisioning.access.Wrap(err)
+}
+
+// SyncPackage 把套餐当前能力快照同步给指定租户；namespaceUIDs 为空表示该套餐下全部租户。
+// 同步只覆盖套餐授权，不动额外能力、到期时间和价格。
+func (provisioning *Provisioning) SyncPackage(ctx context.Context, packageUID string, namespaceUIDs []string) (int, int, error) {
+	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageWrite); err != nil {
+		return 0, 0, err
+	}
+	if _, err := provisioning.features.GetPackage(ctx, packageUID); err != nil {
+		return 0, 0, provisioning.access.Wrap(err)
+	}
+	synced, skipped, err := provisioning.features.SyncPackageToNamespaces(ctx, packageUID, namespaceUIDs)
+	return synced, skipped, provisioning.access.Wrap(err)
+}
+
 // GetNamespaceFeatures 返回租户的套餐、套餐功能和有效功能。
 func (provisioning *Provisioning) GetNamespaceFeatures(ctx context.Context, namespaceUID string) (*bo.NamespaceFeature, error) {
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageRead); err != nil {

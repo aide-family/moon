@@ -263,6 +263,22 @@ func (s *NamespaceService) DeleteFeaturePackage(ctx context.Context, req *v1.Del
 	return &v1.DeleteFeaturePackageResponse{}, nil
 }
 
+func (s *NamespaceService) ListPackageNamespaces(ctx context.Context, req *v1.ListPackageNamespacesRequest) (*v1.ListPackageNamespacesResponse, error) {
+	items, err := s.provisioning.ListPackageNamespaces(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListPackageNamespacesResponse{Items: packageNamespaceItems(items)}, nil
+}
+
+func (s *NamespaceService) SyncFeaturePackage(ctx context.Context, req *v1.SyncFeaturePackageRequest) (*v1.SyncFeaturePackageResponse, error) {
+	synced, skipped, err := s.provisioning.SyncPackage(ctx, req.GetUid(), req.GetNamespaceUids())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SyncFeaturePackageResponse{Synced: int32(synced), Skipped: int32(skipped)}, nil
+}
+
 func (s *NamespaceService) GetNamespaceFeatures(ctx context.Context, req *v1.GetNamespaceFeaturesRequest) (*v1.GetNamespaceFeaturesResponse, error) {
 	item, err := s.provisioning.GetNamespaceFeatures(ctx, req.GetUid())
 	if err != nil {

@@ -5,7 +5,9 @@ import type {
   ListPackagesParams,
   ListPackagesResult,
   NamespaceFeatures,
+  PackageNamespaceItem,
   PackagePayload,
+  SyncPackageResult,
   UpdateNamespaceFeaturesPayload,
   UpdatePackagePayload,
 } from "./types"
@@ -65,4 +67,20 @@ export function updateNamespaceFeatures(
   body: UpdateNamespaceFeaturesPayload
 ): Promise<unknown> {
   return put<unknown>(`/system/namespace/${uid}/features`, body)
+}
+
+/** GET /v1/system/package/{uid}/namespaces。列出使用该套餐的租户。 */
+export function listPackageNamespaces(
+  uid: string,
+  options?: RequestOptions
+): Promise<{ items?: PackageNamespaceItem[] }> {
+  return get(`/system/package/${uid}/namespaces`, undefined, undefined, options)
+}
+
+/** POST /v1/system/package/{uid}/sync。namespaceUids 为空表示全部租户。 */
+export function syncPackage(
+  uid: string,
+  namespaceUids: string[]
+): Promise<SyncPackageResult> {
+  return post(`/system/package/${uid}/sync`, { namespaceUids })
 }

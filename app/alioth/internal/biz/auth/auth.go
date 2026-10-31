@@ -774,6 +774,8 @@ func namespaceOptional(operation string) bool {
 		v1.OperationNamespaceServiceCreateFeaturePackage,
 		v1.OperationNamespaceServiceUpdateFeaturePackage,
 		v1.OperationNamespaceServiceDeleteFeaturePackage,
+		v1.OperationNamespaceServiceListPackageNamespaces,
+		v1.OperationNamespaceServiceSyncFeaturePackage,
 		v1.OperationNamespaceServiceGetNamespaceFeatures,
 		v1.OperationNamespaceServiceUpdateNamespaceFeatures,
 		// 平台按租户查订单同样按路径参数定位租户。

@@ -402,6 +402,91 @@ func (r *featureRepo) CountNamespacesUsingPackage(ctx context.Context, packageUI
 	return total, nil
 }
 
+// ListPackageNamespaces 返回使用该套餐的未删除租户，按名称排序。
+func (r *featureRepo) ListPackageNamespaces(ctx context.Context, packageUID string) ([]bo.Namespace, error) {
+	rows, err := r.client.Namespace.Query().
+		Where(namespace.PackageUIDEQ(packageUID), namespace.DeletedAtIsNil()).
+		Order(ent.Asc(namespace.FieldName)).
+		All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	return toNamespaces(rows), nil
+}
+
+// SyncPackageToNamespaces 把套餐当前能力写入使用它的租户快照，并补齐预置角色权限。
+// 只更新快照：额外能力、到期时间、价格和成员上限都不动。逐个租户独立事务，
+// 避免一个租户失败拖垮整批；返回成功数和跳过数。
+func (r *featureRepo) SyncPackageToNamespaces(ctx context.Context, packageUID string, namespaceUIDs []string) (int, int, error) {
+	if _, err := r.client.FeaturePackage.Query().
+		Where(featurepackage.UIDEQ(packageUID), featurepackage.DeletedAtIsNil()).
+		Only(ctx); err != nil {
+		return 0, 0, r.fail(err)
+	}
+	snapshot, err := packageSnapshotCapabilities(ctx, r.client, packageUID)
+	if err != nil {
+		return 0, 0, r.fail(err)
+	}
+	requested := uniqueStrings(namespaceUIDs)
+	query := r.client.Namespace.Query().
+		Where(namespace.PackageUIDEQ(packageUID), namespace.DeletedAtIsNil())
+	if len(requested) > 0 {
+		query = query.Where(namespace.UIDIn(requested...))
+	}
+	rows, err := query.Order(ent.Asc(namespace.FieldName)).All(ctx)
+	if err != nil {
+		return 0, 0, r.fail(err)
+	}
+	skipped := 0
+	if len(requested) > 0 {
+		skipped = len(requested) - len(rows)
+	}
+	synced := 0
+	for _, row := range rows {
+		if err := r.syncNamespacePackage(ctx, row.UID, snapshot); err != nil {
+			return synced, skipped, err
+		}
+		synced++
+	}
+	return synced, skipped, nil
+}
+
+// syncNamespacePackage 在一个事务里更新租户套餐快照、清理已经并入套餐的额外能力，
+// 并给预置角色补齐新能力范围内的权限。
+func (r *featureRepo) syncNamespacePackage(ctx context.Context, namespaceUID string, snapshot []string) error {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if _, err := tx.Namespace.Update().
+		Where(namespace.UIDEQ(namespaceUID), namespace.DeletedAtIsNil()).
+		SetPackageFeatures(snapshot).
+		Save(ctx); err != nil {
+		return r.fail(err)
+	}
+	// 新快照里已经包含的能力不再作为「额外能力」保留，避免租户差异页重复展示。
+	if len(snapshot) > 0 {
+		if _, err := tx.NamespaceFeature.Delete().
+			Where(namespacefeature.NamespaceUIDEQ(namespaceUID), namespacefeature.FeatureIn(snapshot...)).
+			Exec(ctx); err != nil {
+			return r.fail(err)
+		}
+	}
+	extra, err := namespaceExtraCapabilityCodes(ctx, tx.Client(), namespaceUID)
+	if err != nil {
+		return r.fail(err)
+	}
+	effective := perm.EffectiveCapabilities(snapshot, extra)
+	if err := r.grantPresetRolePermissions(ctx, tx, namespaceUID, effective); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return r.fail(err)
+	}
+	return nil
+}
+
 // NamespaceMemberLimit 返回租户当前套餐的成员数上限。套餐缺失或为空时返回 0（不限制），
 // 与「0 表示不限制」的字段语义一致。
 func (r *featureRepo) NamespaceMemberLimit(ctx context.Context, namespaceUID string) (int32, error) {

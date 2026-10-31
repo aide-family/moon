@@ -108,3 +108,16 @@ export type UpdateNamespaceFeaturesPayload = {
   /** Unix 秒；0 表示按套餐默认时长计算。 */
   expiresAt: number
 }
+
+/** 正在使用某个套餐的租户。 */
+export type PackageNamespaceItem = {
+  uid: string
+  name: string
+  status: string
+}
+
+/** 同步套餐授权的结果：成功数 / 跳过数（未使用该套餐或已删除）。 */
+export type SyncPackageResult = {
+  synced: number
+  skipped: number
+}

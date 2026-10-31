@@ -41,6 +41,12 @@ type FeatureRepo interface {
 	ArchiveNamespace(ctx context.Context, namespaceUID string) error
 	// CountNamespacesUsingPackage 统计使用该套餐的未删除租户数，被使用的套餐不能删除。
 	CountNamespacesUsingPackage(ctx context.Context, packageUID string) (int, error)
+	// ListPackageNamespaces 返回正在使用该套餐的未删除租户，供同步授权选择目标。
+	ListPackageNamespaces(ctx context.Context, packageUID string) ([]bo.Namespace, error)
+	// SyncPackageToNamespaces 把套餐当前能力快照同步给使用它的租户。
+	// namespaceUIDs 为空表示该套餐下全部租户；只更新套餐快照，保留额外能力与到期时间。
+	// 返回成功同步数和被跳过数（指定租户中没有使用该套餐或被删除）。
+	SyncPackageToNamespaces(ctx context.Context, packageUID string, namespaceUIDs []string) (synced, skipped int, err error)
 	// NamespaceMemberLimit 返回租户当前套餐的成员数上限，0 表示不限制。
 	// 容量跟着套餐实时变化，不在 namespaces 上冗余；套餐缺失时按不限制处理。
 	NamespaceMemberLimit(ctx context.Context, namespaceUID string) (int32, error)
