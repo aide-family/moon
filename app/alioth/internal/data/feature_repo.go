@@ -251,11 +251,16 @@ func (r *featureRepo) EffectiveFeatures(ctx context.Context, namespaceUID string
 // 能力只增不减：目标必须包含套餐的全部能力，差异只写额外能力（enabled=true）；
 // 旧的 enabled=false 记录在这里被全部清掉。同一事务里更新套餐、到期时间和预置角色权限。
 func (r *featureRepo) SetNamespaceFeatureState(ctx context.Context, namespaceUID, packageUID string, capabilities []string, expiresAt time.Time) error {
-	target := make(map[string]struct{}, len(capabilities))
+	// 调用方可能还在提交 M24 拆分前的历史能力码；先严格校验每一项可识别，
+	// 再归一化成当前能力，避免同义编码被当成缺失的套餐能力。
 	for _, code := range capabilities {
-		if !perm.IsCapability(code) {
+		if !perm.IsCapability(code) && !perm.IsLegacyCapability(code) {
 			return merr.Client("invalid capability")
 		}
+	}
+	capabilities = perm.NormalizeCapabilities(capabilities)
+	target := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
 		target[code] = struct{}{}
 	}
 	tx, err := r.client.Tx(ctx)
@@ -496,20 +501,12 @@ func (r *featureRepo) createPackageItems(ctx context.Context, tx *ent.Tx, packag
 	return nil
 }
 
-// capabilityCodesOf 过滤能力目录外的编码，并把升级前的模块级编码展开成该模块的全部能力，
-// 按能力目录顺序去重返回。能力模型上线后新写入的都是能力编码，展开只为兼容旧数据。
+// capabilityCodesOf 把一组编码归一化成当前能力目录里的编码：
+// 过滤目录外的编码，把模块级编码展开成该模块的全部能力，并把历史类型级编码
+// （例如 M24 拆分前的 notify_channel_webhook / notify_channel_sms）展开成新能力，
+// 按能力目录顺序去重返回。存量租户的套餐快照可能是旧编码，读取时必须过这里。
 func capabilityCodesOf(codes []string) []string {
-	expanded := make([]string, 0, len(codes))
-	for _, code := range codes {
-		if perm.IsCapability(code) {
-			expanded = append(expanded, code)
-			continue
-		}
-		if perm.IsFeature(code) {
-			expanded = append(expanded, perm.CapabilityCodesOfModule(code)...)
-		}
-	}
-	return perm.EffectiveCapabilities(nil, expanded)
+	return perm.NormalizeCapabilities(codes)
 }
 
 // packageSnapshotCapabilities 返回「现在把该套餐分配给租户」时应写入的能力快照。

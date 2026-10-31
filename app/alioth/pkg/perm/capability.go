@@ -357,6 +357,82 @@ func CapabilityCodesOfModule(module string) []string {
 	return codes
 }
 
+// legacyCapabilityExpansion 是历史版本的能力码到当前能力码的展开表。
+// M21 把模块级能力拆成类型，M24 又把通知渠道类型拆成 Webhook 应用和短信提供商；
+// 升级迁移、旧套餐快照和旧客户端提交都要按这张表归一化，不能让存量租户丢能力。
+// 这些编码在当前目录里已经不存在，只能作为迁移/兼容输入。
+var legacyCapabilityExpansion = map[string][]string{
+	// 旧的模块级「数据源」覆盖全部驱动；它同时也是当前模块码，展开结果与
+	// CapabilityCodesOfModule(FeatureDatasource) 一致。
+	"datasource": {
+		CapabilityDatasourcePrometheus,
+		CapabilityDatasourceVictoriaMetrics,
+		CapabilityDatasourceElasticsearch,
+		CapabilityDatasourceLoki,
+		CapabilityDatasourceVictoriaLogs,
+		CapabilityDatasourceJaeger,
+	},
+	"probe_target": {CapabilityProbeHTTP},
+	"notify_channel": {
+		CapabilityNotifyChannelSMTP,
+		CapabilityNotifyChannelWebhookOther,
+		CapabilityNotifyChannelWebhookDingTalk,
+		CapabilityNotifyChannelWebhookWeChat,
+		CapabilityNotifyChannelWebhookFeishu,
+		CapabilityNotifyChannelSMSAliCloud,
+		CapabilityNotifyChannelSMSTencent,
+	},
+	"notify_channel_webhook": {
+		CapabilityNotifyChannelWebhookOther,
+		CapabilityNotifyChannelWebhookDingTalk,
+		CapabilityNotifyChannelWebhookWeChat,
+		CapabilityNotifyChannelWebhookFeishu,
+	},
+	"notify_channel_sms": {
+		CapabilityNotifyChannelSMSAliCloud,
+		CapabilityNotifyChannelSMSTencent,
+	},
+}
+
+// IsLegacyCapability 判断编码是不是历史能力码（能展开成当前能力）。
+// 它和 IsCapability 互斥：历史编码不在当前能力目录里。
+func IsLegacyCapability(code string) bool {
+	_, ok := legacyCapabilityExpansion[code]
+	return ok
+}
+
+// ExpandLegacyCapability 返回历史能力码对应的当前能力，按目录顺序去重；
+// 非历史编码返回 nil。
+func ExpandLegacyCapability(code string) []string {
+	codes, ok := legacyCapabilityExpansion[code]
+	if !ok {
+		return nil
+	}
+	return EffectiveCapabilities(nil, codes)
+}
+
+// NormalizeCapabilities 把一组编码归一化成当前能力目录里的编码，按目录顺序去重：
+//   - 目录里的能力码保留；
+//   - 模块码展开成该模块的全部能力；
+//   - 历史编码按 legacyCapabilityExpansion 展开；
+//   - 完全未知的编码丢弃（需要严格校验的入口先用 IsCapability / IsLegacyCapability 判断）。
+func NormalizeCapabilities(codes []string) []string {
+	expanded := make([]string, 0, len(codes))
+	for _, code := range codes {
+		switch {
+		case code == "":
+			continue
+		case IsCapability(code):
+			expanded = append(expanded, code)
+		case IsFeature(code):
+			expanded = append(expanded, CapabilityCodesOfModule(code)...)
+		default:
+			expanded = append(expanded, legacyCapabilityExpansion[code]...)
+		}
+	}
+	return EffectiveCapabilities(nil, expanded)
+}
+
 // BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 26 项。
 // 数据源、探测和通知渠道按类型/应用展开后全部包含在基础套餐里，保持升级前
 // 「基础套餐可用全部数据源与通知渠道类型」的行为；Kubernetes、机器和 SSH

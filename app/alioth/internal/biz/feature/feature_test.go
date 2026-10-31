@@ -170,6 +170,68 @@ func TestUpdateNamespaceFeaturesRejectsUnknownCapability(t *testing.T) {
 	}
 }
 
+// TestUpdateNamespaceFeaturesAcceptsLegacyChannelCodes 确认旧客户端或旧快照提交的
+// 拆分前渠道编码会先展开成当前能力再和套餐能力比较：旧的 notify_channel_webhook /
+// notify_channel_sms 覆盖套餐里的四个 Webhook 应用能力和两个短信提供商能力，
+// 不会误报「缺少套餐能力」。
+func TestUpdateNamespaceFeaturesAcceptsLegacyChannelCodes(t *testing.T) {
+	packageFeatures := []string{
+		perm.CapabilityNotifyChannelSMTP,
+		perm.CapabilityNotifyChannelWebhookOther,
+		perm.CapabilityNotifyChannelWebhookDingTalk,
+		perm.CapabilityNotifyChannelWebhookWeChat,
+		perm.CapabilityNotifyChannelWebhookFeishu,
+		perm.CapabilityNotifyChannelSMSAliCloud,
+		perm.CapabilityNotifyChannelSMSTencent,
+	}
+	repo := &featureRepoStub{pkg: &bo.FeaturePackage{
+		UID: "package-1", Features: packageFeatures, DurationDays: 0,
+	}}
+	legacyPayload := []string{
+		perm.CapabilityNotifyChannelSMTP,
+		"notify_channel_webhook",
+		"notify_channel_sms",
+	}
+	if _, err := provisioningFor(repo).UpdateNamespaceFeatures(systemContext(), "namespace-1", "package-1", legacyPayload, 0); err != nil {
+		t.Fatalf("legacy channel codes rejected: %v", err)
+	}
+	if !repo.set {
+		t.Fatal("repository was not called")
+	}
+	want := perm.NormalizeCapabilities(legacyPayload)
+	if !slices.Equal(repo.args.capabilities, want) {
+		t.Fatalf("capabilities = %v, want normalized %v", repo.args.capabilities, want)
+	}
+}
+
+// TestUpdateNamespaceFeaturesOnlyRequiresCurrentSnapshot 确认管理员后来给套餐加能力时，
+// 已生效租户保存授权只需包含自己的套餐快照（M22 权益快照语义），
+// 不能被套餐新增的能力反向卡住。
+func TestUpdateNamespaceFeaturesOnlyRequiresCurrentSnapshot(t *testing.T) {
+	repo := &featureRepoStub{
+		pkg: &bo.FeaturePackage{
+			UID:          "package-1",
+			Features:     []string{perm.CapabilityAlertRealtime, perm.CapabilityMember},
+			DurationDays: 0,
+		},
+		state: &bo.NamespaceFeature{
+			NamespaceUID:    "namespace-1",
+			PackageUID:      "package-1",
+			PackageFeatures: []string{perm.CapabilityAlertRealtime},
+		},
+	}
+	_, err := provisioningFor(repo).UpdateNamespaceFeatures(
+		systemContext(), "namespace-1", "package-1",
+		[]string{perm.CapabilityAlertRealtime, perm.CapabilityMember}, 0,
+	)
+	if err != nil {
+		t.Fatalf("tenant snapshot subset rejected: %v", err)
+	}
+	if !repo.set {
+		t.Fatal("repository was not called")
+	}
+}
+
 func TestPackageSaleAttributesPassedThrough(t *testing.T) {
 	repo := &featureRepoStub{}
 	provisioning := provisioningFor(repo)

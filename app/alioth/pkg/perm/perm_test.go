@@ -299,6 +299,49 @@ func TestEffectiveCapabilities(t *testing.T) {
 	}
 }
 
+// TestNormalizeCapabilities 确认历史能力码在迁移和兼容路径上展开成当前能力：
+// 拆分前的 Webhook / 短信类型编码展开成应用与提供商能力，模块码展开成模块全部能力，
+// 未知编码被丢弃，结果按能力目录顺序去重。
+func TestNormalizeCapabilities(t *testing.T) {
+	got := NormalizeCapabilities([]string{
+		"notify_channel_webhook",
+		"notify_channel_sms",
+		CapabilityNotifyChannelSMTP,
+		CapabilityAlertRealtime,
+		"unknown",
+	})
+	want := []string{
+		CapabilityAlertRealtime,
+		CapabilityNotifyChannelSMTP,
+		CapabilityNotifyChannelWebhookOther,
+		CapabilityNotifyChannelWebhookDingTalk,
+		CapabilityNotifyChannelWebhookWeChat,
+		CapabilityNotifyChannelWebhookFeishu,
+		CapabilityNotifyChannelSMSAliCloud,
+		CapabilityNotifyChannelSMSTencent,
+	}
+	if !slices.Equal(got, want) {
+		t.Fatalf("normalized capabilities = %v, want %v", got, want)
+	}
+	if got := NormalizeCapabilities([]string{FeatureMember}); len(got) != 1 || got[0] != CapabilityMember {
+		t.Fatalf("module code normalization = %v, want [%s]", got, CapabilityMember)
+	}
+	if !IsLegacyCapability("notify_channel_webhook") || !IsLegacyCapability("notify_channel") {
+		t.Fatal("legacy channel codes must be recognized")
+	}
+	if IsLegacyCapability(CapabilityNotifyChannelSMTP) || IsLegacyCapability("unknown") {
+		t.Fatal("current capability or unknown code must not be legacy")
+	}
+	if got := ExpandLegacyCapability("notify_channel_sms"); !slices.Equal(got, []string{
+		CapabilityNotifyChannelSMSAliCloud, CapabilityNotifyChannelSMSTencent,
+	}) {
+		t.Fatalf("expanded sms capabilities = %v", got)
+	}
+	if got := ExpandLegacyCapability(CapabilityMember); got != nil {
+		t.Fatalf("current capability expanded to %v, want nil", got)
+	}
+}
+
 func set(names []string) map[string]struct{} {
 	out := make(map[string]struct{}, len(names))
 	for _, name := range names {

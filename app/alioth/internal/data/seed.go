@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
@@ -51,6 +52,9 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 		return err
 	}
 	if err := migrateLegacyNamespaceFeatures(ctx, client, helper); err != nil {
+		return err
+	}
+	if err := migratePackageFeatureSnapshots(ctx, client, helper); err != nil {
 		return err
 	}
 	if err := migrateNamespacePackageSnapshots(ctx, client, helper); err != nil {
@@ -244,45 +248,17 @@ func ensurePackageCapabilities(ctx context.Context, client *ent.Client, helper *
 	return nil
 }
 
-// legacyTypedCapabilityExpansion 把拆分前的单能力展开成按类型的能力：
-// 旧「数据源」覆盖全部驱动，旧「探测目标」只有 HTTP，旧「通知渠道」覆盖全部渠道类型。
-// Webhook 渠道随后又按应用、短信渠道按提供商细分，所以旧「Webhook 渠道」和
-// 「短信渠道」也要继续展开成新的应用/提供商能力。保持升级前租户的能力范围不变；
-// 管理员之后可以在套餐里按类型收窄。
-var legacyTypedCapabilityExpansion = map[string][]string{
-	"datasource":   perm.CapabilityCodesOfModule(perm.FeatureDatasource),
-	"probe_target": {perm.CapabilityProbeHTTP},
-	"notify_channel": {
-		perm.CapabilityNotifyChannelSMTP,
-		"notify_channel_webhook_other",
-		"notify_channel_webhook_dingtalk",
-		"notify_channel_webhook_wechat",
-		"notify_channel_webhook_feishu",
-		"notify_channel_sms_alicloud",
-		"notify_channel_sms_tencent",
-	},
-	"notify_channel_webhook": {
-		"notify_channel_webhook_other",
-		"notify_channel_webhook_dingtalk",
-		"notify_channel_webhook_wechat",
-		"notify_channel_webhook_feishu",
-	},
-	"notify_channel_sms": {
-		"notify_channel_sms_alicloud",
-		"notify_channel_sms_tencent",
-	},
-}
-
-// migrateTypedCapabilities 把数据源 / 探测 / 通知渠道的旧能力码展开成按类型的能力码，
-// 再删除旧行。套餐明细与租户加开能力都处理，可重复执行。
+// migrateTypedCapabilities 把历史类型级能力码展开成当前能力：
+// M21 的数据源 / 探测 / 通知渠道类型拆分，以及 M24 的 Webhook 应用和短信提供商拆分。
+// 套餐明细与租户加开能力都处理，可重复执行；模块级编码留给 migrateLegacyFeatureCodes。
 func migrateTypedCapabilities(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	items, err := client.FeaturePackageItem.Query().All(ctx)
 	if err != nil {
 		return databaseErr(helper, err)
 	}
 	for _, item := range items {
-		codes, ok := legacyTypedCapabilityExpansion[item.Feature]
-		if !ok {
+		codes := perm.ExpandLegacyCapability(item.Feature)
+		if len(codes) == 0 {
 			continue
 		}
 		if err := ensurePackageCapabilities(ctx, client, helper, item.PackageUID, codes); err != nil {
@@ -297,8 +273,8 @@ func migrateTypedCapabilities(ctx context.Context, client *ent.Client, helper *s
 		return databaseErr(helper, err)
 	}
 	for _, row := range rows {
-		codes, ok := legacyTypedCapabilityExpansion[row.Feature]
-		if !ok {
+		codes := perm.ExpandLegacyCapability(row.Feature)
+		if len(codes) == 0 {
 			continue
 		}
 		if row.Enabled {
@@ -323,6 +299,34 @@ func migrateTypedCapabilities(ctx context.Context, client *ent.Client, helper *s
 			}
 		}
 		if _, err := client.NamespaceFeature.Delete().Where(namespacefeature.UIDEQ(row.UID)).Exec(ctx); err != nil {
+			return databaseErr(helper, err)
+		}
+	}
+	return nil
+}
+
+// migratePackageFeatureSnapshots 把租户套餐能力快照里的历史编码归一化成当前能力。
+// namespaces.package_features 在类型拆分之后才引入，M24 再拆通知渠道后，存量快照
+// 可能还保存 notify_channel_webhook / notify_channel_sms。读取路径 capabilityCodesOf
+// 会归一化，这里把库里的值也改掉，保证导出、能力比较和后续写入都看到当前编码。
+// 空快照由 migrateNamespacePackageSnapshots 补；这里只改写有变化的行，可重复执行。
+func migratePackageFeatureSnapshots(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	rows, err := client.Namespace.Query().Where(namespace.DeletedAtIsNil()).All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	for _, row := range rows {
+		if len(row.PackageFeatures) == 0 {
+			continue
+		}
+		normalized := perm.NormalizeCapabilities(row.PackageFeatures)
+		if slices.Equal(normalized, row.PackageFeatures) {
+			continue
+		}
+		if _, err := client.Namespace.Update().
+			Where(namespace.UIDEQ(row.UID), namespace.DeletedAtIsNil()).
+			SetPackageFeatures(normalized).
+			Save(ctx); err != nil {
 			return databaseErr(helper, err)
 		}
 	}

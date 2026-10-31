@@ -161,7 +161,7 @@ func (provisioning *Provisioning) GetNamespaceFeatures(ctx context.Context, name
 
 // UpdateNamespaceFeatures 原子设置租户的套餐和目标有效能力。
 // 服务端按套餐能力换算差异，调用方只表达最终结果：
-// 目标能力必须包含套餐能力（只增不减），expiresAt 为 0 时按套餐授权天数计算。
+// 目标能力必须包含租户当前生效的套餐能力（只增不减），expiresAt 为 0 时按套餐授权天数计算。
 func (provisioning *Provisioning) UpdateNamespaceFeatures(ctx context.Context, namespaceUID, packageUID string, capabilities []string, expiresAt int64) (*bo.NamespaceFeature, error) {
 	if _, err := provisioning.access.RequireSystem(ctx, perm.SystemPackageWrite); err != nil {
 		return nil, err
@@ -174,10 +174,18 @@ func (provisioning *Provisioning) UpdateNamespaceFeatures(ctx context.Context, n
 	if len(capabilities) == 0 {
 		capabilities = item.Features
 	}
-	if err := validateCapabilities(capabilities); err != nil {
+	// 旧客户端或旧套餐快照可能还带着 M24 拆分前的历史能力码，
+	// 先展开成当前能力再比较，避免同义编码被当成缺能力。
+	normalized, err := normalizeCapabilityInput(capabilities)
+	if err != nil {
 		return nil, err
 	}
-	for _, code := range item.Features {
+	capabilities = normalized
+	required, err := provisioning.requiredCapabilities(ctx, namespaceUID, packageUID, item)
+	if err != nil {
+		return nil, err
+	}
+	for _, code := range required {
 		if !slices.Contains(capabilities, code) {
 			return nil, merr.Client("features must include the package features")
 		}
@@ -188,6 +196,38 @@ func (provisioning *Provisioning) UpdateNamespaceFeatures(ctx context.Context, n
 	}
 	state, err := provisioning.features.NamespaceFeatureState(ctx, namespaceUID)
 	return state, provisioning.access.Wrap(err)
+}
+
+// requiredCapabilities 返回本次保存必须包含的能力。
+// 租户仍使用原套餐时必须包含它当前的套餐快照：管理员后来编辑套餐不会反向要求
+// 已生效租户补能力（M22 的权益快照语义）；换套餐时才按新套餐当前明细要求。
+// 两者都先归一化，历史编码与新编码按同一含义比较。
+func (provisioning *Provisioning) requiredCapabilities(ctx context.Context, namespaceUID, packageUID string, item *bo.FeaturePackage) ([]string, error) {
+	state, err := provisioning.features.NamespaceFeatureState(ctx, namespaceUID)
+	if err != nil {
+		return nil, provisioning.access.Wrap(err)
+	}
+	if state != nil && state.PackageUID == packageUID {
+		return perm.NormalizeCapabilities(state.PackageFeatures), nil
+	}
+	return perm.NormalizeCapabilities(item.Features), nil
+}
+
+// normalizeCapabilityInput 校验并归一化调用方提交的能力：
+// 接受当前能力码和 M24 拆分前的历史能力码（展开成当前能力），
+// 拒绝未知编码和重复项。归一化后同一含义的编码不会重复。
+func normalizeCapabilityInput(capabilities []string) ([]string, error) {
+	seen := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
+		if !perm.IsCapability(code) && !perm.IsLegacyCapability(code) {
+			return nil, merr.Client("invalid capability")
+		}
+		if _, ok := seen[code]; ok {
+			return nil, merr.Client("invalid capability")
+		}
+		seen[code] = struct{}{}
+	}
+	return perm.NormalizeCapabilities(capabilities), nil
 }
 
 // resolveExpiresAt 把调用方的 Unix 秒和套餐授权时长换算成仓储使用的到期时间。

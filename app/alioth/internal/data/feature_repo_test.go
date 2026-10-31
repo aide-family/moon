@@ -265,6 +265,91 @@ func TestFeatureRepoCapabilitiesAndLifecycle(t *testing.T) {
 	}
 }
 
+// TestNamespaceFeatureSnapshotNormalizesLegacyChannels 覆盖 M24 升级时的旧套餐快照：
+// namespaces.package_features 里还存着拆分前的 notify_channel_webhook / notify_channel_sms 时，
+// 读取有效能力、功能授权状态和重新保存都必须看到当前渠道能力，seed 也会把快照归一化写回。
+func TestNamespaceFeatureSnapshotNormalizesLegacyChannels(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	if err := Migrate(ctx, source); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	store, cleanup, err := NewDependencies(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("dependencies: %v", err)
+	}
+	t.Cleanup(cleanup)
+	logger := slog.Default()
+	features := NewFeatureRepo(store, logger)
+	namespaces := NewNamespaceRepo(store, logger)
+
+	baseUID := basePackageUID(ctx, t, store)
+	stamp := time.Now().Format("150405.000000000")
+	namespaceUID := "it-legacy-caps-ns-" + stamp
+	ownerUID := "it-legacy-caps-owner-" + stamp
+	ns, err := namespaces.CreateNamespace(ctx, namespaceUID, "it", ownerUID, baseUID)
+	if err != nil {
+		t.Fatalf("create namespace: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = store.client.NamespaceFeature.Delete().Where(namespacefeature.NamespaceUIDEQ(ns.UID)).Exec(ctx)
+		_, _ = store.client.MemberRole.Delete().Where(memberrole.NamespaceUIDEQ(ns.UID)).Exec(ctx)
+		_, _ = store.client.Member.Delete().Where(member.NamespaceUIDEQ(ns.UID)).Exec(ctx)
+		_, _ = store.client.Namespace.Delete().Where(namespace.UIDEQ(ns.UID)).Exec(ctx)
+	})
+
+	// 模拟升级前的快照：通知渠道还是 M21 拆分后的类型级编码。
+	legacySnapshot := []string{
+		perm.CapabilityAlertRealtime,
+		perm.CapabilityNotifyChannelSMTP,
+		"notify_channel_webhook",
+		"notify_channel_sms",
+		perm.CapabilityMember,
+	}
+	if _, err := store.client.Namespace.Update().
+		Where(namespace.UIDEQ(ns.UID)).
+		SetPackageFeatures(legacySnapshot).
+		Save(ctx); err != nil {
+		t.Fatalf("save legacy snapshot: %v", err)
+	}
+	want := perm.NormalizeCapabilities(legacySnapshot)
+
+	capabilities, err := features.EffectiveCapabilities(ctx, ns.UID)
+	if err != nil || !sameStrings(capabilities, want) {
+		t.Fatalf("effective capabilities = %v, err = %v, want %v", capabilities, err, want)
+	}
+	state, err := features.NamespaceFeatureState(ctx, ns.UID)
+	if err != nil || !sameStrings(state.PackageFeatures, want) {
+		t.Fatalf("package features = %v, err = %v, want %v", state.PackageFeatures, err, want)
+	}
+
+	// seed 迁移把库里的旧快照改写成当前编码，重复执行不再变化。
+	if err := migratePackageFeatureSnapshots(ctx, store.client, logger); err != nil {
+		t.Fatalf("migrate snapshots: %v", err)
+	}
+	row, err := store.client.Namespace.Query().Where(namespace.UIDEQ(ns.UID)).Only(ctx)
+	if err != nil || !sameStrings(row.PackageFeatures, want) {
+		t.Fatalf("stored snapshot = %v, err = %v, want %v", row.PackageFeatures, err, want)
+	}
+	firstPass := append([]string(nil), row.PackageFeatures...)
+	if err := migratePackageFeatureSnapshots(ctx, store.client, logger); err != nil {
+		t.Fatalf("repeat migrate snapshots: %v", err)
+	}
+	row, err = store.client.Namespace.Query().Where(namespace.UIDEQ(ns.UID)).Only(ctx)
+	if err != nil || !sameStrings(row.PackageFeatures, firstPass) {
+		t.Fatalf("repeated migration changed snapshot: %v, err = %v", row.PackageFeatures, err)
+	}
+
+	// 旧客户端提交的旧编码 payload 也能保存：仓库会先归一化再比较套餐快照。
+	if err := features.SetNamespaceFeatureState(ctx, ns.UID, baseUID, legacySnapshot, time.Time{}); err != nil {
+		t.Fatalf("save legacy payload: %v", err)
+	}
+}
+
 func basePackageUID(ctx context.Context, t *testing.T, store *Dependencies) string {
 	t.Helper()
 	row, err := store.client.FeaturePackage.Query().Where(featurepackage.IsBase(true), featurepackage.DeletedAtIsNil()).Only(ctx)

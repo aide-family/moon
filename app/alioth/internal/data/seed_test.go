@@ -50,47 +50,45 @@ func permissionSet(names []string) map[string]struct{} {
 	return out
 }
 
-// TestLegacyChannelCapabilityExpansion 确认通知渠道能力细分后旧能力码仍展开成完整能力范围：
-// 旧 Webhook 渠道覆盖四个应用能力，旧短信渠道覆盖两个提供商能力，
-// 更旧的模块级编码覆盖全部七个渠道能力；展开结果必须都在能力目录里。
-func TestLegacyChannelCapabilityExpansion(t *testing.T) {
-	webhook := []string{
+// TestCapabilityCodesOfExpandsLegacyChannelCodes 确认租户套餐快照和旧数据里的
+// 历史渠道编码在读取时展开成当前能力：旧 Webhook 渠道覆盖四个应用能力，
+// 旧短信渠道覆盖两个提供商能力，目录外的编码继续被忽略。
+func TestCapabilityCodesOfExpandsLegacyChannelCodes(t *testing.T) {
+	got := capabilityCodesOf([]string{
+		perm.CapabilityNotifyChannelSMTP,
+		"notify_channel_webhook",
+		"notify_channel_sms",
+		perm.CapabilityMember,
+		"unknown",
+	})
+	want := []string{
+		perm.CapabilityNotifyChannelSMTP,
 		perm.CapabilityNotifyChannelWebhookOther,
 		perm.CapabilityNotifyChannelWebhookDingTalk,
 		perm.CapabilityNotifyChannelWebhookWeChat,
 		perm.CapabilityNotifyChannelWebhookFeishu,
-	}
-	sms := []string{
 		perm.CapabilityNotifyChannelSMSAliCloud,
 		perm.CapabilityNotifyChannelSMSTencent,
+		perm.CapabilityMember,
 	}
-	channel := append([]string{perm.CapabilityNotifyChannelSMTP}, append(append([]string(nil), webhook...), sms...)...)
-	cases := map[string][]string{
-		"notify_channel_webhook": webhook,
-		"notify_channel_sms":     sms,
-		"notify_channel":         channel,
+	if len(got) != len(want) {
+		t.Fatalf("capability codes = %v, want %v", got, want)
 	}
-	for code, want := range cases {
-		got := legacyTypedCapabilityExpansion[code]
-		if len(got) != len(want) {
-			t.Fatalf("%s expands to %v, want %v", code, got, want)
-		}
-		wantSet := permissionSet(want)
-		for _, capability := range got {
-			if _, ok := wantSet[capability]; !ok {
-				t.Fatalf("%s expands to unexpected capability %s, want %v", code, capability, want)
-			}
-			if !perm.IsCapability(capability) {
-				t.Fatalf("%s expands to %s, which is not in the capability catalog", code, capability)
-			}
+	wantSet := permissionSet(want)
+	for _, code := range got {
+		if _, ok := wantSet[code]; !ok {
+			t.Fatalf("unexpected capability %s, want %v", code, want)
 		}
 	}
 	base := permissionSet(perm.BaseCapabilities())
-	for _, capability := range append(channel, perm.CapabilityNotifyChannelSMTP) {
-		if _, ok := base[capability]; ok {
+	for _, code := range got {
+		if code == perm.CapabilityMember {
 			continue
 		}
-		t.Fatalf("base package is missing channel capability %s", capability)
+		if _, ok := base[code]; ok {
+			continue
+		}
+		t.Fatalf("base package is missing channel capability %s", code)
 	}
 }
 
