@@ -2,7 +2,6 @@ package perm
 
 import (
 	"slices"
-	"strings"
 )
 
 // 能力是模块下可单独开通的最小授权单位。两级功能模型里：
@@ -29,32 +28,38 @@ const (
 	CapabilityDatasourceVictoriaLogs    = "datasource_vlogs"
 	CapabilityDatasourceJaeger          = "datasource_jaeger"
 	// 通知模块按菜单拆成七类能力，权限相同，由菜单权限区分入口；
-	// 通知渠道再按渠道类型细分，未授权的渠道类型不出现在渠道、模板和通知组里。
-	CapabilityNotifyChannelSMTP    = "notify_channel_smtp"
-	CapabilityNotifyChannelWebhook = "notify_channel_webhook"
-	CapabilityNotifyChannelSMS     = "notify_channel_sms"
-	CapabilityNotifyTemplate       = "notify_template"
-	CapabilityNotifyGroup          = "notify_group"
-	CapabilityNotifySubscription   = "notify_subscription"
-	CapabilityNotifyOnCall         = "notify_oncall"
-	CapabilityMessageLog           = "message_log"
-	CapabilityMember               = "member"
-	CapabilityRole                 = "role"
-	CapabilityClusterAccess        = "cluster_access"
-	CapabilityK8sNode              = "k8s_node"
-	CapabilityK8sWorkload          = "k8s_workload"
-	CapabilityK8sPod               = "k8s_pod"
-	CapabilityK8sIngress           = "k8s_ingress"
-	CapabilityK8sService           = "k8s_service"
-	CapabilityK8sConfigMap         = "k8s_configmap"
-	CapabilityK8sSecret            = "k8s_secret"
-	CapabilityK8sPV                = "k8s_pv"
-	CapabilityK8sPVC               = "k8s_pvc"
-	CapabilityK8sJob               = "k8s_job"
-	CapabilityK8sCronJob           = "k8s_cronjob"
-	CapabilityAgentMachine         = "agent_machine"
-	CapabilitySSHCommand           = "ssh_command"
-	CapabilityWebShell             = "web_shell"
+	// 通知渠道再按「渠道类型 + 应用」细分：Webhook 按厂商拆成四个应用能力，
+	// 短信按提供商拆成阿里云和腾讯云两个能力。未授权的渠道能力不出现在渠道、
+	// 模板和通知组里。腾讯云短信只进目录可售，暂不支持配置和发送。
+	CapabilityNotifyChannelSMTP            = "notify_channel_smtp"
+	CapabilityNotifyChannelWebhookOther    = "notify_channel_webhook_other"
+	CapabilityNotifyChannelWebhookDingTalk = "notify_channel_webhook_dingtalk"
+	CapabilityNotifyChannelWebhookWeChat   = "notify_channel_webhook_wechat"
+	CapabilityNotifyChannelWebhookFeishu   = "notify_channel_webhook_feishu"
+	CapabilityNotifyChannelSMSAliCloud     = "notify_channel_sms_alicloud"
+	CapabilityNotifyChannelSMSTencent      = "notify_channel_sms_tencent"
+	CapabilityNotifyTemplate               = "notify_template"
+	CapabilityNotifyGroup                  = "notify_group"
+	CapabilityNotifySubscription           = "notify_subscription"
+	CapabilityNotifyOnCall                 = "notify_oncall"
+	CapabilityMessageLog                   = "message_log"
+	CapabilityMember                       = "member"
+	CapabilityRole                         = "role"
+	CapabilityClusterAccess                = "cluster_access"
+	CapabilityK8sNode                      = "k8s_node"
+	CapabilityK8sWorkload                  = "k8s_workload"
+	CapabilityK8sPod                       = "k8s_pod"
+	CapabilityK8sIngress                   = "k8s_ingress"
+	CapabilityK8sService                   = "k8s_service"
+	CapabilityK8sConfigMap                 = "k8s_configmap"
+	CapabilityK8sSecret                    = "k8s_secret"
+	CapabilityK8sPV                        = "k8s_pv"
+	CapabilityK8sPVC                       = "k8s_pvc"
+	CapabilityK8sJob                       = "k8s_job"
+	CapabilityK8sCronJob                   = "k8s_cronjob"
+	CapabilityAgentMachine                 = "agent_machine"
+	CapabilitySSHCommand                   = "ssh_command"
+	CapabilityWebShell                     = "web_shell"
 )
 
 // Capability 是一个能力及其包含的租户权限。
@@ -136,13 +141,33 @@ var capabilitySpecs = []Capability{
 		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
 	},
 	{
-		Code: CapabilityNotifyChannelWebhook, Module: FeatureNotification, Name: "Webhook 渠道",
-		Description: "配置 Webhook 通知渠道（含钉钉、企业微信、飞书应用）。",
+		Code: CapabilityNotifyChannelWebhookOther, Module: FeatureNotification, Name: "自定义 Webhook",
+		Description: "配置自定义 Webhook 通知渠道，服务端以 JSON 发送并附带签名。",
 		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
 	},
 	{
-		Code: CapabilityNotifyChannelSMS, Module: FeatureNotification, Name: "短信渠道",
-		Description: "配置短信通知渠道。",
+		Code: CapabilityNotifyChannelWebhookDingTalk, Module: FeatureNotification, Name: "钉钉 Webhook",
+		Description: "配置钉钉自定义机器人 Webhook 通知渠道。",
+		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
+	},
+	{
+		Code: CapabilityNotifyChannelWebhookWeChat, Module: FeatureNotification, Name: "企业微信 Webhook",
+		Description: "配置企业微信群机器人 Webhook 通知渠道。",
+		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
+	},
+	{
+		Code: CapabilityNotifyChannelWebhookFeishu, Module: FeatureNotification, Name: "飞书 Webhook",
+		Description: "配置飞书自定义机器人 Webhook 通知渠道。",
+		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
+	},
+	{
+		Code: CapabilityNotifyChannelSMSAliCloud, Module: FeatureNotification, Name: "阿里云短信",
+		Description: "配置阿里云短信通知渠道。",
+		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
+	},
+	{
+		Code: CapabilityNotifyChannelSMSTencent, Module: FeatureNotification, Name: "腾讯云短信",
+		Description: "开通腾讯云短信渠道。当前版本只上架能力，暂不支持配置与发送。",
 		Permissions: []string{NotificationChannelRead, NotificationChannelWrite, NotificationChannelDelete},
 	},
 	{
@@ -332,37 +357,22 @@ func CapabilityCodesOfModule(module string) []string {
 	return codes
 }
 
-// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 22 项。
-// 数据源和通知渠道按类型展开后全部包含在基础套餐里，保持升级前「基础套餐可用全部
-// 数据源与通知渠道类型」的行为；Kubernetes、机器和 SSH 能力由超级管理员另行开通。
+// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 26 项。
+// 数据源、探测和通知渠道按类型/应用展开后全部包含在基础套餐里，保持升级前
+// 「基础套餐可用全部数据源与通知渠道类型」的行为；Kubernetes、机器和 SSH
+// 能力由超级管理员另行开通。
 func BaseCapabilities() []string {
 	modules := make(map[string]struct{}, len(BaseFeatures()))
 	for _, code := range BaseFeatures() {
 		modules[code] = struct{}{}
 	}
-	codes := make([]string, 0, 22)
+	codes := make([]string, 0, 26)
 	for _, item := range capabilitySpecs {
 		if _, ok := modules[item.Module]; ok {
 			codes = append(codes, item.Code)
 		}
 	}
 	return codes
-}
-
-// DefaultReadPermissions 返回能力默认勾选的读权限：以 :read 或 :logs 结尾的动作。
-// 角色授权时勾选菜单权限就自动带上这些权限，保证「有菜单就能看」。
-func DefaultReadPermissions(code string) []string {
-	item, ok := CapabilityOf(code)
-	if !ok {
-		return nil
-	}
-	out := make([]string, 0, len(item.Permissions))
-	for _, name := range item.Permissions {
-		if strings.HasSuffix(name, ":read") || strings.HasSuffix(name, ":logs") {
-			out = append(out, name)
-		}
-	}
-	return out
 }
 
 // PermissionCapabilities 返回包含该权限的能力编码，按能力目录顺序。
@@ -378,7 +388,8 @@ func PermissionCapabilities(permission string) []string {
 }
 
 // CapabilityPermissions 返回一组能力的权限并集，按能力目录顺序去重。
-// 同一个权限可能属于多个能力（例如 notification:* 属于六个通知能力），这里只保留一份。
+// 同一个权限可能属于多个能力（例如通知渠道的七个能力共享 notification_channel:*），
+// 这里只保留一份。
 func CapabilityPermissions(capabilities []string) []string {
 	seenCapability := make(map[string]struct{}, len(capabilities))
 	for _, code := range capabilities {
@@ -397,53 +408,6 @@ func CapabilityPermissions(capabilities []string) []string {
 			seenPermission[name] = struct{}{}
 			names = append(names, name)
 		}
-	}
-	return names
-}
-
-// RolePermissionsForCapabilities 返回预置角色在指定能力范围内应持有的权限：
-// 模块权限与该范围能力权限的交集，再加每个能力的菜单权限。
-// 新租户预置角色、功能变化后的预置角色补齐和 seed 都用它，保证菜单与接口一致。
-func RolePermissionsForCapabilities(role string, capabilities []string) []string {
-	allowedCapabilities := make(map[string]struct{}, len(capabilities))
-	modules := make(map[string]struct{}, len(capabilities))
-	for _, code := range capabilities {
-		item, ok := CapabilityOf(code)
-		if !ok {
-			continue
-		}
-		allowedCapabilities[item.Code] = struct{}{}
-		modules[item.Module] = struct{}{}
-	}
-	allowedPermissions := make(map[string]struct{}, len(allowedCapabilities)*3)
-	for _, name := range CapabilityPermissions(capabilities) {
-		allowedPermissions[name] = struct{}{}
-	}
-	names := make([]string, 0, len(allowedPermissions)+len(allowedCapabilities))
-	for _, name := range RolePermissions(role) {
-		if IsMenuPermission(name) {
-			// 菜单权限按能力单独追加，保证顺序跟在模块权限之后。
-			continue
-		}
-		module := FeatureOf(name)
-		if module == "" {
-			// namespace:* 不受功能限制，始终保留。
-			names = append(names, name)
-			continue
-		}
-		if _, ok := modules[module]; !ok {
-			continue
-		}
-		if _, ok := allowedPermissions[name]; !ok {
-			continue
-		}
-		names = append(names, name)
-	}
-	for _, menu := range menuSpecs {
-		if !MenuLicensed(menu.Code, capabilities) {
-			continue
-		}
-		names = append(names, MenuPermission(menu.Code))
 	}
 	return names
 }
@@ -589,90 +553,191 @@ func ProbeDriversOf(capabilities []string) []string {
 	return drivers
 }
 
-// channelCapabilityTypes 是通知渠道类型与能力编码的映射，顺序与渠道类型枚举一致。
-var channelCapabilityTypes = []struct {
-	channelType string
-	capability  string
+// ChannelScope 是一个可授权的通知渠道「渠道类型 + 应用」组合。
+// Webhook 按厂商、短信按提供商拆分能力后，渠道的读写与列表都要按组合判断，
+// 不能只看渠道类型。
+type ChannelScope struct {
+	Type string
+	App  string
+}
+
+// TemplateScope 是模板的「模板类型 + 应用」组合。模板是渠道的正文，跟着对应
+// 渠道能力授权；腾讯云短信没有模板类型，不在映射里。
+type TemplateScope struct {
+	Type string
+	App  string
+}
+
+// channelTypeOrder 是渠道类型枚举顺序，列表与下拉都按它展示。
+var channelTypeOrder = []string{"SMTP", "WEBHOOK", "SMS"}
+
+// templateTypeOrder 是模板类型枚举顺序。
+var templateTypeOrder = []string{"EMAIL", "WEBHOOK", "SMS_ALICLOUD"}
+
+// channelCapabilityScopes 是通知渠道 (类型, 应用) 与能力编码的映射，顺序与渠道
+// 类型、应用枚举一致。腾讯云短信只上架能力、暂不支持配置渠道，所以没有渠道组合。
+var channelCapabilityScopes = []struct {
+	scope      ChannelScope
+	capability string
 }{
-	{"SMTP", CapabilityNotifyChannelSMTP},
-	{"WEBHOOK", CapabilityNotifyChannelWebhook},
-	{"SMS", CapabilityNotifyChannelSMS},
+	{ChannelScope{Type: "SMTP", App: "OTHER"}, CapabilityNotifyChannelSMTP},
+	{ChannelScope{Type: "WEBHOOK", App: "OTHER"}, CapabilityNotifyChannelWebhookOther},
+	{ChannelScope{Type: "WEBHOOK", App: "DINGTALK"}, CapabilityNotifyChannelWebhookDingTalk},
+	{ChannelScope{Type: "WEBHOOK", App: "WECHAT"}, CapabilityNotifyChannelWebhookWeChat},
+	{ChannelScope{Type: "WEBHOOK", App: "FEISHU"}, CapabilityNotifyChannelWebhookFeishu},
+	{ChannelScope{Type: "SMS", App: "SMS_ALICLOUD"}, CapabilityNotifyChannelSMSAliCloud},
+}
+
+// templateCapabilityScopes 是模板 (类型, 应用) 与渠道能力编码的映射。
+// EMAIL 需要 SMTP，WEBHOOK 需要对应 Webhook 应用能力，SMS_ALICLOUD 需要
+// 阿里云短信能力；腾讯云短信没有模板类型。
+var templateCapabilityScopes = []struct {
+	scope      TemplateScope
+	capability string
+}{
+	{TemplateScope{Type: "EMAIL", App: "OTHER"}, CapabilityNotifyChannelSMTP},
+	{TemplateScope{Type: "WEBHOOK", App: "OTHER"}, CapabilityNotifyChannelWebhookOther},
+	{TemplateScope{Type: "WEBHOOK", App: "DINGTALK"}, CapabilityNotifyChannelWebhookDingTalk},
+	{TemplateScope{Type: "WEBHOOK", App: "WECHAT"}, CapabilityNotifyChannelWebhookWeChat},
+	{TemplateScope{Type: "WEBHOOK", App: "FEISHU"}, CapabilityNotifyChannelWebhookFeishu},
+	{TemplateScope{Type: "SMS_ALICLOUD", App: "OTHER"}, CapabilityNotifyChannelSMSAliCloud},
 }
 
 // ChannelTypes 按固定顺序返回全部通知渠道类型。
 func ChannelTypes() []string {
-	out := make([]string, 0, len(channelCapabilityTypes))
-	for _, item := range channelCapabilityTypes {
-		out = append(out, item.channelType)
-	}
+	out := make([]string, len(channelTypeOrder))
+	copy(out, channelTypeOrder)
 	return out
 }
 
-// ChannelCapabilityOf 返回通知渠道类型对应的能力编码；未知类型返回空字符串。
-func ChannelCapabilityOf(channelType string) string {
-	for _, item := range channelCapabilityTypes {
-		if item.channelType == channelType {
+// ChannelCapabilityOf 返回通知渠道 (类型, 应用) 对应的能力编码；未知组合返回空字符串。
+func ChannelCapabilityOf(channelType, app string) string {
+	for _, item := range channelCapabilityScopes {
+		if item.scope.Type == channelType && item.scope.App == app {
 			return item.capability
 		}
 	}
 	return ""
 }
 
-// ChannelTypesOf 返回已开通的通知渠道类型，按目录顺序。
-func ChannelTypesOf(capabilities []string) []string {
+// ChannelScopesOf 返回已开通的通知渠道 (类型, 应用) 组合，按目录顺序。
+// 列表、选择器和通知组过滤都按这个组合集合查询，未授权的应用不会出现。
+func ChannelScopesOf(capabilities []string) []ChannelScope {
 	enabled := make(map[string]struct{}, len(capabilities))
 	for _, code := range capabilities {
 		enabled[code] = struct{}{}
 	}
-	types := make([]string, 0, len(channelCapabilityTypes))
-	for _, item := range channelCapabilityTypes {
+	scopes := make([]ChannelScope, 0, len(channelCapabilityScopes))
+	for _, item := range channelCapabilityScopes {
 		if _, ok := enabled[item.capability]; ok {
-			types = append(types, item.channelType)
+			scopes = append(scopes, item.scope)
+		}
+	}
+	return scopes
+}
+
+// ChannelTypesOf 返回已开通的通知渠道类型，按目录顺序。
+func ChannelTypesOf(capabilities []string) []string {
+	authorized := make(map[string]struct{})
+	for _, scope := range ChannelScopesOf(capabilities) {
+		authorized[scope.Type] = struct{}{}
+	}
+	types := make([]string, 0, len(channelTypeOrder))
+	for _, channelType := range channelTypeOrder {
+		if _, ok := authorized[channelType]; ok {
+			types = append(types, channelType)
 		}
 	}
 	return types
 }
 
-// channelTypeOfTemplate 把模板类型映射到渠道类型：模板是渠道的正文，
-// 渠道类型没开通时，对应模板也不应该出现在列表和绑定选择里。
-var channelTypeOfTemplate = map[string]string{
-	"EMAIL":        "SMTP",
-	"WEBHOOK":      "WEBHOOK",
-	"SMS_ALICLOUD": "SMS",
+// ChannelAppsOf 返回某类渠道已开通的应用，按应用枚举顺序。
+// SMTP 固定返回 OTHER；短信只返回实现了发送能力的阿里云。
+func ChannelAppsOf(channelType string, capabilities []string) []string {
+	enabled := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
+		enabled[code] = struct{}{}
+	}
+	apps := make([]string, 0, len(channelCapabilityScopes))
+	seen := make(map[string]struct{})
+	for _, item := range channelCapabilityScopes {
+		if item.scope.Type != channelType {
+			continue
+		}
+		if _, ok := enabled[item.capability]; !ok {
+			continue
+		}
+		if _, ok := seen[item.scope.App]; ok {
+			continue
+		}
+		seen[item.scope.App] = struct{}{}
+		apps = append(apps, item.scope.App)
+	}
+	return apps
 }
 
-// ChannelTypeOfTemplate 返回模板类型对应的渠道类型；未知模板类型返回空字符串。
-func ChannelTypeOfTemplate(templateType string) string {
-	return channelTypeOfTemplate[templateType]
-}
-
-// TemplateTypesOfChannelTypes 返回一批渠道类型下可用的模板类型，按模板类型枚举顺序。
-func TemplateTypesOfChannelTypes(channelTypes []string) []string {
-	allowed := make(map[string]struct{}, len(channelTypes))
-	for _, channelType := range channelTypes {
-		if templateType := templateTypeOfChannel(channelType); templateType != "" {
-			allowed[templateType] = struct{}{}
+// TemplateCapabilityOf 返回模板 (类型, 应用) 对应的渠道能力编码；
+// 未知组合返回空字符串。
+func TemplateCapabilityOf(templateType, app string) string {
+	for _, item := range templateCapabilityScopes {
+		if item.scope.Type == templateType && item.scope.App == app {
+			return item.capability
 		}
 	}
-	types := make([]string, 0, len(allowed))
-	for _, templateType := range []string{"EMAIL", "WEBHOOK", "SMS_ALICLOUD"} {
-		if _, ok := allowed[templateType]; ok {
+	return ""
+}
+
+// TemplateScopesOf 返回已开通的模板 (类型, 应用) 组合，按目录顺序。
+func TemplateScopesOf(capabilities []string) []TemplateScope {
+	enabled := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
+		enabled[code] = struct{}{}
+	}
+	scopes := make([]TemplateScope, 0, len(templateCapabilityScopes))
+	for _, item := range templateCapabilityScopes {
+		if _, ok := enabled[item.capability]; ok {
+			scopes = append(scopes, item.scope)
+		}
+	}
+	return scopes
+}
+
+// TemplateTypesOf 返回已开通的模板类型，按模板类型枚举顺序。
+func TemplateTypesOf(capabilities []string) []string {
+	authorized := make(map[string]struct{})
+	for _, scope := range TemplateScopesOf(capabilities) {
+		authorized[scope.Type] = struct{}{}
+	}
+	types := make([]string, 0, len(templateTypeOrder))
+	for _, templateType := range templateTypeOrder {
+		if _, ok := authorized[templateType]; ok {
 			types = append(types, templateType)
 		}
 	}
 	return types
 }
 
-// templateTypeOfChannel 把渠道类型映射回模板类型，空字符串表示不支持的渠道。
-func templateTypeOfChannel(channelType string) string {
-	switch channelType {
-	case "SMTP":
-		return "EMAIL"
-	case "WEBHOOK":
-		return "WEBHOOK"
-	case "SMS":
-		return "SMS_ALICLOUD"
-	default:
-		return ""
+// TemplateAppsOf 返回某类模板已开通的应用，按应用枚举顺序。
+// EMAIL 和 SMS_ALICLOUD 固定返回 OTHER；Webhook 模板按应用能力展开。
+func TemplateAppsOf(templateType string, capabilities []string) []string {
+	enabled := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
+		enabled[code] = struct{}{}
 	}
+	apps := make([]string, 0, len(templateCapabilityScopes))
+	seen := make(map[string]struct{})
+	for _, item := range templateCapabilityScopes {
+		if item.scope.Type != templateType {
+			continue
+		}
+		if _, ok := enabled[item.capability]; !ok {
+			continue
+		}
+		if _, ok := seen[item.scope.App]; ok {
+			continue
+		}
+		seen[item.scope.App] = struct{}{}
+		apps = append(apps, item.scope.App)
+	}
+	return apps
 }

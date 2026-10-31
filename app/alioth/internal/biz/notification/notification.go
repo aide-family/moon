@@ -88,7 +88,7 @@ func (center *Center) CreateChannel(ctx context.Context, in bo.NotificationChann
 	if err := validateChannel(in); err != nil {
 		return nil, err
 	}
-	if err := center.requireChannelTypeCapability(ctx, in.Type); err != nil {
+	if err := center.requireChannelCapability(ctx, in.Type, in.App); err != nil {
 		return nil, err
 	}
 	if in.Type == channelTypeSMS && strings.TrimSpace(in.Password) == "" {
@@ -112,7 +112,7 @@ func (center *Center) UpdateChannel(ctx context.Context, in bo.NotificationChann
 	if err := validateChannel(in); err != nil {
 		return nil, err
 	}
-	if err := center.requireChannelTypeCapability(ctx, in.Type); err != nil {
+	if err := center.requireChannelCapability(ctx, in.Type, in.App); err != nil {
 		return nil, err
 	}
 	if strings.TrimSpace(in.Name) == "" {
@@ -122,7 +122,7 @@ func (center *Center) UpdateChannel(ctx context.Context, in bo.NotificationChann
 	if err != nil {
 		return nil, center.access.Wrap(err)
 	}
-	if err := center.requireChannelTypeCapability(ctx, previous.Type); err != nil {
+	if err := center.requireChannelCapability(ctx, previous.Type, previous.App); err != nil {
 		return nil, err
 	}
 	in.NamespaceUID = ns
@@ -140,7 +140,7 @@ func (center *Center) UpdateChannelStatus(ctx context.Context, uid, status strin
 	if err != nil {
 		return nil, center.access.Wrap(err)
 	}
-	if err := center.requireChannelTypeCapability(ctx, current.Type); err != nil {
+	if err := center.requireChannelCapability(ctx, current.Type, current.App); err != nil {
 		return nil, err
 	}
 	item, err := center.repo.UpdateChannelStatus(ctx, ns, uid, status)
@@ -156,7 +156,7 @@ func (center *Center) DeleteChannel(ctx context.Context, uid string) error {
 	if err != nil {
 		return center.access.Wrap(err)
 	}
-	if err := center.requireChannelTypeCapability(ctx, current.Type); err != nil {
+	if err := center.requireChannelCapability(ctx, current.Type, current.App); err != nil {
 		return err
 	}
 	return center.access.Wrap(center.repo.DeleteChannel(ctx, ns, uid))
@@ -171,7 +171,7 @@ func (center *Center) GetChannel(ctx context.Context, uid string) (*bo.Notificat
 	if err != nil {
 		return nil, center.access.Wrap(err)
 	}
-	if err := center.requireChannelTypeCapability(ctx, item.Type); err != nil {
+	if err := center.requireChannelCapability(ctx, item.Type, item.App); err != nil {
 		return nil, err
 	}
 	return redactChannel(item), nil
@@ -183,17 +183,16 @@ func (center *Center) ListChannels(ctx context.Context, pageNo, pageSize int32, 
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	types, err := center.authorizedChannelTypes(ctx)
+	scopes, err := center.authorizedChannelScopes(ctx)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
-	if wanted := strings.ToUpper(strings.TrimSpace(kind)); wanted != "" {
-		types = filterString(types, wanted)
-	}
-	if len(types) == 0 {
+	// 请求的类型和应用只能在已授权组合里收窄，不能借筛选绕过能力检查。
+	scopes = filterChannelScopes(scopes, strings.ToUpper(strings.TrimSpace(kind)), strings.ToUpper(strings.TrimSpace(app)))
+	if len(scopes) == 0 {
 		return []bo.NotificationChannel{}, 0, p, s, nil
 	}
-	items, total, err := center.repo.ListChannels(ctx, ns, p, s, strings.TrimSpace(name), kind, app, types)
+	items, total, err := center.repo.ListChannels(ctx, ns, p, s, strings.TrimSpace(name), scopes)
 	out := make([]bo.NotificationChannel, 0, len(items))
 	for i := range items {
 		if item := redactChannel(&items[i]); item != nil {
@@ -208,14 +207,14 @@ func (center *Center) SelectChannels(ctx context.Context, limit int32, lastUID s
 	if err != nil {
 		return nil, err
 	}
-	types, err := center.authorizedChannelTypes(ctx)
+	scopes, err := center.authorizedChannelScopes(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(types) == 0 {
+	if len(scopes) == 0 {
 		return []bo.SelectItem{}, nil
 	}
-	items, err := center.repo.SelectChannels(ctx, ns, page.Limit(limit), lastUID, types)
+	items, err := center.repo.SelectChannels(ctx, ns, page.Limit(limit), lastUID, scopes)
 	return items, center.access.Wrap(err)
 }
 
@@ -229,7 +228,7 @@ func (center *Center) TestChannel(ctx context.Context, channelUID, templateUID, 
 	if err != nil {
 		return "", center.access.Wrap(err)
 	}
-	if err := center.requireChannelTypeCapability(ctx, channel.Type); err != nil {
+	if err := center.requireChannelCapability(ctx, channel.Type, channel.App); err != nil {
 		return "", err
 	}
 	if channel.Status != "ACTIVE" {
@@ -246,7 +245,7 @@ func (center *Center) TestChannel(ctx context.Context, channelUID, templateUID, 
 		if err != nil {
 			return "", center.access.Wrap(err)
 		}
-		if err := center.requireTemplateTypeCapability(ctx, template.Type); err != nil {
+		if err := center.requireTemplateCapability(ctx, template.Type, template.App); err != nil {
 			return "", err
 		}
 		if template.Status != "ACTIVE" {
@@ -292,7 +291,7 @@ func (center *Center) CreateTemplate(ctx context.Context, in bo.NotificationTemp
 	if err := validateTemplate(in); err != nil {
 		return nil, err
 	}
-	if err := center.requireTemplateTypeCapability(ctx, in.Type); err != nil {
+	if err := center.requireTemplateCapability(ctx, in.Type, in.App); err != nil {
 		return nil, err
 	}
 	if strings.TrimSpace(in.Name) == "" {
@@ -313,7 +312,7 @@ func (center *Center) UpdateTemplate(ctx context.Context, in bo.NotificationTemp
 	if err := validateTemplate(in); err != nil {
 		return nil, err
 	}
-	if err := center.requireTemplateTypeCapability(ctx, in.Type); err != nil {
+	if err := center.requireTemplateCapability(ctx, in.Type, in.App); err != nil {
 		return nil, err
 	}
 	if strings.TrimSpace(in.Name) == "" {
@@ -323,7 +322,7 @@ func (center *Center) UpdateTemplate(ctx context.Context, in bo.NotificationTemp
 	if err != nil {
 		return nil, center.access.Wrap(err)
 	}
-	if err := center.requireTemplateTypeCapability(ctx, previous.Type); err != nil {
+	if err := center.requireTemplateCapability(ctx, previous.Type, previous.App); err != nil {
 		return nil, err
 	}
 	in.NamespaceUID = ns
@@ -341,7 +340,7 @@ func (center *Center) UpdateTemplateStatus(ctx context.Context, uid, status stri
 	if err != nil {
 		return nil, center.access.Wrap(err)
 	}
-	if err := center.requireTemplateTypeCapability(ctx, current.Type); err != nil {
+	if err := center.requireTemplateCapability(ctx, current.Type, current.App); err != nil {
 		return nil, err
 	}
 	item, err := center.repo.UpdateTemplateStatus(ctx, ns, uid, status)
@@ -357,7 +356,7 @@ func (center *Center) DeleteTemplate(ctx context.Context, uid string) error {
 	if err != nil {
 		return center.access.Wrap(err)
 	}
-	if err := center.requireTemplateTypeCapability(ctx, current.Type); err != nil {
+	if err := center.requireTemplateCapability(ctx, current.Type, current.App); err != nil {
 		return err
 	}
 	return center.access.Wrap(center.repo.DeleteTemplate(ctx, ns, uid))
@@ -372,7 +371,7 @@ func (center *Center) GetTemplate(ctx context.Context, uid string) (*bo.Notifica
 	if err != nil {
 		return nil, center.access.Wrap(err)
 	}
-	if err := center.requireTemplateTypeCapability(ctx, item.Type); err != nil {
+	if err := center.requireTemplateCapability(ctx, item.Type, item.App); err != nil {
 		return nil, err
 	}
 	return item, nil
@@ -384,17 +383,15 @@ func (center *Center) ListTemplates(ctx context.Context, pageNo, pageSize int32,
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	types, err := center.authorizedTemplateTypes(ctx)
+	scopes, err := center.authorizedTemplateScopes(ctx)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
-	if wanted := strings.ToUpper(strings.TrimSpace(kind)); wanted != "" {
-		types = filterString(types, wanted)
-	}
-	if len(types) == 0 {
+	scopes = filterTemplateScopes(scopes, strings.ToUpper(strings.TrimSpace(kind)), strings.ToUpper(strings.TrimSpace(app)))
+	if len(scopes) == 0 {
 		return []bo.NotificationTemplate{}, 0, p, s, nil
 	}
-	items, total, err := center.repo.ListTemplates(ctx, ns, p, s, strings.TrimSpace(name), kind, app, types)
+	items, total, err := center.repo.ListTemplates(ctx, ns, p, s, strings.TrimSpace(name), scopes)
 	return items, total, p, s, center.access.Wrap(err)
 }
 
@@ -403,63 +400,102 @@ func (center *Center) SelectTemplates(ctx context.Context, limit int32, lastUID 
 	if err != nil {
 		return nil, err
 	}
-	types, err := center.authorizedTemplateTypes(ctx)
+	scopes, err := center.authorizedTemplateScopes(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(types) == 0 {
+	if len(scopes) == 0 {
 		return []bo.SelectItem{}, nil
 	}
-	items, err := center.repo.SelectTemplates(ctx, ns, page.Limit(limit), lastUID, types)
+	items, err := center.repo.SelectTemplates(ctx, ns, page.Limit(limit), lastUID, scopes)
 	return items, center.access.Wrap(err)
 }
 
-// authorizedChannelTypes 返回租户已开通的通知渠道类型。渠道、模板和通知组
-// 都按它过滤：未授权的渠道类型连同它的模板一起隐藏。
-func (center *Center) authorizedChannelTypes(ctx context.Context) ([]string, error) {
+// authorizedChannelScopes 返回租户已开通的通知渠道「类型 + 应用」组合。
+// 渠道、模板和通知组都按它过滤：未授权的应用连同它的模板一起隐藏。
+func (center *Center) authorizedChannelScopes(ctx context.Context) ([]perm.ChannelScope, error) {
 	capabilities, err := center.access.Capabilities(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return perm.ChannelTypesOf(capabilities), nil
+	return perm.ChannelScopesOf(capabilities), nil
 }
 
-// authorizedTemplateTypes 把已开通渠道类型映射成可用的模板类型。
-func (center *Center) authorizedTemplateTypes(ctx context.Context) ([]string, error) {
-	channelTypes, err := center.authorizedChannelTypes(ctx)
+// authorizedTemplateScopes 把已开通渠道能力映射成可用的模板「类型 + 应用」组合。
+func (center *Center) authorizedTemplateScopes(ctx context.Context) ([]perm.TemplateScope, error) {
+	capabilities, err := center.access.Capabilities(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return perm.TemplateTypesOfChannelTypes(channelTypes), nil
+	return perm.TemplateScopesOf(capabilities), nil
 }
 
-// requireChannelTypeCapability 要求租户已开通该通知渠道类型。
-func (center *Center) requireChannelTypeCapability(ctx context.Context, channelType string) error {
-	capability := perm.ChannelCapabilityOf(channelType)
+// requireChannelCapability 要求租户已开通该渠道「类型 + 应用」对应能力。
+func (center *Center) requireChannelCapability(ctx context.Context, channelType, app string) error {
+	capability := perm.ChannelCapabilityOf(channelType, app)
 	if capability == "" {
 		return merr.Invalid("invalid request")
 	}
 	return center.access.RequireCapability(ctx, capability)
 }
 
-// requireTemplateTypeCapability 要求模板对应的渠道类型已开通：模板是渠道的正文，
-// 渠道类型不可用时模板也不能创建、修改或测试。
-func (center *Center) requireTemplateTypeCapability(ctx context.Context, templateType string) error {
-	channelType := perm.ChannelTypeOfTemplate(templateType)
-	if channelType == "" {
+// requireTemplateCapability 要求模板对应的渠道能力已开通：模板是渠道的正文，
+// 渠道能力不可用时模板也不能创建、修改、预览或测试。
+func (center *Center) requireTemplateCapability(ctx context.Context, templateType, app string) error {
+	capability := perm.TemplateCapabilityOf(templateType, app)
+	if capability == "" {
 		return merr.Invalid("invalid request")
 	}
-	return center.requireChannelTypeCapability(ctx, channelType)
+	return center.access.RequireCapability(ctx, capability)
 }
 
-// filterString 只保留请求的类型；不在授权范围内时返回空，列表不会退回全量。
-func filterString(items []string, wanted string) []string {
-	for _, item := range items {
-		if item == wanted {
-			return []string{wanted}
+// filterChannelScopes 按请求的类型和应用收窄授权范围；不在范围内时返回空，
+// 列表不会退回全量。
+func filterChannelScopes(scopes []perm.ChannelScope, channelType, app string) []perm.ChannelScope {
+	wanted := make([]perm.ChannelScope, 0, len(scopes))
+	for _, scope := range scopes {
+		if channelType != "" && scope.Type != channelType {
+			continue
 		}
+		if app != "" && scope.App != app {
+			continue
+		}
+		wanted = append(wanted, scope)
 	}
-	return nil
+	return wanted
+}
+
+// filterTemplateScopes 按请求的模板类型和应用收窄授权范围。
+func filterTemplateScopes(scopes []perm.TemplateScope, templateType, app string) []perm.TemplateScope {
+	wanted := make([]perm.TemplateScope, 0, len(scopes))
+	for _, scope := range scopes {
+		if templateType != "" && scope.Type != templateType {
+			continue
+		}
+		if app != "" && scope.App != app {
+			continue
+		}
+		wanted = append(wanted, scope)
+	}
+	return wanted
+}
+
+// channelScopeSet 把渠道授权组合转成 "类型|应用" 集合，供通知组成对过滤时查询。
+func channelScopeSet(scopes []perm.ChannelScope) map[string]struct{} {
+	set := make(map[string]struct{}, len(scopes))
+	for _, scope := range scopes {
+		set[scope.Type+"|"+scope.App] = struct{}{}
+	}
+	return set
+}
+
+// templateScopeSet 把模板授权组合转成 "类型|应用" 集合。
+func templateScopeSet(scopes []perm.TemplateScope) map[string]struct{} {
+	set := make(map[string]struct{}, len(scopes))
+	for _, scope := range scopes {
+		set[scope.Type+"|"+scope.App] = struct{}{}
+	}
+	return set
 }
 
 // ListPresets 返回系统预设模板。预设是只读的，用户从预设创建自己的模板。
@@ -471,18 +507,19 @@ func (center *Center) ListPresets(ctx context.Context) ([]bo.NotificationPreset,
 	if err != nil {
 		return nil, center.access.Wrap(err)
 	}
-	types, err := center.authorizedTemplateTypes(ctx)
+	scopes, err := center.authorizedTemplateScopes(ctx)
 	if err != nil {
 		return nil, err
 	}
-	allowed := make(map[string]struct{}, len(types))
-	for _, item := range types {
-		allowed[item] = struct{}{}
-	}
+	allowed := templateScopeSet(scopes)
 	out := make([]bo.NotificationPreset, 0, len(items))
 	for _, item := range items {
-		// 预设模板也按类型过滤：渠道类型没开通时不应从预设里创建对应模板。
-		if _, ok := allowed[item.Type]; !ok {
+		// 预设模板也按「类型 + 应用」过滤：渠道能力没开通时不应从预设里创建对应模板。
+		app := item.App
+		if app == "" {
+			app = "OTHER"
+		}
+		if _, ok := allowed[item.Type+"|"+app]; !ok {
 			continue
 		}
 		out = append(out, item)
@@ -506,7 +543,7 @@ func (center *Center) PreviewTemplate(ctx context.Context, in bo.NotificationTem
 	default:
 		return "", "", merr.Invalid("invalid template type")
 	}
-	if err := center.requireTemplateTypeCapability(ctx, in.Type); err != nil {
+	if err := center.requireTemplateCapability(ctx, in.Type, in.App); err != nil {
 		return "", "", err
 	}
 	if err := alerttmpl.Validate(in.Subject, "subject"); err != nil {
@@ -679,48 +716,52 @@ func (center *Center) filterGroupAccess(ctx context.Context, namespaceUID string
 	if err != nil {
 		return center.access.Wrap(err)
 	}
-	channelTypeByUID := make(map[string]string, len(channels))
+	channelScopeByUID := make(map[string]perm.ChannelScope, len(channels))
 	for _, item := range channels {
-		channelTypeByUID[item.UID] = item.Type
+		channelScopeByUID[item.UID] = perm.ChannelScope{Type: item.Type, App: item.App}
 	}
-	templateTypeByUID := make(map[string]string, len(templates))
+	templateScopeByUID := make(map[string]perm.TemplateScope, len(templates))
 	for _, item := range templates {
-		templateTypeByUID[item.UID] = item.Type
+		templateScopeByUID[item.UID] = perm.TemplateScope{Type: item.Type, App: item.App}
 	}
-	channelTypes, err := center.authorizedChannelTypes(ctx)
+	channelScopes, err := center.authorizedChannelScopes(ctx)
 	if err != nil {
 		return err
 	}
-	allowedChannels := make(map[string]struct{}, len(channelTypes))
-	for _, item := range channelTypes {
-		allowedChannels[item] = struct{}{}
+	templateScopes, err := center.authorizedTemplateScopes(ctx)
+	if err != nil {
+		return err
 	}
-	allowedTemplates := make(map[string]struct{})
-	for _, item := range perm.TemplateTypesOfChannelTypes(channelTypes) {
-		allowedTemplates[item] = struct{}{}
-	}
+	allowedChannels := channelScopeSet(channelScopes)
+	allowedTemplates := templateScopeSet(templateScopes)
 	for i := range groups {
-		filterGroupPairs(&groups[i], channelTypeByUID, templateTypeByUID, allowedChannels, allowedTemplates)
+		filterGroupPairs(&groups[i], channelScopeByUID, templateScopeByUID, allowedChannels, allowedTemplates)
 	}
 	return nil
 }
 
-// filterGroupPairs 按渠道类型和模板类型同时过滤，保持 channel_uids 与 template_uids 一一对应。
-func filterGroupPairs(group *bo.NotificationGroup, channelTypeByUID, templateTypeByUID map[string]string, allowedChannels, allowedTemplates map[string]struct{}) {
+// filterGroupPairs 按「渠道类型 + 应用」和「模板类型 + 应用」成对过滤，
+// 保持 channel_uids 与 template_uids 一一对应。
+func filterGroupPairs(group *bo.NotificationGroup, channelScopeByUID map[string]perm.ChannelScope, templateScopeByUID map[string]perm.TemplateScope, allowedChannels, allowedTemplates map[string]struct{}) {
 	channels := make([]string, 0, len(group.ChannelUIDs))
 	templates := make([]string, 0, len(group.ChannelUIDs))
 	filteredChannels := make(map[string]struct{})
 	filteredTemplates := make(map[string]struct{})
 	for index, uid := range group.ChannelUIDs {
-		channelType := channelTypeByUID[uid]
-		if _, ok := allowedChannels[channelType]; !ok {
+		channelScope := channelScopeByUID[uid]
+		if _, ok := allowedChannels[channelScope.Type+"|"+channelScope.App]; !ok {
 			continue
 		}
 		templateUID := ""
 		if index < len(group.TemplateUIDs) {
 			templateUID = group.TemplateUIDs[index]
 		}
-		if _, ok := allowedTemplates[templateTypeByUID[templateUID]]; !ok {
+		templateScope := templateScopeByUID[templateUID]
+		templateApp := templateScope.App
+		if templateApp == "" {
+			templateApp = "OTHER"
+		}
+		if _, ok := allowedTemplates[templateScope.Type+"|"+templateApp]; !ok {
 			continue
 		}
 		channels = append(channels, uid)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
@@ -17,6 +17,10 @@ import type { NotificationGroupItem } from "@/api/notification-group/types"
 import { listNotificationTemplates } from "@/api/notification-template"
 import type { NotificationTemplateItem } from "@/api/notification-template/types"
 import { useSession } from "@/auth/session"
+import {
+  authorizedChannelApps,
+  authorizedChannelTypes,
+} from "@/lib/feature-catalog"
 import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -125,6 +129,18 @@ export function NotificationGroupPage() {
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationGroupItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const canWrite = session.can("notification_group:write")
+  // 通知组只渲染已授权能力的渠道分区：未授权 SMS 时整个短信表单都不出现，
+  // SMTP 和每个 Webhook 应用同理。
+  const allowedChannelTypes = useMemo(
+    () => authorizedChannelTypes(session.features),
+    [session.features]
+  )
+  const allowedWebhookApps = useMemo(
+    () => authorizedChannelApps(session.features, "WEBHOOK"),
+    [session.features]
+  )
+  const canEmail = allowedChannelTypes.includes("SMTP")
+  const canSMS = allowedChannelTypes.includes("SMS")
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationGroupItem>({
     page: query.page,
     pageSize: query.pageSize,
@@ -162,6 +178,11 @@ export function NotificationGroupPage() {
   const smsChannels = channels.filter((item) => channelTypeOf(item) === "sms" && item.status === "ACTIVE")
   const webhookChannels = channels.filter((item) => channelTypeOf(item) === "webhook" && item.status === "ACTIVE")
   const joinedMembers = members.filter((item) => item.status === "JOINED")
+  // 只有已授权的邮件/短信能力都还没有渠道时才提示先去创建渠道。
+  const authorizedPrimaryEmpty =
+    (canEmail || canSMS) &&
+    (!canEmail || emailChannels.length === 0) &&
+    (!canSMS || smsChannels.length === 0)
 
   function emailTemplates(): NotificationTemplateItem[] {
     return templates.filter((item) => item.type === "EMAIL" && item.status === "ACTIVE")
@@ -178,6 +199,18 @@ export function NotificationGroupPage() {
         item.status === "ACTIVE" &&
         (item.app === "OTHER" || item.app === app),
     )
+  }
+
+  function webhookChannelsFor(app: string): NotificationChannelItem[] {
+    return webhookChannels.filter((item) => (item.app || "OTHER") === app)
+  }
+
+  function toggleWebhookChannel(uid: string) {
+    const next = webhookChannelUids.includes(uid)
+      ? webhookChannelUids.filter((value) => value !== uid)
+      : [...webhookChannelUids, uid]
+    setWebhookChannelUids(next)
+    setWebhookTemplates((current) => ensureWebhookTemplates(next, current))
   }
 
   // 选中的 Webhook 可能覆盖多个应用；每个应用都需要一个模板，才能满足“模板覆盖所有通知方式”。
@@ -454,12 +487,12 @@ export function NotificationGroupPage() {
     return parts.length > 0 ? parts.join(" · ") : t("group.noReceivers")
   }
 
-  const selectedWebhookAppList = selectedWebhookApps()
-
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("group.title")} description={t("group.description")}>
-        {canWrite ? <Button onClick={openCreate}>{t("action.create")}</Button> : null}
+        {canWrite && (canEmail || canSMS || allowedWebhookApps.length > 0) ? (
+          <Button onClick={openCreate}>{t("action.create")}</Button>
+        ) : null}
       </PageHeader>
       <form
         className="flex flex-wrap gap-2"
@@ -541,161 +574,28 @@ export function NotificationGroupPage() {
                 <Input id="group-name" value={name} placeholder={t("group.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
               </FormField>
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField label={t("group.emailChannel")} hint={t("group.emailChannelHint")} error={fieldErrors.channels}>
-                  <Select value={emailChannelUid || "NONE"} onValueChange={(value) => selectEmailChannel(value === "NONE" ? "" : value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("group.emailChannelPlaceholder")}>
-                        {channelItems(emailChannelUid) ? (
-                          <span className="flex min-w-0 items-center gap-2">
-                            <ChannelLogo type="SMTP" className="size-4" />
-                            <span className="truncate">{channelItems(emailChannelUid)?.name}</span>
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">{t("group.emailChannelPlaceholder")}</span>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectOption value="NONE">{t("group.channelPlaceholder")}</SelectOption>
-                      {emailChannels.map((item) => (
-                        <SelectOption key={item.uid} value={item.uid}>
-                          <span className="flex items-center gap-2">
-                            <ChannelLogo type="SMTP" className="size-4" />
-                            <span>{item.name}</span>
-                          </span>
-                        </SelectOption>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
-                {emailChannelUid ? (
-                  <FormField label={t("group.emailTemplate")} required error={fieldErrors.emailTemplate}>
-                    <Select value={emailTemplateUid || "NONE"} onValueChange={(value) => setEmailTemplateUid(value === "NONE" ? "" : value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("group.templatePlaceholder")}>
-                          {templates.find((item) => item.uid === emailTemplateUid)?.name ?? t("group.templatePlaceholder")}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectOption value="NONE">{t("group.templatePlaceholder")}</SelectOption>
-                        {emailTemplates().map((item) => (
-                          <SelectOption key={item.uid} value={item.uid}>
-                            {item.name}
-                          </SelectOption>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormField>
-                ) : null}
-                <FormField label={t("group.smsChannel")} hint={t("group.smsChannelHint")} error={fieldErrors.channels}>
-                  <Select value={smsChannelUid || "NONE"} onValueChange={(value) => selectSMSChannel(value === "NONE" ? "" : value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("group.smsChannelPlaceholder")}>
-                        {channelItems(smsChannelUid) ? (
-                          <span className="flex min-w-0 items-center gap-2">
-                            <ChannelLogo type="SMS" className="size-4" />
-                            <span className="truncate">{channelItems(smsChannelUid)?.name}</span>
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">{t("group.smsChannelPlaceholder")}</span>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectOption value="NONE">{t("group.channelPlaceholder")}</SelectOption>
-                      {smsChannels.map((item) => (
-                        <SelectOption key={item.uid} value={item.uid}>
-                          <span className="flex items-center gap-2">
-                            <ChannelLogo type="SMS" className="size-4" />
-                            <span>{item.name}</span>
-                          </span>
-                        </SelectOption>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
-                {smsChannelUid ? (
-                  <FormField label={t("group.smsTemplate")} required error={fieldErrors.smsTemplate}>
-                    <Select value={smsTemplateUid || "NONE"} onValueChange={(value) => setSMSTemplateUid(value === "NONE" ? "" : value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("group.templatePlaceholder")}>
-                          {templates.find((item) => item.uid === smsTemplateUid)?.name ?? t("group.templatePlaceholder")}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectOption value="NONE">{t("group.templatePlaceholder")}</SelectOption>
-                        {smsTemplates().map((item) => (
-                          <SelectOption key={item.uid} value={item.uid}>
-                            {item.name}
-                          </SelectOption>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormField>
-                ) : null}
-              </div>
-              {emailChannels.length === 0 && smsChannels.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("group.noPrimaryChannels")}</p>
-              ) : null}
-              <div className="grid gap-2">
-                <p className="text-sm font-medium">{t("group.webhooks")}</p>
-                <p className="text-sm text-muted-foreground">{t("group.webhooksHint")}</p>
-                <div className="flex flex-wrap gap-2 rounded-md border p-3">
-                  {webhookChannels.map((item) => (
-                    <label
-                      key={item.uid}
-                      className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={webhookChannelUids.includes(item.uid)}
-                        onChange={() => {
-                          const next = webhookChannelUids.includes(item.uid)
-                            ? webhookChannelUids.filter((uid) => uid !== item.uid)
-                            : [...webhookChannelUids, item.uid]
-                          setWebhookChannelUids(next)
-                          setWebhookTemplates((current) => ensureWebhookTemplates(next, current))
-                        }}
-                      />
-                      <ChannelLogo type="WEBHOOK" app={item.app} className="size-4" />
-                      <span>{item.name}</span>
-                      <span className="text-muted-foreground">{enumLabel(t, item.app)}</span>
-                    </label>
-                  ))}
-                  {webhookChannels.length === 0 ? <p className="text-sm text-muted-foreground">{t("group.webhookEmpty")}</p> : null}
-                </div>
-              </div>
-              {selectedWebhookAppList.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {selectedWebhookAppList.map((app) => (
-                    <FormField
-                      key={app}
-                      label={t("group.webhookTemplateFor", { app: enumLabel(t, app) })}
-                      required
-                      error={fieldErrors.webhookTemplate}
-                    >
-                      <Select
-                        value={webhookTemplates[app] || "NONE"}
-                        onValueChange={(value) =>
-                          setWebhookTemplates((current) => ({ ...current, [app]: value === "NONE" ? "" : value }))
-                        }
-                      >
+                {canEmail ? (
+                  <>
+                    <FormField label={t("group.emailChannel")} hint={t("group.emailChannelHint")} error={fieldErrors.channels}>
+                      <Select value={emailChannelUid || "NONE"} onValueChange={(value) => selectEmailChannel(value === "NONE" ? "" : value)}>
                         <SelectTrigger>
-                          <SelectValue placeholder={t("group.templatePlaceholder")}>
-                            <span className="flex min-w-0 items-center gap-2">
-                              <ChannelLogo type="WEBHOOK" app={app} className="size-4" />
-                              <span className="truncate">
-                                {templates.find((item) => item.uid === webhookTemplates[app])?.name ?? t("group.templatePlaceholder")}
+                          <SelectValue placeholder={t("group.emailChannelPlaceholder")}>
+                            {channelItems(emailChannelUid) ? (
+                              <span className="flex min-w-0 items-center gap-2">
+                                <ChannelLogo type="SMTP" className="size-4" />
+                                <span className="truncate">{channelItems(emailChannelUid)?.name}</span>
                               </span>
-                            </span>
+                            ) : (
+                              <span className="text-muted-foreground">{t("group.emailChannelPlaceholder")}</span>
+                            )}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectOption value="NONE">{t("group.templatePlaceholder")}</SelectOption>
-                          {webhookTemplatesFor(app).map((item) => (
+                          <SelectOption value="NONE">{t("group.channelPlaceholder")}</SelectOption>
+                          {emailChannels.map((item) => (
                             <SelectOption key={item.uid} value={item.uid}>
                               <span className="flex items-center gap-2">
-                                <ChannelLogo type="WEBHOOK" app={item.app} className="size-4" />
+                                <ChannelLogo type="SMTP" className="size-4" />
                                 <span>{item.name}</span>
                               </span>
                             </SelectOption>
@@ -703,7 +603,162 @@ export function NotificationGroupPage() {
                         </SelectContent>
                       </Select>
                     </FormField>
-                  ))}
+                    {emailChannelUid ? (
+                      <FormField label={t("group.emailTemplate")} required error={fieldErrors.emailTemplate}>
+                        <Select value={emailTemplateUid || "NONE"} onValueChange={(value) => setEmailTemplateUid(value === "NONE" ? "" : value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("group.templatePlaceholder")}>
+                              {templates.find((item) => item.uid === emailTemplateUid)?.name ?? t("group.templatePlaceholder")}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectOption value="NONE">{t("group.templatePlaceholder")}</SelectOption>
+                            {emailTemplates().map((item) => (
+                              <SelectOption key={item.uid} value={item.uid}>
+                                {item.name}
+                              </SelectOption>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormField>
+                    ) : null}
+                  </>
+                ) : null}
+                {canSMS ? (
+                  <>
+                    <FormField label={t("group.smsChannel")} hint={t("group.smsChannelHint")} error={fieldErrors.channels}>
+                      <Select value={smsChannelUid || "NONE"} onValueChange={(value) => selectSMSChannel(value === "NONE" ? "" : value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("group.smsChannelPlaceholder")}>
+                            {channelItems(smsChannelUid) ? (
+                              <span className="flex min-w-0 items-center gap-2">
+                                <ChannelLogo type="SMS" className="size-4" />
+                                <span className="truncate">{channelItems(smsChannelUid)?.name}</span>
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">{t("group.smsChannelPlaceholder")}</span>
+                            )}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectOption value="NONE">{t("group.channelPlaceholder")}</SelectOption>
+                          {smsChannels.map((item) => (
+                            <SelectOption key={item.uid} value={item.uid}>
+                              <span className="flex items-center gap-2">
+                                <ChannelLogo type="SMS" className="size-4" />
+                                <span>{item.name}</span>
+                              </span>
+                            </SelectOption>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                    {smsChannelUid ? (
+                      <FormField label={t("group.smsTemplate")} required error={fieldErrors.smsTemplate}>
+                        <Select value={smsTemplateUid || "NONE"} onValueChange={(value) => setSMSTemplateUid(value === "NONE" ? "" : value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("group.templatePlaceholder")}>
+                              {templates.find((item) => item.uid === smsTemplateUid)?.name ?? t("group.templatePlaceholder")}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectOption value="NONE">{t("group.templatePlaceholder")}</SelectOption>
+                            {smsTemplates().map((item) => (
+                              <SelectOption key={item.uid} value={item.uid}>
+                                {item.name}
+                              </SelectOption>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormField>
+                    ) : null}
+                  </>
+                ) : null}
+              </div>
+              {authorizedPrimaryEmpty ? (
+                <p className="text-sm text-muted-foreground">{t("group.noPrimaryChannels")}</p>
+              ) : null}
+              {allowedWebhookApps.length > 0 ? (
+                <div className="grid gap-3">
+                  <div>
+                    <p className="text-sm font-medium">{t("group.webhooks")}</p>
+                    <p className="text-sm text-muted-foreground">{t("group.webhooksHint")}</p>
+                  </div>
+                  {allowedWebhookApps.map((webhookApp) => {
+                    const appChannels = webhookChannelsFor(webhookApp)
+                    const appSelected = webhookChannelUids.some(
+                      (uid) =>
+                        channelTypeOf(channelItems(uid)) === "webhook" &&
+                        (channelItems(uid)?.app || "OTHER") === webhookApp
+                    )
+                    return (
+                      <div key={webhookApp} className="grid gap-3 rounded-lg border p-3">
+                        <p className="flex items-center gap-2 text-sm font-medium">
+                          <ChannelLogo type="WEBHOOK" app={webhookApp} className="size-4" />
+                          <span>
+                            {t("group.webhooks")} · {enumLabel(t, webhookApp)}
+                          </span>
+                        </p>
+                        {appChannels.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {appChannels.map((item) => (
+                              <label
+                                key={item.uid}
+                                className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={webhookChannelUids.includes(item.uid)}
+                                  onChange={() => toggleWebhookChannel(item.uid)}
+                                />
+                                <ChannelLogo type="WEBHOOK" app={item.app} className="size-4" />
+                                <span>{item.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">{t("group.webhookEmpty")}</p>
+                        )}
+                        {appSelected ? (
+                          <FormField
+                            label={t("group.webhookTemplateFor", { app: enumLabel(t, webhookApp) })}
+                            required
+                            error={fieldErrors.webhookTemplate}
+                          >
+                            <Select
+                              value={webhookTemplates[webhookApp] || "NONE"}
+                              onValueChange={(value) =>
+                                setWebhookTemplates((current) => ({ ...current, [webhookApp]: value === "NONE" ? "" : value }))
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={t("group.templatePlaceholder")}>
+                                  <span className="flex min-w-0 items-center gap-2">
+                                    <ChannelLogo type="WEBHOOK" app={webhookApp} className="size-4" />
+                                    <span className="truncate">
+                                      {templates.find((item) => item.uid === webhookTemplates[webhookApp])?.name ??
+                                        t("group.templatePlaceholder")}
+                                    </span>
+                                  </span>
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectOption value="NONE">{t("group.templatePlaceholder")}</SelectOption>
+                                {webhookTemplatesFor(webhookApp).map((item) => (
+                                  <SelectOption key={item.uid} value={item.uid}>
+                                    <span className="flex items-center gap-2">
+                                      <ChannelLogo type="WEBHOOK" app={item.app} className="size-4" />
+                                      <span>{item.name}</span>
+                                    </span>
+                                  </SelectOption>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormField>
+                        ) : null}
+                      </div>
+                    )
+                  })}
                 </div>
               ) : null}
               {emailChannelUid ? (

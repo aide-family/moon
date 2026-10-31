@@ -19,8 +19,10 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/alerttmpl"
 	"github.com/aide-family/moon/pkg/merr"
 )
@@ -165,24 +167,16 @@ func (r *notificationRepo) GetChannel(ctx context.Context, namespaceUID, uid str
 	return &item, nil
 }
 
-func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string, types []string) ([]bo.NotificationChannel, int, error) {
+func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string, page, pageSize int, name string, scopes []perm.ChannelScope) ([]bo.NotificationChannel, int, error) {
 	query := r.client.NotificationChannel.Query().Where(notificationchannel.NamespaceUIDEQ(namespaceUID), notificationchannel.DeletedAtIsNil())
 	if name != "" {
 		query = query.Where(notificationchannel.NameContainsFold(name))
 	}
-	if kind = strings.ToUpper(strings.TrimSpace(kind)); kind != "" {
-		query = query.Where(notificationchannel.TypeEQ(notificationchannel.Type(kind)))
+	predicates := channelScopePredicates(scopes)
+	if len(predicates) == 0 {
+		return []bo.NotificationChannel{}, 0, nil
 	}
-	if app = strings.ToUpper(strings.TrimSpace(app)); app != "" {
-		query = query.Where(notificationchannel.AppEQ(notificationchannel.App(app)))
-	}
-	if len(types) > 0 {
-		values := make([]notificationchannel.Type, 0, len(types))
-		for _, item := range types {
-			values = append(values, notificationchannel.Type(item))
-		}
-		query = query.Where(notificationchannel.TypeIn(values...))
-	}
+	query = query.Where(notificationchannel.Or(predicates...))
 	total, err := query.Count(ctx)
 	if err != nil {
 		return nil, 0, r.fail(err)
@@ -196,6 +190,19 @@ func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string
 		items = append(items, toNotificationChannel(row))
 	}
 	return items, total, nil
+}
+
+// channelScopePredicates 把「渠道类型 + 应用」组合展开成 SQL 条件。
+// 组合之间是 OR：只授权钉钉时不能把同类型的 OTHER Webhook 渠道一起带出来。
+func channelScopePredicates(scopes []perm.ChannelScope) []predicate.NotificationChannel {
+	predicates := make([]predicate.NotificationChannel, 0, len(scopes))
+	for _, scope := range scopes {
+		predicates = append(predicates, notificationchannel.And(
+			notificationchannel.TypeEQ(notificationchannel.Type(scope.Type)),
+			notificationchannel.AppEQ(notificationchannel.App(scope.App)),
+		))
+	}
+	return predicates
 }
 
 func (r *notificationRepo) ListChannelsByUIDs(ctx context.Context, namespaceUID string, uids []string) ([]bo.NotificationChannel, error) {
@@ -217,7 +224,7 @@ func (r *notificationRepo) ListChannelsByUIDs(ctx context.Context, namespaceUID 
 	return items, nil
 }
 
-func (r *notificationRepo) SelectChannels(ctx context.Context, namespaceUID string, limit int, lastUID string, types []string) ([]bo.SelectItem, error) {
+func (r *notificationRepo) SelectChannels(ctx context.Context, namespaceUID string, limit int, lastUID string, scopes []perm.ChannelScope) ([]bo.SelectItem, error) {
 	query := r.client.NotificationChannel.Query().Where(
 		notificationchannel.NamespaceUIDEQ(namespaceUID),
 		notificationchannel.DeletedAtIsNil(),
@@ -226,13 +233,11 @@ func (r *notificationRepo) SelectChannels(ctx context.Context, namespaceUID stri
 	if lastUID != "" {
 		query = query.Where(notificationchannel.UIDGT(lastUID))
 	}
-	if len(types) > 0 {
-		values := make([]notificationchannel.Type, 0, len(types))
-		for _, item := range types {
-			values = append(values, notificationchannel.Type(item))
-		}
-		query = query.Where(notificationchannel.TypeIn(values...))
+	predicates := channelScopePredicates(scopes)
+	if len(predicates) == 0 {
+		return []bo.SelectItem{}, nil
 	}
+	query = query.Where(notificationchannel.Or(predicates...))
 	rows, err := query.Order(ent.Asc(notificationchannel.FieldUID)).Limit(limit).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -364,24 +369,16 @@ func (r *notificationRepo) GetTemplate(ctx context.Context, namespaceUID, uid st
 	return &item, nil
 }
 
-func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string, types []string) ([]bo.NotificationTemplate, int, error) {
+func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID string, page, pageSize int, name string, scopes []perm.TemplateScope) ([]bo.NotificationTemplate, int, error) {
 	query := r.client.NotificationTemplate.Query().Where(notificationtemplate.NamespaceUIDEQ(namespaceUID), notificationtemplate.DeletedAtIsNil())
 	if name != "" {
 		query = query.Where(notificationtemplate.NameContainsFold(name))
 	}
-	if kind = strings.ToUpper(strings.TrimSpace(kind)); kind != "" {
-		query = query.Where(notificationtemplate.TypeEQ(notificationtemplate.Type(kind)))
+	predicates := templateScopePredicates(scopes)
+	if len(predicates) == 0 {
+		return []bo.NotificationTemplate{}, 0, nil
 	}
-	if app = strings.ToUpper(strings.TrimSpace(app)); app != "" {
-		query = query.Where(notificationtemplate.AppEQ(notificationtemplate.App(app)))
-	}
-	if len(types) > 0 {
-		values := make([]notificationtemplate.Type, 0, len(types))
-		for _, item := range types {
-			values = append(values, notificationtemplate.Type(item))
-		}
-		query = query.Where(notificationtemplate.TypeIn(values...))
-	}
+	query = query.Where(notificationtemplate.Or(predicates...))
 	total, err := query.Count(ctx)
 	if err != nil {
 		return nil, 0, r.fail(err)
@@ -395,6 +392,19 @@ func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID strin
 		items = append(items, toNotificationTemplate(row))
 	}
 	return items, total, nil
+}
+
+// templateScopePredicates 把「模板类型 + 应用」组合展开成 SQL 条件。
+// Webhook 模板按应用拆分能力，只授权钉钉时不能带出 OTHER Webhook 模板。
+func templateScopePredicates(scopes []perm.TemplateScope) []predicate.NotificationTemplate {
+	predicates := make([]predicate.NotificationTemplate, 0, len(scopes))
+	for _, scope := range scopes {
+		predicates = append(predicates, notificationtemplate.And(
+			notificationtemplate.TypeEQ(notificationtemplate.Type(scope.Type)),
+			notificationtemplate.AppEQ(notificationtemplate.App(scope.App)),
+		))
+	}
+	return predicates
 }
 
 func (r *notificationRepo) ListTemplatesByUIDs(ctx context.Context, namespaceUID string, uids []string) ([]bo.NotificationTemplate, error) {
@@ -416,7 +426,7 @@ func (r *notificationRepo) ListTemplatesByUIDs(ctx context.Context, namespaceUID
 	return items, nil
 }
 
-func (r *notificationRepo) SelectTemplates(ctx context.Context, namespaceUID string, limit int, lastUID string, types []string) ([]bo.SelectItem, error) {
+func (r *notificationRepo) SelectTemplates(ctx context.Context, namespaceUID string, limit int, lastUID string, scopes []perm.TemplateScope) ([]bo.SelectItem, error) {
 	query := r.client.NotificationTemplate.Query().Where(
 		notificationtemplate.NamespaceUIDEQ(namespaceUID),
 		notificationtemplate.DeletedAtIsNil(),
@@ -425,13 +435,11 @@ func (r *notificationRepo) SelectTemplates(ctx context.Context, namespaceUID str
 	if lastUID != "" {
 		query = query.Where(notificationtemplate.UIDGT(lastUID))
 	}
-	if len(types) > 0 {
-		values := make([]notificationtemplate.Type, 0, len(types))
-		for _, item := range types {
-			values = append(values, notificationtemplate.Type(item))
-		}
-		query = query.Where(notificationtemplate.TypeIn(values...))
+	predicates := templateScopePredicates(scopes)
+	if len(predicates) == 0 {
+		return []bo.SelectItem{}, nil
 	}
+	query = query.Where(notificationtemplate.Or(predicates...))
 	rows, err := query.Order(ent.Asc(notificationtemplate.FieldUID)).Limit(limit).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)

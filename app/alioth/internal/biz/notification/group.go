@@ -24,18 +24,15 @@ func (center *Center) normalizeGroup(ctx context.Context, in *bo.NotificationGro
 		return merr.Invalid("name is required")
 	}
 	in.Name = strings.TrimSpace(in.Name)
-	// 渠道类型和对应模板类型必须在套餐范围内：未授权渠道的模板不能绑定到通知组。
-	channelTypes, err := center.authorizedChannelTypes(ctx)
+	// 渠道和模板各自的「类型 + 应用」能力都必须在套餐范围内：
+	// 未授权组合不能绑定到通知组，避免只买钉钉却绑上企业微信模板。
+	capabilities, err := center.access.Capabilities(ctx)
 	if err != nil {
 		return err
 	}
-	allowedChannels := make(map[string]struct{}, len(channelTypes))
-	for _, item := range channelTypes {
-		allowedChannels[item] = struct{}{}
-	}
-	allowedTemplates := make(map[string]struct{})
-	for _, item := range perm.TemplateTypesOfChannelTypes(channelTypes) {
-		allowedTemplates[item] = struct{}{}
+	enabled := make(map[string]struct{}, len(capabilities))
+	for _, code := range capabilities {
+		enabled[code] = struct{}{}
 	}
 	normalizeLegacyGroup(in)
 	// channel_uids 与 template_uids 按下标对应，去重时必须成对删除。
@@ -98,10 +95,14 @@ func (center *Center) normalizeGroup(ctx context.Context, in *bo.NotificationGro
 		if err != nil {
 			return center.access.Wrap(err)
 		}
-		if _, ok := allowedChannels[channel.Type]; !ok {
+		if !capabilityEnabled(enabled, perm.ChannelCapabilityOf(channel.Type, channel.App)) {
 			return merr.Forbidden("feature not enabled")
 		}
-		if _, ok := allowedTemplates[template.Type]; !ok {
+		templateApp := template.App
+		if templateApp == "" {
+			templateApp = "OTHER"
+		}
+		if !capabilityEnabled(enabled, perm.TemplateCapabilityOf(template.Type, templateApp)) {
 			return merr.Forbidden("feature not enabled")
 		}
 		if err := validateGroupBinding(*channel, *template); err != nil {
@@ -297,4 +298,13 @@ func uniqueStrings(values []string) []string {
 		out = append(out, value)
 	}
 	return out
+}
+
+// capabilityEnabled 判断能力编码是否在租户已开通范围内；空编码表示不支持的组合。
+func capabilityEnabled(enabled map[string]struct{}, capability string) bool {
+	if capability == "" {
+		return false
+	}
+	_, ok := enabled[capability]
+	return ok
 }

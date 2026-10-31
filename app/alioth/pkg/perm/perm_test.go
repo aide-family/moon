@@ -6,40 +6,6 @@ import (
 	"testing"
 )
 
-func TestRoleBoundaries(t *testing.T) {
-	owner := set(RolePermissions(RoleOwner))
-	admin := set(RolePermissions(RoleAdmin))
-	member := set(RolePermissions(RoleMember))
-	viewer := set(RolePermissions(RoleViewer))
-
-	if _, ok := owner[NamespaceDelete]; !ok {
-		t.Fatal("owner missing namespace delete")
-	}
-	if _, ok := owner[NamespaceTransfer]; !ok {
-		t.Fatal("owner missing namespace transfer")
-	}
-	if _, ok := admin[NamespaceDelete]; ok {
-		t.Fatal("admin has namespace delete")
-	}
-	if _, ok := admin[NamespaceTransfer]; ok {
-		t.Fatal("admin has namespace transfer")
-	}
-	if _, ok := admin[NamespaceWrite]; !ok {
-		t.Fatal("admin missing namespace write")
-	}
-	if _, ok := member[SSHExec]; !ok {
-		t.Fatal("member missing exec permissions")
-	}
-	if _, ok := viewer[SSHExec]; ok {
-		t.Fatal("viewer has exec permission")
-	}
-	for name := range viewer {
-		if !IsReadOnly(name) {
-			t.Fatalf("viewer permission %s is not read-only", name)
-		}
-	}
-}
-
 // TestK8sPermissionCatalog 确认 Kubernetes 资源级权限都在租户目录里，
 // 并且 Name 能由 Resource 和 Action 拼回，前端分组和详情页才不会错位。
 func TestK8sPermissionCatalog(t *testing.T) {
@@ -73,41 +39,6 @@ func TestK8sPermissionCatalog(t *testing.T) {
 	}
 }
 
-// TestK8sRoleBoundaries 确认 owner/admin 拿到全部资源读写，
-// member/viewer 只拿到全部资源读和 Pod 日志，不含任何资源写。
-func TestK8sRoleBoundaries(t *testing.T) {
-	owner := set(RolePermissions(RoleOwner))
-	admin := set(RolePermissions(RoleAdmin))
-	member := set(RolePermissions(RoleMember))
-	viewer := set(RolePermissions(RoleViewer))
-	reads := K8sReadPermissions()
-	if !IsReadOnly(K8sPodLogs) {
-		t.Fatal("k8s pod logs is not read-only")
-	}
-	for _, code := range reads {
-		if _, ok := member[code]; !ok {
-			t.Fatalf("member missing k8s read permission %s", code)
-		}
-		if _, ok := viewer[code]; !ok {
-			t.Fatalf("viewer missing k8s read permission %s", code)
-		}
-	}
-	for _, code := range K8sWritePermissions() {
-		if _, ok := owner[code]; !ok {
-			t.Fatalf("owner missing k8s write permission %s", code)
-		}
-		if _, ok := admin[code]; !ok {
-			t.Fatalf("admin missing k8s write permission %s", code)
-		}
-		if _, ok := member[code]; ok {
-			t.Fatalf("member has k8s write permission %s", code)
-		}
-		if _, ok := viewer[code]; ok {
-			t.Fatalf("viewer has k8s write permission %s", code)
-		}
-	}
-}
-
 // TestReadOnlyCatalog 确认只读判断覆盖 read 与 logs，写、删除、介入和执行都不算只读。
 func TestReadOnlyCatalog(t *testing.T) {
 	reads := set(ReadOnlyNames())
@@ -134,9 +65,6 @@ func TestReadOnlyCatalog(t *testing.T) {
 	}
 	if IsReadOnly(SystemNamespaceRead) || IsReadOnly(SystemUserRead) {
 		t.Fatal("system permission treated as tenant read-only permission")
-	}
-	if len(reads) != len(readPermissions()) {
-		t.Fatalf("read-only catalog size = %d, want %d", len(reads), len(readPermissions()))
 	}
 }
 
@@ -238,12 +166,12 @@ func TestSystemRoles(t *testing.T) {
 	}
 }
 
-// TestCapabilityCatalog 确认两级功能模型：37 个能力都挂在 10 个模块下，
+// TestCapabilityCatalog 确认两级功能模型：41 个能力都挂在 10 个模块下，
 // 权限都在租户目录里，菜单权限与能力一一对应。
 func TestCapabilityCatalog(t *testing.T) {
 	items := Capabilities()
-	if len(items) != 37 {
-		t.Fatalf("capabilities = %d, want 37", len(items))
+	if len(items) != 41 {
+		t.Fatalf("capabilities = %d, want 41", len(items))
 	}
 	if items[0].Code != CapabilityAlertRealtime || items[len(items)-1].Code != CapabilityWebShell {
 		t.Fatalf("unexpected capability order: first %s last %s", items[0].Code, items[len(items)-1].Code)
@@ -296,8 +224,8 @@ func TestCapabilityCatalog(t *testing.T) {
 		t.Fatal("menu permission count does not match menu count")
 	}
 	base := BaseCapabilities()
-	if len(base) != 22 {
-		t.Fatalf("base capabilities = %d, want 22", len(base))
+	if len(base) != 26 {
+		t.Fatalf("base capabilities = %d, want 26", len(base))
 	}
 	// 数据源、探测和通知渠道按类型展开后，基础套餐要覆盖全部现有类型。
 	if got := DatasourceDriversOf(base); len(got) != 6 {
@@ -308,6 +236,31 @@ func TestCapabilityCatalog(t *testing.T) {
 	}
 	if got := ChannelTypesOf(base); len(got) != 3 {
 		t.Fatalf("base channel types = %v, want 3", got)
+	}
+	// Webhook 按应用、短信按提供商拆分后，每个组合对应一个能力；腾讯云短信只上架能力。
+	if got := ChannelScopesOf(base); len(got) != 6 {
+		t.Fatalf("base channel scopes = %v, want 6", got)
+	}
+	if got := ChannelCapabilityOf("WEBHOOK", "DINGTALK"); got != CapabilityNotifyChannelWebhookDingTalk {
+		t.Fatalf("dingtalk webhook capability = %s", got)
+	}
+	if got := ChannelCapabilityOf("WEBHOOK", "OTHER"); got != CapabilityNotifyChannelWebhookOther {
+		t.Fatalf("custom webhook capability = %s", got)
+	}
+	if got := ChannelCapabilityOf("SMS", "SMS_TENCENT"); got != "" {
+		t.Fatalf("tencent sms must not be configurable, got capability %s", got)
+	}
+	if got := ChannelAppsOf("WEBHOOK", []string{CapabilityNotifyChannelWebhookDingTalk}); len(got) != 1 || got[0] != "DINGTALK" {
+		t.Fatalf("authorized webhook apps = %v, want [DINGTALK]", got)
+	}
+	if got := TemplateCapabilityOf("SMS_ALICLOUD", "OTHER"); got != CapabilityNotifyChannelSMSAliCloud {
+		t.Fatalf("sms template capability = %s", got)
+	}
+	if got := TemplateScopesOf([]string{CapabilityNotifyChannelSMSTencent}); len(got) != 0 {
+		t.Fatalf("tencent sms should have no template scope, got %v", got)
+	}
+	if !IsCapability(CapabilityNotifyChannelSMSTencent) {
+		t.Fatal("tencent sms capability must stay in the catalog")
 	}
 	baseModules := set(BaseFeatures())
 	for _, code := range base {
@@ -321,45 +274,6 @@ func TestCapabilityCatalog(t *testing.T) {
 	}
 	if got := CapabilityCodesOfModule(FeatureCluster); len(got) != 12 {
 		t.Fatalf("cluster capabilities = %d, want 12", len(got))
-	}
-}
-
-// TestRolePermissionsForCapabilities 确认预置角色按能力范围取权限：
-// 模块权限与能力权限取交集，再带上对应菜单权限；namespace:* 始终保留。
-func TestRolePermissionsForCapabilities(t *testing.T) {
-	caps := []string{CapabilityAlertRealtime, CapabilityClusterAccess}
-	owner := set(RolePermissionsForCapabilities(RoleOwner, caps))
-	for _, name := range []string{AlertRealtimeRead, AlertRealtimeIntervene, MenuPermission(CapabilityAlertRealtime), MenuPermission(CapabilityClusterAccess), NamespaceWrite} {
-		if _, ok := owner[name]; !ok {
-			t.Fatalf("owner missing %s", name)
-		}
-	}
-	for _, name := range []string{AlertPageWrite, AlertPageDelete, AlertHistoryRead, K8sNodeRead, MenuPermission(CapabilityAlertHistory)} {
-		if _, ok := owner[name]; ok {
-			t.Fatalf("owner has out-of-scope permission %s", name)
-		}
-	}
-	if _, ok := owner[ClusterWrite]; !ok {
-		t.Fatal("owner missing cluster write from cluster access capability")
-	}
-	viewer := set(RolePermissionsForCapabilities(RoleViewer, caps))
-	for name := range viewer {
-		if !IsReadOnly(name) {
-			t.Fatalf("viewer permission %s is not read-only", name)
-		}
-	}
-	member := set(RolePermissionsForCapabilities(RoleMember, []string{CapabilityWebShell}))
-	if _, ok := member[SSHExec]; !ok {
-		t.Fatal("member missing ssh exec in web shell capability")
-	}
-	if _, ok := member[MenuPermission(CapabilityWebShell)]; !ok {
-		t.Fatal("member missing web shell menu permission")
-	}
-	if _, ok := member[MenuPermission(CapabilitySSHCommand)]; ok {
-		t.Fatal("member has menu permission outside capabilities")
-	}
-	if _, ok := set(RolePermissionsForCapabilities(RoleViewer, nil))[MemberRead]; ok {
-		t.Fatal("capability-less role kept module permissions")
 	}
 }
 

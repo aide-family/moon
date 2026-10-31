@@ -15,7 +15,10 @@ import {
 } from "@/api/notification-template"
 import type { NotificationTemplateItem } from "@/api/notification-template/types"
 import { useSession } from "@/auth/session"
-import { authorizedTemplateTypes } from "@/lib/feature-catalog"
+import {
+  authorizedTemplateApps,
+  authorizedTemplateTypes,
+} from "@/lib/feature-catalog"
 import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -63,7 +66,9 @@ import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { runAction } from "@/lib/action"
 
-const webhookApps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU"]
+function defaultWebhookApp(apps: string[]): string {
+  return apps[0] ?? "OTHER"
+}
 
 function templateAppLabel(t: TFunction, type: string, app: string): string {
   if (type !== "WEBHOOK") {
@@ -97,9 +102,13 @@ export function NotificationTemplatePage() {
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationTemplateItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const canWrite = session.can("notification_template:write")
-  // 模板类型跟着渠道类型走：未授权渠道对应的模板不出现在新建和筛选里。
+  // 模板类型和应用跟着渠道能力走：未授权组合不出现在新建和筛选里。
   const allowedTypes = useMemo(
     () => authorizedTemplateTypes(session.features),
+    [session.features]
+  )
+  const allowedWebhookApps = useMemo(
+    () => authorizedTemplateApps(session.features, "WEBHOOK"),
     [session.features]
   )
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationTemplateItem>({
@@ -126,10 +135,11 @@ export function NotificationTemplatePage() {
   }, [session.namespaceUid])
 
   function openCreate() {
+    const nextType = allowedTypes[0] ?? "EMAIL"
     setEditing(null)
     setName("")
-    setType(allowedTypes[0] ?? "EMAIL")
-    setApp("OTHER")
+    setType(nextType)
+    setApp(nextType === "WEBHOOK" ? defaultWebhookApp(allowedWebhookApps) : "OTHER")
     setSubject("")
     setBody("")
     setRemark("")
@@ -153,9 +163,7 @@ export function NotificationTemplatePage() {
 
   function selectType(value: string) {
     setType(value)
-    if (value !== "WEBHOOK") {
-      setApp("OTHER")
-    }
+    setApp(value === "WEBHOOK" ? defaultWebhookApp(allowedWebhookApps) : "OTHER")
     if (value !== "EMAIL") {
       setSubject("")
     }
@@ -303,27 +311,29 @@ export function NotificationTemplatePage() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={query.app || "ALL"} onValueChange={(value) => query.update({ app: value === "ALL" ? "" : value })}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder={t("template.appFilter")}>
-              <span className="flex items-center gap-2">
-                <ChannelLogo type="WEBHOOK" app={query.app || "OTHER"} className="size-4" />
-                <span>{query.app ? enumLabel(t, query.app) : t("template.allApps")}</span>
-              </span>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectOption value="ALL">{t("template.allApps")}</SelectOption>
-            {webhookApps.map((item) => (
-              <SelectOption key={item} value={item}>
+        {allowedWebhookApps.length > 0 ? (
+          <Select value={query.app || "ALL"} onValueChange={(value) => query.update({ app: value === "ALL" ? "" : value })}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder={t("template.appFilter")}>
                 <span className="flex items-center gap-2">
-                  <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
-                  <span>{enumLabel(t, item)}</span>
+                  <ChannelLogo type="WEBHOOK" app={query.app || "OTHER"} className="size-4" />
+                  <span>{query.app ? enumLabel(t, query.app) : t("template.allApps")}</span>
                 </span>
-              </SelectOption>
-            ))}
-          </SelectContent>
-        </Select>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectOption value="ALL">{t("template.allApps")}</SelectOption>
+              {allowedWebhookApps.map((item) => (
+                <SelectOption key={item} value={item}>
+                  <span className="flex items-center gap-2">
+                    <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                    <span>{enumLabel(t, item)}</span>
+                  </span>
+                </SelectOption>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
         <Button type="submit" variant="outline" className="shrink-0">
           {t("action.search")}
         </Button>
@@ -435,7 +445,7 @@ export function NotificationTemplatePage() {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {webhookApps.map((item) => (
+                      {allowedWebhookApps.map((item) => (
                         <SelectOption key={item} value={item}>
                           <span className="flex items-center gap-2">
                             <ChannelLogo type="WEBHOOK" app={item} className="size-4" />

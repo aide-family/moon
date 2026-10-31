@@ -1,12 +1,12 @@
 // 能力目录（套餐 / 租户功能授权 / 菜单可见性）。
 //
-// 能力 code 与后端 perm.Features() 的 30 项定义保持一致；GET /v1/system/features
+// 能力 code 与后端 perm.Capabilities() 的 41 项定义保持一致；GET /v1/system/features
 // 返回的是同一份目录（code/module/name/description/permissions）。页面用这里的
 // 双语标签，不直接用接口里的 name/description，这样切到 en 时中文名也不会消失，
 // 后端没部署新接口时也能先用本地目录渲染勾选框。
 //
-// 目录分两级：MODULES 是所属菜单模块（10 个），CAPABILITIES 是具体能力（30 个）。
-// 新增 / 删除能力时同步：后端 perm.Features()、本文件、i18n 里的菜单文案。
+// 目录分两级：MODULES 是所属菜单模块（10 个），CAPABILITIES 是具体能力（41 个）。
+// 新增 / 删除能力时同步：后端 perm.Capabilities()、本文件、i18n 里的菜单文案。
 
 export type LocalizedLabel = { zh: string; en: string }
 
@@ -38,9 +38,9 @@ export const MODULES: ModuleDefinition[] = [
 ]
 
 /**
- * 能力目录：顺序与后端 perm.Features() 一致。
+ * 能力目录：顺序与后端 perm.Capabilities() 一致。
  * 基础套餐 = 前 7 个模块（alert / alert_rule / probe / datasource /
- * notification / member / role）的全部能力，共 15 项。
+ * notification / member / role）的全部能力，共 26 项。
  */
 export const CAPABILITIES: CapabilityDefinition[] = [
   {
@@ -161,21 +161,57 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     },
   },
   {
-    code: "notify_channel_webhook",
+    code: "notify_channel_webhook_other",
     module: "notification",
-    label: { zh: "Webhook 渠道", en: "Webhook channels" },
+    label: { zh: "自定义 Webhook", en: "Custom webhooks" },
     description: {
-      zh: "Webhook 通知渠道（含钉钉、企业微信、飞书）",
-      en: "Webhook channels including DingTalk, WeCom, and Feishu",
+      zh: "自定义 Webhook 通知渠道，服务端以 JSON 发送并附带签名",
+      en: "Custom webhook channels sent as signed JSON",
     },
   },
   {
-    code: "notify_channel_sms",
+    code: "notify_channel_webhook_dingtalk",
     module: "notification",
-    label: { zh: "短信渠道", en: "SMS channels" },
+    label: { zh: "钉钉 Webhook", en: "DingTalk webhooks" },
     description: {
-      zh: "短信通知渠道",
-      en: "SMS notification channels",
+      zh: "钉钉自定义机器人 Webhook 通知渠道",
+      en: "DingTalk custom robot webhook channels",
+    },
+  },
+  {
+    code: "notify_channel_webhook_wechat",
+    module: "notification",
+    label: { zh: "企业微信 Webhook", en: "WeCom webhooks" },
+    description: {
+      zh: "企业微信群机器人 Webhook 通知渠道",
+      en: "WeCom group robot webhook channels",
+    },
+  },
+  {
+    code: "notify_channel_webhook_feishu",
+    module: "notification",
+    label: { zh: "飞书 Webhook", en: "Feishu webhooks" },
+    description: {
+      zh: "飞书自定义机器人 Webhook 通知渠道",
+      en: "Feishu custom robot webhook channels",
+    },
+  },
+  {
+    code: "notify_channel_sms_alicloud",
+    module: "notification",
+    label: { zh: "阿里云短信", en: "Aliyun SMS" },
+    description: {
+      zh: "阿里云短信通知渠道",
+      en: "Aliyun SMS notification channels",
+    },
+  },
+  {
+    code: "notify_channel_sms_tencent",
+    module: "notification",
+    label: { zh: "腾讯云短信", en: "Tencent Cloud SMS" },
+    description: {
+      zh: "开通腾讯云短信渠道；当前版本只上架能力，暂不支持配置与发送",
+      en: "Tencent Cloud SMS entitlement; not configurable or deliverable yet",
     },
   },
   {
@@ -354,7 +390,7 @@ export const CAPABILITIES: CapabilityDefinition[] = [
   },
 ]
 
-/** 基础套餐包含的模块：前 7 个模块的全部能力（数据源和通知渠道按类型展开后共 22 项）。 */
+/** 基础套餐包含的模块：前 7 个模块的全部能力（数据源、通知渠道按类型/应用展开后共 26 项）。 */
 export const BASE_MODULES = [
   "alert",
   "alert_rule",
@@ -455,18 +491,137 @@ export const PROBE_CAPABILITY_DRIVERS: Record<string, string> = {
   probe_http: "PROBE_HTTP",
 }
 
-/** 能力编码 → 通知渠道类型。 */
-export const CHANNEL_CAPABILITY_TYPES: Record<string, string> = {
-  notify_channel_smtp: "SMTP",
-  notify_channel_webhook: "WEBHOOK",
-  notify_channel_sms: "SMS",
+/** 渠道/模板授权组合：Webhook 按应用、短信按提供商拆分能力。 */
+export type NotificationScope = { type: string; app: string }
+
+type CapabilityScopeDefinition = NotificationScope & { capability: string }
+
+/**
+ * 能力编码 → 通知渠道「类型 + 应用」组合，顺序与后端 perm.channelCapabilityScopes 一致。
+ * 腾讯云短信没有渠道组合：能力可售，但当前版本不支持配置渠道。
+ */
+export const CHANNEL_CAPABILITY_SCOPES: CapabilityScopeDefinition[] = [
+  { capability: "notify_channel_smtp", type: "SMTP", app: "OTHER" },
+  { capability: "notify_channel_webhook_other", type: "WEBHOOK", app: "OTHER" },
+  {
+    capability: "notify_channel_webhook_dingtalk",
+    type: "WEBHOOK",
+    app: "DINGTALK",
+  },
+  {
+    capability: "notify_channel_webhook_wechat",
+    type: "WEBHOOK",
+    app: "WECHAT",
+  },
+  {
+    capability: "notify_channel_webhook_feishu",
+    type: "WEBHOOK",
+    app: "FEISHU",
+  },
+  {
+    capability: "notify_channel_sms_alicloud",
+    type: "SMS",
+    app: "SMS_ALICLOUD",
+  },
+]
+
+/**
+ * 能力编码 → 模板「类型 + 应用」组合，顺序与后端 perm.templateCapabilityScopes 一致。
+ * 模板是渠道的正文，跟着渠道能力授权；腾讯云短信没有模板类型。
+ */
+export const TEMPLATE_CAPABILITY_SCOPES: CapabilityScopeDefinition[] = [
+  { capability: "notify_channel_smtp", type: "EMAIL", app: "OTHER" },
+  { capability: "notify_channel_webhook_other", type: "WEBHOOK", app: "OTHER" },
+  {
+    capability: "notify_channel_webhook_dingtalk",
+    type: "WEBHOOK",
+    app: "DINGTALK",
+  },
+  {
+    capability: "notify_channel_webhook_wechat",
+    type: "WEBHOOK",
+    app: "WECHAT",
+  },
+  {
+    capability: "notify_channel_webhook_feishu",
+    type: "WEBHOOK",
+    app: "FEISHU",
+  },
+  {
+    capability: "notify_channel_sms_alicloud",
+    type: "SMS_ALICLOUD",
+    app: "OTHER",
+  },
+]
+
+function authorizedScopes(
+  features: string[],
+  definitions: CapabilityScopeDefinition[]
+): NotificationScope[] {
+  const enabled = new Set(features)
+  return definitions
+    .filter((definition) => enabled.has(definition.capability))
+    .map((definition) => ({ type: definition.type, app: definition.app }))
 }
 
-/** 通知渠道类型 → 模板类型。模板是渠道的正文，渠道类型没开通时模板也不展示。 */
-export const CHANNEL_TYPE_TEMPLATE_TYPES: Record<string, string[]> = {
-  SMTP: ["EMAIL"],
-  WEBHOOK: ["WEBHOOK"],
-  SMS: ["SMS_ALICLOUD"],
+/** 已开通的通知渠道「类型 + 应用」组合。 */
+export function authorizedChannelScopes(features: string[]): NotificationScope[] {
+  return authorizedScopes(features, CHANNEL_CAPABILITY_SCOPES)
+}
+
+/** 已开通的通知渠道类型（同一类型只出现一次，保留目录顺序）。 */
+export function authorizedChannelTypes(features: string[]): string[] {
+  const types: string[] = []
+  for (const scope of authorizedChannelScopes(features)) {
+    if (!types.includes(scope.type)) {
+      types.push(scope.type)
+    }
+  }
+  return types
+}
+
+/** 某类渠道已开通的应用。 */
+export function authorizedChannelApps(
+  features: string[],
+  channelType: string
+): string[] {
+  const apps: string[] = []
+  for (const scope of authorizedChannelScopes(features)) {
+    if (scope.type === channelType && !apps.includes(scope.app)) {
+      apps.push(scope.app)
+    }
+  }
+  return apps
+}
+
+/** 已开通的模板「类型 + 应用」组合。 */
+export function authorizedTemplateScopes(features: string[]): NotificationScope[] {
+  return authorizedScopes(features, TEMPLATE_CAPABILITY_SCOPES)
+}
+
+/** 已开通的模板类型（同一类型只出现一次，保留目录顺序）。 */
+export function authorizedTemplateTypes(features: string[]): string[] {
+  const types: string[] = []
+  for (const scope of authorizedTemplateScopes(features)) {
+    if (!types.includes(scope.type)) {
+      types.push(scope.type)
+    }
+  }
+  return types
+}
+
+/** 某类模板已开通的应用。 */
+export function authorizedTemplateApps(
+  features: string[],
+  templateType: string
+): string[] {
+  const apps: string[] = []
+  for (const scope of authorizedTemplateScopes(features)) {
+    if (scope.type === templateType && !apps.includes(scope.app)) {
+      apps.push(scope.app)
+    }
+  }
+  return apps
 }
 
 /** 某个模块下的全部能力编码，用于把模块级菜单入口展开成任一能力。 */
@@ -502,22 +657,6 @@ export function authorizedProbeDrivers(features: string[]): string[] {
   return authorizedValues(features, PROBE_CAPABILITY_DRIVERS)
 }
 
-/** 已开通的通知渠道类型。 */
-export function authorizedChannelTypes(features: string[]): string[] {
-  return authorizedValues(features, CHANNEL_CAPABILITY_TYPES)
-}
-
-/** 已开通渠道类型可用的模板类型。 */
-export function authorizedTemplateTypes(features: string[]): string[] {
-  const types = new Set<string>()
-  for (const channelType of authorizedChannelTypes(features)) {
-    for (const templateType of CHANNEL_TYPE_TEMPLATE_TYPES[channelType] ?? []) {
-      types.add(templateType)
-    }
-  }
-  return [...types]
-}
-
 /**
  * 能力 → 菜单的映射。多数能力与菜单同码；按类型拆分的驱动/渠道合并到一张菜单，
  * 与后端 perm.menuSpecs 保持一致。
@@ -531,8 +670,12 @@ const CAPABILITY_MENU_OVERRIDES: Record<string, string[]> = {
   datasource_jaeger: ["datasource"],
   probe_http: ["probe"],
   notify_channel_smtp: ["notification_channel"],
-  notify_channel_webhook: ["notification_channel"],
-  notify_channel_sms: ["notification_channel"],
+  notify_channel_webhook_other: ["notification_channel"],
+  notify_channel_webhook_dingtalk: ["notification_channel"],
+  notify_channel_webhook_wechat: ["notification_channel"],
+  notify_channel_webhook_feishu: ["notification_channel"],
+  notify_channel_sms_alicloud: ["notification_channel"],
+  notify_channel_sms_tencent: ["notification_channel"],
   notify_template: ["notification_template"],
   notify_group: ["notification_group"],
   notify_subscription: ["notification_subscription"],

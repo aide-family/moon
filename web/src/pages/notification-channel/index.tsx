@@ -11,7 +11,7 @@ import {
 } from "@/api/notification-channel"
 import type { NotificationChannelItem } from "@/api/notification-channel/types"
 import { useSession } from "@/auth/session"
-import { authorizedChannelTypes } from "@/lib/feature-catalog"
+import { authorizedChannelApps, authorizedChannelTypes } from "@/lib/feature-catalog"
 import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
 import { NotificationTestDialog } from "@/components/notification-test-dialog"
@@ -59,8 +59,7 @@ import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { runAction } from "@/lib/action"
 
-const webhookApps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU"]
-
+// 渠道应用由能力决定：SMS 固定阿里云，SMTP 固定 OTHER，Webhook 按已授权应用展示。
 function appFor(type: string, app: string): string {
   if (type === "SMS") {
     return "SMS_ALICLOUD"
@@ -69,6 +68,13 @@ function appFor(type: string, app: string): string {
     return "OTHER"
   }
   return app
+}
+
+function defaultAppFor(type: string, webhookApps: string[]): string {
+  if (type === "WEBHOOK") {
+    return webhookApps[0] ?? "OTHER"
+  }
+  return appFor(type, "OTHER")
 }
 
 export function NotificationChannelPage() {
@@ -95,9 +101,13 @@ export function NotificationChannelPage() {
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationChannelItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const canWrite = session.can("notification_channel:write")
-  // 渠道类型按套餐细分：未授权类型不出现在新建、筛选和编辑入口里。
+  // 渠道类型和应用按套餐能力细分：未授权组合不出现在新建、筛选和编辑入口里。
   const allowedTypes = useMemo(
     () => authorizedChannelTypes(session.features),
+    [session.features]
+  )
+  const allowedWebhookApps = useMemo(
+    () => authorizedChannelApps(session.features, "WEBHOOK"),
     [session.features]
   )
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationChannelItem>({
@@ -108,10 +118,11 @@ export function NotificationChannelPage() {
   })
 
   function openCreate() {
+    const nextType = allowedTypes[0] ?? "SMTP"
     setEditing(null)
     setName("")
-    setType(allowedTypes[0] ?? "SMTP")
-    setApp("OTHER")
+    setType(nextType)
+    setApp(defaultAppFor(nextType, allowedWebhookApps))
     setEndpoint("")
     setUsername("")
     setPassword("")
@@ -282,27 +293,29 @@ export function NotificationChannelPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={query.app || "ALL"} onValueChange={(value) => query.update({ app: value === "ALL" ? "" : value })}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder={t("channel.appFilter")}>
-              <span className="flex items-center gap-2">
-                <ChannelLogo type="WEBHOOK" app={query.app || "OTHER"} className="size-4" />
-                <span>{query.app ? enumLabel(t, query.app) : t("channel.allApps")}</span>
-              </span>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">{t("channel.allApps")}</SelectItem>
-            {["OTHER", ...webhookApps.filter((item) => item !== "OTHER")].map((item) => (
-              <SelectItem key={item} value={item}>
+        {allowedWebhookApps.length > 0 ? (
+          <Select value={query.app || "ALL"} onValueChange={(value) => query.update({ app: value === "ALL" ? "" : value })}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder={t("channel.appFilter")}>
                 <span className="flex items-center gap-2">
-                  <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
-                  <span>{enumLabel(t, item)}</span>
+                  <ChannelLogo type="WEBHOOK" app={query.app || "OTHER"} className="size-4" />
+                  <span>{query.app ? enumLabel(t, query.app) : t("channel.allApps")}</span>
                 </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">{t("channel.allApps")}</SelectItem>
+              {allowedWebhookApps.map((item) => (
+                <SelectItem key={item} value={item}>
+                  <span className="flex items-center gap-2">
+                    <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                    <span>{enumLabel(t, item)}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
         <Button type="submit" variant="outline" className="shrink-0">
           {t("action.search")}
         </Button>
@@ -397,7 +410,7 @@ export function NotificationChannelPage() {
                   value={type}
                   onValueChange={(value) => {
                     setType(value)
-                    setApp(value === "SMS" ? "SMS_ALICLOUD" : "OTHER")
+                    setApp(defaultAppFor(value, allowedWebhookApps))
                     setError("")
                     setFieldErrors({})
                   }}
@@ -438,7 +451,7 @@ export function NotificationChannelPage() {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {webhookApps.map((item) => (
+                      {allowedWebhookApps.map((item) => (
                         <SelectItem key={item} value={item}>
                           <span className="flex items-center gap-2">
                             <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
