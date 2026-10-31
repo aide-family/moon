@@ -16,6 +16,7 @@ const zh = {
     roles: "角色",
     system: "系统管理",
     workers: "后台工作进程",
+    systemUpgrade: "升级与迁移",
     datasources: "数据源",
     probeTargets: "探测目标",
     alertRules: "告警规则",
@@ -134,6 +135,15 @@ const zh = {
       "服务暂时不可用，可能正在升级或维护。请稍后重试；如果持续出现，请联系运维确认恢复时间。",
     forbiddenTitle: "没有权限",
     forbiddenDescription: "当前账号不能访问这个页面。",
+    migrationRunning: "有另一个迁移或导入正在执行，请稍后重试。",
+    archiveKeyMismatch:
+      "迁移包与当前环境的 ENCRYPT_KEY 不一致，历史密文无法解密。",
+    archiveInvalid: "迁移包格式不受支持或文件已损坏。",
+    archiveIncomplete: "迁移包不完整，可能上传被截断。",
+    archiveTooLarge: "迁移包超过 256 MiB 上限。",
+    archiveSchemaNotReady: "数据库还没迁移，请先执行数据库迁移。",
+    archiveSeedFailed:
+      "迁移包已导入，但补跑默认数据失败；请再执行一次数据库迁移。",
     captchaInvalid: "验证码不正确",
     emailExists: "邮箱已注册",
     invalidCode: "邮箱或验证码不正确",
@@ -2772,6 +2782,75 @@ const zh = {
       body: "本页只用服务端可精确统计的数字：告警数量与存量构成是实时快照，告警趋势与级别分布来自区间聚合（历史分库不可用时只含实时数据），今日投递按本地自然日聚合。新增按事件开始时间归日、闭环按事件结束时间归日，两者相减即区间内存量净增；归档表按创建周分片，超过 30 天前创建的事件不计入其闭环日，但计入新增日。分位数由服务端按最近秩口径算好，前端不做二次计算。",
     },
   },
+  maintenance: {
+    title: "升级与迁移",
+    description:
+      "把现有部署的配置与身份数据搬到新版本或新服务器，并在服务端补跑数据库迁移。",
+    readOnly:
+      "当前账号只能查看环境状态；导出、导入和执行数据库迁移只给超级管理员。",
+    refresh: "刷新状态",
+    loadFailed: "环境状态读取失败，请刷新重试。",
+    statusTitle: "环境状态",
+    statusDescription: "控制面版本、数据库与迁移包口径。",
+    appVersion: "控制面版本",
+    archiveFormat: "迁移包格式",
+    archiveFormatValue: "v{{version}}",
+    postgresVersion: "PostgreSQL",
+    encryptKey: "加密密钥指纹",
+    archiveTables: "配置表",
+    archiveRows: "配置数据行数",
+    schemaReady: "数据库结构",
+    schemaReadyValue: "已就绪",
+    schemaNotReady: "待迁移",
+    tablesTitle: "迁移范围",
+    tablesDescription:
+      "迁移包只含配置与身份数据；实时告警、通知任务、消息日志与历史分库不迁移。",
+    archivedTables: "进入迁移包（{{count}} 张）",
+    runtimeTables: "运行数据，不迁移（{{count}} 张）",
+    tableRows: "{{count}} 行",
+    tableMissing: "未建表",
+    exportTitle: "导出迁移包",
+    exportDescription:
+      "从当前服务端流式导出配置数据，生成 .alioth-backup 文件。导出期间不要关闭页面。",
+    exportAction: "下载迁移包",
+    exporting: "正在导出…",
+    exportDone: "迁移包已开始下载：{{tables}} 张表，{{rows}} 行。",
+    exportFailed: "导出失败。",
+    importTitle: "导入迁移包",
+    importDescription:
+      "在新环境上传旧环境导出的迁移包：先校验格式与密钥，再覆盖配置数据并补跑 seed。",
+    importAction: "选择迁移包",
+    importing: "正在导入…",
+    importHint:
+      "文件必须是旧环境导出的 .alioth-backup，且目标环境 ENCRYPT_KEY 与旧环境一致。",
+    importConfirmTitle: "确认导入迁移包？",
+    importConfirmBody:
+      "导入会覆盖当前库的全部配置与身份数据，并清空实时告警、通知任务等运行数据。导入期间请停止外部流量。",
+    importConfirmAction: "覆盖并导入",
+    importDoneTitle: "导入完成",
+    importDoneBody:
+      "已导入 {{tables}} 张表、{{rows}} 行，来源版本 {{version}}。当前会话已失效，请用迁移包里的账号重新登录。",
+    importRelogin: "重新登录",
+    importFailed: "导入失败，目标库未改变。",
+    migrateTitle: "执行数据库迁移",
+    migrateDescription:
+      "建表、seed 与周分区，等价于 alioth migrate；可重复执行。新环境初始化和升级后都先点这里。",
+    migrateAction: "执行数据库迁移",
+    migrating: "正在迁移…",
+    migrateDone: "迁移完成：{{tables}} 张表，耗时 {{duration}}。",
+    migrateFailed: "数据库迁移失败。",
+    migrateConfirmTitle: "执行数据库迁移？",
+    migrateConfirmBody:
+      "迁移是幂等操作，会补齐表、索引、周分区和默认数据。运行期间请避免同时执行其他迁移。",
+    migrateConfirmAction: "开始迁移",
+    stepsTitle: "升级步骤",
+    step1: "在旧环境导出迁移包，并记录 ENCRYPT_KEY。",
+    step2: "部署新版本，在管理台执行数据库迁移（或运行 migrate Job）。",
+    step3: "在新环境导入迁移包，用旧账号重新登录校验。",
+    step4: "切换流量；旧环境的 PostgreSQL 至少保留一个发布周期用于回滚。",
+    stepsNote:
+      "迁移包不含历史告警与消息日志的分库数据；需要保留历史时继续用旧库查询。",
+  },
 }
 
 const en = {
@@ -2789,6 +2868,7 @@ const en = {
     roles: "Roles",
     system: "System",
     workers: "Workers",
+    systemUpgrade: "Upgrade and migration",
     datasources: "Datasources",
     probeTargets: "Probe targets",
     alertRules: "Alert rules",
@@ -2907,6 +2987,17 @@ const en = {
       "The service is temporarily unavailable, possibly during an upgrade or maintenance. Try again shortly; if it persists, ask operations when it will be back.",
     forbiddenTitle: "No permission",
     forbiddenDescription: "This account cannot open this page.",
+    migrationRunning: "Another migration or import is running. Try again later.",
+    archiveKeyMismatch:
+      "The archive and this environment use different ENCRYPT_KEY values, so encrypted data cannot be decrypted.",
+    archiveInvalid: "The archive format is unsupported or the file is damaged.",
+    archiveIncomplete:
+      "The archive is incomplete; the upload may have been truncated.",
+    archiveTooLarge: "The archive exceeds the 256 MiB limit.",
+    archiveSchemaNotReady:
+      "The database has not been migrated yet. Run the database migration first.",
+    archiveSeedFailed:
+      "The archive was imported, but seeding the defaults failed. Run the database migration again.",
     captchaInvalid: "The captcha is incorrect",
     emailExists: "This email is already registered",
     invalidCode: "Incorrect email or code",
@@ -5732,6 +5823,79 @@ const en = {
       title: "Data definitions",
       body: "This page only shows numbers the server can count exactly: alert counts and composition are live snapshots, the alert trend and level breakdown come from range aggregation (realtime data only when history shards are unavailable), and delivery today is aggregated by local calendar day. New events are bucketed by start time and closures by end time; their difference is the net change in open alerts over the range. Archive tables are sharded by creation week, so an event created more than 30 days ago is counted on its start day but not on its closure day. Quantiles are computed server-side with nearest rank and never re-derived here.",
     },
+  },
+  maintenance: {
+    title: "Upgrade and migration",
+    description:
+      "Move this deployment's configuration and identity data to a new version or server, and run the database migration from the console.",
+    readOnly:
+      "This account can only view the environment state; exporting, importing, and running the database migration are limited to the super admin.",
+    refresh: "Refresh status",
+    loadFailed: "Could not load the environment state. Refresh and try again.",
+    statusTitle: "Environment",
+    statusDescription:
+      "Control-plane version, database, and archive format in use.",
+    appVersion: "Control plane",
+    archiveFormat: "Archive format",
+    archiveFormatValue: "v{{version}}",
+    postgresVersion: "PostgreSQL",
+    encryptKey: "Encryption key fingerprint",
+    archiveTables: "Config tables",
+    archiveRows: "Config rows",
+    schemaReady: "Database schema",
+    schemaReadyValue: "Ready",
+    schemaNotReady: "Migration required",
+    tablesTitle: "Migration scope",
+    tablesDescription:
+      "The archive only carries configuration and identity data. Realtime alerts, notification tasks, message logs, and history shards are not migrated.",
+    archivedTables: "Included in the archive ({{count}})",
+    runtimeTables: "Runtime data, not migrated ({{count}})",
+    tableRows: "{{count}} rows",
+    tableMissing: "Missing table",
+    exportTitle: "Export archive",
+    exportDescription:
+      "Stream configuration data from this server into an .alioth-backup file. Keep the page open while it downloads.",
+    exportAction: "Download archive",
+    exporting: "Exporting…",
+    exportDone: "The archive download started: {{tables}} tables, {{rows}} rows.",
+    exportFailed: "Export failed.",
+    importTitle: "Import archive",
+    importDescription:
+      "Upload an archive from the old environment here: it is verified first, then configuration data is replaced and seed runs.",
+    importAction: "Choose archive",
+    importing: "Importing…",
+    importHint:
+      "The file must be an .alioth-backup from the old environment, and this environment must use the same ENCRYPT_KEY.",
+    importConfirmTitle: "Import the archive?",
+    importConfirmBody:
+      "Importing replaces all configuration and identity data in this database and clears runtime data such as realtime alerts and notification tasks. Stop external traffic while it runs.",
+    importConfirmAction: "Replace and import",
+    importDoneTitle: "Import finished",
+    importDoneBody:
+      "Imported {{tables}} tables and {{rows}} rows from version {{version}}. This session is no longer valid; sign in again with an account from the archive.",
+    importRelogin: "Sign in again",
+    importFailed: "Import failed; the target database was not changed.",
+    migrateTitle: "Run database migration",
+    migrateDescription:
+      "Creates tables, seed data, and weekly partitions, equivalent to alioth migrate; safe to repeat. Run it after deploying a new version or to initialize a new environment.",
+    migrateAction: "Run database migration",
+    migrating: "Migrating…",
+    migrateDone: "Migration finished: {{tables}} tables in {{duration}}.",
+    migrateFailed: "Database migration failed.",
+    migrateConfirmTitle: "Run the database migration?",
+    migrateConfirmBody:
+      "The migration is idempotent and fills in tables, indexes, weekly partitions, and defaults. Avoid running other migrations at the same time.",
+    migrateConfirmAction: "Start migration",
+    stepsTitle: "Upgrade steps",
+    step1: "Export the archive from the old environment and record ENCRYPT_KEY.",
+    step2:
+      "Deploy the new version and run the database migration here (or run the migrate Job).",
+    step3:
+      "Import the archive into the new environment and sign in with the old account to verify.",
+    step4:
+      "Switch traffic; keep the old PostgreSQL for at least one release cycle for rollback.",
+    stepsNote:
+      "The archive excludes history shards for alerts and message logs; keep querying the old database when you need that history.",
   },
 }
 

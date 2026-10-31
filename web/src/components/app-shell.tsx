@@ -4,6 +4,7 @@ import {
   BellRing,
   Boxes,
   Building2,
+  DatabaseBackup,
   CalendarClock,
   ChevronRight,
   Database,
@@ -95,6 +96,7 @@ const tenantFreePaths = new Set([
   "/packages",
   "/users",
   "/workers",
+  "/system/upgrade",
   "/invitations",
   "/messages",
   "/profile",
@@ -159,6 +161,12 @@ const links: {
     label: "nav.workers",
     permission: "system:user:read",
     icon: Activity,
+  },
+  {
+    to: "/system/upgrade",
+    label: "nav.systemUpgrade",
+    permission: "system:migration:read",
+    icon: DatabaseBackup,
   },
 ]
 

@@ -739,6 +739,10 @@ func publicOperation(operation string) bool {
 	}
 }
 
+// maintenanceArchivePath 是迁移包的裸 HTTP 路径。它不是 proto 方法，
+// 但同样只在平台级使用，不读 X-Namespace。
+const maintenanceArchivePath = "/v1/system/maintenance/archive"
+
 func namespaceOptional(operation string) bool {
 	switch operation {
 	case v1.OperationSelfServiceGetSelfInfo,
@@ -780,6 +784,10 @@ func namespaceOptional(operation string) bool {
 		v1.OperationNamespaceServiceUpdateNamespaceFeatures,
 		// 平台按租户查订单同样按路径参数定位租户。
 		v1.OperationNamespaceServiceListSystemNamespaceOrders,
+		// 升级与迁移是平台级操作：环境状态、数据库迁移和迁移包收发都不读 X-Namespace。
+		v1.OperationMaintenanceServiceGetMaintenanceStatus,
+		v1.OperationMaintenanceServiceRunSchemaMigration,
+		maintenanceArchivePath,
 		v1.OperationInvitationServiceListSelfInvitations,
 		v1.OperationInvitationServiceAcceptInvitation,
 		v1.OperationInvitationServiceDeclineInvitation,

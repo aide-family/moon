@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/health"
 	"github.com/aide-family/moon/app/alioth/internal/biz/member"
 	"github.com/aide-family/moon/app/alioth/internal/biz/message"
+	"github.com/aide-family/moon/app/alioth/internal/biz/migration"
 	"github.com/aide-family/moon/app/alioth/internal/biz/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
 	"github.com/aide-family/moon/app/alioth/internal/biz/order"
@@ -49,6 +50,7 @@ var ProviderSet = wire.NewSet(
 	agent.ProviderSet,
 	ssh.ProviderSet,
 	partition.ProviderSet,
+	migration.ProviderSet,
 	cluster.ProviderSet,
 	wire.Bind(new(auth.AgentTokenLookup), new(*agent.Registry)),
 )

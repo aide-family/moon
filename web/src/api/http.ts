@@ -84,6 +84,19 @@ const messageKeys: Record<string, string> = {
   "paid order cannot be cancelled": "error.orderPaidCannotCancel",
   "order is already paid": "error.orderAlreadyPaid",
   "member must accept invitation": "error.memberMustAcceptInvitation",
+  // 升级与迁移：迁移包与迁移锁的失败原因都是后端原文，需要逐条映射。
+  "migration is running": "error.migrationRunning",
+  "encrypt key does not match the archive": "error.archiveKeyMismatch",
+  "archive format is not supported": "error.archiveInvalid",
+  "archive is incomplete": "error.archiveIncomplete",
+  "archive is too large": "error.archiveTooLarge",
+  "invalid archive": "error.archiveInvalid",
+  "archive contains an unsupported table": "error.archiveInvalid",
+  "archive column is not supported by the target database": "error.archiveInvalid",
+  "archive data does not match the target database": "error.archiveInvalid",
+  "archive write failed": "error.archiveInvalid",
+  "database schema is not ready": "error.archiveSchemaNotReady",
+  "archive imported but seeding failed; run the database migration to finish": "error.archiveSeedFailed",
   "member has no email": "error.memberNoEmail",
   "member has no phone": "error.memberNoPhone",
   "member is already merged": "error.memberAlreadyMerged",
@@ -416,6 +429,43 @@ export async function send<T>(
 ): Promise<T> {
   const response = await request(path, init)
   const text = await response.text()
+  if (!response.ok) {
+    return throwResponseError(response, text, options)
+  }
+  let data: unknown = {}
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = { message: text }
+    }
+  }
+  return data as T
+}
+
+/** 下载二进制响应。错误响应仍是 JSON，按 send 的同一套规则本地化后抛出。 */
+export async function sendBlob(
+  path: string,
+  init: RequestInit = {},
+  options: RequestOptions = {}
+): Promise<{ blob: Blob; filename: string }> {
+  const response = await request(path, init)
+  if (!response.ok) {
+    return throwResponseError(response, await response.text(), options)
+  }
+  const disposition = response.headers.get("Content-Disposition") ?? ""
+  const match = /filename="?([^";]+)"?/i.exec(disposition)
+  return {
+    blob: await response.blob(),
+    filename: match?.[1] ?? "alioth-backup.alioth-backup",
+  }
+}
+
+function throwResponseError(
+  response: Response,
+  text: string,
+  options: RequestOptions
+): never {
   let data: {
     message?: string
     metadata?: Record<string, string>
@@ -432,26 +482,20 @@ export async function send<T>(
       data = { message: text }
     }
   }
-  if (!response.ok) {
-    const raw = data.message || `request failed: ${response.status}`
-    const message = localizeMessage(raw, data.reason ?? "")
-    const fields = response.status === 400 ? parseFieldErrors(raw) : {}
-    if (
-      !options.silent &&
-      (response.status === 404 || response.status >= 500)
-    ) {
-      notifyStatus(response.status, message)
-    }
-    throw new ApiError(
-      response.status,
-      message,
-      fields,
-      raw,
-      data.metadata ?? {},
-      data.reason ?? ""
-    )
+  const raw = data.message || `request failed: ${response.status}`
+  const message = localizeMessage(raw, data.reason ?? "")
+  const fields = response.status === 400 ? parseFieldErrors(raw) : {}
+  if (!options.silent && (response.status === 404 || response.status >= 500)) {
+    notifyStatus(response.status, message)
   }
-  return data as T
+  throw new ApiError(
+    response.status,
+    message,
+    fields,
+    raw,
+    data.metadata ?? {},
+    data.reason ?? ""
+  )
 }
 
 // 同一份 GET 的并发请求共享已解析结果：React StrictMode 会让 effect 执行两次，

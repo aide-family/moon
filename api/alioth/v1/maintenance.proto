@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 平台升级与迁移。
+//
+// 除下面两个 JSON 接口外，迁移包使用裸 HTTP 处理器流式收发二进制：
+//   GET  /v1/system/maintenance/archive  下载迁移包（Authorization: Bearer）
+//   POST /v1/system/maintenance/archive  上传迁移包（请求体就是迁移包内容）
+// 两者都要求平台权限 system:migration:write。
+service MaintenanceService {
+  // 查看控制面版本、PostgreSQL 版本、配置表数量与加密密钥指纹。
+  // 只要 system:migration:read，平台只读角色也能查看。
+  rpc GetMaintenanceStatus(GetMaintenanceStatusRequest) returns (GetMaintenanceStatusResponse) {
+    option (google.api.http) = {get: "/v1/system/maintenance"};
+  }
+  // 执行数据库迁移：建表、seed 与周分区，等价于 alioth migrate，可重复执行。
+  // 需要 system:migration:write，只授予超级管理员。
+  rpc RunSchemaMigration(RunSchemaMigrationRequest) returns (RunSchemaMigrationResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/maintenance/migrate"
+      body: "*"
+    };
+  }
+}
+
+// 查询环境状态不需要参数。
+message GetMaintenanceStatusRequest {}
+
+// 控制面版本、数据库与迁移包信息。
+message GetMaintenanceStatusResponse {
+  // 控制面构建版本，未注入时为 dev。
+  string app_version = 1;
+  // 迁移包格式版本，当前为 1。
+  int32 archive_format_version = 2;
+  // PostgreSQL 版本号。
+  string postgres_version = 3;
+  // 进入迁移包的配置表数量。
+  int32 archive_table_count = 4;
+  // 配置表的总行数。
+  int64 archive_row_count = 5;
+  // ENCRYPT_KEY 的 SHA-256 前 16 位，用来判断目标环境能否解密历史密文。
+  string encrypt_key_check = 6;
+  // 全部业务表，按是否进入迁移包列出。
+  repeated MaintenanceTable tables = 7;
+  // 配置表是否都已在库里建好；false 表示还没执行过数据库迁移。
+  bool schema_ready = 8;
+}
+
+// 一张业务表的迁移归属与行数。
+message MaintenanceTable {
+  // 表名。
+  string name = 1;
+  // 是否进入迁移包。运行数据为 false。
+  bool archived = 2;
+  // 行数。
+  int64 rows = 3;
+  // 表是否已存在于当前库。
+  bool exists = 4;
+}
+
+// 执行数据库迁移不需要参数。
+message RunSchemaMigrationRequest {}
+
+// 数据库迁移结果。
+message RunSchemaMigrationResponse {
+  // 本次确认存在的业务表数量。
+  int32 table_count = 1;
+  // 耗时，毫秒。
+  int64 duration_ms = 2;
+  // 执行迁移的构建版本。
+  string app_version = 3;
+}

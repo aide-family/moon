@@ -129,6 +129,10 @@ const (
 	// 功能套餐只由平台维护：读给系统管理员，写只给超级管理员。
 	SystemPackageRead  = "system:package:read"
 	SystemPackageWrite = "system:package:write"
+	// 升级与迁移：查看环境状态给平台只读角色；导出 / 导入迁移包和执行数据库迁移
+	// 会读写整库数据，只授予超级管理员。
+	SystemMigrationRead  = "system:migration:read"
+	SystemMigrationWrite = "system:migration:write"
 )
 
 // 套餐版本决定套餐出现在哪里：公开套餐可被用户在创建租户时选择，
@@ -232,6 +236,8 @@ func SystemCatalog() []Item {
 		{Name: SystemNamespaceWrite, Resource: "system", Action: "namespace:write"},
 		{Name: SystemPackageRead, Resource: "system", Action: "package:read"},
 		{Name: SystemPackageWrite, Resource: "system", Action: "package:write"},
+		{Name: SystemMigrationRead, Resource: "system", Action: "migration:read"},
+		{Name: SystemMigrationWrite, Resource: "system", Action: "migration:write"},
 	}
 }
 
@@ -292,7 +298,10 @@ func SystemPermissions(role string) []string {
 	case SystemRoleSuperAdmin:
 		return SystemNames()
 	case SystemRoleSystemAdmin:
-		return []string{SystemUserRead, SystemUserWrite, SystemRoleRead, SystemInviteRead, SystemNamespaceRead, SystemPackageRead}
+		return []string{
+			SystemUserRead, SystemUserWrite, SystemRoleRead, SystemInviteRead,
+			SystemNamespaceRead, SystemPackageRead, SystemMigrationRead,
+		}
 	case SystemRoleReadOnly:
 		return systemReadPermissions()
 	default:

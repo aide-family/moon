@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	kerrors "github.com/go-kratos/kratos/v3/errors"
+
 	_ "github.com/go-kratos/kratos/contrib/encoding/json/v3"
 
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
@@ -44,6 +46,7 @@ func NewHTTPServer(
 	onCalls *service.NotificationOnCallService,
 	logs *service.MessageLogService,
 	workers *service.WorkerService,
+	maintenance *service.MaintenanceService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
 	clusters *service.ClusterService,
@@ -113,10 +116,33 @@ func NewHTTPServer(
 	v1.RegisterNotificationOnCallServiceHTTPServer(srv, onCalls)
 	v1.RegisterMessageLogServiceHTTPServer(srv, logs)
 	v1.RegisterWorkerServiceHTTPServer(srv, workers)
+	v1.RegisterMaintenanceServiceHTTPServer(srv, maintenance)
 	v1.RegisterAgentServiceHTTPServer(srv, agents)
 	v1.RegisterSSHCommandServiceHTTPServer(srv, sshCommands)
 	v1.RegisterClusterServiceHTTPServer(srv, clusters)
 	v1.RegisterKubernetesServiceHTTPServer(srv, kubeResources)
 	srv.HandleFunc("/v1/agent/{uid}/shell", agents.ServeShell)
+	// 迁移包是二进制流，走裸 HTTP 处理器；鉴权与普通接口一致，仍用 Bearer JWT。
+	srv.HandleFunc("/v1/system/maintenance/archive", func(w http.ResponseWriter, r *http.Request) {
+		ctx, err := authenticator.Authenticate(r.Context(), r.URL.Path, r.Header.Get("Authorization"), r.Header.Get("X-Namespace"))
+		if err != nil {
+			writeHTTPError(w, err)
+			return
+		}
+		maintenance.ServeArchive(w, r.WithContext(ctx))
+	})
 	return srv, nil
+}
+
+// writeHTTPError 按玉衡统一的错误格式写 JSON，供不走 proto 的裸 HTTP 处理器使用。
+func writeHTTPError(w http.ResponseWriter, err error) {
+	status := kerrors.FromError(err)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(int(status.Code))
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"code":     status.Code,
+		"reason":   status.Reason,
+		"message":  status.Message,
+		"metadata": status.Metadata,
+	})
 }

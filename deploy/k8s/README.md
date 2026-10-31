@@ -38,6 +38,26 @@ kubectl apply -f networkpolicy.yaml
 `alioth migrate`（`ent Schema.Create` + seed + 周分区，可重复执行）。Job 失败时 `backoffLimit: 0`
 会直接停下，先看 `kubectl -n alioth logs job/alioth-migrate` 再重试，不要跳过。
 
+## 版本升级与迁移
+
+换镜像前先在旧环境管理台的「升级与迁移」页导出迁移包（`.alioth-backup`），并确认新环境使用**同一份
+`ENCRYPT_KEY`**：数据源密码、Webhook 密钥、SSH 凭据和 kubeconfig 都是用它加密的，换成新密钥后
+这些密文无法解密。
+
+升级顺序：
+
+1. 旧环境导出迁移包（页面下载，或 `curl -H "Authorization: Bearer <token>" -o backup.alioth-backup \
+   https://<旧入口>/v1/system/maintenance/archive`）。
+2. 新环境先 apply 清单并跑 `alioth-migrate` Job；也可以等 `alioth` 起来后由超级管理员在
+   「升级与迁移」页点「执行数据库迁移」，两者等价且幂等，不要并行执行。
+3. 新环境上传迁移包。导入会覆盖配置与身份数据，并清空实时告警、通知任务等运行数据；
+   请在维护窗口内执行，导入完成后用旧环境账号重新登录。
+4. 切换流量，旧环境的 PostgreSQL 至少保留一个发布周期用于回滚。
+
+迁移包只含配置与身份数据：实时告警、通知任务、消息日志、探测结果、验证码和工作进程心跳都在
+运行数据排除名单里；历史告警和消息日志的租户分库也不在包内，需要保留历史时继续用旧库查询。
+表清单在 `app/alioth/internal/data/maintenance_repo.go` 集中维护，新增 ent 表时由单测提醒二选一。
+
 ## 副本
 
 | 组件 | replicas | 对外 | 探针 |

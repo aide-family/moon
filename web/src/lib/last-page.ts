@@ -20,6 +20,7 @@ const knownPaths = new Set([
   "/packages",
   "/users",
   "/workers",
+  "/system/upgrade",
   "/invitations",
   "/messages",
   "/members",

@@ -568,6 +568,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | 告警页面          | CRUD；公开/私有；个人实时 Tab 订阅。按标签匹配过滤实时告警，标签值支持完整匹配正则。与 Moon 通知订阅无关 |
 | 我的告警          | 实时列表筛选：按实际生成的 `NotificationTask` 事件标识过滤。通知组包含当前成员，或任务 `receivers` 含当前用户邮箱/手机号/UID 时，该事件才算当前用户的告警；不能按规则放行整条规则下的事件 |
 | OnCall        | 按标签、告警级别、数据源和数据源级别订阅事件；绑定多个通知组，每个组配置星期与时刻窗口，只在该时段内投递。与订阅并行，同一接收方同一事件只发送一次；重复通知间隔按指纹取多个命中来源的最大值，恢复通知不受间隔限制 |
+| 升级与迁移 | 超级管理员查看控制面版本与库状态、执行数据库迁移（等价 `alioth migrate`）、导出 / 导入只含配置与身份数据的迁移包；写操作只给超级管理员，平台权限 `system:migration:read` / `system:migration:write` |
 
 
 明确不迁入的 Moon HTTP：`/v1/probe-tasks`、`/v1/ssh-command-actions/dispatch`（由在线 Agent 替代）、rabbit 的 `POST /v1/alerts/prometheus/webhook`（评测结果改走内部回写）。告警订阅由 Alioth 的 `NotificationSubscription` 提供，不复用 Moon 的 `/v1/alert-subscriptions`。
@@ -633,6 +634,7 @@ flowchart TB
 - SSH 命令与终端操作写入审计，审计记录不可由普通成员删除
 - Agent 令牌可吊销。吊销后已建立的流在下一次心跳被 `alioth` 关闭
 - 服务间 service key 按调用方分开，可轮换
+- 平台升级或搬迁服务器时，超级管理员在管理台导出 / 导入配置迁移包并补跑数据库迁移；迁移包包含身份、租户、套餐订单、告警与通知配置、集群与 Agent 配置，不含实时告警、通知任务、消息日志与历史分库。`ENCRYPT_KEY` 必须随部署一起保留，否则数据源密码、Webhook 密钥与 SSH 凭据无法解密
 
 
 

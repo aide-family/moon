@@ -21,6 +21,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/conf"
 	"github.com/aide-family/moon/app/alioth/internal/data"
 	"github.com/aide-family/moon/app/alioth/internal/server"
+	"github.com/aide-family/moon/app/alioth/pkg/buildinfo"
 	"github.com/aide-family/moon/pkg/bootstrap"
 	"github.com/aide-family/moon/pkg/merr"
 )
@@ -29,6 +30,9 @@ import (
 var version = "dev"
 
 func main() {
+	// 版本号由构建注入 main.version，启动时交给 buildinfo，
+	// 升级与迁移页不需要为它改 Wire 的构造参数。
+	buildinfo.Version = version
 	root := &cobra.Command{Use: "alioth", Short: "Alioth control plane"}
 	root.AddCommand(newServeCmd(), newMigrateCmd(), newVersionCmd())
 	if err := root.Execute(); err != nil {

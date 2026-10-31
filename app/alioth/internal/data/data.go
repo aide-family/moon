@@ -4,7 +4,9 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"time"
@@ -46,6 +48,7 @@ var ProviderSet = wire.NewSet(
 	NewPartitionRepo,
 	NewFeatureRepo,
 	NewNamespaceOrderRepo,
+	NewMaintenanceRepo,
 )
 
 // Dependencies 持有数据层共享的数据库连接、ent 客户端、加密盒、分片存储
@@ -58,6 +61,8 @@ type Dependencies struct {
 	messageLogs *messageLogStore
 	shards      *shardStore
 	clients     *clusterClients
+	// encryptKeyCheck 是 ENCRYPT_KEY 的 SHA-256 前 16 位，用于比对迁移包与目标环境。
+	encryptKeyCheck string
 }
 
 func NewDependencies(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Dependencies, func(), error) {
@@ -87,7 +92,11 @@ func NewDependencies(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Depen
 			logger.Error(fmt.Sprintf("close database: %v", err))
 		}
 	}
-	deps := &Dependencies{db: db, client: client, box: box, history: history, messageLogs: messageLogs, shards: shards}
+	keyCheck := sha256.Sum256([]byte(auth.GetEncryptKey()))
+	deps := &Dependencies{
+		db: db, client: client, box: box, history: history, messageLogs: messageLogs, shards: shards,
+		encryptKeyCheck: hex.EncodeToString(keyCheck[:])[:16],
+	}
 	// 集群客户端缓存按集群 UID 共享，集群仓储和资源仓储共用同一份。
 	deps.clients = newClusterClients(deps, logger)
 	return deps, cleanup, nil

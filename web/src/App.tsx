@@ -41,6 +41,7 @@ import { TenantPage } from "@/pages/tenant"
 import { TenantOrdersPage } from "@/pages/tenant/orders"
 import { UserPage } from "@/pages/user"
 import { WorkerStatusPage } from "@/pages/workers"
+import { UpgradePage } from "@/pages/upgrade"
 
 export function App() {
   return (
@@ -62,6 +63,7 @@ export function App() {
         <Route path="/packages" element={<PackagePage />} />
         <Route path="/users" element={<UserPage />} />
         <Route path="/workers" element={<WorkerStatusPage />} />
+        <Route path="/system/upgrade" element={<UpgradePage />} />
         <Route path="/invitations" element={<InvitationPage />} />
         <Route path="/messages" element={<MessagePage />} />
         <Route path="/members" element={<MemberPage />} />
