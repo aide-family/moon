@@ -122,7 +122,7 @@ func (c Checker) Require(ctx context.Context, code string) error {
 }
 
 func (c Checker) require(ctx context.Context, code string, activeOnly bool) error {
-	ns, err := c.currentNamespace(ctx, activeOnly)
+	ns, namespace, err := c.currentNamespaceItem(ctx, activeOnly)
 	if err != nil {
 		return err
 	}
@@ -130,27 +130,35 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 	if !ok {
 		return merr.Unauthenticated("missing token")
 	}
-	perms, err := c.Roles.Permissions(ctx, ns, uid)
-	if err != nil {
-		return c.Wrap(err)
+	// 租户负责人隐式持有全部租户权限，不依赖任何预置角色数据。
+	// 套餐能力/模块检查仍然生效，负责人也不能使用租户未开通的功能。
+	owner := namespace.OwnerUID == uid
+	var perms map[string]struct{}
+	if !owner {
+		perms, err = c.Roles.Permissions(ctx, ns, uid)
+		if err != nil {
+			return c.Wrap(err)
+		}
 	}
 	readOnly := false
-	if _, ok := perms[code]; !ok {
-		// 平台管理员可以只读切入不是自己成员的租户：只有租户目录里的 :read 放行，
-		// 写、删除、介入和执行动作仍然要求该租户的成员角色。
-		// 系统只读角色同样走这条只读通道，它没有任何写权限。
-		if !perm.IsReadOnly(code) {
-			return merr.Forbidden("permission denied")
+	if !owner {
+		if _, ok := perms[code]; !ok {
+			// 平台管理员可以只读切入不是自己成员的租户：只有租户目录里的 :read 放行，
+			// 写、删除、介入和执行动作仍然要求该租户的成员角色。
+			// 系统只读角色同样走这条只读通道，它没有任何写权限。
+			if !perm.IsReadOnly(code) {
+				return merr.Forbidden("permission denied")
+			}
+			admin, err := c.SystemAdmin(ctx)
+			if err != nil {
+				return err
+			}
+			if !admin {
+				return merr.Forbidden("permission denied")
+			}
+			readOnly = true
+			c.Log.Debug(fmt.Sprintf("access: system admin read-only user=%s namespace=%s permission=%s", uid, ns, code))
 		}
-		admin, err := c.SystemAdmin(ctx)
-		if err != nil {
-			return err
-		}
-		if !admin {
-			return merr.Forbidden("permission denied")
-		}
-		readOnly = true
-		c.Log.Debug(fmt.Sprintf("access: system admin read-only user=%s namespace=%s permission=%s", uid, ns, code))
 	}
 	// namespace:* 不属于任何能力，始终可用；菜单权限本身不是接口权限，不在这里判断。
 	module := perm.FeatureOf(code)
@@ -166,6 +174,10 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 	if !slices.Contains(modules, module) {
 		return merr.Forbidden("feature not enabled")
 	}
+	// 负责人的权限集合就是整个租户权限目录（含菜单权限），菜单检查必然通过。
+	if owner {
+		return nil
+	}
 	// 跨租户只读的平台管理员不需要租户给它授菜单权限，菜单只约束租户成员。
 	if readOnly {
 		return nil
@@ -180,6 +192,43 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 		return nil
 	}
 	return merr.Forbidden("menu permission denied")
+}
+
+// HeldPermissions 返回当前用户在当前租户持有的权限集合，第二个返回值表示是否为租户负责人。
+// 负责人隐式持有全部租户权限（perm.Names()，含菜单权限），其余用户取角色权限的并集。
+// 写授权前用它做「不能授予自己没有的权限」的子集校验。
+// 它不校验租户状态和成员身份，需要鉴权的入口必须先走 Allow / Require。
+func (c Checker) HeldPermissions(ctx context.Context) (map[string]struct{}, bool, error) {
+	ns, ok := actor.NamespaceID(ctx)
+	if !ok {
+		return nil, false, merr.Client("X-Namespace is required")
+	}
+	uid, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, false, merr.Unauthenticated("missing token")
+	}
+	namespace, err := c.Namespaces.GetNamespace(ctx, ns)
+	if err != nil {
+		return nil, false, c.Wrap(err)
+	}
+	if namespace.OwnerUID == uid {
+		return fullTenantPermissions(), true, nil
+	}
+	perms, err := c.Roles.Permissions(ctx, ns, uid)
+	if err != nil {
+		return nil, false, c.Wrap(err)
+	}
+	return perms, false, nil
+}
+
+// fullTenantPermissions 把租户权限目录转成集合。负责人隐式持有这份完整目录。
+func fullTenantPermissions() map[string]struct{} {
+	names := perm.Names()
+	out := make(map[string]struct{}, len(names))
+	for _, name := range names {
+		out[name] = struct{}{}
+	}
+	return out
 }
 
 // Capabilities 返回当前租户当前生效的能力。租户停用、归档或套餐到期时为空。
@@ -282,18 +331,24 @@ func (c Checker) sameNamespace(ctx context.Context, uid string, activeOnly bool)
 }
 
 func (c Checker) currentNamespace(ctx context.Context, activeOnly bool) (string, error) {
+	ns, _, err := c.currentNamespaceItem(ctx, activeOnly)
+	return ns, err
+}
+
+// currentNamespaceItem 同时返回租户 UID 和租户行：负责人判断需要 owner_uid。
+func (c Checker) currentNamespaceItem(ctx context.Context, activeOnly bool) (string, *bo.Namespace, error) {
 	ns, ok := actor.NamespaceID(ctx)
 	if !ok {
-		return "", merr.Client("X-Namespace is required")
+		return "", nil, merr.Client("X-Namespace is required")
 	}
 	item, err := c.Namespaces.GetNamespace(ctx, ns)
 	if err != nil {
-		return "", c.Wrap(err)
+		return "", nil, c.Wrap(err)
 	}
 	if activeOnly && item.Status != "ACTIVE" {
-		return "", merr.Forbidden("namespace is disabled")
+		return "", nil, merr.Forbidden("namespace is disabled")
 	}
-	return ns, nil
+	return ns, item, nil
 }
 
 // Wrap 直接返回仓储给出的 Kratos error。意外的原始错误只记日志，不把数据库细节返回去。

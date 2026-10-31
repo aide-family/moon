@@ -13,8 +13,6 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
-	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
-	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
 	"github.com/aide-family/moon/app/alioth/pkg/perm"
@@ -323,71 +321,8 @@ func (r *featureRepo) SetNamespaceFeatureState(ctx context.Context, namespaceUID
 	if _, err := update.Save(ctx); err != nil {
 		return r.fail(err)
 	}
-	// 能力范围变化后立刻补齐预置系统角色的权限（含菜单权限），租户管理员不用等下一次
-	// migrate 就能在新开通的能力里给成员授权；关闭能力和菜单授权由权限检查拒绝。
-	effective := perm.EffectiveCapabilities(nil, capabilityCodesOf(capabilities))
-	if err := r.grantPresetRolePermissions(ctx, tx, namespaceUID, effective); err != nil {
-		return err
-	}
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)
-	}
-	return nil
-}
-
-// grantPresetRolePermissions 给租户的预置系统角色补上当前能力范围内缺失的权限。
-// 只加不删，和 seed 的 syncTenantRoles 保持同一套规则；重复执行不会产生重复授权。
-func (base *repoBase) grantPresetRolePermissions(ctx context.Context, tx *ent.Tx, namespaceUID string, capabilities []string) error {
-	permissions, err := tx.Permission.Query().All(ctx)
-	if err != nil {
-		return base.fail(err)
-	}
-	byName := make(map[string]string, len(permissions))
-	for _, item := range permissions {
-		byName[item.Name] = item.UID
-	}
-	roles, err := tx.Role.Query().
-		Where(role.NamespaceUIDEQ(namespaceUID), role.IsSystem(true), role.DeletedAtIsNil()).
-		All(ctx)
-	if err != nil {
-		return base.fail(err)
-	}
-	if len(roles) == 0 {
-		return nil
-	}
-	roleUIDs := make([]string, len(roles))
-	for index, item := range roles {
-		roleUIDs[index] = item.UID
-	}
-	links, err := tx.RolePermission.Query().Where(rolepermission.RoleUIDIn(roleUIDs...)).All(ctx)
-	if err != nil {
-		return base.fail(err)
-	}
-	held := make(map[string]map[string]struct{}, len(roles))
-	for _, link := range links {
-		if held[link.RoleUID] == nil {
-			held[link.RoleUID] = make(map[string]struct{})
-		}
-		held[link.RoleUID][link.PermissionUID] = struct{}{}
-	}
-	for _, item := range roles {
-		for _, code := range perm.RolePermissionsForCapabilities(item.Name, capabilities) {
-			permissionUID := byName[code]
-			if permissionUID == "" {
-				continue
-			}
-			if _, ok := held[item.UID][permissionUID]; ok {
-				continue
-			}
-			if _, err := tx.RolePermission.Create().
-				SetUID(id.New()).
-				SetNamespaceUID(namespaceUID).
-				SetRoleUID(item.UID).
-				SetPermissionUID(permissionUID).
-				Save(ctx); err != nil {
-				return base.fail(err)
-			}
-		}
 	}
 	return nil
 }
@@ -451,8 +386,7 @@ func (r *featureRepo) SyncPackageToNamespaces(ctx context.Context, packageUID st
 	return synced, skipped, nil
 }
 
-// syncNamespacePackage 在一个事务里更新租户套餐快照、清理已经并入套餐的额外能力，
-// 并给预置角色补齐新能力范围内的权限。
+// syncNamespacePackage 在一个事务里更新租户套餐快照并清理已经并入套餐的额外能力。
 func (r *featureRepo) syncNamespacePackage(ctx context.Context, namespaceUID string, snapshot []string) error {
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
@@ -472,14 +406,6 @@ func (r *featureRepo) syncNamespacePackage(ctx context.Context, namespaceUID str
 			Exec(ctx); err != nil {
 			return r.fail(err)
 		}
-	}
-	extra, err := namespaceExtraCapabilityCodes(ctx, tx.Client(), namespaceUID)
-	if err != nil {
-		return r.fail(err)
-	}
-	effective := perm.EffectiveCapabilities(snapshot, extra)
-	if err := r.grantPresetRolePermissions(ctx, tx, namespaceUID, effective); err != nil {
-		return err
 	}
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)

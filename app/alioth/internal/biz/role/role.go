@@ -37,8 +37,7 @@ func (authority *Authority) CreateRole(ctx context.Context, name, remark string)
 	return item, authority.access.Wrap(err)
 }
 
-// UpdateRoleRemark 只改备注，系统角色也能改：备注是给人看的说明，不改变预置的权限边界。
-// 不要把 IsSystem 判断照抄进来，那会让系统角色失去唯一能解释自己的字段。
+// UpdateRoleRemark 只改备注。备注是给人看的说明，不参与鉴权。
 func (authority *Authority) UpdateRoleRemark(ctx context.Context, uid, remark string) (*bo.Role, error) {
 	ns, err := authority.access.Allow(ctx, perm.RoleWrite)
 	if err != nil {
@@ -48,7 +47,8 @@ func (authority *Authority) UpdateRoleRemark(ctx context.Context, uid, remark st
 	return item, authority.access.Wrap(err)
 }
 
-// UpdateRole 只改自定义角色的名称。owner、admin、member、viewer 是系统角色，改名会破坏预置边界。
+// UpdateRole 只改自定义角色的名称。预置系统角色数据已由迁移清除，
+// IsSystem 判断保留用于兼容历史数据，正常不会命中。
 func (authority *Authority) UpdateRole(ctx context.Context, uid, name string) (*bo.Role, error) {
 	ns, err := authority.access.Allow(ctx, perm.RoleWrite)
 	if err != nil {
@@ -81,7 +81,7 @@ func (authority *Authority) UpdateRoleStatus(ctx context.Context, uid, status st
 	return item, authority.access.Wrap(err)
 }
 
-// DeleteRole 不删除系统角色。删掉 owner 会让租户失去负责人角色。
+// DeleteRole 不删除系统角色。预置系统角色数据已由迁移清除，IsSystem 判断保留用于兼容历史数据。
 func (authority *Authority) DeleteRole(ctx context.Context, uid string) error {
 	ns, err := authority.access.Allow(ctx, perm.RoleDelete)
 	if err != nil {
@@ -127,8 +127,9 @@ func (authority *Authority) SelectRoles(ctx context.Context, limit int32, lastUI
 
 // UpdateRolePermissions 替换自定义角色的权限。
 // 只允许当前租户开通范围内的权限：模块权限按有效模块，菜单权限按有效能力。
-// namespace:delete 和 namespace:transfer 只属于 owner，不能授给自定义角色。
-// 系统角色的权限由预置目录决定，这里直接拒绝。
+// namespace:delete 和 namespace:transfer 只属于负责人，不能授给自定义角色。
+// 非负责人只能授予自己当前拥有的权限（含 normalizeRoleGrant 补出的菜单与默认读权限），
+// 负责人不受子集限制，但仍受租户已开通能力范围限制。
 func (authority *Authority) UpdateRolePermissions(ctx context.Context, uid string, names []string) (*bo.Role, error) {
 	ns, err := authority.access.Allow(ctx, perm.RoleWrite)
 	if err != nil {
@@ -165,6 +166,19 @@ func (authority *Authority) UpdateRolePermissions(ctx context.Context, uid strin
 	// 菜单权限带默认读权限，子权限必须挂在某个已开通的菜单下：
 	// 前端已按这个规则提交，这里再归一化一次，避免直接调接口绕过。
 	names = normalizeRoleGrant(names, capabilities, modules)
+	// 防越权：非负责人只能授予自己当前拥有的权限。归一化补出来的菜单权限和
+	// 默认读权限也要一起校验，否则可以借自动补全绕过子集限制。
+	held, owner, err := authority.access.HeldPermissions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !owner {
+		for _, name := range names {
+			if _, ok := held[name]; !ok {
+				return nil, merr.Client("cannot grant permissions beyond your own")
+			}
+		}
+	}
 	item, err := authority.roles.UpdateRolePermissions(ctx, ns, uid, names)
 	return item, authority.access.Wrap(err)
 }
@@ -326,6 +340,10 @@ func (authority *Authority) Mine(ctx context.Context) ([]string, []string, bool,
 	if err != nil {
 		return nil, nil, false, err
 	}
+	// 租户负责人隐式持有全部租户权限，不需要任何角色授权；仍按套餐能力过滤。
+	if current.OwnerUID == uid {
+		return ownerPermissions(capabilities, modules), capabilities, false, nil
+	}
 	perms, err := authority.roles.Permissions(ctx, namespace, uid)
 	if err != nil {
 		return nil, nil, false, authority.access.Wrap(err)
@@ -383,6 +401,19 @@ func permissionInTenantScope(name string, capabilities, modules []string) bool {
 		return ok && perm.MenuLicensed(menu, capabilities)
 	}
 	return perm.PermissionLicensed(name, capabilities)
+}
+
+// ownerPermissions 返回租户负责人的隐式权限：整个租户权限目录（含菜单权限），
+// 只保留当前套餐能力范围内有效的部分。
+func ownerPermissions(capabilities, modules []string) []string {
+	names := perm.Names()
+	out := make([]string, 0, len(names))
+	for _, name := range names {
+		if permissionInTenantScope(name, capabilities, modules) {
+			out = append(out, name)
+		}
+	}
+	return out
 }
 
 // readOnlyPermissions 返回平台管理员只读切入时的权限目录：

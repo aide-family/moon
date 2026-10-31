@@ -105,6 +105,7 @@ func (membership *Membership) SelectMembers(ctx context.Context, limit int32, la
 
 // InviteMember 创建一条邀请消息，并尝试发送邀请邮件。
 // 邮件失败不回滚邀请：用户仍然可以在平台消息里看到并确认。
+// 非负责人只能邀请持有「权限集合 ⊆ 自己权限」的角色，避免借邀请越权。
 func (membership *Membership) InviteMember(ctx context.Context, email, roleUID string) (*bo.MemberInvite, bool, error) {
 	ns, err := membership.access.Allow(ctx, perm.MemberWrite)
 	if err != nil {
@@ -114,8 +115,11 @@ func (membership *Membership) InviteMember(ctx context.Context, email, roleUID s
 	if err != nil {
 		return nil, false, membership.access.Wrap(err)
 	}
-	if role.Name == perm.RoleOwner || role.Status != "ACTIVE" {
+	if role.Status != "ACTIVE" {
 		return nil, false, merr.Client("invalid request")
+	}
+	if err := membership.ensureRolesGrantable(ctx, []bo.Role{*role}); err != nil {
+		return nil, false, err
 	}
 	// 邀请前先按当前套餐容量拦住明显超限的操作，给出比「确认时才发现」更早的提示。
 	// 真正防止并发放大的检查在确认邀请的事务里，以那里的结果为准。
@@ -260,25 +264,47 @@ func (membership *Membership) UpdateMemberStatus(ctx context.Context, uid, statu
 }
 
 // UpdateMemberRoles 替换成员的角色。
-// 结果里如果包含 owner，调用者还必须持有 namespace:transfer。
+// 非负责人只能分配「权限集合 ⊆ 自己权限」的角色；负责人不受子集限制。
+// 负责人身份只由 namespace.owner_uid 决定，不再依赖名为 owner 的角色。
 func (membership *Membership) UpdateMemberRoles(ctx context.Context, uid string, roleUIDs []string) (*bo.Member, error) {
 	ns, err := membership.access.Allow(ctx, perm.MemberWrite)
 	if err != nil {
 		return nil, err
 	}
+	roles := make([]bo.Role, 0, len(roleUIDs))
 	for _, roleUID := range roleUIDs {
 		role, err := membership.roles.GetRole(ctx, ns, roleUID)
 		if err != nil {
 			return nil, membership.access.Wrap(err)
 		}
-		if role.Name == perm.RoleOwner {
-			if err := membership.access.Require(ctx, perm.NamespaceTransfer); err != nil {
-				return nil, err
-			}
-		}
+		roles = append(roles, *role)
+	}
+	if err := membership.ensureRolesGrantable(ctx, roles); err != nil {
+		return nil, err
 	}
 	item, err := membership.members.UpdateMemberRoles(ctx, ns, uid, roleUIDs)
 	return item, membership.access.Wrap(err)
+}
+
+// ensureRolesGrantable 校验调用者能否把这些角色分配给成员：
+// 负责人拥有租户全部权限，不受子集限制；非负责人只能分配权限完全包含在自己
+// 当前权限里的角色。角色本身的权限范围由角色授权接口按租户能力限制。
+func (membership *Membership) ensureRolesGrantable(ctx context.Context, roles []bo.Role) error {
+	held, owner, err := membership.access.HeldPermissions(ctx)
+	if err != nil {
+		return err
+	}
+	if owner {
+		return nil
+	}
+	for _, role := range roles {
+		for _, name := range role.Permissions {
+			if _, ok := held[name]; !ok {
+				return merr.Client("cannot grant permissions beyond your own")
+			}
+		}
+	}
+	return nil
 }
 
 func (membership *Membership) sendInviteMail(invite *bo.MemberInvite, token string) bool {

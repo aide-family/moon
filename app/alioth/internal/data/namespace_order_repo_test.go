@@ -22,6 +22,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/systemmessage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
 	"github.com/aide-family/moon/app/alioth/pkg/perm"
 )
 
@@ -250,9 +251,13 @@ func TestMemberCapacityLimit(t *testing.T) {
 			_, _ = store.client.FeaturePackage.Delete().Where(featurepackage.UIDEQ(uid)).Exec(ctx)
 		}
 	})
-	memberRole, err := store.client.Role.Query().Where(
-		role.NamespaceUIDEQ(namespaceUID), role.NameEQ(perm.RoleMember),
-	).Only(ctx)
+	// 新租户不再预置角色；会员名额测试自己创建一个角色用于邀请。
+	memberRole, err := store.client.Role.Create().
+		SetUID(id.New()).
+		SetNamespaceUID(namespaceUID).
+		SetName("it-seat-member").
+		SetStatus(role.StatusACTIVE).
+		Save(ctx)
 	if err != nil {
 		t.Fatalf("member role: %v", err)
 	}

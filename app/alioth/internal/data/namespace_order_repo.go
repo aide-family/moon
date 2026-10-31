@@ -11,7 +11,6 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
-	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
@@ -168,8 +167,8 @@ func (r *namespaceOrderRepo) PayOrder(ctx context.Context, uid, userUID string) 
 	return orderView(order), &item, nil
 }
 
-// payPackageChange 处理套餐升级 / 续期：更新租户套餐和到期时间，并给预置角色补齐
-// 新套餐能力范围内的权限。租户额外能力保留，升级不会清掉管理员加开的能力。
+// payPackageChange 处理套餐升级 / 续期：更新租户套餐和到期时间。
+// 租户额外能力保留，升级不会清掉管理员加开的能力；角色权限不再随套餐自动补齐。
 func (r *namespaceOrderRepo) payPackageChange(ctx context.Context, tx *ent.Tx, order *ent.NamespaceOrder, pkg *ent.FeaturePackage, now time.Time) error {
 	ns, err := tx.Namespace.Query().Where(
 		namespace.UIDEQ(order.NamespaceUID),
@@ -206,21 +205,7 @@ func (r *namespaceOrderRepo) payPackageChange(ctx context.Context, tx *ent.Tx, o
 	if _, err := update.Save(ctx); err != nil {
 		return r.fail(err)
 	}
-	// 续期不改变授权内容：按租户已有快照补齐预置角色，避免管理员改过套餐后
-	// 续期顺带把新能力写进角色权限。
-	authorization := packageFeatures
-	if order.Kind == namespaceorder.KindRENEW {
-		authorization, err = namespacePackageCapabilities(ctx, tx.Client(), order.NamespaceUID)
-		if err != nil {
-			return r.fail(err)
-		}
-	}
-	extra, err := namespaceExtraCapabilityCodes(ctx, tx.Client(), order.NamespaceUID)
-	if err != nil {
-		return r.fail(err)
-	}
-	effective := perm.EffectiveCapabilities(authorization, extra)
-	return r.grantPresetRolePermissions(ctx, tx, order.NamespaceUID, effective)
+	return nil
 }
 
 // packageChangeExpiry 计算升级 / 续期后的到期时间：

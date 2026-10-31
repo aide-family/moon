@@ -191,33 +191,6 @@ func EffectiveFeatures(packageFeatures []string, overrides map[string]bool) []st
 	return out
 }
 
-// RolePermissionsForFeatures 返回预置角色在指定功能范围内应持有的权限。
-// 基础套餐用它给新租户预置角色授仅有的权限。
-func RolePermissionsForFeatures(role string, features []string) []string {
-	return FilterPermissionsByFeatures(RolePermissions(role), features)
-}
-
-// FilterPermissionsByFeatures 只保留功能已开通的权限；namespace:* 不受功能限制，始终保留。
-// 角色授权页、当前用户权限和角色权限写入都用它，保证菜单与接口看到同一份范围。
-func FilterPermissionsByFeatures(names []string, features []string) []string {
-	allowed := make(map[string]struct{}, len(features))
-	for _, code := range features {
-		allowed[code] = struct{}{}
-	}
-	out := make([]string, 0, len(names))
-	for _, name := range names {
-		code := FeatureOf(name)
-		if code == "" {
-			out = append(out, name)
-			continue
-		}
-		if _, ok := allowed[code]; ok {
-			out = append(out, name)
-		}
-	}
-	return out
-}
-
 // FeatureCodes 按展示顺序返回功能编码，供仓储按固定顺序输出有效功能。
 func FeatureCodes() []string {
 	out := make([]string, len(featureOrder))

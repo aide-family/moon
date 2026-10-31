@@ -259,38 +259,6 @@ func SystemNames() []string {
 	return names
 }
 
-func RolePermissions(role string) []string {
-	switch role {
-	case RoleOwner:
-		return Names()
-	case RoleAdmin:
-		return without(Names(), NamespaceDelete, NamespaceTransfer)
-	case RoleMember:
-		return memberPermissions()
-	case RoleViewer:
-		return readPermissions()
-	default:
-		return nil
-	}
-}
-
-// DefaultRoleRemark 返回预置角色的默认备注，是新租户建角色和 seed 补空备注的唯一来源。
-// 备注是展示给管理员看的说明，不参与鉴权判断。
-func DefaultRoleRemark(role string) string {
-	switch role {
-	case RoleOwner:
-		return "租户负责人，拥有全部权限，包括删除租户与移交负责人。"
-	case RoleAdmin:
-		return "可管理成员、角色与配置，不能删除租户或移交负责人。"
-	case RoleMember:
-		return "日常运维：查看全部资源，处理告警与 SSH 执行。"
-	case RoleViewer:
-		return "只读：可以查看但不能修改任何配置。"
-	default:
-		return ""
-	}
-}
-
 // SystemPermissions 返回平台角色拥有的系统权限。
 // 系统权限不叠加租户权限；平台管理员跨租户只读，写操作仍要求成为该租户成员。
 func SystemPermissions(role string) []string {
@@ -345,11 +313,6 @@ func ReadOnlyNames() []string {
 		}
 	}
 	return names
-}
-
-// TenantRoles 返回每个租户预置的四个角色。
-func TenantRoles() []string {
-	return []string{RoleOwner, RoleAdmin, RoleMember, RoleViewer}
 }
 
 // SystemRoles 返回平台固定角色。
@@ -419,44 +382,4 @@ func K8sWritePermissions() []string {
 		}
 	}
 	return names
-}
-
-// readPermissions 返回 viewer 的只读权限：每个菜单声明的读权限（含 Pod 日志），
-// 加上菜单权限本身。member 在此基础上再叠加告警干预与 SSH 执行。
-func readPermissions() []string {
-	names := make([]string, 0, len(capabilitySpecs)*2)
-	seen := make(map[string]struct{}, len(capabilitySpecs)*2)
-	for _, menu := range menuSpecs {
-		for _, name := range menu.Permissions {
-			if !IsReadOnly(name) {
-				continue
-			}
-			if _, ok := seen[name]; ok {
-				continue
-			}
-			seen[name] = struct{}{}
-			names = append(names, name)
-		}
-	}
-	return append(names, MenuPermissions()...)
-}
-
-func memberPermissions() []string {
-	names := readPermissions()
-	return append(names, AlertRealtimeIntervene, SSHExec)
-}
-
-func without(names []string, drop ...string) []string {
-	blocked := map[string]struct{}{}
-	for _, name := range drop {
-		blocked[name] = struct{}{}
-	}
-	out := make([]string, 0, len(names))
-	for _, name := range names {
-		if _, ok := blocked[name]; ok {
-			continue
-		}
-		out = append(out, name)
-	}
-	return out
 }

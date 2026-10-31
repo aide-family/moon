@@ -195,8 +195,9 @@ func (tenancy *Tenancy) SelectNamespaces(ctx context.Context, limit int32, lastU
 }
 
 // TransferOwner 把租户负责人换成另一名已加入成员。
-// 只有 namespace:transfer 可以做这件事。原负责人会留下管理权限，目标成员成为 owner。
-// 不能移交给自己。仓储在同一事务里改负责人和两边的角色，避免出现两个 owner 或没有 owner。
+// 只有 namespace:transfer 可以做这件事。负责人身份由 namespace.owner_uid 决定，
+// 权限隐式生效，因此这里只改该字段，不再增删 owner / admin 角色授权。
+// 不能移交给自己。仓储在事务里校验目标成员是 JOINED 成员后再改负责人。
 func (tenancy *Tenancy) TransferOwner(ctx context.Context, uid, userUID string) (*bo.Namespace, error) {
 	if err := tenancy.access.SameNamespace(ctx, uid); err != nil {
 		return nil, err

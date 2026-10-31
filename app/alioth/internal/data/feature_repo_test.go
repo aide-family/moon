@@ -143,24 +143,28 @@ func TestFeatureRepoCapabilitiesAndLifecycle(t *testing.T) {
 		t.Fatal("invalid capability accepted")
 	}
 
-	// 预置系统角色补齐了菜单权限和额外能力权限。
-	ownerRole, err := store.client.Role.Query().
-		Where(role.NamespaceUIDEQ(ns.UID), role.NameEQ(perm.RoleOwner), role.DeletedAtIsNil()).
-		Only(ctx)
+	// 新租户没有任何预置角色：角色全部由租户自己创建；负责人仍由 owner_uid 决定。
+	roleRows, err := store.client.Role.Query().
+		Where(role.NamespaceUIDEQ(ns.UID), role.DeletedAtIsNil()).
+		All(ctx)
 	if err != nil {
-		t.Fatalf("owner role: %v", err)
+		t.Fatalf("query tenant roles: %v", err)
 	}
-	held := rolePermissionNames(ctx, t, store, ownerRole.UID)
-	for _, code := range []string{
-		perm.MenuPermission(perm.CapabilityAlertRealtime),
-		perm.MenuPermission(perm.CapabilityClusterAccess),
-		perm.MenuPermission(perm.CapabilityK8sPod),
-		perm.K8sPodRead,
-		perm.ClusterRead,
-	} {
-		if _, ok := held[code]; !ok {
-			t.Fatalf("owner role missing %s after capability update", code)
-		}
+	if len(roleRows) != 0 {
+		t.Fatalf("new tenant preset roles = %d, want 0", len(roleRows))
+	}
+	if _, err := store.client.Member.Query().
+		Where(
+			member.NamespaceUIDEQ(ns.UID),
+			member.UserUIDEQ(ownerUID),
+			member.StatusEQ(member.StatusJOINED),
+			member.DeletedAtIsNil(),
+		).Only(ctx); err != nil {
+		t.Fatalf("owner member: %v", err)
+	}
+	// 开通能力不会凭空创建角色或角色授权。
+	if links, err := store.client.MemberRole.Query().Where(memberrole.NamespaceUIDEQ(ns.UID)).All(ctx); err != nil || len(links) != 0 {
+		t.Fatalf("member roles = %d, err = %v, want 0", len(links), err)
 	}
 
 	// 到期：能力生效为空，配置仍然保留并标记 Expired。
@@ -243,11 +247,11 @@ func TestFeatureRepoCapabilitiesAndLifecycle(t *testing.T) {
 	if _, err := namespaces.GetNamespace(ctx, ns.UID); err == nil {
 		t.Fatal("archived namespace still readable")
 	}
-	roleRows, err := store.client.Role.Query().Where(role.NamespaceUIDEQ(ns.UID)).All(ctx)
+	archivedRoles, err := store.client.Role.Query().Where(role.NamespaceUIDEQ(ns.UID)).All(ctx)
 	if err != nil {
 		t.Fatalf("query archived roles: %v", err)
 	}
-	for _, item := range roleRows {
+	for _, item := range archivedRoles {
 		if item.DeletedAt == nil {
 			t.Fatalf("archived namespace left role %s not deleted", item.UID)
 		}
@@ -268,27 +272,6 @@ func basePackageUID(ctx context.Context, t *testing.T, store *Dependencies) stri
 		t.Fatalf("base package: %v", err)
 	}
 	return row.UID
-}
-
-func rolePermissionNames(ctx context.Context, t *testing.T, store *Dependencies, roleUID string) map[string]struct{} {
-	t.Helper()
-	links, err := store.client.RolePermission.Query().Where(rolepermission.RoleUIDEQ(roleUID)).All(ctx)
-	if err != nil {
-		t.Fatalf("role permissions: %v", err)
-	}
-	rows, err := store.client.Permission.Query().All(ctx)
-	if err != nil {
-		t.Fatalf("permissions: %v", err)
-	}
-	names := make(map[string]string, len(rows))
-	for _, item := range rows {
-		names[item.UID] = item.Name
-	}
-	out := make(map[string]struct{}, len(links))
-	for _, link := range links {
-		out[names[link.PermissionUID]] = struct{}{}
-	}
-	return out
 }
 
 // sameStrings 比较两个能力集合，忽略顺序，但要求元素唯一且完全一致。

@@ -31,7 +31,8 @@ func (s userRepoStub) UserByUID(context.Context, string) (*bo.Account, error) {
 
 type namespaceRepoStub struct {
 	repository.NamespaceRepo
-	status string
+	status   string
+	ownerUID string
 }
 
 func (s namespaceRepoStub) GetNamespace(_ context.Context, uid string) (*bo.Namespace, error) {
@@ -39,7 +40,7 @@ func (s namespaceRepoStub) GetNamespace(_ context.Context, uid string) (*bo.Name
 	if status == "" {
 		status = "ACTIVE"
 	}
-	return &bo.Namespace{UID: uid, Status: status}, nil
+	return &bo.Namespace{UID: uid, Status: status, OwnerUID: s.ownerUID}, nil
 }
 
 type roleRepoStub struct {
@@ -253,6 +254,59 @@ func TestRequireSkipsMenuPermissionForSystemAdminReadOnly(t *testing.T) {
 		if err := checkerFor(systemRole).Require(ctx, perm.RoleRead); err != nil {
 			t.Fatalf("%s read-only require role:read: %v", systemRole, err)
 		}
+	}
+}
+
+// TestRequireOwnerHasImplicitPermissions 确认租户负责人不需要任何角色授权就持有
+// 全部租户权限（含菜单权限），但未开通能力/模块仍然拒绝。
+func TestRequireOwnerHasImplicitPermissions(t *testing.T) {
+	ctx := tenantContext()
+	// 负责人没有任何角色权限，角色仓储返回空集合。
+	owner := checkerFor(perm.SystemRoleUser)
+	owner.Namespaces = namespaceRepoStub{ownerUID: "user-1"}
+	for _, code := range perm.Names() {
+		if err := owner.Require(ctx, code); err != nil {
+			t.Fatalf("owner require %s: %v", code, err)
+		}
+	}
+	// 套餐未开通的模块对负责人同样返回 403。
+	owner.Features = featureRepoStub{
+		capabilities: perm.BaseCapabilities(),
+		modules:      perm.ModulesOfCapabilities(perm.BaseCapabilities()),
+	}
+	err := owner.Require(ctx, perm.ClusterRead)
+	if reason := kerrors.Reason(err); reason != merr.ReasonForbidden || kerrors.FromError(err).Message != "feature not enabled" {
+		t.Fatalf("owner on disabled feature err = %v, want forbidden feature not enabled", err)
+	}
+	// 停用租户对负责人也是 403，负责人不会绕过租户状态。
+	owner.Namespaces = namespaceRepoStub{status: "DISABLED", ownerUID: "user-1"}
+	if err := owner.Require(ctx, perm.RoleRead); kerrors.Reason(err) != merr.ReasonForbidden {
+		t.Fatalf("owner on disabled namespace: %v", err)
+	}
+}
+
+// TestHeldPermissions 确认负责人隐式持有全部租户权限，非负责人只拿到角色权限。
+func TestHeldPermissions(t *testing.T) {
+	ctx := tenantContext()
+	owner := checkerFor(perm.SystemRoleUser)
+	owner.Namespaces = namespaceRepoStub{ownerUID: "user-1"}
+	held, isOwner, err := owner.HeldPermissions(ctx)
+	if err != nil {
+		t.Fatalf("owner held permissions: %v", err)
+	}
+	if !isOwner || len(held) != len(perm.Names()) {
+		t.Fatalf("owner held = %d permissions, isOwner = %v", len(held), isOwner)
+	}
+	member := checkerFor(perm.SystemRoleUser, perm.RoleRead)
+	held, isOwner, err = member.HeldPermissions(ctx)
+	if err != nil {
+		t.Fatalf("member held permissions: %v", err)
+	}
+	if isOwner {
+		t.Fatal("member treated as owner")
+	}
+	if _, ok := held[perm.RoleRead]; !ok || len(held) != 1 {
+		t.Fatalf("member held = %v", held)
 	}
 }
 

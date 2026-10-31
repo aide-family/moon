@@ -13,7 +13,6 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
-	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
@@ -213,31 +212,14 @@ func (r *memberRepo) UpdateMemberStatus(ctx context.Context, namespaceUID, uid, 
 }
 
 func (r *memberRepo) UpdateMemberRoles(ctx context.Context, namespaceUID, memberUID string, roleUIDs []string) (*bo.Member, error) {
-	row, err := r.client.Member.Query().Where(member.NamespaceUIDEQ(namespaceUID), member.UIDEQ(memberUID), member.DeletedAtIsNil()).Only(ctx)
-	if err != nil {
+	if _, err := r.client.Member.Query().Where(member.NamespaceUIDEQ(namespaceUID), member.UIDEQ(memberUID), member.DeletedAtIsNil()).Only(ctx); err != nil {
 		return nil, r.fail(err)
-	}
-	ns, err := r.GetNamespace(ctx, namespaceUID)
-	if err != nil {
-		return nil, err
 	}
 	roles, err := r.client.Role.Query().Where(role.NamespaceUIDEQ(namespaceUID), role.UIDIn(roleUIDs...), role.DeletedAtIsNil()).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
 	if len(roles) != len(uniqueStrings(roleUIDs)) {
-		return nil, merr.Invalid("invalid request")
-	}
-	hasOwner := false
-	for _, item := range roles {
-		if item.Name == perm.RoleOwner {
-			hasOwner = true
-		}
-	}
-	if hasOwner && row.UserUID != ns.OwnerUID {
-		return nil, merr.Invalid("owner role is assigned by transfer owner")
-	}
-	if row.UserUID == ns.OwnerUID && !hasOwner {
 		return nil, merr.Invalid("invalid request")
 	}
 	tx, err := r.client.Tx(ctx)

@@ -19,7 +19,6 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RoleRemarkHint } from "@/components/role-remark-hint"
-import { RoleTypeTag } from "@/components/role-type-tag"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import {
@@ -91,6 +90,14 @@ export function MemberPage() {
   })
 
   const canReadRoles = session.can("role:read")
+  // 负责人由 owners_uid 判断，不再依赖名为 owner 的角色。
+  const currentNamespace = session.namespaces.find(
+    (item) => item.uid === session.namespaceUid
+  )
+  const isOwner = !!session.user && currentNamespace?.ownerUid === session.user.uid
+  // 非负责人只能分配「权限 ⊆ 自己权限」的角色；后端仍是最终校验。
+  const canGrantRole = (role: RoleItem): boolean =>
+    isOwner || (role.permissions ?? []).every((name) => session.can(name))
 
   useEffect(() => {
     let active = true
@@ -99,12 +106,12 @@ export function MemberPage() {
     if (!canReadRoles) {
       return
     }
-    // 分配角色需要 isSystem 和 remark，selectRoles 只返回 uid/name，所以这里走列表接口。
+    // 分配角色需要 permissions 和 remark，selectRoles 只返回 uid/name，所以这里走列表接口。
     // 已知限制：pageSize 上限 100，角色超过 100 个时列表不完整；届时改成带搜索的分页选择器。
     void listRoles({ page: 1, pageSize: 100 })
       .then((result) => {
         if (!active) return
-        const available = (result.items ?? []).filter((item) => item.name !== "owner")
+        const available = result.items ?? []
         setRoles(available)
         setRoleUid((current) => current || available[0]?.uid || "")
       })
@@ -229,20 +236,24 @@ export function MemberPage() {
     }
   }
 
-  // 停用角色不再用于邀请；分配时若成员身上已经带着停用角色，仍要在列表里可见可保留。
-  const inviteRoles = roles.filter((role) => role.status === "ACTIVE")
+  // 停用角色不再用于邀请；邀请和分配都排除超出调用者权限的角色。
+  const inviteRoles = roles.filter(
+    (role) => role.status === "ACTIVE" && canGrantRole(role)
+  )
   const roleKeyword = roleQuery.trim().toLowerCase()
   const assignableRoles = roles.filter(
     (role) =>
-      roleKeyword === "" ||
-      role.name.toLowerCase().includes(roleKeyword) ||
-      (role.remark ?? "").toLowerCase().includes(roleKeyword),
+      canGrantRole(role) &&
+      (roleKeyword === "" ||
+        role.name.toLowerCase().includes(roleKeyword) ||
+        (role.remark ?? "").toLowerCase().includes(roleKeyword)),
   )
 
   function memberActions(item: MemberItem): RowAction[] {
+    // 负责人本人不能在这里改角色或移除；移交负责人走租户设置。
     if (
       !session.can("member:write") ||
-      (item.roleNames ?? []).includes("owner")
+      item.userUid === currentNamespace?.ownerUid
     ) {
       return []
     }
@@ -252,7 +263,11 @@ export function MemberPage() {
         label: t("action.assign"),
         onSelect: () => {
           setAssigning(item)
-          setSelected(item.roleUids ?? [])
+          // 只预选调用者能分配的角色，避免把越权角色原样回传导致保存失败。
+          setSelected((item.roleUids ?? []).filter((uid) => {
+            const role = roles.find((candidate) => candidate.uid === uid)
+            return role === undefined || canGrantRole(role)
+          }))
           setError("")
           setFieldErrors({})
         },
@@ -287,9 +302,6 @@ export function MemberPage() {
   }
 
   // 套餐人数上限来自会话里的租户快照；跨租户切换后由 session.reload 刷新。
-  const currentNamespace = session.namespaces.find(
-    (item) => item.uid === session.namespaceUid
-  )
   const capacityLabel = currentNamespace
     ? t("member.capacity", {
         used: currentNamespace.memberCount ?? 0,
@@ -433,6 +445,11 @@ export function MemberPage() {
                     <TableCell>{item.email}</TableCell>
                     <TableCell>
                       <span className="flex flex-wrap gap-1">
+                        {item.userUid === currentNamespace?.ownerUid ? (
+                          <Badge variant="outline" className="font-normal">
+                            {t("member.ownerBadge")}
+                          </Badge>
+                        ) : null}
                         {(item.roleNames ?? []).map((name) => (
                           <StatusBadge key={name} value={name} label={name} tone="info" />
                         ))}
@@ -512,6 +529,11 @@ export function MemberPage() {
           </DialogHeader>
           <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onAssign}>
             <DialogBody className="grid gap-4">
+              {!isOwner ? (
+                <p className="text-xs text-muted-foreground">
+                  {t("member.roleScopeHint")}
+                </p>
+              ) : null}
               <FormField label={t("member.role")} required error={fieldErrors.roles}>
                 <div className="grid gap-2">
                   <Input
@@ -554,11 +576,6 @@ export function MemberPage() {
                               >
                                 {role.name}
                               </Label>
-                              <RoleTypeTag
-                                isSystem={role.isSystem}
-                                variant="compact"
-                                className="hidden sm:inline-flex"
-                              />
                               {role.status !== "ACTIVE" ? (
                                 <StatusBadge
                                   value="DISABLED"
@@ -612,6 +629,11 @@ export function MemberPage() {
             label: t("member.role"),
             value: (
               <span className="flex flex-wrap gap-1">
+                {detail?.userUid === currentNamespace?.ownerUid ? (
+                  <Badge variant="outline" className="font-normal">
+                    {t("member.ownerBadge")}
+                  </Badge>
+                ) : null}
                 {(detail?.roleNames ?? []).map((name) => (
                   <StatusBadge key={name} value={name} label={name} tone="info" />
                 ))}

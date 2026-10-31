@@ -11,10 +11,8 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
-	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
-	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
@@ -48,13 +46,12 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 	return r.GetNamespace(ctx, namespaceUID)
 }
 
-// createNamespaceTx 在调用方的事务里创建一个完整租户：绑定套餐、按套餐能力创建预置角色、
-// 写入负责人成员和 owner 角色。直接把租户创建和订单支付放在同一个事务里，避免出现
-// 「租户建好但订单没置为已支付」的中间状态。调用方负责提交事务。
+// createNamespaceTx 在调用方的事务里创建一个完整租户：绑定套餐能力快照并写入负责人成员，
+// 不再创建任何预置角色——新租户没有任何角色，成员的角色由租户自己创建并显式分配。
+// 直接把租户创建和订单支付放在同一个事务里，避免出现「租户建好但订单没置为已支付」的中间状态。
 // durationDays 是本次授权的时长（0 表示永久），由调用方决定用套餐当前值还是订单快照。
 func (base *repoBase) createNamespaceTx(ctx context.Context, tx *ent.Tx, name, remark, ownerUID string, pkg *ent.FeaturePackage, durationDays int32) (string, error) {
-	// 预置角色跟随套餐当前的能力，而不是代码里的常量：超级管理员调整套餐后，
-	// 新建租户的角色权限要立即一致。只有基础套餐在明细缺失时才回落到代码默认能力。
+	// 授权内容是购买时的能力快照，之后编辑套餐不影响这个租户。
 	items, err := tx.FeaturePackageItem.Query().
 		Where(featurepackageitem.PackageUIDEQ(pkg.UID)).
 		All(ctx)
@@ -77,7 +74,6 @@ func (base *repoBase) createNamespaceTx(ctx context.Context, tx *ent.Tx, name, r
 		SetRemark(remark).
 		SetOwnerUID(ownerUID).
 		SetPackageUID(pkg.UID).
-		// 授权内容是购买时的能力快照，之后编辑套餐不影响这个租户。
 		SetPackageFeatures(capabilities).
 		SetSecret(hex.EncodeToString(secret)).
 		SetStatus(namespace.StatusACTIVE)
@@ -88,60 +84,12 @@ func (base *repoBase) createNamespaceTx(ctx context.Context, tx *ent.Tx, name, r
 	if err != nil {
 		return "", base.fail(err)
 	}
-	catalog, err := tx.Permission.Query().All(ctx)
-	if err != nil {
-		return "", base.fail(err)
-	}
-	byName := make(map[string]string, len(catalog))
-	for _, item := range catalog {
-		byName[item.Name] = item.UID
-	}
-	var ownerRoleUID string
-	for _, roleName := range perm.TenantRoles() {
-		created, err := tx.Role.Create().
-			SetUID(id.New()).
-			SetNamespaceUID(ns.UID).
-			SetName(roleName).
-			SetRemark(perm.DefaultRoleRemark(roleName)).
-			SetIsSystem(true).
-			SetStatus(role.StatusACTIVE).
-			Save(ctx)
-		if err != nil {
-			return "", base.fail(err)
-		}
-		if roleName == perm.RoleOwner {
-			ownerRoleUID = created.UID
-		}
-		// 预置角色只授套餐能力范围内的权限；其余能力由租户开通后再授予角色。
-		for _, code := range perm.RolePermissionsForCapabilities(roleName, capabilities) {
-			permissionUID, ok := byName[code]
-			if !ok {
-				return "", merr.Invalid("invalid request")
-			}
-			if _, err := tx.RolePermission.Create().
-				SetUID(id.New()).
-				SetNamespaceUID(ns.UID).
-				SetRoleUID(created.UID).
-				SetPermissionUID(permissionUID).
-				Save(ctx); err != nil {
-				return "", base.fail(err)
-			}
-		}
-	}
-	memberRow, err := tx.Member.Create().
+	// 负责人只是 namespace.owner_uid 指向的 JOINED 成员，权限由该字段隐式推导。
+	if _, err := tx.Member.Create().
 		SetUID(id.New()).
 		SetNamespaceUID(ns.UID).
 		SetUserUID(ownerUID).
 		SetStatus(member.StatusJOINED).
-		Save(ctx)
-	if err != nil {
-		return "", base.fail(err)
-	}
-	if _, err := tx.MemberRole.Create().
-		SetUID(id.New()).
-		SetNamespaceUID(ns.UID).
-		SetMemberUID(memberRow.UID).
-		SetRoleUID(ownerRoleUID).
 		Save(ctx); err != nil {
 		return "", base.fail(err)
 	}
@@ -475,6 +423,9 @@ func (r *namespaceRepo) DeleteNamespace(ctx context.Context, uid string) error {
 	return nil
 }
 
+// TransferOwner 把租户负责人换成另一名已加入成员。
+// 负责人身份只由 namespace.owner_uid 决定，所以这里只校验目标成员是 JOINED 并更新该字段，
+// 不再增删 owner / admin 角色授权。原负责人的角色保持不变（角色权限由租户自己维护）。
 func (r *namespaceRepo) TransferOwner(ctx context.Context, namespaceUID, targetUserUID string) (*bo.Namespace, error) {
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
@@ -488,73 +439,17 @@ func (r *namespaceRepo) TransferOwner(ctx context.Context, namespaceUID, targetU
 	if ns.OwnerUID == targetUserUID {
 		return nil, merr.Invalid("invalid request")
 	}
-	current, err := tx.Member.Query().Where(
-		member.NamespaceUIDEQ(namespaceUID),
-		member.UserUIDEQ(ns.OwnerUID),
-		member.DeletedAtIsNil(),
-	).Only(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	target, err := tx.Member.Query().Where(
+	// 新负责人必须是本租户的 JOINED 成员：停用、已移除和未确认邀请的成员不能接管租户。
+	if _, err := tx.Member.Query().Where(
 		member.NamespaceUIDEQ(namespaceUID),
 		member.UserUIDEQ(targetUserUID),
 		member.DeletedAtIsNil(),
 		member.StatusEQ(member.StatusJOINED),
-	).Only(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	ownerRole, err := tx.Role.Query().Where(role.NamespaceUIDEQ(namespaceUID), role.NameEQ(perm.RoleOwner), role.DeletedAtIsNil()).Only(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	adminRole, err := tx.Role.Query().Where(role.NamespaceUIDEQ(namespaceUID), role.NameEQ(perm.RoleAdmin), role.DeletedAtIsNil()).Only(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	if _, err := tx.MemberRole.Delete().Where(
-		memberrole.NamespaceUIDEQ(namespaceUID),
-		memberrole.MemberUIDEQ(current.UID),
-		memberrole.RoleUIDEQ(ownerRole.UID),
-	).Exec(ctx); err != nil {
-		return nil, r.fail(err)
-	}
-	hasAdmin, err := tx.MemberRole.Query().Where(
-		memberrole.NamespaceUIDEQ(namespaceUID),
-		memberrole.MemberUIDEQ(current.UID),
-		memberrole.RoleUIDEQ(adminRole.UID),
-	).Exist(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	if !hasAdmin {
-		if _, err := tx.MemberRole.Create().
-			SetUID(id.New()).
-			SetNamespaceUID(namespaceUID).
-			SetMemberUID(current.UID).
-			SetRoleUID(adminRole.UID).
-			Save(ctx); err != nil {
-			return nil, r.fail(err)
+	).Only(ctx); err != nil {
+		if ent.IsNotFound(err) {
+			return nil, merr.Client("target must be a joined member")
 		}
-	}
-	hasOwner, err := tx.MemberRole.Query().Where(
-		memberrole.NamespaceUIDEQ(namespaceUID),
-		memberrole.MemberUIDEQ(target.UID),
-		memberrole.RoleUIDEQ(ownerRole.UID),
-	).Exist(ctx)
-	if err != nil {
 		return nil, r.fail(err)
-	}
-	if !hasOwner {
-		if _, err := tx.MemberRole.Create().
-			SetUID(id.New()).
-			SetNamespaceUID(namespaceUID).
-			SetMemberUID(target.UID).
-			SetRoleUID(ownerRole.UID).
-			Save(ctx); err != nil {
-			return nil, r.fail(err)
-		}
 	}
 	if _, err := tx.Namespace.UpdateOne(ns).SetOwnerUID(targetUserUID).Save(ctx); err != nil {
 		return nil, r.fail(err)

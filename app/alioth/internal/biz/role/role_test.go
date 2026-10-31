@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,14 +22,28 @@ type roleRepoStub struct {
 	repository.RoleRepo
 	permissions map[string]struct{}
 	member      bool
+	current     *bo.Role
+	updated     []string
 }
 
-func (s roleRepoStub) Permissions(context.Context, string, string) (map[string]struct{}, error) {
+func (s *roleRepoStub) Permissions(context.Context, string, string) (map[string]struct{}, error) {
 	return s.permissions, nil
 }
 
-func (s roleRepoStub) IsMember(context.Context, string, string) (bool, error) {
+func (s *roleRepoStub) IsMember(context.Context, string, string) (bool, error) {
 	return s.member, nil
+}
+
+func (s *roleRepoStub) GetRole(context.Context, string, string) (*bo.Role, error) {
+	if s.current == nil {
+		return nil, merr.NotFound("not found")
+	}
+	return s.current, nil
+}
+
+func (s *roleRepoStub) UpdateRolePermissions(_ context.Context, _, _ string, names []string) (*bo.Role, error) {
+	s.updated = names
+	return s.current, nil
 }
 
 type userRepoStub struct {
@@ -43,6 +58,7 @@ func (s userRepoStub) UserByUID(context.Context, string) (*bo.Account, error) {
 type namespaceRepoStub struct {
 	repository.NamespaceRepo
 	status    string
+	ownerUID  string
 	expiresAt time.Time
 }
 
@@ -51,7 +67,7 @@ func (s namespaceRepoStub) GetNamespace(_ context.Context, uid string) (*bo.Name
 	if status == "" {
 		status = "ACTIVE"
 	}
-	return &bo.Namespace{UID: uid, Status: status, PackageExpiresAt: s.expiresAt}, nil
+	return &bo.Namespace{UID: uid, Status: status, OwnerUID: s.ownerUID, PackageExpiresAt: s.expiresAt}, nil
 }
 
 type featureRepoStub struct {
@@ -92,7 +108,7 @@ func authorityFor(account *bo.Account, member bool, permissions ...string) *Auth
 		granted[name] = struct{}{}
 	}
 	return &Authority{
-		roles:    roleRepoStub{permissions: granted, member: member},
+		roles:    &roleRepoStub{permissions: granted, member: member},
 		features: featureRepoStub{capabilities: allCapabilities(), modules: allModules()},
 		access: access.Checker{
 			Users:      userRepoStub{account: account},
@@ -285,5 +301,107 @@ func TestNormalizeRoleGrant(t *testing.T) {
 	}
 	if !slices.Contains(got, perm.DatasourceRead) {
 		t.Fatalf("child grant missing default read: %v", got)
+	}
+}
+
+// TestMineOwnerHasImplicitPermissions 确认负责人不依赖任何角色授权：
+// /self/permissions 返回全部租户权限（含负责人专属的删除/移交与菜单权限），
+// 但只保留套餐能力范围内的部分。
+func TestMineOwnerHasImplicitPermissions(t *testing.T) {
+	authority := authorityFor(&bo.Account{UID: "user-1", Status: "ACTIVE", SystemRole: perm.SystemRoleUser}, false)
+	authority.access.Namespaces = namespaceRepoStub{ownerUID: "user-1"}
+	authority.features = featureRepoStub{
+		capabilities: perm.BaseCapabilities(),
+		modules:      perm.ModulesOfCapabilities(perm.BaseCapabilities()),
+	}
+	names, capabilities, readOnly, err := authority.Mine(requestContext("namespace-1"))
+	if err != nil {
+		t.Fatalf("owner mine: %v", err)
+	}
+	if readOnly {
+		t.Fatal("owner treated as read-only")
+	}
+	for _, code := range []string{
+		perm.NamespaceDelete, perm.NamespaceTransfer, perm.AlertRuleWrite,
+		perm.MemberWrite, perm.MenuPermission(perm.CapabilityAlertRule),
+		perm.MenuPermission("namespace"),
+	} {
+		if !slices.Contains(names, code) {
+			t.Fatalf("owner permissions missing %s: %v", code, names)
+		}
+	}
+	if slices.Contains(names, perm.MenuPermission(perm.CapabilityClusterAccess)) {
+		t.Fatal("owner got menu permission outside licensed capabilities")
+	}
+	if !slices.Equal(capabilities, perm.BaseCapabilities()) {
+		t.Fatalf("owner capabilities = %v, want base", capabilities)
+	}
+}
+
+// authorityForCaller 构造一个角色授权用例：namespace 负责人和调用者权限可分别设置。
+func authorityForCaller(ownerUID string, current *bo.Role, held ...string) (*Authority, *roleRepoStub) {
+	granted := make(map[string]struct{}, len(held))
+	for _, name := range held {
+		granted[name] = struct{}{}
+	}
+	stub := &roleRepoStub{permissions: granted, member: true, current: current}
+	authority := &Authority{
+		roles:    stub,
+		features: featureRepoStub{capabilities: allCapabilities(), modules: allModules()},
+		access: access.Checker{
+			Users:      userRepoStub{account: &bo.Account{UID: "user-1", Status: "ACTIVE", SystemRole: perm.SystemRoleUser}},
+			Namespaces: namespaceRepoStub{ownerUID: ownerUID},
+			Roles:      stub,
+			Features:   featureRepoStub{capabilities: allCapabilities(), modules: allModules()},
+			Log:        slog.New(slog.DiscardHandler),
+		},
+	}
+	return authority, stub
+}
+
+// TestUpdateRolePermissionsRejectsBeyondOwn 确认非负责人只能授予自己持有的权限。
+func TestUpdateRolePermissionsRejectsBeyondOwn(t *testing.T) {
+	current := &bo.Role{UID: "role-1", Name: "ops"}
+	authority, _ := authorityForCaller("", current,
+		perm.RoleRead, perm.RoleWrite, perm.MenuPermission(perm.CapabilityRole),
+	)
+	_, err := authority.UpdateRolePermissions(requestContext("namespace-1"), "role-1", []string{perm.MemberRead})
+	if err == nil || !strings.Contains(kerrors.FromError(err).Message, "cannot grant permissions beyond your own") {
+		t.Fatalf("grant beyond own err = %v, want subset rejection", err)
+	}
+}
+
+// TestUpdateRolePermissionsRejectsNormalizeAddedBeyondOwn 确认 normalizeRoleGrant
+// 自动补出的默认读权限也要在调用者权限内，不能借补全绕过子集校验。
+func TestUpdateRolePermissionsRejectsNormalizeAddedBeyondOwn(t *testing.T) {
+	current := &bo.Role{UID: "role-1", Name: "ops"}
+	authority, _ := authorityForCaller("", current,
+		perm.RoleRead, perm.RoleWrite, perm.MenuPermission(perm.CapabilityRole),
+		perm.DatasourceWrite, perm.MenuPermission("datasource"),
+	)
+	_, err := authority.UpdateRolePermissions(requestContext("namespace-1"), "role-1", []string{perm.DatasourceWrite})
+	if err == nil || !strings.Contains(kerrors.FromError(err).Message, "cannot grant permissions beyond your own") {
+		t.Fatalf("grant with normalize-added read err = %v, want subset rejection", err)
+	}
+}
+
+// TestUpdateRolePermissionsOwnerBypassesSubset 确认负责人不受子集限制，
+// 但仍受租户已开通能力范围限制。
+func TestUpdateRolePermissionsOwnerBypassesSubset(t *testing.T) {
+	current := &bo.Role{UID: "role-1", Name: "ops"}
+	authority, stub := authorityForCaller("user-1", current)
+	if _, err := authority.UpdateRolePermissions(requestContext("namespace-1"), "role-1", []string{perm.MemberWrite}); err != nil {
+		t.Fatalf("owner grant: %v", err)
+	}
+	if !slices.Contains(stub.updated, perm.MemberWrite) {
+		t.Fatalf("owner grant not written: %v", stub.updated)
+	}
+	authority.features = featureRepoStub{
+		capabilities: perm.BaseCapabilities(),
+		modules:      perm.ModulesOfCapabilities(perm.BaseCapabilities()),
+	}
+	_, err := authority.UpdateRolePermissions(requestContext("namespace-1"), "role-1", []string{perm.ClusterWrite})
+	if err == nil || kerrors.FromError(err).Message != "feature not enabled" {
+		t.Fatalf("owner grant out-of-package err = %v, want feature not enabled", err)
 	}
 }

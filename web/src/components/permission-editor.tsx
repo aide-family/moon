@@ -8,7 +8,6 @@ import type {
   RoleItem,
 } from "@/api/role/types"
 import { ConfirmAction } from "@/components/confirm-action"
-import { RoleTypeTag } from "@/components/role-type-tag"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -42,6 +41,11 @@ interface PermissionEditorProps {
   catalog: PermissionItem[]
   /** 后端返回的菜单目录。授权页按「分组 → 菜单 → 子权限」渲染。 */
   menus: PermissionMenu[]
+  /**
+   * 非负责人只能配置自己当前持有的权限，传入该集合后目录会裁剪到范围内；
+   * 为空表示负责人（或只读查看），展示租户已开通能力内的完整目录。
+   */
+  allowedPermissions?: Set<string> | null
   catalogLoading: boolean
   catalogFailed: boolean
   onRetryCatalog: () => void
@@ -76,6 +80,7 @@ export function PermissionEditor({
   role,
   catalog,
   menus,
+  allowedPermissions = null,
   catalogLoading,
   catalogFailed,
   onRetryCatalog,
@@ -83,8 +88,23 @@ export function PermissionEditor({
   onSave,
 }: PermissionEditorProps) {
   const { t, i18n } = useTranslation()
-  const available = new Set(catalog.map((item) => item.name))
-  const menuByCode = new Map(menus.map((menu) => [menu.code, menu]))
+  // 非负责人只能配置自己当前持有的权限：目录与菜单都裁剪到调用者权限范围内。
+  // 负责人（allowedPermissions 为空）看到租户已开通能力内的完整目录。
+  const scopedCatalog = allowedPermissions
+    ? catalog.filter((item) => allowedPermissions.has(item.name))
+    : catalog
+  const scopedMenus = allowedPermissions
+    ? menus
+        .map((menu) => ({
+          ...menu,
+          permissions: menu.permissions.filter((item) =>
+            allowedPermissions.has(item.name)
+          ),
+        }))
+        .filter((menu) => menu.permissions.length > 0)
+    : menus
+  const available = new Set(scopedCatalog.map((item) => item.name))
+  const menuByCode = new Map(scopedMenus.map((menu) => [menu.code, menu]))
   const held = role?.permissions ?? []
   const heldMenus = new Set(
     held
@@ -95,12 +115,15 @@ export function PermissionEditor({
   const heldPermissions = new Set(
     held.filter((name) => !name.startsWith("menu:") && available.has(name))
   )
-  const preservedNames = held.filter((name) => !available.has(name))
+  // 受限调用者无法保留自己没有的旧授权（后端子集校验会拒绝），其余情况保留套餐外旧授权。
+  const preservedNames = allowedPermissions
+    ? []
+    : held.filter((name) => !available.has(name))
   // 旧授权可能只有子权限、没有菜单权限；打开时按子权限补上声明的菜单，
   // 与后端 normalizeRoleGrant 的规则保持一致，避免保存时静默丢掉授权。
   const initialMenus = new Set(heldMenus)
   for (const name of heldPermissions) {
-    const declaring = menus.filter((menu) =>
+    const declaring = scopedMenus.filter((menu) =>
       menu.permissions.some((item) => item.name === name)
     )
     if (
@@ -112,7 +135,7 @@ export function PermissionEditor({
   }
 
   const [baseline] = useState(
-    () => new Set(buildPayload(initialMenus, heldPermissions, new Set(preservedNames), menus, available))
+    () => new Set(buildPayload(initialMenus, heldPermissions, new Set(preservedNames), scopedMenus, available))
   )
   const [selectedMenus, setSelectedMenus] = useState(initialMenus)
   const [selectedPermissions, setSelectedPermissions] = useState(heldPermissions)
@@ -150,7 +173,7 @@ export function PermissionEditor({
   ).length
 
   // 按后端菜单顺序分组；共享权限（被同组多个菜单声明）只在分组顶部出现一次。
-  const groups = buildGroups(menus)
+  const groups = buildGroups(scopedMenus)
 
   const filteredGroups = groups
     .map((group) => {
@@ -366,7 +389,6 @@ export function PermissionEditor({
             </SheetDescription>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium">{role?.name ?? ""}</span>
-              {role ? <RoleTypeTag isSystem={role.isSystem} /> : null}
               <span className="ml-auto text-xs text-muted-foreground">
                 {t("role.grant.selected", {
                   selected: selectedCount,
@@ -382,6 +404,11 @@ export function PermissionEditor({
             <p className="text-xs text-muted-foreground">
               {t("role.grant.menuHint")}
             </p>
+            {allowedPermissions ? (
+              <p className="text-xs text-muted-foreground">
+                {t("role.grant.scopeHint")}
+              </p>
+            ) : null}
             {dirty ? (
               <p className="text-xs text-muted-foreground">
                 {t("role.grant.diff", { added, removed })}

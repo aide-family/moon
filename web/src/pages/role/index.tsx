@@ -24,10 +24,9 @@ import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { PermissionEditor } from "@/components/permission-editor"
 import { PermissionSummary } from "@/components/permission-summary"
-import { RoleTypeTag } from "@/components/role-type-tag"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
-import { TABLE_COLUMN_WIDTH, TABLE_MIN_WIDTH } from "@/lib/table-layout"
+import { TABLE_MIN_WIDTH } from "@/lib/table-layout"
 import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
@@ -152,8 +151,7 @@ export function RolePage() {
       return
     }
     const errors = collectFieldErrors([
-      // 系统角色只写备注，名称由后端锁死，前端也不再校验。
-      ["name", editing.isSystem ? null : requireTrimmed(name, t("form.required"))],
+      ["name", requireTrimmed(name, t("form.required"))],
       ["remark", validateRemark(remark)],
     ])
     if (hasFieldErrors(errors)) {
@@ -166,7 +164,7 @@ export function RolePage() {
     try {
       // 备注先写：改名失败时备注不会白填；两个请求都是全量覆盖，重试幂等。
       await updateRoleRemark({ uid: editing.uid, remark: remark.trim() })
-      if (!editing.isSystem && name.trim() !== editing.name) {
+      if (name.trim() !== editing.name) {
         await updateRole({ uid: editing.uid, name: name.trim() })
       }
       setEditing(null)
@@ -213,24 +211,6 @@ export function RolePage() {
   function roleActions(item: RoleItem): RowAction[] {
     if (!session.can("role:read")) {
       return []
-    }
-    // 系统角色：权限只读查看，但备注是运维说明，允许编辑（名称由后端锁死）。
-    if (item.isSystem) {
-      const actions: RowAction[] = [
-        {
-          key: "permissions",
-          label: t("action.permissions"),
-          onSelect: () => setDetail(item),
-        },
-      ]
-      if (session.can("role:write")) {
-        actions.push({
-          key: "edit",
-          label: t("action.edit"),
-          onSelect: () => openEdit(item),
-        })
-      }
-      return actions
     }
     if (!session.can("role:write")) {
       return []
@@ -302,6 +282,12 @@ export function RolePage() {
 
   const canWrite = session.can("role:write")
   const remarkCount = remarkLength(remark)
+  const currentNamespace = session.namespaces.find(
+    (item) => item.uid === session.namespaceUid
+  )
+  const isOwner = !!session.user && currentNamespace?.ownerUid === session.user.uid
+  // 非负责人只能配置自己当前持有的权限；负责人可配置租户能力范围内的全部权限。
+  const grantablePermissions = isOwner ? null : new Set(session.permissions)
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
@@ -365,7 +351,6 @@ export function RolePage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t("role.name")}</TableHead>
-                <TableHead className={TABLE_COLUMN_WIDTH.type}>{t("role.type")}</TableHead>
                 <TableHead className="w-[18rem]">{t("role.remark")}</TableHead>
                 <TableStatusHead>{t("namespace.status")}</TableStatusHead>
                 <TableActionsHead>{t("action.actions")}</TableActionsHead>
@@ -376,9 +361,6 @@ export function RolePage() {
                 <TableRow key={item.uid}>
                   <TableCell className="max-w-0 whitespace-normal break-words font-medium">
                     {item.name}
-                  </TableCell>
-                  <TableCell>
-                    <RoleTypeTag isSystem={item.isSystem} />
                   </TableCell>
                   <TableCell className="max-w-0 whitespace-normal">
                     {item.remark?.trim() ? (
@@ -470,15 +452,13 @@ export function RolePage() {
               <FormField
                 label={t("role.name")}
                 htmlFor="role-edit-name"
-                required={!editing?.isSystem}
-                hint={editing?.isSystem ? t("role.systemNameLocked") : undefined}
+                required
                 error={fieldErrors.name}
               >
                 <Input
                   id="role-edit-name"
                   value={name}
                   placeholder={t("role.namePlaceholder")}
-                  disabled={editing?.isSystem}
                   onChange={(event) => setName(event.target.value)}
                 />
               </FormField>
@@ -518,6 +498,7 @@ export function RolePage() {
         role={granting}
         catalog={catalog}
         menus={menus}
+        allowedPermissions={grantablePermissions}
         catalogLoading={catalogStatus === "loading"}
         catalogFailed={catalogStatus === "failed"}
         onRetryCatalog={() => {
@@ -539,16 +520,11 @@ export function RolePage() {
         open={detail !== null}
         wide
         title={detail?.name ?? t("action.detail")}
-        description={detail?.isSystem ? t("role.grant.readonly") : undefined}
         onOpenChange={(value) => {
           if (!value) setDetail(null)
         }}
         fields={[
           { label: t("role.name"), value: detail?.name ?? "" },
-          {
-            label: t("role.type"),
-            value: detail ? <RoleTypeTag isSystem={detail.isSystem} /> : "",
-          },
           { label: t("namespace.status"), value: <StatusBadge value={detail?.status ?? ""} /> },
           {
             label: t("role.remark"),
