@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationpreset"
@@ -55,7 +56,7 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	if err := migrateNamespacePackageSnapshots(ctx, client, helper); err != nil {
 		return err
 	}
-	if err := syncTenantRoles(ctx, client, helper); err != nil {
+	if err := removePresetTenantRoles(ctx, client, helper); err != nil {
 		return err
 	}
 	if err := pruneStaleMenuPermissions(ctx, client, helper); err != nil {
@@ -244,15 +245,31 @@ func ensurePackageCapabilities(ctx context.Context, client *ent.Client, helper *
 }
 
 // legacyTypedCapabilityExpansion 把拆分前的单能力展开成按类型的能力：
-// 旧「数据源」覆盖全部驱动，旧「探测目标」只有 HTTP，旧「通知渠道」覆盖三种渠道类型。
-// 保持升级前租户的能力范围不变；管理员之后可以在套餐里按类型收窄。
+// 旧「数据源」覆盖全部驱动，旧「探测目标」只有 HTTP，旧「通知渠道」覆盖全部渠道类型。
+// Webhook 渠道随后又按应用、短信渠道按提供商细分，所以旧「Webhook 渠道」和
+// 「短信渠道」也要继续展开成新的应用/提供商能力。保持升级前租户的能力范围不变；
+// 管理员之后可以在套餐里按类型收窄。
 var legacyTypedCapabilityExpansion = map[string][]string{
 	"datasource":   perm.CapabilityCodesOfModule(perm.FeatureDatasource),
 	"probe_target": {perm.CapabilityProbeHTTP},
 	"notify_channel": {
 		perm.CapabilityNotifyChannelSMTP,
-		perm.CapabilityNotifyChannelWebhook,
-		perm.CapabilityNotifyChannelSMS,
+		"notify_channel_webhook_other",
+		"notify_channel_webhook_dingtalk",
+		"notify_channel_webhook_wechat",
+		"notify_channel_webhook_feishu",
+		"notify_channel_sms_alicloud",
+		"notify_channel_sms_tencent",
+	},
+	"notify_channel_webhook": {
+		"notify_channel_webhook_other",
+		"notify_channel_webhook_dingtalk",
+		"notify_channel_webhook_wechat",
+		"notify_channel_webhook_feishu",
+	},
+	"notify_channel_sms": {
+		"notify_channel_sms_alicloud",
+		"notify_channel_sms_tencent",
 	},
 }
 
@@ -503,87 +520,24 @@ func migrateNamespacePackageSnapshots(ctx context.Context, client *ent.Client, h
 	return nil
 }
 
-// tenantConfiguredCapabilities 计算租户已配置的能力：套餐能力并上额外能力。
-// 不判断停用和到期：seed 补权限要保留租户的配置，停用期间不撤销已有授权。
-// 租户被删除或没有套餐时按空能力处理，预置角色只保留 namespace:*。
-func tenantConfiguredCapabilities(ctx context.Context, client *ent.Client, helper *slog.Logger, namespaceUID string) ([]string, error) {
-	row, err := client.Namespace.Query().Where(namespace.UIDEQ(namespaceUID), namespace.DeletedAtIsNil()).Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, nil
-		}
-		return nil, databaseErr(helper, err)
-	}
-	packageCapabilities, err := namespacePackageCapabilities(ctx, client, row.UID)
-	if err != nil {
-		return nil, databaseErr(helper, err)
-	}
-	extra, err := namespaceExtraCapabilityCodes(ctx, client, namespaceUID)
-	if err != nil {
-		return nil, databaseErr(helper, err)
-	}
-	return perm.EffectiveCapabilities(packageCapabilities, extra), nil
-}
-
-func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
-	rows, err := client.Permission.Query().All(ctx)
+// removePresetTenantRoles 删除预置的租户角色。
+// 预置角色改为完全由租户创建、成员添加时显式分配，owner/admin/member/viewer
+// 四个系统角色不再使用；负责人权限改由 namespaces.owner_uid 隐式判定。
+// 先删成员授权和权限授权，再软删角色行；重复执行时系统角色已被软删、查询不到。
+func removePresetTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	rows, err := client.Role.Query().Where(role.IsSystem(true)).All(ctx)
 	if err != nil {
 		return databaseErr(helper, err)
 	}
-	byName := make(map[string]string, len(rows))
-	for _, row := range rows {
-		byName[row.Name] = row.UID
-	}
-	capabilitiesByNamespace := make(map[string][]string)
-	roles, err := client.Role.Query().Where(role.IsSystem(true), role.DeletedAtIsNil()).All(ctx)
-	if err != nil {
-		return databaseErr(helper, err)
-	}
-	for _, item := range roles {
-		// 系统角色的预设备注只在空备注时补齐，管理员改过的值不覆盖。
-		if item.Remark == "" {
-			if remark := perm.DefaultRoleRemark(item.Name); remark != "" {
-				if _, err := client.Role.Update().
-					Where(role.UIDEQ(item.UID), role.RemarkEQ("")).
-					SetRemark(remark).
-					Save(ctx); err != nil {
-					return databaseErr(helper, err)
-				}
-			}
-		}
-		links, err := client.RolePermission.Query().Where(rolepermission.RoleUIDEQ(item.UID)).All(ctx)
-		if err != nil {
+	for _, item := range rows {
+		if _, err := client.MemberRole.Delete().Where(memberrole.RoleUIDEQ(item.UID)).Exec(ctx); err != nil {
 			return databaseErr(helper, err)
 		}
-		have := make(map[string]struct{}, len(links))
-		for _, link := range links {
-			have[link.PermissionUID] = struct{}{}
+		if _, err := client.RolePermission.Delete().Where(rolepermission.RoleUIDEQ(item.UID)).Exec(ctx); err != nil {
+			return databaseErr(helper, err)
 		}
-		capabilities, ok := capabilitiesByNamespace[item.NamespaceUID]
-		if !ok {
-			capabilities, err = tenantConfiguredCapabilities(ctx, client, helper, item.NamespaceUID)
-			if err != nil {
-				return err
-			}
-			capabilitiesByNamespace[item.NamespaceUID] = capabilities
-		}
-		// 只补租户已开通能力内的权限与菜单权限；未开通能力即使预置角色目录里有也不写。
-		for _, code := range perm.RolePermissionsForCapabilities(item.Name, capabilities) {
-			permissionUID := byName[code]
-			if permissionUID == "" {
-				continue
-			}
-			if _, ok := have[permissionUID]; ok {
-				continue
-			}
-			if _, err := client.RolePermission.Create().
-				SetUID(id.New()).
-				SetNamespaceUID(item.NamespaceUID).
-				SetRoleUID(item.UID).
-				SetPermissionUID(permissionUID).
-				Save(ctx); err != nil {
-				return databaseErr(helper, err)
-			}
+		if _, err := client.Role.Delete().Where(role.UIDEQ(item.UID)).Exec(ctx); err != nil {
+			return databaseErr(helper, err)
 		}
 	}
 	return nil
@@ -593,7 +547,7 @@ func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logge
 // Kubernetes 控制台改为按资源授权后，旧的自定义角色只有 cluster:read/cluster:write：
 // 有 cluster:read 的补全部 k8s 读权限和 Pod 日志，有 cluster:write 的补全部 k8s 写权限。
 // 只处理当前没有任何 k8s:* 权限的角色，补齐后不会再命中，可以重复执行。
-// 系统角色由 syncTenantRoles 按预置角色目录直接补齐，不走这里。
+// 预置角色已由 removePresetTenantRoles 删除，这里只处理租户自定义角色。
 func migrateCustomRoleK8sPermissions(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	rows, err := client.Permission.Query().All(ctx)
 	if err != nil {
@@ -667,15 +621,21 @@ func legacyRoleK8sPermissions(names map[string]struct{}) []string {
 
 // ensureSuperAdmin 为已有部署补上超级管理员：第一个注册的用户。
 // 新库还没有用户时不写入；第一个用户由 CreateUser 在创建时确定。
+// 已软删的错误账号不参与补位，避免把超级管理员授给一个被清理的账号。
 func ensureSuperAdmin(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
-	exists, err := client.User.Query().Where(user.SystemRoleEQ(user.SystemRoleSUPER_ADMIN)).Exist(ctx)
+	exists, err := client.User.Query().
+		Where(user.SystemRoleEQ(user.SystemRoleSUPER_ADMIN), user.DeletedAtIsNil()).
+		Exist(ctx)
 	if err != nil {
 		return databaseErr(helper, err)
 	}
 	if exists {
 		return nil
 	}
-	row, err := client.User.Query().Order(ent.Asc(user.FieldCreatedAt), ent.Asc(user.FieldUID)).First(ctx)
+	row, err := client.User.Query().
+		Where(user.DeletedAtIsNil()).
+		Order(ent.Asc(user.FieldCreatedAt), ent.Asc(user.FieldUID)).
+		First(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil

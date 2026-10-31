@@ -50,6 +50,50 @@ func permissionSet(names []string) map[string]struct{} {
 	return out
 }
 
+// TestLegacyChannelCapabilityExpansion 确认通知渠道能力细分后旧能力码仍展开成完整能力范围：
+// 旧 Webhook 渠道覆盖四个应用能力，旧短信渠道覆盖两个提供商能力，
+// 更旧的模块级编码覆盖全部七个渠道能力；展开结果必须都在能力目录里。
+func TestLegacyChannelCapabilityExpansion(t *testing.T) {
+	webhook := []string{
+		perm.CapabilityNotifyChannelWebhookOther,
+		perm.CapabilityNotifyChannelWebhookDingTalk,
+		perm.CapabilityNotifyChannelWebhookWeChat,
+		perm.CapabilityNotifyChannelWebhookFeishu,
+	}
+	sms := []string{
+		perm.CapabilityNotifyChannelSMSAliCloud,
+		perm.CapabilityNotifyChannelSMSTencent,
+	}
+	channel := append([]string{perm.CapabilityNotifyChannelSMTP}, append(append([]string(nil), webhook...), sms...)...)
+	cases := map[string][]string{
+		"notify_channel_webhook": webhook,
+		"notify_channel_sms":     sms,
+		"notify_channel":         channel,
+	}
+	for code, want := range cases {
+		got := legacyTypedCapabilityExpansion[code]
+		if len(got) != len(want) {
+			t.Fatalf("%s expands to %v, want %v", code, got, want)
+		}
+		wantSet := permissionSet(want)
+		for _, capability := range got {
+			if _, ok := wantSet[capability]; !ok {
+				t.Fatalf("%s expands to unexpected capability %s, want %v", code, capability, want)
+			}
+			if !perm.IsCapability(capability) {
+				t.Fatalf("%s expands to %s, which is not in the capability catalog", code, capability)
+			}
+		}
+	}
+	base := permissionSet(perm.BaseCapabilities())
+	for _, capability := range append(channel, perm.CapabilityNotifyChannelSMTP) {
+		if _, ok := base[capability]; ok {
+			continue
+		}
+		t.Fatalf("base package is missing channel capability %s", capability)
+	}
+}
+
 // TestCapabilityCodesOf 确认旧的模块级编码会展开成该模块的全部能力，
 // 能力编码去重并按目录顺序返回，目录外的编码被忽略。
 func TestCapabilityCodesOf(t *testing.T) {
