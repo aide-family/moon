@@ -12,16 +12,22 @@
 **镜像来源**：GHCR 包必须公开，否则节点拉不到。私有包需要先建 imagePullSecret 并挂到每个
 Deployment 和迁移 Job 上，本仓库目前不提供这部分清单。
 
-**集群依赖的镜像站**：节点的 docker.io 直连不可用，所以 `postgres.yaml` / `redis.yaml`
-用的是 `docker.m.daocloud.io` 镜像站地址；配置了 registry mirror 的集群可以换回官方地址。
+## 依赖的共享中间件
+
+本命名空间不再自带 PostgreSQL / Redis，统一用 `infra` 命名空间里的共享实例：
+
+| 依赖 | 地址 | 凭据 |
+| --- | --- | --- |
+| PostgreSQL 18 | `postgres18.infra.svc.cluster.local:5432`，库 `alioth` | Secret `alioth-postgres` 的 `DATABASE_SOURCE` |
+| Redis 7 | `redis.infra.svc.cluster.local:6379` | Secret `alioth-redis` 的 `REDIS_PASSWORD` |
+
+`infra` 里的 `postgres`（16）的 `pg_hba.conf` 只允许 localhost，跨命名空间连不上，所以用
+`postgres18`。建库与建账号的命令见「密钥」；数据库账号需要 `CREATEDB`，历史告警会按租户建库。
 
 ## 部署顺序
 
 ```bash
 kubectl apply -f namespace.yaml
-kubectl apply -f storage.yaml          # postgres 的 hostPath PV（无动态存储类时必须先建）
-kubectl apply -f postgres.yaml
-kubectl apply -f redis.yaml
 kubectl apply -f alioth.yaml           # 只含 Deployment/Service，Secret 单独创建
 kubectl apply -f migrate-job.yaml
 kubectl wait --for=condition=complete --timeout=180s job/alioth-migrate
@@ -30,8 +36,10 @@ kubectl apply -f merak.yaml
 kubectl apply -f web.yaml
 kubectl apply -f ingress.yaml          # Kong 网关按域名转发到 web
 kubectl apply -f pdb.yaml
-kubectl apply -f networkpolicy.yaml
 ```
+
+前置条件：`infra` 的 `postgres18` 与 `redis` 已就绪，`alioth` 库和带 `CREATEDB` 的账号已建好
+（见「密钥」）。
 
 
 迁移必须先于首次滚动完成。`alioth` 启动不会自动建表，`alioth-migrate` Job 调
@@ -67,8 +75,8 @@ kubectl apply -f networkpolicy.yaml
 | megrez | 2 | 仅集群内 8001 | `/livez` + `/readyz`（Redis） |
 | merak | 2 | 仅集群内 8002 | `/livez` + `/readyz`（Redis） |
 
-PostgreSQL 使用 `postgres-data` PVC，Pod 重建不丢业务数据。Redis 只保存租约锁，丢失后由 TTL
-与下一轮调度恢复，因此不挂持久卷、关闭 RDB/AOF。
+PostgreSQL / Redis 都用 `infra` 的共享实例，本命名空间里不再跑第二套。Redis 只保存租约锁，
+丢失后由 TTL 与下一轮调度恢复。
 
 `readiness` 查依赖、`liveness` 只查进程：数据库或 Redis 抖动时 Pod 会被摘流量，但不会被重启。
 每个 Deployment 都配了 `resources`、`securityContext`（非 root、只读根文件系统、drop ALL
@@ -92,26 +100,40 @@ capabilities）、`terminationGracePeriodSeconds` 和 `maxUnavailable: 0` 的滚
 用 `sleep` 动作而不是 `exec: ["sleep","5"]`，因为 `alioth` 镜像是 distroless，里面没有
 `sleep` 二进制；`preStop.sleep` 是 k8s 1.30+ 的原生能力，不依赖容器内任何命令。
 
-`networkpolicy.yaml` 只收口 PostgreSQL/Redis 的入向（分别只允许 alioth 与 alioth/megrez/merak），
-应用 HTTP/gRPC 端口不限制，避免不同 CNI 对 kubelet 探针流量的处理差异把 Pod 摘掉。
+`networkpolicy.yaml` 已随中间件一起移除：PostgreSQL/Redis 在 `infra` 命名空间，收口策略由
+那边维护；本命名空间的应用 HTTP/gRPC 端口保持互通，避免不同 CNI 对 kubelet 探针流量的
+处理差异把 Pod 摘掉。
 
 ## 密钥
 
 `secrets.example.yaml` 只是模板，**不要 apply**，它里面的值都是占位值。清单里已经不含内联
-Secret，所以 `kubectl apply -f alioth.yaml` 不会覆盖线上真实密钥。三个 Secret 这样生成：
+Secret，所以 `kubectl apply -f alioth.yaml` 不会覆盖线上真实密钥。四个 Secret 这样生成。
+
+先在 `infra` 的 `postgres18` 里建库和账号（账号必须有 `CREATEDB`，历史告警会按租户建库）：
 
 ```bash
 PG_PASSWORD="$(openssl rand -hex 24)"   # 只用十六进制字符，免去 URL 转义
+kubectl -n infra exec -i postgres18-0 -- psql -U appuser -d appdb <<SQL
+CREATE ROLE alioth LOGIN CREATEDB PASSWORD '${PG_PASSWORD}';
+CREATE DATABASE alioth OWNER alioth;
+SQL
+```
+
+然后写两个凭据 Secret：
+
+```bash
 kubectl -n alioth create secret generic alioth-postgres \
-  --from-literal=POSTGRES_USER=alioth \
-  --from-literal=POSTGRES_PASSWORD="${PG_PASSWORD}" \
-  --from-literal=POSTGRES_DB=alioth \
-  --from-literal=DATABASE_SOURCE="postgres://alioth:${PG_PASSWORD}@postgres:5432/alioth?sslmode=disable" \
+  --from-literal=DATABASE_SOURCE="postgres://alioth:${PG_PASSWORD}@postgres18.infra.svc.cluster.local:5432/alioth?sslmode=disable" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# REDIS_PASSWORD 与 infra 的 redis-secret 保持一致
+kubectl -n alioth create secret generic alioth-redis \
+  --from-literal=REDIS_PASSWORD="$(kubectl -n infra get secret redis-secret -o jsonpath='{.data.REDIS_PASSWORD}' | base64 -d)" \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-`POSTGRES_PASSWORD` 和 `DATABASE_SOURCE` 里的密码必须是同一份，所以先落一个变量再复用；
-写死了两份随机值的命令会让 postgres 初始化出一套密码、alioth 却拿另一套去连。
+`CREATE ROLE` 和 `DATABASE_SOURCE` 里的密码必须是同一份，所以先落一个变量再复用；
+写死两份随机值会让数据库和 alioth 的凭据对不上。
 
 ```bash
 kubectl -n alioth create secret generic alioth-auth \
@@ -203,7 +225,7 @@ kubectl -n alioth rollout restart deploy/alioth
 - 就绪副本均 ≥ 2，`kubectl -n alioth get endpoints` 不含未就绪 Pod。
 - 停一个 alioth / megrez / merak 副本后，经 `http://alioth.moon.com` 的登录、评测、通知仍可用。
 - `kubectl -n alioth delete pod -l app=alioth --wait=false` 滚动期间，重复请求不出现 5xx。
-- 停掉 PostgreSQL 后 `deploy/alioth` 的 ready 副本变为 1，恢复后自动回到 2；`restartCount` 不变。
+- `infra` 的 `postgres18` 短暂不可达时 `deploy/alioth` 的 ready 副本会减少，恢复后自动回到 2；`restartCount` 不变。
 - 集群外只能通过 Kong 的 80/443 访问 `alioth.moon.com`；8000、8001、8002、8022、9000、9022 不可达。
 - 集群内可访问 `megrez:8001/readyz` 与 `merak:8002/readyz`。
 - 经过 `http://alioth.moon.com` 打开机器页交互式 shell，devtools 显示 `101 Switching Protocols`，空闲 5 分钟不断线。
