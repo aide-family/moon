@@ -26,11 +26,12 @@ const (
 // 组内地址共用的请求参数。HTTP 探测使用全部字段；TCP 与 ICMP 只使用 timeout_ms。
 type ProbeRequestConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 请求方法，取值为 GET 或 HEAD。
+	// 请求方法，取值为 GET 或 HEAD；TCP / ICMP 探测不使用，可留空。
 	Method string `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
 	// 期望状态码。支持单值、区间与列表：200、200-299、200,204,301。
 	ExpectStatus string `protobuf:"bytes,2,opt,name=expect_status,json=expectStatus,proto3" json:"expect_status,omitempty"`
-	// 单次超时，单位毫秒。运行时实际超时取 min(此值, 规则周期 × 0.8)。
+	// 单次超时，单位毫秒。TCP / ICMP 探测只使用该字段；留空按默认 3000 处理。
+	// 运行时实际超时取 min(此值, 规则周期 × 0.8)。
 	TimeoutMs int32 `protobuf:"varint,3,opt,name=timeout_ms,json=timeoutMs,proto3" json:"timeout_ms,omitempty"`
 	// 是否跟随重定向，最多 5 跳。
 	FollowRedirects bool `protobuf:"varint,4,opt,name=follow_redirects,json=followRedirects,proto3" json:"follow_redirects,omitempty"`
@@ -1730,12 +1731,12 @@ var File_alioth_v1_probe_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\n" +
-	"\x15alioth/v1/probe.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xde\x02\n" +
-	"\x12ProbeRequestConfig\x12(\n" +
-	"\x06method\x18\x01 \x01(\tB\x10\xbaH\rr\vR\x03GETR\x04HEADR\x06method\x12-\n" +
+	"\x15alioth/v1/probe.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xe0\x02\n" +
+	"\x12ProbeRequestConfig\x12*\n" +
+	"\x06method\x18\x01 \x01(\tB\x12\xbaH\x0fr\rR\x00R\x03GETR\x04HEADR\x06method\x12-\n" +
 	"\rexpect_status\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\fexpectStatus\x12*\n" +
 	"\n" +
-	"timeout_ms\x18\x03 \x01(\x05B\v\xbaH\b\x1a\x06\x18\xe0\xd4\x03(dR\ttimeoutMs\x12)\n" +
+	"timeout_ms\x18\x03 \x01(\x05B\v\xbaH\b\x1a\x06\x18\xe0\xd4\x03(\x00R\ttimeoutMs\x12)\n" +
 	"\x10follow_redirects\x18\x04 \x01(\bR\x0ffollowRedirects\x12&\n" +
 	"\x0fskip_tls_verify\x18\x05 \x01(\bR\rskipTlsVerify\x12\x1f\n" +
 	"\vverify_cert\x18\x06 \x01(\bR\n" +

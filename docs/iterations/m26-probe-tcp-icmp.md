@@ -76,14 +76,14 @@ M26 在 M18（HTTP 探测）与 M21（探测能力按类型细分）之上补齐
 
 ## 验收
 
-- [ ] 新建 TCP 目标组（多个 `host:port`），重复地址被拒绝，无端口 / 带 scheme / 保留网段被拒绝。
-- [ ] 新建 ICMP 目标组（host 与 IP 混合），带端口或保留网段被拒绝；组内去重生效。
-- [ ] TCP 试探测：本机监听端口返回成功与耗时，关闭端口返回 `connect` 失败原因；不落库、不产生事件。
-- [ ] ICMP 试探测：有权限时回显成功与往返时延；无权限时返回 `permission` 原因。
-- [ ] TCP / ICMP 探测规则一个周期内按槽位落库，`scheduled_slot` / `next_eval_at` 正常推进；停用目标后下一周期产生失败记录。
-- [ ] 命中后事件 `probe_kind` 为 `TCP` / `ICMP`，`expr` 为 `host:port` / host，通知订阅按标签命中，恢复后归档。
-- [ ] TCP / ICMP 规则保存 `STATUS_CODE` / `CERT_DAYS` 指标被拒绝；HTTP 规则仍可使用四个指标。
-- [ ] 规则只匹配同类型目标组：HTTP 规则不会匹配 TCP / ICMP 目标组，反之亦然。
+- [x] 新建 TCP 目标组（多个 `host:port`），重复地址被拒绝，无端口 / 带 scheme / 保留网段被拒绝。
+- [x] 新建 ICMP 目标组（host 与 IP 混合），带端口或保留网段被拒绝；组内去重生效。
+- [x] TCP 试探测：本机监听端口返回成功与耗时，关闭端口返回 `connect` 失败原因；不落库、不产生事件。
+- [x] ICMP 试探测：有权限时回显成功与往返时延；无权限时返回 `permission` 原因。
+- [x] TCP / ICMP 探测规则一个周期内按槽位落库，`scheduled_slot` / `next_eval_at` 正常推进；停用目标后下一周期产生失败记录。
+- [x] 命中后事件 `probe_kind` 为 `TCP` / `ICMP`，`expr` 为 `host:port` / host，通知订阅按标签命中，恢复后归档。
+- [x] TCP / ICMP 规则保存 `STATUS_CODE` / `CERT_DAYS` 指标被拒绝；HTTP 规则仍可使用四个指标。
+- [x] 规则只匹配同类型目标组：HTTP 规则不会匹配 TCP / ICMP 目标组，反之亦然。
 - [ ] `probe.enabled=false` 时探测 worker 不领取任务的行为不变。
 - [x] `make vet`、`make lint`、`go test ./...` 与 Web 的 typecheck / lint / build 通过；`pkg/probe` 覆盖 TCP 成功 / 失败、目标归一化、权限失败分类与 ICMP 无权限跳过。
 
@@ -100,11 +100,32 @@ M26 在 M18（HTTP 探测）与 M21（探测能力按类型细分）之上补齐
 - Web：`pnpm typecheck`、`pnpm lint`、`pnpm build` 通过（仅既有 chunk 体积提示）；`buf generate` 幂等。
 - 部署清单：`docker compose config -q` 与 `kubectl apply --dry-run=client -f deploy/k8s/megrez.yaml` 通过。
 
+### 2026-11-01 本地端到端（独立库 `alioth_probe_e2e_m26` + 独立 Redis 6380）
+
+做法：本机起 alioth（HTTP 18000 / gRPC 19000）、megrez（评测 + 探测 worker）与 merak；PostgreSQL 与 Redis 与开发实例隔离；用 SQL 造租户与负责人后，全部操作经 HTTP API 完成（Bearer JWT + `X-Namespace`）。
+
+- [x] TCP、ICMP 目标组创建成功并落库正确的 `driver`；TCP 带 URL、ICMP 带端口、组内重复地址均返回 400。
+- [x] TCP / ICMP 试探测成功（`ok=true`、解析 IP）；TCP DNS 失败分类 `dns`，ICMP 对 TEST-NET 超时分类 `timeout`。
+- [x] 探测规则按 15 秒槽位落库，`scheduled_slot` / `next_eval_at` 连续推进；TCP、ICMP 规则只匹配各自类型的目标组。
+- [x] 停掉 TCP 目标后 `ok=false`、`error_kind=connect`、`value=0`，UP EQ 0 规则产生 FIRING 事件：`probe_kind=TCP`、`expr=127.0.0.1:18080`、`datasource` 为目标组名、`sample_value=0`。
+- [x] 恢复 TCP 目标后结果恢复 `ok=true`，事件归档到租户历史库：`status=RECOVERED`、`ends_at` 有值、标签保留。
+- [x] ICMP 规则（UP EQ 1）产生 FIRING 事件（`probe_kind=ICMP`、`expr=127.0.0.1`、`sample_value=1`）；删除目标组后事件恢复并归档。
+- [x] TCP / ICMP 规则保存 `STATUS_CODE` / `CERT_DAYS` 指标均返回 400；HTTP 试探测回归成功（200、`value=1`）。
+- [x] 「立即探测」写入 `rule_uid` 为空的结果；目标组探测记录 API 返回目标地址、成功状态与规则名。
+- [x] 能力开关：从租户能力快照移除 `probe_tcp` 后创建 TCP 目标组返回 403 `feature not enabled`，TCP 目标组列表为空；恢复能力后正常。
+- [x] 通知闭环：只配 `probe_kind=TCP` 标签的订阅收到 FIRING 与 RECOVERED 各一条任务，merak 投递 `SENT`，Mailpit 收到邮件；模板中 `probe_kind`、`externalURL` 渲染出 TCP 目标；消息日志归档到租户库。
+- [x] 两个 megrez 副本同时运行：同一槽位仍只有一条结果（29 行 / 29 个唯一 `target+slot`），无重复探测或重复回写；进程同时上报评测与探测两个实例心跳。
+- [x] 本机 macOS 上 ICMP 非特权路径实际回显成功（`127.0.0.1`），`TEST-NET` 超时符合预期。
+
+端到端发现并已修复的问题：
+
+- TCP / ICMP 目标组或试探测请求只传 `timeout_ms` 时，proto 校验因 `method` 不允许空、`timeout_ms` 要求 ≥100 而返回 400，与「TCP / ICMP 只使用超时」的接口说明不符。已放宽为 `method` 允许空、`timeout_ms` 允许 0（业务层补默认 3000），并重生成 API 代码；修复后同一请求成功。
+
 ### 未执行
 
-- 真实 alioth + megrez + PostgreSQL / Redis 的探测端到端与告警事件、通知闭环未在本机执行（需要本地 compose 数据面）。
-- 浏览器页面验收（登录态、1366×768 / 390×844、交互与滚动）未执行，没有可用的真实登录会话。
-- 多副本 megrez 下 TCP / ICMP 单目标锁与回写幂等未单独压测；复用 M18 已验证的锁与唯一键路径。
+- 浏览器页面验收（登录态、1366×768 / 390×844、交互与滚动）未执行，没有可用的真实登录会话；目标组/规则页仅通过 Web 构建与类型检查验证。
+- `probe.enabled=false` 时不再领取探测任务由 M18 已验证，本次未重复执行。
+- 真实公网 ICMP / TCP 目标的探测未执行，本机用回环地址与 TEST-NET 覆盖成功与超时路径。
 
 ## 文档同步
 

@@ -65,12 +65,13 @@ service ProbeTargetService {
 
 // 组内地址共用的请求参数。HTTP 探测使用全部字段；TCP 与 ICMP 只使用 timeout_ms。
 message ProbeRequestConfig {
-  // 请求方法，取值为 GET 或 HEAD。
-  string method = 1 [(buf.validate.field).string = {in: ["GET", "HEAD"]}];
+  // 请求方法，取值为 GET 或 HEAD；TCP / ICMP 探测不使用，可留空。
+  string method = 1 [(buf.validate.field).string = {in: ["", "GET", "HEAD"]}];
   // 期望状态码。支持单值、区间与列表：200、200-299、200,204,301。
   string expect_status = 2 [json_name = "expectStatus", (buf.validate.field).string.max_len = 128];
-  // 单次超时，单位毫秒。运行时实际超时取 min(此值, 规则周期 × 0.8)。
-  int32 timeout_ms = 3 [json_name = "timeoutMs", (buf.validate.field).int32 = {gte: 100, lte: 60000}];
+  // 单次超时，单位毫秒。TCP / ICMP 探测只使用该字段；留空按默认 3000 处理。
+  // 运行时实际超时取 min(此值, 规则周期 × 0.8)。
+  int32 timeout_ms = 3 [json_name = "timeoutMs", (buf.validate.field).int32 = {gte: 0, lte: 60000}];
   // 是否跟随重定向，最多 5 跳。
   bool follow_redirects = 4 [json_name = "followRedirects"];
   // 是否跳过 TLS 证书校验。
