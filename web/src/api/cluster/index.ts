@@ -1,5 +1,7 @@
 import { del, get, post, put } from "@/api/http"
 
+import { absoluteWebSocketURL } from "@/lib/websocket-url"
+
 import type {
   ClusterItem,
   GetKubernetesConfigMapDetailParams,
@@ -292,8 +294,9 @@ export function kubernetesPodExecSocketURL(
   name: string,
   ticket: string
 ): string {
-  const proto = window.location.protocol === "https:" ? "wss" : "ws"
-  return `${proto}//${window.location.host}/v1/cluster/${segment(clusterUid)}/namespace/${segment(namespace)}/pod/${segment(name)}/exec?ticket=${encodeURIComponent(ticket)}`
+  return absoluteWebSocketURL(
+    `/v1/cluster/${segment(clusterUid)}/namespace/${segment(namespace)}/pod/${segment(name)}/exec?ticket=${encodeURIComponent(ticket)}`
+  )
 }
 
 /** GET /v1/cluster/{clusterUid}/jobs */

@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom"
 
 import { issueShellTicket } from "@/api/agent"
 import { PageHeader } from "@/components/page-header"
+import { absoluteWebSocketURL } from "@/lib/websocket-url"
 import { Button } from "@/components/ui/button"
 import {
   XtermTerminal,
@@ -51,10 +52,11 @@ export function AgentShellPage() {
       <XtermTerminal
         sessionKey={`${uid}|${attempt}`}
         issueTicket={async () => (await issueShellTicket(uid)).ticket}
-        socketUrl={(ticket) => {
-          const proto = window.location.protocol === "https:" ? "wss" : "ws"
-          return `${proto}//${window.location.host}/v1/agent/${encodeURIComponent(uid)}/shell?ticket=${encodeURIComponent(ticket)}`
-        }}
+        socketUrl={(ticket) =>
+          absoluteWebSocketURL(
+            `/v1/agent/${encodeURIComponent(uid)}/shell?ticket=${encodeURIComponent(ticket)}`
+          )
+        }
         onStateChange={setState}
         className="min-h-96 flex-1"
       />
