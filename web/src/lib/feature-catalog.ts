@@ -1,11 +1,11 @@
 // 能力目录（套餐 / 租户功能授权 / 菜单可见性）。
 //
-// 能力 code 与后端 perm.Capabilities() 的 41 项定义保持一致；GET /v1/system/features
+// 能力 code 与后端 perm.Capabilities() 的 53 项定义保持一致；GET /v1/system/features
 // 返回的是同一份目录（code/module/name/description/permissions）。页面用这里的
 // 双语标签，不直接用接口里的 name/description，这样切到 en 时中文名也不会消失，
 // 后端没部署新接口时也能先用本地目录渲染勾选框。
 //
-// 目录分两级：MODULES 是所属菜单模块（10 个），CAPABILITIES 是具体能力（41 个）。
+// 目录分两级：MODULES 是所属菜单模块（10 个），CAPABILITIES 是具体能力（53 个）。
 // 新增 / 删除能力时同步：后端 perm.Capabilities()、本文件、i18n 里的菜单文案。
 
 export type LocalizedLabel = { zh: string; en: string }
@@ -287,82 +287,193 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     },
   },
   {
-    code: "k8s_node",
+    code: "k8s_node_read",
     module: "cluster",
-    label: { zh: "节点", en: "Nodes" },
-    description: { zh: "集群节点与资源使用", en: "Cluster nodes and usage" },
-  },
-  {
-    code: "k8s_workload",
-    module: "cluster",
-    label: { zh: "工作负载", en: "Workloads" },
+    label: { zh: "查看节点", en: "View nodes" },
     description: {
-      zh: "Deployment / StatefulSet / DaemonSet",
-      en: "Deployment, StatefulSet, and DaemonSet",
+      zh: "节点列表、状态、容量与 Pod 数",
+      en: "Node list, status, capacity, and pod counts",
     },
   },
   {
-    code: "k8s_pod",
+    code: "k8s_node_cordon",
     module: "cluster",
-    label: { zh: "Pod", en: "Pods" },
+    label: { zh: "节点封锁", en: "Cordon nodes" },
     description: {
-      zh: "Pod 列表、日志与终端",
-      en: "Pod list, logs, and terminal",
+      zh: "封锁（cordon）与解除封锁（uncordon）节点",
+      en: "Cordon and uncordon nodes",
     },
   },
   {
-    code: "k8s_ingress",
+    code: "k8s_workload_read",
     module: "cluster",
-    label: { zh: "Ingress", en: "Ingresses" },
+    label: { zh: "查看工作负载", en: "View workloads" },
+    description: {
+      zh: "Deployment / StatefulSet / DaemonSet、镜像与历史版本",
+      en: "Deployment, StatefulSet, DaemonSet, images, and revisions",
+    },
+  },
+  {
+    code: "k8s_workload_scale",
+    module: "cluster",
+    label: { zh: "工作负载扩缩容", en: "Scale workloads" },
+    description: {
+      zh: "调整 Deployment / StatefulSet 的副本数",
+      en: "Scale Deployment and StatefulSet replicas",
+    },
+  },
+  {
+    code: "k8s_workload_restart",
+    module: "cluster",
+    label: { zh: "工作负载滚动重启", en: "Restart workloads" },
+    description: {
+      zh: "给 Pod 模板打重启注解，滚动重建 Pod",
+      en: "Rolling restart by updating the pod template annotation",
+    },
+  },
+  {
+    code: "k8s_workload_image",
+    module: "cluster",
+    label: { zh: "设置镜像", en: "Set images" },
+    description: {
+      zh: "修改工作负载里目标容器的镜像",
+      en: "Update container images on a workload",
+    },
+  },
+  {
+    code: "k8s_workload_rollback",
+    module: "cluster",
+    label: { zh: "版本回滚", en: "Roll back workloads" },
+    description: {
+      zh: "把工作负载回滚到指定历史版本",
+      en: "Roll a workload back to a previous revision",
+    },
+  },
+  {
+    code: "k8s_pod_read",
+    module: "cluster",
+    label: { zh: "查看 Pod", en: "View pods" },
+    description: { zh: "Pod 列表与容器信息", en: "Pod list and containers" },
+  },
+  {
+    code: "k8s_pod_logs",
+    module: "cluster",
+    label: { zh: "Pod 日志", en: "Pod logs" },
+    description: { zh: "读取容器日志", en: "Read container logs" },
+  },
+  {
+    code: "k8s_pod_delete",
+    module: "cluster",
+    label: { zh: "删除 Pod", en: "Delete pods" },
+    description: {
+      zh: "删除 Pod，由控制器按策略重建",
+      en: "Delete pods and let the controller recreate them",
+    },
+  },
+  {
+    code: "k8s_pod_exec",
+    module: "cluster",
+    label: { zh: "Pod 终端", en: "Pod terminal" },
+    description: {
+      zh: "打开 Pod 容器的 Web Shell（Pod Exec）",
+      en: "Open a web shell into a pod container (pod exec)",
+    },
+  },
+  {
+    code: "k8s_ingress_read",
+    module: "cluster",
+    label: { zh: "查看 Ingress", en: "View ingresses" },
     description: { zh: "路由入口与后端服务", en: "Routing rules and backends" },
   },
   {
-    code: "k8s_service",
+    code: "k8s_service_read",
     module: "cluster",
-    label: { zh: "Service", en: "Services" },
+    label: { zh: "查看 Service", en: "View services" },
     description: { zh: "服务与端口映射", en: "Services and port mappings" },
   },
   {
-    code: "k8s_configmap",
+    code: "k8s_configmap_read",
     module: "cluster",
-    label: { zh: "ConfigMap", en: "ConfigMaps" },
-    description: { zh: "配置项与文件", en: "Configuration entries and files" },
+    label: { zh: "查看 ConfigMap", en: "View ConfigMaps" },
+    description: {
+      zh: "配置项键名与引用关系",
+      en: "ConfigMap keys and references",
+    },
   },
   {
-    code: "k8s_secret",
+    code: "k8s_secret_read",
     module: "cluster",
-    label: { zh: "Secret", en: "Secrets" },
-    description: { zh: "密钥与凭据", en: "Secrets and credentials" },
+    label: { zh: "查看 Secret", en: "View secrets" },
+    description: {
+      zh: "Secret 键名与引用关系，永不返回值",
+      en: "Secret keys and references; values are never returned",
+    },
   },
   {
-    code: "k8s_pv",
+    code: "k8s_pv_read",
     module: "cluster",
-    label: { zh: "PV", en: "Persistent volumes" },
+    label: { zh: "查看 PV", en: "View persistent volumes" },
     description: {
       zh: "集群级持久卷",
       en: "Cluster-level persistent volumes",
     },
   },
   {
-    code: "k8s_pvc",
+    code: "k8s_pvc_read",
     module: "cluster",
-    label: { zh: "PVC", en: "Persistent volume claims" },
+    label: { zh: "查看 PVC", en: "View persistent volume claims" },
     description: {
       zh: "命名空间存储申请",
       en: "Namespaced persistent volume claims",
     },
   },
   {
-    code: "k8s_job",
+    code: "k8s_job_read",
     module: "cluster",
-    label: { zh: "Job", en: "Jobs" },
-    description: { zh: "一次性任务", en: "One-off jobs" },
+    label: { zh: "查看 Job", en: "View jobs" },
+    description: { zh: "一次性任务与 Pod", en: "One-off jobs and their pods" },
   },
   {
-    code: "k8s_cronjob",
+    code: "k8s_job_delete",
     module: "cluster",
-    label: { zh: "CronJob", en: "CronJobs" },
-    description: { zh: "定时任务", en: "Scheduled jobs" },
+    label: { zh: "删除 Job", en: "Delete jobs" },
+    description: {
+      zh: "删除 Job 及其 Pod",
+      en: "Delete a job and its pods",
+    },
+  },
+  {
+    code: "k8s_cronjob_read",
+    module: "cluster",
+    label: { zh: "查看 CronJob", en: "View CronJobs" },
+    description: { zh: "定时任务与最近 Job", en: "Scheduled jobs and recent runs" },
+  },
+  {
+    code: "k8s_cronjob_suspend",
+    module: "cluster",
+    label: { zh: "暂停 / 恢复 CronJob", en: "Suspend CronJobs" },
+    description: {
+      zh: "暂停或恢复定时任务调度",
+      en: "Suspend or resume a CronJob schedule",
+    },
+  },
+  {
+    code: "k8s_cronjob_trigger",
+    module: "cluster",
+    label: { zh: "立即运行 CronJob", en: "Trigger CronJobs" },
+    description: {
+      zh: "用 jobTemplate 立即创建一个 Job",
+      en: "Create a job immediately from the CronJob template",
+    },
+  },
+  {
+    code: "k8s_cronjob_delete",
+    module: "cluster",
+    label: { zh: "删除 CronJob", en: "Delete CronJobs" },
+    description: {
+      zh: "删除定时任务及它创建的 Job",
+      en: "Delete a CronJob and the jobs it created",
+    },
   },
   {
     code: "agent_machine",
@@ -451,6 +562,18 @@ export const MENU_LABELS: Record<string, LocalizedLabel> = {
   message_log: { zh: "消息日志", en: "Message logs" },
   namespace: { zh: "租户设置", en: "Namespace settings" },
   agent: { zh: "机器", en: "Machines" },
+  // Kubernetes 菜单按资源配置，能力按操作拆分后菜单码不再等于能力码，需要显式标签。
+  k8s_node: { zh: "节点", en: "Nodes" },
+  k8s_workload: { zh: "工作负载", en: "Workloads" },
+  k8s_pod: { zh: "Pod", en: "Pods" },
+  k8s_ingress: { zh: "Ingress", en: "Ingresses" },
+  k8s_service: { zh: "Service", en: "Services" },
+  k8s_configmap: { zh: "ConfigMap", en: "ConfigMaps" },
+  k8s_secret: { zh: "Secret", en: "Secrets" },
+  k8s_pv: { zh: "PV", en: "Persistent volumes" },
+  k8s_pvc: { zh: "PVC", en: "Persistent volume claims" },
+  k8s_job: { zh: "Job", en: "Jobs" },
+  k8s_cronjob: { zh: "CronJob", en: "CronJobs" },
 }
 
 /** 菜单标签：优先菜单目录，其次能力目录，最后回落后端名称或 code。 */
@@ -461,19 +584,19 @@ export function menuLabel(code: string, fallback?: string): LocalizedLabel {
   return capabilityDefinition(code)?.label ?? { zh: fallback || code, en: fallback || code }
 }
 
-/** 集群详情资源视图 → 所需能力；概况不需要能力（跟随集群接入）。 */
+/** 集群详情资源视图 → 所需读能力；概况不需要能力（跟随集群接入）。 */
 export const CLUSTER_SECTION_CAPABILITIES: Record<string, string> = {
-  nodes: "k8s_node",
-  workloads: "k8s_workload",
-  pods: "k8s_pod",
-  ingresses: "k8s_ingress",
-  services: "k8s_service",
-  configmaps: "k8s_configmap",
-  secrets: "k8s_secret",
-  pvs: "k8s_pv",
-  pvcs: "k8s_pvc",
-  jobs: "k8s_job",
-  cronjobs: "k8s_cronjob",
+  nodes: "k8s_node_read",
+  workloads: "k8s_workload_read",
+  pods: "k8s_pod_read",
+  ingresses: "k8s_ingress_read",
+  services: "k8s_service_read",
+  configmaps: "k8s_configmap_read",
+  secrets: "k8s_secret_read",
+  pvs: "k8s_pv_read",
+  pvcs: "k8s_pvc_read",
+  jobs: "k8s_job_read",
+  cronjobs: "k8s_cronjob_read",
 }
 
 /** 能力编码 → 数据源驱动。与后端 perm.datasourceCapabilityDrivers 保持一致。 */
@@ -681,6 +804,31 @@ const CAPABILITY_MENU_OVERRIDES: Record<string, string[]> = {
   notify_subscription: ["notification_subscription"],
   notify_oncall: ["notification_oncall"],
   agent_machine: ["agent"],
+  // Kubernetes 能力按「资源 + 操作」拆分，多个操作能力共用一张资源菜单；
+  // 菜单权限仍是 menu:k8s_<资源>，入口可见性由任一操作能力开通。
+  k8s_node_read: ["k8s_node"],
+  k8s_node_cordon: ["k8s_node"],
+  k8s_workload_read: ["k8s_workload"],
+  k8s_workload_scale: ["k8s_workload"],
+  k8s_workload_restart: ["k8s_workload"],
+  k8s_workload_image: ["k8s_workload"],
+  k8s_workload_rollback: ["k8s_workload"],
+  k8s_pod_read: ["k8s_pod"],
+  k8s_pod_logs: ["k8s_pod"],
+  k8s_pod_delete: ["k8s_pod"],
+  k8s_pod_exec: ["k8s_pod"],
+  k8s_ingress_read: ["k8s_ingress"],
+  k8s_service_read: ["k8s_service"],
+  k8s_configmap_read: ["k8s_configmap"],
+  k8s_secret_read: ["k8s_secret"],
+  k8s_pv_read: ["k8s_pv"],
+  k8s_pvc_read: ["k8s_pvc"],
+  k8s_job_read: ["k8s_job"],
+  k8s_job_delete: ["k8s_job"],
+  k8s_cronjob_read: ["k8s_cronjob"],
+  k8s_cronjob_suspend: ["k8s_cronjob"],
+  k8s_cronjob_trigger: ["k8s_cronjob"],
+  k8s_cronjob_delete: ["k8s_cronjob"],
 }
 
 /** 返回能力开通的菜单编码。 */

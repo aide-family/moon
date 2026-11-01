@@ -138,6 +138,10 @@ func init() {
 	agentDescRemark := agentFields[16].Descriptor()
 	// agent.DefaultRemark holds the default value on creation for the remark field.
 	agent.DefaultRemark = agentDescRemark.Default.(string)
+	// agentDescLabels is the schema descriptor for labels field.
+	agentDescLabels := agentFields[17].Descriptor()
+	// agent.DefaultLabels holds the default value on creation for the labels field.
+	agent.DefaultLabels = agentDescLabels.Default.(string)
 	alertdictionaryMixin := schema.AlertDictionary{}.Mixin()
 	alertdictionaryMixinFields0 := alertdictionaryMixin[0].Fields()
 	_ = alertdictionaryMixinFields0

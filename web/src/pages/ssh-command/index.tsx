@@ -1,9 +1,14 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { createSearchParams, Link, useNavigate } from "react-router-dom"
+import {
+  createSearchParams,
+  Link,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
-import { listAgents } from "@/api/agent"
+import { listAgents, matchAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
 import {
   approveSSHCommand,
@@ -21,10 +26,17 @@ import { CodeBlock } from "@/components/code-block"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
+import {
+  LabelEditor,
+  labelErrorKey,
+  labelsToJSON,
+  type LabelRow,
+} from "@/components/label-editor"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -71,6 +83,8 @@ import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { enumLabel } from "@/lib/enum-label"
 
+import { SSHCommandAudits } from "./audits"
+
 const REVIEW_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const
 
 export function SSHCommandPage() {
@@ -78,6 +92,9 @@ export function SSHCommandPage() {
   const navigate = useNavigate()
   const session = useSession()
   const query = useListQuery()
+  const [params, setParams] = useSearchParams()
+  // 标签页由 URL 决定：tab=audits 是统一执行审计，缺省是命令列表。
+  const tab = params.get("tab") === "audits" ? "audits" : "commands"
   const [draft, setDraft] = useState(query.name)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<SSHCommandItem | null>(null)
@@ -94,6 +111,13 @@ export function SSHCommandPage() {
   const [executing, setExecuting] = useState<SSHCommandItem | null>(null)
   const [agents, setAgents] = useState<AgentItem[]>([])
   const [agentUids, setAgentUids] = useState<string[]>([])
+  const [execMode, setExecMode] = useState<"machine" | "labels">("machine")
+  const [labelRows, setLabelRows] = useState<LabelRow[]>([])
+  const [matchPending, setMatchPending] = useState(false)
+  const [matchError, setMatchError] = useState("")
+  const [matchAttempted, setMatchAttempted] = useState(false)
+  const [matchedHosts, setMatchedHosts] = useState<AgentItem[]>([])
+  const [matchedSelected, setMatchedSelected] = useState<string[]>([])
   const [audits, setAudits] = useState<SSHCommandAuditItem[]>([])
   const [auditOpen, setAuditOpen] = useState(false)
   const [auditTarget, setAuditTarget] = useState<SSHCommandItem | null>(null)
@@ -105,6 +129,8 @@ export function SSHCommandPage() {
     page: query.page,
     pageSize: query.pageSize,
     filterKey: `${session.namespaceUid}|${query.name}|${query.reviewStatus}`,
+    // 审计标签页不请求命令列表；切回命令页时沿用已加载数据，只有页码/条件变化才重新加载。
+    enabled: tab === "commands",
     fetch: (page, pageSize) =>
       listSSHCommands({
         page,
@@ -138,9 +164,39 @@ export function SSHCommandPage() {
     setOpen(true)
   }
 
+  function setTab(next: "commands" | "audits") {
+    const nextParams = new URLSearchParams(params)
+    if (next === "commands") {
+      nextParams.delete("tab")
+    } else {
+      nextParams.set("tab", next)
+    }
+    nextParams.set("page", "1")
+    setParams(nextParams)
+  }
+
+  // 用户重新勾选/取消主机后，上一次「必填」提示立即失效。
+  function clearFieldError(field: string) {
+    setFieldErrors((current) => {
+      if (!current[field]) {
+        return current
+      }
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
+  }
+
   async function openExec(item: SSHCommandItem) {
     setExecuting(item)
     setAgentUids([])
+    setExecMode("machine")
+    setLabelRows([])
+    setMatchAttempted(false)
+    setMatchPending(false)
+    setMatchError("")
+    setMatchedHosts([])
+    setMatchedSelected([])
     setError("")
     setFieldErrors({})
     try {
@@ -150,6 +206,49 @@ export function SSHCommandPage() {
       setAgents([])
     }
     setExecOpen(true)
+  }
+
+  function updateExecLabels(next: LabelRow[]) {
+    setLabelRows(next)
+    // 标签变了，上一次匹配结果就过期了，必须重新匹配后再执行。
+    setMatchAttempted(false)
+    setMatchedHosts([])
+    setMatchedSelected([])
+    setMatchError("")
+    setFieldErrors({})
+  }
+
+  async function runMatch() {
+    const labelResult = labelsToJSON(labelRows)
+    if (labelResult.error) {
+      setFieldErrors({ labels: t(labelErrorKey(labelResult.error)) })
+      return
+    }
+    if (Object.keys(labelResult.labels).length === 0) {
+      setFieldErrors({ labels: t("ssh.labelsRequired") })
+      return
+    }
+    setMatchPending(true)
+    setMatchError("")
+    setFieldErrors({})
+    setMatchedHosts([])
+    setMatchedSelected([])
+    try {
+      const result = await matchAgents({ labels: labelResult.labels })
+      const hosts = result.items ?? []
+      setMatchedHosts(hosts)
+      setMatchAttempted(true)
+      // 在线机器默认勾选；离线机器不可选，也不在提交列表里。
+      setMatchedSelected(
+        hosts
+          .filter((agent) => agent.online && agent.status === "ACTIVE")
+          .map((agent) => agent.uid)
+      )
+    } catch (err) {
+      setMatchError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setMatchPending(false)
+    }
   }
 
   async function openAudits(item: SSHCommandItem) {
@@ -199,8 +298,23 @@ export function SSHCommandPage() {
     if (!executing) {
       return
     }
+    // 按标签模式只提交二次确认后仍被勾选的机器。
+    const targetUids = execMode === "machine" ? agentUids : matchedSelected
+    if (execMode === "labels") {
+      if (matchedHosts.length === 0) {
+        setFieldErrors({ hosts: t("ssh.matchFirst") })
+        return
+      }
+      if (targetUids.length === 0) {
+        setFieldErrors({ hosts: t("form.required") })
+        return
+      }
+    }
     const errors = collectFieldErrors([
-      ["agents", agentUids.length === 0 ? t("form.required") : null],
+      [
+        execMode === "machine" ? "agents" : "hosts",
+        targetUids.length === 0 ? t("form.required") : null,
+      ],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -210,16 +324,16 @@ export function SSHCommandPage() {
     setError("")
     setFieldErrors({})
     try {
-      const result = await executeSSHCommand(executing.uid, agentUids)
+      const result = await executeSSHCommand(executing.uid, targetUids)
       setExecOpen(false)
       reload()
-      const params = createSearchParams({ run: "1" })
+      const resultSearch = createSearchParams({ run: "1" })
       for (const audit of result.audits ?? []) {
-        if (audit.uid) params.append("audit", audit.uid)
+        if (audit.uid) resultSearch.append("audit", audit.uid)
       }
       navigate({
         pathname: `/ssh-commands/${executing.uid}/results`,
-        search: params.toString(),
+        search: resultSearch.toString(),
       })
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
@@ -267,81 +381,100 @@ export function SSHCommandPage() {
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("ssh.title")} description={t("ssh.description")}>
-        {canWrite ? <Button onClick={openCreate}>{t("action.create")}</Button> : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <Tabs
+            value={tab}
+            onValueChange={(value) => setTab(value as "commands" | "audits")}
+          >
+            <TabsList>
+              <TabsTrigger value="commands">{t("ssh.commandsTab")}</TabsTrigger>
+              <TabsTrigger value="audits">{t("ssh.auditsTab")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          {tab === "commands" && canWrite ? (
+            <Button onClick={openCreate}>{t("action.create")}</Button>
+          ) : null}
+        </div>
       </PageHeader>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
-      >
-        <Input className="max-w-sm" value={draft} placeholder={t("ssh.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-        <Select
-          value={query.reviewStatus || "ALL"}
-          onValueChange={(value) => query.update({ reviewStatus: value === "ALL" ? "" : value })}
-        >
-          <SelectTrigger id="ssh-review-status" className="w-40" aria-label={t("ssh.reviewStatus")}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="ALL">{t("ssh.allReviewStatus")}</SelectItem>
-              {REVIEW_STATUSES.map((item) => (
-                <SelectItem key={item} value={item}>
-                  {enumLabel(t, item)}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
-      <ListFrame
-        total={total}
-        page={query.page}
-        pageSize={query.pageSize}
-        showPager={!loading && !failed && items.length > 0}
-        onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
-        onNext={() => query.update({ page: query.page + 1 })}
-      >
-        {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
-        {!loading && failed ? (
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-            <Button variant="outline" onClick={() => reload()}>
-              {t("action.retry")}
+      {tab === "audits" ? (
+        <SSHCommandAudits />
+      ) : (
+        <>
+          <form
+            className="flex flex-wrap gap-2"
+            onSubmit={(event) => {
+              event.preventDefault()
+              query.update({ name: draft })
+            }}
+          >
+            <Input className="max-w-sm" value={draft} placeholder={t("ssh.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
+            <Select
+              value={query.reviewStatus || "ALL"}
+              onValueChange={(value) => query.update({ reviewStatus: value === "ALL" ? "" : value })}
+            >
+              <SelectTrigger id="ssh-review-status" className="w-40" aria-label={t("ssh.reviewStatus")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="ALL">{t("ssh.allReviewStatus")}</SelectItem>
+                  {REVIEW_STATUSES.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {enumLabel(t, item)}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Button type="submit" variant="outline">
+              {t("action.search")}
             </Button>
-          </div>
-        ) : null}
-        {!loading && !failed && items.length === 0 ? <p className="text-sm text-muted-foreground">{t("ssh.empty")}</p> : null}
-        {!loading && !failed && items.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("ssh.name")}</TableHead>
-                <TableHead>{t("ssh.command")}</TableHead>
-                <TableHead>{t("ssh.reviewStatus")}</TableHead>
-                <TableActionsHead>{t("action.actions")}</TableActionsHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.uid}>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell className="max-w-md truncate font-mono text-xs">{item.command}</TableCell>
-                  <TableCell><StatusBadge value={item.reviewStatus} /></TableCell>
-                  <TableCell>
-                    <RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : null}
-      </ListFrame>
+          </form>
+          <ListFrame
+            total={total}
+            page={query.page}
+            pageSize={query.pageSize}
+            showPager={!loading && !failed && items.length > 0}
+            onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
+            onNext={() => query.update({ page: query.page + 1 })}
+          >
+            {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
+            {!loading && failed ? (
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
+                <Button variant="outline" onClick={() => reload()}>
+                  {t("action.retry")}
+                </Button>
+              </div>
+            ) : null}
+            {!loading && !failed && items.length === 0 ? <p className="text-sm text-muted-foreground">{t("ssh.empty")}</p> : null}
+            {!loading && !failed && items.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("ssh.name")}</TableHead>
+                    <TableHead>{t("ssh.command")}</TableHead>
+                    <TableHead>{t("ssh.reviewStatus")}</TableHead>
+                    <TableActionsHead>{t("action.actions")}</TableActionsHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map((item) => (
+                    <TableRow key={item.uid}>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell className="max-w-md truncate font-mono text-xs">{item.command}</TableCell>
+                      <TableCell><StatusBadge value={item.reviewStatus} /></TableCell>
+                      <TableCell>
+                        <RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : null}
+          </ListFrame>
+        </>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
@@ -389,49 +522,188 @@ export function SSHCommandPage() {
         </DialogContent>
       </Dialog>
       <Dialog open={execOpen} onOpenChange={setExecOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{t("ssh.execute")}</DialogTitle>
           </DialogHeader>
           <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onExecute}>
             <DialogBody className="grid gap-4">
-              <FormField
-                label={t("ssh.agents")}
-                hint={t("ssh.pickAgents")}
-                required
-                error={fieldErrors.agents}
+              <Tabs
+                value={execMode}
+                onValueChange={(value) => {
+                  setExecMode(value as "machine" | "labels")
+                  setError("")
+                  setFieldErrors({})
+                }}
               >
-                <div
-                  className={`grid max-h-64 gap-2 overflow-auto rounded-md border p-3 ${
-                    fieldErrors.agents ? "border-destructive" : ""
-                  }`}
+                <TabsList>
+                  <TabsTrigger value="machine">{t("ssh.modeByMachine")}</TabsTrigger>
+                  <TabsTrigger value="labels">{t("ssh.modeByLabels")}</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              {execMode === "machine" ? (
+                <FormField
+                  label={t("ssh.agents")}
+                  hint={t("ssh.pickAgents")}
+                  required
+                  error={fieldErrors.agents}
                 >
-                  {agents.map((agent) => {
-                    const checked = agentUids.includes(agent.uid)
-                    return (
-                      <label key={agent.uid} className="flex items-center gap-2 text-sm">
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(value) => {
-                            setAgentUids((current) =>
-                              value === true ? [...current, agent.uid] : current.filter((uid) => uid !== agent.uid),
-                            )
-                          }}
-                        />
-                        <span>{agent.name} ({agent.hostname || agent.localIp || agent.uid})</span>
-                      </label>
-                    )
-                  })}
+                  <div
+                    className={`grid max-h-64 gap-2 overflow-auto rounded-md border p-3 ${
+                      fieldErrors.agents ? "border-destructive" : ""
+                    }`}
+                  >
+                    {agents.map((agent) => {
+                      const checked = agentUids.includes(agent.uid)
+                      return (
+                        <label key={agent.uid} className="flex items-center gap-2 text-sm">
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(value) => {
+                              setAgentUids((current) =>
+                                value === true ? [...current, agent.uid] : current.filter((uid) => uid !== agent.uid),
+                              )
+                              clearFieldError("agents")
+                            }}
+                          />
+                          <span>{agent.name} ({agent.hostname || agent.localIp || agent.uid})</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                  {agents.length === 0 ? <p className="text-sm text-muted-foreground">{t("ssh.noOnlineAgent")}</p> : null}
+                </FormField>
+              ) : (
+                <div className="grid gap-3">
+                  <FormField
+                    label={t("agent.labels")}
+                    htmlFor="ssh-exec-label-key-0"
+                    hint={t("ssh.labelsHint")}
+                    required
+                    error={fieldErrors.labels}
+                  >
+                    <LabelEditor
+                      labels={labelRows}
+                      onChange={updateExecLabels}
+                      idPrefix="ssh-exec-label"
+                    />
+                  </FormField>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={matchPending}
+                      onClick={() => void runMatch()}
+                    >
+                      {matchPending ? t("ssh.matching") : t("ssh.matchAgents")}
+                    </Button>
+                    {matchError ? (
+                      <p className="text-sm text-destructive">{matchError}</p>
+                    ) : null}
+                  </div>
+                  {matchedHosts.length > 0 ? (
+                    <div className="grid gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {t("ssh.hostSelection", {
+                            selected: matchedSelected.length,
+                            total: matchedHosts.length,
+                          })}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setMatchedSelected(
+                                matchedHosts
+                                  .filter((agent) => agent.online && agent.status === "ACTIVE")
+                                  .map((agent) => agent.uid)
+                              )
+                              clearFieldError("hosts")
+                            }}
+                          >
+                            {t("ssh.selectAll")}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setMatchedSelected([])
+                              clearFieldError("hosts")
+                            }}
+                          >
+                            {t("ssh.selectNone")}
+                          </Button>
+                        </div>
+                      </div>
+                      <div
+                        className={`grid max-h-64 gap-2 overflow-auto rounded-md border p-3 ${
+                          fieldErrors.hosts ? "border-destructive" : ""
+                        }`}
+                      >
+                        {matchedHosts.map((agent) => {
+                          const selectable = agent.online && agent.status === "ACTIVE"
+                          const checked = matchedSelected.includes(agent.uid)
+                          return (
+                            <label
+                              key={agent.uid}
+                              className={
+                                selectable
+                                  ? "flex items-center gap-2 text-sm"
+                                  : "flex items-center gap-2 text-sm text-muted-foreground"
+                              }
+                            >
+                              <Checkbox
+                                checked={checked}
+                                disabled={!selectable}
+                                onCheckedChange={(value) => {
+                                  setMatchedSelected((current) =>
+                                    value === true
+                                      ? [...current, agent.uid]
+                                      : current.filter((uid) => uid !== agent.uid)
+                                  )
+                                  clearFieldError("hosts")
+                                }}
+                              />
+                              <span className="min-w-0 flex-1 truncate">
+                                {agent.name} ({agent.hostname || agent.localIp || agent.uid})
+                              </span>
+                              {selectable ? null : (
+                                <StatusBadge
+                                  value="OFFLINE"
+                                  label={t("ssh.hostOffline")}
+                                  tone="neutral"
+                                />
+                              )}
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+                  {fieldErrors.hosts ? (
+                    <p role="alert" className="text-sm text-destructive">
+                      {fieldErrors.hosts}
+                    </p>
+                  ) : null}
+                  {matchAttempted && matchedHosts.length === 0 && !matchPending && !matchError ? (
+                    <p className="text-sm text-muted-foreground">{t("ssh.matchEmpty")}</p>
+                  ) : null}
                 </div>
-                {agents.length === 0 ? <p className="text-sm text-muted-foreground">{t("ssh.noOnlineAgent")}</p> : null}
-              </FormField>
+              )}
             </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setExecOpen(false)}>
                 {t("action.cancel")}
               </Button>
-              <Button type="submit" disabled={pending}>
+              <Button
+                type="submit"
+                disabled={pending || (execMode === "labels" && matchPending)}
+              >
                 {t("ssh.execute")}
               </Button>
             </DialogFooter>

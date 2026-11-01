@@ -174,6 +174,16 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 	if !slices.Contains(modules, module) {
 		return merr.Forbidden("feature not enabled")
 	}
+	// 能力级检查：M25 起 Kubernetes 权限按操作拆分，一个操作一个能力，只开通「查看工作负载」
+	// 的租户不能设置镜像或回滚，负责人也受同一限制。多个能力共享同一权限时
+	//（数据源按驱动、通知渠道按类型/应用）只要开通其中一个即可，和拆分前行为一致。
+	capabilities, err := c.Features.EffectiveCapabilities(ctx, ns)
+	if err != nil {
+		return c.Wrap(err)
+	}
+	if codes := perm.PermissionCapabilities(code); len(codes) > 0 && !licensesAny(codes, capabilities) {
+		return merr.Forbidden("feature not enabled")
+	}
 	// 负责人的权限集合就是整个租户权限目录（含菜单权限），菜单检查必然通过。
 	if owner {
 		return nil
@@ -182,16 +192,20 @@ func (c Checker) require(ctx context.Context, code string, activeOnly bool) erro
 	if readOnly {
 		return nil
 	}
-	// 菜单权限决定租户成员能不能打开对应页面：同一个能力下只要有一条 menu:<cap>
-	// 就放行。角色授权页由 ListPermissions 只展示已开通能力，两者范围一致。
-	capabilities, err := c.Features.EffectiveCapabilities(ctx, ns)
-	if err != nil {
-		return c.Wrap(err)
-	}
 	if c.hasMenuPermission(perms, capabilities, code) {
 		return nil
 	}
 	return merr.Forbidden("menu permission denied")
+}
+
+// licensesAny 判断这组能力里是否至少有一个已在租户开通。
+func licensesAny(capabilities []string, licensed []string) bool {
+	for _, code := range capabilities {
+		if slices.Contains(licensed, code) {
+			return true
+		}
+	}
+	return false
 }
 
 // HeldPermissions 返回当前用户在当前租户持有的权限集合，第二个返回值表示是否为租户负责人。

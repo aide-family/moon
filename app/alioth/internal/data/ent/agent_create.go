@@ -284,6 +284,20 @@ func (_c *AgentCreate) SetNillableRemark(v *string) *AgentCreate {
 	return _c
 }
 
+// SetLabels sets the "labels" field.
+func (_c *AgentCreate) SetLabels(v string) *AgentCreate {
+	_c.mutation.SetLabels(v)
+	return _c
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (_c *AgentCreate) SetNillableLabels(v *string) *AgentCreate {
+	if v != nil {
+		_c.SetLabels(*v)
+	}
+	return _c
+}
+
 // Mutation returns the AgentMutation object of the builder.
 func (_c *AgentCreate) Mutation() *AgentMutation {
 	return _c.mutation
@@ -387,6 +401,10 @@ func (_c *AgentCreate) defaults() {
 		v := agent.DefaultRemark
 		_c.mutation.SetRemark(v)
 	}
+	if _, ok := _c.mutation.Labels(); !ok {
+		v := agent.DefaultLabels
+		_c.mutation.SetLabels(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -462,6 +480,9 @@ func (_c *AgentCreate) check() error {
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		return &ValidationError{Name: "remark", err: errors.New(`ent: missing required field "Agent.remark"`)}
+	}
+	if _, ok := _c.mutation.Labels(); !ok {
+		return &ValidationError{Name: "labels", err: errors.New(`ent: missing required field "Agent.labels"`)}
 	}
 	return nil
 }
@@ -568,6 +589,10 @@ func (_c *AgentCreate) createSpec() (*Agent, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(agent.FieldRemark, field.TypeString, value)
 		_node.Remark = value
+	}
+	if value, ok := _c.mutation.Labels(); ok {
+		_spec.SetField(agent.FieldLabels, field.TypeString, value)
+		_node.Labels = value
 	}
 	return _node, _spec
 }

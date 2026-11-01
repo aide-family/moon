@@ -58,7 +58,12 @@ interface ClusterCronJobsTabProps {
   clusterUid: string
   namespace: string
   name: string
-  canWrite: boolean
+  /** k8s:cronjob:suspend：暂停 / 恢复。 */
+  canSuspend: boolean
+  /** k8s:cronjob:trigger：立即运行。 */
+  canTrigger: boolean
+  /** k8s:cronjob:delete：删除。 */
+  canDelete: boolean
   page: number
   pageSize: number
   onPageChange: (page: number) => void
@@ -87,7 +92,9 @@ export function ClusterCronJobsTab({
   clusterUid,
   namespace,
   name,
-  canWrite,
+  canSuspend,
+  canTrigger,
+  canDelete,
   page,
   pageSize,
   onPageChange,
@@ -138,27 +145,29 @@ export function ClusterCronJobsTab({
   }
 
   function cronJobActions(cronjob: KubernetesCronJobItem): RowAction[] {
-    if (!canWrite) {
-      return []
-    }
-    return [
-      {
+    const actions: RowAction[] = []
+    if (canSuspend) {
+      actions.push({
         key: "suspend",
         label: cronjob.suspend ? t("kube.resume") : t("kube.suspend"),
         onSelect: () => {
           setSuspendError("")
           setSuspendTarget(cronjob)
         },
-      },
-      {
+      })
+    }
+    if (canTrigger) {
+      actions.push({
         key: "trigger",
         label: t("kube.trigger"),
         onSelect: () => {
           setTriggerError("")
           setTriggerTarget(cronjob)
         },
-      },
-      {
+      })
+    }
+    if (canDelete) {
+      actions.push({
         key: "delete",
         label: t("action.delete"),
         destructive: true,
@@ -166,8 +175,9 @@ export function ClusterCronJobsTab({
           setDeleteError("")
           setDeleting(cronjob)
         },
-      },
-    ]
+      })
+    }
+    return actions
   }
 
   async function runSuspend() {

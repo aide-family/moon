@@ -9,15 +9,16 @@ import (
 )
 
 // KubernetesService 把集群资源操作转成用例入参。只读操作走 Explorer，
-// 改调度、改副本、重启和删 Pod 走 Operator。
+// 改调度、改副本、重启和删 Pod 走 Operator，Pod 终端走 Terminal。
 type KubernetesService struct {
 	v1.UnimplementedKubernetesServiceServer
 	explorer *cluster.Explorer
 	operator *cluster.Operator
+	terminal *cluster.Terminal
 }
 
-func NewKubernetesService(explorer *cluster.Explorer, operator *cluster.Operator) *KubernetesService {
-	return &KubernetesService{explorer: explorer, operator: operator}
+func NewKubernetesService(explorer *cluster.Explorer, operator *cluster.Operator, terminal *cluster.Terminal) *KubernetesService {
+	return &KubernetesService{explorer: explorer, operator: operator, terminal: terminal}
 }
 
 func (s *KubernetesService) ListKubernetesNamespaces(ctx context.Context, req *v1.ListKubernetesNamespacesRequest) (*v1.ListKubernetesNamespacesResponse, error) {
@@ -96,6 +97,19 @@ func (s *KubernetesService) GetKubernetesPodLogs(ctx context.Context, req *v1.Ge
 		return nil, err
 	}
 	return &v1.GetKubernetesPodLogsResponse{Content: logs.Content, Container: logs.Container}, nil
+}
+
+// IssueKubernetesPodExecTicket 为一次 Pod 终端会话签发一次性票据。浏览器拿到票据后
+// 用 WebSocket 连到 ServePodExec，不再单独携带用户 JWT。
+func (s *KubernetesService) IssueKubernetesPodExecTicket(ctx context.Context, req *v1.IssueKubernetesPodExecTicketRequest) (*v1.IssueKubernetesPodExecTicketResponse, error) {
+	ticket, err := s.terminal.IssueTicket(
+		ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName(),
+		req.GetContainer(), req.GetCols(), req.GetRows(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.IssueKubernetesPodExecTicketResponse{Ticket: ticket}, nil
 }
 
 func (s *KubernetesService) ListKubernetesIngresses(ctx context.Context, req *v1.ListKubernetesIngressesRequest) (*v1.ListKubernetesIngressesResponse, error) {

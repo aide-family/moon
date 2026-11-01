@@ -793,6 +793,8 @@ type Agent struct {
 	HasPrivateKey bool
 	Remark        string
 	Token         string
+	// Labels 是自定义标签的 JSON 对象文本，空对象为 {}。
+	Labels string
 }
 
 // SSHCommand 是一条 SSH 命令。
@@ -825,6 +827,23 @@ type SSHCommandAudit struct {
 	Truncated        bool
 	Detail           string
 	CreatedAt        time.Time
+	// AgentName 是机器展示名，查询时按 agent_uid 关联补全，不落库。
+	AgentName string
+	// CommandName 是命令名，查询时按 command_uid 关联补全，不落库。
+	CommandName string
+}
+
+// SSHCommandAuditQuery 是 SSH 审计列表的过滤条件。时间戳为 Unix 秒，
+// StartTime 含、EndTime 不含，0 表示不限。
+type SSHCommandAuditQuery struct {
+	CommandUID  string
+	AgentUID    string
+	Kind        string
+	Status      string
+	OperatorUID string
+	Keyword     string
+	StartTime   int64
+	EndTime     int64
 }
 
 // AgentExecResult 是 Agent 回传的执行结果。

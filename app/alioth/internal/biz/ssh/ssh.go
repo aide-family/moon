@@ -111,13 +111,13 @@ func (executor *Executor) List(ctx context.Context, pageNo, pageSize int32, name
 	return items, total, p, s, executor.access.Wrap(err)
 }
 
-func (executor *Executor) ListAudits(ctx context.Context, commandUID, agentUID string, pageNo, pageSize int32) ([]bo.SSHCommandAudit, int, int, int, error) {
+func (executor *Executor) ListAudits(ctx context.Context, filter bo.SSHCommandAuditQuery, pageNo, pageSize int32) ([]bo.SSHCommandAudit, int, int, int, error) {
 	ns, err := executor.access.Allow(ctx, "ssh:read")
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := executor.commands.ListAudits(ctx, ns, commandUID, agentUID, p, s)
+	items, total, err := executor.commands.ListAudits(ctx, ns, filter, p, s)
 	return items, total, p, s, executor.access.Wrap(err)
 }
 

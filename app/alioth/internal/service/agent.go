@@ -19,7 +19,7 @@ func NewAgentService(registry *agent.Registry) *AgentService {
 }
 
 func (s *AgentService) CreateAgent(ctx context.Context, req *v1.CreateAgentRequest) (*v1.CreateAgentResponse, error) {
-	item, err := s.registry.Create(ctx, agentInput("", req.GetName(), req.GetSshHost(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey(), req.GetRemark(), int(req.GetSshPort())))
+	item, err := s.registry.Create(ctx, agentInput("", req.GetName(), req.GetSshHost(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey(), req.GetRemark(), req.GetLabels(), int(req.GetSshPort())))
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (s *AgentService) CreateAgent(ctx context.Context, req *v1.CreateAgentReque
 }
 
 func (s *AgentService) UpdateAgent(ctx context.Context, req *v1.UpdateAgentRequest) (*v1.UpdateAgentResponse, error) {
-	item, err := s.registry.Update(ctx, agentInput(req.GetUid(), req.GetName(), req.GetSshHost(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey(), req.GetRemark(), int(req.GetSshPort())))
+	item, err := s.registry.Update(ctx, agentInput(req.GetUid(), req.GetName(), req.GetSshHost(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey(), req.GetRemark(), req.GetLabels(), int(req.GetSshPort())))
 	if err != nil {
 		return nil, err
 	}
@@ -77,10 +77,18 @@ func (s *AgentService) Connect(stream v1.AgentService_ConnectServer) error {
 	return s.registry.Connect(stream.Context(), stream)
 }
 
-func agentInput(uid, name, host, user, password, privateKey, remark string, port int) bo.Agent {
+func (s *AgentService) MatchAgents(ctx context.Context, req *v1.MatchAgentsRequest) (*v1.MatchAgentsResponse, error) {
+	items, err := s.registry.Match(ctx, req.GetLabels())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.MatchAgentsResponse{Items: agentItems(items), Total: int32(len(items))}, nil
+}
+
+func agentInput(uid, name, host, user, password, privateKey, remark, labels string, port int) bo.Agent {
 	return bo.Agent{
 		UID: uid, Name: name, SSHHost: host, SSHPort: port, SSHUser: user,
-		SSHPassword: password, SSHPrivateKey: privateKey, Remark: remark,
+		SSHPassword: password, SSHPrivateKey: privateKey, Remark: remark, Labels: labels,
 	}
 }
 
@@ -90,6 +98,7 @@ func agentItem(item bo.Agent) *v1.AgentItem {
 		LocalIp: item.LocalIP, Version: item.Version, Online: item.Online, Status: item.Status,
 		SshHost: item.SSHHost, SshPort: int32(item.SSHPort), SshUser: item.SSHUser,
 		HasPassword: item.HasPassword, HasPrivateKey: item.HasPrivateKey, Remark: item.Remark,
+		Labels: item.Labels,
 	}
 	applyCollect(out, item.CollectJSON)
 	return out

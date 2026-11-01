@@ -146,6 +146,7 @@ type AgentMutation struct {
 	ssh_password_cipher    *string
 	ssh_private_key_cipher *string
 	remark                 *string
+	labels                 *string
 	clearedFields          map[string]struct{}
 	done                   bool
 	oldValue               func(context.Context) (*Agent, error)
@@ -1003,6 +1004,42 @@ func (m *AgentMutation) ResetRemark() {
 	m.remark = nil
 }
 
+// SetLabels sets the "labels" field.
+func (m *AgentMutation) SetLabels(s string) {
+	m.labels = &s
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *AgentMutation) Labels() (r string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the Agent entity.
+// If the Agent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentMutation) OldLabels(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *AgentMutation) ResetLabels() {
+	m.labels = nil
+}
+
 // Where appends a list predicates to the AgentMutation builder.
 func (m *AgentMutation) Where(ps ...predicate.Agent) {
 	m.predicates = append(m.predicates, ps...)
@@ -1037,7 +1074,7 @@ func (m *AgentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m.created_at != nil {
 		fields = append(fields, agent.FieldCreatedAt)
 	}
@@ -1098,6 +1135,9 @@ func (m *AgentMutation) Fields() []string {
 	if m.remark != nil {
 		fields = append(fields, agent.FieldRemark)
 	}
+	if m.labels != nil {
+		fields = append(fields, agent.FieldLabels)
+	}
 	return fields
 }
 
@@ -1146,6 +1186,8 @@ func (m *AgentMutation) Field(name string) (ent.Value, bool) {
 		return m.SSHPrivateKeyCipher()
 	case agent.FieldRemark:
 		return m.Remark()
+	case agent.FieldLabels:
+		return m.Labels()
 	}
 	return nil, false
 }
@@ -1195,6 +1237,8 @@ func (m *AgentMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldSSHPrivateKeyCipher(ctx)
 	case agent.FieldRemark:
 		return m.OldRemark(ctx)
+	case agent.FieldLabels:
+		return m.OldLabels(ctx)
 	}
 	return nil, fmt.Errorf("unknown Agent field %s", name)
 }
@@ -1344,6 +1388,13 @@ func (m *AgentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRemark(v)
 		return nil
+	case agent.FieldLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Agent field %s", name)
 }
@@ -1476,6 +1527,9 @@ func (m *AgentMutation) ResetField(name string) error {
 		return nil
 	case agent.FieldRemark:
 		m.ResetRemark()
+		return nil
+	case agent.FieldLabels:
+		m.ResetLabels()
 		return nil
 	}
 	return fmt.Errorf("unknown Agent field %s", name)

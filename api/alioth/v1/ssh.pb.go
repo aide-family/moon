@@ -156,8 +156,12 @@ type SSHCommandAuditItem struct {
 	OperatorNickname string `protobuf:"bytes,14,opt,name=operator_nickname,json=operatorNickname,proto3" json:"operator_nickname,omitempty"`
 	// 操作者头像地址。
 	OperatorAvatar string `protobuf:"bytes,15,opt,name=operator_avatar,json=operatorAvatar,proto3" json:"operator_avatar,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// 机器展示名。机器被删除后为空。
+	AgentName string `protobuf:"bytes,16,opt,name=agent_name,json=agentName,proto3" json:"agent_name,omitempty"`
+	// 命令名称。命令被删除后为空。
+	CommandName   string `protobuf:"bytes,17,opt,name=command_name,json=commandName,proto3" json:"command_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SSHCommandAuditItem) Reset() {
@@ -291,6 +295,20 @@ func (x *SSHCommandAuditItem) GetOperatorNickname() string {
 func (x *SSHCommandAuditItem) GetOperatorAvatar() string {
 	if x != nil {
 		return x.OperatorAvatar
+	}
+	return ""
+}
+
+func (x *SSHCommandAuditItem) GetAgentName() string {
+	if x != nil {
+		return x.AgentName
+	}
+	return ""
+}
+
+func (x *SSHCommandAuditItem) GetCommandName() string {
+	if x != nil {
+		return x.CommandName
 	}
 	return ""
 }
@@ -1295,7 +1313,19 @@ type ListSSHCommandAuditsRequest struct {
 	// 命令标识。
 	CommandUid string `protobuf:"bytes,3,opt,name=command_uid,json=commandUid,proto3" json:"command_uid,omitempty"`
 	// 机器标识。
-	AgentUid      string `protobuf:"bytes,4,opt,name=agent_uid,json=agentUid,proto3" json:"agent_uid,omitempty"`
+	AgentUid string `protobuf:"bytes,4,opt,name=agent_uid,json=agentUid,proto3" json:"agent_uid,omitempty"`
+	// 审计种类。留空表示全部；统一审计页传 EXECUTE。
+	Kind string `protobuf:"bytes,5,opt,name=kind,proto3" json:"kind,omitempty"`
+	// 状态。留空表示全部。
+	Status string `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	// 操作者标识。
+	OperatorUid string `protobuf:"bytes,7,opt,name=operator_uid,json=operatorUid,proto3" json:"operator_uid,omitempty"`
+	// 命令正文关键字，大小写不敏感的子串匹配。
+	Keyword string `protobuf:"bytes,8,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	// 创建时间下界，Unix 秒，含。0 表示不限。
+	StartTime int64 `protobuf:"varint,9,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// 创建时间上界，Unix 秒，不含。0 表示不限。
+	EndTime       int64 `protobuf:"varint,10,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1356,6 +1386,48 @@ func (x *ListSSHCommandAuditsRequest) GetAgentUid() string {
 		return x.AgentUid
 	}
 	return ""
+}
+
+func (x *ListSSHCommandAuditsRequest) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ListSSHCommandAuditsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListSSHCommandAuditsRequest) GetOperatorUid() string {
+	if x != nil {
+		return x.OperatorUid
+	}
+	return ""
+}
+
+func (x *ListSSHCommandAuditsRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListSSHCommandAuditsRequest) GetStartTime() int64 {
+	if x != nil {
+		return x.StartTime
+	}
+	return 0
+}
+
+func (x *ListSSHCommandAuditsRequest) GetEndTime() int64 {
+	if x != nil {
+		return x.EndTime
+	}
+	return 0
 }
 
 // 审计分页结果。
@@ -1443,7 +1515,7 @@ const file_alioth_v1_ssh_proto_rawDesc = "" +
 	"\aworkdir\x18\x04 \x01(\tR\aworkdir\x12\x10\n" +
 	"\x03env\x18\x05 \x01(\tR\x03env\x12#\n" +
 	"\rreview_status\x18\x06 \x01(\tR\freviewStatus\x12\x16\n" +
-	"\x06remark\x18\a \x01(\tR\x06remark\"\xd3\x03\n" +
+	"\x06remark\x18\a \x01(\tR\x06remark\"\x95\x04\n" +
 	"\x13SSHCommandAuditItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x1f\n" +
 	"\vcommand_uid\x18\x02 \x01(\tR\n" +
@@ -1462,7 +1534,10 @@ const file_alioth_v1_ssh_proto_rawDesc = "" +
 	"created_at\x18\f \x01(\tR\tcreatedAt\x12#\n" +
 	"\roperator_name\x18\r \x01(\tR\foperatorName\x12+\n" +
 	"\x11operator_nickname\x18\x0e \x01(\tR\x10operatorNickname\x12'\n" +
-	"\x0foperator_avatar\x18\x0f \x01(\tR\x0eoperatorAvatar\"\xa9\x01\n" +
+	"\x0foperator_avatar\x18\x0f \x01(\tR\x0eoperatorAvatar\x12\x1d\n" +
+	"\n" +
+	"agent_name\x18\x10 \x01(\tR\tagentName\x12!\n" +
+	"\fcommand_name\x18\x11 \x01(\tR\vcommandName\"\xa9\x01\n" +
 	"\x17CreateSSHCommandRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12!\n" +
 	"\acommand\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\acommand\x12\x18\n" +
@@ -1517,13 +1592,21 @@ const file_alioth_v1_ssh_proto_rawDesc = "" +
 	"\x04uids\x18\x01 \x03(\tR\x04uids\x12$\n" +
 	"\tagent_uid\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bagentUid\"R\n" +
 	"\x1aExecuteSSHCommandsResponse\x124\n" +
-	"\x05items\x18\x01 \x03(\v2\x1e.alioth.v1.SSHCommandAuditItemR\x05items\"\xa0\x01\n" +
+	"\x05items\x18\x01 \x03(\v2\x1e.alioth.v1.SSHCommandAuditItemR\x05items\"\xc6\x03\n" +
 	"\x1bListSSHCommandAuditsRequest\x12\x1b\n" +
 	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04page\x12&\n" +
 	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x1f\n" +
 	"\vcommand_uid\x18\x03 \x01(\tR\n" +
 	"commandUid\x12\x1b\n" +
-	"\tagent_uid\x18\x04 \x01(\tR\bagentUid\"\x9b\x01\n" +
+	"\tagent_uid\x18\x04 \x01(\tR\bagentUid\x12E\n" +
+	"\x04kind\x18\x05 \x01(\tB1\xbaH.r,R\x00R\x06CREATER\x06UPDATER\aAPPROVER\x06REJECTR\aEXECUTER\x04kind\x12J\n" +
+	"\x06status\x18\x06 \x01(\tB2\xbaH/r-R\x00R\aPENDINGR\bAPPROVEDR\bREJECTEDR\x04DONER\x06FAILEDR\x06status\x12!\n" +
+	"\foperator_uid\x18\a \x01(\tR\voperatorUid\x12\"\n" +
+	"\akeyword\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\akeyword\x12&\n" +
+	"\n" +
+	"start_time\x18\t \x01(\x03B\a\xbaH\x04\"\x02(\x00R\tstartTime\x12\"\n" +
+	"\bend_time\x18\n" +
+	" \x01(\x03B\a\xbaH\x04\"\x02(\x00R\aendTime\"\x9b\x01\n" +
 	"\x1cListSSHCommandAuditsResponse\x124\n" +
 	"\x05items\x18\x01 \x03(\v2\x1e.alioth.v1.SSHCommandAuditItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +

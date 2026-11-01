@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
 	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/merr"
 )
@@ -68,6 +69,11 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	}
 	if err := client.Schema.Create(ctx, opts...); err != nil {
 		return err
+	}
+	// 先补齐当前权限目录再清理旧权限：dropStalePermissions 要把旧 k8s:*:write
+	// 这类历史权限展开成当前操作权限，需要的目标权限行必须已经存在。
+	if err := ensurePermissionCatalog(ctx, client); err != nil {
+		return databaseErr(slog.Default(), err)
 	}
 	if err := dropStalePermissions(ctx, client); err != nil {
 		return err
@@ -630,8 +636,34 @@ func dropLegacyEdgeAudits(ctx context.Context, db *sql.DB) error {
 	return nil
 }
 
+// ensurePermissionCatalog 把 perm.Catalog 里的权限定义补进库。
+// 菜单/权限目录由代码维护，升级新增权限时先落定义，角色授权与旧权限展开才有目标行。
+func ensurePermissionCatalog(ctx context.Context, client *ent.Client) error {
+	for _, item := range perm.Catalog() {
+		exists, err := client.Permission.Query().Where(permission.NameEQ(item.Name)).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if exists {
+			continue
+		}
+		if _, err := client.Permission.Create().
+			SetUID(id.New()).
+			SetName(item.Name).
+			SetResource(item.Resource).
+			SetAction(item.Action).
+			Save(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // dropStalePermissions 删除代码目录里已经不存在的权限定义及其角色授权。
 // 租户权限只由 perm.Catalog 定义，库里多出来的行都是旧版本遗留。
+// M25 把 Kubernetes 资源写权限细成操作权限（k8s:node:write → k8s:node:cordon 等）：
+// 删除旧行之前先把角色授权展开到当前操作权限，否则存量角色会在升级后静默丢权限。
+// Pod Exec 是新增操作，不在展开表里，不会被旧权限带出来。
 func dropStalePermissions(ctx context.Context, client *ent.Client) error {
 	valid := make(map[string]struct{}, len(perm.Catalog()))
 	for _, item := range perm.Catalog() {
@@ -641,22 +673,71 @@ func dropStalePermissions(ctx context.Context, client *ent.Client) error {
 	if err != nil {
 		return databaseErr(slog.Default(), err)
 	}
-	stale := make([]string, 0, len(rows))
+	byName := make(map[string]string, len(rows))
+	stale := make([]*ent.Permission, 0, len(rows))
 	for _, row := range rows {
+		byName[row.Name] = row.UID
 		if _, ok := valid[row.Name]; !ok {
-			stale = append(stale, row.UID)
+			stale = append(stale, row)
 		}
 	}
 	if len(stale) == 0 {
 		return nil
 	}
+	links, err := client.RolePermission.Query().All(ctx)
+	if err != nil {
+		return databaseErr(slog.Default(), err)
+	}
+	held := make(map[string]map[string]struct{}, len(links))
+	for _, link := range links {
+		names := held[link.RoleUID]
+		if names == nil {
+			names = make(map[string]struct{})
+			held[link.RoleUID] = names
+		}
+		names[link.PermissionUID] = struct{}{}
+	}
+	staleUIDs := make([]string, 0, len(stale))
+	for _, row := range stale {
+		staleUIDs = append(staleUIDs, row.UID)
+		expanded := perm.ExpandLegacyPermission(row.Name)
+		if len(expanded) == 0 {
+			continue
+		}
+		legacyLinks, err := client.RolePermission.Query().
+			Where(rolepermission.PermissionUIDEQ(row.UID)).
+			All(ctx)
+		if err != nil {
+			return databaseErr(slog.Default(), err)
+		}
+		for _, link := range legacyLinks {
+			for _, code := range expanded {
+				permissionUID := byName[code]
+				if permissionUID == "" {
+					continue
+				}
+				if _, ok := held[link.RoleUID][permissionUID]; ok {
+					continue
+				}
+				if _, err := client.RolePermission.Create().
+					SetUID(id.New()).
+					SetNamespaceUID(link.NamespaceUID).
+					SetRoleUID(link.RoleUID).
+					SetPermissionUID(permissionUID).
+					Save(ctx); err != nil {
+					return databaseErr(slog.Default(), err)
+				}
+				held[link.RoleUID][permissionUID] = struct{}{}
+			}
+		}
+	}
 	if _, err := client.RolePermission.Delete().
-		Where(rolepermission.PermissionUIDIn(stale...)).
+		Where(rolepermission.PermissionUIDIn(staleUIDs...)).
 		Exec(ctx); err != nil {
 		return databaseErr(slog.Default(), err)
 	}
 	if _, err := client.Permission.Delete().
-		Where(permission.UIDIn(stale...)).
+		Where(permission.UIDIn(staleUIDs...)).
 		Exec(ctx); err != nil {
 		return databaseErr(slog.Default(), err)
 	}

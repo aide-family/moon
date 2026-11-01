@@ -94,6 +94,84 @@ func TestCapabilityCodesOfExpandsLegacyChannelCodes(t *testing.T) {
 
 // TestCapabilityCodesOf 确认旧的模块级编码会展开成该模块的全部能力，
 // 能力编码去重并按目录顺序返回，目录外的编码被忽略。
+// TestCapabilityCodesOfExpandsLegacyK8sCodes 确认 M25 之前的 Kubernetes 资源能力
+// 在读取套餐快照时展开成操作能力，且旧 k8s_pod 不包含新增的 Pod 终端权限。
+func TestCapabilityCodesOfExpandsLegacyK8sCodes(t *testing.T) {
+	got := capabilityCodesOf([]string{
+		"k8s_node",
+		"k8s_pod",
+		perm.CapabilityClusterAccess,
+	})
+	want := []string{
+		perm.CapabilityK8sNodeRead,
+		perm.CapabilityK8sNodeCordon,
+		perm.CapabilityK8sPodRead,
+		perm.CapabilityK8sPodLogs,
+		perm.CapabilityK8sPodDelete,
+		perm.CapabilityClusterAccess,
+	}
+	if len(got) != len(want) {
+		t.Fatalf("capability codes = %v, want %v", got, want)
+	}
+	wantSet := permissionSet(want)
+	for _, code := range got {
+		if _, ok := wantSet[code]; !ok {
+			t.Fatalf("unexpected capability %s, want %v", code, want)
+		}
+	}
+	if permissionContains(got, perm.CapabilityK8sPodExec) {
+		t.Fatal("legacy k8s_pod must not grant pod exec")
+	}
+}
+
+// TestLegacyK8sWritePermissions 确认旧的资源写权限展开成操作权限，
+// 且 Pod 终端不会被旧 pod:write 自动授予。
+func TestLegacyK8sWritePermissions(t *testing.T) {
+	cases := []struct {
+		name string
+		code string
+		want []string
+	}{
+		{name: "node write", code: "k8s:node:write", want: []string{perm.K8sNodeCordon}},
+		{name: "workload write", code: "k8s:workload:write", want: []string{
+			perm.K8sWorkloadScale, perm.K8sWorkloadRestart, perm.K8sWorkloadImage, perm.K8sWorkloadRollback,
+		}},
+		{name: "pod write", code: "k8s:pod:write", want: []string{perm.K8sPodDelete}},
+		{name: "job write", code: "k8s:job:write", want: []string{perm.K8sJobDelete}},
+		{name: "cronjob write", code: "k8s:cronjob:write", want: []string{
+			perm.K8sCronJobSuspend, perm.K8sCronJobTrigger, perm.K8sCronJobDelete,
+		}},
+		{name: "current permission", code: perm.K8sPodRead},
+		{name: "unknown permission", code: "k8s:pod:write-all"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := perm.ExpandLegacyPermission(tc.code)
+			if len(got) != len(tc.want) {
+				t.Fatalf("expanded permissions = %v, want %v", got, tc.want)
+			}
+			want := permissionSet(tc.want)
+			for _, code := range got {
+				if _, ok := want[code]; !ok {
+					t.Fatalf("permission %s not expected, want %v", code, tc.want)
+				}
+				if code == perm.K8sPodExec {
+					t.Fatal("pod exec must not be expanded from legacy permissions")
+				}
+			}
+		})
+	}
+}
+
+func permissionContains(names []string, want string) bool {
+	for _, name := range names {
+		if name == want {
+			return true
+		}
+	}
+	return false
+}
+
 func TestCapabilityCodesOf(t *testing.T) {
 	got := capabilityCodesOf([]string{
 		perm.FeatureCluster,
@@ -102,9 +180,10 @@ func TestCapabilityCodesOf(t *testing.T) {
 		"unknown",
 		perm.FeatureMember,
 	})
+	// 旧模块级 cluster 编码展开时不再带上 M25 新增的 Pod 终端能力。
 	want := append(
 		[]string{perm.CapabilityAlertRealtime, perm.CapabilityMember},
-		perm.CapabilityCodesOfModule(perm.FeatureCluster)...,
+		perm.LegacyModuleCapabilities(perm.FeatureCluster)...,
 	)
 	if len(got) != len(want) {
 		t.Fatalf("capability codes = %v, want %v", got, want)

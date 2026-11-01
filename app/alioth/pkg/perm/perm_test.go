@@ -11,12 +11,12 @@ import (
 func TestK8sPermissionCatalog(t *testing.T) {
 	catalog := set(Names())
 	want := []string{
-		K8sNodeRead, K8sNodeWrite,
-		K8sWorkloadRead, K8sWorkloadWrite,
-		K8sPodRead, K8sPodWrite, K8sPodLogs,
+		K8sNodeRead, K8sNodeCordon,
+		K8sWorkloadRead, K8sWorkloadScale, K8sWorkloadRestart, K8sWorkloadImage, K8sWorkloadRollback,
+		K8sPodRead, K8sPodLogs, K8sPodDelete, K8sPodExec,
 		K8sIngressRead, K8sServiceRead, K8sConfigMapRead, K8sSecretRead,
 		K8sPersistentVolumeRead, K8sPersistentVolumeClaimRead,
-		K8sJobRead, K8sJobWrite, K8sCronJobRead, K8sCronJobWrite,
+		K8sJobRead, K8sJobDelete, K8sCronJobRead, K8sCronJobSuspend, K8sCronJobTrigger, K8sCronJobDelete,
 	}
 	for _, name := range want {
 		if _, ok := catalog[name]; !ok {
@@ -34,8 +34,12 @@ func TestK8sPermissionCatalog(t *testing.T) {
 	if len(K8sReadPermissions()) != 12 {
 		t.Fatalf("k8s read permissions = %d, want 12", len(K8sReadPermissions()))
 	}
-	if len(K8sWritePermissions()) != 5 {
-		t.Fatalf("k8s write permissions = %d, want 5", len(K8sWritePermissions()))
+	// 旧 cluster:write 展开的操作权限共 10 个；Pod 终端是新权限，不在其中。
+	if len(K8sWritePermissions()) != 10 {
+		t.Fatalf("k8s write permissions = %d, want 10", len(K8sWritePermissions()))
+	}
+	if slices.Contains(K8sWritePermissions(), K8sPodExec) {
+		t.Fatal("pod exec must not be granted by the legacy cluster:write expansion")
 	}
 }
 
@@ -54,7 +58,7 @@ func TestReadOnlyCatalog(t *testing.T) {
 	}
 	for _, write := range []string{
 		MemberWrite, MemberDelete, AlertRealtimeIntervene, SSHExec, NamespaceDelete, NamespaceTransfer,
-		K8sPodWrite, K8sCronJobWrite,
+		K8sPodDelete, K8sPodExec, K8sCronJobDelete, K8sNodeCordon, K8sWorkloadRollback,
 	} {
 		if IsReadOnly(write) {
 			t.Fatalf("write permission %s treated as read-only", write)
@@ -166,12 +170,12 @@ func TestSystemRoles(t *testing.T) {
 	}
 }
 
-// TestCapabilityCatalog 确认两级功能模型：41 个能力都挂在 10 个模块下，
+// TestCapabilityCatalog 确认两级功能模型：53 个能力都挂在 10 个模块下，
 // 权限都在租户目录里，菜单权限与能力一一对应。
 func TestCapabilityCatalog(t *testing.T) {
 	items := Capabilities()
-	if len(items) != 41 {
-		t.Fatalf("capabilities = %d, want 41", len(items))
+	if len(items) != 53 {
+		t.Fatalf("capabilities = %d, want 53", len(items))
 	}
 	if items[0].Code != CapabilityAlertRealtime || items[len(items)-1].Code != CapabilityWebShell {
 		t.Fatalf("unexpected capability order: first %s last %s", items[0].Code, items[len(items)-1].Code)
@@ -272,8 +276,8 @@ func TestCapabilityCatalog(t *testing.T) {
 	if got := CapabilityPermissions([]string{CapabilityNotifyChannelSMTP, CapabilityNotifyGroup}); len(got) != 6 {
 		t.Fatalf("notification permissions = %v, want 3 unique", got)
 	}
-	if got := CapabilityCodesOfModule(FeatureCluster); len(got) != 12 {
-		t.Fatalf("cluster capabilities = %d, want 12", len(got))
+	if got := CapabilityCodesOfModule(FeatureCluster); len(got) != 24 {
+		t.Fatalf("cluster capabilities = %d, want 24", len(got))
 	}
 }
 
@@ -282,9 +286,9 @@ func TestCapabilityCatalog(t *testing.T) {
 func TestEffectiveCapabilities(t *testing.T) {
 	got := EffectiveCapabilities(
 		[]string{CapabilityRole, "alert", CapabilityAlertRealtime},
-		[]string{CapabilityRole, CapabilityK8sPod},
+		[]string{CapabilityRole, CapabilityK8sPodRead},
 	)
-	want := []string{CapabilityAlertRealtime, CapabilityRole, CapabilityK8sPod}
+	want := []string{CapabilityAlertRealtime, CapabilityRole, CapabilityK8sPodRead}
 	if len(got) != len(want) {
 		t.Fatalf("effective capabilities = %v, want %v", got, want)
 	}
@@ -293,7 +297,7 @@ func TestEffectiveCapabilities(t *testing.T) {
 			t.Fatalf("effective capabilities = %v, want %v", got, want)
 		}
 	}
-	modules := ModulesOfCapabilities([]string{CapabilityK8sPod, CapabilityClusterAccess, CapabilityMember})
+	modules := ModulesOfCapabilities([]string{CapabilityK8sPodRead, CapabilityClusterAccess, CapabilityMember})
 	if len(modules) != 2 || modules[0] != FeatureMember || modules[1] != FeatureCluster {
 		t.Fatalf("modules = %v, want [member cluster]", modules)
 	}
@@ -339,6 +343,53 @@ func TestNormalizeCapabilities(t *testing.T) {
 	}
 	if got := ExpandLegacyCapability(CapabilityMember); got != nil {
 		t.Fatalf("current capability expanded to %v, want nil", got)
+	}
+	// M25：旧 Kubernetes 资源能力展开成操作能力，旧 k8s_pod 不含 Pod 终端。
+	if got := ExpandLegacyCapability("k8s_pod"); !slices.Equal(got, []string{
+		CapabilityK8sPodRead, CapabilityK8sPodLogs, CapabilityK8sPodDelete,
+	}) {
+		t.Fatalf("expanded k8s_pod capabilities = %v", got)
+	}
+	if got := ExpandLegacyCapability("k8s_workload"); !slices.Equal(got, []string{
+		CapabilityK8sWorkloadRead, CapabilityK8sWorkloadScale, CapabilityK8sWorkloadRestart,
+		CapabilityK8sWorkloadImage, CapabilityK8sWorkloadRollback,
+	}) {
+		t.Fatalf("expanded k8s_workload capabilities = %v", got)
+	}
+	if got := NormalizeCapabilities([]string{"k8s_cronjob"}); !slices.Equal(got, []string{
+		CapabilityK8sCronJobRead, CapabilityK8sCronJobSuspend, CapabilityK8sCronJobTrigger, CapabilityK8sCronJobDelete,
+	}) {
+		t.Fatalf("normalized k8s_cronjob capabilities = %v", got)
+	}
+	// 旧写权限展开成操作权限，Pod 终端不随 pod:write 授予。
+	if got := ExpandLegacyPermission("k8s:pod:write"); !slices.Equal(got, []string{K8sPodDelete}) {
+		t.Fatalf("expanded pod write permission = %v", got)
+	}
+	if got := ExpandLegacyPermission("k8s:workload:write"); !slices.Equal(got, []string{
+		K8sWorkloadScale, K8sWorkloadRestart, K8sWorkloadImage, K8sWorkloadRollback,
+	}) {
+		t.Fatalf("expanded workload write permission = %v", got)
+	}
+	if IsLegacyPermission(K8sPodDelete) || !IsLegacyPermission("k8s:pod:write") {
+		t.Fatal("legacy permission recognition is wrong")
+	}
+}
+
+// TestLegacyModuleCapabilities 确认旧模块级编码展开时不会带出 M25 新增的 Pod 终端：
+// 存量租户升级后仍要由超级管理员显式开通 k8s_pod_exec。
+func TestLegacyModuleCapabilities(t *testing.T) {
+	codes := LegacyModuleCapabilities(FeatureCluster)
+	if !slices.Contains(codes, CapabilityClusterAccess) || !slices.Contains(codes, CapabilityK8sWorkloadRead) {
+		t.Fatalf("legacy cluster capabilities missing known capabilities: %v", codes)
+	}
+	if slices.Contains(codes, CapabilityK8sPodExec) {
+		t.Fatal("legacy module expansion must not grant pod exec")
+	}
+	if len(codes) != len(CapabilityCodesOfModule(FeatureCluster))-1 {
+		t.Fatalf("legacy cluster capabilities = %d, want module capabilities minus pod exec", len(codes))
+	}
+	if got := LegacyModuleCapabilities(FeatureSSH); !slices.Equal(got, CapabilityCodesOfModule(FeatureSSH)) {
+		t.Fatalf("non-cluster module expansion changed: %v", got)
 	}
 }
 

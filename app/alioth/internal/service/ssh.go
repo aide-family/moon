@@ -99,7 +99,16 @@ func (s *SSHCommandService) ExecuteSSHCommands(ctx context.Context, req *v1.Exec
 }
 
 func (s *SSHCommandService) ListSSHCommandAudits(ctx context.Context, req *v1.ListSSHCommandAuditsRequest) (*v1.ListSSHCommandAuditsResponse, error) {
-	items, total, page, pageSize, err := s.executor.ListAudits(ctx, req.GetCommandUid(), req.GetAgentUid(), req.GetPage(), req.GetPageSize())
+	items, total, page, pageSize, err := s.executor.ListAudits(ctx, bo.SSHCommandAuditQuery{
+		CommandUID:  req.GetCommandUid(),
+		AgentUID:    req.GetAgentUid(),
+		Kind:        req.GetKind(),
+		Status:      req.GetStatus(),
+		OperatorUID: req.GetOperatorUid(),
+		Keyword:     req.GetKeyword(),
+		StartTime:   req.GetStartTime(),
+		EndTime:     req.GetEndTime(),
+	}, req.GetPage(), req.GetPageSize())
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +144,7 @@ func sshAuditItem(item bo.SSHCommandAudit) *v1.SSHCommandAuditItem {
 		OperatorName: item.OperatorName, OperatorNickname: item.OperatorNickname, OperatorAvatar: item.OperatorAvatar,
 		Kind: item.Kind, Status: item.Status, Command: item.Command, ExitCode: int32(item.ExitCode),
 		Output: item.Output, Truncated: item.Truncated, Detail: item.Detail, CreatedAt: created,
+		AgentName: item.AgentName, CommandName: item.CommandName,
 	}
 }
 

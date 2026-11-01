@@ -285,6 +285,20 @@ func (_u *AgentUpdate) SetNillableRemark(v *string) *AgentUpdate {
 	return _u
 }
 
+// SetLabels sets the "labels" field.
+func (_u *AgentUpdate) SetLabels(v string) *AgentUpdate {
+	_u.mutation.SetLabels(v)
+	return _u
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (_u *AgentUpdate) SetNillableLabels(v *string) *AgentUpdate {
+	if v != nil {
+		_u.SetLabels(*v)
+	}
+	return _u
+}
+
 // Mutation returns the AgentMutation object of the builder.
 func (_u *AgentUpdate) Mutation() *AgentMutation {
 	return _u.mutation
@@ -412,6 +426,9 @@ func (_u *AgentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(agent.FieldRemark, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Labels(); ok {
+		_spec.SetField(agent.FieldLabels, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -690,6 +707,20 @@ func (_u *AgentUpdateOne) SetNillableRemark(v *string) *AgentUpdateOne {
 	return _u
 }
 
+// SetLabels sets the "labels" field.
+func (_u *AgentUpdateOne) SetLabels(v string) *AgentUpdateOne {
+	_u.mutation.SetLabels(v)
+	return _u
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (_u *AgentUpdateOne) SetNillableLabels(v *string) *AgentUpdateOne {
+	if v != nil {
+		_u.SetLabels(*v)
+	}
+	return _u
+}
+
 // Mutation returns the AgentMutation object of the builder.
 func (_u *AgentUpdateOne) Mutation() *AgentMutation {
 	return _u.mutation
@@ -847,6 +878,9 @@ func (_u *AgentUpdateOne) sqlSave(ctx context.Context) (_node *Agent, err error)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(agent.FieldRemark, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Labels(); ok {
+		_spec.SetField(agent.FieldLabels, field.TypeString, value)
 	}
 	_node = &Agent{config: _u.config}
 	_spec.Assign = _node.assignValues

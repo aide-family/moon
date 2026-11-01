@@ -2,9 +2,11 @@ package data
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/agent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
@@ -195,25 +197,47 @@ func (r *sshCommandRepo) AddExecAudit(ctx context.Context, in bo.SSHCommandAudit
 	return &item, nil
 }
 
-func (r *sshCommandRepo) ListAudits(ctx context.Context, namespaceUID, commandUID, agentUID string, page, pageSize int) ([]bo.SSHCommandAudit, int, error) {
-	query := r.client.SSHCommandAudit.Query().Where(sshcommandaudit.NamespaceUIDEQ(namespaceUID))
-	if commandUID != "" {
-		query = query.Where(sshcommandaudit.CommandUIDEQ(commandUID))
+func (r *sshCommandRepo) ListAudits(ctx context.Context, namespaceUID string, filter bo.SSHCommandAuditQuery, page, pageSize int) ([]bo.SSHCommandAudit, int, error) {
+	auditQuery := r.client.SSHCommandAudit.Query().Where(sshcommandaudit.NamespaceUIDEQ(namespaceUID))
+	if filter.CommandUID != "" {
+		auditQuery = auditQuery.Where(sshcommandaudit.CommandUIDEQ(filter.CommandUID))
 	}
-	if agentUID != "" {
-		query = query.Where(sshcommandaudit.AgentUIDEQ(agentUID))
+	if filter.AgentUID != "" {
+		auditQuery = auditQuery.Where(sshcommandaudit.AgentUIDEQ(filter.AgentUID))
 	}
-	total, err := query.Count(ctx)
+	if filter.Kind != "" {
+		auditQuery = auditQuery.Where(sshcommandaudit.KindEQ(sshcommandaudit.Kind(filter.Kind)))
+	}
+	if filter.Status != "" {
+		auditQuery = auditQuery.Where(sshcommandaudit.StatusEQ(sshcommandaudit.Status(filter.Status)))
+	}
+	if filter.OperatorUID != "" {
+		auditQuery = auditQuery.Where(sshcommandaudit.OperatorUIDEQ(filter.OperatorUID))
+	}
+	if keyword := strings.TrimSpace(filter.Keyword); keyword != "" {
+		auditQuery = auditQuery.Where(sshcommandaudit.CommandContainsFold(keyword))
+	}
+	if filter.StartTime > 0 {
+		auditQuery = auditQuery.Where(sshcommandaudit.CreatedAtGTE(time.Unix(filter.StartTime, 0)))
+	}
+	if filter.EndTime > 0 {
+		auditQuery = auditQuery.Where(sshcommandaudit.CreatedAtLT(time.Unix(filter.EndTime, 0)))
+	}
+	total, err := auditQuery.Count(ctx)
 	if err != nil {
 		return nil, 0, r.fail(err)
 	}
-	rows, err := query.Order(ent.Desc(sshcommandaudit.FieldCreatedAt)).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	rows, err := auditQuery.Order(ent.Desc(sshcommandaudit.FieldCreatedAt)).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
 	if err != nil {
 		return nil, 0, r.fail(err)
 	}
 	items := make([]bo.SSHCommandAudit, 0, len(rows))
 	operatorUIDs := make([]string, 0, len(rows))
 	seenOperators := make(map[string]struct{}, len(rows))
+	agentUIDs := make([]string, 0, len(rows))
+	seenAgents := make(map[string]struct{}, len(rows))
+	commandUIDs := make([]string, 0, len(rows))
+	seenCommands := make(map[string]struct{}, len(rows))
 	for _, row := range rows {
 		item := toSSHAudit(row)
 		items = append(items, item)
@@ -221,6 +245,18 @@ func (r *sshCommandRepo) ListAudits(ctx context.Context, namespaceUID, commandUI
 			if _, ok := seenOperators[item.OperatorUID]; !ok {
 				seenOperators[item.OperatorUID] = struct{}{}
 				operatorUIDs = append(operatorUIDs, item.OperatorUID)
+			}
+		}
+		if item.AgentUID != "" {
+			if _, ok := seenAgents[item.AgentUID]; !ok {
+				seenAgents[item.AgentUID] = struct{}{}
+				agentUIDs = append(agentUIDs, item.AgentUID)
+			}
+		}
+		if item.CommandUID != "" {
+			if _, ok := seenCommands[item.CommandUID]; !ok {
+				seenCommands[item.CommandUID] = struct{}{}
+				commandUIDs = append(commandUIDs, item.CommandUID)
 			}
 		}
 	}
@@ -239,6 +275,34 @@ func (r *sshCommandRepo) ListAudits(ctx context.Context, namespaceUID, commandUI
 				items[i].OperatorNickname = account.Nickname
 				items[i].OperatorAvatar = account.Avatar
 			}
+		}
+	}
+	// 机器名与命令名按 uid 批量补全。审计已经按租户过滤，uid 全局唯一，因此这里不再加租户条件；
+	// 已被删除的机器或命令不再返回名字，join 失败也不能丢审计行。
+	if len(agentUIDs) > 0 {
+		agents, err := r.client.Agent.Query().Where(agent.UIDIn(agentUIDs...), agent.DeletedAtIsNil()).All(ctx)
+		if err != nil {
+			return nil, 0, r.fail(err)
+		}
+		names := make(map[string]string, len(agents))
+		for _, machine := range agents {
+			names[machine.UID] = machine.Name
+		}
+		for i := range items {
+			items[i].AgentName = names[items[i].AgentUID]
+		}
+	}
+	if len(commandUIDs) > 0 {
+		commands, err := r.client.SSHCommand.Query().Where(sshcommand.UIDIn(commandUIDs...), sshcommand.DeletedAtIsNil()).All(ctx)
+		if err != nil {
+			return nil, 0, r.fail(err)
+		}
+		names := make(map[string]string, len(commands))
+		for _, command := range commands {
+			names[command.UID] = command.Name
+		}
+		for i := range items {
+			items[i].CommandName = names[items[i].CommandUID]
 		}
 	}
 	return items, total, nil

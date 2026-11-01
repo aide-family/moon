@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import {
@@ -67,10 +68,12 @@ interface KubernetesPodsTabProps {
   clusterUid: string
   namespace: string
   name: string
-  /** k8s:pod:write：只控制删除，读取日志是独立权限。 */
-  canWrite: boolean
+  /** k8s:pod:delete：只控制删除，读取日志与终端是独立权限。 */
+  canDelete: boolean
   /** k8s:pod:logs：控制日志行操作与日志面板入口。 */
   canLogs: boolean
+  /** k8s:pod:exec：控制终端行操作。 */
+  canExec: boolean
   page: number
   pageSize: number
   onPageChange: (page: number) => void
@@ -78,19 +81,21 @@ interface KubernetesPodsTabProps {
   refreshKey?: number
 }
 
-/** Pod 列表：状态、重启次数、所属工作负载，以及删除与日志读取。 */
+/** Pod 列表：状态、重启次数、所属工作负载，以及删除、日志读取与终端入口。 */
 export function KubernetesPodsTab({
   clusterUid,
   namespace,
   name,
-  canWrite,
+  canDelete,
   canLogs,
+  canExec,
   page,
   pageSize,
   onPageChange,
   refreshKey = 0,
 }: KubernetesPodsTabProps) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [deleting, setDeleting] = useState<KubernetesPodItem | null>(null)
   const [deletePending, setDeletePending] = useState(false)
   const [deleteError, setDeleteError] = useState("")
@@ -170,7 +175,14 @@ export function KubernetesPodsTab({
         onSelect: () => openLogs(pod),
       })
     }
-    if (canWrite) {
+    if (canExec) {
+      actions.push({
+        key: "exec",
+        label: t("kube.terminal"),
+        onSelect: () => openTerminal(pod),
+      })
+    }
+    if (canDelete) {
       actions.push({
         key: "delete",
         label: t("action.delete"),
@@ -182,6 +194,19 @@ export function KubernetesPodsTab({
       })
     }
     return actions
+  }
+
+  function openTerminal(pod: KubernetesPodItem) {
+    // 多容器 Pod 先带第一个容器进入终端页，页面上还能再切换。
+    const container = pod.containers?.[0]?.name ?? ""
+    const params = new URLSearchParams()
+    if (container) {
+      params.set("container", container)
+    }
+    const search = params.toString()
+    navigate(
+      `/clusters/${encodeURIComponent(clusterUid)}/pods/${encodeURIComponent(pod.namespace)}/${encodeURIComponent(pod.name)}/exec${search ? `?${search}` : ""}`
+    )
   }
 
   function openLogs(pod: KubernetesPodItem) {

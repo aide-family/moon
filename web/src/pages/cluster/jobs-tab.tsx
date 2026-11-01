@@ -54,7 +54,8 @@ interface ClusterJobsTabProps {
   clusterUid: string
   namespace: string
   name: string
-  canWrite: boolean
+  /** k8s:job:delete：只控制删除。 */
+  canDelete: boolean
   page: number
   pageSize: number
   onPageChange: (page: number) => void
@@ -70,7 +71,7 @@ export function ClusterJobsTab({
   clusterUid,
   namespace,
   name,
-  canWrite,
+  canDelete,
   page,
   pageSize,
   onPageChange,
@@ -112,7 +113,7 @@ export function ClusterJobsTab({
   }
 
   function jobActions(job: KubernetesJobItem): RowAction[] {
-    if (!canWrite) {
+    if (!canDelete) {
       return []
     }
     return [

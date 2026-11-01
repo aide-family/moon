@@ -51,6 +51,11 @@ func (registry *Registry) Create(ctx context.Context, in bo.Agent) (*bo.Agent, e
 	}
 	in.NamespaceUID = ns
 	in.Name = strings.TrimSpace(in.Name)
+	labels, err := NormalizeAgentLabels(in.Labels)
+	if err != nil {
+		return nil, err
+	}
+	in.Labels = labels
 	token := newAgentToken()
 	item, err := registry.agents.CreateAgent(ctx, in, hashToken(token))
 	if err != nil {
@@ -66,6 +71,11 @@ func (registry *Registry) Update(ctx context.Context, in bo.Agent) (*bo.Agent, e
 		return nil, err
 	}
 	in.NamespaceUID = ns
+	labels, err := NormalizeAgentLabels(in.Labels)
+	if err != nil {
+		return nil, err
+	}
+	in.Labels = labels
 	item, err := registry.agents.UpdateAgent(ctx, in)
 	return item, registry.access.Wrap(err)
 }

@@ -82,6 +82,17 @@ type KubeContainer struct {
 	Image    string
 }
 
+// KubePodShell 是一条 Pod 终端会话。Data 是终端输出，Closed 在会话结束时收到关闭原因；
+// Write / Resize / Stop 由数据层实现，调用方不关心 SPDY 细节。
+type KubePodShell struct {
+	Container string
+	Data      <-chan []byte
+	Closed    <-chan string
+	Write     func([]byte) error
+	Resize    func(cols, rows int32) error
+	Stop      func()
+}
+
 // KubePodLogs 是一次 Pod 日志读取的结果。
 type KubePodLogs struct {
 	Content   string

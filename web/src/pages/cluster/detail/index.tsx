@@ -89,13 +89,19 @@ export function ClusterDetailPage() {
   const can = session.can
   // 页面级门槛仍是 cluster:read：它代表集群接入与连接权限，不是资源读写权限。
   const canTest = can("cluster:read")
-  // 写操作按资源下传；cluster:write 现在只用于集群接入/连接，不再代表能改资源。
-  const canWriteNodes = can("k8s:node:write")
-  const canWriteWorkloads = can("k8s:workload:write")
-  const canWriteJobs = can("k8s:job:write")
-  const canWriteCronJobs = can("k8s:cronjob:write")
-  const canWritePods = can("k8s:pod:write")
+  // 资源操作按各自权限下传；cluster:* 只负责接入与连接，不再代表能改资源。
+  const canCordonNodes = can("k8s:node:cordon")
+  const canScaleWorkloads = can("k8s:workload:scale")
+  const canRestartWorkloads = can("k8s:workload:restart")
+  const canImageWorkloads = can("k8s:workload:image")
+  const canRollbackWorkloads = can("k8s:workload:rollback")
+  const canDeleteJobs = can("k8s:job:delete")
+  const canSuspendCronJobs = can("k8s:cronjob:suspend")
+  const canTriggerCronJobs = can("k8s:cronjob:trigger")
+  const canDeleteCronJobs = can("k8s:cronjob:delete")
+  const canDeletePods = can("k8s:pod:delete")
   const canReadPodLogs = can("k8s:pod:logs")
+  const canExecPods = can("k8s:pod:exec")
 
   // 资源视图的可见性同时看资源读权限与租户能力（k8s_*）。
   const access = useMemo<ClusterAccessCheck>(
@@ -324,7 +330,7 @@ export function ClusterDetailPage() {
           <KubernetesNodesTab
             clusterUid={uid}
             name={applied.name}
-            canWrite={canWriteNodes}
+            canCordon={canCordonNodes}
             refreshKey={refreshKey}
           />
         )
@@ -335,7 +341,10 @@ export function ClusterDetailPage() {
             namespace={applied.namespace}
             kind={kind}
             name={applied.name}
-            canWrite={canWriteWorkloads}
+            canScale={canScaleWorkloads}
+            canRestart={canRestartWorkloads}
+            canImage={canImageWorkloads}
+            canRollback={canRollbackWorkloads}
             refreshKey={refreshKey}
           />
         )
@@ -345,7 +354,7 @@ export function ClusterDetailPage() {
             clusterUid={uid}
             namespace={applied.namespace}
             name={applied.name}
-            canWrite={canWriteJobs}
+            canDelete={canDeleteJobs}
             page={query.page}
             pageSize={query.pageSize}
             onPageChange={(page) => query.update({ page })}
@@ -358,7 +367,9 @@ export function ClusterDetailPage() {
             clusterUid={uid}
             namespace={applied.namespace}
             name={applied.name}
-            canWrite={canWriteCronJobs}
+            canSuspend={canSuspendCronJobs}
+            canTrigger={canTriggerCronJobs}
+            canDelete={canDeleteCronJobs}
             page={query.page}
             pageSize={query.pageSize}
             onPageChange={(page) => query.update({ page })}
@@ -371,8 +382,9 @@ export function ClusterDetailPage() {
             clusterUid={uid}
             namespace={applied.namespace}
             name={applied.name}
-            canWrite={canWritePods}
+            canDelete={canDeletePods}
             canLogs={canReadPodLogs}
+            canExec={canExecPods}
             page={query.page}
             pageSize={query.pageSize}
             onPageChange={(page) => query.update({ page })}

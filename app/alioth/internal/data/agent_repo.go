@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
@@ -36,6 +38,7 @@ func (r *agentRepo) CreateAgent(ctx context.Context, in bo.Agent, tokenHash stri
 		SetSSHPasswordCipher(password).
 		SetSSHPrivateKeyCipher(key).
 		SetRemark(in.Remark).
+		SetLabels(persistAgentLabels(in.Labels)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -75,6 +78,7 @@ func (r *agentRepo) UpdateAgent(ctx context.Context, in bo.Agent) (*bo.Agent, er
 		SetSSHPasswordCipher(password).
 		SetSSHPrivateKeyCipher(key).
 		SetRemark(in.Remark).
+		SetLabels(persistAgentLabels(in.Labels)).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -158,6 +162,51 @@ func (r *agentRepo) ListAgents(ctx context.Context, namespaceUID string, page, p
 	return items, total, nil
 }
 
+// MatchAgents 返回当前租户下标签全部命中的 ACTIVE 机器，按 uid 升序。
+// 标签是 JSON 文本列，无法在 SQL 中做 AND 精确匹配，因此租户与状态条件留在 SQL，
+// 标签在内存里逐条比对；标签不是合法 JSON 对象的行直接跳过。
+func (r *agentRepo) MatchAgents(ctx context.Context, namespaceUID string, labels map[string]string) ([]bo.Agent, error) {
+	rows, err := r.client.Agent.Query().
+		Where(agent.NamespaceUIDEQ(namespaceUID), agent.DeletedAtIsNil(), agent.StatusEQ(agent.StatusACTIVE)).
+		Order(ent.Asc(agent.FieldUID)).
+		All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items := make([]bo.Agent, 0, len(rows))
+	for _, row := range rows {
+		if !agentLabelsMatch(row.Labels, labels) {
+			continue
+		}
+		items = append(items, toAgent(row))
+	}
+	return items, nil
+}
+
+// persistAgentLabels 保证新建和更新时 labels 落库为 JSON 文本，空值落成 {}。
+func persistAgentLabels(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "{}"
+	}
+	return raw
+}
+
+// agentLabelsMatch 判断机器标签是否包含全部请求键值（AND 精确匹配）。
+// 标签不是合法 JSON 对象时视为不命中；请求为空时只要标签合法就算命中。
+func agentLabelsMatch(raw string, labels map[string]string) bool {
+	var values map[string]string
+	if err := json.Unmarshal([]byte(raw), &values); err != nil || values == nil {
+		return false
+	}
+	for key, value := range labels {
+		if got, ok := values[key]; !ok || got != value {
+			return false
+		}
+	}
+	return true
+}
+
 func (r *agentRepo) SetOnline(ctx context.Context, uid string, online bool, hostname, machineID, localIP, version, collectJSON string) error {
 	upd := r.client.Agent.Update().Where(agent.UIDEQ(uid), agent.DeletedAtIsNil()).SetOnline(online)
 	if hostname != "" {
@@ -201,6 +250,6 @@ func toAgent(row *ent.Agent) bo.Agent {
 		MachineID: row.MachineID, LocalIP: row.LocalIP, Version: row.Version, CollectJSON: row.CollectJSON,
 		Online: row.Online, Status: string(row.Status), SSHHost: row.SSHHost, SSHPort: row.SSHPort,
 		SSHUser: row.SSHUser, HasPassword: row.SSHPasswordCipher != "", HasPrivateKey: row.SSHPrivateKeyCipher != "",
-		Remark: row.Remark,
+		Remark: row.Remark, Labels: row.Labels,
 	}
 }

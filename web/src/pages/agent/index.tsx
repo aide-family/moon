@@ -16,10 +16,20 @@ import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
+import {
+  LabelEditor,
+  labelErrorKey,
+  labelsFromJSON,
+  labelsToJSON,
+  readLabelEntries,
+  type LabelRow,
+} from "@/components/label-editor"
+import { LabelTags } from "@/components/label-tags"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -41,8 +51,40 @@ import {
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Textarea } from "@/components/ui/textarea"
 import { requireTrimmed, collectFieldErrors, hasFieldErrors } from "@/lib/form"
+import { TABLE_MIN_WIDTH } from "@/lib/table-layout"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
+
+function AgentLabelChips({ labels }: { labels: string }) {
+  const entries = readLabelEntries(labels)
+  if (!entries || entries.length === 0) {
+    return <span className="text-xs text-muted-foreground">—</span>
+  }
+  // 列表里最多展示 3 个，其余折叠成 +N；完整标签在详情抽屉里。
+  const shown = entries.slice(0, 3)
+  const rest = entries.length - shown.length
+  return (
+    <div className="flex min-w-0 flex-wrap gap-1">
+      {shown.map((entry) => (
+        <Badge
+          key={entry.key}
+          variant="secondary"
+          className="max-w-full font-mono text-[11px] font-normal whitespace-normal"
+        >
+          <span className="min-w-0 break-all">
+            <span className="text-muted-foreground">{entry.key}</span>=
+            {entry.value}
+          </span>
+        </Badge>
+      ))}
+      {rest > 0 ? (
+        <Badge variant="outline" className="font-mono text-[11px] font-normal">
+          +{rest}
+        </Badge>
+      ) : null}
+    </div>
+  )
+}
 
 export function AgentPage() {
   const { t } = useTranslation()
@@ -59,6 +101,7 @@ export function AgentPage() {
   const [sshPassword, setSshPassword] = useState("")
   const [sshPrivateKey, setSshPrivateKey] = useState("")
   const [remark, setRemark] = useState("")
+  const [labelRows, setLabelRows] = useState<LabelRow[]>([])
   const [token, setToken] = useState("")
   const [tokenOpen, setTokenOpen] = useState(false)
   const [error, setError] = useState("")
@@ -85,6 +128,7 @@ export function AgentPage() {
     setSshPassword("")
     setSshPrivateKey("")
     setRemark("")
+    setLabelRows([])
     setError("")
     setFieldErrors({})
     setOpen(true)
@@ -99,6 +143,7 @@ export function AgentPage() {
     setSshPassword("")
     setSshPrivateKey("")
     setRemark(item.remark)
+    setLabelRows(labelsFromJSON(item.labels ?? ""))
     setError("")
     setFieldErrors({})
     setOpen(true)
@@ -106,8 +151,10 @@ export function AgentPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const labelResult = labelsToJSON(labelRows)
     const errors = collectFieldErrors([
       ["name", requireTrimmed(name, t("form.required"))],
+      ["labels", labelResult.error ? t(labelErrorKey(labelResult.error)) : null],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -125,6 +172,7 @@ export function AgentPage() {
         sshPassword,
         sshPrivateKey,
         remark,
+        labels: labelResult.json,
       }
       if (editing) {
         await updateAgent({ ...body, uid: editing.uid })
@@ -234,10 +282,11 @@ export function AgentPage() {
         ) : null}
         {!loading && !failed && items.length === 0 ? <p className="text-sm text-muted-foreground">{t("agent.empty")}</p> : null}
         {!loading && !failed && items.length > 0 ? (
-          <Table>
+          <Table className={TABLE_MIN_WIDTH.wide}>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("agent.name")}</TableHead>
+                <TableHead>{t("agent.labels")}</TableHead>
                 <TableHead>{t("agent.hostname")}</TableHead>
                 <TableHead>{t("agent.localIp")}</TableHead>
                 <TableHead>{t("agent.os")}</TableHead>
@@ -253,6 +302,9 @@ export function AgentPage() {
               {items.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
+                  <TableCell className="max-w-64 whitespace-normal">
+                    <AgentLabelChips labels={item.labels ?? ""} />
+                  </TableCell>
                   <TableCell>{item.hostname || "-"}</TableCell>
                   <TableCell>{item.localIp || "-"}</TableCell>
                   <TableCell>{item.osVersion || item.os || "-"}</TableCell>
@@ -303,6 +355,19 @@ export function AgentPage() {
               </FormField>
               <FormField label={t("agent.remark")} htmlFor="agent-remark" className="sm:col-span-full">
                 <Textarea id="agent-remark" value={remark} placeholder={t("agent.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
+              </FormField>
+              <FormField
+                label={t("agent.labels")}
+                htmlFor="agent-label-key-0"
+                hint={t("agent.labelsHint")}
+                className="sm:col-span-full"
+                error={fieldErrors.labels}
+              >
+                <LabelEditor
+                  labels={labelRows}
+                  onChange={setLabelRows}
+                  idPrefix="agent-label"
+                />
               </FormField>
             </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -361,6 +426,11 @@ export function AgentPage() {
                 { label: t("agent.sshPort"), value: String(detail.sshPort || 22) },
                 { label: t("agent.sshUser"), value: detail.sshUser || "-" },
                 { label: t("agent.remark"), value: detail.remark || "-" },
+                {
+                  label: t("agent.labels"),
+                  value: <LabelTags labels={detail.labels ?? ""} />,
+                  span: 2,
+                },
               ]
             : []
         }

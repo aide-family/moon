@@ -15,7 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewRegistry, NewExplorer, NewOperator)
+var ProviderSet = wire.NewSet(NewRegistry, NewExplorer, NewOperator, NewTerminal)
 
 // maxClusterName 与 proto 校验保持一致，避免绕过 HTTP 的调用写入超长名称。
 const maxClusterName = 64

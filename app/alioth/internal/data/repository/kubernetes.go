@@ -22,6 +22,9 @@ type KubernetesRepo interface {
 	ListPods(ctx context.Context, clusterUID, namespace, name, ownerKind, ownerName string) ([]bo.KubePod, error)
 	DeletePod(ctx context.Context, clusterUID, namespace, name string) error
 	PodLogs(ctx context.Context, clusterUID, namespace, name, container string, tailLines int32, previous bool) (*bo.KubePodLogs, error)
+	// ExecPod 以 TTY 打开 Pod 容器里的 /bin/sh，返回一条可读写的终端会话。
+	// 会话不设单次调用超时，调用方结束时必须调用返回值的 Stop。
+	ExecPod(ctx context.Context, clusterUID, namespace, name, container string, cols, rows int32) (*bo.KubePodShell, error)
 
 	// ListIngresses 返回按 namespace、name 升序排好的全部匹配项，分页由调用方切片。
 	ListIngresses(ctx context.Context, clusterUID, namespace, name string) ([]bo.KubeIngress, error)

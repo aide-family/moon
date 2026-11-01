@@ -35,6 +35,8 @@ func (Agent) Fields() []ent.Field {
 		field.String("ssh_password_cipher").Sensitive().Default(""),
 		field.String("ssh_private_key_cipher").Sensitive().Default(""),
 		field.String("remark").Default(""),
+		// labels 是自定义键值标签的 JSON 文本，供 SSH 命令执行前按标签匹配主机。
+		field.String("labels").Default("{}"),
 	}
 }
 

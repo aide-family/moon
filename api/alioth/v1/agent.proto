@@ -49,6 +49,13 @@ service AgentService {
   rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
     option (google.api.http) = {get: "/v1/agents"};
   }
+  // 按标签匹配机器，供 SSH 命令执行前的二次确认。只接受具备 ssh:exec 的用户。
+  rpc MatchAgents(MatchAgentsRequest) returns (MatchAgentsResponse) {
+    option (google.api.http) = {
+      post: "/v1/agents/match"
+      body: "*"
+    };
+  }
   // 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
   rpc IssueShellTicket(IssueShellTicketRequest) returns (IssueShellTicketResponse) {
     option (google.api.http) = {
@@ -106,6 +113,8 @@ message AgentItem {
   string boot_time = 21 [json_name = "bootTime"];
   // 时间服务器。
   string time_server = 22 [json_name = "timeServer"];
+  // 自定义标签，JSON 对象文本。空对象表示无标签。
+  string labels = 23;
 }
 
 // 创建机器。
@@ -124,6 +133,8 @@ message CreateAgentRequest {
   string ssh_private_key = 6 [json_name = "sshPrivateKey"];
   // 备注。
   string remark = 7 [(buf.validate.field).string.max_len = 200];
+  // 自定义标签，JSON 对象文本，例如 {"env":"prod","role":"web"}。
+  string labels = 8;
 }
 
 // 创建机器的结果。
@@ -152,6 +163,8 @@ message UpdateAgentRequest {
   string ssh_private_key = 7 [json_name = "sshPrivateKey"];
   // 备注。
   string remark = 8 [(buf.validate.field).string.max_len = 200];
+  // 自定义标签，JSON 对象文本。传空对象表示清空。
+  string labels = 9;
 }
 
 // 更新机器的结果。
@@ -227,6 +240,20 @@ message ListAgentsResponse {
   int32 page = 3;
   // 每页条数。
   int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 按标签匹配机器。
+message MatchAgentsRequest {
+  // 标签选择器，键值对必须全部命中（AND 精确匹配）。空对象返回客户端错误。
+  map<string, string> labels = 1;
+}
+
+// 匹配结果。只返回当前租户 ACTIVE 的机器，在线状态由页面提示。
+message MatchAgentsResponse {
+  // 命中的机器。
+  repeated AgentItem items = 1;
+  // 命中总数。
+  int32 total = 2;
 }
 
 // 签发 Web Shell 票据。

@@ -28,6 +28,7 @@ const (
 	KubernetesService_ListKubernetesPods_FullMethodName                       = "/alioth.v1.KubernetesService/ListKubernetesPods"
 	KubernetesService_DeleteKubernetesPod_FullMethodName                      = "/alioth.v1.KubernetesService/DeleteKubernetesPod"
 	KubernetesService_GetKubernetesPodLogs_FullMethodName                     = "/alioth.v1.KubernetesService/GetKubernetesPodLogs"
+	KubernetesService_IssueKubernetesPodExecTicket_FullMethodName             = "/alioth.v1.KubernetesService/IssueKubernetesPodExecTicket"
 	KubernetesService_ListKubernetesIngresses_FullMethodName                  = "/alioth.v1.KubernetesService/ListKubernetesIngresses"
 	KubernetesService_ListKubernetesServices_FullMethodName                   = "/alioth.v1.KubernetesService/ListKubernetesServices"
 	KubernetesService_ListKubernetesConfigMaps_FullMethodName                 = "/alioth.v1.KubernetesService/ListKubernetesConfigMaps"
@@ -80,6 +81,9 @@ type KubernetesServiceClient interface {
 	DeleteKubernetesPod(ctx context.Context, in *DeleteKubernetesPodRequest, opts ...grpc.CallOption) (*DeleteKubernetesPodResponse, error)
 	// 读取一个 Pod 的日志尾部。
 	GetKubernetesPodLogs(ctx context.Context, in *GetKubernetesPodLogsRequest, opts ...grpc.CallOption) (*GetKubernetesPodLogsResponse, error)
+	// 为一次 Pod 终端会话签发一次性票据。只接受具备 k8s:pod:exec 的用户。
+	// 浏览器拿到票据后用 WebSocket 连 /v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec。
+	IssueKubernetesPodExecTicket(ctx context.Context, in *IssueKubernetesPodExecTicketRequest, opts ...grpc.CallOption) (*IssueKubernetesPodExecTicketResponse, error)
 	// 列出 Ingress 及其规则。
 	ListKubernetesIngresses(ctx context.Context, in *ListKubernetesIngressesRequest, opts ...grpc.CallOption) (*ListKubernetesIngressesResponse, error)
 	// 列出 Service 及其端口和选择器。
@@ -224,6 +228,16 @@ func (c *kubernetesServiceClient) GetKubernetesPodLogs(ctx context.Context, in *
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetKubernetesPodLogsResponse)
 	err := c.cc.Invoke(ctx, KubernetesService_GetKubernetesPodLogs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) IssueKubernetesPodExecTicket(ctx context.Context, in *IssueKubernetesPodExecTicketRequest, opts ...grpc.CallOption) (*IssueKubernetesPodExecTicketResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IssueKubernetesPodExecTicketResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_IssueKubernetesPodExecTicket_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -505,6 +519,9 @@ type KubernetesServiceServer interface {
 	DeleteKubernetesPod(context.Context, *DeleteKubernetesPodRequest) (*DeleteKubernetesPodResponse, error)
 	// 读取一个 Pod 的日志尾部。
 	GetKubernetesPodLogs(context.Context, *GetKubernetesPodLogsRequest) (*GetKubernetesPodLogsResponse, error)
+	// 为一次 Pod 终端会话签发一次性票据。只接受具备 k8s:pod:exec 的用户。
+	// 浏览器拿到票据后用 WebSocket 连 /v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec。
+	IssueKubernetesPodExecTicket(context.Context, *IssueKubernetesPodExecTicketRequest) (*IssueKubernetesPodExecTicketResponse, error)
 	// 列出 Ingress 及其规则。
 	ListKubernetesIngresses(context.Context, *ListKubernetesIngressesRequest) (*ListKubernetesIngressesResponse, error)
 	// 列出 Service 及其端口和选择器。
@@ -591,6 +608,9 @@ func (UnimplementedKubernetesServiceServer) DeleteKubernetesPod(context.Context,
 }
 func (UnimplementedKubernetesServiceServer) GetKubernetesPodLogs(context.Context, *GetKubernetesPodLogsRequest) (*GetKubernetesPodLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetKubernetesPodLogs not implemented")
+}
+func (UnimplementedKubernetesServiceServer) IssueKubernetesPodExecTicket(context.Context, *IssueKubernetesPodExecTicketRequest) (*IssueKubernetesPodExecTicketResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IssueKubernetesPodExecTicket not implemented")
 }
 func (UnimplementedKubernetesServiceServer) ListKubernetesIngresses(context.Context, *ListKubernetesIngressesRequest) (*ListKubernetesIngressesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListKubernetesIngresses not implemented")
@@ -846,6 +866,24 @@ func _KubernetesService_GetKubernetesPodLogs_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KubernetesServiceServer).GetKubernetesPodLogs(ctx, req.(*GetKubernetesPodLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_IssueKubernetesPodExecTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IssueKubernetesPodExecTicketRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).IssueKubernetesPodExecTicket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_IssueKubernetesPodExecTicket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).IssueKubernetesPodExecTicket(ctx, req.(*IssueKubernetesPodExecTicketRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1342,6 +1380,10 @@ var KubernetesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetKubernetesPodLogs",
 			Handler:    _KubernetesService_GetKubernetesPodLogs_Handler,
+		},
+		{
+			MethodName: "IssueKubernetesPodExecTicket",
+			Handler:    _KubernetesService_IssueKubernetesPodExecTicket_Handler,
 		},
 		{
 			MethodName: "ListKubernetesIngresses",

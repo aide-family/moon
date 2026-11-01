@@ -207,6 +207,53 @@ func TestRequireChecksFeature(t *testing.T) {
 	}
 }
 
+// TestRequireChecksOperationCapability 确认 Kubernetes 操作级能力在接口权限上生效：
+// 只开通「查看工作负载」的租户，负责人和成员都不能设置镜像、回滚或执行 Pod 终端；
+// 数据源这类多个能力共享同一权限的模块，开通任一驱动仍然放行。
+func TestRequireChecksOperationCapability(t *testing.T) {
+	ctx := tenantContext()
+	owner := checkerFor(perm.SystemRoleUser)
+	owner.Namespaces = namespaceRepoStub{ownerUID: "user-1"}
+	owner.Features = featureRepoStub{
+		capabilities: []string{perm.CapabilityK8sWorkloadRead},
+		modules:      []string{perm.FeatureCluster},
+	}
+	if err := owner.Require(ctx, perm.K8sWorkloadRead); err != nil {
+		t.Fatalf("owner read workload: %v", err)
+	}
+	for _, code := range []string{perm.K8sWorkloadImage, perm.K8sWorkloadRollback, perm.K8sPodExec} {
+		err := owner.Require(ctx, code)
+		if reason := kerrors.Reason(err); reason != merr.ReasonForbidden || kerrors.FromError(err).Message != "feature not enabled" {
+			t.Fatalf("owner require %s err = %v, want forbidden feature not enabled", code, err)
+		}
+	}
+	// 成员持有权限但能力没开通，同样拒绝；只开通 Pod 终端后 pod:exec 放行。
+	member := checkerFor(perm.SystemRoleUser, perm.K8sPodExec, perm.MenuPermission("k8s_pod"))
+	member.Features = featureRepoStub{
+		capabilities: []string{perm.CapabilityK8sPodRead},
+		modules:      []string{perm.FeatureCluster},
+	}
+	if err := member.Require(ctx, perm.K8sPodExec); kerrors.FromError(err).Message != "feature not enabled" {
+		t.Fatalf("pod exec without capability err = %v, want feature not enabled", err)
+	}
+	member.Features = featureRepoStub{
+		capabilities: []string{perm.CapabilityK8sPodRead, perm.CapabilityK8sPodExec},
+		modules:      []string{perm.FeatureCluster},
+	}
+	if err := member.Require(ctx, perm.K8sPodExec); err != nil {
+		t.Fatalf("pod exec with capability: %v", err)
+	}
+	// 共享权限：只开通 Prometheus 驱动即可读数据源。
+	shared := checkerFor(perm.SystemRoleUser, perm.DatasourceRead, perm.MenuPermission("datasource"))
+	shared.Features = featureRepoStub{
+		capabilities: []string{perm.CapabilityDatasourcePrometheus},
+		modules:      []string{perm.FeatureDatasource},
+	}
+	if err := shared.Require(ctx, perm.DatasourceRead); err != nil {
+		t.Fatalf("datasource read with one driver: %v", err)
+	}
+}
+
 // TestRequireCapability 确认类型级检查只在租户开通对应能力时放行。
 func TestRequireCapability(t *testing.T) {
 	ctx := tenantContext()

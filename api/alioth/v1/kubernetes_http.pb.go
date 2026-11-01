@@ -31,6 +31,7 @@ const OperationKubernetesServiceGetKubernetesSecretDetail = "/alioth.v1.Kubernet
 const OperationKubernetesServiceGetKubernetesServiceDetail = "/alioth.v1.KubernetesService/GetKubernetesServiceDetail"
 const OperationKubernetesServiceGetKubernetesWorkloadDetail = "/alioth.v1.KubernetesService/GetKubernetesWorkloadDetail"
 const OperationKubernetesServiceGetKubernetesWorkloadImages = "/alioth.v1.KubernetesService/GetKubernetesWorkloadImages"
+const OperationKubernetesServiceIssueKubernetesPodExecTicket = "/alioth.v1.KubernetesService/IssueKubernetesPodExecTicket"
 const OperationKubernetesServiceListKubernetesConfigMaps = "/alioth.v1.KubernetesService/ListKubernetesConfigMaps"
 const OperationKubernetesServiceListKubernetesCronJobs = "/alioth.v1.KubernetesService/ListKubernetesCronJobs"
 const OperationKubernetesServiceListKubernetesIngresses = "/alioth.v1.KubernetesService/ListKubernetesIngresses"
@@ -81,6 +82,9 @@ type KubernetesServiceHTTPServer interface {
 	GetKubernetesWorkloadDetail(context.Context, *GetKubernetesWorkloadDetailRequest) (*GetKubernetesWorkloadDetailResponse, error)
 	// GetKubernetesWorkloadImages 列出工作负载每个容器的当前镜像与历史版本。
 	GetKubernetesWorkloadImages(context.Context, *GetKubernetesWorkloadImagesRequest) (*GetKubernetesWorkloadImagesResponse, error)
+	// IssueKubernetesPodExecTicket 为一次 Pod 终端会话签发一次性票据。只接受具备 k8s:pod:exec 的用户。
+	// 浏览器拿到票据后用 WebSocket 连 /v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec。
+	IssueKubernetesPodExecTicket(context.Context, *IssueKubernetesPodExecTicketRequest) (*IssueKubernetesPodExecTicketResponse, error)
 	// ListKubernetesConfigMaps 列出 ConfigMap。只返回键名，不返回值。
 	ListKubernetesConfigMaps(context.Context, *ListKubernetesConfigMapsRequest) (*ListKubernetesConfigMapsResponse, error)
 	// ListKubernetesCronJobs 列出 CronJob，可按命名空间和名称过滤。
@@ -134,6 +138,7 @@ func RegisterKubernetesServiceHTTPServer(s *http.Server, srv KubernetesServiceHT
 	r.Handle("GET", "/v1/cluster/{cluster_uid}/pods", _KubernetesService_ListKubernetesPods0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}", _KubernetesService_DeleteKubernetesPod0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/logs", _KubernetesService_GetKubernetesPodLogs0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec-ticket", _KubernetesService_IssueKubernetesPodExecTicket0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/cluster/{cluster_uid}/ingresses", _KubernetesService_ListKubernetesIngresses0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/cluster/{cluster_uid}/services", _KubernetesService_ListKubernetesServices0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/cluster/{cluster_uid}/configmaps", _KubernetesService_ListKubernetesConfigMaps0_HTTP_Handler(srv))
@@ -355,6 +360,28 @@ func _KubernetesService_GetKubernetesPodLogs0_HTTP_Handler(srv KubernetesService
 			return err
 		}
 		reply := out.(*GetKubernetesPodLogsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_IssueKubernetesPodExecTicket0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in IssueKubernetesPodExecTicketRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceIssueKubernetesPodExecTicket)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.IssueKubernetesPodExecTicket(ctx, req.(*IssueKubernetesPodExecTicketRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*IssueKubernetesPodExecTicketResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -938,6 +965,9 @@ type KubernetesServiceHTTPClient interface {
 	GetKubernetesWorkloadDetail(ctx context.Context, req *GetKubernetesWorkloadDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesWorkloadDetailResponse, err error)
 	// GetKubernetesWorkloadImages 列出工作负载每个容器的当前镜像与历史版本。
 	GetKubernetesWorkloadImages(ctx context.Context, req *GetKubernetesWorkloadImagesRequest, opts ...http.CallOption) (rsp *GetKubernetesWorkloadImagesResponse, err error)
+	// IssueKubernetesPodExecTicket 为一次 Pod 终端会话签发一次性票据。只接受具备 k8s:pod:exec 的用户。
+	// 浏览器拿到票据后用 WebSocket 连 /v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec。
+	IssueKubernetesPodExecTicket(ctx context.Context, req *IssueKubernetesPodExecTicketRequest, opts ...http.CallOption) (rsp *IssueKubernetesPodExecTicketResponse, err error)
 	// ListKubernetesConfigMaps 列出 ConfigMap。只返回键名，不返回值。
 	ListKubernetesConfigMaps(ctx context.Context, req *ListKubernetesConfigMapsRequest, opts ...http.CallOption) (rsp *ListKubernetesConfigMapsResponse, err error)
 	// ListKubernetesCronJobs 列出 CronJob，可按命名空间和名称过滤。
@@ -1220,6 +1250,25 @@ func (c *KubernetesServiceHTTPClientImpl) GetKubernetesWorkloadImages(ctx contex
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// IssueKubernetesPodExecTicket 为一次 Pod 终端会话签发一次性票据。只接受具备 k8s:pod:exec 的用户。
+// 浏览器拿到票据后用 WebSocket 连 /v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec。
+func (c *KubernetesServiceHTTPClientImpl) IssueKubernetesPodExecTicket(ctx context.Context, in *IssueKubernetesPodExecTicketRequest, opts ...http.CallOption) (*IssueKubernetesPodExecTicketResponse, error) {
+	var out IssueKubernetesPodExecTicketResponse
+	pattern := "/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec-ticket"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationKubernetesServiceIssueKubernetesPodExecTicket),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

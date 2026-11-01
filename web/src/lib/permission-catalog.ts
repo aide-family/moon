@@ -1,7 +1,7 @@
 import type { PermissionItem } from "@/api/role/types"
 import {
-  capabilityLabel,
   capabilityRank,
+  menuLabel,
   type LocalizedLabel,
 } from "@/lib/feature-catalog"
 
@@ -62,6 +62,14 @@ const ACTION_LABELS: Record<string, LocalizedLabel> = {
   exec: { zh: "执行", en: "Execute" },
   delete: { zh: "删除", en: "Delete" },
   transfer: { zh: "移交", en: "Transfer" },
+  // Kubernetes 操作级权限：一个操作一个动作，和套餐能力一一对应。
+  cordon: { zh: "封锁", en: "Cordon" },
+  scale: { zh: "扩缩容", en: "Scale" },
+  restart: { zh: "滚动重启", en: "Restart" },
+  image: { zh: "设置镜像", en: "Set image" },
+  rollback: { zh: "回滚", en: "Roll back" },
+  suspend: { zh: "暂停 / 恢复", en: "Suspend" },
+  trigger: { zh: "立即运行", en: "Trigger" },
 }
 
 export const UNKNOWN_RESOURCE: LocalizedLabel = {
@@ -112,14 +120,21 @@ const RESOURCE_ORDER = [
   "menu",
 ]
 
-/** 组内顺序：读在最前（日志属于读，紧随其后），再写，最后是强动作。 */
+/** 组内顺序：读在最前（日志属于读，紧随其后），再 Kubernetes 操作，最后是强动作。 */
 const ACTION_ORDER = [
   "read",
   "logs",
-  "write",
-  "intervene",
+  "cordon",
+  "scale",
+  "restart",
+  "image",
+  "rollback",
   "exec",
   "delete",
+  "suspend",
+  "trigger",
+  "write",
+  "intervene",
   "transfer",
 ]
 
@@ -142,7 +157,9 @@ export function permissionActionLabel(
   item: Pick<PermissionItem, "resource" | "action">
 ): LocalizedLabel {
   if (item.resource === "menu") {
-    return capabilityLabel(item.action)
+    // 菜单权限的动作是菜单 code；M25 后 Kubernetes 菜单码不再等于能力码
+    // （k8s_workload 由多个操作能力开通），必须走菜单标签而不是能力标签。
+    return menuLabel(item.action)
   }
   return actionLabel(item.action)
 }

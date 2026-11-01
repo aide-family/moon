@@ -16,6 +16,8 @@ type AgentRepo interface {
 	GetAgentByUID(ctx context.Context, uid string) (*bo.Agent, error)
 	GetAgentByTokenHash(ctx context.Context, tokenHash string) (*bo.Agent, error)
 	ListAgents(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.Agent, int, error)
+	// MatchAgents 返回当前租户下标签全部命中的 ACTIVE 机器（AND 精确匹配）。
+	MatchAgents(ctx context.Context, namespaceUID string, labels map[string]string) ([]bo.Agent, error)
 	SetOnline(ctx context.Context, uid string, online bool, hostname, machineID, localIP, version, collectJSON string) error
 	GetSSHSecrets(ctx context.Context, uid string) (password, privateKey string, err error)
 }
@@ -30,5 +32,5 @@ type SSHCommandRepo interface {
 	GetCommand(ctx context.Context, namespaceUID, uid string) (*bo.SSHCommand, error)
 	ListCommands(ctx context.Context, namespaceUID string, page, pageSize int, name, reviewStatus string) ([]bo.SSHCommand, int, error)
 	AddExecAudit(ctx context.Context, in bo.SSHCommandAudit) (*bo.SSHCommandAudit, error)
-	ListAudits(ctx context.Context, namespaceUID, commandUID, agentUID string, page, pageSize int) ([]bo.SSHCommandAudit, int, error)
+	ListAudits(ctx context.Context, namespaceUID string, query bo.SSHCommandAuditQuery, page, pageSize int) ([]bo.SSHCommandAudit, int, error)
 }

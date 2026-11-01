@@ -23,22 +23,10 @@ import (
 )
 
 func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
-	for _, item := range perm.Catalog() {
-		exists, err := client.Permission.Query().Where(permission.NameEQ(item.Name)).Exist(ctx)
-		if err != nil {
-			return databaseErr(helper, err)
-		}
-		if exists {
-			continue
-		}
-		if _, err := client.Permission.Create().
-			SetUID(id.New()).
-			SetName(item.Name).
-			SetResource(item.Resource).
-			SetAction(item.Action).
-			Save(ctx); err != nil {
-			return databaseErr(helper, err)
-		}
+	// 权限定义已经在 ApplySchema 的 ensurePermissionCatalog 里补过；这里再调一次，
+	// 兼容直接对新库执行 seed 的路径，重复执行不会产生重复行。
+	if err := ensurePermissionCatalog(ctx, client); err != nil {
+		return databaseErr(helper, err)
 	}
 	if err := ensureBasePackage(ctx, client, helper); err != nil {
 		return err
@@ -373,7 +361,7 @@ func migrateLegacyFeatureCodes(ctx context.Context, client *ent.Client, helper *
 			continue
 		}
 		if perm.IsFeature(item.Feature) {
-			if err := ensurePackageCapabilities(ctx, client, helper, item.PackageUID, perm.CapabilityCodesOfModule(item.Feature)); err != nil {
+			if err := ensurePackageCapabilities(ctx, client, helper, item.PackageUID, perm.LegacyModuleCapabilities(item.Feature)); err != nil {
 				return err
 			}
 		}
@@ -391,7 +379,7 @@ func migrateLegacyFeatureCodes(ctx context.Context, client *ent.Client, helper *
 			continue
 		}
 		if row.Enabled && perm.IsFeature(row.Feature) {
-			for _, code := range perm.CapabilityCodesOfModule(row.Feature) {
+			for _, code := range perm.LegacyModuleCapabilities(row.Feature) {
 				exists, err := client.NamespaceFeature.Query().
 					Where(namespacefeature.NamespaceUIDEQ(row.NamespaceUID), namespacefeature.FeatureEQ(code)).
 					Exist(ctx)
@@ -419,8 +407,8 @@ func migrateLegacyFeatureCodes(ctx context.Context, client *ent.Client, helper *
 }
 
 // migrateLegacyNamespaceFeatures 把升级前创建的租户迁到基础套餐，并加开
-// Kubernetes、机器与 SSH 的全部能力，保持升级前的能力不变。package_uid 为空只可能是
-// 存量租户：迁移后不会再次命中，可以重复执行。
+// Kubernetes、机器与 SSH 升级前已实现的能力，保持升级前的能力不变。Pod 终端是 M25
+// 新增操作，不随旧租户开通；package_uid 为空只可能是存量租户，迁移后不会再次命中。
 func migrateLegacyNamespaceFeatures(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	base, err := client.FeaturePackage.Query().
 		Where(featurepackage.IsBase(true), featurepackage.DeletedAtIsNil()).
@@ -439,7 +427,7 @@ func migrateLegacyNamespaceFeatures(ctx context.Context, client *ent.Client, hel
 	}
 	legacyCapabilities := make([]string, 0, 15)
 	for _, module := range []string{perm.FeatureCluster, perm.FeatureAgent, perm.FeatureSSH} {
-		legacyCapabilities = append(legacyCapabilities, perm.CapabilityCodesOfModule(module)...)
+		legacyCapabilities = append(legacyCapabilities, perm.LegacyModuleCapabilities(module)...)
 	}
 	for _, row := range rows {
 		if err := migrateLegacyNamespace(ctx, client, base.UID, row.UID, legacyCapabilities); err != nil {

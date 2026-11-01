@@ -54,6 +54,8 @@ const (
 	FieldSSHPrivateKeyCipher = "ssh_private_key_cipher"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
 	// Table holds the table name of the agent in the database.
 	Table = "agents"
 )
@@ -81,6 +83,7 @@ var Columns = []string{
 	FieldSSHPasswordCipher,
 	FieldSSHPrivateKeyCipher,
 	FieldRemark,
+	FieldLabels,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -132,6 +135,8 @@ var (
 	DefaultSSHPrivateKeyCipher string
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
+	// DefaultLabels holds the default value on creation for the "labels" field.
+	DefaultLabels string
 )
 
 // Status defines the type for the "status" enum field.
@@ -266,4 +271,9 @@ func BySSHPrivateKeyCipher(opts ...sql.OrderTermOption) OrderOption {
 // ByRemark orders the results by the remark field.
 func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByLabels orders the results by the labels field.
+func ByLabels(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLabels, opts...).ToFunc()
 }

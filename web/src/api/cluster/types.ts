@@ -730,3 +730,18 @@ export interface GetKubernetesPersistentVolumeClaimDetailResult {
   claim: KubernetesPersistentVolumeClaimItem
   relatedWorkloads: KubernetesWorkloadRefItem[]
 }
+
+/** Pod 终端票据请求：容器与初始窗口大小。 */
+export interface IssueKubernetesPodExecTicketParams {
+  /** 容器名；Pod 有多个容器时必填。 */
+  container: string
+  /** 初始列数，0 表示服务端默认 80。 */
+  cols: number
+  /** 初始行数，0 表示服务端默认 24。 */
+  rows: number
+}
+
+/** 一次性 Pod 终端票据，60 秒内有效且只能消费一次。 */
+export interface IssueKubernetesPodExecTicketResult {
+  ticket: string
+}

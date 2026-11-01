@@ -99,6 +99,20 @@ func (clients *clusterClients) kubeconfig(ctx context.Context, clusterUID string
 	return plain, nil
 }
 
+// restConfig 读取并解密 kubeconfig，解析成一次性使用的 rest.Config。
+// 终端的 SPDY 流需要原始配置，clientset 里的 transport 无法复用；明文仍然只停在这个包内。
+func (clients *clusterClients) restConfig(ctx context.Context, clusterUID string) (*rest.Config, error) {
+	kubeconfig, err := clients.kubeconfig(ctx, clusterUID)
+	if err != nil {
+		return nil, err
+	}
+	restConfig, _, _, err := parseKubeconfig(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+	return restConfig, nil
+}
+
 // invalidate 丢掉集群的缓存客户端。替换 kubeconfig 或删除集群后调用。
 func (clients *clusterClients) invalidate(clusterUID string) {
 	clients.mu.Lock()

@@ -26,6 +26,7 @@ const (
 	AgentService_DeleteAgent_FullMethodName      = "/alioth.v1.AgentService/DeleteAgent"
 	AgentService_GetAgent_FullMethodName         = "/alioth.v1.AgentService/GetAgent"
 	AgentService_ListAgents_FullMethodName       = "/alioth.v1.AgentService/ListAgents"
+	AgentService_MatchAgents_FullMethodName      = "/alioth.v1.AgentService/MatchAgents"
 	AgentService_IssueShellTicket_FullMethodName = "/alioth.v1.AgentService/IssueShellTicket"
 	AgentService_Connect_FullMethodName          = "/alioth.v1.AgentService/Connect"
 )
@@ -50,6 +51,8 @@ type AgentServiceClient interface {
 	GetAgent(ctx context.Context, in *GetAgentRequest, opts ...grpc.CallOption) (*GetAgentResponse, error)
 	// 分页列出机器。
 	ListAgents(ctx context.Context, in *ListAgentsRequest, opts ...grpc.CallOption) (*ListAgentsResponse, error)
+	// 按标签匹配机器，供 SSH 命令执行前的二次确认。只接受具备 ssh:exec 的用户。
+	MatchAgents(ctx context.Context, in *MatchAgentsRequest, opts ...grpc.CallOption) (*MatchAgentsResponse, error)
 	// 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
 	IssueShellTicket(ctx context.Context, in *IssueShellTicketRequest, opts ...grpc.CallOption) (*IssueShellTicketResponse, error)
 	// Agent 出站双向流。只接受 Agent 令牌。
@@ -134,6 +137,16 @@ func (c *agentServiceClient) ListAgents(ctx context.Context, in *ListAgentsReque
 	return out, nil
 }
 
+func (c *agentServiceClient) MatchAgents(ctx context.Context, in *MatchAgentsRequest, opts ...grpc.CallOption) (*MatchAgentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MatchAgentsResponse)
+	err := c.cc.Invoke(ctx, AgentService_MatchAgents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) IssueShellTicket(ctx context.Context, in *IssueShellTicketRequest, opts ...grpc.CallOption) (*IssueShellTicketResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(IssueShellTicketResponse)
@@ -177,6 +190,8 @@ type AgentServiceServer interface {
 	GetAgent(context.Context, *GetAgentRequest) (*GetAgentResponse, error)
 	// 分页列出机器。
 	ListAgents(context.Context, *ListAgentsRequest) (*ListAgentsResponse, error)
+	// 按标签匹配机器，供 SSH 命令执行前的二次确认。只接受具备 ssh:exec 的用户。
+	MatchAgents(context.Context, *MatchAgentsRequest) (*MatchAgentsResponse, error)
 	// 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
 	IssueShellTicket(context.Context, *IssueShellTicketRequest) (*IssueShellTicketResponse, error)
 	// Agent 出站双向流。只接受 Agent 令牌。
@@ -211,6 +226,9 @@ func (UnimplementedAgentServiceServer) GetAgent(context.Context, *GetAgentReques
 }
 func (UnimplementedAgentServiceServer) ListAgents(context.Context, *ListAgentsRequest) (*ListAgentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAgents not implemented")
+}
+func (UnimplementedAgentServiceServer) MatchAgents(context.Context, *MatchAgentsRequest) (*MatchAgentsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MatchAgents not implemented")
 }
 func (UnimplementedAgentServiceServer) IssueShellTicket(context.Context, *IssueShellTicketRequest) (*IssueShellTicketResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IssueShellTicket not implemented")
@@ -365,6 +383,24 @@ func _AgentService_ListAgents_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_MatchAgents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MatchAgentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).MatchAgents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_MatchAgents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).MatchAgents(ctx, req.(*MatchAgentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_IssueShellTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IssueShellTicketRequest)
 	if err := dec(in); err != nil {
@@ -424,6 +460,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAgents",
 			Handler:    _AgentService_ListAgents_Handler,
+		},
+		{
+			MethodName: "MatchAgents",
+			Handler:    _AgentService_MatchAgents_Handler,
 		},
 		{
 			MethodName: "IssueShellTicket",

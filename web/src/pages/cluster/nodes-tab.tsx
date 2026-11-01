@@ -37,7 +37,8 @@ interface KubernetesNodesTabProps {
   clusterUid: string
   /** 服务端节点名过滤；空表示不过滤。 */
   name: string
-  canWrite: boolean
+  /** k8s:node:cordon：只控制封锁 / 解除封锁。 */
+  canCordon: boolean
   /** 工具栏刷新按钮递增；变化时静默重载。 */
   refreshKey?: number
 }
@@ -56,7 +57,7 @@ function nodeTone(status: string): BadgeTone {
 export function KubernetesNodesTab({
   clusterUid,
   name,
-  canWrite,
+  canCordon,
   refreshKey = 0,
 }: KubernetesNodesTabProps) {
   const { t } = useTranslation()
@@ -78,7 +79,7 @@ export function KubernetesNodesTab({
     })
 
   function nodeActions(node: KubernetesNodeItem): RowAction[] {
-    if (!canWrite) {
+    if (!canCordon) {
       return []
     }
     return [

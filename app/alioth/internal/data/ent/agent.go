@@ -56,7 +56,9 @@ type Agent struct {
 	// SSHPrivateKeyCipher holds the value of the "ssh_private_key_cipher" field.
 	SSHPrivateKeyCipher string `json:"-"`
 	// Remark holds the value of the "remark" field.
-	Remark       string `json:"remark,omitempty"`
+	Remark string `json:"remark,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels       string `json:"labels,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -69,7 +71,7 @@ func (*Agent) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case agent.FieldID, agent.FieldSSHPort:
 			values[i] = new(sql.NullInt64)
-		case agent.FieldUID, agent.FieldNamespaceUID, agent.FieldName, agent.FieldHostname, agent.FieldMachineID, agent.FieldLocalIP, agent.FieldVersion, agent.FieldCollectJSON, agent.FieldTokenHash, agent.FieldStatus, agent.FieldSSHHost, agent.FieldSSHUser, agent.FieldSSHPasswordCipher, agent.FieldSSHPrivateKeyCipher, agent.FieldRemark:
+		case agent.FieldUID, agent.FieldNamespaceUID, agent.FieldName, agent.FieldHostname, agent.FieldMachineID, agent.FieldLocalIP, agent.FieldVersion, agent.FieldCollectJSON, agent.FieldTokenHash, agent.FieldStatus, agent.FieldSSHHost, agent.FieldSSHUser, agent.FieldSSHPasswordCipher, agent.FieldSSHPrivateKeyCipher, agent.FieldRemark, agent.FieldLabels:
 			values[i] = new(sql.NullString)
 		case agent.FieldCreatedAt, agent.FieldUpdatedAt, agent.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -215,6 +217,12 @@ func (_m *Agent) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Remark = value.String
 			}
+		case agent.FieldLabels:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value.Valid {
+				_m.Labels = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -309,6 +317,9 @@ func (_m *Agent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
 	builder.WriteString(_m.Remark)
+	builder.WriteString(", ")
+	builder.WriteString("labels=")
+	builder.WriteString(_m.Labels)
 	builder.WriteByte(')')
 	return builder.String()
 }

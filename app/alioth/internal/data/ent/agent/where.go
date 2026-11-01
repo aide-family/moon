@@ -149,6 +149,11 @@ func Remark(v string) predicate.Agent {
 	return predicate.Agent(sql.FieldEQ(FieldRemark, v))
 }
 
+// Labels applies equality check predicate on the "labels" field. It's identical to LabelsEQ.
+func Labels(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldEQ(FieldLabels, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Agent {
 	return predicate.Agent(sql.FieldEQ(FieldCreatedAt, v))
@@ -1257,6 +1262,71 @@ func RemarkEqualFold(v string) predicate.Agent {
 // RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
 func RemarkContainsFold(v string) predicate.Agent {
 	return predicate.Agent(sql.FieldContainsFold(FieldRemark, v))
+}
+
+// LabelsEQ applies the EQ predicate on the "labels" field.
+func LabelsEQ(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldEQ(FieldLabels, v))
+}
+
+// LabelsNEQ applies the NEQ predicate on the "labels" field.
+func LabelsNEQ(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldNEQ(FieldLabels, v))
+}
+
+// LabelsIn applies the In predicate on the "labels" field.
+func LabelsIn(vs ...string) predicate.Agent {
+	return predicate.Agent(sql.FieldIn(FieldLabels, vs...))
+}
+
+// LabelsNotIn applies the NotIn predicate on the "labels" field.
+func LabelsNotIn(vs ...string) predicate.Agent {
+	return predicate.Agent(sql.FieldNotIn(FieldLabels, vs...))
+}
+
+// LabelsGT applies the GT predicate on the "labels" field.
+func LabelsGT(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldGT(FieldLabels, v))
+}
+
+// LabelsGTE applies the GTE predicate on the "labels" field.
+func LabelsGTE(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldGTE(FieldLabels, v))
+}
+
+// LabelsLT applies the LT predicate on the "labels" field.
+func LabelsLT(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldLT(FieldLabels, v))
+}
+
+// LabelsLTE applies the LTE predicate on the "labels" field.
+func LabelsLTE(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldLTE(FieldLabels, v))
+}
+
+// LabelsContains applies the Contains predicate on the "labels" field.
+func LabelsContains(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldContains(FieldLabels, v))
+}
+
+// LabelsHasPrefix applies the HasPrefix predicate on the "labels" field.
+func LabelsHasPrefix(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldHasPrefix(FieldLabels, v))
+}
+
+// LabelsHasSuffix applies the HasSuffix predicate on the "labels" field.
+func LabelsHasSuffix(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldHasSuffix(FieldLabels, v))
+}
+
+// LabelsEqualFold applies the EqualFold predicate on the "labels" field.
+func LabelsEqualFold(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldEqualFold(FieldLabels, v))
+}
+
+// LabelsContainsFold applies the ContainsFold predicate on the "labels" field.
+func LabelsContainsFold(v string) predicate.Agent {
+	return predicate.Agent(sql.FieldContainsFold(FieldLabels, v))
 }
 
 // And groups predicates with the AND operator between them.

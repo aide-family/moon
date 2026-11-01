@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/aide-family/moon/app/alioth/internal/biz/agenthub"
+	"github.com/aide-family/moon/app/alioth/internal/biz/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/conf"
 	"github.com/aide-family/moon/app/alioth/internal/data"
 	"github.com/aide-family/moon/app/alioth/internal/server"
@@ -100,7 +101,7 @@ func newMigrateCmd() *cobra.Command {
 	return cmd
 }
 
-func newApp(logger *slog.Logger, httpServer *http.Server, grpcServer *grpc.Server, scheduler *server.Scheduler, hub *agenthub.Hub, deps *data.Dependencies) *kratos.App {
+func newApp(logger *slog.Logger, httpServer *http.Server, grpcServer *grpc.Server, scheduler *server.Scheduler, hub *agenthub.Hub, terminal *cluster.Terminal, deps *data.Dependencies) *kratos.App {
 	if deps == nil {
 		panic("database is not connected")
 	}
@@ -110,7 +111,9 @@ func newApp(logger *slog.Logger, httpServer *http.Server, grpcServer *grpc.Serve
 		kratos.Server(httpServer, grpcServer, scheduler),
 		kratos.StopTimeout(10*time.Second),
 		kratos.BeforeStop(func(_ context.Context) error {
+			// 长连接必须主动关闭：HTTP Shutdown 会一直等 WebSocket，不能只依赖强制停。
 			hub.CloseAll()
+			terminal.CloseAll()
 			return nil
 		}),
 	)

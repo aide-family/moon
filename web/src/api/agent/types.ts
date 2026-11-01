@@ -21,6 +21,8 @@ export interface AgentItem {
   memory: string
   bootTime: string
   timeServer: string
+  /** 自定义标签，JSON 对象文本；"{}" 表示没有标签。 */
+  labels: string
 }
 
 export interface ListAgentsParams {
@@ -44,8 +46,21 @@ export interface CreateAgentParams {
   sshPassword?: string
   sshPrivateKey?: string
   remark?: string
+  /** 自定义标签，JSON 对象文本，例如 {"env":"prod"}。 */
+  labels?: string
 }
 
 export interface UpdateAgentParams extends CreateAgentParams {
   uid: string
+}
+
+/** 按标签匹配机器：每个键值对都必须命中（AND 精确匹配）。 */
+export interface MatchAgentsParams {
+  labels: Record<string, string>
+}
+
+/** 命中的 ACTIVE 机器，online 由页面提示。 */
+export interface MatchAgentsResult {
+  items: AgentItem[]
+  total: number
 }

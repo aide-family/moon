@@ -104,7 +104,7 @@ func TestFeatureRepoCapabilitiesAndLifecycle(t *testing.T) {
 	}
 
 	// 分配套餐并额外加开 Pod 能力：目标 = 套餐能力 ∪ 额外能力，只存额外能力。
-	target := []string{perm.CapabilityAlertRealtime, perm.CapabilityClusterAccess, perm.CapabilityK8sPod}
+	target := []string{perm.CapabilityAlertRealtime, perm.CapabilityClusterAccess, perm.CapabilityK8sPodRead}
 	expiresAt := time.Now().Add(30 * 24 * time.Hour).Truncate(time.Second)
 	if err := features.SetNamespaceFeatureState(ctx, ns.UID, created.UID, target, expiresAt); err != nil {
 		t.Fatalf("set namespace features: %v", err)
@@ -116,8 +116,8 @@ func TestFeatureRepoCapabilitiesAndLifecycle(t *testing.T) {
 	if !sameStrings(state.PackageFeatures, []string{perm.CapabilityAlertRealtime, perm.CapabilityClusterAccess}) {
 		t.Fatalf("package features = %v", state.PackageFeatures)
 	}
-	if !sameStrings(state.ExtraFeatures, []string{perm.CapabilityK8sPod}) {
-		t.Fatalf("extra features = %v, want only k8s_pod", state.ExtraFeatures)
+	if !sameStrings(state.ExtraFeatures, []string{perm.CapabilityK8sPodRead}) {
+		t.Fatalf("extra features = %v, want only k8s_pod_read", state.ExtraFeatures)
 	}
 	if !state.ExpiresAt.Equal(expiresAt) {
 		t.Fatalf("expires at = %v, want %v", state.ExpiresAt, expiresAt)

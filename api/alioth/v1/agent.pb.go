@@ -69,7 +69,9 @@ type AgentItem struct {
 	// 启动时间，RFC3339。
 	BootTime string `protobuf:"bytes,21,opt,name=boot_time,json=bootTime,proto3" json:"boot_time,omitempty"`
 	// 时间服务器。
-	TimeServer    string `protobuf:"bytes,22,opt,name=time_server,json=timeServer,proto3" json:"time_server,omitempty"`
+	TimeServer string `protobuf:"bytes,22,opt,name=time_server,json=timeServer,proto3" json:"time_server,omitempty"`
+	// 自定义标签，JSON 对象文本。空对象表示无标签。
+	Labels        string `protobuf:"bytes,23,opt,name=labels,proto3" json:"labels,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -258,6 +260,13 @@ func (x *AgentItem) GetTimeServer() string {
 	return ""
 }
 
+func (x *AgentItem) GetLabels() string {
+	if x != nil {
+		return x.Labels
+	}
+	return ""
+}
+
 // 创建机器。
 type CreateAgentRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -274,7 +283,9 @@ type CreateAgentRequest struct {
 	// SSH 私钥。
 	SshPrivateKey string `protobuf:"bytes,6,opt,name=ssh_private_key,json=sshPrivateKey,proto3" json:"ssh_private_key,omitempty"`
 	// 备注。
-	Remark        string `protobuf:"bytes,7,opt,name=remark,proto3" json:"remark,omitempty"`
+	Remark string `protobuf:"bytes,7,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 自定义标签，JSON 对象文本，例如 {"env":"prod","role":"web"}。
+	Labels        string `protobuf:"bytes,8,opt,name=labels,proto3" json:"labels,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -358,6 +369,13 @@ func (x *CreateAgentRequest) GetRemark() string {
 	return ""
 }
 
+func (x *CreateAgentRequest) GetLabels() string {
+	if x != nil {
+		return x.Labels
+	}
+	return ""
+}
+
 // 创建机器的结果。
 type CreateAgentResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -431,7 +449,9 @@ type UpdateAgentRequest struct {
 	// SSH 私钥。留空表示保持原值。
 	SshPrivateKey string `protobuf:"bytes,7,opt,name=ssh_private_key,json=sshPrivateKey,proto3" json:"ssh_private_key,omitempty"`
 	// 备注。
-	Remark        string `protobuf:"bytes,8,opt,name=remark,proto3" json:"remark,omitempty"`
+	Remark string `protobuf:"bytes,8,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 自定义标签，JSON 对象文本。传空对象表示清空。
+	Labels        string `protobuf:"bytes,9,opt,name=labels,proto3" json:"labels,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -518,6 +538,13 @@ func (x *UpdateAgentRequest) GetSshPrivateKey() string {
 func (x *UpdateAgentRequest) GetRemark() string {
 	if x != nil {
 		return x.Remark
+	}
+	return ""
+}
+
+func (x *UpdateAgentRequest) GetLabels() string {
+	if x != nil {
+		return x.Labels
 	}
 	return ""
 }
@@ -1073,6 +1100,107 @@ func (x *ListAgentsResponse) GetPageSize() int32 {
 	return 0
 }
 
+// 按标签匹配机器。
+type MatchAgentsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标签选择器，键值对必须全部命中（AND 精确匹配）。空对象返回客户端错误。
+	Labels        map[string]string `protobuf:"bytes,1,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MatchAgentsRequest) Reset() {
+	*x = MatchAgentsRequest{}
+	mi := &file_alioth_v1_agent_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MatchAgentsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MatchAgentsRequest) ProtoMessage() {}
+
+func (x *MatchAgentsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_agent_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MatchAgentsRequest.ProtoReflect.Descriptor instead.
+func (*MatchAgentsRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *MatchAgentsRequest) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+// 匹配结果。只返回当前租户 ACTIVE 的机器，在线状态由页面提示。
+type MatchAgentsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 命中的机器。
+	Items []*AgentItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 命中总数。
+	Total         int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MatchAgentsResponse) Reset() {
+	*x = MatchAgentsResponse{}
+	mi := &file_alioth_v1_agent_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MatchAgentsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MatchAgentsResponse) ProtoMessage() {}
+
+func (x *MatchAgentsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_agent_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MatchAgentsResponse.ProtoReflect.Descriptor instead.
+func (*MatchAgentsResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *MatchAgentsResponse) GetItems() []*AgentItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *MatchAgentsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
 // 签发 Web Shell 票据。
 type IssueShellTicketRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1084,7 +1212,7 @@ type IssueShellTicketRequest struct {
 
 func (x *IssueShellTicketRequest) Reset() {
 	*x = IssueShellTicketRequest{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[15]
+	mi := &file_alioth_v1_agent_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1096,7 +1224,7 @@ func (x *IssueShellTicketRequest) String() string {
 func (*IssueShellTicketRequest) ProtoMessage() {}
 
 func (x *IssueShellTicketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[15]
+	mi := &file_alioth_v1_agent_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1109,7 +1237,7 @@ func (x *IssueShellTicketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueShellTicketRequest.ProtoReflect.Descriptor instead.
 func (*IssueShellTicketRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{15}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *IssueShellTicketRequest) GetUid() string {
@@ -1130,7 +1258,7 @@ type IssueShellTicketResponse struct {
 
 func (x *IssueShellTicketResponse) Reset() {
 	*x = IssueShellTicketResponse{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[16]
+	mi := &file_alioth_v1_agent_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1142,7 +1270,7 @@ func (x *IssueShellTicketResponse) String() string {
 func (*IssueShellTicketResponse) ProtoMessage() {}
 
 func (x *IssueShellTicketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[16]
+	mi := &file_alioth_v1_agent_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1155,7 +1283,7 @@ func (x *IssueShellTicketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueShellTicketResponse.ProtoReflect.Descriptor instead.
 func (*IssueShellTicketResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{16}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *IssueShellTicketResponse) GetTicket() string {
@@ -1194,7 +1322,7 @@ type AgentFrame struct {
 
 func (x *AgentFrame) Reset() {
 	*x = AgentFrame{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[17]
+	mi := &file_alioth_v1_agent_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1206,7 +1334,7 @@ func (x *AgentFrame) String() string {
 func (*AgentFrame) ProtoMessage() {}
 
 func (x *AgentFrame) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[17]
+	mi := &file_alioth_v1_agent_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1219,7 +1347,7 @@ func (x *AgentFrame) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentFrame.ProtoReflect.Descriptor instead.
 func (*AgentFrame) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{17}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *AgentFrame) GetRegister() *AgentRegister {
@@ -1311,7 +1439,7 @@ type AgentRegister struct {
 
 func (x *AgentRegister) Reset() {
 	*x = AgentRegister{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[18]
+	mi := &file_alioth_v1_agent_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1323,7 +1451,7 @@ func (x *AgentRegister) String() string {
 func (*AgentRegister) ProtoMessage() {}
 
 func (x *AgentRegister) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[18]
+	mi := &file_alioth_v1_agent_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1336,7 +1464,7 @@ func (x *AgentRegister) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentRegister.ProtoReflect.Descriptor instead.
 func (*AgentRegister) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{18}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *AgentRegister) GetNamespaceUid() string {
@@ -1385,7 +1513,7 @@ type AgentHeartbeat struct {
 
 func (x *AgentHeartbeat) Reset() {
 	*x = AgentHeartbeat{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[19]
+	mi := &file_alioth_v1_agent_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1397,7 +1525,7 @@ func (x *AgentHeartbeat) String() string {
 func (*AgentHeartbeat) ProtoMessage() {}
 
 func (x *AgentHeartbeat) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[19]
+	mi := &file_alioth_v1_agent_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1410,7 +1538,7 @@ func (x *AgentHeartbeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentHeartbeat.ProtoReflect.Descriptor instead.
 func (*AgentHeartbeat) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{19}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *AgentHeartbeat) GetSeq() int64 {
@@ -1439,7 +1567,7 @@ type AgentMachineInfo struct {
 
 func (x *AgentMachineInfo) Reset() {
 	*x = AgentMachineInfo{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[20]
+	mi := &file_alioth_v1_agent_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1451,7 +1579,7 @@ func (x *AgentMachineInfo) String() string {
 func (*AgentMachineInfo) ProtoMessage() {}
 
 func (x *AgentMachineInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[20]
+	mi := &file_alioth_v1_agent_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1464,7 +1592,7 @@ func (x *AgentMachineInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentMachineInfo.ProtoReflect.Descriptor instead.
 func (*AgentMachineInfo) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{20}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *AgentMachineInfo) GetHostname() string {
@@ -1529,7 +1657,7 @@ type AgentExecRequest struct {
 
 func (x *AgentExecRequest) Reset() {
 	*x = AgentExecRequest{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[21]
+	mi := &file_alioth_v1_agent_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1541,7 +1669,7 @@ func (x *AgentExecRequest) String() string {
 func (*AgentExecRequest) ProtoMessage() {}
 
 func (x *AgentExecRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[21]
+	mi := &file_alioth_v1_agent_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1554,7 +1682,7 @@ func (x *AgentExecRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentExecRequest.ProtoReflect.Descriptor instead.
 func (*AgentExecRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{21}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *AgentExecRequest) GetRequestUid() string {
@@ -1639,7 +1767,7 @@ type AgentExecResult struct {
 
 func (x *AgentExecResult) Reset() {
 	*x = AgentExecResult{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[22]
+	mi := &file_alioth_v1_agent_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1651,7 +1779,7 @@ func (x *AgentExecResult) String() string {
 func (*AgentExecResult) ProtoMessage() {}
 
 func (x *AgentExecResult) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[22]
+	mi := &file_alioth_v1_agent_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1664,7 +1792,7 @@ func (x *AgentExecResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentExecResult.ProtoReflect.Descriptor instead.
 func (*AgentExecResult) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{22}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *AgentExecResult) GetRequestUid() string {
@@ -1713,7 +1841,7 @@ type AgentClose struct {
 
 func (x *AgentClose) Reset() {
 	*x = AgentClose{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[23]
+	mi := &file_alioth_v1_agent_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1725,7 +1853,7 @@ func (x *AgentClose) String() string {
 func (*AgentClose) ProtoMessage() {}
 
 func (x *AgentClose) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[23]
+	mi := &file_alioth_v1_agent_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1738,7 +1866,7 @@ func (x *AgentClose) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentClose.ProtoReflect.Descriptor instead.
 func (*AgentClose) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{23}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AgentClose) GetReason() string {
@@ -1773,7 +1901,7 @@ type AgentShellOpen struct {
 
 func (x *AgentShellOpen) Reset() {
 	*x = AgentShellOpen{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[24]
+	mi := &file_alioth_v1_agent_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1785,7 +1913,7 @@ func (x *AgentShellOpen) String() string {
 func (*AgentShellOpen) ProtoMessage() {}
 
 func (x *AgentShellOpen) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[24]
+	mi := &file_alioth_v1_agent_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1798,7 +1926,7 @@ func (x *AgentShellOpen) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentShellOpen.ProtoReflect.Descriptor instead.
 func (*AgentShellOpen) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{24}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AgentShellOpen) GetSessionUid() string {
@@ -1870,7 +1998,7 @@ type AgentShellData struct {
 
 func (x *AgentShellData) Reset() {
 	*x = AgentShellData{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[25]
+	mi := &file_alioth_v1_agent_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1882,7 +2010,7 @@ func (x *AgentShellData) String() string {
 func (*AgentShellData) ProtoMessage() {}
 
 func (x *AgentShellData) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[25]
+	mi := &file_alioth_v1_agent_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1895,7 +2023,7 @@ func (x *AgentShellData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentShellData.ProtoReflect.Descriptor instead.
 func (*AgentShellData) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{25}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *AgentShellData) GetSessionUid() string {
@@ -1927,7 +2055,7 @@ type AgentShellResize struct {
 
 func (x *AgentShellResize) Reset() {
 	*x = AgentShellResize{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[26]
+	mi := &file_alioth_v1_agent_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1939,7 +2067,7 @@ func (x *AgentShellResize) String() string {
 func (*AgentShellResize) ProtoMessage() {}
 
 func (x *AgentShellResize) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[26]
+	mi := &file_alioth_v1_agent_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1952,7 +2080,7 @@ func (x *AgentShellResize) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentShellResize.ProtoReflect.Descriptor instead.
 func (*AgentShellResize) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{26}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *AgentShellResize) GetSessionUid() string {
@@ -1989,7 +2117,7 @@ type AgentShellClose struct {
 
 func (x *AgentShellClose) Reset() {
 	*x = AgentShellClose{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[27]
+	mi := &file_alioth_v1_agent_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2001,7 +2129,7 @@ func (x *AgentShellClose) String() string {
 func (*AgentShellClose) ProtoMessage() {}
 
 func (x *AgentShellClose) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[27]
+	mi := &file_alioth_v1_agent_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2014,7 +2142,7 @@ func (x *AgentShellClose) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentShellClose.ProtoReflect.Descriptor instead.
 func (*AgentShellClose) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{27}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *AgentShellClose) GetSessionUid() string {
@@ -2035,7 +2163,7 @@ var File_alioth_v1_agent_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x15alioth/v1/agent.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xc4\x04\n" +
+	"\x15alioth/v1/agent.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xdc\x04\n" +
 	"\tAgentItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
@@ -2062,7 +2190,8 @@ const file_alioth_v1_agent_proto_rawDesc = "" +
 	"\x06memory\x18\x14 \x01(\tR\x06memory\x12\x1b\n" +
 	"\tboot_time\x18\x15 \x01(\tR\bbootTime\x12\x1f\n" +
 	"\vtime_server\x18\x16 \x01(\tR\n" +
-	"timeServer\"\xf1\x01\n" +
+	"timeServer\x12\x16\n" +
+	"\x06labels\x18\x17 \x01(\tR\x06labels\"\x89\x02\n" +
 	"\x12CreateAgentRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\x19\n" +
 	"\bssh_host\x18\x02 \x01(\tR\asshHost\x12\x19\n" +
@@ -2070,10 +2199,11 @@ const file_alioth_v1_agent_proto_rawDesc = "" +
 	"\bssh_user\x18\x04 \x01(\tR\asshUser\x12!\n" +
 	"\fssh_password\x18\x05 \x01(\tR\vsshPassword\x12&\n" +
 	"\x0fssh_private_key\x18\x06 \x01(\tR\rsshPrivateKey\x12 \n" +
-	"\x06remark\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\"W\n" +
+	"\x06remark\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\x12\x16\n" +
+	"\x06labels\x18\b \x01(\tR\x06labels\"W\n" +
 	"\x13CreateAgentResponse\x12*\n" +
 	"\x05agent\x18\x01 \x01(\v2\x14.alioth.v1.AgentItemR\x05agent\x12\x14\n" +
-	"\x05token\x18\x02 \x01(\tR\x05token\"\x8c\x02\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\"\xa4\x02\n" +
 	"\x12UpdateAgentRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\x19\n" +
@@ -2082,7 +2212,8 @@ const file_alioth_v1_agent_proto_rawDesc = "" +
 	"\bssh_user\x18\x05 \x01(\tR\asshUser\x12!\n" +
 	"\fssh_password\x18\x06 \x01(\tR\vsshPassword\x12&\n" +
 	"\x0fssh_private_key\x18\a \x01(\tR\rsshPrivateKey\x12 \n" +
-	"\x06remark\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\"A\n" +
+	"\x06remark\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\x12\x16\n" +
+	"\x06labels\x18\t \x01(\tR\x06labels\"A\n" +
 	"\x13UpdateAgentResponse\x12*\n" +
 	"\x05agent\x18\x01 \x01(\v2\x14.alioth.v1.AgentItemR\x05agent\"4\n" +
 	"\x17RotateAgentTokenRequest\x12\x19\n" +
@@ -2109,7 +2240,15 @@ const file_alioth_v1_agent_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x14.alioth.v1.AgentItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"4\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x92\x01\n" +
+	"\x12MatchAgentsRequest\x12A\n" +
+	"\x06labels\x18\x01 \x03(\v2).alioth.v1.MatchAgentsRequest.LabelsEntryR\x06labels\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"W\n" +
+	"\x13MatchAgentsResponse\x12*\n" +
+	"\x05items\x18\x01 \x03(\v2\x14.alioth.v1.AgentItemR\x05items\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"4\n" +
 	"\x17IssueShellTicketRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"2\n" +
 	"\x18IssueShellTicketResponse\x12\x16\n" +
@@ -2191,7 +2330,7 @@ const file_alioth_v1_agent_proto_rawDesc = "" +
 	"\x0fAgentShellClose\x12\x1f\n" +
 	"\vsession_uid\x18\x01 \x01(\tR\n" +
 	"sessionUid\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason2\xb4\a\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason2\x9f\b\n" +
 	"\fAgentService\x12b\n" +
 	"\vCreateAgent\x12\x1d.alioth.v1.CreateAgentRequest\x1a\x1e.alioth.v1.CreateAgentResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/agent\x12h\n" +
 	"\vUpdateAgent\x12\x1d.alioth.v1.UpdateAgentRequest\x1a\x1e.alioth.v1.UpdateAgentResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\x1a\x0f/v1/agent/{uid}\x12}\n" +
@@ -2201,7 +2340,8 @@ const file_alioth_v1_agent_proto_rawDesc = "" +
 	"\bGetAgent\x12\x1a.alioth.v1.GetAgentRequest\x1a\x1b.alioth.v1.GetAgentResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/agent/{uid}\x12]\n" +
 	"\n" +
 	"ListAgents\x12\x1c.alioth.v1.ListAgentsRequest\x1a\x1d.alioth.v1.ListAgentsResponse\"\x12\x82\xd3\xe4\x93\x02\f\x12\n" +
-	"/v1/agents\x12\x84\x01\n" +
+	"/v1/agents\x12i\n" +
+	"\vMatchAgents\x12\x1d.alioth.v1.MatchAgentsRequest\x1a\x1e.alioth.v1.MatchAgentsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/agents/match\x12\x84\x01\n" +
 	"\x10IssueShellTicket\x12\".alioth.v1.IssueShellTicketRequest\x1a#.alioth.v1.IssueShellTicketResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/v1/agent/{uid}/shell-ticket\x12;\n" +
 	"\aConnect\x12\x15.alioth.v1.AgentFrame\x1a\x15.alioth.v1.AgentFrame(\x010\x01B.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
 
@@ -2217,7 +2357,7 @@ func file_alioth_v1_agent_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_agent_proto_rawDescData
 }
 
-var file_alioth_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_alioth_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_alioth_v1_agent_proto_goTypes = []any{
 	(*AgentItem)(nil),                // 0: alioth.v1.AgentItem
 	(*CreateAgentRequest)(nil),       // 1: alioth.v1.CreateAgentRequest
@@ -2234,19 +2374,22 @@ var file_alioth_v1_agent_proto_goTypes = []any{
 	(*GetAgentResponse)(nil),         // 12: alioth.v1.GetAgentResponse
 	(*ListAgentsRequest)(nil),        // 13: alioth.v1.ListAgentsRequest
 	(*ListAgentsResponse)(nil),       // 14: alioth.v1.ListAgentsResponse
-	(*IssueShellTicketRequest)(nil),  // 15: alioth.v1.IssueShellTicketRequest
-	(*IssueShellTicketResponse)(nil), // 16: alioth.v1.IssueShellTicketResponse
-	(*AgentFrame)(nil),               // 17: alioth.v1.AgentFrame
-	(*AgentRegister)(nil),            // 18: alioth.v1.AgentRegister
-	(*AgentHeartbeat)(nil),           // 19: alioth.v1.AgentHeartbeat
-	(*AgentMachineInfo)(nil),         // 20: alioth.v1.AgentMachineInfo
-	(*AgentExecRequest)(nil),         // 21: alioth.v1.AgentExecRequest
-	(*AgentExecResult)(nil),          // 22: alioth.v1.AgentExecResult
-	(*AgentClose)(nil),               // 23: alioth.v1.AgentClose
-	(*AgentShellOpen)(nil),           // 24: alioth.v1.AgentShellOpen
-	(*AgentShellData)(nil),           // 25: alioth.v1.AgentShellData
-	(*AgentShellResize)(nil),         // 26: alioth.v1.AgentShellResize
-	(*AgentShellClose)(nil),          // 27: alioth.v1.AgentShellClose
+	(*MatchAgentsRequest)(nil),       // 15: alioth.v1.MatchAgentsRequest
+	(*MatchAgentsResponse)(nil),      // 16: alioth.v1.MatchAgentsResponse
+	(*IssueShellTicketRequest)(nil),  // 17: alioth.v1.IssueShellTicketRequest
+	(*IssueShellTicketResponse)(nil), // 18: alioth.v1.IssueShellTicketResponse
+	(*AgentFrame)(nil),               // 19: alioth.v1.AgentFrame
+	(*AgentRegister)(nil),            // 20: alioth.v1.AgentRegister
+	(*AgentHeartbeat)(nil),           // 21: alioth.v1.AgentHeartbeat
+	(*AgentMachineInfo)(nil),         // 22: alioth.v1.AgentMachineInfo
+	(*AgentExecRequest)(nil),         // 23: alioth.v1.AgentExecRequest
+	(*AgentExecResult)(nil),          // 24: alioth.v1.AgentExecResult
+	(*AgentClose)(nil),               // 25: alioth.v1.AgentClose
+	(*AgentShellOpen)(nil),           // 26: alioth.v1.AgentShellOpen
+	(*AgentShellData)(nil),           // 27: alioth.v1.AgentShellData
+	(*AgentShellResize)(nil),         // 28: alioth.v1.AgentShellResize
+	(*AgentShellClose)(nil),          // 29: alioth.v1.AgentShellClose
+	nil,                              // 30: alioth.v1.MatchAgentsRequest.LabelsEntry
 }
 var file_alioth_v1_agent_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.CreateAgentResponse.agent:type_name -> alioth.v1.AgentItem
@@ -2255,39 +2398,43 @@ var file_alioth_v1_agent_proto_depIdxs = []int32{
 	0,  // 3: alioth.v1.RevokeAgentResponse.agent:type_name -> alioth.v1.AgentItem
 	0,  // 4: alioth.v1.GetAgentResponse.agent:type_name -> alioth.v1.AgentItem
 	0,  // 5: alioth.v1.ListAgentsResponse.items:type_name -> alioth.v1.AgentItem
-	18, // 6: alioth.v1.AgentFrame.register:type_name -> alioth.v1.AgentRegister
-	19, // 7: alioth.v1.AgentFrame.heartbeat:type_name -> alioth.v1.AgentHeartbeat
-	20, // 8: alioth.v1.AgentFrame.machine_info:type_name -> alioth.v1.AgentMachineInfo
-	21, // 9: alioth.v1.AgentFrame.exec_request:type_name -> alioth.v1.AgentExecRequest
-	22, // 10: alioth.v1.AgentFrame.exec_result:type_name -> alioth.v1.AgentExecResult
-	23, // 11: alioth.v1.AgentFrame.close:type_name -> alioth.v1.AgentClose
-	24, // 12: alioth.v1.AgentFrame.shell_open:type_name -> alioth.v1.AgentShellOpen
-	25, // 13: alioth.v1.AgentFrame.shell_data:type_name -> alioth.v1.AgentShellData
-	26, // 14: alioth.v1.AgentFrame.shell_resize:type_name -> alioth.v1.AgentShellResize
-	27, // 15: alioth.v1.AgentFrame.shell_close:type_name -> alioth.v1.AgentShellClose
-	1,  // 16: alioth.v1.AgentService.CreateAgent:input_type -> alioth.v1.CreateAgentRequest
-	3,  // 17: alioth.v1.AgentService.UpdateAgent:input_type -> alioth.v1.UpdateAgentRequest
-	5,  // 18: alioth.v1.AgentService.RotateAgentToken:input_type -> alioth.v1.RotateAgentTokenRequest
-	7,  // 19: alioth.v1.AgentService.RevokeAgent:input_type -> alioth.v1.RevokeAgentRequest
-	9,  // 20: alioth.v1.AgentService.DeleteAgent:input_type -> alioth.v1.DeleteAgentRequest
-	11, // 21: alioth.v1.AgentService.GetAgent:input_type -> alioth.v1.GetAgentRequest
-	13, // 22: alioth.v1.AgentService.ListAgents:input_type -> alioth.v1.ListAgentsRequest
-	15, // 23: alioth.v1.AgentService.IssueShellTicket:input_type -> alioth.v1.IssueShellTicketRequest
-	17, // 24: alioth.v1.AgentService.Connect:input_type -> alioth.v1.AgentFrame
-	2,  // 25: alioth.v1.AgentService.CreateAgent:output_type -> alioth.v1.CreateAgentResponse
-	4,  // 26: alioth.v1.AgentService.UpdateAgent:output_type -> alioth.v1.UpdateAgentResponse
-	6,  // 27: alioth.v1.AgentService.RotateAgentToken:output_type -> alioth.v1.RotateAgentTokenResponse
-	8,  // 28: alioth.v1.AgentService.RevokeAgent:output_type -> alioth.v1.RevokeAgentResponse
-	10, // 29: alioth.v1.AgentService.DeleteAgent:output_type -> alioth.v1.DeleteAgentResponse
-	12, // 30: alioth.v1.AgentService.GetAgent:output_type -> alioth.v1.GetAgentResponse
-	14, // 31: alioth.v1.AgentService.ListAgents:output_type -> alioth.v1.ListAgentsResponse
-	16, // 32: alioth.v1.AgentService.IssueShellTicket:output_type -> alioth.v1.IssueShellTicketResponse
-	17, // 33: alioth.v1.AgentService.Connect:output_type -> alioth.v1.AgentFrame
-	25, // [25:34] is the sub-list for method output_type
-	16, // [16:25] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	30, // 6: alioth.v1.MatchAgentsRequest.labels:type_name -> alioth.v1.MatchAgentsRequest.LabelsEntry
+	0,  // 7: alioth.v1.MatchAgentsResponse.items:type_name -> alioth.v1.AgentItem
+	20, // 8: alioth.v1.AgentFrame.register:type_name -> alioth.v1.AgentRegister
+	21, // 9: alioth.v1.AgentFrame.heartbeat:type_name -> alioth.v1.AgentHeartbeat
+	22, // 10: alioth.v1.AgentFrame.machine_info:type_name -> alioth.v1.AgentMachineInfo
+	23, // 11: alioth.v1.AgentFrame.exec_request:type_name -> alioth.v1.AgentExecRequest
+	24, // 12: alioth.v1.AgentFrame.exec_result:type_name -> alioth.v1.AgentExecResult
+	25, // 13: alioth.v1.AgentFrame.close:type_name -> alioth.v1.AgentClose
+	26, // 14: alioth.v1.AgentFrame.shell_open:type_name -> alioth.v1.AgentShellOpen
+	27, // 15: alioth.v1.AgentFrame.shell_data:type_name -> alioth.v1.AgentShellData
+	28, // 16: alioth.v1.AgentFrame.shell_resize:type_name -> alioth.v1.AgentShellResize
+	29, // 17: alioth.v1.AgentFrame.shell_close:type_name -> alioth.v1.AgentShellClose
+	1,  // 18: alioth.v1.AgentService.CreateAgent:input_type -> alioth.v1.CreateAgentRequest
+	3,  // 19: alioth.v1.AgentService.UpdateAgent:input_type -> alioth.v1.UpdateAgentRequest
+	5,  // 20: alioth.v1.AgentService.RotateAgentToken:input_type -> alioth.v1.RotateAgentTokenRequest
+	7,  // 21: alioth.v1.AgentService.RevokeAgent:input_type -> alioth.v1.RevokeAgentRequest
+	9,  // 22: alioth.v1.AgentService.DeleteAgent:input_type -> alioth.v1.DeleteAgentRequest
+	11, // 23: alioth.v1.AgentService.GetAgent:input_type -> alioth.v1.GetAgentRequest
+	13, // 24: alioth.v1.AgentService.ListAgents:input_type -> alioth.v1.ListAgentsRequest
+	15, // 25: alioth.v1.AgentService.MatchAgents:input_type -> alioth.v1.MatchAgentsRequest
+	17, // 26: alioth.v1.AgentService.IssueShellTicket:input_type -> alioth.v1.IssueShellTicketRequest
+	19, // 27: alioth.v1.AgentService.Connect:input_type -> alioth.v1.AgentFrame
+	2,  // 28: alioth.v1.AgentService.CreateAgent:output_type -> alioth.v1.CreateAgentResponse
+	4,  // 29: alioth.v1.AgentService.UpdateAgent:output_type -> alioth.v1.UpdateAgentResponse
+	6,  // 30: alioth.v1.AgentService.RotateAgentToken:output_type -> alioth.v1.RotateAgentTokenResponse
+	8,  // 31: alioth.v1.AgentService.RevokeAgent:output_type -> alioth.v1.RevokeAgentResponse
+	10, // 32: alioth.v1.AgentService.DeleteAgent:output_type -> alioth.v1.DeleteAgentResponse
+	12, // 33: alioth.v1.AgentService.GetAgent:output_type -> alioth.v1.GetAgentResponse
+	14, // 34: alioth.v1.AgentService.ListAgents:output_type -> alioth.v1.ListAgentsResponse
+	16, // 35: alioth.v1.AgentService.MatchAgents:output_type -> alioth.v1.MatchAgentsResponse
+	18, // 36: alioth.v1.AgentService.IssueShellTicket:output_type -> alioth.v1.IssueShellTicketResponse
+	19, // 37: alioth.v1.AgentService.Connect:output_type -> alioth.v1.AgentFrame
+	28, // [28:38] is the sub-list for method output_type
+	18, // [18:28] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_agent_proto_init() }
@@ -2301,7 +2448,7 @@ func file_alioth_v1_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_agent_proto_rawDesc), len(file_alioth_v1_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   28,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

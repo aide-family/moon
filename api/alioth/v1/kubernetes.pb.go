@@ -1492,6 +1492,143 @@ func (x *GetKubernetesPodLogsResponse) GetContainer() string {
 	return ""
 }
 
+// 签发 Pod 终端票据。
+type IssueKubernetesPodExecTicketRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 集群标识。
+	ClusterUid string `protobuf:"bytes,1,opt,name=cluster_uid,json=clusterUid,proto3" json:"cluster_uid,omitempty"`
+	// 命名空间。
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Pod 名称。
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// 容器名。Pod 有多个容器时必填。
+	Container string `protobuf:"bytes,4,opt,name=container,proto3" json:"container,omitempty"`
+	// 初始列数，0 表示 80。
+	Cols int32 `protobuf:"varint,5,opt,name=cols,proto3" json:"cols,omitempty"`
+	// 初始行数，0 表示 24。
+	Rows          int32 `protobuf:"varint,6,opt,name=rows,proto3" json:"rows,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IssueKubernetesPodExecTicketRequest) Reset() {
+	*x = IssueKubernetesPodExecTicketRequest{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IssueKubernetesPodExecTicketRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IssueKubernetesPodExecTicketRequest) ProtoMessage() {}
+
+func (x *IssueKubernetesPodExecTicketRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IssueKubernetesPodExecTicketRequest.ProtoReflect.Descriptor instead.
+func (*IssueKubernetesPodExecTicketRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *IssueKubernetesPodExecTicketRequest) GetClusterUid() string {
+	if x != nil {
+		return x.ClusterUid
+	}
+	return ""
+}
+
+func (x *IssueKubernetesPodExecTicketRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *IssueKubernetesPodExecTicketRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *IssueKubernetesPodExecTicketRequest) GetContainer() string {
+	if x != nil {
+		return x.Container
+	}
+	return ""
+}
+
+func (x *IssueKubernetesPodExecTicketRequest) GetCols() int32 {
+	if x != nil {
+		return x.Cols
+	}
+	return 0
+}
+
+func (x *IssueKubernetesPodExecTicketRequest) GetRows() int32 {
+	if x != nil {
+		return x.Rows
+	}
+	return 0
+}
+
+// Pod 终端票据。只使用一次，60 秒内有效。
+type IssueKubernetesPodExecTicketResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 票据。
+	Ticket        string `protobuf:"bytes,1,opt,name=ticket,proto3" json:"ticket,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IssueKubernetesPodExecTicketResponse) Reset() {
+	*x = IssueKubernetesPodExecTicketResponse{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IssueKubernetesPodExecTicketResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IssueKubernetesPodExecTicketResponse) ProtoMessage() {}
+
+func (x *IssueKubernetesPodExecTicketResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IssueKubernetesPodExecTicketResponse.ProtoReflect.Descriptor instead.
+func (*IssueKubernetesPodExecTicketResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *IssueKubernetesPodExecTicketResponse) GetTicket() string {
+	if x != nil {
+		return x.Ticket
+	}
+	return ""
+}
+
 // Ingress 规则。
 type KubernetesIngressPathItem struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1511,7 +1648,7 @@ type KubernetesIngressPathItem struct {
 
 func (x *KubernetesIngressPathItem) Reset() {
 	*x = KubernetesIngressPathItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[20]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1523,7 +1660,7 @@ func (x *KubernetesIngressPathItem) String() string {
 func (*KubernetesIngressPathItem) ProtoMessage() {}
 
 func (x *KubernetesIngressPathItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[20]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1536,7 +1673,7 @@ func (x *KubernetesIngressPathItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesIngressPathItem.ProtoReflect.Descriptor instead.
 func (*KubernetesIngressPathItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{20}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *KubernetesIngressPathItem) GetHost() string {
@@ -1597,7 +1734,7 @@ type KubernetesIngressItem struct {
 
 func (x *KubernetesIngressItem) Reset() {
 	*x = KubernetesIngressItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[21]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1609,7 +1746,7 @@ func (x *KubernetesIngressItem) String() string {
 func (*KubernetesIngressItem) ProtoMessage() {}
 
 func (x *KubernetesIngressItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[21]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1622,7 +1759,7 @@ func (x *KubernetesIngressItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesIngressItem.ProtoReflect.Descriptor instead.
 func (*KubernetesIngressItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{21}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *KubernetesIngressItem) GetNamespace() string {
@@ -1693,7 +1830,7 @@ type ListKubernetesIngressesRequest struct {
 
 func (x *ListKubernetesIngressesRequest) Reset() {
 	*x = ListKubernetesIngressesRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[22]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1705,7 +1842,7 @@ func (x *ListKubernetesIngressesRequest) String() string {
 func (*ListKubernetesIngressesRequest) ProtoMessage() {}
 
 func (x *ListKubernetesIngressesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[22]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1718,7 +1855,7 @@ func (x *ListKubernetesIngressesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesIngressesRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesIngressesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{22}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListKubernetesIngressesRequest) GetClusterUid() string {
@@ -1773,7 +1910,7 @@ type ListKubernetesIngressesResponse struct {
 
 func (x *ListKubernetesIngressesResponse) Reset() {
 	*x = ListKubernetesIngressesResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[23]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1785,7 +1922,7 @@ func (x *ListKubernetesIngressesResponse) String() string {
 func (*ListKubernetesIngressesResponse) ProtoMessage() {}
 
 func (x *ListKubernetesIngressesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[23]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1798,7 +1935,7 @@ func (x *ListKubernetesIngressesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesIngressesResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesIngressesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{23}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListKubernetesIngressesResponse) GetItems() []*KubernetesIngressItem {
@@ -1840,7 +1977,7 @@ type ListKubernetesNamespacesRequest struct {
 
 func (x *ListKubernetesNamespacesRequest) Reset() {
 	*x = ListKubernetesNamespacesRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[24]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1852,7 +1989,7 @@ func (x *ListKubernetesNamespacesRequest) String() string {
 func (*ListKubernetesNamespacesRequest) ProtoMessage() {}
 
 func (x *ListKubernetesNamespacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[24]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1865,7 +2002,7 @@ func (x *ListKubernetesNamespacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesNamespacesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{24}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListKubernetesNamespacesRequest) GetClusterUid() string {
@@ -1886,7 +2023,7 @@ type ListKubernetesNamespacesResponse struct {
 
 func (x *ListKubernetesNamespacesResponse) Reset() {
 	*x = ListKubernetesNamespacesResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[25]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1898,7 +2035,7 @@ func (x *ListKubernetesNamespacesResponse) String() string {
 func (*ListKubernetesNamespacesResponse) ProtoMessage() {}
 
 func (x *ListKubernetesNamespacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[25]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1911,7 +2048,7 @@ func (x *ListKubernetesNamespacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesNamespacesResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesNamespacesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{25}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListKubernetesNamespacesResponse) GetItems() []string {
@@ -1940,7 +2077,7 @@ type KubernetesServicePortItem struct {
 
 func (x *KubernetesServicePortItem) Reset() {
 	*x = KubernetesServicePortItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[26]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1952,7 +2089,7 @@ func (x *KubernetesServicePortItem) String() string {
 func (*KubernetesServicePortItem) ProtoMessage() {}
 
 func (x *KubernetesServicePortItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[26]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1965,7 +2102,7 @@ func (x *KubernetesServicePortItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesServicePortItem.ProtoReflect.Descriptor instead.
 func (*KubernetesServicePortItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{26}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *KubernetesServicePortItem) GetName() string {
@@ -2030,7 +2167,7 @@ type KubernetesServiceItem struct {
 
 func (x *KubernetesServiceItem) Reset() {
 	*x = KubernetesServiceItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[27]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2042,7 +2179,7 @@ func (x *KubernetesServiceItem) String() string {
 func (*KubernetesServiceItem) ProtoMessage() {}
 
 func (x *KubernetesServiceItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[27]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2055,7 +2192,7 @@ func (x *KubernetesServiceItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesServiceItem.ProtoReflect.Descriptor instead.
 func (*KubernetesServiceItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{27}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *KubernetesServiceItem) GetNamespace() string {
@@ -2140,7 +2277,7 @@ type ListKubernetesServicesRequest struct {
 
 func (x *ListKubernetesServicesRequest) Reset() {
 	*x = ListKubernetesServicesRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[28]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2152,7 +2289,7 @@ func (x *ListKubernetesServicesRequest) String() string {
 func (*ListKubernetesServicesRequest) ProtoMessage() {}
 
 func (x *ListKubernetesServicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[28]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2165,7 +2302,7 @@ func (x *ListKubernetesServicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesServicesRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesServicesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{28}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListKubernetesServicesRequest) GetClusterUid() string {
@@ -2220,7 +2357,7 @@ type ListKubernetesServicesResponse struct {
 
 func (x *ListKubernetesServicesResponse) Reset() {
 	*x = ListKubernetesServicesResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[29]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2232,7 +2369,7 @@ func (x *ListKubernetesServicesResponse) String() string {
 func (*ListKubernetesServicesResponse) ProtoMessage() {}
 
 func (x *ListKubernetesServicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[29]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2245,7 +2382,7 @@ func (x *ListKubernetesServicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesServicesResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesServicesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{29}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListKubernetesServicesResponse) GetItems() []*KubernetesServiceItem {
@@ -2297,7 +2434,7 @@ type KubernetesConfigMapItem struct {
 
 func (x *KubernetesConfigMapItem) Reset() {
 	*x = KubernetesConfigMapItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[30]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2309,7 +2446,7 @@ func (x *KubernetesConfigMapItem) String() string {
 func (*KubernetesConfigMapItem) ProtoMessage() {}
 
 func (x *KubernetesConfigMapItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[30]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2322,7 +2459,7 @@ func (x *KubernetesConfigMapItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesConfigMapItem.ProtoReflect.Descriptor instead.
 func (*KubernetesConfigMapItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{30}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *KubernetesConfigMapItem) GetNamespace() string {
@@ -2386,7 +2523,7 @@ type ListKubernetesConfigMapsRequest struct {
 
 func (x *ListKubernetesConfigMapsRequest) Reset() {
 	*x = ListKubernetesConfigMapsRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[31]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2398,7 +2535,7 @@ func (x *ListKubernetesConfigMapsRequest) String() string {
 func (*ListKubernetesConfigMapsRequest) ProtoMessage() {}
 
 func (x *ListKubernetesConfigMapsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[31]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2411,7 +2548,7 @@ func (x *ListKubernetesConfigMapsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesConfigMapsRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesConfigMapsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{31}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListKubernetesConfigMapsRequest) GetClusterUid() string {
@@ -2466,7 +2603,7 @@ type ListKubernetesConfigMapsResponse struct {
 
 func (x *ListKubernetesConfigMapsResponse) Reset() {
 	*x = ListKubernetesConfigMapsResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[32]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2478,7 +2615,7 @@ func (x *ListKubernetesConfigMapsResponse) String() string {
 func (*ListKubernetesConfigMapsResponse) ProtoMessage() {}
 
 func (x *ListKubernetesConfigMapsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[32]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2491,7 +2628,7 @@ func (x *ListKubernetesConfigMapsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesConfigMapsResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesConfigMapsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{32}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListKubernetesConfigMapsResponse) GetItems() []*KubernetesConfigMapItem {
@@ -2543,7 +2680,7 @@ type KubernetesSecretItem struct {
 
 func (x *KubernetesSecretItem) Reset() {
 	*x = KubernetesSecretItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[33]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2555,7 +2692,7 @@ func (x *KubernetesSecretItem) String() string {
 func (*KubernetesSecretItem) ProtoMessage() {}
 
 func (x *KubernetesSecretItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[33]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2568,7 +2705,7 @@ func (x *KubernetesSecretItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesSecretItem.ProtoReflect.Descriptor instead.
 func (*KubernetesSecretItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{33}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *KubernetesSecretItem) GetNamespace() string {
@@ -2632,7 +2769,7 @@ type ListKubernetesSecretsRequest struct {
 
 func (x *ListKubernetesSecretsRequest) Reset() {
 	*x = ListKubernetesSecretsRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[34]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2644,7 +2781,7 @@ func (x *ListKubernetesSecretsRequest) String() string {
 func (*ListKubernetesSecretsRequest) ProtoMessage() {}
 
 func (x *ListKubernetesSecretsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[34]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2657,7 +2794,7 @@ func (x *ListKubernetesSecretsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesSecretsRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesSecretsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{34}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListKubernetesSecretsRequest) GetClusterUid() string {
@@ -2712,7 +2849,7 @@ type ListKubernetesSecretsResponse struct {
 
 func (x *ListKubernetesSecretsResponse) Reset() {
 	*x = ListKubernetesSecretsResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[35]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2724,7 +2861,7 @@ func (x *ListKubernetesSecretsResponse) String() string {
 func (*ListKubernetesSecretsResponse) ProtoMessage() {}
 
 func (x *ListKubernetesSecretsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[35]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2737,7 +2874,7 @@ func (x *ListKubernetesSecretsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesSecretsResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesSecretsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{35}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListKubernetesSecretsResponse) GetItems() []*KubernetesSecretItem {
@@ -2793,7 +2930,7 @@ type KubernetesPersistentVolumeItem struct {
 
 func (x *KubernetesPersistentVolumeItem) Reset() {
 	*x = KubernetesPersistentVolumeItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[36]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2805,7 +2942,7 @@ func (x *KubernetesPersistentVolumeItem) String() string {
 func (*KubernetesPersistentVolumeItem) ProtoMessage() {}
 
 func (x *KubernetesPersistentVolumeItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[36]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2818,7 +2955,7 @@ func (x *KubernetesPersistentVolumeItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesPersistentVolumeItem.ProtoReflect.Descriptor instead.
 func (*KubernetesPersistentVolumeItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{36}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *KubernetesPersistentVolumeItem) GetName() string {
@@ -2894,7 +3031,7 @@ type ListKubernetesPersistentVolumesRequest struct {
 
 func (x *ListKubernetesPersistentVolumesRequest) Reset() {
 	*x = ListKubernetesPersistentVolumesRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[37]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2906,7 +3043,7 @@ func (x *ListKubernetesPersistentVolumesRequest) String() string {
 func (*ListKubernetesPersistentVolumesRequest) ProtoMessage() {}
 
 func (x *ListKubernetesPersistentVolumesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[37]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2919,7 +3056,7 @@ func (x *ListKubernetesPersistentVolumesRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListKubernetesPersistentVolumesRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesPersistentVolumesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{37}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ListKubernetesPersistentVolumesRequest) GetClusterUid() string {
@@ -2967,7 +3104,7 @@ type ListKubernetesPersistentVolumesResponse struct {
 
 func (x *ListKubernetesPersistentVolumesResponse) Reset() {
 	*x = ListKubernetesPersistentVolumesResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[38]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2979,7 +3116,7 @@ func (x *ListKubernetesPersistentVolumesResponse) String() string {
 func (*ListKubernetesPersistentVolumesResponse) ProtoMessage() {}
 
 func (x *ListKubernetesPersistentVolumesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[38]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2992,7 +3129,7 @@ func (x *ListKubernetesPersistentVolumesResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use ListKubernetesPersistentVolumesResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesPersistentVolumesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{38}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListKubernetesPersistentVolumesResponse) GetItems() []*KubernetesPersistentVolumeItem {
@@ -3048,7 +3185,7 @@ type KubernetesPersistentVolumeClaimItem struct {
 
 func (x *KubernetesPersistentVolumeClaimItem) Reset() {
 	*x = KubernetesPersistentVolumeClaimItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[39]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3060,7 +3197,7 @@ func (x *KubernetesPersistentVolumeClaimItem) String() string {
 func (*KubernetesPersistentVolumeClaimItem) ProtoMessage() {}
 
 func (x *KubernetesPersistentVolumeClaimItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[39]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3073,7 +3210,7 @@ func (x *KubernetesPersistentVolumeClaimItem) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use KubernetesPersistentVolumeClaimItem.ProtoReflect.Descriptor instead.
 func (*KubernetesPersistentVolumeClaimItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{39}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *KubernetesPersistentVolumeClaimItem) GetNamespace() string {
@@ -3151,7 +3288,7 @@ type ListKubernetesPersistentVolumeClaimsRequest struct {
 
 func (x *ListKubernetesPersistentVolumeClaimsRequest) Reset() {
 	*x = ListKubernetesPersistentVolumeClaimsRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[40]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3163,7 +3300,7 @@ func (x *ListKubernetesPersistentVolumeClaimsRequest) String() string {
 func (*ListKubernetesPersistentVolumeClaimsRequest) ProtoMessage() {}
 
 func (x *ListKubernetesPersistentVolumeClaimsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[40]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3176,7 +3313,7 @@ func (x *ListKubernetesPersistentVolumeClaimsRequest) ProtoReflect() protoreflec
 
 // Deprecated: Use ListKubernetesPersistentVolumeClaimsRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesPersistentVolumeClaimsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{40}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListKubernetesPersistentVolumeClaimsRequest) GetClusterUid() string {
@@ -3231,7 +3368,7 @@ type ListKubernetesPersistentVolumeClaimsResponse struct {
 
 func (x *ListKubernetesPersistentVolumeClaimsResponse) Reset() {
 	*x = ListKubernetesPersistentVolumeClaimsResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[41]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3243,7 +3380,7 @@ func (x *ListKubernetesPersistentVolumeClaimsResponse) String() string {
 func (*ListKubernetesPersistentVolumeClaimsResponse) ProtoMessage() {}
 
 func (x *ListKubernetesPersistentVolumeClaimsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[41]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3256,7 +3393,7 @@ func (x *ListKubernetesPersistentVolumeClaimsResponse) ProtoReflect() protorefle
 
 // Deprecated: Use ListKubernetesPersistentVolumeClaimsResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesPersistentVolumeClaimsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{41}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListKubernetesPersistentVolumeClaimsResponse) GetItems() []*KubernetesPersistentVolumeClaimItem {
@@ -3304,7 +3441,7 @@ type GetKubernetesResourceYAMLRequest struct {
 
 func (x *GetKubernetesResourceYAMLRequest) Reset() {
 	*x = GetKubernetesResourceYAMLRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[42]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3316,7 +3453,7 @@ func (x *GetKubernetesResourceYAMLRequest) String() string {
 func (*GetKubernetesResourceYAMLRequest) ProtoMessage() {}
 
 func (x *GetKubernetesResourceYAMLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[42]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3329,7 +3466,7 @@ func (x *GetKubernetesResourceYAMLRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKubernetesResourceYAMLRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesResourceYAMLRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{42}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GetKubernetesResourceYAMLRequest) GetClusterUid() string {
@@ -3373,7 +3510,7 @@ type GetKubernetesResourceYAMLResponse struct {
 
 func (x *GetKubernetesResourceYAMLResponse) Reset() {
 	*x = GetKubernetesResourceYAMLResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[43]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3385,7 +3522,7 @@ func (x *GetKubernetesResourceYAMLResponse) String() string {
 func (*GetKubernetesResourceYAMLResponse) ProtoMessage() {}
 
 func (x *GetKubernetesResourceYAMLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[43]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3398,7 +3535,7 @@ func (x *GetKubernetesResourceYAMLResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetKubernetesResourceYAMLResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesResourceYAMLResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{43}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GetKubernetesResourceYAMLResponse) GetYaml() string {
@@ -3438,7 +3575,7 @@ type KubernetesReplicaSetItem struct {
 
 func (x *KubernetesReplicaSetItem) Reset() {
 	*x = KubernetesReplicaSetItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[44]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3450,7 +3587,7 @@ func (x *KubernetesReplicaSetItem) String() string {
 func (*KubernetesReplicaSetItem) ProtoMessage() {}
 
 func (x *KubernetesReplicaSetItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[44]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3463,7 +3600,7 @@ func (x *KubernetesReplicaSetItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesReplicaSetItem.ProtoReflect.Descriptor instead.
 func (*KubernetesReplicaSetItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{44}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *KubernetesReplicaSetItem) GetNamespace() string {
@@ -3532,7 +3669,7 @@ type GetKubernetesWorkloadDetailRequest struct {
 
 func (x *GetKubernetesWorkloadDetailRequest) Reset() {
 	*x = GetKubernetesWorkloadDetailRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[45]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3544,7 +3681,7 @@ func (x *GetKubernetesWorkloadDetailRequest) String() string {
 func (*GetKubernetesWorkloadDetailRequest) ProtoMessage() {}
 
 func (x *GetKubernetesWorkloadDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[45]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3557,7 +3694,7 @@ func (x *GetKubernetesWorkloadDetailRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetKubernetesWorkloadDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesWorkloadDetailRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{45}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GetKubernetesWorkloadDetailRequest) GetClusterUid() string {
@@ -3603,7 +3740,7 @@ type GetKubernetesWorkloadDetailResponse struct {
 
 func (x *GetKubernetesWorkloadDetailResponse) Reset() {
 	*x = GetKubernetesWorkloadDetailResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[46]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3615,7 +3752,7 @@ func (x *GetKubernetesWorkloadDetailResponse) String() string {
 func (*GetKubernetesWorkloadDetailResponse) ProtoMessage() {}
 
 func (x *GetKubernetesWorkloadDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[46]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3628,7 +3765,7 @@ func (x *GetKubernetesWorkloadDetailResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use GetKubernetesWorkloadDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesWorkloadDetailResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{46}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *GetKubernetesWorkloadDetailResponse) GetWorkload() *KubernetesWorkloadItem {
@@ -3667,7 +3804,7 @@ type GetKubernetesIngressDetailRequest struct {
 
 func (x *GetKubernetesIngressDetailRequest) Reset() {
 	*x = GetKubernetesIngressDetailRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[47]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3679,7 +3816,7 @@ func (x *GetKubernetesIngressDetailRequest) String() string {
 func (*GetKubernetesIngressDetailRequest) ProtoMessage() {}
 
 func (x *GetKubernetesIngressDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[47]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3692,7 +3829,7 @@ func (x *GetKubernetesIngressDetailRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetKubernetesIngressDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesIngressDetailRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{47}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *GetKubernetesIngressDetailRequest) GetClusterUid() string {
@@ -3729,7 +3866,7 @@ type GetKubernetesIngressDetailResponse struct {
 
 func (x *GetKubernetesIngressDetailResponse) Reset() {
 	*x = GetKubernetesIngressDetailResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[48]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3741,7 +3878,7 @@ func (x *GetKubernetesIngressDetailResponse) String() string {
 func (*GetKubernetesIngressDetailResponse) ProtoMessage() {}
 
 func (x *GetKubernetesIngressDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[48]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3754,7 +3891,7 @@ func (x *GetKubernetesIngressDetailResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetKubernetesIngressDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesIngressDetailResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{48}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GetKubernetesIngressDetailResponse) GetIngress() *KubernetesIngressItem {
@@ -3786,7 +3923,7 @@ type KubernetesEndpointPortItem struct {
 
 func (x *KubernetesEndpointPortItem) Reset() {
 	*x = KubernetesEndpointPortItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[49]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3798,7 +3935,7 @@ func (x *KubernetesEndpointPortItem) String() string {
 func (*KubernetesEndpointPortItem) ProtoMessage() {}
 
 func (x *KubernetesEndpointPortItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[49]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3811,7 +3948,7 @@ func (x *KubernetesEndpointPortItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesEndpointPortItem.ProtoReflect.Descriptor instead.
 func (*KubernetesEndpointPortItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{49}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *KubernetesEndpointPortItem) GetName() string {
@@ -3858,7 +3995,7 @@ type KubernetesEndpointItem struct {
 
 func (x *KubernetesEndpointItem) Reset() {
 	*x = KubernetesEndpointItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[50]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3870,7 +4007,7 @@ func (x *KubernetesEndpointItem) String() string {
 func (*KubernetesEndpointItem) ProtoMessage() {}
 
 func (x *KubernetesEndpointItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[50]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3883,7 +4020,7 @@ func (x *KubernetesEndpointItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesEndpointItem.ProtoReflect.Descriptor instead.
 func (*KubernetesEndpointItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{50}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *KubernetesEndpointItem) GetAddress() string {
@@ -3950,7 +4087,7 @@ type GetKubernetesServiceDetailRequest struct {
 
 func (x *GetKubernetesServiceDetailRequest) Reset() {
 	*x = GetKubernetesServiceDetailRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[51]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3962,7 +4099,7 @@ func (x *GetKubernetesServiceDetailRequest) String() string {
 func (*GetKubernetesServiceDetailRequest) ProtoMessage() {}
 
 func (x *GetKubernetesServiceDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[51]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3975,7 +4112,7 @@ func (x *GetKubernetesServiceDetailRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetKubernetesServiceDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesServiceDetailRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{51}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetKubernetesServiceDetailRequest) GetClusterUid() string {
@@ -4012,7 +4149,7 @@ type GetKubernetesServiceDetailResponse struct {
 
 func (x *GetKubernetesServiceDetailResponse) Reset() {
 	*x = GetKubernetesServiceDetailResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[52]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4024,7 +4161,7 @@ func (x *GetKubernetesServiceDetailResponse) String() string {
 func (*GetKubernetesServiceDetailResponse) ProtoMessage() {}
 
 func (x *GetKubernetesServiceDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[52]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4037,7 +4174,7 @@ func (x *GetKubernetesServiceDetailResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetKubernetesServiceDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesServiceDetailResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{52}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *GetKubernetesServiceDetailResponse) GetService() *KubernetesServiceItem {
@@ -4069,7 +4206,7 @@ type KubernetesWorkloadRefItem struct {
 
 func (x *KubernetesWorkloadRefItem) Reset() {
 	*x = KubernetesWorkloadRefItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[53]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4081,7 +4218,7 @@ func (x *KubernetesWorkloadRefItem) String() string {
 func (*KubernetesWorkloadRefItem) ProtoMessage() {}
 
 func (x *KubernetesWorkloadRefItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[53]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4094,7 +4231,7 @@ func (x *KubernetesWorkloadRefItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesWorkloadRefItem.ProtoReflect.Descriptor instead.
 func (*KubernetesWorkloadRefItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{53}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *KubernetesWorkloadRefItem) GetKind() string {
@@ -4133,7 +4270,7 @@ type GetKubernetesConfigMapDetailRequest struct {
 
 func (x *GetKubernetesConfigMapDetailRequest) Reset() {
 	*x = GetKubernetesConfigMapDetailRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[54]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4145,7 +4282,7 @@ func (x *GetKubernetesConfigMapDetailRequest) String() string {
 func (*GetKubernetesConfigMapDetailRequest) ProtoMessage() {}
 
 func (x *GetKubernetesConfigMapDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[54]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4158,7 +4295,7 @@ func (x *GetKubernetesConfigMapDetailRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use GetKubernetesConfigMapDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesConfigMapDetailRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{54}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *GetKubernetesConfigMapDetailRequest) GetClusterUid() string {
@@ -4195,7 +4332,7 @@ type GetKubernetesConfigMapDetailResponse struct {
 
 func (x *GetKubernetesConfigMapDetailResponse) Reset() {
 	*x = GetKubernetesConfigMapDetailResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[55]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4207,7 +4344,7 @@ func (x *GetKubernetesConfigMapDetailResponse) String() string {
 func (*GetKubernetesConfigMapDetailResponse) ProtoMessage() {}
 
 func (x *GetKubernetesConfigMapDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[55]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4220,7 +4357,7 @@ func (x *GetKubernetesConfigMapDetailResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use GetKubernetesConfigMapDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesConfigMapDetailResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{55}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GetKubernetesConfigMapDetailResponse) GetConfigmap() *KubernetesConfigMapItem {
@@ -4252,7 +4389,7 @@ type GetKubernetesSecretDetailRequest struct {
 
 func (x *GetKubernetesSecretDetailRequest) Reset() {
 	*x = GetKubernetesSecretDetailRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[56]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4264,7 +4401,7 @@ func (x *GetKubernetesSecretDetailRequest) String() string {
 func (*GetKubernetesSecretDetailRequest) ProtoMessage() {}
 
 func (x *GetKubernetesSecretDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[56]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4277,7 +4414,7 @@ func (x *GetKubernetesSecretDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKubernetesSecretDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesSecretDetailRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{56}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *GetKubernetesSecretDetailRequest) GetClusterUid() string {
@@ -4314,7 +4451,7 @@ type GetKubernetesSecretDetailResponse struct {
 
 func (x *GetKubernetesSecretDetailResponse) Reset() {
 	*x = GetKubernetesSecretDetailResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[57]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4326,7 +4463,7 @@ func (x *GetKubernetesSecretDetailResponse) String() string {
 func (*GetKubernetesSecretDetailResponse) ProtoMessage() {}
 
 func (x *GetKubernetesSecretDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[57]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4339,7 +4476,7 @@ func (x *GetKubernetesSecretDetailResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetKubernetesSecretDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesSecretDetailResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{57}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *GetKubernetesSecretDetailResponse) GetSecret() *KubernetesSecretItem {
@@ -4371,7 +4508,7 @@ type GetKubernetesPersistentVolumeClaimDetailRequest struct {
 
 func (x *GetKubernetesPersistentVolumeClaimDetailRequest) Reset() {
 	*x = GetKubernetesPersistentVolumeClaimDetailRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[58]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4383,7 +4520,7 @@ func (x *GetKubernetesPersistentVolumeClaimDetailRequest) String() string {
 func (*GetKubernetesPersistentVolumeClaimDetailRequest) ProtoMessage() {}
 
 func (x *GetKubernetesPersistentVolumeClaimDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[58]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4396,7 +4533,7 @@ func (x *GetKubernetesPersistentVolumeClaimDetailRequest) ProtoReflect() protore
 
 // Deprecated: Use GetKubernetesPersistentVolumeClaimDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesPersistentVolumeClaimDetailRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{58}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetKubernetesPersistentVolumeClaimDetailRequest) GetClusterUid() string {
@@ -4433,7 +4570,7 @@ type GetKubernetesPersistentVolumeClaimDetailResponse struct {
 
 func (x *GetKubernetesPersistentVolumeClaimDetailResponse) Reset() {
 	*x = GetKubernetesPersistentVolumeClaimDetailResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[59]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4445,7 +4582,7 @@ func (x *GetKubernetesPersistentVolumeClaimDetailResponse) String() string {
 func (*GetKubernetesPersistentVolumeClaimDetailResponse) ProtoMessage() {}
 
 func (x *GetKubernetesPersistentVolumeClaimDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[59]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4458,7 +4595,7 @@ func (x *GetKubernetesPersistentVolumeClaimDetailResponse) ProtoReflect() protor
 
 // Deprecated: Use GetKubernetesPersistentVolumeClaimDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesPersistentVolumeClaimDetailResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{59}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *GetKubernetesPersistentVolumeClaimDetailResponse) GetClaim() *KubernetesPersistentVolumeClaimItem {
@@ -4490,7 +4627,7 @@ type KubernetesImageVersionItem struct {
 
 func (x *KubernetesImageVersionItem) Reset() {
 	*x = KubernetesImageVersionItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[60]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4502,7 +4639,7 @@ func (x *KubernetesImageVersionItem) String() string {
 func (*KubernetesImageVersionItem) ProtoMessage() {}
 
 func (x *KubernetesImageVersionItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[60]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4515,7 +4652,7 @@ func (x *KubernetesImageVersionItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesImageVersionItem.ProtoReflect.Descriptor instead.
 func (*KubernetesImageVersionItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{60}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *KubernetesImageVersionItem) GetImage() string {
@@ -4560,7 +4697,7 @@ type KubernetesWorkloadImageItem struct {
 
 func (x *KubernetesWorkloadImageItem) Reset() {
 	*x = KubernetesWorkloadImageItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[61]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4572,7 +4709,7 @@ func (x *KubernetesWorkloadImageItem) String() string {
 func (*KubernetesWorkloadImageItem) ProtoMessage() {}
 
 func (x *KubernetesWorkloadImageItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[61]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4585,7 +4722,7 @@ func (x *KubernetesWorkloadImageItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesWorkloadImageItem.ProtoReflect.Descriptor instead.
 func (*KubernetesWorkloadImageItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{61}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *KubernetesWorkloadImageItem) GetContainer() string {
@@ -4647,7 +4784,7 @@ type GetKubernetesWorkloadImagesRequest struct {
 
 func (x *GetKubernetesWorkloadImagesRequest) Reset() {
 	*x = GetKubernetesWorkloadImagesRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[62]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4659,7 +4796,7 @@ func (x *GetKubernetesWorkloadImagesRequest) String() string {
 func (*GetKubernetesWorkloadImagesRequest) ProtoMessage() {}
 
 func (x *GetKubernetesWorkloadImagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[62]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4672,7 +4809,7 @@ func (x *GetKubernetesWorkloadImagesRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetKubernetesWorkloadImagesRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesWorkloadImagesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{62}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *GetKubernetesWorkloadImagesRequest) GetClusterUid() string {
@@ -4714,7 +4851,7 @@ type GetKubernetesWorkloadImagesResponse struct {
 
 func (x *GetKubernetesWorkloadImagesResponse) Reset() {
 	*x = GetKubernetesWorkloadImagesResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[63]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4726,7 +4863,7 @@ func (x *GetKubernetesWorkloadImagesResponse) String() string {
 func (*GetKubernetesWorkloadImagesResponse) ProtoMessage() {}
 
 func (x *GetKubernetesWorkloadImagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[63]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4739,7 +4876,7 @@ func (x *GetKubernetesWorkloadImagesResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use GetKubernetesWorkloadImagesResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesWorkloadImagesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{63}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *GetKubernetesWorkloadImagesResponse) GetImages() []*KubernetesWorkloadImageItem {
@@ -4772,7 +4909,7 @@ type SetKubernetesWorkloadImageRequest struct {
 
 func (x *SetKubernetesWorkloadImageRequest) Reset() {
 	*x = SetKubernetesWorkloadImageRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[64]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4784,7 +4921,7 @@ func (x *SetKubernetesWorkloadImageRequest) String() string {
 func (*SetKubernetesWorkloadImageRequest) ProtoMessage() {}
 
 func (x *SetKubernetesWorkloadImageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[64]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4797,7 +4934,7 @@ func (x *SetKubernetesWorkloadImageRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use SetKubernetesWorkloadImageRequest.ProtoReflect.Descriptor instead.
 func (*SetKubernetesWorkloadImageRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{64}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *SetKubernetesWorkloadImageRequest) GetClusterUid() string {
@@ -4860,7 +4997,7 @@ type SetKubernetesWorkloadImageResponse struct {
 
 func (x *SetKubernetesWorkloadImageResponse) Reset() {
 	*x = SetKubernetesWorkloadImageResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[65]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4872,7 +5009,7 @@ func (x *SetKubernetesWorkloadImageResponse) String() string {
 func (*SetKubernetesWorkloadImageResponse) ProtoMessage() {}
 
 func (x *SetKubernetesWorkloadImageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[65]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4885,7 +5022,7 @@ func (x *SetKubernetesWorkloadImageResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use SetKubernetesWorkloadImageResponse.ProtoReflect.Descriptor instead.
 func (*SetKubernetesWorkloadImageResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{65}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *SetKubernetesWorkloadImageResponse) GetWorkload() *KubernetesWorkloadItem {
@@ -4916,7 +5053,7 @@ type KubernetesWorkloadRevisionItem struct {
 
 func (x *KubernetesWorkloadRevisionItem) Reset() {
 	*x = KubernetesWorkloadRevisionItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[66]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4928,7 +5065,7 @@ func (x *KubernetesWorkloadRevisionItem) String() string {
 func (*KubernetesWorkloadRevisionItem) ProtoMessage() {}
 
 func (x *KubernetesWorkloadRevisionItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[66]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4941,7 +5078,7 @@ func (x *KubernetesWorkloadRevisionItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesWorkloadRevisionItem.ProtoReflect.Descriptor instead.
 func (*KubernetesWorkloadRevisionItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{66}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *KubernetesWorkloadRevisionItem) GetRevision() int32 {
@@ -5003,7 +5140,7 @@ type ListKubernetesWorkloadRevisionsRequest struct {
 
 func (x *ListKubernetesWorkloadRevisionsRequest) Reset() {
 	*x = ListKubernetesWorkloadRevisionsRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[67]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5015,7 +5152,7 @@ func (x *ListKubernetesWorkloadRevisionsRequest) String() string {
 func (*ListKubernetesWorkloadRevisionsRequest) ProtoMessage() {}
 
 func (x *ListKubernetesWorkloadRevisionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[67]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5028,7 +5165,7 @@ func (x *ListKubernetesWorkloadRevisionsRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListKubernetesWorkloadRevisionsRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesWorkloadRevisionsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{67}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *ListKubernetesWorkloadRevisionsRequest) GetClusterUid() string {
@@ -5070,7 +5207,7 @@ type ListKubernetesWorkloadRevisionsResponse struct {
 
 func (x *ListKubernetesWorkloadRevisionsResponse) Reset() {
 	*x = ListKubernetesWorkloadRevisionsResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[68]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5082,7 +5219,7 @@ func (x *ListKubernetesWorkloadRevisionsResponse) String() string {
 func (*ListKubernetesWorkloadRevisionsResponse) ProtoMessage() {}
 
 func (x *ListKubernetesWorkloadRevisionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[68]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5095,7 +5232,7 @@ func (x *ListKubernetesWorkloadRevisionsResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use ListKubernetesWorkloadRevisionsResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesWorkloadRevisionsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{68}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ListKubernetesWorkloadRevisionsResponse) GetRevisions() []*KubernetesWorkloadRevisionItem {
@@ -5124,7 +5261,7 @@ type RollbackKubernetesWorkloadRequest struct {
 
 func (x *RollbackKubernetesWorkloadRequest) Reset() {
 	*x = RollbackKubernetesWorkloadRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[69]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5136,7 +5273,7 @@ func (x *RollbackKubernetesWorkloadRequest) String() string {
 func (*RollbackKubernetesWorkloadRequest) ProtoMessage() {}
 
 func (x *RollbackKubernetesWorkloadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[69]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5149,7 +5286,7 @@ func (x *RollbackKubernetesWorkloadRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use RollbackKubernetesWorkloadRequest.ProtoReflect.Descriptor instead.
 func (*RollbackKubernetesWorkloadRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{69}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *RollbackKubernetesWorkloadRequest) GetClusterUid() string {
@@ -5198,7 +5335,7 @@ type RollbackKubernetesWorkloadResponse struct {
 
 func (x *RollbackKubernetesWorkloadResponse) Reset() {
 	*x = RollbackKubernetesWorkloadResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[70]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5210,7 +5347,7 @@ func (x *RollbackKubernetesWorkloadResponse) String() string {
 func (*RollbackKubernetesWorkloadResponse) ProtoMessage() {}
 
 func (x *RollbackKubernetesWorkloadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[70]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5223,7 +5360,7 @@ func (x *RollbackKubernetesWorkloadResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use RollbackKubernetesWorkloadResponse.ProtoReflect.Descriptor instead.
 func (*RollbackKubernetesWorkloadResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{70}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *RollbackKubernetesWorkloadResponse) GetWorkload() *KubernetesWorkloadItem {
@@ -5270,7 +5407,7 @@ type KubernetesJobItem struct {
 
 func (x *KubernetesJobItem) Reset() {
 	*x = KubernetesJobItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[71]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5282,7 +5419,7 @@ func (x *KubernetesJobItem) String() string {
 func (*KubernetesJobItem) ProtoMessage() {}
 
 func (x *KubernetesJobItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[71]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5295,7 +5432,7 @@ func (x *KubernetesJobItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesJobItem.ProtoReflect.Descriptor instead.
 func (*KubernetesJobItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{71}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *KubernetesJobItem) GetNamespace() string {
@@ -5415,7 +5552,7 @@ type ListKubernetesJobsRequest struct {
 
 func (x *ListKubernetesJobsRequest) Reset() {
 	*x = ListKubernetesJobsRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[72]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5427,7 +5564,7 @@ func (x *ListKubernetesJobsRequest) String() string {
 func (*ListKubernetesJobsRequest) ProtoMessage() {}
 
 func (x *ListKubernetesJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[72]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5440,7 +5577,7 @@ func (x *ListKubernetesJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesJobsRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesJobsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{72}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *ListKubernetesJobsRequest) GetClusterUid() string {
@@ -5495,7 +5632,7 @@ type ListKubernetesJobsResponse struct {
 
 func (x *ListKubernetesJobsResponse) Reset() {
 	*x = ListKubernetesJobsResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[73]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5507,7 +5644,7 @@ func (x *ListKubernetesJobsResponse) String() string {
 func (*ListKubernetesJobsResponse) ProtoMessage() {}
 
 func (x *ListKubernetesJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[73]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5520,7 +5657,7 @@ func (x *ListKubernetesJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesJobsResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesJobsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{73}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *ListKubernetesJobsResponse) GetItems() []*KubernetesJobItem {
@@ -5566,7 +5703,7 @@ type GetKubernetesJobDetailRequest struct {
 
 func (x *GetKubernetesJobDetailRequest) Reset() {
 	*x = GetKubernetesJobDetailRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[74]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5578,7 +5715,7 @@ func (x *GetKubernetesJobDetailRequest) String() string {
 func (*GetKubernetesJobDetailRequest) ProtoMessage() {}
 
 func (x *GetKubernetesJobDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[74]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5591,7 +5728,7 @@ func (x *GetKubernetesJobDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKubernetesJobDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesJobDetailRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{74}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *GetKubernetesJobDetailRequest) GetClusterUid() string {
@@ -5628,7 +5765,7 @@ type GetKubernetesJobDetailResponse struct {
 
 func (x *GetKubernetesJobDetailResponse) Reset() {
 	*x = GetKubernetesJobDetailResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[75]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5640,7 +5777,7 @@ func (x *GetKubernetesJobDetailResponse) String() string {
 func (*GetKubernetesJobDetailResponse) ProtoMessage() {}
 
 func (x *GetKubernetesJobDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[75]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5653,7 +5790,7 @@ func (x *GetKubernetesJobDetailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKubernetesJobDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesJobDetailResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{75}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *GetKubernetesJobDetailResponse) GetJob() *KubernetesJobItem {
@@ -5685,7 +5822,7 @@ type DeleteKubernetesJobRequest struct {
 
 func (x *DeleteKubernetesJobRequest) Reset() {
 	*x = DeleteKubernetesJobRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[76]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5697,7 +5834,7 @@ func (x *DeleteKubernetesJobRequest) String() string {
 func (*DeleteKubernetesJobRequest) ProtoMessage() {}
 
 func (x *DeleteKubernetesJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[76]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5710,7 +5847,7 @@ func (x *DeleteKubernetesJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKubernetesJobRequest.ProtoReflect.Descriptor instead.
 func (*DeleteKubernetesJobRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{76}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *DeleteKubernetesJobRequest) GetClusterUid() string {
@@ -5743,7 +5880,7 @@ type DeleteKubernetesJobResponse struct {
 
 func (x *DeleteKubernetesJobResponse) Reset() {
 	*x = DeleteKubernetesJobResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[77]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5755,7 +5892,7 @@ func (x *DeleteKubernetesJobResponse) String() string {
 func (*DeleteKubernetesJobResponse) ProtoMessage() {}
 
 func (x *DeleteKubernetesJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[77]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5768,7 +5905,7 @@ func (x *DeleteKubernetesJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKubernetesJobResponse.ProtoReflect.Descriptor instead.
 func (*DeleteKubernetesJobResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{77}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{79}
 }
 
 // CronJob。
@@ -5800,7 +5937,7 @@ type KubernetesCronJobItem struct {
 
 func (x *KubernetesCronJobItem) Reset() {
 	*x = KubernetesCronJobItem{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[78]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5812,7 +5949,7 @@ func (x *KubernetesCronJobItem) String() string {
 func (*KubernetesCronJobItem) ProtoMessage() {}
 
 func (x *KubernetesCronJobItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[78]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5825,7 +5962,7 @@ func (x *KubernetesCronJobItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KubernetesCronJobItem.ProtoReflect.Descriptor instead.
 func (*KubernetesCronJobItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{78}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *KubernetesCronJobItem) GetNamespace() string {
@@ -5917,7 +6054,7 @@ type ListKubernetesCronJobsRequest struct {
 
 func (x *ListKubernetesCronJobsRequest) Reset() {
 	*x = ListKubernetesCronJobsRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[79]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5929,7 +6066,7 @@ func (x *ListKubernetesCronJobsRequest) String() string {
 func (*ListKubernetesCronJobsRequest) ProtoMessage() {}
 
 func (x *ListKubernetesCronJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[79]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5942,7 +6079,7 @@ func (x *ListKubernetesCronJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesCronJobsRequest.ProtoReflect.Descriptor instead.
 func (*ListKubernetesCronJobsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{79}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *ListKubernetesCronJobsRequest) GetClusterUid() string {
@@ -5997,7 +6134,7 @@ type ListKubernetesCronJobsResponse struct {
 
 func (x *ListKubernetesCronJobsResponse) Reset() {
 	*x = ListKubernetesCronJobsResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[80]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6009,7 +6146,7 @@ func (x *ListKubernetesCronJobsResponse) String() string {
 func (*ListKubernetesCronJobsResponse) ProtoMessage() {}
 
 func (x *ListKubernetesCronJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[80]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6022,7 +6159,7 @@ func (x *ListKubernetesCronJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKubernetesCronJobsResponse.ProtoReflect.Descriptor instead.
 func (*ListKubernetesCronJobsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{80}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *ListKubernetesCronJobsResponse) GetItems() []*KubernetesCronJobItem {
@@ -6068,7 +6205,7 @@ type GetKubernetesCronJobDetailRequest struct {
 
 func (x *GetKubernetesCronJobDetailRequest) Reset() {
 	*x = GetKubernetesCronJobDetailRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[81]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6080,7 +6217,7 @@ func (x *GetKubernetesCronJobDetailRequest) String() string {
 func (*GetKubernetesCronJobDetailRequest) ProtoMessage() {}
 
 func (x *GetKubernetesCronJobDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[81]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6093,7 +6230,7 @@ func (x *GetKubernetesCronJobDetailRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetKubernetesCronJobDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKubernetesCronJobDetailRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{81}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *GetKubernetesCronJobDetailRequest) GetClusterUid() string {
@@ -6130,7 +6267,7 @@ type GetKubernetesCronJobDetailResponse struct {
 
 func (x *GetKubernetesCronJobDetailResponse) Reset() {
 	*x = GetKubernetesCronJobDetailResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[82]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6142,7 +6279,7 @@ func (x *GetKubernetesCronJobDetailResponse) String() string {
 func (*GetKubernetesCronJobDetailResponse) ProtoMessage() {}
 
 func (x *GetKubernetesCronJobDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[82]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6155,7 +6292,7 @@ func (x *GetKubernetesCronJobDetailResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetKubernetesCronJobDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKubernetesCronJobDetailResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{82}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *GetKubernetesCronJobDetailResponse) GetCronjob() *KubernetesCronJobItem {
@@ -6189,7 +6326,7 @@ type SetKubernetesCronJobSuspendRequest struct {
 
 func (x *SetKubernetesCronJobSuspendRequest) Reset() {
 	*x = SetKubernetesCronJobSuspendRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[83]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6201,7 +6338,7 @@ func (x *SetKubernetesCronJobSuspendRequest) String() string {
 func (*SetKubernetesCronJobSuspendRequest) ProtoMessage() {}
 
 func (x *SetKubernetesCronJobSuspendRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[83]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6214,7 +6351,7 @@ func (x *SetKubernetesCronJobSuspendRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use SetKubernetesCronJobSuspendRequest.ProtoReflect.Descriptor instead.
 func (*SetKubernetesCronJobSuspendRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{83}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *SetKubernetesCronJobSuspendRequest) GetClusterUid() string {
@@ -6256,7 +6393,7 @@ type SetKubernetesCronJobSuspendResponse struct {
 
 func (x *SetKubernetesCronJobSuspendResponse) Reset() {
 	*x = SetKubernetesCronJobSuspendResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[84]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6268,7 +6405,7 @@ func (x *SetKubernetesCronJobSuspendResponse) String() string {
 func (*SetKubernetesCronJobSuspendResponse) ProtoMessage() {}
 
 func (x *SetKubernetesCronJobSuspendResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[84]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6281,7 +6418,7 @@ func (x *SetKubernetesCronJobSuspendResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use SetKubernetesCronJobSuspendResponse.ProtoReflect.Descriptor instead.
 func (*SetKubernetesCronJobSuspendResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{84}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *SetKubernetesCronJobSuspendResponse) GetCronjob() *KubernetesCronJobItem {
@@ -6306,7 +6443,7 @@ type TriggerKubernetesCronJobRequest struct {
 
 func (x *TriggerKubernetesCronJobRequest) Reset() {
 	*x = TriggerKubernetesCronJobRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[85]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6318,7 +6455,7 @@ func (x *TriggerKubernetesCronJobRequest) String() string {
 func (*TriggerKubernetesCronJobRequest) ProtoMessage() {}
 
 func (x *TriggerKubernetesCronJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[85]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6331,7 +6468,7 @@ func (x *TriggerKubernetesCronJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerKubernetesCronJobRequest.ProtoReflect.Descriptor instead.
 func (*TriggerKubernetesCronJobRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{85}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *TriggerKubernetesCronJobRequest) GetClusterUid() string {
@@ -6366,7 +6503,7 @@ type TriggerKubernetesCronJobResponse struct {
 
 func (x *TriggerKubernetesCronJobResponse) Reset() {
 	*x = TriggerKubernetesCronJobResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[86]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6378,7 +6515,7 @@ func (x *TriggerKubernetesCronJobResponse) String() string {
 func (*TriggerKubernetesCronJobResponse) ProtoMessage() {}
 
 func (x *TriggerKubernetesCronJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[86]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6391,7 +6528,7 @@ func (x *TriggerKubernetesCronJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerKubernetesCronJobResponse.ProtoReflect.Descriptor instead.
 func (*TriggerKubernetesCronJobResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{86}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *TriggerKubernetesCronJobResponse) GetJob() *KubernetesJobItem {
@@ -6416,7 +6553,7 @@ type DeleteKubernetesCronJobRequest struct {
 
 func (x *DeleteKubernetesCronJobRequest) Reset() {
 	*x = DeleteKubernetesCronJobRequest{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[87]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6428,7 +6565,7 @@ func (x *DeleteKubernetesCronJobRequest) String() string {
 func (*DeleteKubernetesCronJobRequest) ProtoMessage() {}
 
 func (x *DeleteKubernetesCronJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[87]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6441,7 +6578,7 @@ func (x *DeleteKubernetesCronJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKubernetesCronJobRequest.ProtoReflect.Descriptor instead.
 func (*DeleteKubernetesCronJobRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{87}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *DeleteKubernetesCronJobRequest) GetClusterUid() string {
@@ -6474,7 +6611,7 @@ type DeleteKubernetesCronJobResponse struct {
 
 func (x *DeleteKubernetesCronJobResponse) Reset() {
 	*x = DeleteKubernetesCronJobResponse{}
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[88]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6486,7 +6623,7 @@ func (x *DeleteKubernetesCronJobResponse) String() string {
 func (*DeleteKubernetesCronJobResponse) ProtoMessage() {}
 
 func (x *DeleteKubernetesCronJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_kubernetes_proto_msgTypes[88]
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6499,7 +6636,7 @@ func (x *DeleteKubernetesCronJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKubernetesCronJobResponse.ProtoReflect.Descriptor instead.
 func (*DeleteKubernetesCronJobResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{88}
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{90}
 }
 
 var File_alioth_v1_kubernetes_proto protoreflect.FileDescriptor
@@ -6642,7 +6779,22 @@ const file_alioth_v1_kubernetes_proto_rawDesc = "" +
 	"\bprevious\x18\x06 \x01(\bR\bprevious\"V\n" +
 	"\x1cGetKubernetesPodLogsResponse\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent\x12\x1c\n" +
-	"\tcontainer\x18\x02 \x01(\tR\tcontainer\"\xa6\x01\n" +
+	"\tcontainer\x18\x02 \x01(\tR\tcontainer\"\x83\x02\n" +
+	"#IssueKubernetesPodExecTicketRequest\x12(\n" +
+	"\vcluster_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
+	"clusterUid\x12(\n" +
+	"\tnamespace\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\tnamespace\x12\x1e\n" +
+	"\x04name\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\x04name\x12(\n" +
+	"\tcontainer\x18\x04 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\tcontainer\x12\x1e\n" +
+	"\x04cols\x18\x05 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\x04cols\x12\x1e\n" +
+	"\x04rows\x18\x06 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\x04rows\">\n" +
+	"$IssueKubernetesPodExecTicketResponse\x12\x16\n" +
+	"\x06ticket\x18\x01 \x01(\tR\x06ticket\"\xa6\x01\n" +
 	"\x19KubernetesIngressPathItem\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\x12\x1b\n" +
@@ -7075,7 +7227,7 @@ const file_alioth_v1_kubernetes_proto_rawDesc = "" +
 	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\tnamespace\x12\x1e\n" +
 	"\x04name\x18\x03 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\x04name\"!\n" +
-	"\x1fDeleteKubernetesCronJobResponse2\x85.\n" +
+	"\x1fDeleteKubernetesCronJobResponse2\xda/\n" +
 	"\x11KubernetesService\x12\xa1\x01\n" +
 	"\x18ListKubernetesNamespaces\x12*.alioth.v1.ListKubernetesNamespacesRequest\x1a+.alioth.v1.ListKubernetesNamespacesResponse\",\x82\xd3\xe4\x93\x02&\x12$/v1/cluster/{cluster_uid}/namespaces\x12\x8d\x01\n" +
 	"\x13ListKubernetesNodes\x12%.alioth.v1.ListKubernetesNodesRequest\x1a&.alioth.v1.ListKubernetesNodesResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/cluster/{cluster_uid}/nodes\x12\xc5\x01\n" +
@@ -7085,7 +7237,8 @@ const file_alioth_v1_kubernetes_proto_rawDesc = "" +
 	"\x19RestartKubernetesWorkload\x12+.alioth.v1.RestartKubernetesWorkloadRequest\x1a,.alioth.v1.RestartKubernetesWorkloadResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\"*/v1/cluster/{cluster_uid}/workload/restart\x12\x89\x01\n" +
 	"\x12ListKubernetesPods\x12$.alioth.v1.ListKubernetesPodsRequest\x1a%.alioth.v1.ListKubernetesPodsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/cluster/{cluster_uid}/pods\x12\xa8\x01\n" +
 	"\x13DeleteKubernetesPod\x12%.alioth.v1.DeleteKubernetesPodRequest\x1a&.alioth.v1.DeleteKubernetesPodResponse\"B\x82\xd3\xe4\x93\x02<*:/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}\x12\xb0\x01\n" +
-	"\x14GetKubernetesPodLogs\x12&.alioth.v1.GetKubernetesPodLogsRequest\x1a'.alioth.v1.GetKubernetesPodLogsResponse\"G\x82\xd3\xe4\x93\x02A\x12?/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/logs\x12\x9d\x01\n" +
+	"\x14GetKubernetesPodLogs\x12&.alioth.v1.GetKubernetesPodLogsRequest\x1a'.alioth.v1.GetKubernetesPodLogsResponse\"G\x82\xd3\xe4\x93\x02A\x12?/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/logs\x12\xd2\x01\n" +
+	"\x1cIssueKubernetesPodExecTicket\x12..alioth.v1.IssueKubernetesPodExecTicketRequest\x1a/.alioth.v1.IssueKubernetesPodExecTicketResponse\"Q\x82\xd3\xe4\x93\x02K:\x01*\"F/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec-ticket\x12\x9d\x01\n" +
 	"\x17ListKubernetesIngresses\x12).alioth.v1.ListKubernetesIngressesRequest\x1a*.alioth.v1.ListKubernetesIngressesResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/cluster/{cluster_uid}/ingresses\x12\x99\x01\n" +
 	"\x16ListKubernetesServices\x12(.alioth.v1.ListKubernetesServicesRequest\x1a).alioth.v1.ListKubernetesServicesResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/v1/cluster/{cluster_uid}/services\x12\xa1\x01\n" +
 	"\x18ListKubernetesConfigMaps\x12*.alioth.v1.ListKubernetesConfigMapsRequest\x1a+.alioth.v1.ListKubernetesConfigMapsResponse\",\x82\xd3\xe4\x93\x02&\x12$/v1/cluster/{cluster_uid}/configmaps\x12\x95\x01\n" +
@@ -7124,7 +7277,7 @@ func file_alioth_v1_kubernetes_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_kubernetes_proto_rawDescData
 }
 
-var file_alioth_v1_kubernetes_proto_msgTypes = make([]protoimpl.MessageInfo, 89)
+var file_alioth_v1_kubernetes_proto_msgTypes = make([]protoimpl.MessageInfo, 91)
 var file_alioth_v1_kubernetes_proto_goTypes = []any{
 	(*KubernetesNodeItem)(nil),                               // 0: alioth.v1.KubernetesNodeItem
 	(*ListKubernetesNodesRequest)(nil),                       // 1: alioth.v1.ListKubernetesNodesRequest
@@ -7146,75 +7299,77 @@ var file_alioth_v1_kubernetes_proto_goTypes = []any{
 	(*DeleteKubernetesPodResponse)(nil),                      // 17: alioth.v1.DeleteKubernetesPodResponse
 	(*GetKubernetesPodLogsRequest)(nil),                      // 18: alioth.v1.GetKubernetesPodLogsRequest
 	(*GetKubernetesPodLogsResponse)(nil),                     // 19: alioth.v1.GetKubernetesPodLogsResponse
-	(*KubernetesIngressPathItem)(nil),                        // 20: alioth.v1.KubernetesIngressPathItem
-	(*KubernetesIngressItem)(nil),                            // 21: alioth.v1.KubernetesIngressItem
-	(*ListKubernetesIngressesRequest)(nil),                   // 22: alioth.v1.ListKubernetesIngressesRequest
-	(*ListKubernetesIngressesResponse)(nil),                  // 23: alioth.v1.ListKubernetesIngressesResponse
-	(*ListKubernetesNamespacesRequest)(nil),                  // 24: alioth.v1.ListKubernetesNamespacesRequest
-	(*ListKubernetesNamespacesResponse)(nil),                 // 25: alioth.v1.ListKubernetesNamespacesResponse
-	(*KubernetesServicePortItem)(nil),                        // 26: alioth.v1.KubernetesServicePortItem
-	(*KubernetesServiceItem)(nil),                            // 27: alioth.v1.KubernetesServiceItem
-	(*ListKubernetesServicesRequest)(nil),                    // 28: alioth.v1.ListKubernetesServicesRequest
-	(*ListKubernetesServicesResponse)(nil),                   // 29: alioth.v1.ListKubernetesServicesResponse
-	(*KubernetesConfigMapItem)(nil),                          // 30: alioth.v1.KubernetesConfigMapItem
-	(*ListKubernetesConfigMapsRequest)(nil),                  // 31: alioth.v1.ListKubernetesConfigMapsRequest
-	(*ListKubernetesConfigMapsResponse)(nil),                 // 32: alioth.v1.ListKubernetesConfigMapsResponse
-	(*KubernetesSecretItem)(nil),                             // 33: alioth.v1.KubernetesSecretItem
-	(*ListKubernetesSecretsRequest)(nil),                     // 34: alioth.v1.ListKubernetesSecretsRequest
-	(*ListKubernetesSecretsResponse)(nil),                    // 35: alioth.v1.ListKubernetesSecretsResponse
-	(*KubernetesPersistentVolumeItem)(nil),                   // 36: alioth.v1.KubernetesPersistentVolumeItem
-	(*ListKubernetesPersistentVolumesRequest)(nil),           // 37: alioth.v1.ListKubernetesPersistentVolumesRequest
-	(*ListKubernetesPersistentVolumesResponse)(nil),          // 38: alioth.v1.ListKubernetesPersistentVolumesResponse
-	(*KubernetesPersistentVolumeClaimItem)(nil),              // 39: alioth.v1.KubernetesPersistentVolumeClaimItem
-	(*ListKubernetesPersistentVolumeClaimsRequest)(nil),      // 40: alioth.v1.ListKubernetesPersistentVolumeClaimsRequest
-	(*ListKubernetesPersistentVolumeClaimsResponse)(nil),     // 41: alioth.v1.ListKubernetesPersistentVolumeClaimsResponse
-	(*GetKubernetesResourceYAMLRequest)(nil),                 // 42: alioth.v1.GetKubernetesResourceYAMLRequest
-	(*GetKubernetesResourceYAMLResponse)(nil),                // 43: alioth.v1.GetKubernetesResourceYAMLResponse
-	(*KubernetesReplicaSetItem)(nil),                         // 44: alioth.v1.KubernetesReplicaSetItem
-	(*GetKubernetesWorkloadDetailRequest)(nil),               // 45: alioth.v1.GetKubernetesWorkloadDetailRequest
-	(*GetKubernetesWorkloadDetailResponse)(nil),              // 46: alioth.v1.GetKubernetesWorkloadDetailResponse
-	(*GetKubernetesIngressDetailRequest)(nil),                // 47: alioth.v1.GetKubernetesIngressDetailRequest
-	(*GetKubernetesIngressDetailResponse)(nil),               // 48: alioth.v1.GetKubernetesIngressDetailResponse
-	(*KubernetesEndpointPortItem)(nil),                       // 49: alioth.v1.KubernetesEndpointPortItem
-	(*KubernetesEndpointItem)(nil),                           // 50: alioth.v1.KubernetesEndpointItem
-	(*GetKubernetesServiceDetailRequest)(nil),                // 51: alioth.v1.GetKubernetesServiceDetailRequest
-	(*GetKubernetesServiceDetailResponse)(nil),               // 52: alioth.v1.GetKubernetesServiceDetailResponse
-	(*KubernetesWorkloadRefItem)(nil),                        // 53: alioth.v1.KubernetesWorkloadRefItem
-	(*GetKubernetesConfigMapDetailRequest)(nil),              // 54: alioth.v1.GetKubernetesConfigMapDetailRequest
-	(*GetKubernetesConfigMapDetailResponse)(nil),             // 55: alioth.v1.GetKubernetesConfigMapDetailResponse
-	(*GetKubernetesSecretDetailRequest)(nil),                 // 56: alioth.v1.GetKubernetesSecretDetailRequest
-	(*GetKubernetesSecretDetailResponse)(nil),                // 57: alioth.v1.GetKubernetesSecretDetailResponse
-	(*GetKubernetesPersistentVolumeClaimDetailRequest)(nil),  // 58: alioth.v1.GetKubernetesPersistentVolumeClaimDetailRequest
-	(*GetKubernetesPersistentVolumeClaimDetailResponse)(nil), // 59: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse
-	(*KubernetesImageVersionItem)(nil),                       // 60: alioth.v1.KubernetesImageVersionItem
-	(*KubernetesWorkloadImageItem)(nil),                      // 61: alioth.v1.KubernetesWorkloadImageItem
-	(*GetKubernetesWorkloadImagesRequest)(nil),               // 62: alioth.v1.GetKubernetesWorkloadImagesRequest
-	(*GetKubernetesWorkloadImagesResponse)(nil),              // 63: alioth.v1.GetKubernetesWorkloadImagesResponse
-	(*SetKubernetesWorkloadImageRequest)(nil),                // 64: alioth.v1.SetKubernetesWorkloadImageRequest
-	(*SetKubernetesWorkloadImageResponse)(nil),               // 65: alioth.v1.SetKubernetesWorkloadImageResponse
-	(*KubernetesWorkloadRevisionItem)(nil),                   // 66: alioth.v1.KubernetesWorkloadRevisionItem
-	(*ListKubernetesWorkloadRevisionsRequest)(nil),           // 67: alioth.v1.ListKubernetesWorkloadRevisionsRequest
-	(*ListKubernetesWorkloadRevisionsResponse)(nil),          // 68: alioth.v1.ListKubernetesWorkloadRevisionsResponse
-	(*RollbackKubernetesWorkloadRequest)(nil),                // 69: alioth.v1.RollbackKubernetesWorkloadRequest
-	(*RollbackKubernetesWorkloadResponse)(nil),               // 70: alioth.v1.RollbackKubernetesWorkloadResponse
-	(*KubernetesJobItem)(nil),                                // 71: alioth.v1.KubernetesJobItem
-	(*ListKubernetesJobsRequest)(nil),                        // 72: alioth.v1.ListKubernetesJobsRequest
-	(*ListKubernetesJobsResponse)(nil),                       // 73: alioth.v1.ListKubernetesJobsResponse
-	(*GetKubernetesJobDetailRequest)(nil),                    // 74: alioth.v1.GetKubernetesJobDetailRequest
-	(*GetKubernetesJobDetailResponse)(nil),                   // 75: alioth.v1.GetKubernetesJobDetailResponse
-	(*DeleteKubernetesJobRequest)(nil),                       // 76: alioth.v1.DeleteKubernetesJobRequest
-	(*DeleteKubernetesJobResponse)(nil),                      // 77: alioth.v1.DeleteKubernetesJobResponse
-	(*KubernetesCronJobItem)(nil),                            // 78: alioth.v1.KubernetesCronJobItem
-	(*ListKubernetesCronJobsRequest)(nil),                    // 79: alioth.v1.ListKubernetesCronJobsRequest
-	(*ListKubernetesCronJobsResponse)(nil),                   // 80: alioth.v1.ListKubernetesCronJobsResponse
-	(*GetKubernetesCronJobDetailRequest)(nil),                // 81: alioth.v1.GetKubernetesCronJobDetailRequest
-	(*GetKubernetesCronJobDetailResponse)(nil),               // 82: alioth.v1.GetKubernetesCronJobDetailResponse
-	(*SetKubernetesCronJobSuspendRequest)(nil),               // 83: alioth.v1.SetKubernetesCronJobSuspendRequest
-	(*SetKubernetesCronJobSuspendResponse)(nil),              // 84: alioth.v1.SetKubernetesCronJobSuspendResponse
-	(*TriggerKubernetesCronJobRequest)(nil),                  // 85: alioth.v1.TriggerKubernetesCronJobRequest
-	(*TriggerKubernetesCronJobResponse)(nil),                 // 86: alioth.v1.TriggerKubernetesCronJobResponse
-	(*DeleteKubernetesCronJobRequest)(nil),                   // 87: alioth.v1.DeleteKubernetesCronJobRequest
-	(*DeleteKubernetesCronJobResponse)(nil),                  // 88: alioth.v1.DeleteKubernetesCronJobResponse
+	(*IssueKubernetesPodExecTicketRequest)(nil),              // 20: alioth.v1.IssueKubernetesPodExecTicketRequest
+	(*IssueKubernetesPodExecTicketResponse)(nil),             // 21: alioth.v1.IssueKubernetesPodExecTicketResponse
+	(*KubernetesIngressPathItem)(nil),                        // 22: alioth.v1.KubernetesIngressPathItem
+	(*KubernetesIngressItem)(nil),                            // 23: alioth.v1.KubernetesIngressItem
+	(*ListKubernetesIngressesRequest)(nil),                   // 24: alioth.v1.ListKubernetesIngressesRequest
+	(*ListKubernetesIngressesResponse)(nil),                  // 25: alioth.v1.ListKubernetesIngressesResponse
+	(*ListKubernetesNamespacesRequest)(nil),                  // 26: alioth.v1.ListKubernetesNamespacesRequest
+	(*ListKubernetesNamespacesResponse)(nil),                 // 27: alioth.v1.ListKubernetesNamespacesResponse
+	(*KubernetesServicePortItem)(nil),                        // 28: alioth.v1.KubernetesServicePortItem
+	(*KubernetesServiceItem)(nil),                            // 29: alioth.v1.KubernetesServiceItem
+	(*ListKubernetesServicesRequest)(nil),                    // 30: alioth.v1.ListKubernetesServicesRequest
+	(*ListKubernetesServicesResponse)(nil),                   // 31: alioth.v1.ListKubernetesServicesResponse
+	(*KubernetesConfigMapItem)(nil),                          // 32: alioth.v1.KubernetesConfigMapItem
+	(*ListKubernetesConfigMapsRequest)(nil),                  // 33: alioth.v1.ListKubernetesConfigMapsRequest
+	(*ListKubernetesConfigMapsResponse)(nil),                 // 34: alioth.v1.ListKubernetesConfigMapsResponse
+	(*KubernetesSecretItem)(nil),                             // 35: alioth.v1.KubernetesSecretItem
+	(*ListKubernetesSecretsRequest)(nil),                     // 36: alioth.v1.ListKubernetesSecretsRequest
+	(*ListKubernetesSecretsResponse)(nil),                    // 37: alioth.v1.ListKubernetesSecretsResponse
+	(*KubernetesPersistentVolumeItem)(nil),                   // 38: alioth.v1.KubernetesPersistentVolumeItem
+	(*ListKubernetesPersistentVolumesRequest)(nil),           // 39: alioth.v1.ListKubernetesPersistentVolumesRequest
+	(*ListKubernetesPersistentVolumesResponse)(nil),          // 40: alioth.v1.ListKubernetesPersistentVolumesResponse
+	(*KubernetesPersistentVolumeClaimItem)(nil),              // 41: alioth.v1.KubernetesPersistentVolumeClaimItem
+	(*ListKubernetesPersistentVolumeClaimsRequest)(nil),      // 42: alioth.v1.ListKubernetesPersistentVolumeClaimsRequest
+	(*ListKubernetesPersistentVolumeClaimsResponse)(nil),     // 43: alioth.v1.ListKubernetesPersistentVolumeClaimsResponse
+	(*GetKubernetesResourceYAMLRequest)(nil),                 // 44: alioth.v1.GetKubernetesResourceYAMLRequest
+	(*GetKubernetesResourceYAMLResponse)(nil),                // 45: alioth.v1.GetKubernetesResourceYAMLResponse
+	(*KubernetesReplicaSetItem)(nil),                         // 46: alioth.v1.KubernetesReplicaSetItem
+	(*GetKubernetesWorkloadDetailRequest)(nil),               // 47: alioth.v1.GetKubernetesWorkloadDetailRequest
+	(*GetKubernetesWorkloadDetailResponse)(nil),              // 48: alioth.v1.GetKubernetesWorkloadDetailResponse
+	(*GetKubernetesIngressDetailRequest)(nil),                // 49: alioth.v1.GetKubernetesIngressDetailRequest
+	(*GetKubernetesIngressDetailResponse)(nil),               // 50: alioth.v1.GetKubernetesIngressDetailResponse
+	(*KubernetesEndpointPortItem)(nil),                       // 51: alioth.v1.KubernetesEndpointPortItem
+	(*KubernetesEndpointItem)(nil),                           // 52: alioth.v1.KubernetesEndpointItem
+	(*GetKubernetesServiceDetailRequest)(nil),                // 53: alioth.v1.GetKubernetesServiceDetailRequest
+	(*GetKubernetesServiceDetailResponse)(nil),               // 54: alioth.v1.GetKubernetesServiceDetailResponse
+	(*KubernetesWorkloadRefItem)(nil),                        // 55: alioth.v1.KubernetesWorkloadRefItem
+	(*GetKubernetesConfigMapDetailRequest)(nil),              // 56: alioth.v1.GetKubernetesConfigMapDetailRequest
+	(*GetKubernetesConfigMapDetailResponse)(nil),             // 57: alioth.v1.GetKubernetesConfigMapDetailResponse
+	(*GetKubernetesSecretDetailRequest)(nil),                 // 58: alioth.v1.GetKubernetesSecretDetailRequest
+	(*GetKubernetesSecretDetailResponse)(nil),                // 59: alioth.v1.GetKubernetesSecretDetailResponse
+	(*GetKubernetesPersistentVolumeClaimDetailRequest)(nil),  // 60: alioth.v1.GetKubernetesPersistentVolumeClaimDetailRequest
+	(*GetKubernetesPersistentVolumeClaimDetailResponse)(nil), // 61: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse
+	(*KubernetesImageVersionItem)(nil),                       // 62: alioth.v1.KubernetesImageVersionItem
+	(*KubernetesWorkloadImageItem)(nil),                      // 63: alioth.v1.KubernetesWorkloadImageItem
+	(*GetKubernetesWorkloadImagesRequest)(nil),               // 64: alioth.v1.GetKubernetesWorkloadImagesRequest
+	(*GetKubernetesWorkloadImagesResponse)(nil),              // 65: alioth.v1.GetKubernetesWorkloadImagesResponse
+	(*SetKubernetesWorkloadImageRequest)(nil),                // 66: alioth.v1.SetKubernetesWorkloadImageRequest
+	(*SetKubernetesWorkloadImageResponse)(nil),               // 67: alioth.v1.SetKubernetesWorkloadImageResponse
+	(*KubernetesWorkloadRevisionItem)(nil),                   // 68: alioth.v1.KubernetesWorkloadRevisionItem
+	(*ListKubernetesWorkloadRevisionsRequest)(nil),           // 69: alioth.v1.ListKubernetesWorkloadRevisionsRequest
+	(*ListKubernetesWorkloadRevisionsResponse)(nil),          // 70: alioth.v1.ListKubernetesWorkloadRevisionsResponse
+	(*RollbackKubernetesWorkloadRequest)(nil),                // 71: alioth.v1.RollbackKubernetesWorkloadRequest
+	(*RollbackKubernetesWorkloadResponse)(nil),               // 72: alioth.v1.RollbackKubernetesWorkloadResponse
+	(*KubernetesJobItem)(nil),                                // 73: alioth.v1.KubernetesJobItem
+	(*ListKubernetesJobsRequest)(nil),                        // 74: alioth.v1.ListKubernetesJobsRequest
+	(*ListKubernetesJobsResponse)(nil),                       // 75: alioth.v1.ListKubernetesJobsResponse
+	(*GetKubernetesJobDetailRequest)(nil),                    // 76: alioth.v1.GetKubernetesJobDetailRequest
+	(*GetKubernetesJobDetailResponse)(nil),                   // 77: alioth.v1.GetKubernetesJobDetailResponse
+	(*DeleteKubernetesJobRequest)(nil),                       // 78: alioth.v1.DeleteKubernetesJobRequest
+	(*DeleteKubernetesJobResponse)(nil),                      // 79: alioth.v1.DeleteKubernetesJobResponse
+	(*KubernetesCronJobItem)(nil),                            // 80: alioth.v1.KubernetesCronJobItem
+	(*ListKubernetesCronJobsRequest)(nil),                    // 81: alioth.v1.ListKubernetesCronJobsRequest
+	(*ListKubernetesCronJobsResponse)(nil),                   // 82: alioth.v1.ListKubernetesCronJobsResponse
+	(*GetKubernetesCronJobDetailRequest)(nil),                // 83: alioth.v1.GetKubernetesCronJobDetailRequest
+	(*GetKubernetesCronJobDetailResponse)(nil),               // 84: alioth.v1.GetKubernetesCronJobDetailResponse
+	(*SetKubernetesCronJobSuspendRequest)(nil),               // 85: alioth.v1.SetKubernetesCronJobSuspendRequest
+	(*SetKubernetesCronJobSuspendResponse)(nil),              // 86: alioth.v1.SetKubernetesCronJobSuspendResponse
+	(*TriggerKubernetesCronJobRequest)(nil),                  // 87: alioth.v1.TriggerKubernetesCronJobRequest
+	(*TriggerKubernetesCronJobResponse)(nil),                 // 88: alioth.v1.TriggerKubernetesCronJobResponse
+	(*DeleteKubernetesCronJobRequest)(nil),                   // 89: alioth.v1.DeleteKubernetesCronJobRequest
+	(*DeleteKubernetesCronJobResponse)(nil),                  // 90: alioth.v1.DeleteKubernetesCronJobResponse
 }
 var file_alioth_v1_kubernetes_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.ListKubernetesNodesResponse.items:type_name -> alioth.v1.KubernetesNodeItem
@@ -7223,42 +7378,42 @@ var file_alioth_v1_kubernetes_proto_depIdxs = []int32{
 	5,  // 3: alioth.v1.RestartKubernetesWorkloadResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
 	12, // 4: alioth.v1.KubernetesPodItem.containers:type_name -> alioth.v1.KubernetesContainerItem
 	13, // 5: alioth.v1.ListKubernetesPodsResponse.items:type_name -> alioth.v1.KubernetesPodItem
-	20, // 6: alioth.v1.KubernetesIngressItem.paths:type_name -> alioth.v1.KubernetesIngressPathItem
-	21, // 7: alioth.v1.ListKubernetesIngressesResponse.items:type_name -> alioth.v1.KubernetesIngressItem
-	26, // 8: alioth.v1.KubernetesServiceItem.ports:type_name -> alioth.v1.KubernetesServicePortItem
-	27, // 9: alioth.v1.ListKubernetesServicesResponse.items:type_name -> alioth.v1.KubernetesServiceItem
-	30, // 10: alioth.v1.ListKubernetesConfigMapsResponse.items:type_name -> alioth.v1.KubernetesConfigMapItem
-	33, // 11: alioth.v1.ListKubernetesSecretsResponse.items:type_name -> alioth.v1.KubernetesSecretItem
-	36, // 12: alioth.v1.ListKubernetesPersistentVolumesResponse.items:type_name -> alioth.v1.KubernetesPersistentVolumeItem
-	39, // 13: alioth.v1.ListKubernetesPersistentVolumeClaimsResponse.items:type_name -> alioth.v1.KubernetesPersistentVolumeClaimItem
+	22, // 6: alioth.v1.KubernetesIngressItem.paths:type_name -> alioth.v1.KubernetesIngressPathItem
+	23, // 7: alioth.v1.ListKubernetesIngressesResponse.items:type_name -> alioth.v1.KubernetesIngressItem
+	28, // 8: alioth.v1.KubernetesServiceItem.ports:type_name -> alioth.v1.KubernetesServicePortItem
+	29, // 9: alioth.v1.ListKubernetesServicesResponse.items:type_name -> alioth.v1.KubernetesServiceItem
+	32, // 10: alioth.v1.ListKubernetesConfigMapsResponse.items:type_name -> alioth.v1.KubernetesConfigMapItem
+	35, // 11: alioth.v1.ListKubernetesSecretsResponse.items:type_name -> alioth.v1.KubernetesSecretItem
+	38, // 12: alioth.v1.ListKubernetesPersistentVolumesResponse.items:type_name -> alioth.v1.KubernetesPersistentVolumeItem
+	41, // 13: alioth.v1.ListKubernetesPersistentVolumeClaimsResponse.items:type_name -> alioth.v1.KubernetesPersistentVolumeClaimItem
 	5,  // 14: alioth.v1.GetKubernetesWorkloadDetailResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
-	44, // 15: alioth.v1.GetKubernetesWorkloadDetailResponse.replicasets:type_name -> alioth.v1.KubernetesReplicaSetItem
+	46, // 15: alioth.v1.GetKubernetesWorkloadDetailResponse.replicasets:type_name -> alioth.v1.KubernetesReplicaSetItem
 	13, // 16: alioth.v1.GetKubernetesWorkloadDetailResponse.pods:type_name -> alioth.v1.KubernetesPodItem
-	21, // 17: alioth.v1.GetKubernetesIngressDetailResponse.ingress:type_name -> alioth.v1.KubernetesIngressItem
-	27, // 18: alioth.v1.GetKubernetesIngressDetailResponse.services:type_name -> alioth.v1.KubernetesServiceItem
-	49, // 19: alioth.v1.KubernetesEndpointItem.ports:type_name -> alioth.v1.KubernetesEndpointPortItem
-	27, // 20: alioth.v1.GetKubernetesServiceDetailResponse.service:type_name -> alioth.v1.KubernetesServiceItem
-	50, // 21: alioth.v1.GetKubernetesServiceDetailResponse.endpoints:type_name -> alioth.v1.KubernetesEndpointItem
-	30, // 22: alioth.v1.GetKubernetesConfigMapDetailResponse.configmap:type_name -> alioth.v1.KubernetesConfigMapItem
-	53, // 23: alioth.v1.GetKubernetesConfigMapDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
-	33, // 24: alioth.v1.GetKubernetesSecretDetailResponse.secret:type_name -> alioth.v1.KubernetesSecretItem
-	53, // 25: alioth.v1.GetKubernetesSecretDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
-	39, // 26: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse.claim:type_name -> alioth.v1.KubernetesPersistentVolumeClaimItem
-	53, // 27: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
-	60, // 28: alioth.v1.KubernetesWorkloadImageItem.versions:type_name -> alioth.v1.KubernetesImageVersionItem
-	61, // 29: alioth.v1.GetKubernetesWorkloadImagesResponse.images:type_name -> alioth.v1.KubernetesWorkloadImageItem
+	23, // 17: alioth.v1.GetKubernetesIngressDetailResponse.ingress:type_name -> alioth.v1.KubernetesIngressItem
+	29, // 18: alioth.v1.GetKubernetesIngressDetailResponse.services:type_name -> alioth.v1.KubernetesServiceItem
+	51, // 19: alioth.v1.KubernetesEndpointItem.ports:type_name -> alioth.v1.KubernetesEndpointPortItem
+	29, // 20: alioth.v1.GetKubernetesServiceDetailResponse.service:type_name -> alioth.v1.KubernetesServiceItem
+	52, // 21: alioth.v1.GetKubernetesServiceDetailResponse.endpoints:type_name -> alioth.v1.KubernetesEndpointItem
+	32, // 22: alioth.v1.GetKubernetesConfigMapDetailResponse.configmap:type_name -> alioth.v1.KubernetesConfigMapItem
+	55, // 23: alioth.v1.GetKubernetesConfigMapDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
+	35, // 24: alioth.v1.GetKubernetesSecretDetailResponse.secret:type_name -> alioth.v1.KubernetesSecretItem
+	55, // 25: alioth.v1.GetKubernetesSecretDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
+	41, // 26: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse.claim:type_name -> alioth.v1.KubernetesPersistentVolumeClaimItem
+	55, // 27: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
+	62, // 28: alioth.v1.KubernetesWorkloadImageItem.versions:type_name -> alioth.v1.KubernetesImageVersionItem
+	63, // 29: alioth.v1.GetKubernetesWorkloadImagesResponse.images:type_name -> alioth.v1.KubernetesWorkloadImageItem
 	5,  // 30: alioth.v1.SetKubernetesWorkloadImageResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
-	66, // 31: alioth.v1.ListKubernetesWorkloadRevisionsResponse.revisions:type_name -> alioth.v1.KubernetesWorkloadRevisionItem
+	68, // 31: alioth.v1.ListKubernetesWorkloadRevisionsResponse.revisions:type_name -> alioth.v1.KubernetesWorkloadRevisionItem
 	5,  // 32: alioth.v1.RollbackKubernetesWorkloadResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
-	71, // 33: alioth.v1.ListKubernetesJobsResponse.items:type_name -> alioth.v1.KubernetesJobItem
-	71, // 34: alioth.v1.GetKubernetesJobDetailResponse.job:type_name -> alioth.v1.KubernetesJobItem
+	73, // 33: alioth.v1.ListKubernetesJobsResponse.items:type_name -> alioth.v1.KubernetesJobItem
+	73, // 34: alioth.v1.GetKubernetesJobDetailResponse.job:type_name -> alioth.v1.KubernetesJobItem
 	13, // 35: alioth.v1.GetKubernetesJobDetailResponse.pods:type_name -> alioth.v1.KubernetesPodItem
-	78, // 36: alioth.v1.ListKubernetesCronJobsResponse.items:type_name -> alioth.v1.KubernetesCronJobItem
-	78, // 37: alioth.v1.GetKubernetesCronJobDetailResponse.cronjob:type_name -> alioth.v1.KubernetesCronJobItem
-	71, // 38: alioth.v1.GetKubernetesCronJobDetailResponse.jobs:type_name -> alioth.v1.KubernetesJobItem
-	78, // 39: alioth.v1.SetKubernetesCronJobSuspendResponse.cronjob:type_name -> alioth.v1.KubernetesCronJobItem
-	71, // 40: alioth.v1.TriggerKubernetesCronJobResponse.job:type_name -> alioth.v1.KubernetesJobItem
-	24, // 41: alioth.v1.KubernetesService.ListKubernetesNamespaces:input_type -> alioth.v1.ListKubernetesNamespacesRequest
+	80, // 36: alioth.v1.ListKubernetesCronJobsResponse.items:type_name -> alioth.v1.KubernetesCronJobItem
+	80, // 37: alioth.v1.GetKubernetesCronJobDetailResponse.cronjob:type_name -> alioth.v1.KubernetesCronJobItem
+	73, // 38: alioth.v1.GetKubernetesCronJobDetailResponse.jobs:type_name -> alioth.v1.KubernetesJobItem
+	80, // 39: alioth.v1.SetKubernetesCronJobSuspendResponse.cronjob:type_name -> alioth.v1.KubernetesCronJobItem
+	73, // 40: alioth.v1.TriggerKubernetesCronJobResponse.job:type_name -> alioth.v1.KubernetesJobItem
+	26, // 41: alioth.v1.KubernetesService.ListKubernetesNamespaces:input_type -> alioth.v1.ListKubernetesNamespacesRequest
 	1,  // 42: alioth.v1.KubernetesService.ListKubernetesNodes:input_type -> alioth.v1.ListKubernetesNodesRequest
 	3,  // 43: alioth.v1.KubernetesService.SetKubernetesNodeUnschedulable:input_type -> alioth.v1.SetKubernetesNodeUnschedulableRequest
 	6,  // 44: alioth.v1.KubernetesService.ListKubernetesWorkloads:input_type -> alioth.v1.ListKubernetesWorkloadsRequest
@@ -7267,67 +7422,69 @@ var file_alioth_v1_kubernetes_proto_depIdxs = []int32{
 	14, // 47: alioth.v1.KubernetesService.ListKubernetesPods:input_type -> alioth.v1.ListKubernetesPodsRequest
 	16, // 48: alioth.v1.KubernetesService.DeleteKubernetesPod:input_type -> alioth.v1.DeleteKubernetesPodRequest
 	18, // 49: alioth.v1.KubernetesService.GetKubernetesPodLogs:input_type -> alioth.v1.GetKubernetesPodLogsRequest
-	22, // 50: alioth.v1.KubernetesService.ListKubernetesIngresses:input_type -> alioth.v1.ListKubernetesIngressesRequest
-	28, // 51: alioth.v1.KubernetesService.ListKubernetesServices:input_type -> alioth.v1.ListKubernetesServicesRequest
-	31, // 52: alioth.v1.KubernetesService.ListKubernetesConfigMaps:input_type -> alioth.v1.ListKubernetesConfigMapsRequest
-	34, // 53: alioth.v1.KubernetesService.ListKubernetesSecrets:input_type -> alioth.v1.ListKubernetesSecretsRequest
-	37, // 54: alioth.v1.KubernetesService.ListKubernetesPersistentVolumes:input_type -> alioth.v1.ListKubernetesPersistentVolumesRequest
-	40, // 55: alioth.v1.KubernetesService.ListKubernetesPersistentVolumeClaims:input_type -> alioth.v1.ListKubernetesPersistentVolumeClaimsRequest
-	42, // 56: alioth.v1.KubernetesService.GetKubernetesResourceYAML:input_type -> alioth.v1.GetKubernetesResourceYAMLRequest
-	45, // 57: alioth.v1.KubernetesService.GetKubernetesWorkloadDetail:input_type -> alioth.v1.GetKubernetesWorkloadDetailRequest
-	47, // 58: alioth.v1.KubernetesService.GetKubernetesIngressDetail:input_type -> alioth.v1.GetKubernetesIngressDetailRequest
-	51, // 59: alioth.v1.KubernetesService.GetKubernetesServiceDetail:input_type -> alioth.v1.GetKubernetesServiceDetailRequest
-	54, // 60: alioth.v1.KubernetesService.GetKubernetesConfigMapDetail:input_type -> alioth.v1.GetKubernetesConfigMapDetailRequest
-	56, // 61: alioth.v1.KubernetesService.GetKubernetesSecretDetail:input_type -> alioth.v1.GetKubernetesSecretDetailRequest
-	58, // 62: alioth.v1.KubernetesService.GetKubernetesPersistentVolumeClaimDetail:input_type -> alioth.v1.GetKubernetesPersistentVolumeClaimDetailRequest
-	62, // 63: alioth.v1.KubernetesService.GetKubernetesWorkloadImages:input_type -> alioth.v1.GetKubernetesWorkloadImagesRequest
-	64, // 64: alioth.v1.KubernetesService.SetKubernetesWorkloadImage:input_type -> alioth.v1.SetKubernetesWorkloadImageRequest
-	67, // 65: alioth.v1.KubernetesService.ListKubernetesWorkloadRevisions:input_type -> alioth.v1.ListKubernetesWorkloadRevisionsRequest
-	69, // 66: alioth.v1.KubernetesService.RollbackKubernetesWorkload:input_type -> alioth.v1.RollbackKubernetesWorkloadRequest
-	72, // 67: alioth.v1.KubernetesService.ListKubernetesJobs:input_type -> alioth.v1.ListKubernetesJobsRequest
-	74, // 68: alioth.v1.KubernetesService.GetKubernetesJobDetail:input_type -> alioth.v1.GetKubernetesJobDetailRequest
-	76, // 69: alioth.v1.KubernetesService.DeleteKubernetesJob:input_type -> alioth.v1.DeleteKubernetesJobRequest
-	79, // 70: alioth.v1.KubernetesService.ListKubernetesCronJobs:input_type -> alioth.v1.ListKubernetesCronJobsRequest
-	81, // 71: alioth.v1.KubernetesService.GetKubernetesCronJobDetail:input_type -> alioth.v1.GetKubernetesCronJobDetailRequest
-	83, // 72: alioth.v1.KubernetesService.SetKubernetesCronJobSuspend:input_type -> alioth.v1.SetKubernetesCronJobSuspendRequest
-	85, // 73: alioth.v1.KubernetesService.TriggerKubernetesCronJob:input_type -> alioth.v1.TriggerKubernetesCronJobRequest
-	87, // 74: alioth.v1.KubernetesService.DeleteKubernetesCronJob:input_type -> alioth.v1.DeleteKubernetesCronJobRequest
-	25, // 75: alioth.v1.KubernetesService.ListKubernetesNamespaces:output_type -> alioth.v1.ListKubernetesNamespacesResponse
-	2,  // 76: alioth.v1.KubernetesService.ListKubernetesNodes:output_type -> alioth.v1.ListKubernetesNodesResponse
-	4,  // 77: alioth.v1.KubernetesService.SetKubernetesNodeUnschedulable:output_type -> alioth.v1.SetKubernetesNodeUnschedulableResponse
-	7,  // 78: alioth.v1.KubernetesService.ListKubernetesWorkloads:output_type -> alioth.v1.ListKubernetesWorkloadsResponse
-	9,  // 79: alioth.v1.KubernetesService.ScaleKubernetesWorkload:output_type -> alioth.v1.ScaleKubernetesWorkloadResponse
-	11, // 80: alioth.v1.KubernetesService.RestartKubernetesWorkload:output_type -> alioth.v1.RestartKubernetesWorkloadResponse
-	15, // 81: alioth.v1.KubernetesService.ListKubernetesPods:output_type -> alioth.v1.ListKubernetesPodsResponse
-	17, // 82: alioth.v1.KubernetesService.DeleteKubernetesPod:output_type -> alioth.v1.DeleteKubernetesPodResponse
-	19, // 83: alioth.v1.KubernetesService.GetKubernetesPodLogs:output_type -> alioth.v1.GetKubernetesPodLogsResponse
-	23, // 84: alioth.v1.KubernetesService.ListKubernetesIngresses:output_type -> alioth.v1.ListKubernetesIngressesResponse
-	29, // 85: alioth.v1.KubernetesService.ListKubernetesServices:output_type -> alioth.v1.ListKubernetesServicesResponse
-	32, // 86: alioth.v1.KubernetesService.ListKubernetesConfigMaps:output_type -> alioth.v1.ListKubernetesConfigMapsResponse
-	35, // 87: alioth.v1.KubernetesService.ListKubernetesSecrets:output_type -> alioth.v1.ListKubernetesSecretsResponse
-	38, // 88: alioth.v1.KubernetesService.ListKubernetesPersistentVolumes:output_type -> alioth.v1.ListKubernetesPersistentVolumesResponse
-	41, // 89: alioth.v1.KubernetesService.ListKubernetesPersistentVolumeClaims:output_type -> alioth.v1.ListKubernetesPersistentVolumeClaimsResponse
-	43, // 90: alioth.v1.KubernetesService.GetKubernetesResourceYAML:output_type -> alioth.v1.GetKubernetesResourceYAMLResponse
-	46, // 91: alioth.v1.KubernetesService.GetKubernetesWorkloadDetail:output_type -> alioth.v1.GetKubernetesWorkloadDetailResponse
-	48, // 92: alioth.v1.KubernetesService.GetKubernetesIngressDetail:output_type -> alioth.v1.GetKubernetesIngressDetailResponse
-	52, // 93: alioth.v1.KubernetesService.GetKubernetesServiceDetail:output_type -> alioth.v1.GetKubernetesServiceDetailResponse
-	55, // 94: alioth.v1.KubernetesService.GetKubernetesConfigMapDetail:output_type -> alioth.v1.GetKubernetesConfigMapDetailResponse
-	57, // 95: alioth.v1.KubernetesService.GetKubernetesSecretDetail:output_type -> alioth.v1.GetKubernetesSecretDetailResponse
-	59, // 96: alioth.v1.KubernetesService.GetKubernetesPersistentVolumeClaimDetail:output_type -> alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse
-	63, // 97: alioth.v1.KubernetesService.GetKubernetesWorkloadImages:output_type -> alioth.v1.GetKubernetesWorkloadImagesResponse
-	65, // 98: alioth.v1.KubernetesService.SetKubernetesWorkloadImage:output_type -> alioth.v1.SetKubernetesWorkloadImageResponse
-	68, // 99: alioth.v1.KubernetesService.ListKubernetesWorkloadRevisions:output_type -> alioth.v1.ListKubernetesWorkloadRevisionsResponse
-	70, // 100: alioth.v1.KubernetesService.RollbackKubernetesWorkload:output_type -> alioth.v1.RollbackKubernetesWorkloadResponse
-	73, // 101: alioth.v1.KubernetesService.ListKubernetesJobs:output_type -> alioth.v1.ListKubernetesJobsResponse
-	75, // 102: alioth.v1.KubernetesService.GetKubernetesJobDetail:output_type -> alioth.v1.GetKubernetesJobDetailResponse
-	77, // 103: alioth.v1.KubernetesService.DeleteKubernetesJob:output_type -> alioth.v1.DeleteKubernetesJobResponse
-	80, // 104: alioth.v1.KubernetesService.ListKubernetesCronJobs:output_type -> alioth.v1.ListKubernetesCronJobsResponse
-	82, // 105: alioth.v1.KubernetesService.GetKubernetesCronJobDetail:output_type -> alioth.v1.GetKubernetesCronJobDetailResponse
-	84, // 106: alioth.v1.KubernetesService.SetKubernetesCronJobSuspend:output_type -> alioth.v1.SetKubernetesCronJobSuspendResponse
-	86, // 107: alioth.v1.KubernetesService.TriggerKubernetesCronJob:output_type -> alioth.v1.TriggerKubernetesCronJobResponse
-	88, // 108: alioth.v1.KubernetesService.DeleteKubernetesCronJob:output_type -> alioth.v1.DeleteKubernetesCronJobResponse
-	75, // [75:109] is the sub-list for method output_type
-	41, // [41:75] is the sub-list for method input_type
+	20, // 50: alioth.v1.KubernetesService.IssueKubernetesPodExecTicket:input_type -> alioth.v1.IssueKubernetesPodExecTicketRequest
+	24, // 51: alioth.v1.KubernetesService.ListKubernetesIngresses:input_type -> alioth.v1.ListKubernetesIngressesRequest
+	30, // 52: alioth.v1.KubernetesService.ListKubernetesServices:input_type -> alioth.v1.ListKubernetesServicesRequest
+	33, // 53: alioth.v1.KubernetesService.ListKubernetesConfigMaps:input_type -> alioth.v1.ListKubernetesConfigMapsRequest
+	36, // 54: alioth.v1.KubernetesService.ListKubernetesSecrets:input_type -> alioth.v1.ListKubernetesSecretsRequest
+	39, // 55: alioth.v1.KubernetesService.ListKubernetesPersistentVolumes:input_type -> alioth.v1.ListKubernetesPersistentVolumesRequest
+	42, // 56: alioth.v1.KubernetesService.ListKubernetesPersistentVolumeClaims:input_type -> alioth.v1.ListKubernetesPersistentVolumeClaimsRequest
+	44, // 57: alioth.v1.KubernetesService.GetKubernetesResourceYAML:input_type -> alioth.v1.GetKubernetesResourceYAMLRequest
+	47, // 58: alioth.v1.KubernetesService.GetKubernetesWorkloadDetail:input_type -> alioth.v1.GetKubernetesWorkloadDetailRequest
+	49, // 59: alioth.v1.KubernetesService.GetKubernetesIngressDetail:input_type -> alioth.v1.GetKubernetesIngressDetailRequest
+	53, // 60: alioth.v1.KubernetesService.GetKubernetesServiceDetail:input_type -> alioth.v1.GetKubernetesServiceDetailRequest
+	56, // 61: alioth.v1.KubernetesService.GetKubernetesConfigMapDetail:input_type -> alioth.v1.GetKubernetesConfigMapDetailRequest
+	58, // 62: alioth.v1.KubernetesService.GetKubernetesSecretDetail:input_type -> alioth.v1.GetKubernetesSecretDetailRequest
+	60, // 63: alioth.v1.KubernetesService.GetKubernetesPersistentVolumeClaimDetail:input_type -> alioth.v1.GetKubernetesPersistentVolumeClaimDetailRequest
+	64, // 64: alioth.v1.KubernetesService.GetKubernetesWorkloadImages:input_type -> alioth.v1.GetKubernetesWorkloadImagesRequest
+	66, // 65: alioth.v1.KubernetesService.SetKubernetesWorkloadImage:input_type -> alioth.v1.SetKubernetesWorkloadImageRequest
+	69, // 66: alioth.v1.KubernetesService.ListKubernetesWorkloadRevisions:input_type -> alioth.v1.ListKubernetesWorkloadRevisionsRequest
+	71, // 67: alioth.v1.KubernetesService.RollbackKubernetesWorkload:input_type -> alioth.v1.RollbackKubernetesWorkloadRequest
+	74, // 68: alioth.v1.KubernetesService.ListKubernetesJobs:input_type -> alioth.v1.ListKubernetesJobsRequest
+	76, // 69: alioth.v1.KubernetesService.GetKubernetesJobDetail:input_type -> alioth.v1.GetKubernetesJobDetailRequest
+	78, // 70: alioth.v1.KubernetesService.DeleteKubernetesJob:input_type -> alioth.v1.DeleteKubernetesJobRequest
+	81, // 71: alioth.v1.KubernetesService.ListKubernetesCronJobs:input_type -> alioth.v1.ListKubernetesCronJobsRequest
+	83, // 72: alioth.v1.KubernetesService.GetKubernetesCronJobDetail:input_type -> alioth.v1.GetKubernetesCronJobDetailRequest
+	85, // 73: alioth.v1.KubernetesService.SetKubernetesCronJobSuspend:input_type -> alioth.v1.SetKubernetesCronJobSuspendRequest
+	87, // 74: alioth.v1.KubernetesService.TriggerKubernetesCronJob:input_type -> alioth.v1.TriggerKubernetesCronJobRequest
+	89, // 75: alioth.v1.KubernetesService.DeleteKubernetesCronJob:input_type -> alioth.v1.DeleteKubernetesCronJobRequest
+	27, // 76: alioth.v1.KubernetesService.ListKubernetesNamespaces:output_type -> alioth.v1.ListKubernetesNamespacesResponse
+	2,  // 77: alioth.v1.KubernetesService.ListKubernetesNodes:output_type -> alioth.v1.ListKubernetesNodesResponse
+	4,  // 78: alioth.v1.KubernetesService.SetKubernetesNodeUnschedulable:output_type -> alioth.v1.SetKubernetesNodeUnschedulableResponse
+	7,  // 79: alioth.v1.KubernetesService.ListKubernetesWorkloads:output_type -> alioth.v1.ListKubernetesWorkloadsResponse
+	9,  // 80: alioth.v1.KubernetesService.ScaleKubernetesWorkload:output_type -> alioth.v1.ScaleKubernetesWorkloadResponse
+	11, // 81: alioth.v1.KubernetesService.RestartKubernetesWorkload:output_type -> alioth.v1.RestartKubernetesWorkloadResponse
+	15, // 82: alioth.v1.KubernetesService.ListKubernetesPods:output_type -> alioth.v1.ListKubernetesPodsResponse
+	17, // 83: alioth.v1.KubernetesService.DeleteKubernetesPod:output_type -> alioth.v1.DeleteKubernetesPodResponse
+	19, // 84: alioth.v1.KubernetesService.GetKubernetesPodLogs:output_type -> alioth.v1.GetKubernetesPodLogsResponse
+	21, // 85: alioth.v1.KubernetesService.IssueKubernetesPodExecTicket:output_type -> alioth.v1.IssueKubernetesPodExecTicketResponse
+	25, // 86: alioth.v1.KubernetesService.ListKubernetesIngresses:output_type -> alioth.v1.ListKubernetesIngressesResponse
+	31, // 87: alioth.v1.KubernetesService.ListKubernetesServices:output_type -> alioth.v1.ListKubernetesServicesResponse
+	34, // 88: alioth.v1.KubernetesService.ListKubernetesConfigMaps:output_type -> alioth.v1.ListKubernetesConfigMapsResponse
+	37, // 89: alioth.v1.KubernetesService.ListKubernetesSecrets:output_type -> alioth.v1.ListKubernetesSecretsResponse
+	40, // 90: alioth.v1.KubernetesService.ListKubernetesPersistentVolumes:output_type -> alioth.v1.ListKubernetesPersistentVolumesResponse
+	43, // 91: alioth.v1.KubernetesService.ListKubernetesPersistentVolumeClaims:output_type -> alioth.v1.ListKubernetesPersistentVolumeClaimsResponse
+	45, // 92: alioth.v1.KubernetesService.GetKubernetesResourceYAML:output_type -> alioth.v1.GetKubernetesResourceYAMLResponse
+	48, // 93: alioth.v1.KubernetesService.GetKubernetesWorkloadDetail:output_type -> alioth.v1.GetKubernetesWorkloadDetailResponse
+	50, // 94: alioth.v1.KubernetesService.GetKubernetesIngressDetail:output_type -> alioth.v1.GetKubernetesIngressDetailResponse
+	54, // 95: alioth.v1.KubernetesService.GetKubernetesServiceDetail:output_type -> alioth.v1.GetKubernetesServiceDetailResponse
+	57, // 96: alioth.v1.KubernetesService.GetKubernetesConfigMapDetail:output_type -> alioth.v1.GetKubernetesConfigMapDetailResponse
+	59, // 97: alioth.v1.KubernetesService.GetKubernetesSecretDetail:output_type -> alioth.v1.GetKubernetesSecretDetailResponse
+	61, // 98: alioth.v1.KubernetesService.GetKubernetesPersistentVolumeClaimDetail:output_type -> alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse
+	65, // 99: alioth.v1.KubernetesService.GetKubernetesWorkloadImages:output_type -> alioth.v1.GetKubernetesWorkloadImagesResponse
+	67, // 100: alioth.v1.KubernetesService.SetKubernetesWorkloadImage:output_type -> alioth.v1.SetKubernetesWorkloadImageResponse
+	70, // 101: alioth.v1.KubernetesService.ListKubernetesWorkloadRevisions:output_type -> alioth.v1.ListKubernetesWorkloadRevisionsResponse
+	72, // 102: alioth.v1.KubernetesService.RollbackKubernetesWorkload:output_type -> alioth.v1.RollbackKubernetesWorkloadResponse
+	75, // 103: alioth.v1.KubernetesService.ListKubernetesJobs:output_type -> alioth.v1.ListKubernetesJobsResponse
+	77, // 104: alioth.v1.KubernetesService.GetKubernetesJobDetail:output_type -> alioth.v1.GetKubernetesJobDetailResponse
+	79, // 105: alioth.v1.KubernetesService.DeleteKubernetesJob:output_type -> alioth.v1.DeleteKubernetesJobResponse
+	82, // 106: alioth.v1.KubernetesService.ListKubernetesCronJobs:output_type -> alioth.v1.ListKubernetesCronJobsResponse
+	84, // 107: alioth.v1.KubernetesService.GetKubernetesCronJobDetail:output_type -> alioth.v1.GetKubernetesCronJobDetailResponse
+	86, // 108: alioth.v1.KubernetesService.SetKubernetesCronJobSuspend:output_type -> alioth.v1.SetKubernetesCronJobSuspendResponse
+	88, // 109: alioth.v1.KubernetesService.TriggerKubernetesCronJob:output_type -> alioth.v1.TriggerKubernetesCronJobResponse
+	90, // 110: alioth.v1.KubernetesService.DeleteKubernetesCronJob:output_type -> alioth.v1.DeleteKubernetesCronJobResponse
+	76, // [76:111] is the sub-list for method output_type
+	41, // [41:76] is the sub-list for method input_type
 	41, // [41:41] is the sub-list for extension type_name
 	41, // [41:41] is the sub-list for extension extendee
 	0,  // [0:41] is the sub-list for field type_name
@@ -7344,7 +7501,7 @@ func file_alioth_v1_kubernetes_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_kubernetes_proto_rawDesc), len(file_alioth_v1_kubernetes_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   89,
+			NumMessages:   91,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

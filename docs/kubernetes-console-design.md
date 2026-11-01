@@ -118,16 +118,21 @@
 | --- | --- |
 | `cluster:read` | 查看集群列表/详情、测试连接、进入控制台；无权限时跳 `/forbidden` |
 | `cluster:write` / `cluster:delete` | 接入、更新、探测 kubeconfig / 删除集群 |
-| `k8s:node:read` / `k8s:node:write` | 节点列表与详情 / cordon、uncordon |
-| `k8s:workload:read` / `k8s:workload:write` | 工作负载列表、详情、镜像与历史版本 / 调整副本、滚动重启、设置镜像、版本回滚 |
-| `k8s:pod:read` / `k8s:pod:write` / `k8s:pod:logs` | Pod 列表与详情 / 删除 Pod / 读取容器日志 |
+| `k8s:node:read` / `k8s:node:cordon` | 节点列表与详情 / cordon、uncordon |
+| `k8s:workload:read` | 工作负载列表与详情、镜像与历史版本查看 |
+| `k8s:workload:scale` | 调整副本数 |
+| `k8s:workload:restart` | 滚动重启 |
+| `k8s:workload:image` | 设置容器镜像 |
+| `k8s:workload:rollback` | 版本回滚 |
+| `k8s:pod:read` / `k8s:pod:logs` | Pod 列表与详情 / 读取容器日志 |
+| `k8s:pod:delete` / `k8s:pod:exec` | 删除 Pod / 打开 Pod 容器 Web Shell |
 | `k8s:ingress:read`、`k8s:service:read` | Ingress、Service 列表与详情 |
 | `k8s:configmap:read`、`k8s:secret:read` | ConfigMap、Secret 列表与详情（仅键名） |
 | `k8s:pv:read`、`k8s:pvc:read` | PV、PVC 列表与详情 |
-| `k8s:job:read` / `k8s:job:write` | Job 列表与详情 / 删除 Job |
-| `k8s:cronjob:read` / `k8s:cronjob:write` | CronJob 列表与详情 / 暂停、恢复、立即运行、删除 CronJob |
+| `k8s:job:read` / `k8s:job:delete` | Job 列表与详情 / 删除 Job |
+| `k8s:cronjob:read` / `k8s:cronjob:suspend` / `k8s:cronjob:trigger` / `k8s:cronjob:delete` | CronJob 列表与详情 / 暂停、恢复 / 立即运行 / 删除 CronJob |
 
-预置角色：`owner`、`admin` 全部；`member`、`viewer` 拿到全部 `k8s:*:read` 与 `k8s:pod:logs`，没有写权限。缺某个 `k8s:*:read` 时对应导航、Tab 和 YAML 入口不显示，直接访问 URL 回落到概况。服务端仍独立校验，页面只负责隐藏入口。
+租户负责人隐式持有全部已开通能力内的权限；自定义角色由租户按菜单和子权限自行创建（M24 起不再预置 `owner`/`admin`/`member`/`viewer` 系统角色）。缺某个 `k8s:*:read` 时对应导航、Tab 和 YAML 入口不显示，直接访问 URL 回落到概况。操作权限（`cordon`、`scale`、`restart`、`image`、`rollback`、`delete`、`exec`、`suspend`、`trigger`）各自独立，缺哪个就只隐藏对应按钮。服务端仍独立校验，页面只负责隐藏入口。
 
 ## 4. 详情抽屉
 
@@ -221,6 +226,18 @@ Pod 采样而不全量拉取的原因：`ListPods` 在服务端先列全量再�
 - 读接口要求对应资源的 `k8s:*:read`（工作负载、Job、CronJob），写接口要求对应资源的 `k8s:*:write`；分页参数与十一类列表一致，排序为 namespace/name。
 - YAML 接口的 `kind` 扩展到 `Job`、`CronJob`；Secret/ConfigMap 脱敏规则不变。
 - 以上接口都不落库、不新增表与迁移。
+
+### M25 新增接口：Pod 终端
+
+| 方法 | 路径 | 权限 | 说明 |
+| --- | --- | --- | --- |
+| `POST` | `/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec-ticket` | `k8s:pod:exec` | 请求带 `container`、`cols`、`rows`；返回 60 秒内一次性票据 |
+| `GET` | `/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec?ticket=…` | 票据 | WebSocket：二进制帧为终端字节，文本帧 `{"type":"resize","cols":80,"rows":24}`；关闭前发 `{"type":"exit","reason":"…"}` |
+
+- 服务端用已保存的 kubeconfig 建 `rest.Config`，经 `pods/exec` 子资源打开 TTY `/bin/sh`，浏览器用 xterm 渲染。
+- 票据绑定集群 / 命名空间 / Pod / 容器，只能消费一次；过期、重复使用或目标不匹配返回 401。
+- 页面路由是 `/clusters/{cluster_uid}/pods/{namespace}/{name}/exec?container={容器}`，从 Pod 行操作「终端」进入，属于当前集群详情页面的子路由；多容器 Pod 在终端页顶部切换容器。
+- 终端页占满应用外壳内容区，只有终端自身滚动，不产生文档级滚动。
 
 ## 7. 后续可增强
 

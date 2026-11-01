@@ -1,105 +1,61 @@
-import { useEffect, useRef, useState } from "react"
-import { Link, useParams } from "react-router-dom"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { FitAddon } from "@xterm/addon-fit"
-import { Terminal } from "@xterm/xterm"
-import "@xterm/xterm/css/xterm.css"
+import { Link, useParams } from "react-router-dom"
 
 import { issueShellTicket } from "@/api/agent"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { formErrorMessage } from "@/lib/form-error"
+import {
+  XtermTerminal,
+  type XtermSessionState,
+} from "@/components/xterm-terminal"
 
 export function AgentShellPage() {
   const { t } = useTranslation()
   const { uid = "" } = useParams()
-  const host = useRef<HTMLDivElement>(null)
-  const [error, setError] = useState("")
+  const [attempt, setAttempt] = useState(0)
+  const [state, setState] = useState<XtermSessionState>({ state: "connecting" })
 
-  useEffect(() => {
-    const el = host.current
-    if (!el || !uid) {
-      return
-    }
-    let active = true
-    let socket: WebSocket | null = null
-    const term = new Terminal({
-      cursorBlink: true,
-      fontFamily: "JetBrains Mono, ui-monospace, monospace",
-      fontSize: 14,
-    })
-    const fit = new FitAddon()
-    term.loadAddon(fit)
-    term.open(el)
-    fit.fit()
+  const errorMessage =
+    state.state === "failed"
+      ? state.message || t("agent.shellFailed")
+      : state.state === "closed"
+        ? state.reason || t("agent.shellClosed")
+        : ""
 
-    function sendResize() {
-      fit.fit()
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }))
-      }
-    }
-
-    term.onData((data) => {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(new TextEncoder().encode(data))
-      }
-    })
-
-    void issueShellTicket(uid)
-      .then(({ ticket }) => {
-        if (!active) {
-          return
-        }
-        const proto = window.location.protocol === "https:" ? "wss" : "ws"
-        socket = new WebSocket(`${proto}//${window.location.host}/v1/agent/${uid}/shell?ticket=${encodeURIComponent(ticket)}`)
-        socket.binaryType = "arraybuffer"
-        socket.onopen = () => sendResize()
-        socket.onmessage = (event) => {
-          if (typeof event.data === "string") {
-            try {
-              const payload = JSON.parse(event.data) as { type?: string; reason?: string }
-              if (payload.type === "exit") {
-                setError(payload.reason || t("agent.shellClosed"))
-                return
-              }
-            } catch {
-              term.write(event.data)
-            }
-            return
-          }
-          term.write(new Uint8Array(event.data as ArrayBuffer))
-        }
-        socket.onerror = () => {
-          if (active) {
-            setError(t("agent.shellFailed"))
-          }
-        }
-      })
-      .catch((err: unknown) => {
-        if (active) {
-          setError(formErrorMessage(err, t("agent.shellFailed")))
-        }
-      })
-
-    window.addEventListener("resize", sendResize)
-    return () => {
-      active = false
-      window.removeEventListener("resize", sendResize)
-      socket?.close()
-      term.dispose()
-    }
-  }, [t, uid])
+  function reconnect() {
+    setState({ state: "connecting" })
+    setAttempt((value) => value + 1)
+  }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
-      <PageHeader title={t("agent.shellTitle")} description={t("agent.shellDescription")}>
+      <PageHeader
+        title={t("agent.shellTitle")}
+        description={t("agent.shellDescription")}
+      >
         <Button variant="outline" asChild>
           <Link to="/agents">{t("agent.back")}</Link>
         </Button>
       </PageHeader>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <div ref={host} className="min-h-96 flex-1 overflow-hidden rounded-xl bg-black p-2" />
+      {errorMessage ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm text-destructive">{errorMessage}</p>
+          <Button variant="outline" onClick={reconnect}>
+            {t("agent.shellReconnect")}
+          </Button>
+        </div>
+      ) : null}
+      <XtermTerminal
+        sessionKey={`${uid}|${attempt}`}
+        issueTicket={async () => (await issueShellTicket(uid)).ticket}
+        socketUrl={(ticket) => {
+          const proto = window.location.protocol === "https:" ? "wss" : "ws"
+          return `${proto}//${window.location.host}/v1/agent/${encodeURIComponent(uid)}/shell?ticket=${encodeURIComponent(ticket)}`
+        }}
+        onStateChange={setState}
+        className="min-h-96 flex-1"
+      />
     </section>
   )
 }

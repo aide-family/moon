@@ -52,6 +52,13 @@ const messageKeys: Record<string, string> = {
   "cluster is rate limited": "error.clusterRateLimited",
   "cluster is unavailable": "error.clusterUnavailable",
   "pod has no containers": "error.podNoContainers",
+  // Pod Exec 与机器标签是 M25 新增的接口错误原文。
+  "container is required": "error.containerRequired",
+  "pod exec unavailable": "error.podExecUnavailable",
+  "pod exec is unavailable": "error.podExecUnavailable",
+  "invalid labels": "error.invalidLabels",
+  "labels are required": "error.labelsRequired",
+  "too many labels": "error.tooManyLabels",
   "access token required": "error.accessTokenRequired",
   "refresh token required": "error.refreshTokenRequired",
   "invalid token": "error.invalidToken",

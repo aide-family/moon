@@ -5,6 +5,8 @@ import type {
   CreateAgentParams,
   ListAgentsParams,
   ListAgentsResult,
+  MatchAgentsParams,
+  MatchAgentsResult,
   UpdateAgentParams,
 } from "./types"
 
@@ -48,10 +50,19 @@ export function issueShellTicket(uid: string): Promise<{ ticket: string }> {
   return post<{ ticket: string }>(`/agent/${uid}/shell-ticket`, {})
 }
 
+/** POST /v1/agents/match：按标签解析候选主机，只返回当前租户 ACTIVE 的机器。 */
+export function matchAgents(
+  body: MatchAgentsParams
+): Promise<MatchAgentsResult> {
+  return post<MatchAgentsResult>("/agents/match", body)
+}
+
 export type {
   AgentItem,
   CreateAgentParams,
   ListAgentsParams,
   ListAgentsResult,
+  MatchAgentsParams,
+  MatchAgentsResult,
   UpdateAgentParams,
 } from "./types"

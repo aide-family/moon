@@ -22,6 +22,8 @@ import type {
   GetKubernetesWorkloadDetailResult,
   GetKubernetesWorkloadImagesParams,
   GetKubernetesWorkloadImagesResult,
+  IssueKubernetesPodExecTicketParams,
+  IssueKubernetesPodExecTicketResult,
   KubernetesCronJobItem,
   KubernetesJobItem,
   KubernetesPodLogsParams,
@@ -262,6 +264,36 @@ export function getKubernetesPodLogs(
       previous: params.previous,
     }
   )
+}
+
+/**
+ * POST /v1/cluster/{clusterUid}/namespace/{namespace}/pod/{name}/exec-ticket
+ * 签发一次性 Pod 终端票据；票据绑定集群、命名空间、Pod、容器与窗口大小。
+ */
+export function issueKubernetesPodExecTicket(
+  clusterUid: string,
+  namespace: string,
+  name: string,
+  params: IssueKubernetesPodExecTicketParams
+): Promise<IssueKubernetesPodExecTicketResult> {
+  return post<IssueKubernetesPodExecTicketResult>(
+    `/cluster/${segment(clusterUid)}/namespace/${segment(namespace)}/pod/${segment(name)}/exec-ticket`,
+    params
+  )
+}
+
+/**
+ * Pod 终端的 WebSocket 地址，协议跟随当前页面。
+ * 票据由 issueKubernetesPodExecTicket 签发，只能消费一次。
+ */
+export function kubernetesPodExecSocketURL(
+  clusterUid: string,
+  namespace: string,
+  name: string,
+  ticket: string
+): string {
+  const proto = window.location.protocol === "https:" ? "wss" : "ws"
+  return `${proto}//${window.location.host}/v1/cluster/${segment(clusterUid)}/namespace/${segment(namespace)}/pod/${segment(name)}/exec?ticket=${encodeURIComponent(ticket)}`
 }
 
 /** GET /v1/cluster/{clusterUid}/jobs */
@@ -540,6 +572,8 @@ export type {
   GetKubernetesWorkloadDetailResult,
   GetKubernetesWorkloadImagesParams,
   GetKubernetesWorkloadImagesResult,
+  IssueKubernetesPodExecTicketParams,
+  IssueKubernetesPodExecTicketResult,
   KubernetesConfigMapItem,
   KubernetesCronJobItem,
   KubernetesEndpointItem,

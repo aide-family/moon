@@ -141,7 +141,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	kubernetesRepo := data.NewKubernetesRepo(dependencies, logger)
 	explorer := cluster.NewExplorer(clusterRepo, kubernetesRepo, accessChecker)
 	operator := cluster.NewOperator(clusterRepo, kubernetesRepo, accessChecker)
-	kubernetesService := service.NewKubernetesService(explorer, operator)
+	terminal := cluster.NewTerminal(clusterRepo, kubernetesRepo, accessChecker)
+	kubernetesService := service.NewKubernetesService(explorer, operator, terminal)
 	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, probeTargetService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, messageLogService, workerService, maintenanceService, agentService, sshCommandService, clusterService, kubernetesService, authenticator, logger)
 	if err != nil {
 		cleanup2()
@@ -159,7 +160,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	partitionRepo := data.NewPartitionRepo(dependencies, logger)
 	maintainer := partition.NewMaintainer(partitionRepo, client, logger)
 	scheduler := server.NewScheduler(coordinator, center, maintainer, roster, logger)
-	app := newApp(logger, httpServer, grpcServer, scheduler, hub, dependencies)
+	app := newApp(logger, httpServer, grpcServer, scheduler, hub, terminal, dependencies)
 	return app, func() {
 		cleanup2()
 		cleanup()

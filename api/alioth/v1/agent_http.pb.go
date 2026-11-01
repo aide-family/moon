@@ -22,6 +22,7 @@ const OperationAgentServiceDeleteAgent = "/alioth.v1.AgentService/DeleteAgent"
 const OperationAgentServiceGetAgent = "/alioth.v1.AgentService/GetAgent"
 const OperationAgentServiceIssueShellTicket = "/alioth.v1.AgentService/IssueShellTicket"
 const OperationAgentServiceListAgents = "/alioth.v1.AgentService/ListAgents"
+const OperationAgentServiceMatchAgents = "/alioth.v1.AgentService/MatchAgents"
 const OperationAgentServiceRevokeAgent = "/alioth.v1.AgentService/RevokeAgent"
 const OperationAgentServiceRotateAgentToken = "/alioth.v1.AgentService/RotateAgentToken"
 const OperationAgentServiceUpdateAgent = "/alioth.v1.AgentService/UpdateAgent"
@@ -37,6 +38,8 @@ type AgentServiceHTTPServer interface {
 	IssueShellTicket(context.Context, *IssueShellTicketRequest) (*IssueShellTicketResponse, error)
 	// ListAgents 分页列出机器。
 	ListAgents(context.Context, *ListAgentsRequest) (*ListAgentsResponse, error)
+	// MatchAgents 按标签匹配机器，供 SSH 命令执行前的二次确认。只接受具备 ssh:exec 的用户。
+	MatchAgents(context.Context, *MatchAgentsRequest) (*MatchAgentsResponse, error)
 	// RevokeAgent 吊销令牌。下一次心跳关闭流。
 	RevokeAgent(context.Context, *RevokeAgentRequest) (*RevokeAgentResponse, error)
 	// RotateAgentToken 重新签发令牌。旧令牌立即失效。
@@ -54,6 +57,7 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.Handle("DELETE", "/v1/agent/{uid}", _AgentService_DeleteAgent0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/agent/{uid}", _AgentService_GetAgent0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/agents", _AgentService_ListAgents0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/agents/match", _AgentService_MatchAgents0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/agent/{uid}/shell-ticket", _AgentService_IssueShellTicket0_HTTP_Handler(srv))
 }
 
@@ -205,6 +209,25 @@ func _AgentService_ListAgents0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx
 	}
 }
 
+func _AgentService_MatchAgents0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in MatchAgentsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceMatchAgents)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MatchAgents(ctx, req.(*MatchAgentsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MatchAgentsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AgentService_IssueShellTicket0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in IssueShellTicketRequest
@@ -238,6 +261,8 @@ type AgentServiceHTTPClient interface {
 	IssueShellTicket(ctx context.Context, req *IssueShellTicketRequest, opts ...http.CallOption) (rsp *IssueShellTicketResponse, err error)
 	// ListAgents 分页列出机器。
 	ListAgents(ctx context.Context, req *ListAgentsRequest, opts ...http.CallOption) (rsp *ListAgentsResponse, err error)
+	// MatchAgents 按标签匹配机器，供 SSH 命令执行前的二次确认。只接受具备 ssh:exec 的用户。
+	MatchAgents(ctx context.Context, req *MatchAgentsRequest, opts ...http.CallOption) (rsp *MatchAgentsResponse, err error)
 	// RevokeAgent 吊销令牌。下一次心跳关闭流。
 	RevokeAgent(ctx context.Context, req *RevokeAgentRequest, opts ...http.CallOption) (rsp *RevokeAgentResponse, err error)
 	// RotateAgentToken 重新签发令牌。旧令牌立即失效。
@@ -335,6 +360,24 @@ func (c *AgentServiceHTTPClientImpl) ListAgents(ctx context.Context, in *ListAge
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// MatchAgents 按标签匹配机器，供 SSH 命令执行前的二次确认。只接受具备 ssh:exec 的用户。
+func (c *AgentServiceHTTPClientImpl) MatchAgents(ctx context.Context, in *MatchAgentsRequest, opts ...http.CallOption) (*MatchAgentsResponse, error) {
+	var out MatchAgentsResponse
+	pattern := "/v1/agents/match"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAgentServiceMatchAgents),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

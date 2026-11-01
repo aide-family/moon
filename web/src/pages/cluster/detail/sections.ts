@@ -18,7 +18,10 @@ import {
 import type { TFunction } from "i18next"
 
 import type { KubernetesWorkloadKind } from "@/api/cluster"
-import { clusterSectionCapability } from "@/lib/feature-catalog"
+import {
+  clusterSectionCapability,
+  menusOfCapability,
+} from "@/lib/feature-catalog"
 
 /**
  * 集群详情页的资源视图。URL 仍用 tab + kind 表达：
@@ -77,7 +80,7 @@ export interface ClusterNavEntry {
    */
   permission?: string
   /**
-   * 租户能力开关（k8s_node / k8s_pod …）。没开通能力的资源视图直接隐藏，
+   * 租户能力开关（k8s_node_read / k8s_pod_read …）。没开通读能力的资源视图直接隐藏，
    * 直接改 URL 进入时也会回落到概况。缺省按 section 从能力目录推导。
    */
   capability?: string
@@ -308,10 +311,13 @@ export function canAccessClusterNavEntry(
     return false
   }
   const capability = clusterNavEntryCapability(entry)
-  return (
-    capability === undefined ||
-    (access.hasFeature(capability) && access.canMenu(capability))
-  )
+  if (capability === undefined) {
+    return true
+  }
+  // 能力按操作拆分后，能力码不再等于菜单码：能力码判断套餐开通，
+  // 菜单权限按该能力覆盖的资源菜单判断（例如 k8s_pod_read → menu:k8s_pod）。
+  const menus = menusOfCapability(capability)
+  return access.hasFeature(capability) && menus.some((menu) => access.canMenu(menu))
 }
 
 /** 当前 section + kind 的视图是否可访问，用于 URL 直接进入时回退到概况。 */

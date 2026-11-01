@@ -11,6 +11,7 @@ import { AlertPageManagePage } from "@/pages/alert-page"
 import { AlertRulePage } from "@/pages/alert-rule"
 import { ClusterPage } from "@/pages/cluster"
 import { ClusterDetailPage } from "@/pages/cluster/detail"
+import { PodExecPage } from "@/pages/cluster/pod-exec"
 import { DatasourcePage } from "@/pages/datasource"
 import { ForbiddenPage } from "@/pages/forbidden"
 import { InvitationPage } from "@/pages/invitation"
@@ -102,6 +103,10 @@ export function App() {
         <Route path="/message-logs" element={<MessageLogPage />} />
         <Route path="/clusters" element={<ClusterPage />} />
         <Route path="/clusters/:uid" element={<ClusterDetailPage />} />
+        <Route
+          path="/clusters/:uid/pods/:namespace/:name/exec"
+          element={<PodExecPage />}
+        />
         <Route path="/agents" element={<AgentPage />} />
         <Route path="/agents/:uid/shell" element={<AgentShellPage />} />
         <Route path="/ssh-commands" element={<SSHCommandPage />} />

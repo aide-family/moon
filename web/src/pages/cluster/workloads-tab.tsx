@@ -117,7 +117,14 @@ interface KubernetesWorkloadsTabProps {
   namespace: string
   kind: string
   name: string
-  canWrite: boolean
+  /** k8s:workload:scale：调整副本（DaemonSet 不提供）。 */
+  canScale: boolean
+  /** k8s:workload:restart：滚动重启。 */
+  canRestart: boolean
+  /** k8s:workload:image：设置容器镜像。 */
+  canImage: boolean
+  /** k8s:workload:rollback：回滚到历史版本。 */
+  canRollback: boolean
   /** 工具栏刷新按钮递增；变化时静默重载。 */
   refreshKey?: number
 }
@@ -128,7 +135,10 @@ export function KubernetesWorkloadsTab({
   namespace,
   kind,
   name,
-  canWrite,
+  canScale,
+  canRestart,
+  canImage,
+  canRollback,
   refreshKey = 0,
 }: KubernetesWorkloadsTabProps) {
   const { t } = useTranslation()
@@ -184,37 +194,40 @@ export function KubernetesWorkloadsTab({
     })
 
   function workloadActions(item: KubernetesWorkloadItem): RowAction[] {
-    if (!canWrite) {
-      return []
-    }
     const actions: RowAction[] = []
     // DaemonSet 没有副本数概念，服务端会拒绝 scale，入口直接不提供。
-    if (item.kind !== "DaemonSet") {
+    if (canScale && item.kind !== "DaemonSet") {
       actions.push({
         key: "scale",
         label: t("kube.scale"),
         onSelect: () => openScale(item),
       })
     }
-    actions.push({
-      key: "restart",
-      label: t("kube.restart"),
-      onSelect: () => {
-        setRestartError("")
-        setRestartTarget(item)
-      },
-    })
+    if (canRestart) {
+      actions.push({
+        key: "restart",
+        label: t("kube.restart"),
+        onSelect: () => {
+          setRestartError("")
+          setRestartTarget(item)
+        },
+      })
+    }
     // 镜像与回滚都只改 Pod 模板，三种控制器都支持。
-    actions.push({
-      key: "image",
-      label: t("kube.image"),
-      onSelect: () => setImageTarget(item),
-    })
-    actions.push({
-      key: "rollback",
-      label: t("kube.rollback"),
-      onSelect: () => setRollbackTarget(item),
-    })
+    if (canImage) {
+      actions.push({
+        key: "image",
+        label: t("kube.image"),
+        onSelect: () => setImageTarget(item),
+      })
+    }
+    if (canRollback) {
+      actions.push({
+        key: "rollback",
+        label: t("kube.rollback"),
+        onSelect: () => setRollbackTarget(item),
+      })
+    }
     return actions
   }
 

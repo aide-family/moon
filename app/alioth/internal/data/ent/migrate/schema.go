@@ -32,6 +32,7 @@ var (
 		{Name: "ssh_password_cipher", Type: field.TypeString, Default: ""},
 		{Name: "ssh_private_key_cipher", Type: field.TypeString, Default: ""},
 		{Name: "remark", Type: field.TypeString, Default: ""},
+		{Name: "labels", Type: field.TypeString, Default: "{}"},
 	}
 	// AgentsTable holds the schema information for the "agents" table.
 	AgentsTable = &schema.Table{

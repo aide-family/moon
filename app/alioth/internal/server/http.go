@@ -122,6 +122,9 @@ func NewHTTPServer(
 	v1.RegisterClusterServiceHTTPServer(srv, clusters)
 	v1.RegisterKubernetesServiceHTTPServer(srv, kubeResources)
 	srv.HandleFunc("/v1/agent/{uid}/shell", agents.ServeShell)
+	// Pod 终端也走裸 HTTP 处理器：浏览器 WebSocket 无法带 Authorization 头，
+	// 建连凭证是 IssueKubernetesPodExecTicket 签发的一次性票据。
+	srv.HandleFunc("/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec", kubeResources.ServePodExec)
 	// 迁移包是二进制流，走裸 HTTP 处理器；鉴权与普通接口一致，仍用 Bearer JWT。
 	srv.HandleFunc("/v1/system/maintenance/archive", func(w http.ResponseWriter, r *http.Request) {
 		ctx, err := authenticator.Authenticate(r.Context(), r.URL.Path, r.Header.Get("Authorization"), r.Header.Get("X-Namespace"))

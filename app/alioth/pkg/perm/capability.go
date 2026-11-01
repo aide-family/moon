@@ -45,21 +45,35 @@ const (
 	CapabilityMessageLog                   = "message_log"
 	CapabilityMember                       = "member"
 	CapabilityRole                         = "role"
-	CapabilityClusterAccess                = "cluster_access"
-	CapabilityK8sNode                      = "k8s_node"
-	CapabilityK8sWorkload                  = "k8s_workload"
-	CapabilityK8sPod                       = "k8s_pod"
-	CapabilityK8sIngress                   = "k8s_ingress"
-	CapabilityK8sService                   = "k8s_service"
-	CapabilityK8sConfigMap                 = "k8s_configmap"
-	CapabilityK8sSecret                    = "k8s_secret"
-	CapabilityK8sPV                        = "k8s_pv"
-	CapabilityK8sPVC                       = "k8s_pvc"
-	CapabilityK8sJob                       = "k8s_job"
-	CapabilityK8sCronJob                   = "k8s_cronjob"
-	CapabilityAgentMachine                 = "agent_machine"
-	CapabilitySSHCommand                   = "ssh_command"
-	CapabilityWebShell                     = "web_shell"
+	// Kubernetes 能力细到具体操作：一个操作一个能力、一个权限，套餐可以只开通「设置镜像」
+	// 而不开通「回滚」，也可以只开通 Pod 日志而不开通 Pod 终端。
+	CapabilityClusterAccess       = "cluster_access"
+	CapabilityK8sNodeRead         = "k8s_node_read"
+	CapabilityK8sNodeCordon       = "k8s_node_cordon"
+	CapabilityK8sWorkloadRead     = "k8s_workload_read"
+	CapabilityK8sWorkloadScale    = "k8s_workload_scale"
+	CapabilityK8sWorkloadRestart  = "k8s_workload_restart"
+	CapabilityK8sWorkloadImage    = "k8s_workload_image"
+	CapabilityK8sWorkloadRollback = "k8s_workload_rollback"
+	CapabilityK8sPodRead          = "k8s_pod_read"
+	CapabilityK8sPodLogs          = "k8s_pod_logs"
+	CapabilityK8sPodDelete        = "k8s_pod_delete"
+	CapabilityK8sPodExec          = "k8s_pod_exec"
+	CapabilityK8sIngressRead      = "k8s_ingress_read"
+	CapabilityK8sServiceRead      = "k8s_service_read"
+	CapabilityK8sConfigMapRead    = "k8s_configmap_read"
+	CapabilityK8sSecretRead       = "k8s_secret_read"
+	CapabilityK8sPVRead           = "k8s_pv_read"
+	CapabilityK8sPVCRead          = "k8s_pvc_read"
+	CapabilityK8sJobRead          = "k8s_job_read"
+	CapabilityK8sJobDelete        = "k8s_job_delete"
+	CapabilityK8sCronJobRead      = "k8s_cronjob_read"
+	CapabilityK8sCronJobSuspend   = "k8s_cronjob_suspend"
+	CapabilityK8sCronJobTrigger   = "k8s_cronjob_trigger"
+	CapabilityK8sCronJobDelete    = "k8s_cronjob_delete"
+	CapabilityAgentMachine        = "agent_machine"
+	CapabilitySSHCommand          = "ssh_command"
+	CapabilityWebShell            = "web_shell"
 )
 
 // Capability 是一个能力及其包含的租户权限。
@@ -211,59 +225,119 @@ var capabilitySpecs = []Capability{
 		Permissions: []string{ClusterRead, ClusterWrite, ClusterDelete},
 	},
 	{
-		Code: CapabilityK8sNode, Module: FeatureCluster, Name: "节点",
-		Description: "查看 Kubernetes 节点与节点运维。",
-		Permissions: []string{K8sNodeRead, K8sNodeWrite},
+		Code: CapabilityK8sNodeRead, Module: FeatureCluster, Name: "查看节点",
+		Description: "查看 Kubernetes 节点、状态、容量与 Pod 数。",
+		Permissions: []string{K8sNodeRead},
 	},
 	{
-		Code: CapabilityK8sWorkload, Module: FeatureCluster, Name: "工作负载",
-		Description: "查看与运维 Deployment、StatefulSet、DaemonSet。",
-		Permissions: []string{K8sWorkloadRead, K8sWorkloadWrite},
+		Code: CapabilityK8sNodeCordon, Module: FeatureCluster, Name: "节点封锁",
+		Description: "封锁（cordon）与解除封锁（uncordon）节点。",
+		Permissions: []string{K8sNodeCordon},
 	},
 	{
-		Code: CapabilityK8sPod, Module: FeatureCluster, Name: "Pod",
-		Description: "查看 Pod、删除 Pod 与读取容器日志。",
-		Permissions: []string{K8sPodRead, K8sPodWrite, K8sPodLogs},
+		Code: CapabilityK8sWorkloadRead, Module: FeatureCluster, Name: "查看工作负载",
+		Description: "查看 Deployment、StatefulSet、DaemonSet、镜像与历史版本。",
+		Permissions: []string{K8sWorkloadRead},
 	},
 	{
-		Code: CapabilityK8sIngress, Module: FeatureCluster, Name: "Ingress",
+		Code: CapabilityK8sWorkloadScale, Module: FeatureCluster, Name: "工作负载扩缩容",
+		Description: "调整 Deployment、StatefulSet 的副本数。",
+		Permissions: []string{K8sWorkloadScale},
+	},
+	{
+		Code: CapabilityK8sWorkloadRestart, Module: FeatureCluster, Name: "工作负载滚动重启",
+		Description: "给 Pod 模板打重启注解，滚动重建 Pod。",
+		Permissions: []string{K8sWorkloadRestart},
+	},
+	{
+		Code: CapabilityK8sWorkloadImage, Module: FeatureCluster, Name: "设置镜像",
+		Description: "修改工作负载里目标容器的镜像。",
+		Permissions: []string{K8sWorkloadImage},
+	},
+	{
+		Code: CapabilityK8sWorkloadRollback, Module: FeatureCluster, Name: "版本回滚",
+		Description: "把工作负载回滚到指定历史版本。",
+		Permissions: []string{K8sWorkloadRollback},
+	},
+	{
+		Code: CapabilityK8sPodRead, Module: FeatureCluster, Name: "查看 Pod",
+		Description: "查看 Pod 列表、容器与所属控制器。",
+		Permissions: []string{K8sPodRead},
+	},
+	{
+		Code: CapabilityK8sPodLogs, Module: FeatureCluster, Name: "Pod 日志",
+		Description: "读取 Pod 容器日志。",
+		Permissions: []string{K8sPodLogs},
+	},
+	{
+		Code: CapabilityK8sPodDelete, Module: FeatureCluster, Name: "删除 Pod",
+		Description: "删除 Pod，由控制器按策略重建。",
+		Permissions: []string{K8sPodDelete},
+	},
+	{
+		Code: CapabilityK8sPodExec, Module: FeatureCluster, Name: "Pod 终端",
+		Description: "打开 Pod 容器的 Web Shell（Pod Exec）。",
+		Permissions: []string{K8sPodExec},
+	},
+	{
+		Code: CapabilityK8sIngressRead, Module: FeatureCluster, Name: "查看 Ingress",
 		Description: "查看 Kubernetes Ingress。",
 		Permissions: []string{K8sIngressRead},
 	},
 	{
-		Code: CapabilityK8sService, Module: FeatureCluster, Name: "Service",
+		Code: CapabilityK8sServiceRead, Module: FeatureCluster, Name: "查看 Service",
 		Description: "查看 Kubernetes Service。",
 		Permissions: []string{K8sServiceRead},
 	},
 	{
-		Code: CapabilityK8sConfigMap, Module: FeatureCluster, Name: "ConfigMap",
-		Description: "查看 Kubernetes ConfigMap。",
+		Code: CapabilityK8sConfigMapRead, Module: FeatureCluster, Name: "查看 ConfigMap",
+		Description: "查看 Kubernetes ConfigMap（只返回键名）。",
 		Permissions: []string{K8sConfigMapRead},
 	},
 	{
-		Code: CapabilityK8sSecret, Module: FeatureCluster, Name: "Secret",
-		Description: "查看 Kubernetes Secret。",
+		Code: CapabilityK8sSecretRead, Module: FeatureCluster, Name: "查看 Secret",
+		Description: "查看 Kubernetes Secret（只返回键名）。",
 		Permissions: []string{K8sSecretRead},
 	},
 	{
-		Code: CapabilityK8sPV, Module: FeatureCluster, Name: "PV",
+		Code: CapabilityK8sPVRead, Module: FeatureCluster, Name: "查看 PV",
 		Description: "查看 Kubernetes PersistentVolume。",
 		Permissions: []string{K8sPersistentVolumeRead},
 	},
 	{
-		Code: CapabilityK8sPVC, Module: FeatureCluster, Name: "PVC",
+		Code: CapabilityK8sPVCRead, Module: FeatureCluster, Name: "查看 PVC",
 		Description: "查看 Kubernetes PersistentVolumeClaim。",
 		Permissions: []string{K8sPersistentVolumeClaimRead},
 	},
 	{
-		Code: CapabilityK8sJob, Module: FeatureCluster, Name: "Job",
-		Description: "查看与删除 Kubernetes Job。",
-		Permissions: []string{K8sJobRead, K8sJobWrite},
+		Code: CapabilityK8sJobRead, Module: FeatureCluster, Name: "查看 Job",
+		Description: "查看 Kubernetes Job 与它的 Pod。",
+		Permissions: []string{K8sJobRead},
 	},
 	{
-		Code: CapabilityK8sCronJob, Module: FeatureCluster, Name: "CronJob",
-		Description: "查看与运维 Kubernetes CronJob。",
-		Permissions: []string{K8sCronJobRead, K8sCronJobWrite},
+		Code: CapabilityK8sJobDelete, Module: FeatureCluster, Name: "删除 Job",
+		Description: "删除 Kubernetes Job 及其 Pod。",
+		Permissions: []string{K8sJobDelete},
+	},
+	{
+		Code: CapabilityK8sCronJobRead, Module: FeatureCluster, Name: "查看 CronJob",
+		Description: "查看 Kubernetes CronJob 与最近 Job。",
+		Permissions: []string{K8sCronJobRead},
+	},
+	{
+		Code: CapabilityK8sCronJobSuspend, Module: FeatureCluster, Name: "暂停 / 恢复 CronJob",
+		Description: "暂停或恢复 CronJob 的调度。",
+		Permissions: []string{K8sCronJobSuspend},
+	},
+	{
+		Code: CapabilityK8sCronJobTrigger, Module: FeatureCluster, Name: "立即运行 CronJob",
+		Description: "用 jobTemplate 立即创建一个 Job。",
+		Permissions: []string{K8sCronJobTrigger},
+	},
+	{
+		Code: CapabilityK8sCronJobDelete, Module: FeatureCluster, Name: "删除 CronJob",
+		Description: "删除 CronJob 及它创建的 Job。",
+		Permissions: []string{K8sCronJobDelete},
 	},
 	{
 		Code: CapabilityAgentMachine, Module: FeatureAgent, Name: "机器",
@@ -392,6 +466,40 @@ var legacyCapabilityExpansion = map[string][]string{
 		CapabilityNotifyChannelSMSAliCloud,
 		CapabilityNotifyChannelSMSTencent,
 	},
+	// M25 把 Kubernetes 能力从资源级拆成操作级。旧能力按「该资源升级前已实现的操作」展开；
+	// Pod 终端是新增操作，旧 k8s_pod 不展开出 k8s_pod_exec，必须重新开通。
+	"k8s_node": {
+		CapabilityK8sNodeRead,
+		CapabilityK8sNodeCordon,
+	},
+	"k8s_workload": {
+		CapabilityK8sWorkloadRead,
+		CapabilityK8sWorkloadScale,
+		CapabilityK8sWorkloadRestart,
+		CapabilityK8sWorkloadImage,
+		CapabilityK8sWorkloadRollback,
+	},
+	"k8s_pod": {
+		CapabilityK8sPodRead,
+		CapabilityK8sPodLogs,
+		CapabilityK8sPodDelete,
+	},
+	"k8s_ingress":   {CapabilityK8sIngressRead},
+	"k8s_service":   {CapabilityK8sServiceRead},
+	"k8s_configmap": {CapabilityK8sConfigMapRead},
+	"k8s_secret":    {CapabilityK8sSecretRead},
+	"k8s_pv":        {CapabilityK8sPVRead},
+	"k8s_pvc":       {CapabilityK8sPVCRead},
+	"k8s_job": {
+		CapabilityK8sJobRead,
+		CapabilityK8sJobDelete,
+	},
+	"k8s_cronjob": {
+		CapabilityK8sCronJobRead,
+		CapabilityK8sCronJobSuspend,
+		CapabilityK8sCronJobTrigger,
+		CapabilityK8sCronJobDelete,
+	},
 }
 
 // IsLegacyCapability 判断编码是不是历史能力码（能展开成当前能力）。
@@ -411,6 +519,24 @@ func ExpandLegacyCapability(code string) []string {
 	return EffectiveCapabilities(nil, codes)
 }
 
+// LegacyModuleCapabilities 返回旧模块级编码展开出的能力。
+// 与 CapabilityCodesOfModule 的区别只有 cluster 模块：Pod 终端是 M25 新增的操作，
+// 旧模块级套餐明细不能把它自动送给存量租户，必须重新勾选 k8s_pod_exec。
+func LegacyModuleCapabilities(module string) []string {
+	codes := CapabilityCodesOfModule(module)
+	if module != FeatureCluster {
+		return codes
+	}
+	out := make([]string, 0, len(codes))
+	for _, code := range codes {
+		if code == CapabilityK8sPodExec {
+			continue
+		}
+		out = append(out, code)
+	}
+	return out
+}
+
 // NormalizeCapabilities 把一组编码归一化成当前能力目录里的编码，按目录顺序去重：
 //   - 目录里的能力码保留；
 //   - 模块码展开成该模块的全部能力；
@@ -425,7 +551,7 @@ func NormalizeCapabilities(codes []string) []string {
 		case IsCapability(code):
 			expanded = append(expanded, code)
 		case IsFeature(code):
-			expanded = append(expanded, CapabilityCodesOfModule(code)...)
+			expanded = append(expanded, LegacyModuleCapabilities(code)...)
 		default:
 			expanded = append(expanded, legacyCapabilityExpansion[code]...)
 		}

@@ -55,6 +55,14 @@ service KubernetesService {
   rpc GetKubernetesPodLogs(GetKubernetesPodLogsRequest) returns (GetKubernetesPodLogsResponse) {
     option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/logs"};
   }
+  // 为一次 Pod 终端会话签发一次性票据。只接受具备 k8s:pod:exec 的用户。
+  // 浏览器拿到票据后用 WebSocket 连 /v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec。
+  rpc IssueKubernetesPodExecTicket(IssueKubernetesPodExecTicketRequest) returns (IssueKubernetesPodExecTicketResponse) {
+    option (google.api.http) = {
+      post: "/v1/cluster/{cluster_uid}/namespace/{namespace}/pod/{name}/exec-ticket"
+      body: "*"
+    };
+  }
   // 列出 Ingress 及其规则。
   rpc ListKubernetesIngresses(ListKubernetesIngressesRequest) returns (ListKubernetesIngressesResponse) {
     option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/ingresses"};
@@ -413,6 +421,28 @@ message GetKubernetesPodLogsResponse {
   string content = 1;
   // 实际读取的容器名。
   string container = 2;
+}
+
+// 签发 Pod 终端票据。
+message IssueKubernetesPodExecTicketRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // Pod 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 容器名。Pod 有多个容器时必填。
+  string container = 4 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 初始列数，0 表示 80。
+  int32 cols = 5 [(buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  // 初始行数，0 表示 24。
+  int32 rows = 6 [(buf.validate.field).int32 = {gte: 0, lte: 1000}];
+}
+
+// Pod 终端票据。只使用一次，60 秒内有效。
+message IssueKubernetesPodExecTicketResponse {
+  // 票据。
+  string ticket = 1;
 }
 
 // Ingress 规则。

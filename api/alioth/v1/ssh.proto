@@ -119,6 +119,10 @@ message SSHCommandAuditItem {
   string operator_nickname = 14 [json_name = "operatorNickname"];
   // 操作者头像地址。
   string operator_avatar = 15 [json_name = "operatorAvatar"];
+  // 机器展示名。机器被删除后为空。
+  string agent_name = 16 [json_name = "agentName"];
+  // 命令名称。命令被删除后为空。
+  string command_name = 17 [json_name = "commandName"];
 }
 
 // 创建命令。
@@ -276,6 +280,22 @@ message ListSSHCommandAuditsRequest {
   string command_uid = 3 [json_name = "commandUid"];
   // 机器标识。
   string agent_uid = 4 [json_name = "agentUid"];
+  // 审计种类。留空表示全部；统一审计页传 EXECUTE。
+  string kind = 5 [(buf.validate.field).string = {
+    in: ["", "CREATE", "UPDATE", "APPROVE", "REJECT", "EXECUTE"]
+  }];
+  // 状态。留空表示全部。
+  string status = 6 [(buf.validate.field).string = {
+    in: ["", "PENDING", "APPROVED", "REJECTED", "DONE", "FAILED"]
+  }];
+  // 操作者标识。
+  string operator_uid = 7 [json_name = "operatorUid"];
+  // 命令正文关键字，大小写不敏感的子串匹配。
+  string keyword = 8 [(buf.validate.field).string.max_len = 128];
+  // 创建时间下界，Unix 秒，含。0 表示不限。
+  int64 start_time = 9 [json_name = "startTime", (buf.validate.field).int64.gte = 0];
+  // 创建时间上界，Unix 秒，不含。0 表示不限。
+  int64 end_time = 10 [json_name = "endTime", (buf.validate.field).int64.gte = 0];
 }
 
 // 审计分页结果。

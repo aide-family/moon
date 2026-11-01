@@ -71,16 +71,21 @@ const (
 	ClusterWrite  = "cluster:write"
 	ClusterDelete = "cluster:delete"
 
-	// Kubernetes 控制台按资源细分。cluster:* 只保留集群接入与连接：列表、详情、
-	// 测试连通性、修改 kubeconfig 和删除集群；进入控制台仍然要求 cluster:read。
-	// 节点、工作负载、Pod 等资源的读写用下面的 k8s:<资源>:<动作>。Pod 日志单独授权。
+	// Kubernetes 控制台按「资源 + 操作」细分。cluster:* 只保留集群接入与连接：
+	// 列表、详情、测试连通性、修改 kubeconfig 和删除集群；进入控制台仍然要求 cluster:read。
+	// 一个操作一个权限，套餐能力也按操作拆：读、封锁节点、扩缩容、滚动重启、设置镜像、
+	// 回滚、删除 Pod、Pod 日志、Pod 终端、删除 Job、CronJob 暂停/触发/删除互不共享。
 	K8sNodeRead                  = "k8s:node:read"
-	K8sNodeWrite                 = "k8s:node:write"
+	K8sNodeCordon                = "k8s:node:cordon"
 	K8sWorkloadRead              = "k8s:workload:read"
-	K8sWorkloadWrite             = "k8s:workload:write"
+	K8sWorkloadScale             = "k8s:workload:scale"
+	K8sWorkloadRestart           = "k8s:workload:restart"
+	K8sWorkloadImage             = "k8s:workload:image"
+	K8sWorkloadRollback          = "k8s:workload:rollback"
 	K8sPodRead                   = "k8s:pod:read"
-	K8sPodWrite                  = "k8s:pod:write"
 	K8sPodLogs                   = "k8s:pod:logs"
+	K8sPodDelete                 = "k8s:pod:delete"
+	K8sPodExec                   = "k8s:pod:exec"
 	K8sIngressRead               = "k8s:ingress:read"
 	K8sServiceRead               = "k8s:service:read"
 	K8sConfigMapRead             = "k8s:configmap:read"
@@ -88,9 +93,11 @@ const (
 	K8sPersistentVolumeRead      = "k8s:pv:read"
 	K8sPersistentVolumeClaimRead = "k8s:pvc:read"
 	K8sJobRead                   = "k8s:job:read"
-	K8sJobWrite                  = "k8s:job:write"
+	K8sJobDelete                 = "k8s:job:delete"
 	K8sCronJobRead               = "k8s:cronjob:read"
-	K8sCronJobWrite              = "k8s:cronjob:write"
+	K8sCronJobSuspend            = "k8s:cronjob:suspend"
+	K8sCronJobTrigger            = "k8s:cronjob:trigger"
+	K8sCronJobDelete             = "k8s:cronjob:delete"
 
 	AgentRead   = "agent:read"
 	AgentWrite  = "agent:write"
@@ -200,17 +207,21 @@ func menuCatalog() []Item {
 	return items
 }
 
-// k8sCatalog 返回 Kubernetes 资源级权限，追加在租户权限目录末尾。
+// k8sCatalog 返回 Kubernetes「资源 + 操作」级权限，追加在租户权限目录末尾。
 // Resource 用 k8s:<资源> 形式，供前端按资源分组；Name 仍是 Resource + ":" + Action。
 func k8sCatalog() []Item {
 	return []Item{
 		{Name: K8sNodeRead, Resource: "k8s:node", Action: "read"},
-		{Name: K8sNodeWrite, Resource: "k8s:node", Action: "write"},
+		{Name: K8sNodeCordon, Resource: "k8s:node", Action: "cordon"},
 		{Name: K8sWorkloadRead, Resource: "k8s:workload", Action: "read"},
-		{Name: K8sWorkloadWrite, Resource: "k8s:workload", Action: "write"},
+		{Name: K8sWorkloadScale, Resource: "k8s:workload", Action: "scale"},
+		{Name: K8sWorkloadRestart, Resource: "k8s:workload", Action: "restart"},
+		{Name: K8sWorkloadImage, Resource: "k8s:workload", Action: "image"},
+		{Name: K8sWorkloadRollback, Resource: "k8s:workload", Action: "rollback"},
 		{Name: K8sPodRead, Resource: "k8s:pod", Action: "read"},
-		{Name: K8sPodWrite, Resource: "k8s:pod", Action: "write"},
 		{Name: K8sPodLogs, Resource: "k8s:pod", Action: "logs"},
+		{Name: K8sPodDelete, Resource: "k8s:pod", Action: "delete"},
+		{Name: K8sPodExec, Resource: "k8s:pod", Action: "exec"},
 		{Name: K8sIngressRead, Resource: "k8s:ingress", Action: "read"},
 		{Name: K8sServiceRead, Resource: "k8s:service", Action: "read"},
 		{Name: K8sConfigMapRead, Resource: "k8s:configmap", Action: "read"},
@@ -218,9 +229,11 @@ func k8sCatalog() []Item {
 		{Name: K8sPersistentVolumeRead, Resource: "k8s:pv", Action: "read"},
 		{Name: K8sPersistentVolumeClaimRead, Resource: "k8s:pvc", Action: "read"},
 		{Name: K8sJobRead, Resource: "k8s:job", Action: "read"},
-		{Name: K8sJobWrite, Resource: "k8s:job", Action: "write"},
+		{Name: K8sJobDelete, Resource: "k8s:job", Action: "delete"},
 		{Name: K8sCronJobRead, Resource: "k8s:cronjob", Action: "read"},
-		{Name: K8sCronJobWrite, Resource: "k8s:cronjob", Action: "write"},
+		{Name: K8sCronJobSuspend, Resource: "k8s:cronjob", Action: "suspend"},
+		{Name: K8sCronJobTrigger, Resource: "k8s:cronjob", Action: "trigger"},
+		{Name: K8sCronJobDelete, Resource: "k8s:cronjob", Action: "delete"},
 	}
 }
 
@@ -361,7 +374,7 @@ func IsSystemAdmin(role string) bool {
 }
 
 // K8sReadPermissions 返回 Kubernetes 资源级的全部只读权限，顺序与 Catalog 一致。
-// Pod 日志读取（k8s:pod:logs）不改变集群状态，也属于只读；member 和 viewer 默认持有。
+// Pod 日志读取（k8s:pod:logs）不改变集群状态，也属于只读；平台管理员只读视角可读。
 func K8sReadPermissions() []string {
 	names := make([]string, 0, len(k8sCatalog()))
 	for _, item := range k8sCatalog() {
@@ -372,14 +385,47 @@ func K8sReadPermissions() []string {
 	return names
 }
 
-// K8sWritePermissions 返回 Kubernetes 资源级的全部写权限。
-// 迁移旧的自定义角色时，持有 cluster:write 的角色补齐这一组，但不会因此拿到 pod:logs。
+// K8sWritePermissions 返回 Kubernetes 资源级的全部操作权限（只读之外）。
+// 迁移旧的自定义角色时，持有 cluster:write 的角色补齐这一组。
+// pod:exec 是 M25 新增的独立权限，不在这里：它不随任何旧能力或旧 cluster:write 自动授予，
+// 必须由超级管理员在套餐里显式开通 k8s_pod_exec。
 func K8sWritePermissions() []string {
 	names := make([]string, 0, len(k8sCatalog()))
 	for _, item := range k8sCatalog() {
-		if item.Action == "write" {
+		if item.Name == K8sPodExec {
+			continue
+		}
+		if item.Action != "read" && item.Action != "logs" {
 			names = append(names, item.Name)
 		}
 	}
 	return names
+}
+
+// legacyK8sPermissionExpansion 是 M25 之前的「资源写权限」到「操作权限」的展开表。
+// 旧角色持有 k8s:*:write 时按这张表补齐操作权限，迁移完成后旧权限行与角色关联被清理。
+// Pod Exec 不在表里：它是 M25 新增权限，旧 write 不隐含容器终端。
+var legacyK8sPermissionExpansion = map[string][]string{
+	"k8s:node:write":     {K8sNodeCordon},
+	"k8s:workload:write": {K8sWorkloadScale, K8sWorkloadRestart, K8sWorkloadImage, K8sWorkloadRollback},
+	"k8s:pod:write":      {K8sPodDelete},
+	"k8s:job:write":      {K8sJobDelete},
+	"k8s:cronjob:write":  {K8sCronJobSuspend, K8sCronJobTrigger, K8sCronJobDelete},
+}
+
+// ExpandLegacyPermission 返回旧权限名对应的当前权限；不是旧权限时返回 nil。
+func ExpandLegacyPermission(name string) []string {
+	codes, ok := legacyK8sPermissionExpansion[name]
+	if !ok {
+		return nil
+	}
+	out := make([]string, len(codes))
+	copy(out, codes)
+	return out
+}
+
+// IsLegacyPermission 判断权限名是不是 M25 之前的历史写权限。
+func IsLegacyPermission(name string) bool {
+	_, ok := legacyK8sPermissionExpansion[name]
+	return ok
 }
