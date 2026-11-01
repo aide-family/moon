@@ -100,3 +100,86 @@ func TestRenderProbeAlertUsesTemplateEngine(t *testing.T) {
 		t.Fatalf("plain summary should be returned as-is, got %q", got)
 	}
 }
+
+// TestProbeLabelsFollowDriver 探测事件的 probe_kind 由规则驱动映射：三种探测
+// 类型分别是 HTTP / TCP / ICMP，其余标签合并顺序不变。
+func TestProbeLabelsFollowDriver(t *testing.T) {
+	cases := []struct {
+		driver string
+		kind   string
+	}{
+		{bo.ProbeDriverHTTP, "HTTP"},
+		{bo.ProbeDriverTCP, "TCP"},
+		{bo.ProbeDriverICMP, "ICMP"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.kind, func(t *testing.T) {
+			rule := bo.AlertRule{UID: "rule-1", Driver: tc.driver, Labels: `{"team":"platform"}`}
+			group := bo.ProbeTargetGroup{UID: "group-1", Name: "核心接口组", Labels: `{"env":"prod"}`}
+			target := bo.ProbeTarget{UID: "target-1", Spec: "spec-" + tc.kind, Labels: `{"instance":"a"}`}
+			labels, encoded := probeLabels(rule, group, target)
+			if labels[probeKindLabel] != tc.kind {
+				t.Fatalf("probe_kind = %q, want %q", labels[probeKindLabel], tc.kind)
+			}
+			if labels[probeTargetLabel] != target.Spec {
+				t.Fatalf("probe_target = %q, want %q", labels[probeTargetLabel], target.Spec)
+			}
+			if labels[probeTargetUIDLabel] != target.UID {
+				t.Fatalf("probe_target_uid = %q, want %q", labels[probeTargetUIDLabel], target.UID)
+			}
+			for key, want := range map[string]string{"env": "prod", "team": "platform", "instance": "a"} {
+				if labels[key] != want {
+					t.Fatalf("label %q = %q, want %q", key, labels[key], want)
+				}
+			}
+			if !strings.Contains(encoded, `"probe_kind":"`+tc.kind+`"`) {
+				t.Fatalf("encoded labels should contain probe_kind, got %s", encoded)
+			}
+		})
+	}
+}
+
+// TestProbeExternalURLFollowsDriver 非 HTTP 目标也能作为 externalURL：TCP 的
+// host:port 不能被 url.Parse 当成 scheme，ICMP 的 IPv6 字面量也不能被转义。
+func TestProbeExternalURLFollowsDriver(t *testing.T) {
+	cases := []struct {
+		driver string
+		spec   string
+		want   string
+	}{
+		{bo.ProbeDriverHTTP, "https://example.com/health", "https://example.com/health"},
+		{bo.ProbeDriverTCP, "127.0.0.1:8002", "127.0.0.1:8002"},
+		{bo.ProbeDriverTCP, "[::1]:8002", "[::1]:8002"},
+		{bo.ProbeDriverICMP, "example.com", "example.com"},
+		{bo.ProbeDriverICMP, "::1", "::1"},
+	}
+	for _, tc := range cases {
+		if got := probeExternalURL(tc.driver, tc.spec).String(); got != tc.want {
+			t.Fatalf("probeExternalURL(%q, %q).String() = %q, want %q", tc.driver, tc.spec, got, tc.want)
+		}
+	}
+}
+
+// TestRenderProbeAlertNonHTTPExternalURL TCP / ICMP 的 $externalURL 必须渲染成
+// 目标原文，否则通知里会显示空值或 "./" 前缀。
+func TestRenderProbeAlertNonHTTPExternalURL(t *testing.T) {
+	at := time.Date(2026, 10, 29, 19, 0, 0, 0, time.UTC)
+	cases := []struct {
+		driver string
+		spec   string
+		kind   string
+	}{
+		{bo.ProbeDriverTCP, "127.0.0.1:8002", "TCP"},
+		{bo.ProbeDriverICMP, "::1", "ICMP"},
+	}
+	for _, tc := range cases {
+		rule := bo.AlertRule{UID: "rule-1", Driver: tc.driver, Name: "探测监控"}
+		target := bo.ProbeTarget{UID: "target-1", Spec: tc.spec}
+		labels, encoded := probeLabels(rule, bo.ProbeTargetGroup{}, target)
+		summary := renderProbeAlert(contextBackground(), rule, target, "探测 {{$labels.probe_kind}} {{$externalURL}}", 1, labels, encoded, at)
+		want := "探测 " + tc.kind + " " + tc.spec
+		if summary != want {
+			t.Fatalf("summary = %q, want %q", summary, want)
+		}
+	}
+}

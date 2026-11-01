@@ -71,11 +71,15 @@ func (gateway *Gateway) UpdateProbeTargetGroup(ctx context.Context, in bo.ProbeT
 	if err := normalizeGroup(&in); err != nil {
 		return nil, err
 	}
+	if err := gateway.requireDriverCapability(ctx, in.Driver); err != nil {
+		return nil, err
+	}
 	previous, err := gateway.targets.GetProbeTargetGroup(ctx, ns, in.UID)
 	if err != nil {
 		return nil, gateway.access.Wrap(err)
 	}
-	// 新驱动和原驱动都必须已开通：未授权类型的目标组不能通过已知 UID 修改。
+	// 新驱动和原驱动都必须已开通：未授权类型的目标组不能通过已知 UID 修改，
+	// 也不能把已授权的目标组改成未授权的类型。
 	if err := gateway.requireDriverCapability(ctx, previous.Driver); err != nil {
 		return nil, err
 	}
@@ -241,7 +245,7 @@ func (gateway *Gateway) ProbeTargetGroupNow(ctx context.Context, uid string) ([]
 			continue
 		}
 		runCtx, cancel := context.WithTimeout(ctx, time.Duration(request.TimeoutMS)*time.Millisecond)
-		outcome := probe.Run(runCtx, target.Spec, request)
+		outcome := probe.Run(runCtx, group.Driver, target.Spec, request)
 		cancel()
 		results = append(results, toResult(ns, group.UID, target, outcome, slot, now))
 	}
@@ -251,25 +255,29 @@ func (gateway *Gateway) ProbeTargetGroupNow(ctx context.Context, uid string) ([]
 	return results, nil
 }
 
-// ProbeTrial 对单个地址试探测：不落库、不判定、不产生事件。
-func (gateway *Gateway) ProbeTrial(ctx context.Context, spec string, request probe.Request) (*bo.ProbeResult, error) {
+// ProbeTrial 对单个地址试探测：不落库、不判定、不产生事件。driver 为空按
+// PROBE_HTTP 处理，旧客户端不传探测类型时行为不变。
+func (gateway *Gateway) ProbeTrial(ctx context.Context, driver, spec string, request probe.Request) (*bo.ProbeResult, error) {
 	if _, err := gateway.access.Allow(ctx, perm.ProbeWrite); err != nil {
 		return nil, err
 	}
-	if err := gateway.requireDriverCapability(ctx, bo.ProbeDriverHTTP); err != nil {
+	if driver == "" {
+		driver = bo.ProbeDriverHTTP
+	}
+	if err := gateway.requireDriverCapability(ctx, driver); err != nil {
 		return nil, err
 	}
-	normalized, err := probe.NormalizeSpec(spec)
+	normalized, err := probe.NormalizeTarget(driver, spec)
 	if err != nil {
 		return nil, err
 	}
 	request = request.Normalize()
-	if err := request.Validate(); err != nil {
+	if err := probe.ValidateRequestForDriver(driver, request); err != nil {
 		return nil, err
 	}
 	runCtx, cancel := context.WithTimeout(ctx, time.Duration(request.TimeoutMS)*time.Millisecond)
 	defer cancel()
-	outcome := probe.Run(runCtx, normalized, request)
+	outcome := probe.Run(runCtx, driver, normalized, request)
 	now := time.Now().UTC()
 	result := toResult("", "", bo.ProbeTarget{Spec: normalized}, outcome, now.Truncate(time.Second), now)
 	return &result, nil
@@ -290,7 +298,7 @@ func normalizeGroup(in *bo.ProbeTargetGroup) error {
 	if in.Driver == "" {
 		in.Driver = bo.ProbeDriverHTTP
 	}
-	if in.Driver != bo.ProbeDriverHTTP {
+	if !bo.IsProbeDriver(in.Driver) {
 		return merr.Invalid("unsupported probe driver")
 	}
 	labels, err := labelsutil.NormalizeObject(in.Labels)
@@ -312,7 +320,7 @@ func normalizeGroup(in *bo.ProbeTargetGroup) error {
 		return err
 	}
 	request = request.Normalize()
-	if err := request.Validate(); err != nil {
+	if err := probe.ValidateRequestForDriver(in.Driver, request); err != nil {
 		return err
 	}
 	in.Request = request.Marshal()
@@ -326,7 +334,7 @@ func normalizeGroup(in *bo.ProbeTargetGroup) error {
 	seen := make(map[string]struct{}, len(in.Targets))
 	for index := range in.Targets {
 		target := &in.Targets[index]
-		spec, err := probe.NormalizeSpec(target.Spec)
+		spec, err := probe.NormalizeTarget(in.Driver, target.Spec)
 		if err != nil {
 			return err
 		}

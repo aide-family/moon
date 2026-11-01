@@ -1305,14 +1305,14 @@ const zh = {
   probeTarget: {
     title: "探测目标",
     description:
-      "按探测类型管理目标组：组内多个地址共用请求参数，告警规则按标签匹配目标组。",
+      "按探测类型管理目标组：组内多个地址共用探测参数，告警规则按标签匹配同类型的目标组。",
     name: "名称",
     namePlaceholder: "目标组名称",
     type: "探测类型",
     typePlaceholder: "选择探测类型",
     typeAll: "全部类型",
-    typeHint: "一期只支持 HTTP 探测；TCP / ICMP 在后续版本提供。",
-    comingSoon: "后续版本",
+    typeHint:
+      "探测类型决定目标写法与观测指标：HTTP 是 URL，TCP 是 host:port，ICMP 是主机名或 IP；只提供套餐已开通的类型。",
     remarkTooLong: "备注最多 200 个字符",
     empty: "还没有探测目标组。新建一个之后可以在右侧查看目标与探测记录。",
     pick: "从左侧选择一个探测目标组。",
@@ -1358,34 +1358,55 @@ const zh = {
     basic: "基础",
     targetsStep: "目标地址",
     requestStep: "请求与试探测",
-    targetsHint: "一行一个地址，组内地址共用请求参数，可单独启停。",
+    targetsHintHttp:
+      "一行一个 http / https 地址，组内地址共用请求参数，可单独启停。",
+    targetsHintTcp:
+      "一行一个 host:port，端口必填（1–65535）；组内地址共用超时，可单独启停。",
+    targetsHintIcmp:
+      "一行一个主机名或 IP，不带端口与路径；组内地址共用超时，可单独启停。",
     targetLabel: "目标 {{index}}",
-    targetSpecPlaceholder: "https://api.example.com/healthz",
+    targetSpecPlaceholderHttp: "https://api.example.com/healthz",
+    targetSpecPlaceholderTcp: "db.internal:5432",
+    targetSpecPlaceholderIcmp: "10.0.0.12 或 api.internal",
     targetEnabled: "启用",
     addTarget: "添加目标",
     removeTarget: "删除目标",
     bulkPaste: "批量粘贴",
-    bulkPasteHint: "一行一个地址，只接受 http / https。",
-    bulkPastePlaceholder:
+    bulkPasteHintHttp: "一行一个地址，只接受 http / https。",
+    bulkPasteHintTcp: "一行一个 host:port，例如 db.internal:5432。",
+    bulkPasteHintIcmp: "一行一个主机名或 IP，例如 10.0.0.12。",
+    bulkPastePlaceholderHttp:
       "https://api.example.com/healthz\nhttps://api.example.com/ready",
+    bulkPastePlaceholderTcp: "db.internal:5432\ncache.internal:6379",
+    bulkPastePlaceholderIcmp: "10.0.0.12\napi.internal",
     bulkPasteApply: "导入地址",
     bulkPasteCancel: "取消",
     bulkPasteEmpty: "没有可导入的地址",
-    bulkPasteInvalidLine: "第 {{line}} 行不是有效的 http / https 地址",
+    bulkPasteInvalidLineHttp: "第 {{line}} 行不是有效的 http / https 地址",
+    bulkPasteInvalidLineTcp: "第 {{line}} 行不是有效的 host:port",
+    bulkPasteInvalidLineIcmp: "第 {{line}} 行不是有效的主机名或 IP",
     bulkPasteDuplicateLine: "第 {{line}} 行与已有地址重复",
     targetRequired: "至少添加 1 个目标",
     tooManyTargets: "每个目标组最多 50 个目标",
     duplicateTarget: "组内地址不能重复",
-    invalidTarget: "请填写有效的 http / https 地址",
+    invalidTargetHttp: "请填写有效的 http / https 地址",
+    invalidTargetTcp: "请填写 host:port，例如 db.internal:5432",
+    invalidTargetIcmp: "请填写主机名或 IP，不带端口与路径",
     invalidTargetLength: "地址最多 2048 个字符",
     labelsTooLong: "标签 JSON 最多 4096 个字符",
     requestConfig: "请求参数",
+    nonHttpRequestHint:
+      "TCP / ICMP 探测不使用请求方法、期望状态码、请求头与响应体关键字，只按超时判定建连或回包。",
     method: "请求方法",
     expectStatus: "期望状态码",
     expectStatusHint: "支持单值、区间与列表：200、200-299、200,204,301。",
     expectStatusInvalid:
       "请填写有效的状态码、区间或逗号分隔列表（100 到 599）",
     timeoutMs: "超时（毫秒）",
+    timeoutConnect: "连接超时（毫秒）",
+    timeoutConnectHint: "TCP 建连的最长等待时间。",
+    timeoutEcho: "回包超时（毫秒）",
+    timeoutEchoHint: "等待 ICMP echo 回包的最长等待时间。",
     timeoutInvalid: "请填写 100 到 60000 之间的整数",
     followRedirects: "跟随重定向",
     followRedirectsHint: "最多 5 跳，逐跳校验协议。",
@@ -1408,7 +1429,8 @@ const zh = {
     headerNewline: "请求头名称和值不能包含换行",
     headersTooLong: "请求头 JSON 最多 8192 个字符",
     trial: "试探测",
-    trialHint: "试探测不写探测记录、不产生事件，只用于保存前验证可达性与期望值。",
+    trialHint:
+      "试探测不写探测记录、不产生事件，只用于保存前验证可达性与判定参数。",
     trialRun: "试探测全部目标",
     trialRunning: "试探测中…",
     trialEmpty: "还没有试探测结果",
@@ -1454,7 +1476,7 @@ const zh = {
     ruleTypeProbe: "探测规则",
     probeGroupLabels: "匹配目标组",
     probeGroupLabelsHint:
-      "每个标签值按正则完整匹配目标组标签；probe_group 匹配目标组名称，其余键匹配目标组自定义标签。全部命中才算匹配，留空表示匹配全部启用的 HTTP 目标组。",
+      "每个标签值按正则完整匹配目标组标签；probe_group 匹配目标组名称，其余键匹配目标组自定义标签。全部命中才算匹配，留空表示匹配该探测类型的全部启用目标组。",
     addProbeGroupLabel: "添加匹配标签",
     probeGroupLabelKeyPlaceholder: "匹配键",
     probeGroupLabelValuePlaceholder: "匹配值（支持正则）",
@@ -1471,12 +1493,13 @@ const zh = {
     probeGroupSelect: "按目标组选择",
     probeGroupSelectHint:
       "可选。不选择表示匹配该类型全部启用目标组（后续新增的组也会自动匹配）；勾选后只匹配选中的组，其他匹配条件保留。",
-    probeGroupSelectPlaceholder: "全部启用目标组（不限制）",
-    probeGroupSelectEmpty: "没有启用的 HTTP 目标组",
+    probeGroupSelectPlaceholder: "该类型全部启用目标组（不限制）",
+    probeGroupSelectEmpty: "没有该探测类型的启用目标组",
     probeGroupSelectClear: "清除选择",
     probeMatchPreview: "将匹配 {{groups}} 个启用目标组，共 {{targets}} 个目标",
-    probeNoMatchedGroup: "当前没有匹配的启用目标组，规则不会被调度",
-    probeGroupAll: "全部启用的 HTTP 目标组",
+    probeNoMatchedGroup:
+      "当前没有匹配的启用目标组（规则只匹配同探测类型的目标组），规则不会被调度",
+    probeGroupAll: "该探测类型的全部启用目标组",
     probeTargetCount: "共 {{count}} 个目标",
     probeInterval: "探测周期",
     probeIntervalHint: "探测规则按周期触发；持续秒数按周期换算为连续探测次数。",
@@ -1488,7 +1511,7 @@ const zh = {
     probeExecutorHint: "一期只支持集群内执行，后续支持边缘执行点。",
     probeMetric: "观测指标",
     probeMetricHint:
-      "目标组的期望状态码与关键字决定是否成功；规则只选择比较哪个观测值。",
+      "目标组的期望状态码与关键字决定是否成功；规则只选择比较哪个观测值。HTTP 探测可选 up、耗时、状态码与证书剩余天数；TCP / ICMP 探测只有 up 与耗时。",
     probeMetricRequired: "请选择观测指标",
     probeNoVariables:
       "探测规则不支持自定义查询变量：探测结果没有可继承的标签，也没有查询语句。",
@@ -2677,6 +2700,8 @@ const zh = {
     ALERT: "告警",
     DATASOURCE: "数据源",
     PROBE_HTTP: "HTTP 探测",
+    PROBE_TCP: "TCP 探测",
+    PROBE_ICMP: "ICMP 探测",
     TCP: "TCP 探测",
     ICMP: "ICMP 探测",
     UP: "可用性（up）",
@@ -4339,14 +4364,14 @@ const en = {
   probeTarget: {
     title: "Probe targets",
     description:
-      "Manage target groups by probe type. Multiple addresses in a group share the request settings, and alert rules match groups by labels.",
+      "Manage target groups by probe type. Multiple addresses in a group share the probe settings, and alert rules match groups of the same type by labels.",
     name: "Name",
     namePlaceholder: "Target group name",
     type: "Probe type",
     typePlaceholder: "Choose a probe type",
     typeAll: "All types",
-    typeHint: "Phase one supports HTTP probes only; TCP and ICMP come later.",
-    comingSoon: "Coming soon",
+    typeHint:
+      "The probe type decides the target format and observed metrics: HTTP uses a URL, TCP uses host:port, ICMP uses a host name or IP. Only types licensed by your package are listed.",
     remarkTooLong: "The remark can be at most 200 characters",
     empty:
       "No probe target groups yet. Create one to inspect targets and probe results here.",
@@ -4395,29 +4420,47 @@ const en = {
     basic: "Basics",
     targetsStep: "Targets",
     requestStep: "Request and trial",
-    targetsHint:
-      "One address per row. All addresses share the request settings and can be enabled separately.",
+    targetsHintHttp:
+      "One http / https address per row. All addresses share the request settings and can be enabled separately.",
+    targetsHintTcp:
+      "One host:port per row (port required, 1–65535). All addresses share the timeout and can be enabled separately.",
+    targetsHintIcmp:
+      "One host name or IP per row, without port or path. All addresses share the timeout and can be enabled separately.",
     targetLabel: "Target {{index}}",
-    targetSpecPlaceholder: "https://api.example.com/healthz",
+    targetSpecPlaceholderHttp: "https://api.example.com/healthz",
+    targetSpecPlaceholderTcp: "db.internal:5432",
+    targetSpecPlaceholderIcmp: "10.0.0.12 or api.internal",
     targetEnabled: "Enabled",
     addTarget: "Add target",
     removeTarget: "Remove target",
     bulkPaste: "Bulk paste",
-    bulkPasteHint: "One address per line; only http and https are accepted.",
-    bulkPastePlaceholder:
+    bulkPasteHintHttp:
+      "One address per line; only http and https are accepted.",
+    bulkPasteHintTcp: "One host:port per line, for example db.internal:5432.",
+    bulkPasteHintIcmp: "One host name or IP per line, for example 10.0.0.12.",
+    bulkPastePlaceholderHttp:
       "https://api.example.com/healthz\nhttps://api.example.com/ready",
+    bulkPastePlaceholderTcp: "db.internal:5432\ncache.internal:6379",
+    bulkPastePlaceholderIcmp: "10.0.0.12\napi.internal",
     bulkPasteApply: "Import addresses",
     bulkPasteCancel: "Cancel",
     bulkPasteEmpty: "No addresses to import",
-    bulkPasteInvalidLine: "Line {{line}} is not a valid http / https address",
+    bulkPasteInvalidLineHttp:
+      "Line {{line}} is not a valid http / https address",
+    bulkPasteInvalidLineTcp: "Line {{line}} is not a valid host:port",
+    bulkPasteInvalidLineIcmp: "Line {{line}} is not a valid host name or IP",
     bulkPasteDuplicateLine: "Line {{line}} duplicates an existing address",
     targetRequired: "Add at least one target",
     tooManyTargets: "A group can hold at most 50 targets",
     duplicateTarget: "Targets in the group must be unique",
-    invalidTarget: "Enter a valid http / https address",
+    invalidTargetHttp: "Enter a valid http / https address",
+    invalidTargetTcp: "Enter host:port, for example db.internal:5432",
+    invalidTargetIcmp: "Enter a host name or IP without a port or path",
     invalidTargetLength: "An address can be at most 2048 characters",
     labelsTooLong: "Labels JSON can be at most 4096 characters",
     requestConfig: "Request settings",
+    nonHttpRequestHint:
+      "TCP / ICMP probes do not use the method, expected status, headers, or body keyword; only the timeout decides connect or reply success.",
     method: "Method",
     expectStatus: "Expected status",
     expectStatusHint:
@@ -4425,6 +4468,10 @@ const en = {
     expectStatusInvalid:
       "Enter a valid status code, range, or comma-separated list (100 to 599)",
     timeoutMs: "Timeout (ms)",
+    timeoutConnect: "Connect timeout (ms)",
+    timeoutConnectHint: "Longest wait for the TCP connection to be established.",
+    timeoutEcho: "Reply timeout (ms)",
+    timeoutEchoHint: "Longest wait for the ICMP echo reply.",
     timeoutInvalid: "Enter an integer between 100 and 60000",
     followRedirects: "Follow redirects",
     followRedirectsHint:
@@ -4450,7 +4497,7 @@ const en = {
     headersTooLong: "Headers JSON can be at most 8192 characters",
     trial: "Trial probe",
     trialHint:
-      "A trial probe writes no probe results and creates no events; it only verifies reachability and expectations before saving.",
+      "A trial probe writes no probe results and creates no events; it only verifies reachability and settings before saving.",
     trialRun: "Trial all targets",
     trialRunning: "Trialing…",
     trialEmpty: "No trial results yet",
@@ -4498,7 +4545,7 @@ const en = {
     ruleTypeProbe: "Probe rules",
     probeGroupLabels: "Target group matchers",
     probeGroupLabelsHint:
-      "Each value is a regular expression matched against the target group label in full. probe_group matches the group name; other keys match custom group labels. All matchers must match; leave empty to match all active HTTP target groups.",
+      "Each value is a regular expression matched against the target group label in full. probe_group matches the group name; other keys match custom group labels. All matchers must match; leave empty to match all active target groups of the probe type.",
     addProbeGroupLabel: "Add matcher",
     probeGroupLabelKeyPlaceholder: "Matcher key",
     probeGroupLabelValuePlaceholder: "Matcher value (regex)",
@@ -4515,14 +4562,15 @@ const en = {
     probeGroupSelect: "Pick target groups",
     probeGroupSelectHint:
       "Optional. Empty means every enabled group of this type (new groups match automatically); selecting groups limits the rule to them and keeps your other matchers.",
-    probeGroupSelectPlaceholder: "All enabled groups (no restriction)",
-    probeGroupSelectEmpty: "No active HTTP target groups",
+    probeGroupSelectPlaceholder:
+      "All enabled groups of this type (no restriction)",
+    probeGroupSelectEmpty: "No active target groups of this probe type",
     probeGroupSelectClear: "Clear selection",
     probeMatchPreview:
       "Will match {{groups}} active target group(s), {{targets}} target(s) in total",
     probeNoMatchedGroup:
-      "No active target groups match; the rule will not be scheduled",
-    probeGroupAll: "All active HTTP target groups",
+      "No active target groups match (rules only match groups of the same probe type); the rule will not be scheduled",
+    probeGroupAll: "All active target groups of this probe type",
     probeTargetCount: "{{count}} target(s)",
     probeInterval: "Probe interval",
     probeIntervalHint:
@@ -4536,7 +4584,7 @@ const en = {
       "Phase one supports in-cluster execution only; edge executors come later.",
     probeMetric: "Observed metric",
     probeMetricHint:
-      "The group's expected status and keyword decide success; the rule only chooses which value to compare.",
+      "The group's expected status and keyword decide success; the rule only chooses which value to compare. HTTP probes offer up, latency, status code, and certificate days; TCP / ICMP probes offer up and latency only.",
     probeMetricRequired: "Choose an observed metric",
     probeNoVariables:
       "Probe rules do not support custom query variables: probe results carry no inheritable labels and there is no query expression.",
@@ -5798,6 +5846,8 @@ const en = {
     ALERT: "Alert",
     DATASOURCE: "Datasource",
     PROBE_HTTP: "HTTP probe",
+    PROBE_TCP: "TCP probe",
+    PROBE_ICMP: "ICMP probe",
     TCP: "TCP probe",
     ICMP: "ICMP probe",
     UP: "Availability (up)",

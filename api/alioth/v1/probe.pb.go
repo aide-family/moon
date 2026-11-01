@@ -23,7 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// 组内地址共用的 HTTP 请求参数。
+// 组内地址共用的请求参数。HTTP 探测使用全部字段；TCP 与 ICMP 只使用 timeout_ms。
 type ProbeRequestConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 请求方法，取值为 GET 或 HEAD。
@@ -137,7 +137,7 @@ type ProbeTargetItem struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 标识。
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// 归一化后的地址。
+	// 归一化后的地址：HTTP 为 URL，TCP 为 host:port，ICMP 为 host 或 IP。
 	Spec string `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
 	// 标签 JSON 对象。
 	Labels string `protobuf:"bytes,3,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -228,7 +228,7 @@ type ProbeTargetInput struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 标识。更新时为空表示新增。
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// 地址。
+	// 地址：HTTP 为 http(s) URL，TCP 为 host:port，ICMP 为 host 或 IP。
 	Spec string `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
 	// 标签 JSON 对象。
 	Labels string `protobuf:"bytes,3,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -312,7 +312,7 @@ type ProbeTargetGroupItem struct {
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	// 名称。
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// 探测类型，一期只有 PROBE_HTTP。
+	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
 	Driver string `protobuf:"bytes,3,opt,name=driver,proto3" json:"driver,omitempty"`
 	// 状态，取值为 ACTIVE 或 DISABLED。
 	Status string `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
@@ -455,7 +455,7 @@ type CreateProbeTargetGroupRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 名称。
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// 探测类型，一期只有 PROBE_HTTP。
+	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
 	Driver string `protobuf:"bytes,2,opt,name=driver,proto3" json:"driver,omitempty"`
 	// 标签 JSON 对象。
 	Labels string `protobuf:"bytes,3,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -603,7 +603,7 @@ type UpdateProbeTargetGroupRequest struct {
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	// 名称。
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// 探测类型，一期只有 PROBE_HTTP。
+	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
 	Driver string `protobuf:"bytes,3,opt,name=driver,proto3" json:"driver,omitempty"`
 	// 标签 JSON 对象。
 	Labels string `protobuf:"bytes,4,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -1190,9 +1190,9 @@ type ProbeResultItem struct {
 	Value string `protobuf:"bytes,6,opt,name=value,proto3" json:"value,omitempty"`
 	// 总耗时，单位毫秒。
 	DurationMs int32 `protobuf:"varint,7,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
-	// HTTP 状态码。
+	// HTTP 状态码；TCP 与 ICMP 探测为 0。
 	StatusCode int32 `protobuf:"varint,8,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
-	// 失败分类，成功时为空。
+	// 失败分类，成功时为空：dns / connect / tls / timeout / status / keyword / redirect / protocol / permission。
 	ErrorKind string `protobuf:"bytes,9,opt,name=error_kind,json=errorKind,proto3" json:"error_kind,omitempty"`
 	// 失败原因，成功时为空。
 	ErrorMessage string `protobuf:"bytes,10,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
@@ -1200,7 +1200,7 @@ type ProbeResultItem struct {
 	TcpMs        int32  `protobuf:"varint,12,opt,name=tcp_ms,json=tcpMs,proto3" json:"tcp_ms,omitempty"`
 	TlsMs        int32  `protobuf:"varint,13,opt,name=tls_ms,json=tlsMs,proto3" json:"tls_ms,omitempty"`
 	TtfbMs       int32  `protobuf:"varint,14,opt,name=ttfb_ms,json=ttfbMs,proto3" json:"ttfb_ms,omitempty"`
-	// TLS 证书剩余天数。
+	// TLS 证书剩余天数；仅 HTTP 探测有意义。
 	CertDays int32 `protobuf:"varint,15,opt,name=cert_days,json=certDays,proto3" json:"cert_days,omitempty"`
 	// 解析到的 IP。
 	ResolvedIp string `protobuf:"bytes,16,opt,name=resolved_ip,json=resolvedIp,proto3" json:"resolved_ip,omitempty"`
@@ -1618,10 +1618,13 @@ func (x *ProbeTargetGroupNowResponse) GetResults() []*ProbeResultItem {
 // 试探测一个地址。
 type ProbeTrialRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 地址。
+	// 地址：HTTP 为 http(s) URL，TCP 为 host:port，ICMP 为 host 或 IP。
 	Spec string `protobuf:"bytes,1,opt,name=spec,proto3" json:"spec,omitempty"`
-	// 请求参数。留空按默认 GET、200-299、3000ms 处理。
-	Request       *ProbeRequestConfig `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+	// 请求参数。HTTP 留空按默认 GET、200-299、3000ms 处理；TCP 与 ICMP 只使用 timeout_ms。
+	Request *ProbeRequestConfig `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP；留空按 PROBE_HTTP 处理。
+	// 字段号追加在末尾，旧客户端不传时保持原有 HTTP 试探测行为。
+	Driver        string `protobuf:"bytes,3,opt,name=driver,proto3" json:"driver,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1668,6 +1671,13 @@ func (x *ProbeTrialRequest) GetRequest() *ProbeRequestConfig {
 		return x.Request
 	}
 	return nil
+}
+
+func (x *ProbeTrialRequest) GetDriver() string {
+	if x != nil {
+		return x.Driver
+	}
+	return ""
 }
 
 // 试探测的结果。
@@ -1760,11 +1770,12 @@ const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\ftarget_count\x18\n" +
 	" \x01(\x05R\vtargetCount\x12.\n" +
 	"\x13active_target_count\x18\v \x01(\x05R\x11activeTargetCount\x12$\n" +
-	"\x0elast_probed_at\x18\f \x01(\tR\flastProbedAt\"\xdc\x02\n" +
+	"\x0elast_probed_at\x18\f \x01(\tR\flastProbedAt\"\xf3\x02\n" +
 	"\x1dCreateProbeTargetGroupRequest\x12\x1d\n" +
-	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12)\n" +
-	"\x06driver\x18\x02 \x01(\tB\x11\xbaH\x0er\fR\n" +
-	"PROBE_HTTPR\x06driver\x12 \n" +
+	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12@\n" +
+	"\x06driver\x18\x02 \x01(\tB(\xbaH%r#R\n" +
+	"PROBE_HTTPR\tPROBE_TCPR\n" +
+	"PROBE_ICMPR\x06driver\x12 \n" +
 	"\x06labels\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x121\n" +
 	"\x0fexecutor_labels\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x0eexecutorLabels\x127\n" +
 	"\arequest\x18\x05 \x01(\v2\x1d.alioth.v1.ProbeRequestConfigR\arequest\x12 \n" +
@@ -1772,12 +1783,13 @@ const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\atargets\x18\a \x03(\v2\x1b.alioth.v1.ProbeTargetInputB\n" +
 	"\xbaH\a\x92\x01\x04\b\x01\x102R\atargets\"W\n" +
 	"\x1eCreateProbeTargetGroupResponse\x125\n" +
-	"\x05group\x18\x01 \x01(\v2\x1f.alioth.v1.ProbeTargetGroupItemR\x05group\"\xf7\x02\n" +
+	"\x05group\x18\x01 \x01(\v2\x1f.alioth.v1.ProbeTargetGroupItemR\x05group\"\x8e\x03\n" +
 	"\x1dUpdateProbeTargetGroupRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
-	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12)\n" +
-	"\x06driver\x18\x03 \x01(\tB\x11\xbaH\x0er\fR\n" +
-	"PROBE_HTTPR\x06driver\x12 \n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12@\n" +
+	"\x06driver\x18\x03 \x01(\tB(\xbaH%r#R\n" +
+	"PROBE_HTTPR\tPROBE_TCPR\n" +
+	"PROBE_ICMPR\x06driver\x12 \n" +
 	"\x06labels\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x121\n" +
 	"\x0fexecutor_labels\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x0eexecutorLabels\x127\n" +
 	"\arequest\x18\x06 \x01(\v2\x1d.alioth.v1.ProbeRequestConfigR\arequest\x12 \n" +
@@ -1849,11 +1861,14 @@ const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\x1aProbeTargetGroupNowRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"S\n" +
 	"\x1bProbeTargetGroupNowResponse\x124\n" +
-	"\aresults\x18\x01 \x03(\v2\x1a.alioth.v1.ProbeResultItemR\aresults\"l\n" +
+	"\aresults\x18\x01 \x03(\v2\x1a.alioth.v1.ProbeResultItemR\aresults\"\xb0\x01\n" +
 	"\x11ProbeTrialRequest\x12\x1e\n" +
 	"\x04spec\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x10R\x04spec\x127\n" +
-	"\arequest\x18\x02 \x01(\v2\x1d.alioth.v1.ProbeRequestConfigR\arequest\"H\n" +
+	"\arequest\x18\x02 \x01(\v2\x1d.alioth.v1.ProbeRequestConfigR\arequest\x12B\n" +
+	"\x06driver\x18\x03 \x01(\tB*\xbaH'r%R\x00R\n" +
+	"PROBE_HTTPR\tPROBE_TCPR\n" +
+	"PROBE_ICMPR\x06driver\"H\n" +
 	"\x12ProbeTrialResponse\x122\n" +
 	"\x06result\x18\x01 \x01(\v2\x1a.alioth.v1.ProbeResultItemR\x06result2\xc9\n" +
 	"\n" +

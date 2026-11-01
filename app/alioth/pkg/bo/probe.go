@@ -2,10 +2,42 @@ package bo
 
 import "time"
 
-// 探测类型。一期只有 HTTP 探测。
+// 探测驱动，取值与 pkg/probe、proto 的 driver 枚举一致。
 const (
 	ProbeDriverHTTP = "PROBE_HTTP"
+	ProbeDriverTCP  = "PROBE_TCP"
+	ProbeDriverICMP = "PROBE_ICMP"
 )
+
+// ProbeDrivers 按固定顺序返回全部探测驱动。调度与领取按「驱动属于探测类型」
+// 查询，新增类型时只改这里，不在各处手写驱动清单。
+func ProbeDrivers() []string {
+	return []string{ProbeDriverHTTP, ProbeDriverTCP, ProbeDriverICMP}
+}
+
+// IsProbeDriver 判断驱动是否属于探测类型。
+func IsProbeDriver(driver string) bool {
+	switch driver {
+	case ProbeDriverHTTP, ProbeDriverTCP, ProbeDriverICMP:
+		return true
+	default:
+		return false
+	}
+}
+
+// ProbeKindOf 把探测驱动映射为事件标签 probe_kind 的展示值。未知驱动返回空字符串。
+func ProbeKindOf(driver string) string {
+	switch driver {
+	case ProbeDriverHTTP:
+		return "HTTP"
+	case ProbeDriverTCP:
+		return "TCP"
+	case ProbeDriverICMP:
+		return "ICMP"
+	default:
+		return ""
+	}
+}
 
 // 探测规则比较的观测指标。
 const (
@@ -15,12 +47,30 @@ const (
 	ProbeMetricCertDays   = "CERT_DAYS"
 )
 
+// ValidProbeMetric 判断观测指标是否适用于该驱动。HTTP 有状态码与证书，四个
+// 指标都可用；TCP 与 ICMP 只探测连通性和耗时，只允许 UP 与 LATENCY_MS。
+func ValidProbeMetric(driver, metric string) bool {
+	switch driver {
+	case ProbeDriverHTTP:
+		switch metric {
+		case ProbeMetricUp, ProbeMetricLatencyMS, ProbeMetricStatusCode, ProbeMetricCertDays:
+			return true
+		}
+	case ProbeDriverTCP, ProbeDriverICMP:
+		switch metric {
+		case ProbeMetricUp, ProbeMetricLatencyMS:
+			return true
+		}
+	}
+	return false
+}
+
 // ProbeTargetGroup 是一组共用请求参数的探测地址。
 type ProbeTargetGroup struct {
 	UID          string
 	NamespaceUID string
 	Name         string
-	// Driver 取 PROBE_HTTP。
+	// Driver 取 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
 	Driver string
 	Status string
 	// Labels 是规则匹配目标组用的 JSON 对象。

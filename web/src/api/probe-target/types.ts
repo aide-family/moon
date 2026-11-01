@@ -1,8 +1,8 @@
-/** 探测类型。一期只有 PROBE_HTTP；TCP / ICMP 在后续版本提供。 */
-export type ProbeDriver = "PROBE_HTTP"
+/** 探测类型：HTTP、TCP、ICMP；目标写法与观测指标各不相同。 */
+export type ProbeDriver = "PROBE_HTTP" | "PROBE_TCP" | "PROBE_ICMP"
 
 /**
- * 组内地址共用的 HTTP 请求参数。
+ * 组内地址共用的请求参数。HTTP 使用全部字段；TCP 与 ICMP 只使用 timeoutMs。
  * headers 是 JSON 对象文本（与 proto 一致），由页面序列化。
  */
 export interface ProbeRequestConfig {
@@ -44,6 +44,7 @@ export interface ProbeResultItem {
   ok: boolean
   value: string
   durationMs: number
+  /** HTTP 状态码；TCP 与 ICMP 为 0。 */
   statusCode: number
   errorKind: string
   errorMessage: string
@@ -51,6 +52,7 @@ export interface ProbeResultItem {
   tcpMs: number
   tlsMs: number
   ttfbMs: number
+  /** TLS 证书剩余天数；仅 HTTP 有意义。 */
   certDays: number
   resolvedIp: string
   slot: string
@@ -80,7 +82,7 @@ export interface ListProbeTargetGroupsParams {
   page?: number
   pageSize?: number
   name?: string
-  /** 探测类型。留空表示全部。 */
+  /** 探测类型。留空表示后端返回租户已授权的全部类型。 */
   driver?: string
 }
 
@@ -131,7 +133,10 @@ export interface ListProbeTargetResultsResult {
 
 /** 试探测参数：不落库、不判定、不产生事件。 */
 export interface ProbeTrialParams {
+  /** 探测类型，决定 spec 的写法与超时语义。 */
+  driver: string
   spec: string
+  /** 请求参数。HTTP 使用全部字段；TCP 与 ICMP 只使用 timeoutMs。 */
   request?: ProbeRequestConfig
 }
 

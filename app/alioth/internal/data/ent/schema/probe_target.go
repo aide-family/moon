@@ -22,7 +22,8 @@ func (ProbeTarget) Fields() []ent.Field {
 		field.String("uid").NotEmpty().Immutable(),
 		field.String("namespace_uid").NotEmpty(),
 		field.String("group_uid").NotEmpty(),
-		// spec 是归一化后的目标：HTTP 为去掉默认端口、末尾 # 与 userinfo 的 URL。
+		// spec 是归一化后的目标：HTTP 为去掉默认端口、末尾 # 与 userinfo 的 URL，
+		// TCP 为 host:port，ICMP 为 host 或 IP。
 		field.String("spec").NotEmpty(),
 		field.String("labels").Default("{}"),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),

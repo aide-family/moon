@@ -34,7 +34,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// 探测目标组的创建、查询、启停与手动探测。一期只有 HTTP 探测。
+// 探测目标组的创建、查询、启停与手动探测。支持 HTTP、TCP、ICMP 三种探测类型；
+// HTTP 使用完整的请求参数，TCP 与 ICMP 只使用超时。
 type ProbeTargetServiceClient interface {
 	// 创建探测目标组。
 	CreateProbeTargetGroup(ctx context.Context, in *CreateProbeTargetGroupRequest, opts ...grpc.CallOption) (*CreateProbeTargetGroupResponse, error)
@@ -158,7 +159,8 @@ func (c *probeTargetServiceClient) ProbeTrial(ctx context.Context, in *ProbeTria
 // All implementations must embed UnimplementedProbeTargetServiceServer
 // for forward compatibility.
 //
-// 探测目标组的创建、查询、启停与手动探测。一期只有 HTTP 探测。
+// 探测目标组的创建、查询、启停与手动探测。支持 HTTP、TCP、ICMP 三种探测类型；
+// HTTP 使用完整的请求参数，TCP 与 ICMP 只使用超时。
 type ProbeTargetServiceServer interface {
 	// 创建探测目标组。
 	CreateProbeTargetGroup(context.Context, *CreateProbeTargetGroupRequest) (*CreateProbeTargetGroupResponse, error)

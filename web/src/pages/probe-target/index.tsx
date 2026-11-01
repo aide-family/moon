@@ -4,7 +4,7 @@ import {
   EllipsisVertical,
   Trash2,
 } from "lucide-react"
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 
@@ -72,6 +72,7 @@ import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
 import { enumLabel } from "@/lib/enum-label"
+import { authorizedProbeDrivers } from "@/lib/feature-catalog"
 import {
   collectFieldErrors,
   hasFieldErrors,
@@ -87,9 +88,10 @@ import {
   TABLE_NOWRAP,
 } from "@/lib/table-layout"
 
-// 一期只有 HTTP；TCP / ICMP 只作为灰态选项展示。
-const probeTypes = ["TCP", "ICMP"]
+// 探测类型。页面按套餐授权展示可选类型，三种类型的目标写法与判定口径不同。
 const PROBE_HTTP = "PROBE_HTTP"
+const PROBE_TCP = "PROBE_TCP"
+const PROBE_ICMP = "PROBE_ICMP"
 const MAX_TARGETS = 50
 const MAX_TARGET_SPEC = 2048
 const MAX_TIMEOUT_MS = 60000
@@ -234,8 +236,8 @@ function isHttpTarget(value: string): boolean {
   }
 }
 
-/** 组内去重用的比较键：scheme/host 大小写归一，路径与查询串保持原样。 */
-function targetKey(value: string): string {
+/** 组内 HTTP 去重键：scheme/host 大小写归一，路径与查询串保持原样。 */
+function httpTargetKey(value: string): string {
   try {
     const url = new URL(value.trim())
     const port = url.port ? `:${url.port}` : ""
@@ -243,6 +245,132 @@ function targetKey(value: string): string {
   } catch {
     return value.trim()
   }
+}
+
+/** IP 字面量：IPv4 校验每段（拒绝前导零），IPv6 交给 URL 解析，避免漏掉压缩写法。 */
+function isIpLiteral(value: string): boolean {
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) {
+    return value
+      .split(".")
+      .every((part) => /^(0|[1-9]\d{0,2})$/.test(part) && Number(part) <= 255)
+  }
+  if (!value.includes(":") || !/^[0-9a-fA-F:]+$/.test(value)) {
+    return false
+  }
+  try {
+    new URL(`http://[${value}]/`)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * TCP 目标必须是 host:port：不接受 scheme、路径与查询串，端口 1..65535；
+ * IPv6 字面量必须带方括号，与 pkg/probe.normalizeTCPTarget 的规则一致。
+ */
+function splitTCPTarget(value: string): { host: string; port: number } | null {
+  const text = value.trim()
+  if (text === "" || text.includes("://") || /[/?#]/.test(text)) {
+    return null
+  }
+  let host: string
+  let portText: string
+  if (text.startsWith("[")) {
+    const closing = text.indexOf("]:")
+    if (closing <= 1) {
+      return null
+    }
+    host = text.slice(1, closing)
+    portText = text.slice(closing + 2)
+    if (!isIpLiteral(host)) {
+      return null
+    }
+  } else {
+    const parts = text.split(":")
+    if (parts.length !== 2) {
+      return null
+    }
+    host = parts[0]
+    portText = parts[1]
+  }
+  if (host.trim() === "" || !/^\d{1,5}$/.test(portText)) {
+    return null
+  }
+  const port = Number(portText)
+  if (port < 1 || port > 65535) {
+    return null
+  }
+  return { host: host.trim(), port }
+}
+
+function isTCPTarget(value: string): boolean {
+  return splitTCPTarget(value) !== null
+}
+
+function tcpTargetKey(value: string): string {
+  const parsed = splitTCPTarget(value)
+  return parsed ? `${parsed.host.toLowerCase()}:${parsed.port}` : value.trim()
+}
+
+/**
+ * ICMP 目标只接受主机名或 IP：拒绝 scheme、路径、端口；IPv6 字面量可带方括号，
+ * 与 pkg/probe.normalizeICMPTarget 的规则一致。
+ */
+function isICMPTarget(value: string): boolean {
+  let text = value.trim()
+  if (text === "" || text.includes("://") || /[/?#]/.test(text)) {
+    return false
+  }
+  if (text.startsWith("[") && text.endsWith("]")) {
+    text = text.slice(1, -1)
+  }
+  if (isIpLiteral(text)) {
+    return true
+  }
+  // 带冒号却不是 IP，通常是误填了 host:port。
+  return !text.includes(":")
+}
+
+function icmpTargetKey(value: string): string {
+  let text = value.trim()
+  if (text.startsWith("[") && text.endsWith("]")) {
+    text = text.slice(1, -1)
+  }
+  return text.toLowerCase()
+}
+
+/** 按探测类型校验目标写法。 */
+function isTargetForDriver(driver: string, value: string): boolean {
+  if (driver === PROBE_TCP) {
+    return isTCPTarget(value)
+  }
+  if (driver === PROBE_ICMP) {
+    return isICMPTarget(value)
+  }
+  return isHttpTarget(value)
+}
+
+/** 按探测类型生成组内去重键。 */
+function targetKey(driver: string, value: string): string {
+  if (driver === PROBE_TCP) {
+    return tcpTargetKey(value)
+  }
+  if (driver === PROBE_ICMP) {
+    return icmpTargetKey(value)
+  }
+  return httpTargetKey(value)
+}
+
+/** 驱动对应的文案后缀；未知驱动按 HTTP 处理，避免拼出空翻译 key。 */
+function driverCopySuffix(driver: string): "Http" | "Tcp" | "Icmp" {
+  if (driver === PROBE_TCP) {
+    return "Tcp"
+  }
+  if (driver === PROBE_ICMP) {
+    return "Icmp"
+  }
+  return "Http"
 }
 
 /** 期望状态码表达式是否非法：单值、区间与逗号列表，值域 100..599。 */
@@ -293,7 +421,7 @@ function timeoutInvalid(value: string): boolean {
 }
 
 function buildRequest(form: ProbeDraft): ProbeRequestConfig {
-  return {
+  const request: ProbeRequestConfig = {
     method: form.method,
     expectStatus: form.expectStatus.trim(),
     timeoutMs: Number(form.timeoutMs || "0"),
@@ -302,6 +430,20 @@ function buildRequest(form: ProbeDraft): ProbeRequestConfig {
     verifyCert: form.verifyCert,
     headers: serializeHeaders(form.headers),
     bodyKeyword: form.bodyKeyword.trim(),
+  }
+  if (form.driver === PROBE_HTTP) {
+    return request
+  }
+  // TCP / ICMP 只使用超时；其余字段填默认值，满足后端 proto 校验但不参与判定。
+  return {
+    ...request,
+    method: defaultRequest.method,
+    expectStatus: defaultRequest.expectStatus,
+    followRedirects: false,
+    skipTlsVerify: false,
+    verifyCert: false,
+    headers: "{}",
+    bodyKeyword: "",
   }
 }
 
@@ -352,6 +494,28 @@ export function ProbeTargetPage() {
     "disable"
   )
   const canWrite = session.can("probe:write")
+  // 探测类型按套餐授权展示：未授权的能力不出现在筛选与新建/编辑表单里。
+  const authorizedDrivers = useMemo(
+    () => authorizedProbeDrivers(session.features),
+    [session.features]
+  )
+  // 编辑存量目标组时保留它的驱动，即使套餐已不再授权，避免改坏已有数据。
+  const formDriverChoices = useMemo(() => {
+    const choices = [...authorizedDrivers]
+    if (form.driver && !choices.includes(form.driver)) {
+      choices.push(form.driver)
+    }
+    return choices
+  }, [authorizedDrivers, form.driver])
+  const filterDriverChoices = useMemo(() => {
+    const choices = [...authorizedDrivers]
+    if (query.type && !choices.includes(query.type)) {
+      choices.push(query.type)
+    }
+    return choices
+  }, [authorizedDrivers, query.type])
+  // 目标地址的占位、提示与校验文案随探测类型切换。
+  const formCopySuffix = driverCopySuffix(form.driver)
   const {
     items,
     total,
@@ -486,7 +650,8 @@ export function ProbeTargetPage() {
 
   function openCreate() {
     setEditing(false)
-    setForm(emptyDraft())
+    // 默认选中第一个已开通的探测类型；一个都没开通时留空，由校验拦住保存。
+    setForm({ ...emptyDraft(), driver: authorizedDrivers[0] ?? "" })
     setBulkOpen(false)
     setBulkText("")
     setTrialResults([])
@@ -553,7 +718,7 @@ export function ProbeTargetPage() {
       ],
       ["remark", maxLength(form.remark, 200, t("probeTarget.remarkTooLong"))],
     ])
-    if (form.driver !== PROBE_HTTP) {
+    if (!formDriverChoices.includes(form.driver)) {
       errors.driver = t("form.required")
     }
     return errors
@@ -581,11 +746,14 @@ export function ProbeTargetPage() {
         ])
         return
       }
-      if (!isHttpTarget(spec)) {
-        checks.push([`target.${index}.spec`, t("probeTarget.invalidTarget")])
+      if (!isTargetForDriver(form.driver, spec)) {
+        checks.push([
+          `target.${index}.spec`,
+          t(`probeTarget.invalidTarget${driverCopySuffix(form.driver)}`),
+        ])
         return
       }
-      const key = targetKey(spec)
+      const key = targetKey(form.driver, spec)
       if (seen.has(key)) {
         checks.push([`target.${index}.spec`, t("probeTarget.duplicateTarget")])
       }
@@ -596,45 +764,48 @@ export function ProbeTargetPage() {
 
   function validateRequestStep(): FieldErrors {
     const checks: Array<[string, string | null]> = []
-    if (form.method !== "GET" && form.method !== "HEAD") {
-      checks.push(["method", t("form.required")])
-    }
-    if (expectStatusInvalid(form.expectStatus)) {
-      checks.push(["expectStatus", t("probeTarget.expectStatusInvalid")])
+    // HTTP 探测校验完整请求参数；TCP / ICMP 只用超时，其余字段不参与保存。
+    if (form.driver === PROBE_HTTP) {
+      if (form.method !== "GET" && form.method !== "HEAD") {
+        checks.push(["method", t("form.required")])
+      }
+      if (expectStatusInvalid(form.expectStatus)) {
+        checks.push(["expectStatus", t("probeTarget.expectStatusInvalid")])
+      }
+      if (form.bodyKeyword.trim().length > MAX_BODY_KEYWORD) {
+        checks.push(["bodyKeyword", t("probeTarget.bodyKeywordTooLong")])
+      }
+      form.headers.forEach((pair, index) => {
+        const key = pair.key.trim()
+        if (key === "" && pair.value.trim() === "") {
+          return
+        }
+        if (key === "") {
+          checks.push([
+            `header.${index}.key`,
+            t("probeTarget.headerKeyRequired"),
+          ])
+          return
+        }
+        if (controlledHeaders.has(key.toLowerCase())) {
+          checks.push([
+            `header.${index}.key`,
+            t("probeTarget.headerControlled", { key }),
+          ])
+        }
+        if (/[\r\n]/.test(key) || /[\r\n]/.test(pair.value)) {
+          checks.push([
+            `header.${index}.value`,
+            t("probeTarget.headerNewline"),
+          ])
+        }
+      })
+      if (serializeHeaders(form.headers).length > MAX_HEADERS) {
+        checks.push(["headers", t("probeTarget.headersTooLong")])
+      }
     }
     if (timeoutInvalid(form.timeoutMs)) {
       checks.push(["timeoutMs", t("probeTarget.timeoutInvalid")])
-    }
-    if (form.bodyKeyword.trim().length > MAX_BODY_KEYWORD) {
-      checks.push(["bodyKeyword", t("probeTarget.bodyKeywordTooLong")])
-    }
-    form.headers.forEach((pair, index) => {
-      const key = pair.key.trim()
-      if (key === "" && pair.value.trim() === "") {
-        return
-      }
-      if (key === "") {
-        checks.push([
-          `header.${index}.key`,
-          t("probeTarget.headerKeyRequired"),
-        ])
-        return
-      }
-      if (controlledHeaders.has(key.toLowerCase())) {
-        checks.push([
-          `header.${index}.key`,
-          t("probeTarget.headerControlled", { key }),
-        ])
-      }
-      if (/[\r\n]/.test(key) || /[\r\n]/.test(pair.value)) {
-        checks.push([
-          `header.${index}.value`,
-          t("probeTarget.headerNewline"),
-        ])
-      }
-    })
-    if (serializeHeaders(form.headers).length > MAX_HEADERS) {
-      checks.push(["headers", t("probeTarget.headersTooLong")])
     }
     return collectFieldErrors(checks)
   }
@@ -795,19 +966,22 @@ export function ProbeTargetPage() {
       form.targets
         .map((target) => target.spec.trim())
         .filter((spec) => spec !== "")
-        .map((spec) => targetKey(spec))
+        .map((spec) => targetKey(form.driver, spec))
     )
     const additions: TargetDraft[] = []
     for (let index = 0; index < lines.length; index += 1) {
       const spec = lines[index]
-      if (!isHttpTarget(spec)) {
+      if (!isTargetForDriver(form.driver, spec)) {
         setFieldErrors({
           ...fieldErrors,
-          bulk: t("probeTarget.bulkPasteInvalidLine", { line: index + 1 }),
+          bulk: t(
+            `probeTarget.bulkPasteInvalidLine${driverCopySuffix(form.driver)}`,
+            { line: index + 1 }
+          ),
         })
         return
       }
-      const key = targetKey(spec)
+      const key = targetKey(form.driver, spec)
       if (seen.has(key)) {
         setFieldErrors({
           ...fieldErrors,
@@ -848,7 +1022,11 @@ export function ProbeTargetPage() {
       const entries: TrialEntry[] = []
       for (const spec of specs) {
         try {
-          const response = await probeTrial({ spec, request })
+          const response = await probeTrial({
+            driver: form.driver,
+            spec,
+            request,
+          })
           entries.push({ spec, result: response.result })
         } catch {
           entries.push({ spec, result: null })
@@ -861,6 +1039,8 @@ export function ProbeTargetPage() {
   }
 
   const targets = current?.targets ?? []
+  // HTTP 专属列（状态码、证书剩余天数）只对 HTTP 目标组展示。
+  const currentIsHttp = current?.driver === PROBE_HTTP
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
@@ -896,9 +1076,11 @@ export function ProbeTargetPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">{t("probeTarget.typeAll")}</SelectItem>
-            <SelectItem value={PROBE_HTTP}>
-              {enumLabel(t, PROBE_HTTP)}
-            </SelectItem>
+            {filterDriverChoices.map((driver) => (
+              <SelectItem key={driver} value={driver}>
+                {enumLabel(t, driver)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Button type="submit" variant="outline">
@@ -1094,15 +1276,19 @@ export function ProbeTargetPage() {
                           <TableHead className={TABLE_COLUMN_WIDTH.status}>
                             {t("probeTarget.lastResult")}
                           </TableHead>
-                          <TableHead className={TABLE_COLUMN_WIDTH.type}>
-                            {t("probeTarget.statusCode")}
-                          </TableHead>
+                          {currentIsHttp ? (
+                            <TableHead className={TABLE_COLUMN_WIDTH.type}>
+                              {t("probeTarget.statusCode")}
+                            </TableHead>
+                          ) : null}
                           <TableHead className={TABLE_COLUMN_WIDTH.type}>
                             {t("probeTarget.duration")}
                           </TableHead>
-                          <TableHead className={TABLE_COLUMN_WIDTH.type}>
-                            {t("probeTarget.certDays")}
-                          </TableHead>
+                          {currentIsHttp ? (
+                            <TableHead className={TABLE_COLUMN_WIDTH.type}>
+                              {t("probeTarget.certDays")}
+                            </TableHead>
+                          ) : null}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1150,9 +1336,11 @@ export function ProbeTargetPage() {
                                 "—"
                               )}
                             </TableCell>
-                            <TableCell className={TABLE_NOWRAP}>
-                              {target.lastResult?.statusCode || "—"}
-                            </TableCell>
+                            {currentIsHttp ? (
+                              <TableCell className={TABLE_NOWRAP}>
+                                {target.lastResult?.statusCode || "—"}
+                              </TableCell>
+                            ) : null}
                             <TableCell className={TABLE_NOWRAP}>
                               {target.lastResult
                                 ? t("probeTarget.durationValue", {
@@ -1160,20 +1348,25 @@ export function ProbeTargetPage() {
                                   })
                                 : "—"}
                             </TableCell>
-                            <TableCell className={TABLE_NOWRAP}>
-                              {target.lastResult?.certDays
-                                ? t("probeTarget.certDaysValue", {
-                                    days: target.lastResult.certDays,
-                                  })
-                                : "—"}
-                            </TableCell>
+                            {currentIsHttp ? (
+                              <TableCell className={TABLE_NOWRAP}>
+                                {target.lastResult?.certDays
+                                  ? t("probeTarget.certDaysValue", {
+                                      days: target.lastResult.certDays,
+                                    })
+                                  : "—"}
+                              </TableCell>
+                            ) : null}
                           </TableRow>
                           {expanded ? (
                             <TableRow
                               id={`probe-records-${targetKey}`}
                               className="bg-muted/20 hover:bg-muted/20"
                             >
-                              <TableCell colSpan={7} className="min-w-0">
+                              <TableCell
+                                colSpan={currentIsHttp ? 7 : 5}
+                                className="min-w-0"
+                              >
                                 <div className="grid min-w-0 gap-2 py-1">
                                   <div className="flex flex-wrap items-center justify-between gap-2">
                                     <span className="text-xs text-muted-foreground">
@@ -1221,11 +1414,15 @@ export function ProbeTargetPage() {
                                           >
                                             {t("probeTarget.resultStatus")}
                                           </TableHead>
-                                          <TableHead
-                                            className={TABLE_COLUMN_WIDTH.type}
-                                          >
-                                            {t("probeTarget.statusCode")}
-                                          </TableHead>
+                                          {currentIsHttp ? (
+                                            <TableHead
+                                              className={
+                                                TABLE_COLUMN_WIDTH.type
+                                              }
+                                            >
+                                              {t("probeTarget.statusCode")}
+                                            </TableHead>
+                                          ) : null}
                                           <TableHead
                                             className={TABLE_COLUMN_WIDTH.type}
                                           >
@@ -1264,9 +1461,13 @@ export function ProbeTargetPage() {
                                                 }
                                               />
                                             </TableCell>
-                                            <TableCell className={TABLE_NOWRAP}>
-                                              {item.statusCode || "—"}
-                                            </TableCell>
+                                            {currentIsHttp ? (
+                                              <TableCell
+                                                className={TABLE_NOWRAP}
+                                              >
+                                                {item.statusCode || "—"}
+                                              </TableCell>
+                                            ) : null}
                                             <TableCell className={TABLE_NOWRAP}>
                                               {t("probeTarget.durationValue", {
                                                 ms: item.durationMs,
@@ -1395,9 +1596,20 @@ export function ProbeTargetPage() {
                 >
                   <Select
                     value={form.driver}
-                    onValueChange={(value) =>
-                      setForm({ ...form, driver: value })
-                    }
+                    onValueChange={(value) => {
+                      if (value === form.driver) {
+                        return
+                      }
+                      // 目标写法随探测类型变化：切换类型后清空目标列表，
+                      // 避免留下另一种类型的地址被一起保存。
+                      setForm({
+                        ...form,
+                        driver: value,
+                        targets: [emptyTarget()],
+                      })
+                      setTrialResults([])
+                      setFieldErrors({})
+                    }}
                   >
                     <SelectTrigger aria-label={t("probeTarget.type")}>
                       <SelectValue
@@ -1405,12 +1617,9 @@ export function ProbeTargetPage() {
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={PROBE_HTTP}>
-                        {enumLabel(t, PROBE_HTTP)}
-                      </SelectItem>
-                      {probeTypes.map((item) => (
-                        <SelectItem key={item} value={item} disabled>
-                          {`${enumLabel(t, item)}（${t("probeTarget.comingSoon")}）`}
+                      {formDriverChoices.map((driver) => (
+                        <SelectItem key={driver} value={driver}>
+                          {enumLabel(t, driver)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1521,16 +1730,18 @@ export function ProbeTargetPage() {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground sm:col-span-full">
-                  {t("probeTarget.targetsHint")}
+                  {t(`probeTarget.targetsHint${formCopySuffix}`)}
                 </p>
                 {bulkOpen ? (
                   <div className="grid gap-2 rounded-lg border p-3 sm:col-span-full">
                     <p className="text-xs text-muted-foreground">
-                      {t("probeTarget.bulkPasteHint")}
+                      {t(`probeTarget.bulkPasteHint${formCopySuffix}`)}
                     </p>
                     <Textarea
                       value={bulkText}
-                      placeholder={t("probeTarget.bulkPastePlaceholder")}
+                      placeholder={t(
+                        `probeTarget.bulkPastePlaceholder${formCopySuffix}`
+                      )}
                       onChange={(event) => setBulkText(event.target.value)}
                       aria-label={t("probeTarget.bulkPaste")}
                     />
@@ -1571,7 +1782,9 @@ export function ProbeTargetPage() {
                         className="min-w-0 flex-1"
                         value={target.spec}
                         maxLength={MAX_TARGET_SPEC}
-                        placeholder={t("probeTarget.targetSpecPlaceholder")}
+                        placeholder={t(
+                          `probeTarget.targetSpecPlaceholder${formCopySuffix}`
+                        )}
                         onChange={(event) =>
                           updateTarget(index, { spec: event.target.value })
                         }
@@ -1617,200 +1830,239 @@ export function ProbeTargetPage() {
             ) : null}
             {formStep === 2 ? (
               <>
-                <FormField
-                  label={t("probeTarget.method")}
-                  required
-                  error={fieldErrors.method}
-                >
-                  <Select
-                    value={form.method}
-                    onValueChange={(value) =>
-                      setForm({ ...form, method: value })
-                    }
-                  >
-                    <SelectTrigger aria-label={t("probeTarget.method")}>
-                      <SelectValue placeholder="GET" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GET">GET</SelectItem>
-                      <SelectItem value="HEAD">HEAD</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormField>
-                <FormField
-                  label={t("probeTarget.expectStatus")}
-                  htmlFor="probe-expect-status"
-                  hint={t("probeTarget.expectStatusHint")}
-                  error={fieldErrors.expectStatus}
-                >
-                  <Input
-                    id="probe-expect-status"
-                    value={form.expectStatus}
-                    maxLength={128}
-                    placeholder="200-299"
-                    onChange={(event) =>
-                      setForm({ ...form, expectStatus: event.target.value })
-                    }
-                  />
-                </FormField>
-                <FormField
-                  label={t("probeTarget.timeoutMs")}
-                  htmlFor="probe-timeout"
-                  required
-                  error={fieldErrors.timeoutMs}
-                >
-                  <Input
-                    id="probe-timeout"
-                    type="number"
-                    min={MIN_TIMEOUT_MS}
-                    max={MAX_TIMEOUT_MS}
-                    step={1}
-                    inputMode="numeric"
-                    value={form.timeoutMs}
-                    onChange={(event) =>
-                      setForm({ ...form, timeoutMs: event.target.value })
-                    }
-                    required
-                  />
-                </FormField>
-                <FormField
-                  label={t("probeTarget.bodyKeyword")}
-                  htmlFor="probe-keyword"
-                  hint={t("probeTarget.bodyKeywordHint")}
-                  error={fieldErrors.bodyKeyword}
-                >
-                  <Input
-                    id="probe-keyword"
-                    value={form.bodyKeyword}
-                    maxLength={MAX_BODY_KEYWORD}
-                    onChange={(event) =>
-                      setForm({ ...form, bodyKeyword: event.target.value })
-                    }
-                  />
-                </FormField>
-                <div className="grid gap-3 sm:col-span-full">
-                  <label className="flex items-start gap-2">
-                    <Checkbox
-                      className="mt-0.5"
-                      checked={form.followRedirects}
-                      onCheckedChange={(value) =>
-                        setForm({ ...form, followRedirects: value === true })
-                      }
-                    />
-                    <span className="grid gap-1">
-                      <span className="text-sm font-medium">
-                        {t("probeTarget.followRedirects")}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {t("probeTarget.followRedirectsHint")}
-                      </span>
-                    </span>
-                  </label>
-                  <label className="flex items-start gap-2">
-                    <Checkbox
-                      className="mt-0.5"
-                      checked={form.skipTlsVerify}
-                      onCheckedChange={(value) =>
-                        setForm({ ...form, skipTlsVerify: value === true })
-                      }
-                    />
-                    <span className="grid gap-1">
-                      <span className="text-sm font-medium">
-                        {t("probeTarget.skipTlsVerify")}
-                      </span>
-                    </span>
-                  </label>
-                  <label className="flex items-start gap-2">
-                    <Checkbox
-                      className="mt-0.5"
-                      checked={form.verifyCert}
-                      onCheckedChange={(value) =>
-                        setForm({ ...form, verifyCert: value === true })
-                      }
-                    />
-                    <span className="grid gap-1">
-                      <span className="text-sm font-medium">
-                        {t("probeTarget.verifyCert")}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {t("probeTarget.verifyCertHint")}
-                      </span>
-                    </span>
-                  </label>
-                </div>
-                <div className="grid min-w-0 gap-2 sm:col-span-full">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">
-                      {t("probeTarget.headers")}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setForm({
-                          ...form,
-                          headers: [...form.headers, { key: "", value: "" }],
-                        })
-                      }
-                    >
-                      {t("probeTarget.addHeader")}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("probeTarget.headersHint")}
-                  </p>
-                  {form.headers.map((pair, index) => (
+                {form.driver === PROBE_HTTP ? (
+                  <>
                     <FormField
-                      key={index}
-                      label={t("probeTarget.headerLabel", { index: index + 1 })}
-                      error={
-                        fieldErrors[`header.${index}.key`] ??
-                        fieldErrors[`header.${index}.value`]
-                      }
+                      label={t("probeTarget.method")}
+                      required
+                      error={fieldErrors.method}
                     >
-                      <div className="flex items-center gap-2">
-                        <Input
-                          className="min-w-0 flex-1"
-                          value={pair.key}
-                          placeholder={t("probeTarget.headerKeyPlaceholder")}
-                          onChange={(event) =>
-                            updateHeader(index, { key: event.target.value })
+                      <Select
+                        value={form.method}
+                        onValueChange={(value) =>
+                          setForm({ ...form, method: value })
+                        }
+                      >
+                        <SelectTrigger aria-label={t("probeTarget.method")}>
+                          <SelectValue placeholder="GET" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="GET">GET</SelectItem>
+                          <SelectItem value="HEAD">HEAD</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                    <FormField
+                      label={t("probeTarget.expectStatus")}
+                      htmlFor="probe-expect-status"
+                      hint={t("probeTarget.expectStatusHint")}
+                      error={fieldErrors.expectStatus}
+                    >
+                      <Input
+                        id="probe-expect-status"
+                        value={form.expectStatus}
+                        maxLength={128}
+                        placeholder="200-299"
+                        onChange={(event) =>
+                          setForm({ ...form, expectStatus: event.target.value })
+                        }
+                      />
+                    </FormField>
+                    <FormField
+                      label={t("probeTarget.timeoutMs")}
+                      htmlFor="probe-timeout"
+                      required
+                      error={fieldErrors.timeoutMs}
+                    >
+                      <Input
+                        id="probe-timeout"
+                        type="number"
+                        min={MIN_TIMEOUT_MS}
+                        max={MAX_TIMEOUT_MS}
+                        step={1}
+                        inputMode="numeric"
+                        value={form.timeoutMs}
+                        onChange={(event) =>
+                          setForm({ ...form, timeoutMs: event.target.value })
+                        }
+                        required
+                      />
+                    </FormField>
+                    <FormField
+                      label={t("probeTarget.bodyKeyword")}
+                      htmlFor="probe-keyword"
+                      hint={t("probeTarget.bodyKeywordHint")}
+                      error={fieldErrors.bodyKeyword}
+                    >
+                      <Input
+                        id="probe-keyword"
+                        value={form.bodyKeyword}
+                        maxLength={MAX_BODY_KEYWORD}
+                        onChange={(event) =>
+                          setForm({ ...form, bodyKeyword: event.target.value })
+                        }
+                      />
+                    </FormField>
+                    <div className="grid gap-3 sm:col-span-full">
+                      <label className="flex items-start gap-2">
+                        <Checkbox
+                          className="mt-0.5"
+                          checked={form.followRedirects}
+                          onCheckedChange={(value) =>
+                            setForm({ ...form, followRedirects: value === true })
                           }
                         />
-                        <Input
-                          className="min-w-0 flex-1"
-                          value={pair.value}
-                          placeholder={t("probeTarget.headerValuePlaceholder")}
-                          onChange={(event) =>
-                            updateHeader(index, { value: event.target.value })
+                        <span className="grid gap-1">
+                          <span className="text-sm font-medium">
+                            {t("probeTarget.followRedirects")}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {t("probeTarget.followRedirectsHint")}
+                          </span>
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-2">
+                        <Checkbox
+                          className="mt-0.5"
+                          checked={form.skipTlsVerify}
+                          onCheckedChange={(value) =>
+                            setForm({ ...form, skipTlsVerify: value === true })
                           }
                         />
+                        <span className="grid gap-1">
+                          <span className="text-sm font-medium">
+                            {t("probeTarget.skipTlsVerify")}
+                          </span>
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-2">
+                        <Checkbox
+                          className="mt-0.5"
+                          checked={form.verifyCert}
+                          onCheckedChange={(value) =>
+                            setForm({ ...form, verifyCert: value === true })
+                          }
+                        />
+                        <span className="grid gap-1">
+                          <span className="text-sm font-medium">
+                            {t("probeTarget.verifyCert")}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {t("probeTarget.verifyCertHint")}
+                          </span>
+                        </span>
+                      </label>
+                    </div>
+                    <div className="grid min-w-0 gap-2 sm:col-span-full">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium">
+                          {t("probeTarget.headers")}
+                        </span>
                         <Button
                           type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("probeTarget.removeHeader")}
+                          variant="outline"
+                          size="sm"
                           onClick={() =>
                             setForm({
                               ...form,
-                              headers: form.headers.filter(
-                                (_, currentIndex) => currentIndex !== index
-                              ),
+                              headers: [...form.headers, { key: "", value: "" }],
                             })
                           }
                         >
-                          <Trash2 />
+                          {t("probeTarget.addHeader")}
                         </Button>
                       </div>
-                    </FormField>
-                  ))}
-                  {fieldErrors.headers ? (
-                    <p role="alert" className="text-sm text-destructive">
-                      {fieldErrors.headers}
+                      <p className="text-xs text-muted-foreground">
+                        {t("probeTarget.headersHint")}
+                      </p>
+                      {form.headers.map((pair, index) => (
+                        <FormField
+                          key={index}
+                          label={t("probeTarget.headerLabel", { index: index + 1 })}
+                          error={
+                            fieldErrors[`header.${index}.key`] ??
+                            fieldErrors[`header.${index}.value`]
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <Input
+                              className="min-w-0 flex-1"
+                              value={pair.key}
+                              placeholder={t("probeTarget.headerKeyPlaceholder")}
+                              onChange={(event) =>
+                                updateHeader(index, { key: event.target.value })
+                              }
+                            />
+                            <Input
+                              className="min-w-0 flex-1"
+                              value={pair.value}
+                              placeholder={t("probeTarget.headerValuePlaceholder")}
+                              onChange={(event) =>
+                                updateHeader(index, { value: event.target.value })
+                              }
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              aria-label={t("probeTarget.removeHeader")}
+                              onClick={() =>
+                                setForm({
+                                  ...form,
+                                  headers: form.headers.filter(
+                                    (_, currentIndex) => currentIndex !== index
+                                  ),
+                                })
+                              }
+                            >
+                              <Trash2 />
+                            </Button>
+                          </div>
+                        </FormField>
+                      ))}
+                      {fieldErrors.headers ? (
+                        <p role="alert" className="text-sm text-destructive">
+                          {fieldErrors.headers}
+                        </p>
+                      ) : null}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground sm:col-span-full">
+                      {t("probeTarget.nonHttpRequestHint")}
                     </p>
-                  ) : null}
-                </div>
+                    <FormField
+                      label={t(
+                        form.driver === PROBE_TCP
+                          ? "probeTarget.timeoutConnect"
+                          : "probeTarget.timeoutEcho"
+                      )}
+                      htmlFor="probe-timeout"
+                      hint={t(
+                        form.driver === PROBE_TCP
+                          ? "probeTarget.timeoutConnectHint"
+                          : "probeTarget.timeoutEchoHint"
+                      )}
+                      required
+                      error={fieldErrors.timeoutMs}
+                    >
+                      <Input
+                        id="probe-timeout"
+                        type="number"
+                        min={MIN_TIMEOUT_MS}
+                        max={MAX_TIMEOUT_MS}
+                        step={1}
+                        inputMode="numeric"
+                        value={form.timeoutMs}
+                        onChange={(event) =>
+                          setForm({ ...form, timeoutMs: event.target.value })
+                        }
+                        required
+                      />
+                    </FormField>
+                  </>
+                )}
                 <section className="grid min-w-0 gap-3 border-t pt-4 sm:col-span-full">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="text-sm font-medium">
@@ -1843,15 +2095,19 @@ export function ProbeTargetPage() {
                           <TableHead className={TABLE_COLUMN_WIDTH.status}>
                             {t("probeTarget.trialResult")}
                           </TableHead>
-                          <TableHead className={TABLE_COLUMN_WIDTH.type}>
-                            {t("probeTarget.statusCode")}
-                          </TableHead>
+                          {form.driver === PROBE_HTTP ? (
+                            <TableHead className={TABLE_COLUMN_WIDTH.type}>
+                              {t("probeTarget.statusCode")}
+                            </TableHead>
+                          ) : null}
                           <TableHead className={TABLE_COLUMN_WIDTH.type}>
                             {t("probeTarget.duration")}
                           </TableHead>
-                          <TableHead className={TABLE_COLUMN_WIDTH.type}>
-                            {t("probeTarget.certDays")}
-                          </TableHead>
+                          {form.driver === PROBE_HTTP ? (
+                            <TableHead className={TABLE_COLUMN_WIDTH.type}>
+                              {t("probeTarget.certDays")}
+                            </TableHead>
+                          ) : null}
                           <TableHead>{t("probeTarget.errorMessage")}</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -1879,9 +2135,11 @@ export function ProbeTargetPage() {
                                 />
                               )}
                             </TableCell>
-                            <TableCell className={TABLE_NOWRAP}>
-                              {entry.result?.statusCode || "—"}
-                            </TableCell>
+                            {form.driver === PROBE_HTTP ? (
+                              <TableCell className={TABLE_NOWRAP}>
+                                {entry.result?.statusCode || "—"}
+                              </TableCell>
+                            ) : null}
                             <TableCell className={TABLE_NOWRAP}>
                               {entry.result
                                 ? t("probeTarget.durationValue", {
@@ -1889,13 +2147,15 @@ export function ProbeTargetPage() {
                                   })
                                 : "—"}
                             </TableCell>
-                            <TableCell className={TABLE_NOWRAP}>
-                              {entry.result?.certDays
-                                ? t("probeTarget.certDaysValue", {
-                                    days: entry.result.certDays,
-                                  })
-                                : "—"}
-                            </TableCell>
+                            {form.driver === PROBE_HTTP ? (
+                              <TableCell className={TABLE_NOWRAP}>
+                                {entry.result?.certDays
+                                  ? t("probeTarget.certDaysValue", {
+                                      days: entry.result.certDays,
+                                    })
+                                  : "—"}
+                              </TableCell>
+                            ) : null}
                             <TableCell className="min-w-0 break-words">
                               {entry.result?.errorMessage || "—"}
                             </TableCell>

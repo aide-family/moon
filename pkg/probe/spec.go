@@ -50,12 +50,9 @@ func NormalizeSpec(raw string) (string, error) {
 	if parsed.Scheme != "http" && parsed.Scheme != "https" {
 		return "", merr.Invalid("probe target must be http or https")
 	}
-	host := strings.ToLower(parsed.Hostname())
-	if host == "" {
-		return "", merr.Invalid("probe target host is required")
-	}
-	if BlockedHost(host) {
-		return "", merr.Invalid("probe target host is blocked")
+	host, err := normalizeProbeHost(parsed.Hostname())
+	if err != nil {
+		return "", err
 	}
 	port := parsed.Port()
 	if (parsed.Scheme == "http" && port == "80") || (parsed.Scheme == "https" && port == "443") {
@@ -73,6 +70,23 @@ func NormalizeSpec(raw string) (string, error) {
 	parsed.Fragment = ""
 	parsed.RawFragment = ""
 	return parsed.String(), nil
+}
+
+// normalizeProbeHost 统一探测目标主机的大小写，并挡住云元数据等拒绝网段。
+// HTTP、TCP、ICMP 三种驱动共用这段规则，避免各写一份后口径漂移。
+func normalizeProbeHost(host string) (string, error) {
+	host = strings.ToLower(strings.TrimSpace(host))
+	if host == "" {
+		return "", merr.Invalid("probe target host is required")
+	}
+	// 主机名里出现这些字符说明目标不是 host:port 或合法主机。
+	if strings.ContainsAny(host, " \t\r\n@[]") {
+		return "", merr.Invalid("invalid probe target host")
+	}
+	if BlockedHost(host) {
+		return "", merr.Invalid("probe target host is blocked")
+	}
+	return host, nil
 }
 
 func mustCIDR(text string) *net.IPNet {

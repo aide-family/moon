@@ -104,10 +104,12 @@ import { AlertRuleDetailSheet } from "./detail"
 import {
   datasourceMatchKeys,
   datasourceMatchValues,
+  isProbeDriver,
   matchDatasourceCount,
   matchedDatasourceUid,
   matchedProbeTargetGroups,
   probeGroupNamesMatcher,
+  probeMetricsForDriver,
   probeTargetMatchKeys,
   probeTargetMatchPreview,
   probeTargetMatchValues,
@@ -124,11 +126,11 @@ const drivers = [
   "LOGS_VLOGS",
   "TRACE_JAEGER",
   "PROBE_HTTP",
+  "PROBE_TCP",
+  "PROBE_ICMP",
 ]
-// 探测规则：匹配目标组而不是数据源，观测指标与探测周期随规则保存。
-const PROBE_DRIVER = "PROBE_HTTP"
+// 探测规则：匹配同类型目标组而不是数据源，观测指标与探测周期随规则保存。
 const probeIntervals = [15, 30, 60, 300]
-const probeMetrics = ["UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS"]
 const conditions = ["EQ", "NE", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN"]
 const samples = ["FOR", "MAX", "MIN"]
 
@@ -219,15 +221,17 @@ const emptyRule: RuleDraft = {
 /** 列表「观测对象」列：探测规则展示匹配到的目标组与目标数。 */
 function ProbeTargetMatchCell({
   groups,
+  driver,
   matchers,
 }: {
   groups: ProbeTargetGroupItem[]
+  driver: string
   matchers: string
 }) {
   const { t } = useTranslation()
   const pairs = parseLabelPairs(matchers)
-  const matched = matchedProbeTargetGroups(groups, pairs)
-  const preview = probeTargetMatchPreview(groups, pairs)
+  const matched = matchedProbeTargetGroups(groups, driver, pairs)
+  const preview = probeTargetMatchPreview(groups, driver, pairs)
   if (matched.length === 0) {
     return (
       <span className="text-xs text-warning">
@@ -303,7 +307,7 @@ export function AlertRulePage() {
     ],
     [session.features]
   )
-  const canCreateProbeRule = allowedDrivers.includes(PROBE_DRIVER)
+  const canCreateProbeRule = allowedDrivers.some(isProbeDriver)
 
   function defaultRule(): RuleDraft {
     return { ...emptyRule, driver: allowedDrivers[0] ?? "METRICS_PROMETHEUS" }
@@ -325,7 +329,12 @@ export function AlertRulePage() {
   )
   const canWrite = session.can("alert_rule:write")
   // 探测规则与查询规则共用表单，按驱动切换匹配区域与判定指标。
-  const isProbe = form.driver === PROBE_DRIVER
+  const isProbe = isProbeDriver(form.driver)
+  // 观测指标跟随探测类型：HTTP 还能比较状态码与证书天数。
+  const formProbeMetrics = useMemo(
+    () => probeMetricsForDriver(form.driver),
+    [form.driver]
+  )
   // 周期换算提示用第一条级别条件的持续秒数（没有条件时为 0，不显示）。
   const levelForSeconds = form.levels[0]?.forSeconds ?? 0
   // 深链规则打不开时（已删除、无权限）仍然按默认规则组展示列表。
@@ -380,23 +389,24 @@ export function AlertRulePage() {
       })),
     [sources, form.driver]
   )
-  // 探测规则：匹配键 = probe_group + 启用 HTTP 目标组的自定义标签键。
+  // 探测规则：匹配键 = probe_group + 同探测类型启用目标组的自定义标签键。
   const probeMatchKeyOptions = useMemo(
     () =>
-      probeTargetMatchKeys(probeGroups).map((key) => ({
+      probeTargetMatchKeys(probeGroups, form.driver).map((key) => ({
         value: key,
         label: key,
       })),
-    [probeGroups]
+    [probeGroups, form.driver]
   )
+  // 「按目标组选择」只列出与规则同探测类型的启用目标组。
   const probeGroupOptions = useMemo(
     () =>
       probeGroups
         .filter(
-          (item) => item.driver === "PROBE_HTTP" && item.status === "ACTIVE"
+          (item) => item.driver === form.driver && item.status === "ACTIVE"
         )
         .map((item) => ({ value: item.name, label: item.name })),
-    [probeGroups]
+    [probeGroups, form.driver]
   )
 
   // 「按目标组选择」的选中项只从显式 probe_group 匹配器反推。匹配器为空表示
@@ -418,8 +428,13 @@ export function AlertRulePage() {
     }
   }, [probeGroupOptions, form.probeGroupLabels])
   const probeMatchPreview = useMemo(
-    () => probeTargetMatchPreview(probeGroups, form.probeGroupLabels),
-    [probeGroups, form.probeGroupLabels]
+    () =>
+      probeTargetMatchPreview(
+        probeGroups,
+        form.driver,
+        form.probeGroupLabels
+      ),
+    [probeGroups, form.driver, form.probeGroupLabels]
   )
   function askConfirm(
     kind: "group" | "rule",
@@ -499,8 +514,8 @@ export function AlertRulePage() {
         )
         const filtered = all.filter((item) =>
           ruleType === "probe"
-            ? item.driver === PROBE_DRIVER
-            : item.driver !== PROBE_DRIVER
+            ? isProbeDriver(item.driver)
+            : !isProbeDriver(item.driver)
         )
         if (!active) {
           return
@@ -595,8 +610,10 @@ export function AlertRulePage() {
   // 避免可选列表的 403 触发全局「无权限」跳转。规则列表本身仍由 alert_rule 权限控制。
   const canReadLevels = session.can("alert_rule:read")
   const canReadSources = session.can("datasource:read")
+  // 任一种探测能力开通即可读取目标组；后端在 driver 为空时只返回已授权类型。
   const canReadProbeGroups =
-    session.can("probe:read") && session.hasFeature("probe_http")
+    session.can("probe:read") &&
+    authorizedProbeDrivers(session.features).length > 0
 
   useEffect(() => {
     let active = true
@@ -616,11 +633,7 @@ export function AlertRulePage() {
               : Promise.resolve([]),
             canReadProbeGroups
               ? loadAllPagedItems((page, pageSize) =>
-                  listProbeTargetGroups({
-                    page,
-                    pageSize,
-                    driver: "PROBE_HTTP",
-                  })
+                  listProbeTargetGroups({ page, pageSize })
                 )
               : Promise.resolve([]),
           ])
@@ -876,7 +889,7 @@ export function AlertRulePage() {
     if (step === 2) {
       const checks: Array<[string, string | null]> = []
       // 探测规则必须选择观测指标；查询规则的指标由表达式隐式决定。
-      if (isProbe && !probeMetrics.includes(form.probeMetric)) {
+      if (isProbe && !formProbeMetrics.includes(form.probeMetric)) {
         checks.push(["probeMetric", t("alertRule.probeMetricRequired")])
       }
       if (form.levels.length === 0) {
@@ -1338,9 +1351,10 @@ export function AlertRulePage() {
                     <TableRow key={item.uid}>
                       <TableCell>{item.name}</TableCell>
                       <TableCell className="max-w-[28rem] min-w-[16rem] align-top">
-                        {item.driver === PROBE_DRIVER ? (
+                        {isProbeDriver(item.driver) ? (
                           <ProbeTargetMatchCell
                             groups={probeGroups}
+                            driver={item.driver}
                             matchers={item.probeGroupLabels}
                           />
                         ) : (
@@ -1461,7 +1475,8 @@ export function AlertRulePage() {
                         return
                       }
                       // 切换驱动后旧匹配键/值可能不再被任何数据源或目标组上报，继续保留会保存出永不命中的条件。
-                      const nextIsProbe = value === PROBE_DRIVER
+                      const nextIsProbe = isProbeDriver(value)
+                      const nextMetrics = probeMetricsForDriver(value)
                       const clearsMatchers =
                         form.datasourceLabels.length > 0 ||
                         form.probeGroupLabels.length > 0
@@ -1472,9 +1487,13 @@ export function AlertRulePage() {
                           nextIsProbe || form.datasourceLabels.length > 0
                             ? []
                             : form.datasourceLabels,
-                        probeGroupLabels: nextIsProbe
-                          ? form.probeGroupLabels
-                          : [],
+                        // 不同探测类型的目标组标签互不通用，切换后清空，避免留下
+                        // 只匹配另一种类型目标组的条件。
+                        probeGroupLabels: [],
+                        // 观测指标随探测类型收窄：切到 TCP / ICMP 时状态码与证书天数不可选。
+                        probeMetric: nextMetrics.includes(form.probeMetric)
+                          ? form.probeMetric
+                          : "UP",
                       })
                       if (clearsMatchers) {
                         toast(t("alertRule.datasourceLabelsCleared"))
@@ -1537,6 +1556,7 @@ export function AlertRulePage() {
                             ]
                       const values = probeTargetMatchValues(
                         probeGroups,
+                        form.driver,
                         pair.key
                       )
                       const valueOptions = values.map((value) => ({
@@ -1569,6 +1589,7 @@ export function AlertRulePage() {
                               }
                               const nextValues = probeTargetMatchValues(
                                 probeGroups,
+                                form.driver,
                                 key
                               )
                               updateProbeGroupLabel(index, {
@@ -2089,7 +2110,7 @@ export function AlertRulePage() {
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {probeMetrics.map((item) => (
+                        {formProbeMetrics.map((item) => (
                           <SelectItem key={item} value={item}>
                             {enumLabel(t, item)}
                           </SelectItem>

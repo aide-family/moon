@@ -330,7 +330,7 @@ func (rulebook *Rulebook) prepare(ctx context.Context, namespaceUID string, in *
 	if err := rulebook.requireDriverCapability(ctx, in.Driver); err != nil {
 		return err
 	}
-	if in.Driver == bo.ProbeDriverHTTP {
+	if bo.IsProbeDriver(in.Driver) {
 		return rulebook.prepareProbe(ctx, namespaceUID, in)
 	}
 	if !datasource.ValidDriver(in.Driver) {
@@ -385,9 +385,8 @@ func (rulebook *Rulebook) prepareProbe(ctx context.Context, namespaceUID string,
 	default:
 		return merr.Invalid("invalid probe interval")
 	}
-	switch in.ProbeMetric {
-	case bo.ProbeMetricUp, bo.ProbeMetricLatencyMS, bo.ProbeMetricStatusCode, bo.ProbeMetricCertDays:
-	default:
+	// 观测指标按驱动校验：TCP / ICMP 没有状态码与证书，只能用 UP 与 LATENCY_MS。
+	if !bo.ValidProbeMetric(in.Driver, in.ProbeMetric) {
 		return merr.Invalid("invalid probe metric")
 	}
 	matchers, err := labelsutil.NormalizeMatchers(in.ProbeGroupLabels)

@@ -16,9 +16,11 @@ const (
 	CapabilityAlertPage       = "alert_page"
 	CapabilityAlertRule       = "alert_rule"
 	CapabilityAlertDictionary = "alert_dictionary"
-	// 探测目标按驱动细分。当前只有 HTTP，TCP / ICMP 在实现探测执行器后新增能力，
-	// 旧能力码不再复用，避免套餐把未实现的类型卖给租户。
+	// 探测目标按驱动细分：HTTP / TCP / ICMP 各自对应一个能力，套餐可以只买其中一种，
+	// 未实现的类型不会出现在目录里。
 	CapabilityProbeHTTP = "probe_http"
+	CapabilityProbeTCP  = "probe_tcp"
+	CapabilityProbeICMP = "probe_icmp"
 	// 数据源按驱动细分：一个套餐可以只买 Prometheus，不买 Loki 或 ES。
 	// 六个编码与 datasource.driver 枚举一一对应，权限相同，由能力决定可用类型。
 	CapabilityDatasourcePrometheus      = "datasource_prometheus"
@@ -117,6 +119,16 @@ var capabilitySpecs = []Capability{
 	{
 		Code: CapabilityProbeHTTP, Module: FeatureProbe, Name: "HTTP 探测",
 		Description: "管理 HTTP 探测目标组、探测地址与立即探测。",
+		Permissions: []string{ProbeRead, ProbeWrite, ProbeDelete},
+	},
+	{
+		Code: CapabilityProbeTCP, Module: FeatureProbe, Name: "TCP 探测",
+		Description: "管理 TCP 端口探测目标组、探测地址与立即探测。",
+		Permissions: []string{ProbeRead, ProbeWrite, ProbeDelete},
+	},
+	{
+		Code: CapabilityProbeICMP, Module: FeatureProbe, Name: "ICMP 探测",
+		Description: "管理 ICMP 主机探测目标组、探测地址与立即探测。",
 		Permissions: []string{ProbeRead, ProbeWrite, ProbeDelete},
 	},
 	{
@@ -446,7 +458,7 @@ var legacyCapabilityExpansion = map[string][]string{
 		CapabilityDatasourceVictoriaLogs,
 		CapabilityDatasourceJaeger,
 	},
-	"probe_target": {CapabilityProbeHTTP},
+	"probe_target": {CapabilityProbeHTTP, CapabilityProbeTCP, CapabilityProbeICMP},
 	"notify_channel": {
 		CapabilityNotifyChannelSMTP,
 		CapabilityNotifyChannelWebhookOther,
@@ -559,16 +571,16 @@ func NormalizeCapabilities(codes []string) []string {
 	return EffectiveCapabilities(nil, expanded)
 }
 
-// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 26 项。
+// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 28 项。
 // 数据源、探测和通知渠道按类型/应用展开后全部包含在基础套餐里，保持升级前
-// 「基础套餐可用全部数据源与通知渠道类型」的行为；Kubernetes、机器和 SSH
+// 「基础套餐可用全部数据源、探测与通知渠道类型」的行为；Kubernetes、机器和 SSH
 // 能力由超级管理员另行开通。
 func BaseCapabilities() []string {
 	modules := make(map[string]struct{}, len(BaseFeatures()))
 	for _, code := range BaseFeatures() {
 		modules[code] = struct{}{}
 	}
-	codes := make([]string, 0, 26)
+	codes := make([]string, 0, 28)
 	for _, item := range capabilitySpecs {
 		if _, ok := modules[item.Module]; ok {
 			codes = append(codes, item.Code)
@@ -712,13 +724,16 @@ func DatasourceDriversOf(capabilities []string) []string {
 	return drivers
 }
 
-// probeCapabilityDrivers 是探测驱动与能力编码的映射。一期只有 HTTP；
-// 新增 TCP / ICMP 时在这里追加一行并同时实现执行器，不能先卖能力。
+// probeCapabilityDrivers 是探测驱动与能力编码的映射。顺序即套餐勾选页与
+// 目标组/规则列表的类型顺序；新增驱动时在这里追加一行并同时实现执行器，
+// 不能先卖能力。
 var probeCapabilityDrivers = []struct {
 	driver     string
 	capability string
 }{
 	{"PROBE_HTTP", CapabilityProbeHTTP},
+	{"PROBE_TCP", CapabilityProbeTCP},
+	{"PROBE_ICMP", CapabilityProbeICMP},
 }
 
 // ProbeDrivers 按固定顺序返回全部探测驱动编码。

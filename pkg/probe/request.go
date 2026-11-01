@@ -1,6 +1,6 @@
-// Package probe 实现 HTTP 探测：目标归一化、期望状态码解析与一次探测执行。
-// 天权（megrez）的探测 worker 与玉衡（alioth）的试探测共用这份实现，保证两边
-// 「什么算成功」的语义一致。
+// Package probe 实现探测：目标归一化、期望状态码解析与一次探测执行。
+// 支持 HTTP、TCP、ICMP 三种驱动；天权（megrez）的探测 worker 与玉衡（alioth）
+// 的试探测共用这份实现，保证两边「什么算成功」的语义一致。
 package probe
 
 import (
@@ -18,14 +18,15 @@ const (
 
 // 失败分类。写进 probe_results.error_kind，也用于事件描述。
 const (
-	ErrorDNS      = "dns"
-	ErrorConnect  = "connect"
-	ErrorTLS      = "tls"
-	ErrorTimeout  = "timeout"
-	ErrorStatus   = "status"
-	ErrorKeyword  = "keyword"
-	ErrorRedirect = "redirect"
-	ErrorProtocol = "protocol"
+	ErrorDNS        = "dns"
+	ErrorConnect    = "connect"
+	ErrorTLS        = "tls"
+	ErrorTimeout    = "timeout"
+	ErrorStatus     = "status"
+	ErrorKeyword    = "keyword"
+	ErrorRedirect   = "redirect"
+	ErrorProtocol   = "protocol"
+	ErrorPermission = "permission"
 )
 
 // 探测请求参数。JSON 形态与 probe_target_groups.request 一致。
@@ -138,6 +139,23 @@ func (r Request) Validate() error {
 		return merr.Invalid("probe body keyword is too long")
 	}
 	return nil
+}
+
+// ValidateRequestForDriver 按驱动校验请求参数。HTTP 走完整校验；TCP、ICMP
+// 只用到连接与超时，method、期望状态码、请求头等字段不参与判定。
+func ValidateRequestForDriver(driver string, req Request) error {
+	switch normalizeDriver(driver) {
+	case DriverHTTP:
+		return req.Validate()
+	case DriverTCP, DriverICMP:
+		req = req.Normalize()
+		if req.TimeoutMS < 100 || req.TimeoutMS > 60000 {
+			return merr.Invalid("probe timeout out of range")
+		}
+		return nil
+	default:
+		return merr.Invalid("unsupported probe driver")
+	}
 }
 
 // NormalizeHeaders 去掉空白键值并复制一份，避免调用方修改原始 map。

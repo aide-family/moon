@@ -55,7 +55,7 @@ message ProbeRuleSnapshot {
   string namespace_uid = 2;
   string name = 3;
   string driver = 4;
-  // 观测指标，取值为 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS。
+  // 观测指标：HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS；TCP 与 ICMP 取 UP、LATENCY_MS。
   string probe_metric = 5;
   int32 probe_interval_seconds = 6;
   string labels = 7;
@@ -73,7 +73,7 @@ message ProbeGroupSnapshot {
   ProbeRequestSnapshot request = 4;
 }
 
-// 探测请求参数快照。
+// 探测请求参数快照。HTTP 探测使用全部字段；TCP 与 ICMP 只使用 timeout_ms。
 message ProbeRequestSnapshot {
   string method = 1;
   string expect_status = 2;
@@ -107,10 +107,11 @@ message ProbeResult {
   string target_uid = 1;
   bool ok = 2;
   // 观测值：up 取 1/0，耗时为毫秒，状态码为整数，证书剩余天数为天数。
+  // TCP 与 ICMP 只有 UP 与 LATENCY_MS 有意义，status_code / cert_days 为 0。
   string value = 3;
   int32 duration_ms = 4;
   int32 status_code = 5;
-  // 失败分类：dns / connect / tls / timeout / status / keyword / redirect / protocol。
+  // 失败分类：dns / connect / tls / timeout / status / keyword / redirect / protocol / permission。
   string error_kind = 6;
   string error_message = 7;
   int32 dns_ms = 8;

@@ -59,7 +59,7 @@ func TestRunSuccessAndFailures(t *testing.T) {
 	}))
 	defer server.Close()
 
-	ok := Run(context.Background(), server.URL, DefaultRequest())
+	ok := Run(context.Background(), DriverHTTP, server.URL, DefaultRequest())
 	if !ok.OK || ok.StatusCode != http.StatusNoContent {
 		t.Fatalf("expected success, got %+v", ok)
 	}
@@ -67,18 +67,18 @@ func TestRunSuccessAndFailures(t *testing.T) {
 		t.Fatalf("unexpected values: %+v", ok)
 	}
 
-	bad := Run(context.Background(), server.URL+"/500", DefaultRequest())
+	bad := Run(context.Background(), DriverHTTP, server.URL+"/500", DefaultRequest())
 	if bad.OK || bad.ErrorKind != ErrorStatus {
 		t.Fatalf("expected status failure, got %+v", bad)
 	}
 
 	keyword := DefaultRequest()
 	keyword.BodyKeyword = "healthy"
-	if got := Run(context.Background(), server.URL+"/keyword", keyword); !got.OK {
+	if got := Run(context.Background(), DriverHTTP, server.URL+"/keyword", keyword); !got.OK {
 		t.Fatalf("keyword should match, got %+v", got)
 	}
 	keyword.BodyKeyword = "unhealthy"
-	if got := Run(context.Background(), server.URL+"/keyword", keyword); got.OK || got.ErrorKind != ErrorKeyword {
+	if got := Run(context.Background(), DriverHTTP, server.URL+"/keyword", keyword); got.OK || got.ErrorKind != ErrorKeyword {
 		t.Fatalf("keyword should mismatch, got %+v", got)
 	}
 }

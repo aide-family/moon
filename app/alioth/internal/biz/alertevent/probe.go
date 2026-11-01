@@ -299,7 +299,7 @@ func probeLabels(rule bo.AlertRule, group bo.ProbeTargetGroup, target bo.ProbeTa
 			merged[key] = value
 		}
 	}
-	merged[probeKindLabel] = "HTTP"
+	merged[probeKindLabel] = bo.ProbeKindOf(rule.Driver)
 	merged[probeTargetLabel] = target.Spec
 	merged[probeTargetUIDLabel] = target.UID
 	encoded, err := json.Marshal(merged)
@@ -336,16 +336,28 @@ func renderProbeAlert(ctx context.Context, rule bo.AlertRule, target bo.ProbeTar
 	if raw == "" || !strings.Contains(raw, "{{") {
 		return raw
 	}
-	externalURL, err := url.Parse(target.Spec)
-	if err != nil {
-		externalURL = &url.URL{}
-	}
+	externalURL := probeExternalURL(rule.Driver, target.Spec)
 	data := alerttmpl.NewData(labels, labelsJSON, value, externalURL.String(), nil)
 	result, err := alerttmpl.Render(ctx, raw, data, "__alert_"+rule.Name, at, nil, externalURL)
 	if err != nil {
 		return fmt.Sprintf("<error expanding template: %s>", err)
 	}
 	return result
+}
+
+// probeExternalURL 按驱动构造事件的 externalURL：HTTP 目标本身是 URL，直接解析；
+// TCP 的 host:port 与 ICMP 的 host 不能按 URL 解析（host:port 会被当成 scheme 或
+// 解析失败），用 Opaque 原样承载，保证 String() 等于目标地址。不用 Path，是因为
+// 首段含冒号时 String() 会加 "./" 前缀，IPv6 方括号还会被转义。
+func probeExternalURL(driver, spec string) *url.URL {
+	if driver == bo.ProbeDriverHTTP {
+		parsed, err := url.Parse(spec)
+		if err != nil {
+			return &url.URL{}
+		}
+		return parsed
+	}
+	return &url.URL{Opaque: spec}
 }
 
 // probeInterval 返回规则的探测周期。

@@ -247,7 +247,7 @@ type ProbeRuleSnapshot struct {
 	NamespaceUid string                 `protobuf:"bytes,2,opt,name=namespace_uid,json=namespaceUid,proto3" json:"namespace_uid,omitempty"`
 	Name         string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Driver       string                 `protobuf:"bytes,4,opt,name=driver,proto3" json:"driver,omitempty"`
-	// 观测指标，取值为 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS。
+	// 观测指标：HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS；TCP 与 ICMP 取 UP、LATENCY_MS。
 	ProbeMetric          string            `protobuf:"bytes,5,opt,name=probe_metric,json=probeMetric,proto3" json:"probe_metric,omitempty"`
 	ProbeIntervalSeconds int32             `protobuf:"varint,6,opt,name=probe_interval_seconds,json=probeIntervalSeconds,proto3" json:"probe_interval_seconds,omitempty"`
 	Labels               string            `protobuf:"bytes,7,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -428,7 +428,7 @@ func (x *ProbeGroupSnapshot) GetRequest() *ProbeRequestSnapshot {
 	return nil
 }
 
-// 探测请求参数快照。
+// 探测请求参数快照。HTTP 探测使用全部字段；TCP 与 ICMP 只使用 timeout_ms。
 type ProbeRequestSnapshot struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Method          string                 `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
@@ -660,10 +660,11 @@ type ProbeResult struct {
 	TargetUid string                 `protobuf:"bytes,1,opt,name=target_uid,json=targetUid,proto3" json:"target_uid,omitempty"`
 	Ok        bool                   `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
 	// 观测值：up 取 1/0，耗时为毫秒，状态码为整数，证书剩余天数为天数。
+	// TCP 与 ICMP 只有 UP 与 LATENCY_MS 有意义，status_code / cert_days 为 0。
 	Value      string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
 	DurationMs int32  `protobuf:"varint,4,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
 	StatusCode int32  `protobuf:"varint,5,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
-	// 失败分类：dns / connect / tls / timeout / status / keyword / redirect / protocol。
+	// 失败分类：dns / connect / tls / timeout / status / keyword / redirect / protocol / permission。
 	ErrorKind    string `protobuf:"bytes,6,opt,name=error_kind,json=errorKind,proto3" json:"error_kind,omitempty"`
 	ErrorMessage string `protobuf:"bytes,7,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	DnsMs        int32  `protobuf:"varint,8,opt,name=dns_ms,json=dnsMs,proto3" json:"dns_ms,omitempty"`

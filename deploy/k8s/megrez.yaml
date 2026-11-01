@@ -29,6 +29,11 @@ spec:
         runAsGroup: 65532
         seccompProfile:
           type: RuntimeDefault
+        # ICMP 探测优先使用 Linux 非特权 ping socket；该 sysctl 是 namespaced 的安全
+        # sysctl，允许 megrez 的运行用户（65532）创建 ping socket。
+        sysctls:
+          - name: net.ipv4.ping_group_range
+            value: "0 2147483647"
       containers:
         - name: megrez
           image: ghcr.io/aide-family/moon/megrez:sha-43afb285951d
@@ -64,6 +69,8 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
+              # ICMP 探测的兜底：非特权 ping socket 不可用时用原生 ICMP socket。
+              add: ["NET_RAW"]
               drop: ["ALL"]
           lifecycle:
             # 收到 SIGTERM 后先停 5 秒再退出：kube-proxy/iPtables 摘除 endpoint 有延迟，

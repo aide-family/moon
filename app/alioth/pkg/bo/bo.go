@@ -292,7 +292,7 @@ type AlertRule struct {
 
 // IsProbeRule 判断规则是不是探测规则。类型由驱动推导，不单独存列。
 func (r AlertRule) IsProbeRule() bool {
-	return r.Driver == ProbeDriverHTTP
+	return IsProbeDriver(r.Driver)
 }
 
 // AlertRuleVariable 是规则上的一条自定义查询变量。名字是模板标识符，

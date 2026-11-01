@@ -21,7 +21,7 @@ func (AlertRule) Fields() []ent.Field {
 		field.String("namespace_uid").NotEmpty(),
 		field.String("group_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
-		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP"),
+		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP"),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
 		field.String("expr").Default(""),
 		field.String("labels").Default(""),

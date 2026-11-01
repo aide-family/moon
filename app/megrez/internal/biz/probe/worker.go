@@ -1,5 +1,6 @@
-// Package probe 执行探测规则：领取「规则 × 目标组 × 目标」，按目标加锁后发
-// HTTP 请求并回写结果。判定在玉衡，执行器不解析级别条件。
+// Package probe 执行探测规则：领取「规则 × 目标组 × 目标」，按目标加锁后按
+// 规则驱动执行 HTTP / TCP / ICMP 探测并回写结果。判定在玉衡，执行器不解析
+// 级别条件。
 package probe
 
 import (
@@ -242,10 +243,15 @@ func (w *Worker) runTask(ctx context.Context, task bo.ProbeTask) error {
 			}
 			return err
 		}
-		result := execute(ctx, task.Group, target, task.Rule.ProbeMetric, w.maxTimeoutMS)
+		result, reportable := execute(ctx, w.log, task.Rule.Driver, task.Group, target, task.Rule.ProbeMetric, w.maxTimeoutMS)
+		_ = hold.Release(context.Background())
+		if !reportable {
+			// 执行器自身故障（目前只有缺少 ICMP 权限）：不回写结果，
+			// 免得把「探不了」当成目标不可用。
+			continue
+		}
 		result.Executor = w.hostname
 		results = append(results, result)
-		_ = hold.Release(context.Background())
 	}
 	if len(results) == 0 {
 		return nil

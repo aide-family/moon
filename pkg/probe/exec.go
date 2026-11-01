@@ -10,6 +10,7 @@ import (
 	"net/http/httptrace"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -17,11 +18,12 @@ import (
 // probe_metric：UP 取 1/0，LATENCY_MS 取总耗时，STATUS_CODE 取状态码，
 // CERT_DAYS 取证书剩余天数。
 type Result struct {
-	// OK 表示这次探测是否算成功（状态码、关键字与连接都满足）。
+	// OK 表示这次探测是否算成功（HTTP 看状态码、关键字与连接，TCP 看建连，
+	// ICMP 看 echo reply）。
 	OK bool
-	// StatusCode 是 HTTP 状态码，连接失败时为 0。
+	// StatusCode 是 HTTP 状态码，连接失败或非 HTTP 驱动时为 0。
 	StatusCode int
-	// DurationMS 是整个请求的耗时。
+	// DurationMS 是这次探测的耗时：HTTP 是整请求，TCP 是建连，ICMP 是 RTT。
 	DurationMS int64
 	// ErrorKind 与 ErrorMessage 在失败时有值。
 	ErrorKind    string
@@ -60,8 +62,23 @@ const maxBodyBytes = 64 << 10
 // maxRedirects 是最多跟随的重定向跳数。
 const maxRedirects = 5
 
-// Run 对归一化后的目标执行一次探测。调用方负责传入 ctx 与超时。
-func Run(ctx context.Context, spec string, req Request) Result {
+// Run 按驱动对归一化后的目标执行一次探测。调用方负责传入 ctx；单次超时
+// 由 req.TimeoutMS 决定，这里会再包一层，避免调用方漏传时无限等待。
+func Run(ctx context.Context, driver, spec string, req Request) Result {
+	switch normalizeDriver(driver) {
+	case DriverHTTP:
+		return runHTTP(ctx, spec, req)
+	case DriverTCP:
+		return runTCP(ctx, spec, req)
+	case DriverICMP:
+		return runICMP(ctx, spec, req)
+	default:
+		return Result{ErrorKind: ErrorProtocol, ErrorMessage: "unsupported probe driver"}
+	}
+}
+
+// runHTTP 执行一次 HTTP 探测：连接、TLS、期望状态码与关键字都满足才算成功。
+func runHTTP(ctx context.Context, spec string, req Request) Result {
 	req = req.Normalize()
 	timeout := time.Duration(req.TimeoutMS) * time.Millisecond
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -235,4 +252,44 @@ func truncate(text string, limit int) string {
 		return text
 	}
 	return text[:limit]
+}
+
+// transportFailure 把 TCP、ICMP 的底层错误转成失败结果，分类口径与 HTTP 一致。
+func transportFailure(err error, elapsed time.Duration, resolvedIP string) Result {
+	return Result{
+		DurationMS:   millis(elapsed),
+		ResolvedIP:   resolvedIP,
+		ErrorKind:    transportErrorKind(err),
+		ErrorMessage: truncate(err.Error(), 200),
+	}
+}
+
+// transportErrorKind 按错误类型给 TCP、ICMP 的失败分类。没权限单独记
+// permission：线上多半是容器没给 CAP_NET_RAW，可与目标故障区分开。
+func transportErrorKind(err error) string {
+	var netErr net.Error
+	var dnsErr *net.DNSError
+	switch {
+	case isPermissionError(err):
+		return ErrorPermission
+	case errors.As(err, &dnsErr):
+		return ErrorDNS
+	case os.IsTimeout(err) || (errors.As(err, &netErr) && netErr.Timeout()) || errors.Is(err, context.DeadlineExceeded):
+		return ErrorTimeout
+	default:
+		return ErrorConnect
+	}
+}
+
+// isPermissionError 判断错误是不是权限不足：非特权 ICMP 被关、raw 套接字
+// 需要特权都会落到这里。
+func isPermissionError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, os.ErrPermission) || errors.Is(err, syscall.EACCES) || errors.Is(err, syscall.EPERM) {
+		return true
+	}
+	text := strings.ToLower(err.Error())
+	return strings.Contains(text, "permission denied") || strings.Contains(text, "operation not permitted")
 }

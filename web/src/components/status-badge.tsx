@@ -78,6 +78,9 @@ const typeTones: Record<string, BadgeTone> = {
   TRACE: "primary",
   TRACE_JAEGER: "primary",
   PROBE_HTTP: "primary",
+  // 三种探测类型同属探测能力，共用品牌色标签，靠文案区分类型。
+  PROBE_TCP: "primary",
+  PROBE_ICMP: "primary",
   TCP: "neutral",
   ICMP: "neutral",
   EMAIL: "info",

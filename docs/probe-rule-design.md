@@ -7,6 +7,8 @@
 - 基线：`main` @ `0b3f1d3d`，分支 `docs/probe-rule-prototype`
 - v2 依据的 6 条决策见第 10 节（已确认）
 
+> 后续：M26（[iterations/m26-probe-tcp-icmp.md](iterations/m26-probe-tcp-icmp.md)）已实现 `PROBE_TCP` 与 `PROBE_ICMP`。本文中「一期只做 HTTP」「TCP / ICMP 灰态预告」等表述保留为当时的设计结论，当前实现以 M26 与 [design.md](design.md) 4.4 为准。
+
 ---
 
 ## 0. 一页结论

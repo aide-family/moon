@@ -24,7 +24,7 @@ func (r *probeRepo) CreateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 		SetUID(id.New()).
 		SetNamespaceUID(in.NamespaceUID).
 		SetName(in.Name).
-		SetDriver(probetargetgroup.DriverPROBE_HTTP).
+		SetDriver(probeGroupDriver(in.Driver)).
 		SetStatus(probetargetgroup.StatusACTIVE).
 		SetLabels(in.Labels).
 		SetExecutorLabels(in.ExecutorLabels).
@@ -66,7 +66,7 @@ func (r *probeRepo) UpdateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 		probetargetgroup.DeletedAtIsNil(),
 	).
 		SetName(in.Name).
-		SetDriver(probetargetgroup.DriverPROBE_HTTP).
+		SetDriver(probeGroupDriver(in.Driver)).
 		SetLabels(in.Labels).
 		SetExecutorLabels(in.ExecutorLabels).
 		SetRequest(in.Request).
@@ -601,6 +601,15 @@ func probeGroupsRef(items []bo.ProbeTargetGroup) []*bo.ProbeTargetGroup {
 		out = append(out, &items[i])
 	}
 	return out
+}
+
+// probeGroupDriver 把业务层归一化后的驱动落库。驱动由 biz 校验；空值兜底
+// PROBE_HTTP，兼容只传目标列表、不关心类型的直接仓储调用与旧数据。
+func probeGroupDriver(driver string) probetargetgroup.Driver {
+	if driver == "" {
+		return probetargetgroup.DriverPROBE_HTTP
+	}
+	return probetargetgroup.Driver(driver)
 }
 
 func toProbeGroup(row *ent.ProbeTargetGroup) bo.ProbeTargetGroup {

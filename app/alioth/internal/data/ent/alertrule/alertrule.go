@@ -143,6 +143,8 @@ const (
 	DriverLOGS_VLOGS               Driver = "LOGS_VLOGS"
 	DriverTRACE_JAEGER             Driver = "TRACE_JAEGER"
 	DriverPROBE_HTTP               Driver = "PROBE_HTTP"
+	DriverPROBE_TCP                Driver = "PROBE_TCP"
+	DriverPROBE_ICMP               Driver = "PROBE_ICMP"
 )
 
 func (_driver Driver) String() string {
@@ -152,7 +154,7 @@ func (_driver Driver) String() string {
 // DriverValidator is a validator for the "driver" field enum values. It is called by the builders before save.
 func DriverValidator(_driver Driver) error {
 	switch _driver {
-	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER, DriverPROBE_HTTP:
+	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER, DriverPROBE_HTTP, DriverPROBE_TCP, DriverPROBE_ICMP:
 		return nil
 	default:
 		return fmt.Errorf("alertrule: invalid enum value for driver field: %q", _driver)

@@ -12,6 +12,7 @@ import { enumLabel } from "@/lib/enum-label"
 import { parseLabelPairs } from "@/lib/labels"
 
 import {
+  isProbeDriver,
   matchedDatasources,
   matchedProbeTargetGroups,
   probeTargetMatchPreview,
@@ -51,7 +52,7 @@ export function AlertRuleDetailSheet({
     const groupName =
       groups.find((item) => item.uid === detail.groupUid)?.name ||
       detail.groupUid
-    const isProbe = detail.driver === "PROBE_HTTP"
+    const isProbe = isProbeDriver(detail.driver)
 
     fields.push(
       { label: t("alertRule.group"), value: groupName },
@@ -69,8 +70,16 @@ export function AlertRuleDetailSheet({
     if (isProbe) {
       const matchers = parseLabelPairs(detail.probeGroupLabels)
       const hasMatchers = matchers.some((pair) => pair.key.trim() !== "")
-      const matched = matchedProbeTargetGroups(probeGroups, matchers)
-      const preview = probeTargetMatchPreview(probeGroups, matchers)
+      const matched = matchedProbeTargetGroups(
+        probeGroups,
+        detail.driver,
+        matchers
+      )
+      const preview = probeTargetMatchPreview(
+        probeGroups,
+        detail.driver,
+        matchers
+      )
       fields.push(
         {
           label: t("alertRule.probeGroupLabels"),

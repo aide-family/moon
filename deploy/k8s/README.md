@@ -81,7 +81,20 @@ PostgreSQL / Redis 都用 `infra` 的共享实例，本命名空间里不再跑�
 `readiness` 查依赖、`liveness` 只查进程：数据库或 Redis 抖动时 Pod 会被摘流量，但不会被重启。
 每个 Deployment 都配了 `resources`、`securityContext`（非 root、只读根文件系统、drop ALL
 capabilities）、`terminationGracePeriodSeconds` 和 `maxUnavailable: 0` 的滚动策略；`pdb.yaml`
-保证节点 drain 时至少留一个副本。
+保证节点 drain 时至少留一个副本。`megrez` 是唯一例外：为 ICMP 探测额外保留 `NET_RAW`，
+见下节。
+
+## ICMP 探测权限
+
+`megrez` 的 TCP / HTTP 探测不需要额外权限；ICMP 探测需要创建 ICMP socket，任选一种方式：
+
+- Pod 级 `sysctls: net.ipv4.ping_group_range = "0 2147483647"`（清单已配置），运行用户 65532
+  因而可以使用 Linux 非特权 ping socket，这是默认路径；
+- 容器 `capabilities.add: ["NET_RAW"]`（清单已配置）兜底：节点内核不允许非特权 ping socket
+  时走原生 ICMP socket。部分容器运行时会对非 root 进程丢弃新增 capability，因此不能只依赖它。
+
+两者都不可用时，试探测 / 立即探测会显示 `permission` 失败；规则探测按执行器故障处理，不回写
+结果、不产生误告警，`megrez` 日志会提示检查上述两项配置。
 
 ## 排空（preStop）
 

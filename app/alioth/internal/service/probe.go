@@ -100,7 +100,7 @@ func (s *ProbeTargetService) ProbeTargetGroupNow(ctx context.Context, req *v1.Pr
 }
 
 func (s *ProbeTargetService) ProbeTrial(ctx context.Context, req *v1.ProbeTrialRequest) (*v1.ProbeTrialResponse, error) {
-	item, err := s.gateway.ProbeTrial(ctx, req.GetSpec(), probeRequest(req.GetRequest()))
+	item, err := s.gateway.ProbeTrial(ctx, req.GetDriver(), req.GetSpec(), probeRequest(req.GetRequest()))
 	if err != nil {
 		return nil, err
 	}

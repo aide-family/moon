@@ -244,7 +244,7 @@ func (x *Redis) GetPassword() string {
 	return ""
 }
 
-// 探测执行器配置。一期只有 HTTP 探测，关闭后不再领取探测任务，
+// 探测执行器配置。支持 HTTP、TCP、ICMP 探测；关闭后不再领取探测任务，
 // 不影响指标与日志评测。
 type Probe struct {
 	state protoimpl.MessageState `protogen:"open.v1"`

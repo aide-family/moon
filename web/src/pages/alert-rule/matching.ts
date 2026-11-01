@@ -178,6 +178,25 @@ export function ruleLabelKeys(labels: string): string[] {
 // 与数据源匹配分开实现：目标组有自己的固定键 probe_group（组名）和自定义标签，
 // 复用 datasource-label-keys.ts 会把两套条件混在一起。
 
+/** 探测驱动。规则只匹配同探测类型的目标组。 */
+export const PROBE_DRIVERS = [
+  "PROBE_HTTP",
+  "PROBE_TCP",
+  "PROBE_ICMP",
+] as const
+
+/** 探测规则与查询规则共用告警规则入口，按驱动区分即可。 */
+export function isProbeDriver(driver: string): boolean {
+  return (PROBE_DRIVERS as readonly string[]).includes(driver)
+}
+
+/** 探测规则可比较的观测指标：HTTP 有状态码与证书天数，TCP / ICMP 只有可用性与耗时。 */
+export function probeMetricsForDriver(driver: string): string[] {
+  return driver === "PROBE_HTTP"
+    ? ["UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS"]
+    : ["UP", "LATENCY_MS"]
+}
+
 /** 探测规则的系统匹配键：目标组名称由后端在匹配时并入标签。 */
 export const PROBE_GROUP_MATCH_SYSTEM_KEYS = ["probe_group"] as const
 
@@ -204,20 +223,24 @@ export function probeTargetMatchLabels(
   return { ...labels, probe_group: item.name }
 }
 
+// 目标组列表可能混有租户已授权的多种探测类型；匹配候选只取与规则同驱动、
+// 且启用的目标组，和 matchedProbeTargetGroups 使用的集合保持一致。
 function matchableProbeGroups(
-  groups: ProbeTargetGroupItem[]
+  groups: ProbeTargetGroupItem[],
+  driver: string
 ): ProbeTargetGroupItem[] {
   return groups.filter(
-    (item) => item.driver === "PROBE_HTTP" && item.status === "ACTIVE"
+    (item) => item.driver === driver && item.status === "ACTIVE"
   )
 }
 
-/** 探测规则可选的匹配键：probe_group 固定在前，其后是启用目标组的自定义标签键。 */
+/** 探测规则可选的匹配键：probe_group 固定在前，其后是同类型启用目标组的自定义标签键。 */
 export function probeTargetMatchKeys(
-  groups: ProbeTargetGroupItem[]
+  groups: ProbeTargetGroupItem[],
+  driver: string
 ): string[] {
   const customKeys = new Set<string>()
-  for (const item of matchableProbeGroups(groups)) {
+  for (const item of matchableProbeGroups(groups, driver)) {
     const labels = parseProbeLabels(item.labels)
     if (labels === null) {
       continue
@@ -241,6 +264,7 @@ export function probeTargetMatchKeys(
 /** 选中匹配键后可以带出的值：probe_group -> 组名，其余键 -> 目标组同名标签值。 */
 export function probeTargetMatchValues(
   groups: ProbeTargetGroupItem[],
+  driver: string,
   key: string
 ): string[] {
   const matchKey = key.trim()
@@ -248,7 +272,7 @@ export function probeTargetMatchValues(
     return []
   }
   const values = new Set<string>()
-  for (const item of matchableProbeGroups(groups)) {
+  for (const item of matchableProbeGroups(groups, driver)) {
     if (matchKey === "probe_group") {
       if (item.name.trim() !== "") {
         values.add(item.name)
@@ -264,13 +288,14 @@ export function probeTargetMatchValues(
   return [...values].sort(compareText)
 }
 
-/** 规则会命中哪些启用目标组：HTTP 驱动且标签匹配器全部命中。 */
+/** 规则会命中哪些启用目标组：与规则同驱动且标签匹配器全部命中。 */
 export function matchedProbeTargetGroups(
   groups: ProbeTargetGroupItem[],
+  driver: string,
   matchers: LabelPair[]
 ): ProbeTargetGroupItem[] {
   return groups.filter((item) => {
-    if (item.driver !== "PROBE_HTTP" || item.status !== "ACTIVE") {
+    if (item.driver !== driver || item.status !== "ACTIVE") {
       return false
     }
     const labels = probeTargetMatchLabels(item)
@@ -278,12 +303,13 @@ export function matchedProbeTargetGroups(
   })
 }
 
-/** 匹配预览：命中的启用目标组数与启用目标总数。 */
+/** 匹配预览：命中的同类型启用目标组数与启用目标总数。 */
 export function probeTargetMatchPreview(
   groups: ProbeTargetGroupItem[],
+  driver: string,
   matchers: LabelPair[]
 ): { groups: number; targets: number } {
-  const matched = matchedProbeTargetGroups(groups, matchers)
+  const matched = matchedProbeTargetGroups(groups, driver, matchers)
   let targets = 0
   for (const item of matched) {
     targets +=

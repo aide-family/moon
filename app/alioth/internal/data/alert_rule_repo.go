@@ -342,7 +342,7 @@ func (r *alertRuleRepo) ScheduleDue(ctx context.Context, now, next time.Time) er
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
 		alertrule.GroupUIDIn(groups...),
-		alertrule.DriverNEQ(alertrule.DriverPROBE_HTTP),
+		alertrule.DriverNotIn(probeRuleDrivers()...),
 		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
 	).SetNextEvalAt(next).SetScheduledSlot(now).Save(ctx)
 	return r.fail(err)
@@ -359,7 +359,7 @@ func (r *alertRuleRepo) ListProbeRulesDue(ctx context.Context, now time.Time) ([
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
 		alertrule.GroupUIDIn(groups...),
-		alertrule.DriverEQ(alertrule.DriverPROBE_HTTP),
+		alertrule.DriverIn(probeRuleDrivers()...),
 		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
 	).All(ctx)
 	if err != nil {
@@ -388,7 +388,7 @@ func (r *alertRuleRepo) ListProbeRulesForClaim(ctx context.Context, now time.Tim
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
 		alertrule.GroupUIDIn(groups...),
-		alertrule.DriverEQ(alertrule.DriverPROBE_HTTP),
+		alertrule.DriverIn(probeRuleDrivers()...),
 		alertrule.ScheduledSlotNotNil(),
 		alertrule.NextEvalAtGT(now),
 	).All(ctx)
@@ -423,7 +423,7 @@ func (r *alertRuleRepo) ListScheduled(ctx context.Context) ([]bo.AlertRule, erro
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
 		alertrule.GroupUIDIn(groups...),
-		alertrule.DriverNEQ(alertrule.DriverPROBE_HTTP),
+		alertrule.DriverNotIn(probeRuleDrivers()...),
 		alertrule.ScheduledSlotNotNil(),
 	).All(ctx)
 	if err != nil {
@@ -482,13 +482,24 @@ func (r *alertRuleRepo) dueRules(ctx context.Context, now time.Time) ([]*ent.Ale
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
 		alertrule.GroupUIDIn(groups...),
-		alertrule.DriverNEQ(alertrule.DriverPROBE_HTTP),
+		alertrule.DriverNotIn(probeRuleDrivers()...),
 		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
 	).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
 	return rows, nil
+}
+
+// probeRuleDrivers 返回全部探测驱动在 ent 里的枚举值。调度与领取按「驱动属于
+// 探测类型」判断，新增探测类型时只改 bo.ProbeDrivers，不在每条查询里手写清单。
+func probeRuleDrivers() []alertrule.Driver {
+	drivers := bo.ProbeDrivers()
+	out := make([]alertrule.Driver, 0, len(drivers))
+	for _, driver := range drivers {
+		out = append(out, alertrule.Driver(driver))
+	}
+	return out
 }
 
 func insertLevels(ctx context.Context, tx *ent.Tx, namespaceUID, ruleUID string, levels []bo.AlertRuleLevel) error {
@@ -638,7 +649,8 @@ func ruleDriver(driver string) (alertrule.Driver, error) {
 	parsedDriver := alertrule.Driver(driver)
 	switch parsedDriver {
 	case alertrule.DriverMETRICS_PROMETHEUS, alertrule.DriverMETRICS_VICTORIA_METRICS, alertrule.DriverLOGS_ELASTICSEARCH,
-		alertrule.DriverLOGS_LOKI, alertrule.DriverLOGS_VLOGS, alertrule.DriverTRACE_JAEGER, alertrule.DriverPROBE_HTTP:
+		alertrule.DriverLOGS_LOKI, alertrule.DriverLOGS_VLOGS, alertrule.DriverTRACE_JAEGER,
+		alertrule.DriverPROBE_HTTP, alertrule.DriverPROBE_TCP, alertrule.DriverPROBE_ICMP:
 		return parsedDriver, nil
 	default:
 		return "", merr.Invalid("invalid request")

@@ -185,6 +185,12 @@ services:
       REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       MEGREZ_SERVICE_KEY: ${MEGREZ_SERVICE_KEY:-sk-megrez-dev}
+    # ICMP 探测需要 ICMP socket 权限：优先用非特权 ping socket（sysctl），
+    # 同时给 NET_RAW 兜底。两者都不可用时探测会以 permission 失败，不误报。
+    sysctls:
+      - net.ipv4.ping_group_range=0 2147483647
+    cap_add:
+      - NET_RAW
     depends_on:
       alioth:
         condition: service_started
