@@ -5,13 +5,19 @@ import "@xterm/xterm/css/xterm.css"
 
 import { cn } from "@/lib/class-names"
 
+/**
+ * WebSocket 握手超时。网关没转发 Upgrade、票据校验后连接被挂起、或地址拼错时，
+ * 浏览器可能永远停在 CONNECTING；超时后必须给出可操作的失败态，不能一直转圈。
+ */
+const socketConnectTimeoutMs = 10_000
+
 export type XtermSessionState =
   | { state: "connecting" }
   | { state: "open" }
   /** 服务端主动结束；reason 是后端给出的原因，空串表示没有说明。 */
   | { state: "closed"; reason: string }
   /** 票据申请或连接失败；message 是已本地化的错误，空串表示没有说明。 */
-  | { state: "failed"; message: string }
+  | { state: "failed"; message: string; reason?: "timeout" }
 
 interface XtermTerminalProps {
   /** 会话标识：变化时销毁旧终端与连接，按新参数重建。 */
@@ -51,6 +57,7 @@ export function XtermTerminal({
     const container: HTMLDivElement = el
     let active = true
     let socket: WebSocket | null = null
+    let connectTimer: number | undefined
     // 服务端主动结束或连接失败后，socket 的 close/error 事件不再覆盖已有原因。
     let settled = false
     let lastCols = 0
@@ -102,12 +109,37 @@ export function XtermTerminal({
         if (!active) {
           return
         }
-        socket = new WebSocket(buildSocketUrl(ticket))
+        const url = buildSocketUrl(ticket)
+        // 地址必须是绝对 ws/wss；相对地址会被浏览器按当前页面解析，
+        // 落到前端的 SPA fallback 上就会一直 pending（例如网关没有转发升级请求）。
+        if (!/^wss?:\/\//i.test(url)) {
+          settled = true
+          emitState({ state: "failed", message: "" })
+          return
+        }
+        try {
+          socket = new WebSocket(url)
+        } catch {
+          settled = true
+          emitState({ state: "failed", message: "" })
+          return
+        }
         socket.binaryType = "arraybuffer"
+        connectTimer = window.setTimeout(() => {
+          if (!active || settled) {
+            return
+          }
+          settled = true
+          const pending = socket
+          socket = null
+          pending?.close()
+          emitState({ state: "failed", message: "", reason: "timeout" })
+        }, socketConnectTimeoutMs)
         socket.onopen = () => {
           if (!active) {
             return
           }
+          window.clearTimeout(connectTimer)
           emitState({ state: "open" })
           sendResize(true)
         }
@@ -133,6 +165,7 @@ export function XtermTerminal({
           if (!active || settled) {
             return
           }
+          window.clearTimeout(connectTimer)
           settled = true
           emitState({ state: "failed", message: "" })
         }
@@ -140,6 +173,7 @@ export function XtermTerminal({
           if (!active || settled) {
             return
           }
+          window.clearTimeout(connectTimer)
           settled = true
           emitState({ state: "closed", reason: "" })
         }
@@ -162,6 +196,7 @@ export function XtermTerminal({
 
     return () => {
       active = false
+      window.clearTimeout(connectTimer)
       observer.disconnect()
       window.removeEventListener("resize", handleWindowResize)
       socket?.close()

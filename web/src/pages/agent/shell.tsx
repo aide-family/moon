@@ -18,7 +18,9 @@ export function AgentShellPage() {
 
   const errorMessage =
     state.state === "failed"
-      ? state.message || t("agent.shellFailed")
+      ? state.reason === "timeout"
+        ? t("agent.shellTimeout")
+        : state.message || t("agent.shellFailed")
       : state.state === "closed"
         ? state.reason || t("agent.shellClosed")
         : ""

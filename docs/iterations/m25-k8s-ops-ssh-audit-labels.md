@@ -144,6 +144,7 @@
   - 工作负载：扩缩容、滚动重启、设置镜像、回滚分别看 `k8s:workload:scale|restart|image|rollback`；详情与历史版本只要读权限。
   - Pod：删除看 `k8s:pod:delete`，日志看 `k8s:pod:logs`，终端看 `k8s:pod:exec`。
   - Job：删除看 `k8s:job:delete`；CronJob：暂停 / 恢复、立即运行、删除分别看 `k8s:cronjob:suspend|trigger|delete`。
+- 终端 WebSocket 地址必须是绝对的 `ws://` / `wss://`（`{proto}//{host}/v1/cluster/.../exec?ticket=...`），不接受相对路径；握手 10 秒未完成时显示超时提示与「重新连接」，不允许停在无限「正在连接」。
 - Pod 行操作新增「终端」（`k8s:pod:exec`）。点击后在当前页面内进入子路由
   `/clusters/{cluster_uid}/pods/{namespace}/{name}/exec?container={容器}`：页头显示集群 / 命名空间 / Pod / 容器，正文是占满可用高度的 xterm 终端，返回按钮回到 Pod 视图。
 - 多容器 Pod 先在终端页顶部选择容器；切换容器重建会话。终端断开显示原因与「重新连接」。

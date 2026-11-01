@@ -1958,6 +1958,7 @@ const zh = {
     shellTitle: "终端",
     shellDescription: "通过在线机器登录目标主机。",
     shellFailed: "终端连接失败。",
+    shellTimeout: "连接超时，请刷新页面或检查网关是否转发 WebSocket 后重试。",
     shellClosed: "终端已关闭。",
     shellReconnect: "重新连接",
     labels: "标签",
@@ -2071,6 +2072,7 @@ const zh = {
     podExecConnected: "终端已连接",
     podExecClosed: "终端会话已结束。",
     podExecFailed: "终端连接失败。",
+    podExecTimeout: "连接超时，请刷新页面或检查网关是否转发 WebSocket 后重试。",
     podExecReconnect: "重新连接",
     podExecPodMissing: "没有找到这个 Pod，可能已被删除。",
     podExecNoContainer: "该 Pod 没有可用的容器。",
@@ -5029,6 +5031,8 @@ const en = {
     shellTitle: "Terminal",
     shellDescription: "Log in to the host through an online agent.",
     shellFailed: "The terminal connection failed.",
+    shellTimeout:
+      "Connection timed out. Refresh the page or check that the gateway forwards WebSocket upgrades, then retry.",
     shellClosed: "The terminal closed.",
     shellReconnect: "Reconnect",
     labels: "Labels",
@@ -5147,6 +5151,8 @@ const en = {
     podExecConnected: "Terminal connected",
     podExecClosed: "The terminal session has ended.",
     podExecFailed: "The terminal connection failed.",
+    podExecTimeout:
+      "Connection timed out. Refresh the page or check that the gateway forwards WebSocket upgrades, then retry.",
     podExecReconnect: "Reconnect",
     podExecPodMissing: "This pod could not be found; it may have been deleted.",
     podExecNoContainer: "This pod has no available containers.",

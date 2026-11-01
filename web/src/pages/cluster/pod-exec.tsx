@@ -177,7 +177,9 @@ export function PodExecPage() {
     state.state === "closed" ? POD_EXEC_REASON_KEYS[state.reason] : undefined
   const statusMessage =
     state.state === "failed"
-      ? state.message || t("kube.podExecFailed")
+      ? state.reason === "timeout"
+        ? t("kube.podExecTimeout")
+        : state.message || t("kube.podExecFailed")
       : state.state === "closed"
         ? closedReasonKey
           ? t(closedReasonKey)
