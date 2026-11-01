@@ -124,7 +124,9 @@ func (r *userRepo) UpdateUserStatus(ctx context.Context, uid, status string) (*b
 func (r *userRepo) UpdateUserSystemRole(ctx context.Context, uid, role, authorizedBy string) (*bo.Account, error) {
 	value := user.SystemRole(role)
 	switch value {
-	case user.SystemRoleSYSTEM_ADMIN, user.SystemRoleUSER:
+	// 平台只读角色和系统管理员一样由超级管理员授予；biz 与 proto 都允许，
+	// 数据层必须同集合放行，否则接口会误报 400。
+	case user.SystemRoleSYSTEM_ADMIN, user.SystemRoleSYSTEM_READONLY, user.SystemRoleUSER:
 	default:
 		return nil, merr.Invalid("invalid request")
 	}

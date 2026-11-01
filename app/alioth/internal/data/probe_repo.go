@@ -77,7 +77,7 @@ func (r *probeRepo) UpdateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 	keep := make(map[string]struct{}, len(in.Targets))
 	for _, target := range in.Targets {
 		if target.UID == "" {
-			if _, err := tx.ProbeTarget.Create().
+			created, err := tx.ProbeTarget.Create().
 				SetUID(id.New()).
 				SetNamespaceUID(in.NamespaceUID).
 				SetGroupUID(in.UID).
@@ -85,9 +85,12 @@ func (r *probeRepo) UpdateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 				SetLabels(target.Labels).
 				SetStatus(probetarget.Status(target.Status)).
 				SetSort(target.Sort).
-				Save(ctx); err != nil {
+				Save(ctx)
+			if err != nil {
 				return nil, r.fail(err)
 			}
+			// 新建的目标也要进 keep，否则会被下面的「不在 payload 里的旧行」清扫误删。
+			keep[created.UID] = struct{}{}
 			continue
 		}
 		keep[target.UID] = struct{}{}
@@ -475,6 +478,7 @@ func (r *probeRepo) ListProbeTargetResults(ctx context.Context, namespaceUID, gr
 		out = append(out, toProbeResult(row))
 	}
 	r.fillRuleNames(ctx, out)
+	r.fillTargetSpecs(ctx, out)
 	return out, total, nil
 }
 
@@ -489,13 +493,63 @@ func (r *probeRepo) LatestProbeResults(ctx context.Context, targetUIDs []string)
 	if err != nil {
 		return out, r.fail(err)
 	}
+	if len(rows) == 0 {
+		return out, nil
+	}
+	specs := r.probeTargetSpecs(ctx, targetUIDs)
 	for _, row := range rows {
 		if _, ok := out[row.TargetUID]; ok {
 			continue
 		}
-		out[row.TargetUID] = toProbeResult(row)
+		item := toProbeResult(row)
+		item.TargetSpec = specs[row.TargetUID]
+		out[row.TargetUID] = item
 	}
 	return out, nil
+}
+
+// fillTargetSpecs 按 target_uid 批量补探测记录的目标地址。目标行可能已经被软删，
+// 但历史记录仍要显示地址，所以查询故意不过滤 deleted_at；目标行确实不存在时留空。
+func (r *probeRepo) fillTargetSpecs(ctx context.Context, results []bo.ProbeResult) {
+	if len(results) == 0 {
+		return
+	}
+	seen := make(map[string]struct{}, len(results))
+	uids := make([]string, 0, len(results))
+	for _, item := range results {
+		if item.TargetUID == "" {
+			continue
+		}
+		if _, ok := seen[item.TargetUID]; ok {
+			continue
+		}
+		seen[item.TargetUID] = struct{}{}
+		uids = append(uids, item.TargetUID)
+	}
+	specs := r.probeTargetSpecs(ctx, uids)
+	for index := range results {
+		results[index].TargetSpec = specs[results[index].TargetUID]
+	}
+}
+
+// probeTargetSpecs 返回 target_uid -> spec。不过滤 deleted_at，保证软删目标的
+// 历史探测记录也能显示地址。
+func (r *probeRepo) probeTargetSpecs(ctx context.Context, targetUIDs []string) map[string]string {
+	specs := make(map[string]string, len(targetUIDs))
+	if len(targetUIDs) == 0 {
+		return specs
+	}
+	rows, err := r.client.ProbeTarget.Query().
+		Where(probetarget.UIDIn(targetUIDs...)).
+		Select(probetarget.FieldUID, probetarget.FieldSpec).
+		All(ctx)
+	if err != nil {
+		return specs
+	}
+	for _, row := range rows {
+		specs[row.UID] = row.Spec
+	}
+	return specs
 }
 
 // fillRuleNames 给探测记录补上规则名称。目标组可以被多条规则匹配，记录按规则产生，

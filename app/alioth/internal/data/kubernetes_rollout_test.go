@@ -3,19 +3,42 @@ package data
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/fake"
+	k8stesting "k8s.io/client-go/testing"
 
 	"github.com/aide-family/moon/pkg/merr"
 )
+
+// conflictOnFirstUpdate 让指定资源的第一次 Update 返回 409 冲突，后续 Update 交给默认
+// tracker 处理。返回的计数指针记录 Update 调用次数，用于断言确实发生了重试。
+func conflictOnFirstUpdate(t *testing.T, clientset *fake.Clientset, resource string) *int32 {
+	t.Helper()
+	var calls int32
+	clientset.PrependReactor("update", resource, func(action k8stesting.Action) (bool, runtime.Object, error) {
+		if atomic.AddInt32(&calls, 1) == 1 {
+			return true, nil, apierrors.NewConflict(
+				schema.GroupResource{Group: "apps", Resource: resource},
+				action.(k8stesting.UpdateAction).GetObject().(metav1.Object).GetName(),
+				errors.New("cluster resource conflict"),
+			)
+		}
+		return false, nil, nil
+	})
+	return &calls
+}
 
 // fakeRolloutDeployment 构造带 UID 和版本号注解的 Deployment，历史对象按 UID 归属。
 func fakeRolloutDeployment(namespace, name, uid, revision string, replicas int32, podSpec corev1.PodSpec) *appsv1.Deployment {
@@ -246,6 +269,121 @@ func TestSetWorkloadImageInitContainer(t *testing.T) {
 	}
 }
 
+// TestSetWorkloadImageRetriesOnConflict 覆盖三种工作负载：第一次 Update 返回 409 时
+// 必须重新 Get 最新对象并重试，最终对象的镜像被修改且其它字段不变。
+func TestSetWorkloadImageRetriesOnConflict(t *testing.T) {
+	tests := []struct {
+		name      string
+		kind      string
+		resource  string
+		object    runtime.Object
+		container string
+		image     string
+		verify    func(t *testing.T, clientset *fake.Clientset)
+	}{
+		{
+			name:      "Deployment",
+			kind:      "Deployment",
+			resource:  "deployments",
+			object:    fakeDeployment("default", "web", 2),
+			container: "app",
+			image:     "nginx:1.28",
+			verify: func(t *testing.T, clientset *fake.Clientset) {
+				t.Helper()
+				deployment, err := clientset.AppsV1().Deployments("default").Get(context.Background(), "web", metav1.GetOptions{})
+				if err != nil {
+					t.Fatalf("get deployment: %v", err)
+				}
+				if deployment.Spec.Template.Spec.Containers[0].Image != "nginx:1.28" {
+					t.Fatalf("deployment image = %+v", deployment.Spec.Template.Spec.Containers)
+				}
+				if deployment.Spec.Replicas == nil || *deployment.Spec.Replicas != 2 {
+					t.Fatalf("replicas = %v", deployment.Spec.Replicas)
+				}
+			},
+		},
+		{
+			name:      "StatefulSet",
+			kind:      "StatefulSet",
+			resource:  "statefulsets",
+			object:    fakeStatefulSet("default", "db", 3),
+			container: "app",
+			image:     "mysql:9",
+			verify: func(t *testing.T, clientset *fake.Clientset) {
+				t.Helper()
+				statefulSet, err := clientset.AppsV1().StatefulSets("default").Get(context.Background(), "db", metav1.GetOptions{})
+				if err != nil {
+					t.Fatalf("get statefulset: %v", err)
+				}
+				if statefulSet.Spec.Template.Spec.Containers[0].Image != "mysql:9" {
+					t.Fatalf("statefulset image = %+v", statefulSet.Spec.Template.Spec.Containers)
+				}
+				if statefulSet.Spec.Replicas == nil || *statefulSet.Spec.Replicas != 3 {
+					t.Fatalf("replicas = %v", statefulSet.Spec.Replicas)
+				}
+			},
+		},
+		{
+			name:      "DaemonSet",
+			kind:      "DaemonSet",
+			resource:  "daemonsets",
+			object:    fakeDaemonSet("kube-system", "agent"),
+			container: "agent",
+			image:     "agent:2",
+			verify: func(t *testing.T, clientset *fake.Clientset) {
+				t.Helper()
+				daemonSet, err := clientset.AppsV1().DaemonSets("kube-system").Get(context.Background(), "agent", metav1.GetOptions{})
+				if err != nil {
+					t.Fatalf("get daemonset: %v", err)
+				}
+				if daemonSet.Spec.Template.Spec.Containers[0].Image != "agent:2" {
+					t.Fatalf("daemonset image = %+v", daemonSet.Spec.Template.Spec.Containers)
+				}
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			clientset := fake.NewSimpleClientset(test.object)
+			calls := conflictOnFirstUpdate(t, clientset, test.resource)
+			repo := newFakeRepoWithClientset(clientset)
+			target := test.object.(metav1.Object)
+			item, err := repo.SetWorkloadImage(context.Background(), testClusterUID,
+				target.GetNamespace(), test.kind, target.GetName(), test.container, false, test.image)
+			if err != nil {
+				t.Fatalf("SetWorkloadImage: %v", err)
+			}
+			if item == nil || len(item.Images) == 0 || item.Images[0] != test.image {
+				t.Fatalf("item = %+v", item)
+			}
+			if got := atomic.LoadInt32(calls); got < 2 {
+				t.Fatalf("update calls = %d, want >= 2", got)
+			}
+			test.verify(t, clientset)
+		})
+	}
+}
+
+// TestSetWorkloadImageDoesNotRetryNonConflict 断言非 409 的 Update 错误只调用一次、
+// 直接按既有语义返回，不会被冲突重试吞掉。
+func TestSetWorkloadImageDoesNotRetryNonConflict(t *testing.T) {
+	clientset := fake.NewSimpleClientset(fakeDeployment("default", "web", 2))
+	var calls int32
+	clientset.PrependReactor("update", "deployments", func(k8stesting.Action) (bool, runtime.Object, error) {
+		atomic.AddInt32(&calls, 1)
+		return true, nil, apierrors.NewNotFound(
+			schema.GroupResource{Group: "apps", Resource: "deployments"}, "web")
+	})
+	repo := newFakeRepoWithClientset(clientset)
+	_, err := repo.SetWorkloadImage(context.Background(), testClusterUID, "default", "Deployment", "web", "app", false, "nginx:1.28")
+	if !merr.IsNotFound(err) {
+		t.Fatalf("err = %v, want not found", err)
+	}
+	if got := atomic.LoadInt32(&calls); got != 1 {
+		t.Fatalf("update calls = %d, want 1", got)
+	}
+}
+
 func TestWorkloadRevisionsDeployment(t *testing.T) {
 	deployment := fakeRolloutDeployment("default", "web", "web-uid", "2", 3, podSpecOf(
 		[]corev1.Container{containerOf("app", "nginx:2")}, nil,
@@ -396,6 +534,101 @@ func TestRollbackWorkloadStatefulSet(t *testing.T) {
 	}
 	if _, err := repo.RollbackWorkload(context.Background(), testClusterUID, "default", "StatefulSet", "db", 7); !merr.IsInvalid(err) {
 		t.Fatalf("err = %v, want invalid", err)
+	}
+}
+
+// TestRollbackWorkloadRetriesOnConflict 覆盖 Deployment / StatefulSet 回滚：第一次
+// Update 返回 409 时必须重新 Get 后重试，最终模板回到目标历史版本。
+func TestRollbackWorkloadRetriesOnConflict(t *testing.T) {
+	deployment := fakeRolloutDeployment("default", "web", "web-uid", "3", 2, podSpecOf(
+		[]corev1.Container{containerOf("app", "nginx:3")}, nil,
+	))
+	statefulSet := &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "default", Name: "db", UID: "db-uid"},
+		Spec: appsv1.StatefulSetSpec{
+			Replicas: int32Ptr(3),
+			Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{
+				Containers: []corev1.Container{{Name: "app", Image: "mysql:2"}},
+			}},
+		},
+		Status: appsv1.StatefulSetStatus{CurrentRevision: "db-2"},
+	}
+	tests := []struct {
+		name     string
+		kind     string
+		resource string
+		workload string
+		objects  []runtime.Object
+		revision int32
+		want     string
+		getImage func(*fake.Clientset) string
+	}{
+		{
+			name:     "Deployment",
+			kind:     "Deployment",
+			resource: "deployments",
+			workload: "web",
+			objects: []runtime.Object{
+				deployment,
+				fakeOwnedReplicaSet("default", "web-2", "web", "web-uid", 2, 2,
+					podSpecOf([]corev1.Container{containerOf("app", "nginx:2")}, nil)),
+				fakeOwnedReplicaSet("default", "web-3", "web", "web-uid", 3, 2,
+					podSpecOf([]corev1.Container{containerOf("app", "nginx:3")}, nil)),
+			},
+			revision: 2,
+			want:     "nginx:2",
+			getImage: func(clientset *fake.Clientset) string {
+				updated, err := clientset.AppsV1().Deployments("default").Get(context.Background(), "web", metav1.GetOptions{})
+				if err != nil {
+					return ""
+				}
+				return updated.Spec.Template.Spec.Containers[0].Image
+			},
+		},
+		{
+			name:     "StatefulSet",
+			kind:     "StatefulSet",
+			resource: "statefulsets",
+			workload: "db",
+			objects: []runtime.Object{
+				statefulSet,
+				fakeControllerRevisionObject(t, "default", "db-1", "db", "db-uid", 1, corev1.PodSpec{
+					Containers: []corev1.Container{{Name: "app", Image: "mysql:1"}},
+				}),
+				fakeControllerRevisionObject(t, "default", "db-2", "db", "db-uid", 2, corev1.PodSpec{
+					Containers: []corev1.Container{{Name: "app", Image: "mysql:2"}},
+				}),
+			},
+			revision: 1,
+			want:     "mysql:1",
+			getImage: func(clientset *fake.Clientset) string {
+				updated, err := clientset.AppsV1().StatefulSets("default").Get(context.Background(), "db", metav1.GetOptions{})
+				if err != nil {
+					return ""
+				}
+				return updated.Spec.Template.Spec.Containers[0].Image
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			clientset := fake.NewSimpleClientset(test.objects...)
+			calls := conflictOnFirstUpdate(t, clientset, test.resource)
+			repo := newFakeRepoWithClientset(clientset)
+			item, err := repo.RollbackWorkload(context.Background(), testClusterUID, "default", test.kind, test.workload, test.revision)
+			if err != nil {
+				t.Fatalf("RollbackWorkload: %v", err)
+			}
+			if item == nil || len(item.Images) == 0 || item.Images[0] != test.want {
+				t.Fatalf("item = %+v", item)
+			}
+			if got := atomic.LoadInt32(calls); got < 2 {
+				t.Fatalf("update calls = %d, want >= 2", got)
+			}
+			if got := test.getImage(clientset); got != test.want {
+				t.Fatalf("workload image = %q, want %q", got, test.want)
+			}
+		})
 	}
 }
 

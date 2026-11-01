@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/util/retry"
 
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/pkg/merr"
@@ -118,42 +119,56 @@ func (r *kubernetesRepo) SetWorkloadImage(ctx context.Context, clusterUID, names
 	}
 	switch kind {
 	case workloadKindDeployment:
-		deployment, err := client.AppsV1().Deployments(namespace).Get(callCtx, name, metav1.GetOptions{})
-		if err != nil {
-			return nil, kubeError(r.log, err)
-		}
-		if !setContainerImage(&deployment.Spec.Template.Spec, container, init, image) {
-			return nil, merr.Invalid("container not found")
-		}
-		updated, err := client.AppsV1().Deployments(namespace).Update(callCtx, deployment, metav1.UpdateOptions{})
+		var updated *appsv1.Deployment
+		// 并发换镜像时 Update 可能返回 409；冲突重试必须重新 Get 最新对象，
+		// 只改目标容器镜像，避免拿旧的 resourceVersion 覆盖别人的更新。
+		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			deployment, err := client.AppsV1().Deployments(namespace).Get(callCtx, name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			if !setContainerImage(&deployment.Spec.Template.Spec, container, init, image) {
+				return merr.Invalid("container not found")
+			}
+			updated, err = client.AppsV1().Deployments(namespace).Update(callCtx, deployment, metav1.UpdateOptions{})
+			return err
+		})
 		if err != nil {
 			return nil, kubeError(r.log, err)
 		}
 		item := toKubeDeployment(updated)
 		return &item, nil
 	case workloadKindStatefulSet:
-		statefulSet, err := client.AppsV1().StatefulSets(namespace).Get(callCtx, name, metav1.GetOptions{})
-		if err != nil {
-			return nil, kubeError(r.log, err)
-		}
-		if !setContainerImage(&statefulSet.Spec.Template.Spec, container, init, image) {
-			return nil, merr.Invalid("container not found")
-		}
-		updated, err := client.AppsV1().StatefulSets(namespace).Update(callCtx, statefulSet, metav1.UpdateOptions{})
+		var updated *appsv1.StatefulSet
+		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			statefulSet, err := client.AppsV1().StatefulSets(namespace).Get(callCtx, name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			if !setContainerImage(&statefulSet.Spec.Template.Spec, container, init, image) {
+				return merr.Invalid("container not found")
+			}
+			updated, err = client.AppsV1().StatefulSets(namespace).Update(callCtx, statefulSet, metav1.UpdateOptions{})
+			return err
+		})
 		if err != nil {
 			return nil, kubeError(r.log, err)
 		}
 		item := toKubeStatefulSet(updated)
 		return &item, nil
 	case workloadKindDaemonSet:
-		daemonSet, err := client.AppsV1().DaemonSets(namespace).Get(callCtx, name, metav1.GetOptions{})
-		if err != nil {
-			return nil, kubeError(r.log, err)
-		}
-		if !setContainerImage(&daemonSet.Spec.Template.Spec, container, init, image) {
-			return nil, merr.Invalid("container not found")
-		}
-		updated, err := client.AppsV1().DaemonSets(namespace).Update(callCtx, daemonSet, metav1.UpdateOptions{})
+		var updated *appsv1.DaemonSet
+		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			daemonSet, err := client.AppsV1().DaemonSets(namespace).Get(callCtx, name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			if !setContainerImage(&daemonSet.Spec.Template.Spec, container, init, image) {
+				return merr.Invalid("container not found")
+			}
+			updated, err = client.AppsV1().DaemonSets(namespace).Update(callCtx, daemonSet, metav1.UpdateOptions{})
+			return err
+		})
 		if err != nil {
 			return nil, kubeError(r.log, err)
 		}
@@ -229,36 +244,50 @@ func (r *kubernetesRepo) RollbackWorkload(ctx context.Context, clusterUID, names
 	}
 	switch kind {
 	case workloadKindDeployment:
-		deployment, err := client.AppsV1().Deployments(namespace).Get(callCtx, name, metav1.GetOptions{})
-		if err != nil {
-			return nil, kubeError(r.log, err)
-		}
-		deployment.Spec.Template = *target.template.DeepCopy()
-		updated, err := client.AppsV1().Deployments(namespace).Update(callCtx, deployment, metav1.UpdateOptions{})
+		var updated *appsv1.Deployment
+		// 回滚同样要防 409：每次重试重新 Get 最新对象后只覆盖 Pod 模板，
+		// 保留期间别人对副本数、注解等字段的修改。
+		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			deployment, err := client.AppsV1().Deployments(namespace).Get(callCtx, name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			deployment.Spec.Template = *target.template.DeepCopy()
+			updated, err = client.AppsV1().Deployments(namespace).Update(callCtx, deployment, metav1.UpdateOptions{})
+			return err
+		})
 		if err != nil {
 			return nil, kubeError(r.log, err)
 		}
 		item := toKubeDeployment(updated)
 		return &item, nil
 	case workloadKindStatefulSet:
-		statefulSet, err := client.AppsV1().StatefulSets(namespace).Get(callCtx, name, metav1.GetOptions{})
-		if err != nil {
-			return nil, kubeError(r.log, err)
-		}
-		statefulSet.Spec.Template = *target.template.DeepCopy()
-		updated, err := client.AppsV1().StatefulSets(namespace).Update(callCtx, statefulSet, metav1.UpdateOptions{})
+		var updated *appsv1.StatefulSet
+		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			statefulSet, err := client.AppsV1().StatefulSets(namespace).Get(callCtx, name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			statefulSet.Spec.Template = *target.template.DeepCopy()
+			updated, err = client.AppsV1().StatefulSets(namespace).Update(callCtx, statefulSet, metav1.UpdateOptions{})
+			return err
+		})
 		if err != nil {
 			return nil, kubeError(r.log, err)
 		}
 		item := toKubeStatefulSet(updated)
 		return &item, nil
 	case workloadKindDaemonSet:
-		daemonSet, err := client.AppsV1().DaemonSets(namespace).Get(callCtx, name, metav1.GetOptions{})
-		if err != nil {
-			return nil, kubeError(r.log, err)
-		}
-		daemonSet.Spec.Template = *target.template.DeepCopy()
-		updated, err := client.AppsV1().DaemonSets(namespace).Update(callCtx, daemonSet, metav1.UpdateOptions{})
+		var updated *appsv1.DaemonSet
+		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			daemonSet, err := client.AppsV1().DaemonSets(namespace).Get(callCtx, name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			daemonSet.Spec.Template = *target.template.DeepCopy()
+			updated, err = client.AppsV1().DaemonSets(namespace).Update(callCtx, daemonSet, metav1.UpdateOptions{})
+			return err
+		})
 		if err != nil {
 			return nil, kubeError(r.log, err)
 		}

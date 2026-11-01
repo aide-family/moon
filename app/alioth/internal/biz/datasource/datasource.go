@@ -59,6 +59,7 @@ func (gateway *Gateway) CreateDatasource(ctx context.Context, in bo.Datasource) 
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
+	applyDatasourceDefaults(&in)
 	if err := gateway.requireDriverCapability(ctx, in.Driver); err != nil {
 		return nil, err
 	}
@@ -87,6 +88,7 @@ func (gateway *Gateway) UpdateDatasource(ctx context.Context, in bo.Datasource) 
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
+	applyDatasourceDefaults(&in)
 	if err := gateway.requireDriverCapability(ctx, in.Driver); err != nil {
 		return nil, err
 	}
@@ -455,6 +457,8 @@ func validateDatasource(in bo.Datasource) error {
 
 // normalizeDatasource 清理名称和地址，并清理只在 Elasticsearch 上生效的设置，
 // 避免切换驱动后留下旧值。地址去掉末尾斜杠后再做唯一性判断。
+// 数值字段不在这里填默认值：调用方显式传 0 时必须先经过 validateDatasource 校验，
+// 否则「启用可用性告警时窗口/阈值必须为正」的规则会被默认值掩盖。
 func normalizeDatasource(in *bo.Datasource) {
 	in.Name = strings.TrimSpace(in.Name)
 	in.Endpoint = endpoint.Normalize(in.Endpoint)
@@ -465,7 +469,12 @@ func normalizeDatasource(in *bo.Datasource) {
 		in.TimeField = ""
 	}
 	in.NotificationGroupUIDs = normalizeUIDs(in.NotificationGroupUIDs)
-	// 0 表示“没有配置”，落库时用默认值，升级前已有的数据源也有确定的窗口和阈值。
+}
+
+// applyDatasourceDefaults 在字段通过校验后补默认值。0 表示“没有配置”，
+// 落库时用默认值，升级前已有的数据源也有确定的窗口和阈值。
+// 启用可用性告警时 validateDatasource 已要求两者为正，这里只会为关闭的配置补默认值。
+func applyDatasourceDefaults(in *bo.Datasource) {
 	if in.FailureWindowMinutes == 0 {
 		in.FailureWindowMinutes = defaultFailureWindowMinutes
 	}

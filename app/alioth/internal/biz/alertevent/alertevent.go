@@ -502,6 +502,16 @@ func (coordinator *Coordinator) Intervene(ctx context.Context, uids []string) er
 		return err
 	}
 	userUID, _ := actor.UserID(ctx)
+	// 先确认每个 uid 都在当前租户存在，再一次性更新：否则仓储对不存在的 uid
+	// 只是更新 0 行并返回 nil，接口会误报成功，已知 uid 也可能被部分更新。
+	for _, uid := range uids {
+		if _, err := coordinator.events.GetEvent(ctx, ns, uid); err != nil {
+			if merr.IsNotFound(err) {
+				return merr.NotFound("not found")
+			}
+			return coordinator.access.Wrap(err)
+		}
+	}
 	return coordinator.access.Wrap(coordinator.events.Intervene(ctx, ns, uids, userUID))
 }
 
