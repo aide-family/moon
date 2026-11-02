@@ -33,6 +33,30 @@ func (f AlertDictionaryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertDictionaryMutation", m)
 }
 
+// The AlertEscalationPolicyFunc type is an adapter to allow the use of ordinary
+// function as AlertEscalationPolicy mutator.
+type AlertEscalationPolicyFunc func(context.Context, *ent.AlertEscalationPolicyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertEscalationPolicyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertEscalationPolicyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEscalationPolicyMutation", m)
+}
+
+// The AlertEscalationStepFunc type is an adapter to allow the use of ordinary
+// function as AlertEscalationStep mutator.
+type AlertEscalationStepFunc func(context.Context, *ent.AlertEscalationStepMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertEscalationStepFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertEscalationStepMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEscalationStepMutation", m)
+}
+
 // The AlertEvalBatchFunc type is an adapter to allow the use of ordinary
 // function as AlertEvalBatch mutator.
 type AlertEvalBatchFunc func(context.Context, *ent.AlertEvalBatchMutation) (ent.Value, error)
@@ -79,6 +103,18 @@ func (f AlertEventColumnFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventColumnMutation", m)
+}
+
+// The AlertEventEscalationFunc type is an adapter to allow the use of ordinary
+// function as AlertEventEscalation mutator.
+type AlertEventEscalationFunc func(context.Context, *ent.AlertEventEscalationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertEventEscalationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertEventEscalationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventEscalationMutation", m)
 }
 
 // The AlertEventFiringFunc type is an adapter to allow the use of ordinary

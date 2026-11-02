@@ -288,6 +288,9 @@ func (r *alertEventRepo) recoverAvailability(ctx context.Context, tx *ent.Tx, na
 	if err := appendEventAction(ctx, tx, namespaceUID, event.UID, actionRecovered, "", "datasource availability"); err != nil {
 		return nil, r.fail(err)
 	}
+	if err := cancelEventEscalations(ctx, tx, namespaceUID, []string{event.UID}); err != nil {
+		return nil, r.fail(err)
+	}
 	meta := r.datasourceMeta(ctx, tx, datasourceUID)
 	if err := dispatchEventNotifications(ctx, tx, notifyEvent{
 		NamespaceUID: namespaceUID, EventUID: event.UID, RuleUID: "",
@@ -500,10 +503,12 @@ func (r *alertEventRepo) applyHitsScoped(ctx context.Context, tx *ent.Tx, rule b
 			return nil, err
 		}
 	}
+	escalationCancelled := make([]string, 0, len(current))
 	for fingerprint, ref := range current {
 		if _, ok := hits[fingerprint]; ok {
 			continue
 		}
+		escalationCancelled = append(escalationCancelled, ref.event.UID)
 		if _, err := tx.AlertEvent.Update().Where(
 			alertevent.UIDEQ(ref.event.UID),
 			alertevent.NamespaceUIDEQ(rule.NamespaceUID),
@@ -531,6 +536,9 @@ func (r *alertEventRepo) applyHitsScoped(ctx context.Context, tx *ent.Tx, rule b
 		}); err != nil {
 			return nil, err
 		}
+	}
+	if err := cancelEventEscalations(ctx, tx, rule.NamespaceUID, escalationCancelled); err != nil {
+		return nil, r.fail(err)
 	}
 	return recovered, nil
 }
@@ -966,7 +974,9 @@ func (r *alertEventRepo) RecoverManual(ctx context.Context, namespaceUID string,
 	}
 	now := time.Now().UTC()
 	recovered := make([]bo.AlertEvent, 0, len(rows))
+	recoveredUIDs := make([]string, 0, len(rows))
 	for _, row := range rows {
+		recoveredUIDs = append(recoveredUIDs, row.UID)
 		if _, err := tx.AlertEvent.Update().Where(
 			alertevent.UIDEQ(row.UID),
 			alertevent.NamespaceUIDEQ(namespaceUID),
@@ -984,6 +994,9 @@ func (r *alertEventRepo) RecoverManual(ctx context.Context, namespaceUID string,
 		item.Status = string(alertevent.StatusRECOVERED_BY_MANUAL)
 		item.EndsAt = &now
 		recovered = append(recovered, item)
+	}
+	if err := cancelEventEscalations(ctx, tx, namespaceUID, recoveredUIDs); err != nil {
+		return r.fail(err)
 	}
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)
@@ -1402,7 +1415,9 @@ func (r *alertEventRepo) RecoverSource(ctx context.Context, namespaceUID string,
 	defer func() { _ = tx.Rollback() }()
 	now := time.Now().UTC()
 	recovered := make([]bo.AlertEvent, 0, len(rows))
+	recoveredUIDs := make([]string, 0, len(rows))
 	for _, row := range rows {
+		recoveredUIDs = append(recoveredUIDs, row.UID)
 		if _, err := tx.AlertEvent.Update().Where(
 			alertevent.UIDEQ(row.UID),
 			alertevent.NamespaceUIDEQ(namespaceUID),
@@ -1431,6 +1446,9 @@ func (r *alertEventRepo) RecoverSource(ctx context.Context, namespaceUID string,
 		}); err != nil {
 			return err
 		}
+	}
+	if err := cancelEventEscalations(ctx, tx, namespaceUID, recoveredUIDs); err != nil {
+		return r.fail(err)
 	}
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)
@@ -1481,7 +1499,9 @@ func (r *alertEventRepo) RecoverProbeTargets(ctx context.Context, namespaceUID s
 	defer func() { _ = tx.Rollback() }()
 	now := time.Now().UTC()
 	recovered := make([]bo.AlertEvent, 0, len(matched))
+	recoveredUIDs := make([]string, 0, len(matched))
 	for _, row := range matched {
+		recoveredUIDs = append(recoveredUIDs, row.UID)
 		if _, err := tx.AlertEvent.Update().Where(
 			alertevent.UIDEQ(row.UID),
 			alertevent.NamespaceUIDEQ(namespaceUID),
@@ -1509,6 +1529,9 @@ func (r *alertEventRepo) RecoverProbeTargets(ctx context.Context, namespaceUID s
 		}); err != nil {
 			return err
 		}
+	}
+	if err := cancelEventEscalations(ctx, tx, namespaceUID, recoveredUIDs); err != nil {
+		return r.fail(err)
 	}
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)
@@ -1939,6 +1962,10 @@ func (r *alertEventRepo) AckEvent(ctx context.Context, namespaceUID, uid, userUI
 		if err := appendEventAction(ctx, tx, namespaceUID, uid, actionAcked, userUID, ""); err != nil {
 			return nil, r.fail(err)
 		}
+	}
+	// 认领后不再升级：未发送的步骤立即取消，之后不再恢复。
+	if err := cancelEventEscalations(ctx, tx, namespaceUID, []string{uid}); err != nil {
+		return nil, r.fail(err)
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)

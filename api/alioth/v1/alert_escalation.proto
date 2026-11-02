@@ -1,0 +1,245 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 告警升级策略：命中的 FIRING 事件在指定分钟数后按步骤向通知组升级通知；
+// 事件被认领或恢复后，后续步骤不再发送。
+service AlertEscalationPolicyService {
+  // 创建升级策略，步骤随策略一起保存。
+  rpc CreateAlertEscalationPolicy(CreateAlertEscalationPolicyRequest) returns (CreateAlertEscalationPolicyResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-escalation-policies"
+      body: "*"
+    };
+  }
+  // 更新升级策略。步骤列表整体替换，已有步骤按 uid 匹配更新。
+  rpc UpdateAlertEscalationPolicy(UpdateAlertEscalationPolicyRequest) returns (UpdateAlertEscalationPolicyResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-escalation-policies/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用升级策略。
+  rpc UpdateAlertEscalationPolicyStatus(UpdateAlertEscalationPolicyStatusRequest) returns (UpdateAlertEscalationPolicyStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-escalation-policies/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除升级策略；已生成的升级记录保留，未发送的步骤取消。
+  rpc DeleteAlertEscalationPolicy(DeleteAlertEscalationPolicyRequest) returns (DeleteAlertEscalationPolicyResponse) {
+    option (google.api.http) = {delete: "/v1/alert-escalation-policies/{uid}"};
+  }
+  // 获取升级策略详情，包含全部步骤。
+  rpc GetAlertEscalationPolicy(GetAlertEscalationPolicyRequest) returns (GetAlertEscalationPolicyResponse) {
+    option (google.api.http) = {get: "/v1/alert-escalation-policies/{uid}"};
+  }
+  // 分页列出升级策略。
+  rpc ListAlertEscalationPolicies(ListAlertEscalationPoliciesRequest) returns (ListAlertEscalationPoliciesResponse) {
+    option (google.api.http) = {get: "/v1/alert-escalation-policies"};
+  }
+  // 列出一条告警事件的升级记录，供事件详情时间线展示。
+  rpc ListEventEscalations(ListEventEscalationsRequest) returns (ListEventEscalationsResponse) {
+    option (google.api.http) = {get: "/v1/event-escalations"};
+  }
+}
+
+// 升级步骤的提交形态。
+message AlertEscalationStepInput {
+  // 步骤标识。更新时为空表示新增步骤；服务端按数组顺序重写 step_order。
+  string uid = 1;
+  // 距事件触发时间的累计分钟数，必须递增，最后一步不得为 0。
+  int32 delay_minutes = 2 [json_name = "delayMinutes", (buf.validate.field).int32 = {gte: 0, lte: 10080}];
+  // 本步投递的通知组标识，至少一个。
+  repeated string notification_group_uids = 3 [json_name = "notificationGroupUids", (buf.validate.field).repeated = {min_items: 1, max_items: 20}];
+}
+
+// 升级步骤详情。
+message AlertEscalationStepItem {
+  // 步骤标识。
+  string uid = 1;
+  // 步骤序号，从 0 开始。
+  int32 step_order = 2 [json_name = "stepOrder"];
+  // 距事件触发时间的累计分钟数。
+  int32 delay_minutes = 3 [json_name = "delayMinutes"];
+  // 本步投递的通知组标识。
+  repeated string notification_group_uids = 4 [json_name = "notificationGroupUids"];
+}
+
+// 升级策略详情。
+message AlertEscalationPolicyItem {
+  // 标识。
+  string uid = 1;
+  // 名称，租户内唯一。
+  string name = 2;
+  // 描述。
+  string description = 3;
+  // 标签匹配器 JSON：键到完整匹配正则。空对象表示不限制。
+  string labels = 4;
+  // 告警级别标识。为空表示不限制。
+  repeated string level_uids = 5 [json_name = "levelUids"];
+  // 数据源标识。为空表示不限制。
+  repeated string datasource_uids = 6 [json_name = "datasourceUids"];
+  // 规则标识。为空表示不限制。
+  repeated string rule_uids = 7 [json_name = "ruleUids"];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 8;
+  // 创建人标识。
+  string created_by = 9 [json_name = "createdBy"];
+  // 创建时间，RFC3339。
+  string created_at = 10 [json_name = "createdAt"];
+  // 更新时间，RFC3339。
+  string updated_at = 11 [json_name = "updatedAt"];
+  // 升级步骤，按 step_order 升序。
+  repeated AlertEscalationStepItem steps = 12;
+}
+
+// 创建升级策略请求。
+message CreateAlertEscalationPolicyRequest {
+  // 名称，租户内唯一。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 描述。
+  string description = 2 [(buf.validate.field).string = {max_len: 1024}];
+  // 标签匹配器 JSON。
+  string labels = 3 [(buf.validate.field).string = {max_len: 4096}];
+  // 告警级别标识。
+  repeated string level_uids = 4 [json_name = "levelUids"];
+  // 数据源标识。
+  repeated string datasource_uids = 5 [json_name = "datasourceUids"];
+  // 规则标识。
+  repeated string rule_uids = 6 [json_name = "ruleUids"];
+  // 升级步骤，至少一步。
+  repeated AlertEscalationStepInput steps = 7 [(buf.validate.field).repeated = {min_items: 1, max_items: 20}];
+}
+
+// 创建升级策略响应。
+message CreateAlertEscalationPolicyResponse {
+  // 创建后的升级策略。
+  AlertEscalationPolicyItem policy = 1;
+}
+
+// 更新升级策略请求。
+message UpdateAlertEscalationPolicyRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称，租户内唯一。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 描述。
+  string description = 3 [(buf.validate.field).string = {max_len: 1024}];
+  // 标签匹配器 JSON。
+  string labels = 4 [(buf.validate.field).string = {max_len: 4096}];
+  // 告警级别标识。
+  repeated string level_uids = 5 [json_name = "levelUids"];
+  // 数据源标识。
+  repeated string datasource_uids = 6 [json_name = "datasourceUids"];
+  // 规则标识。
+  repeated string rule_uids = 7 [json_name = "ruleUids"];
+  // 升级步骤，整体替换。
+  repeated AlertEscalationStepInput steps = 8 [(buf.validate.field).repeated = {min_items: 1, max_items: 20}];
+}
+
+// 更新升级策略响应。
+message UpdateAlertEscalationPolicyResponse {
+  // 更新后的升级策略。
+  AlertEscalationPolicyItem policy = 1;
+}
+
+// 启用或停用升级策略请求。
+message UpdateAlertEscalationPolicyStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 启用或停用升级策略响应。
+message UpdateAlertEscalationPolicyStatusResponse {
+  // 更新后的升级策略。
+  AlertEscalationPolicyItem policy = 1;
+}
+
+// 删除升级策略请求。
+message DeleteAlertEscalationPolicyRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除升级策略响应。
+message DeleteAlertEscalationPolicyResponse {}
+
+// 获取升级策略请求。
+message GetAlertEscalationPolicyRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取升级策略响应。
+message GetAlertEscalationPolicyResponse {
+  // 升级策略。
+  AlertEscalationPolicyItem policy = 1;
+}
+
+// 列出升级策略请求。
+message ListAlertEscalationPoliciesRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  // 每页数量。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 1, lte: 100}];
+  // 名称模糊搜索，可空。
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+  // 状态过滤，取值为 ACTIVE 或 DISABLED，留空表示不限制。
+  string status = 4 [(buf.validate.field).string = {in: ["", "ACTIVE", "DISABLED"]}];
+}
+
+// 列出升级策略响应。
+message ListAlertEscalationPoliciesResponse {
+  // 当前页的升级策略。
+  repeated AlertEscalationPolicyItem items = 1;
+  // 总数量。
+  int32 total = 2;
+  // 当前页码。
+  int32 page = 3;
+  // 每页数量。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 一条事件升级记录。
+message AlertEventEscalationItem {
+  // 标识。
+  string uid = 1;
+  // 事件标识。
+  string event_uid = 2 [json_name = "eventUid"];
+  // 策略标识。
+  string policy_uid = 3 [json_name = "policyUid"];
+  // 策略名称，只用于展示；策略已删除时为空。
+  string policy_name = 4 [json_name = "policyName"];
+  // 步骤序号，从 0 开始。
+  int32 step_order = 5 [json_name = "stepOrder"];
+  // 距事件触发时间的累计分钟数。
+  int32 delay_minutes = 6 [json_name = "delayMinutes"];
+  // 本步通知组数量。
+  int32 notification_group_count = 7 [json_name = "notificationGroupCount"];
+  // 到期时间，RFC3339。
+  string due_at = 8 [json_name = "dueAt"];
+  // 状态，取值为 PENDING、SENT、SKIPPED 或 CANCELLED。
+  string status = 9;
+  // 实际发送时间，RFC3339；未发送为空。
+  string sent_at = 10 [json_name = "sentAt"];
+}
+
+// 列出事件升级记录请求。
+message ListEventEscalationsRequest {
+  // 事件标识。
+  string event_uid = 1 [json_name = "eventUid", (buf.validate.field).string.min_len = 1];
+}
+
+// 列出事件升级记录响应。
+message ListEventEscalationsResponse {
+  // 该事件的升级记录，按到期时间升序。
+  repeated AlertEventEscalationItem items = 1;
+}

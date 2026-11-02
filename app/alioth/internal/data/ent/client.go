@@ -16,10 +16,13 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/agent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertescalationpolicy"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertescalationstep"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventaction"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventcolumn"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventescalation"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerthistoryevent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertmaintenancewindow"
@@ -78,6 +81,10 @@ type Client struct {
 	Agent *AgentClient
 	// AlertDictionary is the client for interacting with the AlertDictionary builders.
 	AlertDictionary *AlertDictionaryClient
+	// AlertEscalationPolicy is the client for interacting with the AlertEscalationPolicy builders.
+	AlertEscalationPolicy *AlertEscalationPolicyClient
+	// AlertEscalationStep is the client for interacting with the AlertEscalationStep builders.
+	AlertEscalationStep *AlertEscalationStepClient
 	// AlertEvalBatch is the client for interacting with the AlertEvalBatch builders.
 	AlertEvalBatch *AlertEvalBatchClient
 	// AlertEvent is the client for interacting with the AlertEvent builders.
@@ -86,6 +93,8 @@ type Client struct {
 	AlertEventAction *AlertEventActionClient
 	// AlertEventColumn is the client for interacting with the AlertEventColumn builders.
 	AlertEventColumn *AlertEventColumnClient
+	// AlertEventEscalation is the client for interacting with the AlertEventEscalation builders.
+	AlertEventEscalation *AlertEventEscalationClient
 	// AlertEventFiring is the client for interacting with the AlertEventFiring builders.
 	AlertEventFiring *AlertEventFiringClient
 	// AlertHistoryEvent is the client for interacting with the AlertHistoryEvent builders.
@@ -193,10 +202,13 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Agent = NewAgentClient(c.config)
 	c.AlertDictionary = NewAlertDictionaryClient(c.config)
+	c.AlertEscalationPolicy = NewAlertEscalationPolicyClient(c.config)
+	c.AlertEscalationStep = NewAlertEscalationStepClient(c.config)
 	c.AlertEvalBatch = NewAlertEvalBatchClient(c.config)
 	c.AlertEvent = NewAlertEventClient(c.config)
 	c.AlertEventAction = NewAlertEventActionClient(c.config)
 	c.AlertEventColumn = NewAlertEventColumnClient(c.config)
+	c.AlertEventEscalation = NewAlertEventEscalationClient(c.config)
 	c.AlertEventFiring = NewAlertEventFiringClient(c.config)
 	c.AlertHistoryEvent = NewAlertHistoryEventClient(c.config)
 	c.AlertMaintenanceWindow = NewAlertMaintenanceWindowClient(c.config)
@@ -338,10 +350,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:                        cfg,
 		Agent:                         NewAgentClient(cfg),
 		AlertDictionary:               NewAlertDictionaryClient(cfg),
+		AlertEscalationPolicy:         NewAlertEscalationPolicyClient(cfg),
+		AlertEscalationStep:           NewAlertEscalationStepClient(cfg),
 		AlertEvalBatch:                NewAlertEvalBatchClient(cfg),
 		AlertEvent:                    NewAlertEventClient(cfg),
 		AlertEventAction:              NewAlertEventActionClient(cfg),
 		AlertEventColumn:              NewAlertEventColumnClient(cfg),
+		AlertEventEscalation:          NewAlertEventEscalationClient(cfg),
 		AlertEventFiring:              NewAlertEventFiringClient(cfg),
 		AlertHistoryEvent:             NewAlertHistoryEventClient(cfg),
 		AlertMaintenanceWindow:        NewAlertMaintenanceWindowClient(cfg),
@@ -410,10 +425,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:                        cfg,
 		Agent:                         NewAgentClient(cfg),
 		AlertDictionary:               NewAlertDictionaryClient(cfg),
+		AlertEscalationPolicy:         NewAlertEscalationPolicyClient(cfg),
+		AlertEscalationStep:           NewAlertEscalationStepClient(cfg),
 		AlertEvalBatch:                NewAlertEvalBatchClient(cfg),
 		AlertEvent:                    NewAlertEventClient(cfg),
 		AlertEventAction:              NewAlertEventActionClient(cfg),
 		AlertEventColumn:              NewAlertEventColumnClient(cfg),
+		AlertEventEscalation:          NewAlertEventEscalationClient(cfg),
 		AlertEventFiring:              NewAlertEventFiringClient(cfg),
 		AlertHistoryEvent:             NewAlertHistoryEventClient(cfg),
 		AlertMaintenanceWindow:        NewAlertMaintenanceWindowClient(cfg),
@@ -490,8 +508,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction,
-		c.AlertEventColumn, c.AlertEventFiring, c.AlertHistoryEvent,
+		c.Agent, c.AlertDictionary, c.AlertEscalationPolicy, c.AlertEscalationStep,
+		c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction, c.AlertEventColumn,
+		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
 		c.AlertRuleLevel, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
 		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
@@ -513,8 +532,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction,
-		c.AlertEventColumn, c.AlertEventFiring, c.AlertHistoryEvent,
+		c.Agent, c.AlertDictionary, c.AlertEscalationPolicy, c.AlertEscalationStep,
+		c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction, c.AlertEventColumn,
+		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
 		c.AlertRuleLevel, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
 		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
@@ -539,6 +559,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Agent.mutate(ctx, m)
 	case *AlertDictionaryMutation:
 		return c.AlertDictionary.mutate(ctx, m)
+	case *AlertEscalationPolicyMutation:
+		return c.AlertEscalationPolicy.mutate(ctx, m)
+	case *AlertEscalationStepMutation:
+		return c.AlertEscalationStep.mutate(ctx, m)
 	case *AlertEvalBatchMutation:
 		return c.AlertEvalBatch.mutate(ctx, m)
 	case *AlertEventMutation:
@@ -547,6 +571,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AlertEventAction.mutate(ctx, m)
 	case *AlertEventColumnMutation:
 		return c.AlertEventColumn.mutate(ctx, m)
+	case *AlertEventEscalationMutation:
+		return c.AlertEventEscalation.mutate(ctx, m)
 	case *AlertEventFiringMutation:
 		return c.AlertEventFiring.mutate(ctx, m)
 	case *AlertHistoryEventMutation:
@@ -909,6 +935,272 @@ func (c *AlertDictionaryClient) mutate(ctx context.Context, m *AlertDictionaryMu
 		return (&AlertDictionaryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertDictionary mutation op: %q", m.Op())
+	}
+}
+
+// AlertEscalationPolicyClient is a client for the AlertEscalationPolicy schema.
+type AlertEscalationPolicyClient struct {
+	config
+}
+
+// NewAlertEscalationPolicyClient returns a client for the AlertEscalationPolicy from the given config.
+func NewAlertEscalationPolicyClient(c config) *AlertEscalationPolicyClient {
+	return &AlertEscalationPolicyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alertescalationpolicy.Hooks(f(g(h())))`.
+func (c *AlertEscalationPolicyClient) Use(hooks ...Hook) {
+	c.hooks.AlertEscalationPolicy = append(c.hooks.AlertEscalationPolicy, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alertescalationpolicy.Intercept(f(g(h())))`.
+func (c *AlertEscalationPolicyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertEscalationPolicy = append(c.inters.AlertEscalationPolicy, interceptors...)
+}
+
+// Create returns a builder for creating a AlertEscalationPolicy entity.
+func (c *AlertEscalationPolicyClient) Create() *AlertEscalationPolicyCreate {
+	mutation := newAlertEscalationPolicyMutation(c.config, OpCreate)
+	return &AlertEscalationPolicyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertEscalationPolicy entities.
+func (c *AlertEscalationPolicyClient) CreateBulk(builders ...*AlertEscalationPolicyCreate) *AlertEscalationPolicyCreateBulk {
+	return &AlertEscalationPolicyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertEscalationPolicyClient) MapCreateBulk(slice any, setFunc func(*AlertEscalationPolicyCreate, int)) *AlertEscalationPolicyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertEscalationPolicyCreateBulk{err: fmt.Errorf("calling to AlertEscalationPolicyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertEscalationPolicyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertEscalationPolicyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertEscalationPolicy.
+func (c *AlertEscalationPolicyClient) Update() *AlertEscalationPolicyUpdate {
+	mutation := newAlertEscalationPolicyMutation(c.config, OpUpdate)
+	return &AlertEscalationPolicyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertEscalationPolicyClient) UpdateOne(_m *AlertEscalationPolicy) *AlertEscalationPolicyUpdateOne {
+	mutation := newAlertEscalationPolicyMutation(c.config, OpUpdateOne, withAlertEscalationPolicy(_m))
+	return &AlertEscalationPolicyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertEscalationPolicyClient) UpdateOneID(id int) *AlertEscalationPolicyUpdateOne {
+	mutation := newAlertEscalationPolicyMutation(c.config, OpUpdateOne, withAlertEscalationPolicyID(id))
+	return &AlertEscalationPolicyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertEscalationPolicy.
+func (c *AlertEscalationPolicyClient) Delete() *AlertEscalationPolicyDelete {
+	mutation := newAlertEscalationPolicyMutation(c.config, OpDelete)
+	return &AlertEscalationPolicyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertEscalationPolicyClient) DeleteOne(_m *AlertEscalationPolicy) *AlertEscalationPolicyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertEscalationPolicyClient) DeleteOneID(id int) *AlertEscalationPolicyDeleteOne {
+	builder := c.Delete().Where(alertescalationpolicy.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertEscalationPolicyDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertEscalationPolicy.
+func (c *AlertEscalationPolicyClient) Query() *AlertEscalationPolicyQuery {
+	return &AlertEscalationPolicyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertEscalationPolicy},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertEscalationPolicy entity by its id.
+func (c *AlertEscalationPolicyClient) Get(ctx context.Context, id int) (*AlertEscalationPolicy, error) {
+	return c.Query().Where(alertescalationpolicy.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertEscalationPolicyClient) GetX(ctx context.Context, id int) *AlertEscalationPolicy {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertEscalationPolicyClient) Hooks() []Hook {
+	return c.hooks.AlertEscalationPolicy
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertEscalationPolicyClient) Interceptors() []Interceptor {
+	return c.inters.AlertEscalationPolicy
+}
+
+func (c *AlertEscalationPolicyClient) mutate(ctx context.Context, m *AlertEscalationPolicyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertEscalationPolicyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertEscalationPolicyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertEscalationPolicyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertEscalationPolicyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertEscalationPolicy mutation op: %q", m.Op())
+	}
+}
+
+// AlertEscalationStepClient is a client for the AlertEscalationStep schema.
+type AlertEscalationStepClient struct {
+	config
+}
+
+// NewAlertEscalationStepClient returns a client for the AlertEscalationStep from the given config.
+func NewAlertEscalationStepClient(c config) *AlertEscalationStepClient {
+	return &AlertEscalationStepClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alertescalationstep.Hooks(f(g(h())))`.
+func (c *AlertEscalationStepClient) Use(hooks ...Hook) {
+	c.hooks.AlertEscalationStep = append(c.hooks.AlertEscalationStep, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alertescalationstep.Intercept(f(g(h())))`.
+func (c *AlertEscalationStepClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertEscalationStep = append(c.inters.AlertEscalationStep, interceptors...)
+}
+
+// Create returns a builder for creating a AlertEscalationStep entity.
+func (c *AlertEscalationStepClient) Create() *AlertEscalationStepCreate {
+	mutation := newAlertEscalationStepMutation(c.config, OpCreate)
+	return &AlertEscalationStepCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertEscalationStep entities.
+func (c *AlertEscalationStepClient) CreateBulk(builders ...*AlertEscalationStepCreate) *AlertEscalationStepCreateBulk {
+	return &AlertEscalationStepCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertEscalationStepClient) MapCreateBulk(slice any, setFunc func(*AlertEscalationStepCreate, int)) *AlertEscalationStepCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertEscalationStepCreateBulk{err: fmt.Errorf("calling to AlertEscalationStepClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertEscalationStepCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertEscalationStepCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertEscalationStep.
+func (c *AlertEscalationStepClient) Update() *AlertEscalationStepUpdate {
+	mutation := newAlertEscalationStepMutation(c.config, OpUpdate)
+	return &AlertEscalationStepUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertEscalationStepClient) UpdateOne(_m *AlertEscalationStep) *AlertEscalationStepUpdateOne {
+	mutation := newAlertEscalationStepMutation(c.config, OpUpdateOne, withAlertEscalationStep(_m))
+	return &AlertEscalationStepUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertEscalationStepClient) UpdateOneID(id int) *AlertEscalationStepUpdateOne {
+	mutation := newAlertEscalationStepMutation(c.config, OpUpdateOne, withAlertEscalationStepID(id))
+	return &AlertEscalationStepUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertEscalationStep.
+func (c *AlertEscalationStepClient) Delete() *AlertEscalationStepDelete {
+	mutation := newAlertEscalationStepMutation(c.config, OpDelete)
+	return &AlertEscalationStepDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertEscalationStepClient) DeleteOne(_m *AlertEscalationStep) *AlertEscalationStepDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertEscalationStepClient) DeleteOneID(id int) *AlertEscalationStepDeleteOne {
+	builder := c.Delete().Where(alertescalationstep.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertEscalationStepDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertEscalationStep.
+func (c *AlertEscalationStepClient) Query() *AlertEscalationStepQuery {
+	return &AlertEscalationStepQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertEscalationStep},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertEscalationStep entity by its id.
+func (c *AlertEscalationStepClient) Get(ctx context.Context, id int) (*AlertEscalationStep, error) {
+	return c.Query().Where(alertescalationstep.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertEscalationStepClient) GetX(ctx context.Context, id int) *AlertEscalationStep {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertEscalationStepClient) Hooks() []Hook {
+	return c.hooks.AlertEscalationStep
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertEscalationStepClient) Interceptors() []Interceptor {
+	return c.inters.AlertEscalationStep
+}
+
+func (c *AlertEscalationStepClient) mutate(ctx context.Context, m *AlertEscalationStepMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertEscalationStepCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertEscalationStepUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertEscalationStepUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertEscalationStepDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertEscalationStep mutation op: %q", m.Op())
 	}
 }
 
@@ -1441,6 +1733,139 @@ func (c *AlertEventColumnClient) mutate(ctx context.Context, m *AlertEventColumn
 		return (&AlertEventColumnDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertEventColumn mutation op: %q", m.Op())
+	}
+}
+
+// AlertEventEscalationClient is a client for the AlertEventEscalation schema.
+type AlertEventEscalationClient struct {
+	config
+}
+
+// NewAlertEventEscalationClient returns a client for the AlertEventEscalation from the given config.
+func NewAlertEventEscalationClient(c config) *AlertEventEscalationClient {
+	return &AlertEventEscalationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alerteventescalation.Hooks(f(g(h())))`.
+func (c *AlertEventEscalationClient) Use(hooks ...Hook) {
+	c.hooks.AlertEventEscalation = append(c.hooks.AlertEventEscalation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alerteventescalation.Intercept(f(g(h())))`.
+func (c *AlertEventEscalationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertEventEscalation = append(c.inters.AlertEventEscalation, interceptors...)
+}
+
+// Create returns a builder for creating a AlertEventEscalation entity.
+func (c *AlertEventEscalationClient) Create() *AlertEventEscalationCreate {
+	mutation := newAlertEventEscalationMutation(c.config, OpCreate)
+	return &AlertEventEscalationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertEventEscalation entities.
+func (c *AlertEventEscalationClient) CreateBulk(builders ...*AlertEventEscalationCreate) *AlertEventEscalationCreateBulk {
+	return &AlertEventEscalationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertEventEscalationClient) MapCreateBulk(slice any, setFunc func(*AlertEventEscalationCreate, int)) *AlertEventEscalationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertEventEscalationCreateBulk{err: fmt.Errorf("calling to AlertEventEscalationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertEventEscalationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertEventEscalationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertEventEscalation.
+func (c *AlertEventEscalationClient) Update() *AlertEventEscalationUpdate {
+	mutation := newAlertEventEscalationMutation(c.config, OpUpdate)
+	return &AlertEventEscalationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertEventEscalationClient) UpdateOne(_m *AlertEventEscalation) *AlertEventEscalationUpdateOne {
+	mutation := newAlertEventEscalationMutation(c.config, OpUpdateOne, withAlertEventEscalation(_m))
+	return &AlertEventEscalationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertEventEscalationClient) UpdateOneID(id int) *AlertEventEscalationUpdateOne {
+	mutation := newAlertEventEscalationMutation(c.config, OpUpdateOne, withAlertEventEscalationID(id))
+	return &AlertEventEscalationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertEventEscalation.
+func (c *AlertEventEscalationClient) Delete() *AlertEventEscalationDelete {
+	mutation := newAlertEventEscalationMutation(c.config, OpDelete)
+	return &AlertEventEscalationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertEventEscalationClient) DeleteOne(_m *AlertEventEscalation) *AlertEventEscalationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertEventEscalationClient) DeleteOneID(id int) *AlertEventEscalationDeleteOne {
+	builder := c.Delete().Where(alerteventescalation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertEventEscalationDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertEventEscalation.
+func (c *AlertEventEscalationClient) Query() *AlertEventEscalationQuery {
+	return &AlertEventEscalationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertEventEscalation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertEventEscalation entity by its id.
+func (c *AlertEventEscalationClient) Get(ctx context.Context, id int) (*AlertEventEscalation, error) {
+	return c.Query().Where(alerteventescalation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertEventEscalationClient) GetX(ctx context.Context, id int) *AlertEventEscalation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertEventEscalationClient) Hooks() []Hook {
+	return c.hooks.AlertEventEscalation
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertEventEscalationClient) Interceptors() []Interceptor {
+	return c.inters.AlertEventEscalation
+}
+
+func (c *AlertEventEscalationClient) mutate(ctx context.Context, m *AlertEventEscalationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertEventEscalationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertEventEscalationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertEventEscalationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertEventEscalationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertEventEscalation mutation op: %q", m.Op())
 	}
 }
 
@@ -7698,12 +8123,13 @@ func (c *WorkerInstanceClient) mutate(ctx context.Context, m *WorkerInstanceMuta
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventAction,
-		AlertEventColumn, AlertEventFiring, AlertHistoryEvent, AlertMaintenanceWindow,
-		AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel, Board, BoardPanel,
-		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
-		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
-		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		Agent, AlertDictionary, AlertEscalationPolicy, AlertEscalationStep,
+		AlertEvalBatch, AlertEvent, AlertEventAction, AlertEventColumn,
+		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
+		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
+		Board, BoardPanel, Captcha, Cluster, Datasource, EmailLoginCode,
+		FeaturePackage, FeaturePackageItem, Member, MemberInvite, MemberRole,
+		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
@@ -7712,12 +8138,13 @@ type (
 		UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
 	}
 	inters struct {
-		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventAction,
-		AlertEventColumn, AlertEventFiring, AlertHistoryEvent, AlertMaintenanceWindow,
-		AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel, Board, BoardPanel,
-		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
-		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
-		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		Agent, AlertDictionary, AlertEscalationPolicy, AlertEscalationStep,
+		AlertEvalBatch, AlertEvent, AlertEventAction, AlertEventColumn,
+		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
+		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
+		Board, BoardPanel, Captcha, Cluster, Datasource, EmailLoginCode,
+		FeaturePackage, FeaturePackageItem, Member, MemberInvite, MemberRole,
+		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,

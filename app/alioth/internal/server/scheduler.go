@@ -8,6 +8,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 
+	"github.com/aide-family/moon/app/alioth/internal/biz/alertescalation"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
 	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
@@ -23,6 +24,7 @@ type Scheduler struct {
 	maintainer        *partition.Maintainer
 	roster            *workerbiz.Roster
 	sla               *probesla.Gateway
+	escalation        *alertescalation.Gateway
 	log               *slog.Logger
 	lastCheck         time.Time
 	lastWorkerCleanup time.Time
@@ -40,9 +42,13 @@ func NewScheduler(
 	maintainer *partition.Maintainer,
 	roster *workerbiz.Roster,
 	sla *probesla.Gateway,
+	escalation *alertescalation.Gateway,
 	logger *slog.Logger,
 ) *Scheduler {
-	return &Scheduler{coordinator: coordinator, center: center, maintainer: maintainer, roster: roster, sla: sla, log: logger}
+	return &Scheduler{
+		coordinator: coordinator, center: center, maintainer: maintainer,
+		roster: roster, sla: sla, escalation: escalation, log: logger,
+	}
 }
 
 func (s *Scheduler) Start(context.Context) error {
@@ -86,6 +92,11 @@ func (s *Scheduler) tick(ctx context.Context) {
 	}
 	if err := s.coordinator.ScheduleProbes(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("schedule probe: %v", err))
+	}
+	if s.escalation != nil {
+		if err := s.escalation.Schedule(ctx); err != nil {
+			s.log.Error(fmt.Sprintf("schedule escalation: %v", err))
+		}
 	}
 	if err := s.center.ReapStale(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("reap notify: %v", err))

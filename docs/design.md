@@ -380,6 +380,12 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 统计沿用 Moon 的告警统计能力，由 `alioth` 对 `AlertEvent` 聚合。在专用统计接口落地前，分析页通过历史列表接口分页读取受控范围（服务端过滤后）并在浏览器侧聚合，单次分析最多读取 5000 条；触达上限时页面必须显式提示统计被截断，不得静默少算。
 
+### 4.3.1 告警认领、时间线与维护窗口（M28）
+
+实时告警支持认领与取消认领：`alert_events.acked_by` / `acked_at` 记录责任人，认领不参与状态机，恢复与归档都不清除；同一用户重复认领幂等，换人认领会覆盖并留痕。`alert_event_actions` 只追加地记录触发、通知、认领、取消认领、介入、抑制、维护窗口、自动恢复与人工恢复，事件归档后仍按 `event_uid` 查询主库时间线。
+
+`AlertMaintenanceWindow` 是一次性维护窗口：名称、描述、匹配器（`labels` 键到完整匹配正则、`level_uids`、`datasource_uids`、`rule_uids`）、起止时间与启停。窗口生效期间，匹配的新 FIRING 事件以 `suppressed=true`、`suppressed_until=窗口结束` 落库并跳过通知任务；窗口创建或启用时同样抑制已触发的匹配事件；窗口停用、删除或更新时解除由它设置的抑制（按 `suppressed_until` 等于旧窗口结束时间识别），手动抑制不受影响。时间线写入与主操作在同一事务里。
+
 ### 4.4 探测规则（M18 / M26 / M27）
 
 探测规则与查询规则共用「规则组 → 规则 → 级别条件 → `AlertEvent` → 订阅/OnCall → `merak`」这条链路，区别只在观测方式：规则按周期对一个或多个探测目标组里的地址执行探测。M18 支持 `PROBE_HTTP`（HTTP 请求），M26 追加 `PROBE_TCP`（`host:port` 建连）与 `PROBE_ICMP`（主机回显），M27 再追加 `PROBE_DNS`（域名解析）与 `PROBE_TLS`（TLS 握手 / 证书），并扩展耗时分解、ICMP 统计与 HTTP 响应断言；只从集群内探测。
@@ -395,6 +401,12 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 - 判定在 `alioth`：取该目标在窗口内的结果序列，按级别条件的 `持续` / `最大值` / `最小值` 语义比较（与查询规则同一实现）。点数不足一个窗口时不判定；执行器自身故障不回写，也不触发恢复。
 - 事件沿用 `AlertEvent` 的同一套字段：`datasource_uid` 为空，`expr` 是目标地址（HTTP URL / TCP / TLS `host:port` / ICMP host / DNS 域名），指纹为 `Of(rule_uid, target_uid, labels)`，labels 注入 `datasource`（目标组名）、`alert_level`、`probe_kind`（`HTTP` / `TCP` / `ICMP` / `DNS` / `TLS`）、`probe_target`，`sample_value` 是观测值。读取时若 `datasource_uid` 为空，用 labels 的 `datasource` 作为列表与筛选里的数据源名。通知的 `externalURL` 取目标地址（HTTP 为 URL，TCP / ICMP 为 `host:port` / host）。
 - 订阅不做特殊处理：探测事件按标签命中订阅与 OnCall；设置了数据源条件的订阅不会命中探测事件。
+
+### 4.4.1 公开状态页与探测 SLA（M30）
+
+`StatusPage` 配置把探测目标组以不可猜测的 token 公开：公开接口 `GET /v1/status/{token}` 不需要登录与租户头，只返回组件名、当前状态、24h/7d/30d 可用率与事件标题/时间，不返回目标地址、标签、规则与租户身份；页面停用、token 失效、租户停用或归档都返回 404。
+
+`ProbeSlaDaily` 按「目标组 × 目标 × UTC 自然日」预聚合探测结果，调度器每小时重算最近 7 天（先于原始结果清理），SLA 报表按目标组与最多 30 天返回检查次数、成功/失败、可用率、平均延迟、P95 与事件数；P95 超出原始结果保留期时用日聚合最大延迟近似并显式标注。
 
 ## 5. 通知
 

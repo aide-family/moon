@@ -12,6 +12,12 @@ type Agent func(*sql.Selector)
 // AlertDictionary is the predicate function for alertdictionary builders.
 type AlertDictionary func(*sql.Selector)
 
+// AlertEscalationPolicy is the predicate function for alertescalationpolicy builders.
+type AlertEscalationPolicy func(*sql.Selector)
+
+// AlertEscalationStep is the predicate function for alertescalationstep builders.
+type AlertEscalationStep func(*sql.Selector)
+
 // AlertEvalBatch is the predicate function for alertevalbatch builders.
 type AlertEvalBatch func(*sql.Selector)
 
@@ -23,6 +29,9 @@ type AlertEventAction func(*sql.Selector)
 
 // AlertEventColumn is the predicate function for alerteventcolumn builders.
 type AlertEventColumn func(*sql.Selector)
+
+// AlertEventEscalation is the predicate function for alerteventescalation builders.
+type AlertEventEscalation func(*sql.Selector)
 
 // AlertEventFiring is the predicate function for alerteventfiring builders.
 type AlertEventFiring func(*sql.Selector)

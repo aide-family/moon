@@ -104,6 +104,81 @@ var (
 			},
 		},
 	}
+	// AlertEscalationPoliciesColumns holds the columns for the "alert_escalation_policies" table.
+	AlertEscalationPoliciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "matcher", Type: field.TypeString, Default: "{}"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+	}
+	// AlertEscalationPoliciesTable holds the schema information for the "alert_escalation_policies" table.
+	AlertEscalationPoliciesTable = &schema.Table{
+		Name:       "alert_escalation_policies",
+		Columns:    AlertEscalationPoliciesColumns,
+		PrimaryKey: []*schema.Column{AlertEscalationPoliciesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertescalationpolicy_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEscalationPoliciesColumns[4]},
+			},
+			{
+				Name:    "alertescalationpolicy_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEscalationPoliciesColumns[5], AlertEscalationPoliciesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "alertescalationpolicy_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEscalationPoliciesColumns[5], AlertEscalationPoliciesColumns[9]},
+			},
+		},
+	}
+	// AlertEscalationStepsColumns holds the columns for the "alert_escalation_steps" table.
+	AlertEscalationStepsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "policy_uid", Type: field.TypeString},
+		{Name: "step_order", Type: field.TypeInt},
+		{Name: "delay_minutes", Type: field.TypeInt},
+		{Name: "notification_group_uids", Type: field.TypeJSON},
+	}
+	// AlertEscalationStepsTable holds the schema information for the "alert_escalation_steps" table.
+	AlertEscalationStepsTable = &schema.Table{
+		Name:       "alert_escalation_steps",
+		Columns:    AlertEscalationStepsColumns,
+		PrimaryKey: []*schema.Column{AlertEscalationStepsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertescalationstep_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEscalationStepsColumns[3]},
+			},
+			{
+				Name:    "alertescalationstep_policy_uid_step_order",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEscalationStepsColumns[5], AlertEscalationStepsColumns[6]},
+			},
+			{
+				Name:    "alertescalationstep_namespace_uid_policy_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEscalationStepsColumns[4], AlertEscalationStepsColumns[5]},
+			},
+		},
+	}
 	// AlertEvalBatchesColumns holds the columns for the "alert_eval_batches" table.
 	AlertEvalBatchesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -254,6 +329,48 @@ var (
 				Name:    "alerteventcolumn_namespace_uid_user_uid",
 				Unique:  false,
 				Columns: []*schema.Column{AlertEventColumnsColumns[4], AlertEventColumnsColumns[5]},
+			},
+		},
+	}
+	// AlertEventEscalationsColumns holds the columns for the "alert_event_escalations" table.
+	AlertEventEscalationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "event_uid", Type: field.TypeString},
+		{Name: "policy_uid", Type: field.TypeString},
+		{Name: "step_order", Type: field.TypeInt},
+		{Name: "due_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "SENT", "SKIPPED", "CANCELLED"}, Default: "PENDING"},
+		{Name: "sent_at", Type: field.TypeTime, Nullable: true},
+	}
+	// AlertEventEscalationsTable holds the schema information for the "alert_event_escalations" table.
+	AlertEventEscalationsTable = &schema.Table{
+		Name:       "alert_event_escalations",
+		Columns:    AlertEventEscalationsColumns,
+		PrimaryKey: []*schema.Column{AlertEventEscalationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alerteventescalation_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEventEscalationsColumns[3]},
+			},
+			{
+				Name:    "alerteventescalation_event_uid_policy_uid_step_order",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEventEscalationsColumns[5], AlertEventEscalationsColumns[6], AlertEventEscalationsColumns[7]},
+			},
+			{
+				Name:    "alerteventescalation_namespace_uid_event_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventEscalationsColumns[4], AlertEventEscalationsColumns[5]},
+			},
+			{
+				Name:    "alerteventescalation_status_due_at",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventEscalationsColumns[9], AlertEventEscalationsColumns[8]},
 			},
 		},
 	}
@@ -2177,10 +2294,13 @@ var (
 	Tables = []*schema.Table{
 		AgentsTable,
 		AlertDictionariesTable,
+		AlertEscalationPoliciesTable,
+		AlertEscalationStepsTable,
 		AlertEvalBatchesTable,
 		AlertEventsTable,
 		AlertEventActionsTable,
 		AlertEventColumnsTable,
+		AlertEventEscalationsTable,
 		AlertEventFiringsTable,
 		AlertHistoryEventsTable,
 		AlertMaintenanceWindowsTable,

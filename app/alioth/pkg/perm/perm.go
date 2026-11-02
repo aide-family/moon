@@ -54,6 +54,11 @@ const (
 	AlertMaintenanceWrite  = "alert_maintenance:write"
 	AlertMaintenanceDelete = "alert_maintenance:delete"
 
+	// 升级策略是告警模块下的独立菜单：未认领的 FIRING 事件按分钟数逐步升级到通知组。
+	AlertEscalationRead   = "alert_escalation:read"
+	AlertEscalationWrite  = "alert_escalation:write"
+	AlertEscalationDelete = "alert_escalation:delete"
+
 	AlertDictionaryRead   = "alert_dictionary:read"
 	AlertDictionaryWrite  = "alert_dictionary:write"
 	AlertDictionaryDelete = "alert_dictionary:delete"

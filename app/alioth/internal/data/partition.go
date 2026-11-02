@@ -38,6 +38,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := prepareAlertEventSuppression(ctx, db); err != nil {
 		return err
 	}
+	if err := prepareAlertEventAck(ctx, db); err != nil {
+		return err
+	}
 	if err := prepareNotificationTaskChannels(ctx, db); err != nil {
 		return err
 	}
@@ -408,6 +411,26 @@ func prepareAlertEventSuppression(ctx context.Context, db *sql.DB) error {
 	if _, err := db.ExecContext(ctx, `ALTER TABLE alert_events ADD COLUMN IF NOT EXISTS suppressed_until timestamptz NULL`); err != nil {
 		slog.Default().Error(fmt.Sprintf("schema: %v", err))
 		return merr.Server("request failed")
+	}
+	return nil
+}
+
+// prepareAlertEventAck 给已分区的告警事件补上认领字段。M28 在 ent 里加了
+// acked_by / acked_at，但分区表会被 Ent 自动迁移跳过，存量库必须显式补列，
+// 否则认领事件会报 column "acked_by" does not exist。
+func prepareAlertEventAck(ctx context.Context, db *sql.DB) error {
+	kind, err := relationKind(ctx, db, "alert_events")
+	if err != nil || kind == "" {
+		return err
+	}
+	for _, column := range []string{
+		`ALTER TABLE alert_events ADD COLUMN IF NOT EXISTS acked_by character varying NOT NULL DEFAULT ''`,
+		`ALTER TABLE alert_events ADD COLUMN IF NOT EXISTS acked_at timestamptz NULL`,
+	} {
+		if _, err := db.ExecContext(ctx, column); err != nil {
+			slog.Default().Error(fmt.Sprintf("schema: %v", err))
+			return merr.Server("request failed")
+		}
 	}
 	return nil
 }

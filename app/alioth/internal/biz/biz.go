@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/agent"
 	"github.com/aide-family/moon/app/alioth/internal/biz/agenthub"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertdictionary"
+	"github.com/aide-family/moon/app/alioth/internal/biz/alertescalation"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertmaintenance"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertpage"
@@ -50,6 +51,7 @@ var ProviderSet = wire.NewSet(
 	alertdictionary.ProviderSet,
 	alertpage.ProviderSet,
 	alertevent.ProviderSet,
+	alertescalation.ProviderSet,
 	alertmaintenance.ProviderSet,
 	alertrule.ProviderSet,
 	notification.ProviderSet,

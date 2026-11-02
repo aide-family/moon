@@ -57,6 +57,8 @@ var archivedTables = []string{
 	"alert_pages",
 	"alert_event_columns",
 	"alert_maintenance_windows",
+	"alert_escalation_policies",
+	"alert_escalation_steps",
 	// 状态页配置属于配置数据，跟迁移包一起搬。
 	"status_pages",
 	"probe_target_groups",
@@ -87,6 +89,7 @@ var runtimeTables = []string{
 	"alert_events",
 	"alert_event_actions",
 	"alert_event_firings",
+	"alert_event_escalations",
 	"alert_history_events",
 	"captchas",
 	"email_login_codes",

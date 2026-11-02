@@ -51,6 +51,7 @@ func NewHTTPServer(
 	logs *service.MessageLogService,
 	workers *service.WorkerService,
 	maintenance *service.MaintenanceService,
+	escalations *service.AlertEscalationPolicyService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
 	clusters *service.ClusterService,
@@ -125,6 +126,7 @@ func NewHTTPServer(
 	v1.RegisterMessageLogServiceHTTPServer(srv, logs)
 	v1.RegisterWorkerServiceHTTPServer(srv, workers)
 	v1.RegisterMaintenanceServiceHTTPServer(srv, maintenance)
+	v1.RegisterAlertEscalationPolicyServiceHTTPServer(srv, escalations)
 	v1.RegisterAgentServiceHTTPServer(srv, agents)
 	v1.RegisterSSHCommandServiceHTTPServer(srv, sshCommands)
 	v1.RegisterClusterServiceHTTPServer(srv, clusters)

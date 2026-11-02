@@ -7,10 +7,13 @@ import (
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/agent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertescalationpolicy"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertescalationstep"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventaction"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventcolumn"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventescalation"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerthistoryevent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertmaintenancewindow"
@@ -179,6 +182,76 @@ func init() {
 	alertdictionaryDescColor := alertdictionaryFields[3].Descriptor()
 	// alertdictionary.DefaultColor holds the default value on creation for the color field.
 	alertdictionary.DefaultColor = alertdictionaryDescColor.Default.(string)
+	alertescalationpolicyMixin := schema.AlertEscalationPolicy{}.Mixin()
+	alertescalationpolicyMixinFields0 := alertescalationpolicyMixin[0].Fields()
+	_ = alertescalationpolicyMixinFields0
+	alertescalationpolicyFields := schema.AlertEscalationPolicy{}.Fields()
+	_ = alertescalationpolicyFields
+	// alertescalationpolicyDescCreatedAt is the schema descriptor for created_at field.
+	alertescalationpolicyDescCreatedAt := alertescalationpolicyMixinFields0[0].Descriptor()
+	// alertescalationpolicy.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertescalationpolicy.DefaultCreatedAt = alertescalationpolicyDescCreatedAt.Default.(func() time.Time)
+	// alertescalationpolicyDescUpdatedAt is the schema descriptor for updated_at field.
+	alertescalationpolicyDescUpdatedAt := alertescalationpolicyMixinFields0[1].Descriptor()
+	// alertescalationpolicy.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertescalationpolicy.DefaultUpdatedAt = alertescalationpolicyDescUpdatedAt.Default.(func() time.Time)
+	// alertescalationpolicy.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertescalationpolicy.UpdateDefaultUpdatedAt = alertescalationpolicyDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertescalationpolicyDescUID is the schema descriptor for uid field.
+	alertescalationpolicyDescUID := alertescalationpolicyFields[0].Descriptor()
+	// alertescalationpolicy.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertescalationpolicy.UIDValidator = alertescalationpolicyDescUID.Validators[0].(func(string) error)
+	// alertescalationpolicyDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertescalationpolicyDescNamespaceUID := alertescalationpolicyFields[1].Descriptor()
+	// alertescalationpolicy.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertescalationpolicy.NamespaceUIDValidator = alertescalationpolicyDescNamespaceUID.Validators[0].(func(string) error)
+	// alertescalationpolicyDescName is the schema descriptor for name field.
+	alertescalationpolicyDescName := alertescalationpolicyFields[2].Descriptor()
+	// alertescalationpolicy.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	alertescalationpolicy.NameValidator = alertescalationpolicyDescName.Validators[0].(func(string) error)
+	// alertescalationpolicyDescDescription is the schema descriptor for description field.
+	alertescalationpolicyDescDescription := alertescalationpolicyFields[3].Descriptor()
+	// alertescalationpolicy.DefaultDescription holds the default value on creation for the description field.
+	alertescalationpolicy.DefaultDescription = alertescalationpolicyDescDescription.Default.(string)
+	// alertescalationpolicyDescMatcher is the schema descriptor for matcher field.
+	alertescalationpolicyDescMatcher := alertescalationpolicyFields[4].Descriptor()
+	// alertescalationpolicy.DefaultMatcher holds the default value on creation for the matcher field.
+	alertescalationpolicy.DefaultMatcher = alertescalationpolicyDescMatcher.Default.(string)
+	// alertescalationpolicyDescCreatedBy is the schema descriptor for created_by field.
+	alertescalationpolicyDescCreatedBy := alertescalationpolicyFields[6].Descriptor()
+	// alertescalationpolicy.DefaultCreatedBy holds the default value on creation for the created_by field.
+	alertescalationpolicy.DefaultCreatedBy = alertescalationpolicyDescCreatedBy.Default.(string)
+	alertescalationstepMixin := schema.AlertEscalationStep{}.Mixin()
+	alertescalationstepMixinFields0 := alertescalationstepMixin[0].Fields()
+	_ = alertescalationstepMixinFields0
+	alertescalationstepFields := schema.AlertEscalationStep{}.Fields()
+	_ = alertescalationstepFields
+	// alertescalationstepDescCreatedAt is the schema descriptor for created_at field.
+	alertescalationstepDescCreatedAt := alertescalationstepMixinFields0[0].Descriptor()
+	// alertescalationstep.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertescalationstep.DefaultCreatedAt = alertescalationstepDescCreatedAt.Default.(func() time.Time)
+	// alertescalationstepDescUpdatedAt is the schema descriptor for updated_at field.
+	alertescalationstepDescUpdatedAt := alertescalationstepMixinFields0[1].Descriptor()
+	// alertescalationstep.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertescalationstep.DefaultUpdatedAt = alertescalationstepDescUpdatedAt.Default.(func() time.Time)
+	// alertescalationstep.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertescalationstep.UpdateDefaultUpdatedAt = alertescalationstepDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertescalationstepDescUID is the schema descriptor for uid field.
+	alertescalationstepDescUID := alertescalationstepFields[0].Descriptor()
+	// alertescalationstep.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertescalationstep.UIDValidator = alertescalationstepDescUID.Validators[0].(func(string) error)
+	// alertescalationstepDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertescalationstepDescNamespaceUID := alertescalationstepFields[1].Descriptor()
+	// alertescalationstep.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertescalationstep.NamespaceUIDValidator = alertescalationstepDescNamespaceUID.Validators[0].(func(string) error)
+	// alertescalationstepDescPolicyUID is the schema descriptor for policy_uid field.
+	alertescalationstepDescPolicyUID := alertescalationstepFields[2].Descriptor()
+	// alertescalationstep.PolicyUIDValidator is a validator for the "policy_uid" field. It is called by the builders before save.
+	alertescalationstep.PolicyUIDValidator = alertescalationstepDescPolicyUID.Validators[0].(func(string) error)
+	// alertescalationstepDescNotificationGroupUids is the schema descriptor for notification_group_uids field.
+	alertescalationstepDescNotificationGroupUids := alertescalationstepFields[5].Descriptor()
+	// alertescalationstep.DefaultNotificationGroupUids holds the default value on creation for the notification_group_uids field.
+	alertescalationstep.DefaultNotificationGroupUids = alertescalationstepDescNotificationGroupUids.Default.([]string)
 	alertevalbatchFields := schema.AlertEvalBatch{}.Fields()
 	_ = alertevalbatchFields
 	// alertevalbatchDescRuleUID is the schema descriptor for rule_uid field.
@@ -354,6 +427,37 @@ func init() {
 	alerteventcolumnDescColumnsJSON := alerteventcolumnFields[4].Descriptor()
 	// alerteventcolumn.DefaultColumnsJSON holds the default value on creation for the columns_json field.
 	alerteventcolumn.DefaultColumnsJSON = alerteventcolumnDescColumnsJSON.Default.(string)
+	alerteventescalationMixin := schema.AlertEventEscalation{}.Mixin()
+	alerteventescalationMixinFields0 := alerteventescalationMixin[0].Fields()
+	_ = alerteventescalationMixinFields0
+	alerteventescalationFields := schema.AlertEventEscalation{}.Fields()
+	_ = alerteventescalationFields
+	// alerteventescalationDescCreatedAt is the schema descriptor for created_at field.
+	alerteventescalationDescCreatedAt := alerteventescalationMixinFields0[0].Descriptor()
+	// alerteventescalation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alerteventescalation.DefaultCreatedAt = alerteventescalationDescCreatedAt.Default.(func() time.Time)
+	// alerteventescalationDescUpdatedAt is the schema descriptor for updated_at field.
+	alerteventescalationDescUpdatedAt := alerteventescalationMixinFields0[1].Descriptor()
+	// alerteventescalation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alerteventescalation.DefaultUpdatedAt = alerteventescalationDescUpdatedAt.Default.(func() time.Time)
+	// alerteventescalation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alerteventescalation.UpdateDefaultUpdatedAt = alerteventescalationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alerteventescalationDescUID is the schema descriptor for uid field.
+	alerteventescalationDescUID := alerteventescalationFields[0].Descriptor()
+	// alerteventescalation.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alerteventescalation.UIDValidator = alerteventescalationDescUID.Validators[0].(func(string) error)
+	// alerteventescalationDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alerteventescalationDescNamespaceUID := alerteventescalationFields[1].Descriptor()
+	// alerteventescalation.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alerteventescalation.NamespaceUIDValidator = alerteventescalationDescNamespaceUID.Validators[0].(func(string) error)
+	// alerteventescalationDescEventUID is the schema descriptor for event_uid field.
+	alerteventescalationDescEventUID := alerteventescalationFields[2].Descriptor()
+	// alerteventescalation.EventUIDValidator is a validator for the "event_uid" field. It is called by the builders before save.
+	alerteventescalation.EventUIDValidator = alerteventescalationDescEventUID.Validators[0].(func(string) error)
+	// alerteventescalationDescPolicyUID is the schema descriptor for policy_uid field.
+	alerteventescalationDescPolicyUID := alerteventescalationFields[3].Descriptor()
+	// alerteventescalation.PolicyUIDValidator is a validator for the "policy_uid" field. It is called by the builders before save.
+	alerteventescalation.PolicyUIDValidator = alerteventescalationDescPolicyUID.Validators[0].(func(string) error)
 	alerteventfiringFields := schema.AlertEventFiring{}.Fields()
 	_ = alerteventfiringFields
 	// alerteventfiringDescNamespaceUID is the schema descriptor for namespace_uid field.

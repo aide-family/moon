@@ -14,10 +14,13 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/agent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertescalationpolicy"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertescalationstep"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventaction"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventcolumn"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventescalation"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerthistoryevent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertmaintenancewindow"
@@ -127,10 +130,13 @@ func checkColumn(t, c string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			agent.Table:                         agent.ValidColumn,
 			alertdictionary.Table:               alertdictionary.ValidColumn,
+			alertescalationpolicy.Table:         alertescalationpolicy.ValidColumn,
+			alertescalationstep.Table:           alertescalationstep.ValidColumn,
 			alertevalbatch.Table:                alertevalbatch.ValidColumn,
 			alertevent.Table:                    alertevent.ValidColumn,
 			alerteventaction.Table:              alerteventaction.ValidColumn,
 			alerteventcolumn.Table:              alerteventcolumn.ValidColumn,
+			alerteventescalation.Table:          alerteventescalation.ValidColumn,
 			alerteventfiring.Table:              alerteventfiring.ValidColumn,
 			alerthistoryevent.Table:             alerthistoryevent.ValidColumn,
 			alertmaintenancewindow.Table:        alertmaintenancewindow.ValidColumn,

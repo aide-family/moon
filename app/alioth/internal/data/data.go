@@ -51,6 +51,7 @@ var ProviderSet = wire.NewSet(
 	NewMaintenanceRepo,
 	NewBoardRepo,
 	NewAlertMaintenanceRepo,
+	NewAlertEscalationRepo,
 	NewStatusPageRepo,
 	NewProbeSlaRepo,
 )

@@ -49,6 +49,7 @@ func NewGRPCServer(
 	logs *service.MessageLogService,
 	workers *service.WorkerService,
 	maintenance *service.MaintenanceService,
+	escalations *service.AlertEscalationPolicyService,
 	notify *service.NotifyService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
@@ -108,6 +109,7 @@ func NewGRPCServer(
 	v1.RegisterMessageLogServiceServer(srv, logs)
 	v1.RegisterWorkerServiceServer(srv, workers)
 	v1.RegisterMaintenanceServiceServer(srv, maintenance)
+	v1.RegisterAlertEscalationPolicyServiceServer(srv, escalations)
 	megrezv1.RegisterEvalServiceServer(srv, eval)
 	merakv1.RegisterNotifyServiceServer(srv, notify)
 	v1.RegisterAgentServiceServer(srv, agents)

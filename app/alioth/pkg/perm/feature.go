@@ -94,7 +94,7 @@ func featureForResource(resource string) string {
 		return FeatureCluster
 	}
 	switch resource {
-	case "alert", "alert_maintenance":
+	case "alert", "alert_maintenance", "alert_escalation":
 		return FeatureAlert
 	case "alert_rule":
 		return FeatureAlertRule

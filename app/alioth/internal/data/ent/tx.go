@@ -16,6 +16,10 @@ type Tx struct {
 	Agent *AgentClient
 	// AlertDictionary is the client for interacting with the AlertDictionary builders.
 	AlertDictionary *AlertDictionaryClient
+	// AlertEscalationPolicy is the client for interacting with the AlertEscalationPolicy builders.
+	AlertEscalationPolicy *AlertEscalationPolicyClient
+	// AlertEscalationStep is the client for interacting with the AlertEscalationStep builders.
+	AlertEscalationStep *AlertEscalationStepClient
 	// AlertEvalBatch is the client for interacting with the AlertEvalBatch builders.
 	AlertEvalBatch *AlertEvalBatchClient
 	// AlertEvent is the client for interacting with the AlertEvent builders.
@@ -24,6 +28,8 @@ type Tx struct {
 	AlertEventAction *AlertEventActionClient
 	// AlertEventColumn is the client for interacting with the AlertEventColumn builders.
 	AlertEventColumn *AlertEventColumnClient
+	// AlertEventEscalation is the client for interacting with the AlertEventEscalation builders.
+	AlertEventEscalation *AlertEventEscalationClient
 	// AlertEventFiring is the client for interacting with the AlertEventFiring builders.
 	AlertEventFiring *AlertEventFiringClient
 	// AlertHistoryEvent is the client for interacting with the AlertHistoryEvent builders.
@@ -251,10 +257,13 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Agent = NewAgentClient(tx.config)
 	tx.AlertDictionary = NewAlertDictionaryClient(tx.config)
+	tx.AlertEscalationPolicy = NewAlertEscalationPolicyClient(tx.config)
+	tx.AlertEscalationStep = NewAlertEscalationStepClient(tx.config)
 	tx.AlertEvalBatch = NewAlertEvalBatchClient(tx.config)
 	tx.AlertEvent = NewAlertEventClient(tx.config)
 	tx.AlertEventAction = NewAlertEventActionClient(tx.config)
 	tx.AlertEventColumn = NewAlertEventColumnClient(tx.config)
+	tx.AlertEventEscalation = NewAlertEventEscalationClient(tx.config)
 	tx.AlertEventFiring = NewAlertEventFiringClient(tx.config)
 	tx.AlertHistoryEvent = NewAlertHistoryEventClient(tx.config)
 	tx.AlertMaintenanceWindow = NewAlertMaintenanceWindowClient(tx.config)

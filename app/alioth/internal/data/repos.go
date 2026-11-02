@@ -46,6 +46,9 @@ type sshCommandRepo struct{ *repoBase }
 type featureRepo struct{ *repoBase }
 type boardRepo struct{ *repoBase }
 type alertMaintenanceRepo struct{ *repoBase }
+
+// alertEscalationRepo 管理升级策略、步骤、事件升级记录与调度生成。
+type alertEscalationRepo struct{ *repoBase }
 type statusPageRepo struct{ *repoBase }
 type probeSlaRepo struct{ *repoBase }
 
@@ -120,6 +123,10 @@ func NewProbeSlaRepo(deps *Dependencies, logger *slog.Logger) repository.ProbeSl
 
 func NewAlertMaintenanceRepo(deps *Dependencies, logger *slog.Logger) repository.AlertMaintenanceRepo {
 	return &alertMaintenanceRepo{newBase(deps, logger)}
+}
+
+func NewAlertEscalationRepo(deps *Dependencies, logger *slog.Logger) repository.AlertEscalationRepo {
+	return &alertEscalationRepo{newBase(deps, logger)}
 }
 
 func NewBoardRepo(deps *Dependencies, logger *slog.Logger) repository.BoardRepo {

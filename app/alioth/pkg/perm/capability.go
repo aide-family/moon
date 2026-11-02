@@ -17,6 +17,7 @@ const (
 	CapabilityAlertRule        = "alert_rule"
 	CapabilityAlertDictionary  = "alert_dictionary"
 	CapabilityAlertMaintenance = "alert_maintenance"
+	CapabilityAlertEscalation  = "alert_escalation"
 	// 探测目标按驱动细分：HTTP / TCP / ICMP / DNS / TLS 各自对应一个能力，
 	// 套餐可以只买其中几种，未实现的类型不会出现在目录里。
 	// ProbeSla 是探测 SLA 报表的只读菜单。
@@ -122,6 +123,11 @@ var capabilitySpecs = []Capability{
 		Code: CapabilityAlertMaintenance, Module: FeatureAlert, Name: "维护窗口",
 		Description: "计划维护期间静默匹配的告警，不生成通知任务。",
 		Permissions: []string{AlertMaintenanceRead, AlertMaintenanceWrite, AlertMaintenanceDelete},
+	},
+	{
+		Code: CapabilityAlertEscalation, Module: FeatureAlert, Name: "升级策略",
+		Description: "未认领、未恢复的告警按策略在指定分钟数后升级通知。",
+		Permissions: []string{AlertEscalationRead, AlertEscalationWrite, AlertEscalationDelete},
 	},
 	{
 		Code: CapabilityAlertDictionary, Module: FeatureAlertRule, Name: "告警字典",

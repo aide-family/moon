@@ -16,6 +16,7 @@ const (
 	actionIntervened      = "INTERVENED"
 	actionSuppressed      = "SUPPRESSED"
 	actionMaintenance     = "MAINTENANCE"
+	actionEscalated       = "ESCALATED"
 	actionRecovered       = "RECOVERED"
 	actionRecoveredByHand = "RECOVERED_BY_MANUAL"
 )
