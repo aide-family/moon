@@ -423,7 +423,9 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 | `NotificationGroup`    | Moon 的通知组与收件人组                      | Namespace 内的接收方集合。邮件渠道和短信渠道各最多一个，Webhook 作为接收者可多选；每个选中渠道都绑定一个能覆盖它的模板，至少有一个接收方或 Webhook |
 | `NotificationSubscription` | Alioth 新增                       | 按标签、告警级别、数据源和数据源级别订阅事件，命中后发送给订阅下的通知组；可配置同一告警的重复通知间隔 |
 | `NotificationOnCall`   | Alioth 新增                           | 按标签、告警级别、数据源和数据源级别订阅事件，绑定多个通知组；每个绑定带自己的接收时段，只在该时段内投递；可配置重复通知间隔 |
-| `NotificationOnCallGroup` | Alioth 新增                        | OnCall 到通知组的绑定，保存 `time_windows` 时段 JSON。同一 OnCall 内一个通知组只绑定一次 |
+| `NotificationOnCallGroup` | Alioth 新增                        | OnCall 到通知组的绑定，保存 `time_windows` 时段 JSON 与可空的 `rotation_uid`。同一 OnCall 内一个通知组只绑定一次 |
+| `OnCallRotation`       | Alioth 新增                           | 值班轮换：名称、IANA 时区、周期（DAILY / WEEKLY）、起点 `starts_at`、本地交班时刻 `handoff_hour` 与启停；成员有序 |
+| `OnCallRotationMember` | Alioth 新增                           | 轮换成员，`rotation_uid`、`member_uid`、`position`；同一轮换内成员唯一，成员必须当前租户的 JOINED 成员 |
 | `NotificationTask`     | Moon 发送任务的持久化形态                     | 待发送、发送中、已发送、失败、取消。状态名沿用 MessageStatus：PENDING、SENDING、SENT、FAILED、CANCELLED。保存事件指纹，供重复通知间隔判断 |
 | `MessageLog`           | Moon 的 `message_logs`               | 一次投递的结果。按租户库 + 周表分库分表。支持查看、重试、取消                                                    |
 
@@ -440,6 +442,8 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 `NotificationOnCall` 和 `NotificationSubscription` 是两套独立的路由：订阅始终按条件投递，OnCall 在此基础上按通知组的时间窗口投递。两套路由都按标签、告警级别、数据源和数据源级别过滤，条件之间是 AND，空条件表示不限制；标签值按完整匹配正则命中。数据源级别取事件数据源自身的 `level_uid`，数据源缺失或没有级别时不匹配非空级别条件。每个 OnCall 通知组的 `time_windows` 保存 `[{weekdays,start,end}]`，星期取 MONDAY 到 SUNDAY，时间为 `HH:mm`，边界左闭右开；起始晚于结束表示跨午夜，星期几归属于开始那天，例如 `FRIDAY 22:00-06:00` 覆盖周五晚到周六凌晨。空数组表示该组全天候接收。保存时校验星期、时间和 IANA 时区；判断时先把当前时刻转换到 OnCall 的时区。FIRING 和恢复各自按事件发生时的时刻判断，恢复不会回溯 FIRING 命中过的通知组。时间语义沿用 Moon `magicbox/timer` 的星期与时刻范围匹配思路，实现在 `app/alioth/pkg/oncall`。
 
 同一事件同时命中订阅和 OnCall 时，两套路由先合并通知组，再按接收方去重：同一邮箱或手机号最多生成一条任务，同一个 Webhook 渠道最多安排一次；订阅命中的通知组先处理，接收方重叠时订阅的模板优先。`NotificationTask` 仍保留 `(event_uid, phase, group_uid, channel_uid)` 唯一约束作为最后一道兜底。
+
+值班轮换把 OnCall 的接收人从固定名单扩展为按周期轮转：`starts_at` 是第一班起点，周期 DAILY / WEEKLY 决定一班长度，`handoff_hour` 按轮换时区在本地交班；班次序号从 `starts_at` 所在班次计 0，对成员数取模得到当班成员，交班前的时刻仍属于上一班。`(namespace_uid, name)` 在未删除记录上唯一，成员随轮换整体替换、顺序即 `position`。OnCall 绑定 `rotation_uid` 后，投递在时段判断通过时把当前当班成员的邮箱（SMTP）或手机号（SMS）并入该通知组接收方，与手填接收方按大小写去重；轮换停用、已删除、无成员或成员没有联系方式时只保留手填接收方，不报错。轮换只决定接收人，不改变 OnCall 的时段匹配与订阅路由。计算实现在 `app/alioth/pkg/oncall/rotation.go`，为纯函数，可用固定时刻单测。
 
 订阅和 OnCall 各自保存 `repeat_interval_seconds`，取值 0 到 43200（0 表示不限制，最大 12 小时）。FIRING 事件命中多个来源时取其中最大的间隔：同一 `fingerprint` 在最大间隔内已经存在 PENDING、SENDING 或 SENT 的 FIRING 任务，整条事件不再生成任务；不同指纹互不影响。恢复通知不受间隔限制，但只有同一指纹存在仍在投递链路上的 FIRING 任务（PENDING、SENDING、SENT）时才发送，避免被间隔抑制或彻底失败的告警在恢复时补发孤立通知。任务保存 `fingerprint`，升级前的旧任务没有指纹时按 `event_uid` 兜底判断恢复是否发送。
 
@@ -557,6 +561,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | 通知组        | `/v1/notification-groups`                                                               |
 | 告警订阅       | `/v1/notification-subscription`、`/v1/notification-subscriptions`                          |
 | OnCall      | `/v1/notification-oncall`、`/v1/notification-oncalls`、启停与时段编辑                          |
+| 值班轮换       | `/v1/oncall-rotations`、`/v1/oncall-rotations/{uid}`、启停与 `/v1/oncall-rotations/{uid}/schedule?days=14` |
 | 邮件渠道       | `/v1/email/config`、`/v1/email/configs`                                                  |
 | Webhook 渠道 | `/v1/webhook/config`、`/v1/webhook/configs`                                              |
 | 模板         | `/v1/template`、`/v1/templates`                                                          |

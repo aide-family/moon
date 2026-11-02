@@ -46,6 +46,7 @@ func NewGRPCServer(
 	groups *service.NotificationGroupService,
 	subscriptions *service.NotificationSubscriptionService,
 	onCalls *service.NotificationOnCallService,
+	rotations *service.OnCallRotationService,
 	logs *service.MessageLogService,
 	workers *service.WorkerService,
 	maintenance *service.MaintenanceService,
@@ -106,6 +107,7 @@ func NewGRPCServer(
 	v1.RegisterNotificationGroupServiceServer(srv, groups)
 	v1.RegisterNotificationSubscriptionServiceServer(srv, subscriptions)
 	v1.RegisterNotificationOnCallServiceServer(srv, onCalls)
+	v1.RegisterOnCallRotationServiceServer(srv, rotations)
 	v1.RegisterMessageLogServiceServer(srv, logs)
 	v1.RegisterWorkerServiceServer(srv, workers)
 	v1.RegisterMaintenanceServiceServer(srv, maintenance)

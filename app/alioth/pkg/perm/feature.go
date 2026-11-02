@@ -102,7 +102,7 @@ func featureForResource(resource string) string {
 		return FeatureProbe
 	case "datasource":
 		return FeatureDatasource
-	case "notification":
+	case "notification", "notification_rotation":
 		return FeatureNotification
 	case "member":
 		return FeatureMember

@@ -32,6 +32,7 @@ var ProviderSet = wire.NewSet(
 	NewNotificationGroupService,
 	NewNotificationSubscriptionService,
 	NewNotificationOnCallService,
+	NewOnCallRotationService,
 	NewMessageLogService,
 	NewNotifyService,
 	NewAgentService,

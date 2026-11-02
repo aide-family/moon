@@ -29,6 +29,8 @@ const (
 	FieldGroupUID = "group_uid"
 	// FieldTimeWindows holds the string denoting the time_windows field in the database.
 	FieldTimeWindows = "time_windows"
+	// FieldRotationUID holds the string denoting the rotation_uid field in the database.
+	FieldRotationUID = "rotation_uid"
 	// Table holds the table name of the notificationoncallgroup in the database.
 	Table = "notification_on_call_groups"
 )
@@ -44,6 +46,7 @@ var Columns = []string{
 	FieldOncallUID,
 	FieldGroupUID,
 	FieldTimeWindows,
+	FieldRotationUID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -73,6 +76,8 @@ var (
 	GroupUIDValidator func(string) error
 	// DefaultTimeWindows holds the default value on creation for the "time_windows" field.
 	DefaultTimeWindows string
+	// DefaultRotationUID holds the default value on creation for the "rotation_uid" field.
+	DefaultRotationUID string
 )
 
 // OrderOption defines the ordering options for the NotificationOnCallGroup queries.
@@ -121,4 +126,9 @@ func ByGroupUID(opts ...sql.OrderTermOption) OrderOption {
 // ByTimeWindows orders the results by the time_windows field.
 func ByTimeWindows(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTimeWindows, opts...).ToFunc()
+}
+
+// ByRotationUID orders the results by the rotation_uid field.
+func ByRotationUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRotationUID, opts...).ToFunc()
 }

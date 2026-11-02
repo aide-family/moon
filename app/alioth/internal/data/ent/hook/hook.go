@@ -501,6 +501,30 @@ func (f NotificationTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationTemplateMutation", m)
 }
 
+// The OnCallRotationFunc type is an adapter to allow the use of ordinary
+// function as OnCallRotation mutator.
+type OnCallRotationFunc func(context.Context, *ent.OnCallRotationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OnCallRotationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OnCallRotationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OnCallRotationMutation", m)
+}
+
+// The OnCallRotationMemberFunc type is an adapter to allow the use of ordinary
+// function as OnCallRotationMember mutator.
+type OnCallRotationMemberFunc func(context.Context, *ent.OnCallRotationMemberMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OnCallRotationMemberFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OnCallRotationMemberMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OnCallRotationMemberMutation", m)
+}
+
 // The PermissionFunc type is an adapter to allow the use of ordinary
 // function as Permission mutator.
 type PermissionFunc func(context.Context, *ent.PermissionMutation) (ent.Value, error)

@@ -148,8 +148,9 @@ func normalizeOnCall(in *bo.NotificationOnCall) error {
 			return err
 		}
 		groups = append(groups, bo.NotificationOnCallGroup{
-			GroupUID: groupUID,
-			Windows:  onCallWindows(windows),
+			GroupUID:    groupUID,
+			Windows:     onCallWindows(windows),
+			RotationUID: strings.TrimSpace(group.RotationUID),
 		})
 	}
 	in.Groups = groups

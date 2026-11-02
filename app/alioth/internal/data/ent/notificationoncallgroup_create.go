@@ -100,6 +100,20 @@ func (_c *NotificationOnCallGroupCreate) SetNillableTimeWindows(v *string) *Noti
 	return _c
 }
 
+// SetRotationUID sets the "rotation_uid" field.
+func (_c *NotificationOnCallGroupCreate) SetRotationUID(v string) *NotificationOnCallGroupCreate {
+	_c.mutation.SetRotationUID(v)
+	return _c
+}
+
+// SetNillableRotationUID sets the "rotation_uid" field if the given value is not nil.
+func (_c *NotificationOnCallGroupCreate) SetNillableRotationUID(v *string) *NotificationOnCallGroupCreate {
+	if v != nil {
+		_c.SetRotationUID(*v)
+	}
+	return _c
+}
+
 // Mutation returns the NotificationOnCallGroupMutation object of the builder.
 func (_c *NotificationOnCallGroupCreate) Mutation() *NotificationOnCallGroupMutation {
 	return _c.mutation
@@ -147,6 +161,10 @@ func (_c *NotificationOnCallGroupCreate) defaults() {
 		v := notificationoncallgroup.DefaultTimeWindows
 		_c.mutation.SetTimeWindows(v)
 	}
+	if _, ok := _c.mutation.RotationUID(); !ok {
+		v := notificationoncallgroup.DefaultRotationUID
+		_c.mutation.SetRotationUID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -191,6 +209,9 @@ func (_c *NotificationOnCallGroupCreate) check() error {
 	}
 	if _, ok := _c.mutation.TimeWindows(); !ok {
 		return &ValidationError{Name: "time_windows", err: errors.New(`ent: missing required field "NotificationOnCallGroup.time_windows"`)}
+	}
+	if _, ok := _c.mutation.RotationUID(); !ok {
+		return &ValidationError{Name: "rotation_uid", err: errors.New(`ent: missing required field "NotificationOnCallGroup.rotation_uid"`)}
 	}
 	return nil
 }
@@ -249,6 +270,10 @@ func (_c *NotificationOnCallGroupCreate) createSpec() (*NotificationOnCallGroup,
 	if value, ok := _c.mutation.TimeWindows(); ok {
 		_spec.SetField(notificationoncallgroup.FieldTimeWindows, field.TypeString, value)
 		_node.TimeWindows = value
+	}
+	if value, ok := _c.mutation.RotationUID(); ok {
+		_spec.SetField(notificationoncallgroup.FieldRotationUID, field.TypeString, value)
+		_node.RotationUID = value
 	}
 	return _node, _spec
 }

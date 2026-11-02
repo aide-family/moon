@@ -22,6 +22,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/migration"
 	"github.com/aide-family/moon/app/alioth/internal/biz/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
+	"github.com/aide-family/moon/app/alioth/internal/biz/oncallrotation"
 	"github.com/aide-family/moon/app/alioth/internal/biz/order"
 	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
 	"github.com/aide-family/moon/app/alioth/internal/biz/probe"
@@ -55,6 +56,7 @@ var ProviderSet = wire.NewSet(
 	alertmaintenance.ProviderSet,
 	alertrule.ProviderSet,
 	notification.ProviderSet,
+	oncallrotation.ProviderSet,
 	agenthub.ProviderSet,
 	agent.ProviderSet,
 	ssh.ProviderSet,

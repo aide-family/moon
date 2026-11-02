@@ -4701,7 +4701,11 @@ type NotificationOnCallGroupItem struct {
 	// 通知组名称，只读。
 	GroupName string `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
 	// 接收时段。为空表示全天候接收。
-	Windows       []*NotificationOnCallWindow `protobuf:"bytes,3,rep,name=windows,proto3" json:"windows,omitempty"`
+	Windows []*NotificationOnCallWindow `protobuf:"bytes,3,rep,name=windows,proto3" json:"windows,omitempty"`
+	// 绑定的值班轮换标识，空表示不绑定。
+	RotationUid string `protobuf:"bytes,4,opt,name=rotation_uid,json=rotationUid,proto3" json:"rotation_uid,omitempty"`
+	// 值班轮换名称，只读；未绑定或轮换已删除时为空。
+	RotationName  string `protobuf:"bytes,5,opt,name=rotation_name,json=rotationName,proto3" json:"rotation_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4755,6 +4759,20 @@ func (x *NotificationOnCallGroupItem) GetWindows() []*NotificationOnCallWindow {
 		return x.Windows
 	}
 	return nil
+}
+
+func (x *NotificationOnCallGroupItem) GetRotationUid() string {
+	if x != nil {
+		return x.RotationUid
+	}
+	return ""
+}
+
+func (x *NotificationOnCallGroupItem) GetRotationName() string {
+	if x != nil {
+		return x.RotationName
+	}
+	return ""
 }
 
 // 一个接收时段。星期几归属于开始那天，Start 晚于 End 表示跨午夜。
@@ -4827,7 +4845,9 @@ type NotificationOnCallGroupInput struct {
 	// 通知组标识。
 	GroupUid string `protobuf:"bytes,1,opt,name=group_uid,json=groupUid,proto3" json:"group_uid,omitempty"`
 	// 接收时段。为空表示全天候接收。
-	Windows       []*NotificationOnCallWindow `protobuf:"bytes,2,rep,name=windows,proto3" json:"windows,omitempty"`
+	Windows []*NotificationOnCallWindow `protobuf:"bytes,2,rep,name=windows,proto3" json:"windows,omitempty"`
+	// 绑定的值班轮换标识，可空；非空时投递追加当班成员。
+	RotationUid   string `protobuf:"bytes,3,opt,name=rotation_uid,json=rotationUid,proto3" json:"rotation_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4874,6 +4894,13 @@ func (x *NotificationOnCallGroupInput) GetWindows() []*NotificationOnCallWindow 
 		return x.Windows
 	}
 	return nil
+}
+
+func (x *NotificationOnCallGroupInput) GetRotationUid() string {
+	if x != nil {
+		return x.RotationUid
+	}
+	return ""
 }
 
 // 创建值班路由。
@@ -6919,19 +6946,22 @@ const file_alioth_v1_notification_proto_rawDesc = "" +
 	"created_at\x18\n" +
 	" \x01(\tR\tcreatedAt\x122\n" +
 	"\x15datasource_level_uids\x18\v \x03(\tR\x13datasourceLevelUids\x126\n" +
-	"\x17repeat_interval_seconds\x18\f \x01(\x05R\x15repeatIntervalSeconds\"\x98\x01\n" +
+	"\x17repeat_interval_seconds\x18\f \x01(\x05R\x15repeatIntervalSeconds\"\xe0\x01\n" +
 	"\x1bNotificationOnCallGroupItem\x12\x1b\n" +
 	"\tgroup_uid\x18\x01 \x01(\tR\bgroupUid\x12\x1d\n" +
 	"\n" +
 	"group_name\x18\x02 \x01(\tR\tgroupName\x12=\n" +
-	"\awindows\x18\x03 \x03(\v2#.alioth.v1.NotificationOnCallWindowR\awindows\"^\n" +
+	"\awindows\x18\x03 \x03(\v2#.alioth.v1.NotificationOnCallWindowR\awindows\x12!\n" +
+	"\frotation_uid\x18\x04 \x01(\tR\vrotationUid\x12#\n" +
+	"\rrotation_name\x18\x05 \x01(\tR\frotationName\"^\n" +
 	"\x18NotificationOnCallWindow\x12\x1a\n" +
 	"\bweekdays\x18\x01 \x03(\tR\bweekdays\x12\x14\n" +
 	"\x05start\x18\x02 \x01(\tR\x05start\x12\x10\n" +
-	"\x03end\x18\x03 \x01(\tR\x03end\"\x83\x01\n" +
+	"\x03end\x18\x03 \x01(\tR\x03end\"\xa6\x01\n" +
 	"\x1cNotificationOnCallGroupInput\x12$\n" +
 	"\tgroup_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12=\n" +
-	"\awindows\x18\x02 \x03(\v2#.alioth.v1.NotificationOnCallWindowR\awindows\"\xac\x03\n" +
+	"\awindows\x18\x02 \x03(\v2#.alioth.v1.NotificationOnCallWindowR\awindows\x12!\n" +
+	"\frotation_uid\x18\x03 \x01(\tR\vrotationUid\"\xac\x03\n" +
 	"\x1fCreateNotificationOnCallRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12 \n" +
 	"\x06labels\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x12\x1d\n" +

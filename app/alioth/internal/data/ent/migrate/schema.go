@@ -1413,6 +1413,7 @@ var (
 		{Name: "oncall_uid", Type: field.TypeString},
 		{Name: "group_uid", Type: field.TypeString},
 		{Name: "time_windows", Type: field.TypeString, Default: "[]"},
+		{Name: "rotation_uid", Type: field.TypeString, Default: ""},
 	}
 	// NotificationOnCallGroupsTable holds the schema information for the "notification_on_call_groups" table.
 	NotificationOnCallGroupsTable = &schema.Table{
@@ -1674,6 +1675,82 @@ var (
 				Name:    "notificationtemplate_namespace_uid_status",
 				Unique:  false,
 				Columns: []*schema.Column{NotificationTemplatesColumns[5], NotificationTemplatesColumns[9]},
+			},
+		},
+	}
+	// OnCallRotationsColumns holds the columns for the "on_call_rotations" table.
+	OnCallRotationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+		{Name: "timezone", Type: field.TypeString, Default: "Asia/Shanghai"},
+		{Name: "period", Type: field.TypeEnum, Enums: []string{"DAILY", "WEEKLY"}, Default: "DAILY"},
+		{Name: "starts_at", Type: field.TypeTime},
+		{Name: "handoff_hour", Type: field.TypeInt, Default: 0},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+	}
+	// OnCallRotationsTable holds the schema information for the "on_call_rotations" table.
+	OnCallRotationsTable = &schema.Table{
+		Name:       "on_call_rotations",
+		Columns:    OnCallRotationsColumns,
+		PrimaryKey: []*schema.Column{OnCallRotationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "oncallrotation_uid",
+				Unique:  true,
+				Columns: []*schema.Column{OnCallRotationsColumns[4]},
+			},
+			{
+				Name:    "oncallrotation_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{OnCallRotationsColumns[5], OnCallRotationsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "oncallrotation_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{OnCallRotationsColumns[5], OnCallRotationsColumns[12]},
+			},
+		},
+	}
+	// OnCallRotationMembersColumns holds the columns for the "on_call_rotation_members" table.
+	OnCallRotationMembersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "rotation_uid", Type: field.TypeString},
+		{Name: "member_uid", Type: field.TypeString},
+		{Name: "position", Type: field.TypeInt},
+	}
+	// OnCallRotationMembersTable holds the schema information for the "on_call_rotation_members" table.
+	OnCallRotationMembersTable = &schema.Table{
+		Name:       "on_call_rotation_members",
+		Columns:    OnCallRotationMembersColumns,
+		PrimaryKey: []*schema.Column{OnCallRotationMembersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "oncallrotationmember_uid",
+				Unique:  true,
+				Columns: []*schema.Column{OnCallRotationMembersColumns[3]},
+			},
+			{
+				Name:    "oncallrotationmember_rotation_uid_member_uid",
+				Unique:  true,
+				Columns: []*schema.Column{OnCallRotationMembersColumns[5], OnCallRotationMembersColumns[6]},
+			},
+			{
+				Name:    "oncallrotationmember_namespace_uid_rotation_uid",
+				Unique:  false,
+				Columns: []*schema.Column{OnCallRotationMembersColumns[4], OnCallRotationMembersColumns[5]},
 			},
 		},
 	}
@@ -2333,6 +2410,8 @@ var (
 		NotificationSubscriptionGroupsTable,
 		NotificationTasksTable,
 		NotificationTemplatesTable,
+		OnCallRotationsTable,
+		OnCallRotationMembersTable,
 		PermissionsTable,
 		ProbeResultsTable,
 		ProbeSLADailiesTable,

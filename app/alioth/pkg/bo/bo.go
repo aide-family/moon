@@ -692,6 +692,10 @@ type NotificationOnCallGroup struct {
 	GroupUID  string
 	GroupName string
 	Windows   []NotificationOnCallWindow
+	// RotationUID 是可选的值班轮换；非空时投递追加当前当班成员。
+	RotationUID string
+	// RotationName 只读，用于展示；未绑定或轮换已删除时为空。
+	RotationName string
 }
 
 // NotificationOnCallWindow 是通知组的接收时段。Weekdays 取 MONDAY 到 SUNDAY，

@@ -53,6 +53,8 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/oncallrotation"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/oncallrotationmember"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
@@ -169,6 +171,8 @@ func checkColumn(t, c string) error {
 			notificationsubscriptiongroup.Table: notificationsubscriptiongroup.ValidColumn,
 			notificationtask.Table:              notificationtask.ValidColumn,
 			notificationtemplate.Table:          notificationtemplate.ValidColumn,
+			oncallrotation.Table:                oncallrotation.ValidColumn,
+			oncallrotationmember.Table:          oncallrotationmember.ValidColumn,
 			permission.Table:                    permission.ValidColumn,
 			proberesult.Table:                   proberesult.ValidColumn,
 			probesladaily.Table:                 probesladaily.ValidColumn,

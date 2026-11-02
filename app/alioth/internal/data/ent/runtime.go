@@ -46,6 +46,8 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/oncallrotation"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/oncallrotationmember"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
@@ -1652,6 +1654,10 @@ func init() {
 	notificationoncallgroupDescTimeWindows := notificationoncallgroupFields[4].Descriptor()
 	// notificationoncallgroup.DefaultTimeWindows holds the default value on creation for the time_windows field.
 	notificationoncallgroup.DefaultTimeWindows = notificationoncallgroupDescTimeWindows.Default.(string)
+	// notificationoncallgroupDescRotationUID is the schema descriptor for rotation_uid field.
+	notificationoncallgroupDescRotationUID := notificationoncallgroupFields[5].Descriptor()
+	// notificationoncallgroup.DefaultRotationUID holds the default value on creation for the rotation_uid field.
+	notificationoncallgroup.DefaultRotationUID = notificationoncallgroupDescRotationUID.Default.(string)
 	notificationpresetMixin := schema.NotificationPreset{}.Mixin()
 	notificationpresetMixinFields0 := notificationpresetMixin[0].Fields()
 	_ = notificationpresetMixinFields0
@@ -1895,6 +1901,76 @@ func init() {
 	notificationtemplateDescRemark := notificationtemplateFields[8].Descriptor()
 	// notificationtemplate.DefaultRemark holds the default value on creation for the remark field.
 	notificationtemplate.DefaultRemark = notificationtemplateDescRemark.Default.(string)
+	oncallrotationMixin := schema.OnCallRotation{}.Mixin()
+	oncallrotationMixinFields0 := oncallrotationMixin[0].Fields()
+	_ = oncallrotationMixinFields0
+	oncallrotationFields := schema.OnCallRotation{}.Fields()
+	_ = oncallrotationFields
+	// oncallrotationDescCreatedAt is the schema descriptor for created_at field.
+	oncallrotationDescCreatedAt := oncallrotationMixinFields0[0].Descriptor()
+	// oncallrotation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	oncallrotation.DefaultCreatedAt = oncallrotationDescCreatedAt.Default.(func() time.Time)
+	// oncallrotationDescUpdatedAt is the schema descriptor for updated_at field.
+	oncallrotationDescUpdatedAt := oncallrotationMixinFields0[1].Descriptor()
+	// oncallrotation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	oncallrotation.DefaultUpdatedAt = oncallrotationDescUpdatedAt.Default.(func() time.Time)
+	// oncallrotation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	oncallrotation.UpdateDefaultUpdatedAt = oncallrotationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// oncallrotationDescUID is the schema descriptor for uid field.
+	oncallrotationDescUID := oncallrotationFields[0].Descriptor()
+	// oncallrotation.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	oncallrotation.UIDValidator = oncallrotationDescUID.Validators[0].(func(string) error)
+	// oncallrotationDescNamespaceUID is the schema descriptor for namespace_uid field.
+	oncallrotationDescNamespaceUID := oncallrotationFields[1].Descriptor()
+	// oncallrotation.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	oncallrotation.NamespaceUIDValidator = oncallrotationDescNamespaceUID.Validators[0].(func(string) error)
+	// oncallrotationDescName is the schema descriptor for name field.
+	oncallrotationDescName := oncallrotationFields[2].Descriptor()
+	// oncallrotation.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	oncallrotation.NameValidator = oncallrotationDescName.Validators[0].(func(string) error)
+	// oncallrotationDescRemark is the schema descriptor for remark field.
+	oncallrotationDescRemark := oncallrotationFields[3].Descriptor()
+	// oncallrotation.DefaultRemark holds the default value on creation for the remark field.
+	oncallrotation.DefaultRemark = oncallrotationDescRemark.Default.(string)
+	// oncallrotationDescTimezone is the schema descriptor for timezone field.
+	oncallrotationDescTimezone := oncallrotationFields[4].Descriptor()
+	// oncallrotation.DefaultTimezone holds the default value on creation for the timezone field.
+	oncallrotation.DefaultTimezone = oncallrotationDescTimezone.Default.(string)
+	// oncallrotationDescHandoffHour is the schema descriptor for handoff_hour field.
+	oncallrotationDescHandoffHour := oncallrotationFields[7].Descriptor()
+	// oncallrotation.DefaultHandoffHour holds the default value on creation for the handoff_hour field.
+	oncallrotation.DefaultHandoffHour = oncallrotationDescHandoffHour.Default.(int)
+	oncallrotationmemberMixin := schema.OnCallRotationMember{}.Mixin()
+	oncallrotationmemberMixinFields0 := oncallrotationmemberMixin[0].Fields()
+	_ = oncallrotationmemberMixinFields0
+	oncallrotationmemberFields := schema.OnCallRotationMember{}.Fields()
+	_ = oncallrotationmemberFields
+	// oncallrotationmemberDescCreatedAt is the schema descriptor for created_at field.
+	oncallrotationmemberDescCreatedAt := oncallrotationmemberMixinFields0[0].Descriptor()
+	// oncallrotationmember.DefaultCreatedAt holds the default value on creation for the created_at field.
+	oncallrotationmember.DefaultCreatedAt = oncallrotationmemberDescCreatedAt.Default.(func() time.Time)
+	// oncallrotationmemberDescUpdatedAt is the schema descriptor for updated_at field.
+	oncallrotationmemberDescUpdatedAt := oncallrotationmemberMixinFields0[1].Descriptor()
+	// oncallrotationmember.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	oncallrotationmember.DefaultUpdatedAt = oncallrotationmemberDescUpdatedAt.Default.(func() time.Time)
+	// oncallrotationmember.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	oncallrotationmember.UpdateDefaultUpdatedAt = oncallrotationmemberDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// oncallrotationmemberDescUID is the schema descriptor for uid field.
+	oncallrotationmemberDescUID := oncallrotationmemberFields[0].Descriptor()
+	// oncallrotationmember.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	oncallrotationmember.UIDValidator = oncallrotationmemberDescUID.Validators[0].(func(string) error)
+	// oncallrotationmemberDescNamespaceUID is the schema descriptor for namespace_uid field.
+	oncallrotationmemberDescNamespaceUID := oncallrotationmemberFields[1].Descriptor()
+	// oncallrotationmember.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	oncallrotationmember.NamespaceUIDValidator = oncallrotationmemberDescNamespaceUID.Validators[0].(func(string) error)
+	// oncallrotationmemberDescRotationUID is the schema descriptor for rotation_uid field.
+	oncallrotationmemberDescRotationUID := oncallrotationmemberFields[2].Descriptor()
+	// oncallrotationmember.RotationUIDValidator is a validator for the "rotation_uid" field. It is called by the builders before save.
+	oncallrotationmember.RotationUIDValidator = oncallrotationmemberDescRotationUID.Validators[0].(func(string) error)
+	// oncallrotationmemberDescMemberUID is the schema descriptor for member_uid field.
+	oncallrotationmemberDescMemberUID := oncallrotationmemberFields[3].Descriptor()
+	// oncallrotationmember.MemberUIDValidator is a validator for the "member_uid" field. It is called by the builders before save.
+	oncallrotationmember.MemberUIDValidator = oncallrotationmemberDescMemberUID.Validators[0].(func(string) error)
 	permissionMixin := schema.Permission{}.Mixin()
 	permissionMixinFields0 := permissionMixin[0].Fields()
 	_ = permissionMixinFields0

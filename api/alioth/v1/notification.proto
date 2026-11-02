@@ -1017,6 +1017,10 @@ message NotificationOnCallGroupItem {
   string group_name = 2 [json_name = "groupName"];
   // 接收时段。为空表示全天候接收。
   repeated NotificationOnCallWindow windows = 3;
+  // 绑定的值班轮换标识，空表示不绑定。
+  string rotation_uid = 4 [json_name = "rotationUid"];
+  // 值班轮换名称，只读；未绑定或轮换已删除时为空。
+  string rotation_name = 5 [json_name = "rotationName"];
 }
 
 // 一个接收时段。星期几归属于开始那天，Start 晚于 End 表示跨午夜。
@@ -1035,6 +1039,8 @@ message NotificationOnCallGroupInput {
   string group_uid = 1 [json_name = "groupUid", (buf.validate.field).string.min_len = 1];
   // 接收时段。为空表示全天候接收。
   repeated NotificationOnCallWindow windows = 2;
+  // 绑定的值班轮换标识，可空；非空时投递追加当班成员。
+  string rotation_uid = 3 [json_name = "rotationUid"];
 }
 
 // 创建值班路由。

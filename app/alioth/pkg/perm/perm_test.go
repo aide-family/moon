@@ -170,12 +170,12 @@ func TestSystemRoles(t *testing.T) {
 	}
 }
 
-// TestCapabilityCatalog 确认两级功能模型：62 个能力都挂在 11 个模块下，
+// TestCapabilityCatalog 确认两级功能模型：63 个能力都挂在 11 个模块下，
 // 权限都在租户目录里，菜单权限与能力一一对应。
 func TestCapabilityCatalog(t *testing.T) {
 	items := Capabilities()
-	if len(items) != 62 {
-		t.Fatalf("capabilities = %d, want 62", len(items))
+	if len(items) != 63 {
+		t.Fatalf("capabilities = %d, want 63", len(items))
 	}
 	if items[0].Code != CapabilityAlertRealtime || items[len(items)-1].Code != CapabilityWebShell {
 		t.Fatalf("unexpected capability order: first %s last %s", items[0].Code, items[len(items)-1].Code)
@@ -228,8 +228,8 @@ func TestCapabilityCatalog(t *testing.T) {
 		t.Fatal("menu permission count does not match menu count")
 	}
 	base := BaseCapabilities()
-	if len(base) != 35 {
-		t.Fatalf("base capabilities = %d, want 35", len(base))
+	if len(base) != 36 {
+		t.Fatalf("base capabilities = %d, want 36", len(base))
 	}
 	// 数据源、探测和通知渠道按类型展开后，基础套餐要覆盖全部现有类型。
 	if got := DatasourceDriversOf(base); len(got) != 6 {

@@ -2,12 +2,14 @@ package data
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncall"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationoncallgroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/oncallrotation"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
 	"github.com/aide-family/moon/app/alioth/pkg/oncall"
@@ -18,6 +20,8 @@ import (
 type onCallBinding struct {
 	GroupUID    string
 	TimeWindows string
+	// RotationUID 是可选的值班轮换，非空时投递追加当班成员。
+	RotationUID string
 }
 
 func (r *notificationRepo) CreateOnCall(ctx context.Context, in bo.NotificationOnCall) (*bo.NotificationOnCall, error) {
@@ -167,7 +171,11 @@ func (r *notificationRepo) GetOnCall(ctx context.Context, namespaceUID, uid stri
 	if err != nil {
 		return nil, err
 	}
-	item, err := toNotificationOnCall(row, links, groupNames)
+	rotationNames, err := r.onCallRotationNames(ctx, namespaceUID, onCallLinkRotationUIDs(links))
+	if err != nil {
+		return nil, err
+	}
+	item, err := toNotificationOnCall(row, links, groupNames, rotationNames)
 	if err != nil {
 		return nil, err
 	}
@@ -209,13 +217,17 @@ func (r *notificationRepo) ListOnCalls(ctx context.Context, namespaceUID string,
 	if err != nil {
 		return nil, 0, err
 	}
+	rotationNames, err := r.onCallRotationNames(ctx, namespaceUID, onCallLinkRotationUIDs(links))
+	if err != nil {
+		return nil, 0, err
+	}
 	linksByOnCall := make(map[string][]*ent.NotificationOnCallGroup, len(rows))
 	for _, link := range links {
 		linksByOnCall[link.OncallUID] = append(linksByOnCall[link.OncallUID], link)
 	}
 	items := make([]bo.NotificationOnCall, 0, len(rows))
 	for _, row := range rows {
-		item, err := toNotificationOnCall(row, linksByOnCall[row.UID], groupNames)
+		item, err := toNotificationOnCall(row, linksByOnCall[row.UID], groupNames, rotationNames)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -249,13 +261,19 @@ func normalizeOnCallInput(in bo.NotificationOnCall) (string, []onCallBinding, er
 			return "", nil, err
 		}
 		seen[group.GroupUID] = struct{}{}
-		bindings = append(bindings, onCallBinding{GroupUID: group.GroupUID, TimeWindows: raw})
+		bindings = append(bindings, onCallBinding{
+			GroupUID: group.GroupUID, TimeWindows: raw,
+			RotationUID: strings.TrimSpace(group.RotationUID),
+		})
 	}
 	return timezone, bindings, nil
 }
 
 // replaceOnCallGroups 软删除旧绑定后写入新绑定。旧行保留审计，重新绑定同一通知组不会撞唯一约束。
 func replaceOnCallGroups(ctx context.Context, tx *ent.Tx, namespaceUID, onCallUID string, bindings []onCallBinding) error {
+	if err := validateOnCallRotations(ctx, tx, namespaceUID, bindings); err != nil {
+		return err
+	}
 	if _, err := tx.NotificationOnCallGroup.Update().Where(
 		notificationoncallgroup.NamespaceUIDEQ(namespaceUID),
 		notificationoncallgroup.OncallUIDEQ(onCallUID),
@@ -270,9 +288,37 @@ func replaceOnCallGroups(ctx context.Context, tx *ent.Tx, namespaceUID, onCallUI
 			SetOncallUID(onCallUID).
 			SetGroupUID(binding.GroupUID).
 			SetTimeWindows(binding.TimeWindows).
+			SetRotationUID(binding.RotationUID).
 			Exec(ctx); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// validateOnCallRotations 校验绑定到 OnCall 的值班轮换都属于当前租户。
+// 轮换停用后仍允许保留绑定：投递时只按停用处理，不追加接收方。
+func validateOnCallRotations(ctx context.Context, tx *ent.Tx, namespaceUID string, bindings []onCallBinding) error {
+	rotationUIDs := make([]string, 0, len(bindings))
+	for _, binding := range bindings {
+		if binding.RotationUID != "" {
+			rotationUIDs = append(rotationUIDs, binding.RotationUID)
+		}
+	}
+	if len(rotationUIDs) == 0 {
+		return nil
+	}
+	rotationUIDs = uniqueStrings(rotationUIDs)
+	n, err := tx.OnCallRotation.Query().Where(
+		oncallrotation.NamespaceUIDEQ(namespaceUID),
+		oncallrotation.UIDIn(rotationUIDs...),
+		oncallrotation.DeletedAtIsNil(),
+	).Count(ctx)
+	if err != nil {
+		return err
+	}
+	if n != len(rotationUIDs) {
+		return merr.Invalid("invalid rotation")
 	}
 	return nil
 }
@@ -304,7 +350,37 @@ func onCallLinkGroupUIDs(links []*ent.NotificationOnCallGroup) []string {
 	return uids
 }
 
-func toNotificationOnCall(row *ent.NotificationOnCall, links []*ent.NotificationOnCallGroup, groupNames map[string]string) (*bo.NotificationOnCall, error) {
+// onCallLinkRotationUIDs 返回绑定里的值班轮换 UID，用于批量补展示名。
+func onCallLinkRotationUIDs(links []*ent.NotificationOnCallGroup) []string {
+	uids := make([]string, 0, len(links))
+	for _, link := range links {
+		if link.RotationUID != "" {
+			uids = append(uids, link.RotationUID)
+		}
+	}
+	return uids
+}
+
+// onCallRotationNames 读取绑定轮换的名称。轮换软删除后名称仍要显示，方便识别历史绑定。
+func (r *notificationRepo) onCallRotationNames(ctx context.Context, namespaceUID string, rotationUIDs []string) (map[string]string, error) {
+	names := map[string]string{}
+	if len(rotationUIDs) == 0 {
+		return names, nil
+	}
+	rows, err := r.client.OnCallRotation.Query().Where(
+		oncallrotation.NamespaceUIDEQ(namespaceUID),
+		oncallrotation.UIDIn(uniqueStrings(rotationUIDs)...),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	for _, row := range rows {
+		names[row.UID] = row.Name
+	}
+	return names, nil
+}
+
+func toNotificationOnCall(row *ent.NotificationOnCall, links []*ent.NotificationOnCallGroup, groupNames, rotationNames map[string]string) (*bo.NotificationOnCall, error) {
 	groups := make([]bo.NotificationOnCallGroup, 0, len(links))
 	for _, link := range links {
 		specs, err := oncall.Unmarshal(link.TimeWindows)
@@ -319,6 +395,7 @@ func toNotificationOnCall(row *ent.NotificationOnCall, links []*ent.Notification
 		}
 		groups = append(groups, bo.NotificationOnCallGroup{
 			GroupUID: link.GroupUID, GroupName: groupNames[link.GroupUID], Windows: windows,
+			RotationUID: link.RotationUID, RotationName: rotationNames[link.RotationUID],
 		})
 	}
 	return &bo.NotificationOnCall{

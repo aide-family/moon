@@ -83,8 +83,9 @@ func onCallGroupInputs(groups []*v1.NotificationOnCallGroupInput) []bo.Notificat
 	out := make([]bo.NotificationOnCallGroup, 0, len(groups))
 	for _, group := range groups {
 		out = append(out, bo.NotificationOnCallGroup{
-			GroupUID: group.GetGroupUid(),
-			Windows:  onCallWindowItems(group.GetWindows()),
+			GroupUID:    group.GetGroupUid(),
+			Windows:     onCallWindowItems(group.GetWindows()),
+			RotationUID: group.GetRotationUid(),
 		})
 	}
 	return out
@@ -124,5 +125,6 @@ func onCallGroupItem(group bo.NotificationOnCallGroup) *v1.NotificationOnCallGro
 	}
 	return &v1.NotificationOnCallGroupItem{
 		GroupUid: group.GroupUID, GroupName: group.GroupName, Windows: windows,
+		RotationUid: group.RotationUID, RotationName: group.RotationName,
 	}
 }

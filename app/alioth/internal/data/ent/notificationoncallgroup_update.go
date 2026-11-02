@@ -110,6 +110,20 @@ func (_u *NotificationOnCallGroupUpdate) SetNillableTimeWindows(v *string) *Noti
 	return _u
 }
 
+// SetRotationUID sets the "rotation_uid" field.
+func (_u *NotificationOnCallGroupUpdate) SetRotationUID(v string) *NotificationOnCallGroupUpdate {
+	_u.mutation.SetRotationUID(v)
+	return _u
+}
+
+// SetNillableRotationUID sets the "rotation_uid" field if the given value is not nil.
+func (_u *NotificationOnCallGroupUpdate) SetNillableRotationUID(v *string) *NotificationOnCallGroupUpdate {
+	if v != nil {
+		_u.SetRotationUID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the NotificationOnCallGroupMutation object of the builder.
 func (_u *NotificationOnCallGroupUpdate) Mutation() *NotificationOnCallGroupMutation {
 	return _u.mutation
@@ -203,6 +217,9 @@ func (_u *NotificationOnCallGroupUpdate) sqlSave(ctx context.Context) (_node int
 	}
 	if value, ok := _u.mutation.TimeWindows(); ok {
 		_spec.SetField(notificationoncallgroup.FieldTimeWindows, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RotationUID(); ok {
+		_spec.SetField(notificationoncallgroup.FieldRotationUID, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -302,6 +319,20 @@ func (_u *NotificationOnCallGroupUpdateOne) SetTimeWindows(v string) *Notificati
 func (_u *NotificationOnCallGroupUpdateOne) SetNillableTimeWindows(v *string) *NotificationOnCallGroupUpdateOne {
 	if v != nil {
 		_u.SetTimeWindows(*v)
+	}
+	return _u
+}
+
+// SetRotationUID sets the "rotation_uid" field.
+func (_u *NotificationOnCallGroupUpdateOne) SetRotationUID(v string) *NotificationOnCallGroupUpdateOne {
+	_u.mutation.SetRotationUID(v)
+	return _u
+}
+
+// SetNillableRotationUID sets the "rotation_uid" field if the given value is not nil.
+func (_u *NotificationOnCallGroupUpdateOne) SetNillableRotationUID(v *string) *NotificationOnCallGroupUpdateOne {
+	if v != nil {
+		_u.SetRotationUID(*v)
 	}
 	return _u
 }
@@ -429,6 +460,9 @@ func (_u *NotificationOnCallGroupUpdateOne) sqlSave(ctx context.Context) (_node 
 	}
 	if value, ok := _u.mutation.TimeWindows(); ok {
 		_spec.SetField(notificationoncallgroup.FieldTimeWindows, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RotationUID(); ok {
+		_spec.SetField(notificationoncallgroup.FieldRotationUID, field.TypeString, value)
 	}
 	_node = &NotificationOnCallGroup{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -129,6 +129,12 @@ type NotificationTask func(*sql.Selector)
 // NotificationTemplate is the predicate function for notificationtemplate builders.
 type NotificationTemplate func(*sql.Selector)
 
+// OnCallRotation is the predicate function for oncallrotation builders.
+type OnCallRotation func(*sql.Selector)
+
+// OnCallRotationMember is the predicate function for oncallrotationmember builders.
+type OnCallRotationMember func(*sql.Selector)
+
 // Permission is the predicate function for permission builders.
 type Permission func(*sql.Selector)
 

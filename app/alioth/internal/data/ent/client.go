@@ -55,6 +55,8 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/oncallrotation"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/oncallrotationmember"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
@@ -159,6 +161,10 @@ type Client struct {
 	NotificationTask *NotificationTaskClient
 	// NotificationTemplate is the client for interacting with the NotificationTemplate builders.
 	NotificationTemplate *NotificationTemplateClient
+	// OnCallRotation is the client for interacting with the OnCallRotation builders.
+	OnCallRotation *OnCallRotationClient
+	// OnCallRotationMember is the client for interacting with the OnCallRotationMember builders.
+	OnCallRotationMember *OnCallRotationMemberClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// ProbeResult is the client for interacting with the ProbeResult builders.
@@ -241,6 +247,8 @@ func (c *Client) init() {
 	c.NotificationSubscriptionGroup = NewNotificationSubscriptionGroupClient(c.config)
 	c.NotificationTask = NewNotificationTaskClient(c.config)
 	c.NotificationTemplate = NewNotificationTemplateClient(c.config)
+	c.OnCallRotation = NewOnCallRotationClient(c.config)
+	c.OnCallRotationMember = NewOnCallRotationMemberClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.ProbeResult = NewProbeResultClient(c.config)
 	c.ProbeSlaDaily = NewProbeSlaDailyClient(c.config)
@@ -389,6 +397,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NotificationSubscriptionGroup: NewNotificationSubscriptionGroupClient(cfg),
 		NotificationTask:              NewNotificationTaskClient(cfg),
 		NotificationTemplate:          NewNotificationTemplateClient(cfg),
+		OnCallRotation:                NewOnCallRotationClient(cfg),
+		OnCallRotationMember:          NewOnCallRotationMemberClient(cfg),
 		Permission:                    NewPermissionClient(cfg),
 		ProbeResult:                   NewProbeResultClient(cfg),
 		ProbeSlaDaily:                 NewProbeSlaDailyClient(cfg),
@@ -464,6 +474,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NotificationSubscriptionGroup: NewNotificationSubscriptionGroupClient(cfg),
 		NotificationTask:              NewNotificationTaskClient(cfg),
 		NotificationTemplate:          NewNotificationTemplateClient(cfg),
+		OnCallRotation:                NewOnCallRotationClient(cfg),
+		OnCallRotationMember:          NewOnCallRotationMemberClient(cfg),
 		Permission:                    NewPermissionClient(cfg),
 		ProbeResult:                   NewProbeResultClient(cfg),
 		ProbeSlaDaily:                 NewProbeSlaDailyClient(cfg),
@@ -519,10 +531,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
 		c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
-		c.Permission, c.ProbeResult, c.ProbeSlaDaily, c.ProbeTarget,
-		c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand, c.SSHCommandAudit,
-		c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
-		c.WorkerInstance,
+		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
+		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
+		c.SSHCommand, c.SSHCommandAudit, c.StatusPage, c.SystemMessage, c.User,
+		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -543,10 +555,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
 		c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
-		c.Permission, c.ProbeResult, c.ProbeSlaDaily, c.ProbeTarget,
-		c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand, c.SSHCommandAudit,
-		c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
-		c.WorkerInstance,
+		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
+		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
+		c.SSHCommand, c.SSHCommandAudit, c.StatusPage, c.SystemMessage, c.User,
+		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -637,6 +649,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NotificationTask.mutate(ctx, m)
 	case *NotificationTemplateMutation:
 		return c.NotificationTemplate.mutate(ctx, m)
+	case *OnCallRotationMutation:
+		return c.OnCallRotation.mutate(ctx, m)
+	case *OnCallRotationMemberMutation:
+		return c.OnCallRotationMember.mutate(ctx, m)
 	case *PermissionMutation:
 		return c.Permission.mutate(ctx, m)
 	case *ProbeResultMutation:
@@ -6125,6 +6141,272 @@ func (c *NotificationTemplateClient) mutate(ctx context.Context, m *Notification
 	}
 }
 
+// OnCallRotationClient is a client for the OnCallRotation schema.
+type OnCallRotationClient struct {
+	config
+}
+
+// NewOnCallRotationClient returns a client for the OnCallRotation from the given config.
+func NewOnCallRotationClient(c config) *OnCallRotationClient {
+	return &OnCallRotationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `oncallrotation.Hooks(f(g(h())))`.
+func (c *OnCallRotationClient) Use(hooks ...Hook) {
+	c.hooks.OnCallRotation = append(c.hooks.OnCallRotation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `oncallrotation.Intercept(f(g(h())))`.
+func (c *OnCallRotationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OnCallRotation = append(c.inters.OnCallRotation, interceptors...)
+}
+
+// Create returns a builder for creating a OnCallRotation entity.
+func (c *OnCallRotationClient) Create() *OnCallRotationCreate {
+	mutation := newOnCallRotationMutation(c.config, OpCreate)
+	return &OnCallRotationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OnCallRotation entities.
+func (c *OnCallRotationClient) CreateBulk(builders ...*OnCallRotationCreate) *OnCallRotationCreateBulk {
+	return &OnCallRotationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OnCallRotationClient) MapCreateBulk(slice any, setFunc func(*OnCallRotationCreate, int)) *OnCallRotationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OnCallRotationCreateBulk{err: fmt.Errorf("calling to OnCallRotationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OnCallRotationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OnCallRotationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OnCallRotation.
+func (c *OnCallRotationClient) Update() *OnCallRotationUpdate {
+	mutation := newOnCallRotationMutation(c.config, OpUpdate)
+	return &OnCallRotationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OnCallRotationClient) UpdateOne(_m *OnCallRotation) *OnCallRotationUpdateOne {
+	mutation := newOnCallRotationMutation(c.config, OpUpdateOne, withOnCallRotation(_m))
+	return &OnCallRotationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OnCallRotationClient) UpdateOneID(id int) *OnCallRotationUpdateOne {
+	mutation := newOnCallRotationMutation(c.config, OpUpdateOne, withOnCallRotationID(id))
+	return &OnCallRotationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OnCallRotation.
+func (c *OnCallRotationClient) Delete() *OnCallRotationDelete {
+	mutation := newOnCallRotationMutation(c.config, OpDelete)
+	return &OnCallRotationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OnCallRotationClient) DeleteOne(_m *OnCallRotation) *OnCallRotationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OnCallRotationClient) DeleteOneID(id int) *OnCallRotationDeleteOne {
+	builder := c.Delete().Where(oncallrotation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OnCallRotationDeleteOne{builder}
+}
+
+// Query returns a query builder for OnCallRotation.
+func (c *OnCallRotationClient) Query() *OnCallRotationQuery {
+	return &OnCallRotationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOnCallRotation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OnCallRotation entity by its id.
+func (c *OnCallRotationClient) Get(ctx context.Context, id int) (*OnCallRotation, error) {
+	return c.Query().Where(oncallrotation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OnCallRotationClient) GetX(ctx context.Context, id int) *OnCallRotation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *OnCallRotationClient) Hooks() []Hook {
+	return c.hooks.OnCallRotation
+}
+
+// Interceptors returns the client interceptors.
+func (c *OnCallRotationClient) Interceptors() []Interceptor {
+	return c.inters.OnCallRotation
+}
+
+func (c *OnCallRotationClient) mutate(ctx context.Context, m *OnCallRotationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OnCallRotationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OnCallRotationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OnCallRotationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OnCallRotationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OnCallRotation mutation op: %q", m.Op())
+	}
+}
+
+// OnCallRotationMemberClient is a client for the OnCallRotationMember schema.
+type OnCallRotationMemberClient struct {
+	config
+}
+
+// NewOnCallRotationMemberClient returns a client for the OnCallRotationMember from the given config.
+func NewOnCallRotationMemberClient(c config) *OnCallRotationMemberClient {
+	return &OnCallRotationMemberClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `oncallrotationmember.Hooks(f(g(h())))`.
+func (c *OnCallRotationMemberClient) Use(hooks ...Hook) {
+	c.hooks.OnCallRotationMember = append(c.hooks.OnCallRotationMember, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `oncallrotationmember.Intercept(f(g(h())))`.
+func (c *OnCallRotationMemberClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OnCallRotationMember = append(c.inters.OnCallRotationMember, interceptors...)
+}
+
+// Create returns a builder for creating a OnCallRotationMember entity.
+func (c *OnCallRotationMemberClient) Create() *OnCallRotationMemberCreate {
+	mutation := newOnCallRotationMemberMutation(c.config, OpCreate)
+	return &OnCallRotationMemberCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OnCallRotationMember entities.
+func (c *OnCallRotationMemberClient) CreateBulk(builders ...*OnCallRotationMemberCreate) *OnCallRotationMemberCreateBulk {
+	return &OnCallRotationMemberCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OnCallRotationMemberClient) MapCreateBulk(slice any, setFunc func(*OnCallRotationMemberCreate, int)) *OnCallRotationMemberCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OnCallRotationMemberCreateBulk{err: fmt.Errorf("calling to OnCallRotationMemberClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OnCallRotationMemberCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OnCallRotationMemberCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OnCallRotationMember.
+func (c *OnCallRotationMemberClient) Update() *OnCallRotationMemberUpdate {
+	mutation := newOnCallRotationMemberMutation(c.config, OpUpdate)
+	return &OnCallRotationMemberUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OnCallRotationMemberClient) UpdateOne(_m *OnCallRotationMember) *OnCallRotationMemberUpdateOne {
+	mutation := newOnCallRotationMemberMutation(c.config, OpUpdateOne, withOnCallRotationMember(_m))
+	return &OnCallRotationMemberUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OnCallRotationMemberClient) UpdateOneID(id int) *OnCallRotationMemberUpdateOne {
+	mutation := newOnCallRotationMemberMutation(c.config, OpUpdateOne, withOnCallRotationMemberID(id))
+	return &OnCallRotationMemberUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OnCallRotationMember.
+func (c *OnCallRotationMemberClient) Delete() *OnCallRotationMemberDelete {
+	mutation := newOnCallRotationMemberMutation(c.config, OpDelete)
+	return &OnCallRotationMemberDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OnCallRotationMemberClient) DeleteOne(_m *OnCallRotationMember) *OnCallRotationMemberDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OnCallRotationMemberClient) DeleteOneID(id int) *OnCallRotationMemberDeleteOne {
+	builder := c.Delete().Where(oncallrotationmember.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OnCallRotationMemberDeleteOne{builder}
+}
+
+// Query returns a query builder for OnCallRotationMember.
+func (c *OnCallRotationMemberClient) Query() *OnCallRotationMemberQuery {
+	return &OnCallRotationMemberQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOnCallRotationMember},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OnCallRotationMember entity by its id.
+func (c *OnCallRotationMemberClient) Get(ctx context.Context, id int) (*OnCallRotationMember, error) {
+	return c.Query().Where(oncallrotationmember.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OnCallRotationMemberClient) GetX(ctx context.Context, id int) *OnCallRotationMember {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *OnCallRotationMemberClient) Hooks() []Hook {
+	return c.hooks.OnCallRotationMember
+}
+
+// Interceptors returns the client interceptors.
+func (c *OnCallRotationMemberClient) Interceptors() []Interceptor {
+	return c.inters.OnCallRotationMember
+}
+
+func (c *OnCallRotationMemberClient) mutate(ctx context.Context, m *OnCallRotationMemberMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OnCallRotationMemberCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OnCallRotationMemberUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OnCallRotationMemberUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OnCallRotationMemberDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OnCallRotationMember mutation op: %q", m.Op())
+	}
+}
+
 // PermissionClient is a client for the Permission schema.
 type PermissionClient struct {
 	config
@@ -8133,9 +8415,10 @@ type (
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Role,
-		RolePermission, SSHCommand, SSHCommandAudit, StatusPage, SystemMessage, User,
-		UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
+		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
+		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
+		SSHCommandAudit, StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEscalationPolicy, AlertEscalationStep,
@@ -8148,8 +8431,9 @@ type (
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Role,
-		RolePermission, SSHCommand, SSHCommandAudit, StatusPage, SystemMessage, User,
-		UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
+		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
+		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
+		SSHCommandAudit, StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Interceptor
 	}
 )

@@ -51,6 +51,7 @@ const (
 	CapabilityNotifyGroup                  = "notify_group"
 	CapabilityNotifySubscription           = "notify_subscription"
 	CapabilityNotifyOnCall                 = "notify_oncall"
+	CapabilityNotifyRotation               = "notify_rotation"
 	CapabilityMessageLog                   = "message_log"
 	CapabilityMember                       = "member"
 	CapabilityRole                         = "role"
@@ -253,6 +254,11 @@ var capabilitySpecs = []Capability{
 		Code: CapabilityNotifyOnCall, Module: FeatureNotification, Name: "OnCall 值班",
 		Description: "按时段把告警路由给不同通知组。",
 		Permissions: []string{NotificationOncallRead, NotificationOncallWrite, NotificationOncallDelete},
+	},
+	{
+		Code: CapabilityNotifyRotation, Module: FeatureNotification, Name: "值班轮换",
+		Description: "按周期、时区与成员顺序计算当前值班人，绑定到 OnCall 通知组后追加接收方。",
+		Permissions: []string{NotificationRotationRead, NotificationRotationWrite, NotificationRotationDelete},
 	},
 	{
 		Code: CapabilityMessageLog, Module: FeatureNotification, Name: "消息日志",

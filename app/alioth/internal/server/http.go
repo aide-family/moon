@@ -48,6 +48,7 @@ func NewHTTPServer(
 	groups *service.NotificationGroupService,
 	subscriptions *service.NotificationSubscriptionService,
 	onCalls *service.NotificationOnCallService,
+	rotations *service.OnCallRotationService,
 	logs *service.MessageLogService,
 	workers *service.WorkerService,
 	maintenance *service.MaintenanceService,
@@ -123,6 +124,7 @@ func NewHTTPServer(
 	v1.RegisterNotificationGroupServiceHTTPServer(srv, groups)
 	v1.RegisterNotificationSubscriptionServiceHTTPServer(srv, subscriptions)
 	v1.RegisterNotificationOnCallServiceHTTPServer(srv, onCalls)
+	v1.RegisterOnCallRotationServiceHTTPServer(srv, rotations)
 	v1.RegisterMessageLogServiceHTTPServer(srv, logs)
 	v1.RegisterWorkerServiceHTTPServer(srv, workers)
 	v1.RegisterMaintenanceServiceHTTPServer(srv, maintenance)

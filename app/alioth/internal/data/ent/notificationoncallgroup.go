@@ -32,7 +32,9 @@ type NotificationOnCallGroup struct {
 	// GroupUID holds the value of the "group_uid" field.
 	GroupUID string `json:"group_uid,omitempty"`
 	// TimeWindows holds the value of the "time_windows" field.
-	TimeWindows  string `json:"time_windows,omitempty"`
+	TimeWindows string `json:"time_windows,omitempty"`
+	// RotationUID holds the value of the "rotation_uid" field.
+	RotationUID  string `json:"rotation_uid,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -43,7 +45,7 @@ func (*NotificationOnCallGroup) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case notificationoncallgroup.FieldID:
 			values[i] = new(sql.NullInt64)
-		case notificationoncallgroup.FieldUID, notificationoncallgroup.FieldNamespaceUID, notificationoncallgroup.FieldOncallUID, notificationoncallgroup.FieldGroupUID, notificationoncallgroup.FieldTimeWindows:
+		case notificationoncallgroup.FieldUID, notificationoncallgroup.FieldNamespaceUID, notificationoncallgroup.FieldOncallUID, notificationoncallgroup.FieldGroupUID, notificationoncallgroup.FieldTimeWindows, notificationoncallgroup.FieldRotationUID:
 			values[i] = new(sql.NullString)
 		case notificationoncallgroup.FieldCreatedAt, notificationoncallgroup.FieldUpdatedAt, notificationoncallgroup.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -117,6 +119,12 @@ func (_m *NotificationOnCallGroup) assignValues(columns []string, values []any) 
 			} else if value.Valid {
 				_m.TimeWindows = value.String
 			}
+		case notificationoncallgroup.FieldRotationUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field rotation_uid", values[i])
+			} else if value.Valid {
+				_m.RotationUID = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -178,6 +186,9 @@ func (_m *NotificationOnCallGroup) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("time_windows=")
 	builder.WriteString(_m.TimeWindows)
+	builder.WriteString(", ")
+	builder.WriteString("rotation_uid=")
+	builder.WriteString(_m.RotationUID)
 	builder.WriteByte(')')
 	return builder.String()
 }

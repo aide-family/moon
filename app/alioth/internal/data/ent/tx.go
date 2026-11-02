@@ -94,6 +94,10 @@ type Tx struct {
 	NotificationTask *NotificationTaskClient
 	// NotificationTemplate is the client for interacting with the NotificationTemplate builders.
 	NotificationTemplate *NotificationTemplateClient
+	// OnCallRotation is the client for interacting with the OnCallRotation builders.
+	OnCallRotation *OnCallRotationClient
+	// OnCallRotationMember is the client for interacting with the OnCallRotationMember builders.
+	OnCallRotationMember *OnCallRotationMemberClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// ProbeResult is the client for interacting with the ProbeResult builders.
@@ -296,6 +300,8 @@ func (tx *Tx) init() {
 	tx.NotificationSubscriptionGroup = NewNotificationSubscriptionGroupClient(tx.config)
 	tx.NotificationTask = NewNotificationTaskClient(tx.config)
 	tx.NotificationTemplate = NewNotificationTemplateClient(tx.config)
+	tx.OnCallRotation = NewOnCallRotationClient(tx.config)
+	tx.OnCallRotationMember = NewOnCallRotationMemberClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.ProbeResult = NewProbeResultClient(tx.config)
 	tx.ProbeSlaDaily = NewProbeSlaDailyClient(tx.config)

@@ -84,6 +84,11 @@ const (
 	NotificationOncallWrite  = "notification_oncall:write"
 	NotificationOncallDelete = "notification_oncall:delete"
 
+	// 值班轮换是通知模块下的独立菜单：按周期与时区计算当前当班成员。
+	NotificationRotationRead   = "notification_rotation:read"
+	NotificationRotationWrite  = "notification_rotation:write"
+	NotificationRotationDelete = "notification_rotation:delete"
+
 	MessageLogRead   = "message_log:read"
 	MessageLogWrite  = "message_log:write"
 	MessageLogDelete = "message_log:delete"

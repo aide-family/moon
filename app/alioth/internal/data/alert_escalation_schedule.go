@@ -365,7 +365,8 @@ func (r *alertEscalationRepo) dispatchEscalationStep(ctx context.Context, tx *en
 			}
 			return created, existing, err
 		}
-		targets, err := resolveGroupTargets(ctx, tx, group)
+		// 升级步骤只直接指定通知组，不经过 OnCall 绑定，因此没有值班轮换。
+		targets, err := resolveGroupTargets(ctx, tx, group, "")
 		if err != nil {
 			return created, existing, err
 		}

@@ -129,6 +129,10 @@ func NewAlertEscalationRepo(deps *Dependencies, logger *slog.Logger) repository.
 	return &alertEscalationRepo{newBase(deps, logger)}
 }
 
+func NewOnCallRotationRepo(deps *Dependencies, logger *slog.Logger) repository.OnCallRotationRepo {
+	return &onCallRotationRepo{newBase(deps, logger)}
+}
+
 func NewBoardRepo(deps *Dependencies, logger *slog.Logger) repository.BoardRepo {
 	return &boardRepo{newBase(deps, logger)}
 }

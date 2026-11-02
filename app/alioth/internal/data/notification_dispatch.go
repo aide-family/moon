@@ -84,6 +84,8 @@ func notificationReceiver(channel *ent.NotificationChannel) string {
 type groupRoute struct {
 	GroupUID        string
 	SubscriptionUID string
+	// RotationUID 来自命中的 OnCall 绑定；订阅路由与数据源可用性路由为空。
+	RotationUID string
 }
 
 // matchedGroupSource 是命中事件的订阅或 OnCall，以及它绑定且在本次分发中生效的通知组。
@@ -91,6 +93,8 @@ type matchedGroupSource struct {
 	UID       string
 	Interval  int
 	GroupUIDs []string
+	// Rotations 是本次命中的 OnCall 绑定里 group_uid 到值班轮换的映射。
+	Rotations map[string]string
 }
 
 // dispatchMatch 是合并后的通知组路由和本次事件适用的最长重复通知间隔。
@@ -174,7 +178,7 @@ func collectNotificationRoutes(ctx context.Context, tx *ent.Tx, event notifyEven
 			if _, ok := merged[groupUID]; ok {
 				continue
 			}
-			merged[groupUID] = groupRoute{GroupUID: groupUID}
+			merged[groupUID] = groupRoute{GroupUID: groupUID, RotationUID: onCall.Rotations[groupUID]}
 			order = append(order, groupUID)
 		}
 	}
@@ -345,6 +349,12 @@ func matchedOnCalls(ctx context.Context, tx *ent.Tx, event notifyEvent) ([]match
 			}
 			seen[link.GroupUID] = struct{}{}
 			matched[i].GroupUIDs = append(matched[i].GroupUIDs, link.GroupUID)
+			if rotationUID := strings.TrimSpace(link.RotationUID); rotationUID != "" {
+				if matched[i].Rotations == nil {
+					matched[i].Rotations = map[string]string{}
+				}
+				matched[i].Rotations[link.GroupUID] = rotationUID
+			}
 		}
 	}
 	return matched, nil
@@ -559,7 +569,7 @@ func createGroupEventTasks(ctx context.Context, tx *ent.Tx, event notifyEvent, r
 			// 停用或已删除的通知组不投递。
 			continue
 		}
-		targets, err := resolveGroupTargets(ctx, tx, group)
+		targets, err := resolveGroupTargets(ctx, tx, group, route.RotationUID)
 		if err != nil {
 			return created, err
 		}
@@ -686,7 +696,7 @@ func containsString(values []string, value string) bool {
 }
 
 // resolveGroupTargets 把一个通知组展开成实际投递目标：主渠道一次，每个选中的 Webhook 各一次。
-func resolveGroupTargets(ctx context.Context, tx *ent.Tx, group *ent.NotificationGroup) ([]notifyTarget, error) {
+func resolveGroupTargets(ctx context.Context, tx *ent.Tx, group *ent.NotificationGroup, rotationUID string) ([]notifyTarget, error) {
 	channelUIDs, templateUIDs := groupChannelTargets(group)
 	targets := make([]notifyTarget, 0, len(channelUIDs))
 	seen := map[string]struct{}{}
@@ -734,7 +744,7 @@ func resolveGroupTargets(ctx context.Context, tx *ent.Tx, group *ent.Notificatio
 		receivers := ""
 		switch channel.Type {
 		case notificationchannel.TypeSMTP:
-			receivers, err = resolveGroupReceivers(ctx, tx, group, channel.Type)
+			receivers, err = resolveGroupReceivers(ctx, tx, group, channel.Type, rotationUID)
 			if err != nil {
 				return nil, err
 			}
@@ -742,7 +752,7 @@ func resolveGroupTargets(ctx context.Context, tx *ent.Tx, group *ent.Notificatio
 				continue
 			}
 		case notificationchannel.TypeSMS:
-			receivers, err = resolveGroupReceivers(ctx, tx, group, channel.Type)
+			receivers, err = resolveGroupReceivers(ctx, tx, group, channel.Type, rotationUID)
 			if err != nil {
 				return nil, err
 			}
@@ -798,7 +808,7 @@ func templateCoversChannel(channel *ent.NotificationChannel, template *ent.Notif
 
 // resolveGroupReceivers 按渠道类型合并手填接收方和成员资料。
 // 邮件取成员邮箱，短信取成员手机号；同一个人只保留一次。
-func resolveGroupReceivers(ctx context.Context, tx *ent.Tx, group *ent.NotificationGroup, kind notificationchannel.Type) (string, error) {
+func resolveGroupReceivers(ctx context.Context, tx *ent.Tx, group *ent.NotificationGroup, kind notificationchannel.Type, rotationUID string) (string, error) {
 	base := group.EmailReceivers
 	memberUIDs := group.EmailMemberUids
 	field := "email"
@@ -849,6 +859,15 @@ func resolveGroupReceivers(ctx context.Context, tx *ent.Tx, group *ent.Notificat
 				}
 			}
 		}
+	}
+	// OnCall 绑定值班轮换时，把当前当班成员的邮箱或手机号并入接收方；
+	// 轮换停用、无成员或成员没有联系方式时保持手填接收方不变。
+	if rotationUID != "" {
+		rotationValues, err := rotationReceiverContacts(ctx, tx, group.NamespaceUID, rotationUID, field)
+		if err != nil {
+			return "", err
+		}
+		values = append(values, rotationValues...)
 	}
 	seen := map[string]struct{}{}
 	out := make([]string, 0, len(values))

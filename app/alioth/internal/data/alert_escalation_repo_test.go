@@ -150,6 +150,12 @@ func TestAlertEscalationDispatch(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		// 调度只升级策略创建之后开始的事件；这里把创建时间前移，模拟早已存在的策略。
+		if _, err := store.db.ExecContext(ctx,
+			`UPDATE alert_escalation_policies SET created_at = $1 WHERE uid = $2`,
+			now.Add(-24*time.Hour), policy.UID); err != nil {
+			t.Fatal(err)
+		}
 		return policy
 	}
 

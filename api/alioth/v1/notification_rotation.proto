@@ -1,0 +1,233 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 值班轮换：按周期与时区在成员之间轮转，绑定到 OnCall 的通知组后，
+// 投递时把当前当班成员并入接收方。轮换只决定接收人，不改变 OnCall 的时段匹配。
+service OnCallRotationService {
+  // 创建值班轮换，成员随轮换一起保存。
+  rpc CreateOnCallRotation(CreateOnCallRotationRequest) returns (CreateOnCallRotationResponse) {
+    option (google.api.http) = {
+      post: "/v1/oncall-rotations"
+      body: "*"
+    };
+  }
+  // 更新值班轮换。成员列表整体替换，按数组顺序重写 position。
+  rpc UpdateOnCallRotation(UpdateOnCallRotationRequest) returns (UpdateOnCallRotationResponse) {
+    option (google.api.http) = {
+      put: "/v1/oncall-rotations/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用值班轮换。停用后绑定它的通知组只用固定接收方。
+  rpc UpdateOnCallRotationStatus(UpdateOnCallRotationStatusRequest) returns (UpdateOnCallRotationStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/oncall-rotations/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除值班轮换。
+  rpc DeleteOnCallRotation(DeleteOnCallRotationRequest) returns (DeleteOnCallRotationResponse) {
+    option (google.api.http) = {delete: "/v1/oncall-rotations/{uid}"};
+  }
+  // 获取值班轮换详情，包含成员顺序。
+  rpc GetOnCallRotation(GetOnCallRotationRequest) returns (GetOnCallRotationResponse) {
+    option (google.api.http) = {get: "/v1/oncall-rotations/{uid}"};
+  }
+  // 分页列出值班轮换。
+  rpc ListOnCallRotations(ListOnCallRotationsRequest) returns (ListOnCallRotationsResponse) {
+    option (google.api.http) = {get: "/v1/oncall-rotations"};
+  }
+  // 获取未来班次表：包含当前班次并标记当前值班。
+  rpc GetOnCallRotationSchedule(GetOnCallRotationScheduleRequest) returns (GetOnCallRotationScheduleResponse) {
+    option (google.api.http) = {get: "/v1/oncall-rotations/{uid}/schedule"};
+  }
+}
+
+// 轮换成员。
+message OnCallRotationMemberItem {
+  // 成员标识。
+  string member_uid = 1 [json_name = "memberUid"];
+  // 成员名称，只读。
+  string member_name = 2 [json_name = "memberName"];
+  // 成员邮箱，只读；没有邮箱时为空。
+  string email = 3;
+  // 成员手机号，只读；没有手机号时为空。
+  string phone = 4;
+  // 轮转顺序，从 0 开始。
+  int32 position = 5;
+}
+
+// 保存轮换时提交的成员。服务端按数组顺序重写 position。
+message OnCallRotationMemberInput {
+  // 成员标识，必须是当前租户的 JOINED 成员。
+  string member_uid = 1 [json_name = "memberUid", (buf.validate.field).string.min_len = 1];
+}
+
+// 值班轮换详情。
+message OnCallRotationItem {
+  // 标识。
+  string uid = 1;
+  // 名称，租户内唯一。
+  string name = 2;
+  // 备注。
+  string remark = 3;
+  // IANA 时区名。
+  string timezone = 4;
+  // 轮换周期，取值为 DAILY 或 WEEKLY。
+  string period = 5;
+  // 轮换起点，RFC3339。第一班从该时刻开始。
+  string starts_at = 6 [json_name = "startsAt"];
+  // 本地时区的交班时刻，0–23。
+  int32 handoff_hour = 7 [json_name = "handoffHour"];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 8;
+  // 创建时间，RFC3339。
+  string created_at = 9 [json_name = "createdAt"];
+  // 更新时间，RFC3339。
+  string updated_at = 10 [json_name = "updatedAt"];
+  // 参与轮转的成员，按 position 升序。
+  repeated OnCallRotationMemberItem members = 11;
+}
+
+// 创建值班轮换请求。
+message CreateOnCallRotationRequest {
+  // 名称，租户内唯一。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 备注。
+  string remark = 2 [(buf.validate.field).string = {max_len: 1024}];
+  // IANA 时区名，例如 Asia/Shanghai。
+  string timezone = 3 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 轮换周期，取值为 DAILY 或 WEEKLY。
+  string period = 4 [(buf.validate.field).string = {in: ["DAILY", "WEEKLY"]}];
+  // 轮换起点，RFC3339。
+  string starts_at = 5 [json_name = "startsAt", (buf.validate.field).string.min_len = 1];
+  // 本地时区的交班时刻，0–23。
+  int32 handoff_hour = 6 [json_name = "handoffHour", (buf.validate.field).int32 = {gte: 0, lte: 23}];
+  // 参与轮转的成员，至少一个。
+  repeated OnCallRotationMemberInput members = 7 [(buf.validate.field).repeated = {min_items: 1, max_items: 50}];
+}
+
+// 创建值班轮换响应。
+message CreateOnCallRotationResponse {
+  // 创建后的值班轮换。
+  OnCallRotationItem rotation = 1;
+}
+
+// 更新值班轮换请求。
+message UpdateOnCallRotationRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称，租户内唯一。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 备注。
+  string remark = 3 [(buf.validate.field).string = {max_len: 1024}];
+  // IANA 时区名。
+  string timezone = 4 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 轮换周期，取值为 DAILY 或 WEEKLY。
+  string period = 5 [(buf.validate.field).string = {in: ["DAILY", "WEEKLY"]}];
+  // 轮换起点，RFC3339。
+  string starts_at = 6 [json_name = "startsAt", (buf.validate.field).string.min_len = 1];
+  // 本地时区的交班时刻，0–23。
+  int32 handoff_hour = 7 [json_name = "handoffHour", (buf.validate.field).int32 = {gte: 0, lte: 23}];
+  // 参与轮转的成员，整体替换。
+  repeated OnCallRotationMemberInput members = 8 [(buf.validate.field).repeated = {min_items: 1, max_items: 50}];
+}
+
+// 更新值班轮换响应。
+message UpdateOnCallRotationResponse {
+  // 更新后的值班轮换。
+  OnCallRotationItem rotation = 1;
+}
+
+// 启用或停用值班轮换请求。
+message UpdateOnCallRotationStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 启用或停用值班轮换响应。
+message UpdateOnCallRotationStatusResponse {
+  // 更新后的值班轮换。
+  OnCallRotationItem rotation = 1;
+}
+
+// 删除值班轮换请求。
+message DeleteOnCallRotationRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除值班轮换响应。
+message DeleteOnCallRotationResponse {}
+
+// 获取值班轮换请求。
+message GetOnCallRotationRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取值班轮换响应。
+message GetOnCallRotationResponse {
+  // 值班轮换。
+  OnCallRotationItem rotation = 1;
+}
+
+// 列出值班轮换请求。
+message ListOnCallRotationsRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  // 每页数量。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 1, lte: 100}];
+  // 名称模糊搜索，可空。
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+}
+
+// 列出值班轮换响应。
+message ListOnCallRotationsResponse {
+  // 当前页的值班轮换。
+  repeated OnCallRotationItem items = 1;
+  // 总数量。
+  int32 total = 2;
+  // 当前页码。
+  int32 page = 3;
+  // 每页数量。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 排班表请求。
+message GetOnCallRotationScheduleRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 展示未来多少天，1–30，缺省按 14 天处理。
+  int32 days = 2 [(buf.validate.field).int32 = {gte: 0, lte: 30}];
+}
+
+// 一个班次。
+message OnCallRotationShiftItem {
+  // 班次开始时间，RFC3339。
+  string start_at = 1 [json_name = "startAt"];
+  // 班次结束时间，RFC3339。
+  string end_at = 2 [json_name = "endAt"];
+  // 当班成员标识。
+  string member_uid = 3 [json_name = "memberUid"];
+  // 当班成员名称，只读。
+  string member_name = 4 [json_name = "memberName"];
+  // 当班成员邮箱，只读；没有邮箱时为空。
+  string email = 5;
+  // 是否当前值班班次。
+  bool current = 6;
+}
+
+// 排班表响应。
+message GetOnCallRotationScheduleResponse {
+  // 班次，按开始时间升序，包含当前班次。
+  repeated OnCallRotationShiftItem shifts = 1;
+}

@@ -52,6 +52,8 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/oncallrotation"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/oncallrotationmember"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
@@ -120,6 +122,8 @@ const (
 	TypeNotificationSubscriptionGroup = "NotificationSubscriptionGroup"
 	TypeNotificationTask              = "NotificationTask"
 	TypeNotificationTemplate          = "NotificationTemplate"
+	TypeOnCallRotation                = "OnCallRotation"
+	TypeOnCallRotationMember          = "OnCallRotationMember"
 	TypePermission                    = "Permission"
 	TypeProbeResult                   = "ProbeResult"
 	TypeProbeSlaDaily                 = "ProbeSlaDaily"
@@ -32713,6 +32717,7 @@ type NotificationOnCallGroupMutation struct {
 	oncall_uid    *string
 	group_uid     *string
 	time_windows  *string
+	rotation_uid  *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*NotificationOnCallGroup, error)
@@ -33118,6 +33123,42 @@ func (m *NotificationOnCallGroupMutation) ResetTimeWindows() {
 	m.time_windows = nil
 }
 
+// SetRotationUID sets the "rotation_uid" field.
+func (m *NotificationOnCallGroupMutation) SetRotationUID(s string) {
+	m.rotation_uid = &s
+}
+
+// RotationUID returns the value of the "rotation_uid" field in the mutation.
+func (m *NotificationOnCallGroupMutation) RotationUID() (r string, exists bool) {
+	v := m.rotation_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRotationUID returns the old "rotation_uid" field's value of the NotificationOnCallGroup entity.
+// If the NotificationOnCallGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationOnCallGroupMutation) OldRotationUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRotationUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRotationUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRotationUID: %w", err)
+	}
+	return oldValue.RotationUID, nil
+}
+
+// ResetRotationUID resets all changes to the "rotation_uid" field.
+func (m *NotificationOnCallGroupMutation) ResetRotationUID() {
+	m.rotation_uid = nil
+}
+
 // Where appends a list predicates to the NotificationOnCallGroupMutation builder.
 func (m *NotificationOnCallGroupMutation) Where(ps ...predicate.NotificationOnCallGroup) {
 	m.predicates = append(m.predicates, ps...)
@@ -33152,7 +33193,7 @@ func (m *NotificationOnCallGroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationOnCallGroupMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, notificationoncallgroup.FieldCreatedAt)
 	}
@@ -33176,6 +33217,9 @@ func (m *NotificationOnCallGroupMutation) Fields() []string {
 	}
 	if m.time_windows != nil {
 		fields = append(fields, notificationoncallgroup.FieldTimeWindows)
+	}
+	if m.rotation_uid != nil {
+		fields = append(fields, notificationoncallgroup.FieldRotationUID)
 	}
 	return fields
 }
@@ -33201,6 +33245,8 @@ func (m *NotificationOnCallGroupMutation) Field(name string) (ent.Value, bool) {
 		return m.GroupUID()
 	case notificationoncallgroup.FieldTimeWindows:
 		return m.TimeWindows()
+	case notificationoncallgroup.FieldRotationUID:
+		return m.RotationUID()
 	}
 	return nil, false
 }
@@ -33226,6 +33272,8 @@ func (m *NotificationOnCallGroupMutation) OldField(ctx context.Context, name str
 		return m.OldGroupUID(ctx)
 	case notificationoncallgroup.FieldTimeWindows:
 		return m.OldTimeWindows(ctx)
+	case notificationoncallgroup.FieldRotationUID:
+		return m.OldRotationUID(ctx)
 	}
 	return nil, fmt.Errorf("unknown NotificationOnCallGroup field %s", name)
 }
@@ -33290,6 +33338,13 @@ func (m *NotificationOnCallGroupMutation) SetField(name string, value ent.Value)
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTimeWindows(v)
+		return nil
+	case notificationoncallgroup.FieldRotationUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRotationUID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown NotificationOnCallGroup field %s", name)
@@ -33372,6 +33427,9 @@ func (m *NotificationOnCallGroupMutation) ResetField(name string) error {
 		return nil
 	case notificationoncallgroup.FieldTimeWindows:
 		m.ResetTimeWindows()
+		return nil
+	case notificationoncallgroup.FieldRotationUID:
+		m.ResetRotationUID()
 		return nil
 	}
 	return fmt.Errorf("unknown NotificationOnCallGroup field %s", name)
@@ -38537,6 +38595,1670 @@ func (m *NotificationTemplateMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *NotificationTemplateMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown NotificationTemplate edge %s", name)
+}
+
+// OnCallRotationMutation represents an operation that mutates the OnCallRotation nodes in the graph.
+type OnCallRotationMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	created_at      *time.Time
+	updated_at      *time.Time
+	deleted_at      *time.Time
+	uid             *string
+	namespace_uid   *string
+	name            *string
+	remark          *string
+	timezone        *string
+	period          *oncallrotation.Period
+	starts_at       *time.Time
+	handoff_hour    *int
+	addhandoff_hour *int
+	status          *oncallrotation.Status
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*OnCallRotation, error)
+	predicates      []predicate.OnCallRotation
+}
+
+var _ ent.Mutation = (*OnCallRotationMutation)(nil)
+
+// oncallrotationOption allows management of the mutation configuration using functional options.
+type oncallrotationOption func(*OnCallRotationMutation)
+
+// newOnCallRotationMutation creates new mutation for the OnCallRotation entity.
+func newOnCallRotationMutation(c config, op Op, opts ...oncallrotationOption) *OnCallRotationMutation {
+	m := &OnCallRotationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOnCallRotation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOnCallRotationID sets the ID field of the mutation.
+func withOnCallRotationID(id int) oncallrotationOption {
+	return func(m *OnCallRotationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OnCallRotation
+		)
+		m.oldValue = func(ctx context.Context) (*OnCallRotation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OnCallRotation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOnCallRotation sets the old OnCallRotation of the mutation.
+func withOnCallRotation(node *OnCallRotation) oncallrotationOption {
+	return func(m *OnCallRotationMutation) {
+		m.oldValue = func(context.Context) (*OnCallRotation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OnCallRotationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OnCallRotationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OnCallRotationMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OnCallRotationMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OnCallRotation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OnCallRotationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OnCallRotationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OnCallRotationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OnCallRotationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OnCallRotationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OnCallRotationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *OnCallRotationMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *OnCallRotationMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *OnCallRotationMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[oncallrotation.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *OnCallRotationMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[oncallrotation.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *OnCallRotationMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, oncallrotation.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *OnCallRotationMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *OnCallRotationMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *OnCallRotationMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *OnCallRotationMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *OnCallRotationMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *OnCallRotationMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetName sets the "name" field.
+func (m *OnCallRotationMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *OnCallRotationMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *OnCallRotationMutation) ResetName() {
+	m.name = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *OnCallRotationMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *OnCallRotationMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *OnCallRotationMutation) ResetRemark() {
+	m.remark = nil
+}
+
+// SetTimezone sets the "timezone" field.
+func (m *OnCallRotationMutation) SetTimezone(s string) {
+	m.timezone = &s
+}
+
+// Timezone returns the value of the "timezone" field in the mutation.
+func (m *OnCallRotationMutation) Timezone() (r string, exists bool) {
+	v := m.timezone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimezone returns the old "timezone" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldTimezone(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimezone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimezone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimezone: %w", err)
+	}
+	return oldValue.Timezone, nil
+}
+
+// ResetTimezone resets all changes to the "timezone" field.
+func (m *OnCallRotationMutation) ResetTimezone() {
+	m.timezone = nil
+}
+
+// SetPeriod sets the "period" field.
+func (m *OnCallRotationMutation) SetPeriod(o oncallrotation.Period) {
+	m.period = &o
+}
+
+// Period returns the value of the "period" field in the mutation.
+func (m *OnCallRotationMutation) Period() (r oncallrotation.Period, exists bool) {
+	v := m.period
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPeriod returns the old "period" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldPeriod(ctx context.Context) (v oncallrotation.Period, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPeriod is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPeriod requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPeriod: %w", err)
+	}
+	return oldValue.Period, nil
+}
+
+// ResetPeriod resets all changes to the "period" field.
+func (m *OnCallRotationMutation) ResetPeriod() {
+	m.period = nil
+}
+
+// SetStartsAt sets the "starts_at" field.
+func (m *OnCallRotationMutation) SetStartsAt(t time.Time) {
+	m.starts_at = &t
+}
+
+// StartsAt returns the value of the "starts_at" field in the mutation.
+func (m *OnCallRotationMutation) StartsAt() (r time.Time, exists bool) {
+	v := m.starts_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartsAt returns the old "starts_at" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldStartsAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartsAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartsAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartsAt: %w", err)
+	}
+	return oldValue.StartsAt, nil
+}
+
+// ResetStartsAt resets all changes to the "starts_at" field.
+func (m *OnCallRotationMutation) ResetStartsAt() {
+	m.starts_at = nil
+}
+
+// SetHandoffHour sets the "handoff_hour" field.
+func (m *OnCallRotationMutation) SetHandoffHour(i int) {
+	m.handoff_hour = &i
+	m.addhandoff_hour = nil
+}
+
+// HandoffHour returns the value of the "handoff_hour" field in the mutation.
+func (m *OnCallRotationMutation) HandoffHour() (r int, exists bool) {
+	v := m.handoff_hour
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHandoffHour returns the old "handoff_hour" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldHandoffHour(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHandoffHour is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHandoffHour requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHandoffHour: %w", err)
+	}
+	return oldValue.HandoffHour, nil
+}
+
+// AddHandoffHour adds i to the "handoff_hour" field.
+func (m *OnCallRotationMutation) AddHandoffHour(i int) {
+	if m.addhandoff_hour != nil {
+		*m.addhandoff_hour += i
+	} else {
+		m.addhandoff_hour = &i
+	}
+}
+
+// AddedHandoffHour returns the value that was added to the "handoff_hour" field in this mutation.
+func (m *OnCallRotationMutation) AddedHandoffHour() (r int, exists bool) {
+	v := m.addhandoff_hour
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHandoffHour resets all changes to the "handoff_hour" field.
+func (m *OnCallRotationMutation) ResetHandoffHour() {
+	m.handoff_hour = nil
+	m.addhandoff_hour = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *OnCallRotationMutation) SetStatus(o oncallrotation.Status) {
+	m.status = &o
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *OnCallRotationMutation) Status() (r oncallrotation.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the OnCallRotation entity.
+// If the OnCallRotation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMutation) OldStatus(ctx context.Context) (v oncallrotation.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *OnCallRotationMutation) ResetStatus() {
+	m.status = nil
+}
+
+// Where appends a list predicates to the OnCallRotationMutation builder.
+func (m *OnCallRotationMutation) Where(ps ...predicate.OnCallRotation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OnCallRotationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OnCallRotationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OnCallRotation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OnCallRotationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OnCallRotationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OnCallRotation).
+func (m *OnCallRotationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OnCallRotationMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, oncallrotation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, oncallrotation.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, oncallrotation.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, oncallrotation.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, oncallrotation.FieldNamespaceUID)
+	}
+	if m.name != nil {
+		fields = append(fields, oncallrotation.FieldName)
+	}
+	if m.remark != nil {
+		fields = append(fields, oncallrotation.FieldRemark)
+	}
+	if m.timezone != nil {
+		fields = append(fields, oncallrotation.FieldTimezone)
+	}
+	if m.period != nil {
+		fields = append(fields, oncallrotation.FieldPeriod)
+	}
+	if m.starts_at != nil {
+		fields = append(fields, oncallrotation.FieldStartsAt)
+	}
+	if m.handoff_hour != nil {
+		fields = append(fields, oncallrotation.FieldHandoffHour)
+	}
+	if m.status != nil {
+		fields = append(fields, oncallrotation.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OnCallRotationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case oncallrotation.FieldCreatedAt:
+		return m.CreatedAt()
+	case oncallrotation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case oncallrotation.FieldDeletedAt:
+		return m.DeletedAt()
+	case oncallrotation.FieldUID:
+		return m.UID()
+	case oncallrotation.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case oncallrotation.FieldName:
+		return m.Name()
+	case oncallrotation.FieldRemark:
+		return m.Remark()
+	case oncallrotation.FieldTimezone:
+		return m.Timezone()
+	case oncallrotation.FieldPeriod:
+		return m.Period()
+	case oncallrotation.FieldStartsAt:
+		return m.StartsAt()
+	case oncallrotation.FieldHandoffHour:
+		return m.HandoffHour()
+	case oncallrotation.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OnCallRotationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case oncallrotation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case oncallrotation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case oncallrotation.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case oncallrotation.FieldUID:
+		return m.OldUID(ctx)
+	case oncallrotation.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case oncallrotation.FieldName:
+		return m.OldName(ctx)
+	case oncallrotation.FieldRemark:
+		return m.OldRemark(ctx)
+	case oncallrotation.FieldTimezone:
+		return m.OldTimezone(ctx)
+	case oncallrotation.FieldPeriod:
+		return m.OldPeriod(ctx)
+	case oncallrotation.FieldStartsAt:
+		return m.OldStartsAt(ctx)
+	case oncallrotation.FieldHandoffHour:
+		return m.OldHandoffHour(ctx)
+	case oncallrotation.FieldStatus:
+		return m.OldStatus(ctx)
+	}
+	return nil, fmt.Errorf("unknown OnCallRotation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OnCallRotationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case oncallrotation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case oncallrotation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case oncallrotation.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case oncallrotation.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case oncallrotation.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case oncallrotation.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case oncallrotation.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	case oncallrotation.FieldTimezone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimezone(v)
+		return nil
+	case oncallrotation.FieldPeriod:
+		v, ok := value.(oncallrotation.Period)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPeriod(v)
+		return nil
+	case oncallrotation.FieldStartsAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartsAt(v)
+		return nil
+	case oncallrotation.FieldHandoffHour:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHandoffHour(v)
+		return nil
+	case oncallrotation.FieldStatus:
+		v, ok := value.(oncallrotation.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OnCallRotation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OnCallRotationMutation) AddedFields() []string {
+	var fields []string
+	if m.addhandoff_hour != nil {
+		fields = append(fields, oncallrotation.FieldHandoffHour)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OnCallRotationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case oncallrotation.FieldHandoffHour:
+		return m.AddedHandoffHour()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OnCallRotationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case oncallrotation.FieldHandoffHour:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHandoffHour(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OnCallRotation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OnCallRotationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(oncallrotation.FieldDeletedAt) {
+		fields = append(fields, oncallrotation.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OnCallRotationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OnCallRotationMutation) ClearField(name string) error {
+	switch name {
+	case oncallrotation.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown OnCallRotation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OnCallRotationMutation) ResetField(name string) error {
+	switch name {
+	case oncallrotation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case oncallrotation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case oncallrotation.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case oncallrotation.FieldUID:
+		m.ResetUID()
+		return nil
+	case oncallrotation.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case oncallrotation.FieldName:
+		m.ResetName()
+		return nil
+	case oncallrotation.FieldRemark:
+		m.ResetRemark()
+		return nil
+	case oncallrotation.FieldTimezone:
+		m.ResetTimezone()
+		return nil
+	case oncallrotation.FieldPeriod:
+		m.ResetPeriod()
+		return nil
+	case oncallrotation.FieldStartsAt:
+		m.ResetStartsAt()
+		return nil
+	case oncallrotation.FieldHandoffHour:
+		m.ResetHandoffHour()
+		return nil
+	case oncallrotation.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown OnCallRotation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OnCallRotationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OnCallRotationMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OnCallRotationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OnCallRotationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OnCallRotationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OnCallRotationMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OnCallRotationMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown OnCallRotation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OnCallRotationMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown OnCallRotation edge %s", name)
+}
+
+// OnCallRotationMemberMutation represents an operation that mutates the OnCallRotationMember nodes in the graph.
+type OnCallRotationMemberMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	uid           *string
+	namespace_uid *string
+	rotation_uid  *string
+	member_uid    *string
+	position      *int
+	addposition   *int
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*OnCallRotationMember, error)
+	predicates    []predicate.OnCallRotationMember
+}
+
+var _ ent.Mutation = (*OnCallRotationMemberMutation)(nil)
+
+// oncallrotationmemberOption allows management of the mutation configuration using functional options.
+type oncallrotationmemberOption func(*OnCallRotationMemberMutation)
+
+// newOnCallRotationMemberMutation creates new mutation for the OnCallRotationMember entity.
+func newOnCallRotationMemberMutation(c config, op Op, opts ...oncallrotationmemberOption) *OnCallRotationMemberMutation {
+	m := &OnCallRotationMemberMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOnCallRotationMember,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOnCallRotationMemberID sets the ID field of the mutation.
+func withOnCallRotationMemberID(id int) oncallrotationmemberOption {
+	return func(m *OnCallRotationMemberMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OnCallRotationMember
+		)
+		m.oldValue = func(ctx context.Context) (*OnCallRotationMember, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OnCallRotationMember.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOnCallRotationMember sets the old OnCallRotationMember of the mutation.
+func withOnCallRotationMember(node *OnCallRotationMember) oncallrotationmemberOption {
+	return func(m *OnCallRotationMemberMutation) {
+		m.oldValue = func(context.Context) (*OnCallRotationMember, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OnCallRotationMemberMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OnCallRotationMemberMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OnCallRotationMemberMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OnCallRotationMemberMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OnCallRotationMember.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OnCallRotationMemberMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OnCallRotationMemberMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OnCallRotationMember entity.
+// If the OnCallRotationMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMemberMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OnCallRotationMemberMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OnCallRotationMemberMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OnCallRotationMemberMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OnCallRotationMember entity.
+// If the OnCallRotationMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMemberMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OnCallRotationMemberMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *OnCallRotationMemberMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *OnCallRotationMemberMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the OnCallRotationMember entity.
+// If the OnCallRotationMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMemberMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *OnCallRotationMemberMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *OnCallRotationMemberMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *OnCallRotationMemberMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the OnCallRotationMember entity.
+// If the OnCallRotationMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMemberMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *OnCallRotationMemberMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetRotationUID sets the "rotation_uid" field.
+func (m *OnCallRotationMemberMutation) SetRotationUID(s string) {
+	m.rotation_uid = &s
+}
+
+// RotationUID returns the value of the "rotation_uid" field in the mutation.
+func (m *OnCallRotationMemberMutation) RotationUID() (r string, exists bool) {
+	v := m.rotation_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRotationUID returns the old "rotation_uid" field's value of the OnCallRotationMember entity.
+// If the OnCallRotationMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMemberMutation) OldRotationUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRotationUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRotationUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRotationUID: %w", err)
+	}
+	return oldValue.RotationUID, nil
+}
+
+// ResetRotationUID resets all changes to the "rotation_uid" field.
+func (m *OnCallRotationMemberMutation) ResetRotationUID() {
+	m.rotation_uid = nil
+}
+
+// SetMemberUID sets the "member_uid" field.
+func (m *OnCallRotationMemberMutation) SetMemberUID(s string) {
+	m.member_uid = &s
+}
+
+// MemberUID returns the value of the "member_uid" field in the mutation.
+func (m *OnCallRotationMemberMutation) MemberUID() (r string, exists bool) {
+	v := m.member_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMemberUID returns the old "member_uid" field's value of the OnCallRotationMember entity.
+// If the OnCallRotationMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMemberMutation) OldMemberUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMemberUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMemberUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMemberUID: %w", err)
+	}
+	return oldValue.MemberUID, nil
+}
+
+// ResetMemberUID resets all changes to the "member_uid" field.
+func (m *OnCallRotationMemberMutation) ResetMemberUID() {
+	m.member_uid = nil
+}
+
+// SetPosition sets the "position" field.
+func (m *OnCallRotationMemberMutation) SetPosition(i int) {
+	m.position = &i
+	m.addposition = nil
+}
+
+// Position returns the value of the "position" field in the mutation.
+func (m *OnCallRotationMemberMutation) Position() (r int, exists bool) {
+	v := m.position
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPosition returns the old "position" field's value of the OnCallRotationMember entity.
+// If the OnCallRotationMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OnCallRotationMemberMutation) OldPosition(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPosition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPosition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPosition: %w", err)
+	}
+	return oldValue.Position, nil
+}
+
+// AddPosition adds i to the "position" field.
+func (m *OnCallRotationMemberMutation) AddPosition(i int) {
+	if m.addposition != nil {
+		*m.addposition += i
+	} else {
+		m.addposition = &i
+	}
+}
+
+// AddedPosition returns the value that was added to the "position" field in this mutation.
+func (m *OnCallRotationMemberMutation) AddedPosition() (r int, exists bool) {
+	v := m.addposition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPosition resets all changes to the "position" field.
+func (m *OnCallRotationMemberMutation) ResetPosition() {
+	m.position = nil
+	m.addposition = nil
+}
+
+// Where appends a list predicates to the OnCallRotationMemberMutation builder.
+func (m *OnCallRotationMemberMutation) Where(ps ...predicate.OnCallRotationMember) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OnCallRotationMemberMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OnCallRotationMemberMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OnCallRotationMember, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OnCallRotationMemberMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OnCallRotationMemberMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OnCallRotationMember).
+func (m *OnCallRotationMemberMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OnCallRotationMemberMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, oncallrotationmember.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, oncallrotationmember.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, oncallrotationmember.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, oncallrotationmember.FieldNamespaceUID)
+	}
+	if m.rotation_uid != nil {
+		fields = append(fields, oncallrotationmember.FieldRotationUID)
+	}
+	if m.member_uid != nil {
+		fields = append(fields, oncallrotationmember.FieldMemberUID)
+	}
+	if m.position != nil {
+		fields = append(fields, oncallrotationmember.FieldPosition)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OnCallRotationMemberMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case oncallrotationmember.FieldCreatedAt:
+		return m.CreatedAt()
+	case oncallrotationmember.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case oncallrotationmember.FieldUID:
+		return m.UID()
+	case oncallrotationmember.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case oncallrotationmember.FieldRotationUID:
+		return m.RotationUID()
+	case oncallrotationmember.FieldMemberUID:
+		return m.MemberUID()
+	case oncallrotationmember.FieldPosition:
+		return m.Position()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OnCallRotationMemberMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case oncallrotationmember.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case oncallrotationmember.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case oncallrotationmember.FieldUID:
+		return m.OldUID(ctx)
+	case oncallrotationmember.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case oncallrotationmember.FieldRotationUID:
+		return m.OldRotationUID(ctx)
+	case oncallrotationmember.FieldMemberUID:
+		return m.OldMemberUID(ctx)
+	case oncallrotationmember.FieldPosition:
+		return m.OldPosition(ctx)
+	}
+	return nil, fmt.Errorf("unknown OnCallRotationMember field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OnCallRotationMemberMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case oncallrotationmember.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case oncallrotationmember.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case oncallrotationmember.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case oncallrotationmember.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case oncallrotationmember.FieldRotationUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRotationUID(v)
+		return nil
+	case oncallrotationmember.FieldMemberUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMemberUID(v)
+		return nil
+	case oncallrotationmember.FieldPosition:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPosition(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OnCallRotationMember field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OnCallRotationMemberMutation) AddedFields() []string {
+	var fields []string
+	if m.addposition != nil {
+		fields = append(fields, oncallrotationmember.FieldPosition)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OnCallRotationMemberMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case oncallrotationmember.FieldPosition:
+		return m.AddedPosition()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OnCallRotationMemberMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case oncallrotationmember.FieldPosition:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPosition(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OnCallRotationMember numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OnCallRotationMemberMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OnCallRotationMemberMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OnCallRotationMemberMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown OnCallRotationMember nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OnCallRotationMemberMutation) ResetField(name string) error {
+	switch name {
+	case oncallrotationmember.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case oncallrotationmember.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case oncallrotationmember.FieldUID:
+		m.ResetUID()
+		return nil
+	case oncallrotationmember.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case oncallrotationmember.FieldRotationUID:
+		m.ResetRotationUID()
+		return nil
+	case oncallrotationmember.FieldMemberUID:
+		m.ResetMemberUID()
+		return nil
+	case oncallrotationmember.FieldPosition:
+		m.ResetPosition()
+		return nil
+	}
+	return fmt.Errorf("unknown OnCallRotationMember field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OnCallRotationMemberMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OnCallRotationMemberMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OnCallRotationMemberMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OnCallRotationMemberMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OnCallRotationMemberMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OnCallRotationMemberMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OnCallRotationMemberMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown OnCallRotationMember unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OnCallRotationMemberMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown OnCallRotationMember edge %s", name)
 }
 
 // PermissionMutation represents an operation that mutates the Permission nodes in the graph.

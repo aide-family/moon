@@ -167,10 +167,10 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 
 功能能力化约束（M19）：
 
-- 目录是两级：11 个模块 → 62 个能力 → 权限，全部在 `app/alioth/pkg/perm` 用代码维护（`feature.go`、`capability.go`、`perm.go`），不建表、不由接口增删；`namespace:*` 不属于任何能力，始终可用。通知渠道按「类型 + 应用」细分：Webhook 分 `notify_channel_webhook_other/dingtalk/wechat/feishu`，短信分 `notify_channel_sms_alicloud/tencent`（腾讯云只进目录，不做表单与发送）。Kubernetes 从 M25 起按「资源 + 操作」细分：一个操作一个能力和权限（`k8s:workload:{scale,restart,image,rollback}`、`k8s:pod:{logs,delete,exec}` 等），菜单仍按资源配置，旧能力码与旧 `k8s:*:write` 在升级迁移和读取路径上按操作展开。
+- 目录是两级：11 个模块 → 63 个能力 → 权限，全部在 `app/alioth/pkg/perm` 用代码维护（`feature.go`、`capability.go`、`perm.go`），不建表、不由接口增删；`namespace:*` 不属于任何能力，始终可用。通知渠道按「类型 + 应用」细分：Webhook 分 `notify_channel_webhook_other/dingtalk/wechat/feishu`，短信分 `notify_channel_sms_alicloud/tencent`（腾讯云只进目录，不做表单与发送）。Kubernetes 从 M25 起按「资源 + 操作」细分：一个操作一个能力和权限（`k8s:workload:{scale,restart,image,rollback}`、`k8s:pod:{logs,delete,exec}` 等），菜单仍按资源配置，旧能力码与旧 `k8s:*:write` 在升级迁移和读取路径上按操作展开。
 - 超级管理员用带 `duration_days`（0=永久）的「套餐」（`FeaturePackage` + `FeaturePackageItem`）给租户开通能力；`NamespaceFeature` 只存租户额外能力（`enabled` 恒为 true）。有效能力 = 套餐能力 ∪ 额外能力，按目录顺序排列，不落表；能力只增不减，设置租户功能授权的目标能力必须包含**租户当前套餐快照**（同一套餐下不要求包含套餐最新明细，换套餐才按新套餐明细要求）。历史能力码在读取、迁移和保存时统一经 `perm.NormalizeCapabilities` 展开成当前能力。
 - 套餐到期（`namespaces.package_expires_at` 非空且已过）、租户停用或归档时，`EffectiveCapabilities`/`EffectiveModules` 返回空，配置保留；启用/续期后恢复。
-- 新租户默认基础套餐，只含前八个模块的全部能力（加入 M29 升级策略后 35 项）：`alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`、`board`。`cluster`、`agent`、`ssh` 能力需超级管理员开通；存量租户由 seed 迁到基础套餐并加开这三个模块升级前已实现的能力（M25 新增的 Pod 终端不随旧租户自动开通）。
+- 新租户默认基础套餐，只含前八个模块的全部能力（加入 M29 升级策略与值班轮换后 36 项）：`alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`、`board`。`cluster`、`agent`、`ssh` 能力需超级管理员开通；存量租户由 seed 迁到基础套餐并加开这三个模块升级前已实现的能力（M25 新增的 Pod 终端不随旧租户自动开通）。
 - 菜单入口由 `menu:<能力>` 控制，角色授权页和 `/self/permissions` 都返回它；接口权限仍由能力里的权限决定。`access.Checker` 在权限通过后先校验 `perm.FeatureOf(code)` 在有效模块内，再校验权限所属能力的任一能力已开通（403 `feature not enabled`）；租户成员还要持有覆盖该权限的菜单权限（403 `menu permission denied`）；新增受控接口不需要额外代码，映射由 `perm` 包维护。
 - 租户只能把已开通能力的权限授给角色；`ListPermissions`、`UpdateRolePermissions`、`/self/permissions` 都按有效能力过滤。
 - 租户生命周期由平台管理：`PUT /v1/system/namespace/{uid}/status` 停用/启用（停用必填原因并邮件通知负责人），`PUT /v1/system/namespace/{uid}/archive` 归档（软删除租户和全部业务数据，不可恢复）。停用租户不可切换进入，租户侧没有自行解封的接口。

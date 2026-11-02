@@ -24,6 +24,9 @@ func (NotificationOnCallGroup) Fields() []ent.Field {
 		field.String("group_uid").NotEmpty(),
 		// time_windows 是该绑定接收时段的 JSON 数组。空数组表示全天候接收。
 		field.String("time_windows").Default("[]"),
+		// rotation_uid 是可选的值班轮换：非空时投递把当前当班成员并入接收方。
+		// 旧行没有该字段时按空值处理，行为与绑定前一致。
+		field.String("rotation_uid").Default(""),
 	}
 }
 

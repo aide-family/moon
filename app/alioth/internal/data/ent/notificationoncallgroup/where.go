@@ -94,6 +94,11 @@ func TimeWindows(v string) predicate.NotificationOnCallGroup {
 	return predicate.NotificationOnCallGroup(sql.FieldEQ(FieldTimeWindows, v))
 }
 
+// RotationUID applies equality check predicate on the "rotation_uid" field. It's identical to RotationUIDEQ.
+func RotationUID(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldEQ(FieldRotationUID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.NotificationOnCallGroup {
 	return predicate.NotificationOnCallGroup(sql.FieldEQ(FieldCreatedAt, v))
@@ -547,6 +552,71 @@ func TimeWindowsEqualFold(v string) predicate.NotificationOnCallGroup {
 // TimeWindowsContainsFold applies the ContainsFold predicate on the "time_windows" field.
 func TimeWindowsContainsFold(v string) predicate.NotificationOnCallGroup {
 	return predicate.NotificationOnCallGroup(sql.FieldContainsFold(FieldTimeWindows, v))
+}
+
+// RotationUIDEQ applies the EQ predicate on the "rotation_uid" field.
+func RotationUIDEQ(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldEQ(FieldRotationUID, v))
+}
+
+// RotationUIDNEQ applies the NEQ predicate on the "rotation_uid" field.
+func RotationUIDNEQ(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldNEQ(FieldRotationUID, v))
+}
+
+// RotationUIDIn applies the In predicate on the "rotation_uid" field.
+func RotationUIDIn(vs ...string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldIn(FieldRotationUID, vs...))
+}
+
+// RotationUIDNotIn applies the NotIn predicate on the "rotation_uid" field.
+func RotationUIDNotIn(vs ...string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldNotIn(FieldRotationUID, vs...))
+}
+
+// RotationUIDGT applies the GT predicate on the "rotation_uid" field.
+func RotationUIDGT(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldGT(FieldRotationUID, v))
+}
+
+// RotationUIDGTE applies the GTE predicate on the "rotation_uid" field.
+func RotationUIDGTE(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldGTE(FieldRotationUID, v))
+}
+
+// RotationUIDLT applies the LT predicate on the "rotation_uid" field.
+func RotationUIDLT(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldLT(FieldRotationUID, v))
+}
+
+// RotationUIDLTE applies the LTE predicate on the "rotation_uid" field.
+func RotationUIDLTE(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldLTE(FieldRotationUID, v))
+}
+
+// RotationUIDContains applies the Contains predicate on the "rotation_uid" field.
+func RotationUIDContains(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldContains(FieldRotationUID, v))
+}
+
+// RotationUIDHasPrefix applies the HasPrefix predicate on the "rotation_uid" field.
+func RotationUIDHasPrefix(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldHasPrefix(FieldRotationUID, v))
+}
+
+// RotationUIDHasSuffix applies the HasSuffix predicate on the "rotation_uid" field.
+func RotationUIDHasSuffix(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldHasSuffix(FieldRotationUID, v))
+}
+
+// RotationUIDEqualFold applies the EqualFold predicate on the "rotation_uid" field.
+func RotationUIDEqualFold(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldEqualFold(FieldRotationUID, v))
+}
+
+// RotationUIDContainsFold applies the ContainsFold predicate on the "rotation_uid" field.
+func RotationUIDContainsFold(v string) predicate.NotificationOnCallGroup {
+	return predicate.NotificationOnCallGroup(sql.FieldContainsFold(FieldRotationUID, v))
 }
 
 // And groups predicates with the AND operator between them.

@@ -75,6 +75,8 @@ var archivedTables = []string{
 	"notification_on_call_groups",
 	"notification_subscriptions",
 	"notification_subscription_groups",
+	"on_call_rotations",
+	"on_call_rotation_members",
 	// 边缘。
 	"clusters",
 	"agents",
