@@ -21,7 +21,14 @@ import type {
   GetKubernetesServiceDetailParams,
   GetKubernetesServiceDetailResult,
   GetKubernetesWorkloadDetailParams,
+  ClusterMetricsSummary,
+  GetKubernetesNodeDetailParams,
+  GetKubernetesNodeDetailResult,
+  GetKubernetesOverviewParams,
+  GetKubernetesPodDetailParams,
+  GetKubernetesPodDetailResult,
   GetKubernetesWorkloadDetailResult,
+  KubernetesOverview,
   GetKubernetesWorkloadImagesParams,
   GetKubernetesWorkloadImagesResult,
   IssueKubernetesPodExecTicketParams,
@@ -116,6 +123,57 @@ export function probeKubeconfig(
   kubeconfig: string
 ): Promise<ProbeKubeconfigResult> {
   return post<ProbeKubeconfigResult>("/cluster/probe", { kubeconfig })
+}
+
+/** GET /v1/cluster/{clusterUid}/overview：一次聚合六个区块的集群概况。 */
+export function getKubernetesOverview(
+  clusterUid: string,
+  params: GetKubernetesOverviewParams = {}
+): Promise<KubernetesOverview> {
+  return get<KubernetesOverview>(
+    `/cluster/${segment(clusterUid)}/overview`,
+    { namespace: params.namespace },
+    undefined,
+    { silent: true }
+  )
+}
+
+/** GET /v1/cluster/{clusterUid}/metrics/summary：未绑定/部分失败都通过 status 表达。 */
+export function getClusterMetricsSummary(
+  clusterUid: string
+): Promise<ClusterMetricsSummary> {
+  return get<ClusterMetricsSummary>(
+    `/cluster/${segment(clusterUid)}/metrics/summary`,
+    undefined,
+    undefined,
+    { silent: true }
+  )
+}
+
+/** GET /v1/cluster/{clusterUid}/nodes/{name}：节点条件、污点、容量与最近事件。 */
+export function getKubernetesNodeDetail(
+  clusterUid: string,
+  params: GetKubernetesNodeDetailParams
+): Promise<GetKubernetesNodeDetailResult> {
+  return get<GetKubernetesNodeDetailResult>(
+    `/cluster/${segment(clusterUid)}/nodes/${segment(params.name)}`,
+    undefined,
+    undefined,
+    { silent: true }
+  )
+}
+
+/** GET /v1/cluster/{clusterUid}/pods/{namespace}/{name}：容器、条件、卷、归属与事件。 */
+export function getKubernetesPodDetail(
+  clusterUid: string,
+  params: GetKubernetesPodDetailParams
+): Promise<GetKubernetesPodDetailResult> {
+  return get<GetKubernetesPodDetailResult>(
+    `/cluster/${segment(clusterUid)}/pods/${segment(params.namespace)}/${segment(params.name)}`,
+    undefined,
+    undefined,
+    { silent: true }
+  )
 }
 
 /** GET /v1/cluster/{clusterUid}/namespaces */
@@ -553,6 +611,25 @@ export function getKubernetesPersistentVolumeClaimDetail(
 }
 
 export type {
+  ClusterMetricsStatus,
+  ClusterMetricsSummary,
+  GetKubernetesNodeDetailParams,
+  GetKubernetesNodeDetailResult,
+  GetKubernetesOverviewParams,
+  GetKubernetesPodDetailParams,
+  GetKubernetesPodDetailResult,
+  KubernetesConditionItem,
+  KubernetesContainerStatusItem,
+  KubernetesEventItem,
+  KubernetesNodeDetailItem,
+  KubernetesOverview,
+  KubernetesOwnerReferenceItem,
+  KubernetesPodDetailItem,
+  KubernetesPodPhaseCount,
+  KubernetesReplicaStatus,
+  KubernetesTaintItem,
+  KubernetesVolumeItem,
+  KubernetesWorkloadSummary,
   ClusterItem,
   ClusterProbe,
   GetKubernetesConfigMapDetailParams,

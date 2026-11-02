@@ -31,6 +31,8 @@ interface WorkloadRollbackDialogProps {
   clusterUid: string
   /** 目标工作负载；关闭时为空。 */
   workload: KubernetesWorkloadItem | null
+  /** 从 ReplicaSet 历史进入时预选的版本号；当前版本不会预选。 */
+  initialRevision?: number
   onOpenChange: (open: boolean) => void
   /** 回滚成功后刷新列表与详情。 */
   onRolledBack: () => void
@@ -46,6 +48,7 @@ export function WorkloadRollbackDialog({
   open,
   clusterUid,
   workload,
+  initialRevision,
   onOpenChange,
   onRolledBack,
 }: WorkloadRollbackDialogProps) {
@@ -81,7 +84,18 @@ export function WorkloadRollbackDialog({
         if (!active) {
           return
         }
-        setRevisions(result.revisions ?? [])
+        const list = result.revisions ?? []
+        setRevisions(list)
+        // 从 ReplicaSet 历史进入时预选对应版本；当前版本或已消失的版本不预选。
+        if (
+          initialRevision !== undefined &&
+          list.some(
+            (revision) =>
+              revision.revision === initialRevision && !revision.current
+          )
+        ) {
+          setSelected(initialRevision)
+        }
       } catch (err) {
         if (!active) {
           return
@@ -99,7 +113,7 @@ export function WorkloadRollbackDialog({
     return () => {
       active = false
     }
-  }, [open, clusterUid, workload, attempt, t])
+  }, [open, clusterUid, workload, initialRevision, attempt, t])
 
   const canSubmit =
     !pending && !loading && !failed && selected !== null && workload !== null

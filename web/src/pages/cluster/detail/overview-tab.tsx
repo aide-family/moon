@@ -2,10 +2,11 @@ import type { useClusterOverview } from "./use-cluster-overview"
 import {
   ClusterCapacityCard,
   ClusterComponentCard,
+  ClusterJobsCard,
+  ClusterMetricsCard,
   ClusterOverviewKpis,
   ClusterOverviewStatus,
   ClusterPodPhaseCard,
-  ClusterTopCard,
   ClusterWorkloadHealthCard,
 } from "./overview-cards"
 
@@ -15,18 +16,27 @@ interface ClusterOverviewTabProps {
   overview: ClusterOverviewState
   namespace: string
   onOpenWorkloadKind: (kind: string) => void
+  /** cluster:write + datasource:read 才显示指标绑定入口。 */
+  canBindMetrics: boolean
+  /** 集群当前绑定的指标数据源名称，用于指标卡右上角说明。 */
+  metricsDatasourceName: string
+  onBindMetrics: () => void
 }
 
 /**
- * 集群概况：概览指标、Pod 分布、工作负载健康、容量、基础组件与 Top 榜单。
- * 数据都来自现有列表接口的浏览器侧汇总，卡片之间互不阻塞。
+ * 集群概况：一次 /overview 聚合六区块，指标汇总独立加载。
+ * 卡片之间互不阻塞，区块缺权限/失败按 deniedSections / failedSections 降级。
  */
 export function ClusterOverviewTab({
   overview,
   namespace,
   onOpenWorkloadKind,
+  canBindMetrics,
+  metricsDatasourceName,
+  onBindMetrics,
 }: ClusterOverviewTabProps) {
   const data = overview.data
+  const refreshedAt = data ? Number(data.generatedAt) * 1000 : 0
 
   return (
     <div
@@ -38,9 +48,15 @@ export function ClusterOverviewTab({
           data={data}
           namespace={namespace}
           refreshing={overview.refreshing}
+          failed={overview.failed}
+          error={overview.error}
           onRetry={overview.reload}
         />
-        <ClusterOverviewKpis data={data} loading={overview.loading} />
+        <ClusterOverviewKpis
+          data={data}
+          loading={overview.loading}
+          onRetry={overview.reload}
+        />
         <div className="grid gap-3 xl:grid-cols-2">
           <ClusterPodPhaseCard
             data={data}
@@ -60,18 +76,27 @@ export function ClusterOverviewTab({
             loading={overview.loading}
             onRetry={overview.reload}
           />
+          <ClusterMetricsCard
+            metrics={overview.metrics}
+            datasourceName={metricsDatasourceName}
+            canBind={canBindMetrics}
+            onBind={onBindMetrics}
+            loading={overview.loading}
+          />
+        </div>
+        <div className="grid gap-3 xl:grid-cols-2">
+          <ClusterJobsCard
+            data={data}
+            loading={overview.loading}
+            onRetry={overview.reload}
+          />
           <ClusterComponentCard
             data={data}
             loading={overview.loading}
             onRetry={overview.reload}
-            refreshedAt={data?.refreshedAt ?? 0}
+            refreshedAt={refreshedAt}
           />
         </div>
-        <ClusterTopCard
-          data={data}
-          loading={overview.loading}
-          onRetry={overview.reload}
-        />
       </div>
     </div>
   )

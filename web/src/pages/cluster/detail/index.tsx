@@ -33,6 +33,7 @@ import { KubernetesSecretsTab } from "../secrets-tab"
 import { KubernetesServicesTab } from "../services-tab"
 import { KubernetesWorkloadsTab } from "../workloads-tab"
 import { ClusterSummary } from "./cluster-summary"
+import { MetricsBindDialog } from "./metrics-bind-dialog"
 import { ClusterOverviewTab } from "./overview-tab"
 import { ClusterResourceNav, ClusterResourcePicker } from "./resource-nav"
 import {
@@ -81,6 +82,7 @@ export function ClusterDetailPage() {
   const [filtersOpen, setFiltersOpen] = useState(false)
   // 连接状态整块卡片默认收起，由页头的集群名称控制显隐。
   const [summaryOpen, setSummaryOpen] = useState(false)
+  const [metricsBindOpen, setMetricsBindOpen] = useState(false)
   const [draftState, setDraftState] = useState<{
     signature: string
     name: string
@@ -102,6 +104,8 @@ export function ClusterDetailPage() {
   const canDeletePods = can("k8s:pod:delete")
   const canReadPodLogs = can("k8s:pod:logs")
   const canExecPods = can("k8s:pod:exec")
+  // 绑定指标数据源沿用 cluster:write + datasource:read，不新增权限码。
+  const canBindMetrics = can("cluster:write") && can("datasource:read")
 
   // 资源视图的可见性同时看资源读权限与租户能力（k8s_*）。
   const access = useMemo<ClusterAccessCheck>(
@@ -215,18 +219,25 @@ export function ClusterDetailPage() {
     if (!data) {
       return counts
     }
-    if (!data.failed.nodes && data.nodes) {
-      counts.nodes = data.nodes.total
+    // 概况里缺权限/失败的区块不写计数，保留资源计数接口的结果或留空。
+    function usable(section: string): boolean {
+      return (
+        !data!.deniedSections?.includes(section) &&
+        !data!.failedSections?.includes(section)
+      )
     }
-    if (!data.failed.pods && data.pods) {
-      counts.pods = data.pods.total
+    if (usable("nodes")) {
+      counts.nodes = data.nodeTotal
     }
-    if (!data.failed.ingresses && data.ingresses) {
-      counts.ingresses = data.ingresses.total
+    if (usable("pods")) {
+      counts.pods = data.podTotal
     }
-    if (!data.failed.workloads && data.workloads) {
-      counts.workloads = data.workloads.total
-      for (const row of data.workloads.rows) {
+    if (usable("ingresses")) {
+      counts.ingresses = data.ingressTotal
+    }
+    if (usable("workloads")) {
+      counts.workloads = data.workloads.reduce((sum, row) => sum + row.total, 0)
+      for (const row of data.workloads) {
         counts[`workloads/${row.kind}`] = row.total
       }
     }
@@ -323,6 +334,9 @@ export function ClusterDetailPage() {
             onOpenWorkloadKind={(nextKind) =>
               selectSection("workloads", nextKind)
             }
+            canBindMetrics={canBindMetrics}
+            metricsDatasourceName={cluster?.metricsDatasourceName ?? ""}
+            onBindMetrics={() => setMetricsBindOpen(true)}
           />
         )
       case "nodes":
@@ -673,6 +687,15 @@ export function ClusterDetailPage() {
           </div>
         </div>
       ) : null}
+      <MetricsBindDialog
+        open={metricsBindOpen}
+        cluster={cluster}
+        onOpenChange={setMetricsBindOpen}
+        onSaved={() => {
+          setReloadKey((value) => value + 1)
+          overview.metrics.retry()
+        }}
+      />
       <ClusterProbeDialog
         open={probeDialog !== null}
         name={cluster?.name ?? ""}

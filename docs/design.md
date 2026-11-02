@@ -386,6 +386,10 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 `AlertMaintenanceWindow` 是一次性维护窗口：名称、描述、匹配器（`labels` 键到完整匹配正则、`level_uids`、`datasource_uids`、`rule_uids`）、起止时间与启停。窗口生效期间，匹配的新 FIRING 事件以 `suppressed=true`、`suppressed_until=窗口结束` 落库并跳过通知任务；窗口创建或启用时同样抑制已触发的匹配事件；窗口停用、删除或更新时解除由它设置的抑制（按 `suppressed_until` 等于旧窗口结束时间识别），手动抑制不受影响。时间线写入与主操作在同一事务里。
 
+### 4.3.2 告警升级策略（M29）
+
+`AlertEscalationPolicy` 按标签、级别、数据源与规则匹配 FIRING 事件，下挂有序的 `AlertEscalationStep`：每步声明距事件 `starts_at` 的累计分钟数与一组通知组，延迟必须严格递增且最后一步大于 0。`alioth` 调度器每 15 秒在 `alioth:lock:schedule:escalation` 锁内补齐命中事件的 `AlertEventEscalation`（`PENDING`），到期后复用通知组、模板与接收方解析生成通知任务：同一步骤与既有任务同事件、阶段、组、渠道时记 `SKIPPED`，真正生成任务记 `SENT` 并写 `ESCALATED` 时间线。认领、恢复（自动或人工）与事件收口在同一事务里把剩余 `PENDING` 置 `CANCELLED`，升级只前进不回溯。策略创建之前已经触发的事件不升级；事件标签在后续评测刷新不重新匹配。升级任务与订阅任务共用 `NotificationTask` 与消息日志，页面按事件可查步骤状态。
+
 ### 4.4 探测规则（M18 / M26 / M27）
 
 探测规则与查询规则共用「规则组 → 规则 → 级别条件 → `AlertEvent` → 订阅/OnCall → `merak`」这条链路，区别只在观测方式：规则按周期对一个或多个探测目标组里的地址执行探测。M18 支持 `PROBE_HTTP`（HTTP 请求），M26 追加 `PROBE_TCP`（`host:port` 建连）与 `PROBE_ICMP`（主机回显），M27 再追加 `PROBE_DNS`（域名解析）与 `PROBE_TLS`（TLS 握手 / 证书），并扩展耗时分解、ICMP 统计与 HTTP 响应断言；只从集群内探测。
@@ -665,7 +669,7 @@ flowchart TB
 
 身份：`User`、`UserOAuth`、`Namespace`、`Member`、`Role`、`Permission`、`RolePermission`、`MemberRole`。
 
-告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`、`AlertEventAction`（事件处置时间线）、`AlertMaintenanceWindow`（维护窗口）、`AlertHistoryEvent`（历史分片索引）、`AlertEventColumn`（实时告警自定义列）、`ProbeTargetGroup`（探测目标组）、`ProbeTarget`（组内目标）、`ProbeResult`（探测结果）、`ProbeSlaDaily`（探测日聚合）、`StatusPage`（公开状态页）。
+告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`、`AlertEventAction`（事件处置时间线）、`AlertMaintenanceWindow`（维护窗口）、`AlertEscalationPolicy`（升级策略）、`AlertEscalationStep`（升级步骤）、`AlertEventEscalation`（事件升级状态）、`AlertHistoryEvent`（历史分片索引）、`AlertEventColumn`（实时告警自定义列）、`ProbeTargetGroup`（探测目标组）、`ProbeTarget`（组内目标）、`ProbeResult`（探测结果）、`ProbeSlaDaily`（探测日聚合）、`StatusPage`（公开状态页）。
 
 通知：`NotificationChannel`、`NotificationTemplate`、`NotificationGroup`、`NotificationTask`、`MessageLog`。
 

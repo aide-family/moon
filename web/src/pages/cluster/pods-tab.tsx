@@ -5,10 +5,14 @@ import { toast } from "sonner"
 
 import {
   deleteKubernetesPod,
+  getKubernetesPodDetail,
   getKubernetesPodLogs,
   listKubernetesPods,
 } from "@/api/cluster"
-import type { KubernetesPodItem } from "@/api/cluster"
+import type {
+  GetKubernetesPodDetailResult,
+  KubernetesPodItem,
+} from "@/api/cluster"
 import { CodeBlock } from "@/components/code-block"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -45,7 +49,17 @@ import {
 
 import { formatClusterAge, formatClusterTime, isPodReady } from "./format"
 import { ClusterDetailSheet } from "./cluster-detail-sheet"
+import {
+  ConditionList,
+  ContainerStatusList,
+  DetailSectionBody,
+  DetailWarnings,
+  EventList,
+  OwnerReferenceList,
+  VolumeList,
+} from "./detail-sections"
 import { ClusterResourceState } from "./resource-state"
+import { useClusterResourceDetail } from "./use-resource-detail"
 
 const TAIL_LINE_OPTIONS = [200, 500, 1000, 2000]
 
@@ -100,6 +114,15 @@ export function KubernetesPodsTab({
   const [deletePending, setDeletePending] = useState(false)
   const [deleteError, setDeleteError] = useState("")
   const [detail, setDetail] = useState<KubernetesPodItem | null>(null)
+  // 容器状态、条件、卷、归属与事件在打开详情时懒加载。
+  const podDetail = useClusterResourceDetail<GetKubernetesPodDetailResult>({
+    enabled: detail !== null,
+    clusterUid,
+    namespace: detail?.namespace ?? "",
+    name: detail?.name ?? "",
+    fetch: (uid, ns, name) =>
+      getKubernetesPodDetail(uid, { namespace: ns, name }),
+  })
   const [logsPod, setLogsPod] = useState<KubernetesPodItem | null>(null)
   const [logContainer, setLogContainer] = useState("")
   const [logContainerActual, setLogContainerActual] = useState("")
@@ -502,6 +525,124 @@ export function KubernetesPodsTab({
                     },
                   ],
                 },
+                {
+                  title: t("kube.sectionContainerStatus"),
+                  description: podDetail.data?.pod?.containers?.length
+                    ? t("kube.containersCount", {
+                        count: podDetail.data.pod.containers.length,
+                      })
+                    : undefined,
+                  content: (
+                    <DetailSectionBody
+                      loading={podDetail.loading}
+                      failed={podDetail.failed}
+                      error={podDetail.error}
+                      onRetry={podDetail.retry}
+                    >
+                      <ContainerStatusList
+                        containers={podDetail.data?.pod?.containers}
+                      />
+                    </DetailSectionBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionInitContainers"),
+                  description: podDetail.data?.pod?.initContainers?.length
+                    ? t("kube.containersCount", {
+                        count: podDetail.data.pod.initContainers.length,
+                      })
+                    : undefined,
+                  content: (
+                    <DetailSectionBody
+                      loading={podDetail.loading}
+                      failed={podDetail.failed}
+                      error={podDetail.error}
+                      onRetry={podDetail.retry}
+                    >
+                      <ContainerStatusList
+                        containers={podDetail.data?.pod?.initContainers}
+                      />
+                    </DetailSectionBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionConditions"),
+                  content: (
+                    <DetailSectionBody
+                      loading={podDetail.loading}
+                      failed={podDetail.failed}
+                      error={podDetail.error}
+                      onRetry={podDetail.retry}
+                    >
+                      <ConditionList
+                        conditions={podDetail.data?.pod?.conditions}
+                      />
+                    </DetailSectionBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionVolumes"),
+                  description: podDetail.data?.pod?.volumes?.length
+                    ? t("kube.volumesCount", {
+                        count: podDetail.data.pod.volumes.length,
+                      })
+                    : undefined,
+                  content: (
+                    <DetailSectionBody
+                      loading={podDetail.loading}
+                      failed={podDetail.failed}
+                      error={podDetail.error}
+                      onRetry={podDetail.retry}
+                    >
+                      <VolumeList volumes={podDetail.data?.pod?.volumes} />
+                    </DetailSectionBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionOwnerReferences"),
+                  content: (
+                    <DetailSectionBody
+                      loading={podDetail.loading}
+                      failed={podDetail.failed}
+                      error={podDetail.error}
+                      onRetry={podDetail.retry}
+                    >
+                      <OwnerReferenceList
+                        owners={podDetail.data?.pod?.ownerReferences}
+                      />
+                    </DetailSectionBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionEvents"),
+                  description: podDetail.data?.pod?.events?.length
+                    ? t("kube.eventsCount", {
+                        count: podDetail.data.pod.events.length,
+                      })
+                    : undefined,
+                  content: (
+                    <DetailSectionBody
+                      loading={podDetail.loading}
+                      failed={podDetail.failed}
+                      error={podDetail.error}
+                      onRetry={podDetail.retry}
+                    >
+                      <EventList events={podDetail.data?.pod?.events} />
+                    </DetailSectionBody>
+                  ),
+                },
+                ...(podDetail.data?.pod?.warnings?.length
+                  ? [
+                      {
+                        title: t("kube.detailWarnings"),
+                        content: (
+                          <DetailWarnings
+                            warnings={podDetail.data.pod.warnings}
+                          />
+                        ),
+                      },
+                    ]
+                  : []),
               ]
             : []
         }

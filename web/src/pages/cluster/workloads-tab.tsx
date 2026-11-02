@@ -48,6 +48,7 @@ import {
 } from "@/lib/table-layout"
 
 import { ClusterDetailSheet } from "./cluster-detail-sheet"
+import { ConditionList } from "./detail-sections"
 import { formatClusterAge, formatClusterTime } from "./format"
 import {
   ClusterRelationBody,
@@ -158,6 +159,7 @@ export function KubernetesWorkloadsTab({
   )
   const [rollbackTarget, setRollbackTarget] =
     useState<KubernetesWorkloadItem | null>(null)
+  const [rollbackRevision, setRollbackRevision] = useState<number | null>(null)
   const [detail, setDetail] = useState<KubernetesWorkloadItem | null>(null)
   const workloadRelation =
     useClusterResourceDetail<GetKubernetesWorkloadDetailResult>({
@@ -173,6 +175,8 @@ export function KubernetesWorkloadsTab({
         }),
     })
   const jumpTo = useClusterRelationJump()
+  // 副本状态来自懒加载的详情接口；为空时区块显示加载/失败/空态。
+  const replicaStatus = workloadRelation.data?.replicaStatus
 
   function openPod(pod: KubernetesPodItem) {
     setDetail(null)
@@ -423,7 +427,11 @@ export function KubernetesWorkloadsTab({
           <DialogHeader>
             <DialogTitle>{t("kube.scaleTitle")}</DialogTitle>
           </DialogHeader>
-          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onScale}>
+          <form
+            noValidate
+            className="flex min-h-0 flex-1 flex-col gap-4"
+            onSubmit={onScale}
+          >
             <DialogBody className="grid min-w-0 content-start gap-4">
               <p className="text-sm break-all text-muted-foreground">
                 {scaleTarget
@@ -553,15 +561,17 @@ export function KubernetesWorkloadsTab({
       <WorkloadRollbackDialog
         key={
           rollbackTarget
-            ? `${rollbackTarget.kind}/${rollbackTarget.namespace}/${rollbackTarget.name}`
+            ? `${rollbackTarget.kind}/${rollbackTarget.namespace}/${rollbackTarget.name}/${rollbackRevision ?? "latest"}`
             : "no-rollback-target"
         }
         open={rollbackTarget !== null}
         clusterUid={clusterUid}
         workload={rollbackTarget}
+        initialRevision={rollbackRevision ?? undefined}
         onOpenChange={(open) => {
           if (!open) {
             setRollbackTarget(null)
+            setRollbackRevision(null)
           }
         }}
         onRolledBack={() => {
@@ -720,9 +730,41 @@ export function KubernetesWorkloadsTab({
                                   {t("kube.currentReplicas")}:{" "}
                                   {replicaSet.currentReplicas}
                                 </span>
+                                {replicaSet.revision > 0 ? (
+                                  <span className="font-mono">
+                                    {t("kube.replicasetRevision")}:{" "}
+                                    {replicaSet.revision}
+                                  </span>
+                                ) : null}
+                                {replicaSet.current ? (
+                                  <StatusBadge
+                                    value="CURRENT"
+                                    label={t("kube.revisionCurrent")}
+                                    tone="primary"
+                                  />
+                                ) : null}
                                 <span>
                                   {formatClusterAge(replicaSet.createdAt, t)}
                                 </span>
+                                {canRollback &&
+                                detail &&
+                                replicaSet.revision > 0 &&
+                                !replicaSet.current ? (
+                                  <Button
+                                    type="button"
+                                    variant="link"
+                                    size="sm"
+                                    className="h-auto px-0"
+                                    onClick={() => {
+                                      setRollbackRevision(replicaSet.revision)
+                                      setRollbackTarget(detail)
+                                    }}
+                                  >
+                                    {t("kube.rollbackFromReplicaset", {
+                                      revision: replicaSet.revision,
+                                    })}
+                                  </Button>
+                                ) : null}
                               </>
                             ),
                           })
@@ -784,6 +826,81 @@ export function KubernetesWorkloadsTab({
                             }),
                           })
                         )}
+                      />
+                    </ClusterRelationBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionReplicaStatus"),
+                  description: replicaStatus
+                    ? t("kube.replicasReadyRatio", {
+                        ready: replicaStatus.ready,
+                        desired: replicaStatus.desired,
+                      })
+                    : undefined,
+                  content: (
+                    <ClusterRelationBody
+                      loading={workloadRelation.loading}
+                      failed={workloadRelation.failed}
+                      error={workloadRelation.error}
+                      onRetry={workloadRelation.retry}
+                      empty={
+                        !workloadRelation.loading &&
+                        !workloadRelation.failed &&
+                        !replicaStatus
+                      }
+                    >
+                      {replicaStatus ? (
+                        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-3">
+                          {(
+                            [
+                              ["kube.desiredReplicas", replicaStatus.desired],
+                              ["kube.currentReplicas", replicaStatus.current],
+                              ["kube.readyReplicas", replicaStatus.ready],
+                              ["kube.updatedReplicas", replicaStatus.updated],
+                              [
+                                "kube.availableReplicas",
+                                replicaStatus.available,
+                              ],
+                              [
+                                "kube.unavailableReplicas",
+                                replicaStatus.unavailable,
+                              ],
+                            ] as const
+                          ).map(([label, value]) => (
+                            <div
+                              key={label}
+                              className="flex items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/20 px-2 py-1.5"
+                            >
+                              <dt className="text-muted-foreground">
+                                {t(label)}
+                              </dt>
+                              <dd className="font-mono font-medium tabular-nums">
+                                {value}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      ) : null}
+                    </ClusterRelationBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionConditions"),
+                  content: (
+                    <ClusterRelationBody
+                      loading={workloadRelation.loading}
+                      failed={workloadRelation.failed}
+                      error={workloadRelation.error}
+                      onRetry={workloadRelation.retry}
+                      empty={
+                        !workloadRelation.loading &&
+                        !workloadRelation.failed &&
+                        (workloadRelation.data?.conditions?.length ?? 0) === 0
+                      }
+                    >
+                      <ConditionList
+                        conditions={workloadRelation.data?.conditions}
                       />
                     </ClusterRelationBody>
                   ),

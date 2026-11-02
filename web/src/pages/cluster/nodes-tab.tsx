@@ -3,10 +3,14 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import {
+  getKubernetesNodeDetail,
   listKubernetesNodes,
   setKubernetesNodeUnschedulable,
 } from "@/api/cluster"
-import type { KubernetesNodeItem } from "@/api/cluster"
+import type {
+  GetKubernetesNodeDetailResult,
+  KubernetesNodeItem,
+} from "@/api/cluster"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailCopyText, DetailTagList } from "@/components/detail-values"
 import { ListFrame } from "@/components/list-frame"
@@ -30,8 +34,17 @@ import {
 } from "@/lib/table-layout"
 
 import { ClusterDetailSheet } from "./cluster-detail-sheet"
+import {
+  ConditionList,
+  DetailSectionBody,
+  DetailWarnings,
+  EventList,
+  ResourceQuantityList,
+  TaintList,
+} from "./detail-sections"
 import { formatClusterAge, formatClusterTime } from "./format"
 import { ClusterResourceState } from "./resource-state"
+import { useClusterResourceDetail } from "./use-resource-detail"
 
 interface KubernetesNodesTabProps {
   clusterUid: string
@@ -68,6 +81,13 @@ export function KubernetesNodesTab({
   const [confirmError, setConfirmError] = useState("")
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<KubernetesNodeItem | null>(null)
+  // 条件、污点、容量与事件在打开详情时懒加载，失败只影响这些区块。
+  const nodeDetail = useClusterResourceDetail<GetKubernetesNodeDetailResult>({
+    enabled: detail !== null,
+    clusterUid,
+    name: detail?.name ?? "",
+    fetch: (uid, _namespace, name) => getKubernetesNodeDetail(uid, { name }),
+  })
 
   const { items, total, loading, failed, error, reload } =
     usePagedList<KubernetesNodeItem>({
@@ -387,6 +407,80 @@ export function KubernetesNodesTab({
                     },
                   ],
                 },
+                {
+                  title: t("kube.sectionConditions"),
+                  content: (
+                    <DetailSectionBody
+                      loading={nodeDetail.loading}
+                      failed={nodeDetail.failed}
+                      error={nodeDetail.error}
+                      onRetry={nodeDetail.retry}
+                    >
+                      <ConditionList
+                        conditions={nodeDetail.data?.node?.conditions}
+                      />
+                    </DetailSectionBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionTaints"),
+                  content: (
+                    <DetailSectionBody
+                      loading={nodeDetail.loading}
+                      failed={nodeDetail.failed}
+                      error={nodeDetail.error}
+                      onRetry={nodeDetail.retry}
+                    >
+                      <TaintList taints={nodeDetail.data?.node?.taints} />
+                    </DetailSectionBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionCapacityAllocatable"),
+                  content: (
+                    <DetailSectionBody
+                      loading={nodeDetail.loading}
+                      failed={nodeDetail.failed}
+                      error={nodeDetail.error}
+                      onRetry={nodeDetail.retry}
+                    >
+                      <ResourceQuantityList
+                        capacity={nodeDetail.data?.node?.capacity}
+                        allocatable={nodeDetail.data?.node?.allocatable}
+                      />
+                    </DetailSectionBody>
+                  ),
+                },
+                {
+                  title: t("kube.sectionEvents"),
+                  description: nodeDetail.data?.node?.events?.length
+                    ? t("kube.eventsCount", {
+                        count: nodeDetail.data.node.events.length,
+                      })
+                    : undefined,
+                  content: (
+                    <DetailSectionBody
+                      loading={nodeDetail.loading}
+                      failed={nodeDetail.failed}
+                      error={nodeDetail.error}
+                      onRetry={nodeDetail.retry}
+                    >
+                      <EventList events={nodeDetail.data?.node?.events} />
+                    </DetailSectionBody>
+                  ),
+                },
+                ...(nodeDetail.data?.node?.warnings?.length
+                  ? [
+                      {
+                        title: t("kube.detailWarnings"),
+                        content: (
+                          <DetailWarnings
+                            warnings={nodeDetail.data.node.warnings}
+                          />
+                        ),
+                      },
+                    ]
+                  : []),
               ]
             : []
         }

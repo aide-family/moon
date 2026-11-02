@@ -20,6 +20,10 @@ export interface ClusterItem {
   lastError: string
   /** 创建时间，Unix 秒。protojson 把 int64 序列化成字符串。 */
   createdAt: number | string
+  /** 绑定的指标数据源标识；未绑定为空。 */
+  metricsDatasourceUid: string
+  /** 绑定的指标数据源名称；未绑定或数据源已删除时为空。 */
+  metricsDatasourceName: string
 }
 
 /** 连通性探测结果。 */
@@ -37,6 +41,11 @@ export interface SaveClusterParams {
   /** 接入必填；更新时留空表示保持原值。 */
   kubeconfig?: string
   remark: string
+  /**
+   * 绑定的指标数据源标识。字段缺失表示保持原值，显式空串表示解绑；
+   * 只有 cluster:write + datasource:read 才能修改。
+   */
+  metricsDatasourceUid?: string
 }
 
 export interface UpdateClusterParams extends SaveClusterParams {
@@ -638,6 +647,10 @@ export interface KubernetesReplicaSetItem {
   images: string[]
   /** 创建时间，Unix 秒。protojson 把 int64 序列化成字符串。 */
   createdAt: number | string
+  /** 版本号，取自 deployment.kubernetes.io/revision 注解；没有注解时为 0。 */
+  revision: number
+  /** 是否为 Deployment 当前版本。 */
+  current: boolean
 }
 
 export interface GetKubernetesWorkloadDetailParams {
@@ -652,6 +665,10 @@ export interface GetKubernetesWorkloadDetailResult {
   /** StatefulSet 和 DaemonSet 通常为空。 */
   replicasets: KubernetesReplicaSetItem[]
   pods: KubernetesPodItem[]
+  /** 工作负载 status.conditions。 */
+  conditions: KubernetesConditionItem[]
+  /** 副本状态汇总；未设置时为空。 */
+  replicaStatus?: KubernetesReplicaStatus
 }
 
 export interface GetKubernetesIngressDetailParams {
@@ -744,4 +761,196 @@ export interface IssueKubernetesPodExecTicketParams {
 /** 一次性 Pod 终端票据，60 秒内有效且只能消费一次。 */
 export interface IssueKubernetesPodExecTicketResult {
   ticket: string
+}
+
+
+// ---------------------------------------------------------------------------
+// M31：概况聚合、指标汇总、节点/Pod 详情与工作负载扩展字段。
+// ---------------------------------------------------------------------------
+
+/** 概况中的 Pod 阶段分布。 */
+export interface KubernetesPodPhaseCount {
+  /** Running、Pending、Succeeded、Failed、Unknown。 */
+  phase: string
+  count: number
+}
+
+/** 概况中的工作负载统计。 */
+export interface KubernetesWorkloadSummary {
+  /** Deployment、StatefulSet 或 DaemonSet。 */
+  kind: string
+  total: number
+  desired: number
+  ready: number
+}
+
+export interface GetKubernetesOverviewParams {
+  /** 留空表示全部命名空间；节点与容量始终是全集群口径。 */
+  namespace?: string
+}
+
+/**
+ * 集群概况：一次聚合六个区块。单个区块缺权限或失败时接口仍返回 200，
+ * 对应区块字段为 0 并出现在 deniedSections / failedSections。
+ */
+export interface KubernetesOverview {
+  /** API Server 版本；取不到时回落最近一次探测结果，仍取不到为空。 */
+  apiServerVersion: string
+  nodeTotal: number
+  nodeReady: number
+  nodeNotReady: number
+  /** Ready 且可调度节点的可分配 CPU 合计，单位毫核。int64 序列化成字符串。 */
+  allocatableCpuMillis: number | string
+  /** Ready 且可调度节点的可分配内存合计，单位字节。int64 序列化成字符串。 */
+  allocatableMemoryBytes: number | string
+  podTotal: number
+  /** 固定返回 Running、Pending、Succeeded、Failed、Unknown 五行。 */
+  podPhases: KubernetesPodPhaseCount[]
+  /** 固定返回 Deployment、StatefulSet、DaemonSet 三行。 */
+  workloads: KubernetesWorkloadSummary[]
+  jobTotal: number
+  jobActive: number
+  jobFailed: number
+  serviceTotal: number
+  ingressTotal: number
+  /** 缺读权限的区块：nodes / workloads / pods / jobs / services / ingresses。 */
+  deniedSections: string[]
+  /** 查询失败的区块，取值同上。 */
+  failedSections: string[]
+  /** 服务端完成时间，Unix 秒。int64 序列化成字符串。 */
+  generatedAt: number | string
+}
+
+/** 指标汇总状态。 */
+export type ClusterMetricsStatus = "UNBOUND" | "OK" | "PARTIAL" | "FAILED"
+
+/**
+ * 集群指标汇总。UNBOUND 表示未绑定数据源；FAILED 表示数据源不可用；
+ * PARTIAL 只用取到的字段并列出 unavailableMetrics。未取到的字段不返回。
+ */
+export interface ClusterMetricsSummary {
+  status: ClusterMetricsStatus | string
+  nodeCpuUsagePercent?: number
+  nodeMemoryUsagePercent?: number
+  podCpuUsageCores?: number
+  podMemoryUsageBytes?: number
+  /** 没有取到的指标 key。 */
+  unavailableMetrics: string[]
+  /** 非 OK 时的说明。 */
+  message: string
+}
+
+/** Kubernetes 对象条件。 */
+export interface KubernetesConditionItem {
+  type: string
+  status: string
+  reason: string
+  message: string
+  /** 最近一次状态变更时间，Unix 秒。int64 序列化成字符串。 */
+  lastTransitionAt: number | string
+}
+
+/** 节点污点。 */
+export interface KubernetesTaintItem {
+  key: string
+  value: string
+  effect: string
+}
+
+/** 资源相关的最近事件。 */
+export interface KubernetesEventItem {
+  /** Normal 或 Warning。 */
+  type: string
+  reason: string
+  message: string
+  count: number
+  source: string
+  /** 首次出现时间，Unix 秒。 */
+  firstSeenAt: number | string
+  /** 最近出现时间，Unix 秒。 */
+  lastSeenAt: number | string
+}
+
+/** 容器状态：RUNNING、WAITING 或 TERMINATED。 */
+export interface KubernetesContainerStatusItem {
+  name: string
+  image: string
+  ready: boolean
+  restarts: number
+  state: string
+  stateReason: string
+  stateMessage: string
+  /** 启动时间，Unix 秒；未启动为 0。 */
+  startedAt: number | string
+  /** 声明端口，形如 8080/TCP。 */
+  ports: string[]
+}
+
+/** Pod 存储卷；Secret / ConfigMap 只返回名称。 */
+export interface KubernetesVolumeItem {
+  name: string
+  type: string
+  readOnly: boolean
+  summary: string
+}
+
+/** 资源归属。 */
+export interface KubernetesOwnerReferenceItem {
+  kind: string
+  name: string
+  uid: string
+  controller: boolean
+}
+
+/** 副本状态汇总。 */
+export interface KubernetesReplicaStatus {
+  desired: number
+  current: number
+  ready: number
+  updated: number
+  available: number
+  unavailable: number
+}
+
+/** 节点详情。 */
+export interface GetKubernetesNodeDetailResult {
+  node: KubernetesNodeDetailItem
+}
+
+export interface KubernetesNodeDetailItem {
+  node: KubernetesNodeItem
+  conditions: KubernetesConditionItem[]
+  taints: KubernetesTaintItem[]
+  /** 键为 cpu、memory、pods、ephemeral-storage 及扩展资源。 */
+  capacity: Record<string, string>
+  allocatable: Record<string, string>
+  /** 最近事件，按最后发生时间倒序，最多 20 条。 */
+  events: KubernetesEventItem[]
+  /** 非致命问题，例如没有事件读取权限。 */
+  warnings: string[]
+}
+
+/** Pod 详情。 */
+export interface GetKubernetesPodDetailResult {
+  pod: KubernetesPodDetailItem
+}
+
+export interface KubernetesPodDetailItem {
+  pod: KubernetesPodItem
+  containers: KubernetesContainerStatusItem[]
+  initContainers: KubernetesContainerStatusItem[]
+  conditions: KubernetesConditionItem[]
+  volumes: KubernetesVolumeItem[]
+  ownerReferences: KubernetesOwnerReferenceItem[]
+  events: KubernetesEventItem[]
+  warnings: string[]
+}
+
+export interface GetKubernetesNodeDetailParams {
+  name: string
+}
+
+export interface GetKubernetesPodDetailParams {
+  namespace: string
+  name: string
 }
