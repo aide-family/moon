@@ -93,6 +93,24 @@ service AlertEventService {
       body: "*"
     };
   }
+  // 认领一条实时告警，记录处理责任人。
+  rpc AckAlertEvent(AckAlertEventRequest) returns (AckAlertEventResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-events/{uid}/ack"
+      body: "*"
+    };
+  }
+  // 取消认领一条实时告警。
+  rpc UnackAlertEvent(UnackAlertEventRequest) returns (UnackAlertEventResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-events/{uid}/unack"
+      body: "*"
+    };
+  }
+  // 按时间正序查询一条事件的处置时间线。
+  rpc ListAlertEventActions(ListAlertEventActionsRequest) returns (ListAlertEventActionsResponse) {
+    option (google.api.http) = {get: "/v1/alert-events/{uid}/actions"};
+  }
 }
 
 // 告警事件。
@@ -145,6 +163,67 @@ message AlertEventItem {
   string level_name = 23 [json_name = "levelName"];
   // 抑制结束时间，RFC3339。未抑制或未设置时长时为空。
   string suppressed_until = 24 [json_name = "suppressedUntil"];
+  // 认领人标识。未认领时为空。
+  string acked_by = 25 [json_name = "ackedBy"];
+  // 认领时间，RFC3339。未认领时为空。
+  string acked_at = 26 [json_name = "ackedAt"];
+  // 认领人展示名。优先昵称，其次姓名，再次邮箱。
+  string acked_name = 27 [json_name = "ackedName"];
+}
+
+// 事件时间线中的一个动作。
+message AlertEventActionItem {
+  // 动作标识。
+  string uid = 1;
+  // 事件标识。
+  string event_uid = 2 [json_name = "eventUid"];
+  // 动作，取值为 FIRING、NOTIFIED、ACKED、UNACKED、INTERVENED、SUPPRESSED、
+  // MAINTENANCE、RECOVERED 或 RECOVERED_BY_MANUAL。
+  string action = 3;
+  // 操作者标识；系统动作为空。
+  string actor_uid = 4 [json_name = "actorUid"];
+  // 操作者展示名。
+  string actor_name = 5 [json_name = "actorName"];
+  // 可读说明。
+  string detail = 6;
+  // 动作时间，RFC3339。
+  string created_at = 7 [json_name = "createdAt"];
+}
+
+// 认领告警请求。
+message AckAlertEventRequest {
+  // 告警标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 认领告警响应。
+message AckAlertEventResponse {
+  // 认领后的事件。
+  AlertEventItem event = 1;
+}
+
+// 取消认领告警请求。
+message UnackAlertEventRequest {
+  // 告警标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 取消认领告警响应。
+message UnackAlertEventResponse {
+  // 取消认领后的事件。
+  AlertEventItem event = 1;
+}
+
+// 查询事件时间线请求。
+message ListAlertEventActionsRequest {
+  // 告警标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 事件时间线响应，按时间正序。
+message ListAlertEventActionsResponse {
+  // 时间线动作。
+  repeated AlertEventActionItem items = 1;
 }
 
 // 告警分页查询。

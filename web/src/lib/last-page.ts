@@ -12,6 +12,7 @@ const storagePrefix = "lastPath:"
 // 否则新页面不会被记住，已删除页面的旧记录还会被当成有效路径。
 const knownPaths = new Set([
   "/overview",
+  "/boards",
   "/profile",
   "/forbidden",
   "/namespaces",
@@ -46,6 +47,7 @@ const knownPaths = new Set([
 
 // 带 uid 的详情页无法穷举，用模式匹配。
 const knownPatterns = [
+  /^\/boards\/[^/]+$/,
   /^\/clusters\/[^/]+$/,
   /^\/tenants\/[^/]+\/orders$/,
   /^\/agents\/[^/]+\/shell$/,

@@ -16,6 +16,8 @@ export function useListQuery() {
   const type = params.get("type") || ""
   const app = params.get("app") || ""
   const reviewStatus = params.get("reviewStatus") || ""
+  // 大盘按状态筛选；其他列表页不使用这个键，保留在 URL 里也无副作用。
+  const status = params.get("status") || ""
 
   function update(next: {
     page?: number
@@ -23,6 +25,7 @@ export function useListQuery() {
     type?: string
     app?: string
     reviewStatus?: string
+    status?: string
   }) {
     const query = new URLSearchParams(params)
     if (next.page !== undefined) {
@@ -60,9 +63,17 @@ export function useListQuery() {
       }
       query.set("page", "1")
     }
+    if (next.status !== undefined) {
+      if (next.status) {
+        query.set("status", next.status)
+      } else {
+        query.delete("status")
+      }
+      query.set("page", "1")
+    }
     query.set("pageSize", String(pageSize))
     setParams(query)
   }
 
-  return { page, pageSize, name, type, app, reviewStatus, update }
+  return { page, pageSize, name, type, app, reviewStatus, status, update }
 }

@@ -18,6 +18,7 @@ import {
   Mail,
   MessageSquare,
   Package,
+  PanelsTopLeft,
   ReceiptText,
   Server,
   Settings,
@@ -497,6 +498,14 @@ function ShellFrame() {
     permission: "alert_realtime:read",
     capability: MENU_CAPABILITIES["/overview"],
   })
+  // 大盘只有一个菜单，作为一级入口放在概览之后，不再套二级分组。
+  const boardActive =
+    location.pathname === "/boards" ||
+    location.pathname.startsWith("/boards/")
+  const canBoard = tenantVisible({
+    permission: "board:read",
+    capability: MENU_CAPABILITIES["/boards"],
+  })
   const token = localStorage.getItem("token")
   if (!token) {
     return <Navigate to="/login" replace />
@@ -581,6 +590,21 @@ function ShellFrame() {
                         <NavLink to="/overview">
                           <LayoutDashboard />
                           <span>{t("nav.overview")}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ) : null}
+                  {canBoard ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={boardActive}
+                        tooltip={t("nav.boards")}
+                        className="border-l-2 border-transparent data-active:border-primary"
+                      >
+                        <NavLink to="/boards">
+                          <PanelsTopLeft />
+                          <span>{t("nav.boards")}</span>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

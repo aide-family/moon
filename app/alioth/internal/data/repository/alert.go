@@ -79,6 +79,12 @@ type AlertEventRepo interface {
 	ListEventUIDsForUser(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]string, error)
 	GetEvent(ctx context.Context, namespaceUID, uid string) (*bo.AlertEvent, error)
 	Intervene(ctx context.Context, namespaceUID string, uids []string, userUID string) error
+	// AckEvent 认领一条 FIRING 事件；同一用户重复认领是幂等操作。
+	AckEvent(ctx context.Context, namespaceUID, uid, userUID string) (*bo.AlertEvent, error)
+	// UnackEvent 取消认领一条 FIRING 事件。
+	UnackEvent(ctx context.Context, namespaceUID, uid, userUID string) (*bo.AlertEvent, error)
+	// ListEventActions 按时间正序返回一条事件的处置时间线。
+	ListEventActions(ctx context.Context, namespaceUID, eventUID string) ([]bo.AlertEventAction, error)
 	// Suppress 抑制一条实时告警。until 为空表示永久抑制，不设到期时间。
 	Suppress(ctx context.Context, namespaceUID, uid string, until *time.Time) error
 	RecoverManual(ctx context.Context, namespaceUID string, uids []string) error

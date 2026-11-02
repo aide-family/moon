@@ -304,6 +304,40 @@ func (_u *AlertEventUpdate) ClearIntervenedAt() *AlertEventUpdate {
 	return _u
 }
 
+// SetAckedBy sets the "acked_by" field.
+func (_u *AlertEventUpdate) SetAckedBy(v string) *AlertEventUpdate {
+	_u.mutation.SetAckedBy(v)
+	return _u
+}
+
+// SetNillableAckedBy sets the "acked_by" field if the given value is not nil.
+func (_u *AlertEventUpdate) SetNillableAckedBy(v *string) *AlertEventUpdate {
+	if v != nil {
+		_u.SetAckedBy(*v)
+	}
+	return _u
+}
+
+// SetAckedAt sets the "acked_at" field.
+func (_u *AlertEventUpdate) SetAckedAt(v time.Time) *AlertEventUpdate {
+	_u.mutation.SetAckedAt(v)
+	return _u
+}
+
+// SetNillableAckedAt sets the "acked_at" field if the given value is not nil.
+func (_u *AlertEventUpdate) SetNillableAckedAt(v *time.Time) *AlertEventUpdate {
+	if v != nil {
+		_u.SetAckedAt(*v)
+	}
+	return _u
+}
+
+// ClearAckedAt clears the value of the "acked_at" field.
+func (_u *AlertEventUpdate) ClearAckedAt() *AlertEventUpdate {
+	_u.mutation.ClearAckedAt()
+	return _u
+}
+
 // Mutation returns the AlertEventMutation object of the builder.
 func (_u *AlertEventUpdate) Mutation() *AlertEventMutation {
 	return _u.mutation
@@ -442,6 +476,15 @@ func (_u *AlertEventUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if _u.mutation.IntervenedAtCleared() {
 		_spec.ClearField(alertevent.FieldIntervenedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.AckedBy(); ok {
+		_spec.SetField(alertevent.FieldAckedBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AckedAt(); ok {
+		_spec.SetField(alertevent.FieldAckedAt, field.TypeTime, value)
+	}
+	if _u.mutation.AckedAtCleared() {
+		_spec.ClearField(alertevent.FieldAckedAt, field.TypeTime)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -739,6 +782,40 @@ func (_u *AlertEventUpdateOne) ClearIntervenedAt() *AlertEventUpdateOne {
 	return _u
 }
 
+// SetAckedBy sets the "acked_by" field.
+func (_u *AlertEventUpdateOne) SetAckedBy(v string) *AlertEventUpdateOne {
+	_u.mutation.SetAckedBy(v)
+	return _u
+}
+
+// SetNillableAckedBy sets the "acked_by" field if the given value is not nil.
+func (_u *AlertEventUpdateOne) SetNillableAckedBy(v *string) *AlertEventUpdateOne {
+	if v != nil {
+		_u.SetAckedBy(*v)
+	}
+	return _u
+}
+
+// SetAckedAt sets the "acked_at" field.
+func (_u *AlertEventUpdateOne) SetAckedAt(v time.Time) *AlertEventUpdateOne {
+	_u.mutation.SetAckedAt(v)
+	return _u
+}
+
+// SetNillableAckedAt sets the "acked_at" field if the given value is not nil.
+func (_u *AlertEventUpdateOne) SetNillableAckedAt(v *time.Time) *AlertEventUpdateOne {
+	if v != nil {
+		_u.SetAckedAt(*v)
+	}
+	return _u
+}
+
+// ClearAckedAt clears the value of the "acked_at" field.
+func (_u *AlertEventUpdateOne) ClearAckedAt() *AlertEventUpdateOne {
+	_u.mutation.ClearAckedAt()
+	return _u
+}
+
 // Mutation returns the AlertEventMutation object of the builder.
 func (_u *AlertEventUpdateOne) Mutation() *AlertEventMutation {
 	return _u.mutation
@@ -907,6 +984,15 @@ func (_u *AlertEventUpdateOne) sqlSave(ctx context.Context) (_node *AlertEvent, 
 	}
 	if _u.mutation.IntervenedAtCleared() {
 		_spec.ClearField(alertevent.FieldIntervenedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.AckedBy(); ok {
+		_spec.SetField(alertevent.FieldAckedBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AckedAt(); ok {
+		_spec.SetField(alertevent.FieldAckedAt, field.TypeTime, value)
+	}
+	if _u.mutation.AckedAtCleared() {
+		_spec.ClearField(alertevent.FieldAckedAt, field.TypeTime)
 	}
 	_node = &AlertEvent{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -556,3 +556,41 @@ func (coordinator *Coordinator) requireMegrez(ctx context.Context) error {
 	}
 	return nil
 }
+
+// Ack 认领一条实时告警。认领只记录责任人，不改变事件状态。
+func (coordinator *Coordinator) Ack(ctx context.Context, uid string) (*bo.AlertEvent, error) {
+	ns, err := coordinator.access.Allow(ctx, perm.AlertRealtimeIntervene)
+	if err != nil {
+		return nil, err
+	}
+	userUID, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("missing token")
+	}
+	item, err := coordinator.events.AckEvent(ctx, ns, uid, userUID)
+	return item, coordinator.access.Wrap(err)
+}
+
+// Unack 取消认领一条实时告警。
+func (coordinator *Coordinator) Unack(ctx context.Context, uid string) (*bo.AlertEvent, error) {
+	ns, err := coordinator.access.Allow(ctx, perm.AlertRealtimeIntervene)
+	if err != nil {
+		return nil, err
+	}
+	userUID, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("missing token")
+	}
+	item, err := coordinator.events.UnackEvent(ctx, ns, uid, userUID)
+	return item, coordinator.access.Wrap(err)
+}
+
+// Actions 返回一条事件的处置时间线；实时与历史告警的读权限都可以查看。
+func (coordinator *Coordinator) Actions(ctx context.Context, uid string) ([]bo.AlertEventAction, error) {
+	ns, err := coordinator.access.AllowAny(ctx, perm.AlertRealtimeRead, perm.AlertHistoryRead)
+	if err != nil {
+		return nil, err
+	}
+	items, err := coordinator.events.ListEventActions(ctx, ns, uid)
+	return items, coordinator.access.Wrap(err)
+}

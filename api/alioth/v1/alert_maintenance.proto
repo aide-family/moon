@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 维护窗口：计划维护期间按标签、级别、数据源与规则静默匹配的告警，
+// 不生成通知任务；窗口结束后抑制自动到期。
+service AlertMaintenanceService {
+  // 创建维护窗口。
+  rpc CreateAlertMaintenanceWindow(CreateAlertMaintenanceWindowRequest) returns (CreateAlertMaintenanceWindowResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-maintenance-window"
+      body: "*"
+    };
+  }
+  // 更新维护窗口。
+  rpc UpdateAlertMaintenanceWindow(UpdateAlertMaintenanceWindowRequest) returns (UpdateAlertMaintenanceWindowResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-maintenance-window/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用维护窗口。停用后立即解除由它设置的抑制。
+  rpc UpdateAlertMaintenanceWindowStatus(UpdateAlertMaintenanceWindowStatusRequest) returns (UpdateAlertMaintenanceWindowStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-maintenance-window/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除维护窗口，并解除由它设置的抑制。
+  rpc DeleteAlertMaintenanceWindow(DeleteAlertMaintenanceWindowRequest) returns (DeleteAlertMaintenanceWindowResponse) {
+    option (google.api.http) = {delete: "/v1/alert-maintenance-window/{uid}"};
+  }
+  // 获取维护窗口详情。
+  rpc GetAlertMaintenanceWindow(GetAlertMaintenanceWindowRequest) returns (GetAlertMaintenanceWindowResponse) {
+    option (google.api.http) = {get: "/v1/alert-maintenance-window/{uid}"};
+  }
+  // 分页列出维护窗口。
+  rpc ListAlertMaintenanceWindows(ListAlertMaintenanceWindowsRequest) returns (ListAlertMaintenanceWindowsResponse) {
+    option (google.api.http) = {get: "/v1/alert-maintenance-windows"};
+  }
+}
+
+// 维护窗口。
+message AlertMaintenanceWindowItem {
+  // 标识。
+  string uid = 1;
+  // 名称，租户内唯一。
+  string name = 2;
+  // 描述。
+  string description = 3;
+  // 标签匹配器 JSON：键到完整匹配正则。空对象表示不限制。
+  string labels = 4;
+  // 告警级别标识。为空表示不限制。
+  repeated string level_uids = 5 [json_name = "levelUids"];
+  // 数据源标识。为空表示不限制。
+  repeated string datasource_uids = 6 [json_name = "datasourceUids"];
+  // 规则标识。为空表示不限制。
+  repeated string rule_uids = 7 [json_name = "ruleUids"];
+  // 生效开始时间，RFC3339。
+  string starts_at = 8 [json_name = "startsAt"];
+  // 生效结束时间，RFC3339。
+  string ends_at = 9 [json_name = "endsAt"];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 10;
+  // 创建时间，RFC3339。
+  string created_at = 11 [json_name = "createdAt"];
+  // 更新时间，RFC3339。
+  string updated_at = 12 [json_name = "updatedAt"];
+  // 创建人标识。
+  string created_by = 13 [json_name = "createdBy"];
+}
+
+// 创建维护窗口请求。
+message CreateAlertMaintenanceWindowRequest {
+  // 名称，租户内唯一。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 描述。
+  string description = 2 [(buf.validate.field).string = {max_len: 1024}];
+  // 标签匹配器 JSON。
+  string labels = 3 [(buf.validate.field).string = {max_len: 4096}];
+  // 告警级别标识。
+  repeated string level_uids = 4 [json_name = "levelUids"];
+  // 数据源标识。
+  repeated string datasource_uids = 5 [json_name = "datasourceUids"];
+  // 规则标识。
+  repeated string rule_uids = 6 [json_name = "ruleUids"];
+  // 生效开始时间，RFC3339。
+  string starts_at = 7 [json_name = "startsAt", (buf.validate.field).string.min_len = 1];
+  // 生效结束时间，RFC3339，必须晚于开始时间。
+  string ends_at = 8 [json_name = "endsAt", (buf.validate.field).string.min_len = 1];
+}
+
+// 创建维护窗口响应。
+message CreateAlertMaintenanceWindowResponse {
+  // 创建后的维护窗口。
+  AlertMaintenanceWindowItem window = 1;
+}
+
+// 更新维护窗口请求。
+message UpdateAlertMaintenanceWindowRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称，租户内唯一。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 描述。
+  string description = 3 [(buf.validate.field).string = {max_len: 1024}];
+  // 标签匹配器 JSON。
+  string labels = 4 [(buf.validate.field).string = {max_len: 4096}];
+  // 告警级别标识。
+  repeated string level_uids = 5 [json_name = "levelUids"];
+  // 数据源标识。
+  repeated string datasource_uids = 6 [json_name = "datasourceUids"];
+  // 规则标识。
+  repeated string rule_uids = 7 [json_name = "ruleUids"];
+  // 生效开始时间，RFC3339。
+  string starts_at = 8 [json_name = "startsAt", (buf.validate.field).string.min_len = 1];
+  // 生效结束时间，RFC3339。
+  string ends_at = 9 [json_name = "endsAt", (buf.validate.field).string.min_len = 1];
+}
+
+// 更新维护窗口响应。
+message UpdateAlertMaintenanceWindowResponse {
+  // 更新后的维护窗口。
+  AlertMaintenanceWindowItem window = 1;
+}
+
+// 启停维护窗口请求。
+message UpdateAlertMaintenanceWindowStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 目标状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 启停维护窗口响应。
+message UpdateAlertMaintenanceWindowStatusResponse {
+  // 更新后的维护窗口。
+  AlertMaintenanceWindowItem window = 1;
+}
+
+// 删除维护窗口请求。
+message DeleteAlertMaintenanceWindowRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除维护窗口响应。
+message DeleteAlertMaintenanceWindowResponse {}
+
+// 获取维护窗口请求。
+message GetAlertMaintenanceWindowRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取维护窗口响应。
+message GetAlertMaintenanceWindowResponse {
+  // 维护窗口。
+  AlertMaintenanceWindowItem window = 1;
+}
+
+// 列出维护窗口请求。
+message ListAlertMaintenanceWindowsRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  // 每页数量。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 1, lte: 100}];
+  // 名称模糊搜索，可空。
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+  // 状态过滤，取值为 ACTIVE 或 DISABLED，留空表示不限制。
+  string status = 4 [(buf.validate.field).string = {in: ["", "ACTIVE", "DISABLED"]}];
+}
+
+// 列出维护窗口响应。
+message ListAlertMaintenanceWindowsResponse {
+  // 当前页的维护窗口。
+  repeated AlertMaintenanceWindowItem items = 1;
+  // 总数量。
+  int32 total = 2;
+  // 当前页码。
+  int32 page = 3;
+  // 每页数量。
+  int32 page_size = 4 [json_name = "pageSize"];
+}

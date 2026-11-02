@@ -11,6 +11,11 @@ const (
 	RoleWrite  = "role:write"
 	RoleDelete = "role:delete"
 
+	// 大盘是把 Grafana 面板链接组合成整板的展示配置，按读写删拆分权限。
+	BoardRead   = "board:read"
+	BoardWrite  = "board:write"
+	BoardDelete = "board:delete"
+
 	NamespaceRead     = "namespace:read"
 	NamespaceWrite    = "namespace:write"
 	NamespaceDelete   = "namespace:delete"
@@ -37,6 +42,11 @@ const (
 	AlertPageRead          = "alert_page:read"
 	AlertPageWrite         = "alert_page:write"
 	AlertPageDelete        = "alert_page:delete"
+
+	// 维护窗口是告警模块下的独立菜单：计划维护期间静默匹配的告警。
+	AlertMaintenanceRead   = "alert_maintenance:read"
+	AlertMaintenanceWrite  = "alert_maintenance:write"
+	AlertMaintenanceDelete = "alert_maintenance:delete"
 
 	AlertDictionaryRead   = "alert_dictionary:read"
 	AlertDictionaryWrite  = "alert_dictionary:write"

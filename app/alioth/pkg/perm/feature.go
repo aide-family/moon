@@ -15,6 +15,7 @@ const (
 	FeatureNotification = "notification"
 	FeatureMember       = "member"
 	FeatureRole         = "role"
+	FeatureBoard        = "board"
 	FeatureCluster      = "cluster"
 	FeatureAgent        = "agent"
 	FeatureSSH          = "ssh"
@@ -30,7 +31,7 @@ type Feature struct {
 }
 
 // featureOrder 是功能的展示顺序，也是 EffectiveFeatures 的返回顺序。
-// 基础套餐按这个顺序取前七个：告警链路与租户日常管理，不含 Kubernetes、机器和 SSH。
+// 基础套餐覆盖这里的前八个模块：告警链路、租户日常管理与大盘，不含 Kubernetes、机器和 SSH。
 var featureOrder = []string{
 	FeatureAlert,
 	FeatureAlertRule,
@@ -39,6 +40,7 @@ var featureOrder = []string{
 	FeatureNotification,
 	FeatureMember,
 	FeatureRole,
+	FeatureBoard,
 	FeatureCluster,
 	FeatureAgent,
 	FeatureSSH,
@@ -57,6 +59,7 @@ var featureInfos = map[string]featureInfo{
 	FeatureNotification: {name: "通知", description: "配置通知渠道、模板、通知组与订阅。"},
 	FeatureMember:       {name: "成员", description: "邀请、移除成员并分配角色。"},
 	FeatureRole:         {name: "角色", description: "管理租户角色和角色权限。"},
+	FeatureBoard:        {name: "大盘", description: "把 Grafana 面板组合成值班大盘。"},
 	FeatureCluster:      {name: "Kubernetes", description: "接入 Kubernetes 集群并使用资源级控制台。"},
 	FeatureAgent:        {name: "机器", description: "管理边缘机器和 Agent 状态。"},
 	FeatureSSH:          {name: "SSH 与 Web Shell", description: "使用 SSH 命令和 Web Shell。"},
@@ -91,7 +94,7 @@ func featureForResource(resource string) string {
 		return FeatureCluster
 	}
 	switch resource {
-	case "alert":
+	case "alert", "alert_maintenance":
 		return FeatureAlert
 	case "alert_rule":
 		return FeatureAlertRule
@@ -105,6 +108,8 @@ func featureForResource(resource string) string {
 		return FeatureMember
 	case "role":
 		return FeatureRole
+	case "board":
+		return FeatureBoard
 	case "cluster":
 		return FeatureCluster
 	case "agent":
@@ -154,7 +159,7 @@ func IsFeature(code string) bool {
 	return ok
 }
 
-// BaseFeatures 返回基础套餐的功能：告警、探测、数据源、通知和租户日常管理。
+// BaseFeatures 返回基础套餐的功能：告警、探测、数据源、通知、大盘和租户日常管理。
 // 新租户默认使用基础套餐，Kubernetes、机器和 SSH 由超级管理员另行开通。
 func BaseFeatures() []string {
 	return []string{
@@ -165,6 +170,7 @@ func BaseFeatures() []string {
 		FeatureNotification,
 		FeatureMember,
 		FeatureRole,
+		FeatureBoard,
 	}
 }
 

@@ -266,6 +266,34 @@ func (_c *AlertEventCreate) SetNillableIntervenedAt(v *time.Time) *AlertEventCre
 	return _c
 }
 
+// SetAckedBy sets the "acked_by" field.
+func (_c *AlertEventCreate) SetAckedBy(v string) *AlertEventCreate {
+	_c.mutation.SetAckedBy(v)
+	return _c
+}
+
+// SetNillableAckedBy sets the "acked_by" field if the given value is not nil.
+func (_c *AlertEventCreate) SetNillableAckedBy(v *string) *AlertEventCreate {
+	if v != nil {
+		_c.SetAckedBy(*v)
+	}
+	return _c
+}
+
+// SetAckedAt sets the "acked_at" field.
+func (_c *AlertEventCreate) SetAckedAt(v time.Time) *AlertEventCreate {
+	_c.mutation.SetAckedAt(v)
+	return _c
+}
+
+// SetNillableAckedAt sets the "acked_at" field if the given value is not nil.
+func (_c *AlertEventCreate) SetNillableAckedAt(v *time.Time) *AlertEventCreate {
+	if v != nil {
+		_c.SetAckedAt(*v)
+	}
+	return _c
+}
+
 // Mutation returns the AlertEventMutation object of the builder.
 func (_c *AlertEventCreate) Mutation() *AlertEventMutation {
 	return _c.mutation
@@ -349,6 +377,10 @@ func (_c *AlertEventCreate) defaults() {
 		v := alertevent.DefaultIntervenedBy
 		_c.mutation.SetIntervenedBy(v)
 	}
+	if _, ok := _c.mutation.AckedBy(); !ok {
+		v := alertevent.DefaultAckedBy
+		_c.mutation.SetAckedBy(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -426,6 +458,9 @@ func (_c *AlertEventCreate) check() error {
 	}
 	if _, ok := _c.mutation.IntervenedBy(); !ok {
 		return &ValidationError{Name: "intervened_by", err: errors.New(`ent: missing required field "AlertEvent.intervened_by"`)}
+	}
+	if _, ok := _c.mutation.AckedBy(); !ok {
+		return &ValidationError{Name: "acked_by", err: errors.New(`ent: missing required field "AlertEvent.acked_by"`)}
 	}
 	return nil
 }
@@ -536,6 +571,14 @@ func (_c *AlertEventCreate) createSpec() (*AlertEvent, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IntervenedAt(); ok {
 		_spec.SetField(alertevent.FieldIntervenedAt, field.TypeTime, value)
 		_node.IntervenedAt = &value
+	}
+	if value, ok := _c.mutation.AckedBy(); ok {
+		_spec.SetField(alertevent.FieldAckedBy, field.TypeString, value)
+		_node.AckedBy = value
+	}
+	if value, ok := _c.mutation.AckedAt(); ok {
+		_spec.SetField(alertevent.FieldAckedAt, field.TypeTime, value)
+		_node.AckedAt = &value
 	}
 	return _node, _spec
 }

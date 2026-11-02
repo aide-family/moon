@@ -59,6 +59,10 @@ type AlertEvent struct {
 	IntervenedBy string `json:"intervened_by,omitempty"`
 	// IntervenedAt holds the value of the "intervened_at" field.
 	IntervenedAt *time.Time `json:"intervened_at,omitempty"`
+	// AckedBy holds the value of the "acked_by" field.
+	AckedBy string `json:"acked_by,omitempty"`
+	// AckedAt holds the value of the "acked_at" field.
+	AckedAt      *time.Time `json:"acked_at,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -71,9 +75,9 @@ func (*AlertEvent) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case alertevent.FieldID:
 			values[i] = new(sql.NullInt64)
-		case alertevent.FieldUID, alertevent.FieldNamespaceUID, alertevent.FieldRuleUID, alertevent.FieldDatasourceUID, alertevent.FieldFingerprint, alertevent.FieldStatus, alertevent.FieldExpr, alertevent.FieldLabels, alertevent.FieldSummary, alertevent.FieldDescription, alertevent.FieldSampleValue, alertevent.FieldLevelUID, alertevent.FieldIntervenedBy:
+		case alertevent.FieldUID, alertevent.FieldNamespaceUID, alertevent.FieldRuleUID, alertevent.FieldDatasourceUID, alertevent.FieldFingerprint, alertevent.FieldStatus, alertevent.FieldExpr, alertevent.FieldLabels, alertevent.FieldSummary, alertevent.FieldDescription, alertevent.FieldSampleValue, alertevent.FieldLevelUID, alertevent.FieldIntervenedBy, alertevent.FieldAckedBy:
 			values[i] = new(sql.NullString)
-		case alertevent.FieldCreatedAt, alertevent.FieldUpdatedAt, alertevent.FieldStartsAt, alertevent.FieldEndsAt, alertevent.FieldEvalSlot, alertevent.FieldSuppressedUntil, alertevent.FieldIntervenedAt:
+		case alertevent.FieldCreatedAt, alertevent.FieldUpdatedAt, alertevent.FieldStartsAt, alertevent.FieldEndsAt, alertevent.FieldEvalSlot, alertevent.FieldSuppressedUntil, alertevent.FieldIntervenedAt, alertevent.FieldAckedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -225,6 +229,19 @@ func (_m *AlertEvent) assignValues(columns []string, values []any) error {
 				_m.IntervenedAt = new(time.Time)
 				*_m.IntervenedAt = value.Time
 			}
+		case alertevent.FieldAckedBy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field acked_by", values[i])
+			} else if value.Valid {
+				_m.AckedBy = value.String
+			}
+		case alertevent.FieldAckedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field acked_at", values[i])
+			} else if value.Valid {
+				_m.AckedAt = new(time.Time)
+				*_m.AckedAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -327,6 +344,14 @@ func (_m *AlertEvent) String() string {
 	builder.WriteString(", ")
 	if v := _m.IntervenedAt; v != nil {
 		builder.WriteString("intervened_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("acked_by=")
+	builder.WriteString(_m.AckedBy)
+	builder.WriteString(", ")
+	if v := _m.AckedAt; v != nil {
+		builder.WriteString("acked_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteByte(')')

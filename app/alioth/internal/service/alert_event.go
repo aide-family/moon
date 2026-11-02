@@ -305,6 +305,10 @@ func eventItem(item bo.AlertEvent) *v1.AlertEventItem {
 	if item.SuppressedUntil != nil {
 		suppressedUntil = item.SuppressedUntil.UTC().Format(time.RFC3339Nano)
 	}
+	ackedAt := ""
+	if item.AckedAt != nil {
+		ackedAt = item.AckedAt.UTC().Format(time.RFC3339Nano)
+	}
 	return &v1.AlertEventItem{
 		Uid: item.UID, RuleUid: item.RuleUID, RuleName: item.RuleName, RuleGroupUid: item.RuleGroupUID,
 		DatasourceUid: item.DatasourceUID, DatasourceName: item.DatasourceName, Fingerprint: item.Fingerprint,
@@ -313,8 +317,41 @@ func eventItem(item bo.AlertEvent) *v1.AlertEventItem {
 		EndsAt: ends, EvalSlot: item.EvalSlot.UTC().Format(time.RFC3339Nano), Suppressed: item.Suppressed,
 		SuppressedUntil: suppressedUntil,
 		IntervenedBy:    item.IntervenedBy, IntervenedName: item.IntervenedName, IntervenedAt: intervenedAt,
+		AckedBy: item.AckedBy, AckedName: item.AckedName, AckedAt: ackedAt,
 		CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano),
 	}
+}
+
+func (s *AlertEventService) AckAlertEvent(ctx context.Context, req *v1.AckAlertEventRequest) (*v1.AckAlertEventResponse, error) {
+	item, err := s.coordinator.Ack(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AckAlertEventResponse{Event: eventItem(*item)}, nil
+}
+
+func (s *AlertEventService) UnackAlertEvent(ctx context.Context, req *v1.UnackAlertEventRequest) (*v1.UnackAlertEventResponse, error) {
+	item, err := s.coordinator.Unack(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UnackAlertEventResponse{Event: eventItem(*item)}, nil
+}
+
+func (s *AlertEventService) ListAlertEventActions(ctx context.Context, req *v1.ListAlertEventActionsRequest) (*v1.ListAlertEventActionsResponse, error) {
+	items, err := s.coordinator.Actions(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.AlertEventActionItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.AlertEventActionItem{
+			Uid: item.UID, EventUid: item.EventUID, Action: item.Action,
+			ActorUid: item.ActorUID, ActorName: item.ActorName, Detail: item.Detail,
+			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano),
+		})
+	}
+	return &v1.ListAlertEventActionsResponse{Items: out}, nil
 }
 
 func parseSlot(value string) (time.Time, error) {

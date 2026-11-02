@@ -9,13 +9,17 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventaction"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventcolumn"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerthistoryevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertmaintenancewindow"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/board"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/boardpanel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
@@ -266,6 +270,53 @@ func init() {
 	alerteventDescIntervenedBy := alerteventFields[17].Descriptor()
 	// alertevent.DefaultIntervenedBy holds the default value on creation for the intervened_by field.
 	alertevent.DefaultIntervenedBy = alerteventDescIntervenedBy.Default.(string)
+	// alerteventDescAckedBy is the schema descriptor for acked_by field.
+	alerteventDescAckedBy := alerteventFields[19].Descriptor()
+	// alertevent.DefaultAckedBy holds the default value on creation for the acked_by field.
+	alertevent.DefaultAckedBy = alerteventDescAckedBy.Default.(string)
+	alerteventactionMixin := schema.AlertEventAction{}.Mixin()
+	alerteventactionMixinFields0 := alerteventactionMixin[0].Fields()
+	_ = alerteventactionMixinFields0
+	alerteventactionFields := schema.AlertEventAction{}.Fields()
+	_ = alerteventactionFields
+	// alerteventactionDescCreatedAt is the schema descriptor for created_at field.
+	alerteventactionDescCreatedAt := alerteventactionMixinFields0[0].Descriptor()
+	// alerteventaction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alerteventaction.DefaultCreatedAt = alerteventactionDescCreatedAt.Default.(func() time.Time)
+	// alerteventactionDescUpdatedAt is the schema descriptor for updated_at field.
+	alerteventactionDescUpdatedAt := alerteventactionMixinFields0[1].Descriptor()
+	// alerteventaction.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alerteventaction.DefaultUpdatedAt = alerteventactionDescUpdatedAt.Default.(func() time.Time)
+	// alerteventaction.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alerteventaction.UpdateDefaultUpdatedAt = alerteventactionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alerteventactionDescUID is the schema descriptor for uid field.
+	alerteventactionDescUID := alerteventactionFields[0].Descriptor()
+	// alerteventaction.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alerteventaction.UIDValidator = alerteventactionDescUID.Validators[0].(func(string) error)
+	// alerteventactionDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alerteventactionDescNamespaceUID := alerteventactionFields[1].Descriptor()
+	// alerteventaction.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alerteventaction.NamespaceUIDValidator = alerteventactionDescNamespaceUID.Validators[0].(func(string) error)
+	// alerteventactionDescEventUID is the schema descriptor for event_uid field.
+	alerteventactionDescEventUID := alerteventactionFields[2].Descriptor()
+	// alerteventaction.EventUIDValidator is a validator for the "event_uid" field. It is called by the builders before save.
+	alerteventaction.EventUIDValidator = alerteventactionDescEventUID.Validators[0].(func(string) error)
+	// alerteventactionDescAction is the schema descriptor for action field.
+	alerteventactionDescAction := alerteventactionFields[3].Descriptor()
+	// alerteventaction.ActionValidator is a validator for the "action" field. It is called by the builders before save.
+	alerteventaction.ActionValidator = alerteventactionDescAction.Validators[0].(func(string) error)
+	// alerteventactionDescActorUID is the schema descriptor for actor_uid field.
+	alerteventactionDescActorUID := alerteventactionFields[4].Descriptor()
+	// alerteventaction.DefaultActorUID holds the default value on creation for the actor_uid field.
+	alerteventaction.DefaultActorUID = alerteventactionDescActorUID.Default.(string)
+	// alerteventactionDescActorName is the schema descriptor for actor_name field.
+	alerteventactionDescActorName := alerteventactionFields[5].Descriptor()
+	// alerteventaction.DefaultActorName holds the default value on creation for the actor_name field.
+	alerteventaction.DefaultActorName = alerteventactionDescActorName.Default.(string)
+	// alerteventactionDescDetail is the schema descriptor for detail field.
+	alerteventactionDescDetail := alerteventactionFields[6].Descriptor()
+	// alerteventaction.DefaultDetail holds the default value on creation for the detail field.
+	alerteventaction.DefaultDetail = alerteventactionDescDetail.Default.(string)
 	alerteventcolumnMixin := schema.AlertEventColumn{}.Mixin()
 	alerteventcolumnMixinFields0 := alerteventcolumnMixin[0].Fields()
 	_ = alerteventcolumnMixinFields0
@@ -354,6 +405,45 @@ func init() {
 	alerthistoryeventDescTableName := alerthistoryeventFields[4].Descriptor()
 	// alerthistoryevent.TableNameValidator is a validator for the "table_name" field. It is called by the builders before save.
 	alerthistoryevent.TableNameValidator = alerthistoryeventDescTableName.Validators[0].(func(string) error)
+	alertmaintenancewindowMixin := schema.AlertMaintenanceWindow{}.Mixin()
+	alertmaintenancewindowMixinFields0 := alertmaintenancewindowMixin[0].Fields()
+	_ = alertmaintenancewindowMixinFields0
+	alertmaintenancewindowFields := schema.AlertMaintenanceWindow{}.Fields()
+	_ = alertmaintenancewindowFields
+	// alertmaintenancewindowDescCreatedAt is the schema descriptor for created_at field.
+	alertmaintenancewindowDescCreatedAt := alertmaintenancewindowMixinFields0[0].Descriptor()
+	// alertmaintenancewindow.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertmaintenancewindow.DefaultCreatedAt = alertmaintenancewindowDescCreatedAt.Default.(func() time.Time)
+	// alertmaintenancewindowDescUpdatedAt is the schema descriptor for updated_at field.
+	alertmaintenancewindowDescUpdatedAt := alertmaintenancewindowMixinFields0[1].Descriptor()
+	// alertmaintenancewindow.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertmaintenancewindow.DefaultUpdatedAt = alertmaintenancewindowDescUpdatedAt.Default.(func() time.Time)
+	// alertmaintenancewindow.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertmaintenancewindow.UpdateDefaultUpdatedAt = alertmaintenancewindowDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertmaintenancewindowDescUID is the schema descriptor for uid field.
+	alertmaintenancewindowDescUID := alertmaintenancewindowFields[0].Descriptor()
+	// alertmaintenancewindow.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertmaintenancewindow.UIDValidator = alertmaintenancewindowDescUID.Validators[0].(func(string) error)
+	// alertmaintenancewindowDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertmaintenancewindowDescNamespaceUID := alertmaintenancewindowFields[1].Descriptor()
+	// alertmaintenancewindow.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertmaintenancewindow.NamespaceUIDValidator = alertmaintenancewindowDescNamespaceUID.Validators[0].(func(string) error)
+	// alertmaintenancewindowDescName is the schema descriptor for name field.
+	alertmaintenancewindowDescName := alertmaintenancewindowFields[2].Descriptor()
+	// alertmaintenancewindow.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	alertmaintenancewindow.NameValidator = alertmaintenancewindowDescName.Validators[0].(func(string) error)
+	// alertmaintenancewindowDescDescription is the schema descriptor for description field.
+	alertmaintenancewindowDescDescription := alertmaintenancewindowFields[3].Descriptor()
+	// alertmaintenancewindow.DefaultDescription holds the default value on creation for the description field.
+	alertmaintenancewindow.DefaultDescription = alertmaintenancewindowDescDescription.Default.(string)
+	// alertmaintenancewindowDescMatcher is the schema descriptor for matcher field.
+	alertmaintenancewindowDescMatcher := alertmaintenancewindowFields[4].Descriptor()
+	// alertmaintenancewindow.DefaultMatcher holds the default value on creation for the matcher field.
+	alertmaintenancewindow.DefaultMatcher = alertmaintenancewindowDescMatcher.Default.(string)
+	// alertmaintenancewindowDescCreatedBy is the schema descriptor for created_by field.
+	alertmaintenancewindowDescCreatedBy := alertmaintenancewindowFields[8].Descriptor()
+	// alertmaintenancewindow.DefaultCreatedBy holds the default value on creation for the created_by field.
+	alertmaintenancewindow.DefaultCreatedBy = alertmaintenancewindowDescCreatedBy.Default.(string)
 	alertpageMixin := schema.AlertPage{}.Mixin()
 	alertpageMixinFields0 := alertpageMixin[0].Fields()
 	_ = alertpageMixinFields0
@@ -534,6 +624,96 @@ func init() {
 	alertrulelevelDescLevelUID := alertrulelevelFields[7].Descriptor()
 	// alertrulelevel.LevelUIDValidator is a validator for the "level_uid" field. It is called by the builders before save.
 	alertrulelevel.LevelUIDValidator = alertrulelevelDescLevelUID.Validators[0].(func(string) error)
+	boardMixin := schema.Board{}.Mixin()
+	boardMixinFields0 := boardMixin[0].Fields()
+	_ = boardMixinFields0
+	boardFields := schema.Board{}.Fields()
+	_ = boardFields
+	// boardDescCreatedAt is the schema descriptor for created_at field.
+	boardDescCreatedAt := boardMixinFields0[0].Descriptor()
+	// board.DefaultCreatedAt holds the default value on creation for the created_at field.
+	board.DefaultCreatedAt = boardDescCreatedAt.Default.(func() time.Time)
+	// boardDescUpdatedAt is the schema descriptor for updated_at field.
+	boardDescUpdatedAt := boardMixinFields0[1].Descriptor()
+	// board.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	board.DefaultUpdatedAt = boardDescUpdatedAt.Default.(func() time.Time)
+	// board.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	board.UpdateDefaultUpdatedAt = boardDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// boardDescUID is the schema descriptor for uid field.
+	boardDescUID := boardFields[0].Descriptor()
+	// board.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	board.UIDValidator = boardDescUID.Validators[0].(func(string) error)
+	// boardDescNamespaceUID is the schema descriptor for namespace_uid field.
+	boardDescNamespaceUID := boardFields[1].Descriptor()
+	// board.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	board.NamespaceUIDValidator = boardDescNamespaceUID.Validators[0].(func(string) error)
+	// boardDescName is the schema descriptor for name field.
+	boardDescName := boardFields[2].Descriptor()
+	// board.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	board.NameValidator = boardDescName.Validators[0].(func(string) error)
+	// boardDescDescription is the schema descriptor for description field.
+	boardDescDescription := boardFields[3].Descriptor()
+	// board.DefaultDescription holds the default value on creation for the description field.
+	board.DefaultDescription = boardDescDescription.Default.(string)
+	// boardDescCreatedBy is the schema descriptor for created_by field.
+	boardDescCreatedBy := boardFields[5].Descriptor()
+	// board.DefaultCreatedBy holds the default value on creation for the created_by field.
+	board.DefaultCreatedBy = boardDescCreatedBy.Default.(string)
+	boardpanelMixin := schema.BoardPanel{}.Mixin()
+	boardpanelMixinFields0 := boardpanelMixin[0].Fields()
+	_ = boardpanelMixinFields0
+	boardpanelFields := schema.BoardPanel{}.Fields()
+	_ = boardpanelFields
+	// boardpanelDescCreatedAt is the schema descriptor for created_at field.
+	boardpanelDescCreatedAt := boardpanelMixinFields0[0].Descriptor()
+	// boardpanel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	boardpanel.DefaultCreatedAt = boardpanelDescCreatedAt.Default.(func() time.Time)
+	// boardpanelDescUpdatedAt is the schema descriptor for updated_at field.
+	boardpanelDescUpdatedAt := boardpanelMixinFields0[1].Descriptor()
+	// boardpanel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	boardpanel.DefaultUpdatedAt = boardpanelDescUpdatedAt.Default.(func() time.Time)
+	// boardpanel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	boardpanel.UpdateDefaultUpdatedAt = boardpanelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// boardpanelDescUID is the schema descriptor for uid field.
+	boardpanelDescUID := boardpanelFields[0].Descriptor()
+	// boardpanel.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	boardpanel.UIDValidator = boardpanelDescUID.Validators[0].(func(string) error)
+	// boardpanelDescNamespaceUID is the schema descriptor for namespace_uid field.
+	boardpanelDescNamespaceUID := boardpanelFields[1].Descriptor()
+	// boardpanel.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	boardpanel.NamespaceUIDValidator = boardpanelDescNamespaceUID.Validators[0].(func(string) error)
+	// boardpanelDescBoardUID is the schema descriptor for board_uid field.
+	boardpanelDescBoardUID := boardpanelFields[2].Descriptor()
+	// boardpanel.BoardUIDValidator is a validator for the "board_uid" field. It is called by the builders before save.
+	boardpanel.BoardUIDValidator = boardpanelDescBoardUID.Validators[0].(func(string) error)
+	// boardpanelDescTitle is the schema descriptor for title field.
+	boardpanelDescTitle := boardpanelFields[3].Descriptor()
+	// boardpanel.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	boardpanel.TitleValidator = boardpanelDescTitle.Validators[0].(func(string) error)
+	// boardpanelDescDescription is the schema descriptor for description field.
+	boardpanelDescDescription := boardpanelFields[4].Descriptor()
+	// boardpanel.DefaultDescription holds the default value on creation for the description field.
+	boardpanel.DefaultDescription = boardpanelDescDescription.Default.(string)
+	// boardpanelDescGrafanaURL is the schema descriptor for grafana_url field.
+	boardpanelDescGrafanaURL := boardpanelFields[5].Descriptor()
+	// boardpanel.GrafanaURLValidator is a validator for the "grafana_url" field. It is called by the builders before save.
+	boardpanel.GrafanaURLValidator = boardpanelDescGrafanaURL.Validators[0].(func(string) error)
+	// boardpanelDescWidth is the schema descriptor for width field.
+	boardpanelDescWidth := boardpanelFields[6].Descriptor()
+	// boardpanel.DefaultWidth holds the default value on creation for the width field.
+	boardpanel.DefaultWidth = boardpanelDescWidth.Default.(int)
+	// boardpanel.WidthValidator is a validator for the "width" field. It is called by the builders before save.
+	boardpanel.WidthValidator = boardpanelDescWidth.Validators[0].(func(int) error)
+	// boardpanelDescHeight is the schema descriptor for height field.
+	boardpanelDescHeight := boardpanelFields[7].Descriptor()
+	// boardpanel.DefaultHeight holds the default value on creation for the height field.
+	boardpanel.DefaultHeight = boardpanelDescHeight.Default.(int)
+	// boardpanel.HeightValidator is a validator for the "height" field. It is called by the builders before save.
+	boardpanel.HeightValidator = boardpanelDescHeight.Validators[0].(func(int) error)
+	// boardpanelDescSort is the schema descriptor for sort field.
+	boardpanelDescSort := boardpanelFields[8].Descriptor()
+	// boardpanel.DefaultSort holds the default value on creation for the sort field.
+	boardpanel.DefaultSort = boardpanelDescSort.Default.(int)
 	captchaMixin := schema.Captcha{}.Mixin()
 	captchaMixinFields0 := captchaMixin[0].Fields()
 	_ = captchaMixinFields0

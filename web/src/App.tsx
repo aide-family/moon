@@ -9,6 +9,8 @@ import { AlertRealtimePage } from "@/pages/alert"
 import { AlertDictionaryPage } from "@/pages/alert-dictionary"
 import { AlertPageManagePage } from "@/pages/alert-page"
 import { AlertRulePage } from "@/pages/alert-rule"
+import { BoardPage } from "@/pages/boards"
+import { BoardViewPage } from "@/pages/boards/view"
 import { ClusterPage } from "@/pages/cluster"
 import { ClusterDetailPage } from "@/pages/cluster/detail"
 import { PodExecPage } from "@/pages/cluster/pod-exec"
@@ -55,6 +57,8 @@ export function App() {
         {/* 登录后的着陆页：没有租户去租户页，否则回放上次访问的页面。 */}
         <Route path="/" element={<LandingRedirect />} />
         <Route path="/overview" element={<OverviewPage />} />
+        <Route path="/boards" element={<BoardPage />} />
+        <Route path="/boards/:uid" element={<BoardViewPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/forbidden" element={<ForbiddenPage />} />
         <Route path="/namespaces" element={<NamespacePage />} />

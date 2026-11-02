@@ -229,6 +229,19 @@ const messageKeys: Record<string, string> = {
   "base package cannot be deleted": "packageAdmin.baseNotDeletable",
   "package is in use": "packageAdmin.packageInUse",
   "invalid feature": "packageAdmin.invalidFeature",
+  // 大盘：名称、面板与 Grafana 地址的后端原文，避免中文界面直接露英文。
+  "invalid board name": "board.errors.nameInvalid",
+  "description is too long": "board.errors.descriptionTooLong",
+  "too many panels": "board.errors.panelsTooMany",
+  "invalid panel title": "board.errors.panelTitleRequired",
+  "panel description is too long": "board.errors.panelDescriptionTooLong",
+  "grafana url is too long": "board.form.urlIssue.tooLong",
+  "invalid grafana url": "board.form.urlIssue.invalid",
+  "grafana url must not contain credentials": "board.form.urlIssue.credentials",
+  "invalid panel width": "board.errors.widthInvalid",
+  "invalid panel height": "board.errors.heightInvalid",
+  "invalid status": "board.errors.statusInvalid",
+  "panel not found": "board.errors.panelNotFound",
 }
 
 // 服务端错误带 reason（CLIENT / INVALID / CONFLICT 等）。message 没有具体映射时用它兜底，

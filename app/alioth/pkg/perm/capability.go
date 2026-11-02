@@ -11,11 +11,12 @@ import (
 //
 // 套餐与租户差异都只存能力编码；模块由能力反推，不单独落表。
 const (
-	CapabilityAlertRealtime   = "alert_realtime"
-	CapabilityAlertHistory    = "alert_history"
-	CapabilityAlertPage       = "alert_page"
-	CapabilityAlertRule       = "alert_rule"
-	CapabilityAlertDictionary = "alert_dictionary"
+	CapabilityAlertRealtime    = "alert_realtime"
+	CapabilityAlertHistory     = "alert_history"
+	CapabilityAlertPage        = "alert_page"
+	CapabilityAlertRule        = "alert_rule"
+	CapabilityAlertDictionary  = "alert_dictionary"
+	CapabilityAlertMaintenance = "alert_maintenance"
 	// 探测目标按驱动细分：HTTP / TCP / ICMP / DNS / TLS 各自对应一个能力，
 	// 套餐可以只买其中几种，未实现的类型不会出现在目录里。
 	CapabilityProbeHTTP = "probe_http"
@@ -49,6 +50,7 @@ const (
 	CapabilityMessageLog                   = "message_log"
 	CapabilityMember                       = "member"
 	CapabilityRole                         = "role"
+	CapabilityBoard                        = "board"
 	// Kubernetes 能力细到具体操作：一个操作一个能力、一个权限，套餐可以只开通「设置镜像」
 	// 而不开通「回滚」，也可以只开通 Pod 日志而不开通 Pod 终端。
 	CapabilityClusterAccess       = "cluster_access"
@@ -112,6 +114,11 @@ var capabilitySpecs = []Capability{
 		Code: CapabilityAlertRule, Module: FeatureAlertRule, Name: "告警规则",
 		Description: "管理告警规则、规则组与告警级别。",
 		Permissions: []string{AlertRuleRead, AlertRuleWrite, AlertRuleDelete},
+	},
+	{
+		Code: CapabilityAlertMaintenance, Module: FeatureAlert, Name: "维护窗口",
+		Description: "计划维护期间静默匹配的告警，不生成通知任务。",
+		Permissions: []string{AlertMaintenanceRead, AlertMaintenanceWrite, AlertMaintenanceDelete},
 	},
 	{
 		Code: CapabilityAlertDictionary, Module: FeatureAlertRule, Name: "告警字典",
@@ -242,6 +249,11 @@ var capabilitySpecs = []Capability{
 		Code: CapabilityRole, Module: FeatureRole, Name: "角色",
 		Description: "管理租户角色和角色权限。",
 		Permissions: []string{RoleRead, RoleWrite, RoleDelete},
+	},
+	{
+		Code: CapabilityBoard, Module: FeatureBoard, Name: "大盘",
+		Description: "把 Grafana 面板链接组合成整块大盘。",
+		Permissions: []string{BoardRead, BoardWrite, BoardDelete},
 	},
 	{
 		Code: CapabilityClusterAccess, Module: FeatureCluster, Name: "集群接入",
@@ -592,7 +604,7 @@ func BaseCapabilities() []string {
 	for _, code := range BaseFeatures() {
 		modules[code] = struct{}{}
 	}
-	codes := make([]string, 0, 30)
+	codes := make([]string, 0, 31)
 	for _, item := range capabilitySpecs {
 		if _, ok := modules[item.Module]; ok {
 			codes = append(codes, item.Code)

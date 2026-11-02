@@ -1,11 +1,11 @@
 // 能力目录（套餐 / 租户功能授权 / 菜单可见性）。
 //
-// 能力 code 与后端 perm.Capabilities() 的 57 项定义保持一致；GET /v1/system/features
+// 能力 code 与后端 perm.Capabilities() 的 58 项定义保持一致；GET /v1/system/features
 // 返回的是同一份目录（code/module/name/description/permissions）。页面用这里的
 // 双语标签，不直接用接口里的 name/description，这样切到 en 时中文名也不会消失，
 // 后端没部署新接口时也能先用本地目录渲染勾选框。
 //
-// 目录分两级：MODULES 是所属菜单模块（10 个），CAPABILITIES 是具体能力（57 个）。
+// 目录分两级：MODULES 是所属菜单模块（11 个），CAPABILITIES 是具体能力（58 个）。
 // 新增 / 删除能力时同步：后端 perm.Capabilities()、本文件、i18n 里的菜单文案。
 
 export type LocalizedLabel = { zh: string; en: string }
@@ -23,7 +23,7 @@ export type CapabilityDefinition = {
   description: LocalizedLabel
 }
 
-/** 模块顺序：告警 → 探测 → 通知 → 租户 → Kubernetes → 边缘。 */
+/** 模块顺序：告警 → 探测 → 通知 → 租户 → 大盘 → Kubernetes → 边缘。 */
 export const MODULES: ModuleDefinition[] = [
   { code: "alert", label: { zh: "告警", en: "Alerts" } },
   { code: "alert_rule", label: { zh: "告警规则", en: "Alert rules" } },
@@ -32,6 +32,7 @@ export const MODULES: ModuleDefinition[] = [
   { code: "notification", label: { zh: "通知", en: "Notifications" } },
   { code: "member", label: { zh: "成员", en: "Members" } },
   { code: "role", label: { zh: "角色", en: "Roles" } },
+  { code: "board", label: { zh: "大盘", en: "Boards" } },
   { code: "cluster", label: { zh: "Kubernetes", en: "Kubernetes" } },
   { code: "agent", label: { zh: "机器", en: "Machines" } },
   { code: "ssh", label: { zh: "SSH 与 Web Shell", en: "SSH & web shell" } },
@@ -39,8 +40,8 @@ export const MODULES: ModuleDefinition[] = [
 
 /**
  * 能力目录：顺序与后端 perm.Capabilities() 一致。
- * 基础套餐 = 前 7 个模块（alert / alert_rule / probe / datasource /
- * notification / member / role）的全部能力，共 30 项。
+ * 基础套餐 = 前 8 个模块（alert / alert_rule / probe / datasource /
+ * notification / member / role / board）的全部能力，共 31 项。
  */
 export const CAPABILITIES: CapabilityDefinition[] = [
   {
@@ -314,6 +315,15 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     },
   },
   {
+    code: "board",
+    module: "board",
+    label: { zh: "大盘", en: "Boards" },
+    description: {
+      zh: "把 Grafana 面板链接组合成整块大盘",
+      en: "Combine Grafana panel links into a single board",
+    },
+  },
+  {
     code: "cluster_access",
     module: "cluster",
     label: { zh: "集群接入", en: "Cluster access" },
@@ -537,7 +547,7 @@ export const CAPABILITIES: CapabilityDefinition[] = [
   },
 ]
 
-/** 基础套餐包含的模块：前 7 个模块的全部能力（数据源、探测、通知渠道按类型/应用展开后共 30 项）。 */
+/** 基础套餐包含的模块：前 8 个模块的全部能力（数据源、探测、通知渠道按类型/应用展开后共 31 项）。 */
 export const BASE_MODULES = [
   "alert",
   "alert_rule",
@@ -546,6 +556,7 @@ export const BASE_MODULES = [
   "notification",
   "member",
   "role",
+  "board",
 ] as const
 
 /** 基础套餐包含的能力，和后端 BaseFeatures() 一致。 */
@@ -575,6 +586,7 @@ export const MENU_CAPABILITIES: Record<string, string> = {
   "/message-logs": "message_log",
   "/members": "member",
   "/roles": "role",
+  "/boards": "board",
   "/clusters": "cluster_access",
   "/agents": "agent",
   "/ssh-commands": "ssh_command",
@@ -596,6 +608,7 @@ export const MENU_LABELS: Record<string, LocalizedLabel> = {
   },
   notification_oncall: { zh: "OnCall 值班", en: "On-call" },
   message_log: { zh: "消息日志", en: "Message logs" },
+  board: { zh: "大盘", en: "Boards" },
   namespace: { zh: "租户设置", en: "Namespace settings" },
   agent: { zh: "机器", en: "Machines" },
   // Kubernetes 菜单按资源配置，能力按操作拆分后菜单码不再等于能力码，需要显式标签。

@@ -156,6 +156,8 @@ var (
 		{Name: "suppressed_until", Type: field.TypeTime, Nullable: true},
 		{Name: "intervened_by", Type: field.TypeString, Default: ""},
 		{Name: "intervened_at", Type: field.TypeTime, Nullable: true},
+		{Name: "acked_by", Type: field.TypeString, Default: ""},
+		{Name: "acked_at", Type: field.TypeTime, Nullable: true},
 	}
 	// AlertEventsTable holds the schema information for the "alert_events" table.
 	AlertEventsTable = &schema.Table{
@@ -182,6 +184,42 @@ var (
 				Name:    "alertevent_fingerprint",
 				Unique:  false,
 				Columns: []*schema.Column{AlertEventsColumns[7]},
+			},
+		},
+	}
+	// AlertEventActionsColumns holds the columns for the "alert_event_actions" table.
+	AlertEventActionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "event_uid", Type: field.TypeString},
+		{Name: "action", Type: field.TypeString},
+		{Name: "actor_uid", Type: field.TypeString, Default: ""},
+		{Name: "actor_name", Type: field.TypeString, Default: ""},
+		{Name: "detail", Type: field.TypeString, Default: ""},
+	}
+	// AlertEventActionsTable holds the schema information for the "alert_event_actions" table.
+	AlertEventActionsTable = &schema.Table{
+		Name:       "alert_event_actions",
+		Columns:    AlertEventActionsColumns,
+		PrimaryKey: []*schema.Column{AlertEventActionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alerteventaction_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEventActionsColumns[3]},
+			},
+			{
+				Name:    "alerteventaction_event_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventActionsColumns[5], AlertEventActionsColumns[1]},
+			},
+			{
+				Name:    "alerteventaction_namespace_uid_event_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventActionsColumns[4], AlertEventActionsColumns[5]},
 			},
 		},
 	}
@@ -277,6 +315,48 @@ var (
 				Name:    "alerthistoryevent_namespace_uid_week_start",
 				Unique:  false,
 				Columns: []*schema.Column{AlertHistoryEventsColumns[4], AlertHistoryEventsColumns[8]},
+			},
+		},
+	}
+	// AlertMaintenanceWindowsColumns holds the columns for the "alert_maintenance_windows" table.
+	AlertMaintenanceWindowsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "matcher", Type: field.TypeString, Default: "{}"},
+		{Name: "starts_at", Type: field.TypeTime},
+		{Name: "ends_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+	}
+	// AlertMaintenanceWindowsTable holds the schema information for the "alert_maintenance_windows" table.
+	AlertMaintenanceWindowsTable = &schema.Table{
+		Name:       "alert_maintenance_windows",
+		Columns:    AlertMaintenanceWindowsColumns,
+		PrimaryKey: []*schema.Column{AlertMaintenanceWindowsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertmaintenancewindow_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertMaintenanceWindowsColumns[4]},
+			},
+			{
+				Name:    "alertmaintenancewindow_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{AlertMaintenanceWindowsColumns[5], AlertMaintenanceWindowsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "alertmaintenancewindow_namespace_uid_status_starts_at",
+				Unique:  false,
+				Columns: []*schema.Column{AlertMaintenanceWindowsColumns[5], AlertMaintenanceWindowsColumns[11], AlertMaintenanceWindowsColumns[9]},
 			},
 		},
 	}
@@ -453,6 +533,87 @@ var (
 				Name:    "alertrulelevel_namespace_uid",
 				Unique:  false,
 				Columns: []*schema.Column{AlertRuleLevelsColumns[5]},
+			},
+		},
+	}
+	// BoardsColumns holds the columns for the "boards" table.
+	BoardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+	}
+	// BoardsTable holds the schema information for the "boards" table.
+	BoardsTable = &schema.Table{
+		Name:       "boards",
+		Columns:    BoardsColumns,
+		PrimaryKey: []*schema.Column{BoardsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "board_uid",
+				Unique:  true,
+				Columns: []*schema.Column{BoardsColumns[4]},
+			},
+			{
+				Name:    "board_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{BoardsColumns[5], BoardsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "board_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{BoardsColumns[5], BoardsColumns[8]},
+			},
+		},
+	}
+	// BoardPanelsColumns holds the columns for the "board_panels" table.
+	BoardPanelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "board_uid", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "grafana_url", Type: field.TypeString},
+		{Name: "width", Type: field.TypeInt, Default: 6},
+		{Name: "height", Type: field.TypeInt, Default: 320},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
+	}
+	// BoardPanelsTable holds the schema information for the "board_panels" table.
+	BoardPanelsTable = &schema.Table{
+		Name:       "board_panels",
+		Columns:    BoardPanelsColumns,
+		PrimaryKey: []*schema.Column{BoardPanelsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "boardpanel_uid",
+				Unique:  true,
+				Columns: []*schema.Column{BoardPanelsColumns[4]},
+			},
+			{
+				Name:    "boardpanel_namespace_uid_board_uid",
+				Unique:  false,
+				Columns: []*schema.Column{BoardPanelsColumns[5], BoardPanelsColumns[6]},
+			},
+			{
+				Name:    "boardpanel_board_uid_sort",
+				Unique:  false,
+				Columns: []*schema.Column{BoardPanelsColumns[6], BoardPanelsColumns[12]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
 			},
 		},
 	}
@@ -1932,13 +2093,17 @@ var (
 		AlertDictionariesTable,
 		AlertEvalBatchesTable,
 		AlertEventsTable,
+		AlertEventActionsTable,
 		AlertEventColumnsTable,
 		AlertEventFiringsTable,
 		AlertHistoryEventsTable,
+		AlertMaintenanceWindowsTable,
 		AlertPagesTable,
 		AlertRulesTable,
 		AlertRuleGroupsTable,
 		AlertRuleLevelsTable,
+		BoardsTable,
+		BoardPanelsTable,
 		CaptchasTable,
 		ClustersTable,
 		DatasourcesTable,

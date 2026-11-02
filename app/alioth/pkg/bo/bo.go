@@ -338,7 +338,11 @@ type AlertEvent struct {
 	IntervenedBy    string
 	IntervenedName  string
 	IntervenedAt    *time.Time
-	CreatedAt       time.Time
+	// AckedBy 是认领人；认领不参与状态机，恢复与归档不清除。
+	AckedBy   string
+	AckedName string
+	AckedAt   *time.Time
+	CreatedAt time.Time
 }
 
 // AlertEventChart 是告警事件对应的数据源区间查询。
@@ -877,4 +881,74 @@ type NotifySnapshot struct {
 	Params          string
 	Subject         string
 	Body            string
+}
+
+// Board 是一块大盘：把多个 Grafana 面板链接按布局组合成一个整板。
+type Board struct {
+	UID          string
+	NamespaceUID string
+	Name         string
+	Description  string
+	Status       string
+	CreatedBy    string
+	Panels       []BoardPanel
+	PanelCount   int
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+// BoardPanel 是大盘里的一个 Grafana 面板。Width 是 12 栏栅格中的列数，
+// Height 是像素高度，Sort 决定同一大盘内的展示顺序。
+type BoardPanel struct {
+	UID          string
+	NamespaceUID string
+	BoardUID     string
+	Title        string
+	Description  string
+	GrafanaURL   string
+	Width        int
+	Height       int
+	Sort         int
+}
+
+// BoardListFilter 是大盘列表的查询条件。
+type BoardListFilter struct {
+	Name   string
+	Status string
+}
+
+// AlertEventAction 是告警事件处置时间线中的一个动作。
+type AlertEventAction struct {
+	UID          string
+	NamespaceUID string
+	EventUID     string
+	Action       string
+	ActorUID     string
+	ActorName    string
+	Detail       string
+	CreatedAt    time.Time
+}
+
+// AlertMaintenanceWindowFilter 是维护窗口列表的查询条件。
+type AlertMaintenanceWindowFilter struct {
+	Name   string
+	Status string
+}
+
+// AlertMaintenanceWindow 是一次性维护窗口：窗口内匹配的告警被静默。
+type AlertMaintenanceWindow struct {
+	UID            string
+	NamespaceUID   string
+	Name           string
+	Description    string
+	Labels         string
+	LevelUIDs      []string
+	DatasourceUIDs []string
+	RuleUIDs       []string
+	StartsAt       time.Time
+	EndsAt         time.Time
+	Status         string
+	CreatedBy      string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }

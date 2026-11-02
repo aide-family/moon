@@ -39,6 +39,9 @@ func (AlertEvent) Fields() []ent.Field {
 		field.Time("suppressed_until").Optional().Nillable(),
 		field.String("intervened_by").Default(""),
 		field.Time("intervened_at").Optional().Nillable(),
+		// 认领人。认领记录处理责任人，不参与告警状态机，恢复与归档都不清除。
+		field.String("acked_by").Default(""),
+		field.Time("acked_at").Optional().Nillable(),
 	}
 }
 

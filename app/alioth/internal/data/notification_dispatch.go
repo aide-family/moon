@@ -128,7 +128,17 @@ func dispatchEventNotifications(ctx context.Context, tx *ent.Tx, event notifyEve
 	if err != nil {
 		return err
 	}
-	return createGroupEventTasks(ctx, tx, event, matched.routes, tracker, paramsJSON(event))
+	created, err := createGroupEventTasks(ctx, tx, event, matched.routes, tracker, paramsJSON(event))
+	if err != nil {
+		return err
+	}
+	// 真正生成了投递任务才写时间线，避免重复间隔抑制时误记「已通知」。
+	if created > 0 && event.Phase == "FIRING" {
+		if err := appendEventAction(ctx, tx, event.NamespaceUID, event.EventUID, actionNotified, "", ""); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // collectNotificationRoutes 收集命中的订阅和 OnCall，合并成同一组通知组路由。
@@ -518,7 +528,8 @@ func (tracker *dispatchTracker) contactDelivered(contact string) bool {
 
 // createGroupEventTasks 把命中的通知组展开成渠道目标并写入 PENDING 任务。
 // 路由里 subscription_uid 为空表示该组只由 OnCall 命中。
-func createGroupEventTasks(ctx context.Context, tx *ent.Tx, event notifyEvent, routes []groupRoute, tracker *dispatchTracker, params string) error {
+func createGroupEventTasks(ctx context.Context, tx *ent.Tx, event notifyEvent, routes []groupRoute, tracker *dispatchTracker, params string) (int, error) {
+	created := 0
 	groupUIDs := make([]string, len(routes))
 	subscriptionUIDs := make(map[string]string, len(routes))
 	for i, route := range routes {
@@ -534,7 +545,7 @@ func createGroupEventTasks(ctx context.Context, tx *ent.Tx, event notifyEvent, r
 		notificationgroup.DeletedAtIsNil(),
 	).All(ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	groupsByUID := make(map[string]*ent.NotificationGroup, len(groups))
 	for _, group := range groups {
@@ -550,14 +561,14 @@ func createGroupEventTasks(ctx context.Context, tx *ent.Tx, event notifyEvent, r
 		}
 		targets, err := resolveGroupTargets(ctx, tx, group)
 		if err != nil {
-			return err
+			return created, err
 		}
 		for _, target := range targets {
 			// 同一通知组可能被两套路由命中：先查本事务里已有的任务再写入。
 			// PostgreSQL 里唯一约束冲突会让整个事件事务失效，不能靠捕获错误继续。
 			exists, err := eventTaskExists(ctx, tx, event, group.UID, target.ChannelUID)
 			if err != nil {
-				return err
+				return created, err
 			}
 			if exists {
 				continue
@@ -591,12 +602,13 @@ func createGroupEventTasks(ctx context.Context, tx *ent.Tx, event notifyEvent, r
 				if ent.IsConstraintError(err) {
 					continue
 				}
-				return err
+				return created, err
 			}
 			tracker.markScheduled(target, receivers)
+			created++
 		}
 	}
-	return nil
+	return created, nil
 }
 
 // eventTaskExists 判断同一事件、阶段、通知组和渠道的任务是否已经存在。

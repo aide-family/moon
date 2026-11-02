@@ -36,6 +36,9 @@ const (
 	AlertEventService_SuppressAlertEvent_FullMethodName           = "/alioth.v1.AlertEventService/SuppressAlertEvent"
 	AlertEventService_RecoverAlertEvent_FullMethodName            = "/alioth.v1.AlertEventService/RecoverAlertEvent"
 	AlertEventService_RecoverAlertEvents_FullMethodName           = "/alioth.v1.AlertEventService/RecoverAlertEvents"
+	AlertEventService_AckAlertEvent_FullMethodName                = "/alioth.v1.AlertEventService/AckAlertEvent"
+	AlertEventService_UnackAlertEvent_FullMethodName              = "/alioth.v1.AlertEventService/UnackAlertEvent"
+	AlertEventService_ListAlertEventActions_FullMethodName        = "/alioth.v1.AlertEventService/ListAlertEventActions"
 )
 
 // AlertEventServiceClient is the client API for AlertEventService service.
@@ -79,6 +82,12 @@ type AlertEventServiceClient interface {
 	RecoverAlertEvent(ctx context.Context, in *RecoverAlertEventRequest, opts ...grpc.CallOption) (*RecoverAlertEventResponse, error)
 	// 批量手工恢复实时告警。
 	RecoverAlertEvents(ctx context.Context, in *RecoverAlertEventsRequest, opts ...grpc.CallOption) (*RecoverAlertEventsResponse, error)
+	// 认领一条实时告警，记录处理责任人。
+	AckAlertEvent(ctx context.Context, in *AckAlertEventRequest, opts ...grpc.CallOption) (*AckAlertEventResponse, error)
+	// 取消认领一条实时告警。
+	UnackAlertEvent(ctx context.Context, in *UnackAlertEventRequest, opts ...grpc.CallOption) (*UnackAlertEventResponse, error)
+	// 按时间正序查询一条事件的处置时间线。
+	ListAlertEventActions(ctx context.Context, in *ListAlertEventActionsRequest, opts ...grpc.CallOption) (*ListAlertEventActionsResponse, error)
 }
 
 type alertEventServiceClient struct {
@@ -259,6 +268,36 @@ func (c *alertEventServiceClient) RecoverAlertEvents(ctx context.Context, in *Re
 	return out, nil
 }
 
+func (c *alertEventServiceClient) AckAlertEvent(ctx context.Context, in *AckAlertEventRequest, opts ...grpc.CallOption) (*AckAlertEventResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AckAlertEventResponse)
+	err := c.cc.Invoke(ctx, AlertEventService_AckAlertEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertEventServiceClient) UnackAlertEvent(ctx context.Context, in *UnackAlertEventRequest, opts ...grpc.CallOption) (*UnackAlertEventResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnackAlertEventResponse)
+	err := c.cc.Invoke(ctx, AlertEventService_UnackAlertEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertEventServiceClient) ListAlertEventActions(ctx context.Context, in *ListAlertEventActionsRequest, opts ...grpc.CallOption) (*ListAlertEventActionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAlertEventActionsResponse)
+	err := c.cc.Invoke(ctx, AlertEventService_ListAlertEventActions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlertEventServiceServer is the server API for AlertEventService service.
 // All implementations must embed UnimplementedAlertEventServiceServer
 // for forward compatibility.
@@ -300,6 +339,12 @@ type AlertEventServiceServer interface {
 	RecoverAlertEvent(context.Context, *RecoverAlertEventRequest) (*RecoverAlertEventResponse, error)
 	// 批量手工恢复实时告警。
 	RecoverAlertEvents(context.Context, *RecoverAlertEventsRequest) (*RecoverAlertEventsResponse, error)
+	// 认领一条实时告警，记录处理责任人。
+	AckAlertEvent(context.Context, *AckAlertEventRequest) (*AckAlertEventResponse, error)
+	// 取消认领一条实时告警。
+	UnackAlertEvent(context.Context, *UnackAlertEventRequest) (*UnackAlertEventResponse, error)
+	// 按时间正序查询一条事件的处置时间线。
+	ListAlertEventActions(context.Context, *ListAlertEventActionsRequest) (*ListAlertEventActionsResponse, error)
 	mustEmbedUnimplementedAlertEventServiceServer()
 }
 
@@ -360,6 +405,15 @@ func (UnimplementedAlertEventServiceServer) RecoverAlertEvent(context.Context, *
 }
 func (UnimplementedAlertEventServiceServer) RecoverAlertEvents(context.Context, *RecoverAlertEventsRequest) (*RecoverAlertEventsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RecoverAlertEvents not implemented")
+}
+func (UnimplementedAlertEventServiceServer) AckAlertEvent(context.Context, *AckAlertEventRequest) (*AckAlertEventResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AckAlertEvent not implemented")
+}
+func (UnimplementedAlertEventServiceServer) UnackAlertEvent(context.Context, *UnackAlertEventRequest) (*UnackAlertEventResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnackAlertEvent not implemented")
+}
+func (UnimplementedAlertEventServiceServer) ListAlertEventActions(context.Context, *ListAlertEventActionsRequest) (*ListAlertEventActionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAlertEventActions not implemented")
 }
 func (UnimplementedAlertEventServiceServer) mustEmbedUnimplementedAlertEventServiceServer() {}
 func (UnimplementedAlertEventServiceServer) testEmbeddedByValue()                           {}
@@ -688,6 +742,60 @@ func _AlertEventService_RecoverAlertEvents_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertEventService_AckAlertEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AckAlertEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertEventServiceServer).AckAlertEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertEventService_AckAlertEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertEventServiceServer).AckAlertEvent(ctx, req.(*AckAlertEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AlertEventService_UnackAlertEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnackAlertEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertEventServiceServer).UnackAlertEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertEventService_UnackAlertEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertEventServiceServer).UnackAlertEvent(ctx, req.(*UnackAlertEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AlertEventService_ListAlertEventActions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAlertEventActionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertEventServiceServer).ListAlertEventActions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertEventService_ListAlertEventActions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertEventServiceServer).ListAlertEventActions(ctx, req.(*ListAlertEventActionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AlertEventService_ServiceDesc is the grpc.ServiceDesc for AlertEventService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -762,6 +870,18 @@ var AlertEventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RecoverAlertEvents",
 			Handler:    _AlertEventService_RecoverAlertEvents_Handler,
+		},
+		{
+			MethodName: "AckAlertEvent",
+			Handler:    _AlertEventService_AckAlertEvent_Handler,
+		},
+		{
+			MethodName: "UnackAlertEvent",
+			Handler:    _AlertEventService_UnackAlertEvent_Handler,
+		},
+		{
+			MethodName: "ListAlertEventActions",
+			Handler:    _AlertEventService_ListAlertEventActions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -56,6 +56,10 @@ const (
 	FieldIntervenedBy = "intervened_by"
 	// FieldIntervenedAt holds the string denoting the intervened_at field in the database.
 	FieldIntervenedAt = "intervened_at"
+	// FieldAckedBy holds the string denoting the acked_by field in the database.
+	FieldAckedBy = "acked_by"
+	// FieldAckedAt holds the string denoting the acked_at field in the database.
+	FieldAckedAt = "acked_at"
 	// Table holds the table name of the alertevent in the database.
 	Table = "alert_events"
 )
@@ -84,6 +88,8 @@ var Columns = []string{
 	FieldSuppressedUntil,
 	FieldIntervenedBy,
 	FieldIntervenedAt,
+	FieldAckedBy,
+	FieldAckedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -129,6 +135,8 @@ var (
 	DefaultSuppressed bool
 	// DefaultIntervenedBy holds the default value on creation for the "intervened_by" field.
 	DefaultIntervenedBy string
+	// DefaultAckedBy holds the default value on creation for the "acked_by" field.
+	DefaultAckedBy string
 )
 
 // Status defines the type for the "status" enum field.
@@ -266,4 +274,14 @@ func ByIntervenedBy(opts ...sql.OrderTermOption) OrderOption {
 // ByIntervenedAt orders the results by the intervened_at field.
 func ByIntervenedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIntervenedAt, opts...).ToFunc()
+}
+
+// ByAckedBy orders the results by the acked_by field.
+func ByAckedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAckedBy, opts...).ToFunc()
+}
+
+// ByAckedAt orders the results by the acked_at field.
+func ByAckedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAckedAt, opts...).ToFunc()
 }

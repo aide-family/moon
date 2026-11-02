@@ -42,6 +42,9 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	if err := migrateLegacyNamespaceFeatures(ctx, client, helper); err != nil {
 		return err
 	}
+	if err := compensateBaseTenantCapabilities(ctx, client, helper); err != nil {
+		return err
+	}
 	if err := migratePackageFeatureSnapshots(ctx, client, helper); err != nil {
 		return err
 	}
@@ -145,7 +148,7 @@ func seedNotificationPresets(ctx context.Context, client *ent.Client, helper *sl
 
 const (
 	basePackageName   = "基础套餐"
-	basePackageRemark = "新租户默认能力：告警、告警规则、探测、数据源、通知、成员与角色。"
+	basePackageRemark = "新租户默认能力：告警、告警规则、探测、数据源、通知、成员、角色与大盘。"
 )
 
 // ensureBasePackage 保证基础套餐存在，并且包含全部基础能力。
@@ -288,6 +291,59 @@ func migrateTypedCapabilities(ctx context.Context, client *ent.Client, helper *s
 		}
 		if _, err := client.NamespaceFeature.Delete().Where(namespacefeature.UIDEQ(row.UID)).Exec(ctx); err != nil {
 			return databaseErr(helper, err)
+		}
+	}
+	return nil
+}
+
+// compensateBaseTenantCapabilities 给基础套餐的存量租户补齐当前基础套餐缺少的能力。
+// 存量租户的能力在购买时已经快照，套餐新增能力不会自动扩展；这里只给当前套餐是
+// 基础套餐的未删除租户追加额外能力，自定义套餐由超级管理员显式开通。
+// 只加不减、可重复执行：先查快照与额外能力，已存在就跳过。
+func compensateBaseTenantCapabilities(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	base, err := client.FeaturePackage.Query().
+		Where(featurepackage.IsBase(true), featurepackage.DeletedAtIsNil()).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil
+		}
+		return databaseErr(helper, err)
+	}
+	rows, err := client.Namespace.Query().
+		Where(namespace.PackageUIDEQ(base.UID), namespace.DeletedAtIsNil()).
+		All(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	baseCapabilities := perm.BaseCapabilities()
+	for _, row := range rows {
+		snapshot := capabilityCodesOf(row.PackageFeatures)
+		for _, code := range baseCapabilities {
+			if slices.Contains(snapshot, code) {
+				continue
+			}
+			exists, err := client.NamespaceFeature.Query().
+				Where(
+					namespacefeature.NamespaceUIDEQ(row.UID),
+					namespacefeature.FeatureEQ(code),
+					namespacefeature.Enabled(true),
+				).
+				Exist(ctx)
+			if err != nil {
+				return databaseErr(helper, err)
+			}
+			if exists {
+				continue
+			}
+			if _, err := client.NamespaceFeature.Create().
+				SetUID(id.New()).
+				SetNamespaceUID(row.UID).
+				SetFeature(code).
+				SetEnabled(true).
+				Save(ctx); err != nil {
+				return databaseErr(helper, err)
+			}
 		}
 	}
 	return nil

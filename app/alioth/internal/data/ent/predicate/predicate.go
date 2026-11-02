@@ -18,6 +18,9 @@ type AlertEvalBatch func(*sql.Selector)
 // AlertEvent is the predicate function for alertevent builders.
 type AlertEvent func(*sql.Selector)
 
+// AlertEventAction is the predicate function for alerteventaction builders.
+type AlertEventAction func(*sql.Selector)
+
 // AlertEventColumn is the predicate function for alerteventcolumn builders.
 type AlertEventColumn func(*sql.Selector)
 
@@ -26,6 +29,9 @@ type AlertEventFiring func(*sql.Selector)
 
 // AlertHistoryEvent is the predicate function for alerthistoryevent builders.
 type AlertHistoryEvent func(*sql.Selector)
+
+// AlertMaintenanceWindow is the predicate function for alertmaintenancewindow builders.
+type AlertMaintenanceWindow func(*sql.Selector)
 
 // AlertPage is the predicate function for alertpage builders.
 type AlertPage func(*sql.Selector)
@@ -38,6 +44,12 @@ type AlertRuleGroup func(*sql.Selector)
 
 // AlertRuleLevel is the predicate function for alertrulelevel builders.
 type AlertRuleLevel func(*sql.Selector)
+
+// Board is the predicate function for board builders.
+type Board func(*sql.Selector)
+
+// BoardPanel is the predicate function for boardpanel builders.
+type BoardPanel func(*sql.Selector)
 
 // Captcha is the predicate function for captcha builders.
 type Captcha func(*sql.Selector)

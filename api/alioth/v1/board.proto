@@ -1,0 +1,212 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 大盘服务：把 Grafana 面板链接按标题、描述、宽度与高度组合成一个整板。
+// 只保存展示元数据与链接，浏览器直接嵌入 Grafana，不经控制面代理。
+service BoardService {
+  // 创建大盘，面板随大盘一起保存。
+  rpc CreateBoard(CreateBoardRequest) returns (CreateBoardResponse) {
+    option (google.api.http) = {
+      post: "/v1/board"
+      body: "*"
+    };
+  }
+  // 更新大盘与面板。面板列表整体替换，uid 为空的面板视为新增。
+  rpc UpdateBoard(UpdateBoardRequest) returns (UpdateBoardResponse) {
+    option (google.api.http) = {
+      put: "/v1/board/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用大盘。
+  rpc UpdateBoardStatus(UpdateBoardStatusRequest) returns (UpdateBoardStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/board/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除大盘，同时软删除它下面的全部面板。
+  rpc DeleteBoard(DeleteBoardRequest) returns (DeleteBoardResponse) {
+    option (google.api.http) = {delete: "/v1/board/{uid}"};
+  }
+  // 获取大盘详情，包含全部分件。
+  rpc GetBoard(GetBoardRequest) returns (GetBoardResponse) {
+    option (google.api.http) = {get: "/v1/board/{uid}"};
+  }
+  // 分页列出大盘，不返回面板。
+  rpc ListBoards(ListBoardsRequest) returns (ListBoardsResponse) {
+    option (google.api.http) = {get: "/v1/boards"};
+  }
+}
+
+// 创建或更新时提交的面板参数。
+message BoardPanelInput {
+  // 面板标识。更新时为空表示新增面板。
+  string uid = 1;
+  // 面板标题。
+  string title = 2 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  // 面板描述，可空。
+  string description = 3 [(buf.validate.field).string = {max_len: 1024}];
+  // Grafana 面板或仪表盘的分享 / 嵌入地址，只接受 http 或 https。
+  string grafana_url = 4 [
+    json_name = "grafanaUrl",
+    (buf.validate.field).string = {min_len: 1, max_len: 2048, pattern: "^https?://"}
+  ];
+  // 面板宽度，占 12 栏栅格中的几列。
+  int32 width = 5 [(buf.validate.field).int32 = {gte: 1, lte: 12}];
+  // 面板高度，单位像素。
+  int32 height = 6 [(buf.validate.field).int32 = {gte: 120, lte: 1600}];
+}
+
+// 大盘详情里的面板。
+message BoardPanelItem {
+  // 面板标识。
+  string uid = 1;
+  // 面板标题。
+  string title = 2;
+  // 面板描述。
+  string description = 3;
+  // Grafana 面板或仪表盘的分享 / 嵌入地址。
+  string grafana_url = 4 [json_name = "grafanaUrl"];
+  // 面板宽度，占 12 栏栅格中的几列。
+  int32 width = 5;
+  // 面板高度，单位像素。
+  int32 height = 6;
+  // 展示顺序，从 0 开始，与提交顺序一致。
+  int32 sort = 7;
+}
+
+// 大盘列表项。
+message BoardListItem {
+  // 大盘标识。
+  string uid = 1;
+  // 大盘名称，租户内唯一。
+  string name = 2;
+  // 大盘描述。
+  string description = 3;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 4;
+  // 面板数量。
+  int32 panel_count = 5 [json_name = "panelCount"];
+  // 创建时间，RFC3339。
+  string created_at = 6 [json_name = "createdAt"];
+  // 更新时间，RFC3339。
+  string updated_at = 7 [json_name = "updatedAt"];
+}
+
+// 大盘详情。
+message BoardItem {
+  // 大盘标识。
+  string uid = 1;
+  // 大盘名称，租户内唯一。
+  string name = 2;
+  // 大盘描述。
+  string description = 3;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 4;
+  // 面板列表，按展示顺序返回。
+  repeated BoardPanelItem panels = 5;
+  // 创建时间，RFC3339。
+  string created_at = 6 [json_name = "createdAt"];
+  // 更新时间，RFC3339。
+  string updated_at = 7 [json_name = "updatedAt"];
+}
+
+// 创建大盘请求。
+message CreateBoardRequest {
+  // 大盘名称，租户内唯一。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 大盘描述，可空。
+  string description = 2 [(buf.validate.field).string = {max_len: 1024}];
+  // 面板列表，最多 50 个。
+  repeated BoardPanelInput panels = 3 [(buf.validate.field).repeated = {max_items: 50}];
+}
+
+// 创建大盘响应。
+message CreateBoardResponse {
+  // 创建后的大盘详情。
+  BoardItem board = 1;
+}
+
+// 更新大盘请求。
+message UpdateBoardRequest {
+  // 大盘标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 大盘名称，租户内唯一。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 大盘描述，可空。
+  string description = 3 [(buf.validate.field).string = {max_len: 1024}];
+  // 面板列表，整体替换，最多 50 个。
+  repeated BoardPanelInput panels = 4 [(buf.validate.field).repeated = {max_items: 50}];
+}
+
+// 更新大盘响应。
+message UpdateBoardResponse {
+  // 更新后的大盘详情。
+  BoardItem board = 1;
+}
+
+// 启停大盘请求。
+message UpdateBoardStatusRequest {
+  // 大盘标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 目标状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 启停大盘响应。
+message UpdateBoardStatusResponse {
+  // 更新后的大盘详情。
+  BoardItem board = 1;
+}
+
+// 删除大盘请求。
+message DeleteBoardRequest {
+  // 大盘标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除大盘响应。
+message DeleteBoardResponse {}
+
+// 获取大盘详情请求。
+message GetBoardRequest {
+  // 大盘标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取大盘详情响应。
+message GetBoardResponse {
+  // 大盘详情。
+  BoardItem board = 1;
+}
+
+// 分页列出大盘请求。
+message ListBoardsRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  // 每页数量。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 1, lte: 100}];
+  // 名称模糊搜索，可空。
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+  // 状态过滤，取值为 ACTIVE 或 DISABLED，留空表示不限制。
+  string status = 4 [(buf.validate.field).string = {in: ["", "ACTIVE", "DISABLED"]}];
+}
+
+// 分页列出大盘响应。
+message ListBoardsResponse {
+  // 当前页的大盘。
+  repeated BoardListItem items = 1;
+  // 总数量。
+  int32 total = 2;
+  // 当前页码。
+  int32 page = 3;
+  // 每页数量。
+  int32 page_size = 4 [json_name = "pageSize"];
+}

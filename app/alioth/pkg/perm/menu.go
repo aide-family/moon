@@ -21,6 +21,7 @@ var menuSpecs = []Menu{
 	{Code: "alert_realtime", Group: FeatureAlert, Name: "实时告警", Capabilities: []string{CapabilityAlertRealtime}, Permissions: []string{AlertRealtimeRead, AlertRealtimeIntervene}, DefaultReads: []string{AlertRealtimeRead}},
 	{Code: "alert_history", Group: FeatureAlert, Name: "历史告警", Capabilities: []string{CapabilityAlertHistory}, Permissions: []string{AlertHistoryRead}, DefaultReads: []string{AlertHistoryRead}},
 	{Code: "alert_page", Group: FeatureAlert, Name: "告警页面", Capabilities: []string{CapabilityAlertPage}, Permissions: []string{AlertPageRead, AlertPageWrite, AlertPageDelete}, DefaultReads: []string{AlertPageRead}},
+	{Code: "alert_maintenance", Group: FeatureAlert, Name: "维护窗口", Capabilities: []string{CapabilityAlertMaintenance}, Permissions: []string{AlertMaintenanceRead, AlertMaintenanceWrite, AlertMaintenanceDelete}, DefaultReads: []string{AlertMaintenanceRead}},
 	{Code: "alert_rule", Group: FeatureAlertRule, Name: "告警规则", Capabilities: []string{CapabilityAlertRule}, Permissions: []string{AlertRuleRead, AlertRuleWrite, AlertRuleDelete}, DefaultReads: []string{AlertRuleRead}},
 	{Code: "alert_dictionary", Group: FeatureAlertRule, Name: "告警字典", Capabilities: []string{CapabilityAlertDictionary}, Permissions: []string{AlertDictionaryRead, AlertDictionaryWrite, AlertDictionaryDelete}, DefaultReads: []string{AlertDictionaryRead}},
 	{Code: "probe", Group: FeatureProbe, Name: "探测目标", Capabilities: []string{CapabilityProbeHTTP, CapabilityProbeTCP, CapabilityProbeICMP, CapabilityProbeDNS, CapabilityProbeTLS}, Permissions: []string{ProbeRead, ProbeWrite, ProbeDelete}, DefaultReads: []string{ProbeRead}},
@@ -33,6 +34,7 @@ var menuSpecs = []Menu{
 	{Code: "message_log", Group: FeatureNotification, Name: "消息日志", Capabilities: []string{CapabilityMessageLog}, Permissions: []string{MessageLogRead, MessageLogWrite, MessageLogDelete}, DefaultReads: []string{MessageLogRead}},
 	{Code: "member", Group: FeatureMember, Name: "成员", Capabilities: []string{CapabilityMember}, Permissions: []string{MemberRead, MemberWrite, MemberDelete}, DefaultReads: []string{MemberRead}},
 	{Code: "role", Group: FeatureRole, Name: "角色", Capabilities: []string{CapabilityRole}, Permissions: []string{RoleRead, RoleWrite, RoleDelete}, DefaultReads: []string{RoleRead}},
+	{Code: "board", Group: FeatureBoard, Name: "大盘", Capabilities: []string{CapabilityBoard}, Permissions: []string{BoardRead, BoardWrite, BoardDelete}, DefaultReads: []string{BoardRead}},
 	{Code: "namespace", Group: "tenant", Name: "租户设置", Always: true, Permissions: []string{NamespaceRead, NamespaceWrite, NamespaceDelete, NamespaceTransfer}, DefaultReads: []string{NamespaceRead}},
 	{Code: "cluster_access", Group: FeatureCluster, Name: "集群接入", Capabilities: []string{CapabilityClusterAccess}, Permissions: []string{ClusterRead, ClusterWrite, ClusterDelete}, DefaultReads: []string{ClusterRead}},
 	// Kubernetes 菜单按资源分组，权限按操作拆分：一个菜单由多个操作能力开通。

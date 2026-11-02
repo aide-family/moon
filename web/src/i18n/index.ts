@@ -4,6 +4,7 @@ import { initReactI18next } from "react-i18next"
 const zh = {
   nav: {
     overview: "概览",
+    boards: "大盘",
     profile: "个人资料",
     namespaces: "我的租户",
     orders: "订单",
@@ -38,6 +39,96 @@ const zh = {
     edge: "边缘",
     agents: "机器",
     sshCommands: "SSH 命令",
+  },
+  board: {
+    title: "大盘",
+    description:
+      "把 Grafana 面板按 12 栏栅格组合成一整块大盘，只保存面板链接与布局，不代理 Grafana 数据。",
+    name: "名称",
+    namePlaceholder: "大盘名称",
+    descriptionLabel: "描述",
+    descriptionPlaceholder: "大盘说明（可选）",
+    searchPlaceholder: "搜索大盘名称",
+    status: "状态",
+    allStatus: "全部状态",
+    panelCount: "面板数",
+    updatedAt: "更新时间",
+    viewAction: "查看",
+    empty: "还没有大盘。",
+    emptyHint:
+      "在 Grafana 打开面板，用分享或嵌入地址（路径需包含 /d/、/d-solo/ 或 /public-dashboards/）作为面板地址。",
+    deleteTitle: "删除大盘？",
+    deleteDescription: "删除后大盘和它的全部面板都不再展示，且无法恢复。",
+    form: {
+      createTitle: "新建大盘",
+      editTitle: "编辑大盘",
+      panels: "面板",
+      panelsHint: "共 {{count}} 个面板，最多 {{max}} 个；这里的顺序就是展示顺序。",
+      addPanel: "添加面板",
+      noPanels: "还没有面板。可以先保存空大盘，之后再来添加。",
+      panelIndex: "面板 {{index}}",
+      moveUp: "上移",
+      moveDown: "下移",
+      removePanel: "删除面板",
+      panelTitle: "标题",
+      panelTitlePlaceholder: "面板标题",
+      panelUrl: "Grafana 地址",
+      panelUrlPlaceholder:
+        "https://grafana.example.com/d/uid/board?viewPanel=1",
+      panelDescription: "描述",
+      panelDescriptionPlaceholder: "面板说明（可选）",
+      panelWidth: "宽度（1–12）",
+      panelHeight: "高度（px，120–1600）",
+      urlHint:
+        "支持仪表盘、单个面板和公开面板地址；只接受 http(s)，不能包含账号密码、# 锚点或 Token 类查询参数。",
+      limitsHint:
+        "地址最长 {{url}} 字节；面板标题最长 {{title}} 个字符；高度范围 {{heightMin}}–{{heightMax}} 像素。",
+      urlIssue: {
+        required: "请填写 Grafana 地址",
+        tooLong: "地址最多 2048 字节",
+        invalid: "地址格式不正确",
+        scheme: "只支持 http / https 地址",
+        userinfo: "地址不能包含用户名或密码",
+        fragment: "地址不能包含 # 锚点",
+        path: "地址必须包含 /d/、/d-solo/ 或 /public-dashboards/",
+        credentials: "查询参数不能包含 token、secret、password、api_key 等凭据",
+      },
+    },
+    errors: {
+      nameRequired: "请输入大盘名称",
+      nameTooLong: "名称最多 64 个字符",
+      nameInvalid: "大盘名称不合法",
+      descriptionTooLong: "描述最多 1024 个字符",
+      panelsTooMany: "每个大盘最多 50 个面板",
+      panelTitleRequired: "请输入面板标题",
+      panelTitleTooLong: "面板标题最多 128 个字符",
+      panelDescriptionTooLong: "面板描述最多 1024 个字符",
+      widthInvalid: "宽度需在 1–12 之间",
+      heightInvalid: "高度需在 120–1600 之间",
+      statusInvalid: "状态不合法",
+      panelNotFound: "面板不存在，请刷新后重试",
+    },
+    view: {
+      notFound: "大盘不存在或已被删除。",
+      back: "返回列表",
+      showChrome: "显示标题与描述",
+      refresh: "刷新面板",
+      panelCount: "{{count}} 个面板",
+      untitled: "未命名面板",
+      openOriginal: "打开原图",
+      disabledHint: "大盘已停用，当前仅可查看。",
+      empty: "这个大盘还没有面板。",
+      emptyHint: "编辑大盘并添加 Grafana 面板地址后，即可在这里嵌入展示。",
+    },
+    security: {
+      title: "嵌入前请确认 Grafana 配置",
+      embedding:
+        "Grafana 需开启 allow_embedding = true；Alioth 使用 HTTPS 时不能嵌入 HTTP Grafana（混合内容会被浏览器拦截）。",
+      framing:
+        "Grafana 的 X-Frame-Options 或 CSP frame-ancestors 必须允许 Alioth 的访问来源。",
+      login:
+        "需要登录的 Grafana 建议使用匿名访问或公共 kiosk 面板；跨域 iframe 的加载失败无法被 Alioth 读取。",
+    },
   },
   action: {
     save: "保存",
@@ -3028,6 +3119,7 @@ const zh = {
 const en = {
   nav: {
     overview: "Overview",
+    boards: "Boards",
     profile: "Profile",
     namespaces: "My tenants",
     orders: "Orders",
@@ -3062,6 +3154,100 @@ const en = {
     edge: "Edge",
     agents: "Machines",
     sshCommands: "SSH commands",
+  },
+  board: {
+    title: "Boards",
+    description:
+      "Compose Grafana panels on a 12-column grid. Alioth stores only panel links and layout and never proxies Grafana data.",
+    name: "Name",
+    namePlaceholder: "Board name",
+    descriptionLabel: "Description",
+    descriptionPlaceholder: "Optional board description",
+    searchPlaceholder: "Search boards",
+    status: "Status",
+    allStatus: "All statuses",
+    panelCount: "Panels",
+    updatedAt: "Updated",
+    viewAction: "View",
+    empty: "No boards yet.",
+    emptyHint:
+      "Open a panel in Grafana and use its share or embed URL (the path must contain /d/, /d-solo/, or /public-dashboards/).",
+    deleteTitle: "Delete the board?",
+    deleteDescription:
+      "The board and all of its panels stop rendering and cannot be restored.",
+    form: {
+      createTitle: "New board",
+      editTitle: "Edit board",
+      panels: "Panels",
+      panelsHint: "{{count}} of {{max}} panels; the order here is the display order.",
+      addPanel: "Add panel",
+      noPanels:
+        "No panels yet. You can save an empty board and add panels later.",
+      panelIndex: "Panel {{index}}",
+      moveUp: "Move up",
+      moveDown: "Move down",
+      removePanel: "Remove panel",
+      panelTitle: "Title",
+      panelTitlePlaceholder: "Panel title",
+      panelUrl: "Grafana URL",
+      panelUrlPlaceholder:
+        "https://grafana.example.com/d/uid/board?viewPanel=1",
+      panelDescription: "Description",
+      panelDescriptionPlaceholder: "Optional panel description",
+      panelWidth: "Width (1–12)",
+      panelHeight: "Height (px, 120–1600)",
+      urlHint:
+        "Accepts dashboard, single-panel, and public panel URLs. Only http(s), with no credentials, no # fragment, and no token-like query parameters.",
+      limitsHint:
+        "URL up to {{url}} bytes; panel title up to {{title}} characters; height {{heightMin}}–{{heightMax}} px.",
+      urlIssue: {
+        required: "Enter the Grafana URL",
+        tooLong: "The URL must be 2048 bytes or fewer",
+        invalid: "The URL is not valid",
+        scheme: "Only http and https URLs are supported",
+        userinfo: "The URL must not contain a username or password",
+        fragment: "The URL must not contain a # fragment",
+        path: "The URL must include /d/, /d-solo/, or /public-dashboards/",
+        credentials:
+          "Query parameters must not contain token, secret, password, api_key, or apikey",
+      },
+    },
+    errors: {
+      nameRequired: "Enter a board name",
+      nameTooLong: "The name must be 64 characters or fewer",
+      nameInvalid: "The board name is invalid",
+      descriptionTooLong: "The description must be 1024 characters or fewer",
+      panelsTooMany: "A board can contain at most 50 panels",
+      panelTitleRequired: "Enter a panel title",
+      panelTitleTooLong: "A panel title must be 128 characters or fewer",
+      panelDescriptionTooLong:
+        "A panel description must be 1024 characters or fewer",
+      widthInvalid: "Width must be between 1 and 12",
+      heightInvalid: "Height must be between 120 and 1600",
+      statusInvalid: "Invalid status",
+      panelNotFound: "The panel no longer exists; refresh and try again",
+    },
+    view: {
+      notFound: "The board does not exist or has been deleted.",
+      back: "Back to boards",
+      showChrome: "Show titles and descriptions",
+      refresh: "Refresh panels",
+      panelCount: "{{count}} panels",
+      untitled: "Untitled panel",
+      openOriginal: "Open original",
+      disabledHint: "This board is disabled and is read-only.",
+      empty: "This board has no panels yet.",
+      emptyHint: "Edit the board and add Grafana panel URLs to embed them here.",
+    },
+    security: {
+      title: "Check the Grafana configuration before embedding",
+      embedding:
+        "Grafana must set allow_embedding = true. An HTTPS Alioth cannot embed an HTTP Grafana because browsers block mixed content.",
+      framing:
+        "Grafana's X-Frame-Options or CSP frame-ancestors must allow the Alioth origin.",
+      login:
+        "For a Grafana that requires sign-in, use anonymous access or public kiosk panels. Alioth cannot read cross-origin iframe load failures.",
+    },
   },
   action: {
     save: "Save",

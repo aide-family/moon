@@ -18,13 +18,17 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventaction"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventcolumn"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerthistoryevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertmaintenancewindow"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/board"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/boardpanel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
@@ -76,12 +80,16 @@ type Client struct {
 	AlertEvalBatch *AlertEvalBatchClient
 	// AlertEvent is the client for interacting with the AlertEvent builders.
 	AlertEvent *AlertEventClient
+	// AlertEventAction is the client for interacting with the AlertEventAction builders.
+	AlertEventAction *AlertEventActionClient
 	// AlertEventColumn is the client for interacting with the AlertEventColumn builders.
 	AlertEventColumn *AlertEventColumnClient
 	// AlertEventFiring is the client for interacting with the AlertEventFiring builders.
 	AlertEventFiring *AlertEventFiringClient
 	// AlertHistoryEvent is the client for interacting with the AlertHistoryEvent builders.
 	AlertHistoryEvent *AlertHistoryEventClient
+	// AlertMaintenanceWindow is the client for interacting with the AlertMaintenanceWindow builders.
+	AlertMaintenanceWindow *AlertMaintenanceWindowClient
 	// AlertPage is the client for interacting with the AlertPage builders.
 	AlertPage *AlertPageClient
 	// AlertRule is the client for interacting with the AlertRule builders.
@@ -90,6 +98,10 @@ type Client struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
+	// Board is the client for interacting with the Board builders.
+	Board *BoardClient
+	// BoardPanel is the client for interacting with the BoardPanel builders.
+	BoardPanel *BoardPanelClient
 	// Captcha is the client for interacting with the Captcha builders.
 	Captcha *CaptchaClient
 	// Cluster is the client for interacting with the Cluster builders.
@@ -177,13 +189,17 @@ func (c *Client) init() {
 	c.AlertDictionary = NewAlertDictionaryClient(c.config)
 	c.AlertEvalBatch = NewAlertEvalBatchClient(c.config)
 	c.AlertEvent = NewAlertEventClient(c.config)
+	c.AlertEventAction = NewAlertEventActionClient(c.config)
 	c.AlertEventColumn = NewAlertEventColumnClient(c.config)
 	c.AlertEventFiring = NewAlertEventFiringClient(c.config)
 	c.AlertHistoryEvent = NewAlertHistoryEventClient(c.config)
+	c.AlertMaintenanceWindow = NewAlertMaintenanceWindowClient(c.config)
 	c.AlertPage = NewAlertPageClient(c.config)
 	c.AlertRule = NewAlertRuleClient(c.config)
 	c.AlertRuleGroup = NewAlertRuleGroupClient(c.config)
 	c.AlertRuleLevel = NewAlertRuleLevelClient(c.config)
+	c.Board = NewBoardClient(c.config)
+	c.BoardPanel = NewBoardPanelClient(c.config)
 	c.Captcha = NewCaptchaClient(c.config)
 	c.Cluster = NewClusterClient(c.config)
 	c.Datasource = NewDatasourceClient(c.config)
@@ -316,13 +332,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AlertDictionary:               NewAlertDictionaryClient(cfg),
 		AlertEvalBatch:                NewAlertEvalBatchClient(cfg),
 		AlertEvent:                    NewAlertEventClient(cfg),
+		AlertEventAction:              NewAlertEventActionClient(cfg),
 		AlertEventColumn:              NewAlertEventColumnClient(cfg),
 		AlertEventFiring:              NewAlertEventFiringClient(cfg),
 		AlertHistoryEvent:             NewAlertHistoryEventClient(cfg),
+		AlertMaintenanceWindow:        NewAlertMaintenanceWindowClient(cfg),
 		AlertPage:                     NewAlertPageClient(cfg),
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		Board:                         NewBoardClient(cfg),
+		BoardPanel:                    NewBoardPanelClient(cfg),
 		Captcha:                       NewCaptchaClient(cfg),
 		Cluster:                       NewClusterClient(cfg),
 		Datasource:                    NewDatasourceClient(cfg),
@@ -382,13 +402,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AlertDictionary:               NewAlertDictionaryClient(cfg),
 		AlertEvalBatch:                NewAlertEvalBatchClient(cfg),
 		AlertEvent:                    NewAlertEventClient(cfg),
+		AlertEventAction:              NewAlertEventActionClient(cfg),
 		AlertEventColumn:              NewAlertEventColumnClient(cfg),
 		AlertEventFiring:              NewAlertEventFiringClient(cfg),
 		AlertHistoryEvent:             NewAlertHistoryEventClient(cfg),
+		AlertMaintenanceWindow:        NewAlertMaintenanceWindowClient(cfg),
 		AlertPage:                     NewAlertPageClient(cfg),
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		Board:                         NewBoardClient(cfg),
+		BoardPanel:                    NewBoardPanelClient(cfg),
 		Captcha:                       NewCaptchaClient(cfg),
 		Cluster:                       NewClusterClient(cfg),
 		Datasource:                    NewDatasourceClient(cfg),
@@ -454,9 +478,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
-		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
-		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Cluster, c.Datasource,
+		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction,
+		c.AlertEventColumn, c.AlertEventFiring, c.AlertHistoryEvent,
+		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
+		c.AlertRuleLevel, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
 		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
 		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
 		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
@@ -475,9 +500,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
-		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
-		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Cluster, c.Datasource,
+		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction,
+		c.AlertEventColumn, c.AlertEventFiring, c.AlertHistoryEvent,
+		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
+		c.AlertRuleLevel, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
 		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
 		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
 		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
@@ -503,12 +529,16 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AlertEvalBatch.mutate(ctx, m)
 	case *AlertEventMutation:
 		return c.AlertEvent.mutate(ctx, m)
+	case *AlertEventActionMutation:
+		return c.AlertEventAction.mutate(ctx, m)
 	case *AlertEventColumnMutation:
 		return c.AlertEventColumn.mutate(ctx, m)
 	case *AlertEventFiringMutation:
 		return c.AlertEventFiring.mutate(ctx, m)
 	case *AlertHistoryEventMutation:
 		return c.AlertHistoryEvent.mutate(ctx, m)
+	case *AlertMaintenanceWindowMutation:
+		return c.AlertMaintenanceWindow.mutate(ctx, m)
 	case *AlertPageMutation:
 		return c.AlertPage.mutate(ctx, m)
 	case *AlertRuleMutation:
@@ -517,6 +547,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AlertRuleGroup.mutate(ctx, m)
 	case *AlertRuleLevelMutation:
 		return c.AlertRuleLevel.mutate(ctx, m)
+	case *BoardMutation:
+		return c.Board.mutate(ctx, m)
+	case *BoardPanelMutation:
+		return c.BoardPanel.mutate(ctx, m)
 	case *CaptchaMutation:
 		return c.Captcha.mutate(ctx, m)
 	case *ClusterMutation:
@@ -1126,6 +1160,139 @@ func (c *AlertEventClient) mutate(ctx context.Context, m *AlertEventMutation) (V
 	}
 }
 
+// AlertEventActionClient is a client for the AlertEventAction schema.
+type AlertEventActionClient struct {
+	config
+}
+
+// NewAlertEventActionClient returns a client for the AlertEventAction from the given config.
+func NewAlertEventActionClient(c config) *AlertEventActionClient {
+	return &AlertEventActionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alerteventaction.Hooks(f(g(h())))`.
+func (c *AlertEventActionClient) Use(hooks ...Hook) {
+	c.hooks.AlertEventAction = append(c.hooks.AlertEventAction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alerteventaction.Intercept(f(g(h())))`.
+func (c *AlertEventActionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertEventAction = append(c.inters.AlertEventAction, interceptors...)
+}
+
+// Create returns a builder for creating a AlertEventAction entity.
+func (c *AlertEventActionClient) Create() *AlertEventActionCreate {
+	mutation := newAlertEventActionMutation(c.config, OpCreate)
+	return &AlertEventActionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertEventAction entities.
+func (c *AlertEventActionClient) CreateBulk(builders ...*AlertEventActionCreate) *AlertEventActionCreateBulk {
+	return &AlertEventActionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertEventActionClient) MapCreateBulk(slice any, setFunc func(*AlertEventActionCreate, int)) *AlertEventActionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertEventActionCreateBulk{err: fmt.Errorf("calling to AlertEventActionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertEventActionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertEventActionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertEventAction.
+func (c *AlertEventActionClient) Update() *AlertEventActionUpdate {
+	mutation := newAlertEventActionMutation(c.config, OpUpdate)
+	return &AlertEventActionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertEventActionClient) UpdateOne(_m *AlertEventAction) *AlertEventActionUpdateOne {
+	mutation := newAlertEventActionMutation(c.config, OpUpdateOne, withAlertEventAction(_m))
+	return &AlertEventActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertEventActionClient) UpdateOneID(id int) *AlertEventActionUpdateOne {
+	mutation := newAlertEventActionMutation(c.config, OpUpdateOne, withAlertEventActionID(id))
+	return &AlertEventActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertEventAction.
+func (c *AlertEventActionClient) Delete() *AlertEventActionDelete {
+	mutation := newAlertEventActionMutation(c.config, OpDelete)
+	return &AlertEventActionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertEventActionClient) DeleteOne(_m *AlertEventAction) *AlertEventActionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertEventActionClient) DeleteOneID(id int) *AlertEventActionDeleteOne {
+	builder := c.Delete().Where(alerteventaction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertEventActionDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertEventAction.
+func (c *AlertEventActionClient) Query() *AlertEventActionQuery {
+	return &AlertEventActionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertEventAction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertEventAction entity by its id.
+func (c *AlertEventActionClient) Get(ctx context.Context, id int) (*AlertEventAction, error) {
+	return c.Query().Where(alerteventaction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertEventActionClient) GetX(ctx context.Context, id int) *AlertEventAction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertEventActionClient) Hooks() []Hook {
+	return c.hooks.AlertEventAction
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertEventActionClient) Interceptors() []Interceptor {
+	return c.inters.AlertEventAction
+}
+
+func (c *AlertEventActionClient) mutate(ctx context.Context, m *AlertEventActionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertEventActionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertEventActionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertEventActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertEventActionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertEventAction mutation op: %q", m.Op())
+	}
+}
+
 // AlertEventColumnClient is a client for the AlertEventColumn schema.
 type AlertEventColumnClient struct {
 	config
@@ -1522,6 +1689,139 @@ func (c *AlertHistoryEventClient) mutate(ctx context.Context, m *AlertHistoryEve
 		return (&AlertHistoryEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertHistoryEvent mutation op: %q", m.Op())
+	}
+}
+
+// AlertMaintenanceWindowClient is a client for the AlertMaintenanceWindow schema.
+type AlertMaintenanceWindowClient struct {
+	config
+}
+
+// NewAlertMaintenanceWindowClient returns a client for the AlertMaintenanceWindow from the given config.
+func NewAlertMaintenanceWindowClient(c config) *AlertMaintenanceWindowClient {
+	return &AlertMaintenanceWindowClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alertmaintenancewindow.Hooks(f(g(h())))`.
+func (c *AlertMaintenanceWindowClient) Use(hooks ...Hook) {
+	c.hooks.AlertMaintenanceWindow = append(c.hooks.AlertMaintenanceWindow, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alertmaintenancewindow.Intercept(f(g(h())))`.
+func (c *AlertMaintenanceWindowClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertMaintenanceWindow = append(c.inters.AlertMaintenanceWindow, interceptors...)
+}
+
+// Create returns a builder for creating a AlertMaintenanceWindow entity.
+func (c *AlertMaintenanceWindowClient) Create() *AlertMaintenanceWindowCreate {
+	mutation := newAlertMaintenanceWindowMutation(c.config, OpCreate)
+	return &AlertMaintenanceWindowCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertMaintenanceWindow entities.
+func (c *AlertMaintenanceWindowClient) CreateBulk(builders ...*AlertMaintenanceWindowCreate) *AlertMaintenanceWindowCreateBulk {
+	return &AlertMaintenanceWindowCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertMaintenanceWindowClient) MapCreateBulk(slice any, setFunc func(*AlertMaintenanceWindowCreate, int)) *AlertMaintenanceWindowCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertMaintenanceWindowCreateBulk{err: fmt.Errorf("calling to AlertMaintenanceWindowClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertMaintenanceWindowCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertMaintenanceWindowCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertMaintenanceWindow.
+func (c *AlertMaintenanceWindowClient) Update() *AlertMaintenanceWindowUpdate {
+	mutation := newAlertMaintenanceWindowMutation(c.config, OpUpdate)
+	return &AlertMaintenanceWindowUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertMaintenanceWindowClient) UpdateOne(_m *AlertMaintenanceWindow) *AlertMaintenanceWindowUpdateOne {
+	mutation := newAlertMaintenanceWindowMutation(c.config, OpUpdateOne, withAlertMaintenanceWindow(_m))
+	return &AlertMaintenanceWindowUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertMaintenanceWindowClient) UpdateOneID(id int) *AlertMaintenanceWindowUpdateOne {
+	mutation := newAlertMaintenanceWindowMutation(c.config, OpUpdateOne, withAlertMaintenanceWindowID(id))
+	return &AlertMaintenanceWindowUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertMaintenanceWindow.
+func (c *AlertMaintenanceWindowClient) Delete() *AlertMaintenanceWindowDelete {
+	mutation := newAlertMaintenanceWindowMutation(c.config, OpDelete)
+	return &AlertMaintenanceWindowDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertMaintenanceWindowClient) DeleteOne(_m *AlertMaintenanceWindow) *AlertMaintenanceWindowDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertMaintenanceWindowClient) DeleteOneID(id int) *AlertMaintenanceWindowDeleteOne {
+	builder := c.Delete().Where(alertmaintenancewindow.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertMaintenanceWindowDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertMaintenanceWindow.
+func (c *AlertMaintenanceWindowClient) Query() *AlertMaintenanceWindowQuery {
+	return &AlertMaintenanceWindowQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertMaintenanceWindow},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertMaintenanceWindow entity by its id.
+func (c *AlertMaintenanceWindowClient) Get(ctx context.Context, id int) (*AlertMaintenanceWindow, error) {
+	return c.Query().Where(alertmaintenancewindow.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertMaintenanceWindowClient) GetX(ctx context.Context, id int) *AlertMaintenanceWindow {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertMaintenanceWindowClient) Hooks() []Hook {
+	return c.hooks.AlertMaintenanceWindow
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertMaintenanceWindowClient) Interceptors() []Interceptor {
+	return c.inters.AlertMaintenanceWindow
+}
+
+func (c *AlertMaintenanceWindowClient) mutate(ctx context.Context, m *AlertMaintenanceWindowMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertMaintenanceWindowCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertMaintenanceWindowUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertMaintenanceWindowUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertMaintenanceWindowDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertMaintenanceWindow mutation op: %q", m.Op())
 	}
 }
 
@@ -2054,6 +2354,272 @@ func (c *AlertRuleLevelClient) mutate(ctx context.Context, m *AlertRuleLevelMuta
 		return (&AlertRuleLevelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertRuleLevel mutation op: %q", m.Op())
+	}
+}
+
+// BoardClient is a client for the Board schema.
+type BoardClient struct {
+	config
+}
+
+// NewBoardClient returns a client for the Board from the given config.
+func NewBoardClient(c config) *BoardClient {
+	return &BoardClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `board.Hooks(f(g(h())))`.
+func (c *BoardClient) Use(hooks ...Hook) {
+	c.hooks.Board = append(c.hooks.Board, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `board.Intercept(f(g(h())))`.
+func (c *BoardClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Board = append(c.inters.Board, interceptors...)
+}
+
+// Create returns a builder for creating a Board entity.
+func (c *BoardClient) Create() *BoardCreate {
+	mutation := newBoardMutation(c.config, OpCreate)
+	return &BoardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Board entities.
+func (c *BoardClient) CreateBulk(builders ...*BoardCreate) *BoardCreateBulk {
+	return &BoardCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BoardClient) MapCreateBulk(slice any, setFunc func(*BoardCreate, int)) *BoardCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BoardCreateBulk{err: fmt.Errorf("calling to BoardClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BoardCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &BoardCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Board.
+func (c *BoardClient) Update() *BoardUpdate {
+	mutation := newBoardMutation(c.config, OpUpdate)
+	return &BoardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BoardClient) UpdateOne(_m *Board) *BoardUpdateOne {
+	mutation := newBoardMutation(c.config, OpUpdateOne, withBoard(_m))
+	return &BoardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BoardClient) UpdateOneID(id int) *BoardUpdateOne {
+	mutation := newBoardMutation(c.config, OpUpdateOne, withBoardID(id))
+	return &BoardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Board.
+func (c *BoardClient) Delete() *BoardDelete {
+	mutation := newBoardMutation(c.config, OpDelete)
+	return &BoardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BoardClient) DeleteOne(_m *Board) *BoardDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BoardClient) DeleteOneID(id int) *BoardDeleteOne {
+	builder := c.Delete().Where(board.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BoardDeleteOne{builder}
+}
+
+// Query returns a query builder for Board.
+func (c *BoardClient) Query() *BoardQuery {
+	return &BoardQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBoard},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Board entity by its id.
+func (c *BoardClient) Get(ctx context.Context, id int) (*Board, error) {
+	return c.Query().Where(board.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BoardClient) GetX(ctx context.Context, id int) *Board {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *BoardClient) Hooks() []Hook {
+	return c.hooks.Board
+}
+
+// Interceptors returns the client interceptors.
+func (c *BoardClient) Interceptors() []Interceptor {
+	return c.inters.Board
+}
+
+func (c *BoardClient) mutate(ctx context.Context, m *BoardMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BoardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BoardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BoardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BoardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Board mutation op: %q", m.Op())
+	}
+}
+
+// BoardPanelClient is a client for the BoardPanel schema.
+type BoardPanelClient struct {
+	config
+}
+
+// NewBoardPanelClient returns a client for the BoardPanel from the given config.
+func NewBoardPanelClient(c config) *BoardPanelClient {
+	return &BoardPanelClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `boardpanel.Hooks(f(g(h())))`.
+func (c *BoardPanelClient) Use(hooks ...Hook) {
+	c.hooks.BoardPanel = append(c.hooks.BoardPanel, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `boardpanel.Intercept(f(g(h())))`.
+func (c *BoardPanelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BoardPanel = append(c.inters.BoardPanel, interceptors...)
+}
+
+// Create returns a builder for creating a BoardPanel entity.
+func (c *BoardPanelClient) Create() *BoardPanelCreate {
+	mutation := newBoardPanelMutation(c.config, OpCreate)
+	return &BoardPanelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BoardPanel entities.
+func (c *BoardPanelClient) CreateBulk(builders ...*BoardPanelCreate) *BoardPanelCreateBulk {
+	return &BoardPanelCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BoardPanelClient) MapCreateBulk(slice any, setFunc func(*BoardPanelCreate, int)) *BoardPanelCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BoardPanelCreateBulk{err: fmt.Errorf("calling to BoardPanelClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BoardPanelCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &BoardPanelCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BoardPanel.
+func (c *BoardPanelClient) Update() *BoardPanelUpdate {
+	mutation := newBoardPanelMutation(c.config, OpUpdate)
+	return &BoardPanelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BoardPanelClient) UpdateOne(_m *BoardPanel) *BoardPanelUpdateOne {
+	mutation := newBoardPanelMutation(c.config, OpUpdateOne, withBoardPanel(_m))
+	return &BoardPanelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BoardPanelClient) UpdateOneID(id int) *BoardPanelUpdateOne {
+	mutation := newBoardPanelMutation(c.config, OpUpdateOne, withBoardPanelID(id))
+	return &BoardPanelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BoardPanel.
+func (c *BoardPanelClient) Delete() *BoardPanelDelete {
+	mutation := newBoardPanelMutation(c.config, OpDelete)
+	return &BoardPanelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BoardPanelClient) DeleteOne(_m *BoardPanel) *BoardPanelDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BoardPanelClient) DeleteOneID(id int) *BoardPanelDeleteOne {
+	builder := c.Delete().Where(boardpanel.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BoardPanelDeleteOne{builder}
+}
+
+// Query returns a query builder for BoardPanel.
+func (c *BoardPanelClient) Query() *BoardPanelQuery {
+	return &BoardPanelQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBoardPanel},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a BoardPanel entity by its id.
+func (c *BoardPanelClient) Get(ctx context.Context, id int) (*BoardPanel, error) {
+	return c.Query().Where(boardpanel.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BoardPanelClient) GetX(ctx context.Context, id int) *BoardPanel {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *BoardPanelClient) Hooks() []Hook {
+	return c.hooks.BoardPanel
+}
+
+// Interceptors returns the client interceptors.
+func (c *BoardPanelClient) Interceptors() []Interceptor {
+	return c.inters.BoardPanel
+}
+
+func (c *BoardPanelClient) mutate(ctx context.Context, m *BoardPanelMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BoardPanelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BoardPanelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BoardPanelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BoardPanelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown BoardPanel mutation op: %q", m.Op())
 	}
 }
 
@@ -6848,9 +7414,10 @@ func (c *WorkerInstanceClient) mutate(ctx context.Context, m *WorkerInstanceMuta
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
-		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
-		AlertRuleLevel, Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
+		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventAction,
+		AlertEventColumn, AlertEventFiring, AlertHistoryEvent, AlertMaintenanceWindow,
+		AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel, Board, BoardPanel,
+		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
 		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
 		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
 		NotificationChannel, NotificationGroup, NotificationOnCall,
@@ -6861,9 +7428,10 @@ type (
 		WorkerInstance []ent.Hook
 	}
 	inters struct {
-		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
-		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
-		AlertRuleLevel, Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
+		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventAction,
+		AlertEventColumn, AlertEventFiring, AlertHistoryEvent, AlertMaintenanceWindow,
+		AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel, Board, BoardPanel,
+		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
 		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
 		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
 		NotificationChannel, NotificationGroup, NotificationOnCall,

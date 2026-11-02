@@ -57,6 +57,18 @@ func (f AlertEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventMutation", m)
 }
 
+// The AlertEventActionFunc type is an adapter to allow the use of ordinary
+// function as AlertEventAction mutator.
+type AlertEventActionFunc func(context.Context, *ent.AlertEventActionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertEventActionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertEventActionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventActionMutation", m)
+}
+
 // The AlertEventColumnFunc type is an adapter to allow the use of ordinary
 // function as AlertEventColumn mutator.
 type AlertEventColumnFunc func(context.Context, *ent.AlertEventColumnMutation) (ent.Value, error)
@@ -91,6 +103,18 @@ func (f AlertHistoryEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertHistoryEventMutation", m)
+}
+
+// The AlertMaintenanceWindowFunc type is an adapter to allow the use of ordinary
+// function as AlertMaintenanceWindow mutator.
+type AlertMaintenanceWindowFunc func(context.Context, *ent.AlertMaintenanceWindowMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertMaintenanceWindowFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertMaintenanceWindowMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertMaintenanceWindowMutation", m)
 }
 
 // The AlertPageFunc type is an adapter to allow the use of ordinary
@@ -139,6 +163,30 @@ func (f AlertRuleLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleLevelMutation", m)
+}
+
+// The BoardFunc type is an adapter to allow the use of ordinary
+// function as Board mutator.
+type BoardFunc func(context.Context, *ent.BoardMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BoardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BoardMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BoardMutation", m)
+}
+
+// The BoardPanelFunc type is an adapter to allow the use of ordinary
+// function as BoardPanel mutator.
+type BoardPanelFunc func(context.Context, *ent.BoardPanelMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BoardPanelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BoardPanelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BoardPanelMutation", m)
 }
 
 // The CaptchaFunc type is an adapter to allow the use of ordinary

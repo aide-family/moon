@@ -20,12 +20,16 @@ type Tx struct {
 	AlertEvalBatch *AlertEvalBatchClient
 	// AlertEvent is the client for interacting with the AlertEvent builders.
 	AlertEvent *AlertEventClient
+	// AlertEventAction is the client for interacting with the AlertEventAction builders.
+	AlertEventAction *AlertEventActionClient
 	// AlertEventColumn is the client for interacting with the AlertEventColumn builders.
 	AlertEventColumn *AlertEventColumnClient
 	// AlertEventFiring is the client for interacting with the AlertEventFiring builders.
 	AlertEventFiring *AlertEventFiringClient
 	// AlertHistoryEvent is the client for interacting with the AlertHistoryEvent builders.
 	AlertHistoryEvent *AlertHistoryEventClient
+	// AlertMaintenanceWindow is the client for interacting with the AlertMaintenanceWindow builders.
+	AlertMaintenanceWindow *AlertMaintenanceWindowClient
 	// AlertPage is the client for interacting with the AlertPage builders.
 	AlertPage *AlertPageClient
 	// AlertRule is the client for interacting with the AlertRule builders.
@@ -34,6 +38,10 @@ type Tx struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
+	// Board is the client for interacting with the Board builders.
+	Board *BoardClient
+	// BoardPanel is the client for interacting with the BoardPanel builders.
+	BoardPanel *BoardPanelClient
 	// Captcha is the client for interacting with the Captcha builders.
 	Captcha *CaptchaClient
 	// Cluster is the client for interacting with the Cluster builders.
@@ -241,13 +249,17 @@ func (tx *Tx) init() {
 	tx.AlertDictionary = NewAlertDictionaryClient(tx.config)
 	tx.AlertEvalBatch = NewAlertEvalBatchClient(tx.config)
 	tx.AlertEvent = NewAlertEventClient(tx.config)
+	tx.AlertEventAction = NewAlertEventActionClient(tx.config)
 	tx.AlertEventColumn = NewAlertEventColumnClient(tx.config)
 	tx.AlertEventFiring = NewAlertEventFiringClient(tx.config)
 	tx.AlertHistoryEvent = NewAlertHistoryEventClient(tx.config)
+	tx.AlertMaintenanceWindow = NewAlertMaintenanceWindowClient(tx.config)
 	tx.AlertPage = NewAlertPageClient(tx.config)
 	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
 	tx.AlertRuleLevel = NewAlertRuleLevelClient(tx.config)
+	tx.Board = NewBoardClient(tx.config)
+	tx.BoardPanel = NewBoardPanelClient(tx.config)
 	tx.Captcha = NewCaptchaClient(tx.config)
 	tx.Cluster = NewClusterClient(tx.config)
 	tx.Datasource = NewDatasourceClient(tx.config)

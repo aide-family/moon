@@ -44,6 +44,8 @@ type notificationRepo struct{ *repoBase }
 type agentRepo struct{ *repoBase }
 type sshCommandRepo struct{ *repoBase }
 type featureRepo struct{ *repoBase }
+type boardRepo struct{ *repoBase }
+type alertMaintenanceRepo struct{ *repoBase }
 
 func NewUserRepo(deps *Dependencies, logger *slog.Logger) repository.UserRepo {
 	return &userRepo{newBase(deps, logger)}
@@ -104,6 +106,14 @@ func NewAlertEventRepo(deps *Dependencies, logger *slog.Logger) repository.Alert
 
 func NewAlertPageRepo(deps *Dependencies, logger *slog.Logger) repository.AlertPageRepo {
 	return &alertPageRepo{newBase(deps, logger)}
+}
+
+func NewAlertMaintenanceRepo(deps *Dependencies, logger *slog.Logger) repository.AlertMaintenanceRepo {
+	return &alertMaintenanceRepo{newBase(deps, logger)}
+}
+
+func NewBoardRepo(deps *Dependencies, logger *slog.Logger) repository.BoardRepo {
+	return &boardRepo{newBase(deps, logger)}
 }
 
 func NewNotificationRepo(deps *Dependencies, logger *slog.Logger) repository.NotificationRepo {

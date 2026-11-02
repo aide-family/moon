@@ -7,9 +7,11 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/agenthub"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertdictionary"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/biz/alertmaintenance"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertpage"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/biz/auth"
+	"github.com/aide-family/moon/app/alioth/internal/biz/board"
 	"github.com/aide-family/moon/app/alioth/internal/biz/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/biz/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/biz/feature"
@@ -44,6 +46,7 @@ var ProviderSet = wire.NewSet(
 	alertdictionary.ProviderSet,
 	alertpage.ProviderSet,
 	alertevent.ProviderSet,
+	alertmaintenance.ProviderSet,
 	alertrule.ProviderSet,
 	notification.ProviderSet,
 	agenthub.ProviderSet,
@@ -52,5 +55,6 @@ var ProviderSet = wire.NewSet(
 	partition.ProviderSet,
 	migration.ProviderSet,
 	cluster.ProviderSet,
+	board.ProviderSet,
 	wire.Bind(new(auth.AgentTokenLookup), new(*agent.Registry)),
 )

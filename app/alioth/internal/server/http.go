@@ -36,6 +36,8 @@ func NewHTTPServer(
 	queries *service.MetricQueryService,
 	logQueries *service.LogsQueryService,
 	rules *service.AlertRuleService,
+	boards *service.BoardService,
+	maintenanceWindows *service.AlertMaintenanceService,
 	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
 	events *service.AlertEventService,
@@ -106,6 +108,8 @@ func NewHTTPServer(
 	v1.RegisterMetricQueryServiceHTTPServer(srv, queries)
 	v1.RegisterLogsQueryServiceHTTPServer(srv, logQueries)
 	v1.RegisterAlertRuleServiceHTTPServer(srv, rules)
+	v1.RegisterBoardServiceHTTPServer(srv, boards)
+	v1.RegisterAlertMaintenanceServiceHTTPServer(srv, maintenanceWindows)
 	v1.RegisterAlertDictionaryServiceHTTPServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceHTTPServer(srv, alertPages)
 	v1.RegisterAlertEventServiceHTTPServer(srv, events)

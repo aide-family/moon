@@ -33,6 +33,8 @@ func NewGRPCServer(
 	queries *service.MetricQueryService,
 	logQueries *service.LogsQueryService,
 	rules *service.AlertRuleService,
+	boards *service.BoardService,
+	maintenanceWindows *service.AlertMaintenanceService,
 	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
 	events *service.AlertEventService,
@@ -89,6 +91,8 @@ func NewGRPCServer(
 	v1.RegisterMetricQueryServiceServer(srv, queries)
 	v1.RegisterLogsQueryServiceServer(srv, logQueries)
 	v1.RegisterAlertRuleServiceServer(srv, rules)
+	v1.RegisterBoardServiceServer(srv, boards)
+	v1.RegisterAlertMaintenanceServiceServer(srv, maintenanceWindows)
 	v1.RegisterAlertDictionaryServiceServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceServer(srv, alertPages)
 	v1.RegisterAlertEventServiceServer(srv, events)

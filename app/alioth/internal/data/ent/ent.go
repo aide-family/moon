@@ -16,13 +16,17 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventaction"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventcolumn"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerthistoryevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertmaintenancewindow"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/board"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/boardpanel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
@@ -123,13 +127,17 @@ func checkColumn(t, c string) error {
 			alertdictionary.Table:               alertdictionary.ValidColumn,
 			alertevalbatch.Table:                alertevalbatch.ValidColumn,
 			alertevent.Table:                    alertevent.ValidColumn,
+			alerteventaction.Table:              alerteventaction.ValidColumn,
 			alerteventcolumn.Table:              alerteventcolumn.ValidColumn,
 			alerteventfiring.Table:              alerteventfiring.ValidColumn,
 			alerthistoryevent.Table:             alerthistoryevent.ValidColumn,
+			alertmaintenancewindow.Table:        alertmaintenancewindow.ValidColumn,
 			alertpage.Table:                     alertpage.ValidColumn,
 			alertrule.Table:                     alertrule.ValidColumn,
 			alertrulegroup.Table:                alertrulegroup.ValidColumn,
 			alertrulelevel.Table:                alertrulelevel.ValidColumn,
+			board.Table:                         board.ValidColumn,
+			boardpanel.Table:                    boardpanel.ValidColumn,
 			captcha.Table:                       captcha.ValidColumn,
 			cluster.Table:                       cluster.ValidColumn,
 			datasource.Table:                    datasource.ValidColumn,

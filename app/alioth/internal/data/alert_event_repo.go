@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventaction"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alerthistoryevent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
@@ -225,6 +226,9 @@ func (r *alertEventRepo) applyAvailabilityFailure(ctx context.Context, tx *ent.T
 		}
 		return r.fail(err)
 	}
+	if err := appendEventAction(ctx, tx, namespaceUID, eventUID, actionFiring, "", "datasource availability"); err != nil {
+		return r.fail(err)
+	}
 	return dispatchEventNotifications(ctx, tx, notifyEvent{
 		NamespaceUID: namespaceUID, EventUID: eventUID, RuleUID: "",
 		DatasourceUID: report.DatasourceUID, DatasourceLevelUID: source.LevelUID, LevelUID: "", Phase: "FIRING",
@@ -281,6 +285,9 @@ func (r *alertEventRepo) recoverAvailability(ctx context.Context, tx *ent.Tx, na
 	item.Status = string(alertevent.StatusRECOVERED)
 	item.EndsAt = &now
 	item.EvalSlot = evalSlot
+	if err := appendEventAction(ctx, tx, namespaceUID, event.UID, actionRecovered, "", "datasource availability"); err != nil {
+		return nil, r.fail(err)
+	}
 	meta := r.datasourceMeta(ctx, tx, datasourceUID)
 	if err := dispatchEventNotifications(ctx, tx, notifyEvent{
 		NamespaceUID: namespaceUID, EventUID: event.UID, RuleUID: "",
@@ -461,6 +468,28 @@ func (r *alertEventRepo) applyHitsScoped(ctx context.Context, tx *ent.Tx, rule b
 			Exec(ctx); err != nil {
 			return nil, r.fail(err)
 		}
+		if err := appendEventAction(ctx, tx, rule.NamespaceUID, eventUID, actionFiring, "", ""); err != nil {
+			return nil, r.fail(err)
+		}
+		// 维护窗口生效时事件以「已抑制」落库并跳过通知任务；窗口结束后抑制到期。
+		window, err := matchActiveWindowTx(ctx, tx, rule.NamespaceUID, labels, hit.LevelUID, report.DatasourceUID, rule.UID, now)
+		if err != nil {
+			return nil, r.fail(err)
+		}
+		if window != nil {
+			if _, err := tx.AlertEvent.Update().
+				Where(alertevent.UIDEQ(eventUID), alertevent.NamespaceUIDEQ(rule.NamespaceUID)).
+				SetSuppressed(true).
+				SetSuppressedUntil(window.EndsAt).
+				Save(ctx); err != nil {
+				return nil, r.fail(err)
+			}
+			if err := appendEventAction(ctx, tx, rule.NamespaceUID, eventUID, actionMaintenance, "",
+				"maintenance window "+window.Name+" until "+window.EndsAt.UTC().Format(time.RFC3339)); err != nil {
+				return nil, r.fail(err)
+			}
+			continue
+		}
 		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
 			NamespaceUID: rule.NamespaceUID, EventUID: eventUID, RuleUID: rule.UID,
 			DatasourceUID: report.DatasourceUID, DatasourceLevelUID: source.LevelUID,
@@ -483,6 +512,9 @@ func (r *alertEventRepo) applyHitsScoped(ctx context.Context, tx *ent.Tx, rule b
 			return nil, r.fail(err)
 		}
 		if _, err := tx.AlertEventFiring.Delete().Where(alerteventfiring.IDEQ(ref.firing.ID)).Exec(ctx); err != nil {
+			return nil, r.fail(err)
+		}
+		if err := appendEventAction(ctx, tx, rule.NamespaceUID, ref.event.UID, actionRecovered, "", ""); err != nil {
 			return nil, r.fail(err)
 		}
 		recoveredItem := toEvent(ref.event, now)
@@ -845,17 +877,51 @@ func (r *alertEventRepo) Intervene(ctx context.Context, namespaceUID string, uid
 	if len(uids) == 0 {
 		return nil
 	}
-	_, err := r.client.AlertEvent.Update().Where(
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	now := time.Now().UTC()
+	affected, err := tx.AlertEvent.Query().Where(
 		alertevent.NamespaceUIDEQ(namespaceUID),
 		alertevent.UIDIn(uids...),
 		alertevent.StatusEQ(alertevent.StatusFIRING),
-	).SetIntervenedBy(userUID).SetIntervenedAt(time.Now().UTC()).Save(ctx)
-	return r.fail(err)
+	).Select(alertevent.FieldUID).All(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if len(affected) == 0 {
+		return nil
+	}
+	if _, err := tx.AlertEvent.Update().Where(
+		alertevent.NamespaceUIDEQ(namespaceUID),
+		alertevent.UIDIn(uids...),
+		alertevent.StatusEQ(alertevent.StatusFIRING),
+	).SetIntervenedBy(userUID).SetIntervenedAt(now).Save(ctx); err != nil {
+		return r.fail(err)
+	}
+	eventUIDs := make([]string, 0, len(affected))
+	for _, row := range affected {
+		eventUIDs = append(eventUIDs, row.UID)
+	}
+	if err := appendEventActions(ctx, tx, namespaceUID, eventUIDs, actionIntervened, userUID, ""); err != nil {
+		return r.fail(err)
+	}
+	if err := tx.Commit(); err != nil {
+		return r.fail(err)
+	}
+	return nil
 }
 
 // Suppress 抑制一条实时告警。until 为空时清掉到期时间，语义是永久抑制。
 func (r *alertEventRepo) Suppress(ctx context.Context, namespaceUID, uid string, until *time.Time) error {
-	update := r.client.AlertEvent.Update().Where(
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	update := tx.AlertEvent.Update().Where(
 		alertevent.NamespaceUIDEQ(namespaceUID),
 		alertevent.UIDEQ(uid),
 		alertevent.StatusEQ(alertevent.StatusFIRING),
@@ -871,6 +937,12 @@ func (r *alertEventRepo) Suppress(ctx context.Context, namespaceUID, uid string,
 	}
 	if n == 0 {
 		return merr.NotFound("not found")
+	}
+	if err := appendEventAction(ctx, tx, namespaceUID, uid, actionSuppressed, "", ""); err != nil {
+		return r.fail(err)
+	}
+	if err := tx.Commit(); err != nil {
+		return r.fail(err)
 	}
 	return nil
 }
@@ -903,6 +975,9 @@ func (r *alertEventRepo) RecoverManual(ctx context.Context, namespaceUID string,
 			return r.fail(err)
 		}
 		if _, err := tx.AlertEventFiring.Delete().Where(alerteventfiring.EventUIDEQ(row.UID)).Exec(ctx); err != nil {
+			return r.fail(err)
+		}
+		if err := appendEventAction(ctx, tx, namespaceUID, row.UID, actionRecoveredByHand, "", ""); err != nil {
 			return r.fail(err)
 		}
 		item := toEvent(row, now)
@@ -973,6 +1048,7 @@ func toEvent(row *ent.AlertEvent, now time.Time) bo.AlertEvent {
 		StartsAt: row.StartsAt, EndsAt: row.EndsAt, EvalSlot: row.EvalSlot,
 		Suppressed: suppressedAt(row.Suppressed, row.SuppressedUntil, now), SuppressedUntil: row.SuppressedUntil,
 		IntervenedBy: row.IntervenedBy, IntervenedAt: row.IntervenedAt, CreatedAt: row.CreatedAt,
+		AckedBy: row.AckedBy, AckedAt: row.AckedAt,
 	}
 }
 
@@ -1036,14 +1112,16 @@ func (r *alertEventRepo) nameEvents(ctx context.Context, items []bo.AlertEvent) 
 				levelUIDs = append(levelUIDs, row.LevelUID)
 			}
 		}
-		if row.IntervenedBy == "" {
-			continue
+		for _, actor := range []string{row.IntervenedBy, row.AckedBy} {
+			if actor == "" {
+				continue
+			}
+			if _, ok := seen[actor]; ok {
+				continue
+			}
+			seen[actor] = struct{}{}
+			uids = append(uids, actor)
 		}
-		if _, ok := seen[row.IntervenedBy]; ok {
-			continue
-		}
-		seen[row.IntervenedBy] = struct{}{}
-		uids = append(uids, row.IntervenedBy)
 	}
 	sources := r.datasourceMetas(ctx, datasourceUIDs)
 	// 数据源等级名称也要补进标签和详情，与告警等级一起取字典。
@@ -1087,6 +1165,7 @@ func (r *alertEventRepo) nameEvents(ctx context.Context, items []bo.AlertEvent) 
 	}
 	for i := range items {
 		items[i].IntervenedName = userNames[items[i].IntervenedBy]
+		items[i].AckedName = userNames[items[i].AckedBy]
 	}
 	return items, nil
 }
@@ -1828,4 +1907,120 @@ func (r *alertEventRepo) ApplyProbeHits(ctx context.Context, rule bo.AlertRule, 
 		r.archiveEvents(ctx, rule.NamespaceUID, recovered)
 	}
 	return recovered, nil
+}
+
+// AckEvent 认领一条 FIRING 事件。认领不改变状态，只记录责任人；
+// 同一用户重复认领不重复写时间线，换人认领会覆盖并留痕。
+func (r *alertEventRepo) AckEvent(ctx context.Context, namespaceUID, uid, userUID string) (*bo.AlertEvent, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	row, err := tx.AlertEvent.Query().Where(
+		alertevent.UIDEQ(uid),
+		alertevent.NamespaceUIDEQ(namespaceUID),
+		alertevent.StatusEQ(alertevent.StatusFIRING),
+	).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, merr.NotFound("event not found")
+		}
+		return nil, r.fail(err)
+	}
+	if row.AckedBy != userUID || row.AckedAt == nil {
+		if _, err := tx.AlertEvent.Update().
+			Where(alertevent.IDEQ(row.ID), alertevent.StatusEQ(alertevent.StatusFIRING)).
+			SetAckedBy(userUID).
+			SetAckedAt(time.Now().UTC()).
+			Save(ctx); err != nil {
+			return nil, r.fail(err)
+		}
+		if err := appendEventAction(ctx, tx, namespaceUID, uid, actionAcked, userUID, ""); err != nil {
+			return nil, r.fail(err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, r.fail(err)
+	}
+	return r.GetEvent(ctx, namespaceUID, uid)
+}
+
+// UnackEvent 取消认领。未认领时是幂等操作，不写时间线。
+func (r *alertEventRepo) UnackEvent(ctx context.Context, namespaceUID, uid, userUID string) (*bo.AlertEvent, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	row, err := tx.AlertEvent.Query().Where(
+		alertevent.UIDEQ(uid),
+		alertevent.NamespaceUIDEQ(namespaceUID),
+		alertevent.StatusEQ(alertevent.StatusFIRING),
+	).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, merr.NotFound("event not found")
+		}
+		return nil, r.fail(err)
+	}
+	if row.AckedBy != "" {
+		if _, err := tx.AlertEvent.Update().
+			Where(alertevent.IDEQ(row.ID), alertevent.StatusEQ(alertevent.StatusFIRING)).
+			SetAckedBy("").
+			ClearAckedAt().
+			Save(ctx); err != nil {
+			return nil, r.fail(err)
+		}
+		if err := appendEventAction(ctx, tx, namespaceUID, uid, actionUnacked, userUID, ""); err != nil {
+			return nil, r.fail(err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, r.fail(err)
+	}
+	return r.GetEvent(ctx, namespaceUID, uid)
+}
+
+// ListEventActions 返回一条事件的时间线，并按操作者 UID 补展示名。
+func (r *alertEventRepo) ListEventActions(ctx context.Context, namespaceUID, eventUID string) ([]bo.AlertEventAction, error) {
+	rows, err := r.client.AlertEventAction.Query().Where(
+		alerteventaction.NamespaceUIDEQ(namespaceUID),
+		alerteventaction.EventUIDEQ(eventUID),
+	).Order(ent.Asc(alerteventaction.FieldCreatedAt)).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items := make([]bo.AlertEventAction, 0, len(rows))
+	actorUIDs := make([]string, 0, len(rows))
+	seen := map[string]struct{}{}
+	for _, row := range rows {
+		items = append(items, bo.AlertEventAction{
+			UID: row.UID, NamespaceUID: row.NamespaceUID, EventUID: row.EventUID,
+			Action: row.Action, ActorUID: row.ActorUID, Detail: row.Detail, CreatedAt: row.CreatedAt,
+		})
+		if row.ActorUID == "" {
+			continue
+		}
+		if _, ok := seen[row.ActorUID]; ok {
+			continue
+		}
+		seen[row.ActorUID] = struct{}{}
+		actorUIDs = append(actorUIDs, row.ActorUID)
+	}
+	if len(actorUIDs) == 0 {
+		return items, nil
+	}
+	users, err := r.client.User.Query().Where(user.UIDIn(actorUIDs...)).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	names := make(map[string]string, len(users))
+	for _, account := range users {
+		names[account.UID] = accountName(account)
+	}
+	for i := range items {
+		items[i].ActorName = names[items[i].ActorUID]
+	}
+	return items, nil
 }

@@ -17,6 +17,7 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationAlertEventServiceAckAlertEvent = "/alioth.v1.AlertEventService/AckAlertEvent"
 const OperationAlertEventServiceAlertEventRealtimeStats = "/alioth.v1.AlertEventService/AlertEventRealtimeStats"
 const OperationAlertEventServiceAlertEventStats = "/alioth.v1.AlertEventService/AlertEventStats"
 const OperationAlertEventServiceGetAlertAnalysisFingerprints = "/alioth.v1.AlertEventService/GetAlertAnalysisFingerprints"
@@ -30,12 +31,16 @@ const OperationAlertEventServiceGetAlertEventChart = "/alioth.v1.AlertEventServi
 const OperationAlertEventServiceGetAlertInsight = "/alioth.v1.AlertEventService/GetAlertInsight"
 const OperationAlertEventServiceInterveneAlertEvent = "/alioth.v1.AlertEventService/InterveneAlertEvent"
 const OperationAlertEventServiceInterveneAlertEvents = "/alioth.v1.AlertEventService/InterveneAlertEvents"
+const OperationAlertEventServiceListAlertEventActions = "/alioth.v1.AlertEventService/ListAlertEventActions"
 const OperationAlertEventServiceListAlertEvents = "/alioth.v1.AlertEventService/ListAlertEvents"
 const OperationAlertEventServiceRecoverAlertEvent = "/alioth.v1.AlertEventService/RecoverAlertEvent"
 const OperationAlertEventServiceRecoverAlertEvents = "/alioth.v1.AlertEventService/RecoverAlertEvents"
 const OperationAlertEventServiceSuppressAlertEvent = "/alioth.v1.AlertEventService/SuppressAlertEvent"
+const OperationAlertEventServiceUnackAlertEvent = "/alioth.v1.AlertEventService/UnackAlertEvent"
 
 type AlertEventServiceHTTPServer interface {
+	// AckAlertEvent 认领一条实时告警，记录处理责任人。
+	AckAlertEvent(context.Context, *AckAlertEventRequest) (*AckAlertEventResponse, error)
 	// AlertEventRealtimeStats 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
 	AlertEventRealtimeStats(context.Context, *AlertEventRealtimeStatsRequest) (*AlertEventRealtimeStatsResponse, error)
 	// AlertEventStats 统计当前租户的实时、抑制和已恢复数量。
@@ -63,6 +68,8 @@ type AlertEventServiceHTTPServer interface {
 	InterveneAlertEvent(context.Context, *InterveneAlertEventRequest) (*InterveneAlertEventResponse, error)
 	// InterveneAlertEvents 批量介入实时告警。
 	InterveneAlertEvents(context.Context, *InterveneAlertEventsRequest) (*InterveneAlertEventsResponse, error)
+	// ListAlertEventActions 按时间正序查询一条事件的处置时间线。
+	ListAlertEventActions(context.Context, *ListAlertEventActionsRequest) (*ListAlertEventActionsResponse, error)
 	// ListAlertEvents 按视图分页查询告警事件。
 	ListAlertEvents(context.Context, *ListAlertEventsRequest) (*ListAlertEventsResponse, error)
 	// RecoverAlertEvent 手工恢复一条实时告警。
@@ -71,6 +78,8 @@ type AlertEventServiceHTTPServer interface {
 	RecoverAlertEvents(context.Context, *RecoverAlertEventsRequest) (*RecoverAlertEventsResponse, error)
 	// SuppressAlertEvent 抑制一条实时告警。
 	SuppressAlertEvent(context.Context, *SuppressAlertEventRequest) (*SuppressAlertEventResponse, error)
+	// UnackAlertEvent 取消认领一条实时告警。
+	UnackAlertEvent(context.Context, *UnackAlertEventRequest) (*UnackAlertEventResponse, error)
 }
 
 func RegisterAlertEventServiceHTTPServer(s *http.Server, srv AlertEventServiceHTTPServer) {
@@ -92,6 +101,9 @@ func RegisterAlertEventServiceHTTPServer(s *http.Server, srv AlertEventServiceHT
 	r.Handle("POST", "/v1/alert-events/{uid}/suppress", _AlertEventService_SuppressAlertEvent0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/{uid}/recover", _AlertEventService_RecoverAlertEvent0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/recover", _AlertEventService_RecoverAlertEvents0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/alert-events/{uid}/ack", _AlertEventService_AckAlertEvent0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/alert-events/{uid}/unack", _AlertEventService_UnackAlertEvent0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-events/{uid}/actions", _AlertEventService_ListAlertEventActions0_HTTP_Handler(srv))
 }
 
 func _AlertEventService_ListAlertEvents0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
@@ -432,7 +444,75 @@ func _AlertEventService_RecoverAlertEvents0_HTTP_Handler(srv AlertEventServiceHT
 	}
 }
 
+func _AlertEventService_AckAlertEvent0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AckAlertEventRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceAckAlertEvent)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AckAlertEvent(ctx, req.(*AckAlertEventRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AckAlertEventResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertEventService_UnackAlertEvent0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UnackAlertEventRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceUnackAlertEvent)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UnackAlertEvent(ctx, req.(*UnackAlertEventRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UnackAlertEventResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertEventService_ListAlertEventActions0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListAlertEventActionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceListAlertEventActions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAlertEventActions(ctx, req.(*ListAlertEventActionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListAlertEventActionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AlertEventServiceHTTPClient interface {
+	// AckAlertEvent 认领一条实时告警，记录处理责任人。
+	AckAlertEvent(ctx context.Context, req *AckAlertEventRequest, opts ...http.CallOption) (rsp *AckAlertEventResponse, err error)
 	// AlertEventRealtimeStats 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
 	AlertEventRealtimeStats(ctx context.Context, req *AlertEventRealtimeStatsRequest, opts ...http.CallOption) (rsp *AlertEventRealtimeStatsResponse, err error)
 	// AlertEventStats 统计当前租户的实时、抑制和已恢复数量。
@@ -460,6 +540,8 @@ type AlertEventServiceHTTPClient interface {
 	InterveneAlertEvent(ctx context.Context, req *InterveneAlertEventRequest, opts ...http.CallOption) (rsp *InterveneAlertEventResponse, err error)
 	// InterveneAlertEvents 批量介入实时告警。
 	InterveneAlertEvents(ctx context.Context, req *InterveneAlertEventsRequest, opts ...http.CallOption) (rsp *InterveneAlertEventsResponse, err error)
+	// ListAlertEventActions 按时间正序查询一条事件的处置时间线。
+	ListAlertEventActions(ctx context.Context, req *ListAlertEventActionsRequest, opts ...http.CallOption) (rsp *ListAlertEventActionsResponse, err error)
 	// ListAlertEvents 按视图分页查询告警事件。
 	ListAlertEvents(ctx context.Context, req *ListAlertEventsRequest, opts ...http.CallOption) (rsp *ListAlertEventsResponse, err error)
 	// RecoverAlertEvent 手工恢复一条实时告警。
@@ -468,6 +550,8 @@ type AlertEventServiceHTTPClient interface {
 	RecoverAlertEvents(ctx context.Context, req *RecoverAlertEventsRequest, opts ...http.CallOption) (rsp *RecoverAlertEventsResponse, err error)
 	// SuppressAlertEvent 抑制一条实时告警。
 	SuppressAlertEvent(ctx context.Context, req *SuppressAlertEventRequest, opts ...http.CallOption) (rsp *SuppressAlertEventResponse, err error)
+	// UnackAlertEvent 取消认领一条实时告警。
+	UnackAlertEvent(ctx context.Context, req *UnackAlertEventRequest, opts ...http.CallOption) (rsp *UnackAlertEventResponse, err error)
 }
 
 type AlertEventServiceHTTPClientImpl struct {
@@ -476,6 +560,24 @@ type AlertEventServiceHTTPClientImpl struct {
 
 func NewAlertEventServiceHTTPClient(client *http.Client) AlertEventServiceHTTPClient {
 	return &AlertEventServiceHTTPClientImpl{client}
+}
+
+// AckAlertEvent 认领一条实时告警，记录处理责任人。
+func (c *AlertEventServiceHTTPClientImpl) AckAlertEvent(ctx context.Context, in *AckAlertEventRequest, opts ...http.CallOption) (*AckAlertEventResponse, error) {
+	var out AckAlertEventResponse
+	pattern := "/v1/alert-events/{uid}/ack"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAlertEventServiceAckAlertEvent),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // AlertEventRealtimeStats 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
@@ -702,6 +804,23 @@ func (c *AlertEventServiceHTTPClientImpl) InterveneAlertEvents(ctx context.Conte
 	return &out, nil
 }
 
+// ListAlertEventActions 按时间正序查询一条事件的处置时间线。
+func (c *AlertEventServiceHTTPClientImpl) ListAlertEventActions(ctx context.Context, in *ListAlertEventActionsRequest, opts ...http.CallOption) (*ListAlertEventActionsResponse, error) {
+	var out ListAlertEventActionsResponse
+	pattern := "/v1/alert-events/{uid}/actions"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceListAlertEventActions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListAlertEvents 按视图分页查询告警事件。
 func (c *AlertEventServiceHTTPClientImpl) ListAlertEvents(ctx context.Context, in *ListAlertEventsRequest, opts ...http.CallOption) (*ListAlertEventsResponse, error) {
 	var out ListAlertEventsResponse
@@ -764,6 +883,24 @@ func (c *AlertEventServiceHTTPClientImpl) SuppressAlertEvent(ctx context.Context
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationAlertEventServiceSuppressAlertEvent),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UnackAlertEvent 取消认领一条实时告警。
+func (c *AlertEventServiceHTTPClientImpl) UnackAlertEvent(ctx context.Context, in *UnackAlertEventRequest, opts ...http.CallOption) (*UnackAlertEventResponse, error) {
+	var out UnackAlertEventResponse
+	pattern := "/v1/alert-events/{uid}/unack"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAlertEventServiceUnackAlertEvent),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

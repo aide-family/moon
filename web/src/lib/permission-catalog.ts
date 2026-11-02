@@ -17,6 +17,7 @@ const RESOURCE_LABELS: Record<string, LocalizedLabel> = {
   menu: { zh: "菜单", en: "Menus" },
   member: { zh: "成员", en: "Members" },
   role: { zh: "角色", en: "Roles" },
+  board: { zh: "大盘", en: "Boards" },
   namespace: { zh: "租户", en: "Namespaces" },
   datasource: { zh: "数据源", en: "Datasources" },
   probe: { zh: "探测目标", en: "Probe targets" },
@@ -98,6 +99,7 @@ const RESOURCE_ORDER = [
   "message_log",
   "member",
   "role",
+  "board",
   "namespace",
   "cluster",
   // 资源级权限紧跟在集群接入权限之后，先集群（节点 / 工作负载 / Pod），

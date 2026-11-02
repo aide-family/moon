@@ -56,8 +56,12 @@ var archivedTables = []string{
 	"alert_rule_levels",
 	"alert_pages",
 	"alert_event_columns",
+	"alert_maintenance_windows",
 	"probe_target_groups",
 	"probe_targets",
+	// 大盘。
+	"boards",
+	"board_panels",
 	// 通知配置。
 	"notification_channels",
 	"notification_templates",
@@ -79,6 +83,7 @@ var archivedTables = []string{
 var runtimeTables = []string{
 	"alert_eval_batches",
 	"alert_events",
+	"alert_event_actions",
 	"alert_event_firings",
 	"alert_history_events",
 	"captchas",

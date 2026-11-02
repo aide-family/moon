@@ -154,6 +154,16 @@ func IntervenedAt(v time.Time) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldEQ(FieldIntervenedAt, v))
 }
 
+// AckedBy applies equality check predicate on the "acked_by" field. It's identical to AckedByEQ.
+func AckedBy(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldAckedBy, v))
+}
+
+// AckedAt applies equality check predicate on the "acked_at" field. It's identical to AckedAtEQ.
+func AckedAt(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldAckedAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldEQ(FieldCreatedAt, v))
@@ -1272,6 +1282,121 @@ func IntervenedAtIsNil() predicate.AlertEvent {
 // IntervenedAtNotNil applies the NotNil predicate on the "intervened_at" field.
 func IntervenedAtNotNil() predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldNotNull(FieldIntervenedAt))
+}
+
+// AckedByEQ applies the EQ predicate on the "acked_by" field.
+func AckedByEQ(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldAckedBy, v))
+}
+
+// AckedByNEQ applies the NEQ predicate on the "acked_by" field.
+func AckedByNEQ(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNEQ(FieldAckedBy, v))
+}
+
+// AckedByIn applies the In predicate on the "acked_by" field.
+func AckedByIn(vs ...string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIn(FieldAckedBy, vs...))
+}
+
+// AckedByNotIn applies the NotIn predicate on the "acked_by" field.
+func AckedByNotIn(vs ...string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotIn(FieldAckedBy, vs...))
+}
+
+// AckedByGT applies the GT predicate on the "acked_by" field.
+func AckedByGT(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldGT(FieldAckedBy, v))
+}
+
+// AckedByGTE applies the GTE predicate on the "acked_by" field.
+func AckedByGTE(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldGTE(FieldAckedBy, v))
+}
+
+// AckedByLT applies the LT predicate on the "acked_by" field.
+func AckedByLT(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldLT(FieldAckedBy, v))
+}
+
+// AckedByLTE applies the LTE predicate on the "acked_by" field.
+func AckedByLTE(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldLTE(FieldAckedBy, v))
+}
+
+// AckedByContains applies the Contains predicate on the "acked_by" field.
+func AckedByContains(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldContains(FieldAckedBy, v))
+}
+
+// AckedByHasPrefix applies the HasPrefix predicate on the "acked_by" field.
+func AckedByHasPrefix(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldHasPrefix(FieldAckedBy, v))
+}
+
+// AckedByHasSuffix applies the HasSuffix predicate on the "acked_by" field.
+func AckedByHasSuffix(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldHasSuffix(FieldAckedBy, v))
+}
+
+// AckedByEqualFold applies the EqualFold predicate on the "acked_by" field.
+func AckedByEqualFold(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEqualFold(FieldAckedBy, v))
+}
+
+// AckedByContainsFold applies the ContainsFold predicate on the "acked_by" field.
+func AckedByContainsFold(v string) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldContainsFold(FieldAckedBy, v))
+}
+
+// AckedAtEQ applies the EQ predicate on the "acked_at" field.
+func AckedAtEQ(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldAckedAt, v))
+}
+
+// AckedAtNEQ applies the NEQ predicate on the "acked_at" field.
+func AckedAtNEQ(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNEQ(FieldAckedAt, v))
+}
+
+// AckedAtIn applies the In predicate on the "acked_at" field.
+func AckedAtIn(vs ...time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIn(FieldAckedAt, vs...))
+}
+
+// AckedAtNotIn applies the NotIn predicate on the "acked_at" field.
+func AckedAtNotIn(vs ...time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotIn(FieldAckedAt, vs...))
+}
+
+// AckedAtGT applies the GT predicate on the "acked_at" field.
+func AckedAtGT(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldGT(FieldAckedAt, v))
+}
+
+// AckedAtGTE applies the GTE predicate on the "acked_at" field.
+func AckedAtGTE(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldGTE(FieldAckedAt, v))
+}
+
+// AckedAtLT applies the LT predicate on the "acked_at" field.
+func AckedAtLT(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldLT(FieldAckedAt, v))
+}
+
+// AckedAtLTE applies the LTE predicate on the "acked_at" field.
+func AckedAtLTE(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldLTE(FieldAckedAt, v))
+}
+
+// AckedAtIsNil applies the IsNil predicate on the "acked_at" field.
+func AckedAtIsNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIsNull(FieldAckedAt))
+}
+
+// AckedAtNotNil applies the NotNil predicate on the "acked_at" field.
+func AckedAtNotNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotNull(FieldAckedAt))
 }
 
 // And groups predicates with the AND operator between them.
