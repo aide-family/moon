@@ -183,6 +183,8 @@ export const PROBE_DRIVERS = [
   "PROBE_HTTP",
   "PROBE_TCP",
   "PROBE_ICMP",
+  "PROBE_DNS",
+  "PROBE_TLS",
 ] as const
 
 /** 探测规则与查询规则共用告警规则入口，按驱动区分即可。 */
@@ -190,11 +192,44 @@ export function isProbeDriver(driver: string): boolean {
   return (PROBE_DRIVERS as readonly string[]).includes(driver)
 }
 
-/** 探测规则可比较的观测指标：HTTP 有状态码与证书天数，TCP / ICMP 只有可用性与耗时。 */
+/**
+ * 各探测驱动可比较的观测指标，与后端 bo.ValidProbeMetric 的指标目录一致。
+ * 顺序即规则表单指标下拉的展示顺序。
+ */
+const PROBE_METRICS_BY_DRIVER: Record<string, string[]> = {
+  PROBE_HTTP: [
+    "UP",
+    "LATENCY_MS",
+    "STATUS_CODE",
+    "CERT_DAYS",
+    "DNS_MS",
+    "TCP_CONNECT_MS",
+    "TLS_MS",
+    "TTFB_MS",
+  ],
+  PROBE_TCP: ["UP", "LATENCY_MS", "DNS_MS", "TCP_CONNECT_MS"],
+  PROBE_ICMP: [
+    "UP",
+    "LATENCY_MS",
+    "PACKET_LOSS",
+    "JITTER_MS",
+    "MIN_RTT_MS",
+    "MAX_RTT_MS",
+  ],
+  PROBE_DNS: ["UP", "LATENCY_MS", "DNS_MS", "ANSWER_COUNT"],
+  PROBE_TLS: [
+    "UP",
+    "LATENCY_MS",
+    "DNS_MS",
+    "TCP_CONNECT_MS",
+    "TLS_MS",
+    "CERT_DAYS",
+  ],
+}
+
+/** 探测规则可比较的观测指标；查询驱动没有探测指标。 */
 export function probeMetricsForDriver(driver: string): string[] {
-  return driver === "PROBE_HTTP"
-    ? ["UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS"]
-    : ["UP", "LATENCY_MS"]
+  return PROBE_METRICS_BY_DRIVER[driver] ?? []
 }
 
 /** 探测规则的系统匹配键：目标组名称由后端在匹配时并入标签。 */

@@ -21,7 +21,7 @@ func (AlertRule) Fields() []ent.Field {
 		field.String("namespace_uid").NotEmpty(),
 		field.String("group_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
-		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP"),
+		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP", "PROBE_DNS", "PROBE_TLS"),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
 		field.String("expr").Default(""),
 		field.String("labels").Default(""),
@@ -36,7 +36,7 @@ func (AlertRule) Fields() []ent.Field {
 		// probe_interval_seconds 是探测周期，查询规则为 0。
 		field.Int("probe_interval_seconds").Default(0),
 		// probe_metric 是探测规则比较的观测指标，查询规则不使用。
-		field.Enum("probe_metric").Values("UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS").Default("UP"),
+		field.Enum("probe_metric").Values("UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS", "DNS_MS", "TCP_CONNECT_MS", "TLS_MS", "TTFB_MS", "PACKET_LOSS", "JITTER_MS", "MIN_RTT_MS", "MAX_RTT_MS", "ANSWER_COUNT").Default("UP"),
 		field.Time("next_eval_at").Optional().Nillable(),
 		field.Time("scheduled_slot").Optional().Nillable(),
 	}

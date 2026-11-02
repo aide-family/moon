@@ -32976,42 +32976,58 @@ func (m *PermissionMutation) ResetEdge(name string) error {
 // ProbeResultMutation represents an operation that mutates the ProbeResult nodes in the graph.
 type ProbeResultMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	created_at     *time.Time
-	updated_at     *time.Time
-	uid            *string
-	namespace_uid  *string
-	rule_uid       *string
-	group_uid      *string
-	target_uid     *string
-	slot           *time.Time
-	probed_at      *time.Time
-	ok             *bool
-	value          *string
-	duration_ms    *int
-	addduration_ms *int
-	status_code    *int
-	addstatus_code *int
-	error_kind     *string
-	error_message  *string
-	dns_ms         *int
-	adddns_ms      *int
-	tcp_ms         *int
-	addtcp_ms      *int
-	tls_ms         *int
-	addtls_ms      *int
-	ttfb_ms        *int
-	addttfb_ms     *int
-	cert_days      *int
-	addcert_days   *int
-	resolved_ip    *string
-	executor       *string
-	clearedFields  map[string]struct{}
-	done           bool
-	oldValue       func(context.Context) (*ProbeResult, error)
-	predicates     []predicate.ProbeResult
+	op              Op
+	typ             string
+	id              *int
+	created_at      *time.Time
+	updated_at      *time.Time
+	uid             *string
+	namespace_uid   *string
+	rule_uid        *string
+	group_uid       *string
+	target_uid      *string
+	slot            *time.Time
+	probed_at       *time.Time
+	ok              *bool
+	value           *string
+	duration_ms     *int
+	addduration_ms  *int
+	status_code     *int
+	addstatus_code  *int
+	error_kind      *string
+	error_message   *string
+	dns_ms          *int
+	adddns_ms       *int
+	tcp_ms          *int
+	addtcp_ms       *int
+	tls_ms          *int
+	addtls_ms       *int
+	ttfb_ms         *int
+	addttfb_ms      *int
+	cert_days       *int
+	addcert_days    *int
+	resolved_ip     *string
+	executor        *string
+	packet_loss     *int
+	addpacket_loss  *int
+	jitter_ms       *int
+	addjitter_ms    *int
+	min_rtt_ms      *int
+	addmin_rtt_ms   *int
+	max_rtt_ms      *int
+	addmax_rtt_ms   *int
+	answer_count    *int
+	addanswer_count *int
+	dns_answers     *string
+	tls_version     *string
+	tls_cipher      *string
+	cert_subject    *string
+	cert_issuer     *string
+	cert_sans       *string
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*ProbeResult, error)
+	predicates      []predicate.ProbeResult
 }
 
 var _ ent.Mutation = (*ProbeResultMutation)(nil)
@@ -34044,6 +34060,502 @@ func (m *ProbeResultMutation) ResetExecutor() {
 	m.executor = nil
 }
 
+// SetPacketLoss sets the "packet_loss" field.
+func (m *ProbeResultMutation) SetPacketLoss(i int) {
+	m.packet_loss = &i
+	m.addpacket_loss = nil
+}
+
+// PacketLoss returns the value of the "packet_loss" field in the mutation.
+func (m *ProbeResultMutation) PacketLoss() (r int, exists bool) {
+	v := m.packet_loss
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPacketLoss returns the old "packet_loss" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldPacketLoss(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPacketLoss is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPacketLoss requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPacketLoss: %w", err)
+	}
+	return oldValue.PacketLoss, nil
+}
+
+// AddPacketLoss adds i to the "packet_loss" field.
+func (m *ProbeResultMutation) AddPacketLoss(i int) {
+	if m.addpacket_loss != nil {
+		*m.addpacket_loss += i
+	} else {
+		m.addpacket_loss = &i
+	}
+}
+
+// AddedPacketLoss returns the value that was added to the "packet_loss" field in this mutation.
+func (m *ProbeResultMutation) AddedPacketLoss() (r int, exists bool) {
+	v := m.addpacket_loss
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPacketLoss resets all changes to the "packet_loss" field.
+func (m *ProbeResultMutation) ResetPacketLoss() {
+	m.packet_loss = nil
+	m.addpacket_loss = nil
+}
+
+// SetJitterMs sets the "jitter_ms" field.
+func (m *ProbeResultMutation) SetJitterMs(i int) {
+	m.jitter_ms = &i
+	m.addjitter_ms = nil
+}
+
+// JitterMs returns the value of the "jitter_ms" field in the mutation.
+func (m *ProbeResultMutation) JitterMs() (r int, exists bool) {
+	v := m.jitter_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJitterMs returns the old "jitter_ms" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldJitterMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJitterMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJitterMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJitterMs: %w", err)
+	}
+	return oldValue.JitterMs, nil
+}
+
+// AddJitterMs adds i to the "jitter_ms" field.
+func (m *ProbeResultMutation) AddJitterMs(i int) {
+	if m.addjitter_ms != nil {
+		*m.addjitter_ms += i
+	} else {
+		m.addjitter_ms = &i
+	}
+}
+
+// AddedJitterMs returns the value that was added to the "jitter_ms" field in this mutation.
+func (m *ProbeResultMutation) AddedJitterMs() (r int, exists bool) {
+	v := m.addjitter_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetJitterMs resets all changes to the "jitter_ms" field.
+func (m *ProbeResultMutation) ResetJitterMs() {
+	m.jitter_ms = nil
+	m.addjitter_ms = nil
+}
+
+// SetMinRttMs sets the "min_rtt_ms" field.
+func (m *ProbeResultMutation) SetMinRttMs(i int) {
+	m.min_rtt_ms = &i
+	m.addmin_rtt_ms = nil
+}
+
+// MinRttMs returns the value of the "min_rtt_ms" field in the mutation.
+func (m *ProbeResultMutation) MinRttMs() (r int, exists bool) {
+	v := m.min_rtt_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMinRttMs returns the old "min_rtt_ms" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldMinRttMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMinRttMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMinRttMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMinRttMs: %w", err)
+	}
+	return oldValue.MinRttMs, nil
+}
+
+// AddMinRttMs adds i to the "min_rtt_ms" field.
+func (m *ProbeResultMutation) AddMinRttMs(i int) {
+	if m.addmin_rtt_ms != nil {
+		*m.addmin_rtt_ms += i
+	} else {
+		m.addmin_rtt_ms = &i
+	}
+}
+
+// AddedMinRttMs returns the value that was added to the "min_rtt_ms" field in this mutation.
+func (m *ProbeResultMutation) AddedMinRttMs() (r int, exists bool) {
+	v := m.addmin_rtt_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMinRttMs resets all changes to the "min_rtt_ms" field.
+func (m *ProbeResultMutation) ResetMinRttMs() {
+	m.min_rtt_ms = nil
+	m.addmin_rtt_ms = nil
+}
+
+// SetMaxRttMs sets the "max_rtt_ms" field.
+func (m *ProbeResultMutation) SetMaxRttMs(i int) {
+	m.max_rtt_ms = &i
+	m.addmax_rtt_ms = nil
+}
+
+// MaxRttMs returns the value of the "max_rtt_ms" field in the mutation.
+func (m *ProbeResultMutation) MaxRttMs() (r int, exists bool) {
+	v := m.max_rtt_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxRttMs returns the old "max_rtt_ms" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldMaxRttMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxRttMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxRttMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxRttMs: %w", err)
+	}
+	return oldValue.MaxRttMs, nil
+}
+
+// AddMaxRttMs adds i to the "max_rtt_ms" field.
+func (m *ProbeResultMutation) AddMaxRttMs(i int) {
+	if m.addmax_rtt_ms != nil {
+		*m.addmax_rtt_ms += i
+	} else {
+		m.addmax_rtt_ms = &i
+	}
+}
+
+// AddedMaxRttMs returns the value that was added to the "max_rtt_ms" field in this mutation.
+func (m *ProbeResultMutation) AddedMaxRttMs() (r int, exists bool) {
+	v := m.addmax_rtt_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxRttMs resets all changes to the "max_rtt_ms" field.
+func (m *ProbeResultMutation) ResetMaxRttMs() {
+	m.max_rtt_ms = nil
+	m.addmax_rtt_ms = nil
+}
+
+// SetAnswerCount sets the "answer_count" field.
+func (m *ProbeResultMutation) SetAnswerCount(i int) {
+	m.answer_count = &i
+	m.addanswer_count = nil
+}
+
+// AnswerCount returns the value of the "answer_count" field in the mutation.
+func (m *ProbeResultMutation) AnswerCount() (r int, exists bool) {
+	v := m.answer_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnswerCount returns the old "answer_count" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldAnswerCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnswerCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnswerCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnswerCount: %w", err)
+	}
+	return oldValue.AnswerCount, nil
+}
+
+// AddAnswerCount adds i to the "answer_count" field.
+func (m *ProbeResultMutation) AddAnswerCount(i int) {
+	if m.addanswer_count != nil {
+		*m.addanswer_count += i
+	} else {
+		m.addanswer_count = &i
+	}
+}
+
+// AddedAnswerCount returns the value that was added to the "answer_count" field in this mutation.
+func (m *ProbeResultMutation) AddedAnswerCount() (r int, exists bool) {
+	v := m.addanswer_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAnswerCount resets all changes to the "answer_count" field.
+func (m *ProbeResultMutation) ResetAnswerCount() {
+	m.answer_count = nil
+	m.addanswer_count = nil
+}
+
+// SetDNSAnswers sets the "dns_answers" field.
+func (m *ProbeResultMutation) SetDNSAnswers(s string) {
+	m.dns_answers = &s
+}
+
+// DNSAnswers returns the value of the "dns_answers" field in the mutation.
+func (m *ProbeResultMutation) DNSAnswers() (r string, exists bool) {
+	v := m.dns_answers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDNSAnswers returns the old "dns_answers" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldDNSAnswers(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDNSAnswers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDNSAnswers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDNSAnswers: %w", err)
+	}
+	return oldValue.DNSAnswers, nil
+}
+
+// ResetDNSAnswers resets all changes to the "dns_answers" field.
+func (m *ProbeResultMutation) ResetDNSAnswers() {
+	m.dns_answers = nil
+}
+
+// SetTLSVersion sets the "tls_version" field.
+func (m *ProbeResultMutation) SetTLSVersion(s string) {
+	m.tls_version = &s
+}
+
+// TLSVersion returns the value of the "tls_version" field in the mutation.
+func (m *ProbeResultMutation) TLSVersion() (r string, exists bool) {
+	v := m.tls_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTLSVersion returns the old "tls_version" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldTLSVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTLSVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTLSVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTLSVersion: %w", err)
+	}
+	return oldValue.TLSVersion, nil
+}
+
+// ResetTLSVersion resets all changes to the "tls_version" field.
+func (m *ProbeResultMutation) ResetTLSVersion() {
+	m.tls_version = nil
+}
+
+// SetTLSCipher sets the "tls_cipher" field.
+func (m *ProbeResultMutation) SetTLSCipher(s string) {
+	m.tls_cipher = &s
+}
+
+// TLSCipher returns the value of the "tls_cipher" field in the mutation.
+func (m *ProbeResultMutation) TLSCipher() (r string, exists bool) {
+	v := m.tls_cipher
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTLSCipher returns the old "tls_cipher" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldTLSCipher(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTLSCipher is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTLSCipher requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTLSCipher: %w", err)
+	}
+	return oldValue.TLSCipher, nil
+}
+
+// ResetTLSCipher resets all changes to the "tls_cipher" field.
+func (m *ProbeResultMutation) ResetTLSCipher() {
+	m.tls_cipher = nil
+}
+
+// SetCertSubject sets the "cert_subject" field.
+func (m *ProbeResultMutation) SetCertSubject(s string) {
+	m.cert_subject = &s
+}
+
+// CertSubject returns the value of the "cert_subject" field in the mutation.
+func (m *ProbeResultMutation) CertSubject() (r string, exists bool) {
+	v := m.cert_subject
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCertSubject returns the old "cert_subject" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldCertSubject(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCertSubject is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCertSubject requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCertSubject: %w", err)
+	}
+	return oldValue.CertSubject, nil
+}
+
+// ResetCertSubject resets all changes to the "cert_subject" field.
+func (m *ProbeResultMutation) ResetCertSubject() {
+	m.cert_subject = nil
+}
+
+// SetCertIssuer sets the "cert_issuer" field.
+func (m *ProbeResultMutation) SetCertIssuer(s string) {
+	m.cert_issuer = &s
+}
+
+// CertIssuer returns the value of the "cert_issuer" field in the mutation.
+func (m *ProbeResultMutation) CertIssuer() (r string, exists bool) {
+	v := m.cert_issuer
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCertIssuer returns the old "cert_issuer" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldCertIssuer(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCertIssuer is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCertIssuer requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCertIssuer: %w", err)
+	}
+	return oldValue.CertIssuer, nil
+}
+
+// ResetCertIssuer resets all changes to the "cert_issuer" field.
+func (m *ProbeResultMutation) ResetCertIssuer() {
+	m.cert_issuer = nil
+}
+
+// SetCertSans sets the "cert_sans" field.
+func (m *ProbeResultMutation) SetCertSans(s string) {
+	m.cert_sans = &s
+}
+
+// CertSans returns the value of the "cert_sans" field in the mutation.
+func (m *ProbeResultMutation) CertSans() (r string, exists bool) {
+	v := m.cert_sans
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCertSans returns the old "cert_sans" field's value of the ProbeResult entity.
+// If the ProbeResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeResultMutation) OldCertSans(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCertSans is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCertSans requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCertSans: %w", err)
+	}
+	return oldValue.CertSans, nil
+}
+
+// ResetCertSans resets all changes to the "cert_sans" field.
+func (m *ProbeResultMutation) ResetCertSans() {
+	m.cert_sans = nil
+}
+
 // Where appends a list predicates to the ProbeResultMutation builder.
 func (m *ProbeResultMutation) Where(ps ...predicate.ProbeResult) {
 	m.predicates = append(m.predicates, ps...)
@@ -34078,7 +34590,7 @@ func (m *ProbeResultMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProbeResultMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 33)
 	if m.created_at != nil {
 		fields = append(fields, proberesult.FieldCreatedAt)
 	}
@@ -34145,6 +34657,39 @@ func (m *ProbeResultMutation) Fields() []string {
 	if m.executor != nil {
 		fields = append(fields, proberesult.FieldExecutor)
 	}
+	if m.packet_loss != nil {
+		fields = append(fields, proberesult.FieldPacketLoss)
+	}
+	if m.jitter_ms != nil {
+		fields = append(fields, proberesult.FieldJitterMs)
+	}
+	if m.min_rtt_ms != nil {
+		fields = append(fields, proberesult.FieldMinRttMs)
+	}
+	if m.max_rtt_ms != nil {
+		fields = append(fields, proberesult.FieldMaxRttMs)
+	}
+	if m.answer_count != nil {
+		fields = append(fields, proberesult.FieldAnswerCount)
+	}
+	if m.dns_answers != nil {
+		fields = append(fields, proberesult.FieldDNSAnswers)
+	}
+	if m.tls_version != nil {
+		fields = append(fields, proberesult.FieldTLSVersion)
+	}
+	if m.tls_cipher != nil {
+		fields = append(fields, proberesult.FieldTLSCipher)
+	}
+	if m.cert_subject != nil {
+		fields = append(fields, proberesult.FieldCertSubject)
+	}
+	if m.cert_issuer != nil {
+		fields = append(fields, proberesult.FieldCertIssuer)
+	}
+	if m.cert_sans != nil {
+		fields = append(fields, proberesult.FieldCertSans)
+	}
 	return fields
 }
 
@@ -34197,6 +34742,28 @@ func (m *ProbeResultMutation) Field(name string) (ent.Value, bool) {
 		return m.ResolvedIP()
 	case proberesult.FieldExecutor:
 		return m.Executor()
+	case proberesult.FieldPacketLoss:
+		return m.PacketLoss()
+	case proberesult.FieldJitterMs:
+		return m.JitterMs()
+	case proberesult.FieldMinRttMs:
+		return m.MinRttMs()
+	case proberesult.FieldMaxRttMs:
+		return m.MaxRttMs()
+	case proberesult.FieldAnswerCount:
+		return m.AnswerCount()
+	case proberesult.FieldDNSAnswers:
+		return m.DNSAnswers()
+	case proberesult.FieldTLSVersion:
+		return m.TLSVersion()
+	case proberesult.FieldTLSCipher:
+		return m.TLSCipher()
+	case proberesult.FieldCertSubject:
+		return m.CertSubject()
+	case proberesult.FieldCertIssuer:
+		return m.CertIssuer()
+	case proberesult.FieldCertSans:
+		return m.CertSans()
 	}
 	return nil, false
 }
@@ -34250,6 +34817,28 @@ func (m *ProbeResultMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldResolvedIP(ctx)
 	case proberesult.FieldExecutor:
 		return m.OldExecutor(ctx)
+	case proberesult.FieldPacketLoss:
+		return m.OldPacketLoss(ctx)
+	case proberesult.FieldJitterMs:
+		return m.OldJitterMs(ctx)
+	case proberesult.FieldMinRttMs:
+		return m.OldMinRttMs(ctx)
+	case proberesult.FieldMaxRttMs:
+		return m.OldMaxRttMs(ctx)
+	case proberesult.FieldAnswerCount:
+		return m.OldAnswerCount(ctx)
+	case proberesult.FieldDNSAnswers:
+		return m.OldDNSAnswers(ctx)
+	case proberesult.FieldTLSVersion:
+		return m.OldTLSVersion(ctx)
+	case proberesult.FieldTLSCipher:
+		return m.OldTLSCipher(ctx)
+	case proberesult.FieldCertSubject:
+		return m.OldCertSubject(ctx)
+	case proberesult.FieldCertIssuer:
+		return m.OldCertIssuer(ctx)
+	case proberesult.FieldCertSans:
+		return m.OldCertSans(ctx)
 	}
 	return nil, fmt.Errorf("unknown ProbeResult field %s", name)
 }
@@ -34413,6 +35002,83 @@ func (m *ProbeResultMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetExecutor(v)
 		return nil
+	case proberesult.FieldPacketLoss:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPacketLoss(v)
+		return nil
+	case proberesult.FieldJitterMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJitterMs(v)
+		return nil
+	case proberesult.FieldMinRttMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMinRttMs(v)
+		return nil
+	case proberesult.FieldMaxRttMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxRttMs(v)
+		return nil
+	case proberesult.FieldAnswerCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnswerCount(v)
+		return nil
+	case proberesult.FieldDNSAnswers:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDNSAnswers(v)
+		return nil
+	case proberesult.FieldTLSVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTLSVersion(v)
+		return nil
+	case proberesult.FieldTLSCipher:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTLSCipher(v)
+		return nil
+	case proberesult.FieldCertSubject:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCertSubject(v)
+		return nil
+	case proberesult.FieldCertIssuer:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCertIssuer(v)
+		return nil
+	case proberesult.FieldCertSans:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCertSans(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ProbeResult field %s", name)
 }
@@ -34442,6 +35108,21 @@ func (m *ProbeResultMutation) AddedFields() []string {
 	if m.addcert_days != nil {
 		fields = append(fields, proberesult.FieldCertDays)
 	}
+	if m.addpacket_loss != nil {
+		fields = append(fields, proberesult.FieldPacketLoss)
+	}
+	if m.addjitter_ms != nil {
+		fields = append(fields, proberesult.FieldJitterMs)
+	}
+	if m.addmin_rtt_ms != nil {
+		fields = append(fields, proberesult.FieldMinRttMs)
+	}
+	if m.addmax_rtt_ms != nil {
+		fields = append(fields, proberesult.FieldMaxRttMs)
+	}
+	if m.addanswer_count != nil {
+		fields = append(fields, proberesult.FieldAnswerCount)
+	}
 	return fields
 }
 
@@ -34464,6 +35145,16 @@ func (m *ProbeResultMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedTtfbMs()
 	case proberesult.FieldCertDays:
 		return m.AddedCertDays()
+	case proberesult.FieldPacketLoss:
+		return m.AddedPacketLoss()
+	case proberesult.FieldJitterMs:
+		return m.AddedJitterMs()
+	case proberesult.FieldMinRttMs:
+		return m.AddedMinRttMs()
+	case proberesult.FieldMaxRttMs:
+		return m.AddedMaxRttMs()
+	case proberesult.FieldAnswerCount:
+		return m.AddedAnswerCount()
 	}
 	return nil, false
 }
@@ -34521,6 +35212,41 @@ func (m *ProbeResultMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCertDays(v)
+		return nil
+	case proberesult.FieldPacketLoss:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPacketLoss(v)
+		return nil
+	case proberesult.FieldJitterMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddJitterMs(v)
+		return nil
+	case proberesult.FieldMinRttMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMinRttMs(v)
+		return nil
+	case proberesult.FieldMaxRttMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxRttMs(v)
+		return nil
+	case proberesult.FieldAnswerCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAnswerCount(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ProbeResult numeric field %s", name)
@@ -34614,6 +35340,39 @@ func (m *ProbeResultMutation) ResetField(name string) error {
 		return nil
 	case proberesult.FieldExecutor:
 		m.ResetExecutor()
+		return nil
+	case proberesult.FieldPacketLoss:
+		m.ResetPacketLoss()
+		return nil
+	case proberesult.FieldJitterMs:
+		m.ResetJitterMs()
+		return nil
+	case proberesult.FieldMinRttMs:
+		m.ResetMinRttMs()
+		return nil
+	case proberesult.FieldMaxRttMs:
+		m.ResetMaxRttMs()
+		return nil
+	case proberesult.FieldAnswerCount:
+		m.ResetAnswerCount()
+		return nil
+	case proberesult.FieldDNSAnswers:
+		m.ResetDNSAnswers()
+		return nil
+	case proberesult.FieldTLSVersion:
+		m.ResetTLSVersion()
+		return nil
+	case proberesult.FieldTLSCipher:
+		m.ResetTLSCipher()
+		return nil
+	case proberesult.FieldCertSubject:
+		m.ResetCertSubject()
+		return nil
+	case proberesult.FieldCertIssuer:
+		m.ResetCertIssuer()
+		return nil
+	case proberesult.FieldCertSans:
+		m.ResetCertSans()
 		return nil
 	}
 	return fmt.Errorf("unknown ProbeResult field %s", name)

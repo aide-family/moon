@@ -1,6 +1,6 @@
 // Package probe 执行探测规则：领取「规则 × 目标组 × 目标」，按目标加锁后按
-// 规则驱动执行 HTTP / TCP / ICMP 探测并回写结果。判定在玉衡，执行器不解析
-// 级别条件。
+// 规则驱动执行 HTTP / TCP / ICMP / DNS / TLS 探测并回写结果。判定在玉衡，
+// 执行器不解析级别条件。
 package probe
 
 import (

@@ -7,8 +7,8 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
 
-// 探测目标组的创建、查询、启停与手动探测。支持 HTTP、TCP、ICMP 三种探测类型；
-// HTTP 使用完整的请求参数，TCP 与 ICMP 只使用超时。
+// 探测目标组的创建、查询、启停与手动探测。支持 HTTP、TCP、ICMP、DNS、TLS 五种探测类型；
+// HTTP 使用完整的请求参数与断言，TCP / ICMP / DNS / TLS 使用各自字段与超时。
 service ProbeTargetService {
   // 创建探测目标组。
   rpc CreateProbeTargetGroup(CreateProbeTargetGroupRequest) returns (CreateProbeTargetGroupResponse) {
@@ -63,7 +63,7 @@ service ProbeTargetService {
   }
 }
 
-// 组内地址共用的请求参数。HTTP 探测使用全部字段；TCP 与 ICMP 只使用 timeout_ms。
+// 组内地址共用的请求参数。HTTP 使用方法与断言字段；TCP 只使用超时；ICMP/DNS/TLS 使用各自的统计或解析字段。
 message ProbeRequestConfig {
   // 请求方法，取值为 GET 或 HEAD；TCP / ICMP 探测不使用，可留空。
   string method = 1 [(buf.validate.field).string = {in: ["", "GET", "HEAD"]}];
@@ -82,13 +82,29 @@ message ProbeRequestConfig {
   string headers = 7 [(buf.validate.field).string.max_len = 8192];
   // 响应体关键字。命中即成功，留空只按状态码判定。
   string body_keyword = 8 [json_name = "bodyKeyword", (buf.validate.field).string.max_len = 256];
+  // HTTP 响应头断言 JSON 对象文本：键为响应头名，值为完整匹配正则。
+  string expect_headers = 9 [json_name = "expectHeaders", (buf.validate.field).string.max_len = 4096];
+  // HTTP 响应体完整匹配正则；与 body_keyword 同时配置时两者都要满足。
+  string body_regex = 10 [json_name = "bodyRegex", (buf.validate.field).string.max_len = 512];
+  // ICMP 单次探测发送的 echo 数量，0 按 1 处理，最多 10。
+  int32 icmp_count = 11 [json_name = "icmpCount", (buf.validate.field).int32 = {gte: 0, lte: 10}];
+  // ICMP payload 字节数，0 按 56 处理，最多 1400。
+  int32 icmp_packet_size = 12 [json_name = "icmpPacketSize", (buf.validate.field).int32 = {gte: 0, lte: 1400}];
+  // DNS 记录类型，取值为 A、AAAA、CNAME、MX、TXT、NS；留空按 A 处理。
+  string dns_record_type = 13 [json_name = "dnsRecordType", (buf.validate.field).string = {in: ["", "A", "AAAA", "CNAME", "MX", "TXT", "NS"]}];
+  // DNS 期望值，逗号分隔的完整匹配正则；留空表示只要有记录即可。
+  string dns_expect_values = 14 [json_name = "dnsExpectValues", (buf.validate.field).string.max_len = 1024];
+  // DNS 服务器 host:port；留空使用系统 resolver。
+  string dns_server = 15 [json_name = "dnsServer", (buf.validate.field).string.max_len = 255];
+  // TLS SNI；留空取目标 host。
+  string tls_server_name = 16 [json_name = "tlsServerName", (buf.validate.field).string.max_len = 255];
 }
 
 // 目标组里的一个地址。
 message ProbeTargetItem {
   // 标识。
   string uid = 1;
-  // 归一化后的地址：HTTP 为 URL，TCP 为 host:port，ICMP 为 host 或 IP。
+  // 归一化后的地址：HTTP 为 URL，TCP / TLS 为 host:port，ICMP 为 host 或 IP，DNS 为域名。
   string spec = 2;
   // 标签 JSON 对象。
   string labels = 3;
@@ -104,7 +120,7 @@ message ProbeTargetItem {
 message ProbeTargetInput {
   // 标识。更新时为空表示新增。
   string uid = 1;
-  // 地址：HTTP 为 http(s) URL，TCP 为 host:port，ICMP 为 host 或 IP。
+  // 地址：HTTP 为 http(s) URL，TCP / TLS 为 host:port，ICMP / DNS 为 host、IP 或域名。
   string spec = 2 [(buf.validate.field).string = {min_len: 1, max_len: 2048}];
   // 标签 JSON 对象。
   string labels = 3 [(buf.validate.field).string.max_len = 4096];
@@ -120,7 +136,7 @@ message ProbeTargetGroupItem {
   string uid = 1;
   // 名称。
   string name = 2;
-  // 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
+  // 探测类型，取值为 PROBE_HTTP、PROBE_TCP、PROBE_ICMP、PROBE_DNS 或 PROBE_TLS。
   string driver = 3;
   // 状态，取值为 ACTIVE 或 DISABLED。
   string status = 4;
@@ -146,8 +162,8 @@ message ProbeTargetGroupItem {
 message CreateProbeTargetGroupRequest {
   // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
-  string driver = 2 [(buf.validate.field).string = {in: ["PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP"]}];
+  // 探测类型，取值为 PROBE_HTTP、PROBE_TCP、PROBE_ICMP、PROBE_DNS 或 PROBE_TLS。
+  string driver = 2 [(buf.validate.field).string = {in: ["PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP", "PROBE_DNS", "PROBE_TLS"]}];
   // 标签 JSON 对象。
   string labels = 3 [(buf.validate.field).string.max_len = 4096];
   // 执行器标签 JSON 对象。
@@ -172,8 +188,8 @@ message UpdateProbeTargetGroupRequest {
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 名称。
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
-  string driver = 3 [(buf.validate.field).string = {in: ["PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP"]}];
+  // 探测类型，取值为 PROBE_HTTP、PROBE_TCP、PROBE_ICMP、PROBE_DNS 或 PROBE_TLS。
+  string driver = 3 [(buf.validate.field).string = {in: ["PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP", "PROBE_DNS", "PROBE_TLS"]}];
   // 标签 JSON 对象。
   string labels = 4 [(buf.validate.field).string.max_len = 4096];
   // 执行器标签 JSON 对象。
@@ -267,9 +283,9 @@ message ProbeResultItem {
   string value = 6;
   // 总耗时，单位毫秒。
   int32 duration_ms = 7 [json_name = "durationMs"];
-  // HTTP 状态码；TCP 与 ICMP 探测为 0。
+  // HTTP 状态码；非 HTTP 探测为 0。
   int32 status_code = 8 [json_name = "statusCode"];
-  // 失败分类，成功时为空：dns / connect / tls / timeout / status / keyword / redirect / protocol / permission。
+  // 失败分类，成功时为空：dns / connect / tls / timeout / status / keyword / assert / redirect / protocol / permission。
   string error_kind = 9 [json_name = "errorKind"];
   // 失败原因，成功时为空。
   string error_message = 10 [json_name = "errorMessage"];
@@ -287,6 +303,28 @@ message ProbeResultItem {
   string probed_at = 18 [json_name = "probedAt"];
   // 执行器标识。
   string executor = 19;
+  // ICMP 丢包百分比。
+  int32 packet_loss = 20 [json_name = "packetLoss"];
+  // ICMP 抖动（相邻 RTT 平均绝对差）。
+  int32 jitter_ms = 21 [json_name = "jitterMs"];
+  // ICMP 最小 RTT。
+  int32 min_rtt_ms = 22 [json_name = "minRttMs"];
+  // ICMP 最大 RTT。
+  int32 max_rtt_ms = 23 [json_name = "maxRttMs"];
+  // DNS 记录数。
+  int32 answer_count = 24 [json_name = "answerCount"];
+  // DNS 答案文本，逗号分隔。
+  string dns_answers = 25 [json_name = "dnsAnswers"];
+  // TLS 协议版本。
+  string tls_version = 26 [json_name = "tlsVersion"];
+  // TLS 加密套件。
+  string tls_cipher = 27 [json_name = "tlsCipher"];
+  // 证书 Subject。
+  string cert_subject = 28 [json_name = "certSubject"];
+  // 证书 Issuer。
+  string cert_issuer = 29 [json_name = "certIssuer"];
+  // 证书 SAN，逗号分隔。
+  string cert_sans = 30 [json_name = "certSans"];
 }
 
 // 分页列出探测记录。
@@ -327,13 +365,13 @@ message ProbeTargetGroupNowResponse {
 
 // 试探测一个地址。
 message ProbeTrialRequest {
-  // 地址：HTTP 为 http(s) URL，TCP 为 host:port，ICMP 为 host 或 IP。
+  // 地址：HTTP 为 http(s) URL，TCP / TLS 为 host:port，ICMP / DNS 为 host、IP 或域名。
   string spec = 1 [(buf.validate.field).string = {min_len: 1, max_len: 2048}];
-  // 请求参数。HTTP 留空按默认 GET、200-299、3000ms 处理；TCP 与 ICMP 只使用 timeout_ms。
+  // 请求参数。留空时 HTTP 按默认 GET、200-299、3000ms 处理；TCP / ICMP / DNS / TLS 使用各自字段。
   ProbeRequestConfig request = 2;
-  // 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP；留空按 PROBE_HTTP 处理。
+  // 探测类型，取值为 PROBE_HTTP、PROBE_TCP、PROBE_ICMP、PROBE_DNS 或 PROBE_TLS；留空按 PROBE_HTTP 处理。
   // 字段号追加在末尾，旧客户端不传时保持原有 HTTP 试探测行为。
-  string driver = 3 [(buf.validate.field).string = {in: ["", "PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP"]}];
+  string driver = 3 [(buf.validate.field).string = {in: ["", "PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP", "PROBE_DNS", "PROBE_TLS"]}];
 }
 
 // 试探测的结果。

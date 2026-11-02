@@ -247,7 +247,7 @@ type ProbeRuleSnapshot struct {
 	NamespaceUid string                 `protobuf:"bytes,2,opt,name=namespace_uid,json=namespaceUid,proto3" json:"namespace_uid,omitempty"`
 	Name         string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Driver       string                 `protobuf:"bytes,4,opt,name=driver,proto3" json:"driver,omitempty"`
-	// 观测指标：HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS；TCP 与 ICMP 取 UP、LATENCY_MS。
+	// 观测指标：HTTP / TCP / ICMP / DNS / TLS 各有自己的指标集合，由规则保存时校验。
 	ProbeMetric          string            `protobuf:"bytes,5,opt,name=probe_metric,json=probeMetric,proto3" json:"probe_metric,omitempty"`
 	ProbeIntervalSeconds int32             `protobuf:"varint,6,opt,name=probe_interval_seconds,json=probeIntervalSeconds,proto3" json:"probe_interval_seconds,omitempty"`
 	Labels               string            `protobuf:"bytes,7,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -428,7 +428,7 @@ func (x *ProbeGroupSnapshot) GetRequest() *ProbeRequestSnapshot {
 	return nil
 }
 
-// 探测请求参数快照。HTTP 探测使用全部字段；TCP 与 ICMP 只使用 timeout_ms。
+// 探测请求参数快照。HTTP 使用方法与断言字段；TCP 只使用超时；ICMP / DNS / TLS 使用各自字段。
 type ProbeRequestSnapshot struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Method          string                 `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
@@ -439,6 +439,14 @@ type ProbeRequestSnapshot struct {
 	VerifyCert      bool                   `protobuf:"varint,6,opt,name=verify_cert,json=verifyCert,proto3" json:"verify_cert,omitempty"`
 	Headers         string                 `protobuf:"bytes,7,opt,name=headers,proto3" json:"headers,omitempty"`
 	BodyKeyword     string                 `protobuf:"bytes,8,opt,name=body_keyword,json=bodyKeyword,proto3" json:"body_keyword,omitempty"`
+	ExpectHeaders   string                 `protobuf:"bytes,9,opt,name=expect_headers,json=expectHeaders,proto3" json:"expect_headers,omitempty"`
+	BodyRegex       string                 `protobuf:"bytes,10,opt,name=body_regex,json=bodyRegex,proto3" json:"body_regex,omitempty"`
+	IcmpCount       int32                  `protobuf:"varint,11,opt,name=icmp_count,json=icmpCount,proto3" json:"icmp_count,omitempty"`
+	IcmpPacketSize  int32                  `protobuf:"varint,12,opt,name=icmp_packet_size,json=icmpPacketSize,proto3" json:"icmp_packet_size,omitempty"`
+	DnsRecordType   string                 `protobuf:"bytes,13,opt,name=dns_record_type,json=dnsRecordType,proto3" json:"dns_record_type,omitempty"`
+	DnsExpectValues string                 `protobuf:"bytes,14,opt,name=dns_expect_values,json=dnsExpectValues,proto3" json:"dns_expect_values,omitempty"`
+	DnsServer       string                 `protobuf:"bytes,15,opt,name=dns_server,json=dnsServer,proto3" json:"dns_server,omitempty"`
+	TlsServerName   string                 `protobuf:"bytes,16,opt,name=tls_server_name,json=tlsServerName,proto3" json:"tls_server_name,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -525,6 +533,62 @@ func (x *ProbeRequestSnapshot) GetHeaders() string {
 func (x *ProbeRequestSnapshot) GetBodyKeyword() string {
 	if x != nil {
 		return x.BodyKeyword
+	}
+	return ""
+}
+
+func (x *ProbeRequestSnapshot) GetExpectHeaders() string {
+	if x != nil {
+		return x.ExpectHeaders
+	}
+	return ""
+}
+
+func (x *ProbeRequestSnapshot) GetBodyRegex() string {
+	if x != nil {
+		return x.BodyRegex
+	}
+	return ""
+}
+
+func (x *ProbeRequestSnapshot) GetIcmpCount() int32 {
+	if x != nil {
+		return x.IcmpCount
+	}
+	return 0
+}
+
+func (x *ProbeRequestSnapshot) GetIcmpPacketSize() int32 {
+	if x != nil {
+		return x.IcmpPacketSize
+	}
+	return 0
+}
+
+func (x *ProbeRequestSnapshot) GetDnsRecordType() string {
+	if x != nil {
+		return x.DnsRecordType
+	}
+	return ""
+}
+
+func (x *ProbeRequestSnapshot) GetDnsExpectValues() string {
+	if x != nil {
+		return x.DnsExpectValues
+	}
+	return ""
+}
+
+func (x *ProbeRequestSnapshot) GetDnsServer() string {
+	if x != nil {
+		return x.DnsServer
+	}
+	return ""
+}
+
+func (x *ProbeRequestSnapshot) GetTlsServerName() string {
+	if x != nil {
+		return x.TlsServerName
 	}
 	return ""
 }
@@ -659,12 +723,12 @@ type ProbeResult struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	TargetUid string                 `protobuf:"bytes,1,opt,name=target_uid,json=targetUid,proto3" json:"target_uid,omitempty"`
 	Ok        bool                   `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
-	// 观测值：up 取 1/0，耗时为毫秒，状态码为整数，证书剩余天数为天数。
-	// TCP 与 ICMP 只有 UP 与 LATENCY_MS 有意义，status_code / cert_days 为 0。
+	// 观测值：up 取 1/0，耗时为毫秒，状态码为整数，证书剩余天数为天数，
+	// 丢包率为百分比，DNS 记录数为条数。
 	Value      string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
 	DurationMs int32  `protobuf:"varint,4,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
 	StatusCode int32  `protobuf:"varint,5,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
-	// 失败分类：dns / connect / tls / timeout / status / keyword / redirect / protocol / permission。
+	// 失败分类：dns / connect / tls / timeout / status / keyword / assert / redirect / protocol / permission。
 	ErrorKind    string `protobuf:"bytes,6,opt,name=error_kind,json=errorKind,proto3" json:"error_kind,omitempty"`
 	ErrorMessage string `protobuf:"bytes,7,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	DnsMs        int32  `protobuf:"varint,8,opt,name=dns_ms,json=dnsMs,proto3" json:"dns_ms,omitempty"`
@@ -675,6 +739,17 @@ type ProbeResult struct {
 	ResolvedIp   string `protobuf:"bytes,13,opt,name=resolved_ip,json=resolvedIp,proto3" json:"resolved_ip,omitempty"`
 	// 执行器标识。
 	Executor      string `protobuf:"bytes,14,opt,name=executor,proto3" json:"executor,omitempty"`
+	PacketLoss    int32  `protobuf:"varint,15,opt,name=packet_loss,json=packetLoss,proto3" json:"packet_loss,omitempty"`
+	JitterMs      int32  `protobuf:"varint,16,opt,name=jitter_ms,json=jitterMs,proto3" json:"jitter_ms,omitempty"`
+	MinRttMs      int32  `protobuf:"varint,17,opt,name=min_rtt_ms,json=minRttMs,proto3" json:"min_rtt_ms,omitempty"`
+	MaxRttMs      int32  `protobuf:"varint,18,opt,name=max_rtt_ms,json=maxRttMs,proto3" json:"max_rtt_ms,omitempty"`
+	AnswerCount   int32  `protobuf:"varint,19,opt,name=answer_count,json=answerCount,proto3" json:"answer_count,omitempty"`
+	DnsAnswers    string `protobuf:"bytes,20,opt,name=dns_answers,json=dnsAnswers,proto3" json:"dns_answers,omitempty"`
+	TlsVersion    string `protobuf:"bytes,21,opt,name=tls_version,json=tlsVersion,proto3" json:"tls_version,omitempty"`
+	TlsCipher     string `protobuf:"bytes,22,opt,name=tls_cipher,json=tlsCipher,proto3" json:"tls_cipher,omitempty"`
+	CertSubject   string `protobuf:"bytes,23,opt,name=cert_subject,json=certSubject,proto3" json:"cert_subject,omitempty"`
+	CertIssuer    string `protobuf:"bytes,24,opt,name=cert_issuer,json=certIssuer,proto3" json:"cert_issuer,omitempty"`
+	CertSans      string `protobuf:"bytes,25,opt,name=cert_sans,json=certSans,proto3" json:"cert_sans,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -803,6 +878,83 @@ func (x *ProbeResult) GetResolvedIp() string {
 func (x *ProbeResult) GetExecutor() string {
 	if x != nil {
 		return x.Executor
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetPacketLoss() int32 {
+	if x != nil {
+		return x.PacketLoss
+	}
+	return 0
+}
+
+func (x *ProbeResult) GetJitterMs() int32 {
+	if x != nil {
+		return x.JitterMs
+	}
+	return 0
+}
+
+func (x *ProbeResult) GetMinRttMs() int32 {
+	if x != nil {
+		return x.MinRttMs
+	}
+	return 0
+}
+
+func (x *ProbeResult) GetMaxRttMs() int32 {
+	if x != nil {
+		return x.MaxRttMs
+	}
+	return 0
+}
+
+func (x *ProbeResult) GetAnswerCount() int32 {
+	if x != nil {
+		return x.AnswerCount
+	}
+	return 0
+}
+
+func (x *ProbeResult) GetDnsAnswers() string {
+	if x != nil {
+		return x.DnsAnswers
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetTlsVersion() string {
+	if x != nil {
+		return x.TlsVersion
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetTlsCipher() string {
+	if x != nil {
+		return x.TlsCipher
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetCertSubject() string {
+	if x != nil {
+		return x.CertSubject
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetCertIssuer() string {
+	if x != nil {
+		return x.CertIssuer
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetCertSans() string {
+	if x != nil {
+		return x.CertSans
 	}
 	return ""
 }
@@ -1808,7 +1960,7 @@ const file_megrez_v1_eval_proto_rawDesc = "" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
 	"\x06labels\x18\x03 \x01(\tR\x06labels\x129\n" +
-	"\arequest\x18\x04 \x01(\v2\x1f.megrez.v1.ProbeRequestSnapshotR\arequest\"\xa3\x02\n" +
+	"\arequest\x18\x04 \x01(\v2\x1f.megrez.v1.ProbeRequestSnapshotR\arequest\"\xcd\x04\n" +
 	"\x14ProbeRequestSnapshot\x12\x16\n" +
 	"\x06method\x18\x01 \x01(\tR\x06method\x12#\n" +
 	"\rexpect_status\x18\x02 \x01(\tR\fexpectStatus\x12\x1d\n" +
@@ -1819,7 +1971,19 @@ const file_megrez_v1_eval_proto_rawDesc = "" +
 	"\vverify_cert\x18\x06 \x01(\bR\n" +
 	"verifyCert\x12\x18\n" +
 	"\aheaders\x18\a \x01(\tR\aheaders\x12!\n" +
-	"\fbody_keyword\x18\b \x01(\tR\vbodyKeyword\"N\n" +
+	"\fbody_keyword\x18\b \x01(\tR\vbodyKeyword\x12%\n" +
+	"\x0eexpect_headers\x18\t \x01(\tR\rexpectHeaders\x12\x1d\n" +
+	"\n" +
+	"body_regex\x18\n" +
+	" \x01(\tR\tbodyRegex\x12\x1d\n" +
+	"\n" +
+	"icmp_count\x18\v \x01(\x05R\ticmpCount\x12(\n" +
+	"\x10icmp_packet_size\x18\f \x01(\x05R\x0eicmpPacketSize\x12&\n" +
+	"\x0fdns_record_type\x18\r \x01(\tR\rdnsRecordType\x12*\n" +
+	"\x11dns_expect_values\x18\x0e \x01(\tR\x0fdnsExpectValues\x12\x1d\n" +
+	"\n" +
+	"dns_server\x18\x0f \x01(\tR\tdnsServer\x12&\n" +
+	"\x0ftls_server_name\x18\x10 \x01(\tR\rtlsServerName\"N\n" +
 	"\x0eProbeTargetRef\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04spec\x18\x02 \x01(\tR\x04spec\x12\x16\n" +
@@ -1827,7 +1991,7 @@ const file_megrez_v1_eval_proto_rawDesc = "" +
 	"\x19ReportProbeResultsRequest\x12\x19\n" +
 	"\brule_uid\x18\x01 \x01(\tR\aruleUid\x12\x12\n" +
 	"\x04slot\x18\x02 \x01(\tR\x04slot\x120\n" +
-	"\aresults\x18\x03 \x03(\v2\x16.megrez.v1.ProbeResultR\aresults\"\x90\x03\n" +
+	"\aresults\x18\x03 \x03(\v2\x16.megrez.v1.ProbeResultR\aresults\"\xef\x05\n" +
 	"\vProbeResult\x12\x1d\n" +
 	"\n" +
 	"target_uid\x18\x01 \x01(\tR\ttargetUid\x12\x0e\n" +
@@ -1848,7 +2012,25 @@ const file_megrez_v1_eval_proto_rawDesc = "" +
 	"\tcert_days\x18\f \x01(\x05R\bcertDays\x12\x1f\n" +
 	"\vresolved_ip\x18\r \x01(\tR\n" +
 	"resolvedIp\x12\x1a\n" +
-	"\bexecutor\x18\x0e \x01(\tR\bexecutor\"\x1c\n" +
+	"\bexecutor\x18\x0e \x01(\tR\bexecutor\x12\x1f\n" +
+	"\vpacket_loss\x18\x0f \x01(\x05R\n" +
+	"packetLoss\x12\x1b\n" +
+	"\tjitter_ms\x18\x10 \x01(\x05R\bjitterMs\x12\x1c\n" +
+	"\n" +
+	"min_rtt_ms\x18\x11 \x01(\x05R\bminRttMs\x12\x1c\n" +
+	"\n" +
+	"max_rtt_ms\x18\x12 \x01(\x05R\bmaxRttMs\x12!\n" +
+	"\fanswer_count\x18\x13 \x01(\x05R\vanswerCount\x12\x1f\n" +
+	"\vdns_answers\x18\x14 \x01(\tR\n" +
+	"dnsAnswers\x12\x1f\n" +
+	"\vtls_version\x18\x15 \x01(\tR\n" +
+	"tlsVersion\x12\x1d\n" +
+	"\n" +
+	"tls_cipher\x18\x16 \x01(\tR\ttlsCipher\x12!\n" +
+	"\fcert_subject\x18\x17 \x01(\tR\vcertSubject\x12\x1f\n" +
+	"\vcert_issuer\x18\x18 \x01(\tR\n" +
+	"certIssuer\x12\x1b\n" +
+	"\tcert_sans\x18\x19 \x01(\tR\bcertSans\"\x1c\n" +
 	"\x1aReportProbeResultsResponse\"\x13\n" +
 	"\x11ClaimRulesRequest\"C\n" +
 	"\x12ClaimRulesResponse\x12-\n" +

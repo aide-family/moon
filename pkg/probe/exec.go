@@ -15,15 +15,16 @@ import (
 )
 
 // Result 是一次探测的结果。Value 是给规则判定用的观测值，取决于规则的
-// probe_metric：UP 取 1/0，LATENCY_MS 取总耗时，STATUS_CODE 取状态码，
-// CERT_DAYS 取证书剩余天数。
+// probe_metric：UP 取 1/0，LATENCY_MS 取本次探测耗时，STATUS_CODE 取状态码，
+// CERT_DAYS 取证书剩余天数，其余指标取对应的细分字段。
 type Result struct {
-	// OK 表示这次探测是否算成功（HTTP 看状态码、关键字与连接，TCP 看建连，
-	// ICMP 看 echo reply）。
+	// OK 表示这次探测是否算成功（HTTP 看连接、状态码、关键字与断言，TCP 看
+	// 建连，ICMP 看是否收到回包，DNS 看解析与期望值，TLS 看握手与证书）。
 	OK bool
 	// StatusCode 是 HTTP 状态码，连接失败或非 HTTP 驱动时为 0。
 	StatusCode int
-	// DurationMS 是这次探测的耗时：HTTP 是整请求，TCP 是建连，ICMP 是 RTT。
+	// DurationMS 是这次探测的耗时：HTTP 是整请求，TCP 是建连，ICMP 是平均
+	// RTT，DNS 是解析耗时，TLS 是整次握手耗时。
 	DurationMS int64
 	// ErrorKind 与 ErrorMessage 在失败时有值。
 	ErrorKind    string
@@ -33,10 +34,24 @@ type Result struct {
 	TCPMS  int64
 	TLSMS  int64
 	TTFBMS int64
-	// CertDays 是证书剩余天数，非 HTTPS 或跳过校验时为 0。
+	// CertDays 是证书剩余天数，非 HTTPS/TLS 或未读到证书时为 0。
 	CertDays int
 	// ResolvedIP 是本次解析到的地址。
 	ResolvedIP string
+	// ICMP 统计：丢包百分比 0–100、相邻回包抖动、RTT 极值。
+	PacketLoss int
+	JitterMS   int64
+	MinRTTMS   int64
+	MaxRTTMS   int64
+	// DNS 结果：记录条数与逗号分隔的答案文本。
+	AnswerCount int
+	DNSAnswers  string
+	// TLS 握手与对端证书信息。
+	TLSVersion  string
+	TLSCipher   string
+	CertSubject string
+	CertIssuer  string
+	CertSANs    string
 }
 
 // Value 按观测指标取出用于判定的数值。
@@ -48,6 +63,24 @@ func (r Result) Value(metric string) float64 {
 		return float64(r.StatusCode)
 	case "CERT_DAYS":
 		return float64(r.CertDays)
+	case "DNS_MS":
+		return float64(r.DNSMS)
+	case "TCP_CONNECT_MS":
+		return float64(r.TCPMS)
+	case "TLS_MS":
+		return float64(r.TLSMS)
+	case "TTFB_MS":
+		return float64(r.TTFBMS)
+	case "PACKET_LOSS":
+		return float64(r.PacketLoss)
+	case "JITTER_MS":
+		return float64(r.JitterMS)
+	case "MIN_RTT_MS":
+		return float64(r.MinRTTMS)
+	case "MAX_RTT_MS":
+		return float64(r.MaxRTTMS)
+	case "ANSWER_COUNT":
+		return float64(r.AnswerCount)
 	default:
 		if r.OK {
 			return 1
@@ -58,6 +91,9 @@ func (r Result) Value(metric string) float64 {
 
 // maxBodyBytes 是关键字判定最多读取的响应体大小。
 const maxBodyBytes = 64 << 10
+
+// maxBodyRegexLength 是响应体正则的最大长度。
+const maxBodyRegexLength = 512
 
 // maxRedirects 是最多跟随的重定向跳数。
 const maxRedirects = 5
@@ -72,6 +108,10 @@ func Run(ctx context.Context, driver, spec string, req Request) Result {
 		return runTCP(ctx, spec, req)
 	case DriverICMP:
 		return runICMP(ctx, spec, req)
+	case DriverDNS:
+		return runDNS(ctx, spec, req)
+	case DriverTLS:
+		return runTLS(ctx, spec, req)
 	default:
 		return Result{ErrorKind: ErrorProtocol, ErrorMessage: "unsupported probe driver"}
 	}
@@ -191,13 +231,45 @@ func runHTTP(ctx context.Context, spec string, req Request) Result {
 		out.ErrorMessage = "status " + http.StatusText(response.StatusCode)
 		return out
 	}
-	if req.BodyKeyword != "" && !strings.Contains(string(body), req.BodyKeyword) {
-		out.ErrorKind = ErrorKeyword
-		out.ErrorMessage = "response body does not contain the keyword"
+	if kind, message := checkResponseAssertions(req, response.Header, body); kind != "" {
+		out.ErrorKind = kind
+		out.ErrorMessage = message
 		return out
 	}
 	out.OK = true
 	return out
+}
+
+// checkResponseAssertions 检查响应头断言、响应体关键字与响应体正则。
+// 全部通过返回空分类；断言不匹配返回 assert，正则本身非法返回 protocol。
+func checkResponseAssertions(req Request, header http.Header, body []byte) (string, string) {
+	for name, pattern := range req.ExpectHeaders {
+		name = strings.TrimSpace(name)
+		values := header.Values(name)
+		if len(values) == 0 {
+			return ErrorAssert, "response header " + name + " is missing"
+		}
+		matcher, err := compileFullMatch(strings.TrimSpace(pattern))
+		if err != nil {
+			return ErrorProtocol, "invalid probe expect header regex"
+		}
+		if !matcher.MatchString(strings.Join(values, ", ")) {
+			return ErrorAssert, "response header " + name + " does not match the expected value"
+		}
+	}
+	if req.BodyKeyword != "" && !strings.Contains(string(body), req.BodyKeyword) {
+		return ErrorKeyword, "response body does not contain the keyword"
+	}
+	if req.BodyRegex != "" {
+		matcher, err := compileFullMatch(req.BodyRegex)
+		if err != nil {
+			return ErrorProtocol, "invalid probe body regex"
+		}
+		if !matcher.MatchString(string(body)) {
+			return ErrorAssert, "response body does not match the regex"
+		}
+	}
+	return "", ""
 }
 
 var errTooManyRedirects = errors.New("too many redirects")
@@ -252,6 +324,25 @@ func truncate(text string, limit int) string {
 		return text
 	}
 	return text[:limit]
+}
+
+// preferIPAddr 从解析结果里挑一个地址：优先 IPv4，双栈目标先试 v4 更稳。
+func preferIPAddr(addresses []net.IPAddr) (net.IPAddr, bool) {
+	for _, address := range addresses {
+		if address.IP.To4() != nil {
+			return address, true
+		}
+	}
+	if len(addresses) > 0 {
+		return addresses[0], true
+	}
+	return net.IPAddr{}, false
+}
+
+// isTimeoutError 判断错误是不是超时：DNS/TLS 失败分类时用它把超时单列。
+func isTimeoutError(err error) bool {
+	var netErr net.Error
+	return os.IsTimeout(err) || (errors.As(err, &netErr) && netErr.Timeout()) || errors.Is(err, context.DeadlineExceeded)
 }
 
 // transportFailure 把 TCP、ICMP 的底层错误转成失败结果，分类口径与 HTTP 一致。

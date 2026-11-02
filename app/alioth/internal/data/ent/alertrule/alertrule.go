@@ -145,6 +145,8 @@ const (
 	DriverPROBE_HTTP               Driver = "PROBE_HTTP"
 	DriverPROBE_TCP                Driver = "PROBE_TCP"
 	DriverPROBE_ICMP               Driver = "PROBE_ICMP"
+	DriverPROBE_DNS                Driver = "PROBE_DNS"
+	DriverPROBE_TLS                Driver = "PROBE_TLS"
 )
 
 func (_driver Driver) String() string {
@@ -154,7 +156,7 @@ func (_driver Driver) String() string {
 // DriverValidator is a validator for the "driver" field enum values. It is called by the builders before save.
 func DriverValidator(_driver Driver) error {
 	switch _driver {
-	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER, DriverPROBE_HTTP, DriverPROBE_TCP, DriverPROBE_ICMP:
+	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER, DriverPROBE_HTTP, DriverPROBE_TCP, DriverPROBE_ICMP, DriverPROBE_DNS, DriverPROBE_TLS:
 		return nil
 	default:
 		return fmt.Errorf("alertrule: invalid enum value for driver field: %q", _driver)
@@ -195,10 +197,19 @@ const DefaultProbeMetric = ProbeMetricUP
 
 // ProbeMetric values.
 const (
-	ProbeMetricUP          ProbeMetric = "UP"
-	ProbeMetricLATENCY_MS  ProbeMetric = "LATENCY_MS"
-	ProbeMetricSTATUS_CODE ProbeMetric = "STATUS_CODE"
-	ProbeMetricCERT_DAYS   ProbeMetric = "CERT_DAYS"
+	ProbeMetricUP             ProbeMetric = "UP"
+	ProbeMetricLATENCY_MS     ProbeMetric = "LATENCY_MS"
+	ProbeMetricSTATUS_CODE    ProbeMetric = "STATUS_CODE"
+	ProbeMetricCERT_DAYS      ProbeMetric = "CERT_DAYS"
+	ProbeMetricDNS_MS         ProbeMetric = "DNS_MS"
+	ProbeMetricTCP_CONNECT_MS ProbeMetric = "TCP_CONNECT_MS"
+	ProbeMetricTLS_MS         ProbeMetric = "TLS_MS"
+	ProbeMetricTTFB_MS        ProbeMetric = "TTFB_MS"
+	ProbeMetricPACKET_LOSS    ProbeMetric = "PACKET_LOSS"
+	ProbeMetricJITTER_MS      ProbeMetric = "JITTER_MS"
+	ProbeMetricMIN_RTT_MS     ProbeMetric = "MIN_RTT_MS"
+	ProbeMetricMAX_RTT_MS     ProbeMetric = "MAX_RTT_MS"
+	ProbeMetricANSWER_COUNT   ProbeMetric = "ANSWER_COUNT"
 )
 
 func (pm ProbeMetric) String() string {
@@ -208,7 +219,7 @@ func (pm ProbeMetric) String() string {
 // ProbeMetricValidator is a validator for the "probe_metric" field enum values. It is called by the builders before save.
 func ProbeMetricValidator(pm ProbeMetric) error {
 	switch pm {
-	case ProbeMetricUP, ProbeMetricLATENCY_MS, ProbeMetricSTATUS_CODE, ProbeMetricCERT_DAYS:
+	case ProbeMetricUP, ProbeMetricLATENCY_MS, ProbeMetricSTATUS_CODE, ProbeMetricCERT_DAYS, ProbeMetricDNS_MS, ProbeMetricTCP_CONNECT_MS, ProbeMetricTLS_MS, ProbeMetricTTFB_MS, ProbeMetricPACKET_LOSS, ProbeMetricJITTER_MS, ProbeMetricMIN_RTT_MS, ProbeMetricMAX_RTT_MS, ProbeMetricANSWER_COUNT:
 		return nil
 	default:
 		return fmt.Errorf("alertrule: invalid enum value for probe_metric field: %q", pm)

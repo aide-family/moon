@@ -128,6 +128,8 @@ const drivers = [
   "PROBE_HTTP",
   "PROBE_TCP",
   "PROBE_ICMP",
+  "PROBE_DNS",
+  "PROBE_TLS",
 ]
 // 探测规则：匹配同类型目标组而不是数据源，观测指标与探测周期随规则保存。
 const probeIntervals = [15, 30, 60, 300]
@@ -1490,7 +1492,7 @@ export function AlertRulePage() {
                         // 不同探测类型的目标组标签互不通用，切换后清空，避免留下
                         // 只匹配另一种类型目标组的条件。
                         probeGroupLabels: [],
-                        // 观测指标随探测类型收窄：切到 TCP / ICMP 时状态码与证书天数不可选。
+                        // 观测指标随探测类型变化：当前指标不再适用时回落到 UP。
                         probeMetric: nextMetrics.includes(form.probeMetric)
                           ? form.probeMetric
                           : "UP",

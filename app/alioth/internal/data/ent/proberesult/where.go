@@ -164,6 +164,61 @@ func Executor(v string) predicate.ProbeResult {
 	return predicate.ProbeResult(sql.FieldEQ(FieldExecutor, v))
 }
 
+// PacketLoss applies equality check predicate on the "packet_loss" field. It's identical to PacketLossEQ.
+func PacketLoss(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldPacketLoss, v))
+}
+
+// JitterMs applies equality check predicate on the "jitter_ms" field. It's identical to JitterMsEQ.
+func JitterMs(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldJitterMs, v))
+}
+
+// MinRttMs applies equality check predicate on the "min_rtt_ms" field. It's identical to MinRttMsEQ.
+func MinRttMs(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldMinRttMs, v))
+}
+
+// MaxRttMs applies equality check predicate on the "max_rtt_ms" field. It's identical to MaxRttMsEQ.
+func MaxRttMs(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldMaxRttMs, v))
+}
+
+// AnswerCount applies equality check predicate on the "answer_count" field. It's identical to AnswerCountEQ.
+func AnswerCount(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldAnswerCount, v))
+}
+
+// DNSAnswers applies equality check predicate on the "dns_answers" field. It's identical to DNSAnswersEQ.
+func DNSAnswers(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldDNSAnswers, v))
+}
+
+// TLSVersion applies equality check predicate on the "tls_version" field. It's identical to TLSVersionEQ.
+func TLSVersion(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldTLSVersion, v))
+}
+
+// TLSCipher applies equality check predicate on the "tls_cipher" field. It's identical to TLSCipherEQ.
+func TLSCipher(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldTLSCipher, v))
+}
+
+// CertSubject applies equality check predicate on the "cert_subject" field. It's identical to CertSubjectEQ.
+func CertSubject(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldCertSubject, v))
+}
+
+// CertIssuer applies equality check predicate on the "cert_issuer" field. It's identical to CertIssuerEQ.
+func CertIssuer(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldCertIssuer, v))
+}
+
+// CertSans applies equality check predicate on the "cert_sans" field. It's identical to CertSansEQ.
+func CertSans(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldCertSans, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.ProbeResult {
 	return predicate.ProbeResult(sql.FieldEQ(FieldCreatedAt, v))
@@ -1262,6 +1317,596 @@ func ExecutorEqualFold(v string) predicate.ProbeResult {
 // ExecutorContainsFold applies the ContainsFold predicate on the "executor" field.
 func ExecutorContainsFold(v string) predicate.ProbeResult {
 	return predicate.ProbeResult(sql.FieldContainsFold(FieldExecutor, v))
+}
+
+// PacketLossEQ applies the EQ predicate on the "packet_loss" field.
+func PacketLossEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldPacketLoss, v))
+}
+
+// PacketLossNEQ applies the NEQ predicate on the "packet_loss" field.
+func PacketLossNEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldPacketLoss, v))
+}
+
+// PacketLossIn applies the In predicate on the "packet_loss" field.
+func PacketLossIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldPacketLoss, vs...))
+}
+
+// PacketLossNotIn applies the NotIn predicate on the "packet_loss" field.
+func PacketLossNotIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldPacketLoss, vs...))
+}
+
+// PacketLossGT applies the GT predicate on the "packet_loss" field.
+func PacketLossGT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldPacketLoss, v))
+}
+
+// PacketLossGTE applies the GTE predicate on the "packet_loss" field.
+func PacketLossGTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldPacketLoss, v))
+}
+
+// PacketLossLT applies the LT predicate on the "packet_loss" field.
+func PacketLossLT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldPacketLoss, v))
+}
+
+// PacketLossLTE applies the LTE predicate on the "packet_loss" field.
+func PacketLossLTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldPacketLoss, v))
+}
+
+// JitterMsEQ applies the EQ predicate on the "jitter_ms" field.
+func JitterMsEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldJitterMs, v))
+}
+
+// JitterMsNEQ applies the NEQ predicate on the "jitter_ms" field.
+func JitterMsNEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldJitterMs, v))
+}
+
+// JitterMsIn applies the In predicate on the "jitter_ms" field.
+func JitterMsIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldJitterMs, vs...))
+}
+
+// JitterMsNotIn applies the NotIn predicate on the "jitter_ms" field.
+func JitterMsNotIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldJitterMs, vs...))
+}
+
+// JitterMsGT applies the GT predicate on the "jitter_ms" field.
+func JitterMsGT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldJitterMs, v))
+}
+
+// JitterMsGTE applies the GTE predicate on the "jitter_ms" field.
+func JitterMsGTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldJitterMs, v))
+}
+
+// JitterMsLT applies the LT predicate on the "jitter_ms" field.
+func JitterMsLT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldJitterMs, v))
+}
+
+// JitterMsLTE applies the LTE predicate on the "jitter_ms" field.
+func JitterMsLTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldJitterMs, v))
+}
+
+// MinRttMsEQ applies the EQ predicate on the "min_rtt_ms" field.
+func MinRttMsEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldMinRttMs, v))
+}
+
+// MinRttMsNEQ applies the NEQ predicate on the "min_rtt_ms" field.
+func MinRttMsNEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldMinRttMs, v))
+}
+
+// MinRttMsIn applies the In predicate on the "min_rtt_ms" field.
+func MinRttMsIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldMinRttMs, vs...))
+}
+
+// MinRttMsNotIn applies the NotIn predicate on the "min_rtt_ms" field.
+func MinRttMsNotIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldMinRttMs, vs...))
+}
+
+// MinRttMsGT applies the GT predicate on the "min_rtt_ms" field.
+func MinRttMsGT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldMinRttMs, v))
+}
+
+// MinRttMsGTE applies the GTE predicate on the "min_rtt_ms" field.
+func MinRttMsGTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldMinRttMs, v))
+}
+
+// MinRttMsLT applies the LT predicate on the "min_rtt_ms" field.
+func MinRttMsLT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldMinRttMs, v))
+}
+
+// MinRttMsLTE applies the LTE predicate on the "min_rtt_ms" field.
+func MinRttMsLTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldMinRttMs, v))
+}
+
+// MaxRttMsEQ applies the EQ predicate on the "max_rtt_ms" field.
+func MaxRttMsEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldMaxRttMs, v))
+}
+
+// MaxRttMsNEQ applies the NEQ predicate on the "max_rtt_ms" field.
+func MaxRttMsNEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldMaxRttMs, v))
+}
+
+// MaxRttMsIn applies the In predicate on the "max_rtt_ms" field.
+func MaxRttMsIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldMaxRttMs, vs...))
+}
+
+// MaxRttMsNotIn applies the NotIn predicate on the "max_rtt_ms" field.
+func MaxRttMsNotIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldMaxRttMs, vs...))
+}
+
+// MaxRttMsGT applies the GT predicate on the "max_rtt_ms" field.
+func MaxRttMsGT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldMaxRttMs, v))
+}
+
+// MaxRttMsGTE applies the GTE predicate on the "max_rtt_ms" field.
+func MaxRttMsGTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldMaxRttMs, v))
+}
+
+// MaxRttMsLT applies the LT predicate on the "max_rtt_ms" field.
+func MaxRttMsLT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldMaxRttMs, v))
+}
+
+// MaxRttMsLTE applies the LTE predicate on the "max_rtt_ms" field.
+func MaxRttMsLTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldMaxRttMs, v))
+}
+
+// AnswerCountEQ applies the EQ predicate on the "answer_count" field.
+func AnswerCountEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldAnswerCount, v))
+}
+
+// AnswerCountNEQ applies the NEQ predicate on the "answer_count" field.
+func AnswerCountNEQ(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldAnswerCount, v))
+}
+
+// AnswerCountIn applies the In predicate on the "answer_count" field.
+func AnswerCountIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldAnswerCount, vs...))
+}
+
+// AnswerCountNotIn applies the NotIn predicate on the "answer_count" field.
+func AnswerCountNotIn(vs ...int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldAnswerCount, vs...))
+}
+
+// AnswerCountGT applies the GT predicate on the "answer_count" field.
+func AnswerCountGT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldAnswerCount, v))
+}
+
+// AnswerCountGTE applies the GTE predicate on the "answer_count" field.
+func AnswerCountGTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldAnswerCount, v))
+}
+
+// AnswerCountLT applies the LT predicate on the "answer_count" field.
+func AnswerCountLT(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldAnswerCount, v))
+}
+
+// AnswerCountLTE applies the LTE predicate on the "answer_count" field.
+func AnswerCountLTE(v int) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldAnswerCount, v))
+}
+
+// DNSAnswersEQ applies the EQ predicate on the "dns_answers" field.
+func DNSAnswersEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldDNSAnswers, v))
+}
+
+// DNSAnswersNEQ applies the NEQ predicate on the "dns_answers" field.
+func DNSAnswersNEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldDNSAnswers, v))
+}
+
+// DNSAnswersIn applies the In predicate on the "dns_answers" field.
+func DNSAnswersIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldDNSAnswers, vs...))
+}
+
+// DNSAnswersNotIn applies the NotIn predicate on the "dns_answers" field.
+func DNSAnswersNotIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldDNSAnswers, vs...))
+}
+
+// DNSAnswersGT applies the GT predicate on the "dns_answers" field.
+func DNSAnswersGT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldDNSAnswers, v))
+}
+
+// DNSAnswersGTE applies the GTE predicate on the "dns_answers" field.
+func DNSAnswersGTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldDNSAnswers, v))
+}
+
+// DNSAnswersLT applies the LT predicate on the "dns_answers" field.
+func DNSAnswersLT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldDNSAnswers, v))
+}
+
+// DNSAnswersLTE applies the LTE predicate on the "dns_answers" field.
+func DNSAnswersLTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldDNSAnswers, v))
+}
+
+// DNSAnswersContains applies the Contains predicate on the "dns_answers" field.
+func DNSAnswersContains(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContains(FieldDNSAnswers, v))
+}
+
+// DNSAnswersHasPrefix applies the HasPrefix predicate on the "dns_answers" field.
+func DNSAnswersHasPrefix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasPrefix(FieldDNSAnswers, v))
+}
+
+// DNSAnswersHasSuffix applies the HasSuffix predicate on the "dns_answers" field.
+func DNSAnswersHasSuffix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasSuffix(FieldDNSAnswers, v))
+}
+
+// DNSAnswersEqualFold applies the EqualFold predicate on the "dns_answers" field.
+func DNSAnswersEqualFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEqualFold(FieldDNSAnswers, v))
+}
+
+// DNSAnswersContainsFold applies the ContainsFold predicate on the "dns_answers" field.
+func DNSAnswersContainsFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContainsFold(FieldDNSAnswers, v))
+}
+
+// TLSVersionEQ applies the EQ predicate on the "tls_version" field.
+func TLSVersionEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldTLSVersion, v))
+}
+
+// TLSVersionNEQ applies the NEQ predicate on the "tls_version" field.
+func TLSVersionNEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldTLSVersion, v))
+}
+
+// TLSVersionIn applies the In predicate on the "tls_version" field.
+func TLSVersionIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldTLSVersion, vs...))
+}
+
+// TLSVersionNotIn applies the NotIn predicate on the "tls_version" field.
+func TLSVersionNotIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldTLSVersion, vs...))
+}
+
+// TLSVersionGT applies the GT predicate on the "tls_version" field.
+func TLSVersionGT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldTLSVersion, v))
+}
+
+// TLSVersionGTE applies the GTE predicate on the "tls_version" field.
+func TLSVersionGTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldTLSVersion, v))
+}
+
+// TLSVersionLT applies the LT predicate on the "tls_version" field.
+func TLSVersionLT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldTLSVersion, v))
+}
+
+// TLSVersionLTE applies the LTE predicate on the "tls_version" field.
+func TLSVersionLTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldTLSVersion, v))
+}
+
+// TLSVersionContains applies the Contains predicate on the "tls_version" field.
+func TLSVersionContains(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContains(FieldTLSVersion, v))
+}
+
+// TLSVersionHasPrefix applies the HasPrefix predicate on the "tls_version" field.
+func TLSVersionHasPrefix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasPrefix(FieldTLSVersion, v))
+}
+
+// TLSVersionHasSuffix applies the HasSuffix predicate on the "tls_version" field.
+func TLSVersionHasSuffix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasSuffix(FieldTLSVersion, v))
+}
+
+// TLSVersionEqualFold applies the EqualFold predicate on the "tls_version" field.
+func TLSVersionEqualFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEqualFold(FieldTLSVersion, v))
+}
+
+// TLSVersionContainsFold applies the ContainsFold predicate on the "tls_version" field.
+func TLSVersionContainsFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContainsFold(FieldTLSVersion, v))
+}
+
+// TLSCipherEQ applies the EQ predicate on the "tls_cipher" field.
+func TLSCipherEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldTLSCipher, v))
+}
+
+// TLSCipherNEQ applies the NEQ predicate on the "tls_cipher" field.
+func TLSCipherNEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldTLSCipher, v))
+}
+
+// TLSCipherIn applies the In predicate on the "tls_cipher" field.
+func TLSCipherIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldTLSCipher, vs...))
+}
+
+// TLSCipherNotIn applies the NotIn predicate on the "tls_cipher" field.
+func TLSCipherNotIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldTLSCipher, vs...))
+}
+
+// TLSCipherGT applies the GT predicate on the "tls_cipher" field.
+func TLSCipherGT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldTLSCipher, v))
+}
+
+// TLSCipherGTE applies the GTE predicate on the "tls_cipher" field.
+func TLSCipherGTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldTLSCipher, v))
+}
+
+// TLSCipherLT applies the LT predicate on the "tls_cipher" field.
+func TLSCipherLT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldTLSCipher, v))
+}
+
+// TLSCipherLTE applies the LTE predicate on the "tls_cipher" field.
+func TLSCipherLTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldTLSCipher, v))
+}
+
+// TLSCipherContains applies the Contains predicate on the "tls_cipher" field.
+func TLSCipherContains(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContains(FieldTLSCipher, v))
+}
+
+// TLSCipherHasPrefix applies the HasPrefix predicate on the "tls_cipher" field.
+func TLSCipherHasPrefix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasPrefix(FieldTLSCipher, v))
+}
+
+// TLSCipherHasSuffix applies the HasSuffix predicate on the "tls_cipher" field.
+func TLSCipherHasSuffix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasSuffix(FieldTLSCipher, v))
+}
+
+// TLSCipherEqualFold applies the EqualFold predicate on the "tls_cipher" field.
+func TLSCipherEqualFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEqualFold(FieldTLSCipher, v))
+}
+
+// TLSCipherContainsFold applies the ContainsFold predicate on the "tls_cipher" field.
+func TLSCipherContainsFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContainsFold(FieldTLSCipher, v))
+}
+
+// CertSubjectEQ applies the EQ predicate on the "cert_subject" field.
+func CertSubjectEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldCertSubject, v))
+}
+
+// CertSubjectNEQ applies the NEQ predicate on the "cert_subject" field.
+func CertSubjectNEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldCertSubject, v))
+}
+
+// CertSubjectIn applies the In predicate on the "cert_subject" field.
+func CertSubjectIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldCertSubject, vs...))
+}
+
+// CertSubjectNotIn applies the NotIn predicate on the "cert_subject" field.
+func CertSubjectNotIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldCertSubject, vs...))
+}
+
+// CertSubjectGT applies the GT predicate on the "cert_subject" field.
+func CertSubjectGT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldCertSubject, v))
+}
+
+// CertSubjectGTE applies the GTE predicate on the "cert_subject" field.
+func CertSubjectGTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldCertSubject, v))
+}
+
+// CertSubjectLT applies the LT predicate on the "cert_subject" field.
+func CertSubjectLT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldCertSubject, v))
+}
+
+// CertSubjectLTE applies the LTE predicate on the "cert_subject" field.
+func CertSubjectLTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldCertSubject, v))
+}
+
+// CertSubjectContains applies the Contains predicate on the "cert_subject" field.
+func CertSubjectContains(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContains(FieldCertSubject, v))
+}
+
+// CertSubjectHasPrefix applies the HasPrefix predicate on the "cert_subject" field.
+func CertSubjectHasPrefix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasPrefix(FieldCertSubject, v))
+}
+
+// CertSubjectHasSuffix applies the HasSuffix predicate on the "cert_subject" field.
+func CertSubjectHasSuffix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasSuffix(FieldCertSubject, v))
+}
+
+// CertSubjectEqualFold applies the EqualFold predicate on the "cert_subject" field.
+func CertSubjectEqualFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEqualFold(FieldCertSubject, v))
+}
+
+// CertSubjectContainsFold applies the ContainsFold predicate on the "cert_subject" field.
+func CertSubjectContainsFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContainsFold(FieldCertSubject, v))
+}
+
+// CertIssuerEQ applies the EQ predicate on the "cert_issuer" field.
+func CertIssuerEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldCertIssuer, v))
+}
+
+// CertIssuerNEQ applies the NEQ predicate on the "cert_issuer" field.
+func CertIssuerNEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldCertIssuer, v))
+}
+
+// CertIssuerIn applies the In predicate on the "cert_issuer" field.
+func CertIssuerIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldCertIssuer, vs...))
+}
+
+// CertIssuerNotIn applies the NotIn predicate on the "cert_issuer" field.
+func CertIssuerNotIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldCertIssuer, vs...))
+}
+
+// CertIssuerGT applies the GT predicate on the "cert_issuer" field.
+func CertIssuerGT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldCertIssuer, v))
+}
+
+// CertIssuerGTE applies the GTE predicate on the "cert_issuer" field.
+func CertIssuerGTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldCertIssuer, v))
+}
+
+// CertIssuerLT applies the LT predicate on the "cert_issuer" field.
+func CertIssuerLT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldCertIssuer, v))
+}
+
+// CertIssuerLTE applies the LTE predicate on the "cert_issuer" field.
+func CertIssuerLTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldCertIssuer, v))
+}
+
+// CertIssuerContains applies the Contains predicate on the "cert_issuer" field.
+func CertIssuerContains(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContains(FieldCertIssuer, v))
+}
+
+// CertIssuerHasPrefix applies the HasPrefix predicate on the "cert_issuer" field.
+func CertIssuerHasPrefix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasPrefix(FieldCertIssuer, v))
+}
+
+// CertIssuerHasSuffix applies the HasSuffix predicate on the "cert_issuer" field.
+func CertIssuerHasSuffix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasSuffix(FieldCertIssuer, v))
+}
+
+// CertIssuerEqualFold applies the EqualFold predicate on the "cert_issuer" field.
+func CertIssuerEqualFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEqualFold(FieldCertIssuer, v))
+}
+
+// CertIssuerContainsFold applies the ContainsFold predicate on the "cert_issuer" field.
+func CertIssuerContainsFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContainsFold(FieldCertIssuer, v))
+}
+
+// CertSansEQ applies the EQ predicate on the "cert_sans" field.
+func CertSansEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEQ(FieldCertSans, v))
+}
+
+// CertSansNEQ applies the NEQ predicate on the "cert_sans" field.
+func CertSansNEQ(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNEQ(FieldCertSans, v))
+}
+
+// CertSansIn applies the In predicate on the "cert_sans" field.
+func CertSansIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldIn(FieldCertSans, vs...))
+}
+
+// CertSansNotIn applies the NotIn predicate on the "cert_sans" field.
+func CertSansNotIn(vs ...string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldNotIn(FieldCertSans, vs...))
+}
+
+// CertSansGT applies the GT predicate on the "cert_sans" field.
+func CertSansGT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGT(FieldCertSans, v))
+}
+
+// CertSansGTE applies the GTE predicate on the "cert_sans" field.
+func CertSansGTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldGTE(FieldCertSans, v))
+}
+
+// CertSansLT applies the LT predicate on the "cert_sans" field.
+func CertSansLT(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLT(FieldCertSans, v))
+}
+
+// CertSansLTE applies the LTE predicate on the "cert_sans" field.
+func CertSansLTE(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldLTE(FieldCertSans, v))
+}
+
+// CertSansContains applies the Contains predicate on the "cert_sans" field.
+func CertSansContains(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContains(FieldCertSans, v))
+}
+
+// CertSansHasPrefix applies the HasPrefix predicate on the "cert_sans" field.
+func CertSansHasPrefix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasPrefix(FieldCertSans, v))
+}
+
+// CertSansHasSuffix applies the HasSuffix predicate on the "cert_sans" field.
+func CertSansHasSuffix(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldHasSuffix(FieldCertSans, v))
+}
+
+// CertSansEqualFold applies the EqualFold predicate on the "cert_sans" field.
+func CertSansEqualFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldEqualFold(FieldCertSans, v))
+}
+
+// CertSansContainsFold applies the ContainsFold predicate on the "cert_sans" field.
+func CertSansContainsFold(v string) predicate.ProbeResult {
+	return predicate.ProbeResult(sql.FieldContainsFold(FieldCertSans, v))
 }
 
 // And groups predicates with the AND operator between them.

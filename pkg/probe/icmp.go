@@ -1,7 +1,10 @@
 package probe
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"math"
 	"net"
 	"os"
 	"strings"
@@ -41,11 +44,21 @@ func normalizeICMPTarget(raw string) (string, error) {
 	return normalizeProbeHost(text)
 }
 
-// runICMP 发一次 ICMP echo 请求并等待回包：收到 echo reply 即成功，耗时取 RTT。
-// 优先用非特权 ping 套接字，失败再回退 raw 套接字；两者都没有权限时返回
-// permission 分类，不 panic。ctx 取消或超时时关闭连接，避免阻塞在 ReadFrom 上。
+// ICMP 请求的取值范围与默认值。
+const (
+	maxICMPCount          = 10
+	maxICMPPacketSize     = 1400
+	defaultICMPPacketSize = 56
+	// minICMPPacketWindow 是单包最短读等待：总超时很小时也要给回包留出时间。
+	minICMPPacketWindow = 50 * time.Millisecond
+)
+
+// runICMP 连续发送 icmp_count 个 echo 请求并统计回包：至少收到 1 个即成功，
+// 全部丢失按 timeout 失败。优先用非特权 ping 套接字，失败再回退 raw 套接字；
+// 两者都没有权限时返回 permission 分类，不 panic。ctx 取消或超时时关闭连接，
+// 避免阻塞在 ReadFrom 上。
 func runICMP(ctx context.Context, spec string, req Request) Result {
-	req = req.Normalize()
+	req = req.NormalizeForDriver(DriverICMP)
 	timeout := time.Duration(req.TimeoutMS) * time.Millisecond
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -55,19 +68,7 @@ func runICMP(ctx context.Context, spec string, req Request) Result {
 	if err != nil {
 		return transportFailure(err, time.Since(started), "")
 	}
-	// 优先 IPv4：多数内网目标只开 IPv4，双栈主机先试 v4 更稳。
-	var target net.IPAddr
-	found := false
-	for _, address := range addresses {
-		if !found {
-			target = address
-			found = true
-		}
-		if address.IP.To4() != nil {
-			target = address
-			break
-		}
-	}
+	target, found := preferIPAddr(addresses)
 	if !found {
 		return Result{DurationMS: millis(time.Since(started)), ErrorKind: ErrorDNS, ErrorMessage: "probe target has no address"}
 	}
@@ -90,12 +91,9 @@ func runICMP(ctx context.Context, spec string, req Request) Result {
 		}
 	}()
 
-	deadline, ok := ctx.Deadline()
+	totalDeadline, ok := ctx.Deadline()
 	if !ok {
-		deadline = time.Now().Add(timeout)
-	}
-	if err := conn.SetReadDeadline(deadline); err != nil {
-		return transportFailure(err, time.Since(started), target.IP.String())
+		totalDeadline = time.Now().Add(timeout)
 	}
 
 	var (
@@ -116,52 +114,141 @@ func runICMP(ctx context.Context, spec string, req Request) Result {
 		destination = &net.IPAddr{IP: target.IP, Zone: target.Zone}
 	}
 
-	const sequence = 1
-	message := &icmp.Message{
-		Type: messageType,
-		Code: 0,
-		Body: &icmp.Echo{
-			ID:   os.Getpid() & 0xffff,
-			Seq:  sequence,
-			Data: []byte("alioth-probe"),
-		},
+	// 每包读超时取 timeout/count（最少 50ms），总时长仍受 ctx 约束。
+	perPacket := timeout / time.Duration(req.ICMPCount)
+	if perPacket < minICMPPacketWindow {
+		perPacket = minICMPPacketWindow
 	}
-	payload, err := message.Marshal(nil)
-	if err != nil {
-		return transportFailure(err, time.Since(started), target.IP.String())
-	}
-	if _, err := conn.WriteTo(payload, destination); err != nil {
-		return transportFailure(err, time.Since(started), target.IP.String())
-	}
-
+	data := bytes.Repeat([]byte("a"), req.ICMPPacketSize)
 	buffer := make([]byte, 1500)
-	for {
-		count, _, err := conn.ReadFrom(buffer)
+	sentTimes := make(map[int]time.Time, req.ICMPCount)
+	received := make(map[int]bool, req.ICMPCount)
+	rtts := make([]time.Duration, 0, req.ICMPCount)
+
+	for sequence := 1; sequence <= req.ICMPCount; sequence++ {
+		if ctx.Err() != nil {
+			break
+		}
+		message := &icmp.Message{
+			Type: messageType,
+			Code: 0,
+			Body: &icmp.Echo{
+				ID:   os.Getpid() & 0xffff,
+				Seq:  sequence,
+				Data: data,
+			},
+		}
+		payload, err := message.Marshal(nil)
 		if err != nil {
-			// 连接是被 ctx 关闭的：优先按 ctx 的原因分类，避免误报成 connect。
-			if ctxErr := ctx.Err(); ctxErr != nil {
-				return transportFailure(ctxErr, time.Since(started), target.IP.String())
+			if len(rtts) > 0 {
+				break
 			}
 			return transportFailure(err, time.Since(started), target.IP.String())
 		}
-		reply, err := icmp.ParseMessage(protocol, buffer[:count])
-		if err != nil {
-			continue
+		sentTimes[sequence] = time.Now()
+		if _, err := conn.WriteTo(payload, destination); err != nil {
+			// 已经收到回包说明权限与链路都正常，后面的包按丢包处理。
+			if len(rtts) > 0 {
+				break
+			}
+			return transportFailure(err, time.Since(started), target.IP.String())
 		}
-		if !isEchoReply(reply.Type, ipv4Target) {
-			continue
+
+		readDeadline := time.Now().Add(perPacket)
+		if readDeadline.After(totalDeadline) {
+			readDeadline = totalDeadline
 		}
-		echo, ok := reply.Body.(*icmp.Echo)
-		// 非特权套接字由内核分配 ident，只按 seq 认自己的回包。
-		if !ok || echo.Seq != sequence {
-			continue
+		if err := conn.SetReadDeadline(readDeadline); err != nil {
+			break
 		}
-		return Result{
-			OK:         true,
-			DurationMS: millis(time.Since(started)),
-			ResolvedIP: target.IP.String(),
+		for {
+			count, _, err := conn.ReadFrom(buffer)
+			if err != nil {
+				// 该包读取超时：记为丢失，继续发下一包；ctx 结束由外层退出。
+				break
+			}
+			reply, err := icmp.ParseMessage(protocol, buffer[:count])
+			if err != nil {
+				continue
+			}
+			if !isEchoReply(reply.Type, ipv4Target) {
+				continue
+			}
+			echo, ok := reply.Body.(*icmp.Echo)
+			if !ok {
+				continue
+			}
+			// 非特权套接字由内核分配 ident，只按 seq 认自己的回包。
+			seq := echo.Seq
+			if seq < 1 || seq > req.ICMPCount || received[seq] {
+				continue
+			}
+			sentAt, ok := sentTimes[seq]
+			if !ok {
+				continue
+			}
+			received[seq] = true
+			rtts = append(rtts, time.Since(sentAt))
+			// 乱序回包先记下，继续等当前包的应答。
+			if seq == sequence {
+				break
+			}
 		}
 	}
+
+	avgMS, jitterMS, minMS, maxMS, loss := icmpStats(req.ICMPCount, rtts)
+	out := Result{
+		DurationMS: avgMS,
+		PacketLoss: loss,
+		JitterMS:   jitterMS,
+		MinRTTMS:   minMS,
+		MaxRTTMS:   maxMS,
+		ResolvedIP: target.IP.String(),
+	}
+	if len(rtts) == 0 {
+		out.ErrorKind = ErrorTimeout
+		out.ErrorMessage = fmt.Sprintf("all %d icmp packets lost", req.ICMPCount)
+		return out
+	}
+	out.OK = true
+	return out
+}
+
+// icmpStats 根据发送次数与收到的 RTT 算出平均 RTT、抖动、极值与丢包率。
+// 抖动取相邻回包 RTT 的平均绝对差；少于两个回包时为 0。丢包率四舍五入。
+func icmpStats(sent int, rtts []time.Duration) (avgMS, jitterMS, minMS, maxMS int64, loss int) {
+	if sent <= 0 {
+		return 0, 0, 0, 0, 0
+	}
+	loss = int(math.Round(float64(sent-len(rtts)) * 100 / float64(sent)))
+	if len(rtts) == 0 {
+		return 0, 0, 0, 0, loss
+	}
+	var total, minRTT, maxRTT time.Duration
+	for index, rtt := range rtts {
+		total += rtt
+		if index == 0 || rtt < minRTT {
+			minRTT = rtt
+		}
+		if index == 0 || rtt > maxRTT {
+			maxRTT = rtt
+		}
+	}
+	avgMS = millis(total / time.Duration(len(rtts)))
+	minMS = millis(minRTT)
+	maxMS = millis(maxRTT)
+	if len(rtts) > 1 {
+		var diff time.Duration
+		for index := 1; index < len(rtts); index++ {
+			d := rtts[index] - rtts[index-1]
+			if d < 0 {
+				d = -d
+			}
+			diff += d
+		}
+		jitterMS = millis(diff / time.Duration(len(rtts)-1))
+	}
+	return avgMS, jitterMS, minMS, maxMS, loss
 }
 
 // icmpEndpoint 是一组套接字候选：先非特权 datagram，再 raw。

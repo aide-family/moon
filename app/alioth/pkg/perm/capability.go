@@ -16,11 +16,13 @@ const (
 	CapabilityAlertPage       = "alert_page"
 	CapabilityAlertRule       = "alert_rule"
 	CapabilityAlertDictionary = "alert_dictionary"
-	// 探测目标按驱动细分：HTTP / TCP / ICMP 各自对应一个能力，套餐可以只买其中一种，
-	// 未实现的类型不会出现在目录里。
+	// 探测目标按驱动细分：HTTP / TCP / ICMP / DNS / TLS 各自对应一个能力，
+	// 套餐可以只买其中几种，未实现的类型不会出现在目录里。
 	CapabilityProbeHTTP = "probe_http"
 	CapabilityProbeTCP  = "probe_tcp"
 	CapabilityProbeICMP = "probe_icmp"
+	CapabilityProbeDNS  = "probe_dns"
+	CapabilityProbeTLS  = "probe_tls"
 	// 数据源按驱动细分：一个套餐可以只买 Prometheus，不买 Loki 或 ES。
 	// 六个编码与 datasource.driver 枚举一一对应，权限相同，由能力决定可用类型。
 	CapabilityDatasourcePrometheus      = "datasource_prometheus"
@@ -129,6 +131,16 @@ var capabilitySpecs = []Capability{
 	{
 		Code: CapabilityProbeICMP, Module: FeatureProbe, Name: "ICMP 探测",
 		Description: "管理 ICMP 主机探测目标组、探测地址与立即探测。",
+		Permissions: []string{ProbeRead, ProbeWrite, ProbeDelete},
+	},
+	{
+		Code: CapabilityProbeDNS, Module: FeatureProbe, Name: "DNS 探测",
+		Description: "管理 DNS 解析探测目标组、探测地址与立即探测。",
+		Permissions: []string{ProbeRead, ProbeWrite, ProbeDelete},
+	},
+	{
+		Code: CapabilityProbeTLS, Module: FeatureProbe, Name: "TLS 探测",
+		Description: "管理 TLS 握手与证书探测目标组、探测地址与立即探测。",
 		Permissions: []string{ProbeRead, ProbeWrite, ProbeDelete},
 	},
 	{
@@ -458,7 +470,7 @@ var legacyCapabilityExpansion = map[string][]string{
 		CapabilityDatasourceVictoriaLogs,
 		CapabilityDatasourceJaeger,
 	},
-	"probe_target": {CapabilityProbeHTTP, CapabilityProbeTCP, CapabilityProbeICMP},
+	"probe_target": {CapabilityProbeHTTP, CapabilityProbeTCP, CapabilityProbeICMP, CapabilityProbeDNS, CapabilityProbeTLS},
 	"notify_channel": {
 		CapabilityNotifyChannelSMTP,
 		CapabilityNotifyChannelWebhookOther,
@@ -571,7 +583,7 @@ func NormalizeCapabilities(codes []string) []string {
 	return EffectiveCapabilities(nil, expanded)
 }
 
-// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 28 项。
+// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 30 项。
 // 数据源、探测和通知渠道按类型/应用展开后全部包含在基础套餐里，保持升级前
 // 「基础套餐可用全部数据源、探测与通知渠道类型」的行为；Kubernetes、机器和 SSH
 // 能力由超级管理员另行开通。
@@ -580,7 +592,7 @@ func BaseCapabilities() []string {
 	for _, code := range BaseFeatures() {
 		modules[code] = struct{}{}
 	}
-	codes := make([]string, 0, 28)
+	codes := make([]string, 0, 30)
 	for _, item := range capabilitySpecs {
 		if _, ok := modules[item.Module]; ok {
 			codes = append(codes, item.Code)
@@ -734,6 +746,8 @@ var probeCapabilityDrivers = []struct {
 	{"PROBE_HTTP", CapabilityProbeHTTP},
 	{"PROBE_TCP", CapabilityProbeTCP},
 	{"PROBE_ICMP", CapabilityProbeICMP},
+	{"PROBE_DNS", CapabilityProbeDNS},
+	{"PROBE_TLS", CapabilityProbeTLS},
 }
 
 // ProbeDrivers 按固定顺序返回全部探测驱动编码。

@@ -349,6 +349,195 @@ func (_u *ProbeResultUpdate) SetNillableExecutor(v *string) *ProbeResultUpdate {
 	return _u
 }
 
+// SetPacketLoss sets the "packet_loss" field.
+func (_u *ProbeResultUpdate) SetPacketLoss(v int) *ProbeResultUpdate {
+	_u.mutation.ResetPacketLoss()
+	_u.mutation.SetPacketLoss(v)
+	return _u
+}
+
+// SetNillablePacketLoss sets the "packet_loss" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillablePacketLoss(v *int) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetPacketLoss(*v)
+	}
+	return _u
+}
+
+// AddPacketLoss adds value to the "packet_loss" field.
+func (_u *ProbeResultUpdate) AddPacketLoss(v int) *ProbeResultUpdate {
+	_u.mutation.AddPacketLoss(v)
+	return _u
+}
+
+// SetJitterMs sets the "jitter_ms" field.
+func (_u *ProbeResultUpdate) SetJitterMs(v int) *ProbeResultUpdate {
+	_u.mutation.ResetJitterMs()
+	_u.mutation.SetJitterMs(v)
+	return _u
+}
+
+// SetNillableJitterMs sets the "jitter_ms" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableJitterMs(v *int) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetJitterMs(*v)
+	}
+	return _u
+}
+
+// AddJitterMs adds value to the "jitter_ms" field.
+func (_u *ProbeResultUpdate) AddJitterMs(v int) *ProbeResultUpdate {
+	_u.mutation.AddJitterMs(v)
+	return _u
+}
+
+// SetMinRttMs sets the "min_rtt_ms" field.
+func (_u *ProbeResultUpdate) SetMinRttMs(v int) *ProbeResultUpdate {
+	_u.mutation.ResetMinRttMs()
+	_u.mutation.SetMinRttMs(v)
+	return _u
+}
+
+// SetNillableMinRttMs sets the "min_rtt_ms" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableMinRttMs(v *int) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetMinRttMs(*v)
+	}
+	return _u
+}
+
+// AddMinRttMs adds value to the "min_rtt_ms" field.
+func (_u *ProbeResultUpdate) AddMinRttMs(v int) *ProbeResultUpdate {
+	_u.mutation.AddMinRttMs(v)
+	return _u
+}
+
+// SetMaxRttMs sets the "max_rtt_ms" field.
+func (_u *ProbeResultUpdate) SetMaxRttMs(v int) *ProbeResultUpdate {
+	_u.mutation.ResetMaxRttMs()
+	_u.mutation.SetMaxRttMs(v)
+	return _u
+}
+
+// SetNillableMaxRttMs sets the "max_rtt_ms" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableMaxRttMs(v *int) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetMaxRttMs(*v)
+	}
+	return _u
+}
+
+// AddMaxRttMs adds value to the "max_rtt_ms" field.
+func (_u *ProbeResultUpdate) AddMaxRttMs(v int) *ProbeResultUpdate {
+	_u.mutation.AddMaxRttMs(v)
+	return _u
+}
+
+// SetAnswerCount sets the "answer_count" field.
+func (_u *ProbeResultUpdate) SetAnswerCount(v int) *ProbeResultUpdate {
+	_u.mutation.ResetAnswerCount()
+	_u.mutation.SetAnswerCount(v)
+	return _u
+}
+
+// SetNillableAnswerCount sets the "answer_count" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableAnswerCount(v *int) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetAnswerCount(*v)
+	}
+	return _u
+}
+
+// AddAnswerCount adds value to the "answer_count" field.
+func (_u *ProbeResultUpdate) AddAnswerCount(v int) *ProbeResultUpdate {
+	_u.mutation.AddAnswerCount(v)
+	return _u
+}
+
+// SetDNSAnswers sets the "dns_answers" field.
+func (_u *ProbeResultUpdate) SetDNSAnswers(v string) *ProbeResultUpdate {
+	_u.mutation.SetDNSAnswers(v)
+	return _u
+}
+
+// SetNillableDNSAnswers sets the "dns_answers" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableDNSAnswers(v *string) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetDNSAnswers(*v)
+	}
+	return _u
+}
+
+// SetTLSVersion sets the "tls_version" field.
+func (_u *ProbeResultUpdate) SetTLSVersion(v string) *ProbeResultUpdate {
+	_u.mutation.SetTLSVersion(v)
+	return _u
+}
+
+// SetNillableTLSVersion sets the "tls_version" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableTLSVersion(v *string) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetTLSVersion(*v)
+	}
+	return _u
+}
+
+// SetTLSCipher sets the "tls_cipher" field.
+func (_u *ProbeResultUpdate) SetTLSCipher(v string) *ProbeResultUpdate {
+	_u.mutation.SetTLSCipher(v)
+	return _u
+}
+
+// SetNillableTLSCipher sets the "tls_cipher" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableTLSCipher(v *string) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetTLSCipher(*v)
+	}
+	return _u
+}
+
+// SetCertSubject sets the "cert_subject" field.
+func (_u *ProbeResultUpdate) SetCertSubject(v string) *ProbeResultUpdate {
+	_u.mutation.SetCertSubject(v)
+	return _u
+}
+
+// SetNillableCertSubject sets the "cert_subject" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableCertSubject(v *string) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetCertSubject(*v)
+	}
+	return _u
+}
+
+// SetCertIssuer sets the "cert_issuer" field.
+func (_u *ProbeResultUpdate) SetCertIssuer(v string) *ProbeResultUpdate {
+	_u.mutation.SetCertIssuer(v)
+	return _u
+}
+
+// SetNillableCertIssuer sets the "cert_issuer" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableCertIssuer(v *string) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetCertIssuer(*v)
+	}
+	return _u
+}
+
+// SetCertSans sets the "cert_sans" field.
+func (_u *ProbeResultUpdate) SetCertSans(v string) *ProbeResultUpdate {
+	_u.mutation.SetCertSans(v)
+	return _u
+}
+
+// SetNillableCertSans sets the "cert_sans" field if the given value is not nil.
+func (_u *ProbeResultUpdate) SetNillableCertSans(v *string) *ProbeResultUpdate {
+	if v != nil {
+		_u.SetCertSans(*v)
+	}
+	return _u
+}
+
 // Mutation returns the ProbeResultMutation object of the builder.
 func (_u *ProbeResultUpdate) Mutation() *ProbeResultMutation {
 	return _u.mutation
@@ -502,6 +691,54 @@ func (_u *ProbeResultUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.Executor(); ok {
 		_spec.SetField(proberesult.FieldExecutor, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PacketLoss(); ok {
+		_spec.SetField(proberesult.FieldPacketLoss, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPacketLoss(); ok {
+		_spec.AddField(proberesult.FieldPacketLoss, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.JitterMs(); ok {
+		_spec.SetField(proberesult.FieldJitterMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedJitterMs(); ok {
+		_spec.AddField(proberesult.FieldJitterMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MinRttMs(); ok {
+		_spec.SetField(proberesult.FieldMinRttMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMinRttMs(); ok {
+		_spec.AddField(proberesult.FieldMinRttMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxRttMs(); ok {
+		_spec.SetField(proberesult.FieldMaxRttMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxRttMs(); ok {
+		_spec.AddField(proberesult.FieldMaxRttMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AnswerCount(); ok {
+		_spec.SetField(proberesult.FieldAnswerCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAnswerCount(); ok {
+		_spec.AddField(proberesult.FieldAnswerCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DNSAnswers(); ok {
+		_spec.SetField(proberesult.FieldDNSAnswers, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TLSVersion(); ok {
+		_spec.SetField(proberesult.FieldTLSVersion, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TLSCipher(); ok {
+		_spec.SetField(proberesult.FieldTLSCipher, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CertSubject(); ok {
+		_spec.SetField(proberesult.FieldCertSubject, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CertIssuer(); ok {
+		_spec.SetField(proberesult.FieldCertIssuer, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CertSans(); ok {
+		_spec.SetField(proberesult.FieldCertSans, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -844,6 +1081,195 @@ func (_u *ProbeResultUpdateOne) SetNillableExecutor(v *string) *ProbeResultUpdat
 	return _u
 }
 
+// SetPacketLoss sets the "packet_loss" field.
+func (_u *ProbeResultUpdateOne) SetPacketLoss(v int) *ProbeResultUpdateOne {
+	_u.mutation.ResetPacketLoss()
+	_u.mutation.SetPacketLoss(v)
+	return _u
+}
+
+// SetNillablePacketLoss sets the "packet_loss" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillablePacketLoss(v *int) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetPacketLoss(*v)
+	}
+	return _u
+}
+
+// AddPacketLoss adds value to the "packet_loss" field.
+func (_u *ProbeResultUpdateOne) AddPacketLoss(v int) *ProbeResultUpdateOne {
+	_u.mutation.AddPacketLoss(v)
+	return _u
+}
+
+// SetJitterMs sets the "jitter_ms" field.
+func (_u *ProbeResultUpdateOne) SetJitterMs(v int) *ProbeResultUpdateOne {
+	_u.mutation.ResetJitterMs()
+	_u.mutation.SetJitterMs(v)
+	return _u
+}
+
+// SetNillableJitterMs sets the "jitter_ms" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableJitterMs(v *int) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetJitterMs(*v)
+	}
+	return _u
+}
+
+// AddJitterMs adds value to the "jitter_ms" field.
+func (_u *ProbeResultUpdateOne) AddJitterMs(v int) *ProbeResultUpdateOne {
+	_u.mutation.AddJitterMs(v)
+	return _u
+}
+
+// SetMinRttMs sets the "min_rtt_ms" field.
+func (_u *ProbeResultUpdateOne) SetMinRttMs(v int) *ProbeResultUpdateOne {
+	_u.mutation.ResetMinRttMs()
+	_u.mutation.SetMinRttMs(v)
+	return _u
+}
+
+// SetNillableMinRttMs sets the "min_rtt_ms" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableMinRttMs(v *int) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetMinRttMs(*v)
+	}
+	return _u
+}
+
+// AddMinRttMs adds value to the "min_rtt_ms" field.
+func (_u *ProbeResultUpdateOne) AddMinRttMs(v int) *ProbeResultUpdateOne {
+	_u.mutation.AddMinRttMs(v)
+	return _u
+}
+
+// SetMaxRttMs sets the "max_rtt_ms" field.
+func (_u *ProbeResultUpdateOne) SetMaxRttMs(v int) *ProbeResultUpdateOne {
+	_u.mutation.ResetMaxRttMs()
+	_u.mutation.SetMaxRttMs(v)
+	return _u
+}
+
+// SetNillableMaxRttMs sets the "max_rtt_ms" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableMaxRttMs(v *int) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetMaxRttMs(*v)
+	}
+	return _u
+}
+
+// AddMaxRttMs adds value to the "max_rtt_ms" field.
+func (_u *ProbeResultUpdateOne) AddMaxRttMs(v int) *ProbeResultUpdateOne {
+	_u.mutation.AddMaxRttMs(v)
+	return _u
+}
+
+// SetAnswerCount sets the "answer_count" field.
+func (_u *ProbeResultUpdateOne) SetAnswerCount(v int) *ProbeResultUpdateOne {
+	_u.mutation.ResetAnswerCount()
+	_u.mutation.SetAnswerCount(v)
+	return _u
+}
+
+// SetNillableAnswerCount sets the "answer_count" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableAnswerCount(v *int) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetAnswerCount(*v)
+	}
+	return _u
+}
+
+// AddAnswerCount adds value to the "answer_count" field.
+func (_u *ProbeResultUpdateOne) AddAnswerCount(v int) *ProbeResultUpdateOne {
+	_u.mutation.AddAnswerCount(v)
+	return _u
+}
+
+// SetDNSAnswers sets the "dns_answers" field.
+func (_u *ProbeResultUpdateOne) SetDNSAnswers(v string) *ProbeResultUpdateOne {
+	_u.mutation.SetDNSAnswers(v)
+	return _u
+}
+
+// SetNillableDNSAnswers sets the "dns_answers" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableDNSAnswers(v *string) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetDNSAnswers(*v)
+	}
+	return _u
+}
+
+// SetTLSVersion sets the "tls_version" field.
+func (_u *ProbeResultUpdateOne) SetTLSVersion(v string) *ProbeResultUpdateOne {
+	_u.mutation.SetTLSVersion(v)
+	return _u
+}
+
+// SetNillableTLSVersion sets the "tls_version" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableTLSVersion(v *string) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetTLSVersion(*v)
+	}
+	return _u
+}
+
+// SetTLSCipher sets the "tls_cipher" field.
+func (_u *ProbeResultUpdateOne) SetTLSCipher(v string) *ProbeResultUpdateOne {
+	_u.mutation.SetTLSCipher(v)
+	return _u
+}
+
+// SetNillableTLSCipher sets the "tls_cipher" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableTLSCipher(v *string) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetTLSCipher(*v)
+	}
+	return _u
+}
+
+// SetCertSubject sets the "cert_subject" field.
+func (_u *ProbeResultUpdateOne) SetCertSubject(v string) *ProbeResultUpdateOne {
+	_u.mutation.SetCertSubject(v)
+	return _u
+}
+
+// SetNillableCertSubject sets the "cert_subject" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableCertSubject(v *string) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetCertSubject(*v)
+	}
+	return _u
+}
+
+// SetCertIssuer sets the "cert_issuer" field.
+func (_u *ProbeResultUpdateOne) SetCertIssuer(v string) *ProbeResultUpdateOne {
+	_u.mutation.SetCertIssuer(v)
+	return _u
+}
+
+// SetNillableCertIssuer sets the "cert_issuer" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableCertIssuer(v *string) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetCertIssuer(*v)
+	}
+	return _u
+}
+
+// SetCertSans sets the "cert_sans" field.
+func (_u *ProbeResultUpdateOne) SetCertSans(v string) *ProbeResultUpdateOne {
+	_u.mutation.SetCertSans(v)
+	return _u
+}
+
+// SetNillableCertSans sets the "cert_sans" field if the given value is not nil.
+func (_u *ProbeResultUpdateOne) SetNillableCertSans(v *string) *ProbeResultUpdateOne {
+	if v != nil {
+		_u.SetCertSans(*v)
+	}
+	return _u
+}
+
 // Mutation returns the ProbeResultMutation object of the builder.
 func (_u *ProbeResultUpdateOne) Mutation() *ProbeResultMutation {
 	return _u.mutation
@@ -1027,6 +1453,54 @@ func (_u *ProbeResultUpdateOne) sqlSave(ctx context.Context) (_node *ProbeResult
 	}
 	if value, ok := _u.mutation.Executor(); ok {
 		_spec.SetField(proberesult.FieldExecutor, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PacketLoss(); ok {
+		_spec.SetField(proberesult.FieldPacketLoss, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPacketLoss(); ok {
+		_spec.AddField(proberesult.FieldPacketLoss, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.JitterMs(); ok {
+		_spec.SetField(proberesult.FieldJitterMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedJitterMs(); ok {
+		_spec.AddField(proberesult.FieldJitterMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MinRttMs(); ok {
+		_spec.SetField(proberesult.FieldMinRttMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMinRttMs(); ok {
+		_spec.AddField(proberesult.FieldMinRttMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxRttMs(); ok {
+		_spec.SetField(proberesult.FieldMaxRttMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxRttMs(); ok {
+		_spec.AddField(proberesult.FieldMaxRttMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AnswerCount(); ok {
+		_spec.SetField(proberesult.FieldAnswerCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAnswerCount(); ok {
+		_spec.AddField(proberesult.FieldAnswerCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DNSAnswers(); ok {
+		_spec.SetField(proberesult.FieldDNSAnswers, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TLSVersion(); ok {
+		_spec.SetField(proberesult.FieldTLSVersion, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TLSCipher(); ok {
+		_spec.SetField(proberesult.FieldTLSCipher, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CertSubject(); ok {
+		_spec.SetField(proberesult.FieldCertSubject, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CertIssuer(); ok {
+		_spec.SetField(proberesult.FieldCertIssuer, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CertSans(); ok {
+		_spec.SetField(proberesult.FieldCertSans, field.TypeString, value)
 	}
 	_node = &ProbeResult{config: _u.config}
 	_spec.Assign = _node.assignValues

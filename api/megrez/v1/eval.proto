@@ -55,7 +55,7 @@ message ProbeRuleSnapshot {
   string namespace_uid = 2;
   string name = 3;
   string driver = 4;
-  // 观测指标：HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS；TCP 与 ICMP 取 UP、LATENCY_MS。
+  // 观测指标：HTTP / TCP / ICMP / DNS / TLS 各有自己的指标集合，由规则保存时校验。
   string probe_metric = 5;
   int32 probe_interval_seconds = 6;
   string labels = 7;
@@ -73,7 +73,7 @@ message ProbeGroupSnapshot {
   ProbeRequestSnapshot request = 4;
 }
 
-// 探测请求参数快照。HTTP 探测使用全部字段；TCP 与 ICMP 只使用 timeout_ms。
+// 探测请求参数快照。HTTP 使用方法与断言字段；TCP 只使用超时；ICMP / DNS / TLS 使用各自字段。
 message ProbeRequestSnapshot {
   string method = 1;
   string expect_status = 2;
@@ -83,6 +83,14 @@ message ProbeRequestSnapshot {
   bool verify_cert = 6;
   string headers = 7;
   string body_keyword = 8;
+  string expect_headers = 9;
+  string body_regex = 10;
+  int32 icmp_count = 11;
+  int32 icmp_packet_size = 12;
+  string dns_record_type = 13;
+  string dns_expect_values = 14;
+  string dns_server = 15;
+  string tls_server_name = 16;
 }
 
 // 一个待探测目标。
@@ -106,12 +114,12 @@ message ReportProbeResultsRequest {
 message ProbeResult {
   string target_uid = 1;
   bool ok = 2;
-  // 观测值：up 取 1/0，耗时为毫秒，状态码为整数，证书剩余天数为天数。
-  // TCP 与 ICMP 只有 UP 与 LATENCY_MS 有意义，status_code / cert_days 为 0。
+  // 观测值：up 取 1/0，耗时为毫秒，状态码为整数，证书剩余天数为天数，
+  // 丢包率为百分比，DNS 记录数为条数。
   string value = 3;
   int32 duration_ms = 4;
   int32 status_code = 5;
-  // 失败分类：dns / connect / tls / timeout / status / keyword / redirect / protocol / permission。
+  // 失败分类：dns / connect / tls / timeout / status / keyword / assert / redirect / protocol / permission。
   string error_kind = 6;
   string error_message = 7;
   int32 dns_ms = 8;
@@ -122,6 +130,17 @@ message ProbeResult {
   string resolved_ip = 13;
   // 执行器标识。
   string executor = 14;
+  int32 packet_loss = 15;
+  int32 jitter_ms = 16;
+  int32 min_rtt_ms = 17;
+  int32 max_rtt_ms = 18;
+  int32 answer_count = 19;
+  string dns_answers = 20;
+  string tls_version = 21;
+  string tls_cipher = 22;
+  string cert_subject = 23;
+  string cert_issuer = 24;
+  string cert_sans = 25;
 }
 
 // 回写已接受。

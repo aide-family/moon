@@ -3146,7 +3146,7 @@ type AlertRuleItem struct {
 	ProbeGroupLabels string `protobuf:"bytes,16,opt,name=probe_group_labels,json=probeGroupLabels,proto3" json:"probe_group_labels,omitempty"`
 	// 探测周期秒数；查询规则为 0。
 	ProbeIntervalSeconds int32 `protobuf:"varint,17,opt,name=probe_interval_seconds,json=probeIntervalSeconds,proto3" json:"probe_interval_seconds,omitempty"`
-	// 探测规则比较的观测指标：HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS；TCP 与 ICMP 取 UP、LATENCY_MS。
+	// 探测规则比较的观测指标：HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS、DNS_MS、TCP_CONNECT_MS、TLS_MS、TTFB_MS；TCP 取 UP、LATENCY_MS、DNS_MS、TCP_CONNECT_MS；ICMP 取 UP、LATENCY_MS、PACKET_LOSS、JITTER_MS、MIN_RTT_MS、MAX_RTT_MS；DNS 取 UP、LATENCY_MS、DNS_MS、ANSWER_COUNT；TLS 取 UP、LATENCY_MS、DNS_MS、TCP_CONNECT_MS、TLS_MS、CERT_DAYS。
 	ProbeMetric   string `protobuf:"bytes,18,opt,name=probe_metric,json=probeMetric,proto3" json:"probe_metric,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3323,7 +3323,7 @@ type CreateAlertRuleRequest struct {
 	ProbeGroupLabels string `protobuf:"bytes,14,opt,name=probe_group_labels,json=probeGroupLabels,proto3" json:"probe_group_labels,omitempty"`
 	// 探测周期秒数，取值为 15、30、60、300；探测规则必填，查询规则为 0。
 	ProbeIntervalSeconds int32 `protobuf:"varint,15,opt,name=probe_interval_seconds,json=probeIntervalSeconds,proto3" json:"probe_interval_seconds,omitempty"`
-	// 探测规则比较的观测指标；查询规则留空。HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS，TCP 与 ICMP 取 UP、LATENCY_MS。
+	// 探测规则比较的观测指标；查询规则留空。按驱动取值，见探测指标目录。
 	ProbeMetric   string `protobuf:"bytes,16,opt,name=probe_metric,json=probeMetric,proto3" json:"probe_metric,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3534,7 +3534,7 @@ type UpdateAlertRuleRequest struct {
 	ProbeGroupLabels string `protobuf:"bytes,15,opt,name=probe_group_labels,json=probeGroupLabels,proto3" json:"probe_group_labels,omitempty"`
 	// 探测周期秒数，取值为 15、30、60、300；探测规则必填，查询规则为 0。
 	ProbeIntervalSeconds int32 `protobuf:"varint,16,opt,name=probe_interval_seconds,json=probeIntervalSeconds,proto3" json:"probe_interval_seconds,omitempty"`
-	// 探测规则比较的观测指标；查询规则留空。HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS，TCP 与 ICMP 取 UP、LATENCY_MS。
+	// 探测规则比较的观测指标；查询规则留空。按驱动取值，见探测指标目录。
 	ProbeMetric   string `protobuf:"bytes,17,opt,name=probe_metric,json=probeMetric,proto3" json:"probe_metric,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -5022,14 +5022,14 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\tvariables\x18\x0f \x03(\v2 .alioth.v1.AlertRuleVariableItemR\tvariables\x12,\n" +
 	"\x12probe_group_labels\x18\x10 \x01(\tR\x10probeGroupLabels\x124\n" +
 	"\x16probe_interval_seconds\x18\x11 \x01(\x05R\x14probeIntervalSeconds\x12!\n" +
-	"\fprobe_metric\x18\x12 \x01(\tR\vprobeMetricJ\x04\b\x04\x10\x05J\x04\b\r\x10\x0eR\x04typeR\x17notification_group_uids\"\xe0\x06\n" +
+	"\fprobe_metric\x18\x12 \x01(\tR\vprobeMetricJ\x04\b\x04\x10\x05J\x04\b\r\x10\x0eR\x04typeR\x17notification_group_uids\"\xe1\a\n" +
 	"\x16CreateAlertRuleRequest\x12$\n" +
 	"\tgroup_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12\x1d\n" +
-	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\xaa\x01\n" +
-	"\x06driver\x18\x04 \x01(\tB\x91\x01\xbaH\x8d\x01r\x8a\x01R\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\xc0\x01\n" +
+	"\x06driver\x18\x04 \x01(\tB\xa7\x01\xbaH\xa3\x01r\xa0\x01R\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
 	"LOGS_VLOGSR\fTRACE_JAEGERR\n" +
 	"PROBE_HTTPR\tPROBE_TCPR\n" +
-	"PROBE_ICMPR\x06driver\x12\x12\n" +
+	"PROBE_ICMPR\tPROBE_DNSR\tPROBE_TLSR\x06driver\x12\x12\n" +
 	"\x04expr\x18\x05 \x01(\tR\x04expr\x12\x16\n" +
 	"\x06labels\x18\x06 \x01(\tR\x06labels\x12%\n" +
 	"\x0edatasource_uid\x18\a \x01(\tR\rdatasourceUid\x12\"\n" +
@@ -5041,19 +5041,21 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\tvariables\x18\r \x03(\v2!.alioth.v1.AlertRuleVariableInputB\b\xbaH\x05\x92\x01\x02\x10\x14R\tvariables\x126\n" +
 	"\x12probe_group_labels\x18\x0e \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x10probeGroupLabels\x12@\n" +
 	"\x16probe_interval_seconds\x18\x0f \x01(\x05B\n" +
-	"\xbaH\a\x1a\x05\x18\x90\x1c(\x00R\x14probeIntervalSeconds\x12R\n" +
-	"\fprobe_metric\x18\x10 \x01(\tB/\xbaH,r*R\x00R\x02UPR\n" +
-	"LATENCY_MSR\vSTATUS_CODER\tCERT_DAYSR\vprobeMetricJ\x04\b\x03\x10\x04J\x04\b\v\x10\fR\x04typeR\x17notification_group_uids\"G\n" +
+	"\xbaH\a\x1a\x05\x18\x90\x1c(\x00R\x14probeIntervalSeconds\x12\xbc\x01\n" +
+	"\fprobe_metric\x18\x10 \x01(\tB\x98\x01\xbaH\x94\x01r\x91\x01R\x00R\x02UPR\n" +
+	"LATENCY_MSR\vSTATUS_CODER\tCERT_DAYSR\x06DNS_MSR\x0eTCP_CONNECT_MSR\x06TLS_MSR\aTTFB_MSR\vPACKET_LOSSR\tJITTER_MSR\n" +
+	"MIN_RTT_MSR\n" +
+	"MAX_RTT_MSR\fANSWER_COUNTR\vprobeMetricJ\x04\b\x03\x10\x04J\x04\b\v\x10\fR\x04typeR\x17notification_group_uids\"G\n" +
 	"\x17CreateAlertRuleResponse\x12,\n" +
-	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"\xfb\x06\n" +
+	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"\xfc\a\n" +
 	"\x16UpdateAlertRuleRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12$\n" +
 	"\tgroup_uid\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12\x1d\n" +
-	"\x04name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\xaa\x01\n" +
-	"\x06driver\x18\x05 \x01(\tB\x91\x01\xbaH\x8d\x01r\x8a\x01R\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
+	"\x04name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\xc0\x01\n" +
+	"\x06driver\x18\x05 \x01(\tB\xa7\x01\xbaH\xa3\x01r\xa0\x01R\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
 	"LOGS_VLOGSR\fTRACE_JAEGERR\n" +
 	"PROBE_HTTPR\tPROBE_TCPR\n" +
-	"PROBE_ICMPR\x06driver\x12\x12\n" +
+	"PROBE_ICMPR\tPROBE_DNSR\tPROBE_TLSR\x06driver\x12\x12\n" +
 	"\x04expr\x18\x06 \x01(\tR\x04expr\x12\x16\n" +
 	"\x06labels\x18\a \x01(\tR\x06labels\x12%\n" +
 	"\x0edatasource_uid\x18\b \x01(\tR\rdatasourceUid\x12\"\n" +
@@ -5065,9 +5067,11 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\tvariables\x18\x0e \x03(\v2!.alioth.v1.AlertRuleVariableInputB\b\xbaH\x05\x92\x01\x02\x10\x14R\tvariables\x126\n" +
 	"\x12probe_group_labels\x18\x0f \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x10probeGroupLabels\x12@\n" +
 	"\x16probe_interval_seconds\x18\x10 \x01(\x05B\n" +
-	"\xbaH\a\x1a\x05\x18\x90\x1c(\x00R\x14probeIntervalSeconds\x12R\n" +
-	"\fprobe_metric\x18\x11 \x01(\tB/\xbaH,r*R\x00R\x02UPR\n" +
-	"LATENCY_MSR\vSTATUS_CODER\tCERT_DAYSR\vprobeMetricJ\x04\b\x04\x10\x05J\x04\b\f\x10\rR\x04typeR\x17notification_group_uids\"G\n" +
+	"\xbaH\a\x1a\x05\x18\x90\x1c(\x00R\x14probeIntervalSeconds\x12\xbc\x01\n" +
+	"\fprobe_metric\x18\x11 \x01(\tB\x98\x01\xbaH\x94\x01r\x91\x01R\x00R\x02UPR\n" +
+	"LATENCY_MSR\vSTATUS_CODER\tCERT_DAYSR\x06DNS_MSR\x0eTCP_CONNECT_MSR\x06TLS_MSR\aTTFB_MSR\vPACKET_LOSSR\tJITTER_MSR\n" +
+	"MIN_RTT_MSR\n" +
+	"MAX_RTT_MSR\fANSWER_COUNTR\vprobeMetricJ\x04\b\x04\x10\x05J\x04\b\f\x10\rR\x04typeR\x17notification_group_uids\"G\n" +
 	"\x17UpdateAlertRuleResponse\x12,\n" +
 	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"j\n" +
 	"\x1cUpdateAlertRuleStatusRequest\x12\x19\n" +

@@ -180,6 +180,18 @@ func (coordinator *Coordinator) ReportProbeResults(ctx context.Context, in bo.Pr
 			CertDays:     item.CertDays,
 			ResolvedIP:   item.ResolvedIP,
 			Executor:     item.Executor,
+			// M27 追加的细分结果列：ICMP 统计、DNS 答案与 TLS 证书信息。
+			PacketLoss:  item.PacketLoss,
+			JitterMS:    item.JitterMS,
+			MinRTTMS:    item.MinRTTMS,
+			MaxRTTMS:    item.MaxRTTMS,
+			AnswerCount: item.AnswerCount,
+			DNSAnswers:  item.DNSAnswers,
+			TLSVersion:  item.TLSVersion,
+			TLSCipher:   item.TLSCipher,
+			CertSubject: item.CertSubject,
+			CertIssuer:  item.CertIssuer,
+			CertSANS:    item.CertSANS,
 		})
 	}
 	if len(records) == 0 {

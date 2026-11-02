@@ -56,7 +56,8 @@ func validPort(port string) bool {
 }
 
 // runTCP 对 TCP 目标做一次连接探测：建连成功即成功，耗时取建连时间。
-// 建连包含 DNS 解析，解析失败按 dns 分类。
+// 先单独解析域名并记录 dns_ms，再对解析出的地址建连，这样 DNS_MS 与
+// TCP_CONNECT_MS 两个指标都有值，解析失败也能单独按 dns 分类。
 func runTCP(ctx context.Context, spec string, req Request) Result {
 	req = req.Normalize()
 	timeout := time.Duration(req.TimeoutMS) * time.Millisecond
@@ -64,17 +65,41 @@ func runTCP(ctx context.Context, spec string, req Request) Result {
 	defer cancel()
 
 	started := time.Now()
-	dialer := &net.Dialer{Timeout: timeout}
-	conn, err := dialer.DialContext(ctx, "tcp", spec)
+	host, port, err := net.SplitHostPort(spec)
 	if err != nil {
-		return transportFailure(err, time.Since(started), "")
+		return Result{ErrorKind: ErrorProtocol, ErrorMessage: "invalid probe target"}
+	}
+
+	dnsStart := time.Now()
+	addresses, err := net.DefaultResolver.LookupIPAddr(ctx, host)
+	dnsMS := millis(time.Since(dnsStart))
+	if err != nil {
+		out := transportFailure(err, time.Since(started), "")
+		out.DNSMS = dnsMS
+		return out
+	}
+	target, ok := preferIPAddr(addresses)
+	if !ok {
+		return Result{DurationMS: dnsMS, DNSMS: dnsMS, ErrorKind: ErrorDNS, ErrorMessage: "probe target has no address"}
+	}
+
+	connStart := time.Now()
+	dialer := &net.Dialer{Timeout: timeout}
+	conn, err := dialer.DialContext(ctx, "tcp", net.JoinHostPort(target.IP.String(), port))
+	tcpMS := millis(time.Since(connStart))
+	if err != nil {
+		out := transportFailure(err, time.Since(started), target.IP.String())
+		out.DNSMS = dnsMS
+		out.TCPMS = tcpMS
+		return out
 	}
 	defer func() { _ = conn.Close() }()
-	elapsed := time.Since(started)
+	// LATENCY_MS 对 TCP 取建连耗时，与 M26 语义一致。
 	return Result{
 		OK:         true,
-		DurationMS: millis(elapsed),
-		TCPMS:      millis(elapsed),
+		DurationMS: tcpMS,
+		DNSMS:      dnsMS,
+		TCPMS:      tcpMS,
 		ResolvedIP: remoteIP(conn),
 	}
 }

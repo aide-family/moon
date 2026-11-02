@@ -237,6 +237,7 @@ func (gateway *Gateway) ProbeTargetGroupNow(ctx context.Context, uid string) ([]
 	if err != nil {
 		return nil, err
 	}
+	request = request.NormalizeForDriver(group.Driver)
 	now := time.Now().UTC()
 	slot := now.Truncate(time.Second)
 	results := make([]bo.ProbeResult, 0, len(group.Targets))
@@ -271,7 +272,7 @@ func (gateway *Gateway) ProbeTrial(ctx context.Context, driver, spec string, req
 	if err != nil {
 		return nil, err
 	}
-	request = request.Normalize()
+	request = request.NormalizeForDriver(driver)
 	if err := probe.ValidateRequestForDriver(driver, request); err != nil {
 		return nil, err
 	}
@@ -319,7 +320,7 @@ func normalizeGroup(in *bo.ProbeTargetGroup) error {
 	if err != nil {
 		return err
 	}
-	request = request.Normalize()
+	request = request.NormalizeForDriver(in.Driver)
 	if err := probe.ValidateRequestForDriver(in.Driver, request); err != nil {
 		return err
 	}
@@ -425,5 +426,16 @@ func toResult(namespaceUID, groupUID string, target bo.ProbeTarget, outcome prob
 		TTFBMS:       int(outcome.TTFBMS),
 		CertDays:     outcome.CertDays,
 		ResolvedIP:   outcome.ResolvedIP,
+		PacketLoss:   outcome.PacketLoss,
+		JitterMS:     int(outcome.JitterMS),
+		MinRTTMS:     int(outcome.MinRTTMS),
+		MaxRTTMS:     int(outcome.MaxRTTMS),
+		AnswerCount:  outcome.AnswerCount,
+		DNSAnswers:   outcome.DNSAnswers,
+		TLSVersion:   outcome.TLSVersion,
+		TLSCipher:    outcome.TLSCipher,
+		CertSubject:  outcome.CertSubject,
+		CertIssuer:   outcome.CertIssuer,
+		CertSANS:     outcome.CertSANs,
 	}
 }

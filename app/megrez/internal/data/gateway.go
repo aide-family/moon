@@ -169,10 +169,6 @@ func (g *gateway) ClaimProbeTasks(ctx context.Context, kind string) ([]bo.ProbeT
 				ForSeconds: int(level.GetForSeconds()), LevelUID: level.GetLevelUid(),
 			})
 		}
-		headers := map[string]string{}
-		if raw := task.GetGroup().GetRequest().GetHeaders(); raw != "" {
-			_ = json.Unmarshal([]byte(raw), &headers)
-		}
 		targets := make([]bo.ProbeTarget, 0, len(task.GetTargets()))
 		for _, target := range task.GetTargets() {
 			targets = append(targets, bo.ProbeTarget{UID: target.GetUid(), Spec: target.GetSpec(), Labels: target.GetLabels()})
@@ -188,14 +184,7 @@ func (g *gateway) ClaimProbeTasks(ctx context.Context, kind string) ([]bo.ProbeT
 			},
 			Group: bo.ProbeGroup{
 				UID: task.GetGroup().GetUid(), Name: task.GetGroup().GetName(), Labels: task.GetGroup().GetLabels(),
-				Request: bo.ProbeRequest{
-					Method: task.GetGroup().GetRequest().GetMethod(), ExpectStatus: task.GetGroup().GetRequest().GetExpectStatus(),
-					TimeoutMS:       int(task.GetGroup().GetRequest().GetTimeoutMs()),
-					FollowRedirects: task.GetGroup().GetRequest().GetFollowRedirects(),
-					SkipTLSVerify:   task.GetGroup().GetRequest().GetSkipTlsVerify(),
-					VerifyCert:      task.GetGroup().GetRequest().GetVerifyCert(),
-					Headers:         headers, BodyKeyword: task.GetGroup().GetRequest().GetBodyKeyword(),
-				},
+				Request: probeRequestFromSnapshot(task.GetGroup().GetRequest()),
 			},
 			Targets: targets,
 			Slot:    slot,
@@ -207,14 +196,7 @@ func (g *gateway) ClaimProbeTasks(ctx context.Context, kind string) ([]bo.ProbeT
 func (g *gateway) ReportProbeResults(ctx context.Context, report bo.ProbeReport) error {
 	results := make([]*megrezv1.ProbeResult, 0, len(report.Results))
 	for _, item := range report.Results {
-		results = append(results, &megrezv1.ProbeResult{
-			TargetUid: item.TargetUID, Ok: item.OK, Value: item.Value,
-			DurationMs: int32(item.DurationMS), StatusCode: int32(item.StatusCode),
-			ErrorKind: item.ErrorKind, ErrorMessage: item.ErrorMessage,
-			DnsMs: int32(item.DNSMS), TcpMs: int32(item.TCPMS), TlsMs: int32(item.TLSMS),
-			TtfbMs: int32(item.TTFBMS), CertDays: int32(item.CertDays),
-			ResolvedIp: item.ResolvedIP, Executor: item.Executor,
-		})
+		results = append(results, probeResultToProto(item))
 	}
 	_, err := g.client.ReportProbeResults(g.auth(ctx), &megrezv1.ReportProbeResultsRequest{
 		RuleUid: report.RuleUID, Slot: report.Slot.UTC().Format(time.RFC3339), Results: results,
@@ -223,4 +205,68 @@ func (g *gateway) ReportProbeResults(ctx context.Context, report bo.ProbeReport)
 		return merr.Server("report probe results failed: " + err.Error())
 	}
 	return nil
+}
+
+// probeRequestFromSnapshot 把 gRPC 快照里的请求参数转成本应用的业务对象。两段
+// JSON 文本字段（自定义请求头、响应头断言）在这里解析成 map；快照缺失时
+// 返回零值请求。
+func probeRequestFromSnapshot(snapshot *megrezv1.ProbeRequestSnapshot) bo.ProbeRequest {
+	return bo.ProbeRequest{
+		Method:          snapshot.GetMethod(),
+		ExpectStatus:    snapshot.GetExpectStatus(),
+		TimeoutMS:       int(snapshot.GetTimeoutMs()),
+		FollowRedirects: snapshot.GetFollowRedirects(),
+		SkipTLSVerify:   snapshot.GetSkipTlsVerify(),
+		VerifyCert:      snapshot.GetVerifyCert(),
+		Headers:         parseProbeHeaders(snapshot.GetHeaders()),
+		BodyKeyword:     snapshot.GetBodyKeyword(),
+		ExpectHeaders:   parseProbeHeaders(snapshot.GetExpectHeaders()),
+		BodyRegex:       snapshot.GetBodyRegex(),
+		ICMPCount:       int(snapshot.GetIcmpCount()),
+		ICMPPacketSize:  int(snapshot.GetIcmpPacketSize()),
+		DNSRecordType:   snapshot.GetDnsRecordType(),
+		DNSExpectValues: snapshot.GetDnsExpectValues(),
+		DNSServer:       snapshot.GetDnsServer(),
+		TLSServerName:   snapshot.GetTlsServerName(),
+	}
+}
+
+// parseProbeHeaders 解析快照里的 JSON 对象文本；空文本或非法 JSON 都按 nil
+// 处理，执行端把 nil 当作「没有额外请求头 / 没有断言」。
+func parseProbeHeaders(raw string) map[string]string {
+	if raw == "" {
+		return nil
+	}
+	headers := map[string]string{}
+	if err := json.Unmarshal([]byte(raw), &headers); err != nil {
+		return nil
+	}
+	if len(headers) == 0 {
+		return nil
+	}
+	return headers
+}
+
+// probeResultToProto 把业务结果转成回写结构。ICMP 统计、DNS 答案与 TLS
+// 握手/证书信息随普通结果一起提交，不适用的驱动保持零值。
+func probeResultToProto(item bo.ProbeResult) *megrezv1.ProbeResult {
+	return &megrezv1.ProbeResult{
+		TargetUid: item.TargetUID, Ok: item.OK, Value: item.Value,
+		DurationMs: int32(item.DurationMS), StatusCode: int32(item.StatusCode),
+		ErrorKind: item.ErrorKind, ErrorMessage: item.ErrorMessage,
+		DnsMs: int32(item.DNSMS), TcpMs: int32(item.TCPMS), TlsMs: int32(item.TLSMS),
+		TtfbMs: int32(item.TTFBMS), CertDays: int32(item.CertDays),
+		ResolvedIp: item.ResolvedIP, Executor: item.Executor,
+		PacketLoss:  int32(item.PacketLoss),
+		JitterMs:    int32(item.JitterMS),
+		MinRttMs:    int32(item.MinRTTMS),
+		MaxRttMs:    int32(item.MaxRTTMS),
+		AnswerCount: int32(item.AnswerCount),
+		DnsAnswers:  item.DNSAnswers,
+		TlsVersion:  item.TLSVersion,
+		TlsCipher:   item.TLSCipher,
+		CertSubject: item.CertSubject,
+		CertIssuer:  item.CertIssuer,
+		CertSans:    item.CertSANs,
+	}
 }

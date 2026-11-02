@@ -711,7 +711,7 @@ message AlertRuleItem {
   string probe_group_labels = 16 [json_name = "probeGroupLabels"];
   // 探测周期秒数；查询规则为 0。
   int32 probe_interval_seconds = 17 [json_name = "probeIntervalSeconds"];
-  // 探测规则比较的观测指标：HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS；TCP 与 ICMP 取 UP、LATENCY_MS。
+  // 探测规则比较的观测指标：HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS、DNS_MS、TCP_CONNECT_MS、TLS_MS、TTFB_MS；TCP 取 UP、LATENCY_MS、DNS_MS、TCP_CONNECT_MS；ICMP 取 UP、LATENCY_MS、PACKET_LOSS、JITTER_MS、MIN_RTT_MS、MAX_RTT_MS；DNS 取 UP、LATENCY_MS、DNS_MS、ANSWER_COUNT；TLS 取 UP、LATENCY_MS、DNS_MS、TCP_CONNECT_MS、TLS_MS、CERT_DAYS。
   string probe_metric = 18 [json_name = "probeMetric"];
 
   reserved 13;
@@ -727,7 +727,7 @@ message CreateAlertRuleRequest {
   reserved 3;
   reserved "type";
   // 驱动。类型由驱动推导。
-  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP"]}];
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP", "PROBE_DNS", "PROBE_TLS"]}];
   // 表达式。
   string expr = 5;
   // 标签，JSON 文本。
@@ -748,8 +748,8 @@ message CreateAlertRuleRequest {
   string probe_group_labels = 14 [json_name = "probeGroupLabels", (buf.validate.field).string.max_len = 4096];
   // 探测周期秒数，取值为 15、30、60、300；探测规则必填，查询规则为 0。
   int32 probe_interval_seconds = 15 [json_name = "probeIntervalSeconds", (buf.validate.field).int32 = {gte: 0, lte: 3600}];
-  // 探测规则比较的观测指标；查询规则留空。HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS，TCP 与 ICMP 取 UP、LATENCY_MS。
-  string probe_metric = 16 [json_name = "probeMetric", (buf.validate.field).string = {in: ["", "UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS"]}];
+  // 探测规则比较的观测指标；查询规则留空。按驱动取值，见探测指标目录。
+  string probe_metric = 16 [json_name = "probeMetric", (buf.validate.field).string = {in: ["", "UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS", "DNS_MS", "TCP_CONNECT_MS", "TLS_MS", "TTFB_MS", "PACKET_LOSS", "JITTER_MS", "MIN_RTT_MS", "MAX_RTT_MS", "ANSWER_COUNT"]}];
 
   reserved 11;
   reserved "notification_group_uids";
@@ -772,7 +772,7 @@ message UpdateAlertRuleRequest {
   reserved 4;
   reserved "type";
   // 驱动。类型由驱动推导。
-  string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP"]}];
+  string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP", "PROBE_DNS", "PROBE_TLS"]}];
   // 表达式。
   string expr = 6;
   // 标签，JSON 文本。
@@ -793,8 +793,8 @@ message UpdateAlertRuleRequest {
   string probe_group_labels = 15 [json_name = "probeGroupLabels", (buf.validate.field).string.max_len = 4096];
   // 探测周期秒数，取值为 15、30、60、300；探测规则必填，查询规则为 0。
   int32 probe_interval_seconds = 16 [json_name = "probeIntervalSeconds", (buf.validate.field).int32 = {gte: 0, lte: 3600}];
-  // 探测规则比较的观测指标；查询规则留空。HTTP 取 UP、LATENCY_MS、STATUS_CODE、CERT_DAYS，TCP 与 ICMP 取 UP、LATENCY_MS。
-  string probe_metric = 17 [json_name = "probeMetric", (buf.validate.field).string = {in: ["", "UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS"]}];
+  // 探测规则比较的观测指标；查询规则留空。按驱动取值，见探测指标目录。
+  string probe_metric = 17 [json_name = "probeMetric", (buf.validate.field).string = {in: ["", "UP", "LATENCY_MS", "STATUS_CODE", "CERT_DAYS", "DNS_MS", "TCP_CONNECT_MS", "TLS_MS", "TTFB_MS", "PACKET_LOSS", "JITTER_MS", "MIN_RTT_MS", "MAX_RTT_MS", "ANSWER_COUNT"]}];
 
   reserved 12;
   reserved "notification_group_uids";

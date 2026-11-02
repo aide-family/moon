@@ -23,7 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// 组内地址共用的请求参数。HTTP 探测使用全部字段；TCP 与 ICMP 只使用 timeout_ms。
+// 组内地址共用的请求参数。HTTP 使用方法与断言字段；TCP 只使用超时；ICMP/DNS/TLS 使用各自的统计或解析字段。
 type ProbeRequestConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 请求方法，取值为 GET 或 HEAD；TCP / ICMP 探测不使用，可留空。
@@ -42,7 +42,23 @@ type ProbeRequestConfig struct {
 	// 自定义请求头，JSON 对象文本。受控头会被拒绝。
 	Headers string `protobuf:"bytes,7,opt,name=headers,proto3" json:"headers,omitempty"`
 	// 响应体关键字。命中即成功，留空只按状态码判定。
-	BodyKeyword   string `protobuf:"bytes,8,opt,name=body_keyword,json=bodyKeyword,proto3" json:"body_keyword,omitempty"`
+	BodyKeyword string `protobuf:"bytes,8,opt,name=body_keyword,json=bodyKeyword,proto3" json:"body_keyword,omitempty"`
+	// HTTP 响应头断言 JSON 对象文本：键为响应头名，值为完整匹配正则。
+	ExpectHeaders string `protobuf:"bytes,9,opt,name=expect_headers,json=expectHeaders,proto3" json:"expect_headers,omitempty"`
+	// HTTP 响应体完整匹配正则；与 body_keyword 同时配置时两者都要满足。
+	BodyRegex string `protobuf:"bytes,10,opt,name=body_regex,json=bodyRegex,proto3" json:"body_regex,omitempty"`
+	// ICMP 单次探测发送的 echo 数量，0 按 1 处理，最多 10。
+	IcmpCount int32 `protobuf:"varint,11,opt,name=icmp_count,json=icmpCount,proto3" json:"icmp_count,omitempty"`
+	// ICMP payload 字节数，0 按 56 处理，最多 1400。
+	IcmpPacketSize int32 `protobuf:"varint,12,opt,name=icmp_packet_size,json=icmpPacketSize,proto3" json:"icmp_packet_size,omitempty"`
+	// DNS 记录类型，取值为 A、AAAA、CNAME、MX、TXT、NS；留空按 A 处理。
+	DnsRecordType string `protobuf:"bytes,13,opt,name=dns_record_type,json=dnsRecordType,proto3" json:"dns_record_type,omitempty"`
+	// DNS 期望值，逗号分隔的完整匹配正则；留空表示只要有记录即可。
+	DnsExpectValues string `protobuf:"bytes,14,opt,name=dns_expect_values,json=dnsExpectValues,proto3" json:"dns_expect_values,omitempty"`
+	// DNS 服务器 host:port；留空使用系统 resolver。
+	DnsServer string `protobuf:"bytes,15,opt,name=dns_server,json=dnsServer,proto3" json:"dns_server,omitempty"`
+	// TLS SNI；留空取目标 host。
+	TlsServerName string `protobuf:"bytes,16,opt,name=tls_server_name,json=tlsServerName,proto3" json:"tls_server_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -133,12 +149,68 @@ func (x *ProbeRequestConfig) GetBodyKeyword() string {
 	return ""
 }
 
+func (x *ProbeRequestConfig) GetExpectHeaders() string {
+	if x != nil {
+		return x.ExpectHeaders
+	}
+	return ""
+}
+
+func (x *ProbeRequestConfig) GetBodyRegex() string {
+	if x != nil {
+		return x.BodyRegex
+	}
+	return ""
+}
+
+func (x *ProbeRequestConfig) GetIcmpCount() int32 {
+	if x != nil {
+		return x.IcmpCount
+	}
+	return 0
+}
+
+func (x *ProbeRequestConfig) GetIcmpPacketSize() int32 {
+	if x != nil {
+		return x.IcmpPacketSize
+	}
+	return 0
+}
+
+func (x *ProbeRequestConfig) GetDnsRecordType() string {
+	if x != nil {
+		return x.DnsRecordType
+	}
+	return ""
+}
+
+func (x *ProbeRequestConfig) GetDnsExpectValues() string {
+	if x != nil {
+		return x.DnsExpectValues
+	}
+	return ""
+}
+
+func (x *ProbeRequestConfig) GetDnsServer() string {
+	if x != nil {
+		return x.DnsServer
+	}
+	return ""
+}
+
+func (x *ProbeRequestConfig) GetTlsServerName() string {
+	if x != nil {
+		return x.TlsServerName
+	}
+	return ""
+}
+
 // 目标组里的一个地址。
 type ProbeTargetItem struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 标识。
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// 归一化后的地址：HTTP 为 URL，TCP 为 host:port，ICMP 为 host 或 IP。
+	// 归一化后的地址：HTTP 为 URL，TCP / TLS 为 host:port，ICMP 为 host 或 IP，DNS 为域名。
 	Spec string `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
 	// 标签 JSON 对象。
 	Labels string `protobuf:"bytes,3,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -229,7 +301,7 @@ type ProbeTargetInput struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 标识。更新时为空表示新增。
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// 地址：HTTP 为 http(s) URL，TCP 为 host:port，ICMP 为 host 或 IP。
+	// 地址：HTTP 为 http(s) URL，TCP / TLS 为 host:port，ICMP / DNS 为 host、IP 或域名。
 	Spec string `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
 	// 标签 JSON 对象。
 	Labels string `protobuf:"bytes,3,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -313,7 +385,7 @@ type ProbeTargetGroupItem struct {
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	// 名称。
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
+	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP、PROBE_ICMP、PROBE_DNS 或 PROBE_TLS。
 	Driver string `protobuf:"bytes,3,opt,name=driver,proto3" json:"driver,omitempty"`
 	// 状态，取值为 ACTIVE 或 DISABLED。
 	Status string `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
@@ -456,7 +528,7 @@ type CreateProbeTargetGroupRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 名称。
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
+	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP、PROBE_ICMP、PROBE_DNS 或 PROBE_TLS。
 	Driver string `protobuf:"bytes,2,opt,name=driver,proto3" json:"driver,omitempty"`
 	// 标签 JSON 对象。
 	Labels string `protobuf:"bytes,3,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -604,7 +676,7 @@ type UpdateProbeTargetGroupRequest struct {
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	// 名称。
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP。
+	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP、PROBE_ICMP、PROBE_DNS 或 PROBE_TLS。
 	Driver string `protobuf:"bytes,3,opt,name=driver,proto3" json:"driver,omitempty"`
 	// 标签 JSON 对象。
 	Labels string `protobuf:"bytes,4,opt,name=labels,proto3" json:"labels,omitempty"`
@@ -1191,9 +1263,9 @@ type ProbeResultItem struct {
 	Value string `protobuf:"bytes,6,opt,name=value,proto3" json:"value,omitempty"`
 	// 总耗时，单位毫秒。
 	DurationMs int32 `protobuf:"varint,7,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
-	// HTTP 状态码；TCP 与 ICMP 探测为 0。
+	// HTTP 状态码；非 HTTP 探测为 0。
 	StatusCode int32 `protobuf:"varint,8,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
-	// 失败分类，成功时为空：dns / connect / tls / timeout / status / keyword / redirect / protocol / permission。
+	// 失败分类，成功时为空：dns / connect / tls / timeout / status / keyword / assert / redirect / protocol / permission。
 	ErrorKind string `protobuf:"bytes,9,opt,name=error_kind,json=errorKind,proto3" json:"error_kind,omitempty"`
 	// 失败原因，成功时为空。
 	ErrorMessage string `protobuf:"bytes,10,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
@@ -1210,7 +1282,29 @@ type ProbeResultItem struct {
 	// 实际探测时刻，RFC3339。
 	ProbedAt string `protobuf:"bytes,18,opt,name=probed_at,json=probedAt,proto3" json:"probed_at,omitempty"`
 	// 执行器标识。
-	Executor      string `protobuf:"bytes,19,opt,name=executor,proto3" json:"executor,omitempty"`
+	Executor string `protobuf:"bytes,19,opt,name=executor,proto3" json:"executor,omitempty"`
+	// ICMP 丢包百分比。
+	PacketLoss int32 `protobuf:"varint,20,opt,name=packet_loss,json=packetLoss,proto3" json:"packet_loss,omitempty"`
+	// ICMP 抖动（相邻 RTT 平均绝对差）。
+	JitterMs int32 `protobuf:"varint,21,opt,name=jitter_ms,json=jitterMs,proto3" json:"jitter_ms,omitempty"`
+	// ICMP 最小 RTT。
+	MinRttMs int32 `protobuf:"varint,22,opt,name=min_rtt_ms,json=minRttMs,proto3" json:"min_rtt_ms,omitempty"`
+	// ICMP 最大 RTT。
+	MaxRttMs int32 `protobuf:"varint,23,opt,name=max_rtt_ms,json=maxRttMs,proto3" json:"max_rtt_ms,omitempty"`
+	// DNS 记录数。
+	AnswerCount int32 `protobuf:"varint,24,opt,name=answer_count,json=answerCount,proto3" json:"answer_count,omitempty"`
+	// DNS 答案文本，逗号分隔。
+	DnsAnswers string `protobuf:"bytes,25,opt,name=dns_answers,json=dnsAnswers,proto3" json:"dns_answers,omitempty"`
+	// TLS 协议版本。
+	TlsVersion string `protobuf:"bytes,26,opt,name=tls_version,json=tlsVersion,proto3" json:"tls_version,omitempty"`
+	// TLS 加密套件。
+	TlsCipher string `protobuf:"bytes,27,opt,name=tls_cipher,json=tlsCipher,proto3" json:"tls_cipher,omitempty"`
+	// 证书 Subject。
+	CertSubject string `protobuf:"bytes,28,opt,name=cert_subject,json=certSubject,proto3" json:"cert_subject,omitempty"`
+	// 证书 Issuer。
+	CertIssuer string `protobuf:"bytes,29,opt,name=cert_issuer,json=certIssuer,proto3" json:"cert_issuer,omitempty"`
+	// 证书 SAN，逗号分隔。
+	CertSans      string `protobuf:"bytes,30,opt,name=cert_sans,json=certSans,proto3" json:"cert_sans,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1374,6 +1468,83 @@ func (x *ProbeResultItem) GetProbedAt() string {
 func (x *ProbeResultItem) GetExecutor() string {
 	if x != nil {
 		return x.Executor
+	}
+	return ""
+}
+
+func (x *ProbeResultItem) GetPacketLoss() int32 {
+	if x != nil {
+		return x.PacketLoss
+	}
+	return 0
+}
+
+func (x *ProbeResultItem) GetJitterMs() int32 {
+	if x != nil {
+		return x.JitterMs
+	}
+	return 0
+}
+
+func (x *ProbeResultItem) GetMinRttMs() int32 {
+	if x != nil {
+		return x.MinRttMs
+	}
+	return 0
+}
+
+func (x *ProbeResultItem) GetMaxRttMs() int32 {
+	if x != nil {
+		return x.MaxRttMs
+	}
+	return 0
+}
+
+func (x *ProbeResultItem) GetAnswerCount() int32 {
+	if x != nil {
+		return x.AnswerCount
+	}
+	return 0
+}
+
+func (x *ProbeResultItem) GetDnsAnswers() string {
+	if x != nil {
+		return x.DnsAnswers
+	}
+	return ""
+}
+
+func (x *ProbeResultItem) GetTlsVersion() string {
+	if x != nil {
+		return x.TlsVersion
+	}
+	return ""
+}
+
+func (x *ProbeResultItem) GetTlsCipher() string {
+	if x != nil {
+		return x.TlsCipher
+	}
+	return ""
+}
+
+func (x *ProbeResultItem) GetCertSubject() string {
+	if x != nil {
+		return x.CertSubject
+	}
+	return ""
+}
+
+func (x *ProbeResultItem) GetCertIssuer() string {
+	if x != nil {
+		return x.CertIssuer
+	}
+	return ""
+}
+
+func (x *ProbeResultItem) GetCertSans() string {
+	if x != nil {
+		return x.CertSans
 	}
 	return ""
 }
@@ -1619,11 +1790,11 @@ func (x *ProbeTargetGroupNowResponse) GetResults() []*ProbeResultItem {
 // 试探测一个地址。
 type ProbeTrialRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 地址：HTTP 为 http(s) URL，TCP 为 host:port，ICMP 为 host 或 IP。
+	// 地址：HTTP 为 http(s) URL，TCP / TLS 为 host:port，ICMP / DNS 为 host、IP 或域名。
 	Spec string `protobuf:"bytes,1,opt,name=spec,proto3" json:"spec,omitempty"`
-	// 请求参数。HTTP 留空按默认 GET、200-299、3000ms 处理；TCP 与 ICMP 只使用 timeout_ms。
+	// 请求参数。留空时 HTTP 按默认 GET、200-299、3000ms 处理；TCP / ICMP / DNS / TLS 使用各自字段。
 	Request *ProbeRequestConfig `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP 或 PROBE_ICMP；留空按 PROBE_HTTP 处理。
+	// 探测类型，取值为 PROBE_HTTP、PROBE_TCP、PROBE_ICMP、PROBE_DNS 或 PROBE_TLS；留空按 PROBE_HTTP 处理。
 	// 字段号追加在末尾，旧客户端不传时保持原有 HTTP 试探测行为。
 	Driver        string `protobuf:"bytes,3,opt,name=driver,proto3" json:"driver,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1731,7 +1902,7 @@ var File_alioth_v1_probe_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\n" +
-	"\x15alioth/v1/probe.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xe0\x02\n" +
+	"\x15alioth/v1/probe.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xf9\x05\n" +
 	"\x12ProbeRequestConfig\x12*\n" +
 	"\x06method\x18\x01 \x01(\tB\x12\xbaH\x0fr\rR\x00R\x03GETR\x04HEADR\x06method\x12-\n" +
 	"\rexpect_status\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\fexpectStatus\x12*\n" +
@@ -1742,7 +1913,22 @@ const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\vverify_cert\x18\x06 \x01(\bR\n" +
 	"verifyCert\x12\"\n" +
 	"\aheaders\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\x80@R\aheaders\x12+\n" +
-	"\fbody_keyword\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\vbodyKeyword\"\xb8\x01\n" +
+	"\fbody_keyword\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\vbodyKeyword\x12/\n" +
+	"\x0eexpect_headers\x18\t \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\rexpectHeaders\x12'\n" +
+	"\n" +
+	"body_regex\x18\n" +
+	" \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\tbodyRegex\x12(\n" +
+	"\n" +
+	"icmp_count\x18\v \x01(\x05B\t\xbaH\x06\x1a\x04\x18\n" +
+	"(\x00R\ticmpCount\x124\n" +
+	"\x10icmp_packet_size\x18\f \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xf8\n" +
+	"(\x00R\x0eicmpPacketSize\x12L\n" +
+	"\x0fdns_record_type\x18\r \x01(\tB$\xbaH!r\x1fR\x00R\x01AR\x04AAAAR\x05CNAMER\x02MXR\x03TXTR\x02NSR\rdnsRecordType\x124\n" +
+	"\x11dns_expect_values\x18\x0e \x01(\tB\b\xbaH\x05r\x03\x18\x80\bR\x0fdnsExpectValues\x12'\n" +
+	"\n" +
+	"dns_server\x18\x0f \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\tdnsServer\x120\n" +
+	"\x0ftls_server_name\x18\x10 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\rtlsServerName\"\xb8\x01\n" +
 	"\x0fProbeTargetItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04spec\x18\x02 \x01(\tR\x04spec\x12\x16\n" +
@@ -1771,12 +1957,12 @@ const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\ftarget_count\x18\n" +
 	" \x01(\x05R\vtargetCount\x12.\n" +
 	"\x13active_target_count\x18\v \x01(\x05R\x11activeTargetCount\x12$\n" +
-	"\x0elast_probed_at\x18\f \x01(\tR\flastProbedAt\"\xf3\x02\n" +
+	"\x0elast_probed_at\x18\f \x01(\tR\flastProbedAt\"\x89\x03\n" +
 	"\x1dCreateProbeTargetGroupRequest\x12\x1d\n" +
-	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12@\n" +
-	"\x06driver\x18\x02 \x01(\tB(\xbaH%r#R\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12V\n" +
+	"\x06driver\x18\x02 \x01(\tB>\xbaH;r9R\n" +
 	"PROBE_HTTPR\tPROBE_TCPR\n" +
-	"PROBE_ICMPR\x06driver\x12 \n" +
+	"PROBE_ICMPR\tPROBE_DNSR\tPROBE_TLSR\x06driver\x12 \n" +
 	"\x06labels\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x121\n" +
 	"\x0fexecutor_labels\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x0eexecutorLabels\x127\n" +
 	"\arequest\x18\x05 \x01(\v2\x1d.alioth.v1.ProbeRequestConfigR\arequest\x12 \n" +
@@ -1784,13 +1970,13 @@ const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\atargets\x18\a \x03(\v2\x1b.alioth.v1.ProbeTargetInputB\n" +
 	"\xbaH\a\x92\x01\x04\b\x01\x102R\atargets\"W\n" +
 	"\x1eCreateProbeTargetGroupResponse\x125\n" +
-	"\x05group\x18\x01 \x01(\v2\x1f.alioth.v1.ProbeTargetGroupItemR\x05group\"\x8e\x03\n" +
+	"\x05group\x18\x01 \x01(\v2\x1f.alioth.v1.ProbeTargetGroupItemR\x05group\"\xa4\x03\n" +
 	"\x1dUpdateProbeTargetGroupRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
-	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12@\n" +
-	"\x06driver\x18\x03 \x01(\tB(\xbaH%r#R\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12V\n" +
+	"\x06driver\x18\x03 \x01(\tB>\xbaH;r9R\n" +
 	"PROBE_HTTPR\tPROBE_TCPR\n" +
-	"PROBE_ICMPR\x06driver\x12 \n" +
+	"PROBE_ICMPR\tPROBE_DNSR\tPROBE_TLSR\x06driver\x12 \n" +
 	"\x06labels\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x121\n" +
 	"\x0fexecutor_labels\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x0eexecutorLabels\x127\n" +
 	"\arequest\x18\x06 \x01(\v2\x1d.alioth.v1.ProbeRequestConfigR\arequest\x12 \n" +
@@ -1820,7 +2006,7 @@ const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x1f.alioth.v1.ProbeTargetGroupItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x9e\x04\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xfd\x06\n" +
 	"\x0fProbeResultItem\x12\x1d\n" +
 	"\n" +
 	"target_uid\x18\x01 \x01(\tR\ttargetUid\x12\x1f\n" +
@@ -1847,7 +2033,25 @@ const file_alioth_v1_probe_proto_rawDesc = "" +
 	"resolvedIp\x12\x12\n" +
 	"\x04slot\x18\x11 \x01(\tR\x04slot\x12\x1b\n" +
 	"\tprobed_at\x18\x12 \x01(\tR\bprobedAt\x12\x1a\n" +
-	"\bexecutor\x18\x13 \x01(\tR\bexecutor\"\x9e\x01\n" +
+	"\bexecutor\x18\x13 \x01(\tR\bexecutor\x12\x1f\n" +
+	"\vpacket_loss\x18\x14 \x01(\x05R\n" +
+	"packetLoss\x12\x1b\n" +
+	"\tjitter_ms\x18\x15 \x01(\x05R\bjitterMs\x12\x1c\n" +
+	"\n" +
+	"min_rtt_ms\x18\x16 \x01(\x05R\bminRttMs\x12\x1c\n" +
+	"\n" +
+	"max_rtt_ms\x18\x17 \x01(\x05R\bmaxRttMs\x12!\n" +
+	"\fanswer_count\x18\x18 \x01(\x05R\vanswerCount\x12\x1f\n" +
+	"\vdns_answers\x18\x19 \x01(\tR\n" +
+	"dnsAnswers\x12\x1f\n" +
+	"\vtls_version\x18\x1a \x01(\tR\n" +
+	"tlsVersion\x12\x1d\n" +
+	"\n" +
+	"tls_cipher\x18\x1b \x01(\tR\ttlsCipher\x12!\n" +
+	"\fcert_subject\x18\x1c \x01(\tR\vcertSubject\x12\x1f\n" +
+	"\vcert_issuer\x18\x1d \x01(\tR\n" +
+	"certIssuer\x12\x1b\n" +
+	"\tcert_sans\x18\x1e \x01(\tR\bcertSans\"\x9e\x01\n" +
 	"\x1dListProbeTargetResultsRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
 	"\n" +
@@ -1862,14 +2066,14 @@ const file_alioth_v1_probe_proto_rawDesc = "" +
 	"\x1aProbeTargetGroupNowRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"S\n" +
 	"\x1bProbeTargetGroupNowResponse\x124\n" +
-	"\aresults\x18\x01 \x03(\v2\x1a.alioth.v1.ProbeResultItemR\aresults\"\xb0\x01\n" +
+	"\aresults\x18\x01 \x03(\v2\x1a.alioth.v1.ProbeResultItemR\aresults\"\xc6\x01\n" +
 	"\x11ProbeTrialRequest\x12\x1e\n" +
 	"\x04spec\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\x80\x10R\x04spec\x127\n" +
-	"\arequest\x18\x02 \x01(\v2\x1d.alioth.v1.ProbeRequestConfigR\arequest\x12B\n" +
-	"\x06driver\x18\x03 \x01(\tB*\xbaH'r%R\x00R\n" +
+	"\arequest\x18\x02 \x01(\v2\x1d.alioth.v1.ProbeRequestConfigR\arequest\x12X\n" +
+	"\x06driver\x18\x03 \x01(\tB@\xbaH=r;R\x00R\n" +
 	"PROBE_HTTPR\tPROBE_TCPR\n" +
-	"PROBE_ICMPR\x06driver\"H\n" +
+	"PROBE_ICMPR\tPROBE_DNSR\tPROBE_TLSR\x06driver\"H\n" +
 	"\x12ProbeTrialResponse\x122\n" +
 	"\x06result\x18\x01 \x01(\v2\x1a.alioth.v1.ProbeResultItemR\x06result2\xc9\n" +
 	"\n" +

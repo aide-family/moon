@@ -101,8 +101,8 @@ func TestRenderProbeAlertUsesTemplateEngine(t *testing.T) {
 	}
 }
 
-// TestProbeLabelsFollowDriver 探测事件的 probe_kind 由规则驱动映射：三种探测
-// 类型分别是 HTTP / TCP / ICMP，其余标签合并顺序不变。
+// TestProbeLabelsFollowDriver 探测事件的 probe_kind 由规则驱动映射：五种探测
+// 类型分别是 HTTP / TCP / ICMP / DNS / TLS，其余标签合并顺序不变。
 func TestProbeLabelsFollowDriver(t *testing.T) {
 	cases := []struct {
 		driver string
@@ -111,6 +111,8 @@ func TestProbeLabelsFollowDriver(t *testing.T) {
 		{bo.ProbeDriverHTTP, "HTTP"},
 		{bo.ProbeDriverTCP, "TCP"},
 		{bo.ProbeDriverICMP, "ICMP"},
+		{bo.ProbeDriverDNS, "DNS"},
+		{bo.ProbeDriverTLS, "TLS"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.kind, func(t *testing.T) {
@@ -139,8 +141,9 @@ func TestProbeLabelsFollowDriver(t *testing.T) {
 	}
 }
 
-// TestProbeExternalURLFollowsDriver 非 HTTP 目标也能作为 externalURL：TCP 的
-// host:port 不能被 url.Parse 当成 scheme，ICMP 的 IPv6 字面量也不能被转义。
+// TestProbeExternalURLFollowsDriver 非 HTTP 目标也能作为 externalURL：TCP / TLS
+// 的 host:port 不能被 url.Parse 当成 scheme，ICMP 的 IPv6 字面量与 DNS 域名
+// 也不能被转义或加前缀。
 func TestProbeExternalURLFollowsDriver(t *testing.T) {
 	cases := []struct {
 		driver string
@@ -152,6 +155,9 @@ func TestProbeExternalURLFollowsDriver(t *testing.T) {
 		{bo.ProbeDriverTCP, "[::1]:8002", "[::1]:8002"},
 		{bo.ProbeDriverICMP, "example.com", "example.com"},
 		{bo.ProbeDriverICMP, "::1", "::1"},
+		{bo.ProbeDriverTLS, "example.com:443", "example.com:443"},
+		{bo.ProbeDriverTLS, "[::1]:8443", "[::1]:8443"},
+		{bo.ProbeDriverDNS, "api.example.com", "api.example.com"},
 	}
 	for _, tc := range cases {
 		if got := probeExternalURL(tc.driver, tc.spec).String(); got != tc.want {
@@ -160,7 +166,7 @@ func TestProbeExternalURLFollowsDriver(t *testing.T) {
 	}
 }
 
-// TestRenderProbeAlertNonHTTPExternalURL TCP / ICMP 的 $externalURL 必须渲染成
+// TestRenderProbeAlertNonHTTPExternalURL 非 HTTP 驱动的 $externalURL 必须渲染成
 // 目标原文，否则通知里会显示空值或 "./" 前缀。
 func TestRenderProbeAlertNonHTTPExternalURL(t *testing.T) {
 	at := time.Date(2026, 10, 29, 19, 0, 0, 0, time.UTC)
@@ -171,6 +177,8 @@ func TestRenderProbeAlertNonHTTPExternalURL(t *testing.T) {
 	}{
 		{bo.ProbeDriverTCP, "127.0.0.1:8002", "TCP"},
 		{bo.ProbeDriverICMP, "::1", "ICMP"},
+		{bo.ProbeDriverDNS, "api.example.com", "DNS"},
+		{bo.ProbeDriverTLS, "example.com:443", "TLS"},
 	}
 	for _, tc := range cases {
 		rule := bo.AlertRule{UID: "rule-1", Driver: tc.driver, Name: "探测监控"}

@@ -148,9 +148,19 @@ func probeRequest(in *v1.ProbeRequestConfig) probe.Request {
 		VerifyCert:      in.GetVerifyCert(),
 		Headers:         parseHeaders(in.GetHeaders()),
 		BodyKeyword:     in.GetBodyKeyword(),
+		ExpectHeaders:   parseHeaders(in.GetExpectHeaders()),
+		BodyRegex:       in.GetBodyRegex(),
+		ICMPCount:       int(in.GetIcmpCount()),
+		ICMPPacketSize:  int(in.GetIcmpPacketSize()),
+		DNSRecordType:   in.GetDnsRecordType(),
+		DNSExpectValues: in.GetDnsExpectValues(),
+		DNSServer:       in.GetDnsServer(),
+		TLSServerName:   in.GetTlsServerName(),
 	}
 }
 
+// parseHeaders 把 JSON 对象文本解析成字符串映射；请求头与响应头断言共用，
+// 文本不合法时返回 nil，由业务层按「没有配置」处理。
 func parseHeaders(raw string) map[string]string {
 	if raw == "" {
 		return nil
@@ -203,13 +213,6 @@ func probeGroupItem(in bo.ProbeTargetGroup) *v1.ProbeTargetGroupItem {
 
 // probeRequestItem 把执行器结构转回 proto。
 func probeRequestItem(in probe.Request) *v1.ProbeRequestConfig {
-	headers := ""
-	if len(in.Headers) > 0 {
-		encoded, err := jsonMarshal(in.Headers)
-		if err == nil {
-			headers = string(encoded)
-		}
-	}
 	return &v1.ProbeRequestConfig{
 		Method:          in.Method,
 		ExpectStatus:    in.ExpectStatus,
@@ -217,8 +220,16 @@ func probeRequestItem(in probe.Request) *v1.ProbeRequestConfig {
 		FollowRedirects: in.FollowRedirects,
 		SkipTlsVerify:   in.SkipTLSVerify,
 		VerifyCert:      in.VerifyCert,
-		Headers:         headers,
+		Headers:         encodeHeaders(in.Headers),
 		BodyKeyword:     in.BodyKeyword,
+		ExpectHeaders:   encodeHeaders(in.ExpectHeaders),
+		BodyRegex:       in.BodyRegex,
+		IcmpCount:       int32(in.ICMPCount),
+		IcmpPacketSize:  int32(in.ICMPPacketSize),
+		DnsRecordType:   in.DNSRecordType,
+		DnsExpectValues: in.DNSExpectValues,
+		DnsServer:       in.DNSServer,
+		TlsServerName:   in.TLSServerName,
 	}
 }
 
@@ -242,6 +253,17 @@ func probeResultItem(in bo.ProbeResult) *v1.ProbeResultItem {
 		CertDays:     int32(in.CertDays),
 		ResolvedIp:   in.ResolvedIP,
 		Executor:     in.Executor,
+		PacketLoss:   int32(in.PacketLoss),
+		JitterMs:     int32(in.JitterMS),
+		MinRttMs:     int32(in.MinRTTMS),
+		MaxRttMs:     int32(in.MaxRTTMS),
+		AnswerCount:  int32(in.AnswerCount),
+		DnsAnswers:   in.DNSAnswers,
+		TlsVersion:   in.TLSVersion,
+		TlsCipher:    in.TLSCipher,
+		CertSubject:  in.CertSubject,
+		CertIssuer:   in.CertIssuer,
+		CertSans:     in.CertSANS,
 	}
 	if !in.Slot.IsZero() {
 		item.Slot = in.Slot.UTC().Format(time.RFC3339)

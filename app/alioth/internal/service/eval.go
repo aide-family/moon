@@ -162,6 +162,12 @@ func (s *EvalService) ReportProbeResults(ctx context.Context, req *megrezv1.Repo
 			DNSMS: int(item.GetDnsMs()), TCPMS: int(item.GetTcpMs()), TLSMS: int(item.GetTlsMs()),
 			TTFBMS: int(item.GetTtfbMs()), CertDays: int(item.GetCertDays()),
 			ResolvedIP: item.GetResolvedIp(), Executor: item.GetExecutor(),
+			PacketLoss: int(item.GetPacketLoss()), JitterMS: int(item.GetJitterMs()),
+			MinRTTMS: int(item.GetMinRttMs()), MaxRTTMS: int(item.GetMaxRttMs()),
+			AnswerCount: int(item.GetAnswerCount()), DNSAnswers: item.GetDnsAnswers(),
+			TLSVersion: item.GetTlsVersion(), TLSCipher: item.GetTlsCipher(),
+			CertSubject: item.GetCertSubject(), CertIssuer: item.GetCertIssuer(),
+			CertSANS: item.GetCertSans(),
 		})
 	}
 	if err := s.coordinator.ReportProbeResults(ctx, bo.ProbeReport{
@@ -205,7 +211,15 @@ func probeTaskItem(task bo.ProbeTask) *megrezv1.ProbeTask {
 				Method: request.Method, ExpectStatus: request.ExpectStatus, TimeoutMs: int32(request.TimeoutMS),
 				FollowRedirects: request.FollowRedirects, SkipTlsVerify: request.SkipTLSVerify,
 				VerifyCert: request.VerifyCert, Headers: encodeHeaders(request.Headers),
-				BodyKeyword: request.BodyKeyword,
+				BodyKeyword:     request.BodyKeyword,
+				ExpectHeaders:   encodeHeaders(request.ExpectHeaders),
+				BodyRegex:       request.BodyRegex,
+				IcmpCount:       int32(request.ICMPCount),
+				IcmpPacketSize:  int32(request.ICMPPacketSize),
+				DnsRecordType:   request.DNSRecordType,
+				DnsExpectValues: request.DNSExpectValues,
+				DnsServer:       request.DNSServer,
+				TlsServerName:   request.TLSServerName,
 			},
 		},
 		Targets: targets,
@@ -213,7 +227,8 @@ func probeTaskItem(task bo.ProbeTask) *megrezv1.ProbeTask {
 	}
 }
 
-// encodeHeaders 把请求头编码成 JSON 文本，执行器侧再解析。
+// encodeHeaders 把字符串映射编码成 JSON 对象文本：请求头与响应头断言共用，
+// 执行器与前端都按 JSON 文本解析，空映射返回空串。
 func encodeHeaders(headers map[string]string) string {
 	if len(headers) == 0 {
 		return ""

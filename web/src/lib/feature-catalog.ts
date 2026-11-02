@@ -1,11 +1,11 @@
 // 能力目录（套餐 / 租户功能授权 / 菜单可见性）。
 //
-// 能力 code 与后端 perm.Capabilities() 的 55 项定义保持一致；GET /v1/system/features
+// 能力 code 与后端 perm.Capabilities() 的 57 项定义保持一致；GET /v1/system/features
 // 返回的是同一份目录（code/module/name/description/permissions）。页面用这里的
 // 双语标签，不直接用接口里的 name/description，这样切到 en 时中文名也不会消失，
 // 后端没部署新接口时也能先用本地目录渲染勾选框。
 //
-// 目录分两级：MODULES 是所属菜单模块（10 个），CAPABILITIES 是具体能力（55 个）。
+// 目录分两级：MODULES 是所属菜单模块（10 个），CAPABILITIES 是具体能力（57 个）。
 // 新增 / 删除能力时同步：后端 perm.Capabilities()、本文件、i18n 里的菜单文案。
 
 export type LocalizedLabel = { zh: string; en: string }
@@ -40,7 +40,7 @@ export const MODULES: ModuleDefinition[] = [
 /**
  * 能力目录：顺序与后端 perm.Capabilities() 一致。
  * 基础套餐 = 前 7 个模块（alert / alert_rule / probe / datasource /
- * notification / member / role）的全部能力，共 28 项。
+ * notification / member / role）的全部能力，共 30 项。
  */
 export const CAPABILITIES: CapabilityDefinition[] = [
   {
@@ -113,6 +113,24 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     description: {
       zh: "ICMP 主机探测目标组与探测地址",
       en: "ICMP host probe target groups and addresses",
+    },
+  },
+  {
+    code: "probe_dns",
+    module: "probe",
+    label: { zh: "DNS 探测", en: "DNS probes" },
+    description: {
+      zh: "DNS 解析探测目标组与探测地址",
+      en: "DNS resolution probe target groups and addresses",
+    },
+  },
+  {
+    code: "probe_tls",
+    module: "probe",
+    label: { zh: "TLS 探测", en: "TLS probes" },
+    description: {
+      zh: "TLS 握手与证书探测目标组与探测地址",
+      en: "TLS handshake and certificate probe target groups and addresses",
     },
   },
   {
@@ -519,7 +537,7 @@ export const CAPABILITIES: CapabilityDefinition[] = [
   },
 ]
 
-/** 基础套餐包含的模块：前 7 个模块的全部能力（数据源、探测、通知渠道按类型/应用展开后共 28 项）。 */
+/** 基础套餐包含的模块：前 7 个模块的全部能力（数据源、探测、通知渠道按类型/应用展开后共 30 项）。 */
 export const BASE_MODULES = [
   "alert",
   "alert_rule",
@@ -632,6 +650,8 @@ export const PROBE_CAPABILITY_DRIVERS: Record<string, string> = {
   probe_http: "PROBE_HTTP",
   probe_tcp: "PROBE_TCP",
   probe_icmp: "PROBE_ICMP",
+  probe_dns: "PROBE_DNS",
+  probe_tls: "PROBE_TLS",
 }
 
 /** 渠道/模板授权组合：Webhook 按应用、短信按提供商拆分能力。 */
@@ -814,6 +834,8 @@ const CAPABILITY_MENU_OVERRIDES: Record<string, string[]> = {
   probe_http: ["probe"],
   probe_tcp: ["probe"],
   probe_icmp: ["probe"],
+  probe_dns: ["probe"],
+  probe_tls: ["probe"],
   notify_channel_smtp: ["notification_channel"],
   notify_channel_webhook_other: ["notification_channel"],
   notify_channel_webhook_dingtalk: ["notification_channel"],

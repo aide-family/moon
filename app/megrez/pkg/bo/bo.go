@@ -153,7 +153,8 @@ type ProbeGroup struct {
 	Request ProbeRequest
 }
 
-// ProbeRequest 是组内地址共用的请求参数。
+// ProbeRequest 是组内地址共用的请求参数。不适用的字段按驱动忽略：HTTP 用
+// 方法与断言，TCP 只用超时，ICMP / DNS / TLS 用各自的扩展字段。
 type ProbeRequest struct {
 	Method          string
 	ExpectStatus    string
@@ -163,6 +164,22 @@ type ProbeRequest struct {
 	VerifyCert      bool
 	Headers         map[string]string
 	BodyKeyword     string
+	// ExpectHeaders 是 HTTP 响应头断言：头名 → 完整匹配正则。
+	ExpectHeaders map[string]string
+	// BodyRegex 是 HTTP 响应体完整匹配正则。
+	BodyRegex string
+	// ICMPCount 是单次探测连续发送的 echo 数量，0 视为 1。
+	ICMPCount int
+	// ICMPPacketSize 是 ICMP payload 字节数，0 视为 56。
+	ICMPPacketSize int
+	// DNSRecordType 是 DNS 记录类型，取 A/AAAA/CNAME/MX/TXT/NS，空视为 A。
+	DNSRecordType string
+	// DNSExpectValues 是逗号分隔的期望值正则，每个正则至少命中一条记录。
+	DNSExpectValues string
+	// DNSServer 是自定义 DNS 服务器 host:port，留空使用系统 resolver。
+	DNSServer string
+	// TLSServerName 是 TLS 握手的 SNI，留空取目标 host。
+	TLSServerName string
 }
 
 // ProbeTarget 是一个待探测地址。
@@ -188,6 +205,19 @@ type ProbeResult struct {
 	CertDays     int
 	ResolvedIP   string
 	Executor     string
+	// 以下字段随观测指标扩展加入：ICMP 统计、DNS 答案与 TLS 握手/证书信息。
+	// 不适用的驱动保持零值，回写时原样提交。
+	PacketLoss  int
+	JitterMS    int
+	MinRTTMS    int
+	MaxRTTMS    int
+	AnswerCount int
+	DNSAnswers  string
+	TLSVersion  string
+	TLSCipher   string
+	CertSubject string
+	CertIssuer  string
+	CertSANs    string
 }
 
 // ProbeReport 是一次回写。

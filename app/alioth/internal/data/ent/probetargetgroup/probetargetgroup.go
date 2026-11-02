@@ -100,6 +100,8 @@ const (
 	DriverPROBE_HTTP Driver = "PROBE_HTTP"
 	DriverPROBE_TCP  Driver = "PROBE_TCP"
 	DriverPROBE_ICMP Driver = "PROBE_ICMP"
+	DriverPROBE_DNS  Driver = "PROBE_DNS"
+	DriverPROBE_TLS  Driver = "PROBE_TLS"
 )
 
 func (_driver Driver) String() string {
@@ -109,7 +111,7 @@ func (_driver Driver) String() string {
 // DriverValidator is a validator for the "driver" field enum values. It is called by the builders before save.
 func DriverValidator(_driver Driver) error {
 	switch _driver {
-	case DriverPROBE_HTTP, DriverPROBE_TCP, DriverPROBE_ICMP:
+	case DriverPROBE_HTTP, DriverPROBE_TCP, DriverPROBE_ICMP, DriverPROBE_DNS, DriverPROBE_TLS:
 		return nil
 	default:
 		return fmt.Errorf("probetargetgroup: invalid enum value for driver field: %q", _driver)

@@ -42,6 +42,20 @@ func (ProbeResult) Fields() []ent.Field {
 		field.Int("cert_days").Default(0),
 		field.String("resolved_ip").Default(""),
 		field.String("executor").Default(""),
+		// ICMP 统计：丢包百分比、抖动与 RTT 极值，其他驱动为 0。
+		field.Int("packet_loss").Default(0),
+		field.Int("jitter_ms").Default(0),
+		field.Int("min_rtt_ms").Default(0),
+		field.Int("max_rtt_ms").Default(0),
+		// DNS 解析结果：记录数与答案文本，其他驱动为 0 / 空。
+		field.Int("answer_count").Default(0),
+		field.String("dns_answers").Default(""),
+		// TLS 握手与证书信息，其他驱动为空。
+		field.String("tls_version").Default(""),
+		field.String("tls_cipher").Default(""),
+		field.String("cert_subject").Default(""),
+		field.String("cert_issuer").Default(""),
+		field.String("cert_sans").Default(""),
 	}
 }
 

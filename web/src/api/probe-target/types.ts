@@ -1,9 +1,15 @@
-/** 探测类型：HTTP、TCP、ICMP；目标写法与观测指标各不相同。 */
-export type ProbeDriver = "PROBE_HTTP" | "PROBE_TCP" | "PROBE_ICMP"
+/** 探测类型：HTTP、TCP、ICMP、DNS、TLS；目标写法与观测指标各不相同。 */
+export type ProbeDriver =
+  | "PROBE_HTTP"
+  | "PROBE_TCP"
+  | "PROBE_ICMP"
+  | "PROBE_DNS"
+  | "PROBE_TLS"
 
 /**
- * 组内地址共用的请求参数。HTTP 使用全部字段；TCP 与 ICMP 只使用 timeoutMs。
- * headers 是 JSON 对象文本（与 proto 一致），由页面序列化。
+ * 组内地址共用的请求参数。HTTP 使用方法、请求头与断言字段；TCP 只使用 timeoutMs；
+ * ICMP / DNS / TLS 使用各自的统计或解析字段，不适用的字段会被后端忽略。
+ * headers / expectHeaders 是 JSON 对象文本（与 proto 一致），由页面序列化。
  */
 export interface ProbeRequestConfig {
   /** 请求方法，GET 或 HEAD。 */
@@ -22,6 +28,22 @@ export interface ProbeRequestConfig {
   headers: string
   /** 响应体关键字，命中即成功；留空只按状态码判定。 */
   bodyKeyword: string
+  /** HTTP 响应头断言，JSON 对象文本：响应头名 → 完整匹配正则。 */
+  expectHeaders: string
+  /** HTTP 响应体完整匹配正则；与 bodyKeyword 同时配置时两者都要满足。 */
+  bodyRegex: string
+  /** ICMP 单次探测发送的 echo 数量，0 按 1 处理，最多 10。 */
+  icmpCount: number
+  /** ICMP payload 字节数，0 按 56 处理，最多 1400。 */
+  icmpPacketSize: number
+  /** DNS 记录类型：A / AAAA / CNAME / MX / TXT / NS；留空按 A 处理。 */
+  dnsRecordType: string
+  /** DNS 期望值，逗号分隔的完整匹配正则；留空表示只要有记录即可。 */
+  dnsExpectValues: string
+  /** DNS 服务器 host:port；留空使用系统 resolver。 */
+  dnsServer: string
+  /** TLS SNI；留空取目标 host。 */
+  tlsServerName: string
 }
 
 /** 目标组里的一个地址及其最近一次探测结果。 */
@@ -44,7 +66,7 @@ export interface ProbeResultItem {
   ok: boolean
   value: string
   durationMs: number
-  /** HTTP 状态码；TCP 与 ICMP 为 0。 */
+  /** HTTP 状态码；非 HTTP 探测为 0。 */
   statusCode: number
   errorKind: string
   errorMessage: string
@@ -52,12 +74,34 @@ export interface ProbeResultItem {
   tcpMs: number
   tlsMs: number
   ttfbMs: number
-  /** TLS 证书剩余天数；仅 HTTP 有意义。 */
+  /** TLS 证书剩余天数；HTTP / TLS 探测有意义。 */
   certDays: number
   resolvedIp: string
   slot: string
   probedAt: string
   executor: string
+  /** ICMP 丢包百分比 0–100。 */
+  packetLoss: number
+  /** ICMP 抖动（相邻 RTT 平均绝对差，毫秒）。 */
+  jitterMs: number
+  /** ICMP 最小 RTT，毫秒。 */
+  minRttMs: number
+  /** ICMP 最大 RTT，毫秒。 */
+  maxRttMs: number
+  /** DNS 记录数。 */
+  answerCount: number
+  /** DNS 答案文本，逗号分隔。 */
+  dnsAnswers: string
+  /** TLS 协议版本，如 TLSv1.3。 */
+  tlsVersion: string
+  /** TLS 加密套件。 */
+  tlsCipher: string
+  /** 证书 Subject。 */
+  certSubject: string
+  /** 证书 Issuer。 */
+  certIssuer: string
+  /** 证书 SAN，逗号分隔。 */
+  certSans: string
 }
 
 /** 探测目标组。 */
@@ -136,7 +180,7 @@ export interface ProbeTrialParams {
   /** 探测类型，决定 spec 的写法与超时语义。 */
   driver: string
   spec: string
-  /** 请求参数。HTTP 使用全部字段；TCP 与 ICMP 只使用 timeoutMs。 */
+  /** 请求参数。按驱动使用对应字段，不适用的字段会被后端忽略。 */
   request?: ProbeRequestConfig
 }
 

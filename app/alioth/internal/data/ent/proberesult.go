@@ -60,7 +60,29 @@ type ProbeResult struct {
 	// ResolvedIP holds the value of the "resolved_ip" field.
 	ResolvedIP string `json:"resolved_ip,omitempty"`
 	// Executor holds the value of the "executor" field.
-	Executor     string `json:"executor,omitempty"`
+	Executor string `json:"executor,omitempty"`
+	// PacketLoss holds the value of the "packet_loss" field.
+	PacketLoss int `json:"packet_loss,omitempty"`
+	// JitterMs holds the value of the "jitter_ms" field.
+	JitterMs int `json:"jitter_ms,omitempty"`
+	// MinRttMs holds the value of the "min_rtt_ms" field.
+	MinRttMs int `json:"min_rtt_ms,omitempty"`
+	// MaxRttMs holds the value of the "max_rtt_ms" field.
+	MaxRttMs int `json:"max_rtt_ms,omitempty"`
+	// AnswerCount holds the value of the "answer_count" field.
+	AnswerCount int `json:"answer_count,omitempty"`
+	// DNSAnswers holds the value of the "dns_answers" field.
+	DNSAnswers string `json:"dns_answers,omitempty"`
+	// TLSVersion holds the value of the "tls_version" field.
+	TLSVersion string `json:"tls_version,omitempty"`
+	// TLSCipher holds the value of the "tls_cipher" field.
+	TLSCipher string `json:"tls_cipher,omitempty"`
+	// CertSubject holds the value of the "cert_subject" field.
+	CertSubject string `json:"cert_subject,omitempty"`
+	// CertIssuer holds the value of the "cert_issuer" field.
+	CertIssuer string `json:"cert_issuer,omitempty"`
+	// CertSans holds the value of the "cert_sans" field.
+	CertSans     string `json:"cert_sans,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -71,9 +93,9 @@ func (*ProbeResult) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case proberesult.FieldOk:
 			values[i] = new(sql.NullBool)
-		case proberesult.FieldID, proberesult.FieldDurationMs, proberesult.FieldStatusCode, proberesult.FieldDNSMs, proberesult.FieldTCPMs, proberesult.FieldTLSMs, proberesult.FieldTtfbMs, proberesult.FieldCertDays:
+		case proberesult.FieldID, proberesult.FieldDurationMs, proberesult.FieldStatusCode, proberesult.FieldDNSMs, proberesult.FieldTCPMs, proberesult.FieldTLSMs, proberesult.FieldTtfbMs, proberesult.FieldCertDays, proberesult.FieldPacketLoss, proberesult.FieldJitterMs, proberesult.FieldMinRttMs, proberesult.FieldMaxRttMs, proberesult.FieldAnswerCount:
 			values[i] = new(sql.NullInt64)
-		case proberesult.FieldUID, proberesult.FieldNamespaceUID, proberesult.FieldRuleUID, proberesult.FieldGroupUID, proberesult.FieldTargetUID, proberesult.FieldValue, proberesult.FieldErrorKind, proberesult.FieldErrorMessage, proberesult.FieldResolvedIP, proberesult.FieldExecutor:
+		case proberesult.FieldUID, proberesult.FieldNamespaceUID, proberesult.FieldRuleUID, proberesult.FieldGroupUID, proberesult.FieldTargetUID, proberesult.FieldValue, proberesult.FieldErrorKind, proberesult.FieldErrorMessage, proberesult.FieldResolvedIP, proberesult.FieldExecutor, proberesult.FieldDNSAnswers, proberesult.FieldTLSVersion, proberesult.FieldTLSCipher, proberesult.FieldCertSubject, proberesult.FieldCertIssuer, proberesult.FieldCertSans:
 			values[i] = new(sql.NullString)
 		case proberesult.FieldCreatedAt, proberesult.FieldUpdatedAt, proberesult.FieldSlot, proberesult.FieldProbedAt:
 			values[i] = new(sql.NullTime)
@@ -230,6 +252,72 @@ func (_m *ProbeResult) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Executor = value.String
 			}
+		case proberesult.FieldPacketLoss:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field packet_loss", values[i])
+			} else if value.Valid {
+				_m.PacketLoss = int(value.Int64)
+			}
+		case proberesult.FieldJitterMs:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field jitter_ms", values[i])
+			} else if value.Valid {
+				_m.JitterMs = int(value.Int64)
+			}
+		case proberesult.FieldMinRttMs:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field min_rtt_ms", values[i])
+			} else if value.Valid {
+				_m.MinRttMs = int(value.Int64)
+			}
+		case proberesult.FieldMaxRttMs:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field max_rtt_ms", values[i])
+			} else if value.Valid {
+				_m.MaxRttMs = int(value.Int64)
+			}
+		case proberesult.FieldAnswerCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field answer_count", values[i])
+			} else if value.Valid {
+				_m.AnswerCount = int(value.Int64)
+			}
+		case proberesult.FieldDNSAnswers:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field dns_answers", values[i])
+			} else if value.Valid {
+				_m.DNSAnswers = value.String
+			}
+		case proberesult.FieldTLSVersion:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tls_version", values[i])
+			} else if value.Valid {
+				_m.TLSVersion = value.String
+			}
+		case proberesult.FieldTLSCipher:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tls_cipher", values[i])
+			} else if value.Valid {
+				_m.TLSCipher = value.String
+			}
+		case proberesult.FieldCertSubject:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cert_subject", values[i])
+			} else if value.Valid {
+				_m.CertSubject = value.String
+			}
+		case proberesult.FieldCertIssuer:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cert_issuer", values[i])
+			} else if value.Valid {
+				_m.CertIssuer = value.String
+			}
+		case proberesult.FieldCertSans:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cert_sans", values[i])
+			} else if value.Valid {
+				_m.CertSans = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -331,6 +419,39 @@ func (_m *ProbeResult) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("executor=")
 	builder.WriteString(_m.Executor)
+	builder.WriteString(", ")
+	builder.WriteString("packet_loss=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PacketLoss))
+	builder.WriteString(", ")
+	builder.WriteString("jitter_ms=")
+	builder.WriteString(fmt.Sprintf("%v", _m.JitterMs))
+	builder.WriteString(", ")
+	builder.WriteString("min_rtt_ms=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MinRttMs))
+	builder.WriteString(", ")
+	builder.WriteString("max_rtt_ms=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MaxRttMs))
+	builder.WriteString(", ")
+	builder.WriteString("answer_count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AnswerCount))
+	builder.WriteString(", ")
+	builder.WriteString("dns_answers=")
+	builder.WriteString(_m.DNSAnswers)
+	builder.WriteString(", ")
+	builder.WriteString("tls_version=")
+	builder.WriteString(_m.TLSVersion)
+	builder.WriteString(", ")
+	builder.WriteString("tls_cipher=")
+	builder.WriteString(_m.TLSCipher)
+	builder.WriteString(", ")
+	builder.WriteString("cert_subject=")
+	builder.WriteString(_m.CertSubject)
+	builder.WriteString(", ")
+	builder.WriteString("cert_issuer=")
+	builder.WriteString(_m.CertIssuer)
+	builder.WriteString(", ")
+	builder.WriteString("cert_sans=")
+	builder.WriteString(_m.CertSans)
 	builder.WriteByte(')')
 	return builder.String()
 }

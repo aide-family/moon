@@ -88,15 +88,23 @@ import {
   TABLE_NOWRAP,
 } from "@/lib/table-layout"
 
-// 探测类型。页面按套餐授权展示可选类型，三种类型的目标写法与判定口径不同。
+// 探测类型。页面按套餐授权展示可选类型，五种类型的目标写法与判定口径不同。
 const PROBE_HTTP = "PROBE_HTTP"
 const PROBE_TCP = "PROBE_TCP"
 const PROBE_ICMP = "PROBE_ICMP"
+const PROBE_DNS = "PROBE_DNS"
+const PROBE_TLS = "PROBE_TLS"
+const dnsRecordTypes = ["A", "AAAA", "CNAME", "MX", "TXT", "NS"]
 const MAX_TARGETS = 50
 const MAX_TARGET_SPEC = 2048
 const MAX_TIMEOUT_MS = 60000
 const MIN_TIMEOUT_MS = 100
 const MAX_BODY_KEYWORD = 256
+const MAX_BODY_REGEX = 512
+const MAX_EXPECT_HEADERS = 4096
+const MAX_DNS_EXPECT_VALUES = 1024
+const MAX_DNS_SERVER = 255
+const MAX_TLS_SERVER_NAME = 255
 const MAX_LABELS = 4096
 const MAX_HEADERS = 8192
 // 与 pkg/probe 的受控头清单一致：由客户端计算，探测不能覆盖。
@@ -117,6 +125,14 @@ const defaultRequest: ProbeRequestConfig = {
   verifyCert: true,
   headers: "{}",
   bodyKeyword: "",
+  expectHeaders: "{}",
+  bodyRegex: "",
+  icmpCount: 1,
+  icmpPacketSize: 56,
+  dnsRecordType: "A",
+  dnsExpectValues: "",
+  dnsServer: "",
+  tlsServerName: "",
 }
 
 /** 目标行草稿：uid 为空表示新增，labels 保留原值避免更新时被清空。 */
@@ -141,6 +157,14 @@ interface ProbeDraft {
   verifyCert: boolean
   bodyKeyword: string
   headers: LabelPair[]
+  expectHeaders: LabelPair[]
+  bodyRegex: string
+  icmpCount: string
+  icmpPacketSize: string
+  dnsRecordType: string
+  dnsExpectValues: string
+  dnsServer: string
+  tlsServerName: string
 }
 
 interface TrialEntry {
@@ -167,6 +191,14 @@ function emptyDraft(): ProbeDraft {
     verifyCert: defaultRequest.verifyCert,
     bodyKeyword: defaultRequest.bodyKeyword,
     headers: [],
+    expectHeaders: [],
+    bodyRegex: defaultRequest.bodyRegex,
+    icmpCount: String(defaultRequest.icmpCount),
+    icmpPacketSize: String(defaultRequest.icmpPacketSize),
+    dnsRecordType: defaultRequest.dnsRecordType,
+    dnsExpectValues: defaultRequest.dnsExpectValues,
+    dnsServer: defaultRequest.dnsServer,
+    tlsServerName: defaultRequest.tlsServerName,
   }
 }
 
@@ -194,6 +226,17 @@ function draftFromItem(item: ProbeTargetGroupItem): ProbeDraft {
     verifyCert: Boolean(request.verifyCert),
     bodyKeyword: request.bodyKeyword ?? "",
     headers: parseHeaderPairs(request.headers),
+    expectHeaders: parseHeaderPairs(request.expectHeaders),
+    bodyRegex: request.bodyRegex ?? "",
+    // 0 在后端按 1 / 56 处理，编辑时直接展示生效值。
+    icmpCount: String(request.icmpCount || defaultRequest.icmpCount),
+    icmpPacketSize: String(
+      request.icmpPacketSize || defaultRequest.icmpPacketSize
+    ),
+    dnsRecordType: request.dnsRecordType || defaultRequest.dnsRecordType,
+    dnsExpectValues: request.dnsExpectValues ?? "",
+    dnsServer: request.dnsServer ?? "",
+    tlsServerName: request.tlsServerName ?? "",
   }
 }
 
@@ -294,18 +337,22 @@ function splitTCPTarget(value: string): { host: string; port: number } | null {
     host = parts[0]
     portText = parts[1]
   }
-  if (host.trim() === "" || !/^\d{1,5}$/.test(portText)) {
+  const trimmedHost = host.trim()
+  // 主机里出现空白、@ 或方括号说明不是 host:port（IPv6 方括号已在上面的分支剥掉）。
+  if (
+    trimmedHost === "" ||
+    /[\s@]/.test(trimmedHost) ||
+    trimmedHost.includes("[") ||
+    trimmedHost.includes("]") ||
+    !/^\d{1,5}$/.test(portText)
+  ) {
     return null
   }
   const port = Number(portText)
   if (port < 1 || port > 65535) {
     return null
   }
-  return { host: host.trim(), port }
-}
-
-function isTCPTarget(value: string): boolean {
-  return splitTCPTarget(value) !== null
+  return { host: trimmedHost, port }
 }
 
 function tcpTargetKey(value: string): string {
@@ -340,37 +387,256 @@ function icmpTargetKey(value: string): string {
   return text.toLowerCase()
 }
 
+// 单个 DNS 标签：字母/数字/连字符，不以连字符开头或结尾，1–63 字符。
+const dnsLabelPattern = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
+
+/** 归一化 DNS 域名：转小写、去末尾点；返回 null 表示非法，与后端规则一致。 */
+function normalizeDnsTarget(value: string): string | null {
+  let text = value.trim().toLowerCase()
+  if (text.endsWith(".")) {
+    text = text.slice(0, -1)
+  }
+  if (text === "" || text.length > 253) {
+    return null
+  }
+  // scheme、端口、路径、空白与邮箱式写法都不是合法域名。
+  if (/[\s@:/?#]/.test(text)) {
+    return null
+  }
+  // IP 字面量（含保留网段）不算域名。
+  if (isIpLiteral(text)) {
+    return null
+  }
+  if (!text.split(".").every((label) => dnsLabelPattern.test(label))) {
+    return null
+  }
+  return text
+}
+
+function isDnsTarget(value: string): boolean {
+  return normalizeDnsTarget(value) !== null
+}
+
+function dnsTargetKey(value: string): string {
+  return normalizeDnsTarget(value) ?? value.trim().toLowerCase()
+}
+
 /** 按探测类型校验目标写法。 */
 function isTargetForDriver(driver: string, value: string): boolean {
-  if (driver === PROBE_TCP) {
-    return isTCPTarget(value)
+  if (driver === PROBE_TCP || driver === PROBE_TLS) {
+    const parsed = splitTCPTarget(value)
+    return parsed !== null && !isBlockedProbeHost(parsed.host)
   }
   if (driver === PROBE_ICMP) {
     return isICMPTarget(value)
+  }
+  if (driver === PROBE_DNS) {
+    return isDnsTarget(value)
   }
   return isHttpTarget(value)
 }
 
 /** 按探测类型生成组内去重键。 */
 function targetKey(driver: string, value: string): string {
-  if (driver === PROBE_TCP) {
+  if (driver === PROBE_TCP || driver === PROBE_TLS) {
     return tcpTargetKey(value)
   }
   if (driver === PROBE_ICMP) {
     return icmpTargetKey(value)
   }
+  if (driver === PROBE_DNS) {
+    return dnsTargetKey(value)
+  }
   return httpTargetKey(value)
 }
 
 /** 驱动对应的文案后缀；未知驱动按 HTTP 处理，避免拼出空翻译 key。 */
-function driverCopySuffix(driver: string): "Http" | "Tcp" | "Icmp" {
+function driverCopySuffix(
+  driver: string
+): "Http" | "Tcp" | "Icmp" | "Dns" | "Tls" {
   if (driver === PROBE_TCP) {
     return "Tcp"
   }
   if (driver === PROBE_ICMP) {
     return "Icmp"
   }
+  if (driver === PROBE_DNS) {
+    return "Dns"
+  }
+  if (driver === PROBE_TLS) {
+    return "Tls"
+  }
   return "Http"
+}
+
+/** 保留网段地址与后端 pkg/probe.BlockedHost 对齐（元数据、链路本地、组播、未指定）。 */
+function isBlockedProbeHost(host: string): boolean {
+  const text = host.replace(/^\[|\]$/g, "").toLowerCase()
+  if (text === "0.0.0.0" || text === "::") {
+    return true
+  }
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(text)) {
+    const [first, second] = text.split(".").map(Number)
+    return (
+      (first === 169 && second === 254) || (first >= 224 && first <= 239)
+    )
+  }
+  return (
+    text.startsWith("fe8") ||
+    text.startsWith("fe9") ||
+    text.startsWith("fea") ||
+    text.startsWith("feb") ||
+    text.startsWith("ff")
+  )
+}
+
+/** DNS 服务器可选：留空用系统 resolver，填写时必须是 host:port 且不是保留网段。 */
+function dnsServerInvalid(value: string): boolean {
+  const text = value.trim()
+  return (
+    text !== "" &&
+    (text.length > MAX_DNS_SERVER || splitTCPTarget(text) === null)
+  )
+}
+
+function dnsServerBlocked(value: string): boolean {
+  const text = value.trim()
+  if (text === "") {
+    return false
+  }
+  const parsed = splitTCPTarget(text)
+  return parsed !== null && isBlockedProbeHost(parsed.host)
+}
+
+/** TLS SNI 只能是主机名：拒绝端口、scheme、路径与空白。 */
+function tlsServerNameInvalid(value: string): boolean {
+  const text = value.trim()
+  if (text === "") {
+    return false
+  }
+  return text.length > MAX_TLS_SERVER_NAME || /[\s@:/?#]/.test(text)
+}
+
+/** 整数区间校验；留空表示用后端默认值。 */
+function intRangeInvalid(value: string, min: number, max: number): boolean {
+  const text = value.trim()
+  if (text === "") {
+    return false
+  }
+  if (!/^\d+$/.test(text)) {
+    return true
+  }
+  const parsed = Number(text)
+  return parsed < min || parsed > max
+}
+
+/** 正则可编译性校验；断言值按完整匹配正则使用。 */
+function regexInvalid(value: string): boolean {
+  try {
+    new RegExp(value.trim())
+    return false
+  } catch {
+    return true
+  }
+}
+
+/** 非 HTTP 驱动的超时字段标题。 */
+function timeoutLabelKey(driver: string): string {
+  if (driver === PROBE_TCP) {
+    return "probeTarget.timeoutConnect"
+  }
+  if (driver === PROBE_ICMP) {
+    return "probeTarget.timeoutEcho"
+  }
+  if (driver === PROBE_DNS) {
+    return "probeTarget.timeoutDns"
+  }
+  if (driver === PROBE_TLS) {
+    return "probeTarget.timeoutTls"
+  }
+  return "probeTarget.timeoutMs"
+}
+
+/** 非 HTTP 驱动的超时字段说明。 */
+function timeoutHintKey(driver: string): string {
+  if (driver === PROBE_TCP) {
+    return "probeTarget.timeoutConnectHint"
+  }
+  if (driver === PROBE_ICMP) {
+    return "probeTarget.timeoutEchoHint"
+  }
+  if (driver === PROBE_DNS) {
+    return "probeTarget.timeoutDnsHint"
+  }
+  if (driver === PROBE_TLS) {
+    return "probeTarget.timeoutTlsHint"
+  }
+  return "probeTarget.timeoutInvalid"
+}
+
+/**
+ * 非 HTTP 探测结果的「探测详情」摘要：DNS 答案与记录数、ICMP 丢包/抖动/RTT 极值、
+ * TLS 协议与套件/证书主体。HTTP 保留状态码与证书列，不使用这个单元格。
+ */
+function ProbeDetailSummary({
+  driver,
+  result,
+}: {
+  driver: string
+  result?: ProbeResultItem | null
+}) {
+  const { t } = useTranslation()
+  if (!result) {
+    return <>—</>
+  }
+  if (driver === PROBE_DNS) {
+    if (!result.dnsAnswers && !result.answerCount) {
+      return <>—</>
+    }
+    return (
+      <span className="break-words">
+        {t("probeTarget.detailDns", {
+          count: result.answerCount,
+          answers: result.dnsAnswers || "—",
+        })}
+      </span>
+    )
+  }
+  if (driver === PROBE_ICMP) {
+    return (
+      <span className="break-words tabular-nums">
+        {t("probeTarget.detailIcmp", {
+          loss: result.packetLoss,
+          jitter: result.jitterMs,
+          min: result.minRttMs,
+          max: result.maxRttMs,
+        })}
+      </span>
+    )
+  }
+  if (driver === PROBE_TLS) {
+    if (!result.tlsVersion && !result.tlsCipher && !result.certSubject) {
+      return <>—</>
+    }
+    return (
+      <span className="grid min-w-0 gap-0.5">
+        <span className="break-words tabular-nums">
+          {t("probeTarget.detailTlsProtocol", {
+            version: result.tlsVersion || "—",
+            cipher: result.tlsCipher || "—",
+          })}
+        </span>
+        <span className="text-xs break-words text-muted-foreground">
+          {result.certSubject
+            ? t("probeTarget.detailTlsCert", {
+                subject: result.certSubject,
+              })
+            : "—"}
+        </span>
+      </span>
+    )
+  }
+  return <>—</>
 }
 
 /** 期望状态码表达式是否非法：单值、区间与逗号列表，值域 100..599。 */
@@ -421,29 +687,62 @@ function timeoutInvalid(value: string): boolean {
 }
 
 function buildRequest(form: ProbeDraft): ProbeRequestConfig {
+  // 先用满足 proto 校验的默认值兜底，再按驱动只填该类型真正使用的字段。
   const request: ProbeRequestConfig = {
-    method: form.method,
-    expectStatus: form.expectStatus.trim(),
-    timeoutMs: Number(form.timeoutMs || "0"),
-    followRedirects: form.followRedirects,
-    skipTlsVerify: form.skipTlsVerify,
-    verifyCert: form.verifyCert,
-    headers: serializeHeaders(form.headers),
-    bodyKeyword: form.bodyKeyword.trim(),
-  }
-  if (form.driver === PROBE_HTTP) {
-    return request
-  }
-  // TCP / ICMP 只使用超时；其余字段填默认值，满足后端 proto 校验但不参与判定。
-  return {
-    ...request,
     method: defaultRequest.method,
     expectStatus: defaultRequest.expectStatus,
+    timeoutMs: Number(form.timeoutMs || "0"),
     followRedirects: false,
     skipTlsVerify: false,
     verifyCert: false,
     headers: "{}",
     bodyKeyword: "",
+    expectHeaders: "{}",
+    bodyRegex: "",
+    icmpCount: 0,
+    icmpPacketSize: 0,
+    dnsRecordType: "",
+    dnsExpectValues: "",
+    dnsServer: "",
+    tlsServerName: "",
+  }
+  switch (form.driver) {
+    case PROBE_HTTP:
+      return {
+        ...request,
+        method: form.method,
+        expectStatus: form.expectStatus.trim(),
+        followRedirects: form.followRedirects,
+        skipTlsVerify: form.skipTlsVerify,
+        verifyCert: form.verifyCert,
+        headers: serializeHeaders(form.headers),
+        bodyKeyword: form.bodyKeyword.trim(),
+        expectHeaders: serializeHeaders(form.expectHeaders),
+        bodyRegex: form.bodyRegex.trim(),
+      }
+    case PROBE_ICMP:
+      return {
+        ...request,
+        icmpCount: Number(form.icmpCount || "0"),
+        icmpPacketSize: Number(form.icmpPacketSize || "0"),
+      }
+    case PROBE_DNS:
+      return {
+        ...request,
+        dnsRecordType: form.dnsRecordType,
+        dnsExpectValues: form.dnsExpectValues.trim(),
+        dnsServer: form.dnsServer.trim(),
+      }
+    case PROBE_TLS:
+      return {
+        ...request,
+        skipTlsVerify: form.skipTlsVerify,
+        verifyCert: form.verifyCert,
+        tlsServerName: form.tlsServerName.trim(),
+      }
+    default:
+      // TCP 只用超时。
+      return request
   }
 }
 
@@ -705,6 +1004,15 @@ export function ProbeTargetPage() {
     })
   }
 
+  function updateExpectHeader(index: number, patch: Partial<LabelPair>) {
+    setForm({
+      ...form,
+      expectHeaders: form.expectHeaders.map((pair, currentIndex) =>
+        currentIndex === index ? { ...pair, ...patch } : pair
+      ),
+    })
+  }
+
   function validateBasicStep(): FieldErrors {
     const errors = collectFieldErrors([
       ["name", requireTrimmed(form.name, t("form.required"))],
@@ -764,7 +1072,7 @@ export function ProbeTargetPage() {
 
   function validateRequestStep(): FieldErrors {
     const checks: Array<[string, string | null]> = []
-    // HTTP 探测校验完整请求参数；TCP / ICMP 只用超时，其余字段不参与保存。
+    // HTTP 探针校验完整请求参数与断言；其它驱动只校验各自使用的字段。
     if (form.driver === PROBE_HTTP) {
       if (form.method !== "GET" && form.method !== "HEAD") {
         checks.push(["method", t("form.required")])
@@ -803,9 +1111,84 @@ export function ProbeTargetPage() {
       if (serializeHeaders(form.headers).length > MAX_HEADERS) {
         checks.push(["headers", t("probeTarget.headersTooLong")])
       }
+      // 响应头断言：每个响应头的值都要能编译为完整匹配正则。
+      form.expectHeaders.forEach((pair, index) => {
+        const key = pair.key.trim()
+        if (key === "" && pair.value.trim() === "") {
+          return
+        }
+        if (key === "") {
+          checks.push([
+            `expectHeader.${index}.key`,
+            t("probeTarget.expectHeaderKeyRequired"),
+          ])
+          return
+        }
+        if (/[\r\n]/.test(key) || /[\r\n]/.test(pair.value)) {
+          checks.push([
+            `expectHeader.${index}.value`,
+            t("probeTarget.expectHeaderNewline"),
+          ])
+          return
+        }
+        if (regexInvalid(pair.value)) {
+          checks.push([
+            `expectHeader.${index}.value`,
+            t("probeTarget.expectHeaderInvalidRegex"),
+          ])
+        }
+      })
+      if (serializeHeaders(form.expectHeaders).length > MAX_EXPECT_HEADERS) {
+        checks.push(["expectHeaders", t("probeTarget.expectHeadersTooLong")])
+      }
+      const bodyRegex = form.bodyRegex.trim()
+      if (bodyRegex.length > MAX_BODY_REGEX) {
+        checks.push(["bodyRegex", t("probeTarget.bodyRegexTooLong")])
+      } else if (bodyRegex !== "" && regexInvalid(bodyRegex)) {
+        checks.push(["bodyRegex", t("probeTarget.bodyRegexInvalid")])
+      }
     }
     if (timeoutInvalid(form.timeoutMs)) {
       checks.push(["timeoutMs", t("probeTarget.timeoutInvalid")])
+    }
+    if (form.driver === PROBE_ICMP) {
+      if (intRangeInvalid(form.icmpCount, 0, 10)) {
+        checks.push(["icmpCount", t("probeTarget.icmpCountInvalid")])
+      }
+      if (intRangeInvalid(form.icmpPacketSize, 0, 1400)) {
+        checks.push(["icmpPacketSize", t("probeTarget.icmpPacketSizeInvalid")])
+      }
+    }
+    if (form.driver === PROBE_DNS) {
+      const expectValues = form.dnsExpectValues.trim()
+      if (expectValues.length > MAX_DNS_EXPECT_VALUES) {
+        checks.push([
+          "dnsExpectValues",
+          t("probeTarget.dnsExpectValuesTooLong"),
+        ])
+      } else {
+        // 每个期望值都是完整匹配正则，任何一个非法都拦下。
+        expectValues
+          .split(",")
+          .map((value) => value.trim())
+          .filter((value) => value !== "")
+          .forEach((value, index) => {
+            if (regexInvalid(value)) {
+              checks.push([
+                "dnsExpectValues",
+                t("probeTarget.dnsExpectValuesInvalid", { index: index + 1 }),
+              ])
+            }
+          })
+      }
+      if (dnsServerInvalid(form.dnsServer)) {
+        checks.push(["dnsServer", t("probeTarget.dnsServerInvalid")])
+      } else if (dnsServerBlocked(form.dnsServer)) {
+        checks.push(["dnsServer", t("probeTarget.dnsServerBlocked")])
+      }
+    }
+    if (form.driver === PROBE_TLS && tlsServerNameInvalid(form.tlsServerName)) {
+      checks.push(["tlsServerName", t("probeTarget.tlsServerNameInvalid")])
     }
     return collectFieldErrors(checks)
   }
@@ -1280,7 +1663,11 @@ export function ProbeTargetPage() {
                             <TableHead className={TABLE_COLUMN_WIDTH.type}>
                               {t("probeTarget.statusCode")}
                             </TableHead>
-                          ) : null}
+                          ) : (
+                            <TableHead className="min-w-[10rem]">
+                              {t("probeTarget.detailColumn")}
+                            </TableHead>
+                          )}
                           <TableHead className={TABLE_COLUMN_WIDTH.type}>
                             {t("probeTarget.duration")}
                           </TableHead>
@@ -1340,7 +1727,14 @@ export function ProbeTargetPage() {
                               <TableCell className={TABLE_NOWRAP}>
                                 {target.lastResult?.statusCode || "—"}
                               </TableCell>
-                            ) : null}
+                            ) : (
+                              <TableCell className="max-w-[16rem] min-w-0 align-top">
+                                <ProbeDetailSummary
+                                  driver={current.driver}
+                                  result={target.lastResult}
+                                />
+                              </TableCell>
+                            )}
                             <TableCell className={TABLE_NOWRAP}>
                               {target.lastResult
                                 ? t("probeTarget.durationValue", {
@@ -1364,7 +1758,7 @@ export function ProbeTargetPage() {
                               className="bg-muted/20 hover:bg-muted/20"
                             >
                               <TableCell
-                                colSpan={currentIsHttp ? 7 : 5}
+                                colSpan={currentIsHttp ? 7 : 6}
                                 className="min-w-0"
                               >
                                 <div className="grid min-w-0 gap-2 py-1">
@@ -1422,7 +1816,11 @@ export function ProbeTargetPage() {
                                             >
                                               {t("probeTarget.statusCode")}
                                             </TableHead>
-                                          ) : null}
+                                          ) : (
+                                            <TableHead className="min-w-[10rem]">
+                                              {t("probeTarget.detailColumn")}
+                                            </TableHead>
+                                          )}
                                           <TableHead
                                             className={TABLE_COLUMN_WIDTH.type}
                                           >
@@ -1467,7 +1865,14 @@ export function ProbeTargetPage() {
                                               >
                                                 {item.statusCode || "—"}
                                               </TableCell>
-                                            ) : null}
+                                            ) : (
+                                              <TableCell className="max-w-[16rem] min-w-0 align-top">
+                                                <ProbeDetailSummary
+                                                  driver={current.driver}
+                                                  result={item}
+                                                />
+                                              </TableCell>
+                                            )}
                                             <TableCell className={TABLE_NOWRAP}>
                                               {t("probeTarget.durationValue", {
                                                 ms: item.durationMs,
@@ -1903,6 +2308,22 @@ export function ProbeTargetPage() {
                         }
                       />
                     </FormField>
+                    <FormField
+                      label={t("probeTarget.bodyRegex")}
+                      htmlFor="probe-body-regex"
+                      hint={t("probeTarget.bodyRegexHint")}
+                      error={fieldErrors.bodyRegex}
+                    >
+                      <Input
+                        id="probe-body-regex"
+                        value={form.bodyRegex}
+                        maxLength={MAX_BODY_REGEX}
+                        placeholder="ok|healthy"
+                        onChange={(event) =>
+                          setForm({ ...form, bodyRegex: event.target.value })
+                        }
+                      />
+                    </FormField>
                     <div className="grid gap-3 sm:col-span-full">
                       <label className="flex items-start gap-2">
                         <Checkbox
@@ -2026,6 +2447,92 @@ export function ProbeTargetPage() {
                         </p>
                       ) : null}
                     </div>
+                    <div className="grid min-w-0 gap-2 sm:col-span-full">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium">
+                          {t("probeTarget.expectHeaders")}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              expectHeaders: [
+                                ...form.expectHeaders,
+                                { key: "", value: "" },
+                              ],
+                            })
+                          }
+                        >
+                          {t("probeTarget.addExpectHeader")}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {t("probeTarget.expectHeadersHint")}
+                      </p>
+                      {form.expectHeaders.map((pair, index) => (
+                        <FormField
+                          key={index}
+                          label={t("probeTarget.expectHeaderLabel", {
+                            index: index + 1,
+                          })}
+                          error={
+                            fieldErrors[`expectHeader.${index}.key`] ??
+                            fieldErrors[`expectHeader.${index}.value`]
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <Input
+                              className="min-w-0 flex-1"
+                              value={pair.key}
+                              placeholder={t(
+                                "probeTarget.expectHeaderKeyPlaceholder"
+                              )}
+                              onChange={(event) =>
+                                updateExpectHeader(index, {
+                                  key: event.target.value,
+                                })
+                              }
+                            />
+                            <Input
+                              className="min-w-0 flex-1"
+                              value={pair.value}
+                              placeholder={t(
+                                "probeTarget.expectHeaderValuePlaceholder"
+                              )}
+                              onChange={(event) =>
+                                updateExpectHeader(index, {
+                                  value: event.target.value,
+                                })
+                              }
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              aria-label={t("probeTarget.removeExpectHeader")}
+                              onClick={() =>
+                                setForm({
+                                  ...form,
+                                  expectHeaders: form.expectHeaders.filter(
+                                    (_, currentIndex) => currentIndex !== index
+                                  ),
+                                })
+                              }
+                            >
+                              <Trash2 />
+                            </Button>
+                          </div>
+                        </FormField>
+                      ))}
+                      {fieldErrors.expectHeaders ? (
+                        <p role="alert" className="text-sm text-destructive">
+                          {fieldErrors.expectHeaders}
+                        </p>
+                      ) : null}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -2033,17 +2540,9 @@ export function ProbeTargetPage() {
                       {t("probeTarget.nonHttpRequestHint")}
                     </p>
                     <FormField
-                      label={t(
-                        form.driver === PROBE_TCP
-                          ? "probeTarget.timeoutConnect"
-                          : "probeTarget.timeoutEcho"
-                      )}
+                      label={t(timeoutLabelKey(form.driver))}
                       htmlFor="probe-timeout"
-                      hint={t(
-                        form.driver === PROBE_TCP
-                          ? "probeTarget.timeoutConnectHint"
-                          : "probeTarget.timeoutEchoHint"
-                      )}
+                      hint={t(timeoutHintKey(form.driver))}
                       required
                       error={fieldErrors.timeoutMs}
                     >
@@ -2061,6 +2560,179 @@ export function ProbeTargetPage() {
                         required
                       />
                     </FormField>
+                    {form.driver === PROBE_ICMP ? (
+                      <>
+                        <FormField
+                          label={t("probeTarget.icmpCount")}
+                          htmlFor="probe-icmp-count"
+                          hint={t("probeTarget.icmpCountHint")}
+                          error={fieldErrors.icmpCount}
+                        >
+                          <Input
+                            id="probe-icmp-count"
+                            type="number"
+                            min={0}
+                            max={10}
+                            step={1}
+                            inputMode="numeric"
+                            value={form.icmpCount}
+                            onChange={(event) =>
+                              setForm({
+                                ...form,
+                                icmpCount: event.target.value,
+                              })
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("probeTarget.icmpPacketSize")}
+                          htmlFor="probe-icmp-size"
+                          hint={t("probeTarget.icmpPacketSizeHint")}
+                          error={fieldErrors.icmpPacketSize}
+                        >
+                          <Input
+                            id="probe-icmp-size"
+                            type="number"
+                            min={0}
+                            max={1400}
+                            step={1}
+                            inputMode="numeric"
+                            value={form.icmpPacketSize}
+                            onChange={(event) =>
+                              setForm({
+                                ...form,
+                                icmpPacketSize: event.target.value,
+                              })
+                            }
+                          />
+                        </FormField>
+                      </>
+                    ) : null}
+                    {form.driver === PROBE_DNS ? (
+                      <>
+                        <FormField
+                          label={t("probeTarget.dnsRecordType")}
+                          hint={t("probeTarget.dnsRecordTypeHint")}
+                        >
+                          <Select
+                            value={form.dnsRecordType}
+                            onValueChange={(value) =>
+                              setForm({ ...form, dnsRecordType: value })
+                            }
+                          >
+                            <SelectTrigger
+                              aria-label={t("probeTarget.dnsRecordType")}
+                            >
+                              <SelectValue placeholder="A" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {dnsRecordTypes.map((item) => (
+                                <SelectItem key={item} value={item}>
+                                  {item}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormField>
+                        <FormField
+                          label={t("probeTarget.dnsExpectValues")}
+                          htmlFor="probe-dns-expect"
+                          hint={t("probeTarget.dnsExpectValuesHint")}
+                          error={fieldErrors.dnsExpectValues}
+                        >
+                          <Input
+                            id="probe-dns-expect"
+                            value={form.dnsExpectValues}
+                            maxLength={MAX_DNS_EXPECT_VALUES}
+                            placeholder="192\\.0\\.2\\.\\d+"
+                            onChange={(event) =>
+                              setForm({
+                                ...form,
+                                dnsExpectValues: event.target.value,
+                              })
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("probeTarget.dnsServer")}
+                          htmlFor="probe-dns-server"
+                          hint={t("probeTarget.dnsServerHint")}
+                          error={fieldErrors.dnsServer}
+                        >
+                          <Input
+                            id="probe-dns-server"
+                            value={form.dnsServer}
+                            maxLength={MAX_DNS_SERVER}
+                            placeholder="8.8.8.8:53"
+                            onChange={(event) =>
+                              setForm({
+                                ...form,
+                                dnsServer: event.target.value,
+                              })
+                            }
+                          />
+                        </FormField>
+                      </>
+                    ) : null}
+                    {form.driver === PROBE_TLS ? (
+                      <>
+                        <FormField
+                          label={t("probeTarget.tlsServerName")}
+                          htmlFor="probe-tls-sni"
+                          hint={t("probeTarget.tlsServerNameHint")}
+                          error={fieldErrors.tlsServerName}
+                        >
+                          <Input
+                            id="probe-tls-sni"
+                            value={form.tlsServerName}
+                            maxLength={MAX_TLS_SERVER_NAME}
+                            placeholder="api.example.com"
+                            onChange={(event) =>
+                              setForm({
+                                ...form,
+                                tlsServerName: event.target.value,
+                              })
+                            }
+                          />
+                        </FormField>
+                        <div className="grid gap-3 sm:col-span-full">
+                          <label className="flex items-start gap-2">
+                            <Checkbox
+                              className="mt-0.5"
+                              checked={form.skipTlsVerify}
+                              onCheckedChange={(value) =>
+                                setForm({
+                                  ...form,
+                                  skipTlsVerify: value === true,
+                                })
+                              }
+                            />
+                            <span className="grid gap-1">
+                              <span className="text-sm font-medium">
+                                {t("probeTarget.skipTlsVerify")}
+                              </span>
+                            </span>
+                          </label>
+                          <label className="flex items-start gap-2">
+                            <Checkbox
+                              className="mt-0.5"
+                              checked={form.verifyCert}
+                              onCheckedChange={(value) =>
+                                setForm({ ...form, verifyCert: value === true })
+                              }
+                            />
+                            <span className="grid gap-1">
+                              <span className="text-sm font-medium">
+                                {t("probeTarget.verifyCert")}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {t("probeTarget.verifyCertHint")}
+                              </span>
+                            </span>
+                          </label>
+                        </div>
+                      </>
+                    ) : null}
                   </>
                 )}
                 <section className="grid min-w-0 gap-3 border-t pt-4 sm:col-span-full">
@@ -2099,7 +2771,11 @@ export function ProbeTargetPage() {
                             <TableHead className={TABLE_COLUMN_WIDTH.type}>
                               {t("probeTarget.statusCode")}
                             </TableHead>
-                          ) : null}
+                          ) : (
+                            <TableHead className="min-w-[10rem]">
+                              {t("probeTarget.detailColumn")}
+                            </TableHead>
+                          )}
                           <TableHead className={TABLE_COLUMN_WIDTH.type}>
                             {t("probeTarget.duration")}
                           </TableHead>
@@ -2139,7 +2815,14 @@ export function ProbeTargetPage() {
                               <TableCell className={TABLE_NOWRAP}>
                                 {entry.result?.statusCode || "—"}
                               </TableCell>
-                            ) : null}
+                            ) : (
+                              <TableCell className="max-w-[16rem] min-w-0 align-top">
+                                <ProbeDetailSummary
+                                  driver={form.driver}
+                                  result={entry.result}
+                                />
+                              </TableCell>
+                            )}
                             <TableCell className={TABLE_NOWRAP}>
                               {entry.result
                                 ? t("probeTarget.durationValue", {

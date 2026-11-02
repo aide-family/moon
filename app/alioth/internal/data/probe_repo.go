@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
@@ -20,6 +21,10 @@ func (r *probeRepo) CreateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 		return nil, r.fail(err)
 	}
 	defer func() { _ = tx.Rollback() }()
+	request, err := encryptProbeRequest(r.box, in.Request)
+	if err != nil {
+		return nil, err
+	}
 	row, err := tx.ProbeTargetGroup.Create().
 		SetUID(id.New()).
 		SetNamespaceUID(in.NamespaceUID).
@@ -28,7 +33,7 @@ func (r *probeRepo) CreateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 		SetStatus(probetargetgroup.StatusACTIVE).
 		SetLabels(in.Labels).
 		SetExecutorLabels(in.ExecutorLabels).
-		SetRequest(in.Request).
+		SetRequest(request).
 		SetRemark(in.Remark).
 		Save(ctx)
 	if err != nil {
@@ -60,6 +65,10 @@ func (r *probeRepo) UpdateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 		return nil, r.fail(err)
 	}
 	defer func() { _ = tx.Rollback() }()
+	request, err := encryptProbeRequest(r.box, in.Request)
+	if err != nil {
+		return nil, err
+	}
 	if _, err := tx.ProbeTargetGroup.Update().Where(
 		probetargetgroup.NamespaceUIDEQ(in.NamespaceUID),
 		probetargetgroup.UIDEQ(in.UID),
@@ -69,7 +78,7 @@ func (r *probeRepo) UpdateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 		SetDriver(probeGroupDriver(in.Driver)).
 		SetLabels(in.Labels).
 		SetExecutorLabels(in.ExecutorLabels).
-		SetRequest(in.Request).
+		SetRequest(request).
 		SetRemark(in.Remark).
 		Save(ctx); err != nil {
 		return nil, r.fail(err)
@@ -177,7 +186,10 @@ func (r *probeRepo) GetProbeTargetGroup(ctx context.Context, namespaceUID, uid s
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	item := toProbeGroup(row)
+	item, err := r.toProbeGroup(row)
+	if err != nil {
+		return nil, err
+	}
 	if err := r.fillProbeTargets(ctx, []*bo.ProbeTargetGroup{&item}); err != nil {
 		return nil, err
 	}
@@ -211,7 +223,11 @@ func (r *probeRepo) ListProbeTargetGroups(ctx context.Context, namespaceUID stri
 	}
 	items := make([]bo.ProbeTargetGroup, 0, len(rows))
 	for _, row := range rows {
-		items = append(items, toProbeGroup(row))
+		item, err := r.toProbeGroup(row)
+		if err != nil {
+			return nil, 0, err
+		}
+		items = append(items, item)
 	}
 	if err := r.fillProbeTargets(ctx, probeGroupsRef(items)); err != nil {
 		return nil, 0, err
@@ -243,7 +259,11 @@ func (r *probeRepo) ListProbeTargetGroupsByMatchers(ctx context.Context, namespa
 		if !match(probeGroupMatchLabels(row)) {
 			continue
 		}
-		items = append(items, toProbeGroup(row))
+		item, err := r.toProbeGroup(row)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
 	}
 	if len(items) == 0 {
 		return nil, nil
@@ -269,7 +289,11 @@ func (r *probeRepo) ListProbeTargetGroupsByExecutor(ctx context.Context, executo
 	}
 	items := make([]bo.ProbeTargetGroup, 0, len(rows))
 	for _, row := range rows {
-		items = append(items, toProbeGroup(row))
+		item, err := r.toProbeGroup(row)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
 	}
 	if len(items) == 0 {
 		return nil, nil
@@ -403,6 +427,17 @@ func (r *probeRepo) SaveProbeResults(ctx context.Context, results []bo.ProbeResu
 			SetCertDays(item.CertDays).
 			SetResolvedIP(item.ResolvedIP).
 			SetExecutor(item.Executor).
+			SetPacketLoss(item.PacketLoss).
+			SetJitterMs(item.JitterMS).
+			SetMinRttMs(item.MinRTTMS).
+			SetMaxRttMs(item.MaxRTTMS).
+			SetAnswerCount(item.AnswerCount).
+			SetDNSAnswers(item.DNSAnswers).
+			SetTLSVersion(item.TLSVersion).
+			SetTLSCipher(item.TLSCipher).
+			SetCertSubject(item.CertSubject).
+			SetCertIssuer(item.CertIssuer).
+			SetCertSans(item.CertSANS).
 			Save(ctx)
 		if err != nil {
 			if ent.IsConstraintError(err) {
@@ -612,7 +647,44 @@ func probeGroupDriver(driver string) probetargetgroup.Driver {
 	return probetargetgroup.Driver(driver)
 }
 
-func toProbeGroup(row *ent.ProbeTargetGroup) bo.ProbeTargetGroup {
+// probeRequestCipherPrefix 标记加密后的目标组请求 JSON，读取时据此区分历史明文行。
+const probeRequestCipherPrefix = "enc:v1:"
+
+// encryptProbeRequest 加密目标组请求 JSON（含自定义请求头里的 token），密文
+// 带 enc:v1: 前缀。已经带前缀的值原样返回，避免把密文再加密一次。
+func encryptProbeRequest(box *secretBox, plain string) (string, error) {
+	if plain == "" {
+		return "", nil
+	}
+	if strings.HasPrefix(plain, probeRequestCipherPrefix) {
+		return plain, nil
+	}
+	cipher, err := box.encrypt(plain)
+	if err != nil {
+		return "", err
+	}
+	return probeRequestCipherPrefix + cipher, nil
+}
+
+// decryptProbeRequest 解密目标组请求 JSON。没有前缀按历史明文行原样返回，
+// 该行在下一次保存时自动加密；有前缀但解密失败（密钥不一致或数据损坏）
+// 返回服务端错误，不能静默当成空请求。
+func decryptProbeRequest(box *secretBox, stored string) (string, error) {
+	if stored == "" {
+		return "", nil
+	}
+	if !strings.HasPrefix(stored, probeRequestCipherPrefix) {
+		return stored, nil
+	}
+	return box.decrypt(strings.TrimPrefix(stored, probeRequestCipherPrefix))
+}
+
+// toProbeGroup 把目标组行转成业务对象，并把加密的请求 JSON 解密回明文。
+func (r *probeRepo) toProbeGroup(row *ent.ProbeTargetGroup) (bo.ProbeTargetGroup, error) {
+	request, err := decryptProbeRequest(r.box, row.Request)
+	if err != nil {
+		return bo.ProbeTargetGroup{}, err
+	}
 	return bo.ProbeTargetGroup{
 		UID:            row.UID,
 		NamespaceUID:   row.NamespaceUID,
@@ -621,9 +693,9 @@ func toProbeGroup(row *ent.ProbeTargetGroup) bo.ProbeTargetGroup {
 		Status:         string(row.Status),
 		Labels:         row.Labels,
 		ExecutorLabels: row.ExecutorLabels,
-		Request:        row.Request,
+		Request:        request,
 		Remark:         row.Remark,
-	}
+	}, nil
 }
 
 func toProbeTarget(row *ent.ProbeTarget) bo.ProbeTarget {
@@ -660,6 +732,17 @@ func toProbeResult(row *ent.ProbeResult) bo.ProbeResult {
 		CertDays:     row.CertDays,
 		ResolvedIP:   row.ResolvedIP,
 		Executor:     row.Executor,
+		PacketLoss:   row.PacketLoss,
+		JitterMS:     row.JitterMs,
+		MinRTTMS:     row.MinRttMs,
+		MaxRTTMS:     row.MaxRttMs,
+		AnswerCount:  row.AnswerCount,
+		DNSAnswers:   row.DNSAnswers,
+		TLSVersion:   row.TLSVersion,
+		TLSCipher:    row.TLSCipher,
+		CertSubject:  row.CertSubject,
+		CertIssuer:   row.CertIssuer,
+		CertSANS:     row.CertSans,
 	}
 }
 

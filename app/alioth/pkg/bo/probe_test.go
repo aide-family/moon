@@ -8,13 +8,13 @@ import (
 // TestProbeDrivers 固定驱动清单与顺序：套餐勾选页、规则列表与调度查询都按这个
 // 顺序展示或过滤，新增探测类型时只改 ProbeDrivers。
 func TestProbeDrivers(t *testing.T) {
-	want := []string{"PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP"}
+	want := []string{"PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP", "PROBE_DNS", "PROBE_TLS"}
 	if got := ProbeDrivers(); !reflect.DeepEqual(got, want) {
 		t.Fatalf("ProbeDrivers() = %v, want %v", got, want)
 	}
 }
 
-// TestIsProbeDriver 三种探测驱动都算探测类型，数据源驱动与未知驱动不算。
+// TestIsProbeDriver 五种探测驱动都算探测类型，数据源驱动与未知驱动不算。
 func TestIsProbeDriver(t *testing.T) {
 	for _, driver := range ProbeDrivers() {
 		if !IsProbeDriver(driver) {
@@ -34,6 +34,8 @@ func TestProbeKindOf(t *testing.T) {
 		ProbeDriverHTTP: "HTTP",
 		ProbeDriverTCP:  "TCP",
 		ProbeDriverICMP: "ICMP",
+		ProbeDriverDNS:  "DNS",
+		ProbeDriverTLS:  "TLS",
 		"":              "",
 		"PROBE_UDP":     "",
 	}
@@ -44,25 +46,41 @@ func TestProbeKindOf(t *testing.T) {
 	}
 }
 
-// TestValidProbeMetric 观测指标按驱动校验：HTTP 四个指标都可用，TCP / ICMP
-// 没有状态码与证书，只允许 UP 与 LATENCY_MS。
+// TestValidProbeMetric 观测指标按驱动校验，指标目录以 M27 文档为准：
+// HTTP 有状态码、证书与耗时分解；TCP 有解析与建连；ICMP 有丢包与 RTT 统计；
+// DNS 有解析与答案数；TLS 有解析、建连、握手与证书。
 func TestValidProbeMetric(t *testing.T) {
-	allMetrics := []string{ProbeMetricUp, ProbeMetricLatencyMS, ProbeMetricStatusCode, ProbeMetricCertDays}
-	for _, metric := range allMetrics {
-		if !ValidProbeMetric(ProbeDriverHTTP, metric) {
-			t.Fatalf("ValidProbeMetric(HTTP, %q) = false, want true", metric)
-		}
+	allowedByDriver := map[string][]string{
+		ProbeDriverHTTP: {
+			ProbeMetricUp, ProbeMetricLatencyMS, ProbeMetricStatusCode, ProbeMetricCertDays,
+			ProbeMetricDNSMS, ProbeMetricTCPConnectMS, ProbeMetricTLSMS, ProbeMetricTTFBMS,
+		},
+		ProbeDriverTCP:  {ProbeMetricUp, ProbeMetricLatencyMS, ProbeMetricDNSMS, ProbeMetricTCPConnectMS},
+		ProbeDriverICMP: {ProbeMetricUp, ProbeMetricLatencyMS, ProbeMetricPacketLoss, ProbeMetricJitterMS, ProbeMetricMinRTTMS, ProbeMetricMaxRTTMS},
+		ProbeDriverDNS:  {ProbeMetricUp, ProbeMetricLatencyMS, ProbeMetricDNSMS, ProbeMetricAnswerCount},
+		ProbeDriverTLS:  {ProbeMetricUp, ProbeMetricLatencyMS, ProbeMetricDNSMS, ProbeMetricTCPConnectMS, ProbeMetricTLSMS, ProbeMetricCertDays},
 	}
-	for _, driver := range []string{ProbeDriverTCP, ProbeDriverICMP} {
-		for _, metric := range []string{ProbeMetricUp, ProbeMetricLatencyMS} {
-			if !ValidProbeMetric(driver, metric) {
-				t.Fatalf("ValidProbeMetric(%q, %q) = false, want true", driver, metric)
+	allMetrics := []string{
+		ProbeMetricUp, ProbeMetricLatencyMS, ProbeMetricStatusCode, ProbeMetricCertDays,
+		ProbeMetricDNSMS, ProbeMetricTCPConnectMS, ProbeMetricTLSMS, ProbeMetricTTFBMS,
+		ProbeMetricPacketLoss, ProbeMetricJitterMS, ProbeMetricMinRTTMS, ProbeMetricMaxRTTMS, ProbeMetricAnswerCount,
+	}
+	for _, driver := range ProbeDrivers() {
+		allowed := allowedByDriver[driver]
+		if len(allowed) == 0 {
+			t.Fatalf("driver %q has no expected metric list", driver)
+		}
+		expectations := make(map[string]bool, len(allowed))
+		for _, metric := range allowed {
+			expectations[metric] = true
+		}
+		for _, metric := range allMetrics {
+			if got := ValidProbeMetric(driver, metric); got != expectations[metric] {
+				t.Fatalf("ValidProbeMetric(%q, %q) = %v, want %v", driver, metric, got, expectations[metric])
 			}
 		}
-		for _, metric := range []string{ProbeMetricStatusCode, ProbeMetricCertDays} {
-			if ValidProbeMetric(driver, metric) {
-				t.Fatalf("ValidProbeMetric(%q, %q) = true, want false", driver, metric)
-			}
+		if ValidProbeMetric(driver, "") {
+			t.Fatalf("ValidProbeMetric(%q, \"\") = true, want false", driver)
 		}
 	}
 	for _, driver := range []string{"", "METRICS_PROMETHEUS", "PROBE_UDP"} {
@@ -74,7 +92,7 @@ func TestValidProbeMetric(t *testing.T) {
 	}
 }
 
-// TestAlertRuleIsProbeRule 驱动决定规则类型：三种探测驱动都是探测规则，
+// TestAlertRuleIsProbeRule 驱动决定规则类型：五种探测驱动都是探测规则，
 // 其余驱动仍按查询规则处理。
 func TestAlertRuleIsProbeRule(t *testing.T) {
 	for _, driver := range ProbeDrivers() {

@@ -3,7 +3,7 @@ package probe
 import "testing"
 
 func TestValidDriver(t *testing.T) {
-	for _, driver := range []string{DriverHTTP, DriverTCP, DriverICMP, " probe_tcp "} {
+	for _, driver := range []string{DriverHTTP, DriverTCP, DriverICMP, DriverDNS, DriverTLS, " probe_tls "} {
 		if !ValidDriver(driver) {
 			t.Fatalf("ValidDriver(%q) should be true", driver)
 		}
@@ -24,6 +24,8 @@ func TestNormalizeTarget(t *testing.T) {
 		{driver: DriverHTTP, raw: "  HTTPS://API.Example.com:443/healthz#frag ", want: "https://api.example.com/healthz"},
 		{driver: DriverTCP, raw: " API.Example.com:8443 ", want: "api.example.com:8443"},
 		{driver: DriverTCP, raw: "[::1]:80", want: "[::1]:80"},
+		{driver: DriverTLS, raw: " API.Example.com:443 ", want: "api.example.com:443"},
+		{driver: DriverDNS, raw: "  API.Example.COM. ", want: "api.example.com"},
 		{driver: DriverICMP, raw: "API.Example.com", want: "api.example.com"},
 		{driver: DriverICMP, raw: "::1", want: "::1"},
 		{driver: DriverICMP, raw: "[::1]", want: "::1"},
@@ -51,6 +53,20 @@ func TestNormalizeTarget(t *testing.T) {
 		{driver: DriverTCP, raw: "api.example.com:8o"},
 		{driver: DriverTCP, raw: "user@api.example.com:80"},
 		{driver: DriverTCP, raw: "169.254.169.254:80"},
+		{driver: DriverTLS, raw: "api.example.com"},
+		{driver: DriverTLS, raw: "https://api.example.com:443"},
+		{driver: DriverDNS, raw: ""},
+		{driver: DriverDNS, raw: "127.0.0.1"},
+		{driver: DriverDNS, raw: "::1"},
+		{driver: DriverDNS, raw: "api.example.com:53"},
+		{driver: DriverDNS, raw: "http://api.example.com"},
+		{driver: DriverDNS, raw: "api.example.com/healthz"},
+		{driver: DriverDNS, raw: "api.example.com?x=1"},
+		{driver: DriverDNS, raw: "-api.example.com"},
+		{driver: DriverDNS, raw: "api-.example.com"},
+		{driver: DriverDNS, raw: "api..example.com"},
+		{driver: DriverDNS, raw: "api exa mple.com"},
+		{driver: DriverDNS, raw: "169.254.169.254"},
 		{driver: DriverICMP, raw: ""},
 		{driver: DriverICMP, raw: "api.example.com:80"},
 		{driver: DriverICMP, raw: "http://api.example.com"},

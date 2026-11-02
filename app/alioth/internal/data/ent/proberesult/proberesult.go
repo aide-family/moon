@@ -57,6 +57,28 @@ const (
 	FieldResolvedIP = "resolved_ip"
 	// FieldExecutor holds the string denoting the executor field in the database.
 	FieldExecutor = "executor"
+	// FieldPacketLoss holds the string denoting the packet_loss field in the database.
+	FieldPacketLoss = "packet_loss"
+	// FieldJitterMs holds the string denoting the jitter_ms field in the database.
+	FieldJitterMs = "jitter_ms"
+	// FieldMinRttMs holds the string denoting the min_rtt_ms field in the database.
+	FieldMinRttMs = "min_rtt_ms"
+	// FieldMaxRttMs holds the string denoting the max_rtt_ms field in the database.
+	FieldMaxRttMs = "max_rtt_ms"
+	// FieldAnswerCount holds the string denoting the answer_count field in the database.
+	FieldAnswerCount = "answer_count"
+	// FieldDNSAnswers holds the string denoting the dns_answers field in the database.
+	FieldDNSAnswers = "dns_answers"
+	// FieldTLSVersion holds the string denoting the tls_version field in the database.
+	FieldTLSVersion = "tls_version"
+	// FieldTLSCipher holds the string denoting the tls_cipher field in the database.
+	FieldTLSCipher = "tls_cipher"
+	// FieldCertSubject holds the string denoting the cert_subject field in the database.
+	FieldCertSubject = "cert_subject"
+	// FieldCertIssuer holds the string denoting the cert_issuer field in the database.
+	FieldCertIssuer = "cert_issuer"
+	// FieldCertSans holds the string denoting the cert_sans field in the database.
+	FieldCertSans = "cert_sans"
 	// Table holds the table name of the proberesult in the database.
 	Table = "probe_results"
 )
@@ -86,6 +108,17 @@ var Columns = []string{
 	FieldCertDays,
 	FieldResolvedIP,
 	FieldExecutor,
+	FieldPacketLoss,
+	FieldJitterMs,
+	FieldMinRttMs,
+	FieldMaxRttMs,
+	FieldAnswerCount,
+	FieldDNSAnswers,
+	FieldTLSVersion,
+	FieldTLSCipher,
+	FieldCertSubject,
+	FieldCertIssuer,
+	FieldCertSans,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -141,6 +174,28 @@ var (
 	DefaultResolvedIP string
 	// DefaultExecutor holds the default value on creation for the "executor" field.
 	DefaultExecutor string
+	// DefaultPacketLoss holds the default value on creation for the "packet_loss" field.
+	DefaultPacketLoss int
+	// DefaultJitterMs holds the default value on creation for the "jitter_ms" field.
+	DefaultJitterMs int
+	// DefaultMinRttMs holds the default value on creation for the "min_rtt_ms" field.
+	DefaultMinRttMs int
+	// DefaultMaxRttMs holds the default value on creation for the "max_rtt_ms" field.
+	DefaultMaxRttMs int
+	// DefaultAnswerCount holds the default value on creation for the "answer_count" field.
+	DefaultAnswerCount int
+	// DefaultDNSAnswers holds the default value on creation for the "dns_answers" field.
+	DefaultDNSAnswers string
+	// DefaultTLSVersion holds the default value on creation for the "tls_version" field.
+	DefaultTLSVersion string
+	// DefaultTLSCipher holds the default value on creation for the "tls_cipher" field.
+	DefaultTLSCipher string
+	// DefaultCertSubject holds the default value on creation for the "cert_subject" field.
+	DefaultCertSubject string
+	// DefaultCertIssuer holds the default value on creation for the "cert_issuer" field.
+	DefaultCertIssuer string
+	// DefaultCertSans holds the default value on creation for the "cert_sans" field.
+	DefaultCertSans string
 )
 
 // OrderOption defines the ordering options for the ProbeResult queries.
@@ -259,4 +314,59 @@ func ByResolvedIP(opts ...sql.OrderTermOption) OrderOption {
 // ByExecutor orders the results by the executor field.
 func ByExecutor(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExecutor, opts...).ToFunc()
+}
+
+// ByPacketLoss orders the results by the packet_loss field.
+func ByPacketLoss(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPacketLoss, opts...).ToFunc()
+}
+
+// ByJitterMs orders the results by the jitter_ms field.
+func ByJitterMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJitterMs, opts...).ToFunc()
+}
+
+// ByMinRttMs orders the results by the min_rtt_ms field.
+func ByMinRttMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMinRttMs, opts...).ToFunc()
+}
+
+// ByMaxRttMs orders the results by the max_rtt_ms field.
+func ByMaxRttMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxRttMs, opts...).ToFunc()
+}
+
+// ByAnswerCount orders the results by the answer_count field.
+func ByAnswerCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAnswerCount, opts...).ToFunc()
+}
+
+// ByDNSAnswers orders the results by the dns_answers field.
+func ByDNSAnswers(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDNSAnswers, opts...).ToFunc()
+}
+
+// ByTLSVersion orders the results by the tls_version field.
+func ByTLSVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTLSVersion, opts...).ToFunc()
+}
+
+// ByTLSCipher orders the results by the tls_cipher field.
+func ByTLSCipher(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTLSCipher, opts...).ToFunc()
+}
+
+// ByCertSubject orders the results by the cert_subject field.
+func ByCertSubject(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCertSubject, opts...).ToFunc()
+}
+
+// ByCertIssuer orders the results by the cert_issuer field.
+func ByCertIssuer(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCertIssuer, opts...).ToFunc()
+}
+
+// ByCertSans orders the results by the cert_sans field.
+func ByCertSans(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCertSans, opts...).ToFunc()
 }

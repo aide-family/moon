@@ -23,7 +23,7 @@ func (ProbeTargetGroup) Fields() []ent.Field {
 		field.String("namespace_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
 		// 探测类型：HTTP 使用完整请求参数，TCP 与 ICMP 只使用超时。
-		field.Enum("driver").Values("PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP"),
+		field.Enum("driver").Values("PROBE_HTTP", "PROBE_TCP", "PROBE_ICMP", "PROBE_DNS", "PROBE_TLS"),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
 		// labels 是规则按标签匹配目标组时使用的 JSON 对象。
 		field.String("labels").Default("{}"),

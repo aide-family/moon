@@ -580,7 +580,12 @@ func toGroup(row *ent.AlertRuleGroup) bo.AlertRuleGroup {
 func probeMetricValue(metric string) alertrule.ProbeMetric {
 	switch alertrule.ProbeMetric(metric) {
 	case alertrule.ProbeMetricUP, alertrule.ProbeMetricLATENCY_MS,
-		alertrule.ProbeMetricSTATUS_CODE, alertrule.ProbeMetricCERT_DAYS:
+		alertrule.ProbeMetricSTATUS_CODE, alertrule.ProbeMetricCERT_DAYS,
+		alertrule.ProbeMetricDNS_MS, alertrule.ProbeMetricTCP_CONNECT_MS,
+		alertrule.ProbeMetricTLS_MS, alertrule.ProbeMetricTTFB_MS,
+		alertrule.ProbeMetricPACKET_LOSS, alertrule.ProbeMetricJITTER_MS,
+		alertrule.ProbeMetricMIN_RTT_MS, alertrule.ProbeMetricMAX_RTT_MS,
+		alertrule.ProbeMetricANSWER_COUNT:
 		return alertrule.ProbeMetric(metric)
 	default:
 		return alertrule.ProbeMetricUP
@@ -650,7 +655,8 @@ func ruleDriver(driver string) (alertrule.Driver, error) {
 	switch parsedDriver {
 	case alertrule.DriverMETRICS_PROMETHEUS, alertrule.DriverMETRICS_VICTORIA_METRICS, alertrule.DriverLOGS_ELASTICSEARCH,
 		alertrule.DriverLOGS_LOKI, alertrule.DriverLOGS_VLOGS, alertrule.DriverTRACE_JAEGER,
-		alertrule.DriverPROBE_HTTP, alertrule.DriverPROBE_TCP, alertrule.DriverPROBE_ICMP:
+		alertrule.DriverPROBE_HTTP, alertrule.DriverPROBE_TCP, alertrule.DriverPROBE_ICMP,
+		alertrule.DriverPROBE_DNS, alertrule.DriverPROBE_TLS:
 		return parsedDriver, nil
 	default:
 		return "", merr.Invalid("invalid request")

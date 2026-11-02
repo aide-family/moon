@@ -1727,6 +1727,50 @@ func init() {
 	proberesultDescExecutor := proberesultFields[19].Descriptor()
 	// proberesult.DefaultExecutor holds the default value on creation for the executor field.
 	proberesult.DefaultExecutor = proberesultDescExecutor.Default.(string)
+	// proberesultDescPacketLoss is the schema descriptor for packet_loss field.
+	proberesultDescPacketLoss := proberesultFields[20].Descriptor()
+	// proberesult.DefaultPacketLoss holds the default value on creation for the packet_loss field.
+	proberesult.DefaultPacketLoss = proberesultDescPacketLoss.Default.(int)
+	// proberesultDescJitterMs is the schema descriptor for jitter_ms field.
+	proberesultDescJitterMs := proberesultFields[21].Descriptor()
+	// proberesult.DefaultJitterMs holds the default value on creation for the jitter_ms field.
+	proberesult.DefaultJitterMs = proberesultDescJitterMs.Default.(int)
+	// proberesultDescMinRttMs is the schema descriptor for min_rtt_ms field.
+	proberesultDescMinRttMs := proberesultFields[22].Descriptor()
+	// proberesult.DefaultMinRttMs holds the default value on creation for the min_rtt_ms field.
+	proberesult.DefaultMinRttMs = proberesultDescMinRttMs.Default.(int)
+	// proberesultDescMaxRttMs is the schema descriptor for max_rtt_ms field.
+	proberesultDescMaxRttMs := proberesultFields[23].Descriptor()
+	// proberesult.DefaultMaxRttMs holds the default value on creation for the max_rtt_ms field.
+	proberesult.DefaultMaxRttMs = proberesultDescMaxRttMs.Default.(int)
+	// proberesultDescAnswerCount is the schema descriptor for answer_count field.
+	proberesultDescAnswerCount := proberesultFields[24].Descriptor()
+	// proberesult.DefaultAnswerCount holds the default value on creation for the answer_count field.
+	proberesult.DefaultAnswerCount = proberesultDescAnswerCount.Default.(int)
+	// proberesultDescDNSAnswers is the schema descriptor for dns_answers field.
+	proberesultDescDNSAnswers := proberesultFields[25].Descriptor()
+	// proberesult.DefaultDNSAnswers holds the default value on creation for the dns_answers field.
+	proberesult.DefaultDNSAnswers = proberesultDescDNSAnswers.Default.(string)
+	// proberesultDescTLSVersion is the schema descriptor for tls_version field.
+	proberesultDescTLSVersion := proberesultFields[26].Descriptor()
+	// proberesult.DefaultTLSVersion holds the default value on creation for the tls_version field.
+	proberesult.DefaultTLSVersion = proberesultDescTLSVersion.Default.(string)
+	// proberesultDescTLSCipher is the schema descriptor for tls_cipher field.
+	proberesultDescTLSCipher := proberesultFields[27].Descriptor()
+	// proberesult.DefaultTLSCipher holds the default value on creation for the tls_cipher field.
+	proberesult.DefaultTLSCipher = proberesultDescTLSCipher.Default.(string)
+	// proberesultDescCertSubject is the schema descriptor for cert_subject field.
+	proberesultDescCertSubject := proberesultFields[28].Descriptor()
+	// proberesult.DefaultCertSubject holds the default value on creation for the cert_subject field.
+	proberesult.DefaultCertSubject = proberesultDescCertSubject.Default.(string)
+	// proberesultDescCertIssuer is the schema descriptor for cert_issuer field.
+	proberesultDescCertIssuer := proberesultFields[29].Descriptor()
+	// proberesult.DefaultCertIssuer holds the default value on creation for the cert_issuer field.
+	proberesult.DefaultCertIssuer = proberesultDescCertIssuer.Default.(string)
+	// proberesultDescCertSans is the schema descriptor for cert_sans field.
+	proberesultDescCertSans := proberesultFields[30].Descriptor()
+	// proberesult.DefaultCertSans holds the default value on creation for the cert_sans field.
+	proberesult.DefaultCertSans = proberesultDescCertSans.Default.(string)
 	probetargetMixin := schema.ProbeTarget{}.Mixin()
 	probetargetMixinFields0 := probetargetMixin[0].Fields()
 	_ = probetargetMixinFields0

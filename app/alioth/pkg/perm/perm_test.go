@@ -170,12 +170,12 @@ func TestSystemRoles(t *testing.T) {
 	}
 }
 
-// TestCapabilityCatalog 确认两级功能模型：55 个能力都挂在 10 个模块下，
+// TestCapabilityCatalog 确认两级功能模型：57 个能力都挂在 10 个模块下，
 // 权限都在租户目录里，菜单权限与能力一一对应。
 func TestCapabilityCatalog(t *testing.T) {
 	items := Capabilities()
-	if len(items) != 55 {
-		t.Fatalf("capabilities = %d, want 55", len(items))
+	if len(items) != 57 {
+		t.Fatalf("capabilities = %d, want 57", len(items))
 	}
 	if items[0].Code != CapabilityAlertRealtime || items[len(items)-1].Code != CapabilityWebShell {
 		t.Fatalf("unexpected capability order: first %s last %s", items[0].Code, items[len(items)-1].Code)
@@ -228,15 +228,15 @@ func TestCapabilityCatalog(t *testing.T) {
 		t.Fatal("menu permission count does not match menu count")
 	}
 	base := BaseCapabilities()
-	if len(base) != 28 {
-		t.Fatalf("base capabilities = %d, want 28", len(base))
+	if len(base) != 30 {
+		t.Fatalf("base capabilities = %d, want 30", len(base))
 	}
 	// 数据源、探测和通知渠道按类型展开后，基础套餐要覆盖全部现有类型。
 	if got := DatasourceDriversOf(base); len(got) != 6 {
 		t.Fatalf("base datasource drivers = %v, want 6", got)
 	}
-	if got := ProbeDriversOf(base); len(got) != 3 || got[0] != "PROBE_HTTP" || got[1] != "PROBE_TCP" || got[2] != "PROBE_ICMP" {
-		t.Fatalf("base probe drivers = %v, want [PROBE_HTTP PROBE_TCP PROBE_ICMP]", got)
+	if got := ProbeDriversOf(base); len(got) != 5 || got[0] != "PROBE_HTTP" || got[1] != "PROBE_TCP" || got[2] != "PROBE_ICMP" || got[3] != "PROBE_DNS" || got[4] != "PROBE_TLS" {
+		t.Fatalf("base probe drivers = %v, want [PROBE_HTTP PROBE_TCP PROBE_ICMP PROBE_DNS PROBE_TLS]", got)
 	}
 	if got := ChannelTypesOf(base); len(got) != 3 {
 		t.Fatalf("base channel types = %v, want 3", got)
