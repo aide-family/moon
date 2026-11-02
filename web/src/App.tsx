@@ -7,6 +7,7 @@ import { AgentShellPage } from "@/pages/agent/shell"
 import { AlertHistoryPage } from "@/pages/alert/history"
 import { AlertRealtimePage } from "@/pages/alert"
 import { AlertMaintenancePage } from "@/pages/alert-maintenance"
+import { AlertEscalationPolicyPage } from "@/pages/alert-escalation"
 import { AlertDictionaryPage } from "@/pages/alert-dictionary"
 import { AlertPageManagePage } from "@/pages/alert-page"
 import { AlertRulePage } from "@/pages/alert-rule"
@@ -91,6 +92,10 @@ export function App() {
         <Route
           path="/alert-maintenance-windows"
           element={<AlertMaintenancePage />}
+        />
+        <Route
+          path="/alert-escalation-policies"
+          element={<AlertEscalationPolicyPage />}
         />
         <Route
           path="/notification-channels"

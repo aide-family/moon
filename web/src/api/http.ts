@@ -259,6 +259,18 @@ const messageKeys: Record<string, string> = {
   "status page not found": "statusPage.errors.notFound",
   // 探测 SLA：区间校验原文；"invalid time range" 与 "invalid time" 已有通用映射。
   "time range exceeds 30 days": "probeSla.errors.rangeTooLong",
+  // 升级策略：名称、标签、步骤与通知组的后端校验原文。
+  "invalid escalation policy name": "escalation.errors.nameInvalid",
+  "labels are too long": "escalation.errors.labelsTooLong",
+  "invalid escalation steps": "escalation.errors.stepsInvalid",
+  "invalid escalation delay": "escalation.errors.delayInvalid",
+  "escalation delays must increase": "escalation.errors.delaysNotIncreasing",
+  "notification groups are required": "escalation.errors.stepGroupsInvalid",
+  "the last escalation step must be delayed": "escalation.errors.lastStepDelay",
+  "invalid escalation step": "escalation.errors.stepInvalid",
+  "notification group is required": "escalation.errors.groupsRequired",
+  "notification group is unavailable": "escalation.errors.groupUnavailable",
+  "escalation policy not found": "escalation.errors.notFound",
 }
 
 // 服务端错误带 reason（CLIENT / INVALID / CONFLICT 等）。message 没有具体映射时用它兜底，

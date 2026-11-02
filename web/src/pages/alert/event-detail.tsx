@@ -54,6 +54,25 @@ function actionLabel(t: TFunction, action: string): string {
   return key ? t(key) : action
 }
 
+// 升级时间线的 detail 由后端写成英文原文（policy X step N notified M channel(s)），
+// 这里转成本地化说明；其他动作与无法识别的 detail 原样展示。
+const ESCALATION_DETAIL = /^policy (.+?) step (\d+) notified (\d+) channel\(s\)$/
+
+function actionDetail(t: TFunction, action: string, detail: string): string {
+  if (action !== "ESCALATED") {
+    return detail
+  }
+  const match = ESCALATION_DETAIL.exec(detail.trim())
+  if (!match) {
+    return detail
+  }
+  return t("escalation.timelineDetail", {
+    policy: match[1],
+    step: Number(match[2]) + 1,
+    channels: Number(match[3]),
+  })
+}
+
 interface AlertEventDetailProps {
   event: AlertEventItem | null
   // 级别颜色来自告警字典，缺失时用主色。
@@ -323,7 +342,7 @@ export function AlertEventDetail({
                       </div>
                       {action.detail ? (
                         <p className="text-xs break-words whitespace-pre-wrap text-muted-foreground">
-                          {action.detail}
+                          {actionDetail(t, action.action, action.detail)}
                         </p>
                       ) : null}
                     </li>

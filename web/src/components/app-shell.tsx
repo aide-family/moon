@@ -17,6 +17,7 @@ import {
   Landmark,
   LayoutDashboard,
   LayoutList,
+  ListOrdered,
   LogOut,
   Mail,
   MessageSquare,
@@ -212,6 +213,13 @@ const alertLinks: {
     permission: "alert_maintenance:read",
     capability: MENU_CAPABILITIES["/alert-maintenance-windows"],
     icon: CalendarOff,
+  },
+  {
+    to: "/alert-escalation-policies",
+    label: "nav.escalationPolicies",
+    permission: "alert_escalation:read",
+    capability: MENU_CAPABILITIES["/alert-escalation-policies"],
+    icon: ListOrdered,
   },
   {
     to: "/datasources",
