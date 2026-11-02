@@ -124,6 +124,13 @@ const messageKeys: Record<string, string> = {
   "unsupported datasource driver": "error.unsupportedDriver",
   "invalid datasource index pattern": "error.invalidIndexPattern",
   "invalid label matcher": "error.invalidLabelMatcher",
+  "label matcher is too long": "error.labelMatcherTooLong",
+  // M28 维护窗口与事件时间线的后端原文。
+  "invalid maintenance window name": "error.invalidMaintenanceWindowName",
+  "invalid maintenance window time range":
+    "error.invalidMaintenanceWindowTimeRange",
+  "event not found": "error.notFound",
+  "invalid time": "error.invalidTime",
   // 探测目标组 / 探测规则的校验错误原文。
   "at least one probe target is required": "error.probeTargetRequired",
   "too many probe targets": "error.probeTargetTooMany",

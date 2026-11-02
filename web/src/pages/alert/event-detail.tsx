@@ -1,13 +1,24 @@
-import { type ReactNode } from "react"
+import { RefreshCw } from "lucide-react"
+import { type ReactNode, useEffect, useState } from "react"
 import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { toast } from "sonner"
 
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
-import type { AlertEventItem } from "@/api/alert-event/types"
+import {
+  ackAlertEvent,
+  listAlertEventActions,
+  unackAlertEvent,
+} from "@/api/alert-event"
+import type {
+  AlertEventActionItem,
+  AlertEventItem,
+} from "@/api/alert-event/types"
 import { ExprBlock } from "@/components/expr-block"
 import { LabelTags } from "@/components/label-tags"
 import { StatusBadge } from "@/components/status-badge"
+import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
@@ -15,12 +26,33 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { cn } from "@/lib/class-names"
+import { formErrorMessage } from "@/lib/form-error"
 import { AlertEventChartBody } from "@/pages/alert/event-chart"
 import { formatDuration, formatTime } from "@/pages/alert/format"
 import {
   conditionSummary,
   useEventLevelCondition,
 } from "@/pages/alert/level-condition"
+
+// 时间线动作 → i18n key。显式映射，避免运行时拼接 key。
+const ACTION_KEYS: Record<string, string> = {
+  FIRING: "maintenanceWindow.action.FIRING",
+  NOTIFIED: "maintenanceWindow.action.NOTIFIED",
+  ACKED: "maintenanceWindow.action.ACKED",
+  UNACKED: "maintenanceWindow.action.UNACKED",
+  INTERVENED: "maintenanceWindow.action.INTERVENED",
+  SUPPRESSED: "maintenanceWindow.action.SUPPRESSED",
+  MAINTENANCE: "maintenanceWindow.action.MAINTENANCE",
+  ESCALATED: "maintenanceWindow.action.ESCALATED",
+  RECOVERED: "maintenanceWindow.action.RECOVERED",
+  RECOVERED_BY_MANUAL: "maintenanceWindow.action.RECOVERED_BY_MANUAL",
+}
+
+function actionLabel(t: TFunction, action: string): string {
+  const key = ACTION_KEYS[action]
+  return key ? t(key) : action
+}
 
 interface AlertEventDetailProps {
   event: AlertEventItem | null
@@ -29,6 +61,10 @@ interface AlertEventDetailProps {
   // 当前时间由列表页统一提供，详情里不再读 Date.now，避免渲染不纯。
   now: number
   open: boolean
+  // 只有实时告警且持有干预权限时才显示认领按钮；历史告警只能看时间线。
+  canIntervene?: boolean
+  // 认领 / 取消认领成功后回传最新事件，父组件据此刷新列表和详情。
+  onEventUpdated?: (event: AlertEventItem) => void
   onOpenChange: (open: boolean) => void
 }
 
@@ -47,6 +83,8 @@ export function AlertEventDetail({
   level,
   now,
   open,
+  canIntervene = false,
+  onEventUpdated,
   onOpenChange,
 }: AlertEventDetailProps) {
   const { t } = useTranslation()
@@ -55,6 +93,73 @@ export function AlertEventDetail({
   const levelCondition = useEventLevelCondition(ruleUid, levelUid, open)
   const title = event?.summary || event?.fingerprint || t("alertEvent.title")
   const fields = event ? detailFields(event, level, now, t) : []
+  const eventUid = event?.uid ?? ""
+  // 时间线按事件 uid 记录一次加载结果：切换事件时先展示空态，避免上一条事件的记录串台。
+  const [timeline, setTimeline] = useState<{
+    uid: string
+    items: AlertEventActionItem[]
+  } | null>(null)
+  const [timelineAttempt, setTimelineAttempt] = useState(0)
+  const [timelineRefreshing, setTimelineRefreshing] = useState(false)
+  const [claimPending, setClaimPending] = useState(false)
+  const actions = timeline?.uid === eventUid ? timeline.items : []
+  const actionsLoading = eventUid !== "" && (!timeline || timeline.uid !== eventUid)
+
+  // 时间线单独加载：失败只提示不影响详情其余字段。
+  useEffect(() => {
+    if (!open || !eventUid) {
+      return
+    }
+    let alive = true
+    listAlertEventActions(eventUid)
+      .then((result) => {
+        if (alive) {
+          setTimeline({ uid: eventUid, items: result.items ?? [] })
+          setTimelineRefreshing(false)
+        }
+      })
+      .catch(() => {
+        if (alive) {
+          setTimeline({ uid: eventUid, items: [] })
+          setTimelineRefreshing(false)
+          toast.error(t("maintenanceWindow.timelineLoadFailed"))
+        }
+      })
+    return () => {
+      alive = false
+    }
+  }, [open, eventUid, timelineAttempt, t])
+
+  // 认领与取消认领只改事件属性；成功后刷新详情、列表和时间线。
+  async function toggleClaim() {
+    if (!event || claimPending) {
+      return
+    }
+    const releasing = Boolean(event.ackedBy)
+    setClaimPending(true)
+    try {
+      const result = releasing
+        ? await unackAlertEvent(event.uid)
+        : await ackAlertEvent(event.uid)
+      if (result.event) {
+        onEventUpdated?.(result.event)
+        setTimelineAttempt((value) => value + 1)
+      }
+    } catch (err) {
+      toast.error(
+        formErrorMessage(
+          err,
+          t(
+            releasing
+              ? "maintenanceWindow.releaseClaimFailed"
+              : "maintenanceWindow.claimFailed"
+          )
+        )
+      )
+    } finally {
+      setClaimPending(false)
+    }
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -64,6 +169,39 @@ export function AlertEventDetail({
           <SheetDescription>
             {event ? <StatusBadge value={event.status} /> : ""}
           </SheetDescription>
+          {event ? (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <StatusBadge
+                value={event.ackedBy ? "ACKED" : "UNACKED"}
+                tone={event.ackedBy ? "info" : "neutral"}
+                label={
+                  event.ackedBy
+                    ? t("maintenanceWindow.claimed")
+                    : t("maintenanceWindow.unclaimed")
+                }
+              />
+              {event.ackedBy ? (
+                <span className="min-w-0 text-xs break-words text-muted-foreground">
+                  {event.ackedName || event.ackedBy}
+                  {event.ackedAt ? ` · ${formatTime(event.ackedAt)}` : ""}
+                </span>
+              ) : null}
+              {canIntervene ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto shrink-0"
+                  disabled={claimPending}
+                  onClick={() => void toggleClaim()}
+                >
+                  {event.ackedBy
+                    ? t("maintenanceWindow.releaseClaim")
+                    : t("maintenanceWindow.claim")}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </SheetHeader>
         {event ? (
           <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto px-4 pb-6">
@@ -130,6 +268,69 @@ export function AlertEventDetail({
                 levelCondition={levelCondition}
               />
             </section>
+            <section className="grid min-w-0 gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm text-muted-foreground">
+                  {t("maintenanceWindow.timeline")}
+                </h3>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={actionsLoading || timelineRefreshing}
+                  onClick={() => {
+                    setTimelineRefreshing(true)
+                    setTimelineAttempt((value) => value + 1)
+                  }}
+                >
+                  <RefreshCw
+                    aria-hidden
+                    data-icon="inline-start"
+                    className={cn(
+                      (actionsLoading || timelineRefreshing) && "animate-spin"
+                    )}
+                  />
+                  {t("maintenanceWindow.timelineRefresh")}
+                </Button>
+              </div>
+              {actionsLoading && actions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("state.loading")}
+                </p>
+              ) : actions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("maintenanceWindow.timelineEmpty")}
+                </p>
+              ) : (
+                <ol className="grid min-w-0 gap-3">
+                  {actions.map((action) => (
+                    <li
+                      key={action.uid}
+                      className="grid min-w-0 gap-0.5 border-l-2 border-border/70 pl-3"
+                    >
+                      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                        <span className="text-sm font-medium">
+                          {actionLabel(t, action.action)}
+                        </span>
+                        <span className="text-xs break-words text-muted-foreground">
+                          {action.actorName ||
+                            action.actorUid ||
+                            t("maintenanceWindow.timelineSystemActor")}
+                        </span>
+                        <span className="ml-auto font-mono text-xs text-muted-foreground tabular-nums">
+                          {formatTime(action.createdAt)}
+                        </span>
+                      </div>
+                      {action.detail ? (
+                        <p className="text-xs break-words whitespace-pre-wrap text-muted-foreground">
+                          {action.detail}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
           </div>
         ) : null}
       </SheetContent>
@@ -191,6 +392,14 @@ function detailFields(
     {
       label: t("alertEvent.intervenedAt"),
       value: formatTime(event.intervenedAt),
+    },
+    {
+      label: t("maintenanceWindow.claimedBy"),
+      value: event.ackedName || event.ackedBy,
+    },
+    {
+      label: t("maintenanceWindow.claimedAt"),
+      value: formatTime(event.ackedAt),
     },
     { label: t("detail.uid"), value: mono(event.uid), full: true },
     {

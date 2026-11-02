@@ -10,6 +10,7 @@ import { listAlertDictionaries } from "@/api/alert-dictionary"
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
 import type { AlertColumnItem } from "@/api/alert-page/types"
 import {
+  ackAlertEvent,
   alertEventStats,
   interveneAlertEvent,
   interveneAlertEvents,
@@ -17,6 +18,7 @@ import {
   recoverAlertEvent,
   recoverAlertEvents,
   suppressAlertEvent,
+  unackAlertEvent,
 } from "@/api/alert-event"
 import type {
   AlertEventItem,
@@ -473,6 +475,27 @@ export function AlertEventList({
     }
   }
 
+  // 认领 / 取消认领：接口回传最新事件，同步更新已打开的详情并刷新列表。
+  async function claim(item: AlertEventItem, release: boolean) {
+    setPending(true)
+    setActionError("")
+    try {
+      const result = release
+        ? await unackAlertEvent(item.uid)
+        : await ackAlertEvent(item.uid)
+      if (result.event) {
+        setDetail((current) =>
+          current?.uid === result.event.uid ? result.event : current
+        )
+      }
+      reload()
+    } catch (err) {
+      setActionError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setPending(false)
+    }
+  }
+
   async function runConfirm() {
     if (!confirm) {
       return
@@ -526,6 +549,13 @@ export function AlertEventList({
     }
     if (canIntervene) {
       list.push(
+        {
+          key: "claim",
+          label: item.ackedBy
+            ? t("maintenanceWindow.releaseClaim")
+            : t("maintenanceWindow.claim"),
+          onSelect: () => void claim(item, Boolean(item.ackedBy)),
+        },
         {
           key: "intervene",
           label: t("action.intervene"),
@@ -1401,6 +1431,11 @@ export function AlertEventList({
         }
         now={now}
         open={detail !== null}
+        canIntervene={canIntervene}
+        onEventUpdated={(next) => {
+          setDetail(next)
+          reload()
+        }}
         onOpenChange={(value) => {
           if (!value) {
             setDetail(null)
@@ -1524,6 +1559,15 @@ function eventCell(
           <span>{item.intervenedName || item.intervenedBy}</span>
           <span className="text-xs text-muted-foreground">
             {formatTime(item.intervenedAt)}
+          </span>
+        </div>
+      ) : null
+    case "acked":
+      return item.ackedBy ? (
+        <div className="grid">
+          <span>{item.ackedName || item.ackedBy}</span>
+          <span className="text-xs text-muted-foreground">
+            {formatTime(item.ackedAt)}
           </span>
         </div>
       ) : null

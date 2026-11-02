@@ -21,6 +21,7 @@ export const DEFAULT_REALTIME_COLUMNS: AlertColumnItem[] = [
   { key: "starts_at", type: "FIELD", label: "" },
   { key: "duration", type: "FIELD", label: "" },
   { key: "intervened", type: "FIELD", label: "" },
+  { key: "acked", type: "FIELD", label: "" },
 ]
 
 // 内置字段列允许用户选择，顺序就是可选下拉的顺序。
@@ -32,6 +33,7 @@ export const FIELD_COLUMNS: Array<{ key: string; labelKey: string }> = [
   { key: "starts_at", labelKey: "alertEvent.startsAt" },
   { key: "duration", labelKey: "alertEvent.duration" },
   { key: "intervened", labelKey: "alertEvent.intervened" },
+  { key: "acked", labelKey: "alertEvent.ackedBy" },
   { key: "status", labelKey: "alertEvent.status" },
   { key: "description", labelKey: "alertEvent.descriptionField" },
   { key: "expr", labelKey: "alertEvent.expr" },

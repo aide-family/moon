@@ -26,7 +26,43 @@ export interface AlertEventItem {
   intervenedBy: string
   intervenedName: string
   intervenedAt: string
+  // 认领人标识，未认领时为空字符串。
+  ackedBy: string
+  // 认领时间，RFC3339；未认领时为空。
+  ackedAt: string
+  // 认领人展示名。优先昵称，其次姓名，再次邮箱。
+  ackedName: string
   createdAt: string
+}
+
+/** 事件处置时间线的动作类型。 */
+export type AlertEventAction =
+  | "FIRING"
+  | "NOTIFIED"
+  | "ACKED"
+  | "UNACKED"
+  | "INTERVENED"
+  | "SUPPRESSED"
+  | "MAINTENANCE"
+  | "ESCALATED"
+  | "RECOVERED"
+  | "RECOVERED_BY_MANUAL"
+
+/** 一条事件时间线记录，接口按时间正序返回。 */
+export interface AlertEventActionItem {
+  uid: string
+  eventUid: string
+  action: AlertEventAction | string
+  /** 操作者；系统动作时为空。 */
+  actorUid: string
+  actorName: string
+  detail: string
+  createdAt: string
+}
+
+/** GET /v1/alert-events/{uid}/actions 的响应。 */
+export interface ListAlertEventActionsResult {
+  items: AlertEventActionItem[]
 }
 
 export interface ListAlertEventsParams {

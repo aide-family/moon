@@ -6,6 +6,7 @@ import {
   Building2,
   DatabaseBackup,
   CalendarClock,
+  CalendarOff,
   ChevronRight,
   Database,
   FileText,
@@ -202,6 +203,13 @@ const alertLinks: {
     permission: "alert_history:read",
     capability: MENU_CAPABILITIES["/alert-history"],
     icon: History,
+  },
+  {
+    to: "/alert-maintenance-windows",
+    label: "nav.maintenanceWindows",
+    permission: "alert_maintenance:read",
+    capability: MENU_CAPABILITIES["/alert-maintenance-windows"],
+    icon: CalendarOff,
   },
   {
     to: "/datasources",

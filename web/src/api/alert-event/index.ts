@@ -9,6 +9,7 @@ import type {
   AlertEventStats,
   AlertEventSuppressResult,
   AlertEventUids,
+  ListAlertEventActionsResult,
   ListAlertEventsParams,
   ListAlertEventsResult,
 } from "./types"
@@ -115,6 +116,25 @@ export function interveneAlertEvents(
   return post<Record<string, never>>("/alert-events/intervene", body)
 }
 
+/** POST /v1/alert-events/{uid}/ack */
+export function ackAlertEvent(uid: string): Promise<{ event: AlertEventItem }> {
+  return post<{ event: AlertEventItem }>(`/alert-events/${uid}/ack`, { uid })
+}
+
+/** POST /v1/alert-events/{uid}/unack */
+export function unackAlertEvent(
+  uid: string
+): Promise<{ event: AlertEventItem }> {
+  return post<{ event: AlertEventItem }>(`/alert-events/${uid}/unack`, { uid })
+}
+
+/** GET /v1/alert-events/{uid}/actions，按时间正序返回处置时间线。 */
+export function listAlertEventActions(
+  uid: string
+): Promise<ListAlertEventActionsResult> {
+  return get<ListAlertEventActionsResult>(`/alert-events/${uid}/actions`)
+}
+
 /** POST /v1/alert-events/{uid}/suppress */
 export function suppressAlertEvent(
   uid: string,
@@ -169,6 +189,8 @@ export type {
 } from "./history-analysis"
 
 export type {
+  AlertEventAction,
+  AlertEventActionItem,
   AlertEventChart,
   AlertInsight,
   AlertInsightBucket,
@@ -180,6 +202,7 @@ export type {
   AlertEventSuppressResult,
   AlertEventUids,
   AlertEventView,
+  ListAlertEventActionsResult,
   ListAlertEventsParams,
   ListAlertEventsResult,
   RealtimeAlertTabStat,

@@ -33,6 +33,7 @@ const knownPaths = new Set([
   "/alert-pages",
   "/alerts",
   "/alert-history",
+  "/alert-maintenance-windows",
   "/notification-channels",
   "/notification-templates",
   "/notification-templates/presets",
