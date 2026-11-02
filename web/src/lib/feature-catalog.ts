@@ -1,11 +1,11 @@
 // 能力目录（套餐 / 租户功能授权 / 菜单可见性）。
 //
-// 能力 code 与后端 perm.Capabilities() 的 59 项定义保持一致；GET /v1/system/features
+// 能力 code 与后端 perm.Capabilities() 的 61 项定义保持一致；GET /v1/system/features
 // 返回的是同一份目录（code/module/name/description/permissions）。页面用这里的
 // 双语标签，不直接用接口里的 name/description，这样切到 en 时中文名也不会消失，
 // 后端没部署新接口时也能先用本地目录渲染勾选框。
 //
-// 目录分两级：MODULES 是所属菜单模块（11 个），CAPABILITIES 是具体能力（59 个）。
+// 目录分两级：MODULES 是所属菜单模块（11 个），CAPABILITIES 是具体能力（61 个）。
 // 新增 / 删除能力时同步：后端 perm.Capabilities()、本文件、i18n 里的菜单文案。
 
 export type LocalizedLabel = { zh: string; en: string }
@@ -96,6 +96,24 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     description: {
       zh: "告警等级与字典项维护",
       en: "Alert levels and dictionary entries",
+    },
+  },
+  {
+    code: "probe_sla",
+    module: "probe",
+    label: { zh: "探测 SLA", en: "Probe SLA" },
+    description: {
+      zh: "按目标组查看可用率、延迟与失败统计",
+      en: "Availability, latency, and failure stats by target group",
+    },
+  },
+  {
+    code: "status_page",
+    module: "probe",
+    label: { zh: "状态页", en: "Status pages" },
+    description: {
+      zh: "对外公开的探测状态页配置与链接",
+      en: "Public probe status page configuration and links",
     },
   },
   {
@@ -556,7 +574,7 @@ export const CAPABILITIES: CapabilityDefinition[] = [
   },
 ]
 
-/** 基础套餐包含的模块：前 8 个模块的全部能力（数据源、探测、通知渠道按类型/应用展开后共 32 项）。 */
+/** 基础套餐包含的模块：前 8 个模块的全部能力（数据源、探测、通知渠道按类型/应用展开后共 34 项）。 */
 export const BASE_MODULES = [
   "alert",
   "alert_rule",
@@ -587,6 +605,8 @@ export const MENU_CAPABILITIES: Record<string, string> = {
   "/alert-dictionaries": "alert_dictionary",
   // 探测、数据源、通知渠道和机器按菜单授权：入口只看对应菜单。
   "/probe-targets": "probe",
+  "/probe-sla": "probe_sla",
+  "/status-pages": "status_page",
   "/datasources": "datasource",
   "/notification-channels": "notification_channel",
   "/notification-templates": "notification_template",
@@ -610,6 +630,8 @@ export const MENU_LABELS: Record<string, LocalizedLabel> = {
   datasource: { zh: "数据源", en: "Datasources" },
   alert_maintenance: { zh: "维护窗口", en: "Maintenance windows" },
   probe: { zh: "探测目标", en: "Probe targets" },
+  probe_sla: { zh: "探测 SLA", en: "Probe SLA" },
+  status_page: { zh: "状态页", en: "Status pages" },
   notification_channel: { zh: "通知渠道", en: "Notification channels" },
   notification_template: { zh: "消息模板", en: "Message templates" },
   notification_group: { zh: "通知组", en: "Notification groups" },

@@ -36,11 +36,14 @@ import { OrderPage } from "@/pages/order"
 import { OverviewPage } from "@/pages/overview"
 import { PackagePage } from "@/pages/package"
 import { ProfilePage } from "@/pages/profile"
+import { ProbeSlaPage } from "@/pages/probe-sla"
 import { ProbeTargetPage } from "@/pages/probe-target"
+import { PublicStatusPageView } from "@/pages/public-status"
 import { RegisterPage } from "@/pages/register"
 import { RolePage } from "@/pages/role"
 import { SSHCommandPage } from "@/pages/ssh-command"
 import { SSHCommandResultsPage } from "@/pages/ssh-command/results"
+import { StatusPageListPage } from "@/pages/status-page"
 import { TenantPage } from "@/pages/tenant"
 import { TenantOrdersPage } from "@/pages/tenant/orders"
 import { UserPage } from "@/pages/user"
@@ -54,6 +57,8 @@ export function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/invite/:token" element={<InvitePage />} />
+      {/* 公开状态页：不需要登录与租户，独立布局，不能放进 AppShell。 */}
+      <Route path="/status/:token" element={<PublicStatusPageView />} />
       <Route element={<AppShell />}>
         {/* 登录后的着陆页：没有租户去租户页，否则回放上次访问的页面。 */}
         <Route path="/" element={<LandingRedirect />} />
@@ -76,6 +81,8 @@ export function App() {
         <Route path="/roles" element={<RolePage />} />
         <Route path="/datasources" element={<DatasourcePage />} />
         <Route path="/probe-targets" element={<ProbeTargetPage />} />
+        <Route path="/probe-sla" element={<ProbeSlaPage />} />
+        <Route path="/status-pages" element={<StatusPageListPage />} />
         <Route path="/alert-rules" element={<AlertRulePage />} />
         <Route path="/alert-dictionaries" element={<AlertDictionaryPage />} />
         <Route path="/alert-pages" element={<AlertPageManagePage />} />

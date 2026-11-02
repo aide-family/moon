@@ -249,6 +249,16 @@ const messageKeys: Record<string, string> = {
   "invalid panel height": "board.errors.heightInvalid",
   "invalid status": "board.errors.statusInvalid",
   "panel not found": "board.errors.panelNotFound",
+  // 状态页：名称/标题/描述/目标组与公开 token 的后端原文。
+  "invalid status page name": "statusPage.errors.nameInvalid",
+  "invalid status page title": "statusPage.errors.titleInvalid",
+  "status page description is too long": "statusPage.errors.descriptionTooLong",
+  "status page needs at least one target group":
+    "statusPage.errors.groupsRequired",
+  "too many target groups": "statusPage.errors.groupsTooMany",
+  "status page not found": "statusPage.errors.notFound",
+  // 探测 SLA：区间校验原文；"invalid time range" 与 "invalid time" 已有通用映射。
+  "time range exceeds 30 days": "probeSla.errors.rangeTooLong",
 }
 
 // 服务端错误带 reason（CLIENT / INVALID / CONFLICT 等）。message 没有具体映射时用它兜底，

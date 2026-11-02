@@ -28,6 +28,8 @@ const knownPaths = new Set([
   "/roles",
   "/datasources",
   "/probe-targets",
+  "/probe-sla",
+  "/status-pages",
   "/alert-rules",
   "/alert-dictionaries",
   "/alert-pages",
