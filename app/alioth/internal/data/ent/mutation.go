@@ -52,12 +52,14 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/predicate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/statuspage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/systemmessage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/useralertpage"
@@ -114,12 +116,14 @@ const (
 	TypeNotificationTemplate          = "NotificationTemplate"
 	TypePermission                    = "Permission"
 	TypeProbeResult                   = "ProbeResult"
+	TypeProbeSlaDaily                 = "ProbeSlaDaily"
 	TypeProbeTarget                   = "ProbeTarget"
 	TypeProbeTargetGroup              = "ProbeTargetGroup"
 	TypeRole                          = "Role"
 	TypeRolePermission                = "RolePermission"
 	TypeSSHCommand                    = "SSHCommand"
 	TypeSSHCommandAudit               = "SSHCommandAudit"
+	TypeStatusPage                    = "StatusPage"
 	TypeSystemMessage                 = "SystemMessage"
 	TypeUser                          = "User"
 	TypeUserAlertPage                 = "UserAlertPage"
@@ -39085,6 +39089,1094 @@ func (m *ProbeResultMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown ProbeResult edge %s", name)
 }
 
+// ProbeSlaDailyMutation represents an operation that mutates the ProbeSlaDaily nodes in the graph.
+type ProbeSlaDailyMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *int
+	created_at           *time.Time
+	updated_at           *time.Time
+	uid                  *string
+	namespace_uid        *string
+	group_uid            *string
+	target_uid           *string
+	day                  *time.Time
+	checks               *int
+	addchecks            *int
+	ok_checks            *int
+	addok_checks         *int
+	failed_checks        *int
+	addfailed_checks     *int
+	total_duration_ms    *int64
+	addtotal_duration_ms *int64
+	max_duration_ms      *int
+	addmax_duration_ms   *int
+	clearedFields        map[string]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*ProbeSlaDaily, error)
+	predicates           []predicate.ProbeSlaDaily
+}
+
+var _ ent.Mutation = (*ProbeSlaDailyMutation)(nil)
+
+// probesladailyOption allows management of the mutation configuration using functional options.
+type probesladailyOption func(*ProbeSlaDailyMutation)
+
+// newProbeSlaDailyMutation creates new mutation for the ProbeSlaDaily entity.
+func newProbeSlaDailyMutation(c config, op Op, opts ...probesladailyOption) *ProbeSlaDailyMutation {
+	m := &ProbeSlaDailyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProbeSlaDaily,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withProbeSlaDailyID sets the ID field of the mutation.
+func withProbeSlaDailyID(id int) probesladailyOption {
+	return func(m *ProbeSlaDailyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ProbeSlaDaily
+		)
+		m.oldValue = func(ctx context.Context) (*ProbeSlaDaily, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProbeSlaDaily.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProbeSlaDaily sets the old ProbeSlaDaily of the mutation.
+func withProbeSlaDaily(node *ProbeSlaDaily) probesladailyOption {
+	return func(m *ProbeSlaDailyMutation) {
+		m.oldValue = func(context.Context) (*ProbeSlaDaily, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ProbeSlaDailyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ProbeSlaDailyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ProbeSlaDailyMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ProbeSlaDailyMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ProbeSlaDaily.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProbeSlaDailyMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProbeSlaDailyMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProbeSlaDailyMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ProbeSlaDailyMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ProbeSlaDailyMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ProbeSlaDailyMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *ProbeSlaDailyMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *ProbeSlaDailyMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *ProbeSlaDailyMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *ProbeSlaDailyMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *ProbeSlaDailyMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *ProbeSlaDailyMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetGroupUID sets the "group_uid" field.
+func (m *ProbeSlaDailyMutation) SetGroupUID(s string) {
+	m.group_uid = &s
+}
+
+// GroupUID returns the value of the "group_uid" field in the mutation.
+func (m *ProbeSlaDailyMutation) GroupUID() (r string, exists bool) {
+	v := m.group_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupUID returns the old "group_uid" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldGroupUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupUID: %w", err)
+	}
+	return oldValue.GroupUID, nil
+}
+
+// ResetGroupUID resets all changes to the "group_uid" field.
+func (m *ProbeSlaDailyMutation) ResetGroupUID() {
+	m.group_uid = nil
+}
+
+// SetTargetUID sets the "target_uid" field.
+func (m *ProbeSlaDailyMutation) SetTargetUID(s string) {
+	m.target_uid = &s
+}
+
+// TargetUID returns the value of the "target_uid" field in the mutation.
+func (m *ProbeSlaDailyMutation) TargetUID() (r string, exists bool) {
+	v := m.target_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetUID returns the old "target_uid" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldTargetUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetUID: %w", err)
+	}
+	return oldValue.TargetUID, nil
+}
+
+// ResetTargetUID resets all changes to the "target_uid" field.
+func (m *ProbeSlaDailyMutation) ResetTargetUID() {
+	m.target_uid = nil
+}
+
+// SetDay sets the "day" field.
+func (m *ProbeSlaDailyMutation) SetDay(t time.Time) {
+	m.day = &t
+}
+
+// Day returns the value of the "day" field in the mutation.
+func (m *ProbeSlaDailyMutation) Day() (r time.Time, exists bool) {
+	v := m.day
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDay returns the old "day" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldDay(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDay is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDay requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDay: %w", err)
+	}
+	return oldValue.Day, nil
+}
+
+// ResetDay resets all changes to the "day" field.
+func (m *ProbeSlaDailyMutation) ResetDay() {
+	m.day = nil
+}
+
+// SetChecks sets the "checks" field.
+func (m *ProbeSlaDailyMutation) SetChecks(i int) {
+	m.checks = &i
+	m.addchecks = nil
+}
+
+// Checks returns the value of the "checks" field in the mutation.
+func (m *ProbeSlaDailyMutation) Checks() (r int, exists bool) {
+	v := m.checks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChecks returns the old "checks" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldChecks(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChecks is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChecks requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChecks: %w", err)
+	}
+	return oldValue.Checks, nil
+}
+
+// AddChecks adds i to the "checks" field.
+func (m *ProbeSlaDailyMutation) AddChecks(i int) {
+	if m.addchecks != nil {
+		*m.addchecks += i
+	} else {
+		m.addchecks = &i
+	}
+}
+
+// AddedChecks returns the value that was added to the "checks" field in this mutation.
+func (m *ProbeSlaDailyMutation) AddedChecks() (r int, exists bool) {
+	v := m.addchecks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetChecks resets all changes to the "checks" field.
+func (m *ProbeSlaDailyMutation) ResetChecks() {
+	m.checks = nil
+	m.addchecks = nil
+}
+
+// SetOkChecks sets the "ok_checks" field.
+func (m *ProbeSlaDailyMutation) SetOkChecks(i int) {
+	m.ok_checks = &i
+	m.addok_checks = nil
+}
+
+// OkChecks returns the value of the "ok_checks" field in the mutation.
+func (m *ProbeSlaDailyMutation) OkChecks() (r int, exists bool) {
+	v := m.ok_checks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOkChecks returns the old "ok_checks" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldOkChecks(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOkChecks is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOkChecks requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOkChecks: %w", err)
+	}
+	return oldValue.OkChecks, nil
+}
+
+// AddOkChecks adds i to the "ok_checks" field.
+func (m *ProbeSlaDailyMutation) AddOkChecks(i int) {
+	if m.addok_checks != nil {
+		*m.addok_checks += i
+	} else {
+		m.addok_checks = &i
+	}
+}
+
+// AddedOkChecks returns the value that was added to the "ok_checks" field in this mutation.
+func (m *ProbeSlaDailyMutation) AddedOkChecks() (r int, exists bool) {
+	v := m.addok_checks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOkChecks resets all changes to the "ok_checks" field.
+func (m *ProbeSlaDailyMutation) ResetOkChecks() {
+	m.ok_checks = nil
+	m.addok_checks = nil
+}
+
+// SetFailedChecks sets the "failed_checks" field.
+func (m *ProbeSlaDailyMutation) SetFailedChecks(i int) {
+	m.failed_checks = &i
+	m.addfailed_checks = nil
+}
+
+// FailedChecks returns the value of the "failed_checks" field in the mutation.
+func (m *ProbeSlaDailyMutation) FailedChecks() (r int, exists bool) {
+	v := m.failed_checks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailedChecks returns the old "failed_checks" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldFailedChecks(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailedChecks is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailedChecks requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailedChecks: %w", err)
+	}
+	return oldValue.FailedChecks, nil
+}
+
+// AddFailedChecks adds i to the "failed_checks" field.
+func (m *ProbeSlaDailyMutation) AddFailedChecks(i int) {
+	if m.addfailed_checks != nil {
+		*m.addfailed_checks += i
+	} else {
+		m.addfailed_checks = &i
+	}
+}
+
+// AddedFailedChecks returns the value that was added to the "failed_checks" field in this mutation.
+func (m *ProbeSlaDailyMutation) AddedFailedChecks() (r int, exists bool) {
+	v := m.addfailed_checks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFailedChecks resets all changes to the "failed_checks" field.
+func (m *ProbeSlaDailyMutation) ResetFailedChecks() {
+	m.failed_checks = nil
+	m.addfailed_checks = nil
+}
+
+// SetTotalDurationMs sets the "total_duration_ms" field.
+func (m *ProbeSlaDailyMutation) SetTotalDurationMs(i int64) {
+	m.total_duration_ms = &i
+	m.addtotal_duration_ms = nil
+}
+
+// TotalDurationMs returns the value of the "total_duration_ms" field in the mutation.
+func (m *ProbeSlaDailyMutation) TotalDurationMs() (r int64, exists bool) {
+	v := m.total_duration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalDurationMs returns the old "total_duration_ms" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldTotalDurationMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalDurationMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalDurationMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalDurationMs: %w", err)
+	}
+	return oldValue.TotalDurationMs, nil
+}
+
+// AddTotalDurationMs adds i to the "total_duration_ms" field.
+func (m *ProbeSlaDailyMutation) AddTotalDurationMs(i int64) {
+	if m.addtotal_duration_ms != nil {
+		*m.addtotal_duration_ms += i
+	} else {
+		m.addtotal_duration_ms = &i
+	}
+}
+
+// AddedTotalDurationMs returns the value that was added to the "total_duration_ms" field in this mutation.
+func (m *ProbeSlaDailyMutation) AddedTotalDurationMs() (r int64, exists bool) {
+	v := m.addtotal_duration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalDurationMs resets all changes to the "total_duration_ms" field.
+func (m *ProbeSlaDailyMutation) ResetTotalDurationMs() {
+	m.total_duration_ms = nil
+	m.addtotal_duration_ms = nil
+}
+
+// SetMaxDurationMs sets the "max_duration_ms" field.
+func (m *ProbeSlaDailyMutation) SetMaxDurationMs(i int) {
+	m.max_duration_ms = &i
+	m.addmax_duration_ms = nil
+}
+
+// MaxDurationMs returns the value of the "max_duration_ms" field in the mutation.
+func (m *ProbeSlaDailyMutation) MaxDurationMs() (r int, exists bool) {
+	v := m.max_duration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxDurationMs returns the old "max_duration_ms" field's value of the ProbeSlaDaily entity.
+// If the ProbeSlaDaily object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProbeSlaDailyMutation) OldMaxDurationMs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxDurationMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxDurationMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxDurationMs: %w", err)
+	}
+	return oldValue.MaxDurationMs, nil
+}
+
+// AddMaxDurationMs adds i to the "max_duration_ms" field.
+func (m *ProbeSlaDailyMutation) AddMaxDurationMs(i int) {
+	if m.addmax_duration_ms != nil {
+		*m.addmax_duration_ms += i
+	} else {
+		m.addmax_duration_ms = &i
+	}
+}
+
+// AddedMaxDurationMs returns the value that was added to the "max_duration_ms" field in this mutation.
+func (m *ProbeSlaDailyMutation) AddedMaxDurationMs() (r int, exists bool) {
+	v := m.addmax_duration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxDurationMs resets all changes to the "max_duration_ms" field.
+func (m *ProbeSlaDailyMutation) ResetMaxDurationMs() {
+	m.max_duration_ms = nil
+	m.addmax_duration_ms = nil
+}
+
+// Where appends a list predicates to the ProbeSlaDailyMutation builder.
+func (m *ProbeSlaDailyMutation) Where(ps ...predicate.ProbeSlaDaily) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ProbeSlaDailyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProbeSlaDailyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProbeSlaDaily, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ProbeSlaDailyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProbeSlaDailyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ProbeSlaDaily).
+func (m *ProbeSlaDailyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ProbeSlaDailyMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, probesladaily.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, probesladaily.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, probesladaily.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, probesladaily.FieldNamespaceUID)
+	}
+	if m.group_uid != nil {
+		fields = append(fields, probesladaily.FieldGroupUID)
+	}
+	if m.target_uid != nil {
+		fields = append(fields, probesladaily.FieldTargetUID)
+	}
+	if m.day != nil {
+		fields = append(fields, probesladaily.FieldDay)
+	}
+	if m.checks != nil {
+		fields = append(fields, probesladaily.FieldChecks)
+	}
+	if m.ok_checks != nil {
+		fields = append(fields, probesladaily.FieldOkChecks)
+	}
+	if m.failed_checks != nil {
+		fields = append(fields, probesladaily.FieldFailedChecks)
+	}
+	if m.total_duration_ms != nil {
+		fields = append(fields, probesladaily.FieldTotalDurationMs)
+	}
+	if m.max_duration_ms != nil {
+		fields = append(fields, probesladaily.FieldMaxDurationMs)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ProbeSlaDailyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case probesladaily.FieldCreatedAt:
+		return m.CreatedAt()
+	case probesladaily.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case probesladaily.FieldUID:
+		return m.UID()
+	case probesladaily.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case probesladaily.FieldGroupUID:
+		return m.GroupUID()
+	case probesladaily.FieldTargetUID:
+		return m.TargetUID()
+	case probesladaily.FieldDay:
+		return m.Day()
+	case probesladaily.FieldChecks:
+		return m.Checks()
+	case probesladaily.FieldOkChecks:
+		return m.OkChecks()
+	case probesladaily.FieldFailedChecks:
+		return m.FailedChecks()
+	case probesladaily.FieldTotalDurationMs:
+		return m.TotalDurationMs()
+	case probesladaily.FieldMaxDurationMs:
+		return m.MaxDurationMs()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ProbeSlaDailyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case probesladaily.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case probesladaily.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case probesladaily.FieldUID:
+		return m.OldUID(ctx)
+	case probesladaily.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case probesladaily.FieldGroupUID:
+		return m.OldGroupUID(ctx)
+	case probesladaily.FieldTargetUID:
+		return m.OldTargetUID(ctx)
+	case probesladaily.FieldDay:
+		return m.OldDay(ctx)
+	case probesladaily.FieldChecks:
+		return m.OldChecks(ctx)
+	case probesladaily.FieldOkChecks:
+		return m.OldOkChecks(ctx)
+	case probesladaily.FieldFailedChecks:
+		return m.OldFailedChecks(ctx)
+	case probesladaily.FieldTotalDurationMs:
+		return m.OldTotalDurationMs(ctx)
+	case probesladaily.FieldMaxDurationMs:
+		return m.OldMaxDurationMs(ctx)
+	}
+	return nil, fmt.Errorf("unknown ProbeSlaDaily field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProbeSlaDailyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case probesladaily.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case probesladaily.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case probesladaily.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case probesladaily.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case probesladaily.FieldGroupUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupUID(v)
+		return nil
+	case probesladaily.FieldTargetUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetUID(v)
+		return nil
+	case probesladaily.FieldDay:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDay(v)
+		return nil
+	case probesladaily.FieldChecks:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChecks(v)
+		return nil
+	case probesladaily.FieldOkChecks:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOkChecks(v)
+		return nil
+	case probesladaily.FieldFailedChecks:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailedChecks(v)
+		return nil
+	case probesladaily.FieldTotalDurationMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalDurationMs(v)
+		return nil
+	case probesladaily.FieldMaxDurationMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxDurationMs(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeSlaDaily field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ProbeSlaDailyMutation) AddedFields() []string {
+	var fields []string
+	if m.addchecks != nil {
+		fields = append(fields, probesladaily.FieldChecks)
+	}
+	if m.addok_checks != nil {
+		fields = append(fields, probesladaily.FieldOkChecks)
+	}
+	if m.addfailed_checks != nil {
+		fields = append(fields, probesladaily.FieldFailedChecks)
+	}
+	if m.addtotal_duration_ms != nil {
+		fields = append(fields, probesladaily.FieldTotalDurationMs)
+	}
+	if m.addmax_duration_ms != nil {
+		fields = append(fields, probesladaily.FieldMaxDurationMs)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ProbeSlaDailyMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case probesladaily.FieldChecks:
+		return m.AddedChecks()
+	case probesladaily.FieldOkChecks:
+		return m.AddedOkChecks()
+	case probesladaily.FieldFailedChecks:
+		return m.AddedFailedChecks()
+	case probesladaily.FieldTotalDurationMs:
+		return m.AddedTotalDurationMs()
+	case probesladaily.FieldMaxDurationMs:
+		return m.AddedMaxDurationMs()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProbeSlaDailyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case probesladaily.FieldChecks:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddChecks(v)
+		return nil
+	case probesladaily.FieldOkChecks:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOkChecks(v)
+		return nil
+	case probesladaily.FieldFailedChecks:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFailedChecks(v)
+		return nil
+	case probesladaily.FieldTotalDurationMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalDurationMs(v)
+		return nil
+	case probesladaily.FieldMaxDurationMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxDurationMs(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeSlaDaily numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ProbeSlaDailyMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ProbeSlaDailyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ProbeSlaDailyMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ProbeSlaDaily nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ProbeSlaDailyMutation) ResetField(name string) error {
+	switch name {
+	case probesladaily.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case probesladaily.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case probesladaily.FieldUID:
+		m.ResetUID()
+		return nil
+	case probesladaily.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case probesladaily.FieldGroupUID:
+		m.ResetGroupUID()
+		return nil
+	case probesladaily.FieldTargetUID:
+		m.ResetTargetUID()
+		return nil
+	case probesladaily.FieldDay:
+		m.ResetDay()
+		return nil
+	case probesladaily.FieldChecks:
+		m.ResetChecks()
+		return nil
+	case probesladaily.FieldOkChecks:
+		m.ResetOkChecks()
+		return nil
+	case probesladaily.FieldFailedChecks:
+		m.ResetFailedChecks()
+		return nil
+	case probesladaily.FieldTotalDurationMs:
+		m.ResetTotalDurationMs()
+		return nil
+	case probesladaily.FieldMaxDurationMs:
+		m.ResetMaxDurationMs()
+		return nil
+	}
+	return fmt.Errorf("unknown ProbeSlaDaily field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ProbeSlaDailyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ProbeSlaDailyMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ProbeSlaDailyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ProbeSlaDailyMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ProbeSlaDailyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ProbeSlaDailyMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ProbeSlaDailyMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ProbeSlaDaily unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ProbeSlaDailyMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ProbeSlaDaily edge %s", name)
+}
+
 // ProbeTargetMutation represents an operation that mutates the ProbeTarget nodes in the graph.
 type ProbeTargetMutation struct {
 	config
@@ -44223,6 +45315,964 @@ func (m *SSHCommandAuditMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *SSHCommandAuditMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown SSHCommandAudit edge %s", name)
+}
+
+// StatusPageMutation represents an operation that mutates the StatusPage nodes in the graph.
+type StatusPageMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	uid                     *string
+	namespace_uid           *string
+	name                    *string
+	title                   *string
+	description             *string
+	token                   *string
+	status                  *statuspage.Status
+	target_group_uids       *[]string
+	appendtarget_group_uids []string
+	created_by              *string
+	clearedFields           map[string]struct{}
+	done                    bool
+	oldValue                func(context.Context) (*StatusPage, error)
+	predicates              []predicate.StatusPage
+}
+
+var _ ent.Mutation = (*StatusPageMutation)(nil)
+
+// statuspageOption allows management of the mutation configuration using functional options.
+type statuspageOption func(*StatusPageMutation)
+
+// newStatusPageMutation creates new mutation for the StatusPage entity.
+func newStatusPageMutation(c config, op Op, opts ...statuspageOption) *StatusPageMutation {
+	m := &StatusPageMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeStatusPage,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withStatusPageID sets the ID field of the mutation.
+func withStatusPageID(id int) statuspageOption {
+	return func(m *StatusPageMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *StatusPage
+		)
+		m.oldValue = func(ctx context.Context) (*StatusPage, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().StatusPage.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withStatusPage sets the old StatusPage of the mutation.
+func withStatusPage(node *StatusPage) statuspageOption {
+	return func(m *StatusPageMutation) {
+		m.oldValue = func(context.Context) (*StatusPage, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m StatusPageMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m StatusPageMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *StatusPageMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *StatusPageMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().StatusPage.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *StatusPageMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *StatusPageMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *StatusPageMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *StatusPageMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *StatusPageMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *StatusPageMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *StatusPageMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *StatusPageMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *StatusPageMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[statuspage.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *StatusPageMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[statuspage.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *StatusPageMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, statuspage.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *StatusPageMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *StatusPageMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *StatusPageMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *StatusPageMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *StatusPageMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *StatusPageMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetName sets the "name" field.
+func (m *StatusPageMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *StatusPageMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *StatusPageMutation) ResetName() {
+	m.name = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *StatusPageMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *StatusPageMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *StatusPageMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *StatusPageMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *StatusPageMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *StatusPageMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetToken sets the "token" field.
+func (m *StatusPageMutation) SetToken(s string) {
+	m.token = &s
+}
+
+// Token returns the value of the "token" field in the mutation.
+func (m *StatusPageMutation) Token() (r string, exists bool) {
+	v := m.token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToken returns the old "token" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToken: %w", err)
+	}
+	return oldValue.Token, nil
+}
+
+// ResetToken resets all changes to the "token" field.
+func (m *StatusPageMutation) ResetToken() {
+	m.token = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *StatusPageMutation) SetStatus(s statuspage.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *StatusPageMutation) Status() (r statuspage.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldStatus(ctx context.Context) (v statuspage.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *StatusPageMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetTargetGroupUids sets the "target_group_uids" field.
+func (m *StatusPageMutation) SetTargetGroupUids(s []string) {
+	m.target_group_uids = &s
+	m.appendtarget_group_uids = nil
+}
+
+// TargetGroupUids returns the value of the "target_group_uids" field in the mutation.
+func (m *StatusPageMutation) TargetGroupUids() (r []string, exists bool) {
+	v := m.target_group_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetGroupUids returns the old "target_group_uids" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldTargetGroupUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetGroupUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetGroupUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetGroupUids: %w", err)
+	}
+	return oldValue.TargetGroupUids, nil
+}
+
+// AppendTargetGroupUids adds s to the "target_group_uids" field.
+func (m *StatusPageMutation) AppendTargetGroupUids(s []string) {
+	m.appendtarget_group_uids = append(m.appendtarget_group_uids, s...)
+}
+
+// AppendedTargetGroupUids returns the list of values that were appended to the "target_group_uids" field in this mutation.
+func (m *StatusPageMutation) AppendedTargetGroupUids() ([]string, bool) {
+	if len(m.appendtarget_group_uids) == 0 {
+		return nil, false
+	}
+	return m.appendtarget_group_uids, true
+}
+
+// ResetTargetGroupUids resets all changes to the "target_group_uids" field.
+func (m *StatusPageMutation) ResetTargetGroupUids() {
+	m.target_group_uids = nil
+	m.appendtarget_group_uids = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *StatusPageMutation) SetCreatedBy(s string) {
+	m.created_by = &s
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *StatusPageMutation) CreatedBy() (r string, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the StatusPage entity.
+// If the StatusPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StatusPageMutation) OldCreatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *StatusPageMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
+// Where appends a list predicates to the StatusPageMutation builder.
+func (m *StatusPageMutation) Where(ps ...predicate.StatusPage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the StatusPageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *StatusPageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.StatusPage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *StatusPageMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *StatusPageMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (StatusPage).
+func (m *StatusPageMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *StatusPageMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, statuspage.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, statuspage.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, statuspage.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, statuspage.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, statuspage.FieldNamespaceUID)
+	}
+	if m.name != nil {
+		fields = append(fields, statuspage.FieldName)
+	}
+	if m.title != nil {
+		fields = append(fields, statuspage.FieldTitle)
+	}
+	if m.description != nil {
+		fields = append(fields, statuspage.FieldDescription)
+	}
+	if m.token != nil {
+		fields = append(fields, statuspage.FieldToken)
+	}
+	if m.status != nil {
+		fields = append(fields, statuspage.FieldStatus)
+	}
+	if m.target_group_uids != nil {
+		fields = append(fields, statuspage.FieldTargetGroupUids)
+	}
+	if m.created_by != nil {
+		fields = append(fields, statuspage.FieldCreatedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *StatusPageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case statuspage.FieldCreatedAt:
+		return m.CreatedAt()
+	case statuspage.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case statuspage.FieldDeletedAt:
+		return m.DeletedAt()
+	case statuspage.FieldUID:
+		return m.UID()
+	case statuspage.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case statuspage.FieldName:
+		return m.Name()
+	case statuspage.FieldTitle:
+		return m.Title()
+	case statuspage.FieldDescription:
+		return m.Description()
+	case statuspage.FieldToken:
+		return m.Token()
+	case statuspage.FieldStatus:
+		return m.Status()
+	case statuspage.FieldTargetGroupUids:
+		return m.TargetGroupUids()
+	case statuspage.FieldCreatedBy:
+		return m.CreatedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *StatusPageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case statuspage.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case statuspage.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case statuspage.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case statuspage.FieldUID:
+		return m.OldUID(ctx)
+	case statuspage.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case statuspage.FieldName:
+		return m.OldName(ctx)
+	case statuspage.FieldTitle:
+		return m.OldTitle(ctx)
+	case statuspage.FieldDescription:
+		return m.OldDescription(ctx)
+	case statuspage.FieldToken:
+		return m.OldToken(ctx)
+	case statuspage.FieldStatus:
+		return m.OldStatus(ctx)
+	case statuspage.FieldTargetGroupUids:
+		return m.OldTargetGroupUids(ctx)
+	case statuspage.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown StatusPage field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *StatusPageMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case statuspage.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case statuspage.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case statuspage.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case statuspage.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case statuspage.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case statuspage.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case statuspage.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case statuspage.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case statuspage.FieldToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToken(v)
+		return nil
+	case statuspage.FieldStatus:
+		v, ok := value.(statuspage.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case statuspage.FieldTargetGroupUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetGroupUids(v)
+		return nil
+	case statuspage.FieldCreatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown StatusPage field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *StatusPageMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *StatusPageMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *StatusPageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown StatusPage numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *StatusPageMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(statuspage.FieldDeletedAt) {
+		fields = append(fields, statuspage.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *StatusPageMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *StatusPageMutation) ClearField(name string) error {
+	switch name {
+	case statuspage.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown StatusPage nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *StatusPageMutation) ResetField(name string) error {
+	switch name {
+	case statuspage.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case statuspage.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case statuspage.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case statuspage.FieldUID:
+		m.ResetUID()
+		return nil
+	case statuspage.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case statuspage.FieldName:
+		m.ResetName()
+		return nil
+	case statuspage.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case statuspage.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case statuspage.FieldToken:
+		m.ResetToken()
+		return nil
+	case statuspage.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case statuspage.FieldTargetGroupUids:
+		m.ResetTargetGroupUids()
+		return nil
+	case statuspage.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown StatusPage field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *StatusPageMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *StatusPageMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *StatusPageMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *StatusPageMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *StatusPageMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *StatusPageMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *StatusPageMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown StatusPage unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *StatusPageMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown StatusPage edge %s", name)
 }
 
 // SystemMessageMutation represents an operation that mutates the SystemMessage nodes in the graph.

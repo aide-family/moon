@@ -57,6 +57,8 @@ var archivedTables = []string{
 	"alert_pages",
 	"alert_event_columns",
 	"alert_maintenance_windows",
+	// 状态页配置属于配置数据，跟迁移包一起搬。
+	"status_pages",
 	"probe_target_groups",
 	"probe_targets",
 	// 大盘。
@@ -92,6 +94,7 @@ var runtimeTables = []string{
 	"message_log_shards",
 	"notification_tasks",
 	"probe_results",
+	"probe_sla_dailies",
 	"worker_instances",
 }
 

@@ -952,3 +952,86 @@ type AlertMaintenanceWindow struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
+
+// StatusPage 是对外公开的探测状态页配置。
+type StatusPage struct {
+	UID             string
+	NamespaceUID    string
+	Name            string
+	Title           string
+	Description     string
+	Token           string
+	Status          string
+	TargetGroupUIDs []string
+	CreatedBy       string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
+// StatusPageListFilter 是状态页列表的查询条件。
+type StatusPageListFilter struct {
+	Name   string
+	Status string
+}
+
+// PublicStatusPage 是公开状态页的展示数据。
+type PublicStatusPage struct {
+	Title        string
+	Description  string
+	UpdatedAt    time.Time
+	Components   []PublicStatusComponent
+	ActiveEvents []PublicStatusEvent
+	RecentEvents []PublicStatusEvent
+}
+
+// PublicStatusComponent 是公开状态页的一个组件（探测目标组）。
+type PublicStatusComponent struct {
+	GroupUID        string
+	Name            string
+	Status          string
+	Availability24h string
+	Availability7d  string
+	Availability30d string
+	LastCheckedAt   *time.Time
+}
+
+// PublicStatusEvent 是公开状态页的事件。
+type PublicStatusEvent struct {
+	UID       string
+	Title     string
+	Status    string
+	StartedAt time.Time
+	EndedAt   *time.Time
+}
+
+// ProbeSlaGroup 是单个目标组的 SLA 汇总。
+type ProbeSlaGroup struct {
+	GroupUID       string
+	GroupName      string
+	Checks         int
+	OkChecks       int
+	FailedChecks   int
+	Availability   string
+	AvgDurationMS  int
+	P95DurationMS  int
+	P95Approximate bool
+	EventCount     int
+	Days           []ProbeSlaDay
+}
+
+// ProbeSlaDay 是按天拆分的可用率明细。
+type ProbeSlaDay struct {
+	Day           string
+	Checks        int
+	OkChecks      int
+	FailedChecks  int
+	Availability  string
+	AvgDurationMS int
+}
+
+// ProbeSlaReport 是一次 SLA 查询结果。
+type ProbeSlaReport struct {
+	From   time.Time
+	To     time.Time
+	Groups []ProbeSlaGroup
+}

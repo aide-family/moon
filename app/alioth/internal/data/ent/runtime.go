@@ -45,6 +45,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
@@ -52,6 +53,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/schema"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/statuspage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/systemmessage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/useralertpage"
@@ -1951,6 +1953,57 @@ func init() {
 	proberesultDescCertSans := proberesultFields[30].Descriptor()
 	// proberesult.DefaultCertSans holds the default value on creation for the cert_sans field.
 	proberesult.DefaultCertSans = proberesultDescCertSans.Default.(string)
+	probesladailyMixin := schema.ProbeSlaDaily{}.Mixin()
+	probesladailyMixinFields0 := probesladailyMixin[0].Fields()
+	_ = probesladailyMixinFields0
+	probesladailyFields := schema.ProbeSlaDaily{}.Fields()
+	_ = probesladailyFields
+	// probesladailyDescCreatedAt is the schema descriptor for created_at field.
+	probesladailyDescCreatedAt := probesladailyMixinFields0[0].Descriptor()
+	// probesladaily.DefaultCreatedAt holds the default value on creation for the created_at field.
+	probesladaily.DefaultCreatedAt = probesladailyDescCreatedAt.Default.(func() time.Time)
+	// probesladailyDescUpdatedAt is the schema descriptor for updated_at field.
+	probesladailyDescUpdatedAt := probesladailyMixinFields0[1].Descriptor()
+	// probesladaily.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	probesladaily.DefaultUpdatedAt = probesladailyDescUpdatedAt.Default.(func() time.Time)
+	// probesladaily.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	probesladaily.UpdateDefaultUpdatedAt = probesladailyDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// probesladailyDescUID is the schema descriptor for uid field.
+	probesladailyDescUID := probesladailyFields[0].Descriptor()
+	// probesladaily.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	probesladaily.UIDValidator = probesladailyDescUID.Validators[0].(func(string) error)
+	// probesladailyDescNamespaceUID is the schema descriptor for namespace_uid field.
+	probesladailyDescNamespaceUID := probesladailyFields[1].Descriptor()
+	// probesladaily.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	probesladaily.NamespaceUIDValidator = probesladailyDescNamespaceUID.Validators[0].(func(string) error)
+	// probesladailyDescGroupUID is the schema descriptor for group_uid field.
+	probesladailyDescGroupUID := probesladailyFields[2].Descriptor()
+	// probesladaily.GroupUIDValidator is a validator for the "group_uid" field. It is called by the builders before save.
+	probesladaily.GroupUIDValidator = probesladailyDescGroupUID.Validators[0].(func(string) error)
+	// probesladailyDescTargetUID is the schema descriptor for target_uid field.
+	probesladailyDescTargetUID := probesladailyFields[3].Descriptor()
+	// probesladaily.TargetUIDValidator is a validator for the "target_uid" field. It is called by the builders before save.
+	probesladaily.TargetUIDValidator = probesladailyDescTargetUID.Validators[0].(func(string) error)
+	// probesladailyDescChecks is the schema descriptor for checks field.
+	probesladailyDescChecks := probesladailyFields[5].Descriptor()
+	// probesladaily.DefaultChecks holds the default value on creation for the checks field.
+	probesladaily.DefaultChecks = probesladailyDescChecks.Default.(int)
+	// probesladailyDescOkChecks is the schema descriptor for ok_checks field.
+	probesladailyDescOkChecks := probesladailyFields[6].Descriptor()
+	// probesladaily.DefaultOkChecks holds the default value on creation for the ok_checks field.
+	probesladaily.DefaultOkChecks = probesladailyDescOkChecks.Default.(int)
+	// probesladailyDescFailedChecks is the schema descriptor for failed_checks field.
+	probesladailyDescFailedChecks := probesladailyFields[7].Descriptor()
+	// probesladaily.DefaultFailedChecks holds the default value on creation for the failed_checks field.
+	probesladaily.DefaultFailedChecks = probesladailyDescFailedChecks.Default.(int)
+	// probesladailyDescTotalDurationMs is the schema descriptor for total_duration_ms field.
+	probesladailyDescTotalDurationMs := probesladailyFields[8].Descriptor()
+	// probesladaily.DefaultTotalDurationMs holds the default value on creation for the total_duration_ms field.
+	probesladaily.DefaultTotalDurationMs = probesladailyDescTotalDurationMs.Default.(int64)
+	// probesladailyDescMaxDurationMs is the schema descriptor for max_duration_ms field.
+	probesladailyDescMaxDurationMs := probesladailyFields[9].Descriptor()
+	// probesladaily.DefaultMaxDurationMs holds the default value on creation for the max_duration_ms field.
+	probesladaily.DefaultMaxDurationMs = probesladailyDescMaxDurationMs.Default.(int)
 	probetargetMixin := schema.ProbeTarget{}.Mixin()
 	probetargetMixinFields0 := probetargetMixin[0].Fields()
 	_ = probetargetMixinFields0
@@ -2199,6 +2252,53 @@ func init() {
 	sshcommandauditDescDetail := sshcommandauditFields[11].Descriptor()
 	// sshcommandaudit.DefaultDetail holds the default value on creation for the detail field.
 	sshcommandaudit.DefaultDetail = sshcommandauditDescDetail.Default.(string)
+	statuspageMixin := schema.StatusPage{}.Mixin()
+	statuspageMixinFields0 := statuspageMixin[0].Fields()
+	_ = statuspageMixinFields0
+	statuspageFields := schema.StatusPage{}.Fields()
+	_ = statuspageFields
+	// statuspageDescCreatedAt is the schema descriptor for created_at field.
+	statuspageDescCreatedAt := statuspageMixinFields0[0].Descriptor()
+	// statuspage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	statuspage.DefaultCreatedAt = statuspageDescCreatedAt.Default.(func() time.Time)
+	// statuspageDescUpdatedAt is the schema descriptor for updated_at field.
+	statuspageDescUpdatedAt := statuspageMixinFields0[1].Descriptor()
+	// statuspage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	statuspage.DefaultUpdatedAt = statuspageDescUpdatedAt.Default.(func() time.Time)
+	// statuspage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	statuspage.UpdateDefaultUpdatedAt = statuspageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// statuspageDescUID is the schema descriptor for uid field.
+	statuspageDescUID := statuspageFields[0].Descriptor()
+	// statuspage.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	statuspage.UIDValidator = statuspageDescUID.Validators[0].(func(string) error)
+	// statuspageDescNamespaceUID is the schema descriptor for namespace_uid field.
+	statuspageDescNamespaceUID := statuspageFields[1].Descriptor()
+	// statuspage.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	statuspage.NamespaceUIDValidator = statuspageDescNamespaceUID.Validators[0].(func(string) error)
+	// statuspageDescName is the schema descriptor for name field.
+	statuspageDescName := statuspageFields[2].Descriptor()
+	// statuspage.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	statuspage.NameValidator = statuspageDescName.Validators[0].(func(string) error)
+	// statuspageDescTitle is the schema descriptor for title field.
+	statuspageDescTitle := statuspageFields[3].Descriptor()
+	// statuspage.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	statuspage.TitleValidator = statuspageDescTitle.Validators[0].(func(string) error)
+	// statuspageDescDescription is the schema descriptor for description field.
+	statuspageDescDescription := statuspageFields[4].Descriptor()
+	// statuspage.DefaultDescription holds the default value on creation for the description field.
+	statuspage.DefaultDescription = statuspageDescDescription.Default.(string)
+	// statuspageDescToken is the schema descriptor for token field.
+	statuspageDescToken := statuspageFields[5].Descriptor()
+	// statuspage.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	statuspage.TokenValidator = statuspageDescToken.Validators[0].(func(string) error)
+	// statuspageDescTargetGroupUids is the schema descriptor for target_group_uids field.
+	statuspageDescTargetGroupUids := statuspageFields[7].Descriptor()
+	// statuspage.DefaultTargetGroupUids holds the default value on creation for the target_group_uids field.
+	statuspage.DefaultTargetGroupUids = statuspageDescTargetGroupUids.Default.([]string)
+	// statuspageDescCreatedBy is the schema descriptor for created_by field.
+	statuspageDescCreatedBy := statuspageFields[8].Descriptor()
+	// statuspage.DefaultCreatedBy holds the default value on creation for the created_by field.
+	statuspage.DefaultCreatedBy = statuspageDescCreatedBy.Default.(string)
 	systemmessageMixin := schema.SystemMessage{}.Mixin()
 	systemmessageMixinFields0 := systemmessageMixin[0].Fields()
 	_ = systemmessageMixinFields0

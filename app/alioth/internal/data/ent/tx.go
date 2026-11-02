@@ -92,6 +92,8 @@ type Tx struct {
 	Permission *PermissionClient
 	// ProbeResult is the client for interacting with the ProbeResult builders.
 	ProbeResult *ProbeResultClient
+	// ProbeSlaDaily is the client for interacting with the ProbeSlaDaily builders.
+	ProbeSlaDaily *ProbeSlaDailyClient
 	// ProbeTarget is the client for interacting with the ProbeTarget builders.
 	ProbeTarget *ProbeTargetClient
 	// ProbeTargetGroup is the client for interacting with the ProbeTargetGroup builders.
@@ -104,6 +106,8 @@ type Tx struct {
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
 	SSHCommandAudit *SSHCommandAuditClient
+	// StatusPage is the client for interacting with the StatusPage builders.
+	StatusPage *StatusPageClient
 	// SystemMessage is the client for interacting with the SystemMessage builders.
 	SystemMessage *SystemMessageClient
 	// User is the client for interacting with the User builders.
@@ -285,12 +289,14 @@ func (tx *Tx) init() {
 	tx.NotificationTemplate = NewNotificationTemplateClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.ProbeResult = NewProbeResultClient(tx.config)
+	tx.ProbeSlaDaily = NewProbeSlaDailyClient(tx.config)
 	tx.ProbeTarget = NewProbeTargetClient(tx.config)
 	tx.ProbeTargetGroup = NewProbeTargetGroupClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RolePermission = NewRolePermissionClient(tx.config)
 	tx.SSHCommand = NewSSHCommandClient(tx.config)
 	tx.SSHCommandAudit = NewSSHCommandAuditClient(tx.config)
+	tx.StatusPage = NewStatusPageClient(tx.config)
 	tx.SystemMessage = NewSystemMessageClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserAlertPage = NewUserAlertPageClient(tx.config)

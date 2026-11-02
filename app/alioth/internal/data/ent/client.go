@@ -54,12 +54,14 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/statuspage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/systemmessage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/useralertpage"
@@ -152,6 +154,8 @@ type Client struct {
 	Permission *PermissionClient
 	// ProbeResult is the client for interacting with the ProbeResult builders.
 	ProbeResult *ProbeResultClient
+	// ProbeSlaDaily is the client for interacting with the ProbeSlaDaily builders.
+	ProbeSlaDaily *ProbeSlaDailyClient
 	// ProbeTarget is the client for interacting with the ProbeTarget builders.
 	ProbeTarget *ProbeTargetClient
 	// ProbeTargetGroup is the client for interacting with the ProbeTargetGroup builders.
@@ -164,6 +168,8 @@ type Client struct {
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
 	SSHCommandAudit *SSHCommandAuditClient
+	// StatusPage is the client for interacting with the StatusPage builders.
+	StatusPage *StatusPageClient
 	// SystemMessage is the client for interacting with the SystemMessage builders.
 	SystemMessage *SystemMessageClient
 	// User is the client for interacting with the User builders.
@@ -225,12 +231,14 @@ func (c *Client) init() {
 	c.NotificationTemplate = NewNotificationTemplateClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.ProbeResult = NewProbeResultClient(c.config)
+	c.ProbeSlaDaily = NewProbeSlaDailyClient(c.config)
 	c.ProbeTarget = NewProbeTargetClient(c.config)
 	c.ProbeTargetGroup = NewProbeTargetGroupClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RolePermission = NewRolePermissionClient(c.config)
 	c.SSHCommand = NewSSHCommandClient(c.config)
 	c.SSHCommandAudit = NewSSHCommandAuditClient(c.config)
+	c.StatusPage = NewStatusPageClient(c.config)
 	c.SystemMessage = NewSystemMessageClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserAlertPage = NewUserAlertPageClient(c.config)
@@ -368,12 +376,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NotificationTemplate:          NewNotificationTemplateClient(cfg),
 		Permission:                    NewPermissionClient(cfg),
 		ProbeResult:                   NewProbeResultClient(cfg),
+		ProbeSlaDaily:                 NewProbeSlaDailyClient(cfg),
 		ProbeTarget:                   NewProbeTargetClient(cfg),
 		ProbeTargetGroup:              NewProbeTargetGroupClient(cfg),
 		Role:                          NewRoleClient(cfg),
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		StatusPage:                    NewStatusPageClient(cfg),
 		SystemMessage:                 NewSystemMessageClient(cfg),
 		User:                          NewUserClient(cfg),
 		UserAlertPage:                 NewUserAlertPageClient(cfg),
@@ -438,12 +448,14 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NotificationTemplate:          NewNotificationTemplateClient(cfg),
 		Permission:                    NewPermissionClient(cfg),
 		ProbeResult:                   NewProbeResultClient(cfg),
+		ProbeSlaDaily:                 NewProbeSlaDailyClient(cfg),
 		ProbeTarget:                   NewProbeTargetClient(cfg),
 		ProbeTargetGroup:              NewProbeTargetGroupClient(cfg),
 		Role:                          NewRoleClient(cfg),
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		StatusPage:                    NewStatusPageClient(cfg),
 		SystemMessage:                 NewSystemMessageClient(cfg),
 		User:                          NewUserClient(cfg),
 		UserAlertPage:                 NewUserAlertPageClient(cfg),
@@ -488,9 +500,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
 		c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
-		c.Permission, c.ProbeResult, c.ProbeTarget, c.ProbeTargetGroup, c.Role,
-		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
-		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.Permission, c.ProbeResult, c.ProbeSlaDaily, c.ProbeTarget,
+		c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand, c.SSHCommandAudit,
+		c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
+		c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -510,9 +523,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
 		c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
-		c.Permission, c.ProbeResult, c.ProbeTarget, c.ProbeTargetGroup, c.Role,
-		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
-		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.Permission, c.ProbeResult, c.ProbeSlaDaily, c.ProbeTarget,
+		c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand, c.SSHCommandAudit,
+		c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
+		c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -601,6 +615,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Permission.mutate(ctx, m)
 	case *ProbeResultMutation:
 		return c.ProbeResult.mutate(ctx, m)
+	case *ProbeSlaDailyMutation:
+		return c.ProbeSlaDaily.mutate(ctx, m)
 	case *ProbeTargetMutation:
 		return c.ProbeTarget.mutate(ctx, m)
 	case *ProbeTargetGroupMutation:
@@ -613,6 +629,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SSHCommand.mutate(ctx, m)
 	case *SSHCommandAuditMutation:
 		return c.SSHCommandAudit.mutate(ctx, m)
+	case *StatusPageMutation:
+		return c.StatusPage.mutate(ctx, m)
 	case *SystemMessageMutation:
 		return c.SystemMessage.mutate(ctx, m)
 	case *UserMutation:
@@ -5948,6 +5966,139 @@ func (c *ProbeResultClient) mutate(ctx context.Context, m *ProbeResultMutation) 
 	}
 }
 
+// ProbeSlaDailyClient is a client for the ProbeSlaDaily schema.
+type ProbeSlaDailyClient struct {
+	config
+}
+
+// NewProbeSlaDailyClient returns a client for the ProbeSlaDaily from the given config.
+func NewProbeSlaDailyClient(c config) *ProbeSlaDailyClient {
+	return &ProbeSlaDailyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `probesladaily.Hooks(f(g(h())))`.
+func (c *ProbeSlaDailyClient) Use(hooks ...Hook) {
+	c.hooks.ProbeSlaDaily = append(c.hooks.ProbeSlaDaily, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `probesladaily.Intercept(f(g(h())))`.
+func (c *ProbeSlaDailyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProbeSlaDaily = append(c.inters.ProbeSlaDaily, interceptors...)
+}
+
+// Create returns a builder for creating a ProbeSlaDaily entity.
+func (c *ProbeSlaDailyClient) Create() *ProbeSlaDailyCreate {
+	mutation := newProbeSlaDailyMutation(c.config, OpCreate)
+	return &ProbeSlaDailyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProbeSlaDaily entities.
+func (c *ProbeSlaDailyClient) CreateBulk(builders ...*ProbeSlaDailyCreate) *ProbeSlaDailyCreateBulk {
+	return &ProbeSlaDailyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProbeSlaDailyClient) MapCreateBulk(slice any, setFunc func(*ProbeSlaDailyCreate, int)) *ProbeSlaDailyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProbeSlaDailyCreateBulk{err: fmt.Errorf("calling to ProbeSlaDailyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProbeSlaDailyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProbeSlaDailyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProbeSlaDaily.
+func (c *ProbeSlaDailyClient) Update() *ProbeSlaDailyUpdate {
+	mutation := newProbeSlaDailyMutation(c.config, OpUpdate)
+	return &ProbeSlaDailyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProbeSlaDailyClient) UpdateOne(_m *ProbeSlaDaily) *ProbeSlaDailyUpdateOne {
+	mutation := newProbeSlaDailyMutation(c.config, OpUpdateOne, withProbeSlaDaily(_m))
+	return &ProbeSlaDailyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProbeSlaDailyClient) UpdateOneID(id int) *ProbeSlaDailyUpdateOne {
+	mutation := newProbeSlaDailyMutation(c.config, OpUpdateOne, withProbeSlaDailyID(id))
+	return &ProbeSlaDailyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProbeSlaDaily.
+func (c *ProbeSlaDailyClient) Delete() *ProbeSlaDailyDelete {
+	mutation := newProbeSlaDailyMutation(c.config, OpDelete)
+	return &ProbeSlaDailyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProbeSlaDailyClient) DeleteOne(_m *ProbeSlaDaily) *ProbeSlaDailyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProbeSlaDailyClient) DeleteOneID(id int) *ProbeSlaDailyDeleteOne {
+	builder := c.Delete().Where(probesladaily.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProbeSlaDailyDeleteOne{builder}
+}
+
+// Query returns a query builder for ProbeSlaDaily.
+func (c *ProbeSlaDailyClient) Query() *ProbeSlaDailyQuery {
+	return &ProbeSlaDailyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProbeSlaDaily},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProbeSlaDaily entity by its id.
+func (c *ProbeSlaDailyClient) Get(ctx context.Context, id int) (*ProbeSlaDaily, error) {
+	return c.Query().Where(probesladaily.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProbeSlaDailyClient) GetX(ctx context.Context, id int) *ProbeSlaDaily {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ProbeSlaDailyClient) Hooks() []Hook {
+	return c.hooks.ProbeSlaDaily
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProbeSlaDailyClient) Interceptors() []Interceptor {
+	return c.inters.ProbeSlaDaily
+}
+
+func (c *ProbeSlaDailyClient) mutate(ctx context.Context, m *ProbeSlaDailyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProbeSlaDailyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProbeSlaDailyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProbeSlaDailyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProbeSlaDailyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProbeSlaDaily mutation op: %q", m.Op())
+	}
+}
+
 // ProbeTargetClient is a client for the ProbeTarget schema.
 type ProbeTargetClient struct {
 	config
@@ -6746,6 +6897,139 @@ func (c *SSHCommandAuditClient) mutate(ctx context.Context, m *SSHCommandAuditMu
 	}
 }
 
+// StatusPageClient is a client for the StatusPage schema.
+type StatusPageClient struct {
+	config
+}
+
+// NewStatusPageClient returns a client for the StatusPage from the given config.
+func NewStatusPageClient(c config) *StatusPageClient {
+	return &StatusPageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `statuspage.Hooks(f(g(h())))`.
+func (c *StatusPageClient) Use(hooks ...Hook) {
+	c.hooks.StatusPage = append(c.hooks.StatusPage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `statuspage.Intercept(f(g(h())))`.
+func (c *StatusPageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.StatusPage = append(c.inters.StatusPage, interceptors...)
+}
+
+// Create returns a builder for creating a StatusPage entity.
+func (c *StatusPageClient) Create() *StatusPageCreate {
+	mutation := newStatusPageMutation(c.config, OpCreate)
+	return &StatusPageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of StatusPage entities.
+func (c *StatusPageClient) CreateBulk(builders ...*StatusPageCreate) *StatusPageCreateBulk {
+	return &StatusPageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *StatusPageClient) MapCreateBulk(slice any, setFunc func(*StatusPageCreate, int)) *StatusPageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &StatusPageCreateBulk{err: fmt.Errorf("calling to StatusPageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*StatusPageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &StatusPageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for StatusPage.
+func (c *StatusPageClient) Update() *StatusPageUpdate {
+	mutation := newStatusPageMutation(c.config, OpUpdate)
+	return &StatusPageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *StatusPageClient) UpdateOne(_m *StatusPage) *StatusPageUpdateOne {
+	mutation := newStatusPageMutation(c.config, OpUpdateOne, withStatusPage(_m))
+	return &StatusPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *StatusPageClient) UpdateOneID(id int) *StatusPageUpdateOne {
+	mutation := newStatusPageMutation(c.config, OpUpdateOne, withStatusPageID(id))
+	return &StatusPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for StatusPage.
+func (c *StatusPageClient) Delete() *StatusPageDelete {
+	mutation := newStatusPageMutation(c.config, OpDelete)
+	return &StatusPageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *StatusPageClient) DeleteOne(_m *StatusPage) *StatusPageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *StatusPageClient) DeleteOneID(id int) *StatusPageDeleteOne {
+	builder := c.Delete().Where(statuspage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &StatusPageDeleteOne{builder}
+}
+
+// Query returns a query builder for StatusPage.
+func (c *StatusPageClient) Query() *StatusPageQuery {
+	return &StatusPageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeStatusPage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a StatusPage entity by its id.
+func (c *StatusPageClient) Get(ctx context.Context, id int) (*StatusPage, error) {
+	return c.Query().Where(statuspage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *StatusPageClient) GetX(ctx context.Context, id int) *StatusPage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *StatusPageClient) Hooks() []Hook {
+	return c.hooks.StatusPage
+}
+
+// Interceptors returns the client interceptors.
+func (c *StatusPageClient) Interceptors() []Interceptor {
+	return c.inters.StatusPage
+}
+
+func (c *StatusPageClient) mutate(ctx context.Context, m *StatusPageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&StatusPageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&StatusPageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&StatusPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&StatusPageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown StatusPage mutation op: %q", m.Op())
+	}
+}
+
 // SystemMessageClient is a client for the SystemMessage schema.
 type SystemMessageClient struct {
 	config
@@ -7423,9 +7707,9 @@ type (
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, ProbeResult, ProbeTarget, ProbeTargetGroup, Role, RolePermission,
-		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Hook
+		Permission, ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Role,
+		RolePermission, SSHCommand, SSHCommandAudit, StatusPage, SystemMessage, User,
+		UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventAction,
@@ -7437,8 +7721,8 @@ type (
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, ProbeResult, ProbeTarget, ProbeTargetGroup, Role, RolePermission,
-		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Interceptor
+		Permission, ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Role,
+		RolePermission, SSHCommand, SSHCommandAudit, StatusPage, SystemMessage, User,
+		UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
 	}
 )

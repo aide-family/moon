@@ -1,0 +1,248 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 状态页：把探测目标组的当前状态与可用率以不可猜测的链接对外公开。
+// 公开接口不需要登录与租户头，只返回展示必需字段。
+service StatusPageService {
+  // 创建状态页。
+  rpc CreateStatusPage(CreateStatusPageRequest) returns (CreateStatusPageResponse) {
+    option (google.api.http) = {
+      post: "/v1/status-page"
+      body: "*"
+    };
+  }
+  // 更新状态页。
+  rpc UpdateStatusPage(UpdateStatusPageRequest) returns (UpdateStatusPageResponse) {
+    option (google.api.http) = {
+      put: "/v1/status-page/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用状态页。停用后公开链接立即失效。
+  rpc UpdateStatusPageStatus(UpdateStatusPageStatusRequest) returns (UpdateStatusPageStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/status-page/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除状态页。
+  rpc DeleteStatusPage(DeleteStatusPageRequest) returns (DeleteStatusPageResponse) {
+    option (google.api.http) = {delete: "/v1/status-page/{uid}"};
+  }
+  // 获取状态页详情。
+  rpc GetStatusPage(GetStatusPageRequest) returns (GetStatusPageResponse) {
+    option (google.api.http) = {get: "/v1/status-page/{uid}"};
+  }
+  // 分页列出状态页。
+  rpc ListStatusPages(ListStatusPagesRequest) returns (ListStatusPagesResponse) {
+    option (google.api.http) = {get: "/v1/status-pages"};
+  }
+  // 重新生成公开访问 token，旧链接立即失效。
+  rpc RegenerateStatusPageToken(RegenerateStatusPageTokenRequest) returns (RegenerateStatusPageTokenResponse) {
+    option (google.api.http) = {
+      post: "/v1/status-page/{uid}/token"
+      body: "*"
+    };
+  }
+  // 按 token 读取公开状态页，无需登录与租户头。
+  rpc GetPublicStatusPage(GetPublicStatusPageRequest) returns (GetPublicStatusPageResponse) {
+    option (google.api.http) = {get: "/v1/status/{token}"};
+  }
+}
+
+// 状态页配置。
+message StatusPageItem {
+  // 标识。
+  string uid = 1;
+  // 名称，租户内唯一。
+  string name = 2;
+  // 对外展示的标题。
+  string title = 3;
+  // 对外展示的描述。
+  string description = 4;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 5;
+  // 展示的探测目标组标识。
+  repeated string target_group_uids = 6 [json_name = "targetGroupUids"];
+  // 公开访问 token；列表接口不返回。
+  string token = 7;
+  // 创建时间，RFC3339。
+  string created_at = 8 [json_name = "createdAt"];
+  // 更新时间，RFC3339。
+  string updated_at = 9 [json_name = "updatedAt"];
+}
+
+// 公开状态页的组件。
+message PublicStatusComponent {
+  // 目标组标识。
+  string group_uid = 1 [json_name = "groupUid"];
+  // 目标组名称。
+  string name = 2;
+  // 当前状态，取值为 OK、FAULT 或 UNKNOWN。
+  string status = 3;
+  // 24 小时可用率，例如 99.95；没有数据时为空。
+  string availability24h = 4;
+  // 7 天可用率。
+  string availability7d = 5 [json_name = "availability7d"];
+  // 30 天可用率。
+  string availability30d = 6 [json_name = "availability30d"];
+  // 最近一次检查时间，RFC3339；没有结果时为空。
+  string last_checked_at = 7 [json_name = "lastCheckedAt"];
+}
+
+// 公开状态页的事件。
+message PublicStatusEvent {
+  // 事件标识。
+  string uid = 1;
+  // 事件标题（摘要）。
+  string title = 2;
+  // 事件状态，取值为 FIRING 或 RESOLVED。
+  string status = 3;
+  // 开始时间，RFC3339。
+  string started_at = 4 [json_name = "startedAt"];
+  // 结束时间，RFC3339；未结束时为空。
+  string ended_at = 5 [json_name = "endedAt"];
+}
+
+// 公开状态页。
+message PublicStatusPage {
+  // 标题。
+  string title = 1;
+  // 描述。
+  string description = 2;
+  // 生成时间，RFC3339。
+  string updated_at = 3 [json_name = "updatedAt"];
+  // 组件列表。
+  repeated PublicStatusComponent components = 4;
+  // 进行中的事件。
+  repeated PublicStatusEvent active_events = 5 [json_name = "activeEvents"];
+  // 最近结束的事件。
+  repeated PublicStatusEvent recent_events = 6 [json_name = "recentEvents"];
+}
+
+// 创建状态页请求。
+message CreateStatusPageRequest {
+  // 名称，租户内唯一。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 对外展示的标题。
+  string title = 2 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  // 对外展示的描述。
+  string description = 3 [(buf.validate.field).string = {max_len: 1024}];
+  // 展示的探测目标组标识，至少一个。
+  repeated string target_group_uids = 4 [json_name = "targetGroupUids"];
+}
+
+// 创建状态页响应。
+message CreateStatusPageResponse {
+  // 创建后的状态页。
+  StatusPageItem status_page = 1 [json_name = "statusPage"];
+}
+
+// 更新状态页请求。
+message UpdateStatusPageRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称，租户内唯一。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 对外展示的标题。
+  string title = 3 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  // 对外展示的描述。
+  string description = 4 [(buf.validate.field).string = {max_len: 1024}];
+  // 展示的探测目标组标识，至少一个。
+  repeated string target_group_uids = 5 [json_name = "targetGroupUids"];
+}
+
+// 更新状态页响应。
+message UpdateStatusPageResponse {
+  // 更新后的状态页。
+  StatusPageItem status_page = 1 [json_name = "statusPage"];
+}
+
+// 启停状态页请求。
+message UpdateStatusPageStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 目标状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 启停状态页响应。
+message UpdateStatusPageStatusResponse {
+  // 更新后的状态页。
+  StatusPageItem status_page = 1 [json_name = "statusPage"];
+}
+
+// 删除状态页请求。
+message DeleteStatusPageRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除状态页响应。
+message DeleteStatusPageResponse {}
+
+// 获取状态页请求。
+message GetStatusPageRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取状态页响应。
+message GetStatusPageResponse {
+  // 状态页。
+  StatusPageItem status_page = 1 [json_name = "statusPage"];
+}
+
+// 列出状态页请求。
+message ListStatusPagesRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  // 每页数量。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 1, lte: 100}];
+  // 名称模糊搜索，可空。
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+  // 状态过滤，取值为 ACTIVE 或 DISABLED，留空表示不限制。
+  string status = 4 [(buf.validate.field).string = {in: ["", "ACTIVE", "DISABLED"]}];
+}
+
+// 列出状态页响应。
+message ListStatusPagesResponse {
+  // 当前页的状态页。
+  repeated StatusPageItem items = 1;
+  // 总数量。
+  int32 total = 2;
+  // 当前页码。
+  int32 page = 3;
+  // 每页数量。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 重新生成 token 请求。
+message RegenerateStatusPageTokenRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 重新生成 token 响应。
+message RegenerateStatusPageTokenResponse {
+  // 更新后的状态页。
+  StatusPageItem status_page = 1 [json_name = "statusPage"];
+}
+
+// 公开状态页请求。
+message GetPublicStatusPageRequest {
+  // 公开访问 token。
+  string token = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 公开状态页响应。
+message GetPublicStatusPageResponse {
+  // 状态页。
+  PublicStatusPage status_page = 1 [json_name = "statusPage"];
+}

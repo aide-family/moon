@@ -30,6 +30,12 @@ const (
 	ProbeWrite  = "probe:write"
 	ProbeDelete = "probe:delete"
 
+	// 状态页与 SLA 报表是探测模块下的两个独立菜单。
+	StatusPageRead   = "status_page:read"
+	StatusPageWrite  = "status_page:write"
+	StatusPageDelete = "status_page:delete"
+	ProbeSlaRead     = "probe_sla:read"
+
 	AlertRuleRead   = "alert_rule:read"
 	AlertRuleWrite  = "alert_rule:write"
 	AlertRuleDelete = "alert_rule:delete"

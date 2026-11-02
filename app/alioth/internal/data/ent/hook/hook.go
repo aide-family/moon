@@ -489,6 +489,18 @@ func (f ProbeResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProbeResultMutation", m)
 }
 
+// The ProbeSlaDailyFunc type is an adapter to allow the use of ordinary
+// function as ProbeSlaDaily mutator.
+type ProbeSlaDailyFunc func(context.Context, *ent.ProbeSlaDailyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProbeSlaDailyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProbeSlaDailyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProbeSlaDailyMutation", m)
+}
+
 // The ProbeTargetFunc type is an adapter to allow the use of ordinary
 // function as ProbeTarget mutator.
 type ProbeTargetFunc func(context.Context, *ent.ProbeTargetMutation) (ent.Value, error)
@@ -559,6 +571,18 @@ func (f SSHCommandAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SSHCommandAuditMutation", m)
+}
+
+// The StatusPageFunc type is an adapter to allow the use of ordinary
+// function as StatusPage mutator.
+type StatusPageFunc func(context.Context, *ent.StatusPageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f StatusPageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.StatusPageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StatusPageMutation", m)
 }
 
 // The SystemMessageFunc type is an adapter to allow the use of ordinary

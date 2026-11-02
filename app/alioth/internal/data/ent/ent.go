@@ -52,12 +52,14 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/proberesult"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/statuspage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/systemmessage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/useralertpage"
@@ -163,12 +165,14 @@ func checkColumn(t, c string) error {
 			notificationtemplate.Table:          notificationtemplate.ValidColumn,
 			permission.Table:                    permission.ValidColumn,
 			proberesult.Table:                   proberesult.ValidColumn,
+			probesladaily.Table:                 probesladaily.ValidColumn,
 			probetarget.Table:                   probetarget.ValidColumn,
 			probetargetgroup.Table:              probetargetgroup.ValidColumn,
 			role.Table:                          role.ValidColumn,
 			rolepermission.Table:                rolepermission.ValidColumn,
 			sshcommand.Table:                    sshcommand.ValidColumn,
 			sshcommandaudit.Table:               sshcommandaudit.ValidColumn,
+			statuspage.Table:                    statuspage.ValidColumn,
 			systemmessage.Table:                 systemmessage.ValidColumn,
 			user.Table:                          user.ValidColumn,
 			useralertpage.Table:                 useralertpage.ValidColumn,

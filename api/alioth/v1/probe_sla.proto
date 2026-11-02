@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 探测 SLA 报表：按目标组与日期范围汇总探测结果的可用率、延迟与事件数。
+service ProbeSlaService {
+  // 查询探测 SLA 报表。from 与 to 为 RFC3339，跨度最多 30 天。
+  rpc GetProbeSla(GetProbeSlaRequest) returns (GetProbeSlaResponse) {
+    option (google.api.http) = {get: "/v1/probe-sla"};
+  }
+}
+
+// 按天拆分的可用率明细。
+message ProbeSlaDay {
+  // UTC 自然日，格式 YYYY-MM-DD。
+  string day = 1;
+  // 检查次数。
+  int32 checks = 2;
+  // 成功次数。
+  int32 ok_checks = 3 [json_name = "okChecks"];
+  // 失败次数。
+  int32 failed_checks = 4 [json_name = "failedChecks"];
+  // 可用率，例如 99.95；没有数据时为空。
+  string availability = 5;
+  // 平均延迟，毫秒。
+  int32 avg_duration_ms = 6 [json_name = "avgDurationMs"];
+}
+
+// 单个目标组的 SLA 汇总。
+message ProbeSlaGroup {
+  // 目标组标识。
+  string group_uid = 1 [json_name = "groupUid"];
+  // 目标组名称。
+  string group_name = 2 [json_name = "groupName"];
+  // 检查次数。
+  int32 checks = 3;
+  // 成功次数。
+  int32 ok_checks = 4 [json_name = "okChecks"];
+  // 失败次数。
+  int32 failed_checks = 5 [json_name = "failedChecks"];
+  // 可用率，例如 99.95；没有数据时为空。
+  string availability = 6;
+  // 平均延迟，毫秒。
+  int32 avg_duration_ms = 7 [json_name = "avgDurationMs"];
+  // P95 延迟，毫秒。
+  int32 p95_duration_ms = 8 [json_name = "p95DurationMs"];
+  // P95 是否为近似值（超出原始结果保留期时用最大值近似）。
+  bool p95_approximate = 9 [json_name = "p95Approximate"];
+  // 区间内的探测事件数。
+  int32 event_count = 10 [json_name = "eventCount"];
+  // 按天明细。
+  repeated ProbeSlaDay days = 11;
+}
+
+// 探测 SLA 查询请求。
+message GetProbeSlaRequest {
+  // 目标组标识；为空表示全部目标组。
+  repeated string group_uids = 1 [json_name = "groupUids"];
+  // 开始时间，RFC3339。
+  string from = 2 [(buf.validate.field).string.min_len = 1];
+  // 结束时间，RFC3339，必须晚于开始时间且跨度不超过 30 天。
+  string to = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+// 探测 SLA 查询响应。
+message GetProbeSlaResponse {
+  // 汇总的开始时间，RFC3339。
+  string from = 1;
+  // 汇总的结束时间，RFC3339。
+  string to = 2;
+  // 按目标组的汇总。
+  repeated ProbeSlaGroup groups = 3;
+}

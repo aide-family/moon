@@ -126,6 +126,9 @@ type Permission func(*sql.Selector)
 // ProbeResult is the predicate function for proberesult builders.
 type ProbeResult func(*sql.Selector)
 
+// ProbeSlaDaily is the predicate function for probesladaily builders.
+type ProbeSlaDaily func(*sql.Selector)
+
 // ProbeTarget is the predicate function for probetarget builders.
 type ProbeTarget func(*sql.Selector)
 
@@ -143,6 +146,9 @@ type SSHCommand func(*sql.Selector)
 
 // SSHCommandAudit is the predicate function for sshcommandaudit builders.
 type SSHCommandAudit func(*sql.Selector)
+
+// StatusPage is the predicate function for statuspage builders.
+type StatusPage func(*sql.Selector)
 
 // SystemMessage is the predicate function for systemmessage builders.
 type SystemMessage func(*sql.Selector)

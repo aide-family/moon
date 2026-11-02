@@ -19,11 +19,14 @@ const (
 	CapabilityAlertMaintenance = "alert_maintenance"
 	// 探测目标按驱动细分：HTTP / TCP / ICMP / DNS / TLS 各自对应一个能力，
 	// 套餐可以只买其中几种，未实现的类型不会出现在目录里。
-	CapabilityProbeHTTP = "probe_http"
-	CapabilityProbeTCP  = "probe_tcp"
-	CapabilityProbeICMP = "probe_icmp"
-	CapabilityProbeDNS  = "probe_dns"
-	CapabilityProbeTLS  = "probe_tls"
+	// ProbeSla 是探测 SLA 报表的只读菜单。
+	CapabilityProbeSla   = "probe_sla"
+	CapabilityStatusPage = "status_page"
+	CapabilityProbeHTTP  = "probe_http"
+	CapabilityProbeTCP   = "probe_tcp"
+	CapabilityProbeICMP  = "probe_icmp"
+	CapabilityProbeDNS   = "probe_dns"
+	CapabilityProbeTLS   = "probe_tls"
 	// 数据源按驱动细分：一个套餐可以只买 Prometheus，不买 Loki 或 ES。
 	// 六个编码与 datasource.driver 枚举一一对应，权限相同，由能力决定可用类型。
 	CapabilityDatasourcePrometheus      = "datasource_prometheus"
@@ -124,6 +127,16 @@ var capabilitySpecs = []Capability{
 		Code: CapabilityAlertDictionary, Module: FeatureAlertRule, Name: "告警字典",
 		Description: "维护告警级别与数据源级别字典。",
 		Permissions: []string{AlertDictionaryRead, AlertDictionaryWrite, AlertDictionaryDelete},
+	},
+	{
+		Code: CapabilityProbeSla, Module: FeatureProbe, Name: "探测 SLA",
+		Description: "按目标组查看可用率、延迟与失败统计。",
+		Permissions: []string{ProbeSlaRead},
+	},
+	{
+		Code: CapabilityStatusPage, Module: FeatureProbe, Name: "状态页",
+		Description: "对外公开的探测状态页配置与链接。",
+		Permissions: []string{StatusPageRead, StatusPageWrite, StatusPageDelete},
 	},
 	{
 		Code: CapabilityProbeHTTP, Module: FeatureProbe, Name: "HTTP 探测",

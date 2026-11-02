@@ -38,6 +38,8 @@ func NewHTTPServer(
 	rules *service.AlertRuleService,
 	boards *service.BoardService,
 	maintenanceWindows *service.AlertMaintenanceService,
+	probeSla *service.ProbeSlaService,
+	statusPages *service.StatusPageService,
 	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
 	events *service.AlertEventService,
@@ -110,6 +112,8 @@ func NewHTTPServer(
 	v1.RegisterAlertRuleServiceHTTPServer(srv, rules)
 	v1.RegisterBoardServiceHTTPServer(srv, boards)
 	v1.RegisterAlertMaintenanceServiceHTTPServer(srv, maintenanceWindows)
+	v1.RegisterProbeSlaServiceHTTPServer(srv, probeSla)
+	v1.RegisterStatusPageServiceHTTPServer(srv, statusPages)
 	v1.RegisterAlertDictionaryServiceHTTPServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceHTTPServer(srv, alertPages)
 	v1.RegisterAlertEventServiceHTTPServer(srv, events)

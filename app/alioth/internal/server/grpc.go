@@ -35,6 +35,8 @@ func NewGRPCServer(
 	rules *service.AlertRuleService,
 	boards *service.BoardService,
 	maintenanceWindows *service.AlertMaintenanceService,
+	probeSla *service.ProbeSlaService,
+	statusPages *service.StatusPageService,
 	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
 	events *service.AlertEventService,
@@ -93,6 +95,8 @@ func NewGRPCServer(
 	v1.RegisterAlertRuleServiceServer(srv, rules)
 	v1.RegisterBoardServiceServer(srv, boards)
 	v1.RegisterAlertMaintenanceServiceServer(srv, maintenanceWindows)
+	v1.RegisterProbeSlaServiceServer(srv, probeSla)
+	v1.RegisterStatusPageServiceServer(srv, statusPages)
 	v1.RegisterAlertDictionaryServiceServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceServer(srv, alertPages)
 	v1.RegisterAlertEventServiceServer(srv, events)

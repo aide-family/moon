@@ -33,7 +33,7 @@ Alioth 只保存面板的展示配置，不代理、不缓存、不转存 Grafan
 ### 模块、能力与权限
 
 - 目录新增模块 `board`（中文「大盘」）、能力 `board`、权限 `board:read` / `board:write` / `board:delete`、菜单 `board` 与菜单权限 `menu:board`。能力与菜单都包含三个权限，菜单默认读权限为 `board:read`。
-- 模块与能力都插在 `role` 之后、`cluster` 之前，使基础套餐保持连续的前八个模块；目录从 10 个模块 / 57 个能力变为 11 / 59（含 M28 新增的维护窗口能力），基础套餐从 30 项变为 32 项。
+- 模块与能力都插在 `role` 之后、`cluster` 之前，使基础套餐保持连续的前八个模块；目录从 10 个模块 / 57 个能力变为 11 / 61（含 M28 维护窗口与 M30 状态页 / SLA 能力），基础套餐从 30 项变为 34 项。
 - `perm.BaseFeatures()` 增加 `board`，`BaseCapabilities()` 自动包含 `board`；`basePackageRemark` 同步补「大盘」。套餐勾选页、角色授权页与 `/v1/system/features` 都随目录自动生效。
 - 权限语义：`board:read` 看列表与查看页；`board:write` 新建、编辑、启停；`board:delete` 删除。接口由 `access.Allow` 校验能力与菜单权限，页面隐藏按钮不能代替服务端拒绝。
 
@@ -128,7 +128,7 @@ Alioth 只保存面板的展示配置，不代理、不缓存、不转存 Grafan
 
 ## 验收
 
-- [ ] 能力目录：`/v1/system/features` 返回模块 `board`、能力 `board` 与三个权限；模块/能力总数为 11 / 59，基础套餐为 32 项；角色授权页、套餐勾选页与中英文标签正常。
+- [ ] 能力目录：`/v1/system/features` 返回模块 `board`、能力 `board` 与三个权限；模块/能力总数为 11 / 61，基础套餐为 34 项；角色授权页、套餐勾选页与中英文标签正常。
 - [ ] 新租户：创建后 `board` 在套餐快照中，负责人能看到「大盘」菜单；非负责人授权 `menu:board` + `board:read` 后可见。
 - [ ] 存量基础套餐租户：跑 seed 后获得 `board` 额外能力，重复执行不产生重复行；自定义套餐租户不被自动补，`namespace_feature` 不变。
 - [ ] 菜单与鉴权：无 `menu:board` 时侧栏不显示，直接访问 `/boards` 回落到无权页面；无 `board:write` 时新建/编辑/启停入口隐藏且接口 403；无 `board:delete` 时删除入口隐藏且接口 403。
@@ -163,6 +163,6 @@ Alioth 只保存面板的展示配置，不代理、不缓存、不转存 Grafan
 
 ## 文档同步
 
-- 实现后更新 [../design.md](../design.md) 的 Web 章节与能力目录计数（11 模块 / 59 能力 / 基础套餐 32 项），并在数据对象一览补 `Board`、`BoardPanel`。
+- 实现后更新 [../design.md](../design.md) 的 Web 章节与能力目录计数（11 模块 / 61 能力 / 基础套餐 34 项），并在数据对象一览补 `Board`、`BoardPanel`。
 - 在 [../roadmap.md](../roadmap.md) 增加 M32 条目；[conventions.md](conventions.md) 同步模块数、能力数与基础套餐描述。
 - kubernetes-console 文档不涉及大盘；本模块的面板地址规则与安全边界以本文为准。

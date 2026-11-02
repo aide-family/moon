@@ -642,7 +642,7 @@ flowchart TB
 
 身份：`User`、`UserOAuth`、`Namespace`、`Member`、`Role`、`Permission`、`RolePermission`、`MemberRole`。
 
-告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`、`AlertEventAction`（事件处置时间线）、`AlertMaintenanceWindow`（维护窗口）、`AlertHistoryEvent`（历史分片索引）、`AlertEventColumn`（实时告警自定义列）、`ProbeTargetGroup`（探测目标组）、`ProbeTarget`（组内目标）、`ProbeResult`（探测结果）。
+告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`、`AlertEventAction`（事件处置时间线）、`AlertMaintenanceWindow`（维护窗口）、`AlertHistoryEvent`（历史分片索引）、`AlertEventColumn`（实时告警自定义列）、`ProbeTargetGroup`（探测目标组）、`ProbeTarget`（组内目标）、`ProbeResult`（探测结果）、`ProbeSlaDaily`（探测日聚合）、`StatusPage`（公开状态页）。
 
 通知：`NotificationChannel`、`NotificationTemplate`、`NotificationGroup`、`NotificationTask`、`MessageLog`。
 

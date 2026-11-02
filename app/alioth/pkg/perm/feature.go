@@ -98,7 +98,7 @@ func featureForResource(resource string) string {
 		return FeatureAlert
 	case "alert_rule":
 		return FeatureAlertRule
-	case "probe":
+	case "probe", "status_page", "probe_sla":
 		return FeatureProbe
 	case "datasource":
 		return FeatureDatasource

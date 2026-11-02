@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
 	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
+	"github.com/aide-family/moon/app/alioth/internal/biz/probesla"
 	workerbiz "github.com/aide-family/moon/app/alioth/internal/biz/worker"
 	"github.com/aide-family/moon/pkg/merr"
 )
@@ -21,12 +22,14 @@ type Scheduler struct {
 	center            *notification.Center
 	maintainer        *partition.Maintainer
 	roster            *workerbiz.Roster
+	sla               *probesla.Gateway
 	log               *slog.Logger
 	lastCheck         time.Time
 	lastWorkerCleanup time.Time
 	lastBackfill      time.Time
 	lastLogBackfill   time.Time
 	lastProbePrune    time.Time
+	lastSlaRollup     time.Time
 	cancel            context.CancelFunc
 	done              chan struct{}
 }
@@ -36,9 +39,10 @@ func NewScheduler(
 	center *notification.Center,
 	maintainer *partition.Maintainer,
 	roster *workerbiz.Roster,
+	sla *probesla.Gateway,
 	logger *slog.Logger,
 ) *Scheduler {
-	return &Scheduler{coordinator: coordinator, center: center, maintainer: maintainer, roster: roster, log: logger}
+	return &Scheduler{coordinator: coordinator, center: center, maintainer: maintainer, roster: roster, sla: sla, log: logger}
 }
 
 func (s *Scheduler) Start(context.Context) error {
@@ -90,6 +94,7 @@ func (s *Scheduler) tick(ctx context.Context) {
 	s.backfillHistory(ctx)
 	s.backfillMessageLogs(ctx)
 	s.pruneProbeResults(ctx)
+	s.rollupProbeSla(ctx)
 	s.cleanupWorkerInstances(ctx)
 }
 
@@ -101,6 +106,18 @@ func (s *Scheduler) pruneProbeResults(ctx context.Context) {
 	s.lastProbePrune = time.Now()
 	if _, err := s.coordinator.PruneProbeResults(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("prune probe results: %v", err))
+	}
+}
+
+// rollupProbeSla 每小时聚合最近 7 天的探测结果。必须先于原始结果清理执行，
+// 否则被清理的那几天无法补齐日聚合。
+func (s *Scheduler) rollupProbeSla(ctx context.Context) {
+	if s.sla == nil || time.Since(s.lastSlaRollup) < time.Hour {
+		return
+	}
+	s.lastSlaRollup = time.Now()
+	if err := s.sla.Rollup(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("rollup probe sla: %v", err))
 	}
 }
 

@@ -1653,6 +1653,45 @@ var (
 			},
 		},
 	}
+	// ProbeSLADailiesColumns holds the columns for the "probe_sla_dailies" table.
+	ProbeSLADailiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "group_uid", Type: field.TypeString},
+		{Name: "target_uid", Type: field.TypeString},
+		{Name: "day", Type: field.TypeTime},
+		{Name: "checks", Type: field.TypeInt, Default: 0},
+		{Name: "ok_checks", Type: field.TypeInt, Default: 0},
+		{Name: "failed_checks", Type: field.TypeInt, Default: 0},
+		{Name: "total_duration_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "max_duration_ms", Type: field.TypeInt, Default: 0},
+	}
+	// ProbeSLADailiesTable holds the schema information for the "probe_sla_dailies" table.
+	ProbeSLADailiesTable = &schema.Table{
+		Name:       "probe_sla_dailies",
+		Columns:    ProbeSLADailiesColumns,
+		PrimaryKey: []*schema.Column{ProbeSLADailiesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "probesladaily_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ProbeSLADailiesColumns[3]},
+			},
+			{
+				Name:    "probesladaily_target_uid_day",
+				Unique:  true,
+				Columns: []*schema.Column{ProbeSLADailiesColumns[6], ProbeSLADailiesColumns[7]},
+			},
+			{
+				Name:    "probesladaily_namespace_uid_group_uid_day",
+				Unique:  false,
+				Columns: []*schema.Column{ProbeSLADailiesColumns[4], ProbeSLADailiesColumns[5], ProbeSLADailiesColumns[7]},
+			},
+		},
+	}
 	// ProbeTargetsColumns holds the columns for the "probe_targets" table.
 	ProbeTargetsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1894,6 +1933,53 @@ var (
 			},
 		},
 	}
+	// StatusPagesColumns holds the columns for the "status_pages" table.
+	StatusPagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "token", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "target_group_uids", Type: field.TypeJSON},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+	}
+	// StatusPagesTable holds the schema information for the "status_pages" table.
+	StatusPagesTable = &schema.Table{
+		Name:       "status_pages",
+		Columns:    StatusPagesColumns,
+		PrimaryKey: []*schema.Column{StatusPagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "statuspage_uid",
+				Unique:  true,
+				Columns: []*schema.Column{StatusPagesColumns[4]},
+			},
+			{
+				Name:    "statuspage_token",
+				Unique:  true,
+				Columns: []*schema.Column{StatusPagesColumns[9]},
+			},
+			{
+				Name:    "statuspage_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{StatusPagesColumns[5], StatusPagesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "statuspage_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{StatusPagesColumns[5], StatusPagesColumns[10]},
+			},
+		},
+	}
 	// SystemMessagesColumns holds the columns for the "system_messages" table.
 	SystemMessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -2129,12 +2215,14 @@ var (
 		NotificationTemplatesTable,
 		PermissionsTable,
 		ProbeResultsTable,
+		ProbeSLADailiesTable,
 		ProbeTargetsTable,
 		ProbeTargetGroupsTable,
 		RolesTable,
 		RolePermissionsTable,
 		SSHCommandsTable,
 		SSHCommandAuditsTable,
+		StatusPagesTable,
 		SystemMessagesTable,
 		UsersTable,
 		UserAlertPagesTable,
