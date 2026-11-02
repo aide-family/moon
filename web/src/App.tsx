@@ -31,6 +31,7 @@ import { NotificationGroupPage } from "@/pages/notification-group"
 import { NotificationOnCallPage } from "@/pages/notification-oncall"
 import { NotificationSubscriptionPage } from "@/pages/notification-subscription"
 import { NotificationTemplatePage } from "@/pages/notification-template"
+import { OnCallRotationPage } from "@/pages/oncall-rotation"
 import { NotificationPresetPage } from "@/pages/notification-template/presets"
 import { OAuthCallbackPage } from "@/pages/oauth-callback"
 import { OrderPage } from "@/pages/order"
@@ -121,6 +122,7 @@ export function App() {
           path="/notification-oncalls"
           element={<NotificationOnCallPage />}
         />
+        <Route path="/oncall-rotations" element={<OnCallRotationPage />} />
         <Route path="/message-logs" element={<MessageLogPage />} />
         <Route path="/clusters" element={<ClusterPage />} />
         <Route path="/clusters/:uid" element={<ClusterDetailPage />} />

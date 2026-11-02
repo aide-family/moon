@@ -24,6 +24,7 @@ import {
   Package,
   PanelsTopLeft,
   ReceiptText,
+  Repeat2,
   Server,
   Settings,
   Shield,
@@ -313,6 +314,13 @@ const notifyLinks: {
     permission: "notification_oncall:read",
     capability: MENU_CAPABILITIES["/notification-oncalls"],
     icon: CalendarClock,
+  },
+  {
+    to: "/oncall-rotations",
+    label: "nav.oncallRotations",
+    permission: "notification_rotation:read",
+    capability: MENU_CAPABILITIES["/oncall-rotations"],
+    icon: Repeat2,
   },
   {
     to: "/message-logs",

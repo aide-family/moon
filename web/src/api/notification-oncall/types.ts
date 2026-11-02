@@ -20,12 +20,18 @@ export interface OnCallGroupItem {
   groupUid: string
   groupName: string
   windows: OnCallWindow[]
+  /** 绑定的值班轮换标识，空表示不绑定。 */
+  rotationUid: string
+  /** 值班轮换名称，只读；未绑定或轮换已删除时为空。 */
+  rotationName: string
 }
 
 /** 创建/更新只提交 groupUid 与时段。 */
 export interface OnCallGroupInput {
   groupUid: string
   windows: OnCallWindow[]
+  /** 绑定的值班轮换标识，可空；非空时投递追加当班成员。 */
+  rotationUid?: string
 }
 
 export interface NotificationOnCallItem {

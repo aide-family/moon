@@ -10,6 +10,8 @@ import { selectDatasources } from "@/api/datasource"
 import type { SelectItem as DatasourceOption } from "@/api/datasource/types"
 import { selectNotificationGroups } from "@/api/notification-group"
 import type { SelectItem as GroupOption } from "@/api/notification-group/types"
+import { listOnCallRotations } from "@/api/oncall-rotation"
+import type { OnCallRotationItem } from "@/api/oncall-rotation/types"
 import {
   createNotificationOnCall,
   deleteNotificationOnCall,
@@ -46,6 +48,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -91,6 +100,9 @@ const DEFAULT_TIMEZONE =
 /** 重复发送间隔按分钟编辑，后端按秒保存；0 表示不限制。 */
 const MAX_REPEAT_INTERVAL_MINUTES = 720
 
+/** Radix Select 不允许空字符串选项，用哨兵值表示「不绑定轮换」。 */
+const ROTATION_NONE = "NONE"
+
 // 时间视图要一次看全所有值班项，不能只拿列表当前页；接口上限是 100。
 const TIME_VIEW_PAGE_SIZE = 100
 
@@ -119,6 +131,10 @@ const TIMEZONE_OPTIONS = [
 interface GroupBinding {
   groupUid: string
   windows: OnCallWindow[]
+  /** 绑定的值班轮换标识；空表示不绑定。 */
+  rotationUid: string
+  /** 只读的回显名称：无轮换查看权限或轮换已删除时用于展示。 */
+  rotationName?: string
 }
 
 function sortWeekdays(days: string[]): string[] {
@@ -162,6 +178,13 @@ function GroupWindows({ binding, name }: GroupWindowsProps) {
           </Badge>
         ) : null}
       </div>
+      {binding.rotationUid ? (
+        <p className="text-xs text-muted-foreground">
+          {t("oncall.rotationValue", {
+            name: binding.rotationName || binding.rotationUid,
+          })}
+        </p>
+      ) : null}
       {windows.length > 0 ? (
         <ul className="grid gap-1.5">
           {windows.map((window, index) => {
@@ -215,6 +238,7 @@ export function NotificationOnCallPage() {
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
   const [groups, setGroups] = useState<GroupOption[]>([])
+  const [rotations, setRotations] = useState<OnCallRotationItem[]>([])
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [datasourceLevels, setDatasourceLevels] = useState<
     AlertDictionaryItem[]
@@ -243,6 +267,8 @@ export function NotificationOnCallPage() {
   } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const canWrite = session.can("notification_oncall:write")
+  // 值班轮换是可选绑定：没有 notification_rotation:read 时不展示下拉，只回显已有名称。
+  const canReadRotation = session.can("notification_rotation:read")
   // 列表与时间视图是同一份数据（同一套筛选），只是呈现方式不同。
   // 时间视图是默认视图，URL 只记录非默认的列表视图（?tab=list），地址栏保持干净。
   const [searchParams, setSearchParams] = useSearchParams()
@@ -324,6 +350,31 @@ export function NotificationOnCallPage() {
     }
   }, [session.namespaceUid])
 
+  // 值班轮换候选：能看轮换才加载；没有权限时绑定关系仍然通过详情字段回显。
+  useEffect(() => {
+    // 没有轮换查看权限时不请求；下拉本来就不渲染，不需要额外清空已加载的选项。
+    if (!canReadRotation) {
+      return
+    }
+    let active = true
+    loadAllPagedItems((page, pageSize) =>
+      listOnCallRotations({ page, pageSize })
+    )
+      .then((items) => {
+        if (active) {
+          setRotations(items)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setRotations([])
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [session.namespaceUid, canReadRotation])
+
   function toggle(values: string[], uid: string): string[] {
     return values.includes(uid)
       ? values.filter((value) => value !== uid)
@@ -387,6 +438,8 @@ export function NotificationOnCallPage() {
           start: window.start,
           end: window.end,
         })),
+        rotationUid: group.rotationUid ?? "",
+        rotationName: group.rotationName ?? "",
       }))
     )
     setRepeatIntervalMinutes(String(toMinutes(item.repeatIntervalSeconds)))
@@ -407,7 +460,7 @@ export function NotificationOnCallPage() {
       const keptUids = new Set(kept.map((binding) => binding.groupUid))
       const added = nextUids
         .filter((uid) => !keptUids.has(uid))
-        .map((uid) => ({ groupUid: uid, windows: [] }))
+        .map((uid) => ({ groupUid: uid, windows: [], rotationUid: "" }))
       return [...kept, ...added]
     })
   }
@@ -421,6 +474,14 @@ export function NotificationOnCallPage() {
         binding.groupUid === groupUid
           ? { ...binding, windows: change(binding.windows) }
           : binding
+      )
+    )
+  }
+
+  function setBindingRotation(groupUid: string, rotationUid: string) {
+    setBindings((current) =>
+      current.map((binding) =>
+        binding.groupUid === groupUid ? { ...binding, rotationUid } : binding
       )
     )
   }
@@ -487,7 +548,15 @@ export function NotificationOnCallPage() {
     return groupBindings
       .map(
         (binding) =>
-          `${binding.groupName || groupName(binding.groupUid)}: ${windowsSummary(binding.windows ?? [])}`
+          `${binding.groupName || groupName(binding.groupUid)}: ${windowsSummary(
+            binding.windows ?? []
+          )}${
+            binding.rotationUid
+              ? ` · ${t("oncall.rotationValue", {
+                  name: binding.rotationName || binding.rotationUid,
+                })}`
+              : ""
+          }`
       )
       .join(" · ")
   }
@@ -715,6 +784,7 @@ export function NotificationOnCallPage() {
             start: window.start,
             end: window.end,
           })),
+          rotationUid: binding.rotationUid || undefined,
         })),
         repeatIntervalSeconds: Number(repeatIntervalMinutes.trim()) * 60,
         remark,
@@ -1108,14 +1178,73 @@ export function NotificationOnCallPage() {
                   error={fieldErrors.windows}
                 >
                   <div className="grid gap-3">
+                    {canReadRotation ? (
+                      <p className="text-xs text-muted-foreground">
+                        {t("oncall.rotationHint")}
+                      </p>
+                    ) : null}
                     {bindings.map((binding) => (
                       <div
                         key={binding.groupUid}
                         className="rounded-md border bg-muted/30 p-3"
                       >
-                        <p className="mb-2 text-sm font-medium">
-                          {groupName(binding.groupUid)}
-                        </p>
+                        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-sm font-medium">
+                            {groupName(binding.groupUid)}
+                          </p>
+                          {canReadRotation ? (
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span className="text-xs whitespace-nowrap text-muted-foreground">
+                                {t("oncall.rotation")}
+                              </span>
+                              <Select
+                                value={binding.rotationUid || ROTATION_NONE}
+                                onValueChange={(value) =>
+                                  setBindingRotation(
+                                    binding.groupUid,
+                                    value === ROTATION_NONE ? "" : value
+                                  )
+                                }
+                              >
+                                <SelectTrigger
+                                  className="w-56"
+                                  aria-label={t("oncall.rotation")}
+                                >
+                                  <SelectValue
+                                    placeholder={t("oncall.rotationNone")}
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value={ROTATION_NONE}>
+                                    {t("oncall.rotationNone")}
+                                  </SelectItem>
+                                  {rotations.map((rotation) => (
+                                    <SelectItem
+                                      key={rotation.uid}
+                                      value={rotation.uid}
+                                    >
+                                      {rotation.name}
+                                    </SelectItem>
+                                  ))}
+                                  {binding.rotationUid &&
+                                  !rotations.some(
+                                    (rotation) =>
+                                      rotation.uid === binding.rotationUid
+                                  ) ? (
+                                    <SelectItem value={binding.rotationUid}>
+                                      {binding.rotationName ||
+                                        binding.rotationUid}
+                                    </SelectItem>
+                                  ) : null}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          ) : binding.rotationUid ? (
+                            <span className="text-xs text-muted-foreground">
+                              {t("oncall.rotationNoPermission")}
+                            </span>
+                          ) : null}
+                        </div>
                         <div className="grid gap-2">
                           {binding.windows.map((window, index) => (
                             <div

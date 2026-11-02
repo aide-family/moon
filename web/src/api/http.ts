@@ -152,7 +152,7 @@ const messageKeys: Record<string, string> = {
   "probe body keyword is too long": "error.probeKeywordTooLong",
   "invalid probe interval": "error.probeIntervalInvalid",
   "invalid probe metric": "error.probeMetricInvalid",
-  "remark is too long": "probeTarget.remarkTooLong",
+  "remark is too long": "error.remarkTooLong",
   "invalid query expression": "error.invalidQueryExpression",
   "upstream query failed": "error.upstreamQueryFailed",
   "invalid smtp endpoint": "error.invalidSmtpEndpoint",
@@ -271,6 +271,19 @@ const messageKeys: Record<string, string> = {
   "notification group is required": "escalation.errors.groupsRequired",
   "notification group is unavailable": "escalation.errors.groupUnavailable",
   "escalation policy not found": "escalation.errors.notFound",
+  // 值班轮换：名称、时区、周期、交班小时、成员与排班窗口的后端原文。
+  "invalid rotation name": "rotation.errors.nameInvalid",
+  "invalid rotation period": "rotation.errors.periodInvalid",
+  "invalid rotation handoff hour": "rotation.errors.handoffHourInvalid",
+  "rotation starts at is required": "rotation.errors.startsAtRequired",
+  "invalid rotation members": "rotation.errors.membersInvalid",
+  "rotation member is required": "rotation.errors.memberRequired",
+  "duplicate rotation member": "rotation.errors.memberDuplicate",
+  "invalid rotation member": "rotation.errors.memberInvalid",
+  "invalid rotation configuration": "rotation.errors.configInvalid",
+  "invalid schedule days": "rotation.errors.scheduleDaysInvalid",
+  "rotation not found": "rotation.errors.notFound",
+  // 时区复用已有 "invalid on-call timezone" → error.invalidOncallTimezone 映射。
 }
 
 // 服务端错误带 reason（CLIENT / INVALID / CONFLICT 等）。message 没有具体映射时用它兜底，

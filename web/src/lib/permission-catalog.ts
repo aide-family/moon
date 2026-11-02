@@ -38,6 +38,7 @@ const RESOURCE_LABELS: Record<string, LocalizedLabel> = {
     en: "Alert subscriptions",
   },
   notification_oncall: { zh: "OnCall 值班", en: "On-call" },
+  notification_rotation: { zh: "值班轮换", en: "On-call rotations" },
   message_log: { zh: "消息日志", en: "Message logs" },
   cluster: { zh: "Kubernetes 集群", en: "Kubernetes clusters" },
   // cluster:* 只负责集群接入与连接；集群内具体资源按 k8s:<资源>:<动作> 授权。
@@ -104,6 +105,7 @@ const RESOURCE_ORDER = [
   "notification_group",
   "notification_subscription",
   "notification_oncall",
+  "notification_rotation",
   "message_log",
   "member",
   "role",

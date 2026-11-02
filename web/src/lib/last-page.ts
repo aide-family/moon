@@ -43,6 +43,7 @@ const knownPaths = new Set([
   "/notification-groups",
   "/notification-subscriptions",
   "/notification-oncalls",
+  "/oncall-rotations",
   "/message-logs",
   "/clusters",
   "/agents",
