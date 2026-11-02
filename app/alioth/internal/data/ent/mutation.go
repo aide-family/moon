@@ -16986,28 +16986,29 @@ func (m *CaptchaMutation) ResetEdge(name string) error {
 // ClusterMutation represents an operation that mutates the Cluster nodes in the graph.
 type ClusterMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *int
-	created_at         *time.Time
-	updated_at         *time.Time
-	deleted_at         *time.Time
-	uid                *string
-	namespace_uid      *string
-	name               *string
-	server             *string
-	version            *string
-	cluster_name       *string
-	context_name       *string
-	kubeconfig_cipher  *string
-	remark             *string
-	last_checked_at    *int64
-	addlast_checked_at *int64
-	last_error         *string
-	clearedFields      map[string]struct{}
-	done               bool
-	oldValue           func(context.Context) (*Cluster, error)
-	predicates         []predicate.Cluster
+	op                     Op
+	typ                    string
+	id                     *int
+	created_at             *time.Time
+	updated_at             *time.Time
+	deleted_at             *time.Time
+	uid                    *string
+	namespace_uid          *string
+	name                   *string
+	server                 *string
+	version                *string
+	cluster_name           *string
+	context_name           *string
+	kubeconfig_cipher      *string
+	remark                 *string
+	last_checked_at        *int64
+	addlast_checked_at     *int64
+	last_error             *string
+	metrics_datasource_uid *string
+	clearedFields          map[string]struct{}
+	done                   bool
+	oldValue               func(context.Context) (*Cluster, error)
+	predicates             []predicate.Cluster
 }
 
 var _ ent.Mutation = (*ClusterMutation)(nil)
@@ -17645,6 +17646,42 @@ func (m *ClusterMutation) ResetLastError() {
 	m.last_error = nil
 }
 
+// SetMetricsDatasourceUID sets the "metrics_datasource_uid" field.
+func (m *ClusterMutation) SetMetricsDatasourceUID(s string) {
+	m.metrics_datasource_uid = &s
+}
+
+// MetricsDatasourceUID returns the value of the "metrics_datasource_uid" field in the mutation.
+func (m *ClusterMutation) MetricsDatasourceUID() (r string, exists bool) {
+	v := m.metrics_datasource_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMetricsDatasourceUID returns the old "metrics_datasource_uid" field's value of the Cluster entity.
+// If the Cluster object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClusterMutation) OldMetricsDatasourceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMetricsDatasourceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMetricsDatasourceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMetricsDatasourceUID: %w", err)
+	}
+	return oldValue.MetricsDatasourceUID, nil
+}
+
+// ResetMetricsDatasourceUID resets all changes to the "metrics_datasource_uid" field.
+func (m *ClusterMutation) ResetMetricsDatasourceUID() {
+	m.metrics_datasource_uid = nil
+}
+
 // Where appends a list predicates to the ClusterMutation builder.
 func (m *ClusterMutation) Where(ps ...predicate.Cluster) {
 	m.predicates = append(m.predicates, ps...)
@@ -17679,7 +17716,7 @@ func (m *ClusterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ClusterMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.created_at != nil {
 		fields = append(fields, cluster.FieldCreatedAt)
 	}
@@ -17722,6 +17759,9 @@ func (m *ClusterMutation) Fields() []string {
 	if m.last_error != nil {
 		fields = append(fields, cluster.FieldLastError)
 	}
+	if m.metrics_datasource_uid != nil {
+		fields = append(fields, cluster.FieldMetricsDatasourceUID)
+	}
 	return fields
 }
 
@@ -17758,6 +17798,8 @@ func (m *ClusterMutation) Field(name string) (ent.Value, bool) {
 		return m.LastCheckedAt()
 	case cluster.FieldLastError:
 		return m.LastError()
+	case cluster.FieldMetricsDatasourceUID:
+		return m.MetricsDatasourceUID()
 	}
 	return nil, false
 }
@@ -17795,6 +17837,8 @@ func (m *ClusterMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldLastCheckedAt(ctx)
 	case cluster.FieldLastError:
 		return m.OldLastError(ctx)
+	case cluster.FieldMetricsDatasourceUID:
+		return m.OldMetricsDatasourceUID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Cluster field %s", name)
 }
@@ -17901,6 +17945,13 @@ func (m *ClusterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLastError(v)
+		return nil
+	case cluster.FieldMetricsDatasourceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMetricsDatasourceUID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Cluster field %s", name)
@@ -18016,6 +18067,9 @@ func (m *ClusterMutation) ResetField(name string) error {
 		return nil
 	case cluster.FieldLastError:
 		m.ResetLastError()
+		return nil
+	case cluster.FieldMetricsDatasourceUID:
+		m.ResetMetricsDatasourceUID()
 		return nil
 	}
 	return fmt.Errorf("unknown Cluster field %s", name)

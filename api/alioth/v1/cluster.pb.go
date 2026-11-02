@@ -45,9 +45,13 @@ type ClusterItem struct {
 	// 最近一次连通性检测的失败原因。为空表示最近一次检测成功。
 	LastError string `protobuf:"bytes,9,opt,name=last_error,json=lastError,proto3" json:"last_error,omitempty"`
 	// 创建时间，Unix 秒。
-	CreatedAt     int64 `protobuf:"varint,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	CreatedAt int64 `protobuf:"varint,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 绑定的指标数据源标识。未绑定为空。
+	MetricsDatasourceUid string `protobuf:"bytes,11,opt,name=metrics_datasource_uid,json=metricsDatasourceUid,proto3" json:"metrics_datasource_uid,omitempty"`
+	// 绑定的指标数据源名称。未绑定或数据源已删除时为空。
+	MetricsDatasourceName string `protobuf:"bytes,12,opt,name=metrics_datasource_name,json=metricsDatasourceName,proto3" json:"metrics_datasource_name,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ClusterItem) Reset() {
@@ -150,6 +154,20 @@ func (x *ClusterItem) GetCreatedAt() int64 {
 	return 0
 }
 
+func (x *ClusterItem) GetMetricsDatasourceUid() string {
+	if x != nil {
+		return x.MetricsDatasourceUid
+	}
+	return ""
+}
+
+func (x *ClusterItem) GetMetricsDatasourceName() string {
+	if x != nil {
+		return x.MetricsDatasourceName
+	}
+	return ""
+}
+
 // 连通性探测结果。
 type ClusterProbe struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -240,9 +258,11 @@ type CreateClusterRequest struct {
 	// kubeconfig YAML 原文。
 	Kubeconfig string `protobuf:"bytes,2,opt,name=kubeconfig,proto3" json:"kubeconfig,omitempty"`
 	// 备注。
-	Remark        string `protobuf:"bytes,3,opt,name=remark,proto3" json:"remark,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Remark string `protobuf:"bytes,3,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 绑定的指标数据源标识。字段缺失表示不绑定；显式空串表示解绑。
+	MetricsDatasourceUid *string `protobuf:"bytes,4,opt,name=metrics_datasource_uid,json=metricsDatasourceUid,proto3,oneof" json:"metrics_datasource_uid,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *CreateClusterRequest) Reset() {
@@ -292,6 +312,13 @@ func (x *CreateClusterRequest) GetKubeconfig() string {
 func (x *CreateClusterRequest) GetRemark() string {
 	if x != nil {
 		return x.Remark
+	}
+	return ""
+}
+
+func (x *CreateClusterRequest) GetMetricsDatasourceUid() string {
+	if x != nil && x.MetricsDatasourceUid != nil {
+		return *x.MetricsDatasourceUid
 	}
 	return ""
 }
@@ -352,9 +379,11 @@ type UpdateClusterRequest struct {
 	// 新的 kubeconfig。留空表示保持原值。
 	Kubeconfig string `protobuf:"bytes,3,opt,name=kubeconfig,proto3" json:"kubeconfig,omitempty"`
 	// 备注。
-	Remark        string `protobuf:"bytes,4,opt,name=remark,proto3" json:"remark,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Remark string `protobuf:"bytes,4,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 绑定的指标数据源标识。字段缺失表示保持原值；显式空串表示解绑。
+	MetricsDatasourceUid *string `protobuf:"bytes,5,opt,name=metrics_datasource_uid,json=metricsDatasourceUid,proto3,oneof" json:"metrics_datasource_uid,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *UpdateClusterRequest) Reset() {
@@ -411,6 +440,13 @@ func (x *UpdateClusterRequest) GetKubeconfig() string {
 func (x *UpdateClusterRequest) GetRemark() string {
 	if x != nil {
 		return x.Remark
+	}
+	return ""
+}
+
+func (x *UpdateClusterRequest) GetMetricsDatasourceUid() string {
+	if x != nil && x.MetricsDatasourceUid != nil {
+		return *x.MetricsDatasourceUid
 	}
 	return ""
 }
@@ -966,11 +1002,157 @@ func (x *ProbeKubeconfigResponse) GetProbe() *ClusterProbe {
 	return nil
 }
 
+// 读取集群指标汇总。
+type GetClusterMetricsSummaryRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 集群标识。
+	ClusterUid    string `protobuf:"bytes,1,opt,name=cluster_uid,json=clusterUid,proto3" json:"cluster_uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClusterMetricsSummaryRequest) Reset() {
+	*x = GetClusterMetricsSummaryRequest{}
+	mi := &file_alioth_v1_cluster_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClusterMetricsSummaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClusterMetricsSummaryRequest) ProtoMessage() {}
+
+func (x *GetClusterMetricsSummaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_cluster_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClusterMetricsSummaryRequest.ProtoReflect.Descriptor instead.
+func (*GetClusterMetricsSummaryRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_cluster_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetClusterMetricsSummaryRequest) GetClusterUid() string {
+	if x != nil {
+		return x.ClusterUid
+	}
+	return ""
+}
+
+// 集群指标汇总。未绑定、部分失败与数据源不可用都通过 status 表达，不返回服务端错误。
+type GetClusterMetricsSummaryResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 结果状态，取值为 UNBOUND、OK、PARTIAL 或 FAILED。
+	Status string `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	// 节点 CPU 使用率百分比。只在取到值时返回。
+	NodeCpuUsagePercent *float64 `protobuf:"fixed64,2,opt,name=node_cpu_usage_percent,json=nodeCpuUsagePercent,proto3,oneof" json:"node_cpu_usage_percent,omitempty"`
+	// 节点内存使用率百分比。只在取到值时返回。
+	NodeMemoryUsagePercent *float64 `protobuf:"fixed64,3,opt,name=node_memory_usage_percent,json=nodeMemoryUsagePercent,proto3,oneof" json:"node_memory_usage_percent,omitempty"`
+	// Pod CPU 使用核数。只在取到值时返回。
+	PodCpuUsageCores *float64 `protobuf:"fixed64,4,opt,name=pod_cpu_usage_cores,json=podCpuUsageCores,proto3,oneof" json:"pod_cpu_usage_cores,omitempty"`
+	// Pod 内存工作集字节数。只在取到值时返回。
+	PodMemoryUsageBytes *float64 `protobuf:"fixed64,5,opt,name=pod_memory_usage_bytes,json=podMemoryUsageBytes,proto3,oneof" json:"pod_memory_usage_bytes,omitempty"`
+	// 没有取到的指标 key。PARTIAL 时非空。
+	UnavailableMetrics []string `protobuf:"bytes,6,rep,name=unavailable_metrics,json=unavailableMetrics,proto3" json:"unavailable_metrics,omitempty"`
+	// 非 OK 时的说明。UNBOUND 时说明未绑定数据源，FAILED 时说明失败原因。
+	Message       string `protobuf:"bytes,7,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClusterMetricsSummaryResponse) Reset() {
+	*x = GetClusterMetricsSummaryResponse{}
+	mi := &file_alioth_v1_cluster_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClusterMetricsSummaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClusterMetricsSummaryResponse) ProtoMessage() {}
+
+func (x *GetClusterMetricsSummaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_cluster_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClusterMetricsSummaryResponse.ProtoReflect.Descriptor instead.
+func (*GetClusterMetricsSummaryResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_cluster_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetClusterMetricsSummaryResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *GetClusterMetricsSummaryResponse) GetNodeCpuUsagePercent() float64 {
+	if x != nil && x.NodeCpuUsagePercent != nil {
+		return *x.NodeCpuUsagePercent
+	}
+	return 0
+}
+
+func (x *GetClusterMetricsSummaryResponse) GetNodeMemoryUsagePercent() float64 {
+	if x != nil && x.NodeMemoryUsagePercent != nil {
+		return *x.NodeMemoryUsagePercent
+	}
+	return 0
+}
+
+func (x *GetClusterMetricsSummaryResponse) GetPodCpuUsageCores() float64 {
+	if x != nil && x.PodCpuUsageCores != nil {
+		return *x.PodCpuUsageCores
+	}
+	return 0
+}
+
+func (x *GetClusterMetricsSummaryResponse) GetPodMemoryUsageBytes() float64 {
+	if x != nil && x.PodMemoryUsageBytes != nil {
+		return *x.PodMemoryUsageBytes
+	}
+	return 0
+}
+
+func (x *GetClusterMetricsSummaryResponse) GetUnavailableMetrics() []string {
+	if x != nil {
+		return x.UnavailableMetrics
+	}
+	return nil
+}
+
+func (x *GetClusterMetricsSummaryResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_alioth_v1_cluster_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_cluster_proto_rawDesc = "" +
 	"\n" +
-	"\x17alioth/v1/cluster.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xa9\x02\n" +
+	"\x17alioth/v1/cluster.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\x97\x03\n" +
 	"\vClusterItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
@@ -984,23 +1166,27 @@ const file_alioth_v1_cluster_proto_rawDesc = "" +
 	"last_error\x18\t \x01(\tR\tlastError\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\n" +
-	" \x01(\x03R\tcreatedAt\"\xa5\x01\n" +
+	" \x01(\x03R\tcreatedAt\x124\n" +
+	"\x16metrics_datasource_uid\x18\v \x01(\tR\x14metricsDatasourceUid\x126\n" +
+	"\x17metrics_datasource_name\x18\f \x01(\tR\x15metricsDatasourceName\"\xa5\x01\n" +
 	"\fClusterProbe\x12\x16\n" +
 	"\x06server\x18\x01 \x01(\tR\x06server\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12!\n" +
 	"\fcluster_name\x18\x03 \x01(\tR\vclusterName\x12!\n" +
 	"\fcontext_name\x18\x04 \x01(\tR\vcontextName\x12\x1d\n" +
 	"\n" +
-	"node_count\x18\x05 \x01(\x05R\tnodeCount\"\x89\x02\n" +
+	"node_count\x18\x05 \x01(\x05R\tnodeCount\"\xdf\x02\n" +
 	"\x14CreateClusterRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\xaf\x01\n" +
 	"\n" +
 	"kubeconfig\x18\x02 \x01(\tB\x8e\x01\xbaH\x8a\x01\xba\x01~\n" +
 	"\x17cluster.kubeconfig.yaml\x12)kubeconfig 必须是 YAML 或 JSON 文本\x1a8this.contains('apiVersion') && this.contains('clusters')r\a\x10\x01\x18\x80\x80\x80\x01R\n" +
 	"kubeconfig\x12 \n" +
-	"\x06remark\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x06remark\"I\n" +
+	"\x06remark\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x06remark\x129\n" +
+	"\x16metrics_datasource_uid\x18\x04 \x01(\tH\x00R\x14metricsDatasourceUid\x88\x01\x01B\x19\n" +
+	"\x17_metrics_datasource_uid\"I\n" +
 	"\x15CreateClusterResponse\x120\n" +
-	"\acluster\x18\x01 \x01(\v2\x16.alioth.v1.ClusterItemR\acluster\"\x9e\x01\n" +
+	"\acluster\x18\x01 \x01(\v2\x16.alioth.v1.ClusterItemR\acluster\"\xf4\x01\n" +
 	"\x14UpdateClusterRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12*\n" +
@@ -1008,7 +1194,9 @@ const file_alioth_v1_cluster_proto_rawDesc = "" +
 	"kubeconfig\x18\x03 \x01(\tB\n" +
 	"\xbaH\ar\x05\x18\x80\x80\x80\x01R\n" +
 	"kubeconfig\x12 \n" +
-	"\x06remark\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x06remark\"I\n" +
+	"\x06remark\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x06remark\x129\n" +
+	"\x16metrics_datasource_uid\x18\x05 \x01(\tH\x00R\x14metricsDatasourceUid\x88\x01\x01B\x19\n" +
+	"\x17_metrics_datasource_uid\"I\n" +
 	"\x15UpdateClusterResponse\x120\n" +
 	"\acluster\x18\x01 \x01(\v2\x16.alioth.v1.ClusterItemR\acluster\"1\n" +
 	"\x14DeleteClusterRequest\x12\x19\n" +
@@ -1038,7 +1226,22 @@ const file_alioth_v1_cluster_proto_rawDesc = "" +
 	"\x1dcluster.probe_kubeconfig.yaml\x12)kubeconfig 必须是 YAML 或 JSON 文本\x1a8this.contains('apiVersion') && this.contains('clusters')r\a\x10\x01\x18\x80\x80\x80\x01R\n" +
 	"kubeconfig\"H\n" +
 	"\x17ProbeKubeconfigResponse\x12-\n" +
-	"\x05probe\x18\x01 \x01(\v2\x17.alioth.v1.ClusterProbeR\x05probe2\x93\x06\n" +
+	"\x05probe\x18\x01 \x01(\v2\x17.alioth.v1.ClusterProbeR\x05probe\"K\n" +
+	"\x1fGetClusterMetricsSummaryRequest\x12(\n" +
+	"\vcluster_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
+	"clusterUid\"\xd9\x03\n" +
+	" GetClusterMetricsSummaryResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x128\n" +
+	"\x16node_cpu_usage_percent\x18\x02 \x01(\x01H\x00R\x13nodeCpuUsagePercent\x88\x01\x01\x12>\n" +
+	"\x19node_memory_usage_percent\x18\x03 \x01(\x01H\x01R\x16nodeMemoryUsagePercent\x88\x01\x01\x122\n" +
+	"\x13pod_cpu_usage_cores\x18\x04 \x01(\x01H\x02R\x10podCpuUsageCores\x88\x01\x01\x128\n" +
+	"\x16pod_memory_usage_bytes\x18\x05 \x01(\x01H\x03R\x13podMemoryUsageBytes\x88\x01\x01\x12/\n" +
+	"\x13unavailable_metrics\x18\x06 \x03(\tR\x12unavailableMetrics\x12\x18\n" +
+	"\amessage\x18\a \x01(\tR\amessageB\x19\n" +
+	"\x17_node_cpu_usage_percentB\x1c\n" +
+	"\x1a_node_memory_usage_percentB\x16\n" +
+	"\x14_pod_cpu_usage_coresB\x19\n" +
+	"\x17_pod_memory_usage_bytes2\xbc\a\n" +
 	"\x0eClusterService\x12j\n" +
 	"\rCreateCluster\x12\x1f.alioth.v1.CreateClusterRequest\x1a .alioth.v1.CreateClusterResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/v1/cluster\x12p\n" +
 	"\rUpdateCluster\x12\x1f.alioth.v1.UpdateClusterRequest\x1a .alioth.v1.UpdateClusterResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\x1a\x11/v1/cluster/{uid}\x12m\n" +
@@ -1047,7 +1250,8 @@ const file_alioth_v1_cluster_proto_rawDesc = "" +
 	"GetCluster\x12\x1c.alioth.v1.GetClusterRequest\x1a\x1d.alioth.v1.GetClusterResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/cluster/{uid}\x12e\n" +
 	"\fListClusters\x12\x1e.alioth.v1.ListClustersRequest\x1a\x1f.alioth.v1.ListClustersResponse\"\x14\x82\xd3\xe4\x93\x02\x0e\x12\f/v1/clusters\x12o\n" +
 	"\vTestCluster\x12\x1d.alioth.v1.TestClusterRequest\x1a\x1e.alioth.v1.TestClusterResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/v1/cluster/{uid}/test\x12v\n" +
-	"\x0fProbeKubeconfig\x12!.alioth.v1.ProbeKubeconfigRequest\x1a\".alioth.v1.ProbeKubeconfigResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/cluster/probeB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
+	"\x0fProbeKubeconfig\x12!.alioth.v1.ProbeKubeconfigRequest\x1a\".alioth.v1.ProbeKubeconfigResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/cluster/probe\x12\xa6\x01\n" +
+	"\x18GetClusterMetricsSummary\x12*.alioth.v1.GetClusterMetricsSummaryRequest\x1a+.alioth.v1.GetClusterMetricsSummaryResponse\"1\x82\xd3\xe4\x93\x02+\x12)/v1/cluster/{cluster_uid}/metrics/summaryB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
 
 var (
 	file_alioth_v1_cluster_proto_rawDescOnce sync.Once
@@ -1061,24 +1265,26 @@ func file_alioth_v1_cluster_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_cluster_proto_rawDescData
 }
 
-var file_alioth_v1_cluster_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_alioth_v1_cluster_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_alioth_v1_cluster_proto_goTypes = []any{
-	(*ClusterItem)(nil),             // 0: alioth.v1.ClusterItem
-	(*ClusterProbe)(nil),            // 1: alioth.v1.ClusterProbe
-	(*CreateClusterRequest)(nil),    // 2: alioth.v1.CreateClusterRequest
-	(*CreateClusterResponse)(nil),   // 3: alioth.v1.CreateClusterResponse
-	(*UpdateClusterRequest)(nil),    // 4: alioth.v1.UpdateClusterRequest
-	(*UpdateClusterResponse)(nil),   // 5: alioth.v1.UpdateClusterResponse
-	(*DeleteClusterRequest)(nil),    // 6: alioth.v1.DeleteClusterRequest
-	(*DeleteClusterResponse)(nil),   // 7: alioth.v1.DeleteClusterResponse
-	(*GetClusterRequest)(nil),       // 8: alioth.v1.GetClusterRequest
-	(*GetClusterResponse)(nil),      // 9: alioth.v1.GetClusterResponse
-	(*ListClustersRequest)(nil),     // 10: alioth.v1.ListClustersRequest
-	(*ListClustersResponse)(nil),    // 11: alioth.v1.ListClustersResponse
-	(*TestClusterRequest)(nil),      // 12: alioth.v1.TestClusterRequest
-	(*TestClusterResponse)(nil),     // 13: alioth.v1.TestClusterResponse
-	(*ProbeKubeconfigRequest)(nil),  // 14: alioth.v1.ProbeKubeconfigRequest
-	(*ProbeKubeconfigResponse)(nil), // 15: alioth.v1.ProbeKubeconfigResponse
+	(*ClusterItem)(nil),                      // 0: alioth.v1.ClusterItem
+	(*ClusterProbe)(nil),                     // 1: alioth.v1.ClusterProbe
+	(*CreateClusterRequest)(nil),             // 2: alioth.v1.CreateClusterRequest
+	(*CreateClusterResponse)(nil),            // 3: alioth.v1.CreateClusterResponse
+	(*UpdateClusterRequest)(nil),             // 4: alioth.v1.UpdateClusterRequest
+	(*UpdateClusterResponse)(nil),            // 5: alioth.v1.UpdateClusterResponse
+	(*DeleteClusterRequest)(nil),             // 6: alioth.v1.DeleteClusterRequest
+	(*DeleteClusterResponse)(nil),            // 7: alioth.v1.DeleteClusterResponse
+	(*GetClusterRequest)(nil),                // 8: alioth.v1.GetClusterRequest
+	(*GetClusterResponse)(nil),               // 9: alioth.v1.GetClusterResponse
+	(*ListClustersRequest)(nil),              // 10: alioth.v1.ListClustersRequest
+	(*ListClustersResponse)(nil),             // 11: alioth.v1.ListClustersResponse
+	(*TestClusterRequest)(nil),               // 12: alioth.v1.TestClusterRequest
+	(*TestClusterResponse)(nil),              // 13: alioth.v1.TestClusterResponse
+	(*ProbeKubeconfigRequest)(nil),           // 14: alioth.v1.ProbeKubeconfigRequest
+	(*ProbeKubeconfigResponse)(nil),          // 15: alioth.v1.ProbeKubeconfigResponse
+	(*GetClusterMetricsSummaryRequest)(nil),  // 16: alioth.v1.GetClusterMetricsSummaryRequest
+	(*GetClusterMetricsSummaryResponse)(nil), // 17: alioth.v1.GetClusterMetricsSummaryResponse
 }
 var file_alioth_v1_cluster_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.CreateClusterResponse.cluster:type_name -> alioth.v1.ClusterItem
@@ -1095,15 +1301,17 @@ var file_alioth_v1_cluster_proto_depIdxs = []int32{
 	10, // 11: alioth.v1.ClusterService.ListClusters:input_type -> alioth.v1.ListClustersRequest
 	12, // 12: alioth.v1.ClusterService.TestCluster:input_type -> alioth.v1.TestClusterRequest
 	14, // 13: alioth.v1.ClusterService.ProbeKubeconfig:input_type -> alioth.v1.ProbeKubeconfigRequest
-	3,  // 14: alioth.v1.ClusterService.CreateCluster:output_type -> alioth.v1.CreateClusterResponse
-	5,  // 15: alioth.v1.ClusterService.UpdateCluster:output_type -> alioth.v1.UpdateClusterResponse
-	7,  // 16: alioth.v1.ClusterService.DeleteCluster:output_type -> alioth.v1.DeleteClusterResponse
-	9,  // 17: alioth.v1.ClusterService.GetCluster:output_type -> alioth.v1.GetClusterResponse
-	11, // 18: alioth.v1.ClusterService.ListClusters:output_type -> alioth.v1.ListClustersResponse
-	13, // 19: alioth.v1.ClusterService.TestCluster:output_type -> alioth.v1.TestClusterResponse
-	15, // 20: alioth.v1.ClusterService.ProbeKubeconfig:output_type -> alioth.v1.ProbeKubeconfigResponse
-	14, // [14:21] is the sub-list for method output_type
-	7,  // [7:14] is the sub-list for method input_type
+	16, // 14: alioth.v1.ClusterService.GetClusterMetricsSummary:input_type -> alioth.v1.GetClusterMetricsSummaryRequest
+	3,  // 15: alioth.v1.ClusterService.CreateCluster:output_type -> alioth.v1.CreateClusterResponse
+	5,  // 16: alioth.v1.ClusterService.UpdateCluster:output_type -> alioth.v1.UpdateClusterResponse
+	7,  // 17: alioth.v1.ClusterService.DeleteCluster:output_type -> alioth.v1.DeleteClusterResponse
+	9,  // 18: alioth.v1.ClusterService.GetCluster:output_type -> alioth.v1.GetClusterResponse
+	11, // 19: alioth.v1.ClusterService.ListClusters:output_type -> alioth.v1.ListClustersResponse
+	13, // 20: alioth.v1.ClusterService.TestCluster:output_type -> alioth.v1.TestClusterResponse
+	15, // 21: alioth.v1.ClusterService.ProbeKubeconfig:output_type -> alioth.v1.ProbeKubeconfigResponse
+	17, // 22: alioth.v1.ClusterService.GetClusterMetricsSummary:output_type -> alioth.v1.GetClusterMetricsSummaryResponse
+	15, // [15:23] is the sub-list for method output_type
+	7,  // [7:15] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -1114,13 +1322,16 @@ func file_alioth_v1_cluster_proto_init() {
 	if File_alioth_v1_cluster_proto != nil {
 		return
 	}
+	file_alioth_v1_cluster_proto_msgTypes[2].OneofWrappers = []any{}
+	file_alioth_v1_cluster_proto_msgTypes[4].OneofWrappers = []any{}
+	file_alioth_v1_cluster_proto_msgTypes[17].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_cluster_proto_rawDesc), len(file_alioth_v1_cluster_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

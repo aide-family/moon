@@ -10,9 +10,11 @@ import (
 // kubeconfig 原文只作为写入参数出现，读取接口不返回它。
 type ClusterRepo interface {
 	// CreateCluster 先解析并探测 kubeconfig，成功后加密保存。
-	CreateCluster(ctx context.Context, in bo.Cluster, kubeconfig string) (*bo.Cluster, error)
+	// metricsDatasourceUID 为空表示不绑定指标数据源。
+	CreateCluster(ctx context.Context, in bo.Cluster, kubeconfig, metricsDatasourceUID string) (*bo.Cluster, error)
 	// UpdateCluster 在 kubeconfig 非空时先探测再替换，空值表示保持原凭据和元数据。
-	UpdateCluster(ctx context.Context, in bo.Cluster, kubeconfig string) (*bo.Cluster, error)
+	// metricsDatasourceUID 为 nil 表示保持原绑定，指向空串表示解绑。
+	UpdateCluster(ctx context.Context, in bo.Cluster, kubeconfig string, metricsDatasourceUID *string) (*bo.Cluster, error)
 	DeleteCluster(ctx context.Context, namespaceUID, uid string) error
 	GetCluster(ctx context.Context, namespaceUID, uid string) (*bo.Cluster, error)
 	ListClusters(ctx context.Context, namespaceUID, name string, page, pageSize int) ([]bo.Cluster, int, error)

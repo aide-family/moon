@@ -124,6 +124,11 @@ func LastError(v string) predicate.Cluster {
 	return predicate.Cluster(sql.FieldEQ(FieldLastError, v))
 }
 
+// MetricsDatasourceUID applies equality check predicate on the "metrics_datasource_uid" field. It's identical to MetricsDatasourceUIDEQ.
+func MetricsDatasourceUID(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldEQ(FieldMetricsDatasourceUID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Cluster {
 	return predicate.Cluster(sql.FieldEQ(FieldCreatedAt, v))
@@ -942,6 +947,71 @@ func LastErrorEqualFold(v string) predicate.Cluster {
 // LastErrorContainsFold applies the ContainsFold predicate on the "last_error" field.
 func LastErrorContainsFold(v string) predicate.Cluster {
 	return predicate.Cluster(sql.FieldContainsFold(FieldLastError, v))
+}
+
+// MetricsDatasourceUIDEQ applies the EQ predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDEQ(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldEQ(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDNEQ applies the NEQ predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDNEQ(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldNEQ(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDIn applies the In predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDIn(vs ...string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldIn(FieldMetricsDatasourceUID, vs...))
+}
+
+// MetricsDatasourceUIDNotIn applies the NotIn predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDNotIn(vs ...string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldNotIn(FieldMetricsDatasourceUID, vs...))
+}
+
+// MetricsDatasourceUIDGT applies the GT predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDGT(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldGT(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDGTE applies the GTE predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDGTE(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldGTE(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDLT applies the LT predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDLT(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldLT(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDLTE applies the LTE predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDLTE(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldLTE(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDContains applies the Contains predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDContains(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldContains(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDHasPrefix applies the HasPrefix predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDHasPrefix(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldHasPrefix(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDHasSuffix applies the HasSuffix predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDHasSuffix(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldHasSuffix(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDEqualFold applies the EqualFold predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDEqualFold(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldEqualFold(FieldMetricsDatasourceUID, v))
+}
+
+// MetricsDatasourceUIDContainsFold applies the ContainsFold predicate on the "metrics_datasource_uid" field.
+func MetricsDatasourceUIDContainsFold(v string) predicate.Cluster {
+	return predicate.Cluster(sql.FieldContainsFold(FieldMetricsDatasourceUID, v))
 }
 
 // And groups predicates with the AND operator between them.

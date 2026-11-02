@@ -35,6 +35,7 @@ func unixTime(value metav1.Time) int64 {
 // podCounts 由一次全量 Pod 列表按节点名聚合得到。
 func toKubeNode(node *corev1.Node, podCounts map[string]int32) bo.KubeNode {
 	item := bo.KubeNode{
+		UID:            string(node.UID),
 		Name:           node.Name,
 		Status:         nodeStatus(node.Status),
 		Schedulable:    !node.Spec.Unschedulable,
@@ -50,6 +51,13 @@ func toKubeNode(node *corev1.Node, podCounts map[string]int32) bo.KubeNode {
 	}
 	if quantity, ok := node.Status.Capacity[corev1.ResourceMemory]; ok {
 		item.MemoryCapacity = quantity.String()
+	}
+	// 可分配量供概况汇总使用。解析失败按 0 计，不影响节点本身展示。
+	if quantity, ok := node.Status.Allocatable[corev1.ResourceCPU]; ok {
+		item.AllocatableCPUMillis = quantity.MilliValue()
+	}
+	if quantity, ok := node.Status.Allocatable[corev1.ResourceMemory]; ok {
+		item.AllocatableMemoryBytes = quantity.Value()
 	}
 	return item
 }
@@ -172,6 +180,7 @@ func workloadImages(spec corev1.PodSpec) []string {
 
 func toKubePod(pod *corev1.Pod) bo.KubePod {
 	item := bo.KubePod{
+		UID:       string(pod.UID),
 		Namespace: pod.Namespace,
 		Name:      pod.Name,
 		Phase:     string(pod.Status.Phase),

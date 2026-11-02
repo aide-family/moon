@@ -175,6 +175,19 @@ service KubernetesService {
   rpc DeleteKubernetesCronJob(DeleteKubernetesCronJobRequest) returns (DeleteKubernetesCronJobResponse) {
     option (google.api.http) = {delete: "/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}"};
   }
+  // 集群概况：一次聚合节点、工作负载、Pod、Job、Service 与 Ingress 的统计。
+  // 单个区块缺少权限或查询失败时仍返回 200，并把区块名列入 denied_sections / failed_sections。
+  rpc GetKubernetesOverview(GetKubernetesOverviewRequest) returns (GetKubernetesOverviewResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/overview"};
+  }
+  // 节点详情：条件、污点、容量与可分配量、最近事件。
+  rpc GetKubernetesNodeDetail(GetKubernetesNodeDetailRequest) returns (GetKubernetesNodeDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/nodes/{name}"};
+  }
+  // Pod 详情：容器状态、条件、存储卷、归属与最近事件。
+  rpc GetKubernetesPodDetail(GetKubernetesPodDetailRequest) returns (GetKubernetesPodDetailResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/pods/{namespace}/{name}"};
+  }
 }
 
 // 节点。
@@ -789,6 +802,10 @@ message KubernetesReplicaSetItem {
   repeated string images = 6;
   // 创建时间，Unix 秒。
   int64 created_at = 7 [json_name = "createdAt"];
+  // 版本号，取自 deployment.kubernetes.io/revision 注解。没有注解时为 0。
+  int32 revision = 8;
+  // 是否为 Deployment 当前版本。
+  bool current = 9;
 }
 
 // 工作负载详情。
@@ -813,6 +830,10 @@ message GetKubernetesWorkloadDetailResponse {
   repeated KubernetesReplicaSetItem replicasets = 2;
   // 该工作负载的 Pod。
   repeated KubernetesPodItem pods = 3;
+  // 工作负载 status.conditions。
+  repeated KubernetesConditionItem conditions = 4;
+  // 副本状态汇总。
+  KubernetesReplicaStatus replica_status = 5 [json_name = "replicaStatus"];
 }
 
 // Ingress 详情。
@@ -1276,3 +1297,241 @@ message DeleteKubernetesCronJobRequest {
 
 // 删除结果。
 message DeleteKubernetesCronJobResponse {}
+
+// 资源条件。
+message KubernetesConditionItem {
+  // 条件类型，例如 Ready、Available。
+  string type = 1;
+  // 条件状态，例如 True、False、Unknown。
+  string status = 2;
+  // 原因。
+  string reason = 3;
+  // 说明。
+  string message = 4;
+  // 最近一次状态变更时间，Unix 秒。
+  int64 last_transition_at = 5 [json_name = "lastTransitionAt"];
+}
+
+// 节点污点。
+message KubernetesTaintItem {
+  // 键。
+  string key = 1;
+  // 值。
+  string value = 2;
+  // 效果，例如 NoSchedule、PreferNoSchedule、NoExecute。
+  string effect = 3;
+}
+
+// 资源相关的最近事件。
+message KubernetesEventItem {
+  // 类型，例如 Normal、Warning。
+  string type = 1;
+  // 原因。
+  string reason = 2;
+  // 说明。
+  string message = 3;
+  // 出现次数。
+  int32 count = 4;
+  // 来源组件，例如 kubelet。
+  string source = 5;
+  // 首次出现时间，Unix 秒。
+  int64 first_seen_at = 6 [json_name = "firstSeenAt"];
+  // 最近出现时间，Unix 秒。
+  int64 last_seen_at = 7 [json_name = "lastSeenAt"];
+}
+
+// 容器状态。状态为 RUNNING、WAITING 或 TERMINATED。
+message KubernetesContainerStatusItem {
+  // 容器名。
+  string name = 1;
+  // 镜像。
+  string image = 2;
+  // 是否就绪。
+  bool ready = 3;
+  // 重启次数。
+  int32 restarts = 4;
+  // 状态，取值为 RUNNING、WAITING 或 TERMINATED。
+  string state = 5;
+  // 状态原因，例如 Completed、CrashLoopBackOff。
+  string state_reason = 6 [json_name = "stateReason"];
+  // 状态说明。
+  string state_message = 7 [json_name = "stateMessage"];
+  // 启动时间，Unix 秒。未启动时为 0。
+  int64 started_at = 8 [json_name = "startedAt"];
+  // 声明端口，形如 8080/TCP。
+  repeated string ports = 9;
+}
+
+// Pod 存储卷。Secret 与 ConfigMap 只返回名称，不读取任何值。
+message KubernetesVolumeItem {
+  // 卷名。
+  string name = 1;
+  // 卷类型，例如 PersistentVolumeClaim、Secret、ConfigMap、EmptyDir、HostPath。
+  string type = 2;
+  // 是否只读。
+  bool read_only = 3 [json_name = "readOnly"];
+  // 来源摘要：PVC 返回 claimName，Secret / ConfigMap 返回名称，HostPath 返回路径。
+  string summary = 4;
+}
+
+// 资源归属。
+message KubernetesOwnerReferenceItem {
+  // 类型。
+  string kind = 1;
+  // 名称。
+  string name = 2;
+  // 标识。
+  string uid = 3;
+  // 是否为控制器。
+  bool controller = 4;
+}
+
+// 副本状态汇总。
+message KubernetesReplicaStatus {
+  // 期望副本数。
+  int32 desired = 1;
+  // 当前副本数。
+  int32 current = 2;
+  // 就绪副本数。
+  int32 ready = 3;
+  // 已更新副本数。
+  int32 updated = 4;
+  // 可用副本数。
+  int32 available = 5;
+  // 不可用副本数。
+  int32 unavailable = 6;
+}
+
+// 集群概况中的 Pod 阶段分布。
+message KubernetesPodPhaseCount {
+  // 阶段，取值为 Running、Pending、Succeeded、Failed、Unknown。
+  string phase = 1;
+  // 该阶段的 Pod 数量。
+  int32 count = 2;
+}
+
+// 集群概况中的工作负载统计。
+message KubernetesWorkloadSummary {
+  // 类型，取值为 Deployment、StatefulSet 或 DaemonSet。
+  string kind = 1;
+  // 总数。
+  int32 total = 2;
+  // 期望副本数合计。
+  int32 desired = 3;
+  // 就绪副本数合计。
+  int32 ready = 4;
+}
+
+// 读取集群概况。
+message GetKubernetesOverviewRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。留空表示全部命名空间；节点与容量始终是全集群口径。
+  string namespace = 2 [(buf.validate.field).string.max_len = 253];
+}
+
+// 集群概况。单个区块缺权限或失败时仍返回 200，并列入 denied_sections / failed_sections。
+message GetKubernetesOverviewResponse {
+  // API Server 版本。取不到时回落最近的连通性探测结果，仍取不到为空。
+  string api_server_version = 1 [json_name = "apiServerVersion"];
+  // 节点总数。
+  int32 node_total = 2 [json_name = "nodeTotal"];
+  // Ready 节点数。
+  int32 node_ready = 3 [json_name = "nodeReady"];
+  // 非 Ready 节点数。
+  int32 node_not_ready = 4 [json_name = "nodeNotReady"];
+  // Ready 且可调度节点的可分配 CPU 合计，单位毫核。
+  int64 allocatable_cpu_millis = 5 [json_name = "allocatableCpuMillis"];
+  // Ready 且可调度节点的可分配内存合计，单位字节。
+  int64 allocatable_memory_bytes = 6 [json_name = "allocatableMemoryBytes"];
+  // Pod 总数。
+  int32 pod_total = 7 [json_name = "podTotal"];
+  // Pod 阶段分布，固定返回 Running、Pending、Succeeded、Failed、Unknown 五行。
+  repeated KubernetesPodPhaseCount pod_phases = 8 [json_name = "podPhases"];
+  // 工作负载统计，固定返回 Deployment、StatefulSet、DaemonSet 三行。
+  repeated KubernetesWorkloadSummary workloads = 9;
+  // Job 总数。
+  int32 job_total = 10 [json_name = "jobTotal"];
+  // 活跃 Job 数。
+  int32 job_active = 11 [json_name = "jobActive"];
+  // 失败次数合计。
+  int32 job_failed = 12 [json_name = "jobFailed"];
+  // Service 数量。
+  int32 service_total = 13 [json_name = "serviceTotal"];
+  // Ingress 数量。
+  int32 ingress_total = 14 [json_name = "ingressTotal"];
+  // 因缺少读权限而没有统计的区块。
+  repeated string denied_sections = 15 [json_name = "deniedSections"];
+  // 查询失败而没有统计的区块。
+  repeated string failed_sections = 16 [json_name = "failedSections"];
+  // 服务端完成时间，Unix 秒。
+  int64 generated_at = 17 [json_name = "generatedAt"];
+}
+
+// 读取节点详情。
+message GetKubernetesNodeDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 节点名。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// 节点详情。
+message GetKubernetesNodeDetailResponse {
+  // 节点详情。
+  KubernetesNodeDetailItem node = 1;
+}
+
+// 节点详情：基础信息、条件、污点、容量与可分配量、最近事件。
+message KubernetesNodeDetailItem {
+  // 基础信息。
+  KubernetesNodeItem node = 1;
+  // 全部条件。
+  repeated KubernetesConditionItem conditions = 2;
+  // 污点。
+  repeated KubernetesTaintItem taints = 3;
+  // 容量，键为 cpu、memory、pods、ephemeral-storage 及扩展资源。
+  map<string, string> capacity = 4;
+  // 可分配量，键与容量一致。
+  map<string, string> allocatable = 5;
+  // 最近事件，按最后发生时间倒序，最多 20 条。
+  repeated KubernetesEventItem events = 6;
+  // 非致命问题，例如没有事件读取权限。
+  repeated string warnings = 7;
+}
+
+// 读取 Pod 详情。
+message GetKubernetesPodDetailRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+  // 命名空间。
+  string namespace = 2 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 253}];
+}
+
+// Pod 详情。
+message GetKubernetesPodDetailResponse {
+  // Pod 详情。
+  KubernetesPodDetailItem pod = 1;
+}
+
+// Pod 详情：基础信息、容器状态、条件、存储卷、归属与最近事件。
+message KubernetesPodDetailItem {
+  // 基础信息。
+  KubernetesPodItem pod = 1;
+  // 普通容器状态。
+  repeated KubernetesContainerStatusItem containers = 2;
+  // 初始化容器状态。
+  repeated KubernetesContainerStatusItem init_containers = 3 [json_name = "initContainers"];
+  // 全部条件。
+  repeated KubernetesConditionItem conditions = 4;
+  // 存储卷。
+  repeated KubernetesVolumeItem volumes = 5;
+  // 归属。
+  repeated KubernetesOwnerReferenceItem owner_references = 6 [json_name = "ownerReferences"];
+  // 最近事件，按最后发生时间倒序，最多 20 条。
+  repeated KubernetesEventItem events = 7;
+  // 非致命问题，例如没有事件读取权限。
+  repeated string warnings = 8;
+}

@@ -24,6 +24,9 @@ type DatasourceRepo interface {
 	ListMetrics(ctx context.Context, item bo.Datasource) ([]bo.DatasourceMetric, error)
 	MetricDetail(ctx context.Context, item bo.Datasource, name string) (string, error)
 	InstantQuery(ctx context.Context, item bo.Datasource, expr string, at int64) (string, error)
+	// InstantValue 执行一次即时查询并取出第一个采样值。查询成功但没有采样时
+	// found 为 false 且 err 为 nil，调用方据此区分「空结果」和「查询失败」。
+	InstantValue(ctx context.Context, item bo.Datasource, expr string) (value float64, found bool, err error)
 	RangeQuery(ctx context.Context, item bo.Datasource, expr string, start, end, step int64) (string, error)
 	QueryLogs(ctx context.Context, item bo.Datasource, query string, start, end int64, limit int, direction string) (string, error)
 	ProxyQuery(ctx context.Context, item bo.Datasource, method, path, body string) (string, error)

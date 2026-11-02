@@ -17,6 +17,10 @@ type Cluster struct {
 	LastCheckedAt int64
 	LastError     string
 	CreatedAt     time.Time
+	// MetricsDatasourceUID 是绑定用来读取节点与 Pod 用量的指标数据源。
+	// 空值表示未绑定；数据源已删除时 MetricsDatasourceName 为空。
+	MetricsDatasourceUID  string
+	MetricsDatasourceName string
 }
 
 // ClusterProbe 是一次 kubeconfig 连通性探测的结果。
@@ -31,6 +35,8 @@ type ClusterProbe struct {
 
 // KubeNode 是集群中的一个节点。
 type KubeNode struct {
+	// UID 是节点对象标识，详情按它过滤事件。
+	UID            string
 	Name           string
 	Status         string
 	Schedulable    bool
@@ -42,6 +48,9 @@ type KubeNode struct {
 	MemoryCapacity string
 	PodCount       int32
 	CreatedAt      int64
+	// AllocatableCPUMillis 和 AllocatableMemoryBytes 是节点可分配量，解析失败按 0 计。
+	AllocatableCPUMillis   int64
+	AllocatableMemoryBytes int64
 }
 
 // KubeWorkload 是集群中的一个工作负载。Kind 取 Deployment、StatefulSet 或 DaemonSet。
@@ -61,6 +70,8 @@ type KubeWorkload struct {
 // KubePod 是集群中的一个 Pod。OwnerKind 和 OwnerName 取直接所属控制器，
 // 例如 Deployment 的 Pod 直接属于 ReplicaSet。
 type KubePod struct {
+	// UID 是 Pod 对象标识，详情按它过滤事件。
+	UID        string
 	Namespace  string
 	Name       string
 	Phase      string
@@ -204,13 +215,20 @@ type KubeReplicaSet struct {
 	CurrentReplicas int32
 	Images          []string
 	CreatedAt       int64
+	// Revision 取自 deployment.kubernetes.io/revision 注解；没有注解时为 0。
+	Revision int32
+	// Current 表示该 ReplicaSet 是 Deployment 的当前版本。
+	Current bool
 }
 
 // KubeWorkloadDetail 是工作负载详情：基础信息、名下的 ReplicaSet（仅 Deployment）和 Pod。
+// Conditions 和 ReplicaStatus 来自工作负载的 status，用于详情抽屉的副本与条件区块。
 type KubeWorkloadDetail struct {
-	Workload    KubeWorkload
-	ReplicaSets []KubeReplicaSet
-	Pods        []KubePod
+	Workload      KubeWorkload
+	ReplicaSets   []KubeReplicaSet
+	Pods          []KubePod
+	Conditions    []KubeCondition
+	ReplicaStatus KubeReplicaStatus
 }
 
 // KubeEndpointPort 是 Endpoints 子集里的一个端口。
@@ -341,4 +359,142 @@ type KubeCronJob struct {
 type KubeCronJobDetail struct {
 	CronJob KubeCronJob
 	Jobs    []KubeJob
+}
+
+// KubeCondition 是资源 status.conditions 里的一条条件。
+type KubeCondition struct {
+	Type             string
+	Status           string
+	Reason           string
+	Message          string
+	LastTransitionAt int64
+}
+
+// KubeTaint 是节点上的一个污点。
+type KubeTaint struct {
+	Key    string
+	Value  string
+	Effect string
+}
+
+// KubeEvent 是一条与资源相关的 Kubernetes 事件。
+type KubeEvent struct {
+	Type        string
+	Reason      string
+	Message     string
+	Count       int32
+	Source      string
+	FirstSeenAt int64
+	LastSeenAt  int64
+}
+
+// KubeContainerStatus 是 Pod 中一个容器的运行状态。
+// State 取 RUNNING、WAITING 或 TERMINATED；StateReason 和 StateMessage 取自对应状态。
+type KubeContainerStatus struct {
+	Name         string
+	Image        string
+	Ready        bool
+	Restarts     int32
+	State        string
+	StateReason  string
+	StateMessage string
+	StartedAt    int64
+	Ports        []string
+}
+
+// KubeVolume 是 Pod 的一个存储卷。Secret 与 ConfigMap 只带名称，不含任何值。
+type KubeVolume struct {
+	Name     string
+	Type     string
+	ReadOnly bool
+	Summary  string
+}
+
+// KubeOwnerReference 是资源的一个 ownerReference。
+type KubeOwnerReference struct {
+	Kind       string
+	Name       string
+	UID        string
+	Controller bool
+}
+
+// KubeNodeDetail 是节点详情：基础信息、条件、污点与容量。Events 由调用方按需补。
+type KubeNodeDetail struct {
+	Node        KubeNode
+	Conditions  []KubeCondition
+	Taints      []KubeTaint
+	Capacity    map[string]string
+	Allocatable map[string]string
+	Events      []KubeEvent
+	Warnings    []string
+}
+
+// KubePodDetail 是 Pod 详情：基础信息、容器状态、条件、卷与归属。Events 由调用方按需补。
+type KubePodDetail struct {
+	Pod             KubePod
+	Containers      []KubeContainerStatus
+	InitContainers  []KubeContainerStatus
+	Conditions      []KubeCondition
+	Volumes         []KubeVolume
+	OwnerReferences []KubeOwnerReference
+	Events          []KubeEvent
+	Warnings        []string
+}
+
+// KubeReplicaStatus 是工作负载的副本状态汇总。
+type KubeReplicaStatus struct {
+	Desired     int32
+	Current     int32
+	Ready       int32
+	Updated     int32
+	Available   int32
+	Unavailable int32
+}
+
+// KubePodPhaseCount 是概况里一个 Pod 阶段的数量。
+type KubePodPhaseCount struct {
+	Phase string
+	Count int32
+}
+
+// KubeWorkloadSummary 是概况里一类工作负载的统计。
+type KubeWorkloadSummary struct {
+	Kind    string
+	Total   int32
+	Desired int32
+	Ready   int32
+}
+
+// KubeOverview 是集群概况的一次聚合结果。DeniedSections 和 FailedSections 记录
+// 没有统计成功的区块：前者缺读权限，后者查询失败。
+type KubeOverview struct {
+	APIServerVersion       string
+	NodeTotal              int32
+	NodeReady              int32
+	NodeNotReady           int32
+	AllocatableCPUMillis   int64
+	AllocatableMemoryBytes int64
+	PodTotal               int32
+	PodPhases              []KubePodPhaseCount
+	Workloads              []KubeWorkloadSummary
+	JobTotal               int32
+	JobActive              int32
+	JobFailed              int32
+	ServiceTotal           int32
+	IngressTotal           int32
+	DeniedSections         []string
+	FailedSections         []string
+	GeneratedAt            int64
+}
+
+// ClusterMetricsSummary 是集群绑定的指标数据源汇总。Status 取 UNBOUND、OK、
+// PARTIAL 或 FAILED；未取到的指标为 nil，不能用 0 冒充。
+type ClusterMetricsSummary struct {
+	Status                 string
+	NodeCPUUsagePercent    *float64
+	NodeMemoryUsagePercent *float64
+	PodCPUUsageCores       *float64
+	PodMemoryUsageBytes    *float64
+	UnavailableMetrics     []string
+	Message                string
 }

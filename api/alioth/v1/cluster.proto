@@ -50,6 +50,11 @@ service ClusterService {
       body: "*"
     };
   }
+  // 读取集群绑定指标数据源的汇总。未绑定、部分失败或数据源不可用都通过 status 表达，
+  // 只有平台自身错误才返回非 200。
+  rpc GetClusterMetricsSummary(GetClusterMetricsSummaryRequest) returns (GetClusterMetricsSummaryResponse) {
+    option (google.api.http) = {get: "/v1/cluster/{cluster_uid}/metrics/summary"};
+  }
 }
 
 // 集群列表项。只有元数据，kubeconfig 原文不进入任何响应。
@@ -74,6 +79,10 @@ message ClusterItem {
   string last_error = 9 [json_name = "lastError"];
   // 创建时间，Unix 秒。
   int64 created_at = 10 [json_name = "createdAt"];
+  // 绑定的指标数据源标识。未绑定为空。
+  string metrics_datasource_uid = 11 [json_name = "metricsDatasourceUid"];
+  // 绑定的指标数据源名称。未绑定或数据源已删除时为空。
+  string metrics_datasource_name = 12 [json_name = "metricsDatasourceName"];
 }
 
 // 连通性探测结果。
@@ -105,6 +114,8 @@ message CreateClusterRequest {
   ];
   // 备注。
   string remark = 3 [(buf.validate.field).string.max_len = 256];
+  // 绑定的指标数据源标识。字段缺失表示不绑定；显式空串表示解绑。
+  optional string metrics_datasource_uid = 4 [json_name = "metricsDatasourceUid"];
 }
 
 // 接入结果。
@@ -123,6 +134,8 @@ message UpdateClusterRequest {
   string kubeconfig = 3 [(buf.validate.field).string.max_len = 2097152];
   // 备注。
   string remark = 4 [(buf.validate.field).string.max_len = 256];
+  // 绑定的指标数据源标识。字段缺失表示保持原值；显式空串表示解绑。
+  optional string metrics_datasource_uid = 5 [json_name = "metricsDatasourceUid"];
 }
 
 // 更新结果。
@@ -205,4 +218,28 @@ message ProbeKubeconfigRequest {
 message ProbeKubeconfigResponse {
   // 探测结果。
   ClusterProbe probe = 1;
+}
+
+// 读取集群指标汇总。
+message GetClusterMetricsSummaryRequest {
+  // 集群标识。
+  string cluster_uid = 1 [json_name = "clusterUid", (buf.validate.field).string.min_len = 1];
+}
+
+// 集群指标汇总。未绑定、部分失败与数据源不可用都通过 status 表达，不返回服务端错误。
+message GetClusterMetricsSummaryResponse {
+  // 结果状态，取值为 UNBOUND、OK、PARTIAL 或 FAILED。
+  string status = 1;
+  // 节点 CPU 使用率百分比。只在取到值时返回。
+  optional double node_cpu_usage_percent = 2 [json_name = "nodeCpuUsagePercent"];
+  // 节点内存使用率百分比。只在取到值时返回。
+  optional double node_memory_usage_percent = 3 [json_name = "nodeMemoryUsagePercent"];
+  // Pod CPU 使用核数。只在取到值时返回。
+  optional double pod_cpu_usage_cores = 4 [json_name = "podCpuUsageCores"];
+  // Pod 内存工作集字节数。只在取到值时返回。
+  optional double pod_memory_usage_bytes = 5 [json_name = "podMemoryUsageBytes"];
+  // 没有取到的指标 key。PARTIAL 时非空。
+  repeated string unavailable_metrics = 6 [json_name = "unavailableMetrics"];
+  // 非 OK 时的说明。UNBOUND 时说明未绑定数据源，FAILED 时说明失败原因。
+  string message = 7;
 }

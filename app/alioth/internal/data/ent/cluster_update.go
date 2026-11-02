@@ -201,6 +201,20 @@ func (_u *ClusterUpdate) SetNillableLastError(v *string) *ClusterUpdate {
 	return _u
 }
 
+// SetMetricsDatasourceUID sets the "metrics_datasource_uid" field.
+func (_u *ClusterUpdate) SetMetricsDatasourceUID(v string) *ClusterUpdate {
+	_u.mutation.SetMetricsDatasourceUID(v)
+	return _u
+}
+
+// SetNillableMetricsDatasourceUID sets the "metrics_datasource_uid" field if the given value is not nil.
+func (_u *ClusterUpdate) SetNillableMetricsDatasourceUID(v *string) *ClusterUpdate {
+	if v != nil {
+		_u.SetMetricsDatasourceUID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the ClusterMutation object of the builder.
 func (_u *ClusterUpdate) Mutation() *ClusterMutation {
 	return _u.mutation
@@ -310,6 +324,9 @@ func (_u *ClusterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.LastError(); ok {
 		_spec.SetField(cluster.FieldLastError, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MetricsDatasourceUID(); ok {
+		_spec.SetField(cluster.FieldMetricsDatasourceUID, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -504,6 +521,20 @@ func (_u *ClusterUpdateOne) SetNillableLastError(v *string) *ClusterUpdateOne {
 	return _u
 }
 
+// SetMetricsDatasourceUID sets the "metrics_datasource_uid" field.
+func (_u *ClusterUpdateOne) SetMetricsDatasourceUID(v string) *ClusterUpdateOne {
+	_u.mutation.SetMetricsDatasourceUID(v)
+	return _u
+}
+
+// SetNillableMetricsDatasourceUID sets the "metrics_datasource_uid" field if the given value is not nil.
+func (_u *ClusterUpdateOne) SetNillableMetricsDatasourceUID(v *string) *ClusterUpdateOne {
+	if v != nil {
+		_u.SetMetricsDatasourceUID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the ClusterMutation object of the builder.
 func (_u *ClusterUpdateOne) Mutation() *ClusterMutation {
 	return _u.mutation
@@ -643,6 +674,9 @@ func (_u *ClusterUpdateOne) sqlSave(ctx context.Context) (_node *Cluster, err er
 	}
 	if value, ok := _u.mutation.LastError(); ok {
 		_spec.SetField(cluster.FieldLastError, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MetricsDatasourceUID(); ok {
+		_spec.SetField(cluster.FieldMetricsDatasourceUID, field.TypeString, value)
 	}
 	_node = &Cluster{config: _u.config}
 	_spec.Assign = _node.assignValues

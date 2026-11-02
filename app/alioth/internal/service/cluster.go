@@ -9,18 +9,19 @@ import (
 )
 
 // ClusterService 把集群管理请求转成用例入参。kubeconfig 只作为入参出现，
-// 响应里永远没有它。
+// 响应里永远没有它。指标汇总走只读巡检。
 type ClusterService struct {
 	v1.UnimplementedClusterServiceServer
-	registry *cluster.Registry
+	registry  *cluster.Registry
+	inspector *cluster.Inspector
 }
 
-func NewClusterService(registry *cluster.Registry) *ClusterService {
-	return &ClusterService{registry: registry}
+func NewClusterService(registry *cluster.Registry, inspector *cluster.Inspector) *ClusterService {
+	return &ClusterService{registry: registry, inspector: inspector}
 }
 
 func (s *ClusterService) CreateCluster(ctx context.Context, req *v1.CreateClusterRequest) (*v1.CreateClusterResponse, error) {
-	item, err := s.registry.Create(ctx, req.GetName(), req.GetKubeconfig(), req.GetRemark())
+	item, err := s.registry.Create(ctx, req.GetName(), req.GetKubeconfig(), req.GetRemark(), req.MetricsDatasourceUid)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +29,7 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *v1.CreateCluste
 }
 
 func (s *ClusterService) UpdateCluster(ctx context.Context, req *v1.UpdateClusterRequest) (*v1.UpdateClusterResponse, error) {
-	item, err := s.registry.Update(ctx, req.GetUid(), req.GetName(), req.GetKubeconfig(), req.GetRemark())
+	item, err := s.registry.Update(ctx, req.GetUid(), req.GetName(), req.GetKubeconfig(), req.GetRemark(), req.MetricsDatasourceUid)
 	if err != nil {
 		return nil, err
 	}
@@ -80,17 +81,36 @@ func (s *ClusterService) ProbeKubeconfig(ctx context.Context, req *v1.ProbeKubec
 	return &v1.ProbeKubeconfigResponse{Probe: clusterProbe(probe)}, nil
 }
 
+// GetClusterMetricsSummary 返回集群指标汇总。未绑定或查询失败都通过 status 表达。
+func (s *ClusterService) GetClusterMetricsSummary(ctx context.Context, req *v1.GetClusterMetricsSummaryRequest) (*v1.GetClusterMetricsSummaryResponse, error) {
+	summary, err := s.inspector.MetricsSummary(ctx, req.GetClusterUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetClusterMetricsSummaryResponse{
+		Status:                 summary.Status,
+		NodeCpuUsagePercent:    summary.NodeCPUUsagePercent,
+		NodeMemoryUsagePercent: summary.NodeMemoryUsagePercent,
+		PodCpuUsageCores:       summary.PodCPUUsageCores,
+		PodMemoryUsageBytes:    summary.PodMemoryUsageBytes,
+		UnavailableMetrics:     summary.UnavailableMetrics,
+		Message:                summary.Message,
+	}, nil
+}
+
 func clusterItem(in bo.Cluster) *v1.ClusterItem {
 	item := &v1.ClusterItem{
-		Uid:           in.UID,
-		Name:          in.Name,
-		Server:        in.Server,
-		Version:       in.Version,
-		ClusterName:   in.ClusterName,
-		ContextName:   in.ContextName,
-		Remark:        in.Remark,
-		LastCheckedAt: in.LastCheckedAt,
-		LastError:     in.LastError,
+		Uid:                   in.UID,
+		Name:                  in.Name,
+		Server:                in.Server,
+		Version:               in.Version,
+		ClusterName:           in.ClusterName,
+		ContextName:           in.ContextName,
+		Remark:                in.Remark,
+		LastCheckedAt:         in.LastCheckedAt,
+		LastError:             in.LastError,
+		MetricsDatasourceUid:  in.MetricsDatasourceUID,
+		MetricsDatasourceName: in.MetricsDatasourceName,
 	}
 	if !in.CreatedAt.IsZero() {
 		item.CreatedAt = in.CreatedAt.Unix()

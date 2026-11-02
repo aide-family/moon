@@ -9,16 +9,18 @@ import (
 )
 
 // KubernetesService 把集群资源操作转成用例入参。只读操作走 Explorer，
-// 改调度、改副本、重启和删 Pod 走 Operator，Pod 终端走 Terminal。
+// 概况聚合、节点 / Pod 详情走 Inspector，改调度、改副本、重启和删 Pod 走 Operator，
+// Pod 终端走 Terminal。
 type KubernetesService struct {
 	v1.UnimplementedKubernetesServiceServer
-	explorer *cluster.Explorer
-	operator *cluster.Operator
-	terminal *cluster.Terminal
+	explorer  *cluster.Explorer
+	inspector *cluster.Inspector
+	operator  *cluster.Operator
+	terminal  *cluster.Terminal
 }
 
-func NewKubernetesService(explorer *cluster.Explorer, operator *cluster.Operator, terminal *cluster.Terminal) *KubernetesService {
-	return &KubernetesService{explorer: explorer, operator: operator, terminal: terminal}
+func NewKubernetesService(explorer *cluster.Explorer, inspector *cluster.Inspector, operator *cluster.Operator, terminal *cluster.Terminal) *KubernetesService {
+	return &KubernetesService{explorer: explorer, inspector: inspector, operator: operator, terminal: terminal}
 }
 
 func (s *KubernetesService) ListKubernetesNamespaces(ctx context.Context, req *v1.ListKubernetesNamespacesRequest) (*v1.ListKubernetesNamespacesResponse, error) {
@@ -198,9 +200,11 @@ func (s *KubernetesService) GetKubernetesWorkloadDetail(ctx context.Context, req
 		return nil, err
 	}
 	return &v1.GetKubernetesWorkloadDetailResponse{
-		Workload:    kubeWorkloadItem(detail.Workload),
-		Replicasets: kubeReplicaSetItems(detail.ReplicaSets),
-		Pods:        kubePodItems(detail.Pods),
+		Workload:      kubeWorkloadItem(detail.Workload),
+		Replicasets:   kubeReplicaSetItems(detail.ReplicaSets),
+		Pods:          kubePodItems(detail.Pods),
+		Conditions:    kubeConditionItems(detail.Conditions),
+		ReplicaStatus: kubeReplicaStatusItem(detail.ReplicaStatus),
 	}, nil
 }
 
@@ -372,24 +376,84 @@ func (s *KubernetesService) DeleteKubernetesCronJob(ctx context.Context, req *v1
 	return &v1.DeleteKubernetesCronJobResponse{}, nil
 }
 
+// GetKubernetesOverview 返回集群概况。单个区块缺权限或失败都通过
+// denied_sections / failed_sections 表达，不中断整页。
+func (s *KubernetesService) GetKubernetesOverview(ctx context.Context, req *v1.GetKubernetesOverviewRequest) (*v1.GetKubernetesOverviewResponse, error) {
+	overview, err := s.inspector.Overview(ctx, req.GetClusterUid(), req.GetNamespace())
+	if err != nil {
+		return nil, err
+	}
+	phases := make([]*v1.KubernetesPodPhaseCount, 0, len(overview.PodPhases))
+	for _, phase := range overview.PodPhases {
+		phases = append(phases, &v1.KubernetesPodPhaseCount{Phase: phase.Phase, Count: phase.Count})
+	}
+	workloads := make([]*v1.KubernetesWorkloadSummary, 0, len(overview.Workloads))
+	for _, workload := range overview.Workloads {
+		workloads = append(workloads, &v1.KubernetesWorkloadSummary{
+			Kind: workload.Kind, Total: workload.Total, Desired: workload.Desired, Ready: workload.Ready,
+		})
+	}
+	return &v1.GetKubernetesOverviewResponse{
+		ApiServerVersion:       overview.APIServerVersion,
+		NodeTotal:              overview.NodeTotal,
+		NodeReady:              overview.NodeReady,
+		NodeNotReady:           overview.NodeNotReady,
+		AllocatableCpuMillis:   overview.AllocatableCPUMillis,
+		AllocatableMemoryBytes: overview.AllocatableMemoryBytes,
+		PodTotal:               overview.PodTotal,
+		PodPhases:              phases,
+		Workloads:              workloads,
+		JobTotal:               overview.JobTotal,
+		JobActive:              overview.JobActive,
+		JobFailed:              overview.JobFailed,
+		ServiceTotal:           overview.ServiceTotal,
+		IngressTotal:           overview.IngressTotal,
+		DeniedSections:         overview.DeniedSections,
+		FailedSections:         overview.FailedSections,
+		GeneratedAt:            overview.GeneratedAt,
+	}, nil
+}
+
+// GetKubernetesNodeDetail 返回节点详情。事件读不到只影响 warnings。
+func (s *KubernetesService) GetKubernetesNodeDetail(ctx context.Context, req *v1.GetKubernetesNodeDetailRequest) (*v1.GetKubernetesNodeDetailResponse, error) {
+	detail, err := s.inspector.NodeDetail(ctx, req.GetClusterUid(), req.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetKubernetesNodeDetailResponse{Node: kubeNodeDetailItem(detail)}, nil
+}
+
+// GetKubernetesPodDetail 返回 Pod 详情。事件读不到只影响 warnings。
+func (s *KubernetesService) GetKubernetesPodDetail(ctx context.Context, req *v1.GetKubernetesPodDetailRequest) (*v1.GetKubernetesPodDetailResponse, error) {
+	detail, err := s.inspector.PodDetail(ctx, req.GetClusterUid(), req.GetNamespace(), req.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetKubernetesPodDetailResponse{Pod: kubePodDetailItem(detail)}, nil
+}
+
 func kubeNodeItems(items []bo.KubeNode) []*v1.KubernetesNodeItem {
 	out := make([]*v1.KubernetesNodeItem, 0, len(items))
 	for _, item := range items {
-		out = append(out, &v1.KubernetesNodeItem{
-			Name:           item.Name,
-			Status:         item.Status,
-			Schedulable:    item.Schedulable,
-			Roles:          item.Roles,
-			InternalIp:     item.InternalIP,
-			KubeletVersion: item.KubeletVersion,
-			OsImage:        item.OSImage,
-			CpuCapacity:    item.CPUCapacity,
-			MemoryCapacity: item.MemoryCapacity,
-			PodCount:       item.PodCount,
-			CreatedAt:      item.CreatedAt,
-		})
+		out = append(out, kubeNodeItem(item))
 	}
 	return out
+}
+
+func kubeNodeItem(in bo.KubeNode) *v1.KubernetesNodeItem {
+	return &v1.KubernetesNodeItem{
+		Name:           in.Name,
+		Status:         in.Status,
+		Schedulable:    in.Schedulable,
+		Roles:          in.Roles,
+		InternalIp:     in.InternalIP,
+		KubeletVersion: in.KubeletVersion,
+		OsImage:        in.OSImage,
+		CpuCapacity:    in.CPUCapacity,
+		MemoryCapacity: in.MemoryCapacity,
+		PodCount:       in.PodCount,
+		CreatedAt:      in.CreatedAt,
+	}
 }
 
 func kubeWorkloadItem(in bo.KubeWorkload) *v1.KubernetesWorkloadItem {
@@ -596,9 +660,114 @@ func kubeReplicaSetItems(items []bo.KubeReplicaSet) []*v1.KubernetesReplicaSetIt
 			CurrentReplicas: item.CurrentReplicas,
 			Images:          item.Images,
 			CreatedAt:       item.CreatedAt,
+			Revision:        item.Revision,
+			Current:         item.Current,
 		})
 	}
 	return out
+}
+
+func kubeConditionItems(items []bo.KubeCondition) []*v1.KubernetesConditionItem {
+	out := make([]*v1.KubernetesConditionItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.KubernetesConditionItem{
+			Type:             item.Type,
+			Status:           item.Status,
+			Reason:           item.Reason,
+			Message:          item.Message,
+			LastTransitionAt: item.LastTransitionAt,
+		})
+	}
+	return out
+}
+
+func kubeTaintItems(items []bo.KubeTaint) []*v1.KubernetesTaintItem {
+	out := make([]*v1.KubernetesTaintItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.KubernetesTaintItem{Key: item.Key, Value: item.Value, Effect: item.Effect})
+	}
+	return out
+}
+
+func kubeEventItems(items []bo.KubeEvent) []*v1.KubernetesEventItem {
+	out := make([]*v1.KubernetesEventItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.KubernetesEventItem{
+			Type: item.Type, Reason: item.Reason, Message: item.Message, Count: item.Count,
+			Source: item.Source, FirstSeenAt: item.FirstSeenAt, LastSeenAt: item.LastSeenAt,
+		})
+	}
+	return out
+}
+
+func kubeContainerStatusItems(items []bo.KubeContainerStatus) []*v1.KubernetesContainerStatusItem {
+	out := make([]*v1.KubernetesContainerStatusItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.KubernetesContainerStatusItem{
+			Name: item.Name, Image: item.Image, Ready: item.Ready, Restarts: item.Restarts,
+			State: item.State, StateReason: item.StateReason, StateMessage: item.StateMessage,
+			StartedAt: item.StartedAt, Ports: item.Ports,
+		})
+	}
+	return out
+}
+
+func kubeVolumeItems(items []bo.KubeVolume) []*v1.KubernetesVolumeItem {
+	out := make([]*v1.KubernetesVolumeItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.KubernetesVolumeItem{
+			Name: item.Name, Type: item.Type, ReadOnly: item.ReadOnly, Summary: item.Summary,
+		})
+	}
+	return out
+}
+
+func kubeOwnerReferenceItems(items []bo.KubeOwnerReference) []*v1.KubernetesOwnerReferenceItem {
+	out := make([]*v1.KubernetesOwnerReferenceItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.KubernetesOwnerReferenceItem{
+			Kind: item.Kind, Name: item.Name, Uid: item.UID, Controller: item.Controller,
+		})
+	}
+	return out
+}
+
+func kubeReplicaStatusItem(in bo.KubeReplicaStatus) *v1.KubernetesReplicaStatus {
+	return &v1.KubernetesReplicaStatus{
+		Desired: in.Desired, Current: in.Current, Ready: in.Ready,
+		Updated: in.Updated, Available: in.Available, Unavailable: in.Unavailable,
+	}
+}
+
+func kubeNodeDetailItem(in *bo.KubeNodeDetail) *v1.KubernetesNodeDetailItem {
+	if in == nil {
+		return nil
+	}
+	return &v1.KubernetesNodeDetailItem{
+		Node:        kubeNodeItem(in.Node),
+		Conditions:  kubeConditionItems(in.Conditions),
+		Taints:      kubeTaintItems(in.Taints),
+		Capacity:    in.Capacity,
+		Allocatable: in.Allocatable,
+		Events:      kubeEventItems(in.Events),
+		Warnings:    in.Warnings,
+	}
+}
+
+func kubePodDetailItem(in *bo.KubePodDetail) *v1.KubernetesPodDetailItem {
+	if in == nil {
+		return nil
+	}
+	return &v1.KubernetesPodDetailItem{
+		Pod:             kubePodItem(in.Pod),
+		Containers:      kubeContainerStatusItems(in.Containers),
+		InitContainers:  kubeContainerStatusItems(in.InitContainers),
+		Conditions:      kubeConditionItems(in.Conditions),
+		Volumes:         kubeVolumeItems(in.Volumes),
+		OwnerReferences: kubeOwnerReferenceItems(in.OwnerReferences),
+		Events:          kubeEventItems(in.Events),
+		Warnings:        in.Warnings,
+	}
 }
 
 func kubeEndpointItems(items []bo.KubeEndpoint) []*v1.KubernetesEndpointItem {

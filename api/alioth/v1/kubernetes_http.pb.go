@@ -24,7 +24,10 @@ const OperationKubernetesServiceGetKubernetesConfigMapDetail = "/alioth.v1.Kuber
 const OperationKubernetesServiceGetKubernetesCronJobDetail = "/alioth.v1.KubernetesService/GetKubernetesCronJobDetail"
 const OperationKubernetesServiceGetKubernetesIngressDetail = "/alioth.v1.KubernetesService/GetKubernetesIngressDetail"
 const OperationKubernetesServiceGetKubernetesJobDetail = "/alioth.v1.KubernetesService/GetKubernetesJobDetail"
+const OperationKubernetesServiceGetKubernetesNodeDetail = "/alioth.v1.KubernetesService/GetKubernetesNodeDetail"
+const OperationKubernetesServiceGetKubernetesOverview = "/alioth.v1.KubernetesService/GetKubernetesOverview"
 const OperationKubernetesServiceGetKubernetesPersistentVolumeClaimDetail = "/alioth.v1.KubernetesService/GetKubernetesPersistentVolumeClaimDetail"
+const OperationKubernetesServiceGetKubernetesPodDetail = "/alioth.v1.KubernetesService/GetKubernetesPodDetail"
 const OperationKubernetesServiceGetKubernetesPodLogs = "/alioth.v1.KubernetesService/GetKubernetesPodLogs"
 const OperationKubernetesServiceGetKubernetesResourceYAML = "/alioth.v1.KubernetesService/GetKubernetesResourceYAML"
 const OperationKubernetesServiceGetKubernetesSecretDetail = "/alioth.v1.KubernetesService/GetKubernetesSecretDetail"
@@ -68,8 +71,15 @@ type KubernetesServiceHTTPServer interface {
 	GetKubernetesIngressDetail(context.Context, *GetKubernetesIngressDetailRequest) (*GetKubernetesIngressDetailResponse, error)
 	// GetKubernetesJobDetail Job 详情：基础信息与它的 Pod。
 	GetKubernetesJobDetail(context.Context, *GetKubernetesJobDetailRequest) (*GetKubernetesJobDetailResponse, error)
+	// GetKubernetesNodeDetail 节点详情：条件、污点、容量与可分配量、最近事件。
+	GetKubernetesNodeDetail(context.Context, *GetKubernetesNodeDetailRequest) (*GetKubernetesNodeDetailResponse, error)
+	// GetKubernetesOverview 集群概况：一次聚合节点、工作负载、Pod、Job、Service 与 Ingress 的统计。
+	// 单个区块缺少权限或查询失败时仍返回 200，并把区块名列入 denied_sections / failed_sections。
+	GetKubernetesOverview(context.Context, *GetKubernetesOverviewRequest) (*GetKubernetesOverviewResponse, error)
 	// GetKubernetesPersistentVolumeClaimDetail PVC 详情：基础信息和挂载它的工作负载。
 	GetKubernetesPersistentVolumeClaimDetail(context.Context, *GetKubernetesPersistentVolumeClaimDetailRequest) (*GetKubernetesPersistentVolumeClaimDetailResponse, error)
+	// GetKubernetesPodDetail Pod 详情：容器状态、条件、存储卷、归属与最近事件。
+	GetKubernetesPodDetail(context.Context, *GetKubernetesPodDetailRequest) (*GetKubernetesPodDetailResponse, error)
 	// GetKubernetesPodLogs 读取一个 Pod 的日志尾部。
 	GetKubernetesPodLogs(context.Context, *GetKubernetesPodLogsRequest) (*GetKubernetesPodLogsResponse, error)
 	// GetKubernetesResourceYAML 读取单个资源的 YAML。Secret 与 ConfigMap 的值会被隐藏，只保留键名。
@@ -164,6 +174,9 @@ func RegisterKubernetesServiceHTTPServer(s *http.Server, srv KubernetesServiceHT
 	r.Handle("PUT", "/v1/cluster/{cluster_uid}/cronjob/suspend", _KubernetesService_SetKubernetesCronJobSuspend0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/cluster/{cluster_uid}/cronjob/trigger", _KubernetesService_TriggerKubernetesCronJob0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}", _KubernetesService_DeleteKubernetesCronJob0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/overview", _KubernetesService_GetKubernetesOverview0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/nodes/{name}", _KubernetesService_GetKubernetesNodeDetail0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/pods/{namespace}/{name}", _KubernetesService_GetKubernetesPodDetail0_HTTP_Handler(srv))
 }
 
 func _KubernetesService_ListKubernetesNamespaces0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
@@ -936,6 +949,72 @@ func _KubernetesService_DeleteKubernetesCronJob0_HTTP_Handler(srv KubernetesServ
 	}
 }
 
+func _KubernetesService_GetKubernetesOverview0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetKubernetesOverviewRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceGetKubernetesOverview)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetKubernetesOverview(ctx, req.(*GetKubernetesOverviewRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetKubernetesOverviewResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_GetKubernetesNodeDetail0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetKubernetesNodeDetailRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceGetKubernetesNodeDetail)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetKubernetesNodeDetail(ctx, req.(*GetKubernetesNodeDetailRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetKubernetesNodeDetailResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _KubernetesService_GetKubernetesPodDetail0_HTTP_Handler(srv KubernetesServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetKubernetesPodDetailRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationKubernetesServiceGetKubernetesPodDetail)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetKubernetesPodDetail(ctx, req.(*GetKubernetesPodDetailRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetKubernetesPodDetailResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type KubernetesServiceHTTPClient interface {
 	// DeleteKubernetesCronJob 删除 CronJob。
 	DeleteKubernetesCronJob(ctx context.Context, req *DeleteKubernetesCronJobRequest, opts ...http.CallOption) (rsp *DeleteKubernetesCronJobResponse, err error)
@@ -951,8 +1030,15 @@ type KubernetesServiceHTTPClient interface {
 	GetKubernetesIngressDetail(ctx context.Context, req *GetKubernetesIngressDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesIngressDetailResponse, err error)
 	// GetKubernetesJobDetail Job 详情：基础信息与它的 Pod。
 	GetKubernetesJobDetail(ctx context.Context, req *GetKubernetesJobDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesJobDetailResponse, err error)
+	// GetKubernetesNodeDetail 节点详情：条件、污点、容量与可分配量、最近事件。
+	GetKubernetesNodeDetail(ctx context.Context, req *GetKubernetesNodeDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesNodeDetailResponse, err error)
+	// GetKubernetesOverview 集群概况：一次聚合节点、工作负载、Pod、Job、Service 与 Ingress 的统计。
+	// 单个区块缺少权限或查询失败时仍返回 200，并把区块名列入 denied_sections / failed_sections。
+	GetKubernetesOverview(ctx context.Context, req *GetKubernetesOverviewRequest, opts ...http.CallOption) (rsp *GetKubernetesOverviewResponse, err error)
 	// GetKubernetesPersistentVolumeClaimDetail PVC 详情：基础信息和挂载它的工作负载。
 	GetKubernetesPersistentVolumeClaimDetail(ctx context.Context, req *GetKubernetesPersistentVolumeClaimDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesPersistentVolumeClaimDetailResponse, err error)
+	// GetKubernetesPodDetail Pod 详情：容器状态、条件、存储卷、归属与最近事件。
+	GetKubernetesPodDetail(ctx context.Context, req *GetKubernetesPodDetailRequest, opts ...http.CallOption) (rsp *GetKubernetesPodDetailResponse, err error)
 	// GetKubernetesPodLogs 读取一个 Pod 的日志尾部。
 	GetKubernetesPodLogs(ctx context.Context, req *GetKubernetesPodLogsRequest, opts ...http.CallOption) (rsp *GetKubernetesPodLogsResponse, err error)
 	// GetKubernetesResourceYAML 读取单个资源的 YAML。Secret 与 ConfigMap 的值会被隐藏，只保留键名。
@@ -1137,6 +1223,41 @@ func (c *KubernetesServiceHTTPClientImpl) GetKubernetesJobDetail(ctx context.Con
 	return &out, nil
 }
 
+// GetKubernetesNodeDetail 节点详情：条件、污点、容量与可分配量、最近事件。
+func (c *KubernetesServiceHTTPClientImpl) GetKubernetesNodeDetail(ctx context.Context, in *GetKubernetesNodeDetailRequest, opts ...http.CallOption) (*GetKubernetesNodeDetailResponse, error) {
+	var out GetKubernetesNodeDetailResponse
+	pattern := "/v1/cluster/{cluster_uid}/nodes/{name}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceGetKubernetesNodeDetail),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetKubernetesOverview 集群概况：一次聚合节点、工作负载、Pod、Job、Service 与 Ingress 的统计。
+// 单个区块缺少权限或查询失败时仍返回 200，并把区块名列入 denied_sections / failed_sections。
+func (c *KubernetesServiceHTTPClientImpl) GetKubernetesOverview(ctx context.Context, in *GetKubernetesOverviewRequest, opts ...http.CallOption) (*GetKubernetesOverviewResponse, error) {
+	var out GetKubernetesOverviewResponse
+	pattern := "/v1/cluster/{cluster_uid}/overview"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceGetKubernetesOverview),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetKubernetesPersistentVolumeClaimDetail PVC 详情：基础信息和挂载它的工作负载。
 func (c *KubernetesServiceHTTPClientImpl) GetKubernetesPersistentVolumeClaimDetail(ctx context.Context, in *GetKubernetesPersistentVolumeClaimDetailRequest, opts ...http.CallOption) (*GetKubernetesPersistentVolumeClaimDetailResponse, error) {
 	var out GetKubernetesPersistentVolumeClaimDetailResponse
@@ -1145,6 +1266,23 @@ func (c *KubernetesServiceHTTPClientImpl) GetKubernetesPersistentVolumeClaimDeta
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationKubernetesServiceGetKubernetesPersistentVolumeClaimDetail),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetKubernetesPodDetail Pod 详情：容器状态、条件、存储卷、归属与最近事件。
+func (c *KubernetesServiceHTTPClientImpl) GetKubernetesPodDetail(ctx context.Context, in *GetKubernetesPodDetailRequest, opts ...http.CallOption) (*GetKubernetesPodDetailResponse, error) {
+	var out GetKubernetesPodDetailResponse
+	pattern := "/v1/cluster/{cluster_uid}/pods/{namespace}/{name}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationKubernetesServiceGetKubernetesPodDetail),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

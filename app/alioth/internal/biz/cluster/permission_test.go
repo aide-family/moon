@@ -16,17 +16,18 @@ func TestPermissionGates(t *testing.T) {
 	ctx := context.Background()
 	registry := &Registry{access: access.Checker{}}
 	explorer := &Explorer{access: access.Checker{}}
+	inspector := &Inspector{access: access.Checker{}}
 	operator := &Operator{access: access.Checker{}}
 	cases := []struct {
 		name string
 		run  func() error
 	}{
 		{name: "create cluster", run: func() error {
-			_, err := registry.Create(ctx, "prod", "kubeconfig", "")
+			_, err := registry.Create(ctx, "prod", "kubeconfig", "", nil)
 			return err
 		}},
 		{name: "update cluster", run: func() error {
-			_, err := registry.Update(ctx, "uid", "prod", "", "")
+			_, err := registry.Update(ctx, "uid", "prod", "", "", nil)
 			return err
 		}},
 		{name: "delete cluster", run: func() error {
@@ -46,6 +47,22 @@ func TestPermissionGates(t *testing.T) {
 		}},
 		{name: "probe kubeconfig", run: func() error {
 			_, err := registry.Probe(ctx, "kubeconfig")
+			return err
+		}},
+		{name: "overview", run: func() error {
+			_, err := inspector.Overview(ctx, "uid", "")
+			return err
+		}},
+		{name: "node detail", run: func() error {
+			_, err := inspector.NodeDetail(ctx, "uid", "node-a")
+			return err
+		}},
+		{name: "pod detail", run: func() error {
+			_, err := inspector.PodDetail(ctx, "uid", "ns", "pod")
+			return err
+		}},
+		{name: "metrics summary", run: func() error {
+			_, err := inspector.MetricsSummary(ctx, "uid")
 			return err
 		}},
 		{name: "list namespaces", run: func() error {

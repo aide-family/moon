@@ -904,6 +904,10 @@ func init() {
 	clusterDescLastError := clusterFields[10].Descriptor()
 	// cluster.DefaultLastError holds the default value on creation for the last_error field.
 	cluster.DefaultLastError = clusterDescLastError.Default.(string)
+	// clusterDescMetricsDatasourceUID is the schema descriptor for metrics_datasource_uid field.
+	clusterDescMetricsDatasourceUID := clusterFields[11].Descriptor()
+	// cluster.DefaultMetricsDatasourceUID holds the default value on creation for the metrics_datasource_uid field.
+	cluster.DefaultMetricsDatasourceUID = clusterDescMetricsDatasourceUID.Default.(string)
 	datasourceMixin := schema.Datasource{}.Mixin()
 	datasourceMixinFields0 := datasourceMixin[0].Fields()
 	_ = datasourceMixinFields0

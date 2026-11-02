@@ -41,6 +41,8 @@ const (
 	FieldLastCheckedAt = "last_checked_at"
 	// FieldLastError holds the string denoting the last_error field in the database.
 	FieldLastError = "last_error"
+	// FieldMetricsDatasourceUID holds the string denoting the metrics_datasource_uid field in the database.
+	FieldMetricsDatasourceUID = "metrics_datasource_uid"
 	// Table holds the table name of the cluster in the database.
 	Table = "clusters"
 )
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldRemark,
 	FieldLastCheckedAt,
 	FieldLastError,
+	FieldMetricsDatasourceUID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -103,6 +106,8 @@ var (
 	DefaultLastCheckedAt int64
 	// DefaultLastError holds the default value on creation for the "last_error" field.
 	DefaultLastError string
+	// DefaultMetricsDatasourceUID holds the default value on creation for the "metrics_datasource_uid" field.
+	DefaultMetricsDatasourceUID string
 )
 
 // OrderOption defines the ordering options for the Cluster queries.
@@ -181,4 +186,9 @@ func ByLastCheckedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByLastError orders the results by the last_error field.
 func ByLastError(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastError, opts...).ToFunc()
+}
+
+// ByMetricsDatasourceUID orders the results by the metrics_datasource_uid field.
+func ByMetricsDatasourceUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMetricsDatasourceUID, opts...).ToFunc()
 }

@@ -20,6 +20,7 @@ const _ = http.SupportPackageIsVersion3
 const OperationClusterServiceCreateCluster = "/alioth.v1.ClusterService/CreateCluster"
 const OperationClusterServiceDeleteCluster = "/alioth.v1.ClusterService/DeleteCluster"
 const OperationClusterServiceGetCluster = "/alioth.v1.ClusterService/GetCluster"
+const OperationClusterServiceGetClusterMetricsSummary = "/alioth.v1.ClusterService/GetClusterMetricsSummary"
 const OperationClusterServiceListClusters = "/alioth.v1.ClusterService/ListClusters"
 const OperationClusterServiceProbeKubeconfig = "/alioth.v1.ClusterService/ProbeKubeconfig"
 const OperationClusterServiceTestCluster = "/alioth.v1.ClusterService/TestCluster"
@@ -32,6 +33,9 @@ type ClusterServiceHTTPServer interface {
 	DeleteCluster(context.Context, *DeleteClusterRequest) (*DeleteClusterResponse, error)
 	// GetCluster 获取集群详情。不返回 kubeconfig。
 	GetCluster(context.Context, *GetClusterRequest) (*GetClusterResponse, error)
+	// GetClusterMetricsSummary 读取集群绑定指标数据源的汇总。未绑定、部分失败或数据源不可用都通过 status 表达，
+	// 只有平台自身错误才返回非 200。
+	GetClusterMetricsSummary(context.Context, *GetClusterMetricsSummaryRequest) (*GetClusterMetricsSummaryResponse, error)
 	// ListClusters 分页列出当前租户接入的集群。
 	ListClusters(context.Context, *ListClustersRequest) (*ListClustersResponse, error)
 	// ProbeKubeconfig 用尚未保存的 kubeconfig 测试连通性，供接入表单在保存前校验。
@@ -51,6 +55,7 @@ func RegisterClusterServiceHTTPServer(s *http.Server, srv ClusterServiceHTTPServ
 	r.Handle("GET", "/v1/clusters", _ClusterService_ListClusters0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/cluster/{uid}/test", _ClusterService_TestCluster0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/cluster/probe", _ClusterService_ProbeKubeconfig0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/cluster/{cluster_uid}/metrics/summary", _ClusterService_GetClusterMetricsSummary0_HTTP_Handler(srv))
 }
 
 func _ClusterService_CreateCluster0_HTTP_Handler(srv ClusterServiceHTTPServer) func(ctx http.Context) error {
@@ -198,6 +203,28 @@ func _ClusterService_ProbeKubeconfig0_HTTP_Handler(srv ClusterServiceHTTPServer)
 	}
 }
 
+func _ClusterService_GetClusterMetricsSummary0_HTTP_Handler(srv ClusterServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetClusterMetricsSummaryRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationClusterServiceGetClusterMetricsSummary)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetClusterMetricsSummary(ctx, req.(*GetClusterMetricsSummaryRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetClusterMetricsSummaryResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ClusterServiceHTTPClient interface {
 	// CreateCluster 用 kubeconfig 一键接入集群。保存前会解析凭据并探测一次 API Server 连通性。
 	CreateCluster(ctx context.Context, req *CreateClusterRequest, opts ...http.CallOption) (rsp *CreateClusterResponse, err error)
@@ -205,6 +232,9 @@ type ClusterServiceHTTPClient interface {
 	DeleteCluster(ctx context.Context, req *DeleteClusterRequest, opts ...http.CallOption) (rsp *DeleteClusterResponse, err error)
 	// GetCluster 获取集群详情。不返回 kubeconfig。
 	GetCluster(ctx context.Context, req *GetClusterRequest, opts ...http.CallOption) (rsp *GetClusterResponse, err error)
+	// GetClusterMetricsSummary 读取集群绑定指标数据源的汇总。未绑定、部分失败或数据源不可用都通过 status 表达，
+	// 只有平台自身错误才返回非 200。
+	GetClusterMetricsSummary(ctx context.Context, req *GetClusterMetricsSummaryRequest, opts ...http.CallOption) (rsp *GetClusterMetricsSummaryResponse, err error)
 	// ListClusters 分页列出当前租户接入的集群。
 	ListClusters(ctx context.Context, req *ListClustersRequest, opts ...http.CallOption) (rsp *ListClustersResponse, err error)
 	// ProbeKubeconfig 用尚未保存的 kubeconfig 测试连通性，供接入表单在保存前校验。
@@ -266,6 +296,24 @@ func (c *ClusterServiceHTTPClientImpl) GetCluster(ctx context.Context, in *GetCl
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationClusterServiceGetCluster),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetClusterMetricsSummary 读取集群绑定指标数据源的汇总。未绑定、部分失败或数据源不可用都通过 status 表达，
+// 只有平台自身错误才返回非 200。
+func (c *ClusterServiceHTTPClientImpl) GetClusterMetricsSummary(ctx context.Context, in *GetClusterMetricsSummaryRequest, opts ...http.CallOption) (*GetClusterMetricsSummaryResponse, error) {
+	var out GetClusterMetricsSummaryResponse
+	pattern := "/v1/cluster/{cluster_uid}/metrics/summary"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationClusterServiceGetClusterMetricsSummary),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

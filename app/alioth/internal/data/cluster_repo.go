@@ -11,6 +11,7 @@ import (
 
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
@@ -28,7 +29,7 @@ type clusterRepo struct {
 	clients *clusterClients
 }
 
-func (r *clusterRepo) CreateCluster(ctx context.Context, in bo.Cluster, kubeconfig string) (*bo.Cluster, error) {
+func (r *clusterRepo) CreateCluster(ctx context.Context, in bo.Cluster, kubeconfig, metricsDatasourceUID string) (*bo.Cluster, error) {
 	// 探测不通过就不写库：避免接入一条永远连不上的集群。
 	probe, err := probeKubeconfig(ctx, r.log, kubeconfig)
 	if err != nil {
@@ -48,6 +49,7 @@ func (r *clusterRepo) CreateCluster(ctx context.Context, in bo.Cluster, kubeconf
 		SetContextName(probe.ContextName).
 		SetKubeconfigCipher(cipher).
 		SetRemark(in.Remark).
+		SetMetricsDatasourceUID(strings.TrimSpace(metricsDatasourceUID)).
 		SetLastCheckedAt(time.Now().Unix()).
 		SetLastError("").
 		Save(ctx)
@@ -55,10 +57,13 @@ func (r *clusterRepo) CreateCluster(ctx context.Context, in bo.Cluster, kubeconf
 		return nil, r.fail(err)
 	}
 	item := toCluster(row)
+	if name, ok := r.metricsDatasourceName(ctx, item.MetricsDatasourceUID); ok {
+		item.MetricsDatasourceName = name
+	}
 	return &item, nil
 }
 
-func (r *clusterRepo) UpdateCluster(ctx context.Context, in bo.Cluster, kubeconfig string) (*bo.Cluster, error) {
+func (r *clusterRepo) UpdateCluster(ctx context.Context, in bo.Cluster, kubeconfig string, metricsDatasourceUID *string) (*bo.Cluster, error) {
 	row, err := r.client.Cluster.Query().Where(
 		cluster.NamespaceUIDEQ(in.NamespaceUID),
 		cluster.UIDEQ(in.UID),
@@ -70,6 +75,10 @@ func (r *clusterRepo) UpdateCluster(ctx context.Context, in bo.Cluster, kubeconf
 	update := r.client.Cluster.UpdateOne(row).
 		SetName(in.Name).
 		SetRemark(in.Remark)
+	// nil 表示客户端没有传这个字段，保持原绑定；空串表示解绑。
+	if metricsDatasourceUID != nil {
+		update.SetMetricsDatasourceUID(strings.TrimSpace(*metricsDatasourceUID))
+	}
 	// 空 kubeconfig 表示保持原凭据和元数据，只改名称与备注。
 	replaced := strings.TrimSpace(kubeconfig) != ""
 	if replaced {
@@ -98,6 +107,9 @@ func (r *clusterRepo) UpdateCluster(ctx context.Context, in bo.Cluster, kubeconf
 		r.clients.invalidate(in.UID)
 	}
 	item := toCluster(updated)
+	if name, ok := r.metricsDatasourceName(ctx, item.MetricsDatasourceUID); ok {
+		item.MetricsDatasourceName = name
+	}
 	return &item, nil
 }
 
@@ -127,6 +139,9 @@ func (r *clusterRepo) GetCluster(ctx context.Context, namespaceUID, uid string) 
 		return nil, r.fail(err)
 	}
 	item := toCluster(row)
+	if name, ok := r.metricsDatasourceName(ctx, item.MetricsDatasourceUID); ok {
+		item.MetricsDatasourceName = name
+	}
 	return &item, nil
 }
 
@@ -147,6 +162,7 @@ func (r *clusterRepo) ListClusters(ctx context.Context, namespaceUID, name strin
 	for _, row := range rows {
 		items = append(items, toCluster(row))
 	}
+	r.fillMetricsDatasourceNames(ctx, items)
 	return items, total, nil
 }
 
@@ -211,18 +227,67 @@ func (r *clusterRepo) TestCluster(ctx context.Context, namespaceUID, uid string)
 
 func toCluster(row *ent.Cluster) bo.Cluster {
 	return bo.Cluster{
-		UID:           row.UID,
-		NamespaceUID:  row.NamespaceUID,
-		Name:          row.Name,
-		Server:        row.Server,
-		Version:       row.Version,
-		ClusterName:   row.ClusterName,
-		ContextName:   row.ContextName,
-		Remark:        row.Remark,
-		LastCheckedAt: row.LastCheckedAt,
-		LastError:     row.LastError,
-		CreatedAt:     row.CreatedAt,
+		UID:                  row.UID,
+		NamespaceUID:         row.NamespaceUID,
+		Name:                 row.Name,
+		Server:               row.Server,
+		Version:              row.Version,
+		ClusterName:          row.ClusterName,
+		ContextName:          row.ContextName,
+		Remark:               row.Remark,
+		LastCheckedAt:        row.LastCheckedAt,
+		LastError:            row.LastError,
+		CreatedAt:            row.CreatedAt,
+		MetricsDatasourceUID: row.MetricsDatasourceUID,
 	}
+}
+
+// fillMetricsDatasourceNames 批量补绑定的指标数据源名称。数据源被删除后名称为空，
+// 但绑定 UID 保留，汇总据此返回 FAILED 而不是静默解绑。
+func (r *clusterRepo) fillMetricsDatasourceNames(ctx context.Context, items []bo.Cluster) {
+	uids := make([]string, 0, len(items))
+	for _, item := range items {
+		if item.MetricsDatasourceUID != "" {
+			uids = append(uids, item.MetricsDatasourceUID)
+		}
+	}
+	if len(uids) == 0 {
+		return
+	}
+	rows, err := r.client.Datasource.Query().Where(
+		datasource.UIDIn(uids...),
+		datasource.DeletedAtIsNil(),
+	).All(ctx)
+	if err != nil {
+		// 名称只是展示字段，读不到不影响集群本体。
+		r.log.Error(fmt.Sprintf("cluster metrics datasource: %v", err))
+		return
+	}
+	names := make(map[string]string, len(rows))
+	for _, row := range rows {
+		names[row.UID] = row.Name
+	}
+	for index := range items {
+		items[index].MetricsDatasourceName = names[items[index].MetricsDatasourceUID]
+	}
+}
+
+// metricsDatasourceName 读取单个绑定数据源的名称，数据源不存在时返回 false。
+func (r *clusterRepo) metricsDatasourceName(ctx context.Context, uid string) (string, bool) {
+	if strings.TrimSpace(uid) == "" {
+		return "", false
+	}
+	row, err := r.client.Datasource.Query().Where(
+		datasource.UIDEQ(uid),
+		datasource.DeletedAtIsNil(),
+	).Only(ctx)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			r.log.Error(fmt.Sprintf("cluster metrics datasource: %v", err))
+		}
+		return "", false
+	}
+	return row.Name, true
 }
 
 // probeMessage 取错误文本写进 last_error。它来自 kubeError 的固定文案，

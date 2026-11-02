@@ -44,8 +44,10 @@ type Cluster struct {
 	// LastCheckedAt holds the value of the "last_checked_at" field.
 	LastCheckedAt int64 `json:"last_checked_at,omitempty"`
 	// LastError holds the value of the "last_error" field.
-	LastError    string `json:"last_error,omitempty"`
-	selectValues sql.SelectValues
+	LastError string `json:"last_error,omitempty"`
+	// MetricsDatasourceUID holds the value of the "metrics_datasource_uid" field.
+	MetricsDatasourceUID string `json:"metrics_datasource_uid,omitempty"`
+	selectValues         sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -55,7 +57,7 @@ func (*Cluster) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case cluster.FieldID, cluster.FieldLastCheckedAt:
 			values[i] = new(sql.NullInt64)
-		case cluster.FieldUID, cluster.FieldNamespaceUID, cluster.FieldName, cluster.FieldServer, cluster.FieldVersion, cluster.FieldClusterName, cluster.FieldContextName, cluster.FieldKubeconfigCipher, cluster.FieldRemark, cluster.FieldLastError:
+		case cluster.FieldUID, cluster.FieldNamespaceUID, cluster.FieldName, cluster.FieldServer, cluster.FieldVersion, cluster.FieldClusterName, cluster.FieldContextName, cluster.FieldKubeconfigCipher, cluster.FieldRemark, cluster.FieldLastError, cluster.FieldMetricsDatasourceUID:
 			values[i] = new(sql.NullString)
 		case cluster.FieldCreatedAt, cluster.FieldUpdatedAt, cluster.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -165,6 +167,12 @@ func (_m *Cluster) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LastError = value.String
 			}
+		case cluster.FieldMetricsDatasourceUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field metrics_datasource_uid", values[i])
+			} else if value.Valid {
+				_m.MetricsDatasourceUID = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -243,6 +251,9 @@ func (_m *Cluster) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_error=")
 	builder.WriteString(_m.LastError)
+	builder.WriteString(", ")
+	builder.WriteString("metrics_datasource_uid=")
+	builder.WriteString(_m.MetricsDatasourceUID)
 	builder.WriteByte(')')
 	return builder.String()
 }

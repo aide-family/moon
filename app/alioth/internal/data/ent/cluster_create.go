@@ -192,6 +192,20 @@ func (_c *ClusterCreate) SetNillableLastError(v *string) *ClusterCreate {
 	return _c
 }
 
+// SetMetricsDatasourceUID sets the "metrics_datasource_uid" field.
+func (_c *ClusterCreate) SetMetricsDatasourceUID(v string) *ClusterCreate {
+	_c.mutation.SetMetricsDatasourceUID(v)
+	return _c
+}
+
+// SetNillableMetricsDatasourceUID sets the "metrics_datasource_uid" field if the given value is not nil.
+func (_c *ClusterCreate) SetNillableMetricsDatasourceUID(v *string) *ClusterCreate {
+	if v != nil {
+		_c.SetMetricsDatasourceUID(*v)
+	}
+	return _c
+}
+
 // Mutation returns the ClusterMutation object of the builder.
 func (_c *ClusterCreate) Mutation() *ClusterMutation {
 	return _c.mutation
@@ -267,6 +281,10 @@ func (_c *ClusterCreate) defaults() {
 		v := cluster.DefaultLastError
 		_c.mutation.SetLastError(v)
 	}
+	if _, ok := _c.mutation.MetricsDatasourceUID(); !ok {
+		v := cluster.DefaultMetricsDatasourceUID
+		_c.mutation.SetMetricsDatasourceUID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -324,6 +342,9 @@ func (_c *ClusterCreate) check() error {
 	}
 	if _, ok := _c.mutation.LastError(); !ok {
 		return &ValidationError{Name: "last_error", err: errors.New(`ent: missing required field "Cluster.last_error"`)}
+	}
+	if _, ok := _c.mutation.MetricsDatasourceUID(); !ok {
+		return &ValidationError{Name: "metrics_datasource_uid", err: errors.New(`ent: missing required field "Cluster.metrics_datasource_uid"`)}
 	}
 	return nil
 }
@@ -406,6 +427,10 @@ func (_c *ClusterCreate) createSpec() (*Cluster, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LastError(); ok {
 		_spec.SetField(cluster.FieldLastError, field.TypeString, value)
 		_node.LastError = value
+	}
+	if value, ok := _c.mutation.MetricsDatasourceUID(); ok {
+		_spec.SetField(cluster.FieldMetricsDatasourceUID, field.TypeString, value)
+		_node.MetricsDatasourceUID = value
 	}
 	return _node, _spec
 }

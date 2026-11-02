@@ -19,13 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ClusterService_CreateCluster_FullMethodName   = "/alioth.v1.ClusterService/CreateCluster"
-	ClusterService_UpdateCluster_FullMethodName   = "/alioth.v1.ClusterService/UpdateCluster"
-	ClusterService_DeleteCluster_FullMethodName   = "/alioth.v1.ClusterService/DeleteCluster"
-	ClusterService_GetCluster_FullMethodName      = "/alioth.v1.ClusterService/GetCluster"
-	ClusterService_ListClusters_FullMethodName    = "/alioth.v1.ClusterService/ListClusters"
-	ClusterService_TestCluster_FullMethodName     = "/alioth.v1.ClusterService/TestCluster"
-	ClusterService_ProbeKubeconfig_FullMethodName = "/alioth.v1.ClusterService/ProbeKubeconfig"
+	ClusterService_CreateCluster_FullMethodName            = "/alioth.v1.ClusterService/CreateCluster"
+	ClusterService_UpdateCluster_FullMethodName            = "/alioth.v1.ClusterService/UpdateCluster"
+	ClusterService_DeleteCluster_FullMethodName            = "/alioth.v1.ClusterService/DeleteCluster"
+	ClusterService_GetCluster_FullMethodName               = "/alioth.v1.ClusterService/GetCluster"
+	ClusterService_ListClusters_FullMethodName             = "/alioth.v1.ClusterService/ListClusters"
+	ClusterService_TestCluster_FullMethodName              = "/alioth.v1.ClusterService/TestCluster"
+	ClusterService_ProbeKubeconfig_FullMethodName          = "/alioth.v1.ClusterService/ProbeKubeconfig"
+	ClusterService_GetClusterMetricsSummary_FullMethodName = "/alioth.v1.ClusterService/GetClusterMetricsSummary"
 )
 
 // ClusterServiceClient is the client API for ClusterService service.
@@ -49,6 +50,9 @@ type ClusterServiceClient interface {
 	TestCluster(ctx context.Context, in *TestClusterRequest, opts ...grpc.CallOption) (*TestClusterResponse, error)
 	// 用尚未保存的 kubeconfig 测试连通性，供接入表单在保存前校验。
 	ProbeKubeconfig(ctx context.Context, in *ProbeKubeconfigRequest, opts ...grpc.CallOption) (*ProbeKubeconfigResponse, error)
+	// 读取集群绑定指标数据源的汇总。未绑定、部分失败或数据源不可用都通过 status 表达，
+	// 只有平台自身错误才返回非 200。
+	GetClusterMetricsSummary(ctx context.Context, in *GetClusterMetricsSummaryRequest, opts ...grpc.CallOption) (*GetClusterMetricsSummaryResponse, error)
 }
 
 type clusterServiceClient struct {
@@ -129,6 +133,16 @@ func (c *clusterServiceClient) ProbeKubeconfig(ctx context.Context, in *ProbeKub
 	return out, nil
 }
 
+func (c *clusterServiceClient) GetClusterMetricsSummary(ctx context.Context, in *GetClusterMetricsSummaryRequest, opts ...grpc.CallOption) (*GetClusterMetricsSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetClusterMetricsSummaryResponse)
+	err := c.cc.Invoke(ctx, ClusterService_GetClusterMetricsSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClusterServiceServer is the server API for ClusterService service.
 // All implementations must embed UnimplementedClusterServiceServer
 // for forward compatibility.
@@ -150,6 +164,9 @@ type ClusterServiceServer interface {
 	TestCluster(context.Context, *TestClusterRequest) (*TestClusterResponse, error)
 	// 用尚未保存的 kubeconfig 测试连通性，供接入表单在保存前校验。
 	ProbeKubeconfig(context.Context, *ProbeKubeconfigRequest) (*ProbeKubeconfigResponse, error)
+	// 读取集群绑定指标数据源的汇总。未绑定、部分失败或数据源不可用都通过 status 表达，
+	// 只有平台自身错误才返回非 200。
+	GetClusterMetricsSummary(context.Context, *GetClusterMetricsSummaryRequest) (*GetClusterMetricsSummaryResponse, error)
 	mustEmbedUnimplementedClusterServiceServer()
 }
 
@@ -180,6 +197,9 @@ func (UnimplementedClusterServiceServer) TestCluster(context.Context, *TestClust
 }
 func (UnimplementedClusterServiceServer) ProbeKubeconfig(context.Context, *ProbeKubeconfigRequest) (*ProbeKubeconfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ProbeKubeconfig not implemented")
+}
+func (UnimplementedClusterServiceServer) GetClusterMetricsSummary(context.Context, *GetClusterMetricsSummaryRequest) (*GetClusterMetricsSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetClusterMetricsSummary not implemented")
 }
 func (UnimplementedClusterServiceServer) mustEmbedUnimplementedClusterServiceServer() {}
 func (UnimplementedClusterServiceServer) testEmbeddedByValue()                        {}
@@ -328,6 +348,24 @@ func _ClusterService_ProbeKubeconfig_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClusterService_GetClusterMetricsSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetClusterMetricsSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterServiceServer).GetClusterMetricsSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ClusterService_GetClusterMetricsSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterServiceServer).GetClusterMetricsSummary(ctx, req.(*GetClusterMetricsSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClusterService_ServiceDesc is the grpc.ServiceDesc for ClusterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -362,6 +400,10 @@ var ClusterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProbeKubeconfig",
 			Handler:    _ClusterService_ProbeKubeconfig_Handler,
+		},
+		{
+			MethodName: "GetClusterMetricsSummary",
+			Handler:    _ClusterService_GetClusterMetricsSummary_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

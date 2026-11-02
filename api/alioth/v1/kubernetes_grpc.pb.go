@@ -54,6 +54,9 @@ const (
 	KubernetesService_SetKubernetesCronJobSuspend_FullMethodName              = "/alioth.v1.KubernetesService/SetKubernetesCronJobSuspend"
 	KubernetesService_TriggerKubernetesCronJob_FullMethodName                 = "/alioth.v1.KubernetesService/TriggerKubernetesCronJob"
 	KubernetesService_DeleteKubernetesCronJob_FullMethodName                  = "/alioth.v1.KubernetesService/DeleteKubernetesCronJob"
+	KubernetesService_GetKubernetesOverview_FullMethodName                    = "/alioth.v1.KubernetesService/GetKubernetesOverview"
+	KubernetesService_GetKubernetesNodeDetail_FullMethodName                  = "/alioth.v1.KubernetesService/GetKubernetesNodeDetail"
+	KubernetesService_GetKubernetesPodDetail_FullMethodName                   = "/alioth.v1.KubernetesService/GetKubernetesPodDetail"
 )
 
 // KubernetesServiceClient is the client API for KubernetesService service.
@@ -134,6 +137,13 @@ type KubernetesServiceClient interface {
 	TriggerKubernetesCronJob(ctx context.Context, in *TriggerKubernetesCronJobRequest, opts ...grpc.CallOption) (*TriggerKubernetesCronJobResponse, error)
 	// 删除 CronJob。
 	DeleteKubernetesCronJob(ctx context.Context, in *DeleteKubernetesCronJobRequest, opts ...grpc.CallOption) (*DeleteKubernetesCronJobResponse, error)
+	// 集群概况：一次聚合节点、工作负载、Pod、Job、Service 与 Ingress 的统计。
+	// 单个区块缺少权限或查询失败时仍返回 200，并把区块名列入 denied_sections / failed_sections。
+	GetKubernetesOverview(ctx context.Context, in *GetKubernetesOverviewRequest, opts ...grpc.CallOption) (*GetKubernetesOverviewResponse, error)
+	// 节点详情：条件、污点、容量与可分配量、最近事件。
+	GetKubernetesNodeDetail(ctx context.Context, in *GetKubernetesNodeDetailRequest, opts ...grpc.CallOption) (*GetKubernetesNodeDetailResponse, error)
+	// Pod 详情：容器状态、条件、存储卷、归属与最近事件。
+	GetKubernetesPodDetail(ctx context.Context, in *GetKubernetesPodDetailRequest, opts ...grpc.CallOption) (*GetKubernetesPodDetailResponse, error)
 }
 
 type kubernetesServiceClient struct {
@@ -494,6 +504,36 @@ func (c *kubernetesServiceClient) DeleteKubernetesCronJob(ctx context.Context, i
 	return out, nil
 }
 
+func (c *kubernetesServiceClient) GetKubernetesOverview(ctx context.Context, in *GetKubernetesOverviewRequest, opts ...grpc.CallOption) (*GetKubernetesOverviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKubernetesOverviewResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_GetKubernetesOverview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) GetKubernetesNodeDetail(ctx context.Context, in *GetKubernetesNodeDetailRequest, opts ...grpc.CallOption) (*GetKubernetesNodeDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKubernetesNodeDetailResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_GetKubernetesNodeDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubernetesServiceClient) GetKubernetesPodDetail(ctx context.Context, in *GetKubernetesPodDetailRequest, opts ...grpc.CallOption) (*GetKubernetesPodDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKubernetesPodDetailResponse)
+	err := c.cc.Invoke(ctx, KubernetesService_GetKubernetesPodDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KubernetesServiceServer is the server API for KubernetesService service.
 // All implementations must embed UnimplementedKubernetesServiceServer
 // for forward compatibility.
@@ -572,6 +612,13 @@ type KubernetesServiceServer interface {
 	TriggerKubernetesCronJob(context.Context, *TriggerKubernetesCronJobRequest) (*TriggerKubernetesCronJobResponse, error)
 	// 删除 CronJob。
 	DeleteKubernetesCronJob(context.Context, *DeleteKubernetesCronJobRequest) (*DeleteKubernetesCronJobResponse, error)
+	// 集群概况：一次聚合节点、工作负载、Pod、Job、Service 与 Ingress 的统计。
+	// 单个区块缺少权限或查询失败时仍返回 200，并把区块名列入 denied_sections / failed_sections。
+	GetKubernetesOverview(context.Context, *GetKubernetesOverviewRequest) (*GetKubernetesOverviewResponse, error)
+	// 节点详情：条件、污点、容量与可分配量、最近事件。
+	GetKubernetesNodeDetail(context.Context, *GetKubernetesNodeDetailRequest) (*GetKubernetesNodeDetailResponse, error)
+	// Pod 详情：容器状态、条件、存储卷、归属与最近事件。
+	GetKubernetesPodDetail(context.Context, *GetKubernetesPodDetailRequest) (*GetKubernetesPodDetailResponse, error)
 	mustEmbedUnimplementedKubernetesServiceServer()
 }
 
@@ -686,6 +733,15 @@ func (UnimplementedKubernetesServiceServer) TriggerKubernetesCronJob(context.Con
 }
 func (UnimplementedKubernetesServiceServer) DeleteKubernetesCronJob(context.Context, *DeleteKubernetesCronJobRequest) (*DeleteKubernetesCronJobResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteKubernetesCronJob not implemented")
+}
+func (UnimplementedKubernetesServiceServer) GetKubernetesOverview(context.Context, *GetKubernetesOverviewRequest) (*GetKubernetesOverviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKubernetesOverview not implemented")
+}
+func (UnimplementedKubernetesServiceServer) GetKubernetesNodeDetail(context.Context, *GetKubernetesNodeDetailRequest) (*GetKubernetesNodeDetailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKubernetesNodeDetail not implemented")
+}
+func (UnimplementedKubernetesServiceServer) GetKubernetesPodDetail(context.Context, *GetKubernetesPodDetailRequest) (*GetKubernetesPodDetailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKubernetesPodDetail not implemented")
 }
 func (UnimplementedKubernetesServiceServer) mustEmbedUnimplementedKubernetesServiceServer() {}
 func (UnimplementedKubernetesServiceServer) testEmbeddedByValue()                           {}
@@ -1338,6 +1394,60 @@ func _KubernetesService_DeleteKubernetesCronJob_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KubernetesService_GetKubernetesOverview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKubernetesOverviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).GetKubernetesOverview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_GetKubernetesOverview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).GetKubernetesOverview(ctx, req.(*GetKubernetesOverviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_GetKubernetesNodeDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKubernetesNodeDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).GetKubernetesNodeDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_GetKubernetesNodeDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).GetKubernetesNodeDetail(ctx, req.(*GetKubernetesNodeDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubernetesService_GetKubernetesPodDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKubernetesPodDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubernetesServiceServer).GetKubernetesPodDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KubernetesService_GetKubernetesPodDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubernetesServiceServer).GetKubernetesPodDetail(ctx, req.(*GetKubernetesPodDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // KubernetesService_ServiceDesc is the grpc.ServiceDesc for KubernetesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1484,6 +1594,18 @@ var KubernetesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteKubernetesCronJob",
 			Handler:    _KubernetesService_DeleteKubernetesCronJob_Handler,
+		},
+		{
+			MethodName: "GetKubernetesOverview",
+			Handler:    _KubernetesService_GetKubernetesOverview_Handler,
+		},
+		{
+			MethodName: "GetKubernetesNodeDetail",
+			Handler:    _KubernetesService_GetKubernetesNodeDetail_Handler,
+		},
+		{
+			MethodName: "GetKubernetesPodDetail",
+			Handler:    _KubernetesService_GetKubernetesPodDetail_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

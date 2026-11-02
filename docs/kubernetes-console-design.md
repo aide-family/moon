@@ -173,19 +173,23 @@
 
 ## 5. 概况数据与降级
 
-概况只使用现有列表接口，在浏览器侧聚合：
+概况由服务端一次聚合（M31）：`GET /v1/cluster/{cluster_uid}/overview?namespace=` 并行读取节点、工作负载、Pod、Job、Service、Ingress 六个列表，在 `alioth` 内汇总后一次返回，不落库、不加缓存，也不再在浏览器侧采样。节点与容量始终是全集群口径；Pod、工作负载、Job、Service、Ingress 跟随请求里的 `namespace`（空表示全部）。
 
-| 区块 | 数据来源 | 降级 |
+| 区块 | 服务端字段 | 降级 |
 | --- | --- | --- |
-| 节点就绪 / 容量 | `GET /nodes`（一次返回全部） | 失败时该卡片显示重试；容量解析支持 `8`、`7500m`、`16384Mi`、`16Gi`、纯字节 |
-| Pod 状态分布 / 重启 | `GET /pods`，每页 100，**最多采样 3 页（300 个）** | 总数超过采样量时标注「统计 300/总数」；单个分页失败保留已取到的样本 |
-| 工作负载健康 | `GET /workloads`（一次返回全部） | 按 Deployment/StatefulSet/DaemonSet 分行；`desired=0` 视为健康；点击行跳到对应类型 |
-| Ingress 数量 | `GET /ingresses?pageSize=1` 取 `total` | 失败时该 KPI 显示 `—` |
-| CPU / 内存容量 | 节点 `capacity` 汇总 | 只展示容量；用量标注「无指标数据源」 |
-| 基础组件 | 无接口 | API Server 由「资源查询是否成功」推断；kubelet 由「节点 Ready 数」推断；scheduler / controller-manager / etcd 明确标注未接入 |
-| Top 消耗 | 无指标 | 展示节点 Pod 数与 Pod 重启次数两个可推断榜单，并标注 CPU/内存用量需要指标数据源 |
+| 节点就绪 / 容量 | `node_total`、`node_ready`、`node_not_ready`、`allocatable_cpu_millis`、`allocatable_memory_bytes` | 该区块缺 `k8s:node:read` 记入 `denied_sections`，查询失败记入 `failed_sections`；可分配量只累加 Ready 且可调度节点 |
+| Pod 状态分布 | `pod_total`、`pod_phases[]`（固定 Running/Pending/Succeeded/Failed/Unknown 五行，含 0） | 同上，按 `k8s:pod:read` 门禁；不再有 300 个采样上限 |
+| 工作负载健康 | `workloads[]`（固定 Deployment/StatefulSet/DaemonSet 三行，含 total/desired/ready） | 按 `k8s:workload:read` 门禁；`desired=0` 视为健康 |
+| Job | `job_total`、`job_active`、`job_failed` | 按 `k8s:job:read` 门禁 |
+| Service / Ingress | `service_total`、`ingress_total` | 分别按 `k8s:service:read` / `k8s:ingress:read` 门禁 |
+| API Server 版本 | `api_server_version` | 实时 discovery 失败时回落集群最近一次连通性探测的版本，都取不到为空 |
+| 指标卡 | `GET /v1/cluster/{cluster_uid}/metrics/summary` 的 `status` 与四个 optional 指标 | `UNBOUND` 显示未绑定空态；`PARTIAL` 只展示取到的指标并列出 `unavailable_metrics`；`FAILED` 展示 `message` 与重试，不整页报错 |
+| 基础组件 | 无真实探测 | API Server 由资源查询是否成功推断；kubelet 由节点 Ready 数推断；scheduler / controller-manager / etcd 明确标注未接入 |
 
-Pod 采样而不全量拉取的原因：`ListPods` 在服务端先列全量再内存分页，单页上限 100；全量统计在大集群上要重复拉取多次全量列表。采样上限是显式常量，后续接口就绪后可整体替换。
+- 指标卡需要先给集群绑定指标数据源：`clusters.metrics_datasource_uid`，只接受同租户、未删除、`type=METRICS` 且驱动为 Prometheus / VictoriaMetrics 的数据源；绑定时要 `cluster:write` + `datasource:read`，读取只要 `cluster:read`。创建/更新集群时字段用 proto3 `optional`：缺失保持原值，显式空串解绑。
+- 四条汇总查询固定为 `node_cpu_usage_percent`、`node_memory_usage_percent`、`pod_cpu_usage_cores`、`pod_memory_usage_bytes`（5 分钟区间，整体 5 秒超时），不接受用户输入表达式；依赖 node-exporter 与 cAdvisor 的标准指标名，缺失时表现为 `PARTIAL` / `FAILED`。
+- 六个区块全部因同一个连接错误失败时，`/overview` 返回 502/503 而不是一份全 0 的概况；其余情况一律 200，由 `denied_sections` / `failed_sections` 驱动卡片降级。
+- 详情抽屉读取 `GET /nodes/{name}`、`GET /pods/{namespace}/{name}` 与既有 `workload-detail` 的扩展字段；事件读取失败只写 `warnings`，不影响主体。
 
 ## 6. 已实现的后端接口
 
@@ -239,12 +243,25 @@ Pod 采样而不全量拉取的原因：`ListPods` 在服务端先列全量再�
 - 页面路由是 `/clusters/{cluster_uid}/pods/{namespace}/{name}/exec?container={容器}`，从 Pod 行操作「终端」进入，属于当前集群详情页面的子路由；多容器 Pod 在终端页顶部切换容器。
 - 终端页占满应用外壳内容区，只有终端自身滚动，不产生文档级滚动。
 
+### M31 新增接口：概况聚合、资源详情与指标绑定
+
+| 方法 | 路径 | 权限 | 关键字段 |
+| --- | --- | --- | --- |
+| `GET` | `/v1/cluster/{cluster_uid}/overview` | `cluster:read` + 各区块 `k8s:*:read` | `namespace` → `api_server_version`、`node_total`/`node_ready`/`node_not_ready`、`allocatable_cpu_millis`、`allocatable_memory_bytes`、`pod_total`、`pod_phases[]`、`workloads[]`、`job_total`/`job_active`/`job_failed`、`service_total`、`ingress_total`、`denied_sections[]`、`failed_sections[]`、`generated_at` |
+| `GET` | `/v1/cluster/{cluster_uid}/nodes/{name}` | `k8s:node:read` | `node`、`conditions[]`、`taints[]`、`capacity`、`allocatable`、`events[]`（最多 20 条，倒序）、`warnings[]` |
+| `GET` | `/v1/cluster/{cluster_uid}/pods/{namespace}/{name}` | `k8s:pod:read` | `pod`、`containers[]`、`init_containers[]`、`conditions[]`、`volumes[]`、`owner_references[]`、`events[]`、`warnings[]` |
+| `GET` | `/v1/cluster/{cluster_uid}/workload-detail` | `k8s:workload:read` | 在原 `workload`/`replicasets[]`/`pods[]` 上增加 `conditions[]`、`replica_status`，ReplicaSet 增加 `revision` 与 `current`（按版本倒序，最多 10 条） |
+| `GET` | `/v1/cluster/{cluster_uid}/metrics/summary` | `cluster:read` | `status`（`UNBOUND`/`OK`/`PARTIAL`/`FAILED`）、四个 optional 指标、`unavailable_metrics[]`、`message` |
+
+- `ClusterItem` 增加 `metrics_datasource_uid` 与 `metrics_datasource_name`；`POST /v1/cluster` 与 `PUT /v1/cluster/{uid}` 接受 `metrics_datasource_uid`（proto3 `optional`，缺失保持原值、空串解绑）。
+- 以上接口都不新增权限码、能力码或菜单；事件按 `involvedObject`（优先 UID）过滤，节点事件在 `default` 命名空间读取。
+
 ## 7. 后续可增强
 
-- `GET /v1/cluster/{cluster_uid}/overview`：一次返回概况聚合，替代前端 5–7 次列表调用。
-- `Cluster.metrics_datasource_uid` + `GET /v1/cluster/{cluster_uid}/metrics/summary`：绑定指标数据源，补齐 CPU/内存用量、控制面真实状态与 Top 消耗；前端接入点已留在概况 hook/卡片。
-- 节点/Pod/工作负载详情接口（条件、污点、事件、卷、ReplicaSet 历史）。
 - HPA、StorageClass、NetworkPolicy 等二级资源。
+- 控制面组件（scheduler / controller-manager / etcd）真实健康探测。
+- 指标图表、趋势与 Top 消耗榜单；当前 `/metrics/summary` 只返回四个汇总数值。
+- 概况服务端缓存、后台预聚合与跨集群汇总；当前每次请求都实时读集群。
 
 ## 8. 验证
 

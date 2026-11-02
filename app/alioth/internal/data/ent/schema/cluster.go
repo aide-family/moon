@@ -35,6 +35,9 @@ func (Cluster) Fields() []ent.Field {
 		// last_checked_at 是最近一次连通性检测时间；last_error 为空表示最近一次成功。
 		field.Int64("last_checked_at").Default(0),
 		field.String("last_error").Default(""),
+		// metrics_datasource_uid 绑定用来读取节点与 Pod 用量的指标数据源。
+		// 空值表示未绑定；数据源被删除或停用时汇总返回失败状态，不自动解绑。
+		field.String("metrics_datasource_uid").Default(""),
 	}
 }
 

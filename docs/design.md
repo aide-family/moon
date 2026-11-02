@@ -523,6 +523,10 @@ Web 页面还必须遵守 `web/AGENTS.md` 的交互与布局回归约束：尤�
 | 大盘    | 大盘列表与查看页（Grafana 面板 iframe 组合） |
 | 通知    | 通知渠道、模板、通知组、告警订阅、OnCall、消息日志            |
 | 边缘    | 机器、SSH 命令与审计、Web Shell |
+| Kubernetes | 集群列表与集群详情（概况、节点、工作负载、Pod、Job/CronJob、Ingress、Service、ConfigMap、Secret、PV、PVC） |
+
+
+集群详情页的概况由服务端一次聚合：`GET /v1/cluster/{cluster_uid}/overview?namespace=` 并行读取节点、工作负载、Pod、Job、Service、Ingress 六个列表，按资源读权限把区块记入 `denied_sections` 或 `failed_sections`，单区块失败不拖垮整页；节点与容量始终是全集群口径，其余区块跟随 `namespace`。集群可以绑定一个 `METRICS` 类型、驱动为 Prometheus 或 VictoriaMetrics 的指标数据源（`clusters.metrics_datasource_uid`），`GET /v1/cluster/{cluster_uid}/metrics/summary` 固定执行四条 PromQL 并用 `UNBOUND` / `OK` / `PARTIAL` / `FAILED` 表达结果，未取到的指标不返回、不用 0 冒充。节点与 Pod 详情（`/nodes/{name}`、`/pods/{namespace}/{name}`）补条件、污点、容量与可分配量、容器状态、卷、归属和最近事件，工作负载详情补 `conditions`、`replica_status` 与 ReplicaSet 的 `revision` / `current`。事件读取失败只降级为 `warnings`。这些接口都不新增权限码，绑定沿用 `cluster:write` + `datasource:read`，读取沿用 `cluster:read` 与 `k8s:*:read`。
 
 
 数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式和级别条件。实时告警支持筛选、详情、介入、抑制和恢复；页内用 Tab 切换「我的告警」与用户选定的告警页面。表格列可自定义：内置字段列和事件标签列都可以作为列，列名支持别名，标签列没有别名时显示标签键并渲染该标签的值；`AlertEventColumn` 按用户和视图（`mine` 或告警页面 UID）固化列配置。抑制需要选择时长，提供 5 分钟到 24 小时的常用梯度和自定义输入，限制在 1 分钟到 30 天，到期后事件自动回到实时列表。告警页面按标签匹配过滤实时事件，标签值按完整匹配正则命中；可设公开供同租户他人选用。事件标签附带数据源名称、告警等级名称和数据源等级名称，规则列表与实时告警详情用同一种表达式展示块。
@@ -666,6 +670,8 @@ flowchart TB
 通知：`NotificationChannel`、`NotificationTemplate`、`NotificationGroup`、`NotificationTask`、`MessageLog`。
 
 大盘：`Board`（大盘）、`BoardPanel`（Grafana 面板链接与布局）。
+
+Kubernetes：`Cluster`（集群接入、kubeconfig 密文与绑定的指标数据源 `metrics_datasource_uid`）。
 
 边缘：`Agent`、`SSHCommand`、`SSHCommandAudit`。
 

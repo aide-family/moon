@@ -774,6 +774,7 @@ var (
 		{Name: "remark", Type: field.TypeString, Default: ""},
 		{Name: "last_checked_at", Type: field.TypeInt64, Default: 0},
 		{Name: "last_error", Type: field.TypeString, Default: ""},
+		{Name: "metrics_datasource_uid", Type: field.TypeString, Default: ""},
 	}
 	// ClustersTable holds the schema information for the "clusters" table.
 	ClustersTable = &schema.Table{

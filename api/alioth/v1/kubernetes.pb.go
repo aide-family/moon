@@ -3568,7 +3568,11 @@ type KubernetesReplicaSetItem struct {
 	// 容器镜像。
 	Images []string `protobuf:"bytes,6,rep,name=images,proto3" json:"images,omitempty"`
 	// 创建时间，Unix 秒。
-	CreatedAt     int64 `protobuf:"varint,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedAt int64 `protobuf:"varint,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 版本号，取自 deployment.kubernetes.io/revision 注解。没有注解时为 0。
+	Revision int32 `protobuf:"varint,8,opt,name=revision,proto3" json:"revision,omitempty"`
+	// 是否为 Deployment 当前版本。
+	Current       bool `protobuf:"varint,9,opt,name=current,proto3" json:"current,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3652,6 +3656,20 @@ func (x *KubernetesReplicaSetItem) GetCreatedAt() int64 {
 	return 0
 }
 
+func (x *KubernetesReplicaSetItem) GetRevision() int32 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *KubernetesReplicaSetItem) GetCurrent() bool {
+	if x != nil {
+		return x.Current
+	}
+	return false
+}
+
 // 工作负载详情。
 type GetKubernetesWorkloadDetailRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -3733,7 +3751,11 @@ type GetKubernetesWorkloadDetailResponse struct {
 	// 副本集。StatefulSet 和 DaemonSet 通常为空。
 	Replicasets []*KubernetesReplicaSetItem `protobuf:"bytes,2,rep,name=replicasets,proto3" json:"replicasets,omitempty"`
 	// 该工作负载的 Pod。
-	Pods          []*KubernetesPodItem `protobuf:"bytes,3,rep,name=pods,proto3" json:"pods,omitempty"`
+	Pods []*KubernetesPodItem `protobuf:"bytes,3,rep,name=pods,proto3" json:"pods,omitempty"`
+	// 工作负载 status.conditions。
+	Conditions []*KubernetesConditionItem `protobuf:"bytes,4,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	// 副本状态汇总。
+	ReplicaStatus *KubernetesReplicaStatus `protobuf:"bytes,5,opt,name=replica_status,json=replicaStatus,proto3" json:"replica_status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3785,6 +3807,20 @@ func (x *GetKubernetesWorkloadDetailResponse) GetReplicasets() []*KubernetesRepl
 func (x *GetKubernetesWorkloadDetailResponse) GetPods() []*KubernetesPodItem {
 	if x != nil {
 		return x.Pods
+	}
+	return nil
+}
+
+func (x *GetKubernetesWorkloadDetailResponse) GetConditions() []*KubernetesConditionItem {
+	if x != nil {
+		return x.Conditions
+	}
+	return nil
+}
+
+func (x *GetKubernetesWorkloadDetailResponse) GetReplicaStatus() *KubernetesReplicaStatus {
+	if x != nil {
+		return x.ReplicaStatus
 	}
 	return nil
 }
@@ -6639,6 +6675,1400 @@ func (*DeleteKubernetesCronJobResponse) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{90}
 }
 
+// 资源条件。
+type KubernetesConditionItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 条件类型，例如 Ready、Available。
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// 条件状态，例如 True、False、Unknown。
+	Status string `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	// 原因。
+	Reason string `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	// 说明。
+	Message string `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	// 最近一次状态变更时间，Unix 秒。
+	LastTransitionAt int64 `protobuf:"varint,5,opt,name=last_transition_at,json=lastTransitionAt,proto3" json:"last_transition_at,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *KubernetesConditionItem) Reset() {
+	*x = KubernetesConditionItem{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[91]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesConditionItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesConditionItem) ProtoMessage() {}
+
+func (x *KubernetesConditionItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[91]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesConditionItem.ProtoReflect.Descriptor instead.
+func (*KubernetesConditionItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{91}
+}
+
+func (x *KubernetesConditionItem) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *KubernetesConditionItem) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *KubernetesConditionItem) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *KubernetesConditionItem) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *KubernetesConditionItem) GetLastTransitionAt() int64 {
+	if x != nil {
+		return x.LastTransitionAt
+	}
+	return 0
+}
+
+// 节点污点。
+type KubernetesTaintItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 键。
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// 值。
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	// 效果，例如 NoSchedule、PreferNoSchedule、NoExecute。
+	Effect        string `protobuf:"bytes,3,opt,name=effect,proto3" json:"effect,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesTaintItem) Reset() {
+	*x = KubernetesTaintItem{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[92]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesTaintItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesTaintItem) ProtoMessage() {}
+
+func (x *KubernetesTaintItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[92]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesTaintItem.ProtoReflect.Descriptor instead.
+func (*KubernetesTaintItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{92}
+}
+
+func (x *KubernetesTaintItem) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *KubernetesTaintItem) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+func (x *KubernetesTaintItem) GetEffect() string {
+	if x != nil {
+		return x.Effect
+	}
+	return ""
+}
+
+// 资源相关的最近事件。
+type KubernetesEventItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 类型，例如 Normal、Warning。
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// 原因。
+	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	// 说明。
+	Message string `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	// 出现次数。
+	Count int32 `protobuf:"varint,4,opt,name=count,proto3" json:"count,omitempty"`
+	// 来源组件，例如 kubelet。
+	Source string `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`
+	// 首次出现时间，Unix 秒。
+	FirstSeenAt int64 `protobuf:"varint,6,opt,name=first_seen_at,json=firstSeenAt,proto3" json:"first_seen_at,omitempty"`
+	// 最近出现时间，Unix 秒。
+	LastSeenAt    int64 `protobuf:"varint,7,opt,name=last_seen_at,json=lastSeenAt,proto3" json:"last_seen_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesEventItem) Reset() {
+	*x = KubernetesEventItem{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[93]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesEventItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesEventItem) ProtoMessage() {}
+
+func (x *KubernetesEventItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[93]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesEventItem.ProtoReflect.Descriptor instead.
+func (*KubernetesEventItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{93}
+}
+
+func (x *KubernetesEventItem) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *KubernetesEventItem) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *KubernetesEventItem) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *KubernetesEventItem) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+func (x *KubernetesEventItem) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *KubernetesEventItem) GetFirstSeenAt() int64 {
+	if x != nil {
+		return x.FirstSeenAt
+	}
+	return 0
+}
+
+func (x *KubernetesEventItem) GetLastSeenAt() int64 {
+	if x != nil {
+		return x.LastSeenAt
+	}
+	return 0
+}
+
+// 容器状态。状态为 RUNNING、WAITING 或 TERMINATED。
+type KubernetesContainerStatusItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 容器名。
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 镜像。
+	Image string `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
+	// 是否就绪。
+	Ready bool `protobuf:"varint,3,opt,name=ready,proto3" json:"ready,omitempty"`
+	// 重启次数。
+	Restarts int32 `protobuf:"varint,4,opt,name=restarts,proto3" json:"restarts,omitempty"`
+	// 状态，取值为 RUNNING、WAITING 或 TERMINATED。
+	State string `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
+	// 状态原因，例如 Completed、CrashLoopBackOff。
+	StateReason string `protobuf:"bytes,6,opt,name=state_reason,json=stateReason,proto3" json:"state_reason,omitempty"`
+	// 状态说明。
+	StateMessage string `protobuf:"bytes,7,opt,name=state_message,json=stateMessage,proto3" json:"state_message,omitempty"`
+	// 启动时间，Unix 秒。未启动时为 0。
+	StartedAt int64 `protobuf:"varint,8,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	// 声明端口，形如 8080/TCP。
+	Ports         []string `protobuf:"bytes,9,rep,name=ports,proto3" json:"ports,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesContainerStatusItem) Reset() {
+	*x = KubernetesContainerStatusItem{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[94]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesContainerStatusItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesContainerStatusItem) ProtoMessage() {}
+
+func (x *KubernetesContainerStatusItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[94]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesContainerStatusItem.ProtoReflect.Descriptor instead.
+func (*KubernetesContainerStatusItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{94}
+}
+
+func (x *KubernetesContainerStatusItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *KubernetesContainerStatusItem) GetImage() string {
+	if x != nil {
+		return x.Image
+	}
+	return ""
+}
+
+func (x *KubernetesContainerStatusItem) GetReady() bool {
+	if x != nil {
+		return x.Ready
+	}
+	return false
+}
+
+func (x *KubernetesContainerStatusItem) GetRestarts() int32 {
+	if x != nil {
+		return x.Restarts
+	}
+	return 0
+}
+
+func (x *KubernetesContainerStatusItem) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *KubernetesContainerStatusItem) GetStateReason() string {
+	if x != nil {
+		return x.StateReason
+	}
+	return ""
+}
+
+func (x *KubernetesContainerStatusItem) GetStateMessage() string {
+	if x != nil {
+		return x.StateMessage
+	}
+	return ""
+}
+
+func (x *KubernetesContainerStatusItem) GetStartedAt() int64 {
+	if x != nil {
+		return x.StartedAt
+	}
+	return 0
+}
+
+func (x *KubernetesContainerStatusItem) GetPorts() []string {
+	if x != nil {
+		return x.Ports
+	}
+	return nil
+}
+
+// Pod 存储卷。Secret 与 ConfigMap 只返回名称，不读取任何值。
+type KubernetesVolumeItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 卷名。
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 卷类型，例如 PersistentVolumeClaim、Secret、ConfigMap、EmptyDir、HostPath。
+	Type string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	// 是否只读。
+	ReadOnly bool `protobuf:"varint,3,opt,name=read_only,json=readOnly,proto3" json:"read_only,omitempty"`
+	// 来源摘要：PVC 返回 claimName，Secret / ConfigMap 返回名称，HostPath 返回路径。
+	Summary       string `protobuf:"bytes,4,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesVolumeItem) Reset() {
+	*x = KubernetesVolumeItem{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[95]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesVolumeItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesVolumeItem) ProtoMessage() {}
+
+func (x *KubernetesVolumeItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[95]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesVolumeItem.ProtoReflect.Descriptor instead.
+func (*KubernetesVolumeItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{95}
+}
+
+func (x *KubernetesVolumeItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *KubernetesVolumeItem) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *KubernetesVolumeItem) GetReadOnly() bool {
+	if x != nil {
+		return x.ReadOnly
+	}
+	return false
+}
+
+func (x *KubernetesVolumeItem) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+// 资源归属。
+type KubernetesOwnerReferenceItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 类型。
+	Kind string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	// 名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 标识。
+	Uid string `protobuf:"bytes,3,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 是否为控制器。
+	Controller    bool `protobuf:"varint,4,opt,name=controller,proto3" json:"controller,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesOwnerReferenceItem) Reset() {
+	*x = KubernetesOwnerReferenceItem{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[96]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesOwnerReferenceItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesOwnerReferenceItem) ProtoMessage() {}
+
+func (x *KubernetesOwnerReferenceItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[96]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesOwnerReferenceItem.ProtoReflect.Descriptor instead.
+func (*KubernetesOwnerReferenceItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{96}
+}
+
+func (x *KubernetesOwnerReferenceItem) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *KubernetesOwnerReferenceItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *KubernetesOwnerReferenceItem) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *KubernetesOwnerReferenceItem) GetController() bool {
+	if x != nil {
+		return x.Controller
+	}
+	return false
+}
+
+// 副本状态汇总。
+type KubernetesReplicaStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 期望副本数。
+	Desired int32 `protobuf:"varint,1,opt,name=desired,proto3" json:"desired,omitempty"`
+	// 当前副本数。
+	Current int32 `protobuf:"varint,2,opt,name=current,proto3" json:"current,omitempty"`
+	// 就绪副本数。
+	Ready int32 `protobuf:"varint,3,opt,name=ready,proto3" json:"ready,omitempty"`
+	// 已更新副本数。
+	Updated int32 `protobuf:"varint,4,opt,name=updated,proto3" json:"updated,omitempty"`
+	// 可用副本数。
+	Available int32 `protobuf:"varint,5,opt,name=available,proto3" json:"available,omitempty"`
+	// 不可用副本数。
+	Unavailable   int32 `protobuf:"varint,6,opt,name=unavailable,proto3" json:"unavailable,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesReplicaStatus) Reset() {
+	*x = KubernetesReplicaStatus{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[97]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesReplicaStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesReplicaStatus) ProtoMessage() {}
+
+func (x *KubernetesReplicaStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[97]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesReplicaStatus.ProtoReflect.Descriptor instead.
+func (*KubernetesReplicaStatus) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{97}
+}
+
+func (x *KubernetesReplicaStatus) GetDesired() int32 {
+	if x != nil {
+		return x.Desired
+	}
+	return 0
+}
+
+func (x *KubernetesReplicaStatus) GetCurrent() int32 {
+	if x != nil {
+		return x.Current
+	}
+	return 0
+}
+
+func (x *KubernetesReplicaStatus) GetReady() int32 {
+	if x != nil {
+		return x.Ready
+	}
+	return 0
+}
+
+func (x *KubernetesReplicaStatus) GetUpdated() int32 {
+	if x != nil {
+		return x.Updated
+	}
+	return 0
+}
+
+func (x *KubernetesReplicaStatus) GetAvailable() int32 {
+	if x != nil {
+		return x.Available
+	}
+	return 0
+}
+
+func (x *KubernetesReplicaStatus) GetUnavailable() int32 {
+	if x != nil {
+		return x.Unavailable
+	}
+	return 0
+}
+
+// 集群概况中的 Pod 阶段分布。
+type KubernetesPodPhaseCount struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 阶段，取值为 Running、Pending、Succeeded、Failed、Unknown。
+	Phase string `protobuf:"bytes,1,opt,name=phase,proto3" json:"phase,omitempty"`
+	// 该阶段的 Pod 数量。
+	Count         int32 `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesPodPhaseCount) Reset() {
+	*x = KubernetesPodPhaseCount{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[98]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesPodPhaseCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesPodPhaseCount) ProtoMessage() {}
+
+func (x *KubernetesPodPhaseCount) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[98]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesPodPhaseCount.ProtoReflect.Descriptor instead.
+func (*KubernetesPodPhaseCount) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{98}
+}
+
+func (x *KubernetesPodPhaseCount) GetPhase() string {
+	if x != nil {
+		return x.Phase
+	}
+	return ""
+}
+
+func (x *KubernetesPodPhaseCount) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+// 集群概况中的工作负载统计。
+type KubernetesWorkloadSummary struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 类型，取值为 Deployment、StatefulSet 或 DaemonSet。
+	Kind string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	// 总数。
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// 期望副本数合计。
+	Desired int32 `protobuf:"varint,3,opt,name=desired,proto3" json:"desired,omitempty"`
+	// 就绪副本数合计。
+	Ready         int32 `protobuf:"varint,4,opt,name=ready,proto3" json:"ready,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesWorkloadSummary) Reset() {
+	*x = KubernetesWorkloadSummary{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[99]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesWorkloadSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesWorkloadSummary) ProtoMessage() {}
+
+func (x *KubernetesWorkloadSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[99]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesWorkloadSummary.ProtoReflect.Descriptor instead.
+func (*KubernetesWorkloadSummary) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{99}
+}
+
+func (x *KubernetesWorkloadSummary) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *KubernetesWorkloadSummary) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *KubernetesWorkloadSummary) GetDesired() int32 {
+	if x != nil {
+		return x.Desired
+	}
+	return 0
+}
+
+func (x *KubernetesWorkloadSummary) GetReady() int32 {
+	if x != nil {
+		return x.Ready
+	}
+	return 0
+}
+
+// 读取集群概况。
+type GetKubernetesOverviewRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 集群标识。
+	ClusterUid string `protobuf:"bytes,1,opt,name=cluster_uid,json=clusterUid,proto3" json:"cluster_uid,omitempty"`
+	// 命名空间。留空表示全部命名空间；节点与容量始终是全集群口径。
+	Namespace     string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKubernetesOverviewRequest) Reset() {
+	*x = GetKubernetesOverviewRequest{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[100]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKubernetesOverviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKubernetesOverviewRequest) ProtoMessage() {}
+
+func (x *GetKubernetesOverviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[100]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKubernetesOverviewRequest.ProtoReflect.Descriptor instead.
+func (*GetKubernetesOverviewRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{100}
+}
+
+func (x *GetKubernetesOverviewRequest) GetClusterUid() string {
+	if x != nil {
+		return x.ClusterUid
+	}
+	return ""
+}
+
+func (x *GetKubernetesOverviewRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+// 集群概况。单个区块缺权限或失败时仍返回 200，并列入 denied_sections / failed_sections。
+type GetKubernetesOverviewResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// API Server 版本。取不到时回落最近的连通性探测结果，仍取不到为空。
+	ApiServerVersion string `protobuf:"bytes,1,opt,name=api_server_version,json=apiServerVersion,proto3" json:"api_server_version,omitempty"`
+	// 节点总数。
+	NodeTotal int32 `protobuf:"varint,2,opt,name=node_total,json=nodeTotal,proto3" json:"node_total,omitempty"`
+	// Ready 节点数。
+	NodeReady int32 `protobuf:"varint,3,opt,name=node_ready,json=nodeReady,proto3" json:"node_ready,omitempty"`
+	// 非 Ready 节点数。
+	NodeNotReady int32 `protobuf:"varint,4,opt,name=node_not_ready,json=nodeNotReady,proto3" json:"node_not_ready,omitempty"`
+	// Ready 且可调度节点的可分配 CPU 合计，单位毫核。
+	AllocatableCpuMillis int64 `protobuf:"varint,5,opt,name=allocatable_cpu_millis,json=allocatableCpuMillis,proto3" json:"allocatable_cpu_millis,omitempty"`
+	// Ready 且可调度节点的可分配内存合计，单位字节。
+	AllocatableMemoryBytes int64 `protobuf:"varint,6,opt,name=allocatable_memory_bytes,json=allocatableMemoryBytes,proto3" json:"allocatable_memory_bytes,omitempty"`
+	// Pod 总数。
+	PodTotal int32 `protobuf:"varint,7,opt,name=pod_total,json=podTotal,proto3" json:"pod_total,omitempty"`
+	// Pod 阶段分布，固定返回 Running、Pending、Succeeded、Failed、Unknown 五行。
+	PodPhases []*KubernetesPodPhaseCount `protobuf:"bytes,8,rep,name=pod_phases,json=podPhases,proto3" json:"pod_phases,omitempty"`
+	// 工作负载统计，固定返回 Deployment、StatefulSet、DaemonSet 三行。
+	Workloads []*KubernetesWorkloadSummary `protobuf:"bytes,9,rep,name=workloads,proto3" json:"workloads,omitempty"`
+	// Job 总数。
+	JobTotal int32 `protobuf:"varint,10,opt,name=job_total,json=jobTotal,proto3" json:"job_total,omitempty"`
+	// 活跃 Job 数。
+	JobActive int32 `protobuf:"varint,11,opt,name=job_active,json=jobActive,proto3" json:"job_active,omitempty"`
+	// 失败次数合计。
+	JobFailed int32 `protobuf:"varint,12,opt,name=job_failed,json=jobFailed,proto3" json:"job_failed,omitempty"`
+	// Service 数量。
+	ServiceTotal int32 `protobuf:"varint,13,opt,name=service_total,json=serviceTotal,proto3" json:"service_total,omitempty"`
+	// Ingress 数量。
+	IngressTotal int32 `protobuf:"varint,14,opt,name=ingress_total,json=ingressTotal,proto3" json:"ingress_total,omitempty"`
+	// 因缺少读权限而没有统计的区块。
+	DeniedSections []string `protobuf:"bytes,15,rep,name=denied_sections,json=deniedSections,proto3" json:"denied_sections,omitempty"`
+	// 查询失败而没有统计的区块。
+	FailedSections []string `protobuf:"bytes,16,rep,name=failed_sections,json=failedSections,proto3" json:"failed_sections,omitempty"`
+	// 服务端完成时间，Unix 秒。
+	GeneratedAt   int64 `protobuf:"varint,17,opt,name=generated_at,json=generatedAt,proto3" json:"generated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKubernetesOverviewResponse) Reset() {
+	*x = GetKubernetesOverviewResponse{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[101]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKubernetesOverviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKubernetesOverviewResponse) ProtoMessage() {}
+
+func (x *GetKubernetesOverviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[101]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKubernetesOverviewResponse.ProtoReflect.Descriptor instead.
+func (*GetKubernetesOverviewResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{101}
+}
+
+func (x *GetKubernetesOverviewResponse) GetApiServerVersion() string {
+	if x != nil {
+		return x.ApiServerVersion
+	}
+	return ""
+}
+
+func (x *GetKubernetesOverviewResponse) GetNodeTotal() int32 {
+	if x != nil {
+		return x.NodeTotal
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetNodeReady() int32 {
+	if x != nil {
+		return x.NodeReady
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetNodeNotReady() int32 {
+	if x != nil {
+		return x.NodeNotReady
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetAllocatableCpuMillis() int64 {
+	if x != nil {
+		return x.AllocatableCpuMillis
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetAllocatableMemoryBytes() int64 {
+	if x != nil {
+		return x.AllocatableMemoryBytes
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetPodTotal() int32 {
+	if x != nil {
+		return x.PodTotal
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetPodPhases() []*KubernetesPodPhaseCount {
+	if x != nil {
+		return x.PodPhases
+	}
+	return nil
+}
+
+func (x *GetKubernetesOverviewResponse) GetWorkloads() []*KubernetesWorkloadSummary {
+	if x != nil {
+		return x.Workloads
+	}
+	return nil
+}
+
+func (x *GetKubernetesOverviewResponse) GetJobTotal() int32 {
+	if x != nil {
+		return x.JobTotal
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetJobActive() int32 {
+	if x != nil {
+		return x.JobActive
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetJobFailed() int32 {
+	if x != nil {
+		return x.JobFailed
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetServiceTotal() int32 {
+	if x != nil {
+		return x.ServiceTotal
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetIngressTotal() int32 {
+	if x != nil {
+		return x.IngressTotal
+	}
+	return 0
+}
+
+func (x *GetKubernetesOverviewResponse) GetDeniedSections() []string {
+	if x != nil {
+		return x.DeniedSections
+	}
+	return nil
+}
+
+func (x *GetKubernetesOverviewResponse) GetFailedSections() []string {
+	if x != nil {
+		return x.FailedSections
+	}
+	return nil
+}
+
+func (x *GetKubernetesOverviewResponse) GetGeneratedAt() int64 {
+	if x != nil {
+		return x.GeneratedAt
+	}
+	return 0
+}
+
+// 读取节点详情。
+type GetKubernetesNodeDetailRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 集群标识。
+	ClusterUid string `protobuf:"bytes,1,opt,name=cluster_uid,json=clusterUid,proto3" json:"cluster_uid,omitempty"`
+	// 节点名。
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKubernetesNodeDetailRequest) Reset() {
+	*x = GetKubernetesNodeDetailRequest{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[102]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKubernetesNodeDetailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKubernetesNodeDetailRequest) ProtoMessage() {}
+
+func (x *GetKubernetesNodeDetailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[102]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKubernetesNodeDetailRequest.ProtoReflect.Descriptor instead.
+func (*GetKubernetesNodeDetailRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{102}
+}
+
+func (x *GetKubernetesNodeDetailRequest) GetClusterUid() string {
+	if x != nil {
+		return x.ClusterUid
+	}
+	return ""
+}
+
+func (x *GetKubernetesNodeDetailRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// 节点详情。
+type GetKubernetesNodeDetailResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 节点详情。
+	Node          *KubernetesNodeDetailItem `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKubernetesNodeDetailResponse) Reset() {
+	*x = GetKubernetesNodeDetailResponse{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[103]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKubernetesNodeDetailResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKubernetesNodeDetailResponse) ProtoMessage() {}
+
+func (x *GetKubernetesNodeDetailResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[103]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKubernetesNodeDetailResponse.ProtoReflect.Descriptor instead.
+func (*GetKubernetesNodeDetailResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{103}
+}
+
+func (x *GetKubernetesNodeDetailResponse) GetNode() *KubernetesNodeDetailItem {
+	if x != nil {
+		return x.Node
+	}
+	return nil
+}
+
+// 节点详情：基础信息、条件、污点、容量与可分配量、最近事件。
+type KubernetesNodeDetailItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 基础信息。
+	Node *KubernetesNodeItem `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	// 全部条件。
+	Conditions []*KubernetesConditionItem `protobuf:"bytes,2,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	// 污点。
+	Taints []*KubernetesTaintItem `protobuf:"bytes,3,rep,name=taints,proto3" json:"taints,omitempty"`
+	// 容量，键为 cpu、memory、pods、ephemeral-storage 及扩展资源。
+	Capacity map[string]string `protobuf:"bytes,4,rep,name=capacity,proto3" json:"capacity,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// 可分配量，键与容量一致。
+	Allocatable map[string]string `protobuf:"bytes,5,rep,name=allocatable,proto3" json:"allocatable,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// 最近事件，按最后发生时间倒序，最多 20 条。
+	Events []*KubernetesEventItem `protobuf:"bytes,6,rep,name=events,proto3" json:"events,omitempty"`
+	// 非致命问题，例如没有事件读取权限。
+	Warnings      []string `protobuf:"bytes,7,rep,name=warnings,proto3" json:"warnings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesNodeDetailItem) Reset() {
+	*x = KubernetesNodeDetailItem{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[104]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesNodeDetailItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesNodeDetailItem) ProtoMessage() {}
+
+func (x *KubernetesNodeDetailItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[104]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesNodeDetailItem.ProtoReflect.Descriptor instead.
+func (*KubernetesNodeDetailItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{104}
+}
+
+func (x *KubernetesNodeDetailItem) GetNode() *KubernetesNodeItem {
+	if x != nil {
+		return x.Node
+	}
+	return nil
+}
+
+func (x *KubernetesNodeDetailItem) GetConditions() []*KubernetesConditionItem {
+	if x != nil {
+		return x.Conditions
+	}
+	return nil
+}
+
+func (x *KubernetesNodeDetailItem) GetTaints() []*KubernetesTaintItem {
+	if x != nil {
+		return x.Taints
+	}
+	return nil
+}
+
+func (x *KubernetesNodeDetailItem) GetCapacity() map[string]string {
+	if x != nil {
+		return x.Capacity
+	}
+	return nil
+}
+
+func (x *KubernetesNodeDetailItem) GetAllocatable() map[string]string {
+	if x != nil {
+		return x.Allocatable
+	}
+	return nil
+}
+
+func (x *KubernetesNodeDetailItem) GetEvents() []*KubernetesEventItem {
+	if x != nil {
+		return x.Events
+	}
+	return nil
+}
+
+func (x *KubernetesNodeDetailItem) GetWarnings() []string {
+	if x != nil {
+		return x.Warnings
+	}
+	return nil
+}
+
+// 读取 Pod 详情。
+type GetKubernetesPodDetailRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 集群标识。
+	ClusterUid string `protobuf:"bytes,1,opt,name=cluster_uid,json=clusterUid,proto3" json:"cluster_uid,omitempty"`
+	// 命名空间。
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// 名称。
+	Name          string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKubernetesPodDetailRequest) Reset() {
+	*x = GetKubernetesPodDetailRequest{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[105]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKubernetesPodDetailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKubernetesPodDetailRequest) ProtoMessage() {}
+
+func (x *GetKubernetesPodDetailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[105]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKubernetesPodDetailRequest.ProtoReflect.Descriptor instead.
+func (*GetKubernetesPodDetailRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{105}
+}
+
+func (x *GetKubernetesPodDetailRequest) GetClusterUid() string {
+	if x != nil {
+		return x.ClusterUid
+	}
+	return ""
+}
+
+func (x *GetKubernetesPodDetailRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *GetKubernetesPodDetailRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// Pod 详情。
+type GetKubernetesPodDetailResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Pod 详情。
+	Pod           *KubernetesPodDetailItem `protobuf:"bytes,1,opt,name=pod,proto3" json:"pod,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKubernetesPodDetailResponse) Reset() {
+	*x = GetKubernetesPodDetailResponse{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[106]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKubernetesPodDetailResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKubernetesPodDetailResponse) ProtoMessage() {}
+
+func (x *GetKubernetesPodDetailResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[106]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKubernetesPodDetailResponse.ProtoReflect.Descriptor instead.
+func (*GetKubernetesPodDetailResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{106}
+}
+
+func (x *GetKubernetesPodDetailResponse) GetPod() *KubernetesPodDetailItem {
+	if x != nil {
+		return x.Pod
+	}
+	return nil
+}
+
+// Pod 详情：基础信息、容器状态、条件、存储卷、归属与最近事件。
+type KubernetesPodDetailItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 基础信息。
+	Pod *KubernetesPodItem `protobuf:"bytes,1,opt,name=pod,proto3" json:"pod,omitempty"`
+	// 普通容器状态。
+	Containers []*KubernetesContainerStatusItem `protobuf:"bytes,2,rep,name=containers,proto3" json:"containers,omitempty"`
+	// 初始化容器状态。
+	InitContainers []*KubernetesContainerStatusItem `protobuf:"bytes,3,rep,name=init_containers,json=initContainers,proto3" json:"init_containers,omitempty"`
+	// 全部条件。
+	Conditions []*KubernetesConditionItem `protobuf:"bytes,4,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	// 存储卷。
+	Volumes []*KubernetesVolumeItem `protobuf:"bytes,5,rep,name=volumes,proto3" json:"volumes,omitempty"`
+	// 归属。
+	OwnerReferences []*KubernetesOwnerReferenceItem `protobuf:"bytes,6,rep,name=owner_references,json=ownerReferences,proto3" json:"owner_references,omitempty"`
+	// 最近事件，按最后发生时间倒序，最多 20 条。
+	Events []*KubernetesEventItem `protobuf:"bytes,7,rep,name=events,proto3" json:"events,omitempty"`
+	// 非致命问题，例如没有事件读取权限。
+	Warnings      []string `protobuf:"bytes,8,rep,name=warnings,proto3" json:"warnings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KubernetesPodDetailItem) Reset() {
+	*x = KubernetesPodDetailItem{}
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[107]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KubernetesPodDetailItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KubernetesPodDetailItem) ProtoMessage() {}
+
+func (x *KubernetesPodDetailItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_kubernetes_proto_msgTypes[107]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KubernetesPodDetailItem.ProtoReflect.Descriptor instead.
+func (*KubernetesPodDetailItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_kubernetes_proto_rawDescGZIP(), []int{107}
+}
+
+func (x *KubernetesPodDetailItem) GetPod() *KubernetesPodItem {
+	if x != nil {
+		return x.Pod
+	}
+	return nil
+}
+
+func (x *KubernetesPodDetailItem) GetContainers() []*KubernetesContainerStatusItem {
+	if x != nil {
+		return x.Containers
+	}
+	return nil
+}
+
+func (x *KubernetesPodDetailItem) GetInitContainers() []*KubernetesContainerStatusItem {
+	if x != nil {
+		return x.InitContainers
+	}
+	return nil
+}
+
+func (x *KubernetesPodDetailItem) GetConditions() []*KubernetesConditionItem {
+	if x != nil {
+		return x.Conditions
+	}
+	return nil
+}
+
+func (x *KubernetesPodDetailItem) GetVolumes() []*KubernetesVolumeItem {
+	if x != nil {
+		return x.Volumes
+	}
+	return nil
+}
+
+func (x *KubernetesPodDetailItem) GetOwnerReferences() []*KubernetesOwnerReferenceItem {
+	if x != nil {
+		return x.OwnerReferences
+	}
+	return nil
+}
+
+func (x *KubernetesPodDetailItem) GetEvents() []*KubernetesEventItem {
+	if x != nil {
+		return x.Events
+	}
+	return nil
+}
+
+func (x *KubernetesPodDetailItem) GetWarnings() []string {
+	if x != nil {
+		return x.Warnings
+	}
+	return nil
+}
+
 var File_alioth_v1_kubernetes_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_kubernetes_proto_rawDesc = "" +
@@ -6953,7 +8383,7 @@ const file_alioth_v1_kubernetes_proto_rawDesc = "" +
 	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\x04name\"S\n" +
 	"!GetKubernetesResourceYAMLResponse\x12\x12\n" +
 	"\x04yaml\x18\x01 \x01(\tR\x04yaml\x12\x1a\n" +
-	"\bredacted\x18\x02 \x01(\bR\bredacted\"\x80\x02\n" +
+	"\bredacted\x18\x02 \x01(\bR\bredacted\"\xb6\x02\n" +
 	"\x18KubernetesReplicaSetItem\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12)\n" +
@@ -6962,7 +8392,9 @@ const file_alioth_v1_kubernetes_proto_rawDesc = "" +
 	"\x10current_replicas\x18\x05 \x01(\x05R\x0fcurrentReplicas\x12\x16\n" +
 	"\x06images\x18\x06 \x03(\tR\x06images\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\a \x01(\x03R\tcreatedAt\"\xd7\x01\n" +
+	"created_at\x18\a \x01(\x03R\tcreatedAt\x12\x1a\n" +
+	"\brevision\x18\b \x01(\x05R\brevision\x12\x18\n" +
+	"\acurrent\x18\t \x01(\bR\acurrent\"\xd7\x01\n" +
 	"\"GetKubernetesWorkloadDetailRequest\x12(\n" +
 	"\vcluster_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
 	"clusterUid\x12=\n" +
@@ -6971,11 +8403,15 @@ const file_alioth_v1_kubernetes_proto_rawDesc = "" +
 	"\tnamespace\x18\x03 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\tnamespace\x12\x1e\n" +
 	"\x04name\x18\x04 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\x04name\"\xdd\x01\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\x04name\"\xec\x02\n" +
 	"#GetKubernetesWorkloadDetailResponse\x12=\n" +
 	"\bworkload\x18\x01 \x01(\v2!.alioth.v1.KubernetesWorkloadItemR\bworkload\x12E\n" +
 	"\vreplicasets\x18\x02 \x03(\v2#.alioth.v1.KubernetesReplicaSetItemR\vreplicasets\x120\n" +
-	"\x04pods\x18\x03 \x03(\v2\x1c.alioth.v1.KubernetesPodItemR\x04pods\"\x97\x01\n" +
+	"\x04pods\x18\x03 \x03(\v2\x1c.alioth.v1.KubernetesPodItemR\x04pods\x12B\n" +
+	"\n" +
+	"conditions\x18\x04 \x03(\v2\".alioth.v1.KubernetesConditionItemR\n" +
+	"conditions\x12I\n" +
+	"\x0ereplica_status\x18\x05 \x01(\v2\".alioth.v1.KubernetesReplicaStatusR\rreplicaStatus\"\x97\x01\n" +
 	"!GetKubernetesIngressDetailRequest\x12(\n" +
 	"\vcluster_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
 	"clusterUid\x12(\n" +
@@ -7227,7 +8663,137 @@ const file_alioth_v1_kubernetes_proto_rawDesc = "" +
 	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\tnamespace\x12\x1e\n" +
 	"\x04name\x18\x03 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\x04name\"!\n" +
-	"\x1fDeleteKubernetesCronJobResponse2\xda/\n" +
+	"\x1fDeleteKubernetesCronJobResponse\"\xa5\x01\n" +
+	"\x17KubernetesConditionItem\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12\x18\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\x12,\n" +
+	"\x12last_transition_at\x18\x05 \x01(\x03R\x10lastTransitionAt\"U\n" +
+	"\x13KubernetesTaintItem\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\x12\x16\n" +
+	"\x06effect\x18\x03 \x01(\tR\x06effect\"\xcf\x01\n" +
+	"\x13KubernetesEventItem\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x14\n" +
+	"\x05count\x18\x04 \x01(\x05R\x05count\x12\x16\n" +
+	"\x06source\x18\x05 \x01(\tR\x06source\x12\"\n" +
+	"\rfirst_seen_at\x18\x06 \x01(\x03R\vfirstSeenAt\x12 \n" +
+	"\flast_seen_at\x18\a \x01(\x03R\n" +
+	"lastSeenAt\"\x8e\x02\n" +
+	"\x1dKubernetesContainerStatusItem\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05image\x18\x02 \x01(\tR\x05image\x12\x14\n" +
+	"\x05ready\x18\x03 \x01(\bR\x05ready\x12\x1a\n" +
+	"\brestarts\x18\x04 \x01(\x05R\brestarts\x12\x14\n" +
+	"\x05state\x18\x05 \x01(\tR\x05state\x12!\n" +
+	"\fstate_reason\x18\x06 \x01(\tR\vstateReason\x12#\n" +
+	"\rstate_message\x18\a \x01(\tR\fstateMessage\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\b \x01(\x03R\tstartedAt\x12\x14\n" +
+	"\x05ports\x18\t \x03(\tR\x05ports\"u\n" +
+	"\x14KubernetesVolumeItem\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12\x1b\n" +
+	"\tread_only\x18\x03 \x01(\bR\breadOnly\x12\x18\n" +
+	"\asummary\x18\x04 \x01(\tR\asummary\"x\n" +
+	"\x1cKubernetesOwnerReferenceItem\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
+	"\x03uid\x18\x03 \x01(\tR\x03uid\x12\x1e\n" +
+	"\n" +
+	"controller\x18\x04 \x01(\bR\n" +
+	"controller\"\xbd\x01\n" +
+	"\x17KubernetesReplicaStatus\x12\x18\n" +
+	"\adesired\x18\x01 \x01(\x05R\adesired\x12\x18\n" +
+	"\acurrent\x18\x02 \x01(\x05R\acurrent\x12\x14\n" +
+	"\x05ready\x18\x03 \x01(\x05R\x05ready\x12\x18\n" +
+	"\aupdated\x18\x04 \x01(\x05R\aupdated\x12\x1c\n" +
+	"\tavailable\x18\x05 \x01(\x05R\tavailable\x12 \n" +
+	"\vunavailable\x18\x06 \x01(\x05R\vunavailable\"E\n" +
+	"\x17KubernetesPodPhaseCount\x12\x14\n" +
+	"\x05phase\x18\x01 \x01(\tR\x05phase\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x05R\x05count\"u\n" +
+	"\x19KubernetesWorkloadSummary\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x18\n" +
+	"\adesired\x18\x03 \x01(\x05R\adesired\x12\x14\n" +
+	"\x05ready\x18\x04 \x01(\x05R\x05ready\"p\n" +
+	"\x1cGetKubernetesOverviewRequest\x12(\n" +
+	"\vcluster_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
+	"clusterUid\x12&\n" +
+	"\tnamespace\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xfd\x01R\tnamespace\"\xdf\x05\n" +
+	"\x1dGetKubernetesOverviewResponse\x12,\n" +
+	"\x12api_server_version\x18\x01 \x01(\tR\x10apiServerVersion\x12\x1d\n" +
+	"\n" +
+	"node_total\x18\x02 \x01(\x05R\tnodeTotal\x12\x1d\n" +
+	"\n" +
+	"node_ready\x18\x03 \x01(\x05R\tnodeReady\x12$\n" +
+	"\x0enode_not_ready\x18\x04 \x01(\x05R\fnodeNotReady\x124\n" +
+	"\x16allocatable_cpu_millis\x18\x05 \x01(\x03R\x14allocatableCpuMillis\x128\n" +
+	"\x18allocatable_memory_bytes\x18\x06 \x01(\x03R\x16allocatableMemoryBytes\x12\x1b\n" +
+	"\tpod_total\x18\a \x01(\x05R\bpodTotal\x12A\n" +
+	"\n" +
+	"pod_phases\x18\b \x03(\v2\".alioth.v1.KubernetesPodPhaseCountR\tpodPhases\x12B\n" +
+	"\tworkloads\x18\t \x03(\v2$.alioth.v1.KubernetesWorkloadSummaryR\tworkloads\x12\x1b\n" +
+	"\tjob_total\x18\n" +
+	" \x01(\x05R\bjobTotal\x12\x1d\n" +
+	"\n" +
+	"job_active\x18\v \x01(\x05R\tjobActive\x12\x1d\n" +
+	"\n" +
+	"job_failed\x18\f \x01(\x05R\tjobFailed\x12#\n" +
+	"\rservice_total\x18\r \x01(\x05R\fserviceTotal\x12#\n" +
+	"\ringress_total\x18\x0e \x01(\x05R\fingressTotal\x12'\n" +
+	"\x0fdenied_sections\x18\x0f \x03(\tR\x0edeniedSections\x12'\n" +
+	"\x0ffailed_sections\x18\x10 \x03(\tR\x0efailedSections\x12!\n" +
+	"\fgenerated_at\x18\x11 \x01(\x03R\vgeneratedAt\"j\n" +
+	"\x1eGetKubernetesNodeDetailRequest\x12(\n" +
+	"\vcluster_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
+	"clusterUid\x12\x1e\n" +
+	"\x04name\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\x04name\"Z\n" +
+	"\x1fGetKubernetesNodeDetailResponse\x127\n" +
+	"\x04node\x18\x01 \x01(\v2#.alioth.v1.KubernetesNodeDetailItemR\x04node\"\xc1\x04\n" +
+	"\x18KubernetesNodeDetailItem\x121\n" +
+	"\x04node\x18\x01 \x01(\v2\x1d.alioth.v1.KubernetesNodeItemR\x04node\x12B\n" +
+	"\n" +
+	"conditions\x18\x02 \x03(\v2\".alioth.v1.KubernetesConditionItemR\n" +
+	"conditions\x126\n" +
+	"\x06taints\x18\x03 \x03(\v2\x1e.alioth.v1.KubernetesTaintItemR\x06taints\x12M\n" +
+	"\bcapacity\x18\x04 \x03(\v21.alioth.v1.KubernetesNodeDetailItem.CapacityEntryR\bcapacity\x12V\n" +
+	"\vallocatable\x18\x05 \x03(\v24.alioth.v1.KubernetesNodeDetailItem.AllocatableEntryR\vallocatable\x126\n" +
+	"\x06events\x18\x06 \x03(\v2\x1e.alioth.v1.KubernetesEventItemR\x06events\x12\x1a\n" +
+	"\bwarnings\x18\a \x03(\tR\bwarnings\x1a;\n" +
+	"\rCapacityEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
+	"\x10AllocatableEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x93\x01\n" +
+	"\x1dGetKubernetesPodDetailRequest\x12(\n" +
+	"\vcluster_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
+	"clusterUid\x12(\n" +
+	"\tnamespace\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\tnamespace\x12\x1e\n" +
+	"\x04name\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xfd\x01R\x04name\"V\n" +
+	"\x1eGetKubernetesPodDetailResponse\x124\n" +
+	"\x03pod\x18\x01 \x01(\v2\".alioth.v1.KubernetesPodDetailItemR\x03pod\"\x8d\x04\n" +
+	"\x17KubernetesPodDetailItem\x12.\n" +
+	"\x03pod\x18\x01 \x01(\v2\x1c.alioth.v1.KubernetesPodItemR\x03pod\x12H\n" +
+	"\n" +
+	"containers\x18\x02 \x03(\v2(.alioth.v1.KubernetesContainerStatusItemR\n" +
+	"containers\x12Q\n" +
+	"\x0finit_containers\x18\x03 \x03(\v2(.alioth.v1.KubernetesContainerStatusItemR\x0einitContainers\x12B\n" +
+	"\n" +
+	"conditions\x18\x04 \x03(\v2\".alioth.v1.KubernetesConditionItemR\n" +
+	"conditions\x129\n" +
+	"\avolumes\x18\x05 \x03(\v2\x1f.alioth.v1.KubernetesVolumeItemR\avolumes\x12R\n" +
+	"\x10owner_references\x18\x06 \x03(\v2'.alioth.v1.KubernetesOwnerReferenceItemR\x0fownerReferences\x126\n" +
+	"\x06events\x18\a \x03(\v2\x1e.alioth.v1.KubernetesEventItemR\x06events\x12\x1a\n" +
+	"\bwarnings\x18\b \x03(\tR\bwarnings2\xc13\n" +
 	"\x11KubernetesService\x12\xa1\x01\n" +
 	"\x18ListKubernetesNamespaces\x12*.alioth.v1.ListKubernetesNamespacesRequest\x1a+.alioth.v1.ListKubernetesNamespacesResponse\",\x82\xd3\xe4\x93\x02&\x12$/v1/cluster/{cluster_uid}/namespaces\x12\x8d\x01\n" +
 	"\x13ListKubernetesNodes\x12%.alioth.v1.ListKubernetesNodesRequest\x1a&.alioth.v1.ListKubernetesNodesResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/cluster/{cluster_uid}/nodes\x12\xc5\x01\n" +
@@ -7263,7 +8829,10 @@ const file_alioth_v1_kubernetes_proto_rawDesc = "" +
 	"\x1aGetKubernetesCronJobDetail\x12,.alioth.v1.GetKubernetesCronJobDetailRequest\x1a-.alioth.v1.GetKubernetesCronJobDetailResponse\"0\x82\xd3\xe4\x93\x02*\x12(/v1/cluster/{cluster_uid}/cronjob-detail\x12\xb2\x01\n" +
 	"\x1bSetKubernetesCronJobSuspend\x12-.alioth.v1.SetKubernetesCronJobSuspendRequest\x1a..alioth.v1.SetKubernetesCronJobSuspendResponse\"4\x82\xd3\xe4\x93\x02.:\x01*\x1a)/v1/cluster/{cluster_uid}/cronjob/suspend\x12\xa9\x01\n" +
 	"\x18TriggerKubernetesCronJob\x12*.alioth.v1.TriggerKubernetesCronJobRequest\x1a+.alioth.v1.TriggerKubernetesCronJobResponse\"4\x82\xd3\xe4\x93\x02.:\x01*\")/v1/cluster/{cluster_uid}/cronjob/trigger\x12\xb8\x01\n" +
-	"\x17DeleteKubernetesCronJob\x12).alioth.v1.DeleteKubernetesCronJobRequest\x1a*.alioth.v1.DeleteKubernetesCronJobResponse\"F\x82\xd3\xe4\x93\x02@*>/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}B.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
+	"\x17DeleteKubernetesCronJob\x12).alioth.v1.DeleteKubernetesCronJobRequest\x1a*.alioth.v1.DeleteKubernetesCronJobResponse\"F\x82\xd3\xe4\x93\x02@*>/v1/cluster/{cluster_uid}/namespace/{namespace}/cronjob/{name}\x12\x96\x01\n" +
+	"\x15GetKubernetesOverview\x12'.alioth.v1.GetKubernetesOverviewRequest\x1a(.alioth.v1.GetKubernetesOverviewResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/v1/cluster/{cluster_uid}/overview\x12\xa0\x01\n" +
+	"\x17GetKubernetesNodeDetail\x12).alioth.v1.GetKubernetesNodeDetailRequest\x1a*.alioth.v1.GetKubernetesNodeDetailResponse\".\x82\xd3\xe4\x93\x02(\x12&/v1/cluster/{cluster_uid}/nodes/{name}\x12\xa8\x01\n" +
+	"\x16GetKubernetesPodDetail\x12(.alioth.v1.GetKubernetesPodDetailRequest\x1a).alioth.v1.GetKubernetesPodDetailResponse\"9\x82\xd3\xe4\x93\x023\x121/v1/cluster/{cluster_uid}/pods/{namespace}/{name}B.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
 
 var (
 	file_alioth_v1_kubernetes_proto_rawDescOnce sync.Once
@@ -7277,7 +8846,7 @@ func file_alioth_v1_kubernetes_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_kubernetes_proto_rawDescData
 }
 
-var file_alioth_v1_kubernetes_proto_msgTypes = make([]protoimpl.MessageInfo, 91)
+var file_alioth_v1_kubernetes_proto_msgTypes = make([]protoimpl.MessageInfo, 110)
 var file_alioth_v1_kubernetes_proto_goTypes = []any{
 	(*KubernetesNodeItem)(nil),                               // 0: alioth.v1.KubernetesNodeItem
 	(*ListKubernetesNodesRequest)(nil),                       // 1: alioth.v1.ListKubernetesNodesRequest
@@ -7370,124 +8939,168 @@ var file_alioth_v1_kubernetes_proto_goTypes = []any{
 	(*TriggerKubernetesCronJobResponse)(nil),                 // 88: alioth.v1.TriggerKubernetesCronJobResponse
 	(*DeleteKubernetesCronJobRequest)(nil),                   // 89: alioth.v1.DeleteKubernetesCronJobRequest
 	(*DeleteKubernetesCronJobResponse)(nil),                  // 90: alioth.v1.DeleteKubernetesCronJobResponse
+	(*KubernetesConditionItem)(nil),                          // 91: alioth.v1.KubernetesConditionItem
+	(*KubernetesTaintItem)(nil),                              // 92: alioth.v1.KubernetesTaintItem
+	(*KubernetesEventItem)(nil),                              // 93: alioth.v1.KubernetesEventItem
+	(*KubernetesContainerStatusItem)(nil),                    // 94: alioth.v1.KubernetesContainerStatusItem
+	(*KubernetesVolumeItem)(nil),                             // 95: alioth.v1.KubernetesVolumeItem
+	(*KubernetesOwnerReferenceItem)(nil),                     // 96: alioth.v1.KubernetesOwnerReferenceItem
+	(*KubernetesReplicaStatus)(nil),                          // 97: alioth.v1.KubernetesReplicaStatus
+	(*KubernetesPodPhaseCount)(nil),                          // 98: alioth.v1.KubernetesPodPhaseCount
+	(*KubernetesWorkloadSummary)(nil),                        // 99: alioth.v1.KubernetesWorkloadSummary
+	(*GetKubernetesOverviewRequest)(nil),                     // 100: alioth.v1.GetKubernetesOverviewRequest
+	(*GetKubernetesOverviewResponse)(nil),                    // 101: alioth.v1.GetKubernetesOverviewResponse
+	(*GetKubernetesNodeDetailRequest)(nil),                   // 102: alioth.v1.GetKubernetesNodeDetailRequest
+	(*GetKubernetesNodeDetailResponse)(nil),                  // 103: alioth.v1.GetKubernetesNodeDetailResponse
+	(*KubernetesNodeDetailItem)(nil),                         // 104: alioth.v1.KubernetesNodeDetailItem
+	(*GetKubernetesPodDetailRequest)(nil),                    // 105: alioth.v1.GetKubernetesPodDetailRequest
+	(*GetKubernetesPodDetailResponse)(nil),                   // 106: alioth.v1.GetKubernetesPodDetailResponse
+	(*KubernetesPodDetailItem)(nil),                          // 107: alioth.v1.KubernetesPodDetailItem
+	nil,                                                      // 108: alioth.v1.KubernetesNodeDetailItem.CapacityEntry
+	nil,                                                      // 109: alioth.v1.KubernetesNodeDetailItem.AllocatableEntry
 }
 var file_alioth_v1_kubernetes_proto_depIdxs = []int32{
-	0,  // 0: alioth.v1.ListKubernetesNodesResponse.items:type_name -> alioth.v1.KubernetesNodeItem
-	5,  // 1: alioth.v1.ListKubernetesWorkloadsResponse.items:type_name -> alioth.v1.KubernetesWorkloadItem
-	5,  // 2: alioth.v1.ScaleKubernetesWorkloadResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
-	5,  // 3: alioth.v1.RestartKubernetesWorkloadResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
-	12, // 4: alioth.v1.KubernetesPodItem.containers:type_name -> alioth.v1.KubernetesContainerItem
-	13, // 5: alioth.v1.ListKubernetesPodsResponse.items:type_name -> alioth.v1.KubernetesPodItem
-	22, // 6: alioth.v1.KubernetesIngressItem.paths:type_name -> alioth.v1.KubernetesIngressPathItem
-	23, // 7: alioth.v1.ListKubernetesIngressesResponse.items:type_name -> alioth.v1.KubernetesIngressItem
-	28, // 8: alioth.v1.KubernetesServiceItem.ports:type_name -> alioth.v1.KubernetesServicePortItem
-	29, // 9: alioth.v1.ListKubernetesServicesResponse.items:type_name -> alioth.v1.KubernetesServiceItem
-	32, // 10: alioth.v1.ListKubernetesConfigMapsResponse.items:type_name -> alioth.v1.KubernetesConfigMapItem
-	35, // 11: alioth.v1.ListKubernetesSecretsResponse.items:type_name -> alioth.v1.KubernetesSecretItem
-	38, // 12: alioth.v1.ListKubernetesPersistentVolumesResponse.items:type_name -> alioth.v1.KubernetesPersistentVolumeItem
-	41, // 13: alioth.v1.ListKubernetesPersistentVolumeClaimsResponse.items:type_name -> alioth.v1.KubernetesPersistentVolumeClaimItem
-	5,  // 14: alioth.v1.GetKubernetesWorkloadDetailResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
-	46, // 15: alioth.v1.GetKubernetesWorkloadDetailResponse.replicasets:type_name -> alioth.v1.KubernetesReplicaSetItem
-	13, // 16: alioth.v1.GetKubernetesWorkloadDetailResponse.pods:type_name -> alioth.v1.KubernetesPodItem
-	23, // 17: alioth.v1.GetKubernetesIngressDetailResponse.ingress:type_name -> alioth.v1.KubernetesIngressItem
-	29, // 18: alioth.v1.GetKubernetesIngressDetailResponse.services:type_name -> alioth.v1.KubernetesServiceItem
-	51, // 19: alioth.v1.KubernetesEndpointItem.ports:type_name -> alioth.v1.KubernetesEndpointPortItem
-	29, // 20: alioth.v1.GetKubernetesServiceDetailResponse.service:type_name -> alioth.v1.KubernetesServiceItem
-	52, // 21: alioth.v1.GetKubernetesServiceDetailResponse.endpoints:type_name -> alioth.v1.KubernetesEndpointItem
-	32, // 22: alioth.v1.GetKubernetesConfigMapDetailResponse.configmap:type_name -> alioth.v1.KubernetesConfigMapItem
-	55, // 23: alioth.v1.GetKubernetesConfigMapDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
-	35, // 24: alioth.v1.GetKubernetesSecretDetailResponse.secret:type_name -> alioth.v1.KubernetesSecretItem
-	55, // 25: alioth.v1.GetKubernetesSecretDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
-	41, // 26: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse.claim:type_name -> alioth.v1.KubernetesPersistentVolumeClaimItem
-	55, // 27: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
-	62, // 28: alioth.v1.KubernetesWorkloadImageItem.versions:type_name -> alioth.v1.KubernetesImageVersionItem
-	63, // 29: alioth.v1.GetKubernetesWorkloadImagesResponse.images:type_name -> alioth.v1.KubernetesWorkloadImageItem
-	5,  // 30: alioth.v1.SetKubernetesWorkloadImageResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
-	68, // 31: alioth.v1.ListKubernetesWorkloadRevisionsResponse.revisions:type_name -> alioth.v1.KubernetesWorkloadRevisionItem
-	5,  // 32: alioth.v1.RollbackKubernetesWorkloadResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
-	73, // 33: alioth.v1.ListKubernetesJobsResponse.items:type_name -> alioth.v1.KubernetesJobItem
-	73, // 34: alioth.v1.GetKubernetesJobDetailResponse.job:type_name -> alioth.v1.KubernetesJobItem
-	13, // 35: alioth.v1.GetKubernetesJobDetailResponse.pods:type_name -> alioth.v1.KubernetesPodItem
-	80, // 36: alioth.v1.ListKubernetesCronJobsResponse.items:type_name -> alioth.v1.KubernetesCronJobItem
-	80, // 37: alioth.v1.GetKubernetesCronJobDetailResponse.cronjob:type_name -> alioth.v1.KubernetesCronJobItem
-	73, // 38: alioth.v1.GetKubernetesCronJobDetailResponse.jobs:type_name -> alioth.v1.KubernetesJobItem
-	80, // 39: alioth.v1.SetKubernetesCronJobSuspendResponse.cronjob:type_name -> alioth.v1.KubernetesCronJobItem
-	73, // 40: alioth.v1.TriggerKubernetesCronJobResponse.job:type_name -> alioth.v1.KubernetesJobItem
-	26, // 41: alioth.v1.KubernetesService.ListKubernetesNamespaces:input_type -> alioth.v1.ListKubernetesNamespacesRequest
-	1,  // 42: alioth.v1.KubernetesService.ListKubernetesNodes:input_type -> alioth.v1.ListKubernetesNodesRequest
-	3,  // 43: alioth.v1.KubernetesService.SetKubernetesNodeUnschedulable:input_type -> alioth.v1.SetKubernetesNodeUnschedulableRequest
-	6,  // 44: alioth.v1.KubernetesService.ListKubernetesWorkloads:input_type -> alioth.v1.ListKubernetesWorkloadsRequest
-	8,  // 45: alioth.v1.KubernetesService.ScaleKubernetesWorkload:input_type -> alioth.v1.ScaleKubernetesWorkloadRequest
-	10, // 46: alioth.v1.KubernetesService.RestartKubernetesWorkload:input_type -> alioth.v1.RestartKubernetesWorkloadRequest
-	14, // 47: alioth.v1.KubernetesService.ListKubernetesPods:input_type -> alioth.v1.ListKubernetesPodsRequest
-	16, // 48: alioth.v1.KubernetesService.DeleteKubernetesPod:input_type -> alioth.v1.DeleteKubernetesPodRequest
-	18, // 49: alioth.v1.KubernetesService.GetKubernetesPodLogs:input_type -> alioth.v1.GetKubernetesPodLogsRequest
-	20, // 50: alioth.v1.KubernetesService.IssueKubernetesPodExecTicket:input_type -> alioth.v1.IssueKubernetesPodExecTicketRequest
-	24, // 51: alioth.v1.KubernetesService.ListKubernetesIngresses:input_type -> alioth.v1.ListKubernetesIngressesRequest
-	30, // 52: alioth.v1.KubernetesService.ListKubernetesServices:input_type -> alioth.v1.ListKubernetesServicesRequest
-	33, // 53: alioth.v1.KubernetesService.ListKubernetesConfigMaps:input_type -> alioth.v1.ListKubernetesConfigMapsRequest
-	36, // 54: alioth.v1.KubernetesService.ListKubernetesSecrets:input_type -> alioth.v1.ListKubernetesSecretsRequest
-	39, // 55: alioth.v1.KubernetesService.ListKubernetesPersistentVolumes:input_type -> alioth.v1.ListKubernetesPersistentVolumesRequest
-	42, // 56: alioth.v1.KubernetesService.ListKubernetesPersistentVolumeClaims:input_type -> alioth.v1.ListKubernetesPersistentVolumeClaimsRequest
-	44, // 57: alioth.v1.KubernetesService.GetKubernetesResourceYAML:input_type -> alioth.v1.GetKubernetesResourceYAMLRequest
-	47, // 58: alioth.v1.KubernetesService.GetKubernetesWorkloadDetail:input_type -> alioth.v1.GetKubernetesWorkloadDetailRequest
-	49, // 59: alioth.v1.KubernetesService.GetKubernetesIngressDetail:input_type -> alioth.v1.GetKubernetesIngressDetailRequest
-	53, // 60: alioth.v1.KubernetesService.GetKubernetesServiceDetail:input_type -> alioth.v1.GetKubernetesServiceDetailRequest
-	56, // 61: alioth.v1.KubernetesService.GetKubernetesConfigMapDetail:input_type -> alioth.v1.GetKubernetesConfigMapDetailRequest
-	58, // 62: alioth.v1.KubernetesService.GetKubernetesSecretDetail:input_type -> alioth.v1.GetKubernetesSecretDetailRequest
-	60, // 63: alioth.v1.KubernetesService.GetKubernetesPersistentVolumeClaimDetail:input_type -> alioth.v1.GetKubernetesPersistentVolumeClaimDetailRequest
-	64, // 64: alioth.v1.KubernetesService.GetKubernetesWorkloadImages:input_type -> alioth.v1.GetKubernetesWorkloadImagesRequest
-	66, // 65: alioth.v1.KubernetesService.SetKubernetesWorkloadImage:input_type -> alioth.v1.SetKubernetesWorkloadImageRequest
-	69, // 66: alioth.v1.KubernetesService.ListKubernetesWorkloadRevisions:input_type -> alioth.v1.ListKubernetesWorkloadRevisionsRequest
-	71, // 67: alioth.v1.KubernetesService.RollbackKubernetesWorkload:input_type -> alioth.v1.RollbackKubernetesWorkloadRequest
-	74, // 68: alioth.v1.KubernetesService.ListKubernetesJobs:input_type -> alioth.v1.ListKubernetesJobsRequest
-	76, // 69: alioth.v1.KubernetesService.GetKubernetesJobDetail:input_type -> alioth.v1.GetKubernetesJobDetailRequest
-	78, // 70: alioth.v1.KubernetesService.DeleteKubernetesJob:input_type -> alioth.v1.DeleteKubernetesJobRequest
-	81, // 71: alioth.v1.KubernetesService.ListKubernetesCronJobs:input_type -> alioth.v1.ListKubernetesCronJobsRequest
-	83, // 72: alioth.v1.KubernetesService.GetKubernetesCronJobDetail:input_type -> alioth.v1.GetKubernetesCronJobDetailRequest
-	85, // 73: alioth.v1.KubernetesService.SetKubernetesCronJobSuspend:input_type -> alioth.v1.SetKubernetesCronJobSuspendRequest
-	87, // 74: alioth.v1.KubernetesService.TriggerKubernetesCronJob:input_type -> alioth.v1.TriggerKubernetesCronJobRequest
-	89, // 75: alioth.v1.KubernetesService.DeleteKubernetesCronJob:input_type -> alioth.v1.DeleteKubernetesCronJobRequest
-	27, // 76: alioth.v1.KubernetesService.ListKubernetesNamespaces:output_type -> alioth.v1.ListKubernetesNamespacesResponse
-	2,  // 77: alioth.v1.KubernetesService.ListKubernetesNodes:output_type -> alioth.v1.ListKubernetesNodesResponse
-	4,  // 78: alioth.v1.KubernetesService.SetKubernetesNodeUnschedulable:output_type -> alioth.v1.SetKubernetesNodeUnschedulableResponse
-	7,  // 79: alioth.v1.KubernetesService.ListKubernetesWorkloads:output_type -> alioth.v1.ListKubernetesWorkloadsResponse
-	9,  // 80: alioth.v1.KubernetesService.ScaleKubernetesWorkload:output_type -> alioth.v1.ScaleKubernetesWorkloadResponse
-	11, // 81: alioth.v1.KubernetesService.RestartKubernetesWorkload:output_type -> alioth.v1.RestartKubernetesWorkloadResponse
-	15, // 82: alioth.v1.KubernetesService.ListKubernetesPods:output_type -> alioth.v1.ListKubernetesPodsResponse
-	17, // 83: alioth.v1.KubernetesService.DeleteKubernetesPod:output_type -> alioth.v1.DeleteKubernetesPodResponse
-	19, // 84: alioth.v1.KubernetesService.GetKubernetesPodLogs:output_type -> alioth.v1.GetKubernetesPodLogsResponse
-	21, // 85: alioth.v1.KubernetesService.IssueKubernetesPodExecTicket:output_type -> alioth.v1.IssueKubernetesPodExecTicketResponse
-	25, // 86: alioth.v1.KubernetesService.ListKubernetesIngresses:output_type -> alioth.v1.ListKubernetesIngressesResponse
-	31, // 87: alioth.v1.KubernetesService.ListKubernetesServices:output_type -> alioth.v1.ListKubernetesServicesResponse
-	34, // 88: alioth.v1.KubernetesService.ListKubernetesConfigMaps:output_type -> alioth.v1.ListKubernetesConfigMapsResponse
-	37, // 89: alioth.v1.KubernetesService.ListKubernetesSecrets:output_type -> alioth.v1.ListKubernetesSecretsResponse
-	40, // 90: alioth.v1.KubernetesService.ListKubernetesPersistentVolumes:output_type -> alioth.v1.ListKubernetesPersistentVolumesResponse
-	43, // 91: alioth.v1.KubernetesService.ListKubernetesPersistentVolumeClaims:output_type -> alioth.v1.ListKubernetesPersistentVolumeClaimsResponse
-	45, // 92: alioth.v1.KubernetesService.GetKubernetesResourceYAML:output_type -> alioth.v1.GetKubernetesResourceYAMLResponse
-	48, // 93: alioth.v1.KubernetesService.GetKubernetesWorkloadDetail:output_type -> alioth.v1.GetKubernetesWorkloadDetailResponse
-	50, // 94: alioth.v1.KubernetesService.GetKubernetesIngressDetail:output_type -> alioth.v1.GetKubernetesIngressDetailResponse
-	54, // 95: alioth.v1.KubernetesService.GetKubernetesServiceDetail:output_type -> alioth.v1.GetKubernetesServiceDetailResponse
-	57, // 96: alioth.v1.KubernetesService.GetKubernetesConfigMapDetail:output_type -> alioth.v1.GetKubernetesConfigMapDetailResponse
-	59, // 97: alioth.v1.KubernetesService.GetKubernetesSecretDetail:output_type -> alioth.v1.GetKubernetesSecretDetailResponse
-	61, // 98: alioth.v1.KubernetesService.GetKubernetesPersistentVolumeClaimDetail:output_type -> alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse
-	65, // 99: alioth.v1.KubernetesService.GetKubernetesWorkloadImages:output_type -> alioth.v1.GetKubernetesWorkloadImagesResponse
-	67, // 100: alioth.v1.KubernetesService.SetKubernetesWorkloadImage:output_type -> alioth.v1.SetKubernetesWorkloadImageResponse
-	70, // 101: alioth.v1.KubernetesService.ListKubernetesWorkloadRevisions:output_type -> alioth.v1.ListKubernetesWorkloadRevisionsResponse
-	72, // 102: alioth.v1.KubernetesService.RollbackKubernetesWorkload:output_type -> alioth.v1.RollbackKubernetesWorkloadResponse
-	75, // 103: alioth.v1.KubernetesService.ListKubernetesJobs:output_type -> alioth.v1.ListKubernetesJobsResponse
-	77, // 104: alioth.v1.KubernetesService.GetKubernetesJobDetail:output_type -> alioth.v1.GetKubernetesJobDetailResponse
-	79, // 105: alioth.v1.KubernetesService.DeleteKubernetesJob:output_type -> alioth.v1.DeleteKubernetesJobResponse
-	82, // 106: alioth.v1.KubernetesService.ListKubernetesCronJobs:output_type -> alioth.v1.ListKubernetesCronJobsResponse
-	84, // 107: alioth.v1.KubernetesService.GetKubernetesCronJobDetail:output_type -> alioth.v1.GetKubernetesCronJobDetailResponse
-	86, // 108: alioth.v1.KubernetesService.SetKubernetesCronJobSuspend:output_type -> alioth.v1.SetKubernetesCronJobSuspendResponse
-	88, // 109: alioth.v1.KubernetesService.TriggerKubernetesCronJob:output_type -> alioth.v1.TriggerKubernetesCronJobResponse
-	90, // 110: alioth.v1.KubernetesService.DeleteKubernetesCronJob:output_type -> alioth.v1.DeleteKubernetesCronJobResponse
-	76, // [76:111] is the sub-list for method output_type
-	41, // [41:76] is the sub-list for method input_type
-	41, // [41:41] is the sub-list for extension type_name
-	41, // [41:41] is the sub-list for extension extendee
-	0,  // [0:41] is the sub-list for field type_name
+	0,   // 0: alioth.v1.ListKubernetesNodesResponse.items:type_name -> alioth.v1.KubernetesNodeItem
+	5,   // 1: alioth.v1.ListKubernetesWorkloadsResponse.items:type_name -> alioth.v1.KubernetesWorkloadItem
+	5,   // 2: alioth.v1.ScaleKubernetesWorkloadResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
+	5,   // 3: alioth.v1.RestartKubernetesWorkloadResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
+	12,  // 4: alioth.v1.KubernetesPodItem.containers:type_name -> alioth.v1.KubernetesContainerItem
+	13,  // 5: alioth.v1.ListKubernetesPodsResponse.items:type_name -> alioth.v1.KubernetesPodItem
+	22,  // 6: alioth.v1.KubernetesIngressItem.paths:type_name -> alioth.v1.KubernetesIngressPathItem
+	23,  // 7: alioth.v1.ListKubernetesIngressesResponse.items:type_name -> alioth.v1.KubernetesIngressItem
+	28,  // 8: alioth.v1.KubernetesServiceItem.ports:type_name -> alioth.v1.KubernetesServicePortItem
+	29,  // 9: alioth.v1.ListKubernetesServicesResponse.items:type_name -> alioth.v1.KubernetesServiceItem
+	32,  // 10: alioth.v1.ListKubernetesConfigMapsResponse.items:type_name -> alioth.v1.KubernetesConfigMapItem
+	35,  // 11: alioth.v1.ListKubernetesSecretsResponse.items:type_name -> alioth.v1.KubernetesSecretItem
+	38,  // 12: alioth.v1.ListKubernetesPersistentVolumesResponse.items:type_name -> alioth.v1.KubernetesPersistentVolumeItem
+	41,  // 13: alioth.v1.ListKubernetesPersistentVolumeClaimsResponse.items:type_name -> alioth.v1.KubernetesPersistentVolumeClaimItem
+	5,   // 14: alioth.v1.GetKubernetesWorkloadDetailResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
+	46,  // 15: alioth.v1.GetKubernetesWorkloadDetailResponse.replicasets:type_name -> alioth.v1.KubernetesReplicaSetItem
+	13,  // 16: alioth.v1.GetKubernetesWorkloadDetailResponse.pods:type_name -> alioth.v1.KubernetesPodItem
+	91,  // 17: alioth.v1.GetKubernetesWorkloadDetailResponse.conditions:type_name -> alioth.v1.KubernetesConditionItem
+	97,  // 18: alioth.v1.GetKubernetesWorkloadDetailResponse.replica_status:type_name -> alioth.v1.KubernetesReplicaStatus
+	23,  // 19: alioth.v1.GetKubernetesIngressDetailResponse.ingress:type_name -> alioth.v1.KubernetesIngressItem
+	29,  // 20: alioth.v1.GetKubernetesIngressDetailResponse.services:type_name -> alioth.v1.KubernetesServiceItem
+	51,  // 21: alioth.v1.KubernetesEndpointItem.ports:type_name -> alioth.v1.KubernetesEndpointPortItem
+	29,  // 22: alioth.v1.GetKubernetesServiceDetailResponse.service:type_name -> alioth.v1.KubernetesServiceItem
+	52,  // 23: alioth.v1.GetKubernetesServiceDetailResponse.endpoints:type_name -> alioth.v1.KubernetesEndpointItem
+	32,  // 24: alioth.v1.GetKubernetesConfigMapDetailResponse.configmap:type_name -> alioth.v1.KubernetesConfigMapItem
+	55,  // 25: alioth.v1.GetKubernetesConfigMapDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
+	35,  // 26: alioth.v1.GetKubernetesSecretDetailResponse.secret:type_name -> alioth.v1.KubernetesSecretItem
+	55,  // 27: alioth.v1.GetKubernetesSecretDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
+	41,  // 28: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse.claim:type_name -> alioth.v1.KubernetesPersistentVolumeClaimItem
+	55,  // 29: alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse.related_workloads:type_name -> alioth.v1.KubernetesWorkloadRefItem
+	62,  // 30: alioth.v1.KubernetesWorkloadImageItem.versions:type_name -> alioth.v1.KubernetesImageVersionItem
+	63,  // 31: alioth.v1.GetKubernetesWorkloadImagesResponse.images:type_name -> alioth.v1.KubernetesWorkloadImageItem
+	5,   // 32: alioth.v1.SetKubernetesWorkloadImageResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
+	68,  // 33: alioth.v1.ListKubernetesWorkloadRevisionsResponse.revisions:type_name -> alioth.v1.KubernetesWorkloadRevisionItem
+	5,   // 34: alioth.v1.RollbackKubernetesWorkloadResponse.workload:type_name -> alioth.v1.KubernetesWorkloadItem
+	73,  // 35: alioth.v1.ListKubernetesJobsResponse.items:type_name -> alioth.v1.KubernetesJobItem
+	73,  // 36: alioth.v1.GetKubernetesJobDetailResponse.job:type_name -> alioth.v1.KubernetesJobItem
+	13,  // 37: alioth.v1.GetKubernetesJobDetailResponse.pods:type_name -> alioth.v1.KubernetesPodItem
+	80,  // 38: alioth.v1.ListKubernetesCronJobsResponse.items:type_name -> alioth.v1.KubernetesCronJobItem
+	80,  // 39: alioth.v1.GetKubernetesCronJobDetailResponse.cronjob:type_name -> alioth.v1.KubernetesCronJobItem
+	73,  // 40: alioth.v1.GetKubernetesCronJobDetailResponse.jobs:type_name -> alioth.v1.KubernetesJobItem
+	80,  // 41: alioth.v1.SetKubernetesCronJobSuspendResponse.cronjob:type_name -> alioth.v1.KubernetesCronJobItem
+	73,  // 42: alioth.v1.TriggerKubernetesCronJobResponse.job:type_name -> alioth.v1.KubernetesJobItem
+	98,  // 43: alioth.v1.GetKubernetesOverviewResponse.pod_phases:type_name -> alioth.v1.KubernetesPodPhaseCount
+	99,  // 44: alioth.v1.GetKubernetesOverviewResponse.workloads:type_name -> alioth.v1.KubernetesWorkloadSummary
+	104, // 45: alioth.v1.GetKubernetesNodeDetailResponse.node:type_name -> alioth.v1.KubernetesNodeDetailItem
+	0,   // 46: alioth.v1.KubernetesNodeDetailItem.node:type_name -> alioth.v1.KubernetesNodeItem
+	91,  // 47: alioth.v1.KubernetesNodeDetailItem.conditions:type_name -> alioth.v1.KubernetesConditionItem
+	92,  // 48: alioth.v1.KubernetesNodeDetailItem.taints:type_name -> alioth.v1.KubernetesTaintItem
+	108, // 49: alioth.v1.KubernetesNodeDetailItem.capacity:type_name -> alioth.v1.KubernetesNodeDetailItem.CapacityEntry
+	109, // 50: alioth.v1.KubernetesNodeDetailItem.allocatable:type_name -> alioth.v1.KubernetesNodeDetailItem.AllocatableEntry
+	93,  // 51: alioth.v1.KubernetesNodeDetailItem.events:type_name -> alioth.v1.KubernetesEventItem
+	107, // 52: alioth.v1.GetKubernetesPodDetailResponse.pod:type_name -> alioth.v1.KubernetesPodDetailItem
+	13,  // 53: alioth.v1.KubernetesPodDetailItem.pod:type_name -> alioth.v1.KubernetesPodItem
+	94,  // 54: alioth.v1.KubernetesPodDetailItem.containers:type_name -> alioth.v1.KubernetesContainerStatusItem
+	94,  // 55: alioth.v1.KubernetesPodDetailItem.init_containers:type_name -> alioth.v1.KubernetesContainerStatusItem
+	91,  // 56: alioth.v1.KubernetesPodDetailItem.conditions:type_name -> alioth.v1.KubernetesConditionItem
+	95,  // 57: alioth.v1.KubernetesPodDetailItem.volumes:type_name -> alioth.v1.KubernetesVolumeItem
+	96,  // 58: alioth.v1.KubernetesPodDetailItem.owner_references:type_name -> alioth.v1.KubernetesOwnerReferenceItem
+	93,  // 59: alioth.v1.KubernetesPodDetailItem.events:type_name -> alioth.v1.KubernetesEventItem
+	26,  // 60: alioth.v1.KubernetesService.ListKubernetesNamespaces:input_type -> alioth.v1.ListKubernetesNamespacesRequest
+	1,   // 61: alioth.v1.KubernetesService.ListKubernetesNodes:input_type -> alioth.v1.ListKubernetesNodesRequest
+	3,   // 62: alioth.v1.KubernetesService.SetKubernetesNodeUnschedulable:input_type -> alioth.v1.SetKubernetesNodeUnschedulableRequest
+	6,   // 63: alioth.v1.KubernetesService.ListKubernetesWorkloads:input_type -> alioth.v1.ListKubernetesWorkloadsRequest
+	8,   // 64: alioth.v1.KubernetesService.ScaleKubernetesWorkload:input_type -> alioth.v1.ScaleKubernetesWorkloadRequest
+	10,  // 65: alioth.v1.KubernetesService.RestartKubernetesWorkload:input_type -> alioth.v1.RestartKubernetesWorkloadRequest
+	14,  // 66: alioth.v1.KubernetesService.ListKubernetesPods:input_type -> alioth.v1.ListKubernetesPodsRequest
+	16,  // 67: alioth.v1.KubernetesService.DeleteKubernetesPod:input_type -> alioth.v1.DeleteKubernetesPodRequest
+	18,  // 68: alioth.v1.KubernetesService.GetKubernetesPodLogs:input_type -> alioth.v1.GetKubernetesPodLogsRequest
+	20,  // 69: alioth.v1.KubernetesService.IssueKubernetesPodExecTicket:input_type -> alioth.v1.IssueKubernetesPodExecTicketRequest
+	24,  // 70: alioth.v1.KubernetesService.ListKubernetesIngresses:input_type -> alioth.v1.ListKubernetesIngressesRequest
+	30,  // 71: alioth.v1.KubernetesService.ListKubernetesServices:input_type -> alioth.v1.ListKubernetesServicesRequest
+	33,  // 72: alioth.v1.KubernetesService.ListKubernetesConfigMaps:input_type -> alioth.v1.ListKubernetesConfigMapsRequest
+	36,  // 73: alioth.v1.KubernetesService.ListKubernetesSecrets:input_type -> alioth.v1.ListKubernetesSecretsRequest
+	39,  // 74: alioth.v1.KubernetesService.ListKubernetesPersistentVolumes:input_type -> alioth.v1.ListKubernetesPersistentVolumesRequest
+	42,  // 75: alioth.v1.KubernetesService.ListKubernetesPersistentVolumeClaims:input_type -> alioth.v1.ListKubernetesPersistentVolumeClaimsRequest
+	44,  // 76: alioth.v1.KubernetesService.GetKubernetesResourceYAML:input_type -> alioth.v1.GetKubernetesResourceYAMLRequest
+	47,  // 77: alioth.v1.KubernetesService.GetKubernetesWorkloadDetail:input_type -> alioth.v1.GetKubernetesWorkloadDetailRequest
+	49,  // 78: alioth.v1.KubernetesService.GetKubernetesIngressDetail:input_type -> alioth.v1.GetKubernetesIngressDetailRequest
+	53,  // 79: alioth.v1.KubernetesService.GetKubernetesServiceDetail:input_type -> alioth.v1.GetKubernetesServiceDetailRequest
+	56,  // 80: alioth.v1.KubernetesService.GetKubernetesConfigMapDetail:input_type -> alioth.v1.GetKubernetesConfigMapDetailRequest
+	58,  // 81: alioth.v1.KubernetesService.GetKubernetesSecretDetail:input_type -> alioth.v1.GetKubernetesSecretDetailRequest
+	60,  // 82: alioth.v1.KubernetesService.GetKubernetesPersistentVolumeClaimDetail:input_type -> alioth.v1.GetKubernetesPersistentVolumeClaimDetailRequest
+	64,  // 83: alioth.v1.KubernetesService.GetKubernetesWorkloadImages:input_type -> alioth.v1.GetKubernetesWorkloadImagesRequest
+	66,  // 84: alioth.v1.KubernetesService.SetKubernetesWorkloadImage:input_type -> alioth.v1.SetKubernetesWorkloadImageRequest
+	69,  // 85: alioth.v1.KubernetesService.ListKubernetesWorkloadRevisions:input_type -> alioth.v1.ListKubernetesWorkloadRevisionsRequest
+	71,  // 86: alioth.v1.KubernetesService.RollbackKubernetesWorkload:input_type -> alioth.v1.RollbackKubernetesWorkloadRequest
+	74,  // 87: alioth.v1.KubernetesService.ListKubernetesJobs:input_type -> alioth.v1.ListKubernetesJobsRequest
+	76,  // 88: alioth.v1.KubernetesService.GetKubernetesJobDetail:input_type -> alioth.v1.GetKubernetesJobDetailRequest
+	78,  // 89: alioth.v1.KubernetesService.DeleteKubernetesJob:input_type -> alioth.v1.DeleteKubernetesJobRequest
+	81,  // 90: alioth.v1.KubernetesService.ListKubernetesCronJobs:input_type -> alioth.v1.ListKubernetesCronJobsRequest
+	83,  // 91: alioth.v1.KubernetesService.GetKubernetesCronJobDetail:input_type -> alioth.v1.GetKubernetesCronJobDetailRequest
+	85,  // 92: alioth.v1.KubernetesService.SetKubernetesCronJobSuspend:input_type -> alioth.v1.SetKubernetesCronJobSuspendRequest
+	87,  // 93: alioth.v1.KubernetesService.TriggerKubernetesCronJob:input_type -> alioth.v1.TriggerKubernetesCronJobRequest
+	89,  // 94: alioth.v1.KubernetesService.DeleteKubernetesCronJob:input_type -> alioth.v1.DeleteKubernetesCronJobRequest
+	100, // 95: alioth.v1.KubernetesService.GetKubernetesOverview:input_type -> alioth.v1.GetKubernetesOverviewRequest
+	102, // 96: alioth.v1.KubernetesService.GetKubernetesNodeDetail:input_type -> alioth.v1.GetKubernetesNodeDetailRequest
+	105, // 97: alioth.v1.KubernetesService.GetKubernetesPodDetail:input_type -> alioth.v1.GetKubernetesPodDetailRequest
+	27,  // 98: alioth.v1.KubernetesService.ListKubernetesNamespaces:output_type -> alioth.v1.ListKubernetesNamespacesResponse
+	2,   // 99: alioth.v1.KubernetesService.ListKubernetesNodes:output_type -> alioth.v1.ListKubernetesNodesResponse
+	4,   // 100: alioth.v1.KubernetesService.SetKubernetesNodeUnschedulable:output_type -> alioth.v1.SetKubernetesNodeUnschedulableResponse
+	7,   // 101: alioth.v1.KubernetesService.ListKubernetesWorkloads:output_type -> alioth.v1.ListKubernetesWorkloadsResponse
+	9,   // 102: alioth.v1.KubernetesService.ScaleKubernetesWorkload:output_type -> alioth.v1.ScaleKubernetesWorkloadResponse
+	11,  // 103: alioth.v1.KubernetesService.RestartKubernetesWorkload:output_type -> alioth.v1.RestartKubernetesWorkloadResponse
+	15,  // 104: alioth.v1.KubernetesService.ListKubernetesPods:output_type -> alioth.v1.ListKubernetesPodsResponse
+	17,  // 105: alioth.v1.KubernetesService.DeleteKubernetesPod:output_type -> alioth.v1.DeleteKubernetesPodResponse
+	19,  // 106: alioth.v1.KubernetesService.GetKubernetesPodLogs:output_type -> alioth.v1.GetKubernetesPodLogsResponse
+	21,  // 107: alioth.v1.KubernetesService.IssueKubernetesPodExecTicket:output_type -> alioth.v1.IssueKubernetesPodExecTicketResponse
+	25,  // 108: alioth.v1.KubernetesService.ListKubernetesIngresses:output_type -> alioth.v1.ListKubernetesIngressesResponse
+	31,  // 109: alioth.v1.KubernetesService.ListKubernetesServices:output_type -> alioth.v1.ListKubernetesServicesResponse
+	34,  // 110: alioth.v1.KubernetesService.ListKubernetesConfigMaps:output_type -> alioth.v1.ListKubernetesConfigMapsResponse
+	37,  // 111: alioth.v1.KubernetesService.ListKubernetesSecrets:output_type -> alioth.v1.ListKubernetesSecretsResponse
+	40,  // 112: alioth.v1.KubernetesService.ListKubernetesPersistentVolumes:output_type -> alioth.v1.ListKubernetesPersistentVolumesResponse
+	43,  // 113: alioth.v1.KubernetesService.ListKubernetesPersistentVolumeClaims:output_type -> alioth.v1.ListKubernetesPersistentVolumeClaimsResponse
+	45,  // 114: alioth.v1.KubernetesService.GetKubernetesResourceYAML:output_type -> alioth.v1.GetKubernetesResourceYAMLResponse
+	48,  // 115: alioth.v1.KubernetesService.GetKubernetesWorkloadDetail:output_type -> alioth.v1.GetKubernetesWorkloadDetailResponse
+	50,  // 116: alioth.v1.KubernetesService.GetKubernetesIngressDetail:output_type -> alioth.v1.GetKubernetesIngressDetailResponse
+	54,  // 117: alioth.v1.KubernetesService.GetKubernetesServiceDetail:output_type -> alioth.v1.GetKubernetesServiceDetailResponse
+	57,  // 118: alioth.v1.KubernetesService.GetKubernetesConfigMapDetail:output_type -> alioth.v1.GetKubernetesConfigMapDetailResponse
+	59,  // 119: alioth.v1.KubernetesService.GetKubernetesSecretDetail:output_type -> alioth.v1.GetKubernetesSecretDetailResponse
+	61,  // 120: alioth.v1.KubernetesService.GetKubernetesPersistentVolumeClaimDetail:output_type -> alioth.v1.GetKubernetesPersistentVolumeClaimDetailResponse
+	65,  // 121: alioth.v1.KubernetesService.GetKubernetesWorkloadImages:output_type -> alioth.v1.GetKubernetesWorkloadImagesResponse
+	67,  // 122: alioth.v1.KubernetesService.SetKubernetesWorkloadImage:output_type -> alioth.v1.SetKubernetesWorkloadImageResponse
+	70,  // 123: alioth.v1.KubernetesService.ListKubernetesWorkloadRevisions:output_type -> alioth.v1.ListKubernetesWorkloadRevisionsResponse
+	72,  // 124: alioth.v1.KubernetesService.RollbackKubernetesWorkload:output_type -> alioth.v1.RollbackKubernetesWorkloadResponse
+	75,  // 125: alioth.v1.KubernetesService.ListKubernetesJobs:output_type -> alioth.v1.ListKubernetesJobsResponse
+	77,  // 126: alioth.v1.KubernetesService.GetKubernetesJobDetail:output_type -> alioth.v1.GetKubernetesJobDetailResponse
+	79,  // 127: alioth.v1.KubernetesService.DeleteKubernetesJob:output_type -> alioth.v1.DeleteKubernetesJobResponse
+	82,  // 128: alioth.v1.KubernetesService.ListKubernetesCronJobs:output_type -> alioth.v1.ListKubernetesCronJobsResponse
+	84,  // 129: alioth.v1.KubernetesService.GetKubernetesCronJobDetail:output_type -> alioth.v1.GetKubernetesCronJobDetailResponse
+	86,  // 130: alioth.v1.KubernetesService.SetKubernetesCronJobSuspend:output_type -> alioth.v1.SetKubernetesCronJobSuspendResponse
+	88,  // 131: alioth.v1.KubernetesService.TriggerKubernetesCronJob:output_type -> alioth.v1.TriggerKubernetesCronJobResponse
+	90,  // 132: alioth.v1.KubernetesService.DeleteKubernetesCronJob:output_type -> alioth.v1.DeleteKubernetesCronJobResponse
+	101, // 133: alioth.v1.KubernetesService.GetKubernetesOverview:output_type -> alioth.v1.GetKubernetesOverviewResponse
+	103, // 134: alioth.v1.KubernetesService.GetKubernetesNodeDetail:output_type -> alioth.v1.GetKubernetesNodeDetailResponse
+	106, // 135: alioth.v1.KubernetesService.GetKubernetesPodDetail:output_type -> alioth.v1.GetKubernetesPodDetailResponse
+	98,  // [98:136] is the sub-list for method output_type
+	60,  // [60:98] is the sub-list for method input_type
+	60,  // [60:60] is the sub-list for extension type_name
+	60,  // [60:60] is the sub-list for extension extendee
+	0,   // [0:60] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_kubernetes_proto_init() }
@@ -7501,7 +9114,7 @@ func file_alioth_v1_kubernetes_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_kubernetes_proto_rawDesc), len(file_alioth_v1_kubernetes_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   91,
+			NumMessages:   110,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

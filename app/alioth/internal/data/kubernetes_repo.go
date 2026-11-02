@@ -13,6 +13,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes"
 
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
@@ -73,26 +74,9 @@ func (r *kubernetesRepo) ListNodes(ctx context.Context, clusterUID, name string)
 	if err != nil {
 		return nil, kubeError(r.log, err)
 	}
-	// 节点上的 Pod 数需要一次全量 Pod 列表，按 spec.nodeName 聚合。
-	// 受限凭据可能没有全量 Pod 读取权限：这时仍然展示节点，Pod 数按 0 处理，
-	// 不因为一个辅助字段让整个节点页失败。
-	pods, err := client.CoreV1().Pods(metav1.NamespaceAll).List(callCtx, metav1.ListOptions{})
+	podCounts, err := r.podCountsByNode(callCtx, client)
 	if err != nil {
-		if !apierrors.IsForbidden(err) {
-			return nil, kubeError(r.log, err)
-		}
-		pods = &corev1.PodList{}
-	}
-	podCounts := make(map[string]int32, len(nodes.Items))
-	for _, pod := range pods.Items {
-		if pod.Spec.NodeName == "" {
-			continue
-		}
-		// 已结束的 Pod 不再占用节点，计入会让「Pod 数」长期偏高。
-		if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
-			continue
-		}
-		podCounts[pod.Spec.NodeName]++
+		return nil, err
 	}
 	items := make([]bo.KubeNode, 0, len(nodes.Items))
 	for index := range nodes.Items {
@@ -369,6 +353,31 @@ func (r *kubernetesRepo) ListIngresses(ctx context.Context, clusterUID, namespac
 	}
 	sortKubeIngresses(items)
 	return items, nil
+}
+
+// podCountsByNode 按 spec.nodeName 聚合每个节点上未结束的 Pod 数。
+// 受限凭据可能没有全量 Pod 读取权限：这时返回空表，节点列表与详情照常展示，
+// Pod 数按 0 处理，不因为一个辅助字段让整个节点页失败。
+func (r *kubernetesRepo) podCountsByNode(ctx context.Context, client kubernetes.Interface) (map[string]int32, error) {
+	pods, err := client.CoreV1().Pods(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		if !apierrors.IsForbidden(err) {
+			return nil, kubeError(r.log, err)
+		}
+		pods = &corev1.PodList{}
+	}
+	counts := make(map[string]int32, len(pods.Items))
+	for _, pod := range pods.Items {
+		if pod.Spec.NodeName == "" {
+			continue
+		}
+		// 已结束的 Pod 不再占用节点，计入会让「Pod 数」长期偏高。
+		if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
+			continue
+		}
+		counts[pod.Spec.NodeName]++
+	}
+	return counts, nil
 }
 
 // validWorkloadKind 判断过滤用的工作负载类型是否受支持，空表示全部。

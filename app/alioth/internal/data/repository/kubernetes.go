@@ -84,4 +84,17 @@ type KubernetesRepo interface {
 	TriggerCronJob(ctx context.Context, clusterUID, namespace, name string) (*bo.KubeJob, error)
 	// DeleteCronJob 删除 CronJob。
 	DeleteCronJob(ctx context.Context, clusterUID, namespace, name string) error
+
+	// ServerVersion 返回 API Server 的 gitVersion。失败表示读不到实时版本，
+	// 调用方可以回落到最近一次连通性探测的缓存值。
+	ServerVersion(ctx context.Context, clusterUID string) (string, error)
+	// NodeDetail 返回节点基础信息、全部条件、污点、容量与可分配量。
+	// 事件不在这里读取，由调用方按权限单独获取。
+	NodeDetail(ctx context.Context, clusterUID, name string) (*bo.KubeNodeDetail, error)
+	// PodDetail 返回 Pod 基础信息、容器状态、条件、卷与归属，不含事件。
+	PodDetail(ctx context.Context, clusterUID, namespace, name string) (*bo.KubePodDetail, error)
+	// ListEvents 返回与某个资源相关的事件，按最后发生时间倒序。
+	// uid 非空时优先按 involvedObject.uid 过滤，否则按 kind + name 过滤；
+	// 最多返回 limit 条，limit 由调用方决定。
+	ListEvents(ctx context.Context, clusterUID, namespace, kind, name, uid string, limit int32) ([]bo.KubeEvent, error)
 }
