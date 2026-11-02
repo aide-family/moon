@@ -207,7 +207,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 
 菜单模块是两级模型：模块（菜单分组）→ 能力（可单独开通的最小单位）→ 权限。目录由代码维护（`app/alioth/pkg/perm`），不由接口增删：
 
-- 10 个模块：`alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`、`cluster`、`agent`、`ssh`。
+- 11 个模块：`alert`、`alert_rule`、`probe`、`datasource`、`notification`、`member`、`role`、`board`、`cluster`、`agent`、`ssh`。
 - 30 个能力，例如 `alert_realtime`、`alert_history`、`alert_page`（alert 模块按页面拆开，权限分别取 `alert:*` 的子集）、`notify_channel` 等六个通知能力、`cluster_access`（`cluster:*`）和 11 个 `k8s_*` 资源能力、`agent_machine`、`ssh_command`、`web_shell`。完整清单见 [M19](iterations/m19-feature-packages.md)。
 - `namespace:*` 不属于任何能力，始终可用；`system:*` 不参与能力。
 
@@ -642,9 +642,11 @@ flowchart TB
 
 身份：`User`、`UserOAuth`、`Namespace`、`Member`、`Role`、`Permission`、`RolePermission`、`MemberRole`。
 
-告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`、`AlertHistoryEvent`（历史分片索引）、`AlertEventColumn`（实时告警自定义列）、`ProbeTargetGroup`（探测目标组）、`ProbeTarget`（组内目标）、`ProbeResult`（探测结果）。
+告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`、`AlertEventAction`（事件处置时间线）、`AlertMaintenanceWindow`（维护窗口）、`AlertHistoryEvent`（历史分片索引）、`AlertEventColumn`（实时告警自定义列）、`ProbeTargetGroup`（探测目标组）、`ProbeTarget`（组内目标）、`ProbeResult`（探测结果）。
 
 通知：`NotificationChannel`、`NotificationTemplate`、`NotificationGroup`、`NotificationTask`、`MessageLog`。
+
+大盘：`Board`（大盘）、`BoardPanel`（Grafana 面板链接与布局）。
 
 边缘：`Agent`、`SSHCommand`、`SSHCommandAudit`。
 
