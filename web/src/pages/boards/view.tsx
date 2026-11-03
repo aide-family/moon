@@ -142,8 +142,7 @@ function BoardPanel({
   return (
     <article
       className={cn(
-        "relative col-span-12 flex min-w-0 flex-col overflow-hidden rounded-xl bg-card/70",
-        showChrome && "border border-border/70",
+        "relative col-span-12 flex min-w-0 flex-col",
         spanClass
       )}
     >
@@ -200,7 +199,7 @@ function BoardPanel({
         referrerPolicy="no-referrer"
         loading="lazy"
         sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-        className="block w-full border-0 bg-muted/30"
+        className="block w-full border-0"
         style={{ height: panel.height }}
       />
     </article>
