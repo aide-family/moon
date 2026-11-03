@@ -116,6 +116,9 @@ Alioth 只保存面板的展示配置，不代理、不缓存、不转存 Grafan
 - iframe 固定属性：`title`（面板标题）、`allowfullscreen`、`referrerpolicy="no-referrer"`、`loading="lazy"`、`sandbox="allow-scripts allow-same-origin allow-popups allow-forms"`。URL 由 `web/src/lib/grafana-url.ts` 的 `buildGrafanaEmbedURL` 处理：已有 `kiosk` 参数则保留原值，没有则追加 `kiosk`，其余 query 原样保留。
 - 每张面板提供「打开原图」链接，`target="_blank"` + `rel="noopener noreferrer"`，打开未追加 `kiosk` 的原始地址。
 - 空态：列表与查看页都给出配置说明：Grafana 需开启 `allow_embedding = true`；HTTPS 的 Alioth 不能嵌入 HTTP Grafana；Grafana 的 `X-Frame-Options` / CSP `frame-ancestors` 必须允许 Alioth 来源；需要登录的 Grafana 建议使用匿名访问或公共 kiosk 面板。跨域 iframe 的错误无法被父页面读取，页面不伪造「加载成功」。
+- 加载排查：查看页常驻一条提示与「加载排查」入口，说明内网/VPN、Grafana 证书需受信任（iframe 不弹证书例外）、`allow_embedding`、混合内容与登录跳转；新增面板在列表最底部，避免编辑完最后一个面板还要回到顶部。
+- 面板连通性探测：每个面板额外发一次 `no-cors HEAD` 探测，只判断浏览器网络层能否到达（DNS、证书、混合内容、连接拒绝或 CSP `connect-src` 失败会 reject）。失败时该面板右上角显示警告图标，浮层给出结论、排查步骤、「重新探测并加载」和「打开原图」。探测成功只代表能到达，不能证明允许 iframe 嵌入；X-Frame-Options/CSP/登录跳转仍无法从父页面读取，浮层会明确说明这一点。
+- 面板展示内边距为 0：卡片自身不内缩 iframe，标题/描述在独立头部内边距里；隐藏标题与描述时卡片去边框，iframe 与卡片完全贴合。Grafana 自身在 iframe 内的面板留白由 Grafana 控制，Alioth 无法跨域修改。
 - i18n：`nav.boards`、`board.*`（列表、表单、面板、空态、安全提示、错误）与 `menu.board` 中英文齐全；能力/模块标签加到 `feature-catalog.ts`。
 
 ### 安全

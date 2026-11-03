@@ -230,6 +230,21 @@ export function BoardDialog({
     setPanels((current) => current.filter((_, position) => position !== index))
   }
 
+  /** 从列表底部的按钮新增面板，并把新面板滚进视野、聚焦标题。 */
+  function addPanel() {
+    if (panels.length >= MAX_PANELS) {
+      return
+    }
+    const panel = emptyPanel()
+    setPanels((current) => [...current, panel])
+    window.setTimeout(() => {
+      document
+        .getElementById(`board-panel-${panel.key}`)
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+      document.getElementById(`board-panel-title-${panel.key}`)?.focus()
+    }, 30)
+  }
+
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const errors = validate()
@@ -322,19 +337,10 @@ export function BoardDialog({
                     })}
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={pending || panels.length >= MAX_PANELS}
-                  onClick={() =>
-                    setPanels((current) => [...current, emptyPanel()])
-                  }
-                >
-                  <Plus aria-hidden="true" data-icon="inline-start" />
-                  {t("board.form.addPanel")}
-                </Button>
               </div>
+              <p className="rounded-lg border border-border/70 bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                {t("board.form.embedHint")}
+              </p>
               {fieldErrors.panels ? (
                 <p role="alert" className="text-sm text-destructive">
                   {fieldErrors.panels}
@@ -349,6 +355,7 @@ export function BoardDialog({
                 {panels.map((panel, index) => (
                   <div
                     key={panel.key}
+                    id={`board-panel-${panel.key}`}
                     className="grid gap-3 rounded-lg border border-border/70 bg-muted/20 p-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -495,6 +502,16 @@ export function BoardDialog({
                   heightMax: PANEL_HEIGHT_MAX,
                 })}
               </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-dashed"
+                disabled={pending || panels.length >= MAX_PANELS}
+                onClick={addPanel}
+              >
+                <Plus aria-hidden="true" data-icon="inline-start" />
+                {t("board.form.addPanel")}
+              </Button>
             </div>
           </DialogBody>
           {formError ? (

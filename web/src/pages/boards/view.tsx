@@ -1,4 +1,4 @@
-import { ArrowLeft, ExternalLink, Info, RefreshCw } from "lucide-react"
+import { ArrowLeft, ExternalLink, Info, RefreshCw, TriangleAlert } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, Navigate, useParams } from "react-router-dom"
@@ -15,6 +15,7 @@ import { cn } from "@/lib/class-names"
 import { formatDateTime } from "@/lib/date-time"
 import { failureMessage } from "@/lib/form-error"
 import { buildGrafanaEmbedURL } from "@/lib/grafana-url"
+import { BoardLoadHint } from "@/pages/boards/board-load-hint"
 import { ServerErrorPage } from "@/pages/server-error"
 
 // 「显示标题与描述」按大盘存在 localStorage，不改实体；缺省显示。
@@ -57,6 +58,58 @@ function columnSpan(width: number): string {
   return COL_SPAN[span] ?? "md:col-span-6"
 }
 
+type BoardPanelReachability = "checking" | "ok" | "failed"
+
+/**
+ * 尽最大努力判断浏览器能否访问 Grafana。
+ *
+ * 跨域 iframe 的 load 事件在证书、DNS、拒绝连接等错误页上也会触发，父页面
+ * 读不到真实错误，所以额外发一个 no-cors HEAD 探测：只要网络层失败（DNS、
+ * 证书、混合内容、连接拒绝）fetch 就会 reject；成功只能说明「能到达」，
+ * 不能证明 Grafana 允许被 iframe 嵌入（X-Frame-Options/CSP 仍可能拒绝）。
+ * 探测失败时页面在面板右上角显示警告图标并给出排查步骤。
+ */
+function useGrafanaReachability(
+  url: string,
+  refreshKey: string
+): BoardPanelReachability {
+  const bucket = `${url}|${refreshKey}`
+  // 没有结果时由调用方按「探测中」渲染；effect 里只写异步结果，避免同步 setState。
+  const [result, setResult] = useState<{
+    bucket: string
+    state: BoardPanelReachability
+  }>({ bucket: "", state: "checking" })
+  useEffect(() => {
+    let active = true
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => controller.abort(), 8000)
+    fetch(buildGrafanaEmbedURL(url), {
+      method: "HEAD",
+      mode: "no-cors",
+      credentials: "omit",
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(() => {
+        if (active) {
+          setResult({ bucket, state: "ok" })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setResult({ bucket, state: "failed" })
+        }
+      })
+      .finally(() => window.clearTimeout(timer))
+    return () => {
+      active = false
+      controller.abort()
+      window.clearTimeout(timer)
+    }
+  }, [bucket, url])
+  return result.bucket === bucket ? result.state : "checking"
+}
+
 interface BoardPanelProps {
   panel: BoardPanelItem
   showChrome: boolean
@@ -75,16 +128,27 @@ function BoardPanel({
 }: BoardPanelProps) {
   const { t } = useTranslation()
   const title = panel.title || t("board.view.untitled")
+  const [frameKey, setFrameKey] = useState(0)
+  const reachability = useGrafanaReachability(
+    panel.grafanaUrl,
+    `${reloadKey}:${frameKey}`
+  )
+  const failed = reachability === "failed"
+
+  function reloadFrame() {
+    setFrameKey((value) => value + 1)
+  }
+
   return (
     <article
       className={cn(
-        "col-span-12 flex min-w-0 flex-col rounded-xl border border-border/70 bg-card/70",
-        spanClass,
-        showChrome ? "gap-2 p-3" : "overflow-hidden"
+        "relative col-span-12 flex min-w-0 flex-col overflow-hidden rounded-xl bg-card/70",
+        showChrome && "border border-border/70",
+        spanClass
       )}
     >
       {showChrome ? (
-        <header className="flex flex-wrap items-start justify-between gap-2">
+        <header className="flex flex-wrap items-start justify-between gap-2 px-3 pt-3 pb-2">
           <div className="min-w-0">
             <h2 className="text-sm font-medium break-words">{panel.title}</h2>
             {panel.description ? (
@@ -93,32 +157,50 @@ function BoardPanel({
               </p>
             ) : null}
           </div>
-          <Button
-            variant="link"
-            size="sm"
-            className="h-auto shrink-0 px-0"
-            asChild
-          >
-            <a
-              href={panel.grafanaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+          <div className="flex shrink-0 items-center gap-1">
+            {failed ? (
+              <BoardLoadHint
+                failed
+                openOriginalURL={panel.grafanaUrl}
+                onReload={reloadFrame}
+              />
+            ) : null}
+            <Button
+              variant="link"
+              size="sm"
+              className="h-auto shrink-0 px-0"
+              asChild
             >
-              <ExternalLink aria-hidden="true" data-icon="inline-start" />
-              {t("board.view.openOriginal")}
-            </a>
-          </Button>
+              <a
+                href={panel.grafanaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink aria-hidden="true" data-icon="inline-start" />
+                {t("board.view.openOriginal")}
+              </a>
+            </Button>
+          </div>
         </header>
       ) : null}
+      {!showChrome && failed ? (
+        <div className="absolute top-2 right-2 z-10 rounded-md bg-background/90 shadow-sm backdrop-blur">
+          <BoardLoadHint
+            failed
+            openOriginalURL={panel.grafanaUrl}
+            onReload={reloadFrame}
+          />
+        </div>
+      ) : null}
       <iframe
-        key={`${panel.uid}-${reloadKey}`}
+        key={`${panel.uid}-${reloadKey}-${frameKey}`}
         src={buildGrafanaEmbedURL(panel.grafanaUrl)}
         title={title}
         allowFullScreen
         referrerPolicy="no-referrer"
         loading="lazy"
         sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-        className="w-full rounded-lg border border-border/70 bg-muted/30"
+        className="block w-full border-0 bg-muted/30"
         style={{ height: panel.height }}
       />
     </article>
@@ -283,6 +365,16 @@ export function BoardViewPage() {
           <span className="text-xs">
             {t("board.view.panelCount", { count: panelCount })}
           </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/70 bg-muted/30 px-3 py-2">
+          <TriangleAlert
+            aria-hidden="true"
+            className="size-3.5 shrink-0 text-warning"
+          />
+          <p className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
+            {t("board.view.loadHintShort")}
+          </p>
+          <BoardLoadHint showLabel />
         </div>
         {board.status === "DISABLED" ? (
           <div

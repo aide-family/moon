@@ -69,6 +69,8 @@ const zh = {
       editTitle: "编辑大盘",
       panels: "面板",
       panelsHint: "共 {{count}} 个面板，最多 {{max}} 个；这里的顺序就是展示顺序。",
+      embedHint:
+        "面板由浏览器直接加载 Grafana：内网/VPN 地址需浏览器可访问，证书需受信任，Grafana 需开启 allow_embedding；HTTPS 页面不能嵌入 HTTP 面板。查看页右上角「加载排查」有完整步骤。",
       addPanel: "添加面板",
       noPanels: "还没有面板。可以先保存空大盘，之后再来添加。",
       panelIndex: "面板 {{index}}",
@@ -124,6 +126,27 @@ const zh = {
       disabledHint: "大盘已停用，当前仅可查看。",
       empty: "这个大盘还没有面板。",
       emptyHint: "编辑大盘并添加 Grafana 面板地址后，即可在这里嵌入展示。",
+      loadHintShort:
+        "面板显示「无法连接」？先确认浏览器在内网/VPN、Grafana 证书受信任，并已开启 allow_embedding。",
+      loadHintButton: "加载排查",
+      loadHintTitle: "面板加载排查",
+      loadHintIntro:
+        "面板由浏览器直接访问 Grafana，Alioth 不代理请求。先按下面顺序确认：",
+      loadHintProbeFailed:
+        "连通性探测失败：浏览器无法访问该地址，可能是 DNS、内网/VPN、证书、混合内容或页面 CSP 的 connect-src 限制。",
+      loadHintIntranet:
+        "内网/VPN：Grafana 域名可能解析到内网地址（例如 192.168.x.x），浏览器需处于同一内网或已连接 VPN。",
+      loadHintCertificate:
+        "证书：Grafana 的 HTTPS 证书必须被浏览器信任；自签证书请先在浏览器直接打开 Grafana 接受例外，或安装内部 CA。iframe 里不会弹出证书例外页面。",
+      loadHintEmbedding:
+        "嵌入：Grafana 配置 [security] allow_embedding = true，并确认网关没有返回 X-Frame-Options: DENY/SAMEORIGIN；有 CSP 时 frame-ancestors 需包含 Alioth 的访问地址。",
+      loadHintMixedContent:
+        "协议：HTTPS 的 Alioth 不能嵌入 HTTP 面板，浏览器会按混合内容拦截。",
+      loadHintLogin:
+        "登录：需要登录的 Grafana 建议用匿名 Viewer 或公共 kiosk 面板；否则 iframe 内的跳转和 Cookie 可能失败。",
+      loadHintCrossOrigin:
+        "跨域 iframe 的具体错误无法被 Alioth 读取；右上角警告只在连通性探测失败时出现，未出现也不代表一定能嵌入。",
+      loadHintRetry: "重新探测并加载",
     },
     security: {
       title: "嵌入前请确认 Grafana 配置",
@@ -3660,6 +3683,8 @@ const en = {
       editTitle: "Edit board",
       panels: "Panels",
       panelsHint: "{{count}} of {{max}} panels; the order here is the display order.",
+      embedHint:
+        "Panels are loaded by the browser directly from Grafana: intranet/VPN URLs must be reachable, the certificate must be trusted, and Grafana must enable allow_embedding. An HTTPS page cannot embed an HTTP panel. See \"Troubleshoot loading\" on the board view for the full checklist.",
       addPanel: "Add panel",
       noPanels:
         "No panels yet. You can save an empty board and add panels later.",
@@ -3718,6 +3743,27 @@ const en = {
       disabledHint: "This board is disabled and is read-only.",
       empty: "This board has no panels yet.",
       emptyHint: "Edit the board and add Grafana panel URLs to embed them here.",
+      loadHintShort:
+        "Panel says \"This site can't be reached\"? Check that the browser is on the intranet/VPN, the Grafana certificate is trusted, and allow_embedding is enabled.",
+      loadHintButton: "Troubleshoot loading",
+      loadHintTitle: "Troubleshoot panel loading",
+      loadHintIntro:
+        "Panels are loaded by the browser directly from Grafana; Alioth does not proxy them. Check in this order:",
+      loadHintProbeFailed:
+        "Connectivity probe failed: the browser cannot reach this URL. It may be DNS, intranet/VPN, certificate, mixed content, or a CSP connect-src restriction.",
+      loadHintIntranet:
+        "Intranet/VPN: the Grafana host may resolve to a private address (for example 192.168.x.x). The browser must be on that network or connected through a VPN.",
+      loadHintCertificate:
+        "Certificate: the Grafana HTTPS certificate must be trusted. Open Grafana directly and accept the exception, or install the internal CA. Browsers do not show the certificate interstitial inside an iframe.",
+      loadHintEmbedding:
+        "Embedding: set [security] allow_embedding = true in Grafana and make sure no gateway returns X-Frame-Options: DENY/SAMEORIGIN. If a CSP is present, frame-ancestors must include the Alioth origin.",
+      loadHintMixedContent:
+        "Protocol: an HTTPS Alioth page cannot embed an HTTP panel; the browser blocks it as mixed content.",
+      loadHintLogin:
+        "Sign-in: for a Grafana that requires login, prefer anonymous Viewer access or public kiosk panels; otherwise redirects and cookies inside the iframe may fail.",
+      loadHintCrossOrigin:
+        "Alioth cannot read cross-origin iframe errors. The warning icon only appears when the connectivity probe fails; its absence does not guarantee embedding will work.",
+      loadHintRetry: "Probe and reload",
     },
     security: {
       title: "Check the Grafana configuration before embedding",
