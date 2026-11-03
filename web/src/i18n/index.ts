@@ -126,8 +126,6 @@ const zh = {
       disabledHint: "大盘已停用，当前仅可查看。",
       empty: "这个大盘还没有面板。",
       emptyHint: "编辑大盘并添加 Grafana 面板地址后，即可在这里嵌入展示。",
-      loadHintShort:
-        "面板显示「无法连接」？先确认浏览器在内网/VPN、Grafana 证书受信任，并已开启 allow_embedding。",
       loadHintButton: "加载排查",
       loadHintTitle: "面板加载排查",
       loadHintIntro:
@@ -3743,8 +3741,6 @@ const en = {
       disabledHint: "This board is disabled and is read-only.",
       empty: "This board has no panels yet.",
       emptyHint: "Edit the board and add Grafana panel URLs to embed them here.",
-      loadHintShort:
-        "Panel says \"This site can't be reached\"? Check that the browser is on the intranet/VPN, the Grafana certificate is trusted, and allow_embedding is enabled.",
       loadHintButton: "Troubleshoot loading",
       loadHintTitle: "Troubleshoot panel loading",
       loadHintIntro:

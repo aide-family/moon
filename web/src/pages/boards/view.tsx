@@ -1,4 +1,4 @@
-import { ArrowLeft, ExternalLink, Info, RefreshCw, TriangleAlert } from "lucide-react"
+import { ArrowLeft, ExternalLink, Info, RefreshCw } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, Navigate, useParams } from "react-router-dom"
@@ -143,13 +143,25 @@ function BoardPanel({
     <article
       className={cn(
         "relative col-span-12 flex min-w-0 flex-col",
+        showChrome &&
+          "overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0",
         spanClass
       )}
     >
       {showChrome ? (
         <header className="flex flex-wrap items-start justify-between gap-2 px-3 pt-3 pb-2">
           <div className="min-w-0">
-            <h2 className="text-sm font-medium break-words">{panel.title}</h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-sm font-medium break-words">{panel.title}</h2>
+              {failed ? (
+                <BoardLoadHint
+                  failed
+                  dense
+                  openOriginalURL={panel.grafanaUrl}
+                  onReload={reloadFrame}
+                />
+              ) : null}
+            </div>
             {panel.description ? (
               <p className="text-xs leading-relaxed break-words text-muted-foreground">
                 {panel.description}
@@ -157,13 +169,6 @@ function BoardPanel({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            {failed ? (
-              <BoardLoadHint
-                failed
-                openOriginalURL={panel.grafanaUrl}
-                onReload={reloadFrame}
-              />
-            ) : null}
             <Button
               variant="link"
               size="sm"
@@ -326,6 +331,7 @@ export function BoardViewPage() {
         <PageHeader
           title={board.name}
           description={board.description || undefined}
+          titleAccessory={<BoardLoadHint dense />}
         >
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Button variant="outline" asChild>
@@ -365,16 +371,6 @@ export function BoardViewPage() {
             {t("board.view.panelCount", { count: panelCount })}
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/70 bg-muted/30 px-3 py-2">
-          <TriangleAlert
-            aria-hidden="true"
-            className="size-3.5 shrink-0 text-warning"
-          />
-          <p className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
-            {t("board.view.loadHintShort")}
-          </p>
-          <BoardLoadHint showLabel />
-        </div>
         {board.status === "DISABLED" ? (
           <div
             role="status"
@@ -388,7 +384,7 @@ export function BoardViewPage() {
         ) : null}
       </div>
       {/* app shell 是 h-svh overflow-hidden：面板区是页面唯一的纵向滚动 owner。 */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pr-1">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
         {panelCount === 0 ? (
           <div className="grid gap-4 rounded-xl border border-dashed border-border/70 p-6">
             <div className="grid gap-1">
@@ -407,7 +403,7 @@ export function BoardViewPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-12 gap-3">
+          <div className="grid grid-cols-12 gap-0">
             {board.panels.map((panel) => (
               <BoardPanel
                 key={panel.uid}

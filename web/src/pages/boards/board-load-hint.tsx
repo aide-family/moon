@@ -22,6 +22,8 @@ interface BoardLoadHintProps {
   onReload?: () => void
   /** 页面级入口显示文字；面板右上角只显示图标。 */
   showLabel?: boolean
+  /** 行内小图标：放在标题右侧时使用。 */
+  dense?: boolean
   align?: "start" | "center" | "end"
   className?: string
 }
@@ -31,6 +33,7 @@ export function BoardLoadHint({
   openOriginalURL,
   onReload,
   showLabel = false,
+  dense = false,
   align = "end",
   className,
 }: BoardLoadHintProps) {
@@ -41,7 +44,7 @@ export function BoardLoadHint({
         <Button
           type="button"
           variant="ghost"
-          size={showLabel ? "sm" : "icon-sm"}
+          size={showLabel ? "sm" : dense ? "icon-xs" : "icon-sm"}
           className={cn(
             "shrink-0",
             failed
