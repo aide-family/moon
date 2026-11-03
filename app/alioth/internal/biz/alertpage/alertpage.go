@@ -246,8 +246,8 @@ const (
 // ends_at 只用于历史告警明细（历史事件已结束，有结束时间），实时列表不提供。
 var allowedFieldColumns = map[string]struct{}{
 	"summary": {}, "datasource": {}, "level": {}, "sample_value": {}, "starts_at": {},
-	"duration": {}, "intervened": {}, "status": {}, "description": {}, "fingerprint": {},
-	"expr": {}, "rule": {}, "ends_at": {},
+	"duration": {}, "intervened": {}, "acked": {}, "status": {}, "description": {},
+	"fingerprint": {}, "expr": {}, "rule": {}, "ends_at": {},
 }
 
 // GetColumns 读取当前用户在 mine、history 或某个告警页面上的列配置。

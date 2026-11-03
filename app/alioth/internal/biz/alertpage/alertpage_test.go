@@ -17,14 +17,15 @@ func TestNormalizeColumns(t *testing.T) {
 	if len(columns) != 2 || columns[0].Type != ColumnKindField || columns[1].Type != ColumnKindLabel || columns[1].Label != "节点" {
 		t.Fatalf("columns = %+v", columns)
 	}
-	// 实时表格的 12 个内置字段都必须能保存，包括规则名 rule。
+	// 实时表格的 13 个内置字段都必须能保存，包括规则名 rule 与认领人 acked。
 	allFields := []bo.AlertColumn{
 		{Key: "summary", Type: "FIELD"}, {Key: "datasource", Type: "FIELD"},
 		{Key: "level", Type: "FIELD"}, {Key: "sample_value", Type: "FIELD"},
 		{Key: "starts_at", Type: "FIELD"}, {Key: "duration", Type: "FIELD"},
-		{Key: "intervened", Type: "FIELD"}, {Key: "status", Type: "FIELD"},
-		{Key: "description", Type: "FIELD"}, {Key: "expr", Type: "FIELD"},
-		{Key: "fingerprint", Type: "FIELD"}, {Key: "rule", Type: "FIELD"},
+		{Key: "intervened", Type: "FIELD"}, {Key: "acked", Type: "FIELD"},
+		{Key: "status", Type: "FIELD"}, {Key: "description", Type: "FIELD"},
+		{Key: "expr", Type: "FIELD"}, {Key: "fingerprint", Type: "FIELD"},
+		{Key: "rule", Type: "FIELD"},
 	}
 	if got, err := normalizeColumns(allFields); err != nil || len(got) != len(allFields) {
 		t.Fatalf("all fields = %d, err = %v", len(got), err)
@@ -52,6 +53,27 @@ func TestNormalizeHistoryOnlyColumns(t *testing.T) {
 		t.Fatalf("ends_at should be accepted: %v", err)
 	}
 	if len(columns) != 3 || columns[1].Key != "ends_at" {
+		t.Fatalf("columns = %+v", columns)
+	}
+}
+
+// 实时告警的默认列（web/src/pages/alert/columns.ts 的 DEFAULT_REALTIME_COLUMNS）
+// 必须能直接保存：用户一个字段都不动就点「保存」，也不该拿到 400 invalid request。
+func TestNormalizeRealtimeDefaultColumns(t *testing.T) {
+	columns, err := normalizeColumns([]bo.AlertColumn{
+		{Key: "summary", Type: "FIELD"},
+		{Key: "datasource", Type: "FIELD"},
+		{Key: "level", Type: "FIELD"},
+		{Key: "sample_value", Type: "FIELD"},
+		{Key: "starts_at", Type: "FIELD"},
+		{Key: "duration", Type: "FIELD"},
+		{Key: "intervened", Type: "FIELD"},
+		{Key: "acked", Type: "FIELD"},
+	})
+	if err != nil {
+		t.Fatalf("realtime default columns should be accepted: %v", err)
+	}
+	if len(columns) != 8 {
 		t.Fatalf("columns = %+v", columns)
 	}
 }
