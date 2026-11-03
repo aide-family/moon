@@ -41,10 +41,24 @@ export interface GrafanaEmbedOptions {
   to?: string
 }
 
+/** 取出参数的键名；非法编码时按原文比较，不抛错。 */
+function queryKey(pair: string): string {
+  const rawKey = pair.split("=", 1)[0] ?? ""
+  try {
+    return decodeURIComponent(rawKey)
+  } catch {
+    return rawKey
+  }
+}
+
 /**
- * 生成 iframe 使用的嵌入地址：追加/覆盖 kiosk、theme、from、to。
- * 已有 kiosk 值时保留原值（例如 `kiosk=tv` 不被覆盖）；地址本身非法时
- * 原样返回，交给 validateGrafanaURL 拦截。
+ * 生成 iframe 使用的嵌入地址：保留原始 query，追加/覆盖 theme、from、to，
+ * 并确保 kiosk 存在。
+ *
+ * 注意：Grafana 只把裸 `kiosk`（或 `kiosk=tv`）当作嵌入模式；`kiosk=` 空值
+ * 会被当成普通页面，露出导航和搜索栏。因此这里不能交给 URLSearchParams
+ * 序列化（它会把空值写成 `kiosk=`），而是手工拼 query，并把历史空值规范回裸
+ * `kiosk`。地址本身非法时原样返回，交给 validateGrafanaURL 拦截。
  */
 export function buildGrafanaEmbedURL(
   raw: string,
@@ -54,25 +68,47 @@ export function buildGrafanaEmbedURL(
   if (trimmed === "") {
     return trimmed
   }
-  let parsed: URL
+  const hashIndex = trimmed.indexOf("#")
+  const fragment = hashIndex >= 0 ? trimmed.slice(hashIndex) : ""
+  const withoutFragment = hashIndex >= 0 ? trimmed.slice(0, hashIndex) : trimmed
+  const queryIndex = withoutFragment.indexOf("?")
+  const base = queryIndex >= 0 ? withoutFragment.slice(0, queryIndex) : withoutFragment
   try {
-    parsed = new URL(trimmed)
+    new URL(base)
   } catch {
     return trimmed
   }
-  if (!parsed.searchParams.has("kiosk")) {
-    parsed.searchParams.set("kiosk", "")
+  const query = queryIndex >= 0 ? withoutFragment.slice(queryIndex + 1) : ""
+  const pairs = query === "" ? [] : query.split("&").filter(Boolean)
+  const replaced = new Set(["theme", "from", "to"])
+  const kept: string[] = []
+  let kiosk: string | null = null
+  for (const pair of pairs) {
+    const key = queryKey(pair)
+    if (key === "kiosk") {
+      // `kiosk=` 是历史生成物；规范回裸 kiosk。`kiosk=tv` 保留原值。
+      kiosk = pair === "kiosk=" ? "kiosk" : pair
+      continue
+    }
+    if (replaced.has(key)) {
+      continue
+    }
+    kept.push(pair)
   }
+  if (kiosk === null) {
+    kiosk = "kiosk"
+  }
+  const extra: string[] = [kiosk]
   if (options.theme) {
-    parsed.searchParams.set("theme", options.theme)
+    extra.push(`theme=${encodeURIComponent(options.theme)}`)
   }
   if (options.from) {
-    parsed.searchParams.set("from", options.from)
+    extra.push(`from=${encodeURIComponent(options.from)}`)
   }
   if (options.to) {
-    parsed.searchParams.set("to", options.to)
+    extra.push(`to=${encodeURIComponent(options.to)}`)
   }
-  return parsed.toString()
+  return `${base}?${[...kept, ...extra].join("&")}${fragment}`
 }
 
 /**
