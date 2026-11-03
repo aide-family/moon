@@ -1,4 +1,13 @@
-import { ArrowLeft, ExternalLink, Info, RefreshCw } from "lucide-react"
+import {
+  ArrowLeft,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Info,
+  Loader2,
+  PanelsTopLeft,
+  RefreshCw,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, Navigate, useParams } from "react-router-dom"
@@ -10,7 +19,6 @@ import { useSession } from "@/auth/session"
 import { PageHeader } from "@/components/page-header"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/class-names"
 import { formatDateTime } from "@/lib/date-time"
 import { failureMessage } from "@/lib/form-error"
@@ -39,23 +47,23 @@ function writeShowChrome(key: string, value: boolean) {
 
 // Tailwind 只生成源码里出现过的类名，宽度不能拼接，必须列全 1–12 栏。
 const COL_SPAN: Record<number, string> = {
-  1: "md:col-span-1",
-  2: "md:col-span-2",
-  3: "md:col-span-3",
-  4: "md:col-span-4",
-  5: "md:col-span-5",
-  6: "md:col-span-6",
-  7: "md:col-span-7",
-  8: "md:col-span-8",
-  9: "md:col-span-9",
-  10: "md:col-span-10",
-  11: "md:col-span-11",
-  12: "md:col-span-12",
+  1: "xl:col-span-1",
+  2: "xl:col-span-2",
+  3: "xl:col-span-3",
+  4: "xl:col-span-4",
+  5: "xl:col-span-5",
+  6: "xl:col-span-6",
+  7: "xl:col-span-7",
+  8: "xl:col-span-8",
+  9: "xl:col-span-9",
+  10: "xl:col-span-10",
+  11: "xl:col-span-11",
+  12: "xl:col-span-12",
 }
 
 function columnSpan(width: number): string {
   const span = Math.min(12, Math.max(1, Math.round(width)))
-  return COL_SPAN[span] ?? "md:col-span-6"
+  return COL_SPAN[span] ?? "xl:col-span-6"
 }
 
 type BoardPanelReachability = "checking" | "ok" | "failed"
@@ -134,6 +142,9 @@ function BoardPanel({
     `${reloadKey}:${frameKey}`
   )
   const failed = reachability === "failed"
+  const frameBucket = `${reloadKey}:${frameKey}`
+  const [loadedBucket, setLoadedBucket] = useState("")
+  const loaded = loadedBucket === frameBucket
 
   function reloadFrame() {
     setFrameKey((value) => value + 1)
@@ -141,38 +152,58 @@ function BoardPanel({
 
   return (
     <article
+      aria-busy={!loaded}
       className={cn(
-        "relative col-span-12 flex min-w-0 flex-col",
+        "group relative col-span-12 flex min-w-0 flex-col",
         showChrome &&
-          "overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+          "overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0",
         spanClass
       )}
     >
       {showChrome ? (
-        <header className="flex flex-wrap items-start justify-between gap-2 px-3 pt-3 pb-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-sm font-medium break-words">{panel.title}</h2>
+        <header className="flex items-start justify-between gap-3 border-b border-border/50 px-3 pt-2.5 pb-2">
+          <div className="min-w-0 space-y-0.5">
+            <div className="flex items-start gap-1.5">
+              <h2
+                className="line-clamp-1 font-heading text-sm leading-snug font-medium"
+                title={panel.title}
+              >
+                {panel.title}
+              </h2>
               {failed ? (
                 <BoardLoadHint
                   failed
                   dense
+                  className="mt-0.5"
                   openOriginalURL={panel.grafanaUrl}
                   onReload={reloadFrame}
                 />
               ) : null}
             </div>
             {panel.description ? (
-              <p className="text-xs leading-relaxed break-words text-muted-foreground">
+              <p
+                className="line-clamp-2 text-xs leading-relaxed break-words text-muted-foreground"
+                title={panel.description}
+              >
                 {panel.description}
               </p>
             ) : null}
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5 opacity-100 transition-opacity duration-150 sm:opacity-60 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100 motion-reduce:transition-none">
             <Button
-              variant="link"
-              size="sm"
-              className="h-auto shrink-0 px-0"
+              variant="ghost"
+              size="icon-xs"
+              aria-label={t("board.view.refreshPanel")}
+              title={t("board.view.refreshPanel")}
+              onClick={reloadFrame}
+            >
+              <RefreshCw aria-hidden="true" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              aria-label={`${t("board.view.openOriginal")}: ${panel.title}`}
+              title={t("board.view.openOriginal")}
               asChild
             >
               <a
@@ -180,33 +211,76 @@ function BoardPanel({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <ExternalLink aria-hidden="true" data-icon="inline-start" />
-                {t("board.view.openOriginal")}
+                <ExternalLink aria-hidden="true" />
               </a>
             </Button>
           </div>
         </header>
       ) : null}
-      {!showChrome && failed ? (
-        <div className="absolute top-2 right-2 z-10 rounded-md bg-background/90 shadow-sm backdrop-blur">
-          <BoardLoadHint
-            failed
-            openOriginalURL={panel.grafanaUrl}
-            onReload={reloadFrame}
-          />
-        </div>
-      ) : null}
-      <iframe
-        key={`${panel.uid}-${reloadKey}-${frameKey}`}
-        src={buildGrafanaEmbedURL(panel.grafanaUrl)}
-        title={title}
-        allowFullScreen
-        referrerPolicy="no-referrer"
-        loading="lazy"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-        className="block w-full border-0"
-        style={{ height: panel.height }}
-      />
+      <div className="relative min-w-0">
+        <iframe
+          key={`${panel.uid}-${reloadKey}-${frameKey}`}
+          src={buildGrafanaEmbedURL(panel.grafanaUrl)}
+          title={title}
+          allowFullScreen
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+          className="block w-full border-0"
+          style={{ height: panel.height }}
+          onLoad={() => setLoadedBucket(frameBucket)}
+        />
+        {!loaded ? (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-muted/50"
+          >
+            <Loader2 className="size-4 animate-spin text-muted-foreground motion-reduce:animate-none" />
+            <span className="text-xs text-muted-foreground">
+              {t("board.view.loadingPanel")}
+            </span>
+          </div>
+        ) : null}
+        {!showChrome ? (
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+            {failed ? (
+              <div className="rounded-md bg-popover/90 shadow-sm backdrop-blur">
+                <BoardLoadHint
+                  failed
+                  openOriginalURL={panel.grafanaUrl}
+                  onReload={reloadFrame}
+                />
+              </div>
+            ) : null}
+            <div className="flex items-center gap-0.5 rounded-md bg-popover/90 p-0.5 shadow-sm backdrop-blur opacity-100 transition-opacity duration-150 sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100 motion-reduce:transition-none">
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label={t("board.view.refreshPanel")}
+                title={t("board.view.refreshPanel")}
+                onClick={reloadFrame}
+              >
+                <RefreshCw aria-hidden="true" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label={`${t("board.view.openOriginal")}: ${panel.title}`}
+                title={t("board.view.openOriginal")}
+                asChild
+              >
+                <a
+                  href={panel.grafanaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink aria-hidden="true" />
+                </a>
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </article>
   )
 }
@@ -331,7 +405,8 @@ export function BoardViewPage() {
         <PageHeader
           title={board.name}
           description={board.description || undefined}
-          titleAccessory={<BoardLoadHint dense />}
+          descriptionLines={2}
+          titleAccessory={<BoardLoadHint />}
         >
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Button variant="outline" asChild>
@@ -340,19 +415,23 @@ export function BoardViewPage() {
                 {t("board.view.back")}
               </Link>
             </Button>
-            <div className="flex h-8 items-center gap-2 rounded-lg border border-border/70 px-2.5">
-              <Checkbox
-                id="board-show-chrome"
-                checked={showChrome}
-                onCheckedChange={(value) => toggleChrome(value === true)}
-              />
-              <label
-                htmlFor="board-show-chrome"
-                className="text-sm whitespace-nowrap"
-              >
+            <Button
+              type="button"
+              variant="outline"
+              aria-pressed={showChrome}
+              aria-label={t("board.view.showChrome")}
+              title={t("board.view.showChrome")}
+              onClick={() => toggleChrome(!showChrome)}
+            >
+              {showChrome ? (
+                <Eye aria-hidden="true" data-icon="inline-start" />
+              ) : (
+                <EyeOff aria-hidden="true" data-icon="inline-start" />
+              )}
+              <span className="hidden sm:inline">
                 {t("board.view.showChrome")}
-              </label>
-            </div>
+              </span>
+            </Button>
             <Button
               variant="outline"
               onClick={() => setReloadKey((v) => v + 1)}
@@ -373,8 +452,8 @@ export function BoardViewPage() {
         </div>
         {board.status === "DISABLED" ? (
           <div
-            role="status"
-            className="flex items-start gap-2 rounded-lg border border-warning-border bg-warning-soft px-3 py-2 text-sm text-warning"
+            role="note"
+            className="flex items-start gap-2 rounded-lg border border-info-border bg-info-soft px-3 py-2 text-sm text-info"
           >
             <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
             <p className="min-w-0 break-words">
@@ -384,26 +463,38 @@ export function BoardViewPage() {
         ) : null}
       </div>
       {/* app shell 是 h-svh overflow-hidden：面板区是页面唯一的纵向滚动 owner。 */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pr-1">
         {panelCount === 0 ? (
-          <div className="grid gap-4 rounded-xl border border-dashed border-border/70 p-6">
-            <div className="grid gap-1">
-              <p className="text-sm font-medium">{t("board.view.empty")}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("board.view.emptyHint")}
-              </p>
-            </div>
-            <div className="grid gap-2">
-              <p className="text-sm font-medium">{t("board.security.title")}</p>
-              <ul className="grid list-disc gap-1.5 pl-5 text-sm text-muted-foreground">
-                <li>{t("board.security.embedding")}</li>
-                <li>{t("board.security.framing")}</li>
-                <li>{t("board.security.login")}</li>
-              </ul>
+          <div className="grid min-h-[40vh] place-items-center p-4">
+            <div className="grid w-full max-w-md gap-4 rounded-xl border border-dashed border-border/70 p-8 text-center">
+              <div className="mx-auto grid size-10 place-items-center rounded-lg bg-primary-soft text-primary-ink">
+                <PanelsTopLeft aria-hidden="true" className="size-5" />
+              </div>
+              <div className="grid gap-1">
+                <p className="font-heading text-base font-medium">
+                  {t("board.view.empty")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t("board.view.emptyHint")}
+                </p>
+              </div>
+              <Button asChild className="mx-auto">
+                <Link to="/boards">{t("board.view.emptyAction")}</Link>
+              </Button>
+              <details className="text-left">
+                <summary className="cursor-pointer text-xs text-muted-foreground">
+                  {t("board.security.title")}
+                </summary>
+                <ul className="mt-2 grid list-disc gap-1 pl-5 text-xs text-muted-foreground">
+                  <li>{t("board.security.embedding")}</li>
+                  <li>{t("board.security.framing")}</li>
+                  <li>{t("board.security.login")}</li>
+                </ul>
+              </details>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-12 gap-0">
+          <div className="grid grid-cols-12 gap-0 p-0.5">
             {board.panels.map((panel) => (
               <BoardPanel
                 key={panel.uid}

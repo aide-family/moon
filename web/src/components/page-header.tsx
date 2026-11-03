@@ -12,6 +12,8 @@ interface PageHeaderProps {
   titleExpanded?: boolean
   /** 标题按钮的无障碍名称，说明点击后会展开还是收起。 */
   titleToggleLabel?: string
+  /** 描述最多显示几行；未设置时不截断。 */
+  descriptionLines?: 1 | 2 | 3
   /** 渲染在标题右侧的行内元素，例如状态或排查入口。 */
   titleAccessory?: ReactNode
   children?: ReactNode
@@ -23,6 +25,7 @@ export function PageHeader({
   onTitleClick,
   titleExpanded,
   titleToggleLabel,
+  descriptionLines,
   titleAccessory,
   children,
 }: PageHeaderProps) {
@@ -57,7 +60,17 @@ export function PageHeader({
           {titleAccessory}
         </div>
         {description ? (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p
+            title={description}
+            className={cn(
+              "max-w-prose text-sm text-muted-foreground",
+              descriptionLines === 1 && "line-clamp-1",
+              descriptionLines === 2 && "line-clamp-2",
+              descriptionLines === 3 && "line-clamp-3"
+            )}
+          >
+            {description}
+          </p>
         ) : null}
       </div>
       {children}
