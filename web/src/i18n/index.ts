@@ -129,6 +129,8 @@ const zh = {
       emptyAction: "去列表添加面板",
       refreshPanel: "刷新此面板",
       loadingPanel: "正在加载面板…",
+      timeRange: "时间范围",
+      timeRangeValue: "最近 {{range}}",
       loadHintButton: "加载排查",
       loadHintTitle: "面板加载排查",
       loadHintIntro:
@@ -3747,6 +3749,8 @@ const en = {
       emptyAction: "Go to the board list",
       refreshPanel: "Refresh panel",
       loadingPanel: "Loading panel…",
+      timeRange: "Time range",
+      timeRangeValue: "Last {{range}}",
       loadHintButton: "Troubleshoot loading",
       loadHintTitle: "Troubleshoot panel loading",
       loadHintIntro:

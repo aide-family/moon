@@ -16,6 +16,7 @@ import { getBoard } from "@/api/board"
 import type { BoardItem, BoardPanelItem } from "@/api/board/types"
 import { ApiError } from "@/api/http"
 import { useSession } from "@/auth/session"
+import { useTheme } from "@/components/theme-provider"
 import { PageHeader } from "@/components/page-header"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,30 @@ import { ServerErrorPage } from "@/pages/server-error"
 
 // 「显示标题与描述」按大盘存在 localStorage，不改实体；缺省显示。
 const SHOW_CHROME_PREFIX = "board:showChrome:"
+// 时间范围按大盘记忆；缺省最近 3 小时。
+const RANGE_PREFIX = "board:range:"
+const RANGE_OPTIONS = ["3h", "6h", "12h", "24h"] as const
+type BoardRange = (typeof RANGE_OPTIONS)[number]
+const DEFAULT_RANGE: BoardRange = "3h"
+
+function readRange(key: string): BoardRange {
+  try {
+    const value = localStorage.getItem(key)
+    return RANGE_OPTIONS.includes(value as BoardRange)
+      ? (value as BoardRange)
+      : DEFAULT_RANGE
+  } catch {
+    return DEFAULT_RANGE
+  }
+}
+
+function writeRange(key: string, value: BoardRange) {
+  try {
+    localStorage.setItem(key, value)
+  } catch {
+    // 隐私模式下 localStorage 可能不可写：本次会话内选择仍然生效。
+  }
+}
 
 function readShowChrome(key: string): boolean {
   try {
@@ -121,6 +146,10 @@ function useGrafanaReachability(
 interface BoardPanelProps {
   panel: BoardPanelItem
   showChrome: boolean
+  /** 跟随 Alioth 的明暗主题注入 Grafana theme。 */
+  theme: "light" | "dark"
+  /** 查看页当前选择的时间范围。 */
+  range: BoardRange
   /** 占 12 栏栅格中的几列，窄屏由外层固定 col-span-12。 */
   spanClass: string
   /** 递增时重建 iframe，用于刷新面板内容。 */
@@ -131,6 +160,8 @@ interface BoardPanelProps {
 function BoardPanel({
   panel,
   showChrome,
+  theme,
+  range,
   spanClass,
   reloadKey,
 }: BoardPanelProps) {
@@ -220,7 +251,11 @@ function BoardPanel({
       <div className="relative min-w-0">
         <iframe
           key={`${panel.uid}-${reloadKey}-${frameKey}`}
-          src={buildGrafanaEmbedURL(panel.grafanaUrl)}
+          src={buildGrafanaEmbedURL(panel.grafanaUrl, {
+            theme,
+            from: `now-${range}`,
+            to: "now",
+          })}
           title={title}
           allowFullScreen
           referrerPolicy="no-referrer"
@@ -305,6 +340,10 @@ export function BoardViewPage() {
   const [showChrome, setShowChrome] = useState(() =>
     readShowChrome(`${SHOW_CHROME_PREFIX}${uid}`)
   )
+  const [range, setRange] = useState<BoardRange>(() =>
+    readRange(`${RANGE_PREFIX}${uid}`)
+  )
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => {
     let active = true
@@ -349,6 +388,11 @@ export function BoardViewPage() {
   function toggleChrome(next: boolean) {
     setShowChrome(next)
     writeShowChrome(storageKey, next)
+  }
+
+  function pickRange(next: BoardRange) {
+    setRange(next)
+    writeRange(`${RANGE_PREFIX}${uid}`, next)
   }
 
   // 网关/后端不可用时展示标准 502/503 页，而不是把浏览器的 "Failed to fetch" 留在内容区。
@@ -439,6 +483,30 @@ export function BoardViewPage() {
               <RefreshCw aria-hidden="true" data-icon="inline-start" />
               {t("board.view.refresh")}
             </Button>
+            <div
+              role="group"
+              aria-label={t("board.view.timeRange")}
+              className="flex h-8 items-center gap-0.5 rounded-lg border border-border/70 p-0.5"
+            >
+              <span className="hidden px-1.5 text-xs text-muted-foreground sm:inline">
+                {t("board.view.timeRange")}
+              </span>
+              {RANGE_OPTIONS.map((option) => (
+                <Button
+                  key={option}
+                  type="button"
+                  size="xs"
+                  variant={range === option ? "secondary" : "ghost"}
+                  aria-pressed={range === option}
+                  aria-label={t("board.view.timeRangeValue", {
+                    range: option,
+                  })}
+                  onClick={() => pickRange(option)}
+                >
+                  {option}
+                </Button>
+              ))}
+            </div>
           </div>
         </PageHeader>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
@@ -500,6 +568,8 @@ export function BoardViewPage() {
                 key={panel.uid}
                 panel={panel}
                 showChrome={showChrome}
+                theme={resolvedTheme}
+                range={range}
                 spanClass={columnSpan(panel.width)}
                 reloadKey={reloadKey}
               />

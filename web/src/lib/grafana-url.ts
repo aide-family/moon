@@ -4,8 +4,9 @@
 // 校验规则与服务端 app/alioth/internal/biz/board 保持一致，用于表单即时提示；
 // 真正生效的仍是服务端校验，前端提示不能替代后端拒绝。
 //
-// 嵌入地址在原始 query 之后追加 kiosk（隐藏 Grafana 侧边栏），已有 kiosk 时
-// 保留原值，其余 query（from / to / var-* / refresh 等）原样保留。
+// 嵌入地址会追加/覆盖 kiosk、theme、from、to：kiosk 已有值时保留，
+// theme 跟随 Alioth 的明暗模式，from/to 跟随查看页选择的时间范围；
+// 其余 query（var-* / refresh 等）保留。
 
 /** 地址最大字节数，与后端 maxURLBytes 一致（按 UTF-8 字节计）。 */
 export const GRAFANA_URL_MAX_BYTES = 2048
@@ -30,41 +31,48 @@ export type GrafanaURLIssue =
   | "path"
   | "credentials"
 
-const KIOSK_PATTERN = /[?&]kiosk(?:=[^&#]*)?(?:[&#]|$)/
-
-function hasKiosk(raw: string): boolean {
-  if (KIOSK_PATTERN.test(raw)) {
-    return true
-  }
-  try {
-    return new URL(raw).searchParams.has("kiosk")
-  } catch {
-    return false
-  }
+/** 注入到 Grafana URL 的展示参数。 */
+export interface GrafanaEmbedOptions {
+  /** Grafana 明暗主题，跟随 Alioth 的 resolvedTheme。 */
+  theme?: "light" | "dark"
+  /** Grafana 时间范围起点，例如 now-3h。 */
+  from?: string
+  /** Grafana 时间范围终点，例如 now。 */
+  to?: string
 }
 
 /**
- * 生成 iframe 使用的嵌入地址：保留原 query，没有 kiosk 参数时追加 `kiosk`，
- * 已有 kiosk 时保留原值（例如 `kiosk=tv` 不被覆盖）。
- * 地址本身就是非法 URL 时原样返回，交给 validateGrafanaURL 拦截。
+ * 生成 iframe 使用的嵌入地址：追加/覆盖 kiosk、theme、from、to。
+ * 已有 kiosk 值时保留原值（例如 `kiosk=tv` 不被覆盖）；地址本身非法时
+ * 原样返回，交给 validateGrafanaURL 拦截。
  */
-export function buildGrafanaEmbedURL(raw: string): string {
+export function buildGrafanaEmbedURL(
+  raw: string,
+  options: GrafanaEmbedOptions = {}
+): string {
   const trimmed = raw.trim()
   if (trimmed === "") {
     return trimmed
   }
-  if (hasKiosk(trimmed)) {
+  let parsed: URL
+  try {
+    parsed = new URL(trimmed)
+  } catch {
     return trimmed
   }
-  // 手工拼接而不是 URL/URLSearchParams，避免把原 query 的编码形式改掉。
-  const hashIndex = trimmed.indexOf("#")
-  const base = hashIndex >= 0 ? trimmed.slice(0, hashIndex) : trimmed
-  const fragment = hashIndex >= 0 ? trimmed.slice(hashIndex) : ""
-  if (base === "" || base.endsWith("?") || base.endsWith("&")) {
-    return `${base}kiosk${fragment}`
+  if (!parsed.searchParams.has("kiosk")) {
+    parsed.searchParams.set("kiosk", "")
   }
-  const separator = base.includes("?") ? "&" : "?"
-  return `${base}${separator}kiosk${fragment}`
+  if (options.theme) {
+    parsed.searchParams.set("theme", options.theme)
+  }
+  if (options.from) {
+    parsed.searchParams.set("from", options.from)
+  }
+  if (options.to) {
+    parsed.searchParams.set("to", options.to)
+  }
+  return parsed.toString()
 }
 
 /**
