@@ -156,7 +156,7 @@ function BoardPanel({
       className={cn(
         "group relative col-span-12 flex min-w-0 flex-col",
         showChrome &&
-          "overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+          "overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0",
         spanClass
       )}
     >
@@ -494,7 +494,7 @@ export function BoardViewPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-12 gap-0 p-0.5">
+          <div className="grid grid-cols-12 gap-3">
             {board.panels.map((panel) => (
               <BoardPanel
                 key={panel.uid}

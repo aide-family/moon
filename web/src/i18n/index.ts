@@ -126,6 +126,9 @@ const zh = {
       disabledHint: "大盘已停用，当前仅可查看。",
       empty: "这个大盘还没有面板。",
       emptyHint: "编辑大盘并添加 Grafana 面板地址后，即可在这里嵌入展示。",
+      emptyAction: "去列表添加面板",
+      refreshPanel: "刷新此面板",
+      loadingPanel: "正在加载面板…",
       loadHintButton: "加载排查",
       loadHintTitle: "面板加载排查",
       loadHintIntro:
@@ -3741,6 +3744,9 @@ const en = {
       disabledHint: "This board is disabled and is read-only.",
       empty: "This board has no panels yet.",
       emptyHint: "Edit the board and add Grafana panel URLs to embed them here.",
+      emptyAction: "Go to the board list",
+      refreshPanel: "Refresh panel",
+      loadingPanel: "Loading panel…",
       loadHintButton: "Troubleshoot loading",
       loadHintTitle: "Troubleshoot panel loading",
       loadHintIntro:
