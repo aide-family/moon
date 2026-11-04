@@ -120,3 +120,40 @@ func TestBuildMessage(t *testing.T) {
 		t.Fatal("正文应使用 base64 编码")
 	}
 }
+
+// 后台保存的 SMTP 配置必须立刻生效：override 存在时以它为准，
+// 清除后回到构造时的配置文件，不需要重启进程。
+func TestSenderOverride(t *testing.T) {
+	sender := newTestSender("conf@example.com", "")
+	host, port, _, _, from := sender.effective()
+	if host != "smtp.example.com" || port != 25 || from != "conf@example.com" {
+		t.Fatalf("conf 配置没有生效：%s:%d from %s", host, port, from)
+	}
+	if !sender.Configured() {
+		t.Fatal("conf 配置完整时应视为已配置")
+	}
+
+	sender.SetOverride(Config{Host: "127.0.0.1", Port: 1025, From: "db@example.com"})
+	host, port, _, _, from = sender.effective()
+	if host != "127.0.0.1" || port != 1025 || from != "db@example.com" {
+		t.Fatalf("后台配置没有覆盖 conf：%s:%d from %s", host, port, from)
+	}
+
+	sender.ClearOverride()
+	host, port, _, _, from = sender.effective()
+	if host != "smtp.example.com" || port != 25 || from != "conf@example.com" {
+		t.Fatalf("清除覆盖后应回到 conf：%s:%d from %s", host, port, from)
+	}
+}
+
+// 空值覆盖表示「这条覆盖不能用」，不能拿它去发信。
+func TestSenderOverrideIncompleteIsNotConfigured(t *testing.T) {
+	sender := newTestSender("conf@example.com", "")
+	sender.SetOverride(Config{})
+	if sender.Configured() {
+		t.Fatal("空的覆盖配置不应被视为可用")
+	}
+	if err := sender.Send("user@example.com", "subject", "body"); err == nil {
+		t.Fatal("没有可用 SMTP 时 Send 应返回错误")
+	}
+}
