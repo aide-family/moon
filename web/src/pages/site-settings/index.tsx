@@ -34,6 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { isEmail } from "@/lib/email"
 
 import { EmailSettingsCard } from "./email-settings-card"
+import { HomeContentCard } from "./home-content-card"
 import { OAuthProvidersCard } from "./oauth-providers-card"
 
 type SiteField = keyof SaveSiteSettingsParams
@@ -727,6 +728,11 @@ export function SiteSettingsPage() {
           <OAuthProvidersCard
             canRead={canLoginRead}
             canWrite={canLoginWrite}
+            refreshKey={attempt}
+          />
+          <HomeContentCard
+            canRead={canRead}
+            canWrite={canWrite}
             refreshKey={attempt}
           />
         </>

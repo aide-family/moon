@@ -8,7 +8,9 @@ import type {
   SaveEmailSettingsParams,
   SaveLoginMethodsParams,
   SaveOAuthProviderParams,
+  SaveSiteHomeParams,
   SaveSiteSettingsParams,
+  SiteHome,
   SiteSettings,
 } from "./types"
 
@@ -48,6 +50,16 @@ export function updateEmailSettings(
   return put<{ email: EmailSettings }>("/system/auth/email-settings", body)
 }
 
+/** GET /v1/system/site/home?locale= */
+export function getSiteHome(locale: "zh" | "en"): Promise<SiteHome> {
+  return get<SiteHome>("/site/home", { locale })
+}
+
+/** PUT /v1/system/site/home */
+export function updateSiteHome(body: SaveSiteHomeParams): Promise<SiteHome> {
+  return put<SiteHome>("/site/home", body)
+}
+
 /** GET /v1/system/auth/oauth-providers */
 export function getOAuthProviders(): Promise<{
   items: OAuthProviderSettings[]
@@ -74,7 +86,11 @@ export type {
   SaveEmailSettingsParams,
   SaveLoginMethodsParams,
   SaveOAuthProviderParams,
+  SaveSiteHomeParams,
   SaveSiteSettingsParams,
   SiteConfig,
+  SiteFeature,
+  SiteHome,
+  SiteHomeContent,
   SiteSettings,
 } from "./types"

@@ -20,8 +20,9 @@ export class SiteConfigError extends Error {
  * Authorization / X-Namespace，并在 401 时跳登录、在 403 时跳 /forbidden。
  * 这里用原生 fetch 直接请求相对路径，失败由调用方决定是否回落默认值。
  */
-export async function fetchSiteConfig(): Promise<SiteConfig> {
-  const response = await fetch("/v1/site/config", {
+export async function fetchSiteConfig(locale = ""): Promise<SiteConfig> {
+  const query = locale ? `?locale=${encodeURIComponent(locale)}` : ""
+  const response = await fetch(`/v1/site/config${query}`, {
     method: "GET",
     headers: { Accept: "application/json" },
     cache: "no-store",
@@ -39,7 +40,13 @@ export async function fetchSiteConfig(): Promise<SiteConfig> {
   if (!data.site || !data.loginMethods) {
     throw new SiteConfigError(500)
   }
-  return { site: data.site, loginMethods: data.loginMethods }
+  return {
+    site: data.site,
+    loginMethods: data.loginMethods,
+    // 首页内容还没配置过时后端返回空字段，前端按默认文案渲染。
+    home: data.home ?? ({} as SiteConfig["home"]),
+    features: data.features ?? [],
+  }
 }
 
 /**

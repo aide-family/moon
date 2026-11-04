@@ -62,6 +62,8 @@ export interface EmailSettings {
   from: string
   /** 是否已经保存过密码。 */
   passwordSet: boolean
+  /** 当前生效值来自哪里：DATABASE（后台）、CONFIG（服务器配置）、NONE。 */
+  source: string
   updatedBy: string
   updatedAt: string
 }
@@ -92,6 +94,8 @@ export interface OAuthProviderSettings {
   clientId: string
   /** 是否已经保存过客户端密钥。 */
   secretSet: boolean
+  /** 当前生效值来自哪里：DATABASE、CONFIG 或 NONE。 */
+  source: string
   updatedBy: string
   updatedAt: string
 }
@@ -107,10 +111,59 @@ export interface SaveOAuthProviderParams {
   clearSecret: boolean
 }
 
-/** 公开接口返回的站点设置与登录方式。 */
+/** 官网首页文案（版式固定，这里只有短文本与一个主视觉地址）。 */
+export interface SiteHomeContent {
+  locale: string
+  heroTitle: string
+  heroSubtitle: string
+  heroImageUrl: string
+  ctaPrimaryLabel: string
+  ctaSecondaryLabel: string
+  ctaSecondaryHref: string
+  featuresTitle: string
+  featuresSubtitle: string
+  howTitle: string
+  howBody: string
+  permTitle: string
+  permBody: string
+  deployTitle: string
+  deployBody: string
+  docTitle: string
+  closingTitle: string
+  closingDescription: string
+  closingButtonLabel: string
+  updatedBy: string
+  updatedAt: string
+}
+
+/** 首页能力卡片。 */
+export interface SiteFeature {
+  uid: string
+  iconKey: string
+  title: string
+  description: string
+  sortOrder: number
+}
+
+/** 首页内容：文案 + 能力卡片。 */
+export interface SiteHome {
+  home: SiteHomeContent
+  features: SiteFeature[]
+}
+
+/** 保存首页内容的载荷；能力卡片整体替换，顺序即展示顺序。 */
+export interface SaveSiteHomeParams {
+  locale: "zh" | "en"
+  home: Omit<SiteHomeContent, "locale" | "updatedBy" | "updatedAt">
+  features: Array<Pick<SiteFeature, "iconKey" | "title" | "description">>
+}
+
+/** 公开接口返回的站点设置、登录方式与首页内容。 */
 export interface SiteConfig {
   site: SiteSettings
   loginMethods: LoginMethods
+  home: SiteHomeContent
+  features: SiteFeature[]
 }
 
 /** 公开页面：只含已发布快照字段。 */

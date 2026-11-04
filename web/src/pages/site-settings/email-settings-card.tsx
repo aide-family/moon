@@ -221,7 +221,10 @@ export function EmailSettingsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("systemSite.email.title")}</CardTitle>
+        <CardTitle className="flex flex-wrap items-center gap-2">
+          {t("systemSite.email.title")}
+          {settings ? <SourceBadge source={settings.source} /> : null}
+        </CardTitle>
         <CardDescription>{t("systemSite.email.description")}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -417,4 +420,18 @@ export function EmailSettingsCard({
       </CardContent>
     </Card>
   )
+}
+
+/** 当前生效值来自哪里：后台配置、服务器配置，或完全没配。 */
+function SourceBadge({ source }: { source: string }) {
+  const { t } = useTranslation()
+  const tone =
+    source === "DATABASE" ? "info" : source === "CONFIG" ? "neutral" : "warning"
+  const label =
+    source === "DATABASE"
+      ? t("systemSite.source.database")
+      : source === "CONFIG"
+        ? t("systemSite.source.config")
+        : t("systemSite.source.none")
+  return <StatusBadge value={source} label={label} tone={tone} />
 }

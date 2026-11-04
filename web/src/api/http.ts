@@ -309,6 +309,14 @@ const messageKeys: Record<string, string> = {
   "at least one login method must stay enabled": "error.atLeastOneLoginMethod",
   "email login is disabled": "error.emailLoginDisabled",
   "oauth login is disabled": "error.oauthLoginDisabled",
+  // 官网首页文案的保存校验。
+  "site home copy is too long": "error.siteHomeCopyTooLong",
+  "invalid hero image url": "error.invalidHeroImageUrl",
+  "invalid secondary cta link": "error.invalidSecondaryCtaLink",
+  "secondary cta label and link must be set together": "error.secondaryCtaPair",
+  "unsupported feature icon": "error.unsupportedFeatureIcon",
+  "too many feature cards": "error.tooManyFeatureCards",
+  "site copy contains disallowed wording": "error.disallowedWording",
   // 官网页面：slug/标题/导航顺序/封面图与乐观锁冲突都由后端给出英文原文。
   "site page not found": "error.sitePageNotFound",
   "site page slug already exists": "error.sitePageSlugExists",

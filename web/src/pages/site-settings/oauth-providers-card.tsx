@@ -302,7 +302,28 @@ export function OAuthProvidersCard({
                   className="grid min-w-0 gap-4 rounded-lg border border-border/60 p-4"
                   onSubmit={(event) => void onSubmit(event, provider)}
                 >
-                  <h3 className="text-sm font-medium">{name}</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-medium">{name}</h3>
+                    {settings ? (
+                      <StatusBadge
+                        value={settings.source}
+                        tone={
+                          settings.source === "DATABASE"
+                            ? "info"
+                            : settings.source === "CONFIG"
+                              ? "neutral"
+                              : "warning"
+                        }
+                        label={
+                          settings.source === "DATABASE"
+                            ? t("systemSite.source.database")
+                            : settings.source === "CONFIG"
+                              ? t("systemSite.source.config")
+                              : t("systemSite.source.none")
+                        }
+                      />
+                    ) : null}
+                  </div>
                   <label className="flex items-start gap-3">
                     <Checkbox
                       id={`oauth-${provider}-enabled`}
