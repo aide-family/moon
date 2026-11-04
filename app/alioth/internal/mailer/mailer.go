@@ -10,12 +10,23 @@ import (
 	"net/smtp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/aide-family/moon/app/alioth/internal/conf"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
+// Config 是后台可改的 SMTP 参数。存进数据库的就是这几个字段。
+type Config struct {
+	Host     string
+	Port     int
+	Username string
+	Password string
+	From     string
+}
+
 // Sender 是一封纯文本邮件的发送器。未配置 SMTP 时 Send 返回服务端错误。
+// 后台保存的配置通过 override 覆盖构造时的参数，保存后立即生效，不需要重启。
 type Sender struct {
 	host     string
 	port     int
@@ -23,6 +34,43 @@ type Sender struct {
 	password string
 	from     string
 	log      *slog.Logger
+
+	mu       sync.RWMutex
+	override *Config
+}
+
+// SetOverride 用后台保存的 SMTP 配置覆盖服务器配置。
+func (s *Sender) SetOverride(cfg Config) {
+	if s == nil {
+		return
+	}
+	value := cfg
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.override = &value
+}
+
+// ClearOverride 撤销后台覆盖，回到服务器配置。
+func (s *Sender) ClearOverride() {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.override = nil
+}
+
+// effective 返回本次发信实际使用的参数：后台配置优先，没有再回落到构造时的配置。
+func (s *Sender) effective() (host string, port int, username, password, from string) {
+	if s == nil {
+		return "", 0, "", "", ""
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.override != nil {
+		return s.override.Host, s.override.Port, s.override.Username, s.override.Password, s.override.From
+	}
+	return s.host, s.port, s.username, s.password, s.from
 }
 
 func NewSender(auth *conf.Auth, logger *slog.Logger) *Sender {
@@ -38,20 +86,22 @@ func NewSender(auth *conf.Auth, logger *slog.Logger) *Sender {
 }
 
 func (s *Sender) Configured() bool {
-	return s != nil && s.host != "" && s.port > 0 && s.from != ""
+	host, port, _, _, from := s.effective()
+	return host != "" && port > 0 && from != ""
 }
 
 // Send 发送一封 UTF-8 纯文本邮件。主题和正文用 base64 编码，避免中文被 SMTP 网关截断。
 // 信封发件地址和 From 头分开处理：163 等邮箱要求信封地址就是登录账号本身，
 // 显示名（例如“Alioth 瑶光”）只能放在 From 头里，直接塞进 MAIL FROM 会被服务端拒绝。
 func (s *Sender) Send(to, subject, body string) error {
-	if !s.Configured() {
+	host, port, username, password, from := s.effective()
+	if host == "" || port <= 0 || from == "" {
 		return merr.Server("smtp is not configured")
 	}
 	if strings.ContainsAny(subject, "\r\n") {
 		return merr.Client("invalid email header")
 	}
-	envelopeFrom, headerFrom, err := s.senderIdentity()
+	envelopeFrom, headerFrom, err := s.senderIdentity(from, username)
 	if err != nil {
 		return err
 	}
@@ -60,12 +110,12 @@ func (s *Sender) Send(to, subject, body string) error {
 		return err
 	}
 	message := buildMessage(headerFrom, envelopeTo, subject, body)
-	addr := net.JoinHostPort(s.host, strconv.Itoa(s.port))
-	var auth smtp.Auth
-	if s.username != "" {
-		auth = smtp.PlainAuth("", s.username, s.password, s.host)
+	addr := net.JoinHostPort(host, strconv.Itoa(port))
+	var smtpAuth smtp.Auth
+	if username != "" {
+		smtpAuth = smtp.PlainAuth("", username, password, host)
 	}
-	if err := smtp.SendMail(addr, auth, envelopeFrom, []string{envelopeTo}, message); err != nil {
+	if err := smtp.SendMail(addr, smtpAuth, envelopeFrom, []string{envelopeTo}, message); err != nil {
 		s.log.Error(fmt.Sprintf("smtp: %v", err))
 		return merr.Server("failed to send email")
 	}
@@ -76,12 +126,12 @@ func (s *Sender) Send(to, subject, body string) error {
 // “aidedevops@163.com” 或 “Alioth 瑶光 <aidedevops@163.com>”。
 // 历史配置可能只写了显示名（例如“Alioth 瑶光”），这时退化为用 SMTP 用户名当信封发件地址。
 // 原因是 MAIL FROM:<Alioth 瑶光> 里的空格和中文会被 SMTP 服务器以 500/550 拒绝。
-func (s *Sender) senderIdentity() (envelope, header string, err error) {
-	raw := strings.TrimSpace(s.from)
+func (s *Sender) senderIdentity(from, usernameRaw string) (envelope, header string, err error) {
+	raw := strings.TrimSpace(from)
 	if parsed, parseErr := mail.ParseAddress(raw); parseErr == nil {
 		return parsed.Address, parsed.String(), nil
 	}
-	username, parseErr := mail.ParseAddress(strings.TrimSpace(s.username))
+	username, parseErr := mail.ParseAddress(strings.TrimSpace(usernameRaw))
 	if parseErr != nil {
 		return "", "", merr.Server("smtp from address is invalid")
 	}

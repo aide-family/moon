@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/oauthproviders"
 )
 
 // placeholderEmailSuffix 是历史版本给没有可用邮箱的第三方账号生成的占位邮箱后缀。
@@ -58,8 +59,11 @@ func (authenticator *Authenticator) OAuthLogin(ctx context.Context, provider, co
 		return nil, nil, err
 	}
 	provider = strings.ToUpper(strings.TrimSpace(provider))
-	client, ok := authenticator.oauthClients[provider]
-	if !ok || client.id == "" || client.secret == "" {
+	client, ok, err := authenticator.oauthClientFor(ctx, provider)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !ok {
 		return nil, nil, merr.Client("oauth provider is not configured")
 	}
 	profile, err := authenticator.exchangeOAuth(ctx, provider, client, code, redirectURI)
@@ -778,12 +782,28 @@ type oauthProvider struct {
 	authorizeEndpoint string
 }
 
+// oauthAuthorizeEndpoints 是各来源的授权页地址。来源清单本身放在 pkg/oauthproviders，
+// 后台配置界面与登录页共用同一份顺序与展示名，避免两处各写一份。
+var oauthAuthorizeEndpoints = map[string]string{
+	"GITHUB":   "https://github.com/login/oauth/authorize",
+	"GITEE":    "https://gitee.com/oauth/authorize",
+	"FEISHU":   "https://accounts.feishu.cn/open-apis/authen/v1/authorize",
+	"DINGTALK": "https://login.dingtalk.com/oauth2/auth",
+}
+
 // oauthProviderCatalog 按展示顺序列出已实现授权码流程的来源，前端据此显示第三方登录按钮。
-var oauthProviderCatalog = []oauthProvider{
-	{key: "GITHUB", name: "GitHub", authorizeEndpoint: "https://github.com/login/oauth/authorize"},
-	{key: "GITEE", name: "Gitee", authorizeEndpoint: "https://gitee.com/oauth/authorize"},
-	{key: "FEISHU", name: "飞书", authorizeEndpoint: "https://accounts.feishu.cn/open-apis/authen/v1/authorize"},
-	{key: "DINGTALK", name: "钉钉", authorizeEndpoint: "https://login.dingtalk.com/oauth2/auth"},
+var oauthProviderCatalog = buildOAuthProviderCatalog()
+
+func buildOAuthProviderCatalog() []oauthProvider {
+	items := make([]oauthProvider, 0, len(oauthproviders.Catalog))
+	for _, item := range oauthproviders.Catalog {
+		items = append(items, oauthProvider{
+			key:               item.Key,
+			name:              item.Name,
+			authorizeEndpoint: oauthAuthorizeEndpoints[item.Key],
+		})
+	}
+	return items
 }
 
 // authorizeURL 按来源拼出完整授权地址。各来源的查询参数不同：
@@ -838,8 +858,11 @@ func (authenticator *Authenticator) OAuthProviders(ctx context.Context, redirect
 	}
 	providers := make([]bo.OAuthProvider, 0, len(oauthProviderCatalog))
 	for _, item := range oauthProviderCatalog {
-		client, ok := authenticator.oauthClients[item.key]
-		if !ok || client.id == "" || client.secret == "" {
+		client, ok, err := authenticator.oauthClientFor(ctx, item.key)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
 			continue
 		}
 		providers = append(providers, bo.OAuthProvider{
@@ -849,4 +872,27 @@ func (authenticator *Authenticator) OAuthProviders(ctx context.Context, redirect
 		})
 	}
 	return providers, nil
+}
+
+// oauthClientFor 解析某个来源的客户端凭据：后台配置优先，没有保存过再回落到配置文件。
+// ok=false 表示这个来源当前不可用：被关闭、凭据不全，或根本没配置。
+// 显式关闭的来源不会回落到环境变量，否则「关掉」只是一句空话。
+func (authenticator *Authenticator) oauthClientFor(ctx context.Context, provider string) (oauthClient, bool, error) {
+	if authenticator.oauthSettings != nil {
+		item, err := authenticator.oauthSettings.OAuthProviderSetting(ctx, provider)
+		switch {
+		case err == nil:
+			if !item.Enabled || item.ClientID == "" || item.ClientSecret == "" {
+				return oauthClient{}, false, nil
+			}
+			return oauthClient{id: item.ClientID, secret: item.ClientSecret}, true, nil
+		case !merr.IsNotFound(err):
+			return oauthClient{}, false, authenticator.wrap(err)
+		}
+	}
+	client, ok := authenticator.oauthClients[provider]
+	if !ok || client.id == "" || client.secret == "" {
+		return oauthClient{}, false, nil
+	}
+	return client, true, nil
 }

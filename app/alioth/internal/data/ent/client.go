@@ -30,7 +30,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/authemailsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/authoauthprovider"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/board"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/boardpanel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
@@ -114,8 +116,12 @@ type Client struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
+	// AuthEmailSetting is the client for interacting with the AuthEmailSetting builders.
+	AuthEmailSetting *AuthEmailSettingClient
 	// AuthLoginSetting is the client for interacting with the AuthLoginSetting builders.
 	AuthLoginSetting *AuthLoginSettingClient
+	// AuthOAuthProvider is the client for interacting with the AuthOAuthProvider builders.
+	AuthOAuthProvider *AuthOAuthProviderClient
 	// Board is the client for interacting with the Board builders.
 	Board *BoardClient
 	// BoardPanel is the client for interacting with the BoardPanel builders.
@@ -231,7 +237,9 @@ func (c *Client) init() {
 	c.AlertRule = NewAlertRuleClient(c.config)
 	c.AlertRuleGroup = NewAlertRuleGroupClient(c.config)
 	c.AlertRuleLevel = NewAlertRuleLevelClient(c.config)
+	c.AuthEmailSetting = NewAuthEmailSettingClient(c.config)
 	c.AuthLoginSetting = NewAuthLoginSettingClient(c.config)
+	c.AuthOAuthProvider = NewAuthOAuthProviderClient(c.config)
 	c.Board = NewBoardClient(c.config)
 	c.BoardPanel = NewBoardPanelClient(c.config)
 	c.Captcha = NewCaptchaClient(c.config)
@@ -384,7 +392,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		AuthEmailSetting:              NewAuthEmailSettingClient(cfg),
 		AuthLoginSetting:              NewAuthLoginSettingClient(cfg),
+		AuthOAuthProvider:             NewAuthOAuthProviderClient(cfg),
 		Board:                         NewBoardClient(cfg),
 		BoardPanel:                    NewBoardPanelClient(cfg),
 		Captcha:                       NewCaptchaClient(cfg),
@@ -464,7 +474,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		AuthEmailSetting:              NewAuthEmailSettingClient(cfg),
 		AuthLoginSetting:              NewAuthLoginSettingClient(cfg),
+		AuthOAuthProvider:             NewAuthOAuthProviderClient(cfg),
 		Board:                         NewBoardClient(cfg),
 		BoardPanel:                    NewBoardPanelClient(cfg),
 		Captcha:                       NewCaptchaClient(cfg),
@@ -542,17 +554,18 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction, c.AlertEventColumn,
 		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
-		c.AlertRuleLevel, c.AuthLoginSetting, c.Board, c.BoardPanel, c.Captcha,
-		c.Cluster, c.Datasource, c.EmailLoginCode, c.FeaturePackage,
-		c.FeaturePackageItem, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
-		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
-		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
-		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
-		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
-		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
-		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
-		c.SSHCommand, c.SSHCommandAudit, c.SitePage, c.SiteSetting, c.StatusPage,
-		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
+		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
+		c.FeaturePackage, c.FeaturePackageItem, c.Member, c.MemberInvite, c.MemberRole,
+		c.MessageLog, c.MessageLogShard, c.Namespace, c.NamespaceFeature,
+		c.NamespaceOrder, c.NotificationChannel, c.NotificationGroup,
+		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
+		c.NotificationSubscription, c.NotificationSubscriptionGroup,
+		c.NotificationTask, c.NotificationTemplate, c.OnCallRotation,
+		c.OnCallRotationMember, c.Permission, c.ProbeResult, c.ProbeSlaDaily,
+		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
+		c.SSHCommandAudit, c.SitePage, c.SiteSetting, c.StatusPage, c.SystemMessage,
+		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -566,17 +579,18 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction, c.AlertEventColumn,
 		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
-		c.AlertRuleLevel, c.AuthLoginSetting, c.Board, c.BoardPanel, c.Captcha,
-		c.Cluster, c.Datasource, c.EmailLoginCode, c.FeaturePackage,
-		c.FeaturePackageItem, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
-		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
-		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
-		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
-		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
-		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
-		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
-		c.SSHCommand, c.SSHCommandAudit, c.SitePage, c.SiteSetting, c.StatusPage,
-		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
+		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
+		c.FeaturePackage, c.FeaturePackageItem, c.Member, c.MemberInvite, c.MemberRole,
+		c.MessageLog, c.MessageLogShard, c.Namespace, c.NamespaceFeature,
+		c.NamespaceOrder, c.NotificationChannel, c.NotificationGroup,
+		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
+		c.NotificationSubscription, c.NotificationSubscriptionGroup,
+		c.NotificationTask, c.NotificationTemplate, c.OnCallRotation,
+		c.OnCallRotationMember, c.Permission, c.ProbeResult, c.ProbeSlaDaily,
+		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
+		c.SSHCommandAudit, c.SitePage, c.SiteSetting, c.StatusPage, c.SystemMessage,
+		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -617,8 +631,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AlertRuleGroup.mutate(ctx, m)
 	case *AlertRuleLevelMutation:
 		return c.AlertRuleLevel.mutate(ctx, m)
+	case *AuthEmailSettingMutation:
+		return c.AuthEmailSetting.mutate(ctx, m)
 	case *AuthLoginSettingMutation:
 		return c.AuthLoginSetting.mutate(ctx, m)
+	case *AuthOAuthProviderMutation:
+		return c.AuthOAuthProvider.mutate(ctx, m)
 	case *BoardMutation:
 		return c.Board.mutate(ctx, m)
 	case *BoardPanelMutation:
@@ -2840,6 +2858,139 @@ func (c *AlertRuleLevelClient) mutate(ctx context.Context, m *AlertRuleLevelMuta
 	}
 }
 
+// AuthEmailSettingClient is a client for the AuthEmailSetting schema.
+type AuthEmailSettingClient struct {
+	config
+}
+
+// NewAuthEmailSettingClient returns a client for the AuthEmailSetting from the given config.
+func NewAuthEmailSettingClient(c config) *AuthEmailSettingClient {
+	return &AuthEmailSettingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `authemailsetting.Hooks(f(g(h())))`.
+func (c *AuthEmailSettingClient) Use(hooks ...Hook) {
+	c.hooks.AuthEmailSetting = append(c.hooks.AuthEmailSetting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `authemailsetting.Intercept(f(g(h())))`.
+func (c *AuthEmailSettingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AuthEmailSetting = append(c.inters.AuthEmailSetting, interceptors...)
+}
+
+// Create returns a builder for creating a AuthEmailSetting entity.
+func (c *AuthEmailSettingClient) Create() *AuthEmailSettingCreate {
+	mutation := newAuthEmailSettingMutation(c.config, OpCreate)
+	return &AuthEmailSettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AuthEmailSetting entities.
+func (c *AuthEmailSettingClient) CreateBulk(builders ...*AuthEmailSettingCreate) *AuthEmailSettingCreateBulk {
+	return &AuthEmailSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AuthEmailSettingClient) MapCreateBulk(slice any, setFunc func(*AuthEmailSettingCreate, int)) *AuthEmailSettingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AuthEmailSettingCreateBulk{err: fmt.Errorf("calling to AuthEmailSettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AuthEmailSettingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AuthEmailSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AuthEmailSetting.
+func (c *AuthEmailSettingClient) Update() *AuthEmailSettingUpdate {
+	mutation := newAuthEmailSettingMutation(c.config, OpUpdate)
+	return &AuthEmailSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AuthEmailSettingClient) UpdateOne(_m *AuthEmailSetting) *AuthEmailSettingUpdateOne {
+	mutation := newAuthEmailSettingMutation(c.config, OpUpdateOne, withAuthEmailSetting(_m))
+	return &AuthEmailSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AuthEmailSettingClient) UpdateOneID(id int) *AuthEmailSettingUpdateOne {
+	mutation := newAuthEmailSettingMutation(c.config, OpUpdateOne, withAuthEmailSettingID(id))
+	return &AuthEmailSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AuthEmailSetting.
+func (c *AuthEmailSettingClient) Delete() *AuthEmailSettingDelete {
+	mutation := newAuthEmailSettingMutation(c.config, OpDelete)
+	return &AuthEmailSettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AuthEmailSettingClient) DeleteOne(_m *AuthEmailSetting) *AuthEmailSettingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AuthEmailSettingClient) DeleteOneID(id int) *AuthEmailSettingDeleteOne {
+	builder := c.Delete().Where(authemailsetting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AuthEmailSettingDeleteOne{builder}
+}
+
+// Query returns a query builder for AuthEmailSetting.
+func (c *AuthEmailSettingClient) Query() *AuthEmailSettingQuery {
+	return &AuthEmailSettingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAuthEmailSetting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AuthEmailSetting entity by its id.
+func (c *AuthEmailSettingClient) Get(ctx context.Context, id int) (*AuthEmailSetting, error) {
+	return c.Query().Where(authemailsetting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AuthEmailSettingClient) GetX(ctx context.Context, id int) *AuthEmailSetting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AuthEmailSettingClient) Hooks() []Hook {
+	return c.hooks.AuthEmailSetting
+}
+
+// Interceptors returns the client interceptors.
+func (c *AuthEmailSettingClient) Interceptors() []Interceptor {
+	return c.inters.AuthEmailSetting
+}
+
+func (c *AuthEmailSettingClient) mutate(ctx context.Context, m *AuthEmailSettingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AuthEmailSettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AuthEmailSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AuthEmailSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AuthEmailSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AuthEmailSetting mutation op: %q", m.Op())
+	}
+}
+
 // AuthLoginSettingClient is a client for the AuthLoginSetting schema.
 type AuthLoginSettingClient struct {
 	config
@@ -2970,6 +3121,139 @@ func (c *AuthLoginSettingClient) mutate(ctx context.Context, m *AuthLoginSetting
 		return (&AuthLoginSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AuthLoginSetting mutation op: %q", m.Op())
+	}
+}
+
+// AuthOAuthProviderClient is a client for the AuthOAuthProvider schema.
+type AuthOAuthProviderClient struct {
+	config
+}
+
+// NewAuthOAuthProviderClient returns a client for the AuthOAuthProvider from the given config.
+func NewAuthOAuthProviderClient(c config) *AuthOAuthProviderClient {
+	return &AuthOAuthProviderClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `authoauthprovider.Hooks(f(g(h())))`.
+func (c *AuthOAuthProviderClient) Use(hooks ...Hook) {
+	c.hooks.AuthOAuthProvider = append(c.hooks.AuthOAuthProvider, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `authoauthprovider.Intercept(f(g(h())))`.
+func (c *AuthOAuthProviderClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AuthOAuthProvider = append(c.inters.AuthOAuthProvider, interceptors...)
+}
+
+// Create returns a builder for creating a AuthOAuthProvider entity.
+func (c *AuthOAuthProviderClient) Create() *AuthOAuthProviderCreate {
+	mutation := newAuthOAuthProviderMutation(c.config, OpCreate)
+	return &AuthOAuthProviderCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AuthOAuthProvider entities.
+func (c *AuthOAuthProviderClient) CreateBulk(builders ...*AuthOAuthProviderCreate) *AuthOAuthProviderCreateBulk {
+	return &AuthOAuthProviderCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AuthOAuthProviderClient) MapCreateBulk(slice any, setFunc func(*AuthOAuthProviderCreate, int)) *AuthOAuthProviderCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AuthOAuthProviderCreateBulk{err: fmt.Errorf("calling to AuthOAuthProviderClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AuthOAuthProviderCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AuthOAuthProviderCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AuthOAuthProvider.
+func (c *AuthOAuthProviderClient) Update() *AuthOAuthProviderUpdate {
+	mutation := newAuthOAuthProviderMutation(c.config, OpUpdate)
+	return &AuthOAuthProviderUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AuthOAuthProviderClient) UpdateOne(_m *AuthOAuthProvider) *AuthOAuthProviderUpdateOne {
+	mutation := newAuthOAuthProviderMutation(c.config, OpUpdateOne, withAuthOAuthProvider(_m))
+	return &AuthOAuthProviderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AuthOAuthProviderClient) UpdateOneID(id int) *AuthOAuthProviderUpdateOne {
+	mutation := newAuthOAuthProviderMutation(c.config, OpUpdateOne, withAuthOAuthProviderID(id))
+	return &AuthOAuthProviderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AuthOAuthProvider.
+func (c *AuthOAuthProviderClient) Delete() *AuthOAuthProviderDelete {
+	mutation := newAuthOAuthProviderMutation(c.config, OpDelete)
+	return &AuthOAuthProviderDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AuthOAuthProviderClient) DeleteOne(_m *AuthOAuthProvider) *AuthOAuthProviderDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AuthOAuthProviderClient) DeleteOneID(id int) *AuthOAuthProviderDeleteOne {
+	builder := c.Delete().Where(authoauthprovider.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AuthOAuthProviderDeleteOne{builder}
+}
+
+// Query returns a query builder for AuthOAuthProvider.
+func (c *AuthOAuthProviderClient) Query() *AuthOAuthProviderQuery {
+	return &AuthOAuthProviderQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAuthOAuthProvider},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AuthOAuthProvider entity by its id.
+func (c *AuthOAuthProviderClient) Get(ctx context.Context, id int) (*AuthOAuthProvider, error) {
+	return c.Query().Where(authoauthprovider.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AuthOAuthProviderClient) GetX(ctx context.Context, id int) *AuthOAuthProvider {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AuthOAuthProviderClient) Hooks() []Hook {
+	return c.hooks.AuthOAuthProvider
+}
+
+// Interceptors returns the client interceptors.
+func (c *AuthOAuthProviderClient) Interceptors() []Interceptor {
+	return c.inters.AuthOAuthProvider
+}
+
+func (c *AuthOAuthProviderClient) mutate(ctx context.Context, m *AuthOAuthProviderMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AuthOAuthProviderCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AuthOAuthProviderUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AuthOAuthProviderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AuthOAuthProviderDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AuthOAuthProvider mutation op: %q", m.Op())
 	}
 }
 
@@ -8832,10 +9116,11 @@ type (
 		AlertEvalBatch, AlertEvent, AlertEventAction, AlertEventColumn,
 		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
-		AuthLoginSetting, Board, BoardPanel, Captcha, Cluster, Datasource,
-		EmailLoginCode, FeaturePackage, FeaturePackageItem, Member, MemberInvite,
-		MemberRole, MessageLog, MessageLogShard, Namespace, NamespaceFeature,
-		NamespaceOrder, NotificationChannel, NotificationGroup, NotificationOnCall,
+		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
+		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
+		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
+		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
@@ -8848,10 +9133,11 @@ type (
 		AlertEvalBatch, AlertEvent, AlertEventAction, AlertEventColumn,
 		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
-		AuthLoginSetting, Board, BoardPanel, Captcha, Cluster, Datasource,
-		EmailLoginCode, FeaturePackage, FeaturePackageItem, Member, MemberInvite,
-		MemberRole, MessageLog, MessageLogShard, Namespace, NamespaceFeature,
-		NamespaceOrder, NotificationChannel, NotificationGroup, NotificationOnCall,
+		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
+		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
+		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
+		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,

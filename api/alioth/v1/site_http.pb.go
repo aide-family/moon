@@ -19,16 +19,20 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationSiteServiceCreateSitePage = "/alioth.v1.SiteService/CreateSitePage"
 const OperationSiteServiceDeleteSitePage = "/alioth.v1.SiteService/DeleteSitePage"
+const OperationSiteServiceGetEmailSettings = "/alioth.v1.SiteService/GetEmailSettings"
 const OperationSiteServiceGetLoginMethods = "/alioth.v1.SiteService/GetLoginMethods"
 const OperationSiteServiceGetPublicSitePage = "/alioth.v1.SiteService/GetPublicSitePage"
 const OperationSiteServiceGetSiteConfig = "/alioth.v1.SiteService/GetSiteConfig"
 const OperationSiteServiceGetSitePage = "/alioth.v1.SiteService/GetSitePage"
 const OperationSiteServiceGetSiteSettings = "/alioth.v1.SiteService/GetSiteSettings"
+const OperationSiteServiceListOAuthProviderSettings = "/alioth.v1.SiteService/ListOAuthProviderSettings"
 const OperationSiteServiceListPublicSiteNav = "/alioth.v1.SiteService/ListPublicSiteNav"
 const OperationSiteServiceListSitePages = "/alioth.v1.SiteService/ListSitePages"
 const OperationSiteServicePublishSitePage = "/alioth.v1.SiteService/PublishSitePage"
 const OperationSiteServiceUnpublishSitePage = "/alioth.v1.SiteService/UnpublishSitePage"
+const OperationSiteServiceUpdateEmailSettings = "/alioth.v1.SiteService/UpdateEmailSettings"
 const OperationSiteServiceUpdateLoginMethods = "/alioth.v1.SiteService/UpdateLoginMethods"
+const OperationSiteServiceUpdateOAuthProviderSetting = "/alioth.v1.SiteService/UpdateOAuthProviderSetting"
 const OperationSiteServiceUpdateSitePage = "/alioth.v1.SiteService/UpdateSitePage"
 const OperationSiteServiceUpdateSitePageNav = "/alioth.v1.SiteService/UpdateSitePageNav"
 const OperationSiteServiceUpdateSiteSettings = "/alioth.v1.SiteService/UpdateSiteSettings"
@@ -38,6 +42,8 @@ type SiteServiceHTTPServer interface {
 	CreateSitePage(context.Context, *CreateSitePageRequest) (*CreateSitePageResponse, error)
 	// DeleteSitePage 删除页面（软删），首页不允许删除，需要 system:site:write。
 	DeleteSitePage(context.Context, *DeleteSitePageRequest) (*DeleteSitePageResponse, error)
+	// GetEmailSettings 读取邮件服务（SMTP）配置，需要 system:login:read。
+	GetEmailSettings(context.Context, *GetEmailSettingsRequest) (*GetEmailSettingsResponse, error)
 	// GetLoginMethods 读取登录方式开关。
 	GetLoginMethods(context.Context, *GetLoginMethodsRequest) (*GetLoginMethodsResponse, error)
 	// GetPublicSitePage 读取公开页面。只返回已发布快照，未发布或不存在一律 404，不泄露草稿存在性。
@@ -49,6 +55,8 @@ type SiteServiceHTTPServer interface {
 	GetSitePage(context.Context, *GetSitePageRequest) (*GetSitePageResponse, error)
 	// GetSiteSettings 读取站点设置。
 	GetSiteSettings(context.Context, *GetSiteSettingsRequest) (*GetSiteSettingsResponse, error)
+	// ListOAuthProviderSettings 列出第三方登录来源配置，需要 system:login:read。
+	ListOAuthProviderSettings(context.Context, *ListOAuthProviderSettingsRequest) (*ListOAuthProviderSettingsResponse, error)
 	// ListPublicSiteNav 读取公开导航：已发布且标记为展示在导航里的页面，按导航顺序排列。
 	ListPublicSiteNav(context.Context, *ListPublicSiteNavRequest) (*ListPublicSiteNavResponse, error)
 	// ListSitePages 列出官网页面（草稿视角），需要 system:site:read。
@@ -57,8 +65,12 @@ type SiteServiceHTTPServer interface {
 	PublishSitePage(context.Context, *PublishSitePageRequest) (*PublishSitePageResponse, error)
 	// UnpublishSitePage 下架：状态改为 ARCHIVED，官网立即 404，已发布内容仍保留，需要 system:site:write。
 	UnpublishSitePage(context.Context, *UnpublishSitePageRequest) (*UnpublishSitePageResponse, error)
+	// UpdateEmailSettings 保存邮件服务配置，需要 system:login:write。保存后立即用于发信，不需要重启。
+	UpdateEmailSettings(context.Context, *UpdateEmailSettingsRequest) (*UpdateEmailSettingsResponse, error)
 	// UpdateLoginMethods 保存登录方式开关。邮箱验证码与第三方登录至少要保留一种。
 	UpdateLoginMethods(context.Context, *UpdateLoginMethodsRequest) (*UpdateLoginMethodsResponse, error)
+	// UpdateOAuthProviderSetting 保存单个第三方登录来源，需要 system:login:write。
+	UpdateOAuthProviderSetting(context.Context, *UpdateOAuthProviderSettingRequest) (*UpdateOAuthProviderSettingResponse, error)
 	// UpdateSitePage 保存草稿，不改变发布状态，需要 system:site:write。
 	// 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
 	UpdateSitePage(context.Context, *UpdateSitePageRequest) (*UpdateSitePageResponse, error)
@@ -85,6 +97,10 @@ func RegisterSiteServiceHTTPServer(s *http.Server, srv SiteServiceHTTPServer) {
 	r.Handle("POST", "/v1/system/site/pages/{uid}/unpublish", _SiteService_UnpublishSitePage0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/system/site/pages/{uid}", _SiteService_DeleteSitePage0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/system/site/pages/{uid}/nav", _SiteService_UpdateSitePageNav0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/auth/email-settings", _SiteService_GetEmailSettings0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/system/auth/email-settings", _SiteService_UpdateEmailSettings0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/auth/oauth-providers", _SiteService_ListOAuthProviderSettings0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/system/auth/oauth-providers/{provider}", _SiteService_UpdateOAuthProviderSetting0_HTTP_Handler(srv))
 }
 
 func _SiteService_GetSiteConfig0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
@@ -393,11 +409,92 @@ func _SiteService_UpdateSitePageNav0_HTTP_Handler(srv SiteServiceHTTPServer) fun
 	}
 }
 
+func _SiteService_GetEmailSettings0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetEmailSettingsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceGetEmailSettings)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetEmailSettings(ctx, req.(*GetEmailSettingsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetEmailSettingsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_UpdateEmailSettings0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateEmailSettingsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceUpdateEmailSettings)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateEmailSettings(ctx, req.(*UpdateEmailSettingsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateEmailSettingsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_ListOAuthProviderSettings0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListOAuthProviderSettingsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceListOAuthProviderSettings)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListOAuthProviderSettings(ctx, req.(*ListOAuthProviderSettingsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListOAuthProviderSettingsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_UpdateOAuthProviderSetting0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateOAuthProviderSettingRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceUpdateOAuthProviderSetting)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateOAuthProviderSetting(ctx, req.(*UpdateOAuthProviderSettingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateOAuthProviderSettingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SiteServiceHTTPClient interface {
 	// CreateSitePage 新建页面，写入草稿且状态为 DRAFT，需要 system:site:write。
 	CreateSitePage(ctx context.Context, req *CreateSitePageRequest, opts ...http.CallOption) (rsp *CreateSitePageResponse, err error)
 	// DeleteSitePage 删除页面（软删），首页不允许删除，需要 system:site:write。
 	DeleteSitePage(ctx context.Context, req *DeleteSitePageRequest, opts ...http.CallOption) (rsp *DeleteSitePageResponse, err error)
+	// GetEmailSettings 读取邮件服务（SMTP）配置，需要 system:login:read。
+	GetEmailSettings(ctx context.Context, req *GetEmailSettingsRequest, opts ...http.CallOption) (rsp *GetEmailSettingsResponse, err error)
 	// GetLoginMethods 读取登录方式开关。
 	GetLoginMethods(ctx context.Context, req *GetLoginMethodsRequest, opts ...http.CallOption) (rsp *GetLoginMethodsResponse, err error)
 	// GetPublicSitePage 读取公开页面。只返回已发布快照，未发布或不存在一律 404，不泄露草稿存在性。
@@ -409,6 +506,8 @@ type SiteServiceHTTPClient interface {
 	GetSitePage(ctx context.Context, req *GetSitePageRequest, opts ...http.CallOption) (rsp *GetSitePageResponse, err error)
 	// GetSiteSettings 读取站点设置。
 	GetSiteSettings(ctx context.Context, req *GetSiteSettingsRequest, opts ...http.CallOption) (rsp *GetSiteSettingsResponse, err error)
+	// ListOAuthProviderSettings 列出第三方登录来源配置，需要 system:login:read。
+	ListOAuthProviderSettings(ctx context.Context, req *ListOAuthProviderSettingsRequest, opts ...http.CallOption) (rsp *ListOAuthProviderSettingsResponse, err error)
 	// ListPublicSiteNav 读取公开导航：已发布且标记为展示在导航里的页面，按导航顺序排列。
 	ListPublicSiteNav(ctx context.Context, req *ListPublicSiteNavRequest, opts ...http.CallOption) (rsp *ListPublicSiteNavResponse, err error)
 	// ListSitePages 列出官网页面（草稿视角），需要 system:site:read。
@@ -417,8 +516,12 @@ type SiteServiceHTTPClient interface {
 	PublishSitePage(ctx context.Context, req *PublishSitePageRequest, opts ...http.CallOption) (rsp *PublishSitePageResponse, err error)
 	// UnpublishSitePage 下架：状态改为 ARCHIVED，官网立即 404，已发布内容仍保留，需要 system:site:write。
 	UnpublishSitePage(ctx context.Context, req *UnpublishSitePageRequest, opts ...http.CallOption) (rsp *UnpublishSitePageResponse, err error)
+	// UpdateEmailSettings 保存邮件服务配置，需要 system:login:write。保存后立即用于发信，不需要重启。
+	UpdateEmailSettings(ctx context.Context, req *UpdateEmailSettingsRequest, opts ...http.CallOption) (rsp *UpdateEmailSettingsResponse, err error)
 	// UpdateLoginMethods 保存登录方式开关。邮箱验证码与第三方登录至少要保留一种。
 	UpdateLoginMethods(ctx context.Context, req *UpdateLoginMethodsRequest, opts ...http.CallOption) (rsp *UpdateLoginMethodsResponse, err error)
+	// UpdateOAuthProviderSetting 保存单个第三方登录来源，需要 system:login:write。
+	UpdateOAuthProviderSetting(ctx context.Context, req *UpdateOAuthProviderSettingRequest, opts ...http.CallOption) (rsp *UpdateOAuthProviderSettingResponse, err error)
 	// UpdateSitePage 保存草稿，不改变发布状态，需要 system:site:write。
 	// 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
 	UpdateSitePage(ctx context.Context, req *UpdateSitePageRequest, opts ...http.CallOption) (rsp *UpdateSitePageResponse, err error)
@@ -465,6 +568,23 @@ func (c *SiteServiceHTTPClientImpl) DeleteSitePage(ctx context.Context, in *Dele
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetEmailSettings 读取邮件服务（SMTP）配置，需要 system:login:read。
+func (c *SiteServiceHTTPClientImpl) GetEmailSettings(ctx context.Context, in *GetEmailSettingsRequest, opts ...http.CallOption) (*GetEmailSettingsResponse, error) {
+	var out GetEmailSettingsResponse
+	pattern := "/v1/system/auth/email-settings"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSiteServiceGetEmailSettings),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -557,6 +677,23 @@ func (c *SiteServiceHTTPClientImpl) GetSiteSettings(ctx context.Context, in *Get
 	return &out, nil
 }
 
+// ListOAuthProviderSettings 列出第三方登录来源配置，需要 system:login:read。
+func (c *SiteServiceHTTPClientImpl) ListOAuthProviderSettings(ctx context.Context, in *ListOAuthProviderSettingsRequest, opts ...http.CallOption) (*ListOAuthProviderSettingsResponse, error) {
+	var out ListOAuthProviderSettingsResponse
+	pattern := "/v1/system/auth/oauth-providers"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSiteServiceListOAuthProviderSettings),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListPublicSiteNav 读取公开导航：已发布且标记为展示在导航里的页面，按导航顺序排列。
 func (c *SiteServiceHTTPClientImpl) ListPublicSiteNav(ctx context.Context, in *ListPublicSiteNavRequest, opts ...http.CallOption) (*ListPublicSiteNavResponse, error) {
 	var out ListPublicSiteNavResponse
@@ -627,6 +764,24 @@ func (c *SiteServiceHTTPClientImpl) UnpublishSitePage(ctx context.Context, in *U
 	return &out, nil
 }
 
+// UpdateEmailSettings 保存邮件服务配置，需要 system:login:write。保存后立即用于发信，不需要重启。
+func (c *SiteServiceHTTPClientImpl) UpdateEmailSettings(ctx context.Context, in *UpdateEmailSettingsRequest, opts ...http.CallOption) (*UpdateEmailSettingsResponse, error) {
+	var out UpdateEmailSettingsResponse
+	pattern := "/v1/system/auth/email-settings"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSiteServiceUpdateEmailSettings),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // UpdateLoginMethods 保存登录方式开关。邮箱验证码与第三方登录至少要保留一种。
 func (c *SiteServiceHTTPClientImpl) UpdateLoginMethods(ctx context.Context, in *UpdateLoginMethodsRequest, opts ...http.CallOption) (*UpdateLoginMethodsResponse, error) {
 	var out UpdateLoginMethodsResponse
@@ -636,6 +791,24 @@ func (c *SiteServiceHTTPClientImpl) UpdateLoginMethods(ctx context.Context, in *
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSiteServiceUpdateLoginMethods),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateOAuthProviderSetting 保存单个第三方登录来源，需要 system:login:write。
+func (c *SiteServiceHTTPClientImpl) UpdateOAuthProviderSetting(ctx context.Context, in *UpdateOAuthProviderSettingRequest, opts ...http.CallOption) (*UpdateOAuthProviderSettingResponse, error) {
+	var out UpdateOAuthProviderSettingResponse
+	pattern := "/v1/system/auth/oauth-providers/{provider}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSiteServiceUpdateOAuthProviderSetting),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

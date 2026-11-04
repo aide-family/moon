@@ -44,8 +44,12 @@ type Tx struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
+	// AuthEmailSetting is the client for interacting with the AuthEmailSetting builders.
+	AuthEmailSetting *AuthEmailSettingClient
 	// AuthLoginSetting is the client for interacting with the AuthLoginSetting builders.
 	AuthLoginSetting *AuthLoginSettingClient
+	// AuthOAuthProvider is the client for interacting with the AuthOAuthProvider builders.
+	AuthOAuthProvider *AuthOAuthProviderClient
 	// Board is the client for interacting with the Board builders.
 	Board *BoardClient
 	// BoardPanel is the client for interacting with the BoardPanel builders.
@@ -281,7 +285,9 @@ func (tx *Tx) init() {
 	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
 	tx.AlertRuleLevel = NewAlertRuleLevelClient(tx.config)
+	tx.AuthEmailSetting = NewAuthEmailSettingClient(tx.config)
 	tx.AuthLoginSetting = NewAuthLoginSettingClient(tx.config)
+	tx.AuthOAuthProvider = NewAuthOAuthProviderClient(tx.config)
 	tx.Board = NewBoardClient(tx.config)
 	tx.BoardPanel = NewBoardPanelClient(tx.config)
 	tx.Captcha = NewCaptchaClient(tx.config)

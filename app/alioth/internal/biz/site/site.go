@@ -5,11 +5,13 @@ import (
 	"net/mail"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/google/wire"
 
 	"github.com/aide-family/moon/app/alioth/internal/access"
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/internal/mailer"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/merr"
@@ -20,14 +22,49 @@ var ProviderSet = wire.NewSet(NewSettings, NewPages)
 // Settings 维护官网的站点设置与登录方式开关。两者都是平台级单例：
 // 站点设置决定官网页脚展示什么，登录方式开关决定登录页对外暴露哪些入口。
 // 备案字段留空是合法状态，表示官网页脚不展示该行；填了就必须能作为链接打开。
+// 邮件与第三方登录的配置也放在这里：它们是同一张「系统设置」页面上的登录配置，
+// 后端也共用 system:login:read / write 权限。
 type Settings struct {
 	sites  repository.SiteRepo
 	logins repository.LoginMethodRepo
+	emails repository.EmailSettingRepo
+	oauths repository.OAuthProviderSettingRepo
 	access access.Checker
+	mail   *mailer.Sender
 }
 
-func NewSettings(sites repository.SiteRepo, logins repository.LoginMethodRepo, checker access.Checker) *Settings {
-	return &Settings{sites: sites, logins: logins, access: checker}
+func NewSettings(
+	sites repository.SiteRepo,
+	logins repository.LoginMethodRepo,
+	emails repository.EmailSettingRepo,
+	oauths repository.OAuthProviderSettingRepo,
+	checker access.Checker,
+	mail *mailer.Sender,
+) *Settings {
+	settings := &Settings{sites: sites, logins: logins, emails: emails, oauths: oauths, access: checker, mail: mail}
+	settings.applyEmailOverride()
+	return settings
+}
+
+// applyEmailOverride 在启动时把库里的 SMTP 配置应用到发信器。
+// 读失败只影响「后台配置生效」这件事，发信仍回落到服务器配置，不让进程起不来。
+func (settings *Settings) applyEmailOverride() {
+	if settings.mail == nil || settings.emails == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	item, err := settings.emails.EmailSettings(ctx)
+	if err != nil {
+		return
+	}
+	if !item.Enabled || item.Host == "" {
+		settings.mail.ClearOverride()
+		return
+	}
+	settings.mail.SetOverride(mailer.Config{
+		Host: item.Host, Port: item.Port, Username: item.Username, Password: item.Password, From: item.From,
+	})
 }
 
 // Public 返回官网与登录页共用的公开配置，不需要登录与租户头。

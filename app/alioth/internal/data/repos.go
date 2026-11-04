@@ -61,6 +61,12 @@ type loginMethodRepo struct{ *repoBase }
 // sitePageRepo 维护官网页面与发布快照。
 type sitePageRepo struct{ *repoBase }
 
+// emailSettingRepo 维护登录与邀请邮件的 SMTP 配置单例。
+type emailSettingRepo struct{ *repoBase }
+
+// oauthProviderSettingRepo 维护第三方登录来源的后台配置。
+type oauthProviderSettingRepo struct{ *repoBase }
+
 func NewUserRepo(deps *Dependencies, logger *slog.Logger) repository.UserRepo {
 	return &userRepo{newBase(deps, logger)}
 }
@@ -140,6 +146,14 @@ func NewLoginMethodRepo(deps *Dependencies, logger *slog.Logger) repository.Logi
 
 func NewSitePageRepo(deps *Dependencies, logger *slog.Logger) repository.SitePageRepo {
 	return &sitePageRepo{newBase(deps, logger)}
+}
+
+func NewEmailSettingRepo(deps *Dependencies, logger *slog.Logger) repository.EmailSettingRepo {
+	return &emailSettingRepo{newBase(deps, logger)}
+}
+
+func NewOAuthProviderSettingRepo(deps *Dependencies, logger *slog.Logger) repository.OAuthProviderSettingRepo {
+	return &oauthProviderSettingRepo{newBase(deps, logger)}
 }
 
 func NewAlertMaintenanceRepo(deps *Dependencies, logger *slog.Logger) repository.AlertMaintenanceRepo {

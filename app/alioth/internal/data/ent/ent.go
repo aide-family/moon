@@ -28,7 +28,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/authemailsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/authoauthprovider"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/board"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/boardpanel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
@@ -149,7 +151,9 @@ func checkColumn(t, c string) error {
 			alertrule.Table:                     alertrule.ValidColumn,
 			alertrulegroup.Table:                alertrulegroup.ValidColumn,
 			alertrulelevel.Table:                alertrulelevel.ValidColumn,
+			authemailsetting.Table:              authemailsetting.ValidColumn,
 			authloginsetting.Table:              authloginsetting.ValidColumn,
+			authoauthprovider.Table:             authoauthprovider.ValidColumn,
 			board.Table:                         board.ValidColumn,
 			boardpanel.Table:                    boardpanel.ValidColumn,
 			captcha.Table:                       captcha.ValidColumn,

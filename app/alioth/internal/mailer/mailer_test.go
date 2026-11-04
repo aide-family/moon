@@ -37,7 +37,8 @@ func TestSenderIdentity(t *testing.T) {
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
 			sender := newTestSender(testCase.from, testCase.username)
-			envelope, header, err := sender.senderIdentity()
+			_, _, username, _, from := sender.effective()
+			envelope, header, err := sender.senderIdentity(from, username)
 			if err != nil {
 				t.Fatalf("senderIdentity: %v", err)
 			}
@@ -58,7 +59,8 @@ func TestSenderIdentity(t *testing.T) {
 // 返回明确的服务端配置错误，而不是把非法信封地址发给 SMTP 再收到 500。
 func TestSenderIdentityRejectsDisplayNameWithoutUsername(t *testing.T) {
 	sender := newTestSender("Alioth 瑶光", "")
-	if _, _, err := sender.senderIdentity(); err == nil {
+	_, _, username, _, from := sender.effective()
+	if _, _, err := sender.senderIdentity(from, username); err == nil {
 		t.Fatal("senderIdentity 应返回配置错误")
 	} else if kerrors.Reason(err) != merr.ReasonServer {
 		t.Fatalf("错误类型 = %v, want server error", err)

@@ -2409,6 +2409,655 @@ func (x *UpdateSitePageNavResponse) GetPage() *SitePageDetail {
 	return nil
 }
 
+// 邮件服务（SMTP）配置。
+type EmailSettingsItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 是否使用后台配置发信；关闭时回落到服务器配置。
+	Enabled bool `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// SMTP 主机。
+	Host string `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	// SMTP 端口。
+	Port int32 `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
+	// SMTP 用户名。
+	Username string `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
+	// 发件人地址，支持“显示名 <地址>”写法。
+	From string `protobuf:"bytes,5,opt,name=from,proto3" json:"from,omitempty"`
+	// 是否已经保存过密码；密码本身不回显。
+	PasswordSet bool `protobuf:"varint,6,opt,name=password_set,json=passwordSet,proto3" json:"password_set,omitempty"`
+	// 最后修改人。
+	UpdatedBy string `protobuf:"bytes,7,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	// 最后修改时间，RFC3339。
+	UpdatedAt     string `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmailSettingsItem) Reset() {
+	*x = EmailSettingsItem{}
+	mi := &file_alioth_v1_site_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmailSettingsItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmailSettingsItem) ProtoMessage() {}
+
+func (x *EmailSettingsItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmailSettingsItem.ProtoReflect.Descriptor instead.
+func (*EmailSettingsItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *EmailSettingsItem) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *EmailSettingsItem) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *EmailSettingsItem) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *EmailSettingsItem) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *EmailSettingsItem) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *EmailSettingsItem) GetPasswordSet() bool {
+	if x != nil {
+		return x.PasswordSet
+	}
+	return false
+}
+
+func (x *EmailSettingsItem) GetUpdatedBy() string {
+	if x != nil {
+		return x.UpdatedBy
+	}
+	return ""
+}
+
+func (x *EmailSettingsItem) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+// 读取邮件服务配置请求。
+type GetEmailSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEmailSettingsRequest) Reset() {
+	*x = GetEmailSettingsRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEmailSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEmailSettingsRequest) ProtoMessage() {}
+
+func (x *GetEmailSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEmailSettingsRequest.ProtoReflect.Descriptor instead.
+func (*GetEmailSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{38}
+}
+
+// 读取邮件服务配置响应。
+type GetEmailSettingsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 邮件服务配置。
+	Email         *EmailSettingsItem `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEmailSettingsResponse) Reset() {
+	*x = GetEmailSettingsResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEmailSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEmailSettingsResponse) ProtoMessage() {}
+
+func (x *GetEmailSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEmailSettingsResponse.ProtoReflect.Descriptor instead.
+func (*GetEmailSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *GetEmailSettingsResponse) GetEmail() *EmailSettingsItem {
+	if x != nil {
+		return x.Email
+	}
+	return nil
+}
+
+// 保存邮件服务配置请求。
+type UpdateEmailSettingsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 是否使用后台配置发信。
+	Enabled bool `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// SMTP 主机。
+	Host string `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	// SMTP 端口，1–65535。
+	Port int32 `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
+	// SMTP 用户名。
+	Username string `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
+	// 新密码；留空表示保留已存密码。
+	Password string `protobuf:"bytes,5,opt,name=password,proto3" json:"password,omitempty"`
+	// 发件人地址。
+	From string `protobuf:"bytes,6,opt,name=from,proto3" json:"from,omitempty"`
+	// 是否清空已存密码。
+	ClearPassword bool `protobuf:"varint,7,opt,name=clear_password,json=clearPassword,proto3" json:"clear_password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEmailSettingsRequest) Reset() {
+	*x = UpdateEmailSettingsRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEmailSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEmailSettingsRequest) ProtoMessage() {}
+
+func (x *UpdateEmailSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEmailSettingsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateEmailSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *UpdateEmailSettingsRequest) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *UpdateEmailSettingsRequest) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *UpdateEmailSettingsRequest) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *UpdateEmailSettingsRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *UpdateEmailSettingsRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *UpdateEmailSettingsRequest) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *UpdateEmailSettingsRequest) GetClearPassword() bool {
+	if x != nil {
+		return x.ClearPassword
+	}
+	return false
+}
+
+// 保存邮件服务配置响应。
+type UpdateEmailSettingsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 保存后的邮件服务配置。
+	Email         *EmailSettingsItem `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEmailSettingsResponse) Reset() {
+	*x = UpdateEmailSettingsResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEmailSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEmailSettingsResponse) ProtoMessage() {}
+
+func (x *UpdateEmailSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEmailSettingsResponse.ProtoReflect.Descriptor instead.
+func (*UpdateEmailSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *UpdateEmailSettingsResponse) GetEmail() *EmailSettingsItem {
+	if x != nil {
+		return x.Email
+	}
+	return nil
+}
+
+// 单个第三方登录来源的配置。
+type OAuthProviderSettingItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 来源标识，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
+	Provider string `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	// 展示名。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 是否启用该来源。
+	Enabled bool `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// 客户端标识。
+	ClientId string `protobuf:"bytes,4,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// 是否已经保存过客户端密钥；密钥本身不回显。
+	SecretSet bool `protobuf:"varint,5,opt,name=secret_set,json=secretSet,proto3" json:"secret_set,omitempty"`
+	// 最后修改人。
+	UpdatedBy string `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	// 最后修改时间，RFC3339。
+	UpdatedAt     string `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OAuthProviderSettingItem) Reset() {
+	*x = OAuthProviderSettingItem{}
+	mi := &file_alioth_v1_site_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OAuthProviderSettingItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OAuthProviderSettingItem) ProtoMessage() {}
+
+func (x *OAuthProviderSettingItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OAuthProviderSettingItem.ProtoReflect.Descriptor instead.
+func (*OAuthProviderSettingItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *OAuthProviderSettingItem) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *OAuthProviderSettingItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *OAuthProviderSettingItem) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *OAuthProviderSettingItem) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *OAuthProviderSettingItem) GetSecretSet() bool {
+	if x != nil {
+		return x.SecretSet
+	}
+	return false
+}
+
+func (x *OAuthProviderSettingItem) GetUpdatedBy() string {
+	if x != nil {
+		return x.UpdatedBy
+	}
+	return ""
+}
+
+func (x *OAuthProviderSettingItem) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+// 列出第三方登录来源请求。
+type ListOAuthProviderSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOAuthProviderSettingsRequest) Reset() {
+	*x = ListOAuthProviderSettingsRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOAuthProviderSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOAuthProviderSettingsRequest) ProtoMessage() {}
+
+func (x *ListOAuthProviderSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOAuthProviderSettingsRequest.ProtoReflect.Descriptor instead.
+func (*ListOAuthProviderSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{43}
+}
+
+// 列出第三方登录来源响应。
+type ListOAuthProviderSettingsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 来源配置，按 GitHub、Gitee、飞书、钉钉的顺序。
+	Items         []*OAuthProviderSettingItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOAuthProviderSettingsResponse) Reset() {
+	*x = ListOAuthProviderSettingsResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOAuthProviderSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOAuthProviderSettingsResponse) ProtoMessage() {}
+
+func (x *ListOAuthProviderSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOAuthProviderSettingsResponse.ProtoReflect.Descriptor instead.
+func (*ListOAuthProviderSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *ListOAuthProviderSettingsResponse) GetItems() []*OAuthProviderSettingItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+// 保存单个第三方登录来源请求。
+type UpdateOAuthProviderSettingRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 来源标识。
+	Provider string `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	// 是否启用该来源。
+	Enabled bool `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// 客户端标识。
+	ClientId string `protobuf:"bytes,3,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// 新的客户端密钥；留空表示保留已存密钥。
+	ClientSecret string `protobuf:"bytes,4,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
+	// 是否清空已存密钥。
+	ClearSecret   bool `protobuf:"varint,5,opt,name=clear_secret,json=clearSecret,proto3" json:"clear_secret,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateOAuthProviderSettingRequest) Reset() {
+	*x = UpdateOAuthProviderSettingRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateOAuthProviderSettingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateOAuthProviderSettingRequest) ProtoMessage() {}
+
+func (x *UpdateOAuthProviderSettingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateOAuthProviderSettingRequest.ProtoReflect.Descriptor instead.
+func (*UpdateOAuthProviderSettingRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *UpdateOAuthProviderSettingRequest) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *UpdateOAuthProviderSettingRequest) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *UpdateOAuthProviderSettingRequest) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *UpdateOAuthProviderSettingRequest) GetClientSecret() string {
+	if x != nil {
+		return x.ClientSecret
+	}
+	return ""
+}
+
+func (x *UpdateOAuthProviderSettingRequest) GetClearSecret() bool {
+	if x != nil {
+		return x.ClearSecret
+	}
+	return false
+}
+
+// 保存单个第三方登录来源响应。
+type UpdateOAuthProviderSettingResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 保存后的来源配置。
+	Item          *OAuthProviderSettingItem `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateOAuthProviderSettingResponse) Reset() {
+	*x = UpdateOAuthProviderSettingResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateOAuthProviderSettingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateOAuthProviderSettingResponse) ProtoMessage() {}
+
+func (x *UpdateOAuthProviderSettingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateOAuthProviderSettingResponse.ProtoReflect.Descriptor instead.
+func (*UpdateOAuthProviderSettingResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *UpdateOAuthProviderSettingResponse) GetItem() *OAuthProviderSettingItem {
+	if x != nil {
+		return x.Item
+	}
+	return nil
+}
+
 var File_alioth_v1_site_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_site_proto_rawDesc = "" +
@@ -2585,7 +3234,53 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"sort_order\x18\x03 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe7\a(\x00R\tsortOrder\"J\n" +
 	"\x19UpdateSitePageNavResponse\x12-\n" +
-	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page2\xf5\x0e\n" +
+	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page\"\xe6\x01\n" +
+	"\x11EmailSettingsItem\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x12\n" +
+	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
+	"\x04port\x18\x03 \x01(\x05R\x04port\x12\x1a\n" +
+	"\busername\x18\x04 \x01(\tR\busername\x12\x12\n" +
+	"\x04from\x18\x05 \x01(\tR\x04from\x12!\n" +
+	"\fpassword_set\x18\x06 \x01(\bR\vpasswordSet\x12\x1d\n" +
+	"\n" +
+	"updated_by\x18\a \x01(\tR\tupdatedBy\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\"\x19\n" +
+	"\x17GetEmailSettingsRequest\"N\n" +
+	"\x18GetEmailSettingsResponse\x122\n" +
+	"\x05email\x18\x01 \x01(\v2\x1c.alioth.v1.EmailSettingsItemR\x05email\"\x86\x02\n" +
+	"\x1aUpdateEmailSettingsRequest\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1c\n" +
+	"\x04host\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\x04host\x12\x1f\n" +
+	"\x04port\x18\x03 \x01(\x05B\v\xbaH\b\x1a\x06\x18\xff\xff\x03(\x00R\x04port\x12$\n" +
+	"\busername\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\busername\x12$\n" +
+	"\bpassword\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\bpassword\x12\x1c\n" +
+	"\x04from\x18\x06 \x01(\tB\b\xbaH\x05r\x03\x18\xc0\x02R\x04from\x12%\n" +
+	"\x0eclear_password\x18\a \x01(\bR\rclearPassword\"Q\n" +
+	"\x1bUpdateEmailSettingsResponse\x122\n" +
+	"\x05email\x18\x01 \x01(\v2\x1c.alioth.v1.EmailSettingsItemR\x05email\"\xde\x01\n" +
+	"\x18OAuthProviderSettingItem\x12\x1a\n" +
+	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
+	"\aenabled\x18\x03 \x01(\bR\aenabled\x12\x1b\n" +
+	"\tclient_id\x18\x04 \x01(\tR\bclientId\x12\x1d\n" +
+	"\n" +
+	"secret_set\x18\x05 \x01(\bR\tsecretSet\x12\x1d\n" +
+	"\n" +
+	"updated_by\x18\x06 \x01(\tR\tupdatedBy\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\"\"\n" +
+	" ListOAuthProviderSettingsRequest\"^\n" +
+	"!ListOAuthProviderSettingsResponse\x129\n" +
+	"\x05items\x18\x01 \x03(\v2#.alioth.v1.OAuthProviderSettingItemR\x05items\"\xdd\x01\n" +
+	"!UpdateOAuthProviderSettingRequest\x12%\n" +
+	"\bprovider\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18 R\bprovider\x12\x18\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\x12%\n" +
+	"\tclient_id\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\bclientId\x12-\n" +
+	"\rclient_secret\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\fclientSecret\x12!\n" +
+	"\fclear_secret\x18\x05 \x01(\bR\vclearSecret\"]\n" +
+	"\"UpdateOAuthProviderSettingResponse\x127\n" +
+	"\x04item\x18\x01 \x01(\v2#.alioth.v1.OAuthProviderSettingItemR\x04item2\xe2\x13\n" +
 	"\vSiteService\x12k\n" +
 	"\rGetSiteConfig\x12\x1f.alioth.v1.GetSiteConfigRequest\x1a .alioth.v1.GetSiteConfigResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/site/config\x12q\n" +
 	"\x0fGetSiteSettings\x12!.alioth.v1.GetSiteSettingsRequest\x1a\".alioth.v1.GetSiteSettingsResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/system/site\x12}\n" +
@@ -2601,7 +3296,11 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"\x0fPublishSitePage\x12!.alioth.v1.PublishSitePageRequest\x1a\".alioth.v1.PublishSitePageResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/system/site/pages/{uid}/publish\x12\x90\x01\n" +
 	"\x11UnpublishSitePage\x12#.alioth.v1.UnpublishSitePageRequest\x1a$.alioth.v1.UnpublishSitePageResponse\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/v1/system/site/pages/{uid}/unpublish\x12z\n" +
 	"\x0eDeleteSitePage\x12 .alioth.v1.DeleteSitePageRequest\x1a!.alioth.v1.DeleteSitePageResponse\"#\x82\xd3\xe4\x93\x02\x1d*\x1b/v1/system/site/pages/{uid}\x12\x8a\x01\n" +
-	"\x11UpdateSitePageNav\x12#.alioth.v1.UpdateSitePageNavRequest\x1a$.alioth.v1.UpdateSitePageNavResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\x1a\x1f/v1/system/site/pages/{uid}/navB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
+	"\x11UpdateSitePageNav\x12#.alioth.v1.UpdateSitePageNavRequest\x1a$.alioth.v1.UpdateSitePageNavResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\x1a\x1f/v1/system/site/pages/{uid}/nav\x12\x83\x01\n" +
+	"\x10GetEmailSettings\x12\".alioth.v1.GetEmailSettingsRequest\x1a#.alioth.v1.GetEmailSettingsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/system/auth/email-settings\x12\x8f\x01\n" +
+	"\x13UpdateEmailSettings\x12%.alioth.v1.UpdateEmailSettingsRequest\x1a&.alioth.v1.UpdateEmailSettingsResponse\")\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/v1/system/auth/email-settings\x12\x9f\x01\n" +
+	"\x19ListOAuthProviderSettings\x12+.alioth.v1.ListOAuthProviderSettingsRequest\x1a,.alioth.v1.ListOAuthProviderSettingsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/system/auth/oauth-providers\x12\xb0\x01\n" +
+	"\x1aUpdateOAuthProviderSetting\x12,.alioth.v1.UpdateOAuthProviderSettingRequest\x1a-.alioth.v1.UpdateOAuthProviderSettingResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\x1a*/v1/system/auth/oauth-providers/{provider}B.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
 
 var (
 	file_alioth_v1_site_proto_rawDescOnce sync.Once
@@ -2615,45 +3314,55 @@ func file_alioth_v1_site_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_site_proto_rawDescData
 }
 
-var file_alioth_v1_site_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_alioth_v1_site_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
 var file_alioth_v1_site_proto_goTypes = []any{
-	(*SiteSettingsItem)(nil),           // 0: alioth.v1.SiteSettingsItem
-	(*LoginMethodsItem)(nil),           // 1: alioth.v1.LoginMethodsItem
-	(*GetSiteConfigRequest)(nil),       // 2: alioth.v1.GetSiteConfigRequest
-	(*GetSiteConfigResponse)(nil),      // 3: alioth.v1.GetSiteConfigResponse
-	(*GetSiteSettingsRequest)(nil),     // 4: alioth.v1.GetSiteSettingsRequest
-	(*GetSiteSettingsResponse)(nil),    // 5: alioth.v1.GetSiteSettingsResponse
-	(*UpdateSiteSettingsRequest)(nil),  // 6: alioth.v1.UpdateSiteSettingsRequest
-	(*UpdateSiteSettingsResponse)(nil), // 7: alioth.v1.UpdateSiteSettingsResponse
-	(*GetLoginMethodsRequest)(nil),     // 8: alioth.v1.GetLoginMethodsRequest
-	(*GetLoginMethodsResponse)(nil),    // 9: alioth.v1.GetLoginMethodsResponse
-	(*UpdateLoginMethodsRequest)(nil),  // 10: alioth.v1.UpdateLoginMethodsRequest
-	(*UpdateLoginMethodsResponse)(nil), // 11: alioth.v1.UpdateLoginMethodsResponse
-	(*SitePageItem)(nil),               // 12: alioth.v1.SitePageItem
-	(*SitePageContent)(nil),            // 13: alioth.v1.SitePageContent
-	(*SitePageDetail)(nil),             // 14: alioth.v1.SitePageDetail
-	(*PublicSitePage)(nil),             // 15: alioth.v1.PublicSitePage
-	(*SiteNavItem)(nil),                // 16: alioth.v1.SiteNavItem
-	(*GetPublicSitePageRequest)(nil),   // 17: alioth.v1.GetPublicSitePageRequest
-	(*GetPublicSitePageResponse)(nil),  // 18: alioth.v1.GetPublicSitePageResponse
-	(*ListPublicSiteNavRequest)(nil),   // 19: alioth.v1.ListPublicSiteNavRequest
-	(*ListPublicSiteNavResponse)(nil),  // 20: alioth.v1.ListPublicSiteNavResponse
-	(*ListSitePagesRequest)(nil),       // 21: alioth.v1.ListSitePagesRequest
-	(*ListSitePagesResponse)(nil),      // 22: alioth.v1.ListSitePagesResponse
-	(*GetSitePageRequest)(nil),         // 23: alioth.v1.GetSitePageRequest
-	(*GetSitePageResponse)(nil),        // 24: alioth.v1.GetSitePageResponse
-	(*CreateSitePageRequest)(nil),      // 25: alioth.v1.CreateSitePageRequest
-	(*CreateSitePageResponse)(nil),     // 26: alioth.v1.CreateSitePageResponse
-	(*UpdateSitePageRequest)(nil),      // 27: alioth.v1.UpdateSitePageRequest
-	(*UpdateSitePageResponse)(nil),     // 28: alioth.v1.UpdateSitePageResponse
-	(*PublishSitePageRequest)(nil),     // 29: alioth.v1.PublishSitePageRequest
-	(*PublishSitePageResponse)(nil),    // 30: alioth.v1.PublishSitePageResponse
-	(*UnpublishSitePageRequest)(nil),   // 31: alioth.v1.UnpublishSitePageRequest
-	(*UnpublishSitePageResponse)(nil),  // 32: alioth.v1.UnpublishSitePageResponse
-	(*DeleteSitePageRequest)(nil),      // 33: alioth.v1.DeleteSitePageRequest
-	(*DeleteSitePageResponse)(nil),     // 34: alioth.v1.DeleteSitePageResponse
-	(*UpdateSitePageNavRequest)(nil),   // 35: alioth.v1.UpdateSitePageNavRequest
-	(*UpdateSitePageNavResponse)(nil),  // 36: alioth.v1.UpdateSitePageNavResponse
+	(*SiteSettingsItem)(nil),                   // 0: alioth.v1.SiteSettingsItem
+	(*LoginMethodsItem)(nil),                   // 1: alioth.v1.LoginMethodsItem
+	(*GetSiteConfigRequest)(nil),               // 2: alioth.v1.GetSiteConfigRequest
+	(*GetSiteConfigResponse)(nil),              // 3: alioth.v1.GetSiteConfigResponse
+	(*GetSiteSettingsRequest)(nil),             // 4: alioth.v1.GetSiteSettingsRequest
+	(*GetSiteSettingsResponse)(nil),            // 5: alioth.v1.GetSiteSettingsResponse
+	(*UpdateSiteSettingsRequest)(nil),          // 6: alioth.v1.UpdateSiteSettingsRequest
+	(*UpdateSiteSettingsResponse)(nil),         // 7: alioth.v1.UpdateSiteSettingsResponse
+	(*GetLoginMethodsRequest)(nil),             // 8: alioth.v1.GetLoginMethodsRequest
+	(*GetLoginMethodsResponse)(nil),            // 9: alioth.v1.GetLoginMethodsResponse
+	(*UpdateLoginMethodsRequest)(nil),          // 10: alioth.v1.UpdateLoginMethodsRequest
+	(*UpdateLoginMethodsResponse)(nil),         // 11: alioth.v1.UpdateLoginMethodsResponse
+	(*SitePageItem)(nil),                       // 12: alioth.v1.SitePageItem
+	(*SitePageContent)(nil),                    // 13: alioth.v1.SitePageContent
+	(*SitePageDetail)(nil),                     // 14: alioth.v1.SitePageDetail
+	(*PublicSitePage)(nil),                     // 15: alioth.v1.PublicSitePage
+	(*SiteNavItem)(nil),                        // 16: alioth.v1.SiteNavItem
+	(*GetPublicSitePageRequest)(nil),           // 17: alioth.v1.GetPublicSitePageRequest
+	(*GetPublicSitePageResponse)(nil),          // 18: alioth.v1.GetPublicSitePageResponse
+	(*ListPublicSiteNavRequest)(nil),           // 19: alioth.v1.ListPublicSiteNavRequest
+	(*ListPublicSiteNavResponse)(nil),          // 20: alioth.v1.ListPublicSiteNavResponse
+	(*ListSitePagesRequest)(nil),               // 21: alioth.v1.ListSitePagesRequest
+	(*ListSitePagesResponse)(nil),              // 22: alioth.v1.ListSitePagesResponse
+	(*GetSitePageRequest)(nil),                 // 23: alioth.v1.GetSitePageRequest
+	(*GetSitePageResponse)(nil),                // 24: alioth.v1.GetSitePageResponse
+	(*CreateSitePageRequest)(nil),              // 25: alioth.v1.CreateSitePageRequest
+	(*CreateSitePageResponse)(nil),             // 26: alioth.v1.CreateSitePageResponse
+	(*UpdateSitePageRequest)(nil),              // 27: alioth.v1.UpdateSitePageRequest
+	(*UpdateSitePageResponse)(nil),             // 28: alioth.v1.UpdateSitePageResponse
+	(*PublishSitePageRequest)(nil),             // 29: alioth.v1.PublishSitePageRequest
+	(*PublishSitePageResponse)(nil),            // 30: alioth.v1.PublishSitePageResponse
+	(*UnpublishSitePageRequest)(nil),           // 31: alioth.v1.UnpublishSitePageRequest
+	(*UnpublishSitePageResponse)(nil),          // 32: alioth.v1.UnpublishSitePageResponse
+	(*DeleteSitePageRequest)(nil),              // 33: alioth.v1.DeleteSitePageRequest
+	(*DeleteSitePageResponse)(nil),             // 34: alioth.v1.DeleteSitePageResponse
+	(*UpdateSitePageNavRequest)(nil),           // 35: alioth.v1.UpdateSitePageNavRequest
+	(*UpdateSitePageNavResponse)(nil),          // 36: alioth.v1.UpdateSitePageNavResponse
+	(*EmailSettingsItem)(nil),                  // 37: alioth.v1.EmailSettingsItem
+	(*GetEmailSettingsRequest)(nil),            // 38: alioth.v1.GetEmailSettingsRequest
+	(*GetEmailSettingsResponse)(nil),           // 39: alioth.v1.GetEmailSettingsResponse
+	(*UpdateEmailSettingsRequest)(nil),         // 40: alioth.v1.UpdateEmailSettingsRequest
+	(*UpdateEmailSettingsResponse)(nil),        // 41: alioth.v1.UpdateEmailSettingsResponse
+	(*OAuthProviderSettingItem)(nil),           // 42: alioth.v1.OAuthProviderSettingItem
+	(*ListOAuthProviderSettingsRequest)(nil),   // 43: alioth.v1.ListOAuthProviderSettingsRequest
+	(*ListOAuthProviderSettingsResponse)(nil),  // 44: alioth.v1.ListOAuthProviderSettingsResponse
+	(*UpdateOAuthProviderSettingRequest)(nil),  // 45: alioth.v1.UpdateOAuthProviderSettingRequest
+	(*UpdateOAuthProviderSettingResponse)(nil), // 46: alioth.v1.UpdateOAuthProviderSettingResponse
 }
 var file_alioth_v1_site_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.GetSiteConfigResponse.site:type_name -> alioth.v1.SiteSettingsItem
@@ -2674,41 +3383,53 @@ var file_alioth_v1_site_proto_depIdxs = []int32{
 	14, // 15: alioth.v1.PublishSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
 	14, // 16: alioth.v1.UnpublishSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
 	14, // 17: alioth.v1.UpdateSitePageNavResponse.page:type_name -> alioth.v1.SitePageDetail
-	2,  // 18: alioth.v1.SiteService.GetSiteConfig:input_type -> alioth.v1.GetSiteConfigRequest
-	4,  // 19: alioth.v1.SiteService.GetSiteSettings:input_type -> alioth.v1.GetSiteSettingsRequest
-	6,  // 20: alioth.v1.SiteService.UpdateSiteSettings:input_type -> alioth.v1.UpdateSiteSettingsRequest
-	8,  // 21: alioth.v1.SiteService.GetLoginMethods:input_type -> alioth.v1.GetLoginMethodsRequest
-	10, // 22: alioth.v1.SiteService.UpdateLoginMethods:input_type -> alioth.v1.UpdateLoginMethodsRequest
-	17, // 23: alioth.v1.SiteService.GetPublicSitePage:input_type -> alioth.v1.GetPublicSitePageRequest
-	19, // 24: alioth.v1.SiteService.ListPublicSiteNav:input_type -> alioth.v1.ListPublicSiteNavRequest
-	21, // 25: alioth.v1.SiteService.ListSitePages:input_type -> alioth.v1.ListSitePagesRequest
-	23, // 26: alioth.v1.SiteService.GetSitePage:input_type -> alioth.v1.GetSitePageRequest
-	25, // 27: alioth.v1.SiteService.CreateSitePage:input_type -> alioth.v1.CreateSitePageRequest
-	27, // 28: alioth.v1.SiteService.UpdateSitePage:input_type -> alioth.v1.UpdateSitePageRequest
-	29, // 29: alioth.v1.SiteService.PublishSitePage:input_type -> alioth.v1.PublishSitePageRequest
-	31, // 30: alioth.v1.SiteService.UnpublishSitePage:input_type -> alioth.v1.UnpublishSitePageRequest
-	33, // 31: alioth.v1.SiteService.DeleteSitePage:input_type -> alioth.v1.DeleteSitePageRequest
-	35, // 32: alioth.v1.SiteService.UpdateSitePageNav:input_type -> alioth.v1.UpdateSitePageNavRequest
-	3,  // 33: alioth.v1.SiteService.GetSiteConfig:output_type -> alioth.v1.GetSiteConfigResponse
-	5,  // 34: alioth.v1.SiteService.GetSiteSettings:output_type -> alioth.v1.GetSiteSettingsResponse
-	7,  // 35: alioth.v1.SiteService.UpdateSiteSettings:output_type -> alioth.v1.UpdateSiteSettingsResponse
-	9,  // 36: alioth.v1.SiteService.GetLoginMethods:output_type -> alioth.v1.GetLoginMethodsResponse
-	11, // 37: alioth.v1.SiteService.UpdateLoginMethods:output_type -> alioth.v1.UpdateLoginMethodsResponse
-	18, // 38: alioth.v1.SiteService.GetPublicSitePage:output_type -> alioth.v1.GetPublicSitePageResponse
-	20, // 39: alioth.v1.SiteService.ListPublicSiteNav:output_type -> alioth.v1.ListPublicSiteNavResponse
-	22, // 40: alioth.v1.SiteService.ListSitePages:output_type -> alioth.v1.ListSitePagesResponse
-	24, // 41: alioth.v1.SiteService.GetSitePage:output_type -> alioth.v1.GetSitePageResponse
-	26, // 42: alioth.v1.SiteService.CreateSitePage:output_type -> alioth.v1.CreateSitePageResponse
-	28, // 43: alioth.v1.SiteService.UpdateSitePage:output_type -> alioth.v1.UpdateSitePageResponse
-	30, // 44: alioth.v1.SiteService.PublishSitePage:output_type -> alioth.v1.PublishSitePageResponse
-	32, // 45: alioth.v1.SiteService.UnpublishSitePage:output_type -> alioth.v1.UnpublishSitePageResponse
-	34, // 46: alioth.v1.SiteService.DeleteSitePage:output_type -> alioth.v1.DeleteSitePageResponse
-	36, // 47: alioth.v1.SiteService.UpdateSitePageNav:output_type -> alioth.v1.UpdateSitePageNavResponse
-	33, // [33:48] is the sub-list for method output_type
-	18, // [18:33] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	37, // 18: alioth.v1.GetEmailSettingsResponse.email:type_name -> alioth.v1.EmailSettingsItem
+	37, // 19: alioth.v1.UpdateEmailSettingsResponse.email:type_name -> alioth.v1.EmailSettingsItem
+	42, // 20: alioth.v1.ListOAuthProviderSettingsResponse.items:type_name -> alioth.v1.OAuthProviderSettingItem
+	42, // 21: alioth.v1.UpdateOAuthProviderSettingResponse.item:type_name -> alioth.v1.OAuthProviderSettingItem
+	2,  // 22: alioth.v1.SiteService.GetSiteConfig:input_type -> alioth.v1.GetSiteConfigRequest
+	4,  // 23: alioth.v1.SiteService.GetSiteSettings:input_type -> alioth.v1.GetSiteSettingsRequest
+	6,  // 24: alioth.v1.SiteService.UpdateSiteSettings:input_type -> alioth.v1.UpdateSiteSettingsRequest
+	8,  // 25: alioth.v1.SiteService.GetLoginMethods:input_type -> alioth.v1.GetLoginMethodsRequest
+	10, // 26: alioth.v1.SiteService.UpdateLoginMethods:input_type -> alioth.v1.UpdateLoginMethodsRequest
+	17, // 27: alioth.v1.SiteService.GetPublicSitePage:input_type -> alioth.v1.GetPublicSitePageRequest
+	19, // 28: alioth.v1.SiteService.ListPublicSiteNav:input_type -> alioth.v1.ListPublicSiteNavRequest
+	21, // 29: alioth.v1.SiteService.ListSitePages:input_type -> alioth.v1.ListSitePagesRequest
+	23, // 30: alioth.v1.SiteService.GetSitePage:input_type -> alioth.v1.GetSitePageRequest
+	25, // 31: alioth.v1.SiteService.CreateSitePage:input_type -> alioth.v1.CreateSitePageRequest
+	27, // 32: alioth.v1.SiteService.UpdateSitePage:input_type -> alioth.v1.UpdateSitePageRequest
+	29, // 33: alioth.v1.SiteService.PublishSitePage:input_type -> alioth.v1.PublishSitePageRequest
+	31, // 34: alioth.v1.SiteService.UnpublishSitePage:input_type -> alioth.v1.UnpublishSitePageRequest
+	33, // 35: alioth.v1.SiteService.DeleteSitePage:input_type -> alioth.v1.DeleteSitePageRequest
+	35, // 36: alioth.v1.SiteService.UpdateSitePageNav:input_type -> alioth.v1.UpdateSitePageNavRequest
+	38, // 37: alioth.v1.SiteService.GetEmailSettings:input_type -> alioth.v1.GetEmailSettingsRequest
+	40, // 38: alioth.v1.SiteService.UpdateEmailSettings:input_type -> alioth.v1.UpdateEmailSettingsRequest
+	43, // 39: alioth.v1.SiteService.ListOAuthProviderSettings:input_type -> alioth.v1.ListOAuthProviderSettingsRequest
+	45, // 40: alioth.v1.SiteService.UpdateOAuthProviderSetting:input_type -> alioth.v1.UpdateOAuthProviderSettingRequest
+	3,  // 41: alioth.v1.SiteService.GetSiteConfig:output_type -> alioth.v1.GetSiteConfigResponse
+	5,  // 42: alioth.v1.SiteService.GetSiteSettings:output_type -> alioth.v1.GetSiteSettingsResponse
+	7,  // 43: alioth.v1.SiteService.UpdateSiteSettings:output_type -> alioth.v1.UpdateSiteSettingsResponse
+	9,  // 44: alioth.v1.SiteService.GetLoginMethods:output_type -> alioth.v1.GetLoginMethodsResponse
+	11, // 45: alioth.v1.SiteService.UpdateLoginMethods:output_type -> alioth.v1.UpdateLoginMethodsResponse
+	18, // 46: alioth.v1.SiteService.GetPublicSitePage:output_type -> alioth.v1.GetPublicSitePageResponse
+	20, // 47: alioth.v1.SiteService.ListPublicSiteNav:output_type -> alioth.v1.ListPublicSiteNavResponse
+	22, // 48: alioth.v1.SiteService.ListSitePages:output_type -> alioth.v1.ListSitePagesResponse
+	24, // 49: alioth.v1.SiteService.GetSitePage:output_type -> alioth.v1.GetSitePageResponse
+	26, // 50: alioth.v1.SiteService.CreateSitePage:output_type -> alioth.v1.CreateSitePageResponse
+	28, // 51: alioth.v1.SiteService.UpdateSitePage:output_type -> alioth.v1.UpdateSitePageResponse
+	30, // 52: alioth.v1.SiteService.PublishSitePage:output_type -> alioth.v1.PublishSitePageResponse
+	32, // 53: alioth.v1.SiteService.UnpublishSitePage:output_type -> alioth.v1.UnpublishSitePageResponse
+	34, // 54: alioth.v1.SiteService.DeleteSitePage:output_type -> alioth.v1.DeleteSitePageResponse
+	36, // 55: alioth.v1.SiteService.UpdateSitePageNav:output_type -> alioth.v1.UpdateSitePageNavResponse
+	39, // 56: alioth.v1.SiteService.GetEmailSettings:output_type -> alioth.v1.GetEmailSettingsResponse
+	41, // 57: alioth.v1.SiteService.UpdateEmailSettings:output_type -> alioth.v1.UpdateEmailSettingsResponse
+	44, // 58: alioth.v1.SiteService.ListOAuthProviderSettings:output_type -> alioth.v1.ListOAuthProviderSettingsResponse
+	46, // 59: alioth.v1.SiteService.UpdateOAuthProviderSetting:output_type -> alioth.v1.UpdateOAuthProviderSettingResponse
+	41, // [41:60] is the sub-list for method output_type
+	22, // [22:41] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_site_proto_init() }
@@ -2722,7 +3443,7 @@ func file_alioth_v1_site_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_site_proto_rawDesc), len(file_alioth_v1_site_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   37,
+			NumMessages:   47,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

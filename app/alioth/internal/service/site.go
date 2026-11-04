@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/oauthproviders"
 )
 
 // SiteService 把官网配置接口转成 biz 入参，不做权限判断。
@@ -293,4 +294,81 @@ func formatNullableTime(value *time.Time) string {
 		return ""
 	}
 	return formatTime(*value)
+}
+
+func (s *SiteService) GetEmailSettings(ctx context.Context, _ *v1.GetEmailSettingsRequest) (*v1.GetEmailSettingsResponse, error) {
+	item, err := s.settings.EmailSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetEmailSettingsResponse{Email: emailSettingsItem(*item)}, nil
+}
+
+func (s *SiteService) UpdateEmailSettings(ctx context.Context, req *v1.UpdateEmailSettingsRequest) (*v1.UpdateEmailSettingsResponse, error) {
+	item, err := s.settings.UpdateEmailSettings(ctx, bo.EmailSettings{
+		Enabled:  req.GetEnabled(),
+		Host:     req.GetHost(),
+		Port:     int(req.GetPort()),
+		Username: req.GetUsername(),
+		Password: req.GetPassword(),
+		From:     req.GetFrom(),
+	}, req.GetClearPassword())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateEmailSettingsResponse{Email: emailSettingsItem(*item)}, nil
+}
+
+func (s *SiteService) ListOAuthProviderSettings(ctx context.Context, _ *v1.ListOAuthProviderSettingsRequest) (*v1.ListOAuthProviderSettingsResponse, error) {
+	items, err := s.settings.OAuthProviders(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.OAuthProviderSettingItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, oauthProviderSettingItem(item))
+	}
+	return &v1.ListOAuthProviderSettingsResponse{Items: out}, nil
+}
+
+func (s *SiteService) UpdateOAuthProviderSetting(ctx context.Context, req *v1.UpdateOAuthProviderSettingRequest) (*v1.UpdateOAuthProviderSettingResponse, error) {
+	item, err := s.settings.UpdateOAuthProvider(ctx, bo.OAuthProviderSetting{
+		Provider:     req.GetProvider(),
+		Enabled:      req.GetEnabled(),
+		ClientID:     req.GetClientId(),
+		ClientSecret: req.GetClientSecret(),
+	}, req.GetClearSecret())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateOAuthProviderSettingResponse{Item: oauthProviderSettingItem(*item)}, nil
+}
+
+func emailSettingsItem(item bo.EmailSettings) *v1.EmailSettingsItem {
+	return &v1.EmailSettingsItem{
+		Enabled:     item.Enabled,
+		Host:        item.Host,
+		Port:        int32(item.Port),
+		Username:    item.Username,
+		From:        item.From,
+		PasswordSet: item.PasswordSet,
+		UpdatedBy:   item.UpdatedBy,
+		UpdatedAt:   formatTime(item.UpdatedAt),
+	}
+}
+
+func oauthProviderSettingItem(item bo.OAuthProviderSetting) *v1.OAuthProviderSettingItem {
+	name := item.Provider
+	if provider, ok := oauthproviders.Lookup(item.Provider); ok {
+		name = provider.Name
+	}
+	return &v1.OAuthProviderSettingItem{
+		Provider:  item.Provider,
+		Name:      name,
+		Enabled:   item.Enabled,
+		ClientId:  item.ClientID,
+		SecretSet: item.SecretSet,
+		UpdatedBy: item.UpdatedBy,
+		UpdatedAt: formatTime(item.UpdatedAt),
+	}
 }

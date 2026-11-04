@@ -72,22 +72,23 @@ type codeMailer interface {
 // Authenticator 负责身份凭证。租户、成员和角色的判断不放在这里。
 // 用户只通过邮箱验证码或第三方登录进入，不使用密码。
 type Authenticator struct {
-	users        repository.UserRepo
-	captchas     repository.CaptchaRepo
-	emailCodes   repository.EmailCodeRepo
-	oauth        repository.OAuthRepo
-	agents       AgentTokenLookup
-	secret       string
-	accessTTL    time.Duration
-	refreshTTL   time.Duration
-	serviceKeys  map[string]string
-	mail         codeMailer
-	logins       repository.LoginMethodRepo
-	oauthClients map[string]oauthClient
-	log          *slog.Logger
+	users         repository.UserRepo
+	captchas      repository.CaptchaRepo
+	emailCodes    repository.EmailCodeRepo
+	oauth         repository.OAuthRepo
+	agents        AgentTokenLookup
+	secret        string
+	accessTTL     time.Duration
+	refreshTTL    time.Duration
+	serviceKeys   map[string]string
+	mail          codeMailer
+	logins        repository.LoginMethodRepo
+	oauthSettings repository.OAuthProviderSettingRepo
+	oauthClients  map[string]oauthClient
+	log           *slog.Logger
 }
 
-func NewAuthenticator(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, logins repository.LoginMethodRepo, mail *mailer.Sender, auth *conf.Auth, logger *slog.Logger) (*Authenticator, error) {
+func NewAuthenticator(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, logins repository.LoginMethodRepo, oauthSettings repository.OAuthProviderSettingRepo, mail *mailer.Sender, auth *conf.Auth, logger *slog.Logger) (*Authenticator, error) {
 	if auth == nil || auth.GetJwtSecret() == "" {
 		return nil, merr.Server("jwt secret is empty")
 	}
@@ -115,19 +116,20 @@ func NewAuthenticator(users repository.UserRepo, captchas repository.CaptchaRepo
 		codes = mail
 	}
 	return &Authenticator{
-		users:        users,
-		captchas:     captchas,
-		emailCodes:   emailCodes,
-		oauth:        oauth,
-		agents:       agents,
-		logins:       logins,
-		secret:       auth.GetJwtSecret(),
-		accessTTL:    access,
-		refreshTTL:   refresh,
-		serviceKeys:  keys,
-		mail:         codes,
-		oauthClients: clients,
-		log:          logger,
+		users:         users,
+		captchas:      captchas,
+		emailCodes:    emailCodes,
+		oauth:         oauth,
+		agents:        agents,
+		logins:        logins,
+		oauthSettings: oauthSettings,
+		secret:        auth.GetJwtSecret(),
+		accessTTL:     access,
+		refreshTTL:    refresh,
+		serviceKeys:   keys,
+		mail:          codes,
+		oauthClients:  clients,
+		log:           logger,
 	}, nil
 }
 
@@ -852,6 +854,11 @@ func namespaceOptional(operation string) bool {
 		v1.OperationSiteServiceUnpublishSitePage,
 		v1.OperationSiteServiceDeleteSitePage,
 		v1.OperationSiteServiceUpdateSitePageNav,
+		// 邮件服务与第三方登录来源同样是平台级配置，不读 X-Namespace。
+		v1.OperationSiteServiceGetEmailSettings,
+		v1.OperationSiteServiceUpdateEmailSettings,
+		v1.OperationSiteServiceListOAuthProviderSettings,
+		v1.OperationSiteServiceUpdateOAuthProviderSetting,
 		// 升级与迁移是平台级操作：环境状态、数据库迁移和迁移包收发都不读 X-Namespace。
 		v1.OperationMaintenanceServiceGetMaintenanceStatus,
 		v1.OperationMaintenanceServiceRunSchemaMigration,

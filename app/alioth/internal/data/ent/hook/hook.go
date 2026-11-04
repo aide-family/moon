@@ -201,6 +201,18 @@ func (f AlertRuleLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleLevelMutation", m)
 }
 
+// The AuthEmailSettingFunc type is an adapter to allow the use of ordinary
+// function as AuthEmailSetting mutator.
+type AuthEmailSettingFunc func(context.Context, *ent.AuthEmailSettingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AuthEmailSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AuthEmailSettingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AuthEmailSettingMutation", m)
+}
+
 // The AuthLoginSettingFunc type is an adapter to allow the use of ordinary
 // function as AuthLoginSetting mutator.
 type AuthLoginSettingFunc func(context.Context, *ent.AuthLoginSettingMutation) (ent.Value, error)
@@ -211,6 +223,18 @@ func (f AuthLoginSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AuthLoginSettingMutation", m)
+}
+
+// The AuthOAuthProviderFunc type is an adapter to allow the use of ordinary
+// function as AuthOAuthProvider mutator.
+type AuthOAuthProviderFunc func(context.Context, *ent.AuthOAuthProviderMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AuthOAuthProviderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AuthOAuthProviderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AuthOAuthProviderMutation", m)
 }
 
 // The BoardFunc type is an adapter to allow the use of ordinary

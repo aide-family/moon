@@ -21,7 +21,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/authemailsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/authoauthprovider"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/board"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/boardpanel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
@@ -735,6 +737,53 @@ func init() {
 	alertrulelevelDescLevelUID := alertrulelevelFields[7].Descriptor()
 	// alertrulelevel.LevelUIDValidator is a validator for the "level_uid" field. It is called by the builders before save.
 	alertrulelevel.LevelUIDValidator = alertrulelevelDescLevelUID.Validators[0].(func(string) error)
+	authemailsettingMixin := schema.AuthEmailSetting{}.Mixin()
+	authemailsettingMixinFields0 := authemailsettingMixin[0].Fields()
+	_ = authemailsettingMixinFields0
+	authemailsettingFields := schema.AuthEmailSetting{}.Fields()
+	_ = authemailsettingFields
+	// authemailsettingDescCreatedAt is the schema descriptor for created_at field.
+	authemailsettingDescCreatedAt := authemailsettingMixinFields0[0].Descriptor()
+	// authemailsetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	authemailsetting.DefaultCreatedAt = authemailsettingDescCreatedAt.Default.(func() time.Time)
+	// authemailsettingDescUpdatedAt is the schema descriptor for updated_at field.
+	authemailsettingDescUpdatedAt := authemailsettingMixinFields0[1].Descriptor()
+	// authemailsetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	authemailsetting.DefaultUpdatedAt = authemailsettingDescUpdatedAt.Default.(func() time.Time)
+	// authemailsetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	authemailsetting.UpdateDefaultUpdatedAt = authemailsettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// authemailsettingDescUID is the schema descriptor for uid field.
+	authemailsettingDescUID := authemailsettingFields[0].Descriptor()
+	// authemailsetting.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	authemailsetting.UIDValidator = authemailsettingDescUID.Validators[0].(func(string) error)
+	// authemailsettingDescEnabled is the schema descriptor for enabled field.
+	authemailsettingDescEnabled := authemailsettingFields[1].Descriptor()
+	// authemailsetting.DefaultEnabled holds the default value on creation for the enabled field.
+	authemailsetting.DefaultEnabled = authemailsettingDescEnabled.Default.(bool)
+	// authemailsettingDescHost is the schema descriptor for host field.
+	authemailsettingDescHost := authemailsettingFields[2].Descriptor()
+	// authemailsetting.DefaultHost holds the default value on creation for the host field.
+	authemailsetting.DefaultHost = authemailsettingDescHost.Default.(string)
+	// authemailsettingDescPort is the schema descriptor for port field.
+	authemailsettingDescPort := authemailsettingFields[3].Descriptor()
+	// authemailsetting.DefaultPort holds the default value on creation for the port field.
+	authemailsetting.DefaultPort = authemailsettingDescPort.Default.(int)
+	// authemailsettingDescUsername is the schema descriptor for username field.
+	authemailsettingDescUsername := authemailsettingFields[4].Descriptor()
+	// authemailsetting.DefaultUsername holds the default value on creation for the username field.
+	authemailsetting.DefaultUsername = authemailsettingDescUsername.Default.(string)
+	// authemailsettingDescPasswordCipher is the schema descriptor for password_cipher field.
+	authemailsettingDescPasswordCipher := authemailsettingFields[5].Descriptor()
+	// authemailsetting.DefaultPasswordCipher holds the default value on creation for the password_cipher field.
+	authemailsetting.DefaultPasswordCipher = authemailsettingDescPasswordCipher.Default.(string)
+	// authemailsettingDescFrom is the schema descriptor for from field.
+	authemailsettingDescFrom := authemailsettingFields[6].Descriptor()
+	// authemailsetting.DefaultFrom holds the default value on creation for the from field.
+	authemailsetting.DefaultFrom = authemailsettingDescFrom.Default.(string)
+	// authemailsettingDescUpdatedBy is the schema descriptor for updated_by field.
+	authemailsettingDescUpdatedBy := authemailsettingFields[7].Descriptor()
+	// authemailsetting.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	authemailsetting.DefaultUpdatedBy = authemailsettingDescUpdatedBy.Default.(string)
 	authloginsettingMixin := schema.AuthLoginSetting{}.Mixin()
 	authloginsettingMixinFields0 := authloginsettingMixin[0].Fields()
 	_ = authloginsettingMixinFields0
@@ -766,6 +815,45 @@ func init() {
 	authloginsettingDescUpdatedBy := authloginsettingFields[3].Descriptor()
 	// authloginsetting.DefaultUpdatedBy holds the default value on creation for the updated_by field.
 	authloginsetting.DefaultUpdatedBy = authloginsettingDescUpdatedBy.Default.(string)
+	authoauthproviderMixin := schema.AuthOAuthProvider{}.Mixin()
+	authoauthproviderMixinFields0 := authoauthproviderMixin[0].Fields()
+	_ = authoauthproviderMixinFields0
+	authoauthproviderFields := schema.AuthOAuthProvider{}.Fields()
+	_ = authoauthproviderFields
+	// authoauthproviderDescCreatedAt is the schema descriptor for created_at field.
+	authoauthproviderDescCreatedAt := authoauthproviderMixinFields0[0].Descriptor()
+	// authoauthprovider.DefaultCreatedAt holds the default value on creation for the created_at field.
+	authoauthprovider.DefaultCreatedAt = authoauthproviderDescCreatedAt.Default.(func() time.Time)
+	// authoauthproviderDescUpdatedAt is the schema descriptor for updated_at field.
+	authoauthproviderDescUpdatedAt := authoauthproviderMixinFields0[1].Descriptor()
+	// authoauthprovider.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	authoauthprovider.DefaultUpdatedAt = authoauthproviderDescUpdatedAt.Default.(func() time.Time)
+	// authoauthprovider.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	authoauthprovider.UpdateDefaultUpdatedAt = authoauthproviderDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// authoauthproviderDescUID is the schema descriptor for uid field.
+	authoauthproviderDescUID := authoauthproviderFields[0].Descriptor()
+	// authoauthprovider.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	authoauthprovider.UIDValidator = authoauthproviderDescUID.Validators[0].(func(string) error)
+	// authoauthproviderDescProvider is the schema descriptor for provider field.
+	authoauthproviderDescProvider := authoauthproviderFields[1].Descriptor()
+	// authoauthprovider.ProviderValidator is a validator for the "provider" field. It is called by the builders before save.
+	authoauthprovider.ProviderValidator = authoauthproviderDescProvider.Validators[0].(func(string) error)
+	// authoauthproviderDescEnabled is the schema descriptor for enabled field.
+	authoauthproviderDescEnabled := authoauthproviderFields[2].Descriptor()
+	// authoauthprovider.DefaultEnabled holds the default value on creation for the enabled field.
+	authoauthprovider.DefaultEnabled = authoauthproviderDescEnabled.Default.(bool)
+	// authoauthproviderDescClientID is the schema descriptor for client_id field.
+	authoauthproviderDescClientID := authoauthproviderFields[3].Descriptor()
+	// authoauthprovider.DefaultClientID holds the default value on creation for the client_id field.
+	authoauthprovider.DefaultClientID = authoauthproviderDescClientID.Default.(string)
+	// authoauthproviderDescClientSecretCipher is the schema descriptor for client_secret_cipher field.
+	authoauthproviderDescClientSecretCipher := authoauthproviderFields[4].Descriptor()
+	// authoauthprovider.DefaultClientSecretCipher holds the default value on creation for the client_secret_cipher field.
+	authoauthprovider.DefaultClientSecretCipher = authoauthproviderDescClientSecretCipher.Default.(string)
+	// authoauthproviderDescUpdatedBy is the schema descriptor for updated_by field.
+	authoauthproviderDescUpdatedBy := authoauthproviderFields[5].Descriptor()
+	// authoauthprovider.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	authoauthprovider.DefaultUpdatedBy = authoauthproviderDescUpdatedBy.Default.(string)
 	boardMixin := schema.Board{}.Mixin()
 	boardMixinFields0 := boardMixin[0].Fields()
 	_ = boardMixinFields0

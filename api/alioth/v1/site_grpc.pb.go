@@ -19,21 +19,25 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SiteService_GetSiteConfig_FullMethodName      = "/alioth.v1.SiteService/GetSiteConfig"
-	SiteService_GetSiteSettings_FullMethodName    = "/alioth.v1.SiteService/GetSiteSettings"
-	SiteService_UpdateSiteSettings_FullMethodName = "/alioth.v1.SiteService/UpdateSiteSettings"
-	SiteService_GetLoginMethods_FullMethodName    = "/alioth.v1.SiteService/GetLoginMethods"
-	SiteService_UpdateLoginMethods_FullMethodName = "/alioth.v1.SiteService/UpdateLoginMethods"
-	SiteService_GetPublicSitePage_FullMethodName  = "/alioth.v1.SiteService/GetPublicSitePage"
-	SiteService_ListPublicSiteNav_FullMethodName  = "/alioth.v1.SiteService/ListPublicSiteNav"
-	SiteService_ListSitePages_FullMethodName      = "/alioth.v1.SiteService/ListSitePages"
-	SiteService_GetSitePage_FullMethodName        = "/alioth.v1.SiteService/GetSitePage"
-	SiteService_CreateSitePage_FullMethodName     = "/alioth.v1.SiteService/CreateSitePage"
-	SiteService_UpdateSitePage_FullMethodName     = "/alioth.v1.SiteService/UpdateSitePage"
-	SiteService_PublishSitePage_FullMethodName    = "/alioth.v1.SiteService/PublishSitePage"
-	SiteService_UnpublishSitePage_FullMethodName  = "/alioth.v1.SiteService/UnpublishSitePage"
-	SiteService_DeleteSitePage_FullMethodName     = "/alioth.v1.SiteService/DeleteSitePage"
-	SiteService_UpdateSitePageNav_FullMethodName  = "/alioth.v1.SiteService/UpdateSitePageNav"
+	SiteService_GetSiteConfig_FullMethodName              = "/alioth.v1.SiteService/GetSiteConfig"
+	SiteService_GetSiteSettings_FullMethodName            = "/alioth.v1.SiteService/GetSiteSettings"
+	SiteService_UpdateSiteSettings_FullMethodName         = "/alioth.v1.SiteService/UpdateSiteSettings"
+	SiteService_GetLoginMethods_FullMethodName            = "/alioth.v1.SiteService/GetLoginMethods"
+	SiteService_UpdateLoginMethods_FullMethodName         = "/alioth.v1.SiteService/UpdateLoginMethods"
+	SiteService_GetPublicSitePage_FullMethodName          = "/alioth.v1.SiteService/GetPublicSitePage"
+	SiteService_ListPublicSiteNav_FullMethodName          = "/alioth.v1.SiteService/ListPublicSiteNav"
+	SiteService_ListSitePages_FullMethodName              = "/alioth.v1.SiteService/ListSitePages"
+	SiteService_GetSitePage_FullMethodName                = "/alioth.v1.SiteService/GetSitePage"
+	SiteService_CreateSitePage_FullMethodName             = "/alioth.v1.SiteService/CreateSitePage"
+	SiteService_UpdateSitePage_FullMethodName             = "/alioth.v1.SiteService/UpdateSitePage"
+	SiteService_PublishSitePage_FullMethodName            = "/alioth.v1.SiteService/PublishSitePage"
+	SiteService_UnpublishSitePage_FullMethodName          = "/alioth.v1.SiteService/UnpublishSitePage"
+	SiteService_DeleteSitePage_FullMethodName             = "/alioth.v1.SiteService/DeleteSitePage"
+	SiteService_UpdateSitePageNav_FullMethodName          = "/alioth.v1.SiteService/UpdateSitePageNav"
+	SiteService_GetEmailSettings_FullMethodName           = "/alioth.v1.SiteService/GetEmailSettings"
+	SiteService_UpdateEmailSettings_FullMethodName        = "/alioth.v1.SiteService/UpdateEmailSettings"
+	SiteService_ListOAuthProviderSettings_FullMethodName  = "/alioth.v1.SiteService/ListOAuthProviderSettings"
+	SiteService_UpdateOAuthProviderSetting_FullMethodName = "/alioth.v1.SiteService/UpdateOAuthProviderSetting"
 )
 
 // SiteServiceClient is the client API for SiteService service.
@@ -76,6 +80,14 @@ type SiteServiceClient interface {
 	DeleteSitePage(ctx context.Context, in *DeleteSitePageRequest, opts ...grpc.CallOption) (*DeleteSitePageResponse, error)
 	// 修改导航展示与顺序，需要 system:site:write。
 	UpdateSitePageNav(ctx context.Context, in *UpdateSitePageNavRequest, opts ...grpc.CallOption) (*UpdateSitePageNavResponse, error)
+	// 读取邮件服务（SMTP）配置，需要 system:login:read。
+	GetEmailSettings(ctx context.Context, in *GetEmailSettingsRequest, opts ...grpc.CallOption) (*GetEmailSettingsResponse, error)
+	// 保存邮件服务配置，需要 system:login:write。保存后立即用于发信，不需要重启。
+	UpdateEmailSettings(ctx context.Context, in *UpdateEmailSettingsRequest, opts ...grpc.CallOption) (*UpdateEmailSettingsResponse, error)
+	// 列出第三方登录来源配置，需要 system:login:read。
+	ListOAuthProviderSettings(ctx context.Context, in *ListOAuthProviderSettingsRequest, opts ...grpc.CallOption) (*ListOAuthProviderSettingsResponse, error)
+	// 保存单个第三方登录来源，需要 system:login:write。
+	UpdateOAuthProviderSetting(ctx context.Context, in *UpdateOAuthProviderSettingRequest, opts ...grpc.CallOption) (*UpdateOAuthProviderSettingResponse, error)
 }
 
 type siteServiceClient struct {
@@ -236,6 +248,46 @@ func (c *siteServiceClient) UpdateSitePageNav(ctx context.Context, in *UpdateSit
 	return out, nil
 }
 
+func (c *siteServiceClient) GetEmailSettings(ctx context.Context, in *GetEmailSettingsRequest, opts ...grpc.CallOption) (*GetEmailSettingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetEmailSettingsResponse)
+	err := c.cc.Invoke(ctx, SiteService_GetEmailSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) UpdateEmailSettings(ctx context.Context, in *UpdateEmailSettingsRequest, opts ...grpc.CallOption) (*UpdateEmailSettingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateEmailSettingsResponse)
+	err := c.cc.Invoke(ctx, SiteService_UpdateEmailSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) ListOAuthProviderSettings(ctx context.Context, in *ListOAuthProviderSettingsRequest, opts ...grpc.CallOption) (*ListOAuthProviderSettingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOAuthProviderSettingsResponse)
+	err := c.cc.Invoke(ctx, SiteService_ListOAuthProviderSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) UpdateOAuthProviderSetting(ctx context.Context, in *UpdateOAuthProviderSettingRequest, opts ...grpc.CallOption) (*UpdateOAuthProviderSettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateOAuthProviderSettingResponse)
+	err := c.cc.Invoke(ctx, SiteService_UpdateOAuthProviderSetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SiteServiceServer is the server API for SiteService service.
 // All implementations must embed UnimplementedSiteServiceServer
 // for forward compatibility.
@@ -276,6 +328,14 @@ type SiteServiceServer interface {
 	DeleteSitePage(context.Context, *DeleteSitePageRequest) (*DeleteSitePageResponse, error)
 	// 修改导航展示与顺序，需要 system:site:write。
 	UpdateSitePageNav(context.Context, *UpdateSitePageNavRequest) (*UpdateSitePageNavResponse, error)
+	// 读取邮件服务（SMTP）配置，需要 system:login:read。
+	GetEmailSettings(context.Context, *GetEmailSettingsRequest) (*GetEmailSettingsResponse, error)
+	// 保存邮件服务配置，需要 system:login:write。保存后立即用于发信，不需要重启。
+	UpdateEmailSettings(context.Context, *UpdateEmailSettingsRequest) (*UpdateEmailSettingsResponse, error)
+	// 列出第三方登录来源配置，需要 system:login:read。
+	ListOAuthProviderSettings(context.Context, *ListOAuthProviderSettingsRequest) (*ListOAuthProviderSettingsResponse, error)
+	// 保存单个第三方登录来源，需要 system:login:write。
+	UpdateOAuthProviderSetting(context.Context, *UpdateOAuthProviderSettingRequest) (*UpdateOAuthProviderSettingResponse, error)
 	mustEmbedUnimplementedSiteServiceServer()
 }
 
@@ -330,6 +390,18 @@ func (UnimplementedSiteServiceServer) DeleteSitePage(context.Context, *DeleteSit
 }
 func (UnimplementedSiteServiceServer) UpdateSitePageNav(context.Context, *UpdateSitePageNavRequest) (*UpdateSitePageNavResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateSitePageNav not implemented")
+}
+func (UnimplementedSiteServiceServer) GetEmailSettings(context.Context, *GetEmailSettingsRequest) (*GetEmailSettingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEmailSettings not implemented")
+}
+func (UnimplementedSiteServiceServer) UpdateEmailSettings(context.Context, *UpdateEmailSettingsRequest) (*UpdateEmailSettingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateEmailSettings not implemented")
+}
+func (UnimplementedSiteServiceServer) ListOAuthProviderSettings(context.Context, *ListOAuthProviderSettingsRequest) (*ListOAuthProviderSettingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOAuthProviderSettings not implemented")
+}
+func (UnimplementedSiteServiceServer) UpdateOAuthProviderSetting(context.Context, *UpdateOAuthProviderSettingRequest) (*UpdateOAuthProviderSettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateOAuthProviderSetting not implemented")
 }
 func (UnimplementedSiteServiceServer) mustEmbedUnimplementedSiteServiceServer() {}
 func (UnimplementedSiteServiceServer) testEmbeddedByValue()                     {}
@@ -622,6 +694,78 @@ func _SiteService_UpdateSitePageNav_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SiteService_GetEmailSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEmailSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).GetEmailSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_GetEmailSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).GetEmailSettings(ctx, req.(*GetEmailSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_UpdateEmailSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateEmailSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).UpdateEmailSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_UpdateEmailSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).UpdateEmailSettings(ctx, req.(*UpdateEmailSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_ListOAuthProviderSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOAuthProviderSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).ListOAuthProviderSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_ListOAuthProviderSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).ListOAuthProviderSettings(ctx, req.(*ListOAuthProviderSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_UpdateOAuthProviderSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateOAuthProviderSettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).UpdateOAuthProviderSetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_UpdateOAuthProviderSetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).UpdateOAuthProviderSetting(ctx, req.(*UpdateOAuthProviderSettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SiteService_ServiceDesc is the grpc.ServiceDesc for SiteService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -688,6 +832,22 @@ var SiteService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSitePageNav",
 			Handler:    _SiteService_UpdateSitePageNav_Handler,
+		},
+		{
+			MethodName: "GetEmailSettings",
+			Handler:    _SiteService_GetEmailSettings_Handler,
+		},
+		{
+			MethodName: "UpdateEmailSettings",
+			Handler:    _SiteService_UpdateEmailSettings_Handler,
+		},
+		{
+			MethodName: "ListOAuthProviderSettings",
+			Handler:    _SiteService_ListOAuthProviderSettings_Handler,
+		},
+		{
+			MethodName: "UpdateOAuthProviderSetting",
+			Handler:    _SiteService_UpdateOAuthProviderSetting_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

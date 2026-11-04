@@ -271,7 +271,7 @@ func newAuthFixture(t *testing.T) *authFixture {
 	mail := &codeMailerStub{}
 	oauth := newOAuthRepoStub(users)
 	users.oauth = oauth
-	authenticator, err := NewAuthenticator(users, captchas, emailCodes, oauth, nil, nil, nil, &conf.Auth{JwtSecret: "test-secret"}, slog.Default())
+	authenticator, err := NewAuthenticator(users, captchas, emailCodes, oauth, nil, nil, nil, nil, &conf.Auth{JwtSecret: "test-secret"}, slog.Default())
 	if err != nil {
 		t.Fatalf("NewAuthenticator: %v", err)
 	}
@@ -309,7 +309,7 @@ func assertClientMessage(t *testing.T, err error, message string) {
 }
 
 func TestClaimRejectsUserJWT(t *testing.T) {
-	authenticator, err := NewAuthenticator(userStub{}, nil, nil, nil, nil, nil, nil, &conf.Auth{
+	authenticator, err := NewAuthenticator(userStub{}, nil, nil, nil, nil, nil, nil, nil, &conf.Auth{
 		JwtSecret:   "test-secret",
 		ServiceKeys: []*conf.Auth_ServiceKey{{Name: "megrez", Key: "sk-megrez-dev"}},
 	}, slog.Default())

@@ -653,6 +653,33 @@ var (
 			},
 		},
 	}
+	// AuthEmailSettingsColumns holds the columns for the "auth_email_settings" table.
+	AuthEmailSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "host", Type: field.TypeString, Default: ""},
+		{Name: "port", Type: field.TypeInt, Default: 587},
+		{Name: "username", Type: field.TypeString, Default: ""},
+		{Name: "password_cipher", Type: field.TypeString, Default: ""},
+		{Name: "from", Type: field.TypeString, Default: ""},
+		{Name: "updated_by", Type: field.TypeString, Default: ""},
+	}
+	// AuthEmailSettingsTable holds the schema information for the "auth_email_settings" table.
+	AuthEmailSettingsTable = &schema.Table{
+		Name:       "auth_email_settings",
+		Columns:    AuthEmailSettingsColumns,
+		PrimaryKey: []*schema.Column{AuthEmailSettingsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "authemailsetting_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AuthEmailSettingsColumns[3]},
+			},
+		},
+	}
 	// AuthLoginSettingsColumns holds the columns for the "auth_login_settings" table.
 	AuthLoginSettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -673,6 +700,36 @@ var (
 				Name:    "authloginsetting_uid",
 				Unique:  true,
 				Columns: []*schema.Column{AuthLoginSettingsColumns[3]},
+			},
+		},
+	}
+	// AuthOauthProvidersColumns holds the columns for the "auth_oauth_providers" table.
+	AuthOauthProvidersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "provider", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: false},
+		{Name: "client_id", Type: field.TypeString, Default: ""},
+		{Name: "client_secret_cipher", Type: field.TypeString, Default: ""},
+		{Name: "updated_by", Type: field.TypeString, Default: ""},
+	}
+	// AuthOauthProvidersTable holds the schema information for the "auth_oauth_providers" table.
+	AuthOauthProvidersTable = &schema.Table{
+		Name:       "auth_oauth_providers",
+		Columns:    AuthOauthProvidersColumns,
+		PrimaryKey: []*schema.Column{AuthOauthProvidersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "authoauthprovider_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AuthOauthProvidersColumns[3]},
+			},
+			{
+				Name:    "authoauthprovider_provider",
+				Unique:  true,
+				Columns: []*schema.Column{AuthOauthProvidersColumns[4]},
 			},
 		},
 	}
@@ -2494,7 +2551,9 @@ var (
 		AlertRulesTable,
 		AlertRuleGroupsTable,
 		AlertRuleLevelsTable,
+		AuthEmailSettingsTable,
 		AuthLoginSettingsTable,
+		AuthOauthProvidersTable,
 		BoardsTable,
 		BoardPanelsTable,
 		CaptchasTable,

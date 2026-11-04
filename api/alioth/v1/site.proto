@@ -94,6 +94,28 @@ service SiteService {
       body: "*"
     };
   }
+  // 读取邮件服务（SMTP）配置，需要 system:login:read。
+  rpc GetEmailSettings(GetEmailSettingsRequest) returns (GetEmailSettingsResponse) {
+    option (google.api.http) = {get: "/v1/system/auth/email-settings"};
+  }
+  // 保存邮件服务配置，需要 system:login:write。保存后立即用于发信，不需要重启。
+  rpc UpdateEmailSettings(UpdateEmailSettingsRequest) returns (UpdateEmailSettingsResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/auth/email-settings"
+      body: "*"
+    };
+  }
+  // 列出第三方登录来源配置，需要 system:login:read。
+  rpc ListOAuthProviderSettings(ListOAuthProviderSettingsRequest) returns (ListOAuthProviderSettingsResponse) {
+    option (google.api.http) = {get: "/v1/system/auth/oauth-providers"};
+  }
+  // 保存单个第三方登录来源，需要 system:login:write。
+  rpc UpdateOAuthProviderSetting(UpdateOAuthProviderSettingRequest) returns (UpdateOAuthProviderSettingResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/auth/oauth-providers/{provider}"
+      body: "*"
+    };
+  }
 }
 
 // 站点设置。
@@ -464,4 +486,104 @@ message UpdateSitePageNavRequest {
 message UpdateSitePageNavResponse {
   // 修改后的详情。
   SitePageDetail page = 1;
+}
+
+// 邮件服务（SMTP）配置。
+message EmailSettingsItem {
+  // 是否使用后台配置发信；关闭时回落到服务器配置。
+  bool enabled = 1;
+  // SMTP 主机。
+  string host = 2;
+  // SMTP 端口。
+  int32 port = 3;
+  // SMTP 用户名。
+  string username = 4;
+  // 发件人地址，支持“显示名 <地址>”写法。
+  string from = 5;
+  // 是否已经保存过密码；密码本身不回显。
+  bool password_set = 6 [json_name = "passwordSet"];
+  // 最后修改人。
+  string updated_by = 7 [json_name = "updatedBy"];
+  // 最后修改时间，RFC3339。
+  string updated_at = 8 [json_name = "updatedAt"];
+}
+
+// 读取邮件服务配置请求。
+message GetEmailSettingsRequest {}
+
+// 读取邮件服务配置响应。
+message GetEmailSettingsResponse {
+  // 邮件服务配置。
+  EmailSettingsItem email = 1;
+}
+
+// 保存邮件服务配置请求。
+message UpdateEmailSettingsRequest {
+  // 是否使用后台配置发信。
+  bool enabled = 1;
+  // SMTP 主机。
+  string host = 2 [(buf.validate.field).string = {max_len: 255}];
+  // SMTP 端口，1–65535。
+  int32 port = 3 [(buf.validate.field).int32 = {gte: 0, lte: 65535}];
+  // SMTP 用户名。
+  string username = 4 [(buf.validate.field).string = {max_len: 255}];
+  // 新密码；留空表示保留已存密码。
+  string password = 5 [(buf.validate.field).string = {max_len: 512}];
+  // 发件人地址。
+  string from = 6 [(buf.validate.field).string = {max_len: 320}];
+  // 是否清空已存密码。
+  bool clear_password = 7 [json_name = "clearPassword"];
+}
+
+// 保存邮件服务配置响应。
+message UpdateEmailSettingsResponse {
+  // 保存后的邮件服务配置。
+  EmailSettingsItem email = 1;
+}
+
+// 单个第三方登录来源的配置。
+message OAuthProviderSettingItem {
+  // 来源标识，取值为 GITHUB、GITEE、FEISHU 或 DINGTALK。
+  string provider = 1;
+  // 展示名。
+  string name = 2;
+  // 是否启用该来源。
+  bool enabled = 3;
+  // 客户端标识。
+  string client_id = 4 [json_name = "clientId"];
+  // 是否已经保存过客户端密钥；密钥本身不回显。
+  bool secret_set = 5 [json_name = "secretSet"];
+  // 最后修改人。
+  string updated_by = 6 [json_name = "updatedBy"];
+  // 最后修改时间，RFC3339。
+  string updated_at = 7 [json_name = "updatedAt"];
+}
+
+// 列出第三方登录来源请求。
+message ListOAuthProviderSettingsRequest {}
+
+// 列出第三方登录来源响应。
+message ListOAuthProviderSettingsResponse {
+  // 来源配置，按 GitHub、Gitee、飞书、钉钉的顺序。
+  repeated OAuthProviderSettingItem items = 1;
+}
+
+// 保存单个第三方登录来源请求。
+message UpdateOAuthProviderSettingRequest {
+  // 来源标识。
+  string provider = 1 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
+  // 是否启用该来源。
+  bool enabled = 2;
+  // 客户端标识。
+  string client_id = 3 [json_name = "clientId", (buf.validate.field).string = {max_len: 256}];
+  // 新的客户端密钥；留空表示保留已存密钥。
+  string client_secret = 4 [json_name = "clientSecret", (buf.validate.field).string = {max_len: 512}];
+  // 是否清空已存密钥。
+  bool clear_secret = 5 [json_name = "clearSecret"];
+}
+
+// 保存单个第三方登录来源响应。
+message UpdateOAuthProviderSettingResponse {
+  // 保存后的来源配置。
+  OAuthProviderSettingItem item = 1;
 }
