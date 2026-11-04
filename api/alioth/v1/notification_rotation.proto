@@ -50,7 +50,7 @@ service OnCallRotationService {
   // 列出当前登录账号自己的值班班次。自服务接口：只要 oncall 读权限，
   // 不要求轮换管理权限，普通值班成员也能看到自己的班次。
   rpc ListMyOnCallShifts(ListMyOnCallShiftsRequest) returns (ListMyOnCallShiftsResponse) {
-    option (google.api.http) = {get: "/v1/oncall-rotations/my-shifts"};
+    option (google.api.http) = {get: "/v1/self/oncall-shifts"};
   }
 }
 

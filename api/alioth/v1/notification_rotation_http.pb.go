@@ -55,7 +55,7 @@ func RegisterOnCallRotationServiceHTTPServer(s *http.Server, srv OnCallRotationS
 	r.Handle("GET", "/v1/oncall-rotations/{uid}", _OnCallRotationService_GetOnCallRotation0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/oncall-rotations", _OnCallRotationService_ListOnCallRotations0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/oncall-rotations/{uid}/schedule", _OnCallRotationService_GetOnCallRotationSchedule0_HTTP_Handler(srv))
-	r.Handle("GET", "/v1/oncall-rotations/my-shifts", _OnCallRotationService_ListMyOnCallShifts0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/self/oncall-shifts", _OnCallRotationService_ListMyOnCallShifts0_HTTP_Handler(srv))
 }
 
 func _OnCallRotationService_CreateOnCallRotation0_HTTP_Handler(srv OnCallRotationServiceHTTPServer) func(ctx http.Context) error {
@@ -326,7 +326,7 @@ func (c *OnCallRotationServiceHTTPClientImpl) GetOnCallRotationSchedule(ctx cont
 // 不要求轮换管理权限，普通值班成员也能看到自己的班次。
 func (c *OnCallRotationServiceHTTPClientImpl) ListMyOnCallShifts(ctx context.Context, in *ListMyOnCallShiftsRequest, opts ...http.CallOption) (*ListMyOnCallShiftsResponse, error) {
 	var out ListMyOnCallShiftsResponse
-	pattern := "/v1/oncall-rotations/my-shifts"
+	pattern := "/v1/self/oncall-shifts"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),

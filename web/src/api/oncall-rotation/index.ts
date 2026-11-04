@@ -78,7 +78,7 @@ export function getOnCallRotationSchedule(
 export function listMyShifts(
   params: ListMyShiftsParams = {}
 ): Promise<ListMyShiftsResult> {
-  return get<ListMyShiftsResult>("/oncall-rotations/my-shifts", {
+  return get<ListMyShiftsResult>("/self/oncall-shifts", {
     days: params.days,
   })
 }

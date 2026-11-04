@@ -1475,7 +1475,7 @@ const file_alioth_v1_notification_rotation_proto_rawDesc = "" +
 	"\x06end_at\x18\x05 \x01(\tR\x05endAt\x12\x18\n" +
 	"\acurrent\x18\x06 \x01(\bR\acurrent\"P\n" +
 	"\x1aListMyOnCallShiftsResponse\x122\n" +
-	"\x05items\x18\x01 \x03(\v2\x1c.alioth.v1.MyOnCallShiftItemR\x05items2\xa7\t\n" +
+	"\x05items\x18\x01 \x03(\v2\x1c.alioth.v1.MyOnCallShiftItemR\x05items2\x9f\t\n" +
 	"\x15OnCallRotationService\x12\x88\x01\n" +
 	"\x14CreateOnCallRotation\x12&.alioth.v1.CreateOnCallRotationRequest\x1a'.alioth.v1.CreateOnCallRotationResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/oncall-rotations\x12\x8e\x01\n" +
 	"\x14UpdateOnCallRotation\x12&.alioth.v1.UpdateOnCallRotationRequest\x1a'.alioth.v1.UpdateOnCallRotationResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/v1/oncall-rotations/{uid}\x12\xa7\x01\n" +
@@ -1483,8 +1483,8 @@ const file_alioth_v1_notification_rotation_proto_rawDesc = "" +
 	"\x14DeleteOnCallRotation\x12&.alioth.v1.DeleteOnCallRotationRequest\x1a'.alioth.v1.DeleteOnCallRotationResponse\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/v1/oncall-rotations/{uid}\x12\x82\x01\n" +
 	"\x11GetOnCallRotation\x12#.alioth.v1.GetOnCallRotationRequest\x1a$.alioth.v1.GetOnCallRotationResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/oncall-rotations/{uid}\x12\x82\x01\n" +
 	"\x13ListOnCallRotations\x12%.alioth.v1.ListOnCallRotationsRequest\x1a&.alioth.v1.ListOnCallRotationsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/oncall-rotations\x12\xa3\x01\n" +
-	"\x19GetOnCallRotationSchedule\x12+.alioth.v1.GetOnCallRotationScheduleRequest\x1a,.alioth.v1.GetOnCallRotationScheduleResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/oncall-rotations/{uid}/schedule\x12\x89\x01\n" +
-	"\x12ListMyOnCallShifts\x12$.alioth.v1.ListMyOnCallShiftsRequest\x1a%.alioth.v1.ListMyOnCallShiftsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/oncall-rotations/my-shiftsB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
+	"\x19GetOnCallRotationSchedule\x12+.alioth.v1.GetOnCallRotationScheduleRequest\x1a,.alioth.v1.GetOnCallRotationScheduleResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/oncall-rotations/{uid}/schedule\x12\x81\x01\n" +
+	"\x12ListMyOnCallShifts\x12$.alioth.v1.ListMyOnCallShiftsRequest\x1a%.alioth.v1.ListMyOnCallShiftsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/self/oncall-shiftsB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
 
 var (
 	file_alioth_v1_notification_rotation_proto_rawDescOnce sync.Once
