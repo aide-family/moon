@@ -24,6 +24,16 @@ const (
 	SiteService_UpdateSiteSettings_FullMethodName = "/alioth.v1.SiteService/UpdateSiteSettings"
 	SiteService_GetLoginMethods_FullMethodName    = "/alioth.v1.SiteService/GetLoginMethods"
 	SiteService_UpdateLoginMethods_FullMethodName = "/alioth.v1.SiteService/UpdateLoginMethods"
+	SiteService_GetPublicSitePage_FullMethodName  = "/alioth.v1.SiteService/GetPublicSitePage"
+	SiteService_ListPublicSiteNav_FullMethodName  = "/alioth.v1.SiteService/ListPublicSiteNav"
+	SiteService_ListSitePages_FullMethodName      = "/alioth.v1.SiteService/ListSitePages"
+	SiteService_GetSitePage_FullMethodName        = "/alioth.v1.SiteService/GetSitePage"
+	SiteService_CreateSitePage_FullMethodName     = "/alioth.v1.SiteService/CreateSitePage"
+	SiteService_UpdateSitePage_FullMethodName     = "/alioth.v1.SiteService/UpdateSitePage"
+	SiteService_PublishSitePage_FullMethodName    = "/alioth.v1.SiteService/PublishSitePage"
+	SiteService_UnpublishSitePage_FullMethodName  = "/alioth.v1.SiteService/UnpublishSitePage"
+	SiteService_DeleteSitePage_FullMethodName     = "/alioth.v1.SiteService/DeleteSitePage"
+	SiteService_UpdateSitePageNav_FullMethodName  = "/alioth.v1.SiteService/UpdateSitePageNav"
 )
 
 // SiteServiceClient is the client API for SiteService service.
@@ -45,6 +55,27 @@ type SiteServiceClient interface {
 	GetLoginMethods(ctx context.Context, in *GetLoginMethodsRequest, opts ...grpc.CallOption) (*GetLoginMethodsResponse, error)
 	// 保存登录方式开关。邮箱验证码与第三方登录至少要保留一种。
 	UpdateLoginMethods(ctx context.Context, in *UpdateLoginMethodsRequest, opts ...grpc.CallOption) (*UpdateLoginMethodsResponse, error)
+	// 读取公开页面。只返回已发布快照，未发布或不存在一律 404，不泄露草稿存在性。
+	GetPublicSitePage(ctx context.Context, in *GetPublicSitePageRequest, opts ...grpc.CallOption) (*GetPublicSitePageResponse, error)
+	// 读取公开导航：已发布且标记为展示在导航里的页面，按导航顺序排列。
+	ListPublicSiteNav(ctx context.Context, in *ListPublicSiteNavRequest, opts ...grpc.CallOption) (*ListPublicSiteNavResponse, error)
+	// 列出官网页面（草稿视角），需要 system:site:read。
+	ListSitePages(ctx context.Context, in *ListSitePagesRequest, opts ...grpc.CallOption) (*ListSitePagesResponse, error)
+	// 读取页面详情：草稿与已发布快照各一份，需要 system:site:read。
+	GetSitePage(ctx context.Context, in *GetSitePageRequest, opts ...grpc.CallOption) (*GetSitePageResponse, error)
+	// 新建页面，写入草稿且状态为 DRAFT，需要 system:site:write。
+	CreateSitePage(ctx context.Context, in *CreateSitePageRequest, opts ...grpc.CallOption) (*CreateSitePageResponse, error)
+	// 保存草稿，不改变发布状态，需要 system:site:write。
+	// 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
+	UpdateSitePage(ctx context.Context, in *UpdateSitePageRequest, opts ...grpc.CallOption) (*UpdateSitePageResponse, error)
+	// 发布：把草稿复制为发布快照，官网立即生效，需要 system:site:write。
+	PublishSitePage(ctx context.Context, in *PublishSitePageRequest, opts ...grpc.CallOption) (*PublishSitePageResponse, error)
+	// 下架：状态改为 ARCHIVED，官网立即 404，已发布内容仍保留，需要 system:site:write。
+	UnpublishSitePage(ctx context.Context, in *UnpublishSitePageRequest, opts ...grpc.CallOption) (*UnpublishSitePageResponse, error)
+	// 删除页面（软删），首页不允许删除，需要 system:site:write。
+	DeleteSitePage(ctx context.Context, in *DeleteSitePageRequest, opts ...grpc.CallOption) (*DeleteSitePageResponse, error)
+	// 修改导航展示与顺序，需要 system:site:write。
+	UpdateSitePageNav(ctx context.Context, in *UpdateSitePageNavRequest, opts ...grpc.CallOption) (*UpdateSitePageNavResponse, error)
 }
 
 type siteServiceClient struct {
@@ -105,6 +136,106 @@ func (c *siteServiceClient) UpdateLoginMethods(ctx context.Context, in *UpdateLo
 	return out, nil
 }
 
+func (c *siteServiceClient) GetPublicSitePage(ctx context.Context, in *GetPublicSitePageRequest, opts ...grpc.CallOption) (*GetPublicSitePageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPublicSitePageResponse)
+	err := c.cc.Invoke(ctx, SiteService_GetPublicSitePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) ListPublicSiteNav(ctx context.Context, in *ListPublicSiteNavRequest, opts ...grpc.CallOption) (*ListPublicSiteNavResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPublicSiteNavResponse)
+	err := c.cc.Invoke(ctx, SiteService_ListPublicSiteNav_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) ListSitePages(ctx context.Context, in *ListSitePagesRequest, opts ...grpc.CallOption) (*ListSitePagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSitePagesResponse)
+	err := c.cc.Invoke(ctx, SiteService_ListSitePages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) GetSitePage(ctx context.Context, in *GetSitePageRequest, opts ...grpc.CallOption) (*GetSitePageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSitePageResponse)
+	err := c.cc.Invoke(ctx, SiteService_GetSitePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) CreateSitePage(ctx context.Context, in *CreateSitePageRequest, opts ...grpc.CallOption) (*CreateSitePageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateSitePageResponse)
+	err := c.cc.Invoke(ctx, SiteService_CreateSitePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) UpdateSitePage(ctx context.Context, in *UpdateSitePageRequest, opts ...grpc.CallOption) (*UpdateSitePageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSitePageResponse)
+	err := c.cc.Invoke(ctx, SiteService_UpdateSitePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) PublishSitePage(ctx context.Context, in *PublishSitePageRequest, opts ...grpc.CallOption) (*PublishSitePageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PublishSitePageResponse)
+	err := c.cc.Invoke(ctx, SiteService_PublishSitePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) UnpublishSitePage(ctx context.Context, in *UnpublishSitePageRequest, opts ...grpc.CallOption) (*UnpublishSitePageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnpublishSitePageResponse)
+	err := c.cc.Invoke(ctx, SiteService_UnpublishSitePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) DeleteSitePage(ctx context.Context, in *DeleteSitePageRequest, opts ...grpc.CallOption) (*DeleteSitePageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteSitePageResponse)
+	err := c.cc.Invoke(ctx, SiteService_DeleteSitePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) UpdateSitePageNav(ctx context.Context, in *UpdateSitePageNavRequest, opts ...grpc.CallOption) (*UpdateSitePageNavResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSitePageNavResponse)
+	err := c.cc.Invoke(ctx, SiteService_UpdateSitePageNav_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SiteServiceServer is the server API for SiteService service.
 // All implementations must embed UnimplementedSiteServiceServer
 // for forward compatibility.
@@ -124,6 +255,27 @@ type SiteServiceServer interface {
 	GetLoginMethods(context.Context, *GetLoginMethodsRequest) (*GetLoginMethodsResponse, error)
 	// 保存登录方式开关。邮箱验证码与第三方登录至少要保留一种。
 	UpdateLoginMethods(context.Context, *UpdateLoginMethodsRequest) (*UpdateLoginMethodsResponse, error)
+	// 读取公开页面。只返回已发布快照，未发布或不存在一律 404，不泄露草稿存在性。
+	GetPublicSitePage(context.Context, *GetPublicSitePageRequest) (*GetPublicSitePageResponse, error)
+	// 读取公开导航：已发布且标记为展示在导航里的页面，按导航顺序排列。
+	ListPublicSiteNav(context.Context, *ListPublicSiteNavRequest) (*ListPublicSiteNavResponse, error)
+	// 列出官网页面（草稿视角），需要 system:site:read。
+	ListSitePages(context.Context, *ListSitePagesRequest) (*ListSitePagesResponse, error)
+	// 读取页面详情：草稿与已发布快照各一份，需要 system:site:read。
+	GetSitePage(context.Context, *GetSitePageRequest) (*GetSitePageResponse, error)
+	// 新建页面，写入草稿且状态为 DRAFT，需要 system:site:write。
+	CreateSitePage(context.Context, *CreateSitePageRequest) (*CreateSitePageResponse, error)
+	// 保存草稿，不改变发布状态，需要 system:site:write。
+	// 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
+	UpdateSitePage(context.Context, *UpdateSitePageRequest) (*UpdateSitePageResponse, error)
+	// 发布：把草稿复制为发布快照，官网立即生效，需要 system:site:write。
+	PublishSitePage(context.Context, *PublishSitePageRequest) (*PublishSitePageResponse, error)
+	// 下架：状态改为 ARCHIVED，官网立即 404，已发布内容仍保留，需要 system:site:write。
+	UnpublishSitePage(context.Context, *UnpublishSitePageRequest) (*UnpublishSitePageResponse, error)
+	// 删除页面（软删），首页不允许删除，需要 system:site:write。
+	DeleteSitePage(context.Context, *DeleteSitePageRequest) (*DeleteSitePageResponse, error)
+	// 修改导航展示与顺序，需要 system:site:write。
+	UpdateSitePageNav(context.Context, *UpdateSitePageNavRequest) (*UpdateSitePageNavResponse, error)
 	mustEmbedUnimplementedSiteServiceServer()
 }
 
@@ -148,6 +300,36 @@ func (UnimplementedSiteServiceServer) GetLoginMethods(context.Context, *GetLogin
 }
 func (UnimplementedSiteServiceServer) UpdateLoginMethods(context.Context, *UpdateLoginMethodsRequest) (*UpdateLoginMethodsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateLoginMethods not implemented")
+}
+func (UnimplementedSiteServiceServer) GetPublicSitePage(context.Context, *GetPublicSitePageRequest) (*GetPublicSitePageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPublicSitePage not implemented")
+}
+func (UnimplementedSiteServiceServer) ListPublicSiteNav(context.Context, *ListPublicSiteNavRequest) (*ListPublicSiteNavResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPublicSiteNav not implemented")
+}
+func (UnimplementedSiteServiceServer) ListSitePages(context.Context, *ListSitePagesRequest) (*ListSitePagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSitePages not implemented")
+}
+func (UnimplementedSiteServiceServer) GetSitePage(context.Context, *GetSitePageRequest) (*GetSitePageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSitePage not implemented")
+}
+func (UnimplementedSiteServiceServer) CreateSitePage(context.Context, *CreateSitePageRequest) (*CreateSitePageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSitePage not implemented")
+}
+func (UnimplementedSiteServiceServer) UpdateSitePage(context.Context, *UpdateSitePageRequest) (*UpdateSitePageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSitePage not implemented")
+}
+func (UnimplementedSiteServiceServer) PublishSitePage(context.Context, *PublishSitePageRequest) (*PublishSitePageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PublishSitePage not implemented")
+}
+func (UnimplementedSiteServiceServer) UnpublishSitePage(context.Context, *UnpublishSitePageRequest) (*UnpublishSitePageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnpublishSitePage not implemented")
+}
+func (UnimplementedSiteServiceServer) DeleteSitePage(context.Context, *DeleteSitePageRequest) (*DeleteSitePageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteSitePage not implemented")
+}
+func (UnimplementedSiteServiceServer) UpdateSitePageNav(context.Context, *UpdateSitePageNavRequest) (*UpdateSitePageNavResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSitePageNav not implemented")
 }
 func (UnimplementedSiteServiceServer) mustEmbedUnimplementedSiteServiceServer() {}
 func (UnimplementedSiteServiceServer) testEmbeddedByValue()                     {}
@@ -260,6 +442,186 @@ func _SiteService_UpdateLoginMethods_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SiteService_GetPublicSitePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicSitePageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).GetPublicSitePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_GetPublicSitePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).GetPublicSitePage(ctx, req.(*GetPublicSitePageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_ListPublicSiteNav_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPublicSiteNavRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).ListPublicSiteNav(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_ListPublicSiteNav_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).ListPublicSiteNav(ctx, req.(*ListPublicSiteNavRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_ListSitePages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSitePagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).ListSitePages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_ListSitePages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).ListSitePages(ctx, req.(*ListSitePagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_GetSitePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSitePageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).GetSitePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_GetSitePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).GetSitePage(ctx, req.(*GetSitePageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_CreateSitePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSitePageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).CreateSitePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_CreateSitePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).CreateSitePage(ctx, req.(*CreateSitePageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_UpdateSitePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSitePageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).UpdateSitePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_UpdateSitePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).UpdateSitePage(ctx, req.(*UpdateSitePageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_PublishSitePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishSitePageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).PublishSitePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_PublishSitePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).PublishSitePage(ctx, req.(*PublishSitePageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_UnpublishSitePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnpublishSitePageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).UnpublishSitePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_UnpublishSitePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).UnpublishSitePage(ctx, req.(*UnpublishSitePageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_DeleteSitePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSitePageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).DeleteSitePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_DeleteSitePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).DeleteSitePage(ctx, req.(*DeleteSitePageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_UpdateSitePageNav_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSitePageNavRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).UpdateSitePageNav(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_UpdateSitePageNav_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).UpdateSitePageNav(ctx, req.(*UpdateSitePageNavRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SiteService_ServiceDesc is the grpc.ServiceDesc for SiteService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -286,6 +648,46 @@ var SiteService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateLoginMethods",
 			Handler:    _SiteService_UpdateLoginMethods_Handler,
+		},
+		{
+			MethodName: "GetPublicSitePage",
+			Handler:    _SiteService_GetPublicSitePage_Handler,
+		},
+		{
+			MethodName: "ListPublicSiteNav",
+			Handler:    _SiteService_ListPublicSiteNav_Handler,
+		},
+		{
+			MethodName: "ListSitePages",
+			Handler:    _SiteService_ListSitePages_Handler,
+		},
+		{
+			MethodName: "GetSitePage",
+			Handler:    _SiteService_GetSitePage_Handler,
+		},
+		{
+			MethodName: "CreateSitePage",
+			Handler:    _SiteService_CreateSitePage_Handler,
+		},
+		{
+			MethodName: "UpdateSitePage",
+			Handler:    _SiteService_UpdateSitePage_Handler,
+		},
+		{
+			MethodName: "PublishSitePage",
+			Handler:    _SiteService_PublishSitePage_Handler,
+		},
+		{
+			MethodName: "UnpublishSitePage",
+			Handler:    _SiteService_UnpublishSitePage_Handler,
+		},
+		{
+			MethodName: "DeleteSitePage",
+			Handler:    _SiteService_DeleteSitePage_Handler,
+		},
+		{
+			MethodName: "UpdateSitePageNav",
+			Handler:    _SiteService_UpdateSitePageNav_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

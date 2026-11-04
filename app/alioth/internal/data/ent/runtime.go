@@ -57,6 +57,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/schema"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitepage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
@@ -2469,6 +2470,93 @@ func init() {
 	sshcommandauditDescDetail := sshcommandauditFields[11].Descriptor()
 	// sshcommandaudit.DefaultDetail holds the default value on creation for the detail field.
 	sshcommandaudit.DefaultDetail = sshcommandauditDescDetail.Default.(string)
+	sitepageMixin := schema.SitePage{}.Mixin()
+	sitepageMixinFields0 := sitepageMixin[0].Fields()
+	_ = sitepageMixinFields0
+	sitepageFields := schema.SitePage{}.Fields()
+	_ = sitepageFields
+	// sitepageDescCreatedAt is the schema descriptor for created_at field.
+	sitepageDescCreatedAt := sitepageMixinFields0[0].Descriptor()
+	// sitepage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	sitepage.DefaultCreatedAt = sitepageDescCreatedAt.Default.(func() time.Time)
+	// sitepageDescUpdatedAt is the schema descriptor for updated_at field.
+	sitepageDescUpdatedAt := sitepageMixinFields0[1].Descriptor()
+	// sitepage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sitepage.DefaultUpdatedAt = sitepageDescUpdatedAt.Default.(func() time.Time)
+	// sitepage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sitepage.UpdateDefaultUpdatedAt = sitepageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// sitepageDescUID is the schema descriptor for uid field.
+	sitepageDescUID := sitepageFields[0].Descriptor()
+	// sitepage.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	sitepage.UIDValidator = sitepageDescUID.Validators[0].(func(string) error)
+	// sitepageDescSlug is the schema descriptor for slug field.
+	sitepageDescSlug := sitepageFields[1].Descriptor()
+	// sitepage.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	sitepage.SlugValidator = sitepageDescSlug.Validators[0].(func(string) error)
+	// sitepageDescLocale is the schema descriptor for locale field.
+	sitepageDescLocale := sitepageFields[2].Descriptor()
+	// sitepage.LocaleValidator is a validator for the "locale" field. It is called by the builders before save.
+	sitepage.LocaleValidator = sitepageDescLocale.Validators[0].(func(string) error)
+	// sitepageDescShowInNav is the schema descriptor for show_in_nav field.
+	sitepageDescShowInNav := sitepageFields[4].Descriptor()
+	// sitepage.DefaultShowInNav holds the default value on creation for the show_in_nav field.
+	sitepage.DefaultShowInNav = sitepageDescShowInNav.Default.(bool)
+	// sitepageDescSortOrder is the schema descriptor for sort_order field.
+	sitepageDescSortOrder := sitepageFields[5].Descriptor()
+	// sitepage.DefaultSortOrder holds the default value on creation for the sort_order field.
+	sitepage.DefaultSortOrder = sitepageDescSortOrder.Default.(int)
+	// sitepageDescDraftTitle is the schema descriptor for draft_title field.
+	sitepageDescDraftTitle := sitepageFields[6].Descriptor()
+	// sitepage.DefaultDraftTitle holds the default value on creation for the draft_title field.
+	sitepage.DefaultDraftTitle = sitepageDescDraftTitle.Default.(string)
+	// sitepageDescDraftSummary is the schema descriptor for draft_summary field.
+	sitepageDescDraftSummary := sitepageFields[7].Descriptor()
+	// sitepage.DefaultDraftSummary holds the default value on creation for the draft_summary field.
+	sitepage.DefaultDraftSummary = sitepageDescDraftSummary.Default.(string)
+	// sitepageDescDraftBodyMd is the schema descriptor for draft_body_md field.
+	sitepageDescDraftBodyMd := sitepageFields[8].Descriptor()
+	// sitepage.DefaultDraftBodyMd holds the default value on creation for the draft_body_md field.
+	sitepage.DefaultDraftBodyMd = sitepageDescDraftBodyMd.Default.(string)
+	// sitepageDescDraftCoverImageURL is the schema descriptor for draft_cover_image_url field.
+	sitepageDescDraftCoverImageURL := sitepageFields[9].Descriptor()
+	// sitepage.DefaultDraftCoverImageURL holds the default value on creation for the draft_cover_image_url field.
+	sitepage.DefaultDraftCoverImageURL = sitepageDescDraftCoverImageURL.Default.(string)
+	// sitepageDescDraftSeoTitle is the schema descriptor for draft_seo_title field.
+	sitepageDescDraftSeoTitle := sitepageFields[10].Descriptor()
+	// sitepage.DefaultDraftSeoTitle holds the default value on creation for the draft_seo_title field.
+	sitepage.DefaultDraftSeoTitle = sitepageDescDraftSeoTitle.Default.(string)
+	// sitepageDescDraftSeoDescription is the schema descriptor for draft_seo_description field.
+	sitepageDescDraftSeoDescription := sitepageFields[11].Descriptor()
+	// sitepage.DefaultDraftSeoDescription holds the default value on creation for the draft_seo_description field.
+	sitepage.DefaultDraftSeoDescription = sitepageDescDraftSeoDescription.Default.(string)
+	// sitepageDescPublishedTitle is the schema descriptor for published_title field.
+	sitepageDescPublishedTitle := sitepageFields[12].Descriptor()
+	// sitepage.DefaultPublishedTitle holds the default value on creation for the published_title field.
+	sitepage.DefaultPublishedTitle = sitepageDescPublishedTitle.Default.(string)
+	// sitepageDescPublishedSummary is the schema descriptor for published_summary field.
+	sitepageDescPublishedSummary := sitepageFields[13].Descriptor()
+	// sitepage.DefaultPublishedSummary holds the default value on creation for the published_summary field.
+	sitepage.DefaultPublishedSummary = sitepageDescPublishedSummary.Default.(string)
+	// sitepageDescPublishedBodyMd is the schema descriptor for published_body_md field.
+	sitepageDescPublishedBodyMd := sitepageFields[14].Descriptor()
+	// sitepage.DefaultPublishedBodyMd holds the default value on creation for the published_body_md field.
+	sitepage.DefaultPublishedBodyMd = sitepageDescPublishedBodyMd.Default.(string)
+	// sitepageDescPublishedCoverImageURL is the schema descriptor for published_cover_image_url field.
+	sitepageDescPublishedCoverImageURL := sitepageFields[15].Descriptor()
+	// sitepage.DefaultPublishedCoverImageURL holds the default value on creation for the published_cover_image_url field.
+	sitepage.DefaultPublishedCoverImageURL = sitepageDescPublishedCoverImageURL.Default.(string)
+	// sitepageDescPublishedSeoTitle is the schema descriptor for published_seo_title field.
+	sitepageDescPublishedSeoTitle := sitepageFields[16].Descriptor()
+	// sitepage.DefaultPublishedSeoTitle holds the default value on creation for the published_seo_title field.
+	sitepage.DefaultPublishedSeoTitle = sitepageDescPublishedSeoTitle.Default.(string)
+	// sitepageDescPublishedSeoDescription is the schema descriptor for published_seo_description field.
+	sitepageDescPublishedSeoDescription := sitepageFields[17].Descriptor()
+	// sitepage.DefaultPublishedSeoDescription holds the default value on creation for the published_seo_description field.
+	sitepage.DefaultPublishedSeoDescription = sitepageDescPublishedSeoDescription.Default.(string)
+	// sitepageDescPublishedBy is the schema descriptor for published_by field.
+	sitepageDescPublishedBy := sitepageFields[19].Descriptor()
+	// sitepage.DefaultPublishedBy holds the default value on creation for the published_by field.
+	sitepage.DefaultPublishedBy = sitepageDescPublishedBy.Default.(string)
 	sitesettingMixin := schema.SiteSetting{}.Mixin()
 	sitesettingMixinFields0 := sitesettingMixin[0].Fields()
 	_ = sitesettingMixinFields0

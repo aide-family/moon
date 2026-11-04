@@ -2151,6 +2151,59 @@ var (
 			},
 		},
 	}
+	// SitePagesColumns holds the columns for the "site_pages" table.
+	SitePagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString},
+		{Name: "locale", Type: field.TypeString},
+		{Name: "state", Type: field.TypeEnum, Enums: []string{"DRAFT", "PUBLISHED", "ARCHIVED"}, Default: "DRAFT"},
+		{Name: "show_in_nav", Type: field.TypeBool, Default: false},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "draft_title", Type: field.TypeString, Default: ""},
+		{Name: "draft_summary", Type: field.TypeString, Default: ""},
+		{Name: "draft_body_md", Type: field.TypeString, Default: ""},
+		{Name: "draft_cover_image_url", Type: field.TypeString, Default: ""},
+		{Name: "draft_seo_title", Type: field.TypeString, Default: ""},
+		{Name: "draft_seo_description", Type: field.TypeString, Default: ""},
+		{Name: "published_title", Type: field.TypeString, Default: ""},
+		{Name: "published_summary", Type: field.TypeString, Default: ""},
+		{Name: "published_body_md", Type: field.TypeString, Default: ""},
+		{Name: "published_cover_image_url", Type: field.TypeString, Default: ""},
+		{Name: "published_seo_title", Type: field.TypeString, Default: ""},
+		{Name: "published_seo_description", Type: field.TypeString, Default: ""},
+		{Name: "published_at", Type: field.TypeTime, Nullable: true},
+		{Name: "published_by", Type: field.TypeString, Default: ""},
+	}
+	// SitePagesTable holds the schema information for the "site_pages" table.
+	SitePagesTable = &schema.Table{
+		Name:       "site_pages",
+		Columns:    SitePagesColumns,
+		PrimaryKey: []*schema.Column{SitePagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sitepage_uid",
+				Unique:  true,
+				Columns: []*schema.Column{SitePagesColumns[4]},
+			},
+			{
+				Name:    "sitepage_slug_locale",
+				Unique:  true,
+				Columns: []*schema.Column{SitePagesColumns[5], SitePagesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "sitepage_locale_state",
+				Unique:  false,
+				Columns: []*schema.Column{SitePagesColumns[6], SitePagesColumns[7]},
+			},
+		},
+	}
 	// SiteSettingsColumns holds the columns for the "site_settings" table.
 	SiteSettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -2478,6 +2531,7 @@ var (
 		RolePermissionsTable,
 		SSHCommandsTable,
 		SSHCommandAuditsTable,
+		SitePagesTable,
 		SiteSettingsTable,
 		StatusPagesTable,
 		SystemMessagesTable,

@@ -783,7 +783,9 @@ func publicOperation(operation string) bool {
 		v1.OperationAuthServiceBindOAuthEmail,
 		v1.OperationInvitationServiceGetInvitation,
 		v1.OperationStatusPageServiceGetPublicStatusPage,
-		v1.OperationSiteServiceGetSiteConfig:
+		v1.OperationSiteServiceGetSiteConfig,
+		v1.OperationSiteServiceGetPublicSitePage,
+		v1.OperationSiteServiceListPublicSiteNav:
 		return true
 	default:
 		return false

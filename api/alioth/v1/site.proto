@@ -38,6 +38,62 @@ service SiteService {
       body: "*"
     };
   }
+  // 读取公开页面。只返回已发布快照，未发布或不存在一律 404，不泄露草稿存在性。
+  rpc GetPublicSitePage(GetPublicSitePageRequest) returns (GetPublicSitePageResponse) {
+    option (google.api.http) = {get: "/v1/site/pages/{slug}"};
+  }
+  // 读取公开导航：已发布且标记为展示在导航里的页面，按导航顺序排列。
+  rpc ListPublicSiteNav(ListPublicSiteNavRequest) returns (ListPublicSiteNavResponse) {
+    option (google.api.http) = {get: "/v1/site/nav"};
+  }
+  // 列出官网页面（草稿视角），需要 system:site:read。
+  rpc ListSitePages(ListSitePagesRequest) returns (ListSitePagesResponse) {
+    option (google.api.http) = {get: "/v1/system/site/pages"};
+  }
+  // 读取页面详情：草稿与已发布快照各一份，需要 system:site:read。
+  rpc GetSitePage(GetSitePageRequest) returns (GetSitePageResponse) {
+    option (google.api.http) = {get: "/v1/system/site/pages/{uid}"};
+  }
+  // 新建页面，写入草稿且状态为 DRAFT，需要 system:site:write。
+  rpc CreateSitePage(CreateSitePageRequest) returns (CreateSitePageResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/site/pages"
+      body: "*"
+    };
+  }
+  // 保存草稿，不改变发布状态，需要 system:site:write。
+  // 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
+  rpc UpdateSitePage(UpdateSitePageRequest) returns (UpdateSitePageResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/site/pages/{uid}"
+      body: "*"
+    };
+  }
+  // 发布：把草稿复制为发布快照，官网立即生效，需要 system:site:write。
+  rpc PublishSitePage(PublishSitePageRequest) returns (PublishSitePageResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/site/pages/{uid}/publish"
+      body: "*"
+    };
+  }
+  // 下架：状态改为 ARCHIVED，官网立即 404，已发布内容仍保留，需要 system:site:write。
+  rpc UnpublishSitePage(UnpublishSitePageRequest) returns (UnpublishSitePageResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/site/pages/{uid}/unpublish"
+      body: "*"
+    };
+  }
+  // 删除页面（软删），首页不允许删除，需要 system:site:write。
+  rpc DeleteSitePage(DeleteSitePageRequest) returns (DeleteSitePageResponse) {
+    option (google.api.http) = {delete: "/v1/system/site/pages/{uid}"};
+  }
+  // 修改导航展示与顺序，需要 system:site:write。
+  rpc UpdateSitePageNav(UpdateSitePageNavRequest) returns (UpdateSitePageNavResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/site/pages/{uid}/nav"
+      body: "*"
+    };
+  }
 }
 
 // 站点设置。
@@ -155,4 +211,257 @@ message UpdateLoginMethodsRequest {
 message UpdateLoginMethodsResponse {
   // 保存后的登录方式开关。
   LoginMethodsItem login_methods = 1 [json_name = "loginMethods"];
+}
+
+// 官网页面在列表里的展示信息（草稿视角）。
+message SitePageItem {
+  // 页面标识。
+  string uid = 1;
+  // 地址片段，同一语言内唯一；首页固定为 home。
+  string slug = 2;
+  // 语言，取值为 zh 或 en；创建后不可修改。
+  string locale = 3;
+  // 状态，取值为 DRAFT、PUBLISHED 或 ARCHIVED。
+  string state = 4;
+  // 是否展示在官网导航。
+  bool show_in_nav = 5 [json_name = "showInNav"];
+  // 导航顺序，同一语言内唯一。
+  int32 sort_order = 6 [json_name = "sortOrder"];
+  // 草稿标题。
+  string title = 7;
+  // 草稿摘要。
+  string summary = 8;
+  // 草稿与发布快照是否有差异，由服务端比较得出。
+  bool has_unpublished_changes = 9 [json_name = "hasUnpublishedChanges"];
+  // 最后更新时间，RFC3339。
+  string updated_at = 10 [json_name = "updatedAt"];
+  // 最近发布时间，RFC3339；从未发布时为空。
+  string published_at = 11 [json_name = "publishedAt"];
+}
+
+// 页面内容。草稿与发布快照用同一套字段。
+message SitePageContent {
+  // 标题。
+  string title = 1;
+  // 摘要，列表与分享卡片使用。
+  string summary = 2;
+  // 正文 Markdown。
+  string body_md = 3 [json_name = "bodyMd"];
+  // 封面图地址。
+  string cover_image_url = 4 [json_name = "coverImageUrl"];
+  // 搜索引擎标题。
+  string seo_title = 5 [json_name = "seoTitle"];
+  // 搜索引擎描述。
+  string seo_description = 6 [json_name = "seoDescription"];
+}
+
+// 后台页面详情：草稿与发布快照各一份。
+message SitePageDetail {
+  // 列表信息。
+  SitePageItem item = 1;
+  // 草稿内容。
+  SitePageContent draft = 2;
+  // 已发布内容；从未发布时各字段为空。
+  SitePageContent published = 3;
+  // 最近发布人。
+  string published_by = 4 [json_name = "publishedBy"];
+}
+
+// 公开页面。只含已发布字段。
+message PublicSitePage {
+  // 地址片段。
+  string slug = 1;
+  // 实际返回内容的语言。
+  string locale = 2;
+  // 标题。
+  string title = 3;
+  // 摘要。
+  string summary = 4;
+  // 正文 Markdown。
+  string body_md = 5 [json_name = "bodyMd"];
+  // 封面图地址。
+  string cover_image_url = 6 [json_name = "coverImageUrl"];
+  // 搜索引擎标题。
+  string seo_title = 7 [json_name = "seoTitle"];
+  // 搜索引擎描述。
+  string seo_description = 8 [json_name = "seoDescription"];
+  // 发布时间，RFC3339。
+  string published_at = 9 [json_name = "publishedAt"];
+  // 请求的语言没有可用页面、回落到另一种语言时为 true。
+  bool locale_fallback = 10 [json_name = "localeFallback"];
+}
+
+// 公开导航项。
+message SiteNavItem {
+  // 地址片段。
+  string slug = 1;
+  // 导航标题，取已发布标题。
+  string title = 2;
+  // 导航顺序。
+  int32 sort_order = 3 [json_name = "sortOrder"];
+}
+
+// 读取公开页面请求。
+message GetPublicSitePageRequest {
+  // 地址片段。
+  string slug = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 语言，取值为 zh 或 en；留空时按 zh 取，取不到回落到另一种语言。
+  string locale = 2 [(buf.validate.field).string = {in: ["", "zh", "en"]}];
+}
+
+// 读取公开页面响应。
+message GetPublicSitePageResponse {
+  // 页面。
+  PublicSitePage page = 1;
+}
+
+// 读取公开导航请求。
+message ListPublicSiteNavRequest {
+  // 语言，取值为 zh 或 en；留空时按 zh 取。
+  string locale = 1 [(buf.validate.field).string = {in: ["", "zh", "en"]}];
+}
+
+// 读取公开导航响应。
+message ListPublicSiteNavResponse {
+  // 导航项，按导航顺序排列。
+  repeated SiteNavItem items = 1;
+}
+
+// 列出官网页面请求。
+message ListSitePagesRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  // 每页数量。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 1, lte: 100}];
+  // 标题或 slug 模糊搜索，可空。
+  string keyword = 3 [(buf.validate.field).string = {max_len: 64}];
+  // 状态过滤，留空表示不限制。
+  string state = 4 [(buf.validate.field).string = {in: ["", "DRAFT", "PUBLISHED", "ARCHIVED"]}];
+  // 语言过滤，留空表示不限制。
+  string locale = 5 [(buf.validate.field).string = {in: ["", "zh", "en"]}];
+}
+
+// 列出官网页面响应。
+message ListSitePagesResponse {
+  // 当前页的页面。
+  repeated SitePageItem items = 1;
+  // 总数量。
+  int32 total = 2;
+  // 当前页码。
+  int32 page = 3;
+  // 每页数量。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 读取页面详情请求。
+message GetSitePageRequest {
+  // 页面标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 读取页面详情响应。
+message GetSitePageResponse {
+  // 详情。
+  SitePageDetail page = 1;
+}
+
+// 新建页面请求。
+message CreateSitePageRequest {
+  // 地址片段，只允许小写字母、数字与连字符。
+  string slug = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64, pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"}];
+  // 语言，取值为 zh 或 en。
+  string locale = 2 [(buf.validate.field).string = {in: ["zh", "en"]}];
+  // 标题。
+  string title = 3 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  // 摘要。
+  string summary = 4 [(buf.validate.field).string = {max_len: 300}];
+  // 正文 Markdown。
+  string body_md = 5 [json_name = "bodyMd", (buf.validate.field).string = {max_len: 100000}];
+  // 封面图地址。
+  string cover_image_url = 6 [json_name = "coverImageUrl", (buf.validate.field).string = {max_len: 512}];
+  // 搜索引擎标题。
+  string seo_title = 7 [json_name = "seoTitle", (buf.validate.field).string = {max_len: 128}];
+  // 搜索引擎描述。
+  string seo_description = 8 [json_name = "seoDescription", (buf.validate.field).string = {max_len: 320}];
+}
+
+// 新建页面响应。
+message CreateSitePageResponse {
+  // 新建后的详情。
+  SitePageDetail page = 1;
+}
+
+// 保存草稿请求。
+message UpdateSitePageRequest {
+  // 页面标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 标题。
+  string title = 2 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  // 摘要。
+  string summary = 3 [(buf.validate.field).string = {max_len: 300}];
+  // 正文 Markdown。
+  string body_md = 4 [json_name = "bodyMd", (buf.validate.field).string = {max_len: 100000}];
+  // 封面图地址。
+  string cover_image_url = 5 [json_name = "coverImageUrl", (buf.validate.field).string = {max_len: 512}];
+  // 搜索引擎标题。
+  string seo_title = 6 [json_name = "seoTitle", (buf.validate.field).string = {max_len: 128}];
+  // 搜索引擎描述。
+  string seo_description = 7 [json_name = "seoDescription", (buf.validate.field).string = {max_len: 320}];
+  // 客户端读到的最后更新时间，RFC3339；用于乐观锁，留空表示不做冲突检查。
+  string updated_at = 8 [json_name = "updatedAt"];
+}
+
+// 保存草稿响应。
+message UpdateSitePageResponse {
+  // 保存后的详情。
+  SitePageDetail page = 1;
+}
+
+// 发布请求。
+message PublishSitePageRequest {
+  // 页面标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 发布响应。
+message PublishSitePageResponse {
+  // 发布后的详情。
+  SitePageDetail page = 1;
+}
+
+// 下架请求。
+message UnpublishSitePageRequest {
+  // 页面标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 下架响应。
+message UnpublishSitePageResponse {
+  // 下架后的详情。
+  SitePageDetail page = 1;
+}
+
+// 删除页面请求。
+message DeleteSitePageRequest {
+  // 页面标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除页面响应。
+message DeleteSitePageResponse {}
+
+// 修改导航请求。
+message UpdateSitePageNavRequest {
+  // 页面标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 是否展示在导航。
+  bool show_in_nav = 2 [json_name = "showInNav"];
+  // 导航顺序。
+  int32 sort_order = 3 [json_name = "sortOrder", (buf.validate.field).int32 = {gte: 0, lte: 999}];
+}
+
+// 修改导航响应。
+message UpdateSitePageNavResponse {
+  // 修改后的详情。
+  SitePageDetail page = 1;
 }

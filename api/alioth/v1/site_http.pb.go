@@ -17,22 +17,53 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationSiteServiceCreateSitePage = "/alioth.v1.SiteService/CreateSitePage"
+const OperationSiteServiceDeleteSitePage = "/alioth.v1.SiteService/DeleteSitePage"
 const OperationSiteServiceGetLoginMethods = "/alioth.v1.SiteService/GetLoginMethods"
+const OperationSiteServiceGetPublicSitePage = "/alioth.v1.SiteService/GetPublicSitePage"
 const OperationSiteServiceGetSiteConfig = "/alioth.v1.SiteService/GetSiteConfig"
+const OperationSiteServiceGetSitePage = "/alioth.v1.SiteService/GetSitePage"
 const OperationSiteServiceGetSiteSettings = "/alioth.v1.SiteService/GetSiteSettings"
+const OperationSiteServiceListPublicSiteNav = "/alioth.v1.SiteService/ListPublicSiteNav"
+const OperationSiteServiceListSitePages = "/alioth.v1.SiteService/ListSitePages"
+const OperationSiteServicePublishSitePage = "/alioth.v1.SiteService/PublishSitePage"
+const OperationSiteServiceUnpublishSitePage = "/alioth.v1.SiteService/UnpublishSitePage"
 const OperationSiteServiceUpdateLoginMethods = "/alioth.v1.SiteService/UpdateLoginMethods"
+const OperationSiteServiceUpdateSitePage = "/alioth.v1.SiteService/UpdateSitePage"
+const OperationSiteServiceUpdateSitePageNav = "/alioth.v1.SiteService/UpdateSitePageNav"
 const OperationSiteServiceUpdateSiteSettings = "/alioth.v1.SiteService/UpdateSiteSettings"
 
 type SiteServiceHTTPServer interface {
+	// CreateSitePage 新建页面，写入草稿且状态为 DRAFT，需要 system:site:write。
+	CreateSitePage(context.Context, *CreateSitePageRequest) (*CreateSitePageResponse, error)
+	// DeleteSitePage 删除页面（软删），首页不允许删除，需要 system:site:write。
+	DeleteSitePage(context.Context, *DeleteSitePageRequest) (*DeleteSitePageResponse, error)
 	// GetLoginMethods 读取登录方式开关。
 	GetLoginMethods(context.Context, *GetLoginMethodsRequest) (*GetLoginMethodsResponse, error)
+	// GetPublicSitePage 读取公开页面。只返回已发布快照，未发布或不存在一律 404，不泄露草稿存在性。
+	GetPublicSitePage(context.Context, *GetPublicSitePageRequest) (*GetPublicSitePageResponse, error)
 	// GetSiteConfig 读取公开站点配置：站点信息、页脚备案与登录方式开关。
 	// 登录页、注册页与官网共用这一份配置，避免同一份备案号出现多个来源。
 	GetSiteConfig(context.Context, *GetSiteConfigRequest) (*GetSiteConfigResponse, error)
+	// GetSitePage 读取页面详情：草稿与已发布快照各一份，需要 system:site:read。
+	GetSitePage(context.Context, *GetSitePageRequest) (*GetSitePageResponse, error)
 	// GetSiteSettings 读取站点设置。
 	GetSiteSettings(context.Context, *GetSiteSettingsRequest) (*GetSiteSettingsResponse, error)
+	// ListPublicSiteNav 读取公开导航：已发布且标记为展示在导航里的页面，按导航顺序排列。
+	ListPublicSiteNav(context.Context, *ListPublicSiteNavRequest) (*ListPublicSiteNavResponse, error)
+	// ListSitePages 列出官网页面（草稿视角），需要 system:site:read。
+	ListSitePages(context.Context, *ListSitePagesRequest) (*ListSitePagesResponse, error)
+	// PublishSitePage 发布：把草稿复制为发布快照，官网立即生效，需要 system:site:write。
+	PublishSitePage(context.Context, *PublishSitePageRequest) (*PublishSitePageResponse, error)
+	// UnpublishSitePage 下架：状态改为 ARCHIVED，官网立即 404，已发布内容仍保留，需要 system:site:write。
+	UnpublishSitePage(context.Context, *UnpublishSitePageRequest) (*UnpublishSitePageResponse, error)
 	// UpdateLoginMethods 保存登录方式开关。邮箱验证码与第三方登录至少要保留一种。
 	UpdateLoginMethods(context.Context, *UpdateLoginMethodsRequest) (*UpdateLoginMethodsResponse, error)
+	// UpdateSitePage 保存草稿，不改变发布状态，需要 system:site:write。
+	// 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
+	UpdateSitePage(context.Context, *UpdateSitePageRequest) (*UpdateSitePageResponse, error)
+	// UpdateSitePageNav 修改导航展示与顺序，需要 system:site:write。
+	UpdateSitePageNav(context.Context, *UpdateSitePageNavRequest) (*UpdateSitePageNavResponse, error)
 	// UpdateSiteSettings 保存站点设置。全量覆盖，留空的备案字段表示官网页脚不展示该行。
 	UpdateSiteSettings(context.Context, *UpdateSiteSettingsRequest) (*UpdateSiteSettingsResponse, error)
 }
@@ -44,6 +75,16 @@ func RegisterSiteServiceHTTPServer(s *http.Server, srv SiteServiceHTTPServer) {
 	r.Handle("PUT", "/v1/system/site", _SiteService_UpdateSiteSettings0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/system/auth/login-methods", _SiteService_GetLoginMethods0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/system/auth/login-methods", _SiteService_UpdateLoginMethods0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/site/pages/{slug}", _SiteService_GetPublicSitePage0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/site/nav", _SiteService_ListPublicSiteNav0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/site/pages", _SiteService_ListSitePages0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/site/pages/{uid}", _SiteService_GetSitePage0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/system/site/pages", _SiteService_CreateSitePage0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/system/site/pages/{uid}", _SiteService_UpdateSitePage0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/system/site/pages/{uid}/publish", _SiteService_PublishSitePage0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/system/site/pages/{uid}/unpublish", _SiteService_UnpublishSitePage0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/system/site/pages/{uid}", _SiteService_DeleteSitePage0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/system/site/pages/{uid}/nav", _SiteService_UpdateSitePageNav0_HTTP_Handler(srv))
 }
 
 func _SiteService_GetSiteConfig0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
@@ -141,16 +182,248 @@ func _SiteService_UpdateLoginMethods0_HTTP_Handler(srv SiteServiceHTTPServer) fu
 	}
 }
 
+func _SiteService_GetPublicSitePage0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetPublicSitePageRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceGetPublicSitePage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetPublicSitePage(ctx, req.(*GetPublicSitePageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetPublicSitePageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_ListPublicSiteNav0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPublicSiteNavRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceListPublicSiteNav)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPublicSiteNav(ctx, req.(*ListPublicSiteNavRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListPublicSiteNavResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_ListSitePages0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListSitePagesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceListSitePages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSitePages(ctx, req.(*ListSitePagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSitePagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_GetSitePage0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetSitePageRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceGetSitePage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetSitePage(ctx, req.(*GetSitePageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetSitePageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_CreateSitePage0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateSitePageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceCreateSitePage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateSitePage(ctx, req.(*CreateSitePageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateSitePageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_UpdateSitePage0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateSitePageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceUpdateSitePage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateSitePage(ctx, req.(*UpdateSitePageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateSitePageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_PublishSitePage0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PublishSitePageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServicePublishSitePage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PublishSitePage(ctx, req.(*PublishSitePageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PublishSitePageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_UnpublishSitePage0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UnpublishSitePageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceUnpublishSitePage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UnpublishSitePage(ctx, req.(*UnpublishSitePageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UnpublishSitePageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_DeleteSitePage0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteSitePageRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceDeleteSitePage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteSitePage(ctx, req.(*DeleteSitePageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteSitePageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_UpdateSitePageNav0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateSitePageNavRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceUpdateSitePageNav)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateSitePageNav(ctx, req.(*UpdateSitePageNavRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateSitePageNavResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SiteServiceHTTPClient interface {
+	// CreateSitePage 新建页面，写入草稿且状态为 DRAFT，需要 system:site:write。
+	CreateSitePage(ctx context.Context, req *CreateSitePageRequest, opts ...http.CallOption) (rsp *CreateSitePageResponse, err error)
+	// DeleteSitePage 删除页面（软删），首页不允许删除，需要 system:site:write。
+	DeleteSitePage(ctx context.Context, req *DeleteSitePageRequest, opts ...http.CallOption) (rsp *DeleteSitePageResponse, err error)
 	// GetLoginMethods 读取登录方式开关。
 	GetLoginMethods(ctx context.Context, req *GetLoginMethodsRequest, opts ...http.CallOption) (rsp *GetLoginMethodsResponse, err error)
+	// GetPublicSitePage 读取公开页面。只返回已发布快照，未发布或不存在一律 404，不泄露草稿存在性。
+	GetPublicSitePage(ctx context.Context, req *GetPublicSitePageRequest, opts ...http.CallOption) (rsp *GetPublicSitePageResponse, err error)
 	// GetSiteConfig 读取公开站点配置：站点信息、页脚备案与登录方式开关。
 	// 登录页、注册页与官网共用这一份配置，避免同一份备案号出现多个来源。
 	GetSiteConfig(ctx context.Context, req *GetSiteConfigRequest, opts ...http.CallOption) (rsp *GetSiteConfigResponse, err error)
+	// GetSitePage 读取页面详情：草稿与已发布快照各一份，需要 system:site:read。
+	GetSitePage(ctx context.Context, req *GetSitePageRequest, opts ...http.CallOption) (rsp *GetSitePageResponse, err error)
 	// GetSiteSettings 读取站点设置。
 	GetSiteSettings(ctx context.Context, req *GetSiteSettingsRequest, opts ...http.CallOption) (rsp *GetSiteSettingsResponse, err error)
+	// ListPublicSiteNav 读取公开导航：已发布且标记为展示在导航里的页面，按导航顺序排列。
+	ListPublicSiteNav(ctx context.Context, req *ListPublicSiteNavRequest, opts ...http.CallOption) (rsp *ListPublicSiteNavResponse, err error)
+	// ListSitePages 列出官网页面（草稿视角），需要 system:site:read。
+	ListSitePages(ctx context.Context, req *ListSitePagesRequest, opts ...http.CallOption) (rsp *ListSitePagesResponse, err error)
+	// PublishSitePage 发布：把草稿复制为发布快照，官网立即生效，需要 system:site:write。
+	PublishSitePage(ctx context.Context, req *PublishSitePageRequest, opts ...http.CallOption) (rsp *PublishSitePageResponse, err error)
+	// UnpublishSitePage 下架：状态改为 ARCHIVED，官网立即 404，已发布内容仍保留，需要 system:site:write。
+	UnpublishSitePage(ctx context.Context, req *UnpublishSitePageRequest, opts ...http.CallOption) (rsp *UnpublishSitePageResponse, err error)
 	// UpdateLoginMethods 保存登录方式开关。邮箱验证码与第三方登录至少要保留一种。
 	UpdateLoginMethods(ctx context.Context, req *UpdateLoginMethodsRequest, opts ...http.CallOption) (rsp *UpdateLoginMethodsResponse, err error)
+	// UpdateSitePage 保存草稿，不改变发布状态，需要 system:site:write。
+	// 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
+	UpdateSitePage(ctx context.Context, req *UpdateSitePageRequest, opts ...http.CallOption) (rsp *UpdateSitePageResponse, err error)
+	// UpdateSitePageNav 修改导航展示与顺序，需要 system:site:write。
+	UpdateSitePageNav(ctx context.Context, req *UpdateSitePageNavRequest, opts ...http.CallOption) (rsp *UpdateSitePageNavResponse, err error)
 	// UpdateSiteSettings 保存站点设置。全量覆盖，留空的备案字段表示官网页脚不展示该行。
 	UpdateSiteSettings(ctx context.Context, req *UpdateSiteSettingsRequest, opts ...http.CallOption) (rsp *UpdateSiteSettingsResponse, err error)
 }
@@ -163,6 +436,41 @@ func NewSiteServiceHTTPClient(client *http.Client) SiteServiceHTTPClient {
 	return &SiteServiceHTTPClientImpl{client}
 }
 
+// CreateSitePage 新建页面，写入草稿且状态为 DRAFT，需要 system:site:write。
+func (c *SiteServiceHTTPClientImpl) CreateSitePage(ctx context.Context, in *CreateSitePageRequest, opts ...http.CallOption) (*CreateSitePageResponse, error) {
+	var out CreateSitePageResponse
+	pattern := "/v1/system/site/pages"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSiteServiceCreateSitePage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteSitePage 删除页面（软删），首页不允许删除，需要 system:site:write。
+func (c *SiteServiceHTTPClientImpl) DeleteSitePage(ctx context.Context, in *DeleteSitePageRequest, opts ...http.CallOption) (*DeleteSitePageResponse, error) {
+	var out DeleteSitePageResponse
+	pattern := "/v1/system/site/pages/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSiteServiceDeleteSitePage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetLoginMethods 读取登录方式开关。
 func (c *SiteServiceHTTPClientImpl) GetLoginMethods(ctx context.Context, in *GetLoginMethodsRequest, opts ...http.CallOption) (*GetLoginMethodsResponse, error) {
 	var out GetLoginMethodsResponse
@@ -171,6 +479,23 @@ func (c *SiteServiceHTTPClientImpl) GetLoginMethods(ctx context.Context, in *Get
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSiteServiceGetLoginMethods),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPublicSitePage 读取公开页面。只返回已发布快照，未发布或不存在一律 404，不泄露草稿存在性。
+func (c *SiteServiceHTTPClientImpl) GetPublicSitePage(ctx context.Context, in *GetPublicSitePageRequest, opts ...http.CallOption) (*GetPublicSitePageResponse, error) {
+	var out GetPublicSitePageResponse
+	pattern := "/v1/site/pages/{slug}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSiteServiceGetPublicSitePage),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -198,6 +523,23 @@ func (c *SiteServiceHTTPClientImpl) GetSiteConfig(ctx context.Context, in *GetSi
 	return &out, nil
 }
 
+// GetSitePage 读取页面详情：草稿与已发布快照各一份，需要 system:site:read。
+func (c *SiteServiceHTTPClientImpl) GetSitePage(ctx context.Context, in *GetSitePageRequest, opts ...http.CallOption) (*GetSitePageResponse, error) {
+	var out GetSitePageResponse
+	pattern := "/v1/system/site/pages/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSiteServiceGetSitePage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetSiteSettings 读取站点设置。
 func (c *SiteServiceHTTPClientImpl) GetSiteSettings(ctx context.Context, in *GetSiteSettingsRequest, opts ...http.CallOption) (*GetSiteSettingsResponse, error) {
 	var out GetSiteSettingsResponse
@@ -215,6 +557,76 @@ func (c *SiteServiceHTTPClientImpl) GetSiteSettings(ctx context.Context, in *Get
 	return &out, nil
 }
 
+// ListPublicSiteNav 读取公开导航：已发布且标记为展示在导航里的页面，按导航顺序排列。
+func (c *SiteServiceHTTPClientImpl) ListPublicSiteNav(ctx context.Context, in *ListPublicSiteNavRequest, opts ...http.CallOption) (*ListPublicSiteNavResponse, error) {
+	var out ListPublicSiteNavResponse
+	pattern := "/v1/site/nav"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSiteServiceListPublicSiteNav),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListSitePages 列出官网页面（草稿视角），需要 system:site:read。
+func (c *SiteServiceHTTPClientImpl) ListSitePages(ctx context.Context, in *ListSitePagesRequest, opts ...http.CallOption) (*ListSitePagesResponse, error) {
+	var out ListSitePagesResponse
+	pattern := "/v1/system/site/pages"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSiteServiceListSitePages),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PublishSitePage 发布：把草稿复制为发布快照，官网立即生效，需要 system:site:write。
+func (c *SiteServiceHTTPClientImpl) PublishSitePage(ctx context.Context, in *PublishSitePageRequest, opts ...http.CallOption) (*PublishSitePageResponse, error) {
+	var out PublishSitePageResponse
+	pattern := "/v1/system/site/pages/{uid}/publish"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSiteServicePublishSitePage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UnpublishSitePage 下架：状态改为 ARCHIVED，官网立即 404，已发布内容仍保留，需要 system:site:write。
+func (c *SiteServiceHTTPClientImpl) UnpublishSitePage(ctx context.Context, in *UnpublishSitePageRequest, opts ...http.CallOption) (*UnpublishSitePageResponse, error) {
+	var out UnpublishSitePageResponse
+	pattern := "/v1/system/site/pages/{uid}/unpublish"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSiteServiceUnpublishSitePage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // UpdateLoginMethods 保存登录方式开关。邮箱验证码与第三方登录至少要保留一种。
 func (c *SiteServiceHTTPClientImpl) UpdateLoginMethods(ctx context.Context, in *UpdateLoginMethodsRequest, opts ...http.CallOption) (*UpdateLoginMethodsResponse, error) {
 	var out UpdateLoginMethodsResponse
@@ -224,6 +636,43 @@ func (c *SiteServiceHTTPClientImpl) UpdateLoginMethods(ctx context.Context, in *
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSiteServiceUpdateLoginMethods),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateSitePage 保存草稿，不改变发布状态，需要 system:site:write。
+// 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
+func (c *SiteServiceHTTPClientImpl) UpdateSitePage(ctx context.Context, in *UpdateSitePageRequest, opts ...http.CallOption) (*UpdateSitePageResponse, error) {
+	var out UpdateSitePageResponse
+	pattern := "/v1/system/site/pages/{uid}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSiteServiceUpdateSitePage),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateSitePageNav 修改导航展示与顺序，需要 system:site:write。
+func (c *SiteServiceHTTPClientImpl) UpdateSitePageNav(ctx context.Context, in *UpdateSitePageNavRequest, opts ...http.CallOption) (*UpdateSitePageNavResponse, error) {
+	var out UpdateSitePageNavResponse
+	pattern := "/v1/system/site/pages/{uid}/nav"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSiteServiceUpdateSitePageNav),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

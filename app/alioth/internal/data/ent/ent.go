@@ -63,6 +63,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitepage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
@@ -185,6 +186,7 @@ func checkColumn(t, c string) error {
 			rolepermission.Table:                rolepermission.ValidColumn,
 			sshcommand.Table:                    sshcommand.ValidColumn,
 			sshcommandaudit.Table:               sshcommandaudit.ValidColumn,
+			sitepage.Table:                      sitepage.ValidColumn,
 			sitesetting.Table:                   sitesetting.ValidColumn,
 			statuspage.Table:                    statuspage.ValidColumn,
 			systemmessage.Table:                 systemmessage.ValidColumn,

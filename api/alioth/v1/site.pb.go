@@ -791,6 +791,1624 @@ func (x *UpdateLoginMethodsResponse) GetLoginMethods() *LoginMethodsItem {
 	return nil
 }
 
+// 官网页面在列表里的展示信息（草稿视角）。
+type SitePageItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页面标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 地址片段，同一语言内唯一；首页固定为 home。
+	Slug string `protobuf:"bytes,2,opt,name=slug,proto3" json:"slug,omitempty"`
+	// 语言，取值为 zh 或 en；创建后不可修改。
+	Locale string `protobuf:"bytes,3,opt,name=locale,proto3" json:"locale,omitempty"`
+	// 状态，取值为 DRAFT、PUBLISHED 或 ARCHIVED。
+	State string `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	// 是否展示在官网导航。
+	ShowInNav bool `protobuf:"varint,5,opt,name=show_in_nav,json=showInNav,proto3" json:"show_in_nav,omitempty"`
+	// 导航顺序，同一语言内唯一。
+	SortOrder int32 `protobuf:"varint,6,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	// 草稿标题。
+	Title string `protobuf:"bytes,7,opt,name=title,proto3" json:"title,omitempty"`
+	// 草稿摘要。
+	Summary string `protobuf:"bytes,8,opt,name=summary,proto3" json:"summary,omitempty"`
+	// 草稿与发布快照是否有差异，由服务端比较得出。
+	HasUnpublishedChanges bool `protobuf:"varint,9,opt,name=has_unpublished_changes,json=hasUnpublishedChanges,proto3" json:"has_unpublished_changes,omitempty"`
+	// 最后更新时间，RFC3339。
+	UpdatedAt string `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// 最近发布时间，RFC3339；从未发布时为空。
+	PublishedAt   string `protobuf:"bytes,11,opt,name=published_at,json=publishedAt,proto3" json:"published_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SitePageItem) Reset() {
+	*x = SitePageItem{}
+	mi := &file_alioth_v1_site_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SitePageItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SitePageItem) ProtoMessage() {}
+
+func (x *SitePageItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SitePageItem.ProtoReflect.Descriptor instead.
+func (*SitePageItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *SitePageItem) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *SitePageItem) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *SitePageItem) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+func (x *SitePageItem) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *SitePageItem) GetShowInNav() bool {
+	if x != nil {
+		return x.ShowInNav
+	}
+	return false
+}
+
+func (x *SitePageItem) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+func (x *SitePageItem) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *SitePageItem) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *SitePageItem) GetHasUnpublishedChanges() bool {
+	if x != nil {
+		return x.HasUnpublishedChanges
+	}
+	return false
+}
+
+func (x *SitePageItem) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *SitePageItem) GetPublishedAt() string {
+	if x != nil {
+		return x.PublishedAt
+	}
+	return ""
+}
+
+// 页面内容。草稿与发布快照用同一套字段。
+type SitePageContent struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标题。
+	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	// 摘要，列表与分享卡片使用。
+	Summary string `protobuf:"bytes,2,opt,name=summary,proto3" json:"summary,omitempty"`
+	// 正文 Markdown。
+	BodyMd string `protobuf:"bytes,3,opt,name=body_md,json=bodyMd,proto3" json:"body_md,omitempty"`
+	// 封面图地址。
+	CoverImageUrl string `protobuf:"bytes,4,opt,name=cover_image_url,json=coverImageUrl,proto3" json:"cover_image_url,omitempty"`
+	// 搜索引擎标题。
+	SeoTitle string `protobuf:"bytes,5,opt,name=seo_title,json=seoTitle,proto3" json:"seo_title,omitempty"`
+	// 搜索引擎描述。
+	SeoDescription string `protobuf:"bytes,6,opt,name=seo_description,json=seoDescription,proto3" json:"seo_description,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *SitePageContent) Reset() {
+	*x = SitePageContent{}
+	mi := &file_alioth_v1_site_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SitePageContent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SitePageContent) ProtoMessage() {}
+
+func (x *SitePageContent) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SitePageContent.ProtoReflect.Descriptor instead.
+func (*SitePageContent) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *SitePageContent) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *SitePageContent) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *SitePageContent) GetBodyMd() string {
+	if x != nil {
+		return x.BodyMd
+	}
+	return ""
+}
+
+func (x *SitePageContent) GetCoverImageUrl() string {
+	if x != nil {
+		return x.CoverImageUrl
+	}
+	return ""
+}
+
+func (x *SitePageContent) GetSeoTitle() string {
+	if x != nil {
+		return x.SeoTitle
+	}
+	return ""
+}
+
+func (x *SitePageContent) GetSeoDescription() string {
+	if x != nil {
+		return x.SeoDescription
+	}
+	return ""
+}
+
+// 后台页面详情：草稿与发布快照各一份。
+type SitePageDetail struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 列表信息。
+	Item *SitePageItem `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
+	// 草稿内容。
+	Draft *SitePageContent `protobuf:"bytes,2,opt,name=draft,proto3" json:"draft,omitempty"`
+	// 已发布内容；从未发布时各字段为空。
+	Published *SitePageContent `protobuf:"bytes,3,opt,name=published,proto3" json:"published,omitempty"`
+	// 最近发布人。
+	PublishedBy   string `protobuf:"bytes,4,opt,name=published_by,json=publishedBy,proto3" json:"published_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SitePageDetail) Reset() {
+	*x = SitePageDetail{}
+	mi := &file_alioth_v1_site_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SitePageDetail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SitePageDetail) ProtoMessage() {}
+
+func (x *SitePageDetail) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SitePageDetail.ProtoReflect.Descriptor instead.
+func (*SitePageDetail) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SitePageDetail) GetItem() *SitePageItem {
+	if x != nil {
+		return x.Item
+	}
+	return nil
+}
+
+func (x *SitePageDetail) GetDraft() *SitePageContent {
+	if x != nil {
+		return x.Draft
+	}
+	return nil
+}
+
+func (x *SitePageDetail) GetPublished() *SitePageContent {
+	if x != nil {
+		return x.Published
+	}
+	return nil
+}
+
+func (x *SitePageDetail) GetPublishedBy() string {
+	if x != nil {
+		return x.PublishedBy
+	}
+	return ""
+}
+
+// 公开页面。只含已发布字段。
+type PublicSitePage struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 地址片段。
+	Slug string `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	// 实际返回内容的语言。
+	Locale string `protobuf:"bytes,2,opt,name=locale,proto3" json:"locale,omitempty"`
+	// 标题。
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// 摘要。
+	Summary string `protobuf:"bytes,4,opt,name=summary,proto3" json:"summary,omitempty"`
+	// 正文 Markdown。
+	BodyMd string `protobuf:"bytes,5,opt,name=body_md,json=bodyMd,proto3" json:"body_md,omitempty"`
+	// 封面图地址。
+	CoverImageUrl string `protobuf:"bytes,6,opt,name=cover_image_url,json=coverImageUrl,proto3" json:"cover_image_url,omitempty"`
+	// 搜索引擎标题。
+	SeoTitle string `protobuf:"bytes,7,opt,name=seo_title,json=seoTitle,proto3" json:"seo_title,omitempty"`
+	// 搜索引擎描述。
+	SeoDescription string `protobuf:"bytes,8,opt,name=seo_description,json=seoDescription,proto3" json:"seo_description,omitempty"`
+	// 发布时间，RFC3339。
+	PublishedAt string `protobuf:"bytes,9,opt,name=published_at,json=publishedAt,proto3" json:"published_at,omitempty"`
+	// 请求的语言没有可用页面、回落到另一种语言时为 true。
+	LocaleFallback bool `protobuf:"varint,10,opt,name=locale_fallback,json=localeFallback,proto3" json:"locale_fallback,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *PublicSitePage) Reset() {
+	*x = PublicSitePage{}
+	mi := &file_alioth_v1_site_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublicSitePage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublicSitePage) ProtoMessage() {}
+
+func (x *PublicSitePage) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublicSitePage.ProtoReflect.Descriptor instead.
+func (*PublicSitePage) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *PublicSitePage) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *PublicSitePage) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+func (x *PublicSitePage) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PublicSitePage) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *PublicSitePage) GetBodyMd() string {
+	if x != nil {
+		return x.BodyMd
+	}
+	return ""
+}
+
+func (x *PublicSitePage) GetCoverImageUrl() string {
+	if x != nil {
+		return x.CoverImageUrl
+	}
+	return ""
+}
+
+func (x *PublicSitePage) GetSeoTitle() string {
+	if x != nil {
+		return x.SeoTitle
+	}
+	return ""
+}
+
+func (x *PublicSitePage) GetSeoDescription() string {
+	if x != nil {
+		return x.SeoDescription
+	}
+	return ""
+}
+
+func (x *PublicSitePage) GetPublishedAt() string {
+	if x != nil {
+		return x.PublishedAt
+	}
+	return ""
+}
+
+func (x *PublicSitePage) GetLocaleFallback() bool {
+	if x != nil {
+		return x.LocaleFallback
+	}
+	return false
+}
+
+// 公开导航项。
+type SiteNavItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 地址片段。
+	Slug string `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	// 导航标题，取已发布标题。
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// 导航顺序。
+	SortOrder     int32 `protobuf:"varint,3,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SiteNavItem) Reset() {
+	*x = SiteNavItem{}
+	mi := &file_alioth_v1_site_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SiteNavItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SiteNavItem) ProtoMessage() {}
+
+func (x *SiteNavItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SiteNavItem.ProtoReflect.Descriptor instead.
+func (*SiteNavItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *SiteNavItem) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *SiteNavItem) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *SiteNavItem) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+// 读取公开页面请求。
+type GetPublicSitePageRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 地址片段。
+	Slug string `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	// 语言，取值为 zh 或 en；留空时按 zh 取，取不到回落到另一种语言。
+	Locale        string `protobuf:"bytes,2,opt,name=locale,proto3" json:"locale,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPublicSitePageRequest) Reset() {
+	*x = GetPublicSitePageRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPublicSitePageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublicSitePageRequest) ProtoMessage() {}
+
+func (x *GetPublicSitePageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublicSitePageRequest.ProtoReflect.Descriptor instead.
+func (*GetPublicSitePageRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetPublicSitePageRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *GetPublicSitePageRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+// 读取公开页面响应。
+type GetPublicSitePageResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页面。
+	Page          *PublicSitePage `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPublicSitePageResponse) Reset() {
+	*x = GetPublicSitePageResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPublicSitePageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublicSitePageResponse) ProtoMessage() {}
+
+func (x *GetPublicSitePageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublicSitePageResponse.ProtoReflect.Descriptor instead.
+func (*GetPublicSitePageResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GetPublicSitePageResponse) GetPage() *PublicSitePage {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// 读取公开导航请求。
+type ListPublicSiteNavRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 语言，取值为 zh 或 en；留空时按 zh 取。
+	Locale        string `protobuf:"bytes,1,opt,name=locale,proto3" json:"locale,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPublicSiteNavRequest) Reset() {
+	*x = ListPublicSiteNavRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPublicSiteNavRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPublicSiteNavRequest) ProtoMessage() {}
+
+func (x *ListPublicSiteNavRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPublicSiteNavRequest.ProtoReflect.Descriptor instead.
+func (*ListPublicSiteNavRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ListPublicSiteNavRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+// 读取公开导航响应。
+type ListPublicSiteNavResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 导航项，按导航顺序排列。
+	Items         []*SiteNavItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPublicSiteNavResponse) Reset() {
+	*x = ListPublicSiteNavResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPublicSiteNavResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPublicSiteNavResponse) ProtoMessage() {}
+
+func (x *ListPublicSiteNavResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPublicSiteNavResponse.ProtoReflect.Descriptor instead.
+func (*ListPublicSiteNavResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ListPublicSiteNavResponse) GetItems() []*SiteNavItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+// 列出官网页面请求。
+type ListSitePagesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页码，从 1 开始。
+	Page int32 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页数量。
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 标题或 slug 模糊搜索，可空。
+	Keyword string `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	// 状态过滤，留空表示不限制。
+	State string `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	// 语言过滤，留空表示不限制。
+	Locale        string `protobuf:"bytes,5,opt,name=locale,proto3" json:"locale,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSitePagesRequest) Reset() {
+	*x = ListSitePagesRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSitePagesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSitePagesRequest) ProtoMessage() {}
+
+func (x *ListSitePagesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSitePagesRequest.ProtoReflect.Descriptor instead.
+func (*ListSitePagesRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ListSitePagesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListSitePagesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListSitePagesRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListSitePagesRequest) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *ListSitePagesRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+// 列出官网页面响应。
+type ListSitePagesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页的页面。
+	Items []*SitePageItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 总数量。
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// 当前页码。
+	Page int32 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页数量。
+	PageSize      int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSitePagesResponse) Reset() {
+	*x = ListSitePagesResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSitePagesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSitePagesResponse) ProtoMessage() {}
+
+func (x *ListSitePagesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSitePagesResponse.ProtoReflect.Descriptor instead.
+func (*ListSitePagesResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListSitePagesResponse) GetItems() []*SitePageItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *ListSitePagesResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListSitePagesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListSitePagesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+// 读取页面详情请求。
+type GetSitePageRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页面标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSitePageRequest) Reset() {
+	*x = GetSitePageRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSitePageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSitePageRequest) ProtoMessage() {}
+
+func (x *GetSitePageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSitePageRequest.ProtoReflect.Descriptor instead.
+func (*GetSitePageRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *GetSitePageRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 读取页面详情响应。
+type GetSitePageResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 详情。
+	Page          *SitePageDetail `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSitePageResponse) Reset() {
+	*x = GetSitePageResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSitePageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSitePageResponse) ProtoMessage() {}
+
+func (x *GetSitePageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSitePageResponse.ProtoReflect.Descriptor instead.
+func (*GetSitePageResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *GetSitePageResponse) GetPage() *SitePageDetail {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// 新建页面请求。
+type CreateSitePageRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 地址片段，只允许小写字母、数字与连字符。
+	Slug string `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	// 语言，取值为 zh 或 en。
+	Locale string `protobuf:"bytes,2,opt,name=locale,proto3" json:"locale,omitempty"`
+	// 标题。
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// 摘要。
+	Summary string `protobuf:"bytes,4,opt,name=summary,proto3" json:"summary,omitempty"`
+	// 正文 Markdown。
+	BodyMd string `protobuf:"bytes,5,opt,name=body_md,json=bodyMd,proto3" json:"body_md,omitempty"`
+	// 封面图地址。
+	CoverImageUrl string `protobuf:"bytes,6,opt,name=cover_image_url,json=coverImageUrl,proto3" json:"cover_image_url,omitempty"`
+	// 搜索引擎标题。
+	SeoTitle string `protobuf:"bytes,7,opt,name=seo_title,json=seoTitle,proto3" json:"seo_title,omitempty"`
+	// 搜索引擎描述。
+	SeoDescription string `protobuf:"bytes,8,opt,name=seo_description,json=seoDescription,proto3" json:"seo_description,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CreateSitePageRequest) Reset() {
+	*x = CreateSitePageRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSitePageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSitePageRequest) ProtoMessage() {}
+
+func (x *CreateSitePageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSitePageRequest.ProtoReflect.Descriptor instead.
+func (*CreateSitePageRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CreateSitePageRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *CreateSitePageRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+func (x *CreateSitePageRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *CreateSitePageRequest) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *CreateSitePageRequest) GetBodyMd() string {
+	if x != nil {
+		return x.BodyMd
+	}
+	return ""
+}
+
+func (x *CreateSitePageRequest) GetCoverImageUrl() string {
+	if x != nil {
+		return x.CoverImageUrl
+	}
+	return ""
+}
+
+func (x *CreateSitePageRequest) GetSeoTitle() string {
+	if x != nil {
+		return x.SeoTitle
+	}
+	return ""
+}
+
+func (x *CreateSitePageRequest) GetSeoDescription() string {
+	if x != nil {
+		return x.SeoDescription
+	}
+	return ""
+}
+
+// 新建页面响应。
+type CreateSitePageResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 新建后的详情。
+	Page          *SitePageDetail `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSitePageResponse) Reset() {
+	*x = CreateSitePageResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSitePageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSitePageResponse) ProtoMessage() {}
+
+func (x *CreateSitePageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSitePageResponse.ProtoReflect.Descriptor instead.
+func (*CreateSitePageResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *CreateSitePageResponse) GetPage() *SitePageDetail {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// 保存草稿请求。
+type UpdateSitePageRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页面标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 标题。
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// 摘要。
+	Summary string `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
+	// 正文 Markdown。
+	BodyMd string `protobuf:"bytes,4,opt,name=body_md,json=bodyMd,proto3" json:"body_md,omitempty"`
+	// 封面图地址。
+	CoverImageUrl string `protobuf:"bytes,5,opt,name=cover_image_url,json=coverImageUrl,proto3" json:"cover_image_url,omitempty"`
+	// 搜索引擎标题。
+	SeoTitle string `protobuf:"bytes,6,opt,name=seo_title,json=seoTitle,proto3" json:"seo_title,omitempty"`
+	// 搜索引擎描述。
+	SeoDescription string `protobuf:"bytes,7,opt,name=seo_description,json=seoDescription,proto3" json:"seo_description,omitempty"`
+	// 客户端读到的最后更新时间，RFC3339；用于乐观锁，留空表示不做冲突检查。
+	UpdatedAt     string `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSitePageRequest) Reset() {
+	*x = UpdateSitePageRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSitePageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSitePageRequest) ProtoMessage() {}
+
+func (x *UpdateSitePageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSitePageRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSitePageRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *UpdateSitePageRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *UpdateSitePageRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *UpdateSitePageRequest) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *UpdateSitePageRequest) GetBodyMd() string {
+	if x != nil {
+		return x.BodyMd
+	}
+	return ""
+}
+
+func (x *UpdateSitePageRequest) GetCoverImageUrl() string {
+	if x != nil {
+		return x.CoverImageUrl
+	}
+	return ""
+}
+
+func (x *UpdateSitePageRequest) GetSeoTitle() string {
+	if x != nil {
+		return x.SeoTitle
+	}
+	return ""
+}
+
+func (x *UpdateSitePageRequest) GetSeoDescription() string {
+	if x != nil {
+		return x.SeoDescription
+	}
+	return ""
+}
+
+func (x *UpdateSitePageRequest) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+// 保存草稿响应。
+type UpdateSitePageResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 保存后的详情。
+	Page          *SitePageDetail `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSitePageResponse) Reset() {
+	*x = UpdateSitePageResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSitePageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSitePageResponse) ProtoMessage() {}
+
+func (x *UpdateSitePageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSitePageResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSitePageResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *UpdateSitePageResponse) GetPage() *SitePageDetail {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// 发布请求。
+type PublishSitePageRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页面标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishSitePageRequest) Reset() {
+	*x = PublishSitePageRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishSitePageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishSitePageRequest) ProtoMessage() {}
+
+func (x *PublishSitePageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishSitePageRequest.ProtoReflect.Descriptor instead.
+func (*PublishSitePageRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *PublishSitePageRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 发布响应。
+type PublishSitePageResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 发布后的详情。
+	Page          *SitePageDetail `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishSitePageResponse) Reset() {
+	*x = PublishSitePageResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishSitePageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishSitePageResponse) ProtoMessage() {}
+
+func (x *PublishSitePageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishSitePageResponse.ProtoReflect.Descriptor instead.
+func (*PublishSitePageResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *PublishSitePageResponse) GetPage() *SitePageDetail {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// 下架请求。
+type UnpublishSitePageRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页面标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnpublishSitePageRequest) Reset() {
+	*x = UnpublishSitePageRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnpublishSitePageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnpublishSitePageRequest) ProtoMessage() {}
+
+func (x *UnpublishSitePageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnpublishSitePageRequest.ProtoReflect.Descriptor instead.
+func (*UnpublishSitePageRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *UnpublishSitePageRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 下架响应。
+type UnpublishSitePageResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 下架后的详情。
+	Page          *SitePageDetail `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnpublishSitePageResponse) Reset() {
+	*x = UnpublishSitePageResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnpublishSitePageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnpublishSitePageResponse) ProtoMessage() {}
+
+func (x *UnpublishSitePageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnpublishSitePageResponse.ProtoReflect.Descriptor instead.
+func (*UnpublishSitePageResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *UnpublishSitePageResponse) GetPage() *SitePageDetail {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// 删除页面请求。
+type DeleteSitePageRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页面标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSitePageRequest) Reset() {
+	*x = DeleteSitePageRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSitePageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSitePageRequest) ProtoMessage() {}
+
+func (x *DeleteSitePageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSitePageRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSitePageRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *DeleteSitePageRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 删除页面响应。
+type DeleteSitePageResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSitePageResponse) Reset() {
+	*x = DeleteSitePageResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSitePageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSitePageResponse) ProtoMessage() {}
+
+func (x *DeleteSitePageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSitePageResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSitePageResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{34}
+}
+
+// 修改导航请求。
+type UpdateSitePageNavRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页面标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 是否展示在导航。
+	ShowInNav bool `protobuf:"varint,2,opt,name=show_in_nav,json=showInNav,proto3" json:"show_in_nav,omitempty"`
+	// 导航顺序。
+	SortOrder     int32 `protobuf:"varint,3,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSitePageNavRequest) Reset() {
+	*x = UpdateSitePageNavRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSitePageNavRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSitePageNavRequest) ProtoMessage() {}
+
+func (x *UpdateSitePageNavRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSitePageNavRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSitePageNavRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *UpdateSitePageNavRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *UpdateSitePageNavRequest) GetShowInNav() bool {
+	if x != nil {
+		return x.ShowInNav
+	}
+	return false
+}
+
+func (x *UpdateSitePageNavRequest) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+// 修改导航响应。
+type UpdateSitePageNavResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 修改后的详情。
+	Page          *SitePageDetail `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSitePageNavResponse) Reset() {
+	*x = UpdateSitePageNavResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSitePageNavResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSitePageNavResponse) ProtoMessage() {}
+
+func (x *UpdateSitePageNavResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSitePageNavResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSitePageNavResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *UpdateSitePageNavResponse) GetPage() *SitePageDetail {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
 var File_alioth_v1_site_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_site_proto_rawDesc = "" +
@@ -851,13 +2469,139 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"\remail_enabled\x18\x01 \x01(\bR\femailEnabled\x12%\n" +
 	"\x0eoauth2_enabled\x18\x02 \x01(\bR\roauth2Enabled\"^\n" +
 	"\x1aUpdateLoginMethodsResponse\x12@\n" +
-	"\rlogin_methods\x18\x01 \x01(\v2\x1b.alioth.v1.LoginMethodsItemR\floginMethods2\xfb\x04\n" +
+	"\rlogin_methods\x18\x01 \x01(\v2\x1b.alioth.v1.LoginMethodsItemR\floginMethods\"\xcb\x02\n" +
+	"\fSitePageItem\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
+	"\x04slug\x18\x02 \x01(\tR\x04slug\x12\x16\n" +
+	"\x06locale\x18\x03 \x01(\tR\x06locale\x12\x14\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\x12\x1e\n" +
+	"\vshow_in_nav\x18\x05 \x01(\bR\tshowInNav\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x06 \x01(\x05R\tsortOrder\x12\x14\n" +
+	"\x05title\x18\a \x01(\tR\x05title\x12\x18\n" +
+	"\asummary\x18\b \x01(\tR\asummary\x126\n" +
+	"\x17has_unpublished_changes\x18\t \x01(\bR\x15hasUnpublishedChanges\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\n" +
+	" \x01(\tR\tupdatedAt\x12!\n" +
+	"\fpublished_at\x18\v \x01(\tR\vpublishedAt\"\xc8\x01\n" +
+	"\x0fSitePageContent\x12\x14\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\x12\x18\n" +
+	"\asummary\x18\x02 \x01(\tR\asummary\x12\x17\n" +
+	"\abody_md\x18\x03 \x01(\tR\x06bodyMd\x12&\n" +
+	"\x0fcover_image_url\x18\x04 \x01(\tR\rcoverImageUrl\x12\x1b\n" +
+	"\tseo_title\x18\x05 \x01(\tR\bseoTitle\x12'\n" +
+	"\x0fseo_description\x18\x06 \x01(\tR\x0eseoDescription\"\xcc\x01\n" +
+	"\x0eSitePageDetail\x12+\n" +
+	"\x04item\x18\x01 \x01(\v2\x17.alioth.v1.SitePageItemR\x04item\x120\n" +
+	"\x05draft\x18\x02 \x01(\v2\x1a.alioth.v1.SitePageContentR\x05draft\x128\n" +
+	"\tpublished\x18\x03 \x01(\v2\x1a.alioth.v1.SitePageContentR\tpublished\x12!\n" +
+	"\fpublished_by\x18\x04 \x01(\tR\vpublishedBy\"\xbf\x02\n" +
+	"\x0ePublicSitePage\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12\x16\n" +
+	"\x06locale\x18\x02 \x01(\tR\x06locale\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x18\n" +
+	"\asummary\x18\x04 \x01(\tR\asummary\x12\x17\n" +
+	"\abody_md\x18\x05 \x01(\tR\x06bodyMd\x12&\n" +
+	"\x0fcover_image_url\x18\x06 \x01(\tR\rcoverImageUrl\x12\x1b\n" +
+	"\tseo_title\x18\a \x01(\tR\bseoTitle\x12'\n" +
+	"\x0fseo_description\x18\b \x01(\tR\x0eseoDescription\x12!\n" +
+	"\fpublished_at\x18\t \x01(\tR\vpublishedAt\x12'\n" +
+	"\x0flocale_fallback\x18\n" +
+	" \x01(\bR\x0elocaleFallback\"V\n" +
+	"\vSiteNavItem\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x03 \x01(\x05R\tsortOrder\"b\n" +
+	"\x18GetPublicSitePageRequest\x12\x1d\n" +
+	"\x04slug\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04slug\x12'\n" +
+	"\x06locale\x18\x02 \x01(\tB\x0f\xbaH\fr\n" +
+	"R\x00R\x02zhR\x02enR\x06locale\"J\n" +
+	"\x19GetPublicSitePageResponse\x12-\n" +
+	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.PublicSitePageR\x04page\"C\n" +
+	"\x18ListPublicSiteNavRequest\x12'\n" +
+	"\x06locale\x18\x01 \x01(\tB\x0f\xbaH\fr\n" +
+	"R\x00R\x02zhR\x02enR\x06locale\"I\n" +
+	"\x19ListPublicSiteNavResponse\x12,\n" +
+	"\x05items\x18\x01 \x03(\v2\x16.alioth.v1.SiteNavItemR\x05items\"\xe2\x01\n" +
+	"\x14ListSitePagesRequest\x12\x1b\n" +
+	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x04page\x12&\n" +
+	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01R\bpageSize\x12!\n" +
+	"\akeyword\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18@R\akeyword\x129\n" +
+	"\x05state\x18\x04 \x01(\tB#\xbaH r\x1eR\x00R\x05DRAFTR\tPUBLISHEDR\bARCHIVEDR\x05state\x12'\n" +
+	"\x06locale\x18\x05 \x01(\tB\x0f\xbaH\fr\n" +
+	"R\x00R\x02zhR\x02enR\x06locale\"\x8d\x01\n" +
+	"\x15ListSitePagesResponse\x12-\n" +
+	"\x05items\x18\x01 \x03(\v2\x17.alioth.v1.SitePageItemR\x05items\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"/\n" +
+	"\x12GetSitePageRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"D\n" +
+	"\x13GetSitePageResponse\x12-\n" +
+	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page\"\xed\x02\n" +
+	"\x15CreateSitePageRequest\x127\n" +
+	"\x04slug\x18\x01 \x01(\tB#\xbaH r\x1e\x10\x01\x18@2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04slug\x12%\n" +
+	"\x06locale\x18\x02 \x01(\tB\r\xbaH\n" +
+	"r\bR\x02zhR\x02enR\x06locale\x12 \n" +
+	"\x05title\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x05title\x12\"\n" +
+	"\asummary\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\xac\x02R\asummary\x12\"\n" +
+	"\abody_md\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x18\xa0\x8d\x06R\x06bodyMd\x120\n" +
+	"\x0fcover_image_url\x18\x06 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\rcoverImageUrl\x12%\n" +
+	"\tseo_title\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\bseoTitle\x121\n" +
+	"\x0fseo_description\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\xc0\x02R\x0eseoDescription\"G\n" +
+	"\x16CreateSitePageResponse\x12-\n" +
+	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page\"\xc7\x02\n" +
+	"\x15UpdateSitePageRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12 \n" +
+	"\x05title\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x05title\x12\"\n" +
+	"\asummary\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xac\x02R\asummary\x12\"\n" +
+	"\abody_md\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x18\xa0\x8d\x06R\x06bodyMd\x120\n" +
+	"\x0fcover_image_url\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\rcoverImageUrl\x12%\n" +
+	"\tseo_title\x18\x06 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\bseoTitle\x121\n" +
+	"\x0fseo_description\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xc0\x02R\x0eseoDescription\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\"G\n" +
+	"\x16UpdateSitePageResponse\x12-\n" +
+	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page\"3\n" +
+	"\x16PublishSitePageRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"H\n" +
+	"\x17PublishSitePageResponse\x12-\n" +
+	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page\"5\n" +
+	"\x18UnpublishSitePageRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"J\n" +
+	"\x19UnpublishSitePageResponse\x12-\n" +
+	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page\"2\n" +
+	"\x15DeleteSitePageRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"\x18\n" +
+	"\x16DeleteSitePageResponse\"\x80\x01\n" +
+	"\x18UpdateSitePageNavRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1e\n" +
+	"\vshow_in_nav\x18\x02 \x01(\bR\tshowInNav\x12)\n" +
+	"\n" +
+	"sort_order\x18\x03 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe7\a(\x00R\tsortOrder\"J\n" +
+	"\x19UpdateSitePageNavResponse\x12-\n" +
+	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page2\xf5\x0e\n" +
 	"\vSiteService\x12k\n" +
 	"\rGetSiteConfig\x12\x1f.alioth.v1.GetSiteConfigRequest\x1a .alioth.v1.GetSiteConfigResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/site/config\x12q\n" +
 	"\x0fGetSiteSettings\x12!.alioth.v1.GetSiteSettingsRequest\x1a\".alioth.v1.GetSiteSettingsResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/system/site\x12}\n" +
 	"\x12UpdateSiteSettings\x12$.alioth.v1.UpdateSiteSettingsRequest\x1a%.alioth.v1.UpdateSiteSettingsResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\x1a\x0f/v1/system/site\x12\x7f\n" +
 	"\x0fGetLoginMethods\x12!.alioth.v1.GetLoginMethodsRequest\x1a\".alioth.v1.GetLoginMethodsResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/system/auth/login-methods\x12\x8b\x01\n" +
-	"\x12UpdateLoginMethods\x12$.alioth.v1.UpdateLoginMethodsRequest\x1a%.alioth.v1.UpdateLoginMethodsResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\x1a\x1d/v1/system/auth/login-methodsB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
+	"\x12UpdateLoginMethods\x12$.alioth.v1.UpdateLoginMethodsRequest\x1a%.alioth.v1.UpdateLoginMethodsResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\x1a\x1d/v1/system/auth/login-methods\x12}\n" +
+	"\x11GetPublicSitePage\x12#.alioth.v1.GetPublicSitePageRequest\x1a$.alioth.v1.GetPublicSitePageResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/v1/site/pages/{slug}\x12t\n" +
+	"\x11ListPublicSiteNav\x12#.alioth.v1.ListPublicSiteNavRequest\x1a$.alioth.v1.ListPublicSiteNavResponse\"\x14\x82\xd3\xe4\x93\x02\x0e\x12\f/v1/site/nav\x12q\n" +
+	"\rListSitePages\x12\x1f.alioth.v1.ListSitePagesRequest\x1a .alioth.v1.ListSitePagesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/v1/system/site/pages\x12q\n" +
+	"\vGetSitePage\x12\x1d.alioth.v1.GetSitePageRequest\x1a\x1e.alioth.v1.GetSitePageResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/system/site/pages/{uid}\x12w\n" +
+	"\x0eCreateSitePage\x12 .alioth.v1.CreateSitePageRequest\x1a!.alioth.v1.CreateSitePageResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/system/site/pages\x12}\n" +
+	"\x0eUpdateSitePage\x12 .alioth.v1.UpdateSitePageRequest\x1a!.alioth.v1.UpdateSitePageResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\x1a\x1b/v1/system/site/pages/{uid}\x12\x88\x01\n" +
+	"\x0fPublishSitePage\x12!.alioth.v1.PublishSitePageRequest\x1a\".alioth.v1.PublishSitePageResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/system/site/pages/{uid}/publish\x12\x90\x01\n" +
+	"\x11UnpublishSitePage\x12#.alioth.v1.UnpublishSitePageRequest\x1a$.alioth.v1.UnpublishSitePageResponse\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/v1/system/site/pages/{uid}/unpublish\x12z\n" +
+	"\x0eDeleteSitePage\x12 .alioth.v1.DeleteSitePageRequest\x1a!.alioth.v1.DeleteSitePageResponse\"#\x82\xd3\xe4\x93\x02\x1d*\x1b/v1/system/site/pages/{uid}\x12\x8a\x01\n" +
+	"\x11UpdateSitePageNav\x12#.alioth.v1.UpdateSitePageNavRequest\x1a$.alioth.v1.UpdateSitePageNavResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\x1a\x1f/v1/system/site/pages/{uid}/navB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
 
 var (
 	file_alioth_v1_site_proto_rawDescOnce sync.Once
@@ -871,7 +2615,7 @@ func file_alioth_v1_site_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_site_proto_rawDescData
 }
 
-var file_alioth_v1_site_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_alioth_v1_site_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_alioth_v1_site_proto_goTypes = []any{
 	(*SiteSettingsItem)(nil),           // 0: alioth.v1.SiteSettingsItem
 	(*LoginMethodsItem)(nil),           // 1: alioth.v1.LoginMethodsItem
@@ -885,6 +2629,31 @@ var file_alioth_v1_site_proto_goTypes = []any{
 	(*GetLoginMethodsResponse)(nil),    // 9: alioth.v1.GetLoginMethodsResponse
 	(*UpdateLoginMethodsRequest)(nil),  // 10: alioth.v1.UpdateLoginMethodsRequest
 	(*UpdateLoginMethodsResponse)(nil), // 11: alioth.v1.UpdateLoginMethodsResponse
+	(*SitePageItem)(nil),               // 12: alioth.v1.SitePageItem
+	(*SitePageContent)(nil),            // 13: alioth.v1.SitePageContent
+	(*SitePageDetail)(nil),             // 14: alioth.v1.SitePageDetail
+	(*PublicSitePage)(nil),             // 15: alioth.v1.PublicSitePage
+	(*SiteNavItem)(nil),                // 16: alioth.v1.SiteNavItem
+	(*GetPublicSitePageRequest)(nil),   // 17: alioth.v1.GetPublicSitePageRequest
+	(*GetPublicSitePageResponse)(nil),  // 18: alioth.v1.GetPublicSitePageResponse
+	(*ListPublicSiteNavRequest)(nil),   // 19: alioth.v1.ListPublicSiteNavRequest
+	(*ListPublicSiteNavResponse)(nil),  // 20: alioth.v1.ListPublicSiteNavResponse
+	(*ListSitePagesRequest)(nil),       // 21: alioth.v1.ListSitePagesRequest
+	(*ListSitePagesResponse)(nil),      // 22: alioth.v1.ListSitePagesResponse
+	(*GetSitePageRequest)(nil),         // 23: alioth.v1.GetSitePageRequest
+	(*GetSitePageResponse)(nil),        // 24: alioth.v1.GetSitePageResponse
+	(*CreateSitePageRequest)(nil),      // 25: alioth.v1.CreateSitePageRequest
+	(*CreateSitePageResponse)(nil),     // 26: alioth.v1.CreateSitePageResponse
+	(*UpdateSitePageRequest)(nil),      // 27: alioth.v1.UpdateSitePageRequest
+	(*UpdateSitePageResponse)(nil),     // 28: alioth.v1.UpdateSitePageResponse
+	(*PublishSitePageRequest)(nil),     // 29: alioth.v1.PublishSitePageRequest
+	(*PublishSitePageResponse)(nil),    // 30: alioth.v1.PublishSitePageResponse
+	(*UnpublishSitePageRequest)(nil),   // 31: alioth.v1.UnpublishSitePageRequest
+	(*UnpublishSitePageResponse)(nil),  // 32: alioth.v1.UnpublishSitePageResponse
+	(*DeleteSitePageRequest)(nil),      // 33: alioth.v1.DeleteSitePageRequest
+	(*DeleteSitePageResponse)(nil),     // 34: alioth.v1.DeleteSitePageResponse
+	(*UpdateSitePageNavRequest)(nil),   // 35: alioth.v1.UpdateSitePageNavRequest
+	(*UpdateSitePageNavResponse)(nil),  // 36: alioth.v1.UpdateSitePageNavResponse
 }
 var file_alioth_v1_site_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.GetSiteConfigResponse.site:type_name -> alioth.v1.SiteSettingsItem
@@ -893,21 +2662,53 @@ var file_alioth_v1_site_proto_depIdxs = []int32{
 	0,  // 3: alioth.v1.UpdateSiteSettingsResponse.site:type_name -> alioth.v1.SiteSettingsItem
 	1,  // 4: alioth.v1.GetLoginMethodsResponse.login_methods:type_name -> alioth.v1.LoginMethodsItem
 	1,  // 5: alioth.v1.UpdateLoginMethodsResponse.login_methods:type_name -> alioth.v1.LoginMethodsItem
-	2,  // 6: alioth.v1.SiteService.GetSiteConfig:input_type -> alioth.v1.GetSiteConfigRequest
-	4,  // 7: alioth.v1.SiteService.GetSiteSettings:input_type -> alioth.v1.GetSiteSettingsRequest
-	6,  // 8: alioth.v1.SiteService.UpdateSiteSettings:input_type -> alioth.v1.UpdateSiteSettingsRequest
-	8,  // 9: alioth.v1.SiteService.GetLoginMethods:input_type -> alioth.v1.GetLoginMethodsRequest
-	10, // 10: alioth.v1.SiteService.UpdateLoginMethods:input_type -> alioth.v1.UpdateLoginMethodsRequest
-	3,  // 11: alioth.v1.SiteService.GetSiteConfig:output_type -> alioth.v1.GetSiteConfigResponse
-	5,  // 12: alioth.v1.SiteService.GetSiteSettings:output_type -> alioth.v1.GetSiteSettingsResponse
-	7,  // 13: alioth.v1.SiteService.UpdateSiteSettings:output_type -> alioth.v1.UpdateSiteSettingsResponse
-	9,  // 14: alioth.v1.SiteService.GetLoginMethods:output_type -> alioth.v1.GetLoginMethodsResponse
-	11, // 15: alioth.v1.SiteService.UpdateLoginMethods:output_type -> alioth.v1.UpdateLoginMethodsResponse
-	11, // [11:16] is the sub-list for method output_type
-	6,  // [6:11] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	12, // 6: alioth.v1.SitePageDetail.item:type_name -> alioth.v1.SitePageItem
+	13, // 7: alioth.v1.SitePageDetail.draft:type_name -> alioth.v1.SitePageContent
+	13, // 8: alioth.v1.SitePageDetail.published:type_name -> alioth.v1.SitePageContent
+	15, // 9: alioth.v1.GetPublicSitePageResponse.page:type_name -> alioth.v1.PublicSitePage
+	16, // 10: alioth.v1.ListPublicSiteNavResponse.items:type_name -> alioth.v1.SiteNavItem
+	12, // 11: alioth.v1.ListSitePagesResponse.items:type_name -> alioth.v1.SitePageItem
+	14, // 12: alioth.v1.GetSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 13: alioth.v1.CreateSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 14: alioth.v1.UpdateSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 15: alioth.v1.PublishSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 16: alioth.v1.UnpublishSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 17: alioth.v1.UpdateSitePageNavResponse.page:type_name -> alioth.v1.SitePageDetail
+	2,  // 18: alioth.v1.SiteService.GetSiteConfig:input_type -> alioth.v1.GetSiteConfigRequest
+	4,  // 19: alioth.v1.SiteService.GetSiteSettings:input_type -> alioth.v1.GetSiteSettingsRequest
+	6,  // 20: alioth.v1.SiteService.UpdateSiteSettings:input_type -> alioth.v1.UpdateSiteSettingsRequest
+	8,  // 21: alioth.v1.SiteService.GetLoginMethods:input_type -> alioth.v1.GetLoginMethodsRequest
+	10, // 22: alioth.v1.SiteService.UpdateLoginMethods:input_type -> alioth.v1.UpdateLoginMethodsRequest
+	17, // 23: alioth.v1.SiteService.GetPublicSitePage:input_type -> alioth.v1.GetPublicSitePageRequest
+	19, // 24: alioth.v1.SiteService.ListPublicSiteNav:input_type -> alioth.v1.ListPublicSiteNavRequest
+	21, // 25: alioth.v1.SiteService.ListSitePages:input_type -> alioth.v1.ListSitePagesRequest
+	23, // 26: alioth.v1.SiteService.GetSitePage:input_type -> alioth.v1.GetSitePageRequest
+	25, // 27: alioth.v1.SiteService.CreateSitePage:input_type -> alioth.v1.CreateSitePageRequest
+	27, // 28: alioth.v1.SiteService.UpdateSitePage:input_type -> alioth.v1.UpdateSitePageRequest
+	29, // 29: alioth.v1.SiteService.PublishSitePage:input_type -> alioth.v1.PublishSitePageRequest
+	31, // 30: alioth.v1.SiteService.UnpublishSitePage:input_type -> alioth.v1.UnpublishSitePageRequest
+	33, // 31: alioth.v1.SiteService.DeleteSitePage:input_type -> alioth.v1.DeleteSitePageRequest
+	35, // 32: alioth.v1.SiteService.UpdateSitePageNav:input_type -> alioth.v1.UpdateSitePageNavRequest
+	3,  // 33: alioth.v1.SiteService.GetSiteConfig:output_type -> alioth.v1.GetSiteConfigResponse
+	5,  // 34: alioth.v1.SiteService.GetSiteSettings:output_type -> alioth.v1.GetSiteSettingsResponse
+	7,  // 35: alioth.v1.SiteService.UpdateSiteSettings:output_type -> alioth.v1.UpdateSiteSettingsResponse
+	9,  // 36: alioth.v1.SiteService.GetLoginMethods:output_type -> alioth.v1.GetLoginMethodsResponse
+	11, // 37: alioth.v1.SiteService.UpdateLoginMethods:output_type -> alioth.v1.UpdateLoginMethodsResponse
+	18, // 38: alioth.v1.SiteService.GetPublicSitePage:output_type -> alioth.v1.GetPublicSitePageResponse
+	20, // 39: alioth.v1.SiteService.ListPublicSiteNav:output_type -> alioth.v1.ListPublicSiteNavResponse
+	22, // 40: alioth.v1.SiteService.ListSitePages:output_type -> alioth.v1.ListSitePagesResponse
+	24, // 41: alioth.v1.SiteService.GetSitePage:output_type -> alioth.v1.GetSitePageResponse
+	26, // 42: alioth.v1.SiteService.CreateSitePage:output_type -> alioth.v1.CreateSitePageResponse
+	28, // 43: alioth.v1.SiteService.UpdateSitePage:output_type -> alioth.v1.UpdateSitePageResponse
+	30, // 44: alioth.v1.SiteService.PublishSitePage:output_type -> alioth.v1.PublishSitePageResponse
+	32, // 45: alioth.v1.SiteService.UnpublishSitePage:output_type -> alioth.v1.UnpublishSitePageResponse
+	34, // 46: alioth.v1.SiteService.DeleteSitePage:output_type -> alioth.v1.DeleteSitePageResponse
+	36, // 47: alioth.v1.SiteService.UpdateSitePageNav:output_type -> alioth.v1.UpdateSitePageNavResponse
+	33, // [33:48] is the sub-list for method output_type
+	18, // [18:33] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_site_proto_init() }
@@ -921,7 +2722,7 @@ func file_alioth_v1_site_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_site_proto_rawDesc), len(file_alioth_v1_site_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

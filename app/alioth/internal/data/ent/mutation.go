@@ -63,6 +63,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitepage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
@@ -136,6 +137,7 @@ const (
 	TypeRolePermission                = "RolePermission"
 	TypeSSHCommand                    = "SSHCommand"
 	TypeSSHCommandAudit               = "SSHCommandAudit"
+	TypeSitePage                      = "SitePage"
 	TypeSiteSetting                   = "SiteSetting"
 	TypeStatusPage                    = "StatusPage"
 	TypeSystemMessage                 = "SystemMessage"
@@ -50190,6 +50192,1597 @@ func (m *SSHCommandAuditMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *SSHCommandAuditMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown SSHCommandAudit edge %s", name)
+}
+
+// SitePageMutation represents an operation that mutates the SitePage nodes in the graph.
+type SitePageMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *int
+	created_at                *time.Time
+	updated_at                *time.Time
+	deleted_at                *time.Time
+	uid                       *string
+	slug                      *string
+	locale                    *string
+	state                     *sitepage.State
+	show_in_nav               *bool
+	sort_order                *int
+	addsort_order             *int
+	draft_title               *string
+	draft_summary             *string
+	draft_body_md             *string
+	draft_cover_image_url     *string
+	draft_seo_title           *string
+	draft_seo_description     *string
+	published_title           *string
+	published_summary         *string
+	published_body_md         *string
+	published_cover_image_url *string
+	published_seo_title       *string
+	published_seo_description *string
+	published_at              *time.Time
+	published_by              *string
+	clearedFields             map[string]struct{}
+	done                      bool
+	oldValue                  func(context.Context) (*SitePage, error)
+	predicates                []predicate.SitePage
+}
+
+var _ ent.Mutation = (*SitePageMutation)(nil)
+
+// sitepageOption allows management of the mutation configuration using functional options.
+type sitepageOption func(*SitePageMutation)
+
+// newSitePageMutation creates new mutation for the SitePage entity.
+func newSitePageMutation(c config, op Op, opts ...sitepageOption) *SitePageMutation {
+	m := &SitePageMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSitePage,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSitePageID sets the ID field of the mutation.
+func withSitePageID(id int) sitepageOption {
+	return func(m *SitePageMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SitePage
+		)
+		m.oldValue = func(ctx context.Context) (*SitePage, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SitePage.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSitePage sets the old SitePage of the mutation.
+func withSitePage(node *SitePage) sitepageOption {
+	return func(m *SitePageMutation) {
+		m.oldValue = func(context.Context) (*SitePage, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SitePageMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SitePageMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SitePageMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SitePageMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SitePage.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SitePageMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SitePageMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SitePageMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *SitePageMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *SitePageMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *SitePageMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *SitePageMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *SitePageMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *SitePageMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[sitepage.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *SitePageMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[sitepage.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *SitePageMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, sitepage.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *SitePageMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *SitePageMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *SitePageMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetSlug sets the "slug" field.
+func (m *SitePageMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *SitePageMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *SitePageMutation) ResetSlug() {
+	m.slug = nil
+}
+
+// SetLocale sets the "locale" field.
+func (m *SitePageMutation) SetLocale(s string) {
+	m.locale = &s
+}
+
+// Locale returns the value of the "locale" field in the mutation.
+func (m *SitePageMutation) Locale() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocale returns the old "locale" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldLocale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocale: %w", err)
+	}
+	return oldValue.Locale, nil
+}
+
+// ResetLocale resets all changes to the "locale" field.
+func (m *SitePageMutation) ResetLocale() {
+	m.locale = nil
+}
+
+// SetState sets the "state" field.
+func (m *SitePageMutation) SetState(s sitepage.State) {
+	m.state = &s
+}
+
+// State returns the value of the "state" field in the mutation.
+func (m *SitePageMutation) State() (r sitepage.State, exists bool) {
+	v := m.state
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldState returns the old "state" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldState(ctx context.Context) (v sitepage.State, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldState is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldState requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldState: %w", err)
+	}
+	return oldValue.State, nil
+}
+
+// ResetState resets all changes to the "state" field.
+func (m *SitePageMutation) ResetState() {
+	m.state = nil
+}
+
+// SetShowInNav sets the "show_in_nav" field.
+func (m *SitePageMutation) SetShowInNav(b bool) {
+	m.show_in_nav = &b
+}
+
+// ShowInNav returns the value of the "show_in_nav" field in the mutation.
+func (m *SitePageMutation) ShowInNav() (r bool, exists bool) {
+	v := m.show_in_nav
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShowInNav returns the old "show_in_nav" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldShowInNav(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShowInNav is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShowInNav requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShowInNav: %w", err)
+	}
+	return oldValue.ShowInNav, nil
+}
+
+// ResetShowInNav resets all changes to the "show_in_nav" field.
+func (m *SitePageMutation) ResetShowInNav() {
+	m.show_in_nav = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *SitePageMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *SitePageMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *SitePageMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *SitePageMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *SitePageMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetDraftTitle sets the "draft_title" field.
+func (m *SitePageMutation) SetDraftTitle(s string) {
+	m.draft_title = &s
+}
+
+// DraftTitle returns the value of the "draft_title" field in the mutation.
+func (m *SitePageMutation) DraftTitle() (r string, exists bool) {
+	v := m.draft_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDraftTitle returns the old "draft_title" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldDraftTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDraftTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDraftTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDraftTitle: %w", err)
+	}
+	return oldValue.DraftTitle, nil
+}
+
+// ResetDraftTitle resets all changes to the "draft_title" field.
+func (m *SitePageMutation) ResetDraftTitle() {
+	m.draft_title = nil
+}
+
+// SetDraftSummary sets the "draft_summary" field.
+func (m *SitePageMutation) SetDraftSummary(s string) {
+	m.draft_summary = &s
+}
+
+// DraftSummary returns the value of the "draft_summary" field in the mutation.
+func (m *SitePageMutation) DraftSummary() (r string, exists bool) {
+	v := m.draft_summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDraftSummary returns the old "draft_summary" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldDraftSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDraftSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDraftSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDraftSummary: %w", err)
+	}
+	return oldValue.DraftSummary, nil
+}
+
+// ResetDraftSummary resets all changes to the "draft_summary" field.
+func (m *SitePageMutation) ResetDraftSummary() {
+	m.draft_summary = nil
+}
+
+// SetDraftBodyMd sets the "draft_body_md" field.
+func (m *SitePageMutation) SetDraftBodyMd(s string) {
+	m.draft_body_md = &s
+}
+
+// DraftBodyMd returns the value of the "draft_body_md" field in the mutation.
+func (m *SitePageMutation) DraftBodyMd() (r string, exists bool) {
+	v := m.draft_body_md
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDraftBodyMd returns the old "draft_body_md" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldDraftBodyMd(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDraftBodyMd is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDraftBodyMd requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDraftBodyMd: %w", err)
+	}
+	return oldValue.DraftBodyMd, nil
+}
+
+// ResetDraftBodyMd resets all changes to the "draft_body_md" field.
+func (m *SitePageMutation) ResetDraftBodyMd() {
+	m.draft_body_md = nil
+}
+
+// SetDraftCoverImageURL sets the "draft_cover_image_url" field.
+func (m *SitePageMutation) SetDraftCoverImageURL(s string) {
+	m.draft_cover_image_url = &s
+}
+
+// DraftCoverImageURL returns the value of the "draft_cover_image_url" field in the mutation.
+func (m *SitePageMutation) DraftCoverImageURL() (r string, exists bool) {
+	v := m.draft_cover_image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDraftCoverImageURL returns the old "draft_cover_image_url" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldDraftCoverImageURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDraftCoverImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDraftCoverImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDraftCoverImageURL: %w", err)
+	}
+	return oldValue.DraftCoverImageURL, nil
+}
+
+// ResetDraftCoverImageURL resets all changes to the "draft_cover_image_url" field.
+func (m *SitePageMutation) ResetDraftCoverImageURL() {
+	m.draft_cover_image_url = nil
+}
+
+// SetDraftSeoTitle sets the "draft_seo_title" field.
+func (m *SitePageMutation) SetDraftSeoTitle(s string) {
+	m.draft_seo_title = &s
+}
+
+// DraftSeoTitle returns the value of the "draft_seo_title" field in the mutation.
+func (m *SitePageMutation) DraftSeoTitle() (r string, exists bool) {
+	v := m.draft_seo_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDraftSeoTitle returns the old "draft_seo_title" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldDraftSeoTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDraftSeoTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDraftSeoTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDraftSeoTitle: %w", err)
+	}
+	return oldValue.DraftSeoTitle, nil
+}
+
+// ResetDraftSeoTitle resets all changes to the "draft_seo_title" field.
+func (m *SitePageMutation) ResetDraftSeoTitle() {
+	m.draft_seo_title = nil
+}
+
+// SetDraftSeoDescription sets the "draft_seo_description" field.
+func (m *SitePageMutation) SetDraftSeoDescription(s string) {
+	m.draft_seo_description = &s
+}
+
+// DraftSeoDescription returns the value of the "draft_seo_description" field in the mutation.
+func (m *SitePageMutation) DraftSeoDescription() (r string, exists bool) {
+	v := m.draft_seo_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDraftSeoDescription returns the old "draft_seo_description" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldDraftSeoDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDraftSeoDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDraftSeoDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDraftSeoDescription: %w", err)
+	}
+	return oldValue.DraftSeoDescription, nil
+}
+
+// ResetDraftSeoDescription resets all changes to the "draft_seo_description" field.
+func (m *SitePageMutation) ResetDraftSeoDescription() {
+	m.draft_seo_description = nil
+}
+
+// SetPublishedTitle sets the "published_title" field.
+func (m *SitePageMutation) SetPublishedTitle(s string) {
+	m.published_title = &s
+}
+
+// PublishedTitle returns the value of the "published_title" field in the mutation.
+func (m *SitePageMutation) PublishedTitle() (r string, exists bool) {
+	v := m.published_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedTitle returns the old "published_title" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldPublishedTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedTitle: %w", err)
+	}
+	return oldValue.PublishedTitle, nil
+}
+
+// ResetPublishedTitle resets all changes to the "published_title" field.
+func (m *SitePageMutation) ResetPublishedTitle() {
+	m.published_title = nil
+}
+
+// SetPublishedSummary sets the "published_summary" field.
+func (m *SitePageMutation) SetPublishedSummary(s string) {
+	m.published_summary = &s
+}
+
+// PublishedSummary returns the value of the "published_summary" field in the mutation.
+func (m *SitePageMutation) PublishedSummary() (r string, exists bool) {
+	v := m.published_summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedSummary returns the old "published_summary" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldPublishedSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedSummary: %w", err)
+	}
+	return oldValue.PublishedSummary, nil
+}
+
+// ResetPublishedSummary resets all changes to the "published_summary" field.
+func (m *SitePageMutation) ResetPublishedSummary() {
+	m.published_summary = nil
+}
+
+// SetPublishedBodyMd sets the "published_body_md" field.
+func (m *SitePageMutation) SetPublishedBodyMd(s string) {
+	m.published_body_md = &s
+}
+
+// PublishedBodyMd returns the value of the "published_body_md" field in the mutation.
+func (m *SitePageMutation) PublishedBodyMd() (r string, exists bool) {
+	v := m.published_body_md
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedBodyMd returns the old "published_body_md" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldPublishedBodyMd(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedBodyMd is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedBodyMd requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedBodyMd: %w", err)
+	}
+	return oldValue.PublishedBodyMd, nil
+}
+
+// ResetPublishedBodyMd resets all changes to the "published_body_md" field.
+func (m *SitePageMutation) ResetPublishedBodyMd() {
+	m.published_body_md = nil
+}
+
+// SetPublishedCoverImageURL sets the "published_cover_image_url" field.
+func (m *SitePageMutation) SetPublishedCoverImageURL(s string) {
+	m.published_cover_image_url = &s
+}
+
+// PublishedCoverImageURL returns the value of the "published_cover_image_url" field in the mutation.
+func (m *SitePageMutation) PublishedCoverImageURL() (r string, exists bool) {
+	v := m.published_cover_image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedCoverImageURL returns the old "published_cover_image_url" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldPublishedCoverImageURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedCoverImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedCoverImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedCoverImageURL: %w", err)
+	}
+	return oldValue.PublishedCoverImageURL, nil
+}
+
+// ResetPublishedCoverImageURL resets all changes to the "published_cover_image_url" field.
+func (m *SitePageMutation) ResetPublishedCoverImageURL() {
+	m.published_cover_image_url = nil
+}
+
+// SetPublishedSeoTitle sets the "published_seo_title" field.
+func (m *SitePageMutation) SetPublishedSeoTitle(s string) {
+	m.published_seo_title = &s
+}
+
+// PublishedSeoTitle returns the value of the "published_seo_title" field in the mutation.
+func (m *SitePageMutation) PublishedSeoTitle() (r string, exists bool) {
+	v := m.published_seo_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedSeoTitle returns the old "published_seo_title" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldPublishedSeoTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedSeoTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedSeoTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedSeoTitle: %w", err)
+	}
+	return oldValue.PublishedSeoTitle, nil
+}
+
+// ResetPublishedSeoTitle resets all changes to the "published_seo_title" field.
+func (m *SitePageMutation) ResetPublishedSeoTitle() {
+	m.published_seo_title = nil
+}
+
+// SetPublishedSeoDescription sets the "published_seo_description" field.
+func (m *SitePageMutation) SetPublishedSeoDescription(s string) {
+	m.published_seo_description = &s
+}
+
+// PublishedSeoDescription returns the value of the "published_seo_description" field in the mutation.
+func (m *SitePageMutation) PublishedSeoDescription() (r string, exists bool) {
+	v := m.published_seo_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedSeoDescription returns the old "published_seo_description" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldPublishedSeoDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedSeoDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedSeoDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedSeoDescription: %w", err)
+	}
+	return oldValue.PublishedSeoDescription, nil
+}
+
+// ResetPublishedSeoDescription resets all changes to the "published_seo_description" field.
+func (m *SitePageMutation) ResetPublishedSeoDescription() {
+	m.published_seo_description = nil
+}
+
+// SetPublishedAt sets the "published_at" field.
+func (m *SitePageMutation) SetPublishedAt(t time.Time) {
+	m.published_at = &t
+}
+
+// PublishedAt returns the value of the "published_at" field in the mutation.
+func (m *SitePageMutation) PublishedAt() (r time.Time, exists bool) {
+	v := m.published_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedAt returns the old "published_at" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldPublishedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedAt: %w", err)
+	}
+	return oldValue.PublishedAt, nil
+}
+
+// ClearPublishedAt clears the value of the "published_at" field.
+func (m *SitePageMutation) ClearPublishedAt() {
+	m.published_at = nil
+	m.clearedFields[sitepage.FieldPublishedAt] = struct{}{}
+}
+
+// PublishedAtCleared returns if the "published_at" field was cleared in this mutation.
+func (m *SitePageMutation) PublishedAtCleared() bool {
+	_, ok := m.clearedFields[sitepage.FieldPublishedAt]
+	return ok
+}
+
+// ResetPublishedAt resets all changes to the "published_at" field.
+func (m *SitePageMutation) ResetPublishedAt() {
+	m.published_at = nil
+	delete(m.clearedFields, sitepage.FieldPublishedAt)
+}
+
+// SetPublishedBy sets the "published_by" field.
+func (m *SitePageMutation) SetPublishedBy(s string) {
+	m.published_by = &s
+}
+
+// PublishedBy returns the value of the "published_by" field in the mutation.
+func (m *SitePageMutation) PublishedBy() (r string, exists bool) {
+	v := m.published_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedBy returns the old "published_by" field's value of the SitePage entity.
+// If the SitePage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SitePageMutation) OldPublishedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedBy: %w", err)
+	}
+	return oldValue.PublishedBy, nil
+}
+
+// ResetPublishedBy resets all changes to the "published_by" field.
+func (m *SitePageMutation) ResetPublishedBy() {
+	m.published_by = nil
+}
+
+// Where appends a list predicates to the SitePageMutation builder.
+func (m *SitePageMutation) Where(ps ...predicate.SitePage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SitePageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SitePageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SitePage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SitePageMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SitePageMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SitePage).
+func (m *SitePageMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SitePageMutation) Fields() []string {
+	fields := make([]string, 0, 23)
+	if m.created_at != nil {
+		fields = append(fields, sitepage.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, sitepage.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, sitepage.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, sitepage.FieldUID)
+	}
+	if m.slug != nil {
+		fields = append(fields, sitepage.FieldSlug)
+	}
+	if m.locale != nil {
+		fields = append(fields, sitepage.FieldLocale)
+	}
+	if m.state != nil {
+		fields = append(fields, sitepage.FieldState)
+	}
+	if m.show_in_nav != nil {
+		fields = append(fields, sitepage.FieldShowInNav)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, sitepage.FieldSortOrder)
+	}
+	if m.draft_title != nil {
+		fields = append(fields, sitepage.FieldDraftTitle)
+	}
+	if m.draft_summary != nil {
+		fields = append(fields, sitepage.FieldDraftSummary)
+	}
+	if m.draft_body_md != nil {
+		fields = append(fields, sitepage.FieldDraftBodyMd)
+	}
+	if m.draft_cover_image_url != nil {
+		fields = append(fields, sitepage.FieldDraftCoverImageURL)
+	}
+	if m.draft_seo_title != nil {
+		fields = append(fields, sitepage.FieldDraftSeoTitle)
+	}
+	if m.draft_seo_description != nil {
+		fields = append(fields, sitepage.FieldDraftSeoDescription)
+	}
+	if m.published_title != nil {
+		fields = append(fields, sitepage.FieldPublishedTitle)
+	}
+	if m.published_summary != nil {
+		fields = append(fields, sitepage.FieldPublishedSummary)
+	}
+	if m.published_body_md != nil {
+		fields = append(fields, sitepage.FieldPublishedBodyMd)
+	}
+	if m.published_cover_image_url != nil {
+		fields = append(fields, sitepage.FieldPublishedCoverImageURL)
+	}
+	if m.published_seo_title != nil {
+		fields = append(fields, sitepage.FieldPublishedSeoTitle)
+	}
+	if m.published_seo_description != nil {
+		fields = append(fields, sitepage.FieldPublishedSeoDescription)
+	}
+	if m.published_at != nil {
+		fields = append(fields, sitepage.FieldPublishedAt)
+	}
+	if m.published_by != nil {
+		fields = append(fields, sitepage.FieldPublishedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SitePageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sitepage.FieldCreatedAt:
+		return m.CreatedAt()
+	case sitepage.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case sitepage.FieldDeletedAt:
+		return m.DeletedAt()
+	case sitepage.FieldUID:
+		return m.UID()
+	case sitepage.FieldSlug:
+		return m.Slug()
+	case sitepage.FieldLocale:
+		return m.Locale()
+	case sitepage.FieldState:
+		return m.State()
+	case sitepage.FieldShowInNav:
+		return m.ShowInNav()
+	case sitepage.FieldSortOrder:
+		return m.SortOrder()
+	case sitepage.FieldDraftTitle:
+		return m.DraftTitle()
+	case sitepage.FieldDraftSummary:
+		return m.DraftSummary()
+	case sitepage.FieldDraftBodyMd:
+		return m.DraftBodyMd()
+	case sitepage.FieldDraftCoverImageURL:
+		return m.DraftCoverImageURL()
+	case sitepage.FieldDraftSeoTitle:
+		return m.DraftSeoTitle()
+	case sitepage.FieldDraftSeoDescription:
+		return m.DraftSeoDescription()
+	case sitepage.FieldPublishedTitle:
+		return m.PublishedTitle()
+	case sitepage.FieldPublishedSummary:
+		return m.PublishedSummary()
+	case sitepage.FieldPublishedBodyMd:
+		return m.PublishedBodyMd()
+	case sitepage.FieldPublishedCoverImageURL:
+		return m.PublishedCoverImageURL()
+	case sitepage.FieldPublishedSeoTitle:
+		return m.PublishedSeoTitle()
+	case sitepage.FieldPublishedSeoDescription:
+		return m.PublishedSeoDescription()
+	case sitepage.FieldPublishedAt:
+		return m.PublishedAt()
+	case sitepage.FieldPublishedBy:
+		return m.PublishedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SitePageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sitepage.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case sitepage.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case sitepage.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case sitepage.FieldUID:
+		return m.OldUID(ctx)
+	case sitepage.FieldSlug:
+		return m.OldSlug(ctx)
+	case sitepage.FieldLocale:
+		return m.OldLocale(ctx)
+	case sitepage.FieldState:
+		return m.OldState(ctx)
+	case sitepage.FieldShowInNav:
+		return m.OldShowInNav(ctx)
+	case sitepage.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case sitepage.FieldDraftTitle:
+		return m.OldDraftTitle(ctx)
+	case sitepage.FieldDraftSummary:
+		return m.OldDraftSummary(ctx)
+	case sitepage.FieldDraftBodyMd:
+		return m.OldDraftBodyMd(ctx)
+	case sitepage.FieldDraftCoverImageURL:
+		return m.OldDraftCoverImageURL(ctx)
+	case sitepage.FieldDraftSeoTitle:
+		return m.OldDraftSeoTitle(ctx)
+	case sitepage.FieldDraftSeoDescription:
+		return m.OldDraftSeoDescription(ctx)
+	case sitepage.FieldPublishedTitle:
+		return m.OldPublishedTitle(ctx)
+	case sitepage.FieldPublishedSummary:
+		return m.OldPublishedSummary(ctx)
+	case sitepage.FieldPublishedBodyMd:
+		return m.OldPublishedBodyMd(ctx)
+	case sitepage.FieldPublishedCoverImageURL:
+		return m.OldPublishedCoverImageURL(ctx)
+	case sitepage.FieldPublishedSeoTitle:
+		return m.OldPublishedSeoTitle(ctx)
+	case sitepage.FieldPublishedSeoDescription:
+		return m.OldPublishedSeoDescription(ctx)
+	case sitepage.FieldPublishedAt:
+		return m.OldPublishedAt(ctx)
+	case sitepage.FieldPublishedBy:
+		return m.OldPublishedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown SitePage field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SitePageMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sitepage.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case sitepage.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case sitepage.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case sitepage.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case sitepage.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
+	case sitepage.FieldLocale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocale(v)
+		return nil
+	case sitepage.FieldState:
+		v, ok := value.(sitepage.State)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetState(v)
+		return nil
+	case sitepage.FieldShowInNav:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShowInNav(v)
+		return nil
+	case sitepage.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case sitepage.FieldDraftTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDraftTitle(v)
+		return nil
+	case sitepage.FieldDraftSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDraftSummary(v)
+		return nil
+	case sitepage.FieldDraftBodyMd:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDraftBodyMd(v)
+		return nil
+	case sitepage.FieldDraftCoverImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDraftCoverImageURL(v)
+		return nil
+	case sitepage.FieldDraftSeoTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDraftSeoTitle(v)
+		return nil
+	case sitepage.FieldDraftSeoDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDraftSeoDescription(v)
+		return nil
+	case sitepage.FieldPublishedTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedTitle(v)
+		return nil
+	case sitepage.FieldPublishedSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedSummary(v)
+		return nil
+	case sitepage.FieldPublishedBodyMd:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedBodyMd(v)
+		return nil
+	case sitepage.FieldPublishedCoverImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedCoverImageURL(v)
+		return nil
+	case sitepage.FieldPublishedSeoTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedSeoTitle(v)
+		return nil
+	case sitepage.FieldPublishedSeoDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedSeoDescription(v)
+		return nil
+	case sitepage.FieldPublishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedAt(v)
+		return nil
+	case sitepage.FieldPublishedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SitePage field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SitePageMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, sitepage.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SitePageMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case sitepage.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SitePageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case sitepage.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SitePage numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SitePageMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(sitepage.FieldDeletedAt) {
+		fields = append(fields, sitepage.FieldDeletedAt)
+	}
+	if m.FieldCleared(sitepage.FieldPublishedAt) {
+		fields = append(fields, sitepage.FieldPublishedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SitePageMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SitePageMutation) ClearField(name string) error {
+	switch name {
+	case sitepage.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case sitepage.FieldPublishedAt:
+		m.ClearPublishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown SitePage nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SitePageMutation) ResetField(name string) error {
+	switch name {
+	case sitepage.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case sitepage.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case sitepage.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case sitepage.FieldUID:
+		m.ResetUID()
+		return nil
+	case sitepage.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case sitepage.FieldLocale:
+		m.ResetLocale()
+		return nil
+	case sitepage.FieldState:
+		m.ResetState()
+		return nil
+	case sitepage.FieldShowInNav:
+		m.ResetShowInNav()
+		return nil
+	case sitepage.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case sitepage.FieldDraftTitle:
+		m.ResetDraftTitle()
+		return nil
+	case sitepage.FieldDraftSummary:
+		m.ResetDraftSummary()
+		return nil
+	case sitepage.FieldDraftBodyMd:
+		m.ResetDraftBodyMd()
+		return nil
+	case sitepage.FieldDraftCoverImageURL:
+		m.ResetDraftCoverImageURL()
+		return nil
+	case sitepage.FieldDraftSeoTitle:
+		m.ResetDraftSeoTitle()
+		return nil
+	case sitepage.FieldDraftSeoDescription:
+		m.ResetDraftSeoDescription()
+		return nil
+	case sitepage.FieldPublishedTitle:
+		m.ResetPublishedTitle()
+		return nil
+	case sitepage.FieldPublishedSummary:
+		m.ResetPublishedSummary()
+		return nil
+	case sitepage.FieldPublishedBodyMd:
+		m.ResetPublishedBodyMd()
+		return nil
+	case sitepage.FieldPublishedCoverImageURL:
+		m.ResetPublishedCoverImageURL()
+		return nil
+	case sitepage.FieldPublishedSeoTitle:
+		m.ResetPublishedSeoTitle()
+		return nil
+	case sitepage.FieldPublishedSeoDescription:
+		m.ResetPublishedSeoDescription()
+		return nil
+	case sitepage.FieldPublishedAt:
+		m.ResetPublishedAt()
+		return nil
+	case sitepage.FieldPublishedBy:
+		m.ResetPublishedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown SitePage field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SitePageMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SitePageMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SitePageMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SitePageMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SitePageMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SitePageMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SitePageMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown SitePage unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SitePageMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown SitePage edge %s", name)
 }
 
 // SiteSettingMutation represents an operation that mutates the SiteSetting nodes in the graph.

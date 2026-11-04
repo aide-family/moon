@@ -15,7 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewSettings)
+var ProviderSet = wire.NewSet(NewSettings, NewPages)
 
 // Settings 维护官网的站点设置与登录方式开关。两者都是平台级单例：
 // 站点设置决定官网页脚展示什么，登录方式开关决定登录页对外暴露哪些入口。
@@ -142,10 +142,23 @@ func validateSiteSettings(in bo.SiteSettings) error {
 		if item.value == "" {
 			continue
 		}
-		parsed, err := url.Parse(item.value)
-		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
+		if !isHTTPURL(item.value) {
 			return merr.Invalid(item.name + " is invalid")
 		}
 	}
 	return nil
+}
+
+// isHTTPURL 判断地址是否是带主机的 http(s) 链接。
+// 后台配置最终会渲染成公开页面上的 <a href> 或 <img src>，
+// 其它 scheme（`javascript:`、`data:`）不能放行。
+func isHTTPURL(value string) bool {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return false
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return false
+	}
+	return parsed.Host != ""
 }

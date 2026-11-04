@@ -65,6 +65,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitepage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
@@ -187,6 +188,8 @@ type Client struct {
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
 	SSHCommandAudit *SSHCommandAuditClient
+	// SitePage is the client for interacting with the SitePage builders.
+	SitePage *SitePageClient
 	// SiteSetting is the client for interacting with the SiteSetting builders.
 	SiteSetting *SiteSettingClient
 	// StatusPage is the client for interacting with the StatusPage builders.
@@ -265,6 +268,7 @@ func (c *Client) init() {
 	c.RolePermission = NewRolePermissionClient(c.config)
 	c.SSHCommand = NewSSHCommandClient(c.config)
 	c.SSHCommandAudit = NewSSHCommandAuditClient(c.config)
+	c.SitePage = NewSitePageClient(c.config)
 	c.SiteSetting = NewSiteSettingClient(c.config)
 	c.StatusPage = NewStatusPageClient(c.config)
 	c.SystemMessage = NewSystemMessageClient(c.config)
@@ -417,6 +421,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		SitePage:                      NewSitePageClient(cfg),
 		SiteSetting:                   NewSiteSettingClient(cfg),
 		StatusPage:                    NewStatusPageClient(cfg),
 		SystemMessage:                 NewSystemMessageClient(cfg),
@@ -496,6 +501,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		SitePage:                      NewSitePageClient(cfg),
 		SiteSetting:                   NewSiteSettingClient(cfg),
 		StatusPage:                    NewStatusPageClient(cfg),
 		SystemMessage:                 NewSystemMessageClient(cfg),
@@ -545,8 +551,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
 		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
-		c.SSHCommand, c.SSHCommandAudit, c.SiteSetting, c.StatusPage, c.SystemMessage,
-		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.SSHCommand, c.SSHCommandAudit, c.SitePage, c.SiteSetting, c.StatusPage,
+		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -569,8 +575,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
 		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
-		c.SSHCommand, c.SSHCommandAudit, c.SiteSetting, c.StatusPage, c.SystemMessage,
-		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.SSHCommand, c.SSHCommandAudit, c.SitePage, c.SiteSetting, c.StatusPage,
+		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -685,6 +691,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SSHCommand.mutate(ctx, m)
 	case *SSHCommandAuditMutation:
 		return c.SSHCommandAudit.mutate(ctx, m)
+	case *SitePageMutation:
+		return c.SitePage.mutate(ctx, m)
 	case *SiteSettingMutation:
 		return c.SiteSetting.mutate(ctx, m)
 	case *StatusPageMutation:
@@ -7753,6 +7761,139 @@ func (c *SSHCommandAuditClient) mutate(ctx context.Context, m *SSHCommandAuditMu
 	}
 }
 
+// SitePageClient is a client for the SitePage schema.
+type SitePageClient struct {
+	config
+}
+
+// NewSitePageClient returns a client for the SitePage from the given config.
+func NewSitePageClient(c config) *SitePageClient {
+	return &SitePageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sitepage.Hooks(f(g(h())))`.
+func (c *SitePageClient) Use(hooks ...Hook) {
+	c.hooks.SitePage = append(c.hooks.SitePage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sitepage.Intercept(f(g(h())))`.
+func (c *SitePageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SitePage = append(c.inters.SitePage, interceptors...)
+}
+
+// Create returns a builder for creating a SitePage entity.
+func (c *SitePageClient) Create() *SitePageCreate {
+	mutation := newSitePageMutation(c.config, OpCreate)
+	return &SitePageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SitePage entities.
+func (c *SitePageClient) CreateBulk(builders ...*SitePageCreate) *SitePageCreateBulk {
+	return &SitePageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SitePageClient) MapCreateBulk(slice any, setFunc func(*SitePageCreate, int)) *SitePageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SitePageCreateBulk{err: fmt.Errorf("calling to SitePageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SitePageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SitePageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SitePage.
+func (c *SitePageClient) Update() *SitePageUpdate {
+	mutation := newSitePageMutation(c.config, OpUpdate)
+	return &SitePageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SitePageClient) UpdateOne(_m *SitePage) *SitePageUpdateOne {
+	mutation := newSitePageMutation(c.config, OpUpdateOne, withSitePage(_m))
+	return &SitePageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SitePageClient) UpdateOneID(id int) *SitePageUpdateOne {
+	mutation := newSitePageMutation(c.config, OpUpdateOne, withSitePageID(id))
+	return &SitePageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SitePage.
+func (c *SitePageClient) Delete() *SitePageDelete {
+	mutation := newSitePageMutation(c.config, OpDelete)
+	return &SitePageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SitePageClient) DeleteOne(_m *SitePage) *SitePageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SitePageClient) DeleteOneID(id int) *SitePageDeleteOne {
+	builder := c.Delete().Where(sitepage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SitePageDeleteOne{builder}
+}
+
+// Query returns a query builder for SitePage.
+func (c *SitePageClient) Query() *SitePageQuery {
+	return &SitePageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSitePage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SitePage entity by its id.
+func (c *SitePageClient) Get(ctx context.Context, id int) (*SitePage, error) {
+	return c.Query().Where(sitepage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SitePageClient) GetX(ctx context.Context, id int) *SitePage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SitePageClient) Hooks() []Hook {
+	return c.hooks.SitePage
+}
+
+// Interceptors returns the client interceptors.
+func (c *SitePageClient) Interceptors() []Interceptor {
+	return c.inters.SitePage
+}
+
+func (c *SitePageClient) mutate(ctx context.Context, m *SitePageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SitePageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SitePageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SitePageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SitePageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SitePage mutation op: %q", m.Op())
+	}
+}
+
 // SiteSettingClient is a client for the SiteSetting schema.
 type SiteSettingClient struct {
 	config
@@ -8699,8 +8840,8 @@ type (
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
 		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
-		UserOAuth, WorkerInstance []ent.Hook
+		SSHCommandAudit, SitePage, SiteSetting, StatusPage, SystemMessage, User,
+		UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEscalationPolicy, AlertEscalationStep,
@@ -8715,7 +8856,7 @@ type (
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
 		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
-		UserOAuth, WorkerInstance []ent.Interceptor
+		SSHCommandAudit, SitePage, SiteSetting, StatusPage, SystemMessage, User,
+		UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
 	}
 )

@@ -645,6 +645,18 @@ func (f SSHCommandAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SSHCommandAuditMutation", m)
 }
 
+// The SitePageFunc type is an adapter to allow the use of ordinary
+// function as SitePage mutator.
+type SitePageFunc func(context.Context, *ent.SitePageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SitePageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SitePageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SitePageMutation", m)
+}
+
 // The SiteSettingFunc type is an adapter to allow the use of ordinary
 // function as SiteSetting mutator.
 type SiteSettingFunc func(context.Context, *ent.SiteSettingMutation) (ent.Value, error)

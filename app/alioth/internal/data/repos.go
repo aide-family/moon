@@ -58,6 +58,9 @@ type siteRepo struct{ *repoBase }
 // loginMethodRepo 维护登录方式开关单例。
 type loginMethodRepo struct{ *repoBase }
 
+// sitePageRepo 维护官网页面与发布快照。
+type sitePageRepo struct{ *repoBase }
+
 func NewUserRepo(deps *Dependencies, logger *slog.Logger) repository.UserRepo {
 	return &userRepo{newBase(deps, logger)}
 }
@@ -133,6 +136,10 @@ func NewSiteRepo(deps *Dependencies, logger *slog.Logger) repository.SiteRepo {
 
 func NewLoginMethodRepo(deps *Dependencies, logger *slog.Logger) repository.LoginMethodRepo {
 	return &loginMethodRepo{newBase(deps, logger)}
+}
+
+func NewSitePageRepo(deps *Dependencies, logger *slog.Logger) repository.SitePageRepo {
+	return &sitePageRepo{newBase(deps, logger)}
 }
 
 func NewAlertMaintenanceRepo(deps *Dependencies, logger *slog.Logger) repository.AlertMaintenanceRepo {
