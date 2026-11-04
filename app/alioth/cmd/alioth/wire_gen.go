@@ -33,6 +33,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/probe"
 	"github.com/aide-family/moon/app/alioth/internal/biz/probesla"
 	"github.com/aide-family/moon/app/alioth/internal/biz/role"
+	"github.com/aide-family/moon/app/alioth/internal/biz/site"
 	"github.com/aide-family/moon/app/alioth/internal/biz/ssh"
 	"github.com/aide-family/moon/app/alioth/internal/biz/statuspage"
 	"github.com/aide-family/moon/app/alioth/internal/biz/user"
@@ -76,8 +77,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	featureRepo := data.NewFeatureRepo(dependencies, logger)
 	accessChecker := access.NewChecker(userRepo, namespaceRepo, roleRepo, featureRepo, logger)
 	registry := agent.NewRegistry(agentRepo, hub, accessChecker)
+	loginMethodRepo := data.NewLoginMethodRepo(dependencies, logger)
 	sender := mailer.NewSender(confAuth, logger)
-	authenticator, err := auth.NewAuthenticator(userRepo, captchaRepo, emailCodeRepo, oAuthRepo, registry, sender, confAuth, logger)
+	authenticator, err := auth.NewAuthenticator(userRepo, captchaRepo, emailCodeRepo, oAuthRepo, registry, loginMethodRepo, sender, confAuth, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
@@ -129,6 +131,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	statusPageRepo := data.NewStatusPageRepo(dependencies, logger)
 	statuspageGateway := statuspage.NewGateway(statusPageRepo, probeTargetRepo, accessChecker, logger)
 	statusPageService := service.NewStatusPageService(statuspageGateway)
+	siteRepo := data.NewSiteRepo(dependencies, logger)
+	settings := site.NewSettings(siteRepo, loginMethodRepo, accessChecker)
+	siteService := service.NewSiteService(settings)
 	catalog := alertdictionary.NewCatalog(alertDictionaryRepo, datasourceRepo, alertEventRepo, accessChecker)
 	alertDictionaryService := service.NewAlertDictionaryService(catalog)
 	alertPageRepo := data.NewAlertPageRepo(dependencies, logger)
@@ -168,7 +173,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	operator := cluster.NewOperator(clusterRepo, kubernetesRepo, accessChecker)
 	terminal := cluster.NewTerminal(clusterRepo, kubernetesRepo, accessChecker)
 	kubernetesService := service.NewKubernetesService(explorer, inspector, operator, terminal)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, probeTargetService, metricQueryService, logsQueryService, alertRuleService, boardService, alertMaintenanceService, probeSlaService, statusPageService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, onCallRotationService, messageLogService, workerService, maintenanceService, alertEscalationPolicyService, agentService, sshCommandService, clusterService, kubernetesService, authenticator, logger)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, probeTargetService, metricQueryService, logsQueryService, alertRuleService, boardService, alertMaintenanceService, probeSlaService, statusPageService, siteService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, onCallRotationService, messageLogService, workerService, maintenanceService, alertEscalationPolicyService, agentService, sshCommandService, clusterService, kubernetesService, authenticator, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
@@ -176,7 +181,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	}
 	evalService := service.NewEvalService(coordinator, roster)
 	notifyService := service.NewNotifyService(center, roster)
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, probeTargetService, metricQueryService, logsQueryService, alertRuleService, boardService, alertMaintenanceService, probeSlaService, statusPageService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, onCallRotationService, messageLogService, workerService, maintenanceService, alertEscalationPolicyService, notifyService, agentService, sshCommandService, authenticator, logger)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, probeTargetService, metricQueryService, logsQueryService, alertRuleService, boardService, alertMaintenanceService, probeSlaService, statusPageService, siteService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, onCallRotationService, messageLogService, workerService, maintenanceService, alertEscalationPolicyService, notifyService, agentService, sshCommandService, authenticator, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()

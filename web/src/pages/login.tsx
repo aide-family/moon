@@ -24,6 +24,7 @@ import {
   SEND_CODE_COOLDOWN_SECONDS,
   useSendCodeCooldown,
 } from "@/hooks/use-send-code-cooldown"
+import { useSiteConfig } from "@/hooks/use-site-config"
 import { cn } from "@/lib/class-names"
 import type { FieldErrors } from "@/lib/form"
 import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
@@ -73,6 +74,7 @@ export function LoginPage() {
   const [params] = useSearchParams()
   const next = readNextPath(params.get("next"))
   const captcha = useCaptcha()
+  const site = useSiteConfig()
   // 每次进入登录页生成一次性 state，第三方授权回调凭它取回本轮现场。
   const [oauthState] = useState(newOAuthState)
   const [providers, setProviders] = useState<OAuth2ProviderItem[]>([])
@@ -92,10 +94,26 @@ export function LoginPage() {
   const cooldown = useSendCodeCooldown("login")
   const pending = sendingCode || submitting
   const hasProviders = providers.length > 0
+  // 站点配置拿不到时按两种方式都可用处理，避免配置故障把人挡在登录页外。
+  const loginMethods = site.config?.loginMethods
+  const emailEnabled = loginMethods?.emailEnabled ?? true
+  const oauthEnabled = loginMethods?.oauth2Enabled ?? true
+  // 站点配置与第三方列表都就绪后再决定层级，骨架期间不先渲染入口再收起。
+  const ready = providersReady && !site.loading
+  // 两种方式都被平台关闭，或者邮箱被关闭且没有任何已配置的第三方来源时，
+  // 页面上没有任何可用的登录入口，必须显式说明，而不是留一张空卡片。
+  const loginDisabled =
+    ready && !emailEnabled && !(oauthEnabled && hasProviders)
   // 没有配置第三方时邮箱是唯一入口，直接展开；有第三方时由用户选择登录方式。
-  const emailPanelOpen = providersReady && !hasProviders ? true : emailMode
-  const showMethodSwitch = !providersReady || hasProviders
-  const showOAuthSection = !providersReady || hasProviders
+  const emailPanelOpen =
+    !ready || !emailEnabled
+      ? false
+      : !oauthEnabled || !hasProviders
+        ? true
+        : emailMode
+  const showMethodSwitch =
+    !ready || (emailEnabled && oauthEnabled && hasProviders)
+  const showOAuthSection = !ready || (oauthEnabled && hasProviders)
 
   useEffect(() => {
     let active = true
@@ -283,6 +301,19 @@ export function LoginPage() {
       repositoryURL={repositoryURL}
     >
       <div className="grid gap-6">
+        {/* 两种登录方式都被平台关闭时，登录页仍然可读：给出原因和可执行的下一步。 */}
+        {loginDisabled ? (
+          <div
+            role="alert"
+            className="grid gap-2 rounded-lg border border-warning-border bg-warning-soft px-3 py-3 text-sm"
+          >
+            <p className="font-medium text-warning">
+              {t("login.disabledTitle")}
+            </p>
+            <p className="text-muted-foreground">{t("login.disabledBody")}</p>
+            <p className="text-muted-foreground">{t("login.contactAdmin")}</p>
+          </div>
+        ) : null}
         {/* 主操作：第三方登录置顶，48px 整行按钮、品牌图标块与清晰的外链提示。
             列表未就绪时用同高骨架占位，避免邮箱表单先展开再收起的层级闪动。 */}
         {showOAuthSection ? (
@@ -292,7 +323,7 @@ export function LoginPage() {
             aria-label={t("login.oauthGroupLabel")}
             className={cn("grid gap-3", emailPanelOpen && "hidden")}
           >
-            {providersReady ? (
+            {ready ? (
               providers.map((provider) => (
                 <OAuthProviderButton
                   key={provider.provider}
@@ -314,103 +345,105 @@ export function LoginPage() {
           </div>
         ) : null}
 
-        {/* 次操作：邮箱验证码登录。两个面板都保持挂载，切换时只隐藏其中一个，
-            已填邮箱与验证码不会因切换而丢失；没有第三方配置时它是唯一入口。 */}
-        <div
-          id="email-login-panel"
-          className={cn("grid gap-4", !emailPanelOpen && "hidden")}
-        >
-          <form noValidate className="grid gap-4" onSubmit={onSubmit}>
-            <FormField
-              label={t("login.emailLabel")}
-              htmlFor="email"
-              required
-              error={fieldErrors.email}
-            >
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={email}
-                placeholder={t("login.emailPlaceholder")}
-                autoComplete="email"
-                spellCheck={false}
-                aria-invalid={fieldErrors.email ? true : undefined}
-                onChange={(event) => setEmail(event.target.value)}
+        {/* 次操作：邮箱验证码登录。邮箱开关关闭时整块不渲染；开启时保持挂载，
+            切换登录方式只隐藏其中一个，已填邮箱与验证码不会丢失。 */}
+        {emailEnabled ? (
+          <div
+            id="email-login-panel"
+            className={cn("grid gap-4", !emailPanelOpen && "hidden")}
+          >
+            <form noValidate className="grid gap-4" onSubmit={onSubmit}>
+              <FormField
+                label={t("login.emailLabel")}
+                htmlFor="email"
                 required
-              />
-            </FormField>
-            <CaptchaField
-              value={captchaCode}
-              onChange={setCaptchaCode}
-              captcha={captcha}
-              error={fieldErrors.captchaCode}
-            />
-            <FormField
-              label={t("login.codeLabel")}
-              htmlFor="code"
-              hint={t("login.codeHint")}
-              required
-              error={fieldErrors.code}
-            >
-              <div className="flex gap-2">
+                error={fieldErrors.email}
+              >
                 <Input
-                  id="code"
-                  name="code"
-                  className="min-w-0 flex-1"
-                  value={code}
-                  placeholder={t("login.codePlaceholder")}
-                  autoComplete="one-time-code"
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  placeholder={t("login.emailPlaceholder")}
+                  autoComplete="email"
                   spellCheck={false}
-                  aria-invalid={fieldErrors.code ? true : undefined}
-                  onChange={(event) => setCode(event.target.value)}
+                  aria-invalid={fieldErrors.email ? true : undefined}
+                  onChange={(event) => setEmail(event.target.value)}
                   required
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="shrink-0"
-                  disabled={
-                    pending ||
-                    cooldown.remaining > 0 ||
-                    !email.trim() ||
-                    !captchaCode.trim()
-                  }
-                  aria-busy={sendingCode || undefined}
-                  onClick={() => void onSendCode()}
-                >
-                  {sendingCode ? (
-                    <Loader2
-                      className="size-4 animate-spin"
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                  {sendingCode
-                    ? t("action.sendingCode")
-                    : cooldown.remaining > 0
-                      ? t("login.resendIn", { seconds: cooldown.remaining })
-                      : t("action.sendCode")}
-                </Button>
-              </div>
-            </FormField>
-            <Button
-              className="w-full"
-              type="submit"
-              disabled={pending}
-              aria-busy={submitting || undefined}
-            >
-              {submitting ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              </FormField>
+              <CaptchaField
+                value={captchaCode}
+                onChange={setCaptchaCode}
+                captcha={captcha}
+                error={fieldErrors.captchaCode}
+              />
+              <FormField
+                label={t("login.codeLabel")}
+                htmlFor="code"
+                hint={t("login.codeHint")}
+                required
+                error={fieldErrors.code}
+              >
+                <div className="flex gap-2">
+                  <Input
+                    id="code"
+                    name="code"
+                    className="min-w-0 flex-1"
+                    value={code}
+                    placeholder={t("login.codePlaceholder")}
+                    autoComplete="one-time-code"
+                    spellCheck={false}
+                    aria-invalid={fieldErrors.code ? true : undefined}
+                    onChange={(event) => setCode(event.target.value)}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0"
+                    disabled={
+                      pending ||
+                      cooldown.remaining > 0 ||
+                      !email.trim() ||
+                      !captchaCode.trim()
+                    }
+                    aria-busy={sendingCode || undefined}
+                    onClick={() => void onSendCode()}
+                  >
+                    {sendingCode ? (
+                      <Loader2
+                        className="size-4 animate-spin"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                    {sendingCode
+                      ? t("action.sendingCode")
+                      : cooldown.remaining > 0
+                        ? t("login.resendIn", { seconds: cooldown.remaining })
+                        : t("action.sendCode")}
+                  </Button>
+                </div>
+              </FormField>
+              <Button
+                className="w-full"
+                type="submit"
+                disabled={pending}
+                aria-busy={submitting || undefined}
+              >
+                {submitting ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : null}
+                {submitting ? t("login.loggingIn") : t("action.login")}
+              </Button>
+              {error ? (
+                <p role="alert" className="text-sm text-destructive">
+                  {error}
+                </p>
               ) : null}
-              {submitting ? t("login.loggingIn") : t("action.login")}
-            </Button>
-            {error ? (
-              <p role="alert" className="text-sm text-destructive">
-                {error}
-              </p>
-            ) : null}
-          </form>
-        </div>
+            </form>
+          </div>
+        ) : null}
 
         {/* 登录方式开关：无论从第三方切到邮箱还是反向切换，都复用同一条分隔线与按钮。 */}
         {showMethodSwitch ? (

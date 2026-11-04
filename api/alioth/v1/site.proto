@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 官网（公开站）的站点配置。
+// 公开接口不需要登录与租户头，只返回展示必需字段；管理接口走平台权限，
+// 读需要 system:site:read 或 system:login:read，写需要对应的 write。
+service SiteService {
+  // 读取公开站点配置：站点信息、页脚备案与登录方式开关。
+  // 登录页、注册页与官网共用这一份配置，避免同一份备案号出现多个来源。
+  rpc GetSiteConfig(GetSiteConfigRequest) returns (GetSiteConfigResponse) {
+    option (google.api.http) = {get: "/v1/site/config"};
+  }
+  // 读取站点设置。
+  rpc GetSiteSettings(GetSiteSettingsRequest) returns (GetSiteSettingsResponse) {
+    option (google.api.http) = {get: "/v1/system/site"};
+  }
+  // 保存站点设置。全量覆盖，留空的备案字段表示官网页脚不展示该行。
+  rpc UpdateSiteSettings(UpdateSiteSettingsRequest) returns (UpdateSiteSettingsResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/site"
+      body: "*"
+    };
+  }
+  // 读取登录方式开关。
+  rpc GetLoginMethods(GetLoginMethodsRequest) returns (GetLoginMethodsResponse) {
+    option (google.api.http) = {get: "/v1/system/auth/login-methods"};
+  }
+  // 保存登录方式开关。邮箱验证码与第三方登录至少要保留一种。
+  rpc UpdateLoginMethods(UpdateLoginMethodsRequest) returns (UpdateLoginMethodsResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/auth/login-methods"
+      body: "*"
+    };
+  }
+}
+
+// 站点设置。
+message SiteSettingsItem {
+  // 站点名称，留空时前端回落为 Alioth。
+  string site_name = 1 [json_name = "siteName"];
+  // logo 地址；只收 URL，不做文件上传。
+  string logo_url = 2 [json_name = "logoUrl"];
+  // favicon 地址。
+  string favicon_url = 3 [json_name = "faviconUrl"];
+  // 官方联系邮箱。
+  string contact_email = 4 [json_name = "contactEmail"];
+  // 代码仓库地址。
+  string repository_url = 5 [json_name = "repositoryUrl"];
+  // 页脚版权文案，留空时前端按当前年份回落。
+  string copyright_text = 6 [json_name = "copyrightText"];
+  // ICP 备案号，留空表示不展示。
+  string filing_icp_number = 7 [json_name = "filingIcpNumber"];
+  // ICP 备案查询地址，留空时前端用工信部备案系统地址。
+  string filing_icp_url = 8 [json_name = "filingIcpUrl"];
+  // 公安备案号，留空表示不展示。
+  string filing_police_number = 9 [json_name = "filingPoliceNumber"];
+  // 公安备案查询地址。
+  string filing_police_url = 10 [json_name = "filingPoliceUrl"];
+  // 备案补充说明，例如备案主体名称。
+  string filing_extra_text = 11 [json_name = "filingExtraText"];
+  // 最后修改人。
+  string updated_by = 12 [json_name = "updatedBy"];
+  // 最后修改时间，RFC3339。
+  string updated_at = 13 [json_name = "updatedAt"];
+}
+
+// 登录方式开关。
+message LoginMethodsItem {
+  // 是否允许邮箱验证码登录。
+  bool email_enabled = 1 [json_name = "emailEnabled"];
+  // 是否允许第三方（OAuth2）登录。关闭后不再下发任何来源，直接调用登录接口也不签发凭证。
+  bool oauth2_enabled = 2 [json_name = "oauth2Enabled"];
+  // 最后修改人。
+  string updated_by = 3 [json_name = "updatedBy"];
+  // 最后修改时间，RFC3339。
+  string updated_at = 4 [json_name = "updatedAt"];
+}
+
+// 读取公开站点配置请求。
+message GetSiteConfigRequest {}
+
+// 读取公开站点配置响应。
+message GetSiteConfigResponse {
+  // 站点设置。
+  SiteSettingsItem site = 1;
+  // 登录方式开关。
+  LoginMethodsItem login_methods = 2 [json_name = "loginMethods"];
+}
+
+// 读取站点设置请求。
+message GetSiteSettingsRequest {}
+
+// 读取站点设置响应。
+message GetSiteSettingsResponse {
+  // 站点设置。
+  SiteSettingsItem site = 1;
+}
+
+// 保存站点设置请求。
+message UpdateSiteSettingsRequest {
+  // 站点名称，留空时前端回落为 Alioth。
+  string site_name = 1 [json_name = "siteName", (buf.validate.field).string = {max_len: 64}];
+  // logo 地址。
+  string logo_url = 2 [json_name = "logoUrl", (buf.validate.field).string = {max_len: 512}];
+  // favicon 地址。
+  string favicon_url = 3 [json_name = "faviconUrl", (buf.validate.field).string = {max_len: 512}];
+  // 官方联系邮箱。
+  string contact_email = 4 [json_name = "contactEmail", (buf.validate.field).string = {max_len: 128}];
+  // 代码仓库地址。
+  string repository_url = 5 [json_name = "repositoryUrl", (buf.validate.field).string = {max_len: 512}];
+  // 页脚版权文案。
+  string copyright_text = 6 [json_name = "copyrightText", (buf.validate.field).string = {max_len: 160}];
+  // ICP 备案号。
+  string filing_icp_number = 7 [json_name = "filingIcpNumber", (buf.validate.field).string = {max_len: 64}];
+  // ICP 备案查询地址，只接受 http(s)。
+  string filing_icp_url = 8 [json_name = "filingIcpUrl", (buf.validate.field).string = {max_len: 512}];
+  // 公安备案号。
+  string filing_police_number = 9 [json_name = "filingPoliceNumber", (buf.validate.field).string = {max_len: 64}];
+  // 公安备案查询地址，只接受 http(s)。
+  string filing_police_url = 10 [json_name = "filingPoliceUrl", (buf.validate.field).string = {max_len: 512}];
+  // 备案补充说明。
+  string filing_extra_text = 11 [json_name = "filingExtraText", (buf.validate.field).string = {max_len: 160}];
+}
+
+// 保存站点设置响应。
+message UpdateSiteSettingsResponse {
+  // 保存后的站点设置。
+  SiteSettingsItem site = 1;
+}
+
+// 读取登录方式开关请求。
+message GetLoginMethodsRequest {}
+
+// 读取登录方式开关响应。
+message GetLoginMethodsResponse {
+  // 登录方式开关。
+  LoginMethodsItem login_methods = 1 [json_name = "loginMethods"];
+}
+
+// 保存登录方式开关请求。
+message UpdateLoginMethodsRequest {
+  // 是否允许邮箱验证码登录。
+  bool email_enabled = 1 [json_name = "emailEnabled"];
+  // 是否允许第三方（OAuth2）登录。
+  bool oauth2_enabled = 2 [json_name = "oauth2Enabled"];
+}
+
+// 保存登录方式开关响应。
+message UpdateLoginMethodsResponse {
+  // 保存后的登录方式开关。
+  LoginMethodsItem login_methods = 1 [json_name = "loginMethods"];
+}

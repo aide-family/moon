@@ -21,6 +21,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/board"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/boardpanel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
@@ -56,6 +57,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/schema"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/statuspage"
@@ -732,6 +734,37 @@ func init() {
 	alertrulelevelDescLevelUID := alertrulelevelFields[7].Descriptor()
 	// alertrulelevel.LevelUIDValidator is a validator for the "level_uid" field. It is called by the builders before save.
 	alertrulelevel.LevelUIDValidator = alertrulelevelDescLevelUID.Validators[0].(func(string) error)
+	authloginsettingMixin := schema.AuthLoginSetting{}.Mixin()
+	authloginsettingMixinFields0 := authloginsettingMixin[0].Fields()
+	_ = authloginsettingMixinFields0
+	authloginsettingFields := schema.AuthLoginSetting{}.Fields()
+	_ = authloginsettingFields
+	// authloginsettingDescCreatedAt is the schema descriptor for created_at field.
+	authloginsettingDescCreatedAt := authloginsettingMixinFields0[0].Descriptor()
+	// authloginsetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	authloginsetting.DefaultCreatedAt = authloginsettingDescCreatedAt.Default.(func() time.Time)
+	// authloginsettingDescUpdatedAt is the schema descriptor for updated_at field.
+	authloginsettingDescUpdatedAt := authloginsettingMixinFields0[1].Descriptor()
+	// authloginsetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	authloginsetting.DefaultUpdatedAt = authloginsettingDescUpdatedAt.Default.(func() time.Time)
+	// authloginsetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	authloginsetting.UpdateDefaultUpdatedAt = authloginsettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// authloginsettingDescUID is the schema descriptor for uid field.
+	authloginsettingDescUID := authloginsettingFields[0].Descriptor()
+	// authloginsetting.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	authloginsetting.UIDValidator = authloginsettingDescUID.Validators[0].(func(string) error)
+	// authloginsettingDescEmailEnabled is the schema descriptor for email_enabled field.
+	authloginsettingDescEmailEnabled := authloginsettingFields[1].Descriptor()
+	// authloginsetting.DefaultEmailEnabled holds the default value on creation for the email_enabled field.
+	authloginsetting.DefaultEmailEnabled = authloginsettingDescEmailEnabled.Default.(bool)
+	// authloginsettingDescOauth2Enabled is the schema descriptor for oauth2_enabled field.
+	authloginsettingDescOauth2Enabled := authloginsettingFields[2].Descriptor()
+	// authloginsetting.DefaultOauth2Enabled holds the default value on creation for the oauth2_enabled field.
+	authloginsetting.DefaultOauth2Enabled = authloginsettingDescOauth2Enabled.Default.(bool)
+	// authloginsettingDescUpdatedBy is the schema descriptor for updated_by field.
+	authloginsettingDescUpdatedBy := authloginsettingFields[3].Descriptor()
+	// authloginsetting.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	authloginsetting.DefaultUpdatedBy = authloginsettingDescUpdatedBy.Default.(string)
 	boardMixin := schema.Board{}.Mixin()
 	boardMixinFields0 := boardMixin[0].Fields()
 	_ = boardMixinFields0
@@ -2436,6 +2469,73 @@ func init() {
 	sshcommandauditDescDetail := sshcommandauditFields[11].Descriptor()
 	// sshcommandaudit.DefaultDetail holds the default value on creation for the detail field.
 	sshcommandaudit.DefaultDetail = sshcommandauditDescDetail.Default.(string)
+	sitesettingMixin := schema.SiteSetting{}.Mixin()
+	sitesettingMixinFields0 := sitesettingMixin[0].Fields()
+	_ = sitesettingMixinFields0
+	sitesettingFields := schema.SiteSetting{}.Fields()
+	_ = sitesettingFields
+	// sitesettingDescCreatedAt is the schema descriptor for created_at field.
+	sitesettingDescCreatedAt := sitesettingMixinFields0[0].Descriptor()
+	// sitesetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	sitesetting.DefaultCreatedAt = sitesettingDescCreatedAt.Default.(func() time.Time)
+	// sitesettingDescUpdatedAt is the schema descriptor for updated_at field.
+	sitesettingDescUpdatedAt := sitesettingMixinFields0[1].Descriptor()
+	// sitesetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sitesetting.DefaultUpdatedAt = sitesettingDescUpdatedAt.Default.(func() time.Time)
+	// sitesetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sitesetting.UpdateDefaultUpdatedAt = sitesettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// sitesettingDescUID is the schema descriptor for uid field.
+	sitesettingDescUID := sitesettingFields[0].Descriptor()
+	// sitesetting.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	sitesetting.UIDValidator = sitesettingDescUID.Validators[0].(func(string) error)
+	// sitesettingDescSiteName is the schema descriptor for site_name field.
+	sitesettingDescSiteName := sitesettingFields[1].Descriptor()
+	// sitesetting.DefaultSiteName holds the default value on creation for the site_name field.
+	sitesetting.DefaultSiteName = sitesettingDescSiteName.Default.(string)
+	// sitesettingDescLogoURL is the schema descriptor for logo_url field.
+	sitesettingDescLogoURL := sitesettingFields[2].Descriptor()
+	// sitesetting.DefaultLogoURL holds the default value on creation for the logo_url field.
+	sitesetting.DefaultLogoURL = sitesettingDescLogoURL.Default.(string)
+	// sitesettingDescFaviconURL is the schema descriptor for favicon_url field.
+	sitesettingDescFaviconURL := sitesettingFields[3].Descriptor()
+	// sitesetting.DefaultFaviconURL holds the default value on creation for the favicon_url field.
+	sitesetting.DefaultFaviconURL = sitesettingDescFaviconURL.Default.(string)
+	// sitesettingDescContactEmail is the schema descriptor for contact_email field.
+	sitesettingDescContactEmail := sitesettingFields[4].Descriptor()
+	// sitesetting.DefaultContactEmail holds the default value on creation for the contact_email field.
+	sitesetting.DefaultContactEmail = sitesettingDescContactEmail.Default.(string)
+	// sitesettingDescRepositoryURL is the schema descriptor for repository_url field.
+	sitesettingDescRepositoryURL := sitesettingFields[5].Descriptor()
+	// sitesetting.DefaultRepositoryURL holds the default value on creation for the repository_url field.
+	sitesetting.DefaultRepositoryURL = sitesettingDescRepositoryURL.Default.(string)
+	// sitesettingDescCopyrightText is the schema descriptor for copyright_text field.
+	sitesettingDescCopyrightText := sitesettingFields[6].Descriptor()
+	// sitesetting.DefaultCopyrightText holds the default value on creation for the copyright_text field.
+	sitesetting.DefaultCopyrightText = sitesettingDescCopyrightText.Default.(string)
+	// sitesettingDescFilingIcpNumber is the schema descriptor for filing_icp_number field.
+	sitesettingDescFilingIcpNumber := sitesettingFields[7].Descriptor()
+	// sitesetting.DefaultFilingIcpNumber holds the default value on creation for the filing_icp_number field.
+	sitesetting.DefaultFilingIcpNumber = sitesettingDescFilingIcpNumber.Default.(string)
+	// sitesettingDescFilingIcpURL is the schema descriptor for filing_icp_url field.
+	sitesettingDescFilingIcpURL := sitesettingFields[8].Descriptor()
+	// sitesetting.DefaultFilingIcpURL holds the default value on creation for the filing_icp_url field.
+	sitesetting.DefaultFilingIcpURL = sitesettingDescFilingIcpURL.Default.(string)
+	// sitesettingDescFilingPoliceNumber is the schema descriptor for filing_police_number field.
+	sitesettingDescFilingPoliceNumber := sitesettingFields[9].Descriptor()
+	// sitesetting.DefaultFilingPoliceNumber holds the default value on creation for the filing_police_number field.
+	sitesetting.DefaultFilingPoliceNumber = sitesettingDescFilingPoliceNumber.Default.(string)
+	// sitesettingDescFilingPoliceURL is the schema descriptor for filing_police_url field.
+	sitesettingDescFilingPoliceURL := sitesettingFields[10].Descriptor()
+	// sitesetting.DefaultFilingPoliceURL holds the default value on creation for the filing_police_url field.
+	sitesetting.DefaultFilingPoliceURL = sitesettingDescFilingPoliceURL.Default.(string)
+	// sitesettingDescFilingExtraText is the schema descriptor for filing_extra_text field.
+	sitesettingDescFilingExtraText := sitesettingFields[11].Descriptor()
+	// sitesetting.DefaultFilingExtraText holds the default value on creation for the filing_extra_text field.
+	sitesetting.DefaultFilingExtraText = sitesettingDescFilingExtraText.Default.(string)
+	// sitesettingDescUpdatedBy is the schema descriptor for updated_by field.
+	sitesettingDescUpdatedBy := sitesettingFields[12].Descriptor()
+	// sitesetting.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	sitesetting.DefaultUpdatedBy = sitesettingDescUpdatedBy.Default.(string)
 	statuspageMixin := schema.StatusPage{}.Mixin()
 	statuspageMixinFields0 := statuspageMixin[0].Fields()
 	_ = statuspageMixinFields0

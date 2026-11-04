@@ -201,6 +201,18 @@ func (f AlertRuleLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleLevelMutation", m)
 }
 
+// The AuthLoginSettingFunc type is an adapter to allow the use of ordinary
+// function as AuthLoginSetting mutator.
+type AuthLoginSettingFunc func(context.Context, *ent.AuthLoginSettingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AuthLoginSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AuthLoginSettingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AuthLoginSettingMutation", m)
+}
+
 // The BoardFunc type is an adapter to allow the use of ordinary
 // function as Board mutator.
 type BoardFunc func(context.Context, *ent.BoardMutation) (ent.Value, error)
@@ -631,6 +643,18 @@ func (f SSHCommandAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SSHCommandAuditMutation", m)
+}
+
+// The SiteSettingFunc type is an adapter to allow the use of ordinary
+// function as SiteSetting mutator.
+type SiteSettingFunc func(context.Context, *ent.SiteSettingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SiteSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SiteSettingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SiteSettingMutation", m)
 }
 
 // The StatusPageFunc type is an adapter to allow the use of ordinary

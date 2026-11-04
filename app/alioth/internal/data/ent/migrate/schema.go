@@ -653,6 +653,29 @@ var (
 			},
 		},
 	}
+	// AuthLoginSettingsColumns holds the columns for the "auth_login_settings" table.
+	AuthLoginSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "email_enabled", Type: field.TypeBool, Default: true},
+		{Name: "oauth2_enabled", Type: field.TypeBool, Default: true},
+		{Name: "updated_by", Type: field.TypeString, Default: ""},
+	}
+	// AuthLoginSettingsTable holds the schema information for the "auth_login_settings" table.
+	AuthLoginSettingsTable = &schema.Table{
+		Name:       "auth_login_settings",
+		Columns:    AuthLoginSettingsColumns,
+		PrimaryKey: []*schema.Column{AuthLoginSettingsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "authloginsetting_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AuthLoginSettingsColumns[3]},
+			},
+		},
+	}
 	// BoardsColumns holds the columns for the "boards" table.
 	BoardsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -2128,6 +2151,38 @@ var (
 			},
 		},
 	}
+	// SiteSettingsColumns holds the columns for the "site_settings" table.
+	SiteSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "site_name", Type: field.TypeString, Default: ""},
+		{Name: "logo_url", Type: field.TypeString, Default: ""},
+		{Name: "favicon_url", Type: field.TypeString, Default: ""},
+		{Name: "contact_email", Type: field.TypeString, Default: ""},
+		{Name: "repository_url", Type: field.TypeString, Default: ""},
+		{Name: "copyright_text", Type: field.TypeString, Default: ""},
+		{Name: "filing_icp_number", Type: field.TypeString, Default: ""},
+		{Name: "filing_icp_url", Type: field.TypeString, Default: ""},
+		{Name: "filing_police_number", Type: field.TypeString, Default: ""},
+		{Name: "filing_police_url", Type: field.TypeString, Default: ""},
+		{Name: "filing_extra_text", Type: field.TypeString, Default: ""},
+		{Name: "updated_by", Type: field.TypeString, Default: ""},
+	}
+	// SiteSettingsTable holds the schema information for the "site_settings" table.
+	SiteSettingsTable = &schema.Table{
+		Name:       "site_settings",
+		Columns:    SiteSettingsColumns,
+		PrimaryKey: []*schema.Column{SiteSettingsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sitesetting_uid",
+				Unique:  true,
+				Columns: []*schema.Column{SiteSettingsColumns[3]},
+			},
+		},
+	}
 	// StatusPagesColumns holds the columns for the "status_pages" table.
 	StatusPagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -2386,6 +2441,7 @@ var (
 		AlertRulesTable,
 		AlertRuleGroupsTable,
 		AlertRuleLevelsTable,
+		AuthLoginSettingsTable,
 		BoardsTable,
 		BoardPanelsTable,
 		CaptchasTable,
@@ -2422,6 +2478,7 @@ var (
 		RolePermissionsTable,
 		SSHCommandsTable,
 		SSHCommandAuditsTable,
+		SiteSettingsTable,
 		StatusPagesTable,
 		SystemMessagesTable,
 		UsersTable,

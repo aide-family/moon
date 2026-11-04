@@ -166,6 +166,12 @@ const (
 	// 会读写整库数据，只授予超级管理员。
 	SystemMigrationRead  = "system:migration:read"
 	SystemMigrationWrite = "system:migration:write"
+	// 官网（公开站）的站点设置与页脚备案：读给系统管理员，写只给超级管理员。
+	SystemSiteRead  = "system:site:read"
+	SystemSiteWrite = "system:site:write"
+	// 登录方式开关：读给系统管理员，写只给超级管理员。
+	SystemLoginRead  = "system:login:read"
+	SystemLoginWrite = "system:login:write"
 )
 
 // 套餐版本决定套餐出现在哪里：公开套餐可被用户在创建租户时选择，
@@ -277,6 +283,10 @@ func SystemCatalog() []Item {
 		{Name: SystemPackageWrite, Resource: "system", Action: "package:write"},
 		{Name: SystemMigrationRead, Resource: "system", Action: "migration:read"},
 		{Name: SystemMigrationWrite, Resource: "system", Action: "migration:write"},
+		{Name: SystemSiteRead, Resource: "system", Action: "site:read"},
+		{Name: SystemSiteWrite, Resource: "system", Action: "site:write"},
+		{Name: SystemLoginRead, Resource: "system", Action: "login:read"},
+		{Name: SystemLoginWrite, Resource: "system", Action: "login:write"},
 	}
 }
 
@@ -308,6 +318,7 @@ func SystemPermissions(role string) []string {
 		return []string{
 			SystemUserRead, SystemUserWrite, SystemRoleRead, SystemInviteRead,
 			SystemNamespaceRead, SystemPackageRead, SystemMigrationRead,
+			SystemSiteRead, SystemLoginRead,
 		}
 	case SystemRoleReadOnly:
 		return systemReadPermissions()

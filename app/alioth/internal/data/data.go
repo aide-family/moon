@@ -55,6 +55,8 @@ var ProviderSet = wire.NewSet(
 	NewOnCallRotationRepo,
 	NewStatusPageRepo,
 	NewProbeSlaRepo,
+	NewSiteRepo,
+	NewLoginMethodRepo,
 )
 
 // Dependencies 持有数据层共享的数据库连接、ent 客户端、加密盒、分片存储

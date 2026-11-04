@@ -43,6 +43,7 @@ import { ProbeTargetPage } from "@/pages/probe-target"
 import { PublicStatusPageView } from "@/pages/public-status"
 import { RegisterPage } from "@/pages/register"
 import { RolePage } from "@/pages/role"
+import { SiteSettingsPage } from "@/pages/site-settings"
 import { SSHCommandPage } from "@/pages/ssh-command"
 import { SSHCommandResultsPage } from "@/pages/ssh-command/results"
 import { StatusPageListPage } from "@/pages/status-page"
@@ -76,6 +77,7 @@ export function App() {
         <Route path="/packages" element={<PackagePage />} />
         <Route path="/users" element={<UserPage />} />
         <Route path="/workers" element={<WorkerStatusPage />} />
+        <Route path="/system/site" element={<SiteSettingsPage />} />
         <Route path="/system/upgrade" element={<UpgradePage />} />
         <Route path="/invitations" element={<InvitationPage />} />
         <Route path="/messages" element={<MessagePage />} />

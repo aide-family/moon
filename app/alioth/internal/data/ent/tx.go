@@ -44,6 +44,8 @@ type Tx struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
+	// AuthLoginSetting is the client for interacting with the AuthLoginSetting builders.
+	AuthLoginSetting *AuthLoginSettingClient
 	// Board is the client for interacting with the Board builders.
 	Board *BoardClient
 	// BoardPanel is the client for interacting with the BoardPanel builders.
@@ -116,6 +118,8 @@ type Tx struct {
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
 	SSHCommandAudit *SSHCommandAuditClient
+	// SiteSetting is the client for interacting with the SiteSetting builders.
+	SiteSetting *SiteSettingClient
 	// StatusPage is the client for interacting with the StatusPage builders.
 	StatusPage *StatusPageClient
 	// SystemMessage is the client for interacting with the SystemMessage builders.
@@ -275,6 +279,7 @@ func (tx *Tx) init() {
 	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
 	tx.AlertRuleLevel = NewAlertRuleLevelClient(tx.config)
+	tx.AuthLoginSetting = NewAuthLoginSettingClient(tx.config)
 	tx.Board = NewBoardClient(tx.config)
 	tx.BoardPanel = NewBoardPanelClient(tx.config)
 	tx.Captcha = NewCaptchaClient(tx.config)
@@ -311,6 +316,7 @@ func (tx *Tx) init() {
 	tx.RolePermission = NewRolePermissionClient(tx.config)
 	tx.SSHCommand = NewSSHCommandClient(tx.config)
 	tx.SSHCommandAudit = NewSSHCommandAuditClient(tx.config)
+	tx.SiteSetting = NewSiteSettingClient(tx.config)
 	tx.StatusPage = NewStatusPageClient(tx.config)
 	tx.SystemMessage = NewSystemMessageClient(tx.config)
 	tx.User = NewUserClient(tx.config)

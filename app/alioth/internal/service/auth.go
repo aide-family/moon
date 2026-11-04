@@ -65,7 +65,7 @@ func (s *AuthService) EmailLogin(ctx context.Context, req *v1.EmailLoginRequest)
 }
 
 func (s *AuthService) ListOAuth2Providers(ctx context.Context, req *v1.ListOAuth2ProvidersRequest) (*v1.ListOAuth2ProvidersResponse, error) {
-	providers, err := s.authenticator.OAuthProviders(req.GetRedirectUri(), req.GetState())
+	providers, err := s.authenticator.OAuthProviders(ctx, req.GetRedirectUri(), req.GetState())
 	if err != nil {
 		return nil, err
 	}

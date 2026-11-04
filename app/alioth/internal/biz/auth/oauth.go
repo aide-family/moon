@@ -54,6 +54,9 @@ type oauthBindClaims struct {
 // 直接并入已有账号或新建账号并登录。其余情况返回待绑定凭证，不创建用户，也不生成占位邮箱。
 // 返回的 binding 非空时 session 一定为空。封禁用户仍由 session 拒绝签发令牌。
 func (authenticator *Authenticator) OAuthLogin(ctx context.Context, provider, code, redirectURI string) (*bo.Session, *bo.OAuthBinding, error) {
+	if err := authenticator.requireOAuthLogin(ctx); err != nil {
+		return nil, nil, err
+	}
 	provider = strings.ToUpper(strings.TrimSpace(provider))
 	client, ok := authenticator.oauthClients[provider]
 	if !ok || client.id == "" || client.secret == "" {
@@ -817,10 +820,18 @@ func (provider oauthProvider) authorizeURL(client oauthClient, redirectURI, stat
 	return provider.authorizeEndpoint + "?" + strings.ReplaceAll(params.Encode(), "+", "%20")
 }
 
-// OAuthProviders 只返回客户端已配置的来源：client_id 和 client_secret 都不为空才出现。
-// 前端据此决定显示哪些第三方登录按钮。redirectUri 原样写进授权地址，
-// 必须是 http(s)，否则第三方会拒绝，或者把用户带到不安全的自定义协议。
-func (authenticator *Authenticator) OAuthProviders(redirectURI, state string) ([]bo.OAuthProvider, error) {
+// OAuthProviders 只返回客户端已配置且开关允许的来源：client_id 和 client_secret 都不为空才出现。
+// 前端据此决定显示哪些第三方登录按钮。开关关闭时返回空列表而不是错误：
+// 公开的登录页要能照常渲染邮箱登录，不该整页失败。
+// redirectUri 原样写进授权地址，必须是 http(s)，否则第三方会拒绝，或者把用户带到不安全的自定义协议。
+func (authenticator *Authenticator) OAuthProviders(ctx context.Context, redirectURI, state string) ([]bo.OAuthProvider, error) {
+	methods, err := authenticator.loginMethods(ctx)
+	if err != nil {
+		return nil, authenticator.wrap(err)
+	}
+	if !methods.OAuth2Enabled {
+		return []bo.OAuthProvider{}, nil
+	}
 	redirectURI = strings.TrimSpace(redirectURI)
 	if !strings.HasPrefix(redirectURI, "http://") && !strings.HasPrefix(redirectURI, "https://") {
 		return nil, merr.Client("invalid redirect uri")

@@ -18,6 +18,7 @@ const zh = {
     roles: "角色",
     system: "系统管理",
     workers: "后台工作进程",
+    siteSettings: "站点设置",
     systemUpgrade: "升级与迁移",
     datasources: "数据源",
     probeTargets: "探测目标",
@@ -447,6 +448,18 @@ const zh = {
     tooManyLabels: "最多支持 32 对标签。",
     containerRequired: "请选择容器。",
     podExecUnavailable: "当前无法打开 Pod 终端，请确认容器内有可用的 Shell。",
+    contactEmailInvalid: "联系邮箱格式不正确。",
+    logoUrlInvalid: "Logo 地址必须是 http:// 或 https:// 开头的有效地址。",
+    faviconUrlInvalid:
+      "Favicon 地址必须是 http:// 或 https:// 开头的有效地址。",
+    repositoryUrlInvalid: "仓库地址必须是 http:// 或 https:// 开头的有效地址。",
+    filingIcpUrlInvalid:
+      "ICP 查询地址必须是 http:// 或 https:// 开头的有效地址。",
+    filingPoliceUrlInvalid:
+      "公安备案查询地址必须是 http:// 或 https:// 开头的有效地址。",
+    atLeastOneLoginMethod: "邮箱验证码与第三方登录至少要保留一种。",
+    emailLoginDisabled: "平台已关闭邮箱验证码登录。",
+    oauthLoginDisabled: "平台已关闭第三方登录。",
     reason: {
       CLIENT: "请求不合法。",
       UNAUTHENTICATED: "请先登录。",
@@ -571,8 +584,9 @@ const zh = {
     oauthOr: "或",
     emailLoginShow: "使用邮箱验证码登录",
     oauthLoginShow: "使用第三方账号登录",
-    // 备案号暂用占位值，接入真实备案后只改这里。
-    icp: "京ICP备00000000号-1",
+    disabledTitle: "当前没有可用的登录方式",
+    disabledBody: "平台已关闭邮箱验证码登录，且没有开启或配置可用的第三方登录。",
+    contactAdmin: "请联系平台管理员恢复登录方式。",
   },
   register: {
     title: "注册",
@@ -3615,6 +3629,68 @@ const zh = {
     stepsNote:
       "迁移包不含历史告警与消息日志的分库数据；需要保留历史时继续用旧库查询。",
   },
+  systemSite: {
+    title: "站点设置",
+    description:
+      "配置官网页脚、备案信息与登录方式开关；留空的备案字段不会出现在官网页脚。",
+    loadFailed: "站点设置加载失败。",
+    readOnly: "当前账号只有查看权限，表单为只读。",
+    save: "保存站点设置",
+    saveLogin: "保存登录方式",
+    saving: "正在保存…",
+    saved: "站点设置已保存",
+    loginSaved: "登录方式已保存",
+    site: {
+      title: "站点与备案",
+      description:
+        "这些内容展示在官网与登录页的页脚；站点名与版权文案留空时会回落到默认值。",
+    },
+    login: {
+      title: "登录方式",
+      description: "关闭后的入口会从登录页隐藏；两种方式至少要保留一种。",
+      emailEnabled: "邮箱验证码登录",
+      emailEnabledHint:
+        "允许用户用邮箱接收验证码登录；关闭后后端也会拒绝邮箱登录请求。",
+      oauth2Enabled: "第三方 OAuth2 登录",
+      oauth2EnabledHint:
+        "允许通过已配置的第三方账号登录；关闭后登录页不再展示第三方入口。",
+      atLeastOne: "邮箱验证码与第三方登录至少要保留一种。",
+      noPermission: "当前账号没有读取登录方式的权限。",
+    },
+    preview: {
+      title: "官网页脚预览",
+      empty: "留空则官网页脚不展示该行",
+      copyrightFallback: "Alioth",
+    },
+    fields: {
+      siteName: "站点名称",
+      siteNamePlaceholder: "Alioth",
+      siteNameHint: "留空时官网与登录页使用 Alioth。",
+      logoUrl: "Logo 地址",
+      logoUrlPlaceholder: "https://example.com/logo.png",
+      faviconUrl: "Favicon 地址",
+      faviconUrlPlaceholder: "https://example.com/favicon.ico",
+      contactEmail: "联系邮箱",
+      contactEmailPlaceholder: "contact@example.com",
+      repositoryUrl: "代码仓库地址",
+      repositoryUrlPlaceholder: "https://github.com/aide-family/moon",
+      copyrightText: "版权文案",
+      copyrightTextPlaceholder: "Alioth",
+      copyrightTextHint: "留空时按当前年份回落为 © 年份 Alioth。",
+      filingIcpNumber: "ICP 备案号",
+      filingIcpNumberPlaceholder: "京ICP备00000000号-1",
+      filingIcpUrl: "ICP 查询地址",
+      filingIcpUrlPlaceholder: "https://beian.miit.gov.cn/",
+      filingIcpUrlHint: "留空时使用工信部备案系统地址。",
+      filingPoliceNumber: "公安备案号",
+      filingPoliceNumberPlaceholder: "京公网安备 00000000000000 号",
+      filingPoliceUrl: "公安备案查询地址",
+      filingPoliceUrlPlaceholder: "https://beian.mps.gov.cn/",
+      filingExtraText: "备案补充说明",
+      filingExtraTextPlaceholder: "例如备案主体名称",
+      filingExtraTextHint: "例如备案主体名称；留空则不展示。",
+    },
+  },
 }
 
 const en = {
@@ -3634,6 +3710,7 @@ const en = {
     roles: "Roles",
     system: "System",
     workers: "Workers",
+    siteSettings: "Site settings",
     systemUpgrade: "Upgrade and migration",
     datasources: "Datasources",
     probeTargets: "Probe targets",
@@ -4088,6 +4165,20 @@ const en = {
     containerRequired: "Select a container.",
     podExecUnavailable:
       "The pod terminal is unavailable right now. Check that the container has a usable shell.",
+    contactEmailInvalid: "The contact email is not valid.",
+    logoUrlInvalid: "The logo URL must be a valid http:// or https:// address.",
+    faviconUrlInvalid:
+      "The favicon URL must be a valid http:// or https:// address.",
+    repositoryUrlInvalid:
+      "The repository URL must be a valid http:// or https:// address.",
+    filingIcpUrlInvalid:
+      "The ICP lookup URL must be a valid http:// or https:// address.",
+    filingPoliceUrlInvalid:
+      "The police filing lookup URL must be a valid http:// or https:// address.",
+    atLeastOneLoginMethod:
+      "Keep at least one of email code or third-party sign-in enabled.",
+    emailLoginDisabled: "Email code sign-in is disabled by the platform.",
+    oauthLoginDisabled: "Third-party sign-in is disabled by the platform.",
     reason: {
       CLIENT: "The request is not valid.",
       UNAUTHENTICATED: "Please sign in first.",
@@ -4222,8 +4313,10 @@ const en = {
     oauthOr: "or",
     emailLoginShow: "Sign in with an email code",
     oauthLoginShow: "Sign in with a third-party account",
-    // Placeholder filing number until the real ICP filing is issued.
-    icp: "ICP Filing No. 00000000-1",
+    disabledTitle: "No sign-in method is available",
+    disabledBody:
+      "Email sign-in is turned off and no third-party provider is enabled.",
+    contactAdmin: "Contact the platform administrator to restore sign-in.",
   },
   register: {
     title: "Register",
@@ -7467,6 +7560,72 @@ const en = {
       "Switch traffic; keep the old PostgreSQL for at least one release cycle for rollback.",
     stepsNote:
       "The archive excludes history shards for alerts and message logs; keep querying the old database when you need that history.",
+  },
+  systemSite: {
+    title: "Site settings",
+    description:
+      "Configure the public footer, filing information, and sign-in methods. Empty filing fields are omitted from the public footer.",
+    loadFailed: "Failed to load site settings.",
+    readOnly: "You can view these settings but cannot change them.",
+    save: "Save site settings",
+    saveLogin: "Save sign-in methods",
+    saving: "Saving…",
+    saved: "Site settings saved",
+    loginSaved: "Sign-in methods saved",
+    site: {
+      title: "Site and filing",
+      description:
+        "These values appear in the public and sign-in page footers. Empty site name and copyright fall back to defaults.",
+    },
+    login: {
+      title: "Sign-in methods",
+      description:
+        "Disabled methods disappear from the sign-in page; at least one method must stay enabled.",
+      emailEnabled: "Email code sign-in",
+      emailEnabledHint:
+        "Let users sign in with a code sent by email. When disabled, the backend also rejects email sign-in.",
+      oauth2Enabled: "Third-party OAuth2 sign-in",
+      oauth2EnabledHint:
+        "Let users sign in with a configured third-party account. When disabled, the sign-in page hides third-party entries.",
+      atLeastOne: "Keep at least one of email code or third-party sign-in enabled.",
+      noPermission: "You do not have permission to read the sign-in methods.",
+    },
+    preview: {
+      title: "Public footer preview",
+      empty: "Leave a field empty to omit that line from the public footer.",
+      copyrightFallback: "Alioth",
+    },
+    fields: {
+      siteName: "Site name",
+      siteNamePlaceholder: "Alioth",
+      siteNameHint: "Falls back to Alioth when empty.",
+      logoUrl: "Logo URL",
+      logoUrlPlaceholder: "https://example.com/logo.png",
+      faviconUrl: "Favicon URL",
+      faviconUrlPlaceholder: "https://example.com/favicon.ico",
+      contactEmail: "Contact email",
+      contactEmailPlaceholder: "contact@example.com",
+      repositoryUrl: "Repository URL",
+      repositoryUrlPlaceholder: "https://github.com/aide-family/moon",
+      copyrightText: "Copyright text",
+      copyrightTextPlaceholder: "Alioth",
+      copyrightTextHint:
+        "Falls back to © <current year> Alioth when empty.",
+      filingIcpNumber: "ICP filing number",
+      filingIcpNumberPlaceholder: "ICP Filing No. 00000000-1",
+      filingIcpUrl: "ICP lookup URL",
+      filingIcpUrlPlaceholder: "https://beian.miit.gov.cn/",
+      filingIcpUrlHint:
+        "Falls back to the MIIT filing system when empty.",
+      filingPoliceNumber: "Police filing number",
+      filingPoliceNumberPlaceholder: "Police Filing No. 00000000000000",
+      filingPoliceUrl: "Police filing lookup URL",
+      filingPoliceUrlPlaceholder: "https://beian.mps.gov.cn/",
+      filingExtraText: "Filing note",
+      filingExtraTextPlaceholder: "For example, the filing entity name",
+      filingExtraTextHint:
+        "For example, the filing entity name; hidden when empty.",
+    },
   },
 }
 

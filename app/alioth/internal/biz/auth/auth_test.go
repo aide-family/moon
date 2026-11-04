@@ -271,7 +271,7 @@ func newAuthFixture(t *testing.T) *authFixture {
 	mail := &codeMailerStub{}
 	oauth := newOAuthRepoStub(users)
 	users.oauth = oauth
-	authenticator, err := NewAuthenticator(users, captchas, emailCodes, oauth, nil, nil, &conf.Auth{JwtSecret: "test-secret"}, slog.Default())
+	authenticator, err := NewAuthenticator(users, captchas, emailCodes, oauth, nil, nil, nil, &conf.Auth{JwtSecret: "test-secret"}, slog.Default())
 	if err != nil {
 		t.Fatalf("NewAuthenticator: %v", err)
 	}
@@ -309,7 +309,7 @@ func assertClientMessage(t *testing.T, err error, message string) {
 }
 
 func TestClaimRejectsUserJWT(t *testing.T) {
-	authenticator, err := NewAuthenticator(userStub{}, nil, nil, nil, nil, nil, &conf.Auth{
+	authenticator, err := NewAuthenticator(userStub{}, nil, nil, nil, nil, nil, nil, &conf.Auth{
 		JwtSecret:   "test-secret",
 		ServiceKeys: []*conf.Auth_ServiceKey{{Name: "megrez", Key: "sk-megrez-dev"}},
 	}, slog.Default())
@@ -388,7 +388,7 @@ func TestOAuthProviders(t *testing.T) {
 	}
 
 	t.Run("lists both configured providers", func(t *testing.T) {
-		providers, err := configureBoth().OAuthProviders(redirectURI, state)
+		providers, err := configureBoth().OAuthProviders(context.Background(), redirectURI, state)
 		if err != nil {
 			t.Fatalf("OAuthProviders: %v", err)
 		}
@@ -432,7 +432,7 @@ func TestOAuthProviders(t *testing.T) {
 		const feishuRedirectURI = "https://app.example.com/oauth2/callback?next=some page"
 		authenticator := configureBoth()
 		authenticator.oauthClients["FEISHU"] = oauthClient{id: "feishu-id", secret: "feishu-secret"}
-		providers, err := authenticator.OAuthProviders(feishuRedirectURI, state)
+		providers, err := authenticator.OAuthProviders(context.Background(), feishuRedirectURI, state)
 		if err != nil {
 			t.Fatalf("OAuthProviders: %v", err)
 		}
@@ -466,7 +466,7 @@ func TestOAuthProviders(t *testing.T) {
 	t.Run("omits feishu without secret", func(t *testing.T) {
 		authenticator := configureBoth()
 		authenticator.oauthClients["FEISHU"] = oauthClient{id: "feishu-id"}
-		providers, err := authenticator.OAuthProviders(redirectURI, state)
+		providers, err := authenticator.OAuthProviders(context.Background(), redirectURI, state)
 		if err != nil {
 			t.Fatalf("OAuthProviders: %v", err)
 		}
@@ -483,7 +483,7 @@ func TestOAuthProviders(t *testing.T) {
 		authenticator := configureBoth()
 		authenticator.oauthClients["FEISHU"] = oauthClient{id: "feishu-id", secret: "feishu-secret"}
 		authenticator.oauthClients["DINGTALK"] = oauthClient{id: "dingtalk-id", secret: "dingtalk-secret"}
-		providers, err := authenticator.OAuthProviders(dingtalkRedirectURI, state)
+		providers, err := authenticator.OAuthProviders(context.Background(), dingtalkRedirectURI, state)
 		if err != nil {
 			t.Fatalf("OAuthProviders: %v", err)
 		}
@@ -518,7 +518,7 @@ func TestOAuthProviders(t *testing.T) {
 	t.Run("omits dingtalk without secret", func(t *testing.T) {
 		authenticator := configureBoth()
 		authenticator.oauthClients["DINGTALK"] = oauthClient{id: "dingtalk-id"}
-		providers, err := authenticator.OAuthProviders(redirectURI, state)
+		providers, err := authenticator.OAuthProviders(context.Background(), redirectURI, state)
 		if err != nil {
 			t.Fatalf("OAuthProviders: %v", err)
 		}
@@ -532,7 +532,7 @@ func TestOAuthProviders(t *testing.T) {
 	t.Run("lists only github when gitee has no secret", func(t *testing.T) {
 		authenticator := configureBoth()
 		authenticator.oauthClients["GITEE"] = oauthClient{id: "gitee-id"}
-		providers, err := authenticator.OAuthProviders(redirectURI, state)
+		providers, err := authenticator.OAuthProviders(context.Background(), redirectURI, state)
 		if err != nil {
 			t.Fatalf("OAuthProviders: %v", err)
 		}
@@ -543,7 +543,7 @@ func TestOAuthProviders(t *testing.T) {
 
 	t.Run("returns empty when nothing configured", func(t *testing.T) {
 		fixture := newAuthFixture(t)
-		providers, err := fixture.authenticator.OAuthProviders(redirectURI, state)
+		providers, err := fixture.authenticator.OAuthProviders(context.Background(), redirectURI, state)
 		if err != nil {
 			t.Fatalf("OAuthProviders: %v", err)
 		}
@@ -553,7 +553,7 @@ func TestOAuthProviders(t *testing.T) {
 	})
 
 	t.Run("rejects non http redirect uri", func(t *testing.T) {
-		_, err := configureBoth().OAuthProviders("app://callback", state)
+		_, err := configureBoth().OAuthProviders(context.Background(), "app://callback", state)
 		assertClientMessage(t, err, "invalid redirect uri")
 	})
 }

@@ -28,6 +28,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/board"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/boardpanel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
@@ -62,6 +63,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/statuspage"
@@ -146,6 +148,7 @@ func checkColumn(t, c string) error {
 			alertrule.Table:                     alertrule.ValidColumn,
 			alertrulegroup.Table:                alertrulegroup.ValidColumn,
 			alertrulelevel.Table:                alertrulelevel.ValidColumn,
+			authloginsetting.Table:              authloginsetting.ValidColumn,
 			board.Table:                         board.ValidColumn,
 			boardpanel.Table:                    boardpanel.ValidColumn,
 			captcha.Table:                       captcha.ValidColumn,
@@ -182,6 +185,7 @@ func checkColumn(t, c string) error {
 			rolepermission.Table:                rolepermission.ValidColumn,
 			sshcommand.Table:                    sshcommand.ValidColumn,
 			sshcommandaudit.Table:               sshcommandaudit.ValidColumn,
+			sitesetting.Table:                   sitesetting.ValidColumn,
 			statuspage.Table:                    statuspage.ValidColumn,
 			systemmessage.Table:                 systemmessage.ValidColumn,
 			user.Table:                          user.ValidColumn,

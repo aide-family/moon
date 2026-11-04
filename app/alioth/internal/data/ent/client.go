@@ -30,6 +30,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/board"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/boardpanel"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
@@ -64,6 +65,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/statuspage"
@@ -111,6 +113,8 @@ type Client struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
+	// AuthLoginSetting is the client for interacting with the AuthLoginSetting builders.
+	AuthLoginSetting *AuthLoginSettingClient
 	// Board is the client for interacting with the Board builders.
 	Board *BoardClient
 	// BoardPanel is the client for interacting with the BoardPanel builders.
@@ -183,6 +187,8 @@ type Client struct {
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
 	SSHCommandAudit *SSHCommandAuditClient
+	// SiteSetting is the client for interacting with the SiteSetting builders.
+	SiteSetting *SiteSettingClient
 	// StatusPage is the client for interacting with the StatusPage builders.
 	StatusPage *StatusPageClient
 	// SystemMessage is the client for interacting with the SystemMessage builders.
@@ -222,6 +228,7 @@ func (c *Client) init() {
 	c.AlertRule = NewAlertRuleClient(c.config)
 	c.AlertRuleGroup = NewAlertRuleGroupClient(c.config)
 	c.AlertRuleLevel = NewAlertRuleLevelClient(c.config)
+	c.AuthLoginSetting = NewAuthLoginSettingClient(c.config)
 	c.Board = NewBoardClient(c.config)
 	c.BoardPanel = NewBoardPanelClient(c.config)
 	c.Captcha = NewCaptchaClient(c.config)
@@ -258,6 +265,7 @@ func (c *Client) init() {
 	c.RolePermission = NewRolePermissionClient(c.config)
 	c.SSHCommand = NewSSHCommandClient(c.config)
 	c.SSHCommandAudit = NewSSHCommandAuditClient(c.config)
+	c.SiteSetting = NewSiteSettingClient(c.config)
 	c.StatusPage = NewStatusPageClient(c.config)
 	c.SystemMessage = NewSystemMessageClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -372,6 +380,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		AuthLoginSetting:              NewAuthLoginSettingClient(cfg),
 		Board:                         NewBoardClient(cfg),
 		BoardPanel:                    NewBoardPanelClient(cfg),
 		Captcha:                       NewCaptchaClient(cfg),
@@ -408,6 +417,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		SiteSetting:                   NewSiteSettingClient(cfg),
 		StatusPage:                    NewStatusPageClient(cfg),
 		SystemMessage:                 NewSystemMessageClient(cfg),
 		User:                          NewUserClient(cfg),
@@ -449,6 +459,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		AuthLoginSetting:              NewAuthLoginSettingClient(cfg),
 		Board:                         NewBoardClient(cfg),
 		BoardPanel:                    NewBoardPanelClient(cfg),
 		Captcha:                       NewCaptchaClient(cfg),
@@ -485,6 +496,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		SiteSetting:                   NewSiteSettingClient(cfg),
 		StatusPage:                    NewStatusPageClient(cfg),
 		SystemMessage:                 NewSystemMessageClient(cfg),
 		User:                          NewUserClient(cfg),
@@ -524,17 +536,17 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction, c.AlertEventColumn,
 		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
-		c.AlertRuleLevel, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
-		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
-		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
-		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
-		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
-		c.NotificationPreset, c.NotificationSubscription,
+		c.AlertRuleLevel, c.AuthLoginSetting, c.Board, c.BoardPanel, c.Captcha,
+		c.Cluster, c.Datasource, c.EmailLoginCode, c.FeaturePackage,
+		c.FeaturePackageItem, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
+		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
+		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
+		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
 		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
-		c.SSHCommand, c.SSHCommandAudit, c.StatusPage, c.SystemMessage, c.User,
-		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.SSHCommand, c.SSHCommandAudit, c.SiteSetting, c.StatusPage, c.SystemMessage,
+		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -548,17 +560,17 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction, c.AlertEventColumn,
 		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
-		c.AlertRuleLevel, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
-		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.Member,
-		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
-		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
-		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
-		c.NotificationPreset, c.NotificationSubscription,
+		c.AlertRuleLevel, c.AuthLoginSetting, c.Board, c.BoardPanel, c.Captcha,
+		c.Cluster, c.Datasource, c.EmailLoginCode, c.FeaturePackage,
+		c.FeaturePackageItem, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
+		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
+		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
+		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
 		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
-		c.SSHCommand, c.SSHCommandAudit, c.StatusPage, c.SystemMessage, c.User,
-		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.SSHCommand, c.SSHCommandAudit, c.SiteSetting, c.StatusPage, c.SystemMessage,
+		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -599,6 +611,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AlertRuleGroup.mutate(ctx, m)
 	case *AlertRuleLevelMutation:
 		return c.AlertRuleLevel.mutate(ctx, m)
+	case *AuthLoginSettingMutation:
+		return c.AuthLoginSetting.mutate(ctx, m)
 	case *BoardMutation:
 		return c.Board.mutate(ctx, m)
 	case *BoardPanelMutation:
@@ -671,6 +685,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SSHCommand.mutate(ctx, m)
 	case *SSHCommandAuditMutation:
 		return c.SSHCommandAudit.mutate(ctx, m)
+	case *SiteSettingMutation:
+		return c.SiteSetting.mutate(ctx, m)
 	case *StatusPageMutation:
 		return c.StatusPage.mutate(ctx, m)
 	case *SystemMessageMutation:
@@ -2813,6 +2829,139 @@ func (c *AlertRuleLevelClient) mutate(ctx context.Context, m *AlertRuleLevelMuta
 		return (&AlertRuleLevelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertRuleLevel mutation op: %q", m.Op())
+	}
+}
+
+// AuthLoginSettingClient is a client for the AuthLoginSetting schema.
+type AuthLoginSettingClient struct {
+	config
+}
+
+// NewAuthLoginSettingClient returns a client for the AuthLoginSetting from the given config.
+func NewAuthLoginSettingClient(c config) *AuthLoginSettingClient {
+	return &AuthLoginSettingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `authloginsetting.Hooks(f(g(h())))`.
+func (c *AuthLoginSettingClient) Use(hooks ...Hook) {
+	c.hooks.AuthLoginSetting = append(c.hooks.AuthLoginSetting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `authloginsetting.Intercept(f(g(h())))`.
+func (c *AuthLoginSettingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AuthLoginSetting = append(c.inters.AuthLoginSetting, interceptors...)
+}
+
+// Create returns a builder for creating a AuthLoginSetting entity.
+func (c *AuthLoginSettingClient) Create() *AuthLoginSettingCreate {
+	mutation := newAuthLoginSettingMutation(c.config, OpCreate)
+	return &AuthLoginSettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AuthLoginSetting entities.
+func (c *AuthLoginSettingClient) CreateBulk(builders ...*AuthLoginSettingCreate) *AuthLoginSettingCreateBulk {
+	return &AuthLoginSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AuthLoginSettingClient) MapCreateBulk(slice any, setFunc func(*AuthLoginSettingCreate, int)) *AuthLoginSettingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AuthLoginSettingCreateBulk{err: fmt.Errorf("calling to AuthLoginSettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AuthLoginSettingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AuthLoginSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AuthLoginSetting.
+func (c *AuthLoginSettingClient) Update() *AuthLoginSettingUpdate {
+	mutation := newAuthLoginSettingMutation(c.config, OpUpdate)
+	return &AuthLoginSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AuthLoginSettingClient) UpdateOne(_m *AuthLoginSetting) *AuthLoginSettingUpdateOne {
+	mutation := newAuthLoginSettingMutation(c.config, OpUpdateOne, withAuthLoginSetting(_m))
+	return &AuthLoginSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AuthLoginSettingClient) UpdateOneID(id int) *AuthLoginSettingUpdateOne {
+	mutation := newAuthLoginSettingMutation(c.config, OpUpdateOne, withAuthLoginSettingID(id))
+	return &AuthLoginSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AuthLoginSetting.
+func (c *AuthLoginSettingClient) Delete() *AuthLoginSettingDelete {
+	mutation := newAuthLoginSettingMutation(c.config, OpDelete)
+	return &AuthLoginSettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AuthLoginSettingClient) DeleteOne(_m *AuthLoginSetting) *AuthLoginSettingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AuthLoginSettingClient) DeleteOneID(id int) *AuthLoginSettingDeleteOne {
+	builder := c.Delete().Where(authloginsetting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AuthLoginSettingDeleteOne{builder}
+}
+
+// Query returns a query builder for AuthLoginSetting.
+func (c *AuthLoginSettingClient) Query() *AuthLoginSettingQuery {
+	return &AuthLoginSettingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAuthLoginSetting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AuthLoginSetting entity by its id.
+func (c *AuthLoginSettingClient) Get(ctx context.Context, id int) (*AuthLoginSetting, error) {
+	return c.Query().Where(authloginsetting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AuthLoginSettingClient) GetX(ctx context.Context, id int) *AuthLoginSetting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AuthLoginSettingClient) Hooks() []Hook {
+	return c.hooks.AuthLoginSetting
+}
+
+// Interceptors returns the client interceptors.
+func (c *AuthLoginSettingClient) Interceptors() []Interceptor {
+	return c.inters.AuthLoginSetting
+}
+
+func (c *AuthLoginSettingClient) mutate(ctx context.Context, m *AuthLoginSettingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AuthLoginSettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AuthLoginSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AuthLoginSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AuthLoginSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AuthLoginSetting mutation op: %q", m.Op())
 	}
 }
 
@@ -7604,6 +7753,139 @@ func (c *SSHCommandAuditClient) mutate(ctx context.Context, m *SSHCommandAuditMu
 	}
 }
 
+// SiteSettingClient is a client for the SiteSetting schema.
+type SiteSettingClient struct {
+	config
+}
+
+// NewSiteSettingClient returns a client for the SiteSetting from the given config.
+func NewSiteSettingClient(c config) *SiteSettingClient {
+	return &SiteSettingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sitesetting.Hooks(f(g(h())))`.
+func (c *SiteSettingClient) Use(hooks ...Hook) {
+	c.hooks.SiteSetting = append(c.hooks.SiteSetting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sitesetting.Intercept(f(g(h())))`.
+func (c *SiteSettingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SiteSetting = append(c.inters.SiteSetting, interceptors...)
+}
+
+// Create returns a builder for creating a SiteSetting entity.
+func (c *SiteSettingClient) Create() *SiteSettingCreate {
+	mutation := newSiteSettingMutation(c.config, OpCreate)
+	return &SiteSettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SiteSetting entities.
+func (c *SiteSettingClient) CreateBulk(builders ...*SiteSettingCreate) *SiteSettingCreateBulk {
+	return &SiteSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SiteSettingClient) MapCreateBulk(slice any, setFunc func(*SiteSettingCreate, int)) *SiteSettingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SiteSettingCreateBulk{err: fmt.Errorf("calling to SiteSettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SiteSettingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SiteSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SiteSetting.
+func (c *SiteSettingClient) Update() *SiteSettingUpdate {
+	mutation := newSiteSettingMutation(c.config, OpUpdate)
+	return &SiteSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SiteSettingClient) UpdateOne(_m *SiteSetting) *SiteSettingUpdateOne {
+	mutation := newSiteSettingMutation(c.config, OpUpdateOne, withSiteSetting(_m))
+	return &SiteSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SiteSettingClient) UpdateOneID(id int) *SiteSettingUpdateOne {
+	mutation := newSiteSettingMutation(c.config, OpUpdateOne, withSiteSettingID(id))
+	return &SiteSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SiteSetting.
+func (c *SiteSettingClient) Delete() *SiteSettingDelete {
+	mutation := newSiteSettingMutation(c.config, OpDelete)
+	return &SiteSettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SiteSettingClient) DeleteOne(_m *SiteSetting) *SiteSettingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SiteSettingClient) DeleteOneID(id int) *SiteSettingDeleteOne {
+	builder := c.Delete().Where(sitesetting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SiteSettingDeleteOne{builder}
+}
+
+// Query returns a query builder for SiteSetting.
+func (c *SiteSettingClient) Query() *SiteSettingQuery {
+	return &SiteSettingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSiteSetting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SiteSetting entity by its id.
+func (c *SiteSettingClient) Get(ctx context.Context, id int) (*SiteSetting, error) {
+	return c.Query().Where(sitesetting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SiteSettingClient) GetX(ctx context.Context, id int) *SiteSetting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SiteSettingClient) Hooks() []Hook {
+	return c.hooks.SiteSetting
+}
+
+// Interceptors returns the client interceptors.
+func (c *SiteSettingClient) Interceptors() []Interceptor {
+	return c.inters.SiteSetting
+}
+
+func (c *SiteSettingClient) mutate(ctx context.Context, m *SiteSettingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SiteSettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SiteSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SiteSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SiteSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SiteSetting mutation op: %q", m.Op())
+	}
+}
+
 // StatusPageClient is a client for the StatusPage schema.
 type StatusPageClient struct {
 	config
@@ -8409,31 +8691,31 @@ type (
 		AlertEvalBatch, AlertEvent, AlertEventAction, AlertEventColumn,
 		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
-		Board, BoardPanel, Captcha, Cluster, Datasource, EmailLoginCode,
-		FeaturePackage, FeaturePackageItem, Member, MemberInvite, MemberRole,
-		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
-		NotificationChannel, NotificationGroup, NotificationOnCall,
+		AuthLoginSetting, Board, BoardPanel, Captcha, Cluster, Datasource,
+		EmailLoginCode, FeaturePackage, FeaturePackageItem, Member, MemberInvite,
+		MemberRole, MessageLog, MessageLogShard, Namespace, NamespaceFeature,
+		NamespaceOrder, NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
 		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Hook
+		SSHCommandAudit, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
+		UserOAuth, WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEscalationPolicy, AlertEscalationStep,
 		AlertEvalBatch, AlertEvent, AlertEventAction, AlertEventColumn,
 		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
-		Board, BoardPanel, Captcha, Cluster, Datasource, EmailLoginCode,
-		FeaturePackage, FeaturePackageItem, Member, MemberInvite, MemberRole,
-		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
-		NotificationChannel, NotificationGroup, NotificationOnCall,
+		AuthLoginSetting, Board, BoardPanel, Captcha, Cluster, Datasource,
+		EmailLoginCode, FeaturePackage, FeaturePackageItem, Member, MemberInvite,
+		MemberRole, MessageLog, MessageLogShard, Namespace, NamespaceFeature,
+		NamespaceOrder, NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
 		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Interceptor
+		SSHCommandAudit, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
+		UserOAuth, WorkerInstance []ent.Interceptor
 	}
 )

@@ -284,6 +284,16 @@ const messageKeys: Record<string, string> = {
   "invalid schedule days": "rotation.errors.scheduleDaysInvalid",
   "rotation not found": "rotation.errors.notFound",
   // 时区复用已有 "invalid on-call timezone" → error.invalidOncallTimezone 映射。
+  // 站点设置与登录方式开关：后端只返回英文原文，中文界面需要逐条本地化。
+  "contact email is invalid": "error.contactEmailInvalid",
+  "logo url is invalid": "error.logoUrlInvalid",
+  "favicon url is invalid": "error.faviconUrlInvalid",
+  "repository url is invalid": "error.repositoryUrlInvalid",
+  "filing icp url is invalid": "error.filingIcpUrlInvalid",
+  "filing police url is invalid": "error.filingPoliceUrlInvalid",
+  "at least one login method must stay enabled": "error.atLeastOneLoginMethod",
+  "email login is disabled": "error.emailLoginDisabled",
+  "oauth login is disabled": "error.oauthLoginDisabled",
 }
 
 // 服务端错误带 reason（CLIENT / INVALID / CONFLICT 等）。message 没有具体映射时用它兜底，

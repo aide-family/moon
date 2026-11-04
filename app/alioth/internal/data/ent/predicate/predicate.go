@@ -54,6 +54,9 @@ type AlertRuleGroup func(*sql.Selector)
 // AlertRuleLevel is the predicate function for alertrulelevel builders.
 type AlertRuleLevel func(*sql.Selector)
 
+// AuthLoginSetting is the predicate function for authloginsetting builders.
+type AuthLoginSetting func(*sql.Selector)
+
 // Board is the predicate function for board builders.
 type Board func(*sql.Selector)
 
@@ -161,6 +164,9 @@ type SSHCommand func(*sql.Selector)
 
 // SSHCommandAudit is the predicate function for sshcommandaudit builders.
 type SSHCommandAudit func(*sql.Selector)
+
+// SiteSetting is the predicate function for sitesetting builders.
+type SiteSetting func(*sql.Selector)
 
 // StatusPage is the predicate function for statuspage builders.
 type StatusPage func(*sql.Selector)

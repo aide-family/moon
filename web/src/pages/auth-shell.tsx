@@ -23,6 +23,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel"
+import { useSiteConfig } from "@/hooks/use-site-config"
 
 const slides = [
   {
@@ -136,6 +137,11 @@ export function AuthShell({
   repositoryURL?: string
 }) {
   const { t } = useTranslation()
+  const { config } = useSiteConfig()
+  // 页脚备案号来自公开站点配置；留空表示不展示，查询地址同样可配置。
+  const icpNumber = config?.site.filingIcpNumber.trim() ?? ""
+  const icpURL =
+    config?.site.filingIcpUrl.trim() || "https://beian.miit.gov.cn/"
   return (
     <main className="relative flex min-h-svh">
       {/* 品牌标识固定在左上角，与右上角的主题/语言/GitHub/Star 入口同一行；
@@ -186,17 +192,19 @@ export function AuthShell({
           <CardContent className="grid gap-4">{children}</CardContent>
         </Card>
       </div>
-      {/* 备案号暂时是占位值（见 i18n 的 login.icp），接入真实备案后只需改文案。 */}
-      <footer className="absolute inset-x-0 bottom-4 z-20 flex justify-center px-4">
-        <a
-          href="https://beian.miit.gov.cn/"
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-        >
-          {t("login.icp")}
-        </a>
-      </footer>
+      {/* 备案号来自官方站点设置；ICP 号留空时整行不渲染。 */}
+      {icpNumber ? (
+        <footer className="absolute inset-x-0 bottom-4 z-20 flex justify-center px-4">
+          <a
+            href={icpURL}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            {icpNumber}
+          </a>
+        </footer>
+      ) : null}
     </main>
   )
 }

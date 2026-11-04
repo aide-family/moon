@@ -82,11 +82,12 @@ type Authenticator struct {
 	refreshTTL   time.Duration
 	serviceKeys  map[string]string
 	mail         codeMailer
+	logins       repository.LoginMethodRepo
 	oauthClients map[string]oauthClient
 	log          *slog.Logger
 }
 
-func NewAuthenticator(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, mail *mailer.Sender, auth *conf.Auth, logger *slog.Logger) (*Authenticator, error) {
+func NewAuthenticator(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, logins repository.LoginMethodRepo, mail *mailer.Sender, auth *conf.Auth, logger *slog.Logger) (*Authenticator, error) {
 	if auth == nil || auth.GetJwtSecret() == "" {
 		return nil, merr.Server("jwt secret is empty")
 	}
@@ -119,6 +120,7 @@ func NewAuthenticator(users repository.UserRepo, captchas repository.CaptchaRepo
 		emailCodes:   emailCodes,
 		oauth:        oauth,
 		agents:       agents,
+		logins:       logins,
 		secret:       auth.GetJwtSecret(),
 		accessTTL:    access,
 		refreshTTL:   refresh,
@@ -205,6 +207,41 @@ func (authenticator *Authenticator) Authenticate(ctx context.Context, operation,
 		return nil, merr.Client("X-Namespace is required")
 	}
 	return actor.WithNamespace(ctx, namespace), nil
+}
+
+// loginMethods 读取登录方式开关。仓储没有注入时（单测只验令牌逻辑）按两种都开启处理，
+// 与数据库里没有保存过任何开关时的默认值一致。
+func (authenticator *Authenticator) loginMethods(ctx context.Context) (*bo.LoginMethods, error) {
+	if authenticator.logins == nil {
+		return &bo.LoginMethods{EmailEnabled: true, OAuth2Enabled: true}, nil
+	}
+	return authenticator.logins.LoginMethods(ctx)
+}
+
+// requireEmailLogin 检查邮箱验证码登录是否可用。关闭时发码、注册与登录一并拒绝；
+// 已登录用户换绑邮箱不经过这里，不受影响。
+func (authenticator *Authenticator) requireEmailLogin(ctx context.Context) error {
+	methods, err := authenticator.loginMethods(ctx)
+	if err != nil {
+		return authenticator.wrap(err)
+	}
+	if !methods.EmailEnabled {
+		return merr.Forbidden("email login is disabled")
+	}
+	return nil
+}
+
+// requireOAuthLogin 检查第三方登录是否可用。来源列表与登录入口都要过这道检查：
+// 只挡列表不挡登录等于没有开关，直接构造请求仍然能拿到会话。
+func (authenticator *Authenticator) requireOAuthLogin(ctx context.Context) error {
+	methods, err := authenticator.loginMethods(ctx)
+	if err != nil {
+		return authenticator.wrap(err)
+	}
+	if !methods.OAuth2Enabled {
+		return merr.Forbidden("oauth login is disabled")
+	}
+	return nil
 }
 
 // GetCaptcha 生成一道图形验证码，题型在六位数字码和 100 以内算式之间随机。
@@ -309,6 +346,9 @@ func (authenticator *Authenticator) consumeEmailCode(ctx context.Context, email,
 // 顺序是：图形验证码 → 邮箱是否已注册 → 60 秒节流 → 存码并发注册码邮件。
 // 先查邮箱占用再节流，已注册的邮箱不会因为反复请求就消耗掉一次发码机会。
 func (authenticator *Authenticator) SendRegisterEmailCode(ctx context.Context, email, captchaID, captchaCode string) error {
+	if err := authenticator.requireEmailLogin(ctx); err != nil {
+		return err
+	}
 	email = normalizeEmail(email)
 	if !strings.Contains(email, "@") || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
 		return merr.Client("invalid request")
@@ -333,6 +373,9 @@ func (authenticator *Authenticator) SendRegisterEmailCode(ctx context.Context, e
 // SendEmailLoginCode 给已注册邮箱发登录验证码。
 // 顺序是：图形验证码 → 邮箱是否已注册 → 60 秒节流 → 存码并发登录码邮件。
 func (authenticator *Authenticator) SendEmailLoginCode(ctx context.Context, email, captchaID, captchaCode string) error {
+	if err := authenticator.requireEmailLogin(ctx); err != nil {
+		return err
+	}
 	email = normalizeEmail(email)
 	if !strings.Contains(email, "@") || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
 		return merr.Client("invalid request")
@@ -389,6 +432,9 @@ func (authenticator *Authenticator) sendCodeMail(to, subject, body string) error
 // 用户名必须符合 user.ValidateUsername：仅中英文和数字，最多 8 个字符；没填时沿用旧行为，
 // 从邮箱前缀派生一个合法名称。历史上已存在的用户名不做回溯校验，避免破坏老账号。
 func (authenticator *Authenticator) Register(ctx context.Context, email, code, name, captchaID, captchaCode string) (*bo.Session, error) {
+	if err := authenticator.requireEmailLogin(ctx); err != nil {
+		return nil, err
+	}
 	email = normalizeEmail(email)
 	name = strings.TrimSpace(name)
 	if !strings.Contains(email, "@") || strings.TrimSpace(code) == "" || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
@@ -435,6 +481,9 @@ func (authenticator *Authenticator) Register(ctx context.Context, email, code, n
 // 消费邮箱验证码 → 消费图形验证码 → 签发会话。同一封邮箱码不能登录两次。
 // 封禁用户仍由 session 拒绝签发令牌，这里不重复判断账号状态。
 func (authenticator *Authenticator) EmailLogin(ctx context.Context, email, code, captchaID, captchaCode string) (*bo.Session, error) {
+	if err := authenticator.requireEmailLogin(ctx); err != nil {
+		return nil, err
+	}
 	email = normalizeEmail(email)
 	if !strings.Contains(email, "@") || strings.TrimSpace(code) == "" || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
 		return nil, merr.Client("invalid login request")
@@ -733,7 +782,8 @@ func publicOperation(operation string) bool {
 		v1.OperationAuthServiceSendOAuthBindEmailCode,
 		v1.OperationAuthServiceBindOAuthEmail,
 		v1.OperationInvitationServiceGetInvitation,
-		v1.OperationStatusPageServiceGetPublicStatusPage:
+		v1.OperationStatusPageServiceGetPublicStatusPage,
+		v1.OperationSiteServiceGetSiteConfig:
 		return true
 	default:
 		return false
@@ -785,6 +835,12 @@ func namespaceOptional(operation string) bool {
 		v1.OperationNamespaceServiceUpdateNamespaceFeatures,
 		// 平台按租户查订单同样按路径参数定位租户。
 		v1.OperationNamespaceServiceListSystemNamespaceOrders,
+		// 站点设置与登录方式开关是平台级单例，不读 X-Namespace：
+		// 还没有加入任何租户的超级管理员也要能配置官网与登录入口。
+		v1.OperationSiteServiceGetSiteSettings,
+		v1.OperationSiteServiceUpdateSiteSettings,
+		v1.OperationSiteServiceGetLoginMethods,
+		v1.OperationSiteServiceUpdateLoginMethods,
 		// 升级与迁移是平台级操作：环境状态、数据库迁移和迁移包收发都不读 X-Namespace。
 		v1.OperationMaintenanceServiceGetMaintenanceStatus,
 		v1.OperationMaintenanceServiceRunSchemaMigration,

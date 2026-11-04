@@ -103,6 +103,7 @@ const tenantFreePaths = new Set([
   "/users",
   "/workers",
   "/system/upgrade",
+  "/system/site",
   "/invitations",
   "/messages",
   "/profile",
@@ -140,6 +141,12 @@ const links: {
     label: "nav.workers",
     permission: "system:user:read",
     icon: Activity,
+  },
+  {
+    to: "/system/site",
+    label: "nav.siteSettings",
+    permission: "system:site:read",
+    icon: Globe,
   },
   {
     to: "/system/upgrade",
