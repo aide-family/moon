@@ -294,6 +294,17 @@ const messageKeys: Record<string, string> = {
   "at least one login method must stay enabled": "error.atLeastOneLoginMethod",
   "email login is disabled": "error.emailLoginDisabled",
   "oauth login is disabled": "error.oauthLoginDisabled",
+  // 官网页面：slug/标题/导航顺序/封面图与乐观锁冲突都由后端给出英文原文。
+  "site page not found": "error.sitePageNotFound",
+  "site page slug already exists": "error.sitePageSlugExists",
+  "site page was modified": "error.sitePageModified",
+  "home page cannot be unpublished or deleted": "error.sitePageHomeLocked",
+  "invalid slug": "error.sitePageSlugInvalid",
+  "site page title is required": "error.sitePageTitleRequired",
+  "sort order must be between 0 and 999": "error.sitePageSortOrderInvalid",
+  "site page sort order already exists": "error.sitePageSortOrderExists",
+  "cover image url is invalid": "error.sitePageCoverInvalid",
+  "invalid updated at": "error.sitePageUpdatedAtInvalid",
 }
 
 // 服务端错误带 reason（CLIENT / INVALID / CONFLICT 等）。message 没有具体映射时用它兜底，

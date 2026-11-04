@@ -158,7 +158,7 @@ export function OAuthCallbackPage() {
           try {
             navigate(readNextPath(redirect.next), { replace: true })
           } catch {
-            navigate("/", { replace: true })
+            navigate("/app", { replace: true })
           }
           return
         }
@@ -192,7 +192,7 @@ export function OAuthCallbackPage() {
     try {
       navigate(readNextPath(emailBinding.redirect.next), { replace: true })
     } catch {
-      navigate("/", { replace: true })
+      navigate("/app", { replace: true })
     }
   }
 

@@ -104,6 +104,7 @@ const tenantFreePaths = new Set([
   "/workers",
   "/system/upgrade",
   "/system/site",
+  "/system/site/pages",
   "/invitations",
   "/messages",
   "/profile",
@@ -147,6 +148,12 @@ const links: {
     label: "nav.siteSettings",
     permission: "system:site:read",
     icon: Globe,
+  },
+  {
+    to: "/system/site/pages",
+    label: "nav.sitePages",
+    permission: "system:site:read",
+    icon: FileText,
   },
   {
     to: "/system/upgrade",
@@ -427,7 +434,12 @@ function NavGroup({
                     }
                     className="border-l-2 border-transparent data-active:border-primary"
                   >
-                    <NavLink to={link.to}>
+                    <NavLink
+                      to={link.to}
+                      // 站点设置与官网页面同属 /system/site 前缀：只在自身页面高亮，
+                      // 否则进入官网页面时两个菜单会同时亮起。
+                      end={link.to === "/system/site"}
+                    >
                       <LinkIcon />
                       <span>{t(link.label)}</span>
                     </NavLink>

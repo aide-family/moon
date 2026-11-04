@@ -276,7 +276,7 @@ export function LoginPage() {
       try {
         navigate(next)
       } catch {
-        navigate("/", { replace: true })
+        navigate("/app", { replace: true })
       }
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
@@ -484,7 +484,7 @@ export function LoginPage() {
           <Link
             className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             to={
-              next === "/"
+              next === "/app"
                 ? "/register"
                 : `/register?next=${encodeURIComponent(next)}`
             }

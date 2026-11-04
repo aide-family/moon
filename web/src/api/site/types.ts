@@ -53,3 +53,109 @@ export interface SiteConfig {
   site: SiteSettings
   loginMethods: LoginMethods
 }
+
+/** 公开页面：只含已发布快照字段。 */
+export interface PublicSitePage {
+  slug: string
+  locale: string
+  title: string
+  summary: string
+  bodyMd: string
+  coverImageUrl: string
+  seoTitle: string
+  seoDescription: string
+  /** RFC3339；从未发布时为空。 */
+  publishedAt: string
+  /** 请求语言没有可用页面、回落到另一种语言时为 true。 */
+  localeFallback: boolean
+}
+
+/** 公开导航项：已发布且标记展示在导航里的页面。 */
+export interface SiteNavItem {
+  slug: string
+  title: string
+  sortOrder: number
+}
+
+/** 页面状态枚举。 */
+export type SitePageState = "DRAFT" | "PUBLISHED" | "ARCHIVED"
+
+/** 官网页面列表项（草稿视角）。 */
+export interface SitePageItem {
+  uid: string
+  slug: string
+  locale: string
+  state: string
+  showInNav: boolean
+  sortOrder: number
+  title: string
+  summary: string
+  hasUnpublishedChanges: boolean
+  updatedAt: string
+  publishedAt: string
+}
+
+/** 草稿与发布快照共用的内容字段。 */
+export interface SitePageContent {
+  title: string
+  summary: string
+  bodyMd: string
+  coverImageUrl: string
+  seoTitle: string
+  seoDescription: string
+}
+
+/** 后台页面详情：草稿与已发布快照各一份。 */
+export interface SitePageDetail {
+  item: SitePageItem
+  draft: SitePageContent
+  published: SitePageContent
+  publishedBy: string
+}
+
+/** 列表查询参数；空串表示不限。 */
+export interface ListSitePagesParams {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  state?: string
+  locale?: string
+}
+
+export interface SitePageList {
+  items: SitePageItem[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+/** 新建页面：slug 与语言仅创建时提交，创建后不可修改。 */
+export interface CreateSitePageParams {
+  slug: string
+  locale: string
+  title: string
+  summary: string
+  bodyMd: string
+  coverImageUrl: string
+  seoTitle: string
+  seoDescription: string
+}
+
+/** 保存草稿：带 updatedAt 做乐观锁。 */
+export interface UpdateSitePageParams {
+  uid: string
+  title: string
+  summary: string
+  bodyMd: string
+  coverImageUrl: string
+  seoTitle: string
+  seoDescription: string
+  updatedAt: string
+}
+
+/** 修改导航展示与顺序。 */
+export interface UpdateSitePageNavParams {
+  uid: string
+  showInNav: boolean
+  sortOrder: number
+}

@@ -1,4 +1,4 @@
-import type { SiteConfig } from "./types"
+import type { PublicSitePage, SiteConfig, SiteNavItem } from "./types"
 
 /**
  * 公开站点配置请求失败。带上 HTTP 状态码，调用方可以区分 404 与普通网络错误。
@@ -40,4 +40,71 @@ export async function fetchSiteConfig(): Promise<SiteConfig> {
     throw new SiteConfigError(500)
   }
   return { site: data.site, loginMethods: data.loginMethods }
+}
+
+/**
+ * 公开官网接口失败。带上 HTTP 状态码，调用方据此区分 404 与普通网络错误。
+ */
+export class SitePublicError extends Error {
+  status: number
+
+  constructor(status: number, message = "") {
+    super(message)
+    this.name = "SitePublicError"
+    this.status = status
+  }
+}
+
+async function fetchPublicJSON<T>(path: string): Promise<T> {
+  let response: Response
+  try {
+    response = await fetch(path, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    })
+  } catch {
+    throw new SitePublicError(0)
+  }
+  if (!response.ok) {
+    let message = ""
+    try {
+      message = ((await response.json()) as { message?: string }).message ?? ""
+    } catch {
+      // 网关错误页不是 JSON：保留状态码即可，页面按失败态展示。
+    }
+    throw new SitePublicError(response.status, message)
+  }
+  return (await response.json()) as T
+}
+
+/**
+ * GET /v1/site/pages/{slug}?locale=：官网公开页面，只返回已发布快照。
+ *
+ * 与 fetchSiteConfig 一样用原生 fetch：公开页面不能带 Authorization / X-Namespace，
+ * 也不能被 @/api/http 的 401/403 跳转逻辑带离官网。
+ */
+export async function fetchPublicSitePage(
+  slug: string,
+  locale: "zh" | "en"
+): Promise<PublicSitePage> {
+  const query = new URLSearchParams({ locale })
+  const data = await fetchPublicJSON<{ page?: PublicSitePage }>(
+    `/v1/site/pages/${encodeURIComponent(slug)}?${query.toString()}`
+  )
+  if (!data.page) {
+    throw new SitePublicError(500)
+  }
+  return data.page
+}
+
+/** GET /v1/site/nav?locale=：官网公开导航。 */
+export async function fetchPublicSiteNav(
+  locale: "zh" | "en"
+): Promise<SiteNavItem[]> {
+  const query = new URLSearchParams({ locale })
+  const data = await fetchPublicJSON<{ items?: SiteNavItem[] }>(
+    `/v1/site/nav?${query.toString()}`
+  )
+  return data.items ?? []
 }

@@ -40,9 +40,12 @@ import { PackagePage } from "@/pages/package"
 import { ProfilePage } from "@/pages/profile"
 import { ProbeSlaPage } from "@/pages/probe-sla"
 import { ProbeTargetPage } from "@/pages/probe-target"
+import { SiteDocumentPage } from "@/pages/public-site/document"
+import { SiteHomePage } from "@/pages/public-site"
 import { PublicStatusPageView } from "@/pages/public-status"
 import { RegisterPage } from "@/pages/register"
 import { RolePage } from "@/pages/role"
+import { SitePagesPage } from "@/pages/site-pages"
 import { SiteSettingsPage } from "@/pages/site-settings"
 import { SSHCommandPage } from "@/pages/ssh-command"
 import { SSHCommandResultsPage } from "@/pages/ssh-command/results"
@@ -60,11 +63,14 @@ export function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/invite/:token" element={<InvitePage />} />
+      {/* 公开官网：免登录、不挂 SessionProvider，独立 SiteShell（页头 + 内容 + 页脚）。 */}
+      <Route path="/" element={<SiteHomePage />} />
+      <Route path="/p/:slug" element={<SiteDocumentPage />} />
       {/* 公开状态页：不需要登录与租户，独立布局，不能放进 AppShell。 */}
       <Route path="/status/:token" element={<PublicStatusPageView />} />
       <Route element={<AppShell />}>
         {/* 登录后的着陆页：没有租户去租户页，否则回放上次访问的页面。 */}
-        <Route path="/" element={<LandingRedirect />} />
+        <Route path="/app" element={<LandingRedirect />} />
         <Route path="/overview" element={<OverviewPage />} />
         <Route path="/boards" element={<BoardPage />} />
         <Route path="/boards/:uid" element={<BoardViewPage />} />
@@ -78,6 +84,7 @@ export function App() {
         <Route path="/users" element={<UserPage />} />
         <Route path="/workers" element={<WorkerStatusPage />} />
         <Route path="/system/site" element={<SiteSettingsPage />} />
+        <Route path="/system/site/pages" element={<SitePagesPage />} />
         <Route path="/system/upgrade" element={<UpgradePage />} />
         <Route path="/invitations" element={<InvitationPage />} />
         <Route path="/messages" element={<MessagePage />} />

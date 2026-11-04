@@ -272,7 +272,7 @@ export function RegisterPage() {
         <Link
           className="text-sm text-primary-ink underline-offset-4 hover:underline"
           to={
-            next === "/" ? "/login" : `/login?next=${encodeURIComponent(next)}`
+            next === "/app" ? "/login" : `/login?next=${encodeURIComponent(next)}`
           }
         >
           {t("register.hasAccount")}

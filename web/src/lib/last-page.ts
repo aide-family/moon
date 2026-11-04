@@ -1,4 +1,4 @@
-// 上次访问页面的记忆：按用户隔离，登录后由 "/" 着陆页回放。
+// 上次访问页面的记忆：按用户隔离，登录后由 "/app" 着陆页回放。
 //
 // 存储格式：localStorage["lastPath:<userUid>"] = "/alerts"
 // - 值是 App.tsx 里注册的登录内路径（不含查询串与 hash），查询串常带一次性筛选，
@@ -23,6 +23,7 @@ const knownPaths = new Set([
   "/workers",
   "/system/upgrade",
   "/system/site",
+  "/system/site/pages",
   "/invitations",
   "/messages",
   "/members",
@@ -60,8 +61,9 @@ const knownPatterns = [
   /^\/ssh-commands\/[^/]+\/results$/,
 ]
 
-// 根路径是着陆页本身，/forbidden 是权限结果页：两者都不代表“用户想回到的页面”。
-const ignoredPaths = new Set(["/", "/forbidden"])
+// 根路径是公开官网首页、/app 是登录后的着陆页、/forbidden 是权限结果页：
+// 三者都不代表“用户想回到的页面”。
+const ignoredPaths = new Set(["/", "/app", "/forbidden"])
 
 // 浏览器地址栏可能带尾斜杠（例如 /alerts/），按注册路径归一化后再判断。
 // 导出给外壳守卫复用：租户页判定必须和路由表使用同一套归一化，否则 /profile/
