@@ -843,6 +843,15 @@ func namespaceOptional(operation string) bool {
 		v1.OperationSiteServiceUpdateSiteSettings,
 		v1.OperationSiteServiceGetLoginMethods,
 		v1.OperationSiteServiceUpdateLoginMethods,
+		// 官网页面同样是平台级资源：地址片段与语言定位页面，不读 X-Namespace。
+		v1.OperationSiteServiceListSitePages,
+		v1.OperationSiteServiceGetSitePage,
+		v1.OperationSiteServiceCreateSitePage,
+		v1.OperationSiteServiceUpdateSitePage,
+		v1.OperationSiteServicePublishSitePage,
+		v1.OperationSiteServiceUnpublishSitePage,
+		v1.OperationSiteServiceDeleteSitePage,
+		v1.OperationSiteServiceUpdateSitePageNav,
 		// 升级与迁移是平台级操作：环境状态、数据库迁移和迁移包收发都不读 X-Namespace。
 		v1.OperationMaintenanceServiceGetMaintenanceStatus,
 		v1.OperationMaintenanceServiceRunSchemaMigration,
