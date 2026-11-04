@@ -3667,6 +3667,57 @@ const zh = {
       "迁移包不含历史告警与消息日志的分库数据；需要保留历史时继续用旧库查询。",
   },
   site: {
+    landing: {
+      skipToContent: "跳到主要内容",
+      heroTitleDefault: "统一监控与告警，一条链路走完",
+      heroSubtitleDefault: "数据源查得到，规则评测得出，通知送对人，值班接得住。",
+      ctaPrimaryDefault: "开始使用",
+      featuresTitleDefault: "能力",
+      howTitleDefault: "工作原理",
+      howBodyDefault:
+        "采集、评测、通知三段各自独立，失败可以单独重试，不需要把整条链路一起重跑。",
+      steps: {
+        collect: {
+          title: "采集",
+          description: "按数据源查询指标，保留查询语句与时间范围。",
+        },
+        evaluate: {
+          title: "评测",
+          description: "按告警规则判定，记录每一次判定与触发原因。",
+        },
+        notify: {
+          title: "通知",
+          description: "按订阅与值班轮换投递，失败可重试。",
+        },
+      },
+      permTitleDefault: "权限模型",
+      permBodyDefault:
+        "权限分租户内与平台级两层：租户内角色只管本租户，平台级能力与站点设置只对超级管理员开放。",
+      permTenantLabel: "租户内",
+      permTenant: {
+        roles: "角色 → 权限",
+        members: "成员与邀请",
+        isolation: "按租户隔离",
+      },
+      permPlatformLabel: "平台级",
+      permPlatform: {
+        systemPerms: "system:* 权限族",
+        siteLogin: "站点与登录方式",
+        superAdmin: "超级管理员",
+      },
+      deployTitleDefault: "私有部署",
+      deployBodyDefault:
+        "四个 Go 服务、Web 与 PostgreSQL 都跑在你自己控制的环境里，配置、事件与投递结果留在自己的数据库。",
+      deployChips: {
+        services: "四个 Go 服务",
+        compose: "Docker Compose",
+        database: "自有 PostgreSQL",
+      },
+      docTitleDefault: "产品说明",
+      closingTitleDefault: "在自己的环境里把告警跑起来",
+      closingDescriptionDefault:
+        "从数据源到值班通知，一套系统管完；部署与升级路径都在文档里。",
+    },
     brandFallback: "Alioth",
     home: "首页",
     navLabel: "官网导航",
@@ -7963,6 +8014,58 @@ const en = {
       "The archive excludes history shards for alerts and message logs; keep querying the old database when you need that history.",
   },
   site: {
+    landing: {
+      skipToContent: "Skip to main content",
+      heroTitleDefault: "Monitoring and alerting, one path end to end",
+      heroSubtitleDefault:
+        "Query the data source, evaluate the rule, notify the right person, and cover the on-call shift.",
+      ctaPrimaryDefault: "Get started",
+      featuresTitleDefault: "Capabilities",
+      howTitleDefault: "How it works",
+      howBodyDefault:
+        "Collection, evaluation, and notification run as separate stages, so a failed stage can be retried on its own.",
+      steps: {
+        collect: {
+          title: "Collect",
+          description: "Query a data source for metrics and keep the query and time range.",
+        },
+        evaluate: {
+          title: "Evaluate",
+          description: "Apply alert rules and record every decision and trigger reason.",
+        },
+        notify: {
+          title: "Notify",
+          description: "Deliver through subscriptions and on-call rotations, with retries on failure.",
+        },
+      },
+      permTitleDefault: "Permissions",
+      permBodyDefault:
+        "Permissions have two tiers: roles inside a tenant govern that tenant only, while platform capabilities and site settings are limited to super administrators.",
+      permTenantLabel: "Inside a tenant",
+      permTenant: {
+        roles: "Role → permission",
+        members: "Members and invitations",
+        isolation: "Isolated per tenant",
+      },
+      permPlatformLabel: "Platform level",
+      permPlatform: {
+        systemPerms: "system:* permission family",
+        siteLogin: "Site and sign-in methods",
+        superAdmin: "Super administrators",
+      },
+      deployTitleDefault: "Self-hosted",
+      deployBodyDefault:
+        "Four Go services, the web app, and PostgreSQL run in your environment; configuration, events, and delivery results stay in your own database.",
+      deployChips: {
+        services: "Four Go services",
+        compose: "Docker Compose",
+        database: "Your own PostgreSQL",
+      },
+      docTitleDefault: "Product overview",
+      closingTitleDefault: "Run the full alerting path in your own environment",
+      closingDescriptionDefault:
+        "From data sources to on-call notifications in one system; deployment and upgrade paths are documented.",
+    },
     brandFallback: "Alioth",
     home: "Home",
     navLabel: "Site navigation",

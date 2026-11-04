@@ -1,0 +1,103 @@
+/*
+ * 官网版式层（L3，只做加法）：品牌层与语义层之上只加 --site-* 变量和少量版式类。
+ *
+ * 规则：
+ * - 这里不写任何颜色字面量，也不出现调色板类：颜色一律由组件走语义 token
+ *   （bg-primary / text-primary-ink / bg-primary-soft / border-border / bg-card …）。
+ * - 尺寸只描述页面版式（容器、gutter、区块节奏、展示字号），不改品牌层的任何值。
+ * - 响应式断点与 Tailwind 对齐：md=768、lg=1024。
+ */
+
+:root {
+  /* 容器：max-w-6xl = 1152px；gutter 移动 16 / 平板 24 / 桌面 24。 */
+  --site-container-width: 72rem;
+  --site-gutter: 1rem;
+
+  /* 区块纵向间距：移动 40 / 平板 56 / 桌面 80，只由页面容器的 row-gap 消费。 */
+  --site-section-gap: 2.5rem;
+
+  /* 展示字号：hero H1 移动 44 / 平板 56 / 桌面 72；区块 h2 24 / 28 / 32。 */
+  --site-text-display-1: 2.75rem;
+  --site-text-section: 1.5rem;
+  --site-text-lead: 1.125rem;
+  --site-text-body: 1rem;
+  --site-text-meta: 0.75rem;
+  --site-text-legal: 0.75rem;
+
+  /* 现有 --font-heading 只有拉丁字形，官网显式补 CJK 回退（中文只用 400/600）。 */
+  --site-font-heading:
+    "IBM Plex Sans", "Geist Variable", "PingFang SC", "HarmonyOS Sans SC",
+    "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --site-gutter: 1.5rem;
+    --site-section-gap: 3.5rem;
+    --site-text-display-1: 3.5rem;
+    --site-text-section: 1.75rem;
+    --site-text-lead: 1.25rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --site-section-gap: 5rem;
+    --site-text-display-1: 4.5rem;
+    --site-text-section: 2rem;
+  }
+}
+
+/* 页面容器：官网各区块的唯一宽度与左右留白来源。 */
+.site-container {
+  width: 100%;
+  max-width: var(--site-container-width);
+  margin-inline: auto;
+  padding-inline: var(--site-gutter);
+}
+
+/* Hero 标题：72/56/44，行高固定 1.05。
+   不用 text-wrap: balance（中文标题会在标点处被均匀切开，把「告警」拆到两行），
+   改用 text-wrap: pretty 收掉单字尾行；浏览器不支持时退回默认折行。 */
+.text-display-1 {
+  font-family: var(--site-font-heading);
+  font-size: var(--site-text-display-1);
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+
+/* 区块标题：32/28/24。 */
+.text-section {
+  font-family: var(--site-font-heading);
+  font-size: var(--site-text-section);
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+/* 导语：20/20/18。 */
+.text-lead {
+  font-size: var(--site-text-lead);
+  line-height: 1.6;
+}
+
+/* 正文：16。 */
+.text-body {
+  font-size: var(--site-text-body);
+  line-height: 1.65;
+}
+
+/* 辅助信息：12。 */
+.text-meta {
+  font-size: var(--site-text-meta);
+  line-height: 1.5;
+}
+
+/* 法律条：12，不低于 12。 */
+.text-legal {
+  font-size: var(--site-text-legal);
+  line-height: 1.5;
+}

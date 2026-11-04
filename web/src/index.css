@@ -7,6 +7,8 @@
 @import "./styles/theme/tokens.brand.css";
 @import "./styles/theme/semantic.light.css";
 @import "./styles/theme/semantic.dark.css";
+/* 官网版式层：只加 --site-* 与少量类，不新增颜色。 */
+@import "./styles/site/site.tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -95,6 +97,19 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+    /* 官网版式字号：值来自 site.tokens.css 的 --site-* 变量（响应式在那边切换）。 */
+    --text-display-1: var(--site-text-display-1);
+    --text-display-1--line-height: 1.05;
+    --text-section: var(--site-text-section);
+    --text-section--line-height: 1.2;
+    --text-lead: var(--site-text-lead);
+    --text-lead--line-height: 1.6;
+    --text-body: var(--site-text-body);
+    --text-body--line-height: 1.65;
+    --text-meta: var(--site-text-meta);
+    --text-meta--line-height: 1.5;
+    --text-legal: var(--site-text-legal);
+    --text-legal--line-height: 1.5;
     --color-error: var(--error);
 }
 
@@ -156,6 +171,11 @@
   .brand-confirm {
     animation: brand-confirm 420ms ease-out;
   }
+
+  /* 官网首屏入场：一次性淡入 + 上移 8px（240ms），不做滚动揭示或视差。 */
+  .site-enter {
+    animation: site-enter 240ms ease-out both;
+  }
 }
 
 @keyframes brand-confirm {
@@ -167,8 +187,20 @@
   }
 }
 
+@keyframes site-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .brand-confirm {
+  .brand-confirm,
+  .site-enter {
     animation: none;
   }
 }
