@@ -310,7 +310,9 @@ export function SiteSettingsPage() {
   const initialLoading = session.loading || (loading && !site)
 
   return (
-    <div className="flex min-h-0 flex-col gap-5 overflow-y-auto">
+    // 根容器要 flex-1 才能拿到有界高度：父级内容是 overflow-hidden 的固定视口，
+    // 少了 flex-1 页面会被撑高后直接裁切，表单下半部分看不到也滚不到。
+    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
       <PageHeader
         title={t("systemSite.title")}
         description={t("systemSite.description")}
