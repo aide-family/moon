@@ -92,7 +92,7 @@ M33 给 Alioth 补上对外可见的另一半：一个免登录的官网（公�
 
 权限常量加进 `app/alioth/pkg/perm/perm.go` 的 `SystemCatalog()`：`system:site:read`、`system:site:write`、`system:login:read`、`system:login:write`。`SUPER_ADMIN` 自动全量，`SYSTEM_ADMIN` 只加读，`SYSTEM_READONLY` 因 `:read` 后缀自动获得。
 
-R7 的接口：`GET /v1/oncall-rotations/my-shifts?days=14`，按当前登录账号解析成员身份，只返回本人班次（含 `current`、轮换名、时区、起止），不要求 `notification_rotation:read`；排班接口现有返回里补 `isMe`，供管理端复用。
+R7 的接口：`GET /v1/self/oncall-shifts?days=14`，按当前登录账号解析成员身份，只返回本人班次（含 `current`、轮换名、时区、起止），不要求 `notification_rotation:read`。路径不能挂在 `/v1/oncall-rotations/{uid}` 下：同前缀的静态段会被参数路由先匹配，实测返回 404。
 
 ## 5. Web
 
@@ -200,3 +200,20 @@ Hero（`text-display-1` 标题、`text-lead` 副标、≤2 个 CTA、主视觉 4
 - R5 的现状是只看 env：`OAuthProviders` 依据 `client_id` / `client_secret` 是否为空决定是否下发，没有开关；`StartOAuth` 也没有第二道拦截。
 - R7 的现状是入口不存在：时间视图只有「周/日」「范围」「包含停用」，排班只出现在轮换详情抽屉里，且需要 `notification_rotation:read`。
 - 公开面现状：`App.tsx` 的公开路由只有 `/login`、`/register`、`/auth/callback`、`/invite/:token`、`/status/:token`，其余都在 `AppShell` 内，无 token 直接跳登录。
+
+## 12. 实现状态
+
+按第 2 节的推荐决策实现完毕，分在五个分支上（都基于已同步的 `main`，未经推送与合并）：
+
+| 分支 | 内容 | 对应需求 |
+| --- | --- | --- |
+| `fix/alert-page-acked-column` | 列白名单补 `acked`，回归测试钉住默认列可保存 | R6 |
+| `feat/system-site-config` | `site_settings` / `auth_login_settings` 单例表、公开配置接口、`system:site:*` 与 `system:login:*` 权限、登录方式双保险拦截、`/system/site` 页面、登录页页脚与入口裁剪 | R4、R5 |
+| `feat/official-site-pages` | `site_pages` 草稿/发布快照、公开页面与导航接口、后台发布接口、官网 `/` 与 `/p/:slug`、`/system/site/pages`、`/` → `/app` 路由迁移与租户选择 | R1、R2、R3 |
+| `feat/oncall-personal-view` | `GET /v1/self/oncall-shifts`、时间视图「全部 / 我的」与六态分离 | R7 |
+
+已经跑过的验证：`go build ./...`、`go vet ./...`、`internal/biz/...` 与 `pkg/...` 单测；`npm run typecheck`、`npx eslint src`、`npm run build`。
+
+另外在本机起了 `alioth`（8100）连真实 PostgreSQL 做接口实测：`GET /v1/site/config` 下发备案、`/v1/system/site` 无令牌 401、新建页面为草稿时公开接口 404、发布后公开接口 200、草稿保存不影响线上、过期 `updatedAt` 409、导航更新后公开导航出现、`locale=en` 回落到 zh 并标 `localeFallback`、首页下架与删除被拒；关掉 `oauth2_enabled` 后来源列表变空、关掉 `email_enabled` 后发码 403；`/v1/self/oncall-shifts` 返回本人 8 个班次且当前班次 `current=true`。实测中发现并修掉两个真问题：平台级页面接口漏进 `namespaceOptional` 导致 400，以及 `my-shifts` 被 `{uid}` 路由先匹配。
+
+还没做：**浏览器实机验证**（没有可用的已登录本地会话），以及第 8 节的 75 条 Playwright 用例（仓库目前没有任何 e2e 工程）。
