@@ -398,6 +398,20 @@ function NavGroup({
   const { t } = useTranslation()
   const location = useLocation()
   const [open, setOpen] = useState(active)
+  // 同前缀的两个菜单（/system/site 与 /system/site/pages）按最长命中才算选中：
+  // 只判断 startsWith 会让进入子页面时两个菜单同时高亮。
+  const activeTo = links.reduce<string | null>((matched, link) => {
+    const hit =
+      location.pathname === link.to ||
+      location.pathname.startsWith(`${link.to}/`)
+    if (!hit) {
+      return matched
+    }
+    if (!matched || link.to.length > matched.length) {
+      return link.to
+    }
+    return matched
+  }, null)
   if (links.length === 0) {
     return null
   }
@@ -428,18 +442,10 @@ function NavGroup({
                 <SidebarMenuSubItem key={link.to}>
                   <SidebarMenuSubButton
                     asChild
-                    isActive={
-                      location.pathname === link.to ||
-                      location.pathname.startsWith(`${link.to}/`)
-                    }
+                    isActive={activeTo === link.to}
                     className="border-l-2 border-transparent data-active:border-primary"
                   >
-                    <NavLink
-                      to={link.to}
-                      // 站点设置与官网页面同属 /system/site 前缀：只在自身页面高亮，
-                      // 否则进入官网页面时两个菜单会同时亮起。
-                      end={link.to === "/system/site"}
-                    >
+                    <NavLink to={link.to} end={activeTo === link.to}>
                       <LinkIcon />
                       <span>{t(link.label)}</span>
                     </NavLink>
