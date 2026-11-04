@@ -313,9 +313,11 @@ export function SiteSettingsPage() {
   const initialLoading = session.loading || (loading && !site)
 
   return (
-    // 根容器要 flex-1 才能拿到有界高度：父级内容是 overflow-hidden 的固定视口，
-    // 少了 flex-1 页面会被撑高后直接裁切，表单下半部分看不到也滚不到。
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
+    // 本页唯一滚动所有者是根容器：flex-1 + min-h-0 拿到有界高度。
+    // 子项必须 shrink-0 —— Card 自带 overflow-hidden，作为 flex 子项时自动最小高度
+    // 会被算成 0，卡片被压扁、内容被自身的 overflow-hidden 裁掉，滚动区量不到溢出，
+    // 于是页面既显示不全也滚不动（只补 flex-1 修不好，真正的原因是子项被压缩）。
+    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto [&>*]:shrink-0">
       <PageHeader
         title={t("systemSite.title")}
         description={t("systemSite.description")}

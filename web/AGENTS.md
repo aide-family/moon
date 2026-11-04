@@ -15,6 +15,7 @@ These rules apply to all changes under `web/`. Read them before changing routes,
 3. Choose one primary vertical scroll owner per view. For dashboards, scroll the active panel; for data lists, keep the table's own scroll viewport and keep page controls reachable. Do not make both the document and nested panel scroll accidentally.
 4. With `TabsContent forceMount`, verify inactive panels remain hidden by the primitive and do not consume layout space. Do not treat “mounted” as “visible”.
 5. Keep the tab's controlled `value`, `onValueChange`, URL state (when URL-backed), selected visual indicator, `aria-selected`, and displayed panel in agreement. Use the shared primitive's real data attributes for styling.
+6. A scroll container's direct children must not be shrinkable when they are `Card` or any other component with `overflow-hidden`. Such a flex item's automatic minimum size is zero, so it gets squashed and its own `overflow-hidden` clips the content, leaving the scroll container with nothing to scroll. Give the container `[&>*]:shrink-0` (or `shrink-0` per child); adding `flex-1` to the container alone does not fix it.
 
 ## Required regression checks for tabs and scrolling
 
