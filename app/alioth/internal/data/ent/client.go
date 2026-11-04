@@ -67,6 +67,8 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitefeature"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitehomecontent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitepage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
@@ -194,6 +196,10 @@ type Client struct {
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
 	SSHCommandAudit *SSHCommandAuditClient
+	// SiteFeature is the client for interacting with the SiteFeature builders.
+	SiteFeature *SiteFeatureClient
+	// SiteHomeContent is the client for interacting with the SiteHomeContent builders.
+	SiteHomeContent *SiteHomeContentClient
 	// SitePage is the client for interacting with the SitePage builders.
 	SitePage *SitePageClient
 	// SiteSetting is the client for interacting with the SiteSetting builders.
@@ -276,6 +282,8 @@ func (c *Client) init() {
 	c.RolePermission = NewRolePermissionClient(c.config)
 	c.SSHCommand = NewSSHCommandClient(c.config)
 	c.SSHCommandAudit = NewSSHCommandAuditClient(c.config)
+	c.SiteFeature = NewSiteFeatureClient(c.config)
+	c.SiteHomeContent = NewSiteHomeContentClient(c.config)
 	c.SitePage = NewSitePageClient(c.config)
 	c.SiteSetting = NewSiteSettingClient(c.config)
 	c.StatusPage = NewStatusPageClient(c.config)
@@ -431,6 +439,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		SiteFeature:                   NewSiteFeatureClient(cfg),
+		SiteHomeContent:               NewSiteHomeContentClient(cfg),
 		SitePage:                      NewSitePageClient(cfg),
 		SiteSetting:                   NewSiteSettingClient(cfg),
 		StatusPage:                    NewStatusPageClient(cfg),
@@ -513,6 +523,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		SiteFeature:                   NewSiteFeatureClient(cfg),
+		SiteHomeContent:               NewSiteHomeContentClient(cfg),
 		SitePage:                      NewSitePageClient(cfg),
 		SiteSetting:                   NewSiteSettingClient(cfg),
 		StatusPage:                    NewStatusPageClient(cfg),
@@ -564,8 +576,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.NotificationTask, c.NotificationTemplate, c.OnCallRotation,
 		c.OnCallRotationMember, c.Permission, c.ProbeResult, c.ProbeSlaDaily,
 		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
-		c.SSHCommandAudit, c.SitePage, c.SiteSetting, c.StatusPage, c.SystemMessage,
-		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.SSHCommandAudit, c.SiteFeature, c.SiteHomeContent, c.SitePage, c.SiteSetting,
+		c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
+		c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -589,8 +602,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.NotificationTask, c.NotificationTemplate, c.OnCallRotation,
 		c.OnCallRotationMember, c.Permission, c.ProbeResult, c.ProbeSlaDaily,
 		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
-		c.SSHCommandAudit, c.SitePage, c.SiteSetting, c.StatusPage, c.SystemMessage,
-		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.SSHCommandAudit, c.SiteFeature, c.SiteHomeContent, c.SitePage, c.SiteSetting,
+		c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
+		c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -709,6 +723,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SSHCommand.mutate(ctx, m)
 	case *SSHCommandAuditMutation:
 		return c.SSHCommandAudit.mutate(ctx, m)
+	case *SiteFeatureMutation:
+		return c.SiteFeature.mutate(ctx, m)
+	case *SiteHomeContentMutation:
+		return c.SiteHomeContent.mutate(ctx, m)
 	case *SitePageMutation:
 		return c.SitePage.mutate(ctx, m)
 	case *SiteSettingMutation:
@@ -8045,6 +8063,272 @@ func (c *SSHCommandAuditClient) mutate(ctx context.Context, m *SSHCommandAuditMu
 	}
 }
 
+// SiteFeatureClient is a client for the SiteFeature schema.
+type SiteFeatureClient struct {
+	config
+}
+
+// NewSiteFeatureClient returns a client for the SiteFeature from the given config.
+func NewSiteFeatureClient(c config) *SiteFeatureClient {
+	return &SiteFeatureClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sitefeature.Hooks(f(g(h())))`.
+func (c *SiteFeatureClient) Use(hooks ...Hook) {
+	c.hooks.SiteFeature = append(c.hooks.SiteFeature, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sitefeature.Intercept(f(g(h())))`.
+func (c *SiteFeatureClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SiteFeature = append(c.inters.SiteFeature, interceptors...)
+}
+
+// Create returns a builder for creating a SiteFeature entity.
+func (c *SiteFeatureClient) Create() *SiteFeatureCreate {
+	mutation := newSiteFeatureMutation(c.config, OpCreate)
+	return &SiteFeatureCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SiteFeature entities.
+func (c *SiteFeatureClient) CreateBulk(builders ...*SiteFeatureCreate) *SiteFeatureCreateBulk {
+	return &SiteFeatureCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SiteFeatureClient) MapCreateBulk(slice any, setFunc func(*SiteFeatureCreate, int)) *SiteFeatureCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SiteFeatureCreateBulk{err: fmt.Errorf("calling to SiteFeatureClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SiteFeatureCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SiteFeatureCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SiteFeature.
+func (c *SiteFeatureClient) Update() *SiteFeatureUpdate {
+	mutation := newSiteFeatureMutation(c.config, OpUpdate)
+	return &SiteFeatureUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SiteFeatureClient) UpdateOne(_m *SiteFeature) *SiteFeatureUpdateOne {
+	mutation := newSiteFeatureMutation(c.config, OpUpdateOne, withSiteFeature(_m))
+	return &SiteFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SiteFeatureClient) UpdateOneID(id int) *SiteFeatureUpdateOne {
+	mutation := newSiteFeatureMutation(c.config, OpUpdateOne, withSiteFeatureID(id))
+	return &SiteFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SiteFeature.
+func (c *SiteFeatureClient) Delete() *SiteFeatureDelete {
+	mutation := newSiteFeatureMutation(c.config, OpDelete)
+	return &SiteFeatureDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SiteFeatureClient) DeleteOne(_m *SiteFeature) *SiteFeatureDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SiteFeatureClient) DeleteOneID(id int) *SiteFeatureDeleteOne {
+	builder := c.Delete().Where(sitefeature.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SiteFeatureDeleteOne{builder}
+}
+
+// Query returns a query builder for SiteFeature.
+func (c *SiteFeatureClient) Query() *SiteFeatureQuery {
+	return &SiteFeatureQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSiteFeature},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SiteFeature entity by its id.
+func (c *SiteFeatureClient) Get(ctx context.Context, id int) (*SiteFeature, error) {
+	return c.Query().Where(sitefeature.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SiteFeatureClient) GetX(ctx context.Context, id int) *SiteFeature {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SiteFeatureClient) Hooks() []Hook {
+	return c.hooks.SiteFeature
+}
+
+// Interceptors returns the client interceptors.
+func (c *SiteFeatureClient) Interceptors() []Interceptor {
+	return c.inters.SiteFeature
+}
+
+func (c *SiteFeatureClient) mutate(ctx context.Context, m *SiteFeatureMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SiteFeatureCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SiteFeatureUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SiteFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SiteFeatureDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SiteFeature mutation op: %q", m.Op())
+	}
+}
+
+// SiteHomeContentClient is a client for the SiteHomeContent schema.
+type SiteHomeContentClient struct {
+	config
+}
+
+// NewSiteHomeContentClient returns a client for the SiteHomeContent from the given config.
+func NewSiteHomeContentClient(c config) *SiteHomeContentClient {
+	return &SiteHomeContentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sitehomecontent.Hooks(f(g(h())))`.
+func (c *SiteHomeContentClient) Use(hooks ...Hook) {
+	c.hooks.SiteHomeContent = append(c.hooks.SiteHomeContent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sitehomecontent.Intercept(f(g(h())))`.
+func (c *SiteHomeContentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SiteHomeContent = append(c.inters.SiteHomeContent, interceptors...)
+}
+
+// Create returns a builder for creating a SiteHomeContent entity.
+func (c *SiteHomeContentClient) Create() *SiteHomeContentCreate {
+	mutation := newSiteHomeContentMutation(c.config, OpCreate)
+	return &SiteHomeContentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SiteHomeContent entities.
+func (c *SiteHomeContentClient) CreateBulk(builders ...*SiteHomeContentCreate) *SiteHomeContentCreateBulk {
+	return &SiteHomeContentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SiteHomeContentClient) MapCreateBulk(slice any, setFunc func(*SiteHomeContentCreate, int)) *SiteHomeContentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SiteHomeContentCreateBulk{err: fmt.Errorf("calling to SiteHomeContentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SiteHomeContentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SiteHomeContentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SiteHomeContent.
+func (c *SiteHomeContentClient) Update() *SiteHomeContentUpdate {
+	mutation := newSiteHomeContentMutation(c.config, OpUpdate)
+	return &SiteHomeContentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SiteHomeContentClient) UpdateOne(_m *SiteHomeContent) *SiteHomeContentUpdateOne {
+	mutation := newSiteHomeContentMutation(c.config, OpUpdateOne, withSiteHomeContent(_m))
+	return &SiteHomeContentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SiteHomeContentClient) UpdateOneID(id int) *SiteHomeContentUpdateOne {
+	mutation := newSiteHomeContentMutation(c.config, OpUpdateOne, withSiteHomeContentID(id))
+	return &SiteHomeContentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SiteHomeContent.
+func (c *SiteHomeContentClient) Delete() *SiteHomeContentDelete {
+	mutation := newSiteHomeContentMutation(c.config, OpDelete)
+	return &SiteHomeContentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SiteHomeContentClient) DeleteOne(_m *SiteHomeContent) *SiteHomeContentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SiteHomeContentClient) DeleteOneID(id int) *SiteHomeContentDeleteOne {
+	builder := c.Delete().Where(sitehomecontent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SiteHomeContentDeleteOne{builder}
+}
+
+// Query returns a query builder for SiteHomeContent.
+func (c *SiteHomeContentClient) Query() *SiteHomeContentQuery {
+	return &SiteHomeContentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSiteHomeContent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SiteHomeContent entity by its id.
+func (c *SiteHomeContentClient) Get(ctx context.Context, id int) (*SiteHomeContent, error) {
+	return c.Query().Where(sitehomecontent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SiteHomeContentClient) GetX(ctx context.Context, id int) *SiteHomeContent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SiteHomeContentClient) Hooks() []Hook {
+	return c.hooks.SiteHomeContent
+}
+
+// Interceptors returns the client interceptors.
+func (c *SiteHomeContentClient) Interceptors() []Interceptor {
+	return c.inters.SiteHomeContent
+}
+
+func (c *SiteHomeContentClient) mutate(ctx context.Context, m *SiteHomeContentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SiteHomeContentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SiteHomeContentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SiteHomeContentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SiteHomeContentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SiteHomeContent mutation op: %q", m.Op())
+	}
+}
+
 // SitePageClient is a client for the SitePage schema.
 type SitePageClient struct {
 	config
@@ -9125,8 +9409,9 @@ type (
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
 		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, SitePage, SiteSetting, StatusPage, SystemMessage, User,
-		UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
+		SSHCommandAudit, SiteFeature, SiteHomeContent, SitePage, SiteSetting,
+		StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEscalationPolicy, AlertEscalationStep,
@@ -9142,7 +9427,8 @@ type (
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
 		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, SitePage, SiteSetting, StatusPage, SystemMessage, User,
-		UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
+		SSHCommandAudit, SiteFeature, SiteHomeContent, SitePage, SiteSetting,
+		StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Interceptor
 	}
 )

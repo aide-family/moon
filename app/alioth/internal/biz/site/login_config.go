@@ -31,6 +31,39 @@ func (settings *Settings) EmailSettings(ctx context.Context) (*bo.EmailSettings,
 		return nil, settings.access.Wrap(err)
 	}
 	item.Password = ""
+	// 后台配置没启用（或没存主机）时，界面要显示服务器配置文件里当前生效的值，
+	// 否则运营看到的是空白，以为邮件没配置。
+	if !item.Enabled || item.Host == "" {
+		if fallback := settings.configEmailSettings(); fallback != nil {
+			passwordSet := item.PasswordSet || fallback.PasswordSet
+			host, port := fallback.Host, fallback.Port
+			from := fallback.From
+			if item.Host != "" {
+				host = item.Host
+			}
+			if item.Port > 0 {
+				port = item.Port
+			}
+			if item.From != "" {
+				from = item.From
+			}
+			return &bo.EmailSettings{
+				Enabled:     item.Enabled,
+				Host:        host,
+				Port:        port,
+				Username:    firstNonEmpty(item.Username, fallback.Username),
+				Password:    "",
+				PasswordSet: passwordSet,
+				From:        from,
+				Source:      bo.LoginConfigSourceConfig,
+				UpdatedBy:   item.UpdatedBy,
+				UpdatedAt:   item.UpdatedAt,
+			}, nil
+		}
+		item.Source = bo.LoginConfigSourceNone
+		return item, nil
+	}
+	item.Source = bo.LoginConfigSourceDatabase
 	return item, nil
 }
 
@@ -86,6 +119,17 @@ func (settings *Settings) OAuthProviders(ctx context.Context) ([]bo.OAuthProvide
 		item := byProvider[provider.Key]
 		item.Provider = provider.Key
 		item.ClientSecret = ""
+		if _, stored := byProvider[provider.Key]; stored {
+			item.Source = bo.LoginConfigSourceDatabase
+			items = append(items, item)
+			continue
+		}
+		// 没有保存过就看配置文件：登录页此刻显示的就是这份，界面必须能看到。
+		if fallback, ok := settings.configOAuthProvider(provider.Key); ok {
+			items = append(items, fallback)
+			continue
+		}
+		item.Source = bo.LoginConfigSourceNone
 		items = append(items, item)
 	}
 	return items, nil
@@ -131,6 +175,56 @@ func validateOAuthProviderSetting(in bo.OAuthProviderSetting) error {
 		return merr.Invalid("invalid client secret")
 	}
 	return nil
+}
+
+// configEmailSettings 把配置文件里的 SMTP 转成界面可展示的值（密码只标已配置）。
+func (settings *Settings) configEmailSettings() *bo.EmailSettings {
+	if settings.auth == nil || settings.auth.GetSmtp() == nil {
+		return nil
+	}
+	smtp := settings.auth.GetSmtp()
+	if strings.TrimSpace(smtp.GetHost()) == "" || smtp.GetPort() <= 0 || strings.TrimSpace(smtp.GetFrom()) == "" {
+		return nil
+	}
+	return &bo.EmailSettings{
+		Host:        smtp.GetHost(),
+		Port:        int(smtp.GetPort()),
+		Username:    smtp.GetUsername(),
+		PasswordSet: smtp.GetPassword() != "",
+		From:        smtp.GetFrom(),
+	}
+}
+
+// configOAuthProvider 从配置文件里取某个来源的凭据（密钥只标已配置）。
+func (settings *Settings) configOAuthProvider(provider string) (bo.OAuthProviderSetting, bool) {
+	if settings.auth == nil {
+		return bo.OAuthProviderSetting{}, false
+	}
+	for _, item := range settings.auth.GetOauth() {
+		if !strings.EqualFold(item.GetProvider(), provider) {
+			continue
+		}
+		if item.GetClientId() == "" || item.GetClientSecret() == "" {
+			return bo.OAuthProviderSetting{}, false
+		}
+		return bo.OAuthProviderSetting{
+			Provider:  provider,
+			Enabled:   true,
+			ClientID:  item.GetClientId(),
+			SecretSet: true,
+			Source:    bo.LoginConfigSourceConfig,
+		}, true
+	}
+	return bo.OAuthProviderSetting{}, false
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func validateEmailSettings(in bo.EmailSettings) error {

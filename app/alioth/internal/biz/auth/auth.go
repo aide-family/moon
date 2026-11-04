@@ -859,6 +859,9 @@ func namespaceOptional(operation string) bool {
 		v1.OperationSiteServiceUpdateEmailSettings,
 		v1.OperationSiteServiceListOAuthProviderSettings,
 		v1.OperationSiteServiceUpdateOAuthProviderSetting,
+		// 首页文案与能力卡片也是平台级资源，不读 X-Namespace。
+		v1.OperationSiteServiceGetSiteHome,
+		v1.OperationSiteServiceUpdateSiteHome,
 		// 升级与迁移是平台级操作：环境状态、数据库迁移和迁移包收发都不读 X-Namespace。
 		v1.OperationMaintenanceServiceGetMaintenanceStatus,
 		v1.OperationMaintenanceServiceRunSchemaMigration,

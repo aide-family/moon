@@ -65,6 +65,8 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitefeature"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitehomecontent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitepage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
@@ -141,6 +143,8 @@ const (
 	TypeRolePermission                = "RolePermission"
 	TypeSSHCommand                    = "SSHCommand"
 	TypeSSHCommandAudit               = "SSHCommandAudit"
+	TypeSiteFeature                   = "SiteFeature"
+	TypeSiteHomeContent               = "SiteHomeContent"
 	TypeSitePage                      = "SitePage"
 	TypeSiteSetting                   = "SiteSetting"
 	TypeStatusPage                    = "StatusPage"
@@ -51748,6 +51752,2260 @@ func (m *SSHCommandAuditMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *SSHCommandAuditMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown SSHCommandAudit edge %s", name)
+}
+
+// SiteFeatureMutation represents an operation that mutates the SiteFeature nodes in the graph.
+type SiteFeatureMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	uid           *string
+	locale        *string
+	sort_order    *int
+	addsort_order *int
+	icon_key      *string
+	title         *string
+	description   *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*SiteFeature, error)
+	predicates    []predicate.SiteFeature
+}
+
+var _ ent.Mutation = (*SiteFeatureMutation)(nil)
+
+// sitefeatureOption allows management of the mutation configuration using functional options.
+type sitefeatureOption func(*SiteFeatureMutation)
+
+// newSiteFeatureMutation creates new mutation for the SiteFeature entity.
+func newSiteFeatureMutation(c config, op Op, opts ...sitefeatureOption) *SiteFeatureMutation {
+	m := &SiteFeatureMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSiteFeature,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSiteFeatureID sets the ID field of the mutation.
+func withSiteFeatureID(id int) sitefeatureOption {
+	return func(m *SiteFeatureMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SiteFeature
+		)
+		m.oldValue = func(ctx context.Context) (*SiteFeature, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SiteFeature.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSiteFeature sets the old SiteFeature of the mutation.
+func withSiteFeature(node *SiteFeature) sitefeatureOption {
+	return func(m *SiteFeatureMutation) {
+		m.oldValue = func(context.Context) (*SiteFeature, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SiteFeatureMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SiteFeatureMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SiteFeatureMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SiteFeatureMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SiteFeature.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SiteFeatureMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SiteFeatureMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SiteFeature entity.
+// If the SiteFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteFeatureMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SiteFeatureMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *SiteFeatureMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *SiteFeatureMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the SiteFeature entity.
+// If the SiteFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteFeatureMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *SiteFeatureMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *SiteFeatureMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *SiteFeatureMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the SiteFeature entity.
+// If the SiteFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteFeatureMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *SiteFeatureMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetLocale sets the "locale" field.
+func (m *SiteFeatureMutation) SetLocale(s string) {
+	m.locale = &s
+}
+
+// Locale returns the value of the "locale" field in the mutation.
+func (m *SiteFeatureMutation) Locale() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocale returns the old "locale" field's value of the SiteFeature entity.
+// If the SiteFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteFeatureMutation) OldLocale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocale: %w", err)
+	}
+	return oldValue.Locale, nil
+}
+
+// ResetLocale resets all changes to the "locale" field.
+func (m *SiteFeatureMutation) ResetLocale() {
+	m.locale = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *SiteFeatureMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *SiteFeatureMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the SiteFeature entity.
+// If the SiteFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteFeatureMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *SiteFeatureMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *SiteFeatureMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *SiteFeatureMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetIconKey sets the "icon_key" field.
+func (m *SiteFeatureMutation) SetIconKey(s string) {
+	m.icon_key = &s
+}
+
+// IconKey returns the value of the "icon_key" field in the mutation.
+func (m *SiteFeatureMutation) IconKey() (r string, exists bool) {
+	v := m.icon_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIconKey returns the old "icon_key" field's value of the SiteFeature entity.
+// If the SiteFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteFeatureMutation) OldIconKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIconKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIconKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIconKey: %w", err)
+	}
+	return oldValue.IconKey, nil
+}
+
+// ResetIconKey resets all changes to the "icon_key" field.
+func (m *SiteFeatureMutation) ResetIconKey() {
+	m.icon_key = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *SiteFeatureMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *SiteFeatureMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the SiteFeature entity.
+// If the SiteFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteFeatureMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *SiteFeatureMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *SiteFeatureMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *SiteFeatureMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the SiteFeature entity.
+// If the SiteFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteFeatureMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *SiteFeatureMutation) ResetDescription() {
+	m.description = nil
+}
+
+// Where appends a list predicates to the SiteFeatureMutation builder.
+func (m *SiteFeatureMutation) Where(ps ...predicate.SiteFeature) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SiteFeatureMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SiteFeatureMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SiteFeature, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SiteFeatureMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SiteFeatureMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SiteFeature).
+func (m *SiteFeatureMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SiteFeatureMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.created_at != nil {
+		fields = append(fields, sitefeature.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, sitefeature.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, sitefeature.FieldUID)
+	}
+	if m.locale != nil {
+		fields = append(fields, sitefeature.FieldLocale)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, sitefeature.FieldSortOrder)
+	}
+	if m.icon_key != nil {
+		fields = append(fields, sitefeature.FieldIconKey)
+	}
+	if m.title != nil {
+		fields = append(fields, sitefeature.FieldTitle)
+	}
+	if m.description != nil {
+		fields = append(fields, sitefeature.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SiteFeatureMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sitefeature.FieldCreatedAt:
+		return m.CreatedAt()
+	case sitefeature.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case sitefeature.FieldUID:
+		return m.UID()
+	case sitefeature.FieldLocale:
+		return m.Locale()
+	case sitefeature.FieldSortOrder:
+		return m.SortOrder()
+	case sitefeature.FieldIconKey:
+		return m.IconKey()
+	case sitefeature.FieldTitle:
+		return m.Title()
+	case sitefeature.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SiteFeatureMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sitefeature.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case sitefeature.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case sitefeature.FieldUID:
+		return m.OldUID(ctx)
+	case sitefeature.FieldLocale:
+		return m.OldLocale(ctx)
+	case sitefeature.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case sitefeature.FieldIconKey:
+		return m.OldIconKey(ctx)
+	case sitefeature.FieldTitle:
+		return m.OldTitle(ctx)
+	case sitefeature.FieldDescription:
+		return m.OldDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown SiteFeature field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SiteFeatureMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sitefeature.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case sitefeature.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case sitefeature.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case sitefeature.FieldLocale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocale(v)
+		return nil
+	case sitefeature.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case sitefeature.FieldIconKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIconKey(v)
+		return nil
+	case sitefeature.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case sitefeature.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SiteFeature field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SiteFeatureMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, sitefeature.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SiteFeatureMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case sitefeature.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SiteFeatureMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case sitefeature.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SiteFeature numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SiteFeatureMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SiteFeatureMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SiteFeatureMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown SiteFeature nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SiteFeatureMutation) ResetField(name string) error {
+	switch name {
+	case sitefeature.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case sitefeature.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case sitefeature.FieldUID:
+		m.ResetUID()
+		return nil
+	case sitefeature.FieldLocale:
+		m.ResetLocale()
+		return nil
+	case sitefeature.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case sitefeature.FieldIconKey:
+		m.ResetIconKey()
+		return nil
+	case sitefeature.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case sitefeature.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown SiteFeature field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SiteFeatureMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SiteFeatureMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SiteFeatureMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SiteFeatureMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SiteFeatureMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SiteFeatureMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SiteFeatureMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown SiteFeature unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SiteFeatureMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown SiteFeature edge %s", name)
+}
+
+// SiteHomeContentMutation represents an operation that mutates the SiteHomeContent nodes in the graph.
+type SiteHomeContentMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *int
+	created_at           *time.Time
+	updated_at           *time.Time
+	uid                  *string
+	locale               *string
+	hero_title           *string
+	hero_subtitle        *string
+	hero_image_url       *string
+	cta_primary_label    *string
+	cta_secondary_label  *string
+	cta_secondary_href   *string
+	features_title       *string
+	features_subtitle    *string
+	how_title            *string
+	how_body             *string
+	perm_title           *string
+	perm_body            *string
+	deploy_title         *string
+	deploy_body          *string
+	doc_title            *string
+	closing_title        *string
+	closing_description  *string
+	closing_button_label *string
+	updated_by           *string
+	clearedFields        map[string]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*SiteHomeContent, error)
+	predicates           []predicate.SiteHomeContent
+}
+
+var _ ent.Mutation = (*SiteHomeContentMutation)(nil)
+
+// sitehomecontentOption allows management of the mutation configuration using functional options.
+type sitehomecontentOption func(*SiteHomeContentMutation)
+
+// newSiteHomeContentMutation creates new mutation for the SiteHomeContent entity.
+func newSiteHomeContentMutation(c config, op Op, opts ...sitehomecontentOption) *SiteHomeContentMutation {
+	m := &SiteHomeContentMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSiteHomeContent,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSiteHomeContentID sets the ID field of the mutation.
+func withSiteHomeContentID(id int) sitehomecontentOption {
+	return func(m *SiteHomeContentMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SiteHomeContent
+		)
+		m.oldValue = func(ctx context.Context) (*SiteHomeContent, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SiteHomeContent.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSiteHomeContent sets the old SiteHomeContent of the mutation.
+func withSiteHomeContent(node *SiteHomeContent) sitehomecontentOption {
+	return func(m *SiteHomeContentMutation) {
+		m.oldValue = func(context.Context) (*SiteHomeContent, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SiteHomeContentMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SiteHomeContentMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SiteHomeContentMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SiteHomeContentMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SiteHomeContent.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SiteHomeContentMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SiteHomeContentMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SiteHomeContentMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *SiteHomeContentMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *SiteHomeContentMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *SiteHomeContentMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *SiteHomeContentMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *SiteHomeContentMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *SiteHomeContentMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetLocale sets the "locale" field.
+func (m *SiteHomeContentMutation) SetLocale(s string) {
+	m.locale = &s
+}
+
+// Locale returns the value of the "locale" field in the mutation.
+func (m *SiteHomeContentMutation) Locale() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocale returns the old "locale" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldLocale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocale: %w", err)
+	}
+	return oldValue.Locale, nil
+}
+
+// ResetLocale resets all changes to the "locale" field.
+func (m *SiteHomeContentMutation) ResetLocale() {
+	m.locale = nil
+}
+
+// SetHeroTitle sets the "hero_title" field.
+func (m *SiteHomeContentMutation) SetHeroTitle(s string) {
+	m.hero_title = &s
+}
+
+// HeroTitle returns the value of the "hero_title" field in the mutation.
+func (m *SiteHomeContentMutation) HeroTitle() (r string, exists bool) {
+	v := m.hero_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHeroTitle returns the old "hero_title" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldHeroTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHeroTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHeroTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHeroTitle: %w", err)
+	}
+	return oldValue.HeroTitle, nil
+}
+
+// ResetHeroTitle resets all changes to the "hero_title" field.
+func (m *SiteHomeContentMutation) ResetHeroTitle() {
+	m.hero_title = nil
+}
+
+// SetHeroSubtitle sets the "hero_subtitle" field.
+func (m *SiteHomeContentMutation) SetHeroSubtitle(s string) {
+	m.hero_subtitle = &s
+}
+
+// HeroSubtitle returns the value of the "hero_subtitle" field in the mutation.
+func (m *SiteHomeContentMutation) HeroSubtitle() (r string, exists bool) {
+	v := m.hero_subtitle
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHeroSubtitle returns the old "hero_subtitle" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldHeroSubtitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHeroSubtitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHeroSubtitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHeroSubtitle: %w", err)
+	}
+	return oldValue.HeroSubtitle, nil
+}
+
+// ResetHeroSubtitle resets all changes to the "hero_subtitle" field.
+func (m *SiteHomeContentMutation) ResetHeroSubtitle() {
+	m.hero_subtitle = nil
+}
+
+// SetHeroImageURL sets the "hero_image_url" field.
+func (m *SiteHomeContentMutation) SetHeroImageURL(s string) {
+	m.hero_image_url = &s
+}
+
+// HeroImageURL returns the value of the "hero_image_url" field in the mutation.
+func (m *SiteHomeContentMutation) HeroImageURL() (r string, exists bool) {
+	v := m.hero_image_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHeroImageURL returns the old "hero_image_url" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldHeroImageURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHeroImageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHeroImageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHeroImageURL: %w", err)
+	}
+	return oldValue.HeroImageURL, nil
+}
+
+// ResetHeroImageURL resets all changes to the "hero_image_url" field.
+func (m *SiteHomeContentMutation) ResetHeroImageURL() {
+	m.hero_image_url = nil
+}
+
+// SetCtaPrimaryLabel sets the "cta_primary_label" field.
+func (m *SiteHomeContentMutation) SetCtaPrimaryLabel(s string) {
+	m.cta_primary_label = &s
+}
+
+// CtaPrimaryLabel returns the value of the "cta_primary_label" field in the mutation.
+func (m *SiteHomeContentMutation) CtaPrimaryLabel() (r string, exists bool) {
+	v := m.cta_primary_label
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCtaPrimaryLabel returns the old "cta_primary_label" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldCtaPrimaryLabel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCtaPrimaryLabel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCtaPrimaryLabel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCtaPrimaryLabel: %w", err)
+	}
+	return oldValue.CtaPrimaryLabel, nil
+}
+
+// ResetCtaPrimaryLabel resets all changes to the "cta_primary_label" field.
+func (m *SiteHomeContentMutation) ResetCtaPrimaryLabel() {
+	m.cta_primary_label = nil
+}
+
+// SetCtaSecondaryLabel sets the "cta_secondary_label" field.
+func (m *SiteHomeContentMutation) SetCtaSecondaryLabel(s string) {
+	m.cta_secondary_label = &s
+}
+
+// CtaSecondaryLabel returns the value of the "cta_secondary_label" field in the mutation.
+func (m *SiteHomeContentMutation) CtaSecondaryLabel() (r string, exists bool) {
+	v := m.cta_secondary_label
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCtaSecondaryLabel returns the old "cta_secondary_label" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldCtaSecondaryLabel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCtaSecondaryLabel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCtaSecondaryLabel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCtaSecondaryLabel: %w", err)
+	}
+	return oldValue.CtaSecondaryLabel, nil
+}
+
+// ResetCtaSecondaryLabel resets all changes to the "cta_secondary_label" field.
+func (m *SiteHomeContentMutation) ResetCtaSecondaryLabel() {
+	m.cta_secondary_label = nil
+}
+
+// SetCtaSecondaryHref sets the "cta_secondary_href" field.
+func (m *SiteHomeContentMutation) SetCtaSecondaryHref(s string) {
+	m.cta_secondary_href = &s
+}
+
+// CtaSecondaryHref returns the value of the "cta_secondary_href" field in the mutation.
+func (m *SiteHomeContentMutation) CtaSecondaryHref() (r string, exists bool) {
+	v := m.cta_secondary_href
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCtaSecondaryHref returns the old "cta_secondary_href" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldCtaSecondaryHref(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCtaSecondaryHref is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCtaSecondaryHref requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCtaSecondaryHref: %w", err)
+	}
+	return oldValue.CtaSecondaryHref, nil
+}
+
+// ResetCtaSecondaryHref resets all changes to the "cta_secondary_href" field.
+func (m *SiteHomeContentMutation) ResetCtaSecondaryHref() {
+	m.cta_secondary_href = nil
+}
+
+// SetFeaturesTitle sets the "features_title" field.
+func (m *SiteHomeContentMutation) SetFeaturesTitle(s string) {
+	m.features_title = &s
+}
+
+// FeaturesTitle returns the value of the "features_title" field in the mutation.
+func (m *SiteHomeContentMutation) FeaturesTitle() (r string, exists bool) {
+	v := m.features_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeaturesTitle returns the old "features_title" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldFeaturesTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeaturesTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeaturesTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeaturesTitle: %w", err)
+	}
+	return oldValue.FeaturesTitle, nil
+}
+
+// ResetFeaturesTitle resets all changes to the "features_title" field.
+func (m *SiteHomeContentMutation) ResetFeaturesTitle() {
+	m.features_title = nil
+}
+
+// SetFeaturesSubtitle sets the "features_subtitle" field.
+func (m *SiteHomeContentMutation) SetFeaturesSubtitle(s string) {
+	m.features_subtitle = &s
+}
+
+// FeaturesSubtitle returns the value of the "features_subtitle" field in the mutation.
+func (m *SiteHomeContentMutation) FeaturesSubtitle() (r string, exists bool) {
+	v := m.features_subtitle
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeaturesSubtitle returns the old "features_subtitle" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldFeaturesSubtitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeaturesSubtitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeaturesSubtitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeaturesSubtitle: %w", err)
+	}
+	return oldValue.FeaturesSubtitle, nil
+}
+
+// ResetFeaturesSubtitle resets all changes to the "features_subtitle" field.
+func (m *SiteHomeContentMutation) ResetFeaturesSubtitle() {
+	m.features_subtitle = nil
+}
+
+// SetHowTitle sets the "how_title" field.
+func (m *SiteHomeContentMutation) SetHowTitle(s string) {
+	m.how_title = &s
+}
+
+// HowTitle returns the value of the "how_title" field in the mutation.
+func (m *SiteHomeContentMutation) HowTitle() (r string, exists bool) {
+	v := m.how_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHowTitle returns the old "how_title" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldHowTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHowTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHowTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHowTitle: %w", err)
+	}
+	return oldValue.HowTitle, nil
+}
+
+// ResetHowTitle resets all changes to the "how_title" field.
+func (m *SiteHomeContentMutation) ResetHowTitle() {
+	m.how_title = nil
+}
+
+// SetHowBody sets the "how_body" field.
+func (m *SiteHomeContentMutation) SetHowBody(s string) {
+	m.how_body = &s
+}
+
+// HowBody returns the value of the "how_body" field in the mutation.
+func (m *SiteHomeContentMutation) HowBody() (r string, exists bool) {
+	v := m.how_body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHowBody returns the old "how_body" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldHowBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHowBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHowBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHowBody: %w", err)
+	}
+	return oldValue.HowBody, nil
+}
+
+// ResetHowBody resets all changes to the "how_body" field.
+func (m *SiteHomeContentMutation) ResetHowBody() {
+	m.how_body = nil
+}
+
+// SetPermTitle sets the "perm_title" field.
+func (m *SiteHomeContentMutation) SetPermTitle(s string) {
+	m.perm_title = &s
+}
+
+// PermTitle returns the value of the "perm_title" field in the mutation.
+func (m *SiteHomeContentMutation) PermTitle() (r string, exists bool) {
+	v := m.perm_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPermTitle returns the old "perm_title" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldPermTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPermTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPermTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPermTitle: %w", err)
+	}
+	return oldValue.PermTitle, nil
+}
+
+// ResetPermTitle resets all changes to the "perm_title" field.
+func (m *SiteHomeContentMutation) ResetPermTitle() {
+	m.perm_title = nil
+}
+
+// SetPermBody sets the "perm_body" field.
+func (m *SiteHomeContentMutation) SetPermBody(s string) {
+	m.perm_body = &s
+}
+
+// PermBody returns the value of the "perm_body" field in the mutation.
+func (m *SiteHomeContentMutation) PermBody() (r string, exists bool) {
+	v := m.perm_body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPermBody returns the old "perm_body" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldPermBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPermBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPermBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPermBody: %w", err)
+	}
+	return oldValue.PermBody, nil
+}
+
+// ResetPermBody resets all changes to the "perm_body" field.
+func (m *SiteHomeContentMutation) ResetPermBody() {
+	m.perm_body = nil
+}
+
+// SetDeployTitle sets the "deploy_title" field.
+func (m *SiteHomeContentMutation) SetDeployTitle(s string) {
+	m.deploy_title = &s
+}
+
+// DeployTitle returns the value of the "deploy_title" field in the mutation.
+func (m *SiteHomeContentMutation) DeployTitle() (r string, exists bool) {
+	v := m.deploy_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeployTitle returns the old "deploy_title" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldDeployTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeployTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeployTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeployTitle: %w", err)
+	}
+	return oldValue.DeployTitle, nil
+}
+
+// ResetDeployTitle resets all changes to the "deploy_title" field.
+func (m *SiteHomeContentMutation) ResetDeployTitle() {
+	m.deploy_title = nil
+}
+
+// SetDeployBody sets the "deploy_body" field.
+func (m *SiteHomeContentMutation) SetDeployBody(s string) {
+	m.deploy_body = &s
+}
+
+// DeployBody returns the value of the "deploy_body" field in the mutation.
+func (m *SiteHomeContentMutation) DeployBody() (r string, exists bool) {
+	v := m.deploy_body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeployBody returns the old "deploy_body" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldDeployBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeployBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeployBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeployBody: %w", err)
+	}
+	return oldValue.DeployBody, nil
+}
+
+// ResetDeployBody resets all changes to the "deploy_body" field.
+func (m *SiteHomeContentMutation) ResetDeployBody() {
+	m.deploy_body = nil
+}
+
+// SetDocTitle sets the "doc_title" field.
+func (m *SiteHomeContentMutation) SetDocTitle(s string) {
+	m.doc_title = &s
+}
+
+// DocTitle returns the value of the "doc_title" field in the mutation.
+func (m *SiteHomeContentMutation) DocTitle() (r string, exists bool) {
+	v := m.doc_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDocTitle returns the old "doc_title" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldDocTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDocTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDocTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDocTitle: %w", err)
+	}
+	return oldValue.DocTitle, nil
+}
+
+// ResetDocTitle resets all changes to the "doc_title" field.
+func (m *SiteHomeContentMutation) ResetDocTitle() {
+	m.doc_title = nil
+}
+
+// SetClosingTitle sets the "closing_title" field.
+func (m *SiteHomeContentMutation) SetClosingTitle(s string) {
+	m.closing_title = &s
+}
+
+// ClosingTitle returns the value of the "closing_title" field in the mutation.
+func (m *SiteHomeContentMutation) ClosingTitle() (r string, exists bool) {
+	v := m.closing_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosingTitle returns the old "closing_title" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldClosingTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosingTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosingTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosingTitle: %w", err)
+	}
+	return oldValue.ClosingTitle, nil
+}
+
+// ResetClosingTitle resets all changes to the "closing_title" field.
+func (m *SiteHomeContentMutation) ResetClosingTitle() {
+	m.closing_title = nil
+}
+
+// SetClosingDescription sets the "closing_description" field.
+func (m *SiteHomeContentMutation) SetClosingDescription(s string) {
+	m.closing_description = &s
+}
+
+// ClosingDescription returns the value of the "closing_description" field in the mutation.
+func (m *SiteHomeContentMutation) ClosingDescription() (r string, exists bool) {
+	v := m.closing_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosingDescription returns the old "closing_description" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldClosingDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosingDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosingDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosingDescription: %w", err)
+	}
+	return oldValue.ClosingDescription, nil
+}
+
+// ResetClosingDescription resets all changes to the "closing_description" field.
+func (m *SiteHomeContentMutation) ResetClosingDescription() {
+	m.closing_description = nil
+}
+
+// SetClosingButtonLabel sets the "closing_button_label" field.
+func (m *SiteHomeContentMutation) SetClosingButtonLabel(s string) {
+	m.closing_button_label = &s
+}
+
+// ClosingButtonLabel returns the value of the "closing_button_label" field in the mutation.
+func (m *SiteHomeContentMutation) ClosingButtonLabel() (r string, exists bool) {
+	v := m.closing_button_label
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosingButtonLabel returns the old "closing_button_label" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldClosingButtonLabel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosingButtonLabel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosingButtonLabel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosingButtonLabel: %w", err)
+	}
+	return oldValue.ClosingButtonLabel, nil
+}
+
+// ResetClosingButtonLabel resets all changes to the "closing_button_label" field.
+func (m *SiteHomeContentMutation) ResetClosingButtonLabel() {
+	m.closing_button_label = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *SiteHomeContentMutation) SetUpdatedBy(s string) {
+	m.updated_by = &s
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *SiteHomeContentMutation) UpdatedBy() (r string, exists bool) {
+	v := m.updated_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the SiteHomeContent entity.
+// If the SiteHomeContent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SiteHomeContentMutation) OldUpdatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *SiteHomeContentMutation) ResetUpdatedBy() {
+	m.updated_by = nil
+}
+
+// Where appends a list predicates to the SiteHomeContentMutation builder.
+func (m *SiteHomeContentMutation) Where(ps ...predicate.SiteHomeContent) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SiteHomeContentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SiteHomeContentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SiteHomeContent, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SiteHomeContentMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SiteHomeContentMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SiteHomeContent).
+func (m *SiteHomeContentMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SiteHomeContentMutation) Fields() []string {
+	fields := make([]string, 0, 23)
+	if m.created_at != nil {
+		fields = append(fields, sitehomecontent.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, sitehomecontent.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, sitehomecontent.FieldUID)
+	}
+	if m.locale != nil {
+		fields = append(fields, sitehomecontent.FieldLocale)
+	}
+	if m.hero_title != nil {
+		fields = append(fields, sitehomecontent.FieldHeroTitle)
+	}
+	if m.hero_subtitle != nil {
+		fields = append(fields, sitehomecontent.FieldHeroSubtitle)
+	}
+	if m.hero_image_url != nil {
+		fields = append(fields, sitehomecontent.FieldHeroImageURL)
+	}
+	if m.cta_primary_label != nil {
+		fields = append(fields, sitehomecontent.FieldCtaPrimaryLabel)
+	}
+	if m.cta_secondary_label != nil {
+		fields = append(fields, sitehomecontent.FieldCtaSecondaryLabel)
+	}
+	if m.cta_secondary_href != nil {
+		fields = append(fields, sitehomecontent.FieldCtaSecondaryHref)
+	}
+	if m.features_title != nil {
+		fields = append(fields, sitehomecontent.FieldFeaturesTitle)
+	}
+	if m.features_subtitle != nil {
+		fields = append(fields, sitehomecontent.FieldFeaturesSubtitle)
+	}
+	if m.how_title != nil {
+		fields = append(fields, sitehomecontent.FieldHowTitle)
+	}
+	if m.how_body != nil {
+		fields = append(fields, sitehomecontent.FieldHowBody)
+	}
+	if m.perm_title != nil {
+		fields = append(fields, sitehomecontent.FieldPermTitle)
+	}
+	if m.perm_body != nil {
+		fields = append(fields, sitehomecontent.FieldPermBody)
+	}
+	if m.deploy_title != nil {
+		fields = append(fields, sitehomecontent.FieldDeployTitle)
+	}
+	if m.deploy_body != nil {
+		fields = append(fields, sitehomecontent.FieldDeployBody)
+	}
+	if m.doc_title != nil {
+		fields = append(fields, sitehomecontent.FieldDocTitle)
+	}
+	if m.closing_title != nil {
+		fields = append(fields, sitehomecontent.FieldClosingTitle)
+	}
+	if m.closing_description != nil {
+		fields = append(fields, sitehomecontent.FieldClosingDescription)
+	}
+	if m.closing_button_label != nil {
+		fields = append(fields, sitehomecontent.FieldClosingButtonLabel)
+	}
+	if m.updated_by != nil {
+		fields = append(fields, sitehomecontent.FieldUpdatedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SiteHomeContentMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sitehomecontent.FieldCreatedAt:
+		return m.CreatedAt()
+	case sitehomecontent.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case sitehomecontent.FieldUID:
+		return m.UID()
+	case sitehomecontent.FieldLocale:
+		return m.Locale()
+	case sitehomecontent.FieldHeroTitle:
+		return m.HeroTitle()
+	case sitehomecontent.FieldHeroSubtitle:
+		return m.HeroSubtitle()
+	case sitehomecontent.FieldHeroImageURL:
+		return m.HeroImageURL()
+	case sitehomecontent.FieldCtaPrimaryLabel:
+		return m.CtaPrimaryLabel()
+	case sitehomecontent.FieldCtaSecondaryLabel:
+		return m.CtaSecondaryLabel()
+	case sitehomecontent.FieldCtaSecondaryHref:
+		return m.CtaSecondaryHref()
+	case sitehomecontent.FieldFeaturesTitle:
+		return m.FeaturesTitle()
+	case sitehomecontent.FieldFeaturesSubtitle:
+		return m.FeaturesSubtitle()
+	case sitehomecontent.FieldHowTitle:
+		return m.HowTitle()
+	case sitehomecontent.FieldHowBody:
+		return m.HowBody()
+	case sitehomecontent.FieldPermTitle:
+		return m.PermTitle()
+	case sitehomecontent.FieldPermBody:
+		return m.PermBody()
+	case sitehomecontent.FieldDeployTitle:
+		return m.DeployTitle()
+	case sitehomecontent.FieldDeployBody:
+		return m.DeployBody()
+	case sitehomecontent.FieldDocTitle:
+		return m.DocTitle()
+	case sitehomecontent.FieldClosingTitle:
+		return m.ClosingTitle()
+	case sitehomecontent.FieldClosingDescription:
+		return m.ClosingDescription()
+	case sitehomecontent.FieldClosingButtonLabel:
+		return m.ClosingButtonLabel()
+	case sitehomecontent.FieldUpdatedBy:
+		return m.UpdatedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SiteHomeContentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sitehomecontent.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case sitehomecontent.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case sitehomecontent.FieldUID:
+		return m.OldUID(ctx)
+	case sitehomecontent.FieldLocale:
+		return m.OldLocale(ctx)
+	case sitehomecontent.FieldHeroTitle:
+		return m.OldHeroTitle(ctx)
+	case sitehomecontent.FieldHeroSubtitle:
+		return m.OldHeroSubtitle(ctx)
+	case sitehomecontent.FieldHeroImageURL:
+		return m.OldHeroImageURL(ctx)
+	case sitehomecontent.FieldCtaPrimaryLabel:
+		return m.OldCtaPrimaryLabel(ctx)
+	case sitehomecontent.FieldCtaSecondaryLabel:
+		return m.OldCtaSecondaryLabel(ctx)
+	case sitehomecontent.FieldCtaSecondaryHref:
+		return m.OldCtaSecondaryHref(ctx)
+	case sitehomecontent.FieldFeaturesTitle:
+		return m.OldFeaturesTitle(ctx)
+	case sitehomecontent.FieldFeaturesSubtitle:
+		return m.OldFeaturesSubtitle(ctx)
+	case sitehomecontent.FieldHowTitle:
+		return m.OldHowTitle(ctx)
+	case sitehomecontent.FieldHowBody:
+		return m.OldHowBody(ctx)
+	case sitehomecontent.FieldPermTitle:
+		return m.OldPermTitle(ctx)
+	case sitehomecontent.FieldPermBody:
+		return m.OldPermBody(ctx)
+	case sitehomecontent.FieldDeployTitle:
+		return m.OldDeployTitle(ctx)
+	case sitehomecontent.FieldDeployBody:
+		return m.OldDeployBody(ctx)
+	case sitehomecontent.FieldDocTitle:
+		return m.OldDocTitle(ctx)
+	case sitehomecontent.FieldClosingTitle:
+		return m.OldClosingTitle(ctx)
+	case sitehomecontent.FieldClosingDescription:
+		return m.OldClosingDescription(ctx)
+	case sitehomecontent.FieldClosingButtonLabel:
+		return m.OldClosingButtonLabel(ctx)
+	case sitehomecontent.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown SiteHomeContent field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SiteHomeContentMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sitehomecontent.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case sitehomecontent.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case sitehomecontent.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case sitehomecontent.FieldLocale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocale(v)
+		return nil
+	case sitehomecontent.FieldHeroTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHeroTitle(v)
+		return nil
+	case sitehomecontent.FieldHeroSubtitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHeroSubtitle(v)
+		return nil
+	case sitehomecontent.FieldHeroImageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHeroImageURL(v)
+		return nil
+	case sitehomecontent.FieldCtaPrimaryLabel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCtaPrimaryLabel(v)
+		return nil
+	case sitehomecontent.FieldCtaSecondaryLabel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCtaSecondaryLabel(v)
+		return nil
+	case sitehomecontent.FieldCtaSecondaryHref:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCtaSecondaryHref(v)
+		return nil
+	case sitehomecontent.FieldFeaturesTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeaturesTitle(v)
+		return nil
+	case sitehomecontent.FieldFeaturesSubtitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeaturesSubtitle(v)
+		return nil
+	case sitehomecontent.FieldHowTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHowTitle(v)
+		return nil
+	case sitehomecontent.FieldHowBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHowBody(v)
+		return nil
+	case sitehomecontent.FieldPermTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPermTitle(v)
+		return nil
+	case sitehomecontent.FieldPermBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPermBody(v)
+		return nil
+	case sitehomecontent.FieldDeployTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeployTitle(v)
+		return nil
+	case sitehomecontent.FieldDeployBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeployBody(v)
+		return nil
+	case sitehomecontent.FieldDocTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDocTitle(v)
+		return nil
+	case sitehomecontent.FieldClosingTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosingTitle(v)
+		return nil
+	case sitehomecontent.FieldClosingDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosingDescription(v)
+		return nil
+	case sitehomecontent.FieldClosingButtonLabel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosingButtonLabel(v)
+		return nil
+	case sitehomecontent.FieldUpdatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SiteHomeContent field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SiteHomeContentMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SiteHomeContentMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SiteHomeContentMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown SiteHomeContent numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SiteHomeContentMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SiteHomeContentMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SiteHomeContentMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown SiteHomeContent nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SiteHomeContentMutation) ResetField(name string) error {
+	switch name {
+	case sitehomecontent.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case sitehomecontent.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case sitehomecontent.FieldUID:
+		m.ResetUID()
+		return nil
+	case sitehomecontent.FieldLocale:
+		m.ResetLocale()
+		return nil
+	case sitehomecontent.FieldHeroTitle:
+		m.ResetHeroTitle()
+		return nil
+	case sitehomecontent.FieldHeroSubtitle:
+		m.ResetHeroSubtitle()
+		return nil
+	case sitehomecontent.FieldHeroImageURL:
+		m.ResetHeroImageURL()
+		return nil
+	case sitehomecontent.FieldCtaPrimaryLabel:
+		m.ResetCtaPrimaryLabel()
+		return nil
+	case sitehomecontent.FieldCtaSecondaryLabel:
+		m.ResetCtaSecondaryLabel()
+		return nil
+	case sitehomecontent.FieldCtaSecondaryHref:
+		m.ResetCtaSecondaryHref()
+		return nil
+	case sitehomecontent.FieldFeaturesTitle:
+		m.ResetFeaturesTitle()
+		return nil
+	case sitehomecontent.FieldFeaturesSubtitle:
+		m.ResetFeaturesSubtitle()
+		return nil
+	case sitehomecontent.FieldHowTitle:
+		m.ResetHowTitle()
+		return nil
+	case sitehomecontent.FieldHowBody:
+		m.ResetHowBody()
+		return nil
+	case sitehomecontent.FieldPermTitle:
+		m.ResetPermTitle()
+		return nil
+	case sitehomecontent.FieldPermBody:
+		m.ResetPermBody()
+		return nil
+	case sitehomecontent.FieldDeployTitle:
+		m.ResetDeployTitle()
+		return nil
+	case sitehomecontent.FieldDeployBody:
+		m.ResetDeployBody()
+		return nil
+	case sitehomecontent.FieldDocTitle:
+		m.ResetDocTitle()
+		return nil
+	case sitehomecontent.FieldClosingTitle:
+		m.ResetClosingTitle()
+		return nil
+	case sitehomecontent.FieldClosingDescription:
+		m.ResetClosingDescription()
+		return nil
+	case sitehomecontent.FieldClosingButtonLabel:
+		m.ResetClosingButtonLabel()
+		return nil
+	case sitehomecontent.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown SiteHomeContent field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SiteHomeContentMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SiteHomeContentMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SiteHomeContentMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SiteHomeContentMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SiteHomeContentMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SiteHomeContentMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SiteHomeContentMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown SiteHomeContent unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SiteHomeContentMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown SiteHomeContent edge %s", name)
 }
 
 // SitePageMutation represents an operation that mutates the SitePage nodes in the graph.

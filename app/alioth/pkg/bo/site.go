@@ -29,9 +29,11 @@ type LoginMethods struct {
 	UpdatedAt     time.Time
 }
 
-// SiteConfig 是公开接口下发的站点配置：站点信息与登录方式。
+// SiteConfig 是公开接口下发的站点配置：站点信息、登录方式与首页内容。
 // 登录页、注册页与官网共用这一份配置，避免备案号出现第二个来源。
 type SiteConfig struct {
 	Site  SiteSettings
 	Login LoginMethods
+	// Home 是当前语言的首页文案与能力卡片；没有配置时字段为空，前端按默认文案渲染。
+	Home SiteHome
 }

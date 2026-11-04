@@ -59,6 +59,8 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/schema"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitefeature"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitehomecontent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitepage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitesetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sshcommand"
@@ -2558,6 +2560,144 @@ func init() {
 	sshcommandauditDescDetail := sshcommandauditFields[11].Descriptor()
 	// sshcommandaudit.DefaultDetail holds the default value on creation for the detail field.
 	sshcommandaudit.DefaultDetail = sshcommandauditDescDetail.Default.(string)
+	sitefeatureMixin := schema.SiteFeature{}.Mixin()
+	sitefeatureMixinFields0 := sitefeatureMixin[0].Fields()
+	_ = sitefeatureMixinFields0
+	sitefeatureFields := schema.SiteFeature{}.Fields()
+	_ = sitefeatureFields
+	// sitefeatureDescCreatedAt is the schema descriptor for created_at field.
+	sitefeatureDescCreatedAt := sitefeatureMixinFields0[0].Descriptor()
+	// sitefeature.DefaultCreatedAt holds the default value on creation for the created_at field.
+	sitefeature.DefaultCreatedAt = sitefeatureDescCreatedAt.Default.(func() time.Time)
+	// sitefeatureDescUpdatedAt is the schema descriptor for updated_at field.
+	sitefeatureDescUpdatedAt := sitefeatureMixinFields0[1].Descriptor()
+	// sitefeature.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sitefeature.DefaultUpdatedAt = sitefeatureDescUpdatedAt.Default.(func() time.Time)
+	// sitefeature.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sitefeature.UpdateDefaultUpdatedAt = sitefeatureDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// sitefeatureDescUID is the schema descriptor for uid field.
+	sitefeatureDescUID := sitefeatureFields[0].Descriptor()
+	// sitefeature.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	sitefeature.UIDValidator = sitefeatureDescUID.Validators[0].(func(string) error)
+	// sitefeatureDescLocale is the schema descriptor for locale field.
+	sitefeatureDescLocale := sitefeatureFields[1].Descriptor()
+	// sitefeature.LocaleValidator is a validator for the "locale" field. It is called by the builders before save.
+	sitefeature.LocaleValidator = sitefeatureDescLocale.Validators[0].(func(string) error)
+	// sitefeatureDescSortOrder is the schema descriptor for sort_order field.
+	sitefeatureDescSortOrder := sitefeatureFields[2].Descriptor()
+	// sitefeature.DefaultSortOrder holds the default value on creation for the sort_order field.
+	sitefeature.DefaultSortOrder = sitefeatureDescSortOrder.Default.(int)
+	// sitefeatureDescIconKey is the schema descriptor for icon_key field.
+	sitefeatureDescIconKey := sitefeatureFields[3].Descriptor()
+	// sitefeature.DefaultIconKey holds the default value on creation for the icon_key field.
+	sitefeature.DefaultIconKey = sitefeatureDescIconKey.Default.(string)
+	// sitefeatureDescTitle is the schema descriptor for title field.
+	sitefeatureDescTitle := sitefeatureFields[4].Descriptor()
+	// sitefeature.DefaultTitle holds the default value on creation for the title field.
+	sitefeature.DefaultTitle = sitefeatureDescTitle.Default.(string)
+	// sitefeatureDescDescription is the schema descriptor for description field.
+	sitefeatureDescDescription := sitefeatureFields[5].Descriptor()
+	// sitefeature.DefaultDescription holds the default value on creation for the description field.
+	sitefeature.DefaultDescription = sitefeatureDescDescription.Default.(string)
+	sitehomecontentMixin := schema.SiteHomeContent{}.Mixin()
+	sitehomecontentMixinFields0 := sitehomecontentMixin[0].Fields()
+	_ = sitehomecontentMixinFields0
+	sitehomecontentFields := schema.SiteHomeContent{}.Fields()
+	_ = sitehomecontentFields
+	// sitehomecontentDescCreatedAt is the schema descriptor for created_at field.
+	sitehomecontentDescCreatedAt := sitehomecontentMixinFields0[0].Descriptor()
+	// sitehomecontent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	sitehomecontent.DefaultCreatedAt = sitehomecontentDescCreatedAt.Default.(func() time.Time)
+	// sitehomecontentDescUpdatedAt is the schema descriptor for updated_at field.
+	sitehomecontentDescUpdatedAt := sitehomecontentMixinFields0[1].Descriptor()
+	// sitehomecontent.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sitehomecontent.DefaultUpdatedAt = sitehomecontentDescUpdatedAt.Default.(func() time.Time)
+	// sitehomecontent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sitehomecontent.UpdateDefaultUpdatedAt = sitehomecontentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// sitehomecontentDescUID is the schema descriptor for uid field.
+	sitehomecontentDescUID := sitehomecontentFields[0].Descriptor()
+	// sitehomecontent.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	sitehomecontent.UIDValidator = sitehomecontentDescUID.Validators[0].(func(string) error)
+	// sitehomecontentDescLocale is the schema descriptor for locale field.
+	sitehomecontentDescLocale := sitehomecontentFields[1].Descriptor()
+	// sitehomecontent.LocaleValidator is a validator for the "locale" field. It is called by the builders before save.
+	sitehomecontent.LocaleValidator = sitehomecontentDescLocale.Validators[0].(func(string) error)
+	// sitehomecontentDescHeroTitle is the schema descriptor for hero_title field.
+	sitehomecontentDescHeroTitle := sitehomecontentFields[2].Descriptor()
+	// sitehomecontent.DefaultHeroTitle holds the default value on creation for the hero_title field.
+	sitehomecontent.DefaultHeroTitle = sitehomecontentDescHeroTitle.Default.(string)
+	// sitehomecontentDescHeroSubtitle is the schema descriptor for hero_subtitle field.
+	sitehomecontentDescHeroSubtitle := sitehomecontentFields[3].Descriptor()
+	// sitehomecontent.DefaultHeroSubtitle holds the default value on creation for the hero_subtitle field.
+	sitehomecontent.DefaultHeroSubtitle = sitehomecontentDescHeroSubtitle.Default.(string)
+	// sitehomecontentDescHeroImageURL is the schema descriptor for hero_image_url field.
+	sitehomecontentDescHeroImageURL := sitehomecontentFields[4].Descriptor()
+	// sitehomecontent.DefaultHeroImageURL holds the default value on creation for the hero_image_url field.
+	sitehomecontent.DefaultHeroImageURL = sitehomecontentDescHeroImageURL.Default.(string)
+	// sitehomecontentDescCtaPrimaryLabel is the schema descriptor for cta_primary_label field.
+	sitehomecontentDescCtaPrimaryLabel := sitehomecontentFields[5].Descriptor()
+	// sitehomecontent.DefaultCtaPrimaryLabel holds the default value on creation for the cta_primary_label field.
+	sitehomecontent.DefaultCtaPrimaryLabel = sitehomecontentDescCtaPrimaryLabel.Default.(string)
+	// sitehomecontentDescCtaSecondaryLabel is the schema descriptor for cta_secondary_label field.
+	sitehomecontentDescCtaSecondaryLabel := sitehomecontentFields[6].Descriptor()
+	// sitehomecontent.DefaultCtaSecondaryLabel holds the default value on creation for the cta_secondary_label field.
+	sitehomecontent.DefaultCtaSecondaryLabel = sitehomecontentDescCtaSecondaryLabel.Default.(string)
+	// sitehomecontentDescCtaSecondaryHref is the schema descriptor for cta_secondary_href field.
+	sitehomecontentDescCtaSecondaryHref := sitehomecontentFields[7].Descriptor()
+	// sitehomecontent.DefaultCtaSecondaryHref holds the default value on creation for the cta_secondary_href field.
+	sitehomecontent.DefaultCtaSecondaryHref = sitehomecontentDescCtaSecondaryHref.Default.(string)
+	// sitehomecontentDescFeaturesTitle is the schema descriptor for features_title field.
+	sitehomecontentDescFeaturesTitle := sitehomecontentFields[8].Descriptor()
+	// sitehomecontent.DefaultFeaturesTitle holds the default value on creation for the features_title field.
+	sitehomecontent.DefaultFeaturesTitle = sitehomecontentDescFeaturesTitle.Default.(string)
+	// sitehomecontentDescFeaturesSubtitle is the schema descriptor for features_subtitle field.
+	sitehomecontentDescFeaturesSubtitle := sitehomecontentFields[9].Descriptor()
+	// sitehomecontent.DefaultFeaturesSubtitle holds the default value on creation for the features_subtitle field.
+	sitehomecontent.DefaultFeaturesSubtitle = sitehomecontentDescFeaturesSubtitle.Default.(string)
+	// sitehomecontentDescHowTitle is the schema descriptor for how_title field.
+	sitehomecontentDescHowTitle := sitehomecontentFields[10].Descriptor()
+	// sitehomecontent.DefaultHowTitle holds the default value on creation for the how_title field.
+	sitehomecontent.DefaultHowTitle = sitehomecontentDescHowTitle.Default.(string)
+	// sitehomecontentDescHowBody is the schema descriptor for how_body field.
+	sitehomecontentDescHowBody := sitehomecontentFields[11].Descriptor()
+	// sitehomecontent.DefaultHowBody holds the default value on creation for the how_body field.
+	sitehomecontent.DefaultHowBody = sitehomecontentDescHowBody.Default.(string)
+	// sitehomecontentDescPermTitle is the schema descriptor for perm_title field.
+	sitehomecontentDescPermTitle := sitehomecontentFields[12].Descriptor()
+	// sitehomecontent.DefaultPermTitle holds the default value on creation for the perm_title field.
+	sitehomecontent.DefaultPermTitle = sitehomecontentDescPermTitle.Default.(string)
+	// sitehomecontentDescPermBody is the schema descriptor for perm_body field.
+	sitehomecontentDescPermBody := sitehomecontentFields[13].Descriptor()
+	// sitehomecontent.DefaultPermBody holds the default value on creation for the perm_body field.
+	sitehomecontent.DefaultPermBody = sitehomecontentDescPermBody.Default.(string)
+	// sitehomecontentDescDeployTitle is the schema descriptor for deploy_title field.
+	sitehomecontentDescDeployTitle := sitehomecontentFields[14].Descriptor()
+	// sitehomecontent.DefaultDeployTitle holds the default value on creation for the deploy_title field.
+	sitehomecontent.DefaultDeployTitle = sitehomecontentDescDeployTitle.Default.(string)
+	// sitehomecontentDescDeployBody is the schema descriptor for deploy_body field.
+	sitehomecontentDescDeployBody := sitehomecontentFields[15].Descriptor()
+	// sitehomecontent.DefaultDeployBody holds the default value on creation for the deploy_body field.
+	sitehomecontent.DefaultDeployBody = sitehomecontentDescDeployBody.Default.(string)
+	// sitehomecontentDescDocTitle is the schema descriptor for doc_title field.
+	sitehomecontentDescDocTitle := sitehomecontentFields[16].Descriptor()
+	// sitehomecontent.DefaultDocTitle holds the default value on creation for the doc_title field.
+	sitehomecontent.DefaultDocTitle = sitehomecontentDescDocTitle.Default.(string)
+	// sitehomecontentDescClosingTitle is the schema descriptor for closing_title field.
+	sitehomecontentDescClosingTitle := sitehomecontentFields[17].Descriptor()
+	// sitehomecontent.DefaultClosingTitle holds the default value on creation for the closing_title field.
+	sitehomecontent.DefaultClosingTitle = sitehomecontentDescClosingTitle.Default.(string)
+	// sitehomecontentDescClosingDescription is the schema descriptor for closing_description field.
+	sitehomecontentDescClosingDescription := sitehomecontentFields[18].Descriptor()
+	// sitehomecontent.DefaultClosingDescription holds the default value on creation for the closing_description field.
+	sitehomecontent.DefaultClosingDescription = sitehomecontentDescClosingDescription.Default.(string)
+	// sitehomecontentDescClosingButtonLabel is the schema descriptor for closing_button_label field.
+	sitehomecontentDescClosingButtonLabel := sitehomecontentFields[19].Descriptor()
+	// sitehomecontent.DefaultClosingButtonLabel holds the default value on creation for the closing_button_label field.
+	sitehomecontent.DefaultClosingButtonLabel = sitehomecontentDescClosingButtonLabel.Default.(string)
+	// sitehomecontentDescUpdatedBy is the schema descriptor for updated_by field.
+	sitehomecontentDescUpdatedBy := sitehomecontentFields[20].Descriptor()
+	// sitehomecontent.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	sitehomecontent.DefaultUpdatedBy = sitehomecontentDescUpdatedBy.Default.(string)
 	sitepageMixin := schema.SitePage{}.Mixin()
 	sitepageMixinFields0 := sitepageMixin[0].Fields()
 	_ = sitepageMixinFields0

@@ -23,6 +23,7 @@ const OperationSiteServiceGetEmailSettings = "/alioth.v1.SiteService/GetEmailSet
 const OperationSiteServiceGetLoginMethods = "/alioth.v1.SiteService/GetLoginMethods"
 const OperationSiteServiceGetPublicSitePage = "/alioth.v1.SiteService/GetPublicSitePage"
 const OperationSiteServiceGetSiteConfig = "/alioth.v1.SiteService/GetSiteConfig"
+const OperationSiteServiceGetSiteHome = "/alioth.v1.SiteService/GetSiteHome"
 const OperationSiteServiceGetSitePage = "/alioth.v1.SiteService/GetSitePage"
 const OperationSiteServiceGetSiteSettings = "/alioth.v1.SiteService/GetSiteSettings"
 const OperationSiteServiceListOAuthProviderSettings = "/alioth.v1.SiteService/ListOAuthProviderSettings"
@@ -33,6 +34,7 @@ const OperationSiteServiceUnpublishSitePage = "/alioth.v1.SiteService/UnpublishS
 const OperationSiteServiceUpdateEmailSettings = "/alioth.v1.SiteService/UpdateEmailSettings"
 const OperationSiteServiceUpdateLoginMethods = "/alioth.v1.SiteService/UpdateLoginMethods"
 const OperationSiteServiceUpdateOAuthProviderSetting = "/alioth.v1.SiteService/UpdateOAuthProviderSetting"
+const OperationSiteServiceUpdateSiteHome = "/alioth.v1.SiteService/UpdateSiteHome"
 const OperationSiteServiceUpdateSitePage = "/alioth.v1.SiteService/UpdateSitePage"
 const OperationSiteServiceUpdateSitePageNav = "/alioth.v1.SiteService/UpdateSitePageNav"
 const OperationSiteServiceUpdateSiteSettings = "/alioth.v1.SiteService/UpdateSiteSettings"
@@ -51,6 +53,8 @@ type SiteServiceHTTPServer interface {
 	// GetSiteConfig 读取公开站点配置：站点信息、页脚备案与登录方式开关。
 	// 登录页、注册页与官网共用这一份配置，避免同一份备案号出现多个来源。
 	GetSiteConfig(context.Context, *GetSiteConfigRequest) (*GetSiteConfigResponse, error)
+	// GetSiteHome 读取某个语言的官网首页文案与能力卡片，需要 system:site:read。
+	GetSiteHome(context.Context, *GetSiteHomeRequest) (*GetSiteHomeResponse, error)
 	// GetSitePage 读取页面详情：草稿与已发布快照各一份，需要 system:site:read。
 	GetSitePage(context.Context, *GetSitePageRequest) (*GetSitePageResponse, error)
 	// GetSiteSettings 读取站点设置。
@@ -71,6 +75,9 @@ type SiteServiceHTTPServer interface {
 	UpdateLoginMethods(context.Context, *UpdateLoginMethodsRequest) (*UpdateLoginMethodsResponse, error)
 	// UpdateOAuthProviderSetting 保存单个第三方登录来源，需要 system:login:write。
 	UpdateOAuthProviderSetting(context.Context, *UpdateOAuthProviderSettingRequest) (*UpdateOAuthProviderSettingResponse, error)
+	// UpdateSiteHome 保存某个语言的官网首页文案与能力卡片，需要 system:site:write。
+	// 能力卡片整体替换，顺序即数组顺序，最多 6 张。
+	UpdateSiteHome(context.Context, *UpdateSiteHomeRequest) (*UpdateSiteHomeResponse, error)
 	// UpdateSitePage 保存草稿，不改变发布状态，需要 system:site:write。
 	// 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
 	UpdateSitePage(context.Context, *UpdateSitePageRequest) (*UpdateSitePageResponse, error)
@@ -101,6 +108,8 @@ func RegisterSiteServiceHTTPServer(s *http.Server, srv SiteServiceHTTPServer) {
 	r.Handle("PUT", "/v1/system/auth/email-settings", _SiteService_UpdateEmailSettings0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/system/auth/oauth-providers", _SiteService_ListOAuthProviderSettings0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/system/auth/oauth-providers/{provider}", _SiteService_UpdateOAuthProviderSetting0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/system/site/home", _SiteService_GetSiteHome0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/system/site/home", _SiteService_UpdateSiteHome0_HTTP_Handler(srv))
 }
 
 func _SiteService_GetSiteConfig0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
@@ -488,6 +497,44 @@ func _SiteService_UpdateOAuthProviderSetting0_HTTP_Handler(srv SiteServiceHTTPSe
 	}
 }
 
+func _SiteService_GetSiteHome0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetSiteHomeRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceGetSiteHome)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetSiteHome(ctx, req.(*GetSiteHomeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetSiteHomeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SiteService_UpdateSiteHome0_HTTP_Handler(srv SiteServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateSiteHomeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSiteServiceUpdateSiteHome)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateSiteHome(ctx, req.(*UpdateSiteHomeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateSiteHomeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SiteServiceHTTPClient interface {
 	// CreateSitePage 新建页面，写入草稿且状态为 DRAFT，需要 system:site:write。
 	CreateSitePage(ctx context.Context, req *CreateSitePageRequest, opts ...http.CallOption) (rsp *CreateSitePageResponse, err error)
@@ -502,6 +549,8 @@ type SiteServiceHTTPClient interface {
 	// GetSiteConfig 读取公开站点配置：站点信息、页脚备案与登录方式开关。
 	// 登录页、注册页与官网共用这一份配置，避免同一份备案号出现多个来源。
 	GetSiteConfig(ctx context.Context, req *GetSiteConfigRequest, opts ...http.CallOption) (rsp *GetSiteConfigResponse, err error)
+	// GetSiteHome 读取某个语言的官网首页文案与能力卡片，需要 system:site:read。
+	GetSiteHome(ctx context.Context, req *GetSiteHomeRequest, opts ...http.CallOption) (rsp *GetSiteHomeResponse, err error)
 	// GetSitePage 读取页面详情：草稿与已发布快照各一份，需要 system:site:read。
 	GetSitePage(ctx context.Context, req *GetSitePageRequest, opts ...http.CallOption) (rsp *GetSitePageResponse, err error)
 	// GetSiteSettings 读取站点设置。
@@ -522,6 +571,9 @@ type SiteServiceHTTPClient interface {
 	UpdateLoginMethods(ctx context.Context, req *UpdateLoginMethodsRequest, opts ...http.CallOption) (rsp *UpdateLoginMethodsResponse, err error)
 	// UpdateOAuthProviderSetting 保存单个第三方登录来源，需要 system:login:write。
 	UpdateOAuthProviderSetting(ctx context.Context, req *UpdateOAuthProviderSettingRequest, opts ...http.CallOption) (rsp *UpdateOAuthProviderSettingResponse, err error)
+	// UpdateSiteHome 保存某个语言的官网首页文案与能力卡片，需要 system:site:write。
+	// 能力卡片整体替换，顺序即数组顺序，最多 6 张。
+	UpdateSiteHome(ctx context.Context, req *UpdateSiteHomeRequest, opts ...http.CallOption) (rsp *UpdateSiteHomeResponse, err error)
 	// UpdateSitePage 保存草稿，不改变发布状态，需要 system:site:write。
 	// 请求带 updated_at 做乐观锁，冲突返回 409，不静默覆盖别人的修改。
 	UpdateSitePage(ctx context.Context, req *UpdateSitePageRequest, opts ...http.CallOption) (rsp *UpdateSitePageResponse, err error)
@@ -634,6 +686,23 @@ func (c *SiteServiceHTTPClientImpl) GetSiteConfig(ctx context.Context, in *GetSi
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSiteServiceGetSiteConfig),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetSiteHome 读取某个语言的官网首页文案与能力卡片，需要 system:site:read。
+func (c *SiteServiceHTTPClientImpl) GetSiteHome(ctx context.Context, in *GetSiteHomeRequest, opts ...http.CallOption) (*GetSiteHomeResponse, error) {
+	var out GetSiteHomeResponse
+	pattern := "/v1/system/site/home"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSiteServiceGetSiteHome),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -809,6 +878,25 @@ func (c *SiteServiceHTTPClientImpl) UpdateOAuthProviderSetting(ctx context.Conte
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSiteServiceUpdateOAuthProviderSetting),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateSiteHome 保存某个语言的官网首页文案与能力卡片，需要 system:site:write。
+// 能力卡片整体替换，顺序即数组顺序，最多 6 张。
+func (c *SiteServiceHTTPClientImpl) UpdateSiteHome(ctx context.Context, in *UpdateSiteHomeRequest, opts ...http.CallOption) (*UpdateSiteHomeResponse, error) {
+	var out UpdateSiteHomeResponse
+	pattern := "/v1/system/site/home"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSiteServiceUpdateSiteHome),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

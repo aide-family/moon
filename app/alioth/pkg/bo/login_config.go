@@ -13,8 +13,11 @@ type EmailSettings struct {
 	Password    string
 	PasswordSet bool
 	From        string
-	UpdatedBy   string
-	UpdatedAt   time.Time
+	// Source 表示这份值从哪来：DATABASE（后台保存过且启用）、
+	// CONFIG（回落到服务器配置）、NONE（哪里都没配）。
+	Source    string
+	UpdatedBy string
+	UpdatedAt time.Time
 }
 
 // OAuthProviderSetting 是单个第三方登录来源的后台配置。
@@ -25,6 +28,15 @@ type OAuthProviderSetting struct {
 	ClientID     string
 	ClientSecret string
 	SecretSet    bool
-	UpdatedBy    string
-	UpdatedAt    time.Time
+	// Source 表示这份值从哪来：DATABASE、CONFIG 或 NONE。
+	Source    string
+	UpdatedBy string
+	UpdatedAt time.Time
 }
+
+// 登录配置的来源标识。
+const (
+	LoginConfigSourceDatabase = "DATABASE"
+	LoginConfigSourceConfig   = "CONFIG"
+	LoginConfigSourceNone     = "NONE"
+)

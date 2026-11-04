@@ -252,7 +252,9 @@ func (x *LoginMethodsItem) GetUpdatedAt() string {
 
 // 读取公开站点配置请求。
 type GetSiteConfigRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 语言，取值为 zh 或 en；留空时按 zh 取。
+	Locale        string `protobuf:"bytes,1,opt,name=locale,proto3" json:"locale,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -287,13 +289,24 @@ func (*GetSiteConfigRequest) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_site_proto_rawDescGZIP(), []int{2}
 }
 
+func (x *GetSiteConfigRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
 // 读取公开站点配置响应。
 type GetSiteConfigResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 站点设置。
 	Site *SiteSettingsItem `protobuf:"bytes,1,opt,name=site,proto3" json:"site,omitempty"`
 	// 登录方式开关。
-	LoginMethods  *LoginMethodsItem `protobuf:"bytes,2,opt,name=login_methods,json=loginMethods,proto3" json:"login_methods,omitempty"`
+	LoginMethods *LoginMethodsItem `protobuf:"bytes,2,opt,name=login_methods,json=loginMethods,proto3" json:"login_methods,omitempty"`
+	// 当前语言的首页文案。
+	Home *SiteHomeContentItem `protobuf:"bytes,3,opt,name=home,proto3" json:"home,omitempty"`
+	// 当前语言的能力卡片，按排序排列。
+	Features      []*SiteFeatureItem `protobuf:"bytes,4,rep,name=features,proto3" json:"features,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -338,6 +351,20 @@ func (x *GetSiteConfigResponse) GetSite() *SiteSettingsItem {
 func (x *GetSiteConfigResponse) GetLoginMethods() *LoginMethodsItem {
 	if x != nil {
 		return x.LoginMethods
+	}
+	return nil
+}
+
+func (x *GetSiteConfigResponse) GetHome() *SiteHomeContentItem {
+	if x != nil {
+		return x.Home
+	}
+	return nil
+}
+
+func (x *GetSiteConfigResponse) GetFeatures() []*SiteFeatureItem {
+	if x != nil {
+		return x.Features
 	}
 	return nil
 }
@@ -2427,7 +2454,9 @@ type EmailSettingsItem struct {
 	// 最后修改人。
 	UpdatedBy string `protobuf:"bytes,7,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
 	// 最后修改时间，RFC3339。
-	UpdatedAt     string `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	UpdatedAt string `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// 当前生效值的来源：DATABASE（后台配置）、CONFIG（服务器配置）、NONE（都没配）。
+	Source        string `protobuf:"bytes,9,opt,name=source,proto3" json:"source,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2514,6 +2543,13 @@ func (x *EmailSettingsItem) GetUpdatedBy() string {
 func (x *EmailSettingsItem) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *EmailSettingsItem) GetSource() string {
+	if x != nil {
+		return x.Source
 	}
 	return ""
 }
@@ -2763,7 +2799,9 @@ type OAuthProviderSettingItem struct {
 	// 最后修改人。
 	UpdatedBy string `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
 	// 最后修改时间，RFC3339。
-	UpdatedAt     string `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	UpdatedAt string `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// 当前生效值的来源：DATABASE、CONFIG 或 NONE。
+	Source        string `protobuf:"bytes,8,opt,name=source,proto3" json:"source,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2843,6 +2881,13 @@ func (x *OAuthProviderSettingItem) GetUpdatedBy() string {
 func (x *OAuthProviderSettingItem) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *OAuthProviderSettingItem) GetSource() string {
+	if x != nil {
+		return x.Source
 	}
 	return ""
 }
@@ -3058,6 +3103,534 @@ func (x *UpdateOAuthProviderSettingResponse) GetItem() *OAuthProviderSettingItem
 	return nil
 }
 
+// 官网首页文案。版式固定，这里只有短文本与一个主视觉地址。
+type SiteHomeContentItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 语言，取值为 zh 或 en。
+	Locale string `protobuf:"bytes,1,opt,name=locale,proto3" json:"locale,omitempty"`
+	// Hero 主标题，最多 16 个字符，不要以站点名开头。
+	HeroTitle string `protobuf:"bytes,2,opt,name=hero_title,json=heroTitle,proto3" json:"hero_title,omitempty"`
+	// Hero 副标题。
+	HeroSubtitle string `protobuf:"bytes,3,opt,name=hero_subtitle,json=heroSubtitle,proto3" json:"hero_subtitle,omitempty"`
+	// Hero 主视觉地址，固定 4:3 槽位，只接受 http(s)。
+	HeroImageUrl string `protobuf:"bytes,4,opt,name=hero_image_url,json=heroImageUrl,proto3" json:"hero_image_url,omitempty"`
+	// 主 CTA 文案；目标是系统槽位，后台改不了。
+	CtaPrimaryLabel string `protobuf:"bytes,5,opt,name=cta_primary_label,json=ctaPrimaryLabel,proto3" json:"cta_primary_label,omitempty"`
+	// 次 CTA 文案；与地址同存同空。
+	CtaSecondaryLabel string `protobuf:"bytes,6,opt,name=cta_secondary_label,json=ctaSecondaryLabel,proto3" json:"cta_secondary_label,omitempty"`
+	// 次 CTA 地址，只允许 / 或 # 开头。
+	CtaSecondaryHref string `protobuf:"bytes,7,opt,name=cta_secondary_href,json=ctaSecondaryHref,proto3" json:"cta_secondary_href,omitempty"`
+	// 能力卡片区标题。
+	FeaturesTitle string `protobuf:"bytes,8,opt,name=features_title,json=featuresTitle,proto3" json:"features_title,omitempty"`
+	// 能力卡片区导语。
+	FeaturesSubtitle string `protobuf:"bytes,9,opt,name=features_subtitle,json=featuresSubtitle,proto3" json:"features_subtitle,omitempty"`
+	// 工作原理区块标题。
+	HowTitle string `protobuf:"bytes,10,opt,name=how_title,json=howTitle,proto3" json:"how_title,omitempty"`
+	// 工作原理区块正文。
+	HowBody string `protobuf:"bytes,11,opt,name=how_body,json=howBody,proto3" json:"how_body,omitempty"`
+	// 权限模型区块标题。
+	PermTitle string `protobuf:"bytes,12,opt,name=perm_title,json=permTitle,proto3" json:"perm_title,omitempty"`
+	// 权限模型区块正文。
+	PermBody string `protobuf:"bytes,13,opt,name=perm_body,json=permBody,proto3" json:"perm_body,omitempty"`
+	// 私有部署区块标题。
+	DeployTitle string `protobuf:"bytes,14,opt,name=deploy_title,json=deployTitle,proto3" json:"deploy_title,omitempty"`
+	// 私有部署区块正文。
+	DeployBody string `protobuf:"bytes,15,opt,name=deploy_body,json=deployBody,proto3" json:"deploy_body,omitempty"`
+	// 产品说明摘要区标题。
+	DocTitle string `protobuf:"bytes,16,opt,name=doc_title,json=docTitle,proto3" json:"doc_title,omitempty"`
+	// 尾部 CTA 标题。
+	ClosingTitle string `protobuf:"bytes,17,opt,name=closing_title,json=closingTitle,proto3" json:"closing_title,omitempty"`
+	// 尾部 CTA 说明。
+	ClosingDescription string `protobuf:"bytes,18,opt,name=closing_description,json=closingDescription,proto3" json:"closing_description,omitempty"`
+	// 尾部 CTA 按钮文案。
+	ClosingButtonLabel string `protobuf:"bytes,19,opt,name=closing_button_label,json=closingButtonLabel,proto3" json:"closing_button_label,omitempty"`
+	// 最后修改人。
+	UpdatedBy string `protobuf:"bytes,20,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	// 最后修改时间，RFC3339。
+	UpdatedAt     string `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SiteHomeContentItem) Reset() {
+	*x = SiteHomeContentItem{}
+	mi := &file_alioth_v1_site_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SiteHomeContentItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SiteHomeContentItem) ProtoMessage() {}
+
+func (x *SiteHomeContentItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SiteHomeContentItem.ProtoReflect.Descriptor instead.
+func (*SiteHomeContentItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *SiteHomeContentItem) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetHeroTitle() string {
+	if x != nil {
+		return x.HeroTitle
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetHeroSubtitle() string {
+	if x != nil {
+		return x.HeroSubtitle
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetHeroImageUrl() string {
+	if x != nil {
+		return x.HeroImageUrl
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetCtaPrimaryLabel() string {
+	if x != nil {
+		return x.CtaPrimaryLabel
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetCtaSecondaryLabel() string {
+	if x != nil {
+		return x.CtaSecondaryLabel
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetCtaSecondaryHref() string {
+	if x != nil {
+		return x.CtaSecondaryHref
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetFeaturesTitle() string {
+	if x != nil {
+		return x.FeaturesTitle
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetFeaturesSubtitle() string {
+	if x != nil {
+		return x.FeaturesSubtitle
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetHowTitle() string {
+	if x != nil {
+		return x.HowTitle
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetHowBody() string {
+	if x != nil {
+		return x.HowBody
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetPermTitle() string {
+	if x != nil {
+		return x.PermTitle
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetPermBody() string {
+	if x != nil {
+		return x.PermBody
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetDeployTitle() string {
+	if x != nil {
+		return x.DeployTitle
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetDeployBody() string {
+	if x != nil {
+		return x.DeployBody
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetDocTitle() string {
+	if x != nil {
+		return x.DocTitle
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetClosingTitle() string {
+	if x != nil {
+		return x.ClosingTitle
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetClosingDescription() string {
+	if x != nil {
+		return x.ClosingDescription
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetClosingButtonLabel() string {
+	if x != nil {
+		return x.ClosingButtonLabel
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetUpdatedBy() string {
+	if x != nil {
+		return x.UpdatedBy
+	}
+	return ""
+}
+
+func (x *SiteHomeContentItem) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+// 首页能力卡片。
+type SiteFeatureItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识；保存时由服务端生成。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 图标键名，必须是白名单里的值，例如 shield、bell、activity。
+	IconKey string `protobuf:"bytes,2,opt,name=icon_key,json=iconKey,proto3" json:"icon_key,omitempty"`
+	// 卡片标题。
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// 卡片描述。
+	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	// 展示顺序，由服务端按数组顺序回填。
+	SortOrder     int32 `protobuf:"varint,5,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SiteFeatureItem) Reset() {
+	*x = SiteFeatureItem{}
+	mi := &file_alioth_v1_site_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SiteFeatureItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SiteFeatureItem) ProtoMessage() {}
+
+func (x *SiteFeatureItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SiteFeatureItem.ProtoReflect.Descriptor instead.
+func (*SiteFeatureItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *SiteFeatureItem) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *SiteFeatureItem) GetIconKey() string {
+	if x != nil {
+		return x.IconKey
+	}
+	return ""
+}
+
+func (x *SiteFeatureItem) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *SiteFeatureItem) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *SiteFeatureItem) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+// 读取首页内容请求。
+type GetSiteHomeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 语言，取值为 zh 或 en；留空时按 zh 取。
+	Locale        string `protobuf:"bytes,1,opt,name=locale,proto3" json:"locale,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSiteHomeRequest) Reset() {
+	*x = GetSiteHomeRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSiteHomeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSiteHomeRequest) ProtoMessage() {}
+
+func (x *GetSiteHomeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSiteHomeRequest.ProtoReflect.Descriptor instead.
+func (*GetSiteHomeRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *GetSiteHomeRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+// 读取首页内容响应。
+type GetSiteHomeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 首页文案。
+	Home *SiteHomeContentItem `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`
+	// 能力卡片。
+	Features      []*SiteFeatureItem `protobuf:"bytes,2,rep,name=features,proto3" json:"features,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSiteHomeResponse) Reset() {
+	*x = GetSiteHomeResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSiteHomeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSiteHomeResponse) ProtoMessage() {}
+
+func (x *GetSiteHomeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSiteHomeResponse.ProtoReflect.Descriptor instead.
+func (*GetSiteHomeResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *GetSiteHomeResponse) GetHome() *SiteHomeContentItem {
+	if x != nil {
+		return x.Home
+	}
+	return nil
+}
+
+func (x *GetSiteHomeResponse) GetFeatures() []*SiteFeatureItem {
+	if x != nil {
+		return x.Features
+	}
+	return nil
+}
+
+// 保存首页内容请求。
+type UpdateSiteHomeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 语言，取值为 zh 或 en。
+	Locale string `protobuf:"bytes,1,opt,name=locale,proto3" json:"locale,omitempty"`
+	// 首页文案。
+	Home *SiteHomeContentItem `protobuf:"bytes,2,opt,name=home,proto3" json:"home,omitempty"`
+	// 能力卡片，最多 6 张，顺序即展示顺序。
+	Features      []*SiteFeatureItem `protobuf:"bytes,3,rep,name=features,proto3" json:"features,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSiteHomeRequest) Reset() {
+	*x = UpdateSiteHomeRequest{}
+	mi := &file_alioth_v1_site_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSiteHomeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSiteHomeRequest) ProtoMessage() {}
+
+func (x *UpdateSiteHomeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSiteHomeRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSiteHomeRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *UpdateSiteHomeRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+func (x *UpdateSiteHomeRequest) GetHome() *SiteHomeContentItem {
+	if x != nil {
+		return x.Home
+	}
+	return nil
+}
+
+func (x *UpdateSiteHomeRequest) GetFeatures() []*SiteFeatureItem {
+	if x != nil {
+		return x.Features
+	}
+	return nil
+}
+
+// 保存首页内容响应。
+type UpdateSiteHomeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 保存后的首页文案。
+	Home *SiteHomeContentItem `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`
+	// 保存后的能力卡片。
+	Features      []*SiteFeatureItem `protobuf:"bytes,2,rep,name=features,proto3" json:"features,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSiteHomeResponse) Reset() {
+	*x = UpdateSiteHomeResponse{}
+	mi := &file_alioth_v1_site_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSiteHomeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSiteHomeResponse) ProtoMessage() {}
+
+func (x *UpdateSiteHomeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_site_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSiteHomeResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSiteHomeResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_site_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *UpdateSiteHomeResponse) GetHome() *SiteHomeContentItem {
+	if x != nil {
+		return x.Home
+	}
+	return nil
+}
+
+func (x *UpdateSiteHomeResponse) GetFeatures() []*SiteFeatureItem {
+	if x != nil {
+		return x.Features
+	}
+	return nil
+}
+
 var File_alioth_v1_site_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_site_proto_rawDesc = "" +
@@ -3087,11 +3660,15 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"\n" +
 	"updated_by\x18\x03 \x01(\tR\tupdatedBy\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x04 \x01(\tR\tupdatedAt\"\x16\n" +
-	"\x14GetSiteConfigRequest\"\x8a\x01\n" +
+	"updated_at\x18\x04 \x01(\tR\tupdatedAt\"?\n" +
+	"\x14GetSiteConfigRequest\x12'\n" +
+	"\x06locale\x18\x01 \x01(\tB\x0f\xbaH\fr\n" +
+	"R\x00R\x02zhR\x02enR\x06locale\"\xf6\x01\n" +
 	"\x15GetSiteConfigResponse\x12/\n" +
 	"\x04site\x18\x01 \x01(\v2\x1b.alioth.v1.SiteSettingsItemR\x04site\x12@\n" +
-	"\rlogin_methods\x18\x02 \x01(\v2\x1b.alioth.v1.LoginMethodsItemR\floginMethods\"\x18\n" +
+	"\rlogin_methods\x18\x02 \x01(\v2\x1b.alioth.v1.LoginMethodsItemR\floginMethods\x122\n" +
+	"\x04home\x18\x03 \x01(\v2\x1e.alioth.v1.SiteHomeContentItemR\x04home\x126\n" +
+	"\bfeatures\x18\x04 \x03(\v2\x1a.alioth.v1.SiteFeatureItemR\bfeatures\"\x18\n" +
 	"\x16GetSiteSettingsRequest\"J\n" +
 	"\x17GetSiteSettingsResponse\x12/\n" +
 	"\x04site\x18\x01 \x01(\v2\x1b.alioth.v1.SiteSettingsItemR\x04site\"\xae\x04\n" +
@@ -3234,7 +3811,7 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"sort_order\x18\x03 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe7\a(\x00R\tsortOrder\"J\n" +
 	"\x19UpdateSitePageNavResponse\x12-\n" +
-	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page\"\xe6\x01\n" +
+	"\x04page\x18\x01 \x01(\v2\x19.alioth.v1.SitePageDetailR\x04page\"\xfe\x01\n" +
 	"\x11EmailSettingsItem\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x12\n" +
 	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
@@ -3245,7 +3822,8 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"\n" +
 	"updated_by\x18\a \x01(\tR\tupdatedBy\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\tR\tupdatedAt\"\x19\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\x12\x16\n" +
+	"\x06source\x18\t \x01(\tR\x06source\"\x19\n" +
 	"\x17GetEmailSettingsRequest\"N\n" +
 	"\x18GetEmailSettingsResponse\x122\n" +
 	"\x05email\x18\x01 \x01(\v2\x1c.alioth.v1.EmailSettingsItemR\x05email\"\x86\x02\n" +
@@ -3258,7 +3836,7 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"\x04from\x18\x06 \x01(\tB\b\xbaH\x05r\x03\x18\xc0\x02R\x04from\x12%\n" +
 	"\x0eclear_password\x18\a \x01(\bR\rclearPassword\"Q\n" +
 	"\x1bUpdateEmailSettingsResponse\x122\n" +
-	"\x05email\x18\x01 \x01(\v2\x1c.alioth.v1.EmailSettingsItemR\x05email\"\xde\x01\n" +
+	"\x05email\x18\x01 \x01(\v2\x1c.alioth.v1.EmailSettingsItemR\x05email\"\xf6\x01\n" +
 	"\x18OAuthProviderSettingItem\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
@@ -3269,7 +3847,8 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"\n" +
 	"updated_by\x18\x06 \x01(\tR\tupdatedBy\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt\"\"\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\x12\x16\n" +
+	"\x06source\x18\b \x01(\tR\x06source\"\"\n" +
 	" ListOAuthProviderSettingsRequest\"^\n" +
 	"!ListOAuthProviderSettingsResponse\x129\n" +
 	"\x05items\x18\x01 \x03(\v2#.alioth.v1.OAuthProviderSettingItemR\x05items\"\xdd\x01\n" +
@@ -3280,7 +3859,56 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"\rclient_secret\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\fclientSecret\x12!\n" +
 	"\fclear_secret\x18\x05 \x01(\bR\vclearSecret\"]\n" +
 	"\"UpdateOAuthProviderSettingResponse\x127\n" +
-	"\x04item\x18\x01 \x01(\v2#.alioth.v1.OAuthProviderSettingItemR\x04item2\xe2\x13\n" +
+	"\x04item\x18\x01 \x01(\v2#.alioth.v1.OAuthProviderSettingItemR\x04item\"\xba\a\n" +
+	"\x13SiteHomeContentItem\x12\x16\n" +
+	"\x06locale\x18\x01 \x01(\tR\x06locale\x12&\n" +
+	"\n" +
+	"hero_title\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x18@R\theroTitle\x12-\n" +
+	"\rhero_subtitle\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\fheroSubtitle\x12.\n" +
+	"\x0ehero_image_url\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x04R\fheroImageUrl\x123\n" +
+	"\x11cta_primary_label\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x18@R\x0fctaPrimaryLabel\x127\n" +
+	"\x13cta_secondary_label\x18\x06 \x01(\tB\a\xbaH\x04r\x02\x18@R\x11ctaSecondaryLabel\x126\n" +
+	"\x12cta_secondary_href\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x10ctaSecondaryHref\x12.\n" +
+	"\x0efeatures_title\x18\b \x01(\tB\a\xbaH\x04r\x02\x18@R\rfeaturesTitle\x125\n" +
+	"\x11features_subtitle\x18\t \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x10featuresSubtitle\x12$\n" +
+	"\thow_title\x18\n" +
+	" \x01(\tB\a\xbaH\x04r\x02\x18@R\bhowTitle\x12#\n" +
+	"\bhow_body\x18\v \x01(\tB\b\xbaH\x05r\x03\x18\x80\x03R\ahowBody\x12&\n" +
+	"\n" +
+	"perm_title\x18\f \x01(\tB\a\xbaH\x04r\x02\x18@R\tpermTitle\x12%\n" +
+	"\tperm_body\x18\r \x01(\tB\b\xbaH\x05r\x03\x18\x80\x03R\bpermBody\x12*\n" +
+	"\fdeploy_title\x18\x0e \x01(\tB\a\xbaH\x04r\x02\x18@R\vdeployTitle\x12)\n" +
+	"\vdeploy_body\x18\x0f \x01(\tB\b\xbaH\x05r\x03\x18\x80\x03R\n" +
+	"deployBody\x12$\n" +
+	"\tdoc_title\x18\x10 \x01(\tB\a\xbaH\x04r\x02\x18@R\bdocTitle\x12,\n" +
+	"\rclosing_title\x18\x11 \x01(\tB\a\xbaH\x04r\x02\x18`R\fclosingTitle\x129\n" +
+	"\x13closing_description\x18\x12 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x12closingDescription\x129\n" +
+	"\x14closing_button_label\x18\x13 \x01(\tB\a\xbaH\x04r\x02\x18@R\x12closingButtonLabel\x12\x1d\n" +
+	"\n" +
+	"updated_by\x18\x14 \x01(\tR\tupdatedBy\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x15 \x01(\tR\tupdatedAt\"\xb1\x01\n" +
+	"\x0fSiteFeatureItem\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\"\n" +
+	"\bicon_key\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x18 R\aiconKey\x12\x1d\n" +
+	"\x05title\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18@R\x05title\x12*\n" +
+	"\vdescription\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\xc0\x01R\vdescription\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x05 \x01(\x05R\tsortOrder\"=\n" +
+	"\x12GetSiteHomeRequest\x12'\n" +
+	"\x06locale\x18\x01 \x01(\tB\x0f\xbaH\fr\n" +
+	"R\x00R\x02zhR\x02enR\x06locale\"\x81\x01\n" +
+	"\x13GetSiteHomeResponse\x122\n" +
+	"\x04home\x18\x01 \x01(\v2\x1e.alioth.v1.SiteHomeContentItemR\x04home\x126\n" +
+	"\bfeatures\x18\x02 \x03(\v2\x1a.alioth.v1.SiteFeatureItemR\bfeatures\"\xaa\x01\n" +
+	"\x15UpdateSiteHomeRequest\x12%\n" +
+	"\x06locale\x18\x01 \x01(\tB\r\xbaH\n" +
+	"r\bR\x02zhR\x02enR\x06locale\x122\n" +
+	"\x04home\x18\x02 \x01(\v2\x1e.alioth.v1.SiteHomeContentItemR\x04home\x126\n" +
+	"\bfeatures\x18\x03 \x03(\v2\x1a.alioth.v1.SiteFeatureItemR\bfeatures\"\x84\x01\n" +
+	"\x16UpdateSiteHomeResponse\x122\n" +
+	"\x04home\x18\x01 \x01(\v2\x1e.alioth.v1.SiteHomeContentItemR\x04home\x126\n" +
+	"\bfeatures\x18\x02 \x03(\v2\x1a.alioth.v1.SiteFeatureItemR\bfeatures2\xc6\x15\n" +
 	"\vSiteService\x12k\n" +
 	"\rGetSiteConfig\x12\x1f.alioth.v1.GetSiteConfigRequest\x1a .alioth.v1.GetSiteConfigResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/site/config\x12q\n" +
 	"\x0fGetSiteSettings\x12!.alioth.v1.GetSiteSettingsRequest\x1a\".alioth.v1.GetSiteSettingsResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/system/site\x12}\n" +
@@ -3300,7 +3928,9 @@ const file_alioth_v1_site_proto_rawDesc = "" +
 	"\x10GetEmailSettings\x12\".alioth.v1.GetEmailSettingsRequest\x1a#.alioth.v1.GetEmailSettingsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/system/auth/email-settings\x12\x8f\x01\n" +
 	"\x13UpdateEmailSettings\x12%.alioth.v1.UpdateEmailSettingsRequest\x1a&.alioth.v1.UpdateEmailSettingsResponse\")\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/v1/system/auth/email-settings\x12\x9f\x01\n" +
 	"\x19ListOAuthProviderSettings\x12+.alioth.v1.ListOAuthProviderSettingsRequest\x1a,.alioth.v1.ListOAuthProviderSettingsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/system/auth/oauth-providers\x12\xb0\x01\n" +
-	"\x1aUpdateOAuthProviderSetting\x12,.alioth.v1.UpdateOAuthProviderSettingRequest\x1a-.alioth.v1.UpdateOAuthProviderSettingResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\x1a*/v1/system/auth/oauth-providers/{provider}B.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
+	"\x1aUpdateOAuthProviderSetting\x12,.alioth.v1.UpdateOAuthProviderSettingRequest\x1a-.alioth.v1.UpdateOAuthProviderSettingResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\x1a*/v1/system/auth/oauth-providers/{provider}\x12j\n" +
+	"\vGetSiteHome\x12\x1d.alioth.v1.GetSiteHomeRequest\x1a\x1e.alioth.v1.GetSiteHomeResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/system/site/home\x12v\n" +
+	"\x0eUpdateSiteHome\x12 .alioth.v1.UpdateSiteHomeRequest\x1a!.alioth.v1.UpdateSiteHomeResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\x1a\x14/v1/system/site/homeB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
 
 var (
 	file_alioth_v1_site_proto_rawDescOnce sync.Once
@@ -3314,7 +3944,7 @@ func file_alioth_v1_site_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_site_proto_rawDescData
 }
 
-var file_alioth_v1_site_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
+var file_alioth_v1_site_proto_msgTypes = make([]protoimpl.MessageInfo, 53)
 var file_alioth_v1_site_proto_goTypes = []any{
 	(*SiteSettingsItem)(nil),                   // 0: alioth.v1.SiteSettingsItem
 	(*LoginMethodsItem)(nil),                   // 1: alioth.v1.LoginMethodsItem
@@ -3363,73 +3993,91 @@ var file_alioth_v1_site_proto_goTypes = []any{
 	(*ListOAuthProviderSettingsResponse)(nil),  // 44: alioth.v1.ListOAuthProviderSettingsResponse
 	(*UpdateOAuthProviderSettingRequest)(nil),  // 45: alioth.v1.UpdateOAuthProviderSettingRequest
 	(*UpdateOAuthProviderSettingResponse)(nil), // 46: alioth.v1.UpdateOAuthProviderSettingResponse
+	(*SiteHomeContentItem)(nil),                // 47: alioth.v1.SiteHomeContentItem
+	(*SiteFeatureItem)(nil),                    // 48: alioth.v1.SiteFeatureItem
+	(*GetSiteHomeRequest)(nil),                 // 49: alioth.v1.GetSiteHomeRequest
+	(*GetSiteHomeResponse)(nil),                // 50: alioth.v1.GetSiteHomeResponse
+	(*UpdateSiteHomeRequest)(nil),              // 51: alioth.v1.UpdateSiteHomeRequest
+	(*UpdateSiteHomeResponse)(nil),             // 52: alioth.v1.UpdateSiteHomeResponse
 }
 var file_alioth_v1_site_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.GetSiteConfigResponse.site:type_name -> alioth.v1.SiteSettingsItem
 	1,  // 1: alioth.v1.GetSiteConfigResponse.login_methods:type_name -> alioth.v1.LoginMethodsItem
-	0,  // 2: alioth.v1.GetSiteSettingsResponse.site:type_name -> alioth.v1.SiteSettingsItem
-	0,  // 3: alioth.v1.UpdateSiteSettingsResponse.site:type_name -> alioth.v1.SiteSettingsItem
-	1,  // 4: alioth.v1.GetLoginMethodsResponse.login_methods:type_name -> alioth.v1.LoginMethodsItem
-	1,  // 5: alioth.v1.UpdateLoginMethodsResponse.login_methods:type_name -> alioth.v1.LoginMethodsItem
-	12, // 6: alioth.v1.SitePageDetail.item:type_name -> alioth.v1.SitePageItem
-	13, // 7: alioth.v1.SitePageDetail.draft:type_name -> alioth.v1.SitePageContent
-	13, // 8: alioth.v1.SitePageDetail.published:type_name -> alioth.v1.SitePageContent
-	15, // 9: alioth.v1.GetPublicSitePageResponse.page:type_name -> alioth.v1.PublicSitePage
-	16, // 10: alioth.v1.ListPublicSiteNavResponse.items:type_name -> alioth.v1.SiteNavItem
-	12, // 11: alioth.v1.ListSitePagesResponse.items:type_name -> alioth.v1.SitePageItem
-	14, // 12: alioth.v1.GetSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
-	14, // 13: alioth.v1.CreateSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
-	14, // 14: alioth.v1.UpdateSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
-	14, // 15: alioth.v1.PublishSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
-	14, // 16: alioth.v1.UnpublishSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
-	14, // 17: alioth.v1.UpdateSitePageNavResponse.page:type_name -> alioth.v1.SitePageDetail
-	37, // 18: alioth.v1.GetEmailSettingsResponse.email:type_name -> alioth.v1.EmailSettingsItem
-	37, // 19: alioth.v1.UpdateEmailSettingsResponse.email:type_name -> alioth.v1.EmailSettingsItem
-	42, // 20: alioth.v1.ListOAuthProviderSettingsResponse.items:type_name -> alioth.v1.OAuthProviderSettingItem
-	42, // 21: alioth.v1.UpdateOAuthProviderSettingResponse.item:type_name -> alioth.v1.OAuthProviderSettingItem
-	2,  // 22: alioth.v1.SiteService.GetSiteConfig:input_type -> alioth.v1.GetSiteConfigRequest
-	4,  // 23: alioth.v1.SiteService.GetSiteSettings:input_type -> alioth.v1.GetSiteSettingsRequest
-	6,  // 24: alioth.v1.SiteService.UpdateSiteSettings:input_type -> alioth.v1.UpdateSiteSettingsRequest
-	8,  // 25: alioth.v1.SiteService.GetLoginMethods:input_type -> alioth.v1.GetLoginMethodsRequest
-	10, // 26: alioth.v1.SiteService.UpdateLoginMethods:input_type -> alioth.v1.UpdateLoginMethodsRequest
-	17, // 27: alioth.v1.SiteService.GetPublicSitePage:input_type -> alioth.v1.GetPublicSitePageRequest
-	19, // 28: alioth.v1.SiteService.ListPublicSiteNav:input_type -> alioth.v1.ListPublicSiteNavRequest
-	21, // 29: alioth.v1.SiteService.ListSitePages:input_type -> alioth.v1.ListSitePagesRequest
-	23, // 30: alioth.v1.SiteService.GetSitePage:input_type -> alioth.v1.GetSitePageRequest
-	25, // 31: alioth.v1.SiteService.CreateSitePage:input_type -> alioth.v1.CreateSitePageRequest
-	27, // 32: alioth.v1.SiteService.UpdateSitePage:input_type -> alioth.v1.UpdateSitePageRequest
-	29, // 33: alioth.v1.SiteService.PublishSitePage:input_type -> alioth.v1.PublishSitePageRequest
-	31, // 34: alioth.v1.SiteService.UnpublishSitePage:input_type -> alioth.v1.UnpublishSitePageRequest
-	33, // 35: alioth.v1.SiteService.DeleteSitePage:input_type -> alioth.v1.DeleteSitePageRequest
-	35, // 36: alioth.v1.SiteService.UpdateSitePageNav:input_type -> alioth.v1.UpdateSitePageNavRequest
-	38, // 37: alioth.v1.SiteService.GetEmailSettings:input_type -> alioth.v1.GetEmailSettingsRequest
-	40, // 38: alioth.v1.SiteService.UpdateEmailSettings:input_type -> alioth.v1.UpdateEmailSettingsRequest
-	43, // 39: alioth.v1.SiteService.ListOAuthProviderSettings:input_type -> alioth.v1.ListOAuthProviderSettingsRequest
-	45, // 40: alioth.v1.SiteService.UpdateOAuthProviderSetting:input_type -> alioth.v1.UpdateOAuthProviderSettingRequest
-	3,  // 41: alioth.v1.SiteService.GetSiteConfig:output_type -> alioth.v1.GetSiteConfigResponse
-	5,  // 42: alioth.v1.SiteService.GetSiteSettings:output_type -> alioth.v1.GetSiteSettingsResponse
-	7,  // 43: alioth.v1.SiteService.UpdateSiteSettings:output_type -> alioth.v1.UpdateSiteSettingsResponse
-	9,  // 44: alioth.v1.SiteService.GetLoginMethods:output_type -> alioth.v1.GetLoginMethodsResponse
-	11, // 45: alioth.v1.SiteService.UpdateLoginMethods:output_type -> alioth.v1.UpdateLoginMethodsResponse
-	18, // 46: alioth.v1.SiteService.GetPublicSitePage:output_type -> alioth.v1.GetPublicSitePageResponse
-	20, // 47: alioth.v1.SiteService.ListPublicSiteNav:output_type -> alioth.v1.ListPublicSiteNavResponse
-	22, // 48: alioth.v1.SiteService.ListSitePages:output_type -> alioth.v1.ListSitePagesResponse
-	24, // 49: alioth.v1.SiteService.GetSitePage:output_type -> alioth.v1.GetSitePageResponse
-	26, // 50: alioth.v1.SiteService.CreateSitePage:output_type -> alioth.v1.CreateSitePageResponse
-	28, // 51: alioth.v1.SiteService.UpdateSitePage:output_type -> alioth.v1.UpdateSitePageResponse
-	30, // 52: alioth.v1.SiteService.PublishSitePage:output_type -> alioth.v1.PublishSitePageResponse
-	32, // 53: alioth.v1.SiteService.UnpublishSitePage:output_type -> alioth.v1.UnpublishSitePageResponse
-	34, // 54: alioth.v1.SiteService.DeleteSitePage:output_type -> alioth.v1.DeleteSitePageResponse
-	36, // 55: alioth.v1.SiteService.UpdateSitePageNav:output_type -> alioth.v1.UpdateSitePageNavResponse
-	39, // 56: alioth.v1.SiteService.GetEmailSettings:output_type -> alioth.v1.GetEmailSettingsResponse
-	41, // 57: alioth.v1.SiteService.UpdateEmailSettings:output_type -> alioth.v1.UpdateEmailSettingsResponse
-	44, // 58: alioth.v1.SiteService.ListOAuthProviderSettings:output_type -> alioth.v1.ListOAuthProviderSettingsResponse
-	46, // 59: alioth.v1.SiteService.UpdateOAuthProviderSetting:output_type -> alioth.v1.UpdateOAuthProviderSettingResponse
-	41, // [41:60] is the sub-list for method output_type
-	22, // [22:41] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	47, // 2: alioth.v1.GetSiteConfigResponse.home:type_name -> alioth.v1.SiteHomeContentItem
+	48, // 3: alioth.v1.GetSiteConfigResponse.features:type_name -> alioth.v1.SiteFeatureItem
+	0,  // 4: alioth.v1.GetSiteSettingsResponse.site:type_name -> alioth.v1.SiteSettingsItem
+	0,  // 5: alioth.v1.UpdateSiteSettingsResponse.site:type_name -> alioth.v1.SiteSettingsItem
+	1,  // 6: alioth.v1.GetLoginMethodsResponse.login_methods:type_name -> alioth.v1.LoginMethodsItem
+	1,  // 7: alioth.v1.UpdateLoginMethodsResponse.login_methods:type_name -> alioth.v1.LoginMethodsItem
+	12, // 8: alioth.v1.SitePageDetail.item:type_name -> alioth.v1.SitePageItem
+	13, // 9: alioth.v1.SitePageDetail.draft:type_name -> alioth.v1.SitePageContent
+	13, // 10: alioth.v1.SitePageDetail.published:type_name -> alioth.v1.SitePageContent
+	15, // 11: alioth.v1.GetPublicSitePageResponse.page:type_name -> alioth.v1.PublicSitePage
+	16, // 12: alioth.v1.ListPublicSiteNavResponse.items:type_name -> alioth.v1.SiteNavItem
+	12, // 13: alioth.v1.ListSitePagesResponse.items:type_name -> alioth.v1.SitePageItem
+	14, // 14: alioth.v1.GetSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 15: alioth.v1.CreateSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 16: alioth.v1.UpdateSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 17: alioth.v1.PublishSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 18: alioth.v1.UnpublishSitePageResponse.page:type_name -> alioth.v1.SitePageDetail
+	14, // 19: alioth.v1.UpdateSitePageNavResponse.page:type_name -> alioth.v1.SitePageDetail
+	37, // 20: alioth.v1.GetEmailSettingsResponse.email:type_name -> alioth.v1.EmailSettingsItem
+	37, // 21: alioth.v1.UpdateEmailSettingsResponse.email:type_name -> alioth.v1.EmailSettingsItem
+	42, // 22: alioth.v1.ListOAuthProviderSettingsResponse.items:type_name -> alioth.v1.OAuthProviderSettingItem
+	42, // 23: alioth.v1.UpdateOAuthProviderSettingResponse.item:type_name -> alioth.v1.OAuthProviderSettingItem
+	47, // 24: alioth.v1.GetSiteHomeResponse.home:type_name -> alioth.v1.SiteHomeContentItem
+	48, // 25: alioth.v1.GetSiteHomeResponse.features:type_name -> alioth.v1.SiteFeatureItem
+	47, // 26: alioth.v1.UpdateSiteHomeRequest.home:type_name -> alioth.v1.SiteHomeContentItem
+	48, // 27: alioth.v1.UpdateSiteHomeRequest.features:type_name -> alioth.v1.SiteFeatureItem
+	47, // 28: alioth.v1.UpdateSiteHomeResponse.home:type_name -> alioth.v1.SiteHomeContentItem
+	48, // 29: alioth.v1.UpdateSiteHomeResponse.features:type_name -> alioth.v1.SiteFeatureItem
+	2,  // 30: alioth.v1.SiteService.GetSiteConfig:input_type -> alioth.v1.GetSiteConfigRequest
+	4,  // 31: alioth.v1.SiteService.GetSiteSettings:input_type -> alioth.v1.GetSiteSettingsRequest
+	6,  // 32: alioth.v1.SiteService.UpdateSiteSettings:input_type -> alioth.v1.UpdateSiteSettingsRequest
+	8,  // 33: alioth.v1.SiteService.GetLoginMethods:input_type -> alioth.v1.GetLoginMethodsRequest
+	10, // 34: alioth.v1.SiteService.UpdateLoginMethods:input_type -> alioth.v1.UpdateLoginMethodsRequest
+	17, // 35: alioth.v1.SiteService.GetPublicSitePage:input_type -> alioth.v1.GetPublicSitePageRequest
+	19, // 36: alioth.v1.SiteService.ListPublicSiteNav:input_type -> alioth.v1.ListPublicSiteNavRequest
+	21, // 37: alioth.v1.SiteService.ListSitePages:input_type -> alioth.v1.ListSitePagesRequest
+	23, // 38: alioth.v1.SiteService.GetSitePage:input_type -> alioth.v1.GetSitePageRequest
+	25, // 39: alioth.v1.SiteService.CreateSitePage:input_type -> alioth.v1.CreateSitePageRequest
+	27, // 40: alioth.v1.SiteService.UpdateSitePage:input_type -> alioth.v1.UpdateSitePageRequest
+	29, // 41: alioth.v1.SiteService.PublishSitePage:input_type -> alioth.v1.PublishSitePageRequest
+	31, // 42: alioth.v1.SiteService.UnpublishSitePage:input_type -> alioth.v1.UnpublishSitePageRequest
+	33, // 43: alioth.v1.SiteService.DeleteSitePage:input_type -> alioth.v1.DeleteSitePageRequest
+	35, // 44: alioth.v1.SiteService.UpdateSitePageNav:input_type -> alioth.v1.UpdateSitePageNavRequest
+	38, // 45: alioth.v1.SiteService.GetEmailSettings:input_type -> alioth.v1.GetEmailSettingsRequest
+	40, // 46: alioth.v1.SiteService.UpdateEmailSettings:input_type -> alioth.v1.UpdateEmailSettingsRequest
+	43, // 47: alioth.v1.SiteService.ListOAuthProviderSettings:input_type -> alioth.v1.ListOAuthProviderSettingsRequest
+	45, // 48: alioth.v1.SiteService.UpdateOAuthProviderSetting:input_type -> alioth.v1.UpdateOAuthProviderSettingRequest
+	49, // 49: alioth.v1.SiteService.GetSiteHome:input_type -> alioth.v1.GetSiteHomeRequest
+	51, // 50: alioth.v1.SiteService.UpdateSiteHome:input_type -> alioth.v1.UpdateSiteHomeRequest
+	3,  // 51: alioth.v1.SiteService.GetSiteConfig:output_type -> alioth.v1.GetSiteConfigResponse
+	5,  // 52: alioth.v1.SiteService.GetSiteSettings:output_type -> alioth.v1.GetSiteSettingsResponse
+	7,  // 53: alioth.v1.SiteService.UpdateSiteSettings:output_type -> alioth.v1.UpdateSiteSettingsResponse
+	9,  // 54: alioth.v1.SiteService.GetLoginMethods:output_type -> alioth.v1.GetLoginMethodsResponse
+	11, // 55: alioth.v1.SiteService.UpdateLoginMethods:output_type -> alioth.v1.UpdateLoginMethodsResponse
+	18, // 56: alioth.v1.SiteService.GetPublicSitePage:output_type -> alioth.v1.GetPublicSitePageResponse
+	20, // 57: alioth.v1.SiteService.ListPublicSiteNav:output_type -> alioth.v1.ListPublicSiteNavResponse
+	22, // 58: alioth.v1.SiteService.ListSitePages:output_type -> alioth.v1.ListSitePagesResponse
+	24, // 59: alioth.v1.SiteService.GetSitePage:output_type -> alioth.v1.GetSitePageResponse
+	26, // 60: alioth.v1.SiteService.CreateSitePage:output_type -> alioth.v1.CreateSitePageResponse
+	28, // 61: alioth.v1.SiteService.UpdateSitePage:output_type -> alioth.v1.UpdateSitePageResponse
+	30, // 62: alioth.v1.SiteService.PublishSitePage:output_type -> alioth.v1.PublishSitePageResponse
+	32, // 63: alioth.v1.SiteService.UnpublishSitePage:output_type -> alioth.v1.UnpublishSitePageResponse
+	34, // 64: alioth.v1.SiteService.DeleteSitePage:output_type -> alioth.v1.DeleteSitePageResponse
+	36, // 65: alioth.v1.SiteService.UpdateSitePageNav:output_type -> alioth.v1.UpdateSitePageNavResponse
+	39, // 66: alioth.v1.SiteService.GetEmailSettings:output_type -> alioth.v1.GetEmailSettingsResponse
+	41, // 67: alioth.v1.SiteService.UpdateEmailSettings:output_type -> alioth.v1.UpdateEmailSettingsResponse
+	44, // 68: alioth.v1.SiteService.ListOAuthProviderSettings:output_type -> alioth.v1.ListOAuthProviderSettingsResponse
+	46, // 69: alioth.v1.SiteService.UpdateOAuthProviderSetting:output_type -> alioth.v1.UpdateOAuthProviderSettingResponse
+	50, // 70: alioth.v1.SiteService.GetSiteHome:output_type -> alioth.v1.GetSiteHomeResponse
+	52, // 71: alioth.v1.SiteService.UpdateSiteHome:output_type -> alioth.v1.UpdateSiteHomeResponse
+	51, // [51:72] is the sub-list for method output_type
+	30, // [30:51] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_site_proto_init() }
@@ -3443,7 +4091,7 @@ func file_alioth_v1_site_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_site_proto_rawDesc), len(file_alioth_v1_site_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   47,
+			NumMessages:   53,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

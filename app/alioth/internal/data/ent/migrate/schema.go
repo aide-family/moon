@@ -2208,6 +2208,81 @@ var (
 			},
 		},
 	}
+	// SiteFeaturesColumns holds the columns for the "site_features" table.
+	SiteFeaturesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "locale", Type: field.TypeString},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "icon_key", Type: field.TypeString, Default: ""},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "description", Type: field.TypeString, Default: ""},
+	}
+	// SiteFeaturesTable holds the schema information for the "site_features" table.
+	SiteFeaturesTable = &schema.Table{
+		Name:       "site_features",
+		Columns:    SiteFeaturesColumns,
+		PrimaryKey: []*schema.Column{SiteFeaturesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sitefeature_uid",
+				Unique:  true,
+				Columns: []*schema.Column{SiteFeaturesColumns[3]},
+			},
+			{
+				Name:    "sitefeature_locale_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{SiteFeaturesColumns[4], SiteFeaturesColumns[5]},
+			},
+		},
+	}
+	// SiteHomeContentsColumns holds the columns for the "site_home_contents" table.
+	SiteHomeContentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "locale", Type: field.TypeString},
+		{Name: "hero_title", Type: field.TypeString, Default: ""},
+		{Name: "hero_subtitle", Type: field.TypeString, Default: ""},
+		{Name: "hero_image_url", Type: field.TypeString, Default: ""},
+		{Name: "cta_primary_label", Type: field.TypeString, Default: ""},
+		{Name: "cta_secondary_label", Type: field.TypeString, Default: ""},
+		{Name: "cta_secondary_href", Type: field.TypeString, Default: ""},
+		{Name: "features_title", Type: field.TypeString, Default: ""},
+		{Name: "features_subtitle", Type: field.TypeString, Default: ""},
+		{Name: "how_title", Type: field.TypeString, Default: ""},
+		{Name: "how_body", Type: field.TypeString, Default: ""},
+		{Name: "perm_title", Type: field.TypeString, Default: ""},
+		{Name: "perm_body", Type: field.TypeString, Default: ""},
+		{Name: "deploy_title", Type: field.TypeString, Default: ""},
+		{Name: "deploy_body", Type: field.TypeString, Default: ""},
+		{Name: "doc_title", Type: field.TypeString, Default: ""},
+		{Name: "closing_title", Type: field.TypeString, Default: ""},
+		{Name: "closing_description", Type: field.TypeString, Default: ""},
+		{Name: "closing_button_label", Type: field.TypeString, Default: ""},
+		{Name: "updated_by", Type: field.TypeString, Default: ""},
+	}
+	// SiteHomeContentsTable holds the schema information for the "site_home_contents" table.
+	SiteHomeContentsTable = &schema.Table{
+		Name:       "site_home_contents",
+		Columns:    SiteHomeContentsColumns,
+		PrimaryKey: []*schema.Column{SiteHomeContentsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sitehomecontent_uid",
+				Unique:  true,
+				Columns: []*schema.Column{SiteHomeContentsColumns[3]},
+			},
+			{
+				Name:    "sitehomecontent_locale",
+				Unique:  true,
+				Columns: []*schema.Column{SiteHomeContentsColumns[4]},
+			},
+		},
+	}
 	// SitePagesColumns holds the columns for the "site_pages" table.
 	SitePagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -2590,6 +2665,8 @@ var (
 		RolePermissionsTable,
 		SSHCommandsTable,
 		SSHCommandAuditsTable,
+		SiteFeaturesTable,
+		SiteHomeContentsTable,
 		SitePagesTable,
 		SiteSettingsTable,
 		StatusPagesTable,

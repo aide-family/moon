@@ -67,6 +67,9 @@ type emailSettingRepo struct{ *repoBase }
 // oauthProviderSettingRepo 维护第三方登录来源的后台配置。
 type oauthProviderSettingRepo struct{ *repoBase }
 
+// siteHomeRepo 维护官网首页文案与能力卡片。
+type siteHomeRepo struct{ *repoBase }
+
 func NewUserRepo(deps *Dependencies, logger *slog.Logger) repository.UserRepo {
 	return &userRepo{newBase(deps, logger)}
 }
@@ -154,6 +157,10 @@ func NewEmailSettingRepo(deps *Dependencies, logger *slog.Logger) repository.Ema
 
 func NewOAuthProviderSettingRepo(deps *Dependencies, logger *slog.Logger) repository.OAuthProviderSettingRepo {
 	return &oauthProviderSettingRepo{newBase(deps, logger)}
+}
+
+func NewSiteHomeRepo(deps *Dependencies, logger *slog.Logger) repository.SiteHomeRepo {
+	return &siteHomeRepo{newBase(deps, logger)}
 }
 
 func NewAlertMaintenanceRepo(deps *Dependencies, logger *slog.Logger) repository.AlertMaintenanceRepo {

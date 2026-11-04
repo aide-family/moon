@@ -122,6 +122,10 @@ type Tx struct {
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
 	SSHCommandAudit *SSHCommandAuditClient
+	// SiteFeature is the client for interacting with the SiteFeature builders.
+	SiteFeature *SiteFeatureClient
+	// SiteHomeContent is the client for interacting with the SiteHomeContent builders.
+	SiteHomeContent *SiteHomeContentClient
 	// SitePage is the client for interacting with the SitePage builders.
 	SitePage *SitePageClient
 	// SiteSetting is the client for interacting with the SiteSetting builders.
@@ -324,6 +328,8 @@ func (tx *Tx) init() {
 	tx.RolePermission = NewRolePermissionClient(tx.config)
 	tx.SSHCommand = NewSSHCommandClient(tx.config)
 	tx.SSHCommandAudit = NewSSHCommandAuditClient(tx.config)
+	tx.SiteFeature = NewSiteFeatureClient(tx.config)
+	tx.SiteHomeContent = NewSiteHomeContentClient(tx.config)
 	tx.SitePage = NewSitePageClient(tx.config)
 	tx.SiteSetting = NewSiteSettingClient(tx.config)
 	tx.StatusPage = NewStatusPageClient(tx.config)

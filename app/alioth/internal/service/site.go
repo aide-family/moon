@@ -24,12 +24,21 @@ func NewSiteService(settings *site.Settings, pages *site.Pages) *SiteService {
 	return &SiteService{settings: settings, pages: pages}
 }
 
-func (s *SiteService) GetSiteConfig(ctx context.Context, _ *v1.GetSiteConfigRequest) (*v1.GetSiteConfigResponse, error) {
-	config, err := s.settings.Public(ctx)
+func (s *SiteService) GetSiteConfig(ctx context.Context, req *v1.GetSiteConfigRequest) (*v1.GetSiteConfigResponse, error) {
+	config, err := s.settings.Public(ctx, req.GetLocale())
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetSiteConfigResponse{Site: siteSettingsItem(config.Site), LoginMethods: loginMethodsItem(config.Login)}, nil
+	features := make([]*v1.SiteFeatureItem, 0, len(config.Home.Features))
+	for _, item := range config.Home.Features {
+		features = append(features, siteFeatureItem(item))
+	}
+	return &v1.GetSiteConfigResponse{
+		Site:         siteSettingsItem(config.Site),
+		LoginMethods: loginMethodsItem(config.Login),
+		Home:         siteHomeContentItem(config.Home.Content),
+		Features:     features,
+	}, nil
 }
 
 func (s *SiteService) GetSiteSettings(ctx context.Context, _ *v1.GetSiteSettingsRequest) (*v1.GetSiteSettingsResponse, error) {
@@ -354,6 +363,7 @@ func emailSettingsItem(item bo.EmailSettings) *v1.EmailSettingsItem {
 		PasswordSet: item.PasswordSet,
 		UpdatedBy:   item.UpdatedBy,
 		UpdatedAt:   formatTime(item.UpdatedAt),
+		Source:      item.Source,
 	}
 }
 
@@ -370,5 +380,104 @@ func oauthProviderSettingItem(item bo.OAuthProviderSetting) *v1.OAuthProviderSet
 		SecretSet: item.SecretSet,
 		UpdatedBy: item.UpdatedBy,
 		UpdatedAt: formatTime(item.UpdatedAt),
+		Source:    item.Source,
 	}
+}
+
+func (s *SiteService) GetSiteHome(ctx context.Context, req *v1.GetSiteHomeRequest) (*v1.GetSiteHomeResponse, error) {
+	home, err := s.settings.Home(ctx, req.GetLocale())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetSiteHomeResponse{
+		Home:     siteHomeContentItem(home.Content),
+		Features: siteFeatureItems(home.Features),
+	}, nil
+}
+
+func (s *SiteService) UpdateSiteHome(ctx context.Context, req *v1.UpdateSiteHomeRequest) (*v1.UpdateSiteHomeResponse, error) {
+	home := req.GetHome()
+	content := bo.SiteHomeContent{}
+	if home != nil {
+		content = bo.SiteHomeContent{
+			HeroTitle:          home.GetHeroTitle(),
+			HeroSubtitle:       home.GetHeroSubtitle(),
+			HeroImageURL:       home.GetHeroImageUrl(),
+			CtaPrimaryLabel:    home.GetCtaPrimaryLabel(),
+			CtaSecondaryLabel:  home.GetCtaSecondaryLabel(),
+			CtaSecondaryHref:   home.GetCtaSecondaryHref(),
+			FeaturesTitle:      home.GetFeaturesTitle(),
+			FeaturesSubtitle:   home.GetFeaturesSubtitle(),
+			HowTitle:           home.GetHowTitle(),
+			HowBody:            home.GetHowBody(),
+			PermTitle:          home.GetPermTitle(),
+			PermBody:           home.GetPermBody(),
+			DeployTitle:        home.GetDeployTitle(),
+			DeployBody:         home.GetDeployBody(),
+			DocTitle:           home.GetDocTitle(),
+			ClosingTitle:       home.GetClosingTitle(),
+			ClosingDescription: home.GetClosingDescription(),
+			ClosingButtonLabel: home.GetClosingButtonLabel(),
+		}
+	}
+	features := make([]bo.SiteFeature, 0, len(req.GetFeatures()))
+	for _, item := range req.GetFeatures() {
+		features = append(features, bo.SiteFeature{
+			IconKey:     item.GetIconKey(),
+			Title:       item.GetTitle(),
+			Description: item.GetDescription(),
+		})
+	}
+	saved, err := s.settings.UpdateHome(ctx, req.GetLocale(), content, features)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateSiteHomeResponse{
+		Home:     siteHomeContentItem(saved.Content),
+		Features: siteFeatureItems(saved.Features),
+	}, nil
+}
+
+func siteHomeContentItem(item bo.SiteHomeContent) *v1.SiteHomeContentItem {
+	return &v1.SiteHomeContentItem{
+		Locale:             item.Locale,
+		HeroTitle:          item.HeroTitle,
+		HeroSubtitle:       item.HeroSubtitle,
+		HeroImageUrl:       item.HeroImageURL,
+		CtaPrimaryLabel:    item.CtaPrimaryLabel,
+		CtaSecondaryLabel:  item.CtaSecondaryLabel,
+		CtaSecondaryHref:   item.CtaSecondaryHref,
+		FeaturesTitle:      item.FeaturesTitle,
+		FeaturesSubtitle:   item.FeaturesSubtitle,
+		HowTitle:           item.HowTitle,
+		HowBody:            item.HowBody,
+		PermTitle:          item.PermTitle,
+		PermBody:           item.PermBody,
+		DeployTitle:        item.DeployTitle,
+		DeployBody:         item.DeployBody,
+		DocTitle:           item.DocTitle,
+		ClosingTitle:       item.ClosingTitle,
+		ClosingDescription: item.ClosingDescription,
+		ClosingButtonLabel: item.ClosingButtonLabel,
+		UpdatedBy:          item.UpdatedBy,
+		UpdatedAt:          formatTime(item.UpdatedAt),
+	}
+}
+
+func siteFeatureItem(item bo.SiteFeature) *v1.SiteFeatureItem {
+	return &v1.SiteFeatureItem{
+		Uid:         item.UID,
+		IconKey:     item.IconKey,
+		Title:       item.Title,
+		Description: item.Description,
+		SortOrder:   int32(item.SortOrder),
+	}
+}
+
+func siteFeatureItems(items []bo.SiteFeature) []*v1.SiteFeatureItem {
+	out := make([]*v1.SiteFeatureItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, siteFeatureItem(item))
+	}
+	return out
 }

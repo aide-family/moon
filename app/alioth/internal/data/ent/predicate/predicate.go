@@ -171,6 +171,12 @@ type SSHCommand func(*sql.Selector)
 // SSHCommandAudit is the predicate function for sshcommandaudit builders.
 type SSHCommandAudit func(*sql.Selector)
 
+// SiteFeature is the predicate function for sitefeature builders.
+type SiteFeature func(*sql.Selector)
+
+// SiteHomeContent is the predicate function for sitehomecontent builders.
+type SiteHomeContent func(*sql.Selector)
+
 // SitePage is the predicate function for sitepage builders.
 type SitePage func(*sql.Selector)
 

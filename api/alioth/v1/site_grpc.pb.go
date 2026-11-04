@@ -38,6 +38,8 @@ const (
 	SiteService_UpdateEmailSettings_FullMethodName        = "/alioth.v1.SiteService/UpdateEmailSettings"
 	SiteService_ListOAuthProviderSettings_FullMethodName  = "/alioth.v1.SiteService/ListOAuthProviderSettings"
 	SiteService_UpdateOAuthProviderSetting_FullMethodName = "/alioth.v1.SiteService/UpdateOAuthProviderSetting"
+	SiteService_GetSiteHome_FullMethodName                = "/alioth.v1.SiteService/GetSiteHome"
+	SiteService_UpdateSiteHome_FullMethodName             = "/alioth.v1.SiteService/UpdateSiteHome"
 )
 
 // SiteServiceClient is the client API for SiteService service.
@@ -88,6 +90,11 @@ type SiteServiceClient interface {
 	ListOAuthProviderSettings(ctx context.Context, in *ListOAuthProviderSettingsRequest, opts ...grpc.CallOption) (*ListOAuthProviderSettingsResponse, error)
 	// 保存单个第三方登录来源，需要 system:login:write。
 	UpdateOAuthProviderSetting(ctx context.Context, in *UpdateOAuthProviderSettingRequest, opts ...grpc.CallOption) (*UpdateOAuthProviderSettingResponse, error)
+	// 读取某个语言的官网首页文案与能力卡片，需要 system:site:read。
+	GetSiteHome(ctx context.Context, in *GetSiteHomeRequest, opts ...grpc.CallOption) (*GetSiteHomeResponse, error)
+	// 保存某个语言的官网首页文案与能力卡片，需要 system:site:write。
+	// 能力卡片整体替换，顺序即数组顺序，最多 6 张。
+	UpdateSiteHome(ctx context.Context, in *UpdateSiteHomeRequest, opts ...grpc.CallOption) (*UpdateSiteHomeResponse, error)
 }
 
 type siteServiceClient struct {
@@ -288,6 +295,26 @@ func (c *siteServiceClient) UpdateOAuthProviderSetting(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *siteServiceClient) GetSiteHome(ctx context.Context, in *GetSiteHomeRequest, opts ...grpc.CallOption) (*GetSiteHomeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSiteHomeResponse)
+	err := c.cc.Invoke(ctx, SiteService_GetSiteHome_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *siteServiceClient) UpdateSiteHome(ctx context.Context, in *UpdateSiteHomeRequest, opts ...grpc.CallOption) (*UpdateSiteHomeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSiteHomeResponse)
+	err := c.cc.Invoke(ctx, SiteService_UpdateSiteHome_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SiteServiceServer is the server API for SiteService service.
 // All implementations must embed UnimplementedSiteServiceServer
 // for forward compatibility.
@@ -336,6 +363,11 @@ type SiteServiceServer interface {
 	ListOAuthProviderSettings(context.Context, *ListOAuthProviderSettingsRequest) (*ListOAuthProviderSettingsResponse, error)
 	// 保存单个第三方登录来源，需要 system:login:write。
 	UpdateOAuthProviderSetting(context.Context, *UpdateOAuthProviderSettingRequest) (*UpdateOAuthProviderSettingResponse, error)
+	// 读取某个语言的官网首页文案与能力卡片，需要 system:site:read。
+	GetSiteHome(context.Context, *GetSiteHomeRequest) (*GetSiteHomeResponse, error)
+	// 保存某个语言的官网首页文案与能力卡片，需要 system:site:write。
+	// 能力卡片整体替换，顺序即数组顺序，最多 6 张。
+	UpdateSiteHome(context.Context, *UpdateSiteHomeRequest) (*UpdateSiteHomeResponse, error)
 	mustEmbedUnimplementedSiteServiceServer()
 }
 
@@ -402,6 +434,12 @@ func (UnimplementedSiteServiceServer) ListOAuthProviderSettings(context.Context,
 }
 func (UnimplementedSiteServiceServer) UpdateOAuthProviderSetting(context.Context, *UpdateOAuthProviderSettingRequest) (*UpdateOAuthProviderSettingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateOAuthProviderSetting not implemented")
+}
+func (UnimplementedSiteServiceServer) GetSiteHome(context.Context, *GetSiteHomeRequest) (*GetSiteHomeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSiteHome not implemented")
+}
+func (UnimplementedSiteServiceServer) UpdateSiteHome(context.Context, *UpdateSiteHomeRequest) (*UpdateSiteHomeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSiteHome not implemented")
 }
 func (UnimplementedSiteServiceServer) mustEmbedUnimplementedSiteServiceServer() {}
 func (UnimplementedSiteServiceServer) testEmbeddedByValue()                     {}
@@ -766,6 +804,42 @@ func _SiteService_UpdateOAuthProviderSetting_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SiteService_GetSiteHome_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSiteHomeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).GetSiteHome(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_GetSiteHome_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).GetSiteHome(ctx, req.(*GetSiteHomeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SiteService_UpdateSiteHome_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSiteHomeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SiteServiceServer).UpdateSiteHome(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SiteService_UpdateSiteHome_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SiteServiceServer).UpdateSiteHome(ctx, req.(*UpdateSiteHomeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SiteService_ServiceDesc is the grpc.ServiceDesc for SiteService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -848,6 +922,14 @@ var SiteService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateOAuthProviderSetting",
 			Handler:    _SiteService_UpdateOAuthProviderSetting_Handler,
+		},
+		{
+			MethodName: "GetSiteHome",
+			Handler:    _SiteService_GetSiteHome_Handler,
+		},
+		{
+			MethodName: "UpdateSiteHome",
+			Handler:    _SiteService_UpdateSiteHome_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

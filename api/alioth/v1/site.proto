@@ -116,6 +116,18 @@ service SiteService {
       body: "*"
     };
   }
+  // 读取某个语言的官网首页文案与能力卡片，需要 system:site:read。
+  rpc GetSiteHome(GetSiteHomeRequest) returns (GetSiteHomeResponse) {
+    option (google.api.http) = {get: "/v1/system/site/home"};
+  }
+  // 保存某个语言的官网首页文案与能力卡片，需要 system:site:write。
+  // 能力卡片整体替换，顺序即数组顺序，最多 6 张。
+  rpc UpdateSiteHome(UpdateSiteHomeRequest) returns (UpdateSiteHomeResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/site/home"
+      body: "*"
+    };
+  }
 }
 
 // 站点设置。
@@ -161,7 +173,10 @@ message LoginMethodsItem {
 }
 
 // 读取公开站点配置请求。
-message GetSiteConfigRequest {}
+message GetSiteConfigRequest {
+  // 语言，取值为 zh 或 en；留空时按 zh 取。
+  string locale = 1 [(buf.validate.field).string = {in: ["", "zh", "en"]}];
+}
 
 // 读取公开站点配置响应。
 message GetSiteConfigResponse {
@@ -169,6 +184,10 @@ message GetSiteConfigResponse {
   SiteSettingsItem site = 1;
   // 登录方式开关。
   LoginMethodsItem login_methods = 2 [json_name = "loginMethods"];
+  // 当前语言的首页文案。
+  SiteHomeContentItem home = 3;
+  // 当前语言的能力卡片，按排序排列。
+  repeated SiteFeatureItem features = 4;
 }
 
 // 读取站点设置请求。
@@ -506,6 +525,8 @@ message EmailSettingsItem {
   string updated_by = 7 [json_name = "updatedBy"];
   // 最后修改时间，RFC3339。
   string updated_at = 8 [json_name = "updatedAt"];
+  // 当前生效值的来源：DATABASE（后台配置）、CONFIG（服务器配置）、NONE（都没配）。
+  string source = 9;
 }
 
 // 读取邮件服务配置请求。
@@ -557,6 +578,8 @@ message OAuthProviderSettingItem {
   string updated_by = 6 [json_name = "updatedBy"];
   // 最后修改时间，RFC3339。
   string updated_at = 7 [json_name = "updatedAt"];
+  // 当前生效值的来源：DATABASE、CONFIG 或 NONE。
+  string source = 8;
 }
 
 // 列出第三方登录来源请求。
@@ -586,4 +609,96 @@ message UpdateOAuthProviderSettingRequest {
 message UpdateOAuthProviderSettingResponse {
   // 保存后的来源配置。
   OAuthProviderSettingItem item = 1;
+}
+
+// 官网首页文案。版式固定，这里只有短文本与一个主视觉地址。
+message SiteHomeContentItem {
+  // 语言，取值为 zh 或 en。
+  string locale = 1;
+  // Hero 主标题，最多 16 个字符，不要以站点名开头。
+  string hero_title = 2 [json_name = "heroTitle", (buf.validate.field).string = {max_len: 64}];
+  // Hero 副标题。
+  string hero_subtitle = 3 [json_name = "heroSubtitle", (buf.validate.field).string = {max_len: 256}];
+  // Hero 主视觉地址，固定 4:3 槽位，只接受 http(s)。
+  string hero_image_url = 4 [json_name = "heroImageUrl", (buf.validate.field).string = {max_len: 512}];
+  // 主 CTA 文案；目标是系统槽位，后台改不了。
+  string cta_primary_label = 5 [json_name = "ctaPrimaryLabel", (buf.validate.field).string = {max_len: 64}];
+  // 次 CTA 文案；与地址同存同空。
+  string cta_secondary_label = 6 [json_name = "ctaSecondaryLabel", (buf.validate.field).string = {max_len: 64}];
+  // 次 CTA 地址，只允许 / 或 # 开头。
+  string cta_secondary_href = 7 [json_name = "ctaSecondaryHref", (buf.validate.field).string = {max_len: 256}];
+  // 能力卡片区标题。
+  string features_title = 8 [json_name = "featuresTitle", (buf.validate.field).string = {max_len: 64}];
+  // 能力卡片区导语。
+  string features_subtitle = 9 [json_name = "featuresSubtitle", (buf.validate.field).string = {max_len: 256}];
+  // 工作原理区块标题。
+  string how_title = 10 [json_name = "howTitle", (buf.validate.field).string = {max_len: 64}];
+  // 工作原理区块正文。
+  string how_body = 11 [json_name = "howBody", (buf.validate.field).string = {max_len: 384}];
+  // 权限模型区块标题。
+  string perm_title = 12 [json_name = "permTitle", (buf.validate.field).string = {max_len: 64}];
+  // 权限模型区块正文。
+  string perm_body = 13 [json_name = "permBody", (buf.validate.field).string = {max_len: 384}];
+  // 私有部署区块标题。
+  string deploy_title = 14 [json_name = "deployTitle", (buf.validate.field).string = {max_len: 64}];
+  // 私有部署区块正文。
+  string deploy_body = 15 [json_name = "deployBody", (buf.validate.field).string = {max_len: 384}];
+  // 产品说明摘要区标题。
+  string doc_title = 16 [json_name = "docTitle", (buf.validate.field).string = {max_len: 64}];
+  // 尾部 CTA 标题。
+  string closing_title = 17 [json_name = "closingTitle", (buf.validate.field).string = {max_len: 96}];
+  // 尾部 CTA 说明。
+  string closing_description = 18 [json_name = "closingDescription", (buf.validate.field).string = {max_len: 256}];
+  // 尾部 CTA 按钮文案。
+  string closing_button_label = 19 [json_name = "closingButtonLabel", (buf.validate.field).string = {max_len: 64}];
+  // 最后修改人。
+  string updated_by = 20 [json_name = "updatedBy"];
+  // 最后修改时间，RFC3339。
+  string updated_at = 21 [json_name = "updatedAt"];
+}
+
+// 首页能力卡片。
+message SiteFeatureItem {
+  // 标识；保存时由服务端生成。
+  string uid = 1;
+  // 图标键名，必须是白名单里的值，例如 shield、bell、activity。
+  string icon_key = 2 [json_name = "iconKey", (buf.validate.field).string = {max_len: 32}];
+  // 卡片标题。
+  string title = 3 [(buf.validate.field).string = {max_len: 64}];
+  // 卡片描述。
+  string description = 4 [(buf.validate.field).string = {max_len: 192}];
+  // 展示顺序，由服务端按数组顺序回填。
+  int32 sort_order = 5 [json_name = "sortOrder"];
+}
+
+// 读取首页内容请求。
+message GetSiteHomeRequest {
+  // 语言，取值为 zh 或 en；留空时按 zh 取。
+  string locale = 1 [(buf.validate.field).string = {in: ["", "zh", "en"]}];
+}
+
+// 读取首页内容响应。
+message GetSiteHomeResponse {
+  // 首页文案。
+  SiteHomeContentItem home = 1;
+  // 能力卡片。
+  repeated SiteFeatureItem features = 2;
+}
+
+// 保存首页内容请求。
+message UpdateSiteHomeRequest {
+  // 语言，取值为 zh 或 en。
+  string locale = 1 [(buf.validate.field).string = {in: ["zh", "en"]}];
+  // 首页文案。
+  SiteHomeContentItem home = 2;
+  // 能力卡片，最多 6 张，顺序即展示顺序。
+  repeated SiteFeatureItem features = 3;
+}
+
+// 保存首页内容响应。
+message UpdateSiteHomeResponse {
+  // 保存后的首页文案。
+  SiteHomeContentItem home = 1;
+  // 保存后的能力卡片。
+  repeated SiteFeatureItem features = 2;
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/aide-family/moon/app/alioth/internal/access"
+	"github.com/aide-family/moon/app/alioth/internal/conf"
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
 	"github.com/aide-family/moon/app/alioth/internal/mailer"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
@@ -29,8 +30,12 @@ type Settings struct {
 	logins repository.LoginMethodRepo
 	emails repository.EmailSettingRepo
 	oauths repository.OAuthProviderSettingRepo
+	homes  repository.SiteHomeRepo
 	access access.Checker
 	mail   *mailer.Sender
+	// auth 是配置文件里的登录默认值：后台没有保存过时，界面要能看到当前生效的
+	// SMTP 与第三方来源，而不是显示一片空白。
+	auth *conf.Auth
 }
 
 func NewSettings(
@@ -38,10 +43,15 @@ func NewSettings(
 	logins repository.LoginMethodRepo,
 	emails repository.EmailSettingRepo,
 	oauths repository.OAuthProviderSettingRepo,
+	homes repository.SiteHomeRepo,
 	checker access.Checker,
 	mail *mailer.Sender,
+	auth *conf.Auth,
 ) *Settings {
-	settings := &Settings{sites: sites, logins: logins, emails: emails, oauths: oauths, access: checker, mail: mail}
+	settings := &Settings{
+		sites: sites, logins: logins, emails: emails, oauths: oauths, homes: homes,
+		access: checker, mail: mail, auth: auth,
+	}
 	settings.applyEmailOverride()
 	return settings
 }
@@ -69,7 +79,7 @@ func (settings *Settings) applyEmailOverride() {
 
 // Public 返回官网与登录页共用的公开配置，不需要登录与租户头。
 // 登录页用其中的 loginMethods 决定是否渲染第三方入口，用 site 渲染页脚备案。
-func (settings *Settings) Public(ctx context.Context) (*bo.SiteConfig, error) {
+func (settings *Settings) Public(ctx context.Context, locale string) (*bo.SiteConfig, error) {
 	siteSettings, err := settings.sites.SiteSettings(ctx)
 	if err != nil {
 		return nil, settings.access.Wrap(err)
@@ -78,7 +88,11 @@ func (settings *Settings) Public(ctx context.Context) (*bo.SiteConfig, error) {
 	if err != nil {
 		return nil, settings.access.Wrap(err)
 	}
-	return &bo.SiteConfig{Site: *siteSettings, Login: *logins}, nil
+	home, err := settings.loadHome(ctx, normalizeLocale(locale))
+	if err != nil {
+		return nil, err
+	}
+	return &bo.SiteConfig{Site: *siteSettings, Login: *logins, Home: *home}, nil
 }
 
 // Get 读取站点设置，需要 system:site:read。
