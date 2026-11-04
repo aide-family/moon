@@ -142,3 +142,22 @@ func onCallRotationItem(in bo.OnCallRotation) *v1.OnCallRotationItem {
 		Members: members,
 	}
 }
+
+func (s *OnCallRotationService) ListMyOnCallShifts(ctx context.Context, req *v1.ListMyOnCallShiftsRequest) (*v1.ListMyOnCallShiftsResponse, error) {
+	shifts, err := s.gateway.MyShifts(ctx, req.GetDays())
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.MyOnCallShiftItem, 0, len(shifts))
+	for _, shift := range shifts {
+		out = append(out, &v1.MyOnCallShiftItem{
+			RotationUid:  shift.RotationUID,
+			RotationName: shift.RotationName,
+			Timezone:     shift.Timezone,
+			StartAt:      formatTime(shift.StartAt),
+			EndAt:        formatTime(shift.EndAt),
+			Current:      shift.Current,
+		})
+	}
+	return &v1.ListMyOnCallShiftsResponse{Items: out}, nil
+}

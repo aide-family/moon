@@ -47,6 +47,11 @@ service OnCallRotationService {
   rpc GetOnCallRotationSchedule(GetOnCallRotationScheduleRequest) returns (GetOnCallRotationScheduleResponse) {
     option (google.api.http) = {get: "/v1/oncall-rotations/{uid}/schedule"};
   }
+  // 列出当前登录账号自己的值班班次。自服务接口：只要 oncall 读权限，
+  // 不要求轮换管理权限，普通值班成员也能看到自己的班次。
+  rpc ListMyOnCallShifts(ListMyOnCallShiftsRequest) returns (ListMyOnCallShiftsResponse) {
+    option (google.api.http) = {get: "/v1/oncall-rotations/my-shifts"};
+  }
 }
 
 // 轮换成员。
@@ -230,4 +235,32 @@ message OnCallRotationShiftItem {
 message GetOnCallRotationScheduleResponse {
   // 班次，按开始时间升序，包含当前班次。
   repeated OnCallRotationShiftItem shifts = 1;
+}
+
+// 个人值班班次请求。
+message ListMyOnCallShiftsRequest {
+  // 展示未来多少天，0–30，缺省按 14 天处理。
+  int32 days = 1 [(buf.validate.field).int32 = {gte: 0, lte: 30}];
+}
+
+// 个人值班班次。
+message MyOnCallShiftItem {
+  // 轮换标识。
+  string rotation_uid = 1 [json_name = "rotationUid"];
+  // 轮换名称。
+  string rotation_name = 2 [json_name = "rotationName"];
+  // 轮换时区，前端按它换算并标注展示时间。
+  string timezone = 3;
+  // 班次开始时间，RFC3339。
+  string start_at = 4 [json_name = "startAt"];
+  // 班次结束时间，RFC3339。
+  string end_at = 5 [json_name = "endAt"];
+  // 是否当前值班班次。
+  bool current = 6;
+}
+
+// 个人值班班次响应。
+message ListMyOnCallShiftsResponse {
+  // 我的班次，按开始时间升序。
+  repeated MyOnCallShiftItem items = 1;
 }

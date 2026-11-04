@@ -1193,6 +1193,189 @@ func (x *GetOnCallRotationScheduleResponse) GetShifts() []*OnCallRotationShiftIt
 	return nil
 }
 
+// 个人值班班次请求。
+type ListMyOnCallShiftsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 展示未来多少天，0–30，缺省按 14 天处理。
+	Days          int32 `protobuf:"varint,1,opt,name=days,proto3" json:"days,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyOnCallShiftsRequest) Reset() {
+	*x = ListMyOnCallShiftsRequest{}
+	mi := &file_alioth_v1_notification_rotation_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyOnCallShiftsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyOnCallShiftsRequest) ProtoMessage() {}
+
+func (x *ListMyOnCallShiftsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_rotation_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyOnCallShiftsRequest.ProtoReflect.Descriptor instead.
+func (*ListMyOnCallShiftsRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_rotation_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ListMyOnCallShiftsRequest) GetDays() int32 {
+	if x != nil {
+		return x.Days
+	}
+	return 0
+}
+
+// 个人值班班次。
+type MyOnCallShiftItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 轮换标识。
+	RotationUid string `protobuf:"bytes,1,opt,name=rotation_uid,json=rotationUid,proto3" json:"rotation_uid,omitempty"`
+	// 轮换名称。
+	RotationName string `protobuf:"bytes,2,opt,name=rotation_name,json=rotationName,proto3" json:"rotation_name,omitempty"`
+	// 轮换时区，前端按它换算并标注展示时间。
+	Timezone string `protobuf:"bytes,3,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	// 班次开始时间，RFC3339。
+	StartAt string `protobuf:"bytes,4,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	// 班次结束时间，RFC3339。
+	EndAt string `protobuf:"bytes,5,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	// 是否当前值班班次。
+	Current       bool `protobuf:"varint,6,opt,name=current,proto3" json:"current,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MyOnCallShiftItem) Reset() {
+	*x = MyOnCallShiftItem{}
+	mi := &file_alioth_v1_notification_rotation_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MyOnCallShiftItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MyOnCallShiftItem) ProtoMessage() {}
+
+func (x *MyOnCallShiftItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_rotation_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MyOnCallShiftItem.ProtoReflect.Descriptor instead.
+func (*MyOnCallShiftItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_rotation_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *MyOnCallShiftItem) GetRotationUid() string {
+	if x != nil {
+		return x.RotationUid
+	}
+	return ""
+}
+
+func (x *MyOnCallShiftItem) GetRotationName() string {
+	if x != nil {
+		return x.RotationName
+	}
+	return ""
+}
+
+func (x *MyOnCallShiftItem) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+func (x *MyOnCallShiftItem) GetStartAt() string {
+	if x != nil {
+		return x.StartAt
+	}
+	return ""
+}
+
+func (x *MyOnCallShiftItem) GetEndAt() string {
+	if x != nil {
+		return x.EndAt
+	}
+	return ""
+}
+
+func (x *MyOnCallShiftItem) GetCurrent() bool {
+	if x != nil {
+		return x.Current
+	}
+	return false
+}
+
+// 个人值班班次响应。
+type ListMyOnCallShiftsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 我的班次，按开始时间升序。
+	Items         []*MyOnCallShiftItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyOnCallShiftsResponse) Reset() {
+	*x = ListMyOnCallShiftsResponse{}
+	mi := &file_alioth_v1_notification_rotation_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyOnCallShiftsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyOnCallShiftsResponse) ProtoMessage() {}
+
+func (x *ListMyOnCallShiftsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_notification_rotation_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyOnCallShiftsResponse.ProtoReflect.Descriptor instead.
+func (*ListMyOnCallShiftsResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_notification_rotation_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ListMyOnCallShiftsResponse) GetItems() []*MyOnCallShiftItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
 var File_alioth_v1_notification_rotation_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_notification_rotation_proto_rawDesc = "" +
@@ -1281,7 +1464,18 @@ const file_alioth_v1_notification_rotation_proto_rawDesc = "" +
 	"\x05email\x18\x05 \x01(\tR\x05email\x12\x18\n" +
 	"\acurrent\x18\x06 \x01(\bR\acurrent\"_\n" +
 	"!GetOnCallRotationScheduleResponse\x12:\n" +
-	"\x06shifts\x18\x01 \x03(\v2\".alioth.v1.OnCallRotationShiftItemR\x06shifts2\x9b\b\n" +
+	"\x06shifts\x18\x01 \x03(\v2\".alioth.v1.OnCallRotationShiftItemR\x06shifts\":\n" +
+	"\x19ListMyOnCallShiftsRequest\x12\x1d\n" +
+	"\x04days\x18\x01 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\x1e(\x00R\x04days\"\xc3\x01\n" +
+	"\x11MyOnCallShiftItem\x12!\n" +
+	"\frotation_uid\x18\x01 \x01(\tR\vrotationUid\x12#\n" +
+	"\rrotation_name\x18\x02 \x01(\tR\frotationName\x12\x1a\n" +
+	"\btimezone\x18\x03 \x01(\tR\btimezone\x12\x19\n" +
+	"\bstart_at\x18\x04 \x01(\tR\astartAt\x12\x15\n" +
+	"\x06end_at\x18\x05 \x01(\tR\x05endAt\x12\x18\n" +
+	"\acurrent\x18\x06 \x01(\bR\acurrent\"P\n" +
+	"\x1aListMyOnCallShiftsResponse\x122\n" +
+	"\x05items\x18\x01 \x03(\v2\x1c.alioth.v1.MyOnCallShiftItemR\x05items2\xa7\t\n" +
 	"\x15OnCallRotationService\x12\x88\x01\n" +
 	"\x14CreateOnCallRotation\x12&.alioth.v1.CreateOnCallRotationRequest\x1a'.alioth.v1.CreateOnCallRotationResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/oncall-rotations\x12\x8e\x01\n" +
 	"\x14UpdateOnCallRotation\x12&.alioth.v1.UpdateOnCallRotationRequest\x1a'.alioth.v1.UpdateOnCallRotationResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/v1/oncall-rotations/{uid}\x12\xa7\x01\n" +
@@ -1289,7 +1483,8 @@ const file_alioth_v1_notification_rotation_proto_rawDesc = "" +
 	"\x14DeleteOnCallRotation\x12&.alioth.v1.DeleteOnCallRotationRequest\x1a'.alioth.v1.DeleteOnCallRotationResponse\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/v1/oncall-rotations/{uid}\x12\x82\x01\n" +
 	"\x11GetOnCallRotation\x12#.alioth.v1.GetOnCallRotationRequest\x1a$.alioth.v1.GetOnCallRotationResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/oncall-rotations/{uid}\x12\x82\x01\n" +
 	"\x13ListOnCallRotations\x12%.alioth.v1.ListOnCallRotationsRequest\x1a&.alioth.v1.ListOnCallRotationsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/oncall-rotations\x12\xa3\x01\n" +
-	"\x19GetOnCallRotationSchedule\x12+.alioth.v1.GetOnCallRotationScheduleRequest\x1a,.alioth.v1.GetOnCallRotationScheduleResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/oncall-rotations/{uid}/scheduleB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
+	"\x19GetOnCallRotationSchedule\x12+.alioth.v1.GetOnCallRotationScheduleRequest\x1a,.alioth.v1.GetOnCallRotationScheduleResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/oncall-rotations/{uid}/schedule\x12\x89\x01\n" +
+	"\x12ListMyOnCallShifts\x12$.alioth.v1.ListMyOnCallShiftsRequest\x1a%.alioth.v1.ListMyOnCallShiftsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/oncall-rotations/my-shiftsB.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
 
 var (
 	file_alioth_v1_notification_rotation_proto_rawDescOnce sync.Once
@@ -1303,7 +1498,7 @@ func file_alioth_v1_notification_rotation_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_notification_rotation_proto_rawDescData
 }
 
-var file_alioth_v1_notification_rotation_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_alioth_v1_notification_rotation_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_alioth_v1_notification_rotation_proto_goTypes = []any{
 	(*OnCallRotationMemberItem)(nil),           // 0: alioth.v1.OnCallRotationMemberItem
 	(*OnCallRotationMemberInput)(nil),          // 1: alioth.v1.OnCallRotationMemberInput
@@ -1323,6 +1518,9 @@ var file_alioth_v1_notification_rotation_proto_goTypes = []any{
 	(*GetOnCallRotationScheduleRequest)(nil),   // 15: alioth.v1.GetOnCallRotationScheduleRequest
 	(*OnCallRotationShiftItem)(nil),            // 16: alioth.v1.OnCallRotationShiftItem
 	(*GetOnCallRotationScheduleResponse)(nil),  // 17: alioth.v1.GetOnCallRotationScheduleResponse
+	(*ListMyOnCallShiftsRequest)(nil),          // 18: alioth.v1.ListMyOnCallShiftsRequest
+	(*MyOnCallShiftItem)(nil),                  // 19: alioth.v1.MyOnCallShiftItem
+	(*ListMyOnCallShiftsResponse)(nil),         // 20: alioth.v1.ListMyOnCallShiftsResponse
 }
 var file_alioth_v1_notification_rotation_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.OnCallRotationItem.members:type_name -> alioth.v1.OnCallRotationMemberItem
@@ -1334,25 +1532,28 @@ var file_alioth_v1_notification_rotation_proto_depIdxs = []int32{
 	2,  // 6: alioth.v1.GetOnCallRotationResponse.rotation:type_name -> alioth.v1.OnCallRotationItem
 	2,  // 7: alioth.v1.ListOnCallRotationsResponse.items:type_name -> alioth.v1.OnCallRotationItem
 	16, // 8: alioth.v1.GetOnCallRotationScheduleResponse.shifts:type_name -> alioth.v1.OnCallRotationShiftItem
-	3,  // 9: alioth.v1.OnCallRotationService.CreateOnCallRotation:input_type -> alioth.v1.CreateOnCallRotationRequest
-	5,  // 10: alioth.v1.OnCallRotationService.UpdateOnCallRotation:input_type -> alioth.v1.UpdateOnCallRotationRequest
-	7,  // 11: alioth.v1.OnCallRotationService.UpdateOnCallRotationStatus:input_type -> alioth.v1.UpdateOnCallRotationStatusRequest
-	9,  // 12: alioth.v1.OnCallRotationService.DeleteOnCallRotation:input_type -> alioth.v1.DeleteOnCallRotationRequest
-	11, // 13: alioth.v1.OnCallRotationService.GetOnCallRotation:input_type -> alioth.v1.GetOnCallRotationRequest
-	13, // 14: alioth.v1.OnCallRotationService.ListOnCallRotations:input_type -> alioth.v1.ListOnCallRotationsRequest
-	15, // 15: alioth.v1.OnCallRotationService.GetOnCallRotationSchedule:input_type -> alioth.v1.GetOnCallRotationScheduleRequest
-	4,  // 16: alioth.v1.OnCallRotationService.CreateOnCallRotation:output_type -> alioth.v1.CreateOnCallRotationResponse
-	6,  // 17: alioth.v1.OnCallRotationService.UpdateOnCallRotation:output_type -> alioth.v1.UpdateOnCallRotationResponse
-	8,  // 18: alioth.v1.OnCallRotationService.UpdateOnCallRotationStatus:output_type -> alioth.v1.UpdateOnCallRotationStatusResponse
-	10, // 19: alioth.v1.OnCallRotationService.DeleteOnCallRotation:output_type -> alioth.v1.DeleteOnCallRotationResponse
-	12, // 20: alioth.v1.OnCallRotationService.GetOnCallRotation:output_type -> alioth.v1.GetOnCallRotationResponse
-	14, // 21: alioth.v1.OnCallRotationService.ListOnCallRotations:output_type -> alioth.v1.ListOnCallRotationsResponse
-	17, // 22: alioth.v1.OnCallRotationService.GetOnCallRotationSchedule:output_type -> alioth.v1.GetOnCallRotationScheduleResponse
-	16, // [16:23] is the sub-list for method output_type
-	9,  // [9:16] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	19, // 9: alioth.v1.ListMyOnCallShiftsResponse.items:type_name -> alioth.v1.MyOnCallShiftItem
+	3,  // 10: alioth.v1.OnCallRotationService.CreateOnCallRotation:input_type -> alioth.v1.CreateOnCallRotationRequest
+	5,  // 11: alioth.v1.OnCallRotationService.UpdateOnCallRotation:input_type -> alioth.v1.UpdateOnCallRotationRequest
+	7,  // 12: alioth.v1.OnCallRotationService.UpdateOnCallRotationStatus:input_type -> alioth.v1.UpdateOnCallRotationStatusRequest
+	9,  // 13: alioth.v1.OnCallRotationService.DeleteOnCallRotation:input_type -> alioth.v1.DeleteOnCallRotationRequest
+	11, // 14: alioth.v1.OnCallRotationService.GetOnCallRotation:input_type -> alioth.v1.GetOnCallRotationRequest
+	13, // 15: alioth.v1.OnCallRotationService.ListOnCallRotations:input_type -> alioth.v1.ListOnCallRotationsRequest
+	15, // 16: alioth.v1.OnCallRotationService.GetOnCallRotationSchedule:input_type -> alioth.v1.GetOnCallRotationScheduleRequest
+	18, // 17: alioth.v1.OnCallRotationService.ListMyOnCallShifts:input_type -> alioth.v1.ListMyOnCallShiftsRequest
+	4,  // 18: alioth.v1.OnCallRotationService.CreateOnCallRotation:output_type -> alioth.v1.CreateOnCallRotationResponse
+	6,  // 19: alioth.v1.OnCallRotationService.UpdateOnCallRotation:output_type -> alioth.v1.UpdateOnCallRotationResponse
+	8,  // 20: alioth.v1.OnCallRotationService.UpdateOnCallRotationStatus:output_type -> alioth.v1.UpdateOnCallRotationStatusResponse
+	10, // 21: alioth.v1.OnCallRotationService.DeleteOnCallRotation:output_type -> alioth.v1.DeleteOnCallRotationResponse
+	12, // 22: alioth.v1.OnCallRotationService.GetOnCallRotation:output_type -> alioth.v1.GetOnCallRotationResponse
+	14, // 23: alioth.v1.OnCallRotationService.ListOnCallRotations:output_type -> alioth.v1.ListOnCallRotationsResponse
+	17, // 24: alioth.v1.OnCallRotationService.GetOnCallRotationSchedule:output_type -> alioth.v1.GetOnCallRotationScheduleResponse
+	20, // 25: alioth.v1.OnCallRotationService.ListMyOnCallShifts:output_type -> alioth.v1.ListMyOnCallShiftsResponse
+	18, // [18:26] is the sub-list for method output_type
+	10, // [10:18] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_notification_rotation_proto_init() }
@@ -1366,7 +1567,7 @@ func file_alioth_v1_notification_rotation_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_notification_rotation_proto_rawDesc), len(file_alioth_v1_notification_rotation_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

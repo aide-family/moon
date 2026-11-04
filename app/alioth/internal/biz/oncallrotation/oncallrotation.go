@@ -3,6 +3,7 @@ package oncallrotation
 import (
 	"context"
 	"log/slog"
+	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/aide-family/moon/app/alioth/internal/access"
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
+	"github.com/aide-family/moon/app/alioth/pkg/actor"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/oncall"
 	"github.com/aide-family/moon/app/alioth/pkg/page"
@@ -167,6 +169,97 @@ func shiftsOf(item bo.OnCallRotation, now time.Time, days int) ([]bo.OnCallRotat
 		items = append(items, bo.OnCallRotationShift{
 			StartAt: shift.StartAt, EndAt: shift.EndAt,
 			Member: byMember[shift.Member.MemberUID], Current: shift.Current,
+		})
+	}
+	return items, nil
+}
+
+// MyShifts 返回当前登录账号自己的班次：跨轮换汇总后按开始时间升序。
+// 自服务接口只要求 oncall 读权限，不要求轮换管理权限——普通值班成员看不到自己的班，
+// 这个视图就没有意义。不是当前租户的成员时返回空列表，而不是 403。
+func (gateway *Gateway) MyShifts(ctx context.Context, days int32) ([]bo.MyOnCallShift, error) {
+	ns, err := gateway.access.Allow(ctx, perm.NotificationOncallRead)
+	if err != nil {
+		return nil, err
+	}
+	userUID, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("missing token")
+	}
+	member, err := gateway.members.MemberByUser(ctx, ns, userUID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			// 平台管理员等非租户成员没有个人班次，这不是错误。
+			return []bo.MyOnCallShift{}, nil
+		}
+		return nil, gateway.access.Wrap(err)
+	}
+	window := int(days)
+	if window <= 0 {
+		window = scheduleDaysDefault
+	}
+	if window > scheduleDaysMax {
+		return nil, merr.Invalid("invalid schedule days")
+	}
+	rotations, err := gateway.allRotations(ctx, ns)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	items := make([]bo.MyOnCallShift, 0, len(rotations))
+	for _, rotation := range rotations {
+		if rotation.Status != "ACTIVE" {
+			continue
+		}
+		shifts, err := myShiftsOf(rotation, member.UID, now, window)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, shifts...)
+	}
+	sort.Slice(items, func(i, j int) bool { return items[i].StartAt.Before(items[j].StartAt) })
+	return items, nil
+}
+
+// allRotations 翻完整个轮换列表。个人视图必须服务端过滤：
+// 只取前 100 条会把排在第 101 条的租户成员静默漏掉。
+func (gateway *Gateway) allRotations(ctx context.Context, namespaceUID string) ([]bo.OnCallRotation, error) {
+	const (
+		pageSize = 100
+		maxPages = 20
+	)
+	items := make([]bo.OnCallRotation, 0, pageSize)
+	for current := 1; current <= maxPages; current++ {
+		page, total, err := gateway.rotations.ListRotations(ctx, namespaceUID, "", current, pageSize)
+		if err != nil {
+			return nil, gateway.access.Wrap(err)
+		}
+		items = append(items, page...)
+		if len(page) == 0 || len(items) >= total {
+			break
+		}
+	}
+	return items, nil
+}
+
+// myShiftsOf 从一次轮换的班次表里挑出属于我的班次。
+func myShiftsOf(item bo.OnCallRotation, memberUID string, now time.Time, days int) ([]bo.MyOnCallShift, error) {
+	shifts, err := shiftsOf(item, now, days)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]bo.MyOnCallShift, 0, len(shifts))
+	for _, shift := range shifts {
+		if shift.Member.MemberUID != memberUID {
+			continue
+		}
+		items = append(items, bo.MyOnCallShift{
+			RotationUID:  item.UID,
+			RotationName: item.Name,
+			Timezone:     item.Timezone,
+			StartAt:      shift.StartAt,
+			EndAt:        shift.EndAt,
+			Current:      shift.Current,
 		})
 	}
 	return items, nil

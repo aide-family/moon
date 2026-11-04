@@ -43,3 +43,16 @@ type OnCallRotationShift struct {
 	// Current 表示该班次包含查询时刻。
 	Current bool
 }
+
+// MyOnCallShift 是当前登录账号在一次轮换里的某个班次。
+// 个人视图只关心「我的班」，所以不带其他成员的展示信息。
+type MyOnCallShift struct {
+	RotationUID  string
+	RotationName string
+	// Timezone 是轮换时区，前端按它换算并标注展示时间。
+	Timezone string
+	StartAt  time.Time
+	EndAt    time.Time
+	// Current 表示该班次包含查询时刻。
+	Current bool
+}

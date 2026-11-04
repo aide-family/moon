@@ -26,6 +26,7 @@ const (
 	OnCallRotationService_GetOnCallRotation_FullMethodName          = "/alioth.v1.OnCallRotationService/GetOnCallRotation"
 	OnCallRotationService_ListOnCallRotations_FullMethodName        = "/alioth.v1.OnCallRotationService/ListOnCallRotations"
 	OnCallRotationService_GetOnCallRotationSchedule_FullMethodName  = "/alioth.v1.OnCallRotationService/GetOnCallRotationSchedule"
+	OnCallRotationService_ListMyOnCallShifts_FullMethodName         = "/alioth.v1.OnCallRotationService/ListMyOnCallShifts"
 )
 
 // OnCallRotationServiceClient is the client API for OnCallRotationService service.
@@ -49,6 +50,9 @@ type OnCallRotationServiceClient interface {
 	ListOnCallRotations(ctx context.Context, in *ListOnCallRotationsRequest, opts ...grpc.CallOption) (*ListOnCallRotationsResponse, error)
 	// 获取未来班次表：包含当前班次并标记当前值班。
 	GetOnCallRotationSchedule(ctx context.Context, in *GetOnCallRotationScheduleRequest, opts ...grpc.CallOption) (*GetOnCallRotationScheduleResponse, error)
+	// 列出当前登录账号自己的值班班次。自服务接口：只要 oncall 读权限，
+	// 不要求轮换管理权限，普通值班成员也能看到自己的班次。
+	ListMyOnCallShifts(ctx context.Context, in *ListMyOnCallShiftsRequest, opts ...grpc.CallOption) (*ListMyOnCallShiftsResponse, error)
 }
 
 type onCallRotationServiceClient struct {
@@ -129,6 +133,16 @@ func (c *onCallRotationServiceClient) GetOnCallRotationSchedule(ctx context.Cont
 	return out, nil
 }
 
+func (c *onCallRotationServiceClient) ListMyOnCallShifts(ctx context.Context, in *ListMyOnCallShiftsRequest, opts ...grpc.CallOption) (*ListMyOnCallShiftsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyOnCallShiftsResponse)
+	err := c.cc.Invoke(ctx, OnCallRotationService_ListMyOnCallShifts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OnCallRotationServiceServer is the server API for OnCallRotationService service.
 // All implementations must embed UnimplementedOnCallRotationServiceServer
 // for forward compatibility.
@@ -150,6 +164,9 @@ type OnCallRotationServiceServer interface {
 	ListOnCallRotations(context.Context, *ListOnCallRotationsRequest) (*ListOnCallRotationsResponse, error)
 	// 获取未来班次表：包含当前班次并标记当前值班。
 	GetOnCallRotationSchedule(context.Context, *GetOnCallRotationScheduleRequest) (*GetOnCallRotationScheduleResponse, error)
+	// 列出当前登录账号自己的值班班次。自服务接口：只要 oncall 读权限，
+	// 不要求轮换管理权限，普通值班成员也能看到自己的班次。
+	ListMyOnCallShifts(context.Context, *ListMyOnCallShiftsRequest) (*ListMyOnCallShiftsResponse, error)
 	mustEmbedUnimplementedOnCallRotationServiceServer()
 }
 
@@ -180,6 +197,9 @@ func (UnimplementedOnCallRotationServiceServer) ListOnCallRotations(context.Cont
 }
 func (UnimplementedOnCallRotationServiceServer) GetOnCallRotationSchedule(context.Context, *GetOnCallRotationScheduleRequest) (*GetOnCallRotationScheduleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetOnCallRotationSchedule not implemented")
+}
+func (UnimplementedOnCallRotationServiceServer) ListMyOnCallShifts(context.Context, *ListMyOnCallShiftsRequest) (*ListMyOnCallShiftsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyOnCallShifts not implemented")
 }
 func (UnimplementedOnCallRotationServiceServer) mustEmbedUnimplementedOnCallRotationServiceServer() {}
 func (UnimplementedOnCallRotationServiceServer) testEmbeddedByValue()                               {}
@@ -328,6 +348,24 @@ func _OnCallRotationService_GetOnCallRotationSchedule_Handler(srv interface{}, c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OnCallRotationService_ListMyOnCallShifts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyOnCallShiftsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OnCallRotationServiceServer).ListMyOnCallShifts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OnCallRotationService_ListMyOnCallShifts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OnCallRotationServiceServer).ListMyOnCallShifts(ctx, req.(*ListMyOnCallShiftsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OnCallRotationService_ServiceDesc is the grpc.ServiceDesc for OnCallRotationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -362,6 +400,10 @@ var OnCallRotationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOnCallRotationSchedule",
 			Handler:    _OnCallRotationService_GetOnCallRotationSchedule_Handler,
+		},
+		{
+			MethodName: "ListMyOnCallShifts",
+			Handler:    _OnCallRotationService_ListMyOnCallShifts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

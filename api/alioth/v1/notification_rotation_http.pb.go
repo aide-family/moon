@@ -21,6 +21,7 @@ const OperationOnCallRotationServiceCreateOnCallRotation = "/alioth.v1.OnCallRot
 const OperationOnCallRotationServiceDeleteOnCallRotation = "/alioth.v1.OnCallRotationService/DeleteOnCallRotation"
 const OperationOnCallRotationServiceGetOnCallRotation = "/alioth.v1.OnCallRotationService/GetOnCallRotation"
 const OperationOnCallRotationServiceGetOnCallRotationSchedule = "/alioth.v1.OnCallRotationService/GetOnCallRotationSchedule"
+const OperationOnCallRotationServiceListMyOnCallShifts = "/alioth.v1.OnCallRotationService/ListMyOnCallShifts"
 const OperationOnCallRotationServiceListOnCallRotations = "/alioth.v1.OnCallRotationService/ListOnCallRotations"
 const OperationOnCallRotationServiceUpdateOnCallRotation = "/alioth.v1.OnCallRotationService/UpdateOnCallRotation"
 const OperationOnCallRotationServiceUpdateOnCallRotationStatus = "/alioth.v1.OnCallRotationService/UpdateOnCallRotationStatus"
@@ -34,6 +35,9 @@ type OnCallRotationServiceHTTPServer interface {
 	GetOnCallRotation(context.Context, *GetOnCallRotationRequest) (*GetOnCallRotationResponse, error)
 	// GetOnCallRotationSchedule 获取未来班次表：包含当前班次并标记当前值班。
 	GetOnCallRotationSchedule(context.Context, *GetOnCallRotationScheduleRequest) (*GetOnCallRotationScheduleResponse, error)
+	// ListMyOnCallShifts 列出当前登录账号自己的值班班次。自服务接口：只要 oncall 读权限，
+	// 不要求轮换管理权限，普通值班成员也能看到自己的班次。
+	ListMyOnCallShifts(context.Context, *ListMyOnCallShiftsRequest) (*ListMyOnCallShiftsResponse, error)
 	// ListOnCallRotations 分页列出值班轮换。
 	ListOnCallRotations(context.Context, *ListOnCallRotationsRequest) (*ListOnCallRotationsResponse, error)
 	// UpdateOnCallRotation 更新值班轮换。成员列表整体替换，按数组顺序重写 position。
@@ -51,6 +55,7 @@ func RegisterOnCallRotationServiceHTTPServer(s *http.Server, srv OnCallRotationS
 	r.Handle("GET", "/v1/oncall-rotations/{uid}", _OnCallRotationService_GetOnCallRotation0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/oncall-rotations", _OnCallRotationService_ListOnCallRotations0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/oncall-rotations/{uid}/schedule", _OnCallRotationService_GetOnCallRotationSchedule0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/oncall-rotations/my-shifts", _OnCallRotationService_ListMyOnCallShifts0_HTTP_Handler(srv))
 }
 
 func _OnCallRotationService_CreateOnCallRotation0_HTTP_Handler(srv OnCallRotationServiceHTTPServer) func(ctx http.Context) error {
@@ -201,6 +206,25 @@ func _OnCallRotationService_GetOnCallRotationSchedule0_HTTP_Handler(srv OnCallRo
 	}
 }
 
+func _OnCallRotationService_ListMyOnCallShifts0_HTTP_Handler(srv OnCallRotationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMyOnCallShiftsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOnCallRotationServiceListMyOnCallShifts)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMyOnCallShifts(ctx, req.(*ListMyOnCallShiftsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMyOnCallShiftsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type OnCallRotationServiceHTTPClient interface {
 	// CreateOnCallRotation 创建值班轮换，成员随轮换一起保存。
 	CreateOnCallRotation(ctx context.Context, req *CreateOnCallRotationRequest, opts ...http.CallOption) (rsp *CreateOnCallRotationResponse, err error)
@@ -210,6 +234,9 @@ type OnCallRotationServiceHTTPClient interface {
 	GetOnCallRotation(ctx context.Context, req *GetOnCallRotationRequest, opts ...http.CallOption) (rsp *GetOnCallRotationResponse, err error)
 	// GetOnCallRotationSchedule 获取未来班次表：包含当前班次并标记当前值班。
 	GetOnCallRotationSchedule(ctx context.Context, req *GetOnCallRotationScheduleRequest, opts ...http.CallOption) (rsp *GetOnCallRotationScheduleResponse, err error)
+	// ListMyOnCallShifts 列出当前登录账号自己的值班班次。自服务接口：只要 oncall 读权限，
+	// 不要求轮换管理权限，普通值班成员也能看到自己的班次。
+	ListMyOnCallShifts(ctx context.Context, req *ListMyOnCallShiftsRequest, opts ...http.CallOption) (rsp *ListMyOnCallShiftsResponse, err error)
 	// ListOnCallRotations 分页列出值班轮换。
 	ListOnCallRotations(ctx context.Context, req *ListOnCallRotationsRequest, opts ...http.CallOption) (rsp *ListOnCallRotationsResponse, err error)
 	// UpdateOnCallRotation 更新值班轮换。成员列表整体替换，按数组顺序重写 position。
@@ -286,6 +313,24 @@ func (c *OnCallRotationServiceHTTPClientImpl) GetOnCallRotationSchedule(ctx cont
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationOnCallRotationServiceGetOnCallRotationSchedule),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListMyOnCallShifts 列出当前登录账号自己的值班班次。自服务接口：只要 oncall 读权限，
+// 不要求轮换管理权限，普通值班成员也能看到自己的班次。
+func (c *OnCallRotationServiceHTTPClientImpl) ListMyOnCallShifts(ctx context.Context, in *ListMyOnCallShiftsRequest, opts ...http.CallOption) (*ListMyOnCallShiftsResponse, error) {
+	var out ListMyOnCallShiftsResponse
+	pattern := "/v1/oncall-rotations/my-shifts"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOnCallRotationServiceListMyOnCallShifts),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
