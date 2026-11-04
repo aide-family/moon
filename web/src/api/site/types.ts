@@ -48,6 +48,65 @@ export type SaveLoginMethodsParams = Pick<
   "emailEnabled" | "oauth2Enabled"
 >
 
+/**
+ * 邮件服务（SMTP）配置：登录验证码与邀请邮件共用。
+ * 密码不回显，只给 passwordSet；enabled 为 false 时回落到服务器环境配置。
+ */
+export interface EmailSettings {
+  enabled: boolean
+  host: string
+  /** 0 表示没有单独保存端口，沿用服务器配置。 */
+  port: number
+  username: string
+  /** 发件人地址，支持“显示名 <地址>”写法。 */
+  from: string
+  /** 是否已经保存过密码。 */
+  passwordSet: boolean
+  updatedBy: string
+  updatedAt: string
+}
+
+/**
+ * 保存邮件服务的载荷。
+ * password 留空表示保留已存密码；clearPassword 为 true 表示清空密码。
+ */
+export interface SaveEmailSettingsParams {
+  enabled: boolean
+  host: string
+  port: number
+  username: string
+  password: string
+  from: string
+  clearPassword: boolean
+}
+
+/** 第三方登录来源；清单与顺序由后端固定。 */
+export type OAuthProvider = "GITHUB" | "GITEE" | "FEISHU" | "DINGTALK"
+
+/** 单个第三方登录来源的配置；客户端密钥不回显，只给 secretSet。 */
+export interface OAuthProviderSettings {
+  provider: OAuthProvider
+  /** 后端给出的展示名。 */
+  name: string
+  enabled: boolean
+  clientId: string
+  /** 是否已经保存过客户端密钥。 */
+  secretSet: boolean
+  updatedBy: string
+  updatedAt: string
+}
+
+/**
+ * 保存单个第三方登录来源的载荷。
+ * clientSecret 留空表示保留已存密钥；clearSecret 为 true 表示清空。
+ */
+export interface SaveOAuthProviderParams {
+  enabled: boolean
+  clientId: string
+  clientSecret: string
+  clearSecret: boolean
+}
+
 /** 公开接口返回的站点设置与登录方式。 */
 export interface SiteConfig {
   site: SiteSettings

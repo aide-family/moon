@@ -62,7 +62,7 @@ const messageKeys: Record<string, string> = {
   "access token required": "error.accessTokenRequired",
   "refresh token required": "error.refreshTokenRequired",
   "invalid token": "error.invalidToken",
-  "forbidden": "error.forbidden",
+  forbidden: "error.forbidden",
   "permission denied": "error.permissionDenied",
   // 角色授权防越权：非负责人只能授予自己持有的权限。
   "cannot grant permissions beyond your own": "role.grant.beyondOwn",
@@ -105,11 +105,13 @@ const messageKeys: Record<string, string> = {
   "archive is too large": "error.archiveTooLarge",
   "invalid archive": "error.archiveInvalid",
   "archive contains an unsupported table": "error.archiveInvalid",
-  "archive column is not supported by the target database": "error.archiveInvalid",
+  "archive column is not supported by the target database":
+    "error.archiveInvalid",
   "archive data does not match the target database": "error.archiveInvalid",
   "archive write failed": "error.archiveInvalid",
   "database schema is not ready": "error.archiveSchemaNotReady",
-  "archive imported but seeding failed; run the database migration to finish": "error.archiveSeedFailed",
+  "archive imported but seeding failed; run the database migration to finish":
+    "error.archiveSeedFailed",
   "member has no email": "error.memberNoEmail",
   "member has no phone": "error.memberNoPhone",
   "member is already merged": "error.memberAlreadyMerged",
@@ -156,9 +158,16 @@ const messageKeys: Record<string, string> = {
   "invalid query expression": "error.invalidQueryExpression",
   "upstream query failed": "error.upstreamQueryFailed",
   "invalid smtp endpoint": "error.invalidSmtpEndpoint",
+  // 站点设置里的邮件服务（SMTP）与第三方登录来源配置。
+  "invalid smtp host": "error.invalidSmtpHost",
   "invalid smtp port": "error.invalidSmtpPort",
+  "invalid smtp from": "error.invalidSmtpFrom",
+  "invalid client id": "error.invalidClientId",
+  "invalid client secret": "error.invalidClientSecret",
+  "oauth provider is not supported": "error.oauthProviderNotSupported",
   "invalid webhook endpoint": "error.invalidWebhookEndpoint",
-  "webhook endpoint must not contain credentials": "error.webhookEndpointCredentials",
+  "webhook endpoint must not contain credentials":
+    "error.webhookEndpointCredentials",
   "level is in use": "error.levelInUse",
   "group still has rules": "error.groupHasRules",
   "invalid alert event status": "error.invalidAlertEventStatus",
@@ -168,10 +177,12 @@ const messageKeys: Record<string, string> = {
   "invalid suppression filter": "error.invalidSuppressionFilter",
   "history filters require HISTORY view": "error.historyFiltersNeedHistoryView",
   "alert analysis range must be within 30 days": "error.analysisRangeTooLong",
-  "alert analysis range must not end in the future": "error.analysisRangeFuture",
+  "alert analysis range must not end in the future":
+    "error.analysisRangeFuture",
   "alert event time range must be within 30 days": "error.eventRangeTooLong",
   "time range must be within 30 days": "error.rangeTooLong",
-  "focus window must be within the analysis range": "error.focusWindowOutsideRange",
+  "focus window must be within the analysis range":
+    "error.focusWindowOutsideRange",
   "duplicate variable name": "error.duplicateVariableName",
   "empty variable expr": "error.emptyVariableExpr",
   "invalid variable name": "error.invalidVariableName",
@@ -187,14 +198,17 @@ const messageKeys: Record<string, string> = {
   "template is disabled": "error.templateDisabled",
   "template is used by a notification group": "error.templateInUseByGroup",
   "template is required for every channel": "error.templateRequiredPerChannel",
-  "channel and template counts do not match": "error.channelTemplateCountMismatch",
+  "channel and template counts do not match":
+    "error.channelTemplateCountMismatch",
   "duplicate notification group": "error.duplicateGroup",
-  "group is bound to a notification subscription": "error.groupBoundSubscription",
+  "group is bound to a notification subscription":
+    "error.groupBoundSubscription",
   "group is bound to a notification on-call": "error.groupBoundOncall",
   "notification group requires at least one channel": "error.groupNeedsChannel",
   "only one email channel is allowed": "error.onlyOneEmailChannel",
   "only one sms channel is allowed": "error.onlyOneSmsChannel",
-  "email channel requires at least one receiver": "error.emailChannelNeedsReceiver",
+  "email channel requires at least one receiver":
+    "error.emailChannelNeedsReceiver",
   "email receivers require an email channel": "error.emailReceiversNeedChannel",
   "sms channel requires an sms template": "error.smsChannelNeedsTemplate",
   "sms channel requires at least one receiver": "error.smsChannelNeedsReceiver",
@@ -211,7 +225,8 @@ const messageKeys: Record<string, string> = {
   "invalid on-call timezone": "error.invalidOncallTimezone",
   "invalid on-call weekday": "error.invalidOncallWeekday",
   "invalid on-call windows": "error.invalidOncallWindows",
-  "on-call window requires at least one weekday": "error.oncallWindowNeedsWeekday",
+  "on-call window requires at least one weekday":
+    "error.oncallWindowNeedsWeekday",
   "on-call window start and end must differ": "error.oncallWindowSameEdge",
   "on-call window time must be HH:mm": "error.oncallWindowTimeFormat",
   "too many on-call filters": "error.tooManyOncallFilters",

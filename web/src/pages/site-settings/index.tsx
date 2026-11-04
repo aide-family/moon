@@ -33,6 +33,9 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { isEmail } from "@/lib/email"
 
+import { EmailSettingsCard } from "./email-settings-card"
+import { OAuthProvidersCard } from "./oauth-providers-card"
+
 type SiteField = keyof SaveSiteSettingsParams
 type SiteFieldErrors = Partial<Record<SiteField, string>>
 
@@ -713,6 +716,17 @@ export function SiteSettingsPage() {
               )}
             </CardContent>
           </Card>
+
+          <EmailSettingsCard
+            canRead={canLoginRead}
+            canWrite={canLoginWrite}
+            refreshKey={attempt}
+          />
+          <OAuthProvidersCard
+            canRead={canLoginRead}
+            canWrite={canLoginWrite}
+            refreshKey={attempt}
+          />
         </>
       ) : null}
     </div>

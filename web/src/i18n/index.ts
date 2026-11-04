@@ -70,7 +70,8 @@ const zh = {
       createTitle: "新建大盘",
       editTitle: "编辑大盘",
       panels: "面板",
-      panelsHint: "共 {{count}} 个面板，最多 {{max}} 个；这里的顺序就是展示顺序。",
+      panelsHint:
+        "共 {{count}} 个面板，最多 {{max}} 个；这里的顺序就是展示顺序。",
       embedHint:
         "面板由浏览器直接加载 Grafana：内网/VPN 地址需浏览器可访问，证书需受信任，Grafana 需开启 allow_embedding；HTTPS 页面不能嵌入 HTTP 面板。查看页右上角「加载排查」有完整步骤。",
       addPanel: "添加面板",
@@ -367,7 +368,12 @@ const zh = {
     invalidQueryExpression: "查询表达式不合法。",
     upstreamQueryFailed: "上游查询失败。",
     invalidSmtpEndpoint: "SMTP 地址不合法。",
+    invalidSmtpHost: "SMTP 主机不合法。",
     invalidSmtpPort: "SMTP 端口不合法。",
+    invalidSmtpFrom: "发件人地址不合法。",
+    invalidClientId: "Client ID 不合法。",
+    invalidClientSecret: "Client Secret 不合法。",
+    oauthProviderNotSupported: "暂不支持该第三方登录来源。",
     invalidWebhookEndpoint: "Webhook 地址不合法。",
     webhookEndpointCredentials: "Webhook 地址不能包含账号密码。",
     levelInUse: "该告警级别正在被使用。",
@@ -444,7 +450,8 @@ const zh = {
     resourceNameRequired: "请填写资源名称。",
     yamlTooLarge: "YAML 内容过大，无法预览。",
     namespaceNameRequired: "请填写命名空间和名称。",
-    invalidLabels: "标签格式不正确：键和值只能包含字母、数字、点、下划线和连字符。",
+    invalidLabels:
+      "标签格式不正确：键和值只能包含字母、数字、点、下划线和连字符。",
     labelsRequired: "请至少填写一对标签。",
     tooManyLabels: "最多支持 32 对标签。",
     containerRequired: "请选择容器。",
@@ -611,7 +618,8 @@ const zh = {
     emailLoginShow: "使用邮箱验证码登录",
     oauthLoginShow: "使用第三方账号登录",
     disabledTitle: "当前没有可用的登录方式",
-    disabledBody: "平台已关闭邮箱验证码登录，且没有开启或配置可用的第三方登录。",
+    disabledBody:
+      "平台已关闭邮箱验证码登录，且没有开启或配置可用的第三方登录。",
     contactAdmin: "请联系平台管理员恢复登录方式。",
   },
   register: {
@@ -748,12 +756,14 @@ const zh = {
     renew: "续费套餐",
     renewPermanentHint: "永久套餐无需续期。",
     upgradeTitle: "升级套餐",
-    upgradeHint: "升级后从支付时刻起按新套餐时长重新计算到期时间，当前套餐之外的能力以新套餐为准。",
+    upgradeHint:
+      "升级后从支付时刻起按新套餐时长重新计算到期时间，当前套餐之外的能力以新套餐为准。",
     noUpgradePackages: "没有可升级的公开套餐。",
     payUpgrade: "支付并升级",
     upgraded: "套餐已升级。",
     renewTitle: "续费套餐",
-    renewHint: "续费按当前套餐时长延长授权；支付失败时订单会保留在订单页，可以稍后继续支付。",
+    renewHint:
+      "续费按当前套餐时长延长授权；支付失败时订单会保留在订单页，可以稍后继续支付。",
     renewTo: "续费后到期",
     payRenew: "支付并续费",
     renewed: "套餐已续期。",
@@ -843,8 +853,7 @@ const zh = {
     enableDescription: "启用后租户成员恢复访问，之前的授权与数据保持不变。",
     enableHint: "确认启用租户「{{name}}」？成员可以立即恢复访问。",
     reason: "停用原因",
-    reasonPlaceholder:
-      "说明停用原因，例如：欠费、违规使用、租户申请暂停",
+    reasonPlaceholder: "说明停用原因，例如：欠费、违规使用、租户申请暂停",
     reasonHint: "1-500 字，后端会邮件通知租户负责人。",
     reasonCount: "{{count}}/{{max}}",
     reasonInvalid: "请填写 1-{{max}} 字的停用原因。",
@@ -1070,8 +1079,7 @@ const zh = {
     systemAdminDescription:
       "可以查看和管理平台用户，但不能授权其他系统管理员。",
     systemReadonlyDescription: "可以查看平台全部信息，但不能修改任何配置。",
-    normalUserDescription:
-      "只能访问被加入的租户，按租户角色授予权限。",
+    normalUserDescription: "只能访问被加入的租户，按租户角色授予权限。",
     normalUser: "普通用户",
   },
   member: {
@@ -1197,8 +1205,7 @@ const zh = {
       selectMenu: "勾选 {{menu}} 菜单权限",
       menuHint:
         "功能权限按菜单归类：勾选菜单默认拥有该菜单的读权限；菜单下的写、删除、执行权限按需勾选，菜单未勾选时不可用。",
-      scopeHint:
-        "你只能配置自己当前拥有的权限；超出范围的权限不会出现在这里。",
+      scopeHint: "你只能配置自己当前拥有的权限；超出范围的权限不会出现在这里。",
       beyondOwn: "不能授予超出自己权限范围的角色权限。",
       menuOff: "未启用",
       menuCount: "{{count}} 个菜单",
@@ -1272,8 +1279,7 @@ const zh = {
     notificationGroupsEmpty: "没有可用的通知组",
     notificationGroupsTooMany: "最多绑定 20 个通知组",
     notificationGroupsUnbound: "未绑定",
-    noNotificationGroupsHint:
-      "未绑定通知组：事件仍会记录，但不会通知任何人。",
+    noNotificationGroupsHint: "未绑定通知组：事件仍会记录，但不会通知任何人。",
     labels: "标签",
     addLabel: "添加标签",
     labelKeyPlaceholder: "标签键",
@@ -1581,8 +1587,7 @@ const zh = {
     method: "请求方法",
     expectStatus: "期望状态码",
     expectStatusHint: "支持单值、区间与列表：200、200-299、200,204,301。",
-    expectStatusInvalid:
-      "请填写有效的状态码、区间或逗号分隔列表（100 到 599）",
+    expectStatusInvalid: "请填写有效的状态码、区间或逗号分隔列表（100 到 599）",
     timeoutMs: "超时（毫秒）",
     timeoutConnect: "连接超时（毫秒）",
     timeoutConnectHint: "TCP 建连的最长等待时间。",
@@ -1614,8 +1619,7 @@ const zh = {
     headerNewline: "请求头名称和值不能包含换行",
     headersTooLong: "请求头 JSON 最多 8192 个字符",
     expectHeaders: "响应头断言",
-    expectHeadersHint:
-      "每个响应头必须存在，值按完整匹配正则校验；留空不校验。",
+    expectHeadersHint: "每个响应头必须存在，值按完整匹配正则校验；留空不校验。",
     addExpectHeader: "添加响应头断言",
     removeExpectHeader: "删除响应头断言",
     expectHeaderLabel: "响应头断言 {{index}}",
@@ -1626,8 +1630,7 @@ const zh = {
     expectHeaderInvalidRegex: "响应头值不是合法正则",
     expectHeadersTooLong: "响应头断言 JSON 最多 4096 个字符",
     bodyRegex: "响应体正则",
-    bodyRegexHint:
-      "响应体完整匹配正则；与响应体关键字同时配置时两者都要满足。",
+    bodyRegexHint: "响应体完整匹配正则；与响应体关键字同时配置时两者都要满足。",
     bodyRegexTooLong: "响应体正则最多 512 个字符",
     bodyRegexInvalid: "响应体正则不合法",
     icmpCount: "探测次数",
@@ -1772,8 +1775,7 @@ const zh = {
       'LogsQL 示例：_stream:{app="{{ $labels.app }}"} level:error | stats count() as value → 命中的错误日志条数',
     variableExampleEs:
       'Elasticsearch 示例：{"term":{"level":"error"}} → 时间桶内命中的错误日志条数',
-    variablesEmpty:
-      "还没有自定义变量。摘要/描述不需要额外查询时可以不配置。",
+    variablesEmpty: "还没有自定义变量。摘要/描述不需要额外查询时可以不配置。",
     addVariable: "添加变量",
     removeVariable: "删除变量",
     variableName: "变量名",
@@ -2075,8 +2077,7 @@ const zh = {
     viewPublic: "查看公开页",
     updatedAt: "更新时间",
     empty: "还没有状态页。",
-    emptyHint:
-      "新建状态页并选择要展示的探测目标组，即可生成对外公开的链接。",
+    emptyHint: "新建状态页并选择要展示的探测目标组，即可生成对外公开的链接。",
     regenerateAction: "重新生成链接",
     regenerateTitle: "重新生成公开链接？",
     regenerateDescription:
@@ -2157,8 +2158,7 @@ const zh = {
     endedAt: "结束",
     empty: "该状态页暂无可展示的组件。",
     invalidTitle: "状态页不存在",
-    invalidHint:
-      "链接可能已被停用、重新生成或删除。请向分享者索取最新链接。",
+    invalidHint: "链接可能已被停用、重新生成或删除。请向分享者索取最新链接。",
     loadFailedTitle: "状态页暂时无法加载",
     loadFailedHint: "请稍后重试。",
     rateLimited: "访问过于频繁，请稍后重试。",
@@ -2486,7 +2486,8 @@ const zh = {
     deleteTitle: "删除升级策略？",
     deleteDescription:
       "删除后不再为新事件创建升级步骤；已生成但未发送的步骤会取消，且不可恢复。",
-    timelineDetail: "策略「{{policy}}」第 {{step}} 步已通知 {{channels}} 个渠道。",
+    timelineDetail:
+      "策略「{{policy}}」第 {{step}} 步已通知 {{channels}} 个渠道。",
     errors: {
       nameRequired: "请填写升级策略名称。",
       nameTooLong: "名称最多 64 个字符。",
@@ -2552,7 +2553,8 @@ const zh = {
     countHint: "{{count}} / {{max}} 对标签",
     keyRequired: "标签键不能为空",
     keyInvalid: "标签键只能包含字母、数字、点、下划线和连字符，最多 63 个字符",
-    valueInvalid: "标签值只能包含字母、数字、点、下划线和连字符，最多 63 个字符",
+    valueInvalid:
+      "标签值只能包含字母、数字、点、下划线和连字符，最多 63 个字符",
     duplicateKey: "标签键不能重复",
     tooMany: "最多 32 对标签",
   },
@@ -2767,8 +2769,7 @@ const zh = {
     pvsEmpty: "没有匹配的 PV",
     pvsEmptyHint: "当前集群没有匹配的 PV，清空名称筛选或确认存储插件已创建卷。",
     pvcsEmpty: "没有匹配的 PVC",
-    pvcsEmptyHint:
-      "当前范围内没有匹配的 PVC，切换命名空间或清空名称筛选。",
+    pvcsEmptyHint: "当前范围内没有匹配的 PVC，切换命名空间或清空名称筛选。",
     detailInfo: "详细信息",
     yaml: "YAML",
     yamlLoading: "YAML 加载中…",
@@ -3019,7 +3020,8 @@ const zh = {
     metricsBindDatasource: "指标数据源",
     metricsBindPlaceholder: "选择数据源",
     metricsBindNone: "不绑定",
-    metricsBindNoOptions: "当前租户没有可用的 Prometheus / VictoriaMetrics 数据源。",
+    metricsBindNoOptions:
+      "当前租户没有可用的 Prometheus / VictoriaMetrics 数据源。",
     metricsBindLoadFailed: "数据源加载失败",
     jobsServicesTitle: "Job 与 Service",
     jobsServicesHint: "当前命名空间范围内，按已授权区块统计",
@@ -3847,6 +3849,65 @@ const zh = {
       atLeastOne: "邮箱验证码与第三方登录至少要保留一种。",
       noPermission: "当前账号没有读取登录方式的权限。",
     },
+    email: {
+      title: "邮件服务（SMTP）",
+      description:
+        "登录验证码与邀请邮件都由这里发送；启用后使用下面填写的 SMTP，留空的字段沿用服务器配置。",
+      enabled: "使用后台配置的邮件服务",
+      enabledHint:
+        "启用后登录验证码与邀请邮件都走这里；关闭时回落到服务器环境里的 SMTP 配置。",
+      host: "SMTP 主机",
+      hostPlaceholder: "smtp.example.com",
+      port: "SMTP 端口",
+      portPlaceholder: "587",
+      portHint: "1 到 65535；留空表示沿用服务器配置。",
+      username: "用户名",
+      usernamePlaceholder: "可选，例如 no-reply@example.com",
+      password: "密码",
+      passwordHint: "密码不会回显；留空保存表示保留现有密码。",
+      passwordPlaceholder: "留空表示保留现有密码",
+      passwordEmptyPlaceholder: "填写 SMTP 密码",
+      passwordSet: "已配置",
+      clearPassword: "清空已保存的密码",
+      clearPasswordHint:
+        "保存后清除服务器上保存的 SMTP 密码，需要重新填写密码才能发信。",
+      clearPasswordNotice:
+        "保存后密码会被清空；在重新填写密码前，后台配置的邮件服务无法发信。",
+      from: "发件人地址",
+      fromPlaceholder: "Alioth <no-reply@example.com>",
+      fromHint: "支持“显示名 <地址>”写法；留空表示沿用服务器配置。",
+      save: "保存邮件服务",
+      saved: "邮件服务已保存",
+      loadFailed: "邮件服务配置加载失败。",
+      noPermission: "当前账号没有读取邮件服务的权限。",
+      hostRequired: "启用邮件服务时请填写 SMTP 主机。",
+      portInvalid: "端口必须是 1 到 65535 之间的整数。",
+      portRequired: "启用邮件服务时请填写 1 到 65535 之间的端口。",
+      fromRequired: "启用邮件服务时请填写发件人地址。",
+    },
+    oauth: {
+      title: "第三方登录（OAuth2）",
+      description:
+        "为每个来源分别填写 Client ID 与 Client Secret，并单独开关；关闭的来源不会出现在登录页，密钥留空表示保留已保存的密钥。",
+      enabled: "启用该来源",
+      enabledHint: "打开后登录页会展示该来源；各来源的开关互不影响。",
+      clientId: "Client ID",
+      clientIdPlaceholder: "填写该来源的应用 Client ID",
+      clientIdRequired: "启用该来源前请填写 Client ID。",
+      clientSecret: "Client Secret",
+      clientSecretHint: "密钥不会回显；留空保存表示保留现有密钥。",
+      clientSecretPlaceholder: "留空表示保留现有密钥",
+      clientSecretEmptyPlaceholder: "填写该来源的 Client Secret",
+      secretSet: "已配置",
+      clearSecret: "清空已保存的密钥",
+      clearSecretHint: "保存后清除该来源已保存的密钥，需要重新填写才能登录。",
+      clearSecretNotice:
+        "保存后该来源的密钥会被清空；在重新填写密钥前，无法通过该来源登录。",
+      save: "保存该来源",
+      saved: "{{name}} 登录配置已保存",
+      loadFailed: "第三方登录配置加载失败。",
+      noPermission: "当前账号没有读取第三方登录配置的权限。",
+    },
     preview: {
       title: "官网页脚预览",
       empty: "留空则官网页脚不展示该行",
@@ -3953,9 +4014,10 @@ const en = {
       createTitle: "New board",
       editTitle: "Edit board",
       panels: "Panels",
-      panelsHint: "{{count}} of {{max}} panels; the order here is the display order.",
+      panelsHint:
+        "{{count}} of {{max}} panels; the order here is the display order.",
       embedHint:
-        "Panels are loaded by the browser directly from Grafana: intranet/VPN URLs must be reachable, the certificate must be trusted, and Grafana must enable allow_embedding. An HTTPS page cannot embed an HTTP panel. See \"Troubleshoot loading\" on the board view for the full checklist.",
+        'Panels are loaded by the browser directly from Grafana: intranet/VPN URLs must be reachable, the certificate must be trusted, and Grafana must enable allow_embedding. An HTTPS page cannot embed an HTTP panel. See "Troubleshoot loading" on the board view for the full checklist.',
       addPanel: "Add panel",
       noPanels:
         "No panels yet. You can save an empty board and add panels later.",
@@ -4013,7 +4075,8 @@ const en = {
       openOriginal: "Open original",
       disabledHint: "This board is disabled and is read-only.",
       empty: "This board has no panels yet.",
-      emptyHint: "Edit the board and add Grafana panel URLs to embed them here.",
+      emptyHint:
+        "Edit the board and add Grafana panel URLs to embed them here.",
       emptyAction: "Go to the board list",
       refreshPanel: "Refresh panel",
       loadingPanel: "Loading panel…",
@@ -4146,7 +4209,8 @@ const en = {
       "The service is temporarily unavailable, possibly during an upgrade or maintenance. Try again shortly; if it persists, ask operations when it will be back.",
     forbiddenTitle: "No permission",
     forbiddenDescription: "This account cannot open this page.",
-    migrationRunning: "Another migration or import is running. Try again later.",
+    migrationRunning:
+      "Another migration or import is running. Try again later.",
     archiveKeyMismatch:
       "The archive and this environment use different ENCRYPT_KEY values, so encrypted data cannot be decrypted.",
     archiveInvalid: "The archive format is unsupported or the file is damaged.",
@@ -4213,16 +4277,20 @@ const en = {
       "This user still has namespace orders and cannot be deleted.",
     cannotChangeOwnerStatus: "The owner account status cannot be changed.",
     invalidSystemRole: "Invalid system role.",
-    ownerRoleByTransfer: "The owner role is only granted by transferring ownership.",
+    ownerRoleByTransfer:
+      "The owner role is only granted by transferring ownership.",
     namespaceRequired: "Select a namespace first.",
     namespaceDisabled: "This namespace is disabled.",
     namespaceMismatch: "The request namespace does not match the current one.",
     memberNotFound: "Member not found.",
     memberNotJoined: "This member has not joined the namespace yet.",
     memberMustAcceptInvitation: "The invitee must accept the invitation first.",
-    memberLimit: "This package has reached its member limit. Upgrade the package or remove members and try again.",
-    packageUnavailable: "This package is no longer available for purchase. Choose another package.",
-    packageInUse: "This package is already in use; choose another package to upgrade.",
+    memberLimit:
+      "This package has reached its member limit. Upgrade the package or remove members and try again.",
+    packageUnavailable:
+      "This package is no longer available for purchase. Choose another package.",
+    packageInUse:
+      "This package is already in use; choose another package to upgrade.",
     packagePermanent: "A permanent package does not need renewal.",
     namespaceGone: "The namespace no longer exists or has been deleted.",
     orderNotFound: "The order does not exist.",
@@ -4244,7 +4312,8 @@ const en = {
     unsupportedDriver: "This datasource driver is not supported.",
     invalidIndexPattern: "Invalid index pattern.",
     invalidLabelMatcher: "Invalid label matcher.",
-    labelMatcherTooLong: "The label matcher may contain at most 4096 characters.",
+    labelMatcherTooLong:
+      "The label matcher may contain at most 4096 characters.",
     invalidMaintenanceWindowName: "Invalid maintenance window name.",
     invalidMaintenanceWindowTimeRange:
       "The maintenance window end time must be later than the start time.",
@@ -4272,9 +4341,16 @@ const en = {
     invalidQueryExpression: "Invalid query expression.",
     upstreamQueryFailed: "The upstream query failed.",
     invalidSmtpEndpoint: "Invalid SMTP endpoint.",
+    invalidSmtpHost: "Invalid SMTP host.",
     invalidSmtpPort: "Invalid SMTP port.",
+    invalidSmtpFrom: "Invalid sender address.",
+    invalidClientId: "Invalid client ID.",
+    invalidClientSecret: "Invalid client secret.",
+    oauthProviderNotSupported:
+      "This third-party sign-in provider is not supported.",
     invalidWebhookEndpoint: "Invalid webhook endpoint.",
-    webhookEndpointCredentials: "The webhook endpoint must not contain credentials.",
+    webhookEndpointCredentials:
+      "The webhook endpoint must not contain credentials.",
     levelInUse: "This level is in use.",
     groupHasRules: "This group still has rules.",
     invalidAlertEventStatus: "Invalid alert event status.",
@@ -4284,12 +4360,14 @@ const en = {
     remarkTooLong: "The remark is too long; shorten it and try again.",
     invalidTimeZone: "Invalid time zone.",
     invalidSuppressionFilter: "Invalid suppression filter.",
-    historyFiltersNeedHistoryView: "These filters only apply to the history view.",
+    historyFiltersNeedHistoryView:
+      "These filters only apply to the history view.",
     analysisRangeTooLong: "The analysis range must be within 30 days.",
     analysisRangeFuture: "The analysis range must not end in the future.",
     eventRangeTooLong: "The alert event range must be within 30 days.",
     rangeTooLong: "The time range must be within 30 days.",
-    focusWindowOutsideRange: "The focus window must be within the analysis range.",
+    focusWindowOutsideRange:
+      "The focus window must be within the analysis range.",
     duplicateVariableName: "Duplicate variable name.",
     emptyVariableExpr: "The variable query must not be empty.",
     invalidVariableName: "Invalid variable name.",
@@ -4305,7 +4383,8 @@ const en = {
     templateDisabled: "This template is disabled.",
     templateInUseByGroup: "This template is used by a notification group.",
     templateRequiredPerChannel: "Every channel needs a template.",
-    channelTemplateCountMismatch: "The channel and template counts do not match.",
+    channelTemplateCountMismatch:
+      "The channel and template counts do not match.",
     duplicateGroup: "Duplicate notification group.",
     groupBoundSubscription: "This group is bound to a subscription.",
     groupBoundOncall: "This group is bound to an OnCall.",
@@ -4390,7 +4469,8 @@ const en = {
       UNAUTHENTICATED: "Please sign in first.",
       FORBIDDEN: "You are not allowed to perform this action.",
       NOT_FOUND: "The requested resource was not found.",
-      CONFLICT: "This operation conflicts with existing data. Refresh and try again.",
+      CONFLICT:
+        "This operation conflicts with existing data. Refresh and try again.",
       INVALID: "The request breaks a rule. Check it and try again.",
       SERVER: "The service is temporarily unavailable. Try again later.",
     },
@@ -4779,8 +4859,7 @@ const en = {
     extraFeatures: "Extra capabilities",
     extraFeaturesHint:
       "Capabilities added beyond the package; they are granted together with it after saving.",
-    noExtraFeatures:
-      "No extra capabilities; the package defaults are used.",
+    noExtraFeatures: "No extra capabilities; the package defaults are used.",
     disableAction: "Disable",
     enableAction: "Enable",
     archiveAction: "Archive",
@@ -5193,7 +5272,8 @@ const en = {
       sharedPermissions:
         "Shared in this group (used by multiple menus, grant once)",
       alwaysMenu: "Fixed menu",
-      onlyShared: "This menu's read permission is included in the shared section.",
+      onlyShared:
+        "This menu's read permission is included in the shared section.",
       readDefault: "Default read",
       namespaceMenu: "Namespace settings",
       unclassified: "Unclassified permissions",
@@ -5554,7 +5634,8 @@ const en = {
     bulkPasteHintTcp: "One host:port per line, for example db.internal:5432.",
     bulkPasteHintIcmp: "One host name or IP per line, for example 10.0.0.12.",
     bulkPasteHintDns: "One domain per line, for example api.example.com.",
-    bulkPasteHintTls: "One host:port per line, for example api.example.com:443.",
+    bulkPasteHintTls:
+      "One host:port per line, for example api.example.com:443.",
     bulkPastePlaceholderHttp:
       "https://api.example.com/healthz\nhttps://api.example.com/ready",
     bulkPastePlaceholderTcp: "db.internal:5432\ncache.internal:6379",
@@ -5592,7 +5673,8 @@ const en = {
       "Enter a valid status code, range, or comma-separated list (100 to 599)",
     timeoutMs: "Timeout (ms)",
     timeoutConnect: "Connect timeout (ms)",
-    timeoutConnectHint: "Longest wait for the TCP connection to be established.",
+    timeoutConnectHint:
+      "Longest wait for the TCP connection to be established.",
     timeoutEcho: "Reply timeout (ms)",
     timeoutEchoHint: "Longest wait for the ICMP echo reply.",
     timeoutDns: "Resolution timeout (ms)",
@@ -5632,7 +5714,8 @@ const en = {
     expectHeaderValuePlaceholder: "Full-match regular expression",
     expectHeaderKeyRequired: "The response header name is required",
     expectHeaderNewline: "Header names and values must not contain newlines",
-    expectHeaderInvalidRegex: "The header value is not a valid regular expression",
+    expectHeaderInvalidRegex:
+      "The header value is not a valid regular expression",
     expectHeadersTooLong:
       "Header assertion JSON can be at most 4096 characters",
     bodyRegex: "Response body regex",
@@ -5653,12 +5736,12 @@ const en = {
     dnsExpectValues: "Expected values",
     dnsExpectValuesHint:
       "Comma-separated full-match regular expressions; every expression must match at least one record. Leave empty to require any record.",
-    dnsExpectValuesTooLong:
-      "Expected values can be at most 1024 characters",
+    dnsExpectValuesTooLong: "Expected values can be at most 1024 characters",
     dnsExpectValuesInvalid:
       "Expected value {{index}} is not a valid regular expression",
     dnsServer: "DNS server",
-    dnsServerHint: "Optional host:port; leave empty to use the system resolver.",
+    dnsServerHint:
+      "Optional host:port; leave empty to use the system resolver.",
     dnsServerInvalid:
       "Enter a DNS server as host:port with a port between 1 and 65535",
     dnsServerBlocked: "The DNS server must not be a reserved network address",
@@ -5810,8 +5893,7 @@ const en = {
       "Variable names must start with a letter or underscore and contain only letters, digits, and underscores (max 32 characters)",
     variableNameReserved:
       "labels, value, externalURL, and externalLabels are reserved names",
-    variableNameDuplicate:
-      "Variable names must be unique within a rule",
+    variableNameDuplicate: "Variable names must be unique within a rule",
     variableDescription: "Description",
     variableDescriptionPlaceholder: "Optional note about the variable",
     variableDescriptionTooLong:
@@ -5841,8 +5923,7 @@ const en = {
       "Variable query template is invalid; check {{ }} syntax and function calls",
     variableExprTooLong:
       "Variable query expression is limited to {{max}} characters",
-    variableCountExceeded:
-      "A rule can have at most {{max}} custom variables",
+    variableCountExceeded: "A rule can have at most {{max}} custom variables",
     variablesInvalid:
       "Variable configuration is invalid; check names, reserved names, duplicates, count, and query expressions",
     levels: "Level conditions",
@@ -6303,7 +6384,8 @@ const en = {
       timezoneInvalid:
         "Invalid time zone. Use an IANA name such as Asia/Shanghai.",
       startsAtRequired: "Enter the rotation start time.",
-      handoffHourInvalid: "The handoff hour must be an integer between 0 and 23.",
+      handoffHourInvalid:
+        "The handoff hour must be an integer between 0 and 23.",
       membersRequired: "Select at least one member.",
       membersTooMany: "Select at most 50 members.",
       membersInvalid: "The selected members are invalid.",
@@ -6562,7 +6644,8 @@ const en = {
       labelValueInvalid: "Label values must be valid regular expressions.",
       stepsRequired: "At least one escalation step is required.",
       stepsTooMany: "At most 20 escalation steps are allowed.",
-      stepsInvalid: "The escalation steps are invalid: 1 to 20 steps are allowed.",
+      stepsInvalid:
+        "The escalation steps are invalid: 1 to 20 steps are allowed.",
       delayInvalid: "The delay must be an integer between 0 and 10080 minutes.",
       delaysNotIncreasing: "Step delays must strictly increase.",
       lastStepDelay: "The last step delay must be greater than 0.",
@@ -7114,7 +7197,8 @@ const en = {
       "This tenant has no available Prometheus / VictoriaMetrics datasource.",
     metricsBindLoadFailed: "Failed to load datasources",
     jobsServicesTitle: "Jobs and services",
-    jobsServicesHint: "Within the current namespace, counted per permitted section",
+    jobsServicesHint:
+      "Within the current namespace, counted per permitted section",
     jobTotal: "Jobs",
     jobActive: "Active jobs",
     jobFailed: "Failures",
@@ -7745,7 +7829,8 @@ const en = {
       "Stream configuration data from this server into an .alioth-backup file. Keep the page open while it downloads.",
     exportAction: "Download archive",
     exporting: "Exporting…",
-    exportDone: "The archive download started: {{tables}} tables, {{rows}} rows.",
+    exportDone:
+      "The archive download started: {{tables}} tables, {{rows}} rows.",
     exportFailed: "Export failed.",
     importTitle: "Import archive",
     importDescription:
@@ -7775,7 +7860,8 @@ const en = {
       "The migration is idempotent and fills in tables, indexes, weekly partitions, and defaults. Avoid running other migrations at the same time.",
     migrateConfirmAction: "Start migration",
     stepsTitle: "Upgrade steps",
-    step1: "Export the archive from the old environment and record ENCRYPT_KEY.",
+    step1:
+      "Export the archive from the old environment and record ENCRYPT_KEY.",
     step2:
       "Deploy the new version and run the database migration here (or run the migrate Job).",
     step3:
@@ -7867,9 +7953,9 @@ const en = {
     conflictTitle: "Changed elsewhere",
     conflictBody:
       "Another administrator saved this page. Reload it before editing so you do not overwrite their changes.",
-    readOnly:
-      "You can view this page but cannot save or publish changes.",
-    homeLocked: "The home page is the site entry point and cannot be unpublished or deleted.",
+    readOnly: "You can view this page but cannot save or publish changes.",
+    homeLocked:
+      "The home page is the site entry point and cannot be unpublished or deleted.",
     field: {
       title: "Title",
       titlePlaceholder: "Page title",
@@ -7984,8 +8070,76 @@ const en = {
       oauth2Enabled: "Third-party OAuth2 sign-in",
       oauth2EnabledHint:
         "Let users sign in with a configured third-party account. When disabled, the sign-in page hides third-party entries.",
-      atLeastOne: "Keep at least one of email code or third-party sign-in enabled.",
+      atLeastOne:
+        "Keep at least one of email code or third-party sign-in enabled.",
       noPermission: "You do not have permission to read the sign-in methods.",
+    },
+    email: {
+      title: "Email service (SMTP)",
+      description:
+        "Sign-in codes and invitation emails are sent from here. When enabled, this SMTP configuration is used; fields left empty fall back to the server configuration.",
+      enabled: "Use the email service configured here",
+      enabledHint:
+        "When enabled, sign-in codes and invitation emails use this SMTP server; when disabled, the server's SMTP configuration is used instead.",
+      host: "SMTP host",
+      hostPlaceholder: "smtp.example.com",
+      port: "SMTP port",
+      portPlaceholder: "587",
+      portHint: "1 to 65535; leave empty to use the server configuration.",
+      username: "Username",
+      usernamePlaceholder: "Optional, e.g. no-reply@example.com",
+      password: "Password",
+      passwordHint:
+        "The password is never shown; leave it empty to keep the saved one.",
+      passwordPlaceholder: "Leave empty to keep the saved password",
+      passwordEmptyPlaceholder: "Enter the SMTP password",
+      passwordSet: "Configured",
+      clearPassword: "Clear the saved password",
+      clearPasswordHint:
+        "Saving clears the SMTP password stored on the server; a new password is needed to send mail.",
+      clearPasswordNotice:
+        "The password will be cleared on save; the configured email service cannot send mail until a new password is set.",
+      from: "Sender address",
+      fromPlaceholder: "Alioth <no-reply@example.com>",
+      fromHint:
+        'Supports the "Display name <address>" form; leave empty to use the server configuration.',
+      save: "Save email service",
+      saved: "Email service saved",
+      loadFailed: "Failed to load the email service configuration.",
+      noPermission:
+        "You do not have permission to read the email service configuration.",
+      hostRequired: "Enter the SMTP host to enable the email service.",
+      portInvalid: "The port must be an integer between 1 and 65535.",
+      portRequired:
+        "Enter a port between 1 and 65535 to enable the email service.",
+      fromRequired: "Enter the sender address to enable the email service.",
+    },
+    oauth: {
+      title: "Third-party sign-in (OAuth2)",
+      description:
+        "Configure each provider's Client ID and Client Secret and switch it on or off independently. Disabled providers disappear from the sign-in page; leave the secret empty to keep the saved one.",
+      enabled: "Enable this provider",
+      enabledHint:
+        "When on, this provider appears on the sign-in page; providers do not affect each other.",
+      clientId: "Client ID",
+      clientIdPlaceholder: "Enter this provider's app Client ID",
+      clientIdRequired: "Enter the Client ID before enabling this provider.",
+      clientSecret: "Client Secret",
+      clientSecretHint:
+        "The secret is never shown; leave it empty to keep the saved one.",
+      clientSecretPlaceholder: "Leave empty to keep the saved secret",
+      clientSecretEmptyPlaceholder: "Enter this provider's Client Secret",
+      secretSet: "Configured",
+      clearSecret: "Clear the saved secret",
+      clearSecretHint:
+        "Saving clears the secret stored for this provider; a new secret is required to sign in again.",
+      clearSecretNotice:
+        "The secret will be cleared on save; signing in through this provider is impossible until a new secret is set.",
+      save: "Save this provider",
+      saved: "{{name}} sign-in settings saved",
+      loadFailed: "Failed to load the third-party sign-in configuration.",
+      noPermission:
+        "You do not have permission to read the third-party sign-in configuration.",
     },
     preview: {
       title: "Public footer preview",
@@ -8006,14 +8160,12 @@ const en = {
       repositoryUrlPlaceholder: "https://github.com/aide-family/moon",
       copyrightText: "Copyright text",
       copyrightTextPlaceholder: "Alioth",
-      copyrightTextHint:
-        "Falls back to © <current year> Alioth when empty.",
+      copyrightTextHint: "Falls back to © <current year> Alioth when empty.",
       filingIcpNumber: "ICP filing number",
       filingIcpNumberPlaceholder: "ICP Filing No. 00000000-1",
       filingIcpUrl: "ICP lookup URL",
       filingIcpUrlPlaceholder: "https://beian.miit.gov.cn/",
-      filingIcpUrlHint:
-        "Falls back to the MIIT filing system when empty.",
+      filingIcpUrlHint: "Falls back to the MIIT filing system when empty.",
       filingPoliceNumber: "Police filing number",
       filingPoliceNumberPlaceholder: "Police Filing No. 00000000000000",
       filingPoliceUrl: "Police filing lookup URL",
