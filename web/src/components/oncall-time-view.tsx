@@ -5,6 +5,7 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent,
+  type ReactNode,
 } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -425,7 +426,11 @@ type OnCallTimeViewCopyKey =
   | "hourUnit"
   | "minuteUnit"
   | "empty"
+  | "failed"
   | "rangeLabel"
+  | "viewLabel"
+  | "viewAll"
+  | "viewMine"
   | "week"
   | "day"
   | "scopeLabel"
@@ -463,22 +468,51 @@ function useCopy() {
   )
 }
 
+/**
+ * 全部视角的数据状态。失败、无数据、筛选无结果与无权限必须分开：
+ * 以前把 loadError 塞进 emptyText，加载失败会被显示成「还没有配置」且没有重试。
+ */
+export type OnCallTimeViewState =
+  "ready" | "loading" | "empty" | "filtered" | "forbidden" | "failed"
+
 export interface OnCallTimeViewProps {
   /** 列表页当前的一页数据；传入后组件自己负责聚合与切换。 */
   items: NotificationOnCallItem[]
+  /** 全部视角的数据状态；省略时按 loading / items 推断。 */
+  state?: OnCallTimeViewState
+  /** 筛选无结果时回填关键词。 */
+  query?: string
+  /** 加载失败的本地化原因；省略时用通用失败文案。 */
+  errorText?: string
+  onRetry?: () => void
   loading?: boolean
   emptyText?: string
+  /** 视角：全部（周/日网格）/ 我的（页面注入的日期分组班次列表）。 */
+  view?: "all" | "mine"
+  onViewChange?: (view: "all" | "mine") => void
+  /**
+   * 「我的」视角内容由页面注入：个人班次按绝对日期轮转，
+   * 不能塞进本组件的「星期 × 小时」网格，否则会画错覆盖关系。
+   */
+  mineContent?: ReactNode
   className?: string
 }
 
 /**
- * 用法：`<OnCallTimeView items={items} loading={loading} emptyText={t("oncall.empty")} />`
+ * 用法：`<OnCallTimeView items={items} state="ready" emptyText={t("oncall.empty")} />`
  * 想默认聚焦某一个值班项时，把该单项单独渲染，或先按 uid 过滤 items 再传入。
  */
 export function OnCallTimeView({
   items,
+  state,
+  query = "",
+  errorText,
+  onRetry,
   loading = false,
   emptyText,
+  view = "all",
+  onViewChange,
+  mineContent,
   className,
 }: OnCallTimeViewProps) {
   const { t, i18n } = useTranslation()
@@ -844,24 +878,8 @@ export function OnCallTimeView({
     className
   )
 
-  if (loading) {
-    return (
-      <div className={cardClasses}>
-        <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
-      </div>
-    )
-  }
-
-  if (items.length === 0) {
-    return (
-      <div className={cardClasses}>
-        <p className="text-sm text-muted-foreground">
-          {emptyText ??
-            copy("empty")}
-        </p>
-      </div>
-    )
-  }
+  const viewState: OnCallTimeViewState =
+    state ?? (loading ? "loading" : items.length === 0 ? "empty" : "ready")
 
   const gridTemplate = "3.5rem repeat(24, minmax(0, 1fr))"
   const hoverBucket = hover
@@ -873,98 +891,173 @@ export function OnCallTimeView({
   const singleDisabled =
     scope !== "ALL" && scopeItems.every((item) => item.status !== "ACTIVE")
 
-  return (
-    <div className={cardClasses}>
-      {/* 工具栏：先定范围，再定值班项；图例放在图下面，避免遮挡数据。 */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div
-          role="group"
-          aria-label={copy("rangeLabel")}
-          className="inline-flex items-center gap-0.5 rounded-lg border bg-muted/40 p-0.5"
+  // 工具栏：视角与范围是两个独立控件；切换视角不重置范围、值班项等筛选。
+  const toolbar = (
+    <div className="flex flex-wrap items-center gap-2">
+      <div
+        role="group"
+        aria-label={copy("viewLabel")}
+        className="inline-flex items-center gap-0.5 rounded-lg border bg-muted/40 p-0.5"
+      >
+        <Button
+          size="xs"
+          variant={view === "all" ? "secondary" : "ghost"}
+          aria-pressed={view === "all"}
+          onClick={() => onViewChange?.("all")}
         >
-          <Button
-            size="xs"
-            variant={range === "week" ? "secondary" : "ghost"}
-            aria-pressed={range === "week"}
-            onClick={() => changeRange("week")}
-          >
-            {copy("week")}
-          </Button>
-          <Button
-            size="xs"
-            variant={range === "day" ? "secondary" : "ghost"}
-            aria-pressed={range === "day"}
-            onClick={() => changeRange("day")}
-          >
-            {copy("day")}
-          </Button>
-        </div>
-
-        <Select value={scope} onValueChange={setScopeUid}>
-          <SelectTrigger
-            size="sm"
-            className="min-w-40"
-            aria-label={copy("scopeLabel")}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">
-              {copy("scopeAll")}
-            </SelectItem>
-            {items.map((item) => (
-              <SelectItem key={item.uid} value={item.uid}>
-                {item.status === "ACTIVE"
-                  ? item.name
-                  : `${item.name}（${copy("disabled")}）`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {range === "day" ? (
-          <div
-            role="group"
-            aria-label={copy("dayLabel")}
-            className="inline-flex flex-wrap items-center gap-0.5 rounded-lg border bg-muted/40 p-0.5"
-          >
-            {WEEK.map((index) => (
-              <Button
-                key={index}
-                size="xs"
-                variant={day === index ? "secondary" : "ghost"}
-                aria-pressed={day === index}
-                onClick={() => changeDay(index)}
-              >
-                {weekdayName(index)}
-              </Button>
-            ))}
-          </div>
-        ) : null}
-
-        {scope === "ALL" && disabledCount > 0 ? (
-          <Button
-            size="xs"
-            variant={includeDisabled ? "secondary" : "outline"}
-            aria-pressed={includeDisabled}
-            onClick={() => setIncludeDisabled((current) => !current)}
-          >
-            {copy("includeDisabled", { count: disabledCount })}
-          </Button>
-        ) : null}
-
-        <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <span>
-            {timezones.length === 1
-              ? copy("timezone", { zone: timezones[0] })
-              : copy("timezoneMixed")}
-          </span>
-          <span className="font-mono">
-            {copy("coverageSummary", { covered: formatHours(coveredMinutes) })}
-          </span>
-        </div>
+          {copy("viewAll")}
+        </Button>
+        <Button
+          size="xs"
+          variant={view === "mine" ? "secondary" : "ghost"}
+          aria-pressed={view === "mine"}
+          onClick={() => onViewChange?.("mine")}
+        >
+          {copy("viewMine")}
+        </Button>
       </div>
 
+      {viewState === "ready" && view === "all" ? (
+        <>
+          <div
+            role="group"
+            aria-label={copy("rangeLabel")}
+            className="inline-flex items-center gap-0.5 rounded-lg border bg-muted/40 p-0.5"
+          >
+            <Button
+              size="xs"
+              variant={range === "week" ? "secondary" : "ghost"}
+              aria-pressed={range === "week"}
+              onClick={() => changeRange("week")}
+            >
+              {copy("week")}
+            </Button>
+            <Button
+              size="xs"
+              variant={range === "day" ? "secondary" : "ghost"}
+              aria-pressed={range === "day"}
+              onClick={() => changeRange("day")}
+            >
+              {copy("day")}
+            </Button>
+          </div>
+
+          <Select value={scope} onValueChange={setScopeUid}>
+            <SelectTrigger
+              size="sm"
+              className="min-w-40"
+              aria-label={copy("scopeLabel")}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">{copy("scopeAll")}</SelectItem>
+              {items.map((item) => (
+                <SelectItem key={item.uid} value={item.uid}>
+                  {item.status === "ACTIVE"
+                    ? item.name
+                    : `${item.name}（${copy("disabled")}）`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {range === "day" ? (
+            <div
+              role="group"
+              aria-label={copy("dayLabel")}
+              className="inline-flex flex-wrap items-center gap-0.5 rounded-lg border bg-muted/40 p-0.5"
+            >
+              {WEEK.map((index) => (
+                <Button
+                  key={index}
+                  size="xs"
+                  variant={day === index ? "secondary" : "ghost"}
+                  aria-pressed={day === index}
+                  onClick={() => changeDay(index)}
+                >
+                  {weekdayName(index)}
+                </Button>
+              ))}
+            </div>
+          ) : null}
+
+          {scope === "ALL" && disabledCount > 0 ? (
+            <Button
+              size="xs"
+              variant={includeDisabled ? "secondary" : "outline"}
+              aria-pressed={includeDisabled}
+              onClick={() => setIncludeDisabled((current) => !current)}
+            >
+              {copy("includeDisabled", { count: disabledCount })}
+            </Button>
+          ) : null}
+
+          <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span>
+              {timezones.length === 1
+                ? copy("timezone", { zone: timezones[0] })
+                : copy("timezoneMixed")}
+            </span>
+            <span className="font-mono">
+              {copy("coverageSummary", { covered: formatHours(coveredMinutes) })}
+            </span>
+          </div>
+        </>
+      ) : null}
+    </div>
+  )
+
+  if (view === "mine" && viewState !== "forbidden") {
+    return (
+      <div className={cardClasses}>
+        {toolbar}
+        {mineContent}
+      </div>
+    )
+  }
+
+  if (viewState !== "ready") {
+    return (
+      <div className={cardClasses}>
+        {toolbar}
+        <div className="flex min-w-0 flex-col gap-2">
+          {viewState === "failed" ? (
+            <div className="flex flex-wrap items-center gap-2" role="alert">
+              <p className="text-sm text-destructive">
+                {errorText || copy("failed")}
+              </p>
+              {onRetry ? (
+                <Button variant="outline" size="sm" onClick={onRetry}>
+                  {t("action.retry")}
+                </Button>
+              ) : null}
+            </div>
+          ) : viewState === "loading" ? (
+            <p className="text-sm text-muted-foreground">
+              {t("state.loading")}
+            </p>
+          ) : viewState === "forbidden" ? (
+            <p className="text-sm text-muted-foreground">
+              {t("oncall.noPermission")}
+            </p>
+          ) : viewState === "filtered" ? (
+            <p className="text-sm text-muted-foreground">
+              {t("oncall.emptyFiltered", { query })}
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {emptyText ?? copy("empty")}
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={cardClasses}>
+      {toolbar}
       {timezones.length > 1 ? (
         <p className="rounded-md border border-warning-border bg-warning-soft px-2.5 py-1.5 text-xs text-warning">
           {copy("mixedTimezoneHint", { zones: timezones.join(zoneSeparator) })}

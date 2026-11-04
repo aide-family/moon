@@ -84,3 +84,26 @@ export interface OnCallRotationScheduleParams {
   /** 展示未来多少天，1–30；不传按后端默认 14 天。 */
   days?: number
 }
+
+/** 「我的班次」：当前用户在某个轮换里的一段排班。 */
+export interface MyOnCallShiftItem {
+  rotationUid: string
+  rotationName: string
+  /** 轮换的 IANA 时区名；前端按浏览器本地时间换算并注明。 */
+  timezone: string
+  /** 班次开始时间，RFC3339。 */
+  startAt: string
+  /** 班次结束时间，RFC3339。 */
+  endAt: string
+  /** 该班次是否包含当前时刻。 */
+  current: boolean
+}
+
+export interface ListMyShiftsParams {
+  /** 展示未来多少天，0–30；0 或缺省按后端默认 14 天。 */
+  days?: number
+}
+
+export interface ListMyShiftsResult {
+  items: MyOnCallShiftItem[]
+}

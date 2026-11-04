@@ -1,6 +1,8 @@
 import { del, get, post, put } from "@/api/http"
 
 import type {
+  ListMyShiftsParams,
+  ListMyShiftsResult,
   ListOnCallRotationsParams,
   ListOnCallRotationsResult,
   OnCallRotationItem,
@@ -72,9 +74,21 @@ export function getOnCallRotationSchedule(
   )
 }
 
+/** GET /v1/oncall-rotations/my-shifts?days=14：当前用户自己的未来班次。 */
+export function listMyShifts(
+  params: ListMyShiftsParams = {}
+): Promise<ListMyShiftsResult> {
+  return get<ListMyShiftsResult>("/oncall-rotations/my-shifts", {
+    days: params.days,
+  })
+}
+
 export type {
+  ListMyShiftsParams,
+  ListMyShiftsResult,
   ListOnCallRotationsParams,
   ListOnCallRotationsResult,
+  MyOnCallShiftItem,
   OnCallRotationItem,
   OnCallRotationMemberInput,
   OnCallRotationMemberItem,

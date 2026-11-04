@@ -10,8 +10,11 @@ import { selectDatasources } from "@/api/datasource"
 import type { SelectItem as DatasourceOption } from "@/api/datasource/types"
 import { selectNotificationGroups } from "@/api/notification-group"
 import type { SelectItem as GroupOption } from "@/api/notification-group/types"
-import { listOnCallRotations } from "@/api/oncall-rotation"
-import type { OnCallRotationItem } from "@/api/oncall-rotation/types"
+import { listOnCallRotations, listMyShifts } from "@/api/oncall-rotation"
+import type {
+  MyOnCallShiftItem,
+  OnCallRotationItem,
+} from "@/api/oncall-rotation/types"
 import {
   createNotificationOnCall,
   deleteNotificationOnCall,
@@ -33,7 +36,11 @@ import { FormField } from "@/components/form-field"
 import { LabelTags } from "@/components/label-tags"
 import { ListFrame } from "@/components/list-frame"
 import { MultiSelect } from "@/components/multi-select"
-import { OnCallTimeView } from "@/components/oncall-time-view"
+import { OnCallMyShifts } from "@/components/oncall-my-shifts"
+import {
+  OnCallTimeView,
+  type OnCallTimeViewState,
+} from "@/components/oncall-time-view"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { LevelBadge, StatusBadge } from "@/components/status-badge"
@@ -105,6 +112,9 @@ const ROTATION_NONE = "NONE"
 
 // 时间视图要一次看全所有值班项，不能只拿列表当前页；接口上限是 100。
 const TIME_VIEW_PAGE_SIZE = 100
+
+// 「我的」视角展示未来多少天的个人班次，与后端缺省值一致。
+const MY_SHIFTS_DAYS = 14
 
 // 常见 IANA 时区，仅作为输入建议；后端仍会校验时区是否合法。
 const TIMEZONE_OPTIONS = [
@@ -266,13 +276,36 @@ export function NotificationOnCallPage() {
     item: NotificationOnCallItem
   } | null>(null)
   const [confirmError, setConfirmError] = useState("")
+  // 「我的」视角的班次请求：按签名缓存结果，加载态由签名比较派生，不在 effect 里同步改状态。
+  const [myShiftsAttempt, setMyShiftsAttempt] = useState(0)
+  const [myShifts, setMyShifts] = useState<{
+    key: string
+    shifts: MyOnCallShiftItem[]
+    failed: boolean
+  } | null>(null)
   const canWrite = session.can("notification_oncall:write")
+  const canRead = session.can("notification_oncall:read")
   // 值班轮换是可选绑定：没有 notification_rotation:read 时不展示下拉，只回显已有名称。
   const canReadRotation = session.can("notification_rotation:read")
   // 列表与时间视图是同一份数据（同一套筛选），只是呈现方式不同。
   // 时间视图是默认视图，URL 只记录非默认的列表视图（?tab=list），地址栏保持干净。
   const [searchParams, setSearchParams] = useSearchParams()
   const view = searchParams.get("tab") === "list" ? "list" : "time"
+  // 时间视图「全部 / 我的」视角独立于周/日范围与其他筛选，单独写进 URL（?view=mine）。
+  const timeView: "all" | "mine" =
+    searchParams.get("view") === "mine" ? "mine" : "all"
+  function setTimeView(next: "all" | "mine") {
+    const params = new URLSearchParams(searchParams)
+    if (next === "mine") {
+      params.set("view", "mine")
+    } else {
+      params.delete("view")
+    }
+    if (params.toString() === window.location.search.replace(/^\?/, "")) {
+      return
+    }
+    setSearchParams(params)
+  }
   function setView(next: "list" | "time") {
     const params = new URLSearchParams(searchParams)
     if (next === "list") {
@@ -300,11 +333,61 @@ export function NotificationOnCallPage() {
     page: view === "time" ? 1 : query.page,
     pageSize: view === "time" ? TIME_VIEW_PAGE_SIZE : query.pageSize,
     filterKey: `${session.namespaceUid}|${query.name}`,
+    // 没有读权限时不发请求，由页面直接渲染「无权限」态，避免 403 跳走。
+    enabled: canRead,
     fetch: (page, pageSize) =>
       listNotificationOnCalls({ page, pageSize, name: query.name }),
   })
 
+  // 「我的」班次只在切到该视角且可读时请求；失败保留独立重试入口，不复用全部视角的状态。
+  const myShiftsKey =
+    view === "time" && timeView === "mine" && canRead
+      ? `${session.namespaceUid}:${myShiftsAttempt}`
+      : ""
   useEffect(() => {
+    if (!myShiftsKey) {
+      return
+    }
+    let active = true
+    listMyShifts({ days: MY_SHIFTS_DAYS })
+      .then((result) => {
+        if (active) {
+          setMyShifts({
+            key: myShiftsKey,
+            shifts: result.items ?? [],
+            failed: false,
+          })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setMyShifts({ key: myShiftsKey, shifts: [], failed: true })
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [myShiftsKey])
+  const myShiftsLoading = myShiftsKey !== "" && myShifts?.key !== myShiftsKey
+
+  // 四态分开：无数据、筛选无结果、无权限、加载失败各自有独立文案与操作。
+  const readDenied = !session.loading && !canRead
+  let timeViewState: OnCallTimeViewState = "ready"
+  if (readDenied) {
+    timeViewState = "forbidden"
+  } else if (session.loading || loading) {
+    timeViewState = "loading"
+  } else if (failed) {
+    timeViewState = "failed"
+  } else if (items.length === 0) {
+    timeViewState = query.name !== "" ? "filtered" : "empty"
+  }
+
+  useEffect(() => {
+    // 没有 OnCall 读取权限时页面直接渲染无权限态，不再预热表单候选数据。
+    if (!canRead) {
+      return
+    }
     let active = true
     void Promise.all([
       loadAllSelectItems(
@@ -348,12 +431,12 @@ export function NotificationOnCallPage() {
     return () => {
       active = false
     }
-  }, [session.namespaceUid])
+  }, [session.namespaceUid, canRead])
 
   // 值班轮换候选：能看轮换才加载；没有权限时绑定关系仍然通过详情字段回显。
   useEffect(() => {
     // 没有轮换查看权限时不请求；下拉本来就不渲染，不需要额外清空已加载的选项。
-    if (!canReadRotation) {
+    if (!canReadRotation || !canRead) {
       return
     }
     let active = true
@@ -373,7 +456,7 @@ export function NotificationOnCallPage() {
     return () => {
       active = false
     }
-  }, [session.namespaceUid, canReadRotation])
+  }, [session.namespaceUid, canReadRotation, canRead])
 
   function toggle(values: string[], uid: string): string[] {
     return values.includes(uid)
@@ -913,7 +996,9 @@ export function NotificationOnCallPage() {
       {view === "time" ? (
         // app shell 是 h-svh overflow-hidden：这里必须是唯一纵向滚动 owner。
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
-          {!loading && !failed && total > items.length ? (
+          {timeView === "all" &&
+          timeViewState === "ready" &&
+          total > items.length ? (
             <p className="text-xs text-muted-foreground">
               {t("oncall.timeViewTruncated", {
                 shown: items.length,
@@ -923,9 +1008,28 @@ export function NotificationOnCallPage() {
           ) : null}
           <OnCallTimeView
             items={items}
-            loading={loading}
-            emptyText={
-              failed ? loadError || t("state.failed") : t("oncall.empty")
+            state={timeViewState}
+            query={query.name}
+            errorText={loadError || t("state.failed")}
+            onRetry={reload}
+            emptyText={t("oncall.empty")}
+            view={timeView}
+            onViewChange={setTimeView}
+            mineContent={
+              <OnCallMyShifts
+                shifts={
+                  myShifts?.key === myShiftsKey ? (myShifts?.shifts ?? []) : []
+                }
+                days={MY_SHIFTS_DAYS}
+                loading={session.loading || myShiftsLoading}
+                failed={
+                  myShifts?.key === myShiftsKey && Boolean(myShifts?.failed)
+                }
+                onRetry={() => {
+                  setMyShifts(null)
+                  setMyShiftsAttempt((value) => value + 1)
+                }}
+              />
             }
           />
         </div>
@@ -934,16 +1038,21 @@ export function NotificationOnCallPage() {
           total={total}
           page={query.page}
           pageSize={query.pageSize}
-          showPager={!loading && !failed && items.length > 0}
+          showPager={!readDenied && !loading && !failed && items.length > 0}
           onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
           onNext={() => query.update({ page: query.page + 1 })}
         >
-          {loading ? (
+          {readDenied ? (
+            <p className="text-sm text-muted-foreground">
+              {t("oncall.noPermission")}
+            </p>
+          ) : null}
+          {!readDenied && loading ? (
             <p className="text-sm text-muted-foreground">
               {t("state.loading")}
             </p>
           ) : null}
-          {!loading && failed ? (
+          {!readDenied && !loading && failed ? (
             <div className="flex items-center gap-2">
               <p className="text-sm text-destructive">
                 {loadError || t("state.failed")}
@@ -953,8 +1062,12 @@ export function NotificationOnCallPage() {
               </Button>
             </div>
           ) : null}
-          {!loading && !failed && items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("oncall.empty")}</p>
+          {!readDenied && !loading && !failed && items.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {query.name !== ""
+                ? t("oncall.emptyFiltered", { query: query.name })
+                : t("oncall.empty")}
+            </p>
           ) : null}
           {!loading && !failed && items.length > 0 ? (
             <Table className={TABLE_MIN_WIDTH.default}>

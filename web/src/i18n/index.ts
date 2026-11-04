@@ -491,7 +491,11 @@ const zh = {
     hourUnit: "小时",
     minuteUnit: "分",
     empty: "还没有值班项，无法绘制时间视图。",
+    failed: "值班视图加载失败。",
     rangeLabel: "时间范围",
+    viewLabel: "值班视角",
+    viewAll: "全部",
+    viewMine: "我的",
     week: "周视图",
     day: "日视图",
     scopeLabel: "值班项",
@@ -522,6 +526,17 @@ const zh = {
     gapMore: "还有 {{count}} 段未列出",
     screenReaderSummary:
       "本周共 {{total}}，覆盖 {{covered}}，空档 {{count}} 段共 {{duration}}。",
+  },
+
+  myShifts: {
+    title: "我的班次",
+    days: "未来 {{days}} 天",
+    empty: "你当前没有值班安排。",
+    goRotations: "去值班轮换",
+    nextDay: "次日",
+    dayOffset: "{{days}} 天后",
+    localZone: "本地时间（{{zone}}）",
+    failed: "班次加载失败。",
   },
 
   multiSelect: {
@@ -2308,6 +2323,8 @@ const zh = {
     windowTimeRequired: "每个时段都要填写开始和结束时间。",
     sameTime: "开始时间和结束时间不能相同；全天候请留空时段。",
     empty: "还没有 OnCall 值班配置。",
+    emptyFiltered: "没有匹配「{{query}}」的 OnCall 配置。",
+    noPermission: "当前账号没有查看 OnCall 值班配置的权限，请联系租户管理员。",
     remark: "备注",
     remarkPlaceholder: "可选备注",
     createdAt: "创建时间",
@@ -4389,7 +4406,11 @@ const en = {
     hourUnit: "h",
     minuteUnit: "m",
     empty: "No on-call entries yet, nothing to plot.",
+    failed: "Could not load the on-call view.",
     rangeLabel: "Time range",
+    viewLabel: "On-call scope",
+    viewAll: "All",
+    viewMine: "Mine",
     week: "Week",
     day: "Day",
     scopeLabel: "On-call entry",
@@ -4421,6 +4442,17 @@ const en = {
     gapMore: "{{count}} more not listed",
     screenReaderSummary:
       "Week total {{total}}, covered {{covered}}, {{count}} gap(s) totaling {{duration}}.",
+  },
+
+  myShifts: {
+    title: "My shifts",
+    days: "Next {{days}} days",
+    empty: "You have no on-call shifts scheduled.",
+    goRotations: "Go to on-call rotations",
+    nextDay: "next day",
+    dayOffset: "in {{days}} days",
+    localZone: "Local time ({{zone}})",
+    failed: "Could not load your shifts.",
   },
 
   multiSelect: {
@@ -6350,6 +6382,9 @@ const en = {
     sameTime:
       "Start and end time cannot be equal. Leave the windows empty for all-day delivery.",
     empty: "No on-call configurations yet.",
+    emptyFiltered: "No OnCall configuration matches “{{query}}”.",
+    noPermission:
+      "This account cannot view OnCall configurations. Ask a tenant administrator for the read permission.",
     remark: "Remark",
     remarkPlaceholder: "Optional remark",
     createdAt: "Created at",
