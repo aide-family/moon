@@ -19,6 +19,12 @@ import { FeatureIcon } from "./feature-icons"
 /** 版式固定 6 张卡；后端也按 6 张校验。 */
 const MAX_FEATURES = 6
 
+/** 官网固定槽位用的产品截图（后台没填图时兜底）。 */
+const HERO_FALLBACK = "/site/overview.webp"
+const HOW_SHOT = "/site/alert-rules.webp"
+const PERM_SHOT = "/site/alerts.webp"
+const DEPLOY_SHOT = "/site/oncall.webp"
+
 /** 后端字段可能整段为空：空字符串表示「用前端默认文案」。 */
 const EMPTY_HOME: SiteHomeContent = {
   locale: "",
@@ -87,50 +93,50 @@ function SecondaryCta({ label, href }: { label: string; href: string }) {
   )
 }
 
-/** Hero 主视觉：有图用 4:3 截图框，没图用品牌淡底 + logo 占位，两种都不塌尺寸。 */
-function HeroVisual({
-  imageUrl,
-  logoUrl,
-  siteName,
+/**
+ * 产品截图固定槽位：16:10 比例容器 + 细描边 + 卡片衬底。
+ *
+ * - 比例放在内层容器上，图片没加载完或加载失败时版式也不塌；
+ * - 深色模式下截图本身是浅色，所以截图落在 `bg-card` + 描边里，和页面底色分开；
+ * - 截图是装饰性产品图，alt 留空。
+ */
+function ScreenshotFrame({
+  src,
+  priority = false,
+  className,
 }: {
-  imageUrl: string
-  logoUrl: string
-  siteName: string
+  src: string
+  priority?: boolean
+  className?: string
 }) {
-  if (imageUrl) {
-    return (
-      <div className="overflow-hidden rounded-[22px] border border-border/60 bg-card">
-        <img
-          src={imageUrl}
-          alt=""
-          className="aspect-[4/3] w-full object-cover"
-        />
-      </div>
-    )
-  }
   return (
     <div
-      aria-hidden="true"
-      className="grid aspect-[4/3] w-full place-items-center overflow-hidden rounded-[22px] border border-border/60 bg-primary-soft"
+      className={cn(
+        "min-w-0 overflow-hidden rounded-[22px] border border-border bg-card p-1.5 sm:p-2",
+        className
+      )}
     >
-      <div className="flex flex-col items-center gap-3 text-primary-ink">
-        <img src={logoUrl} alt="" className="size-16 rounded-2xl" />
-        <span className="font-mono text-meta tracking-[0.16em] uppercase">
-          {siteName}
-        </span>
+      <div className="aspect-[16/10] w-full overflow-hidden rounded-[16px] bg-muted">
+        <img
+          src={src}
+          alt=""
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
+          decoding="async"
+          className="size-full object-cover"
+        />
       </div>
     </div>
   )
 }
 
+/** Hero：文字居中堆叠，CTA 行在上，产品截图固定槽位在下。 */
 function HeroSection({
   home,
   siteName,
-  logoUrl,
 }: {
   home: SiteHomeContent
   siteName: string
-  logoUrl: string
 }) {
   const { t } = useTranslation()
   const heroTitle = home.heroTitle.trim() || t("site.landing.heroTitleDefault")
@@ -142,34 +148,36 @@ function HeroSection({
   const secondaryHref = home.ctaSecondaryHref.trim()
   const showSecondary =
     secondaryLabel !== "" && secondaryHref !== "" && isInSiteHref(secondaryHref)
+  const heroImage = home.heroImageUrl.trim() || HERO_FALLBACK
 
   return (
     <section
       id="site-hero"
       aria-labelledby="site-hero-title"
-      className="grid scroll-mt-[88px] items-center gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16"
+      className="flex scroll-mt-[88px] flex-col items-center text-center"
     >
-      <div className="min-w-0">
-        <p className="font-mono text-meta tracking-[0.16em] text-muted-foreground uppercase">
-          {siteName}
-        </p>
-        <h1 id="site-hero-title" className="mt-4 text-display-1 break-words">
-          {heroTitle}
-        </h1>
-        <p className="mt-5 max-w-[34em] text-lead break-words text-muted-foreground">
-          {heroSubtitle}
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <PrimaryCta label={primaryLabel} />
-          {showSecondary ? (
-            <SecondaryCta label={secondaryLabel} href={secondaryHref} />
-          ) : null}
-        </div>
+      <p className="font-mono text-meta tracking-[0.16em] text-muted-foreground uppercase">
+        {siteName}
+      </p>
+      <h1
+        id="site-hero-title"
+        className="mt-4 max-w-[8em] text-display-1 break-words"
+      >
+        {heroTitle}
+      </h1>
+      <p className="mt-5 max-w-[42rem] text-lead break-words text-muted-foreground">
+        {heroSubtitle}
+      </p>
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <PrimaryCta label={primaryLabel} />
+        {showSecondary ? (
+          <SecondaryCta label={secondaryLabel} href={secondaryHref} />
+        ) : null}
       </div>
-      <HeroVisual
-        imageUrl={home.heroImageUrl.trim()}
-        logoUrl={logoUrl}
-        siteName={siteName}
+      <ScreenshotFrame
+        src={heroImage}
+        priority
+        className="mt-12 w-full sm:mt-16"
       />
     </section>
   )
@@ -208,7 +216,7 @@ function FeaturesSection({
         {features.slice(0, MAX_FEATURES).map((feature) => (
           <li
             key={feature.uid}
-            className="min-w-0 rounded-[18px] border border-border/60 bg-card p-6"
+            className="min-w-0 rounded-[18px] border border-border/70 bg-card p-7 md:p-8"
           >
             <span
               aria-hidden="true"
@@ -216,10 +224,10 @@ function FeaturesSection({
             >
               <FeatureIcon iconKey={feature.iconKey} />
             </span>
-            <p className="mt-4 font-heading text-base font-semibold break-words">
+            <p className="mt-5 font-heading text-base font-semibold tracking-[0.01em] break-words">
               {feature.title}
             </p>
-            <p className="mt-2 text-body break-words text-muted-foreground">
+            <p className="mt-2.5 text-body leading-relaxed break-words text-muted-foreground">
               {feature.description}
             </p>
           </li>
@@ -229,23 +237,28 @@ function FeaturesSection({
   )
 }
 
-/** ③④⑤ 共用骨架：左侧 5 列标题与说明，右侧 7 列固定结构；移动单列。 */
+/**
+ * ③④⑤ 共用骨架：左侧 5 列标题、说明与固定结构，右侧 7 列产品截图。
+ * 移动端单列，截图排在文字与结构之后。
+ */
 function SplitSection({
   id,
   title,
   body,
+  screenshot,
   children,
 }: {
   id: string
   title: string
   body: string
+  screenshot: string
   children: ReactNode
 }) {
   return (
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="grid scroll-mt-[88px] gap-6 border-t border-border/60 pt-10 md:pt-12 lg:grid-cols-12 lg:gap-12"
+      className="grid scroll-mt-[88px] gap-8 border-t border-border/60 pt-10 md:pt-12 lg:grid-cols-12 lg:gap-12"
     >
       <div className="min-w-0 lg:col-span-5">
         <h2 id={`${id}-title`} className="text-section">
@@ -254,8 +267,12 @@ function SplitSection({
         <p className="mt-4 max-w-[38ch] text-body break-words text-muted-foreground">
           {body}
         </p>
+        <div className="mt-6">{children}</div>
       </div>
-      <div className="min-w-0 lg:col-span-7">{children}</div>
+      <ScreenshotFrame
+        src={screenshot}
+        className="lg:col-span-7 lg:self-start"
+      />
     </section>
   )
 }
@@ -281,12 +298,13 @@ function HowSection({ home }: { home: SiteHomeContent }) {
       id="site-how"
       title={home.howTitle.trim() || t("site.landing.howTitleDefault")}
       body={home.howBody.trim() || t("site.landing.howBodyDefault")}
+      screenshot={HOW_SHOT}
     >
       <ol className="grid gap-3">
         {steps.map((step, index) => (
           <li
             key={step.title}
-            className="flex min-w-0 gap-4 rounded-[18px] border border-border/60 bg-card p-4 sm:p-5"
+            className="flex min-w-0 gap-4 rounded-[18px] border border-border/70 bg-card p-4"
           >
             <span
               aria-hidden="true"
@@ -334,12 +352,13 @@ function PermSection({ home }: { home: SiteHomeContent }) {
       id="site-permissions"
       title={home.permTitle.trim() || t("site.landing.permTitleDefault")}
       body={home.permBody.trim() || t("site.landing.permBodyDefault")}
+      screenshot={PERM_SHOT}
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         {columns.map((column) => (
           <div
             key={column.label}
-            className="min-w-0 rounded-[18px] border border-border/60 bg-card p-5"
+            className="min-w-0 rounded-[18px] border border-border/70 bg-card p-4"
           >
             <p className="font-mono text-meta tracking-[0.12em] text-muted-foreground uppercase">
               {column.label}
@@ -379,12 +398,13 @@ function DeploySection({ home }: { home: SiteHomeContent }) {
       id="site-deploy"
       title={home.deployTitle.trim() || t("site.landing.deployTitleDefault")}
       body={home.deployBody.trim() || t("site.landing.deployBodyDefault")}
+      screenshot={DEPLOY_SHOT}
     >
       <ul className="flex flex-wrap gap-2.5">
         {chips.map((chip) => (
           <li
             key={chip}
-            className="flex items-center gap-2 rounded-[10px] border border-border bg-card px-3.5 py-2 text-sm"
+            className="flex items-center gap-2 rounded-[10px] border border-border/70 bg-card px-3.5 py-2 text-sm"
           >
             <span
               aria-hidden="true"
@@ -398,9 +418,23 @@ function DeploySection({ home }: { home: SiteHomeContent }) {
   )
 }
 
-function DocNav({ items, label }: { items: SiteNavItem[]; label: string }) {
+/**
+ * 产品说明区的页面导航。
+ *
+ * 可见小标题用既有的 `site.navTitle`（“更多内容”），可访问名称用 `site.navLabel`；
+ * 不新增 i18n key，也不给这一列加 h2/h3（本节只有一个 h2）。
+ */
+function DocNav({
+  items,
+  label,
+  ariaLabel,
+}: {
+  items: SiteNavItem[]
+  label: string
+  ariaLabel: string
+}) {
   return (
-    <nav aria-label={label} className="min-w-0">
+    <nav aria-label={ariaLabel} className="min-w-0">
       <p className="font-mono text-meta tracking-[0.12em] text-muted-foreground uppercase">
         {label}
       </p>
@@ -448,7 +482,8 @@ function DocSection({
     return null
   }
   const title = home.docTitle.trim() || t("site.landing.docTitleDefault")
-  const navLabel = t("site.landing.navLabel")
+  const navLabel = t("site.navTitle")
+  const navAriaLabel = t("site.navLabel")
 
   return (
     <section
@@ -479,11 +514,17 @@ function DocSection({
         ) : null}
         {!hasBody && hasNav ? (
           <div className="mt-4 max-w-[68ch]">
-            <DocNav items={navItems} label={navLabel} />
+            <DocNav
+              items={navItems}
+              label={navLabel}
+              ariaLabel={navAriaLabel}
+            />
           </div>
         ) : null}
       </div>
-      {hasBody && hasNav ? <DocNav items={navItems} label={navLabel} /> : null}
+      {hasBody && hasNav ? (
+        <DocNav items={navItems} label={navLabel} ariaLabel={navAriaLabel} />
+      ) : null}
     </section>
   )
 }
@@ -545,7 +586,6 @@ export function SiteHomeSections({
   const { t } = useTranslation()
   const home = { ...EMPTY_HOME, ...config.home }
   const siteName = config.site.siteName.trim() || t("site.brandFallback")
-  const logoUrl = config.site.logoUrl.trim() || "/alioth.svg"
   const features = config.features ?? []
 
   return (
@@ -561,7 +601,7 @@ export function SiteHomeSections({
         tabIndex={-1}
         className="site-container site-enter grid gap-[var(--site-section-gap)] pt-10 pb-16 focus:outline-none md:pt-14 md:pb-20 lg:pt-16 lg:pb-24"
       >
-        <HeroSection home={home} siteName={siteName} logoUrl={logoUrl} />
+        <HeroSection home={home} siteName={siteName} />
         <FeaturesSection home={home} features={features} />
         <HowSection home={home} />
         <PermSection home={home} />
