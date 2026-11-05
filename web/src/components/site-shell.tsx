@@ -127,7 +127,7 @@ function TenantOption({
       onFocus={onHover}
       onClick={onSelect}
       className={cn(
-        "flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm outline-none transition-colors",
+        "flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors outline-none",
         active ? "bg-accent text-accent-foreground" : "hover:bg-muted"
       )}
     >
@@ -281,8 +281,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     if (event.key === "ArrowUp") {
       event.preventDefault()
       setHighlight(
-        (value) =>
-          (value - 1 + filteredTenants.length) % filteredTenants.length
+        (value) => (value - 1 + filteredTenants.length) % filteredTenants.length
       )
       return
     }
@@ -295,8 +294,14 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   const site = config?.site
   const year = new Date().getFullYear()
-  const copyright =
-    site?.copyrightText.trim() || siteName || t("site.brandFallback")
+  // 版权文案按「整行」处理：后台填了就直接用它（通常已经带 © 与年份），
+  // 留空才用默认的「© 年份 站点名」，避免出现「© 2026 © 2026 …」。
+  const copyrightLine =
+    site?.copyrightText.trim() ||
+    t("site.footer.copyright", {
+      year,
+      name: siteName || t("site.brandFallback"),
+    })
   const filingIcpNumber = site?.filingIcpNumber.trim() ?? ""
   const filingIcpUrl = site?.filingIcpUrl.trim() || "https://beian.miit.gov.cn/"
   const filingPoliceNumber = site?.filingPoliceNumber.trim() ?? ""
@@ -339,7 +344,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="min-w-56 max-w-[calc(100vw-1rem)]"
+        className="max-w-[calc(100vw-1rem)] min-w-56"
       >
         <DropdownMenuLabel className="px-2.5 py-2">
           <span className="block truncate text-sm font-semibold">
@@ -436,7 +441,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-8 sm:px-6">
             <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-sm">
               <p className="min-w-0 break-words text-muted-foreground">
-                {t("site.footer.copyright", { year, name: copyright })}
+                {copyrightLine}
               </p>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                 {contactEmail ? (

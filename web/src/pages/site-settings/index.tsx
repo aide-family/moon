@@ -1,5 +1,5 @@
 import { CircleAlert, Loader2, RefreshCw, Save } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Navigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -36,6 +36,17 @@ import { isEmail } from "@/lib/email"
 import { EmailSettingsCard } from "./email-settings-card"
 import { HomeContentCard } from "./home-content-card"
 import { OAuthProvidersCard } from "./oauth-providers-card"
+
+/** 设置页区块顺序；左侧快捷导航与滚动高亮共用这一份。 */
+const SECTIONS = [
+  { key: "site", labelKey: "systemSite.nav.site" },
+  { key: "login", labelKey: "systemSite.nav.login" },
+  { key: "email", labelKey: "systemSite.nav.email" },
+  { key: "oauth", labelKey: "systemSite.nav.oauth" },
+  { key: "home", labelKey: "systemSite.nav.home" },
+] as const
+
+type SectionKey = (typeof SECTIONS)[number]["key"]
 
 type SiteField = keyof SaveSiteSettingsParams
 type SiteFieldErrors = Partial<Record<SiteField, string>>
@@ -134,10 +145,15 @@ function readErrorMessage(err: unknown, fallback: string): string {
 function FooterPreview({ form }: { form: SaveSiteSettingsParams }) {
   const { t } = useTranslation()
   const year = new Date().getFullYear()
-  const copyright =
-    form.copyrightText.trim() || t("systemSite.preview.copyrightFallback")
+  // 与官网页脚同一规则：填了就是完整一行，留空才拼默认文案。
+  const copyrightLine =
+    form.copyrightText.trim() ||
+    t("site.footer.copyright", {
+      year,
+      name: t("systemSite.preview.copyrightFallback"),
+    })
   const lines = [
-    `© ${year} ${copyright}`,
+    copyrightLine,
     form.filingIcpNumber.trim(),
     form.filingPoliceNumber.trim(),
     form.filingExtraText.trim(),
@@ -191,6 +207,36 @@ export function SiteSettingsPage() {
   const [siteFieldErrors, setSiteFieldErrors] = useState<SiteFieldErrors>({})
   const [siteFormError, setSiteFormError] = useState("")
   const [loginError, setLoginError] = useState("")
+
+  // 左侧快捷导航：长表单页按区块跳转，滚动时高亮当前区块。
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [activeSection, setActiveSection] = useState<SectionKey>("site")
+  useEffect(() => {
+    const root = scrollRef.current
+    if (!root) {
+      return
+    }
+    const sync = () => {
+      const top = root.getBoundingClientRect().top
+      let current: SectionKey = SECTIONS[0].key
+      for (const section of SECTIONS) {
+        const element = document.getElementById(`site-settings-${section.key}`)
+        if (element && element.getBoundingClientRect().top - top <= 28) {
+          current = section.key
+        }
+      }
+      setActiveSection(current)
+    }
+    sync()
+    root.addEventListener("scroll", sync, { passive: true })
+    return () => root.removeEventListener("scroll", sync)
+  }, [session.loading, site])
+
+  function jumpTo(key: SectionKey) {
+    document
+      .getElementById(`site-settings-${key}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
 
   useEffect(() => {
     if (session.loading || !canRead) {
@@ -318,7 +364,10 @@ export function SiteSettingsPage() {
     // 子项必须 shrink-0 —— Card 自带 overflow-hidden，作为 flex 子项时自动最小高度
     // 会被算成 0，卡片被压扁、内容被自身的 overflow-hidden 裁掉，滚动区量不到溢出，
     // 于是页面既显示不全也滚不动（只补 flex-1 修不好，真正的原因是子项被压缩）。
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto [&>*]:shrink-0">
+    <div
+      ref={scrollRef}
+      className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto [&>*]:shrink-0"
+    >
       <PageHeader
         title={t("systemSite.title")}
         description={t("systemSite.description")}
@@ -338,405 +387,510 @@ export function SiteSettingsPage() {
         </Button>
       </PageHeader>
 
-      {initialLoading ? (
-        <div
-          className="grid gap-4"
-          aria-busy="true"
-          aria-label={t("state.loading")}
+      {/* 窄屏：横向滚动的快捷导航；宽屏：左侧粘性目录。 */}
+      <nav
+        aria-label={t("systemSite.navLabel")}
+        className="-mt-1 flex gap-2 overflow-x-auto pb-1 lg:hidden"
+      >
+        {SECTIONS.map((section) => (
+          <Button
+            key={section.key}
+            type="button"
+            size="xs"
+            variant={activeSection === section.key ? "secondary" : "outline"}
+            className="shrink-0"
+            onClick={() => jumpTo(section.key)}
+          >
+            {t(section.labelKey)}
+          </Button>
+        ))}
+      </nav>
+
+      <div className="flex min-h-0 items-start gap-6">
+        <nav
+          aria-label={t("systemSite.navLabel")}
+          className="sticky top-0 hidden w-40 shrink-0 lg:block"
         >
-          <Skeleton className="h-72 rounded-xl" />
-          <Skeleton className="h-48 rounded-xl" />
-        </div>
-      ) : failed && !site ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-            <CircleAlert
-              className="size-6 text-destructive"
-              aria-hidden="true"
-            />
-            <p className="font-medium">{t("systemSite.loadFailed")}</p>
-            <Button type="button" variant="outline" size="sm" onClick={reload}>
-              {t("action.retry")}
-            </Button>
-          </CardContent>
-        </Card>
-      ) : site ? (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("systemSite.site.title")}</CardTitle>
-              <CardDescription>
-                {t("systemSite.site.description")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form noValidate className="grid gap-4" onSubmit={onSubmitSite}>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <FormField
-                    label={t("systemSite.fields.siteName")}
-                    htmlFor="site-name"
-                    hint={t("systemSite.fields.siteNameHint")}
-                    error={siteFieldErrors.siteName}
-                  >
-                    <Input
-                      id="site-name"
-                      value={siteForm.siteName}
-                      placeholder={t("systemSite.fields.siteNamePlaceholder")}
-                      readOnly={!canWrite}
-                      aria-invalid={siteFieldErrors.siteName ? true : undefined}
-                      onChange={(event) =>
-                        updateSiteField("siteName", event.target.value)
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.contactEmail")}
-                    htmlFor="site-contact-email"
-                    error={siteFieldErrors.contactEmail}
-                  >
-                    <Input
-                      id="site-contact-email"
-                      type="email"
-                      value={siteForm.contactEmail}
-                      placeholder={t(
-                        "systemSite.fields.contactEmailPlaceholder"
-                      )}
-                      readOnly={!canWrite}
-                      aria-invalid={
-                        siteFieldErrors.contactEmail ? true : undefined
-                      }
-                      onChange={(event) =>
-                        updateSiteField("contactEmail", event.target.value)
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.logoUrl")}
-                    htmlFor="site-logo-url"
-                    error={siteFieldErrors.logoUrl}
-                  >
-                    <Input
-                      id="site-logo-url"
-                      value={siteForm.logoUrl}
-                      placeholder={t("systemSite.fields.logoUrlPlaceholder")}
-                      readOnly={!canWrite}
-                      aria-invalid={siteFieldErrors.logoUrl ? true : undefined}
-                      onChange={(event) =>
-                        updateSiteField("logoUrl", event.target.value)
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.faviconUrl")}
-                    htmlFor="site-favicon-url"
-                    error={siteFieldErrors.faviconUrl}
-                  >
-                    <Input
-                      id="site-favicon-url"
-                      value={siteForm.faviconUrl}
-                      placeholder={t("systemSite.fields.faviconUrlPlaceholder")}
-                      readOnly={!canWrite}
-                      aria-invalid={
-                        siteFieldErrors.faviconUrl ? true : undefined
-                      }
-                      onChange={(event) =>
-                        updateSiteField("faviconUrl", event.target.value)
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.repositoryUrl")}
-                    htmlFor="site-repository-url"
-                    className="sm:col-span-full"
-                    error={siteFieldErrors.repositoryUrl}
-                  >
-                    <Input
-                      id="site-repository-url"
-                      value={siteForm.repositoryUrl}
-                      placeholder={t(
-                        "systemSite.fields.repositoryUrlPlaceholder"
-                      )}
-                      readOnly={!canWrite}
-                      aria-invalid={
-                        siteFieldErrors.repositoryUrl ? true : undefined
-                      }
-                      onChange={(event) =>
-                        updateSiteField("repositoryUrl", event.target.value)
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.copyrightText")}
-                    htmlFor="site-copyright"
-                    hint={t("systemSite.fields.copyrightTextHint")}
-                    className="sm:col-span-full"
-                    error={siteFieldErrors.copyrightText}
-                  >
-                    <Input
-                      id="site-copyright"
-                      value={siteForm.copyrightText}
-                      placeholder={t(
-                        "systemSite.fields.copyrightTextPlaceholder"
-                      )}
-                      readOnly={!canWrite}
-                      aria-invalid={
-                        siteFieldErrors.copyrightText ? true : undefined
-                      }
-                      onChange={(event) =>
-                        updateSiteField("copyrightText", event.target.value)
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.filingIcpNumber")}
-                    htmlFor="site-filing-icp-number"
-                    error={siteFieldErrors.filingIcpNumber}
-                  >
-                    <Input
-                      id="site-filing-icp-number"
-                      value={siteForm.filingIcpNumber}
-                      placeholder={t(
-                        "systemSite.fields.filingIcpNumberPlaceholder"
-                      )}
-                      readOnly={!canWrite}
-                      aria-invalid={
-                        siteFieldErrors.filingIcpNumber ? true : undefined
-                      }
-                      onChange={(event) =>
-                        updateSiteField("filingIcpNumber", event.target.value)
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.filingIcpUrl")}
-                    htmlFor="site-filing-icp-url"
-                    hint={t("systemSite.fields.filingIcpUrlHint")}
-                    error={siteFieldErrors.filingIcpUrl}
-                  >
-                    <Input
-                      id="site-filing-icp-url"
-                      value={siteForm.filingIcpUrl}
-                      placeholder={t(
-                        "systemSite.fields.filingIcpUrlPlaceholder"
-                      )}
-                      readOnly={!canWrite}
-                      aria-invalid={
-                        siteFieldErrors.filingIcpUrl ? true : undefined
-                      }
-                      onChange={(event) =>
-                        updateSiteField("filingIcpUrl", event.target.value)
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.filingPoliceNumber")}
-                    htmlFor="site-filing-police-number"
-                    error={siteFieldErrors.filingPoliceNumber}
-                  >
-                    <Input
-                      id="site-filing-police-number"
-                      value={siteForm.filingPoliceNumber}
-                      placeholder={t(
-                        "systemSite.fields.filingPoliceNumberPlaceholder"
-                      )}
-                      readOnly={!canWrite}
-                      aria-invalid={
-                        siteFieldErrors.filingPoliceNumber ? true : undefined
-                      }
-                      onChange={(event) =>
-                        updateSiteField(
-                          "filingPoliceNumber",
-                          event.target.value
-                        )
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.filingPoliceUrl")}
-                    htmlFor="site-filing-police-url"
-                    error={siteFieldErrors.filingPoliceUrl}
-                  >
-                    <Input
-                      id="site-filing-police-url"
-                      value={siteForm.filingPoliceUrl}
-                      placeholder={t(
-                        "systemSite.fields.filingPoliceUrlPlaceholder"
-                      )}
-                      readOnly={!canWrite}
-                      aria-invalid={
-                        siteFieldErrors.filingPoliceUrl ? true : undefined
-                      }
-                      onChange={(event) =>
-                        updateSiteField("filingPoliceUrl", event.target.value)
-                      }
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("systemSite.fields.filingExtraText")}
-                    htmlFor="site-filing-extra"
-                    hint={t("systemSite.fields.filingExtraTextHint")}
-                    className="sm:col-span-full"
-                    error={siteFieldErrors.filingExtraText}
-                  >
-                    <Input
-                      id="site-filing-extra"
-                      value={siteForm.filingExtraText}
-                      placeholder={t(
-                        "systemSite.fields.filingExtraTextPlaceholder"
-                      )}
-                      readOnly={!canWrite}
-                      aria-invalid={
-                        siteFieldErrors.filingExtraText ? true : undefined
-                      }
-                      onChange={(event) =>
-                        updateSiteField("filingExtraText", event.target.value)
-                      }
-                    />
-                  </FormField>
-                </div>
-                <FooterPreview form={siteForm} />
-                {siteFormError ? (
-                  <p role="alert" className="text-sm text-destructive">
-                    {siteFormError}
-                  </p>
-                ) : null}
-                {canWrite ? (
-                  <div className="flex justify-end">
-                    <Button type="submit" disabled={savingSite}>
-                      {savingSite ? (
-                        <Loader2
-                          className="size-4 animate-spin"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <Save aria-hidden="true" />
-                      )}
-                      {savingSite
-                        ? t("systemSite.saving")
-                        : t("systemSite.save")}
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {t("systemSite.readOnly")}
-                  </p>
-                )}
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("systemSite.login.title")}</CardTitle>
-              <CardDescription>
-                {t("systemSite.login.description")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {canLoginRead ? (
-                <form
-                  noValidate
-                  className="grid gap-4"
-                  onSubmit={onSubmitLogin}
+          <ul className="grid gap-0.5">
+            {SECTIONS.map((section) => (
+              <li key={section.key}>
+                <Button
+                  type="button"
+                  variant={
+                    activeSection === section.key ? "secondary" : "ghost"
+                  }
+                  className="w-full justify-start text-sm font-normal"
+                  aria-current={
+                    activeSection === section.key ? "location" : undefined
+                  }
+                  onClick={() => jumpTo(section.key)}
                 >
-                  <div className="grid gap-3">
-                    <label className="flex items-start gap-3 rounded-lg border border-border/60 p-4">
-                      <Checkbox
-                        id="login-email-enabled"
-                        className="mt-0.5"
-                        checked={loginForm.emailEnabled}
-                        disabled={!canLoginWrite}
-                        onCheckedChange={(value) =>
-                          setLoginForm((form) => ({
-                            ...form,
-                            emailEnabled: value === true,
-                          }))
-                        }
-                      />
-                      <span className="grid gap-1">
-                        <span className="text-sm font-medium">
-                          {t("systemSite.login.emailEnabled")}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {t("systemSite.login.emailEnabledHint")}
-                        </span>
-                      </span>
-                    </label>
-                    <label className="flex items-start gap-3 rounded-lg border border-border/60 p-4">
-                      <Checkbox
-                        id="login-oauth2-enabled"
-                        className="mt-0.5"
-                        checked={loginForm.oauth2Enabled}
-                        disabled={!canLoginWrite}
-                        onCheckedChange={(value) =>
-                          setLoginForm((form) => ({
-                            ...form,
-                            oauth2Enabled: value === true,
-                          }))
-                        }
-                      />
-                      <span className="grid gap-1">
-                        <span className="text-sm font-medium">
-                          {t("systemSite.login.oauth2Enabled")}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {t("systemSite.login.oauth2EnabledHint")}
-                        </span>
-                      </span>
-                    </label>
-                  </div>
-                  {loginError ? (
-                    <p role="alert" className="text-sm text-destructive">
-                      {loginError}
-                    </p>
-                  ) : null}
-                  {canLoginWrite ? (
-                    <div className="flex justify-end">
-                      <Button type="submit" disabled={savingLogin}>
-                        {savingLogin ? (
-                          <Loader2
-                            className="size-4 animate-spin"
-                            aria-hidden="true"
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 rounded-full bg-primary-ink"
+                  />
+                  {t(section.labelKey)}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="grid min-w-0 flex-1 gap-5">
+          {initialLoading ? (
+            <div
+              className="grid gap-4"
+              aria-busy="true"
+              aria-label={t("state.loading")}
+            >
+              <Skeleton className="h-72 rounded-xl" />
+              <Skeleton className="h-48 rounded-xl" />
+            </div>
+          ) : failed && !site ? (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+                <CircleAlert
+                  className="size-6 text-destructive"
+                  aria-hidden="true"
+                />
+                <p className="font-medium">{t("systemSite.loadFailed")}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={reload}
+                >
+                  {t("action.retry")}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : site ? (
+            <>
+              <div id="site-settings-site">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("systemSite.site.title")}</CardTitle>
+                    <CardDescription>
+                      {t("systemSite.site.description")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form
+                      noValidate
+                      className="grid gap-4"
+                      onSubmit={onSubmitSite}
+                    >
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <FormField
+                          label={t("systemSite.fields.siteName")}
+                          htmlFor="site-name"
+                          hint={t("systemSite.fields.siteNameHint")}
+                          error={siteFieldErrors.siteName}
+                        >
+                          <Input
+                            id="site-name"
+                            value={siteForm.siteName}
+                            placeholder={t(
+                              "systemSite.fields.siteNamePlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.siteName ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField("siteName", event.target.value)
+                            }
                           />
-                        ) : (
-                          <Save aria-hidden="true" />
-                        )}
-                        {savingLogin
-                          ? t("systemSite.saving")
-                          : t("systemSite.saveLogin")}
-                      </Button>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {t("systemSite.readOnly")}
-                    </p>
-                  )}
-                </form>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {t("systemSite.login.noPermission")}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.contactEmail")}
+                          htmlFor="site-contact-email"
+                          error={siteFieldErrors.contactEmail}
+                        >
+                          <Input
+                            id="site-contact-email"
+                            type="email"
+                            value={siteForm.contactEmail}
+                            placeholder={t(
+                              "systemSite.fields.contactEmailPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.contactEmail ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField(
+                                "contactEmail",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.logoUrl")}
+                          htmlFor="site-logo-url"
+                          error={siteFieldErrors.logoUrl}
+                        >
+                          <Input
+                            id="site-logo-url"
+                            value={siteForm.logoUrl}
+                            placeholder={t(
+                              "systemSite.fields.logoUrlPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.logoUrl ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField("logoUrl", event.target.value)
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.faviconUrl")}
+                          htmlFor="site-favicon-url"
+                          error={siteFieldErrors.faviconUrl}
+                        >
+                          <Input
+                            id="site-favicon-url"
+                            value={siteForm.faviconUrl}
+                            placeholder={t(
+                              "systemSite.fields.faviconUrlPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.faviconUrl ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField("faviconUrl", event.target.value)
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.repositoryUrl")}
+                          htmlFor="site-repository-url"
+                          className="sm:col-span-full"
+                          error={siteFieldErrors.repositoryUrl}
+                        >
+                          <Input
+                            id="site-repository-url"
+                            value={siteForm.repositoryUrl}
+                            placeholder={t(
+                              "systemSite.fields.repositoryUrlPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.repositoryUrl ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField(
+                                "repositoryUrl",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.copyrightText")}
+                          htmlFor="site-copyright"
+                          hint={t("systemSite.fields.copyrightTextHint")}
+                          className="sm:col-span-full"
+                          error={siteFieldErrors.copyrightText}
+                        >
+                          <Input
+                            id="site-copyright"
+                            value={siteForm.copyrightText}
+                            placeholder={t(
+                              "systemSite.fields.copyrightTextPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.copyrightText ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField(
+                                "copyrightText",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.filingIcpNumber")}
+                          htmlFor="site-filing-icp-number"
+                          error={siteFieldErrors.filingIcpNumber}
+                        >
+                          <Input
+                            id="site-filing-icp-number"
+                            value={siteForm.filingIcpNumber}
+                            placeholder={t(
+                              "systemSite.fields.filingIcpNumberPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.filingIcpNumber ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField(
+                                "filingIcpNumber",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.filingIcpUrl")}
+                          htmlFor="site-filing-icp-url"
+                          hint={t("systemSite.fields.filingIcpUrlHint")}
+                          error={siteFieldErrors.filingIcpUrl}
+                        >
+                          <Input
+                            id="site-filing-icp-url"
+                            value={siteForm.filingIcpUrl}
+                            placeholder={t(
+                              "systemSite.fields.filingIcpUrlPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.filingIcpUrl ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField(
+                                "filingIcpUrl",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.filingPoliceNumber")}
+                          htmlFor="site-filing-police-number"
+                          error={siteFieldErrors.filingPoliceNumber}
+                        >
+                          <Input
+                            id="site-filing-police-number"
+                            value={siteForm.filingPoliceNumber}
+                            placeholder={t(
+                              "systemSite.fields.filingPoliceNumberPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.filingPoliceNumber
+                                ? true
+                                : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField(
+                                "filingPoliceNumber",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.filingPoliceUrl")}
+                          htmlFor="site-filing-police-url"
+                          error={siteFieldErrors.filingPoliceUrl}
+                        >
+                          <Input
+                            id="site-filing-police-url"
+                            value={siteForm.filingPoliceUrl}
+                            placeholder={t(
+                              "systemSite.fields.filingPoliceUrlPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.filingPoliceUrl ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField(
+                                "filingPoliceUrl",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </FormField>
+                        <FormField
+                          label={t("systemSite.fields.filingExtraText")}
+                          htmlFor="site-filing-extra"
+                          hint={t("systemSite.fields.filingExtraTextHint")}
+                          className="sm:col-span-full"
+                          error={siteFieldErrors.filingExtraText}
+                        >
+                          <Input
+                            id="site-filing-extra"
+                            value={siteForm.filingExtraText}
+                            placeholder={t(
+                              "systemSite.fields.filingExtraTextPlaceholder"
+                            )}
+                            readOnly={!canWrite}
+                            aria-invalid={
+                              siteFieldErrors.filingExtraText ? true : undefined
+                            }
+                            onChange={(event) =>
+                              updateSiteField(
+                                "filingExtraText",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </FormField>
+                      </div>
+                      <FooterPreview form={siteForm} />
+                      {siteFormError ? (
+                        <p role="alert" className="text-sm text-destructive">
+                          {siteFormError}
+                        </p>
+                      ) : null}
+                      {canWrite ? (
+                        <div className="flex justify-end">
+                          <Button type="submit" disabled={savingSite}>
+                            {savingSite ? (
+                              <Loader2
+                                className="size-4 animate-spin"
+                                aria-hidden="true"
+                              />
+                            ) : (
+                              <Save aria-hidden="true" />
+                            )}
+                            {savingSite
+                              ? t("systemSite.saving")
+                              : t("systemSite.save")}
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          {t("systemSite.readOnly")}
+                        </p>
+                      )}
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
 
-          <EmailSettingsCard
-            canRead={canLoginRead}
-            canWrite={canLoginWrite}
-            refreshKey={attempt}
-          />
-          <OAuthProvidersCard
-            canRead={canLoginRead}
-            canWrite={canLoginWrite}
-            refreshKey={attempt}
-          />
-          <HomeContentCard
-            canRead={canRead}
-            canWrite={canWrite}
-            refreshKey={attempt}
-          />
-        </>
-      ) : null}
+              <div id="site-settings-login">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("systemSite.login.title")}</CardTitle>
+                    <CardDescription>
+                      {t("systemSite.login.description")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {canLoginRead ? (
+                      <form
+                        noValidate
+                        className="grid gap-4"
+                        onSubmit={onSubmitLogin}
+                      >
+                        <div className="grid gap-3">
+                          <label className="flex items-start gap-3 rounded-lg border border-border/60 p-4">
+                            <Checkbox
+                              id="login-email-enabled"
+                              className="mt-0.5"
+                              checked={loginForm.emailEnabled}
+                              disabled={!canLoginWrite}
+                              onCheckedChange={(value) =>
+                                setLoginForm((form) => ({
+                                  ...form,
+                                  emailEnabled: value === true,
+                                }))
+                              }
+                            />
+                            <span className="grid gap-1">
+                              <span className="text-sm font-medium">
+                                {t("systemSite.login.emailEnabled")}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {t("systemSite.login.emailEnabledHint")}
+                              </span>
+                            </span>
+                          </label>
+                          <label className="flex items-start gap-3 rounded-lg border border-border/60 p-4">
+                            <Checkbox
+                              id="login-oauth2-enabled"
+                              className="mt-0.5"
+                              checked={loginForm.oauth2Enabled}
+                              disabled={!canLoginWrite}
+                              onCheckedChange={(value) =>
+                                setLoginForm((form) => ({
+                                  ...form,
+                                  oauth2Enabled: value === true,
+                                }))
+                              }
+                            />
+                            <span className="grid gap-1">
+                              <span className="text-sm font-medium">
+                                {t("systemSite.login.oauth2Enabled")}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {t("systemSite.login.oauth2EnabledHint")}
+                              </span>
+                            </span>
+                          </label>
+                        </div>
+                        {loginError ? (
+                          <p role="alert" className="text-sm text-destructive">
+                            {loginError}
+                          </p>
+                        ) : null}
+                        {canLoginWrite ? (
+                          <div className="flex justify-end">
+                            <Button type="submit" disabled={savingLogin}>
+                              {savingLogin ? (
+                                <Loader2
+                                  className="size-4 animate-spin"
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <Save aria-hidden="true" />
+                              )}
+                              {savingLogin
+                                ? t("systemSite.saving")
+                                : t("systemSite.saveLogin")}
+                            </Button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            {t("systemSite.readOnly")}
+                          </p>
+                        )}
+                      </form>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {t("systemSite.login.noPermission")}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div id="site-settings-email">
+                <EmailSettingsCard
+                  canRead={canLoginRead}
+                  canWrite={canLoginWrite}
+                  refreshKey={attempt}
+                />
+              </div>
+
+              <div id="site-settings-oauth">
+                <OAuthProvidersCard
+                  canRead={canLoginRead}
+                  canWrite={canLoginWrite}
+                  refreshKey={attempt}
+                />
+              </div>
+
+              <div id="site-settings-home">
+                <HomeContentCard
+                  canRead={canRead}
+                  canWrite={canWrite}
+                  refreshKey={attempt}
+                />
+              </div>
+            </>
+          ) : null}
+        </div>
+      </div>
     </div>
   )
 }

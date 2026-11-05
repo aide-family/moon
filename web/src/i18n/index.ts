@@ -3670,7 +3670,8 @@ const zh = {
     landing: {
       skipToContent: "跳到主要内容",
       heroTitleDefault: "统一监控与告警，一条链路走完",
-      heroSubtitleDefault: "数据源查得到，规则评测得出，通知送对人，值班接得住。",
+      heroSubtitleDefault:
+        "数据源查得到，规则评测得出，通知送对人，值班接得住。",
       ctaPrimaryDefault: "开始使用",
       featuresTitleDefault: "能力",
       howTitleDefault: "工作原理",
@@ -3880,6 +3881,14 @@ const zh = {
     unsaved: "未保存",
   },
   systemSite: {
+    navLabel: "设置区块导航",
+    nav: {
+      site: "站点与备案",
+      login: "登录方式",
+      email: "邮件服务",
+      oauth: "第三方登录",
+      home: "首页内容",
+    },
     source: {
       database: "后台配置",
       config: "服务器配置",
@@ -3908,7 +3917,8 @@ const zh = {
         ctaPrimaryHint: "目标是注册或进入后台，改文案改不了目标",
         ctaSecondaryLabel: "次按钮文案",
         ctaSecondaryHref: "次按钮地址",
-        ctaSecondaryHrefHint: "只允许站内地址（/ 或 # 开头）；文案与地址要同时填或同时留空",
+        ctaSecondaryHrefHint:
+          "只允许站内地址（/ 或 # 开头）；文案与地址要同时填或同时留空",
         featuresTitle: "能力区标题",
         featuresSubtitle: "能力区导语",
         howTitle: "工作原理标题",
@@ -4331,10 +4341,13 @@ const en = {
     failed: "Failed to load",
   },
   error: {
-    siteHomeCopyTooLong: "Home page copy exceeds the limit; shorten it before saving.",
+    siteHomeCopyTooLong:
+      "Home page copy exceeds the limit; shorten it before saving.",
     invalidHeroImageUrl: "The hero image must be an http(s) URL.",
-    invalidSecondaryCtaLink: "The secondary button link must be an in-site path or anchor.",
-    secondaryCtaPair: "Set or clear the secondary button label and link together.",
+    invalidSecondaryCtaLink:
+      "The secondary button link must be an in-site path or anchor.",
+    secondaryCtaPair:
+      "Set or clear the secondary button label and link together.",
     unsupportedFeatureIcon: "Unsupported icon; pick one from the list.",
     tooManyFeatureCards: "At most 6 capability cards.",
     disallowedWording: "The copy contains disallowed marketing wording.",
@@ -8027,15 +8040,18 @@ const en = {
       steps: {
         collect: {
           title: "Collect",
-          description: "Query a data source for metrics and keep the query and time range.",
+          description:
+            "Query a data source for metrics and keep the query and time range.",
         },
         evaluate: {
           title: "Evaluate",
-          description: "Apply alert rules and record every decision and trigger reason.",
+          description:
+            "Apply alert rules and record every decision and trigger reason.",
         },
         notify: {
           title: "Notify",
-          description: "Deliver through subscriptions and on-call rotations, with retries on failure.",
+          description:
+            "Deliver through subscriptions and on-call rotations, with retries on failure.",
         },
       },
       permTitleDefault: "Permissions",
@@ -8239,6 +8255,14 @@ const en = {
     unsaved: "Unsaved",
   },
   systemSite: {
+    navLabel: "Settings sections",
+    nav: {
+      site: "Site and filing",
+      login: "Sign-in methods",
+      email: "Email service",
+      oauth: "Third-party sign-in",
+      home: "Home page",
+    },
     source: {
       database: "Console config",
       config: "Server config",
@@ -8262,12 +8286,15 @@ const en = {
         heroTitleHint: "Up to 16 characters; do not start with the site name",
         heroSubtitle: "Subheading",
         heroImageUrl: "Hero image URL",
-        heroImageUrlHint: "Fixed 4:3 slot; empty falls back to a brand tinted placeholder",
+        heroImageUrlHint:
+          "Fixed 4:3 slot; empty falls back to a brand tinted placeholder",
         ctaPrimaryLabel: "Primary button label",
-        ctaPrimaryHint: "The target is sign-up or the console; editing copy cannot change it",
+        ctaPrimaryHint:
+          "The target is sign-up or the console; editing copy cannot change it",
         ctaSecondaryLabel: "Secondary button label",
         ctaSecondaryHref: "Secondary button link",
-        ctaSecondaryHrefHint: "In-site only (/ or #); label and link must be set together",
+        ctaSecondaryHrefHint:
+          "In-site only (/ or #); label and link must be set together",
         featuresTitle: "Capability section title",
         featuresSubtitle: "Capability section intro",
         howTitle: "How it works title",
@@ -8283,7 +8310,8 @@ const en = {
       },
       features: {
         add: "Add card",
-        empty: "No capability cards yet; the section is hidden until you add one.",
+        empty:
+          "No capability cards yet; the section is hidden until you add one.",
         moveUp: "Move up",
         moveDown: "Move down",
         remove: "Remove card",
@@ -8310,8 +8338,10 @@ const en = {
       save: "Save home page",
       loadFailed: "Failed to load the home page.",
       errors: {
-        secondaryCtaPair: "Set or clear the secondary button label and link together.",
-        invalidCtaLink: "The secondary button link must be an in-site path or anchor.",
+        secondaryCtaPair:
+          "Set or clear the secondary button label and link together.",
+        invalidCtaLink:
+          "The secondary button link must be an in-site path or anchor.",
         invalidHeroImage: "The hero image must be an http(s) URL.",
         tooManyFeatures: "At most 6 capability cards.",
       },
