@@ -3813,7 +3813,8 @@ const zh = {
       summaryPlaceholder: "用于列表与分享卡片的一句话摘要",
       tooLong: "内容长度超出上限。",
       body: "正文",
-      bodyPlaceholder: "当前按纯文本渲染段落与换行，不解析 Markdown 语法。",
+      bodyPlaceholder:
+        "支持 Markdown：标题、列表、引用、代码块、表格与任务列表。",
       bodyCount: "{{count}} 字",
       cover: "封面图 URL",
       coverPlaceholder: "https://example.com/cover.png",
@@ -3844,6 +3845,26 @@ const zh = {
       creating: "创建中…",
       reload: "重新加载",
     },
+    preview: {
+      banner: "预览：未发布的草稿内容",
+      backToEditor: "返回编辑",
+      saveHint: "先保存草稿，预览会打开已保存的草稿内容。",
+      loginTitle: "请先登录",
+      loginBody: "预览读取的是后台草稿，登录后才能查看。",
+      forbiddenTitle: "没有预览权限",
+      forbiddenBody: "当前账号没有查看官网页面的权限。",
+    },
+    conflict: {
+      title: "官网已有其他人保存过更新",
+      body: "页面在你编辑期间被其他管理员保存过。你可以重新加载最新内容（放弃本地修改），或者保留本地修改并覆盖保存。",
+      latestAt: "服务器上的最新版本更新于 {{time}}",
+      loadFailed: "读取最新内容失败，请重试。",
+      overwriteConflict:
+        "页面在保存前又被修改，已更新为最新版本，请再确认一次。",
+      reload: "重新加载最新内容",
+      overwrite: "保留我的修改并覆盖保存",
+      overwriting: "正在覆盖保存…",
+    },
     confirm: {
       publishTitle: "发布这个页面？",
       publishBody: "发布后官网立即可见，当前草稿会覆盖已发布内容。",
@@ -3863,6 +3884,8 @@ const zh = {
       unpublished: "页面已下架。",
       deleted: "页面已删除。",
       navSaved: "导航设置已保存。",
+      reloaded: "已重新加载最新内容，本地修改已放弃。",
+      overwritten: "已用你的修改覆盖保存。",
     },
     state: {
       DRAFT: "草稿",
@@ -8184,7 +8207,7 @@ const en = {
       tooLong: "This value is too long.",
       body: "Body",
       bodyPlaceholder:
-        "Rendered as plain text paragraphs and line breaks; Markdown syntax is not parsed.",
+        "Markdown is supported: headings, lists, quotes, code blocks, tables, and task lists.",
       bodyCount: "{{count}} characters",
       cover: "Cover image URL",
       coverPlaceholder: "https://example.com/cover.png",
@@ -8216,6 +8239,26 @@ const en = {
       creating: "Creating…",
       reload: "Reload",
     },
+    preview: {
+      banner: "Preview: unpublished draft content",
+      backToEditor: "Back to editor",
+      saveHint: "Save the draft first; the preview opens the saved draft.",
+      loginTitle: "Sign in to preview",
+      loginBody: "The preview reads the admin draft; sign in to view it.",
+      forbiddenTitle: "No permission to preview",
+      forbiddenBody: "Your account cannot view site pages.",
+    },
+    conflict: {
+      title: "Someone else saved this page",
+      body: "Another administrator saved this page while you were editing. Reload the latest content (discarding your local changes), or keep your changes and overwrite the saved version.",
+      latestAt: "The latest version was saved {{time}}",
+      loadFailed: "Could not read the latest version. Try again.",
+      overwriteConflict:
+        "The page changed again before saving. The latest version is loaded; review and try again.",
+      reload: "Reload latest content",
+      overwrite: "Keep my changes and overwrite",
+      overwriting: "Overwriting…",
+    },
     confirm: {
       publishTitle: "Publish this page?",
       publishBody:
@@ -8237,6 +8280,9 @@ const en = {
       unpublished: "Page unpublished.",
       deleted: "Page deleted.",
       navSaved: "Navigation settings saved.",
+      reloaded:
+        "Reloaded the latest content. Your local changes were discarded.",
+      overwritten: "Your changes were saved over the latest version.",
     },
     state: {
       DRAFT: "Draft",

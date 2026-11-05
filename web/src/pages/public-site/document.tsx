@@ -7,16 +7,17 @@ import error404Illustration from "@/assets/undraw/error-404.svg"
 import { fetchPublicSitePage, SitePublicError } from "@/api/site/public"
 import type { PublicSitePage } from "@/api/site/types"
 import { ErrorPage } from "@/components/error-page"
-import { SiteBody } from "@/components/site-body"
 import { SiteShell } from "@/components/site-shell"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSiteLocale } from "@/hooks/use-site-locale"
 import { formatDateTime } from "@/lib/date-time"
 
+import { SiteArticle } from "./article"
+
 type PageState = "loading" | "ready" | "failed" | "notFound"
 
-function DocumentSkeleton() {
+export function DocumentSkeleton() {
   const { t } = useTranslation()
   return (
     <div
@@ -134,36 +135,30 @@ export function SiteDocumentPage() {
               {t("site.home")}
             </Link>
           </Button>
-          <h1 className="font-heading text-3xl font-semibold tracking-tight break-words sm:text-4xl">
-            {page.title || page.slug}
-          </h1>
-          {page.publishedAt ? (
-            <p className="mt-3 font-mono text-xs text-muted-foreground tabular-nums">
-              {t("site.publishedAt", {
-                time: formatDateTime(page.publishedAt),
-              })}
-            </p>
-          ) : null}
-          {page.coverImageUrl ? (
-            <img
-              src={page.coverImageUrl}
-              alt=""
-              className="mt-6 w-full rounded-2xl border border-border/60 object-cover"
-            />
-          ) : null}
-          {page.localeFallback ? (
-            <p
-              role="status"
-              className="mt-6 rounded-lg border border-warning-border bg-warning-soft px-3 py-2 text-sm text-warning"
-            >
-              {t("site.localeFallback", { language: fallbackLanguage })}
-            </p>
-          ) : null}
-          <SiteBody
-            content={page.bodyMd}
+          <SiteArticle
+            title={page.title || page.slug}
+            meta={
+              page.publishedAt ? (
+                <p className="mt-3 font-mono text-xs text-muted-foreground tabular-nums">
+                  {t("site.publishedAt", {
+                    time: formatDateTime(page.publishedAt),
+                  })}
+                </p>
+              ) : null
+            }
+            coverImageUrl={page.coverImageUrl}
+            bodyMd={page.bodyMd}
             emptyText={t("site.emptyBody")}
-            className="mt-8"
-          />
+          >
+            {page.localeFallback ? (
+              <p
+                role="status"
+                className="mt-6 rounded-lg border border-warning-border bg-warning-soft px-3 py-2 text-sm text-warning"
+              >
+                {t("site.localeFallback", { language: fallbackLanguage })}
+              </p>
+            ) : null}
+          </SiteArticle>
         </article>
       ) : null}
     </SiteShell>

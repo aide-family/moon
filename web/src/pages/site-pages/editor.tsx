@@ -1,4 +1,9 @@
-import { ChevronDown, Loader2, RefreshCw } from "lucide-react"
+import {
+  ChevronDown,
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+} from "lucide-react"
 import {
   useEffect,
   useImperativeHandle,
@@ -13,6 +18,7 @@ import { ApiError } from "@/api/http"
 import {
   createSitePage,
   deleteSitePage,
+  getSitePage,
   publishSitePage,
   unpublishSitePage,
   updateSitePage,
@@ -24,7 +30,6 @@ import type {
 } from "@/api/site/types"
 import { ConfirmAction } from "@/components/confirm-action"
 import { FormField } from "@/components/form-field"
-import { SiteBody } from "@/components/site-body"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -33,6 +38,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -173,6 +187,15 @@ interface PageEditorProps {
   onReload: () => void
 }
 
+/**
+ * 草稿乐观锁冲突：先拉一次最新详情，拿到最新 updatedAt 后再让用户选择
+ * 「重新加载」（放弃本地修改）或「保留我的修改并覆盖保存」。
+ */
+type ConflictState =
+  | { phase: "loading" }
+  | { phase: "ready"; latest: SitePageDetail }
+  | { phase: "failed" }
+
 /** 官网页面编辑器：草稿保存、导航、发布/下架/删除、预览与 409 冲突处理。 */
 export function PageEditor({
   ref,
@@ -198,9 +221,10 @@ export function PageEditor({
     "" | "publish" | "unpublish" | "delete"
   >("")
   const [confirmError, setConfirmError] = useState("")
-  const [conflict, setConflict] = useState(false)
+  const [conflict, setConflict] = useState<ConflictState | null>(null)
+  const [conflictPending, setConflictPending] = useState<"" | "overwrite">("")
+  const [conflictError, setConflictError] = useState("")
   const [seoOpen, setSeoOpen] = useState(false)
-  const [previewOpen, setPreviewOpen] = useState(false)
   // 站内链接离开时的拦截目标；浏览器刷新/关闭由 beforeunload 处理。
   const [leaveTo, setLeaveTo] = useState<string | null>(null)
 
@@ -351,7 +375,7 @@ export function PageEditor({
   }
 
   function isModifiedConflict(err: unknown): boolean {
-    // 只有乐观锁冲突需要“重新加载”；slug/排序冲突等 409 仍按普通表单错误展示。
+    // 只有乐观锁冲突走「重新加载 / 覆盖保存」流程；slug/排序冲突等 409 仍按普通表单错误展示。
     return (
       err instanceof ApiError &&
       err.status === 409 &&
@@ -359,11 +383,31 @@ export function PageEditor({
     )
   }
 
+  function errorMessage(err: unknown, fallback: string): string {
+    return err instanceof Error && err.message ? err.message : fallback
+  }
+
+  /** 收到乐观锁冲突后先拉最新详情，拿到最新 updatedAt 再打开确认框。 */
+  async function openConflict() {
+    if (!detail) {
+      return
+    }
+    setConflict({ phase: "loading" })
+    setConflictError("")
+    try {
+      const result = await getSitePage(detail.item.uid)
+      setConflict({ phase: "ready", latest: result.page })
+    } catch (err) {
+      setConflict({ phase: "failed" })
+      setConflictError(errorMessage(err, t("sitePages.conflict.loadFailed")))
+    }
+  }
+
   function handleApiError(err: unknown, fallback: string) {
     setFormError("")
     if (isModifiedConflict(err)) {
-      // 乐观锁冲突：保留本地编辑、提示重新加载，绝不静默覆盖对方修改。
-      setConflict(true)
+      // 乐观锁冲突：本地修改全部保留在表单里，由确认框决定重载还是覆盖。
+      void openConflict()
       return
     }
     if (
@@ -417,6 +461,68 @@ export function PageEditor({
     return current
   }
 
+  /** 打开完整官网预览：新标签读取草稿快照，未保存的改动不会出现，所以先要求保存。 */
+  function openPreview() {
+    if (!detail || creating || dirty) {
+      return
+    }
+    window.open(
+      `/site-preview/${encodeURIComponent(detail.item.uid)}`,
+      "_blank",
+      "noopener,noreferrer"
+    )
+  }
+
+  /** 冲突处理 A：放弃本地修改，重新从服务端加载最新草稿。 */
+  function reloadConflict() {
+    if (conflict?.phase !== "ready" || conflictPending !== "") {
+      return
+    }
+    setConflict(null)
+    setConflictError("")
+    toast.success(t("sitePages.toast.reloaded"))
+    onReload()
+  }
+
+  /** 冲突处理 B：用刚取到的最新 updatedAt 提交本地修改。 */
+  async function overwriteConflict() {
+    if (!detail || conflict?.phase !== "ready" || conflictPending !== "") {
+      return
+    }
+    const latestUpdatedAt = conflict.latest.item.updatedAt
+    setConflictPending("overwrite")
+    setConflictError("")
+    try {
+      const result = await updateSitePage({
+        uid: detail.item.uid,
+        ...contentPayload(),
+        updatedAt: latestUpdatedAt,
+      })
+      setConflict(null)
+      toast.success(t("sitePages.toast.overwritten"))
+      onSaved(result.page)
+    } catch (err) {
+      if (isModifiedConflict(err)) {
+        // 读取之后又被保存过：刷新 updatedAt，让用户基于最新版本再确认一次。
+        try {
+          const latest = await getSitePage(detail.item.uid)
+          setConflict({ phase: "ready", latest: latest.page })
+          setConflictError(t("sitePages.conflict.overwriteConflict"))
+        } catch (reloadErr) {
+          setConflict({ phase: "failed" })
+          setConflictError(
+            errorMessage(reloadErr, t("sitePages.conflict.loadFailed"))
+          )
+        }
+        return
+      }
+      // 覆盖失败不静默：保留对话框并展示服务端原因，用户可以重试或取消。
+      setConflictError(errorMessage(err, t("state.failed")))
+    } finally {
+      setConflictPending("")
+    }
+  }
+
   async function onCreate() {
     if (!canWrite || pending !== "") {
       return
@@ -447,7 +553,7 @@ export function PageEditor({
   }
 
   async function onSave() {
-    if (!canWrite || !detail || pending !== "" || conflict) {
+    if (!canWrite || !detail || pending !== "") {
       return
     }
     const errors = validate()
@@ -507,8 +613,8 @@ export function PageEditor({
       setConfirm("")
     } catch (err) {
       if (isModifiedConflict(err)) {
-        setConflict(true)
         setConfirm("")
+        void openConflict()
         return
       }
       if (
@@ -586,28 +692,6 @@ export function PageEditor({
       </div>
 
       <div className="min-h-0 p-4 lg:flex-1 lg:overflow-y-auto">
-        {conflict ? (
-          <div
-            role="alert"
-            className="mb-4 rounded-lg border border-warning-border bg-warning-soft px-3 py-3 text-sm"
-          >
-            <p className="font-medium text-warning">
-              {t("sitePages.conflictTitle")}
-            </p>
-            <p className="mt-1 text-muted-foreground">
-              {t("sitePages.conflictBody")}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={onReload}
-            >
-              <RefreshCw aria-hidden="true" data-icon="inline-start" />
-              {t("sitePages.action.reload")}
-            </Button>
-          </div>
-        ) : null}
         {!canWrite ? (
           <p className="mb-4 text-sm text-muted-foreground">
             {t("sitePages.readOnly")}
@@ -858,29 +942,6 @@ export function PageEditor({
             </div>
           ) : null}
 
-          {previewOpen ? (
-            <div className="rounded-xl border border-dashed border-border/70 p-4">
-              <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                {t("sitePages.previewTitle")}
-              </p>
-              <h3 className="mt-2 font-heading text-xl font-semibold tracking-tight break-words">
-                {form.title.trim() ||
-                  form.slug.trim() ||
-                  t("sitePages.createTitle")}
-              </h3>
-              {form.summary.trim() ? (
-                <p className="mt-2 text-sm leading-6 break-words text-muted-foreground">
-                  {form.summary}
-                </p>
-              ) : null}
-              <SiteBody
-                content={form.bodyMd}
-                emptyText={t("sitePages.previewEmpty")}
-                className="mt-4"
-              />
-            </div>
-          ) : null}
-
           {formError ? (
             <p role="alert" className="text-sm text-destructive">
               {formError}
@@ -894,18 +955,22 @@ export function PageEditor({
           type="button"
           variant="outline"
           size="sm"
-          aria-expanded={previewOpen}
-          onClick={() => setPreviewOpen((value) => !value)}
+          disabled={!detail || creating || dirty}
+          title={
+            !detail || creating || dirty
+              ? t("sitePages.preview.saveHint")
+              : undefined
+          }
+          onClick={openPreview}
         >
-          {previewOpen
-            ? t("sitePages.action.closePreview")
-            : t("sitePages.action.preview")}
+          <ExternalLink aria-hidden="true" data-icon="inline-start" />
+          {t("sitePages.action.preview")}
         </Button>
         {canWrite ? (
           <Button
             type="button"
             size="sm"
-            disabled={pending !== "" || conflict || (!creating && !dirty)}
+            disabled={pending !== "" || (!creating && !dirty)}
             onClick={() => void (creating ? onCreate() : onSave())}
           >
             {pending === "save" ? (
@@ -926,7 +991,7 @@ export function PageEditor({
               type="button"
               variant="secondary"
               size="sm"
-              disabled={pending !== "" || conflict}
+              disabled={pending !== ""}
               onClick={() => {
                 setConfirmError("")
                 setConfirm("publish")
@@ -940,7 +1005,6 @@ export function PageEditor({
               size="sm"
               disabled={
                 pending !== "" ||
-                conflict ||
                 isHome ||
                 detail.item.state !== "PUBLISHED"
               }
@@ -957,7 +1021,7 @@ export function PageEditor({
               variant="destructive"
               size="sm"
               className="ml-auto"
-              disabled={pending !== "" || conflict || isHome}
+              disabled={pending !== "" || isHome}
               title={isHome ? t("sitePages.homeLocked") : undefined}
               onClick={() => {
                 setConfirmError("")
@@ -969,6 +1033,87 @@ export function PageEditor({
           </>
         ) : null}
       </div>
+
+      <Dialog
+        open={conflict !== null}
+        onOpenChange={(open) => {
+          if (!open && conflictPending === "") {
+            setConflict(null)
+            setConflictError("")
+          }
+        }}
+      >
+        <DialogContent
+          className="sm:max-w-xl"
+          showCloseButton={conflictPending === ""}
+        >
+          <DialogHeader>
+            <DialogTitle>{t("sitePages.conflict.title")}</DialogTitle>
+            <DialogDescription>
+              {t("sitePages.conflict.body")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody className="grid content-start gap-3">
+            {conflict?.phase === "loading" ? (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                {t("sitePages.detailLoading")}
+              </p>
+            ) : null}
+            {conflict?.phase === "failed" ? (
+              <div className="grid content-start gap-3">
+                <p className="text-sm text-muted-foreground">
+                  {t("sitePages.conflict.loadFailed")}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-fit"
+                  onClick={() => void openConflict()}
+                >
+                  <RefreshCw aria-hidden="true" data-icon="inline-start" />
+                  {t("action.retry")}
+                </Button>
+              </div>
+            ) : null}
+            {conflict?.phase === "ready" ? (
+              <p className="text-sm text-muted-foreground">
+                {t("sitePages.conflict.latestAt", {
+                  time: formatDateTime(conflict.latest.item.updatedAt),
+                })}
+              </p>
+            ) : null}
+          </DialogBody>
+          {conflictError ? (
+            <p role="alert" className="text-sm text-destructive">
+              {conflictError}
+            </p>
+          ) : null}
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={conflict?.phase !== "ready" || conflictPending !== ""}
+              onClick={reloadConflict}
+            >
+              {t("sitePages.conflict.reload")}
+            </Button>
+            <Button
+              type="button"
+              disabled={conflict?.phase !== "ready" || conflictPending !== ""}
+              onClick={() => void overwriteConflict()}
+            >
+              {conflictPending === "overwrite" ? (
+                <Loader2 className="animate-spin" aria-hidden="true" />
+              ) : null}
+              {conflictPending === "overwrite"
+                ? t("sitePages.conflict.overwriting")
+                : t("sitePages.conflict.overwrite")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmAction
         open={leaveTo !== null}

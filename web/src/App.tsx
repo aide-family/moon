@@ -42,6 +42,7 @@ import { ProbeSlaPage } from "@/pages/probe-sla"
 import { ProbeTargetPage } from "@/pages/probe-target"
 import { SiteDocumentPage } from "@/pages/public-site/document"
 import { SiteHomePage } from "@/pages/public-site"
+import { SitePreviewPage } from "@/pages/public-site/preview"
 import { PublicStatusPageView } from "@/pages/public-status"
 import { RegisterPage } from "@/pages/register"
 import { RolePage } from "@/pages/role"
@@ -66,6 +67,8 @@ export function App() {
       {/* 公开官网：免登录、不挂 SessionProvider，独立 SiteShell（页头 + 内容 + 页脚）。 */}
       <Route path="/" element={<SiteHomePage />} />
       <Route path="/p/:slug" element={<SiteDocumentPage />} />
+      {/* 官网页面预览：不挂 AppShell、不需要登录守卫；未登录时页面自己提示登录。 */}
+      <Route path="/site-preview/:uid" element={<SitePreviewPage />} />
       {/* 公开状态页：不需要登录与租户，独立布局，不能放进 AppShell。 */}
       <Route path="/status/:token" element={<PublicStatusPageView />} />
       <Route element={<AppShell />}>

@@ -21,7 +21,7 @@ import { ShotFrame, SiteShot } from "./site-shot"
 const MAX_FEATURES = 6
 
 /** 后端字段可能整段为空：空字符串表示「用前端默认文案」。 */
-const EMPTY_HOME: SiteHomeContent = {
+export const EMPTY_HOME: SiteHomeContent = {
   locale: "",
   heroTitle: "",
   heroSubtitle: "",

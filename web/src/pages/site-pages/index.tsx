@@ -161,8 +161,12 @@ export function SitePagesPage() {
 
   const [draftKeyword, setDraftKeyword] = useState(keyword)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [mode, setMode] = useState<"none" | "edit" | "create">("none")
-  const [selectedUid, setSelectedUid] = useState("")
+  // 预览页的「返回编辑」带 uid 回来，直接选中该页面继续编辑。
+  const initialUid = searchParams.get("uid") ?? ""
+  const [mode, setMode] = useState<"none" | "edit" | "create">(
+    initialUid ? "edit" : "none"
+  )
+  const [selectedUid, setSelectedUid] = useState(initialUid)
   const [detail, setDetail] = useState<SitePageDetail | null>(null)
   const [failedUid, setFailedUid] = useState("")
   const [reloadToken, setReloadToken] = useState(0)
@@ -246,7 +250,23 @@ export function SitePagesPage() {
     return editorRef.current?.isDirty() ?? false
   }
 
+  /** 预览页「返回编辑」带来的 uid 只用一次：开始操作后从地址栏移除，避免刷新回到旧页面。 */
+  function clearDeepLinkUid() {
+    if (!searchParams.has("uid")) {
+      return
+    }
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous)
+        next.delete("uid")
+        return next
+      },
+      { replace: true }
+    )
+  }
+
   function startCreate() {
+    clearDeepLinkUid()
     setMode("create")
     setSelectedUid("")
     setDetail(null)
@@ -254,6 +274,7 @@ export function SitePagesPage() {
   }
 
   function applySelect(uid: string) {
+    clearDeepLinkUid()
     setMode("edit")
     setSelectedUid(uid)
     setFailedUid("")
