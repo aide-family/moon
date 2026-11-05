@@ -2,6 +2,7 @@ import { del, get, post, put } from "@/api/http"
 
 import type {
   CreateNotificationOnCallParams,
+  ListMyOnCallGroupWindowsResult,
   ListNotificationOnCallsParams,
   ListNotificationOnCallsResult,
   NotificationOnCallItem,
@@ -57,10 +58,17 @@ export function getNotificationOnCall(
   return get<{ onCall: NotificationOnCallItem }>(`/notification-oncall/${uid}`)
 }
 
+/** GET /v1/self/oncall-group-windows：当前账号所在通知组的接收时段。 */
+export function listMyOnCallGroupWindows(): Promise<ListMyOnCallGroupWindowsResult> {
+  return get<ListMyOnCallGroupWindowsResult>("/self/oncall-group-windows")
+}
+
 export type {
   CreateNotificationOnCallParams,
+  ListMyOnCallGroupWindowsResult,
   ListNotificationOnCallsParams,
   ListNotificationOnCallsResult,
+  MyOnCallGroupWindowItem,
   NotificationOnCallItem,
   OnCallGroupInput,
   OnCallGroupItem,

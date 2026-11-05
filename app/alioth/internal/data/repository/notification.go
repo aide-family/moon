@@ -54,6 +54,9 @@ type NotificationRepo interface {
 	DeleteOnCall(ctx context.Context, namespaceUID, uid string) error
 	GetOnCall(ctx context.Context, namespaceUID, uid string) (*bo.NotificationOnCall, error)
 	ListOnCalls(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.NotificationOnCall, int, error)
+	// ListGroupsForMember 返回当前成员作为接收人的生效通知组。
+	// tokens 是当前账号的邮箱和手机号，用于匹配手填接收方。
+	ListGroupsForMember(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]bo.NotificationGroup, error)
 
 	CreateTestTask(ctx context.Context, in bo.NotificationTask) (*bo.NotificationTask, error)
 	ListTasks(ctx context.Context, namespaceUID string, filter bo.NotificationTaskListFilter, page, pageSize int) ([]bo.NotificationTask, int, error)

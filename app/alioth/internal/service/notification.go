@@ -501,3 +501,27 @@ func taskItems(items []bo.NotificationTask) []*v1.NotificationTaskItem {
 	}
 	return out
 }
+
+// ListMyOnCallGroupWindows 返回当前账号所在通知组在值班路由上的接收时段。
+// 自服务接口的数据范围与权限判定都在 biz，service 只做映射。
+func (s *NotificationOnCallService) ListMyOnCallGroupWindows(ctx context.Context, req *v1.ListMyOnCallGroupWindowsRequest) (*v1.ListMyOnCallGroupWindowsResponse, error) {
+	items, err := s.center.MyOnCallGroupWindows(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.MyOnCallGroupWindowItem, 0, len(items))
+	for _, item := range items {
+		windows := make([]*v1.NotificationOnCallWindow, 0, len(item.Windows))
+		for _, window := range item.Windows {
+			windows = append(windows, &v1.NotificationOnCallWindow{
+				Weekdays: window.Weekdays, Start: window.Start, End: window.End,
+			})
+		}
+		out = append(out, &v1.MyOnCallGroupWindowItem{
+			OncallUid: item.OnCallUID, OncallName: item.OnCallName,
+			GroupUid: item.GroupUID, GroupName: item.GroupName,
+			Timezone: item.Timezone, Current: item.Current, Windows: windows,
+		})
+	}
+	return &v1.ListMyOnCallGroupWindowsResponse{Items: out}, nil
+}

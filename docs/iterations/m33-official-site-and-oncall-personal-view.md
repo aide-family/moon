@@ -14,7 +14,7 @@ M33 给 Alioth 补上对外可见的另一半：一个免登录的官网（公�
 4. 页脚备案号、公安备案号、版权与联系邮箱来自后端接口并可在后台修改；留空则整条不渲染。
 5. 第三方（OAuth2）登录入口能在后台按平台开关；关闭时后端不下发、前端不渲染，直接调登录接口也不签发凭证。
 6. 实时告警「自定义列」勾选或保留「认领人」后保存成功，不再弹「请求不符合规则，请检查后重试。」。
-7. OnCall 值班时间视图提供「全部 / 我的」切换，只看当前登录用户自己的班次。
+7. OnCall 值班时间视图提供「全部 / 我的」切换，只看当前登录用户自己的值班：轮换班次，以及本人所在通知组在值班项上的接收时段。
 
 依赖：M1/M9（身份与租户）、M13/M29（OnCall 与值班轮换）、M28（认领与事件时间线）、M30（公开状态页的原生 `fetch` no-auth 先例）、M22（菜单化权限与 `system:*` 权限族）。
 
@@ -89,10 +89,13 @@ M33 给 Alioth 补上对外可见的另一半：一个免登录的官网（公�
 | `DELETE` | `/v1/system/site/pages/{uid}` | `system:site:write` | 软删，`home` 拒绝 |
 | `GET` / `PUT` | `/v1/system/auth/login-methods` | `system:login:read` / `write` | 两种登录方式的开关 |
 | `GET` | `/v1/auth/oauth2/providers`（已有） | 公开 | 开关关闭时返回空列表 |
+| `GET` | `/v1/self/oncall-group-windows` | `notification_oncall:read` | 自服务：当前账号所在通知组在值班项上的接收时段；只返回启用的值班项与通知组，`windows` 为空表示全天候 |
 
 权限常量加进 `app/alioth/pkg/perm/perm.go` 的 `SystemCatalog()`：`system:site:read`、`system:site:write`、`system:login:read`、`system:login:write`。`SUPER_ADMIN` 自动全量，`SYSTEM_ADMIN` 只加读，`SYSTEM_READONLY` 因 `:read` 后缀自动获得。
 
 R7 的接口：`GET /v1/self/oncall-shifts?days=14`，按当前登录账号解析成员身份，只返回本人班次（含 `current`、轮换名、时区、起止），不要求 `notification_rotation:read`。路径不能挂在 `/v1/oncall-rotations/{uid}` 下：同前缀的静态段会被参数路由先匹配，实测返回 404。
+
+「我的」还要回答「只靠通知组收告警的人什么时候在值班」，因此另有 `GET /v1/self/oncall-group-windows`：按与「我的告警」一致的接收人判定找当前成员所在的通知组（成员 UID 命中 `email_member_uids` / `sms_member_uids` / 旧版 `member_uids`，或成员邮箱/手机号命中手填接收方），再返回这些通知组在每个启用值班项上的接收时段；只返回启用的值班项与通知组，`windows` 为空表示全天候，`current` 按值班项时区判断当前时刻是否落在任一时段内。平台管理员等非租户成员返回空列表而不是 403；该接口同样不要求 `notification_rotation:read`。
 
 ## 5. Web
 
@@ -105,7 +108,7 @@ R7 的接口：`GET /v1/self/oncall-shifts?days=14`，按当前登录账号解�
 | `/login`、`/register` | 现有页面 | 否 | 页脚备案改为读站点配置，删除 `i18n` 里的备案占位 |
 | `/app` | `LandingRedirect` | 是 | 从 `/` 迁来，`ignoredPaths` 与 `tenantFreePaths` 同步 |
 | `/system/site` | `SiteAdminPage` | 是 | 平台级，`tenantFreePaths` 与侧栏 `nav.site` 入口 |
-| `/notification-oncall` | 现有页面 | 是 | 时间视图加「全部 / 我的」切换，视角写进 URL（`?view=mine`） |
+| `/notification-oncall` | 现有页面 | 是 | 时间视图加「全部 / 我的」切换，视角写进 URL（`?view=mine`）；「我的」= 本人轮换班次 + 本人所在通知组的接收时段 |
 
 官网取数走原生 `fetch`（仿 `web/src/api/status-page/public.ts`），不得走 `@/api/http`：后者带 401/403 拦截，会把免登录访客送回登录页。备案、版权、登录方式共用一份站点配置（`useSiteConfig`），一个页面只请求一次。
 
@@ -152,7 +155,7 @@ Hero（`text-display-1` 标题、`text-lead` 副标、≤2 个 CTA、主视觉 4
 - [ ] R4 备案：页脚文本等于接口值（不再是 `京ICP备00000000号-1` 占位），链接与 `rel` 正确；后台改为空后该行整条消失且布局不塌；`javascript:` 之类的 scheme 不渲染成可点链接；登录页、官网页、公开状态页三处一致，单页只请求一次配置。
 - [ ] R5 OAuth：全关时无第三方按钮、无分隔线、邮箱表单直接展开且可登录；部分开时只出现已开平台且顺序与配置一致；关掉后刷新不出现；开关关闭时直接调 `/v1/auth/oauth2/login` 不签发 token；个人资料里已绑定平台仍可见。
 - [ ] R6 认领人列（已修）：保存 `PUT /v1/alert-pages/my-columns` 返回 200，表头出现「认领人」，刷新后仍在，页面无错误文案；三个 scope（我的 / 告警页面 Tab / 历史明细）一致；未认领单元格显示文字占位而非留空。
-- [ ] R7 个人视图：出现独立于「范围」下拉的「全部 / 我的」切换，`aria-pressed` 与可见态一致、URL 可回放；只出现本人班次且与排班接口逐段一致；跨午夜拆段正确；无值班时给空态与「去值班轮换」入口；排班失败显示失败 + 重试，不伪装成「没有值班」；无 `notification_rotation:read` 的成员也能看到自己的班次。
+- [ ] R7 个人视图：出现独立于「范围」下拉的「全部 / 我的」切换，`aria-pressed` 与可见态一致、URL 可回放；本人轮换班次与排班接口逐段一致，跨午夜拆段正确；「我所在通知组的接收时段」只出现当前成员作为接收人的启用通知组与启用值班项，窗口跨午夜文案正确，`windows` 为空显示全天候；两段都为空才给空态与「去值班轮换」入口；班次失败与通知组失败各自独立、都有重试，不伪装成「没有值班」；无 `notification_rotation:read` 的成员也能看到自己的班次与通知组时段。
 
 通用拦截项（任一命中即 HOLD）：四态不可区分或失败态无重试；出现未映射英文原文或只给兜底文案；错误不指向具体对象、失败后草稿丢失；切换状态只靠颜色、键盘不可达；390×844 横向滚动或弹窗超 80vw/80vh；同一视图两个纵向滚动条；Tabs 的 `value`、`aria-selected`、可见面板与 URL 不一致；写入口未按权限显隐；新增字面色值或调色板类。
 
@@ -171,6 +174,8 @@ Hero（`text-display-1` 标题、`text-lead` 副标、≤2 个 CTA、主视觉 4
 | `ONCALL` | R7 | 13 | ONCALL-01 无 read 权限也可用、ONCALL-02 只出现本人、ONCALL-03 当前班次、ONCALL-04 下一班 |
 
 选择器优先级：`getByRole` → `getByLabel` → 现有结构属性（`[data-provider]`、`[data-sort-key]`）→ `data-testid`。`data-testid` 全仓目前为 0，限量新增（官网登录/进入后台入口、备案链接、个人视图班次行等语义拿不到的锚点）。时间与语言钉死（`locale: zh-CN`、`timezoneId: Asia/Shanghai`），不写 `waitForTimeout`，写操作等响应、读断言用 web-first 自动重试。
+
+R7 的补充需求（我所在通知组的接收时段）另需两条用例：ONCALL-14 只出现本人作为接收人的启用通知组时段、ONCALL-15 通知组接口失败独立重试且不回退成空态；不计入上面 75 条的历史盘点。
 
 自动化前置（阻塞，需拍板）：图形验证码测试通道、JWT 直签注入会话、`megrez` 的 `ReportEval` 造事件；三者都不批就只能靠 OCR 与真实评测链路，稳定性不可接受。站点信息与登录开关是平台级单例，用例必须放在串行 project 并在前后做快照恢复。
 
@@ -203,7 +208,7 @@ Hero（`text-display-1` 标题、`text-lead` 副标、≤2 个 CTA、主视觉 4
 
 ## 12. 实现状态
 
-按第 2 节的推荐决策实现完毕，分在五个分支上（都基于已同步的 `main`，未经推送与合并）：
+按第 2 节的推荐决策实现完毕，分在六个分支上（都基于已同步的 `main`，未经推送与合并）：
 
 | 分支 | 内容 | 对应需求 |
 | --- | --- | --- |
@@ -211,6 +216,7 @@ Hero（`text-display-1` 标题、`text-lead` 副标、≤2 个 CTA、主视觉 4
 | `feat/system-site-config` | `site_settings` / `auth_login_settings` 单例表、公开配置接口、`system:site:*` 与 `system:login:*` 权限、登录方式双保险拦截、`/system/site` 页面、登录页页脚与入口裁剪 | R4、R5 |
 | `feat/official-site-pages` | `site_pages` 草稿/发布快照、公开页面与导航接口、后台发布接口、官网 `/` 与 `/p/:slug`、`/system/site/pages`、`/` → `/app` 路由迁移与租户选择 | R1、R2、R3 |
 | `feat/oncall-personal-view` | `GET /v1/self/oncall-shifts`、时间视图「全部 / 我的」与六态分离 | R7 |
+| `feat/oncall-mine-group-windows` | `GET /v1/self/oncall-group-windows`、「我的」补「我所在通知组的接收时段」与两段独立失败态 | R7 补充 |
 
 已经跑过的验证：`go build ./...`、`go vet ./...`、`internal/biz/...` 与 `pkg/...` 单测；`npm run typecheck`、`npx eslint src`、`npm run build`。
 

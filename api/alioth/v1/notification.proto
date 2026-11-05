@@ -229,6 +229,12 @@ service NotificationOnCallService {
   rpc ListNotificationOnCalls(ListNotificationOnCallsRequest) returns (ListNotificationOnCallsResponse) {
     option (google.api.http) = {get: "/v1/notification-oncalls"};
   }
+  // 列出当前登录账号所在通知组在值班路由上的接收时段。
+  // 自服务接口：只要求通知值班读权限，不要求值班轮换读权限；
+  // 当前账号不是租户成员时返回空列表，不报错。
+  rpc ListMyOnCallGroupWindows(ListMyOnCallGroupWindowsRequest) returns (ListMyOnCallGroupWindowsResponse) {
+    option (google.api.http) = {get: "/v1/self/oncall-group-windows"};
+  }
 }
 
 // 消息日志与任务的查看、重试和取消。
@@ -1156,6 +1162,33 @@ message ListNotificationOnCallsResponse {
   int32 page = 3;
   // 每页条数。
   int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 查询当前登录账号所在通知组的接收时段。
+message ListMyOnCallGroupWindowsRequest {}
+
+// 当前账号所在通知组在一条值班路由上的接收时段。
+message MyOnCallGroupWindowItem {
+  // 值班路由标识。
+  string oncall_uid = 1 [json_name = "oncallUid"];
+  // 值班路由名称。
+  string oncall_name = 2 [json_name = "oncallName"];
+  // 通知组标识。
+  string group_uid = 3 [json_name = "groupUid"];
+  // 通知组名称。
+  string group_name = 4 [json_name = "groupName"];
+  // 值班路由的 IANA 时区。空值按 Asia/Shanghai 处理。
+  string timezone = 5;
+  // 当前时刻是否落在任一接收时段内。
+  bool current = 6;
+  // 接收时段。为空表示全天候接收。
+  repeated NotificationOnCallWindow windows = 7;
+}
+
+// 当前账号所在通知组的值班接收时段列表。
+message ListMyOnCallGroupWindowsResponse {
+  // 条目列表，按值班路由名称、通知组名称排序。
+  repeated MyOnCallGroupWindowItem items = 1;
 }
 
 // 一条消息日志。

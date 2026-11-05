@@ -551,6 +551,11 @@ const zh = {
     dayOffset: "{{days}} 天后",
     localZone: "本地时间（{{zone}}）",
     failed: "班次加载失败。",
+    groupWindowsTitle: "我所在通知组的接收时段",
+    groupWindowsFailed: "通知组接收时段加载失败。",
+    groupWindowsCurrent: "当前接收",
+    groupWindowsAlways: "全天候接收",
+    groupName: "通知组：{{name}}",
   },
 
   multiSelect: {
@@ -4736,6 +4741,11 @@ const en = {
     dayOffset: "in {{days}} days",
     localZone: "Local time ({{zone}})",
     failed: "Could not load your shifts.",
+    groupWindowsTitle: "Notification group windows",
+    groupWindowsFailed: "Could not load notification group windows.",
+    groupWindowsCurrent: "Receiving now",
+    groupWindowsAlways: "Always receiving",
+    groupName: "Group: {{name}}",
   },
 
   multiSelect: {

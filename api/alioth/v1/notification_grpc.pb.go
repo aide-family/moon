@@ -1541,6 +1541,7 @@ const (
 	NotificationOnCallService_DeleteNotificationOnCall_FullMethodName       = "/alioth.v1.NotificationOnCallService/DeleteNotificationOnCall"
 	NotificationOnCallService_GetNotificationOnCall_FullMethodName          = "/alioth.v1.NotificationOnCallService/GetNotificationOnCall"
 	NotificationOnCallService_ListNotificationOnCalls_FullMethodName        = "/alioth.v1.NotificationOnCallService/ListNotificationOnCalls"
+	NotificationOnCallService_ListMyOnCallGroupWindows_FullMethodName       = "/alioth.v1.NotificationOnCallService/ListMyOnCallGroupWindows"
 )
 
 // NotificationOnCallServiceClient is the client API for NotificationOnCallService service.
@@ -1562,6 +1563,10 @@ type NotificationOnCallServiceClient interface {
 	GetNotificationOnCall(ctx context.Context, in *GetNotificationOnCallRequest, opts ...grpc.CallOption) (*GetNotificationOnCallResponse, error)
 	// 分页列出值班路由。
 	ListNotificationOnCalls(ctx context.Context, in *ListNotificationOnCallsRequest, opts ...grpc.CallOption) (*ListNotificationOnCallsResponse, error)
+	// 列出当前登录账号所在通知组在值班路由上的接收时段。
+	// 自服务接口：只要求通知值班读权限，不要求值班轮换读权限；
+	// 当前账号不是租户成员时返回空列表，不报错。
+	ListMyOnCallGroupWindows(ctx context.Context, in *ListMyOnCallGroupWindowsRequest, opts ...grpc.CallOption) (*ListMyOnCallGroupWindowsResponse, error)
 }
 
 type notificationOnCallServiceClient struct {
@@ -1632,6 +1637,16 @@ func (c *notificationOnCallServiceClient) ListNotificationOnCalls(ctx context.Co
 	return out, nil
 }
 
+func (c *notificationOnCallServiceClient) ListMyOnCallGroupWindows(ctx context.Context, in *ListMyOnCallGroupWindowsRequest, opts ...grpc.CallOption) (*ListMyOnCallGroupWindowsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyOnCallGroupWindowsResponse)
+	err := c.cc.Invoke(ctx, NotificationOnCallService_ListMyOnCallGroupWindows_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NotificationOnCallServiceServer is the server API for NotificationOnCallService service.
 // All implementations must embed UnimplementedNotificationOnCallServiceServer
 // for forward compatibility.
@@ -1651,6 +1666,10 @@ type NotificationOnCallServiceServer interface {
 	GetNotificationOnCall(context.Context, *GetNotificationOnCallRequest) (*GetNotificationOnCallResponse, error)
 	// 分页列出值班路由。
 	ListNotificationOnCalls(context.Context, *ListNotificationOnCallsRequest) (*ListNotificationOnCallsResponse, error)
+	// 列出当前登录账号所在通知组在值班路由上的接收时段。
+	// 自服务接口：只要求通知值班读权限，不要求值班轮换读权限；
+	// 当前账号不是租户成员时返回空列表，不报错。
+	ListMyOnCallGroupWindows(context.Context, *ListMyOnCallGroupWindowsRequest) (*ListMyOnCallGroupWindowsResponse, error)
 	mustEmbedUnimplementedNotificationOnCallServiceServer()
 }
 
@@ -1678,6 +1697,9 @@ func (UnimplementedNotificationOnCallServiceServer) GetNotificationOnCall(contex
 }
 func (UnimplementedNotificationOnCallServiceServer) ListNotificationOnCalls(context.Context, *ListNotificationOnCallsRequest) (*ListNotificationOnCallsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListNotificationOnCalls not implemented")
+}
+func (UnimplementedNotificationOnCallServiceServer) ListMyOnCallGroupWindows(context.Context, *ListMyOnCallGroupWindowsRequest) (*ListMyOnCallGroupWindowsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyOnCallGroupWindows not implemented")
 }
 func (UnimplementedNotificationOnCallServiceServer) mustEmbedUnimplementedNotificationOnCallServiceServer() {
 }
@@ -1809,6 +1831,24 @@ func _NotificationOnCallService_ListNotificationOnCalls_Handler(srv interface{},
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NotificationOnCallService_ListMyOnCallGroupWindows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyOnCallGroupWindowsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationOnCallServiceServer).ListMyOnCallGroupWindows(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationOnCallService_ListMyOnCallGroupWindows_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationOnCallServiceServer).ListMyOnCallGroupWindows(ctx, req.(*ListMyOnCallGroupWindowsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NotificationOnCallService_ServiceDesc is the grpc.ServiceDesc for NotificationOnCallService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1839,6 +1879,10 @@ var NotificationOnCallService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListNotificationOnCalls",
 			Handler:    _NotificationOnCallService_ListNotificationOnCalls_Handler,
+		},
+		{
+			MethodName: "ListMyOnCallGroupWindows",
+			Handler:    _NotificationOnCallService_ListMyOnCallGroupWindows_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

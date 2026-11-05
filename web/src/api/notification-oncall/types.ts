@@ -79,3 +79,22 @@ export interface CreateNotificationOnCallParams {
 export interface UpdateNotificationOnCallParams extends CreateNotificationOnCallParams {
   uid: string
 }
+
+/**
+ * 「我的」视角：当前账号所在通知组在某个值班项上的接收时段。
+ * windows 为空表示该组全天候接收；start 晚于 end 表示跨午夜，星期几归属于开始那天。
+ */
+export interface MyOnCallGroupWindowItem {
+  oncallUid: string
+  oncallName: string
+  groupUid: string
+  groupName: string
+  timezone: string
+  /** 该接收时段当前是否生效。 */
+  current: boolean
+  windows: OnCallWindow[]
+}
+
+export interface ListMyOnCallGroupWindowsResult {
+  items: MyOnCallGroupWindowItem[]
+}

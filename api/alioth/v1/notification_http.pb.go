@@ -1467,6 +1467,7 @@ func (c *NotificationSubscriptionServiceHTTPClientImpl) UpdateNotificationSubscr
 const OperationNotificationOnCallServiceCreateNotificationOnCall = "/alioth.v1.NotificationOnCallService/CreateNotificationOnCall"
 const OperationNotificationOnCallServiceDeleteNotificationOnCall = "/alioth.v1.NotificationOnCallService/DeleteNotificationOnCall"
 const OperationNotificationOnCallServiceGetNotificationOnCall = "/alioth.v1.NotificationOnCallService/GetNotificationOnCall"
+const OperationNotificationOnCallServiceListMyOnCallGroupWindows = "/alioth.v1.NotificationOnCallService/ListMyOnCallGroupWindows"
 const OperationNotificationOnCallServiceListNotificationOnCalls = "/alioth.v1.NotificationOnCallService/ListNotificationOnCalls"
 const OperationNotificationOnCallServiceUpdateNotificationOnCall = "/alioth.v1.NotificationOnCallService/UpdateNotificationOnCall"
 const OperationNotificationOnCallServiceUpdateNotificationOnCallStatus = "/alioth.v1.NotificationOnCallService/UpdateNotificationOnCallStatus"
@@ -1478,6 +1479,10 @@ type NotificationOnCallServiceHTTPServer interface {
 	DeleteNotificationOnCall(context.Context, *DeleteNotificationOnCallRequest) (*DeleteNotificationOnCallResponse, error)
 	// GetNotificationOnCall 获取值班路由详情。
 	GetNotificationOnCall(context.Context, *GetNotificationOnCallRequest) (*GetNotificationOnCallResponse, error)
+	// ListMyOnCallGroupWindows 列出当前登录账号所在通知组在值班路由上的接收时段。
+	// 自服务接口：只要求通知值班读权限，不要求值班轮换读权限；
+	// 当前账号不是租户成员时返回空列表，不报错。
+	ListMyOnCallGroupWindows(context.Context, *ListMyOnCallGroupWindowsRequest) (*ListMyOnCallGroupWindowsResponse, error)
 	// ListNotificationOnCalls 分页列出值班路由。
 	ListNotificationOnCalls(context.Context, *ListNotificationOnCallsRequest) (*ListNotificationOnCallsResponse, error)
 	// UpdateNotificationOnCall 更新值班路由。通知组绑定保存时整体替换。
@@ -1494,6 +1499,7 @@ func RegisterNotificationOnCallServiceHTTPServer(s *http.Server, srv Notificatio
 	r.Handle("DELETE", "/v1/notification-oncall/{uid}", _NotificationOnCallService_DeleteNotificationOnCall0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/notification-oncall/{uid}", _NotificationOnCallService_GetNotificationOnCall0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/notification-oncalls", _NotificationOnCallService_ListNotificationOnCalls0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/self/oncall-group-windows", _NotificationOnCallService_ListMyOnCallGroupWindows0_HTTP_Handler(srv))
 }
 
 func _NotificationOnCallService_CreateNotificationOnCall0_HTTP_Handler(srv NotificationOnCallServiceHTTPServer) func(ctx http.Context) error {
@@ -1622,6 +1628,25 @@ func _NotificationOnCallService_ListNotificationOnCalls0_HTTP_Handler(srv Notifi
 	}
 }
 
+func _NotificationOnCallService_ListMyOnCallGroupWindows0_HTTP_Handler(srv NotificationOnCallServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMyOnCallGroupWindowsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationOnCallServiceListMyOnCallGroupWindows)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMyOnCallGroupWindows(ctx, req.(*ListMyOnCallGroupWindowsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMyOnCallGroupWindowsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type NotificationOnCallServiceHTTPClient interface {
 	// CreateNotificationOnCall 创建值班路由。
 	CreateNotificationOnCall(ctx context.Context, req *CreateNotificationOnCallRequest, opts ...http.CallOption) (rsp *CreateNotificationOnCallResponse, err error)
@@ -1629,6 +1654,10 @@ type NotificationOnCallServiceHTTPClient interface {
 	DeleteNotificationOnCall(ctx context.Context, req *DeleteNotificationOnCallRequest, opts ...http.CallOption) (rsp *DeleteNotificationOnCallResponse, err error)
 	// GetNotificationOnCall 获取值班路由详情。
 	GetNotificationOnCall(ctx context.Context, req *GetNotificationOnCallRequest, opts ...http.CallOption) (rsp *GetNotificationOnCallResponse, err error)
+	// ListMyOnCallGroupWindows 列出当前登录账号所在通知组在值班路由上的接收时段。
+	// 自服务接口：只要求通知值班读权限，不要求值班轮换读权限；
+	// 当前账号不是租户成员时返回空列表，不报错。
+	ListMyOnCallGroupWindows(ctx context.Context, req *ListMyOnCallGroupWindowsRequest, opts ...http.CallOption) (rsp *ListMyOnCallGroupWindowsResponse, err error)
 	// ListNotificationOnCalls 分页列出值班路由。
 	ListNotificationOnCalls(ctx context.Context, req *ListNotificationOnCallsRequest, opts ...http.CallOption) (rsp *ListNotificationOnCallsResponse, err error)
 	// UpdateNotificationOnCall 更新值班路由。通知组绑定保存时整体替换。
@@ -1688,6 +1717,25 @@ func (c *NotificationOnCallServiceHTTPClientImpl) GetNotificationOnCall(ctx cont
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationNotificationOnCallServiceGetNotificationOnCall),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListMyOnCallGroupWindows 列出当前登录账号所在通知组在值班路由上的接收时段。
+// 自服务接口：只要求通知值班读权限，不要求值班轮换读权限；
+// 当前账号不是租户成员时返回空列表，不报错。
+func (c *NotificationOnCallServiceHTTPClientImpl) ListMyOnCallGroupWindows(ctx context.Context, in *ListMyOnCallGroupWindowsRequest, opts ...http.CallOption) (*ListMyOnCallGroupWindowsResponse, error) {
+	var out ListMyOnCallGroupWindowsResponse
+	pattern := "/v1/self/oncall-group-windows"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNotificationOnCallServiceListMyOnCallGroupWindows),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

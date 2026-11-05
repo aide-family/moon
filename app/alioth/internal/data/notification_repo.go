@@ -620,6 +620,28 @@ func (r *notificationRepo) ListGroups(ctx context.Context, namespaceUID string, 
 	return items, total, nil
 }
 
+// ListGroupsForMember 返回当前成员作为接收人的生效通知组。
+// SQL 只按租户、状态和软删过滤；成员命中规则必须复用 groupMatchesUser，
+// 与「我的告警」等已有判定保持一致，避免同一份接收人数据出现两套解释。
+func (r *notificationRepo) ListGroupsForMember(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]bo.NotificationGroup, error) {
+	rows, err := r.client.NotificationGroup.Query().Where(
+		notificationgroup.NamespaceUIDEQ(namespaceUID),
+		notificationgroup.DeletedAtIsNil(),
+		notificationgroup.StatusEQ(notificationgroup.StatusACTIVE),
+	).Order(ent.Asc(notificationgroup.FieldUID)).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items := make([]bo.NotificationGroup, 0, len(rows))
+	for _, row := range rows {
+		if !groupMatchesUser(row, memberUID, tokens) {
+			continue
+		}
+		items = append(items, toNotificationGroup(row))
+	}
+	return items, nil
+}
+
 func (r *notificationRepo) SelectGroups(ctx context.Context, namespaceUID string, limit int, lastUID string, activeOnly bool) ([]bo.SelectItem, error) {
 	query := r.client.NotificationGroup.Query().Where(notificationgroup.NamespaceUIDEQ(namespaceUID), notificationgroup.DeletedAtIsNil())
 	if activeOnly {

@@ -18,12 +18,14 @@ import type {
 import {
   createNotificationOnCall,
   deleteNotificationOnCall,
+  listMyOnCallGroupWindows,
   listNotificationOnCalls,
   updateNotificationOnCall,
   updateNotificationOnCallStatus,
 } from "@/api/notification-oncall"
 import type {
   CreateNotificationOnCallParams,
+  MyOnCallGroupWindowItem,
   NotificationOnCallItem,
   OnCallGroupItem,
   OnCallWindow,
@@ -283,6 +285,13 @@ export function NotificationOnCallPage() {
     shifts: MyOnCallShiftItem[]
     failed: boolean
   } | null>(null)
+  // 「我的」视角的通知组接收时段：与班次是两个独立请求，签名缓存与重试也各自独立。
+  const [myGroupWindowsAttempt, setMyGroupWindowsAttempt] = useState(0)
+  const [myGroupWindows, setMyGroupWindows] = useState<{
+    key: string
+    items: MyOnCallGroupWindowItem[]
+    failed: boolean
+  } | null>(null)
   const canWrite = session.can("notification_oncall:write")
   const canRead = session.can("notification_oncall:read")
   // 值班轮换是可选绑定：没有 notification_rotation:read 时不展示下拉，只回显已有名称。
@@ -369,6 +378,42 @@ export function NotificationOnCallPage() {
     }
   }, [myShiftsKey])
   const myShiftsLoading = myShiftsKey !== "" && myShifts?.key !== myShiftsKey
+
+  // 「我的」通知组接收时段与班次并行请求；失败只影响自己那一段，不会变成「没有值班」。
+  const myGroupWindowsKey =
+    view === "time" && timeView === "mine" && canRead
+      ? `${session.namespaceUid}:${myGroupWindowsAttempt}`
+      : ""
+  useEffect(() => {
+    if (!myGroupWindowsKey) {
+      return
+    }
+    let active = true
+    listMyOnCallGroupWindows()
+      .then((result) => {
+        if (active) {
+          setMyGroupWindows({
+            key: myGroupWindowsKey,
+            items: result.items ?? [],
+            failed: false,
+          })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setMyGroupWindows({
+            key: myGroupWindowsKey,
+            items: [],
+            failed: true,
+          })
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [myGroupWindowsKey])
+  const myGroupWindowsLoading =
+    myGroupWindowsKey !== "" && myGroupWindows?.key !== myGroupWindowsKey
 
   // 四态分开：无数据、筛选无结果、无权限、加载失败各自有独立文案与操作。
   const readDenied = !session.loading && !canRead
@@ -1028,6 +1073,20 @@ export function NotificationOnCallPage() {
                 onRetry={() => {
                   setMyShifts(null)
                   setMyShiftsAttempt((value) => value + 1)
+                }}
+                groupWindows={
+                  myGroupWindows?.key === myGroupWindowsKey
+                    ? (myGroupWindows?.items ?? [])
+                    : []
+                }
+                groupWindowsLoading={session.loading || myGroupWindowsLoading}
+                groupWindowsFailed={
+                  myGroupWindows?.key === myGroupWindowsKey &&
+                  Boolean(myGroupWindows?.failed)
+                }
+                onGroupWindowsRetry={() => {
+                  setMyGroupWindows(null)
+                  setMyGroupWindowsAttempt((value) => value + 1)
                 }}
               />
             }
