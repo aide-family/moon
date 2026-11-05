@@ -66,8 +66,26 @@ npm --prefix web run check:i18n   # 中英 key 一致性
 node web/scripts/smoke-site.mjs   # 真实后端冒烟（需 dev server 与 JWT）
 ```
 
-`check:ui` 与 `check:i18n` 是必须在合并前跑的红线；`smoke-site.mjs` 目前覆盖官网首页、
-文档页、后台站点设置、预览页与页面保存的乐观锁往返，后续新需求按同样结构补用例。
+`check:ui` 与 `check:i18n` 是必须在合并前跑的红线；`smoke-site.mjs` 覆盖官网首页、
+文档页、后台站点设置、预览页与页面保存的乐观锁往返。
+
+### 4.1 Playwright 端到端
+
+```sh
+# 需要先起好：日志服务（默认 :8100）与 web dev server（默认 :8080）
+E2E_WEB_URL=http://127.0.0.1:8080 \
+E2E_API_URL=http://127.0.0.1:8100 \
+E2E_JWT_SECRET=... E2E_USER_UID=... E2E_NAMESPACE=... \
+npm --prefix web run e2e
+```
+
+- 用本机已安装的 Chrome（`channel: "chrome"`），不下载额外浏览器。
+- 登录态用 JWT 注入 `localStorage`，不走验证码；夹具里的默认值只对应本机开发环境。
+- 覆盖：公开配置、平台级接口免租户头、乐观锁往返与过期 409、首页、文档页 Markdown
+  代码高亮与右侧目录、深色/窄屏无横向滚动、预览页、设置页快捷导航与首页内容预览、
+  切换语言确认、编辑器内联预览、保存冲突覆盖。
+- 截图落在 `tmp/acceptance/`，作为浏览器证据随交付一起给出。
+- 用例里创建的数据都在 `finally` 里删除，跑完不污染开发库。
 
 ## 5. 流程约束
 

@@ -3,10 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Navigate, useSearchParams } from "react-router-dom"
 
-import {
-  getSitePage,
-  listSitePages,
-} from "@/api/site/pages"
+import { getSitePage, listSitePages } from "@/api/site/pages"
 import type { SitePageDetail, SitePageItem } from "@/api/site/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
@@ -47,10 +44,7 @@ function boundedInt(
   return parsed
 }
 
-function localeLabel(
-  t: (key: string) => string,
-  locale: string
-): string {
+function localeLabel(t: (key: string) => string, locale: string): string {
   return locale === "en"
     ? t("sitePages.field.localeEn")
     : t("sitePages.field.localeZh")
@@ -150,14 +144,11 @@ export function SitePagesPage() {
   const keyword = searchParams.get("keyword") ?? ""
   const rawState = searchParams.get("state") ?? ""
   const stateFilter =
-    rawState === "DRAFT" ||
-    rawState === "PUBLISHED" ||
-    rawState === "ARCHIVED"
+    rawState === "DRAFT" || rawState === "PUBLISHED" || rawState === "ARCHIVED"
       ? rawState
       : ""
   const rawLocale = searchParams.get("locale") ?? ""
-  const localeFilter =
-    rawLocale === "zh" || rawLocale === "en" ? rawLocale : ""
+  const localeFilter = rawLocale === "zh" || rawLocale === "en" ? rawLocale : ""
 
   const [draftKeyword, setDraftKeyword] = useState(keyword)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -175,21 +166,19 @@ export function SitePagesPage() {
   >(null)
   const editorRef = useRef<PageEditorHandle | null>(null)
 
-  const { items, total, loading, failed, reload } = usePagedList<SitePageItem>(
-    {
-      page,
-      pageSize,
-      filterKey: `${keyword}|${stateFilter}|${localeFilter}`,
-      fetch: (nextPage, nextPageSize) =>
-        listSitePages({
-          page: nextPage,
-          pageSize: nextPageSize,
-          keyword,
-          state: stateFilter,
-          locale: localeFilter,
-        }),
-    }
-  )
+  const { items, total, loading, failed, reload } = usePagedList<SitePageItem>({
+    page,
+    pageSize,
+    filterKey: `${keyword}|${stateFilter}|${localeFilter}`,
+    fetch: (nextPage, nextPageSize) =>
+      listSitePages({
+        page: nextPage,
+        pageSize: nextPageSize,
+        keyword,
+        state: stateFilter,
+        locale: localeFilter,
+      }),
+  })
 
   useEffect(() => {
     if (mode !== "edit" || !selectedUid) {
@@ -368,7 +357,7 @@ export function SitePagesPage() {
       </PageHeader>
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,21rem)_minmax(0,1fr)]">
-        <aside className="flex min-h-0 min-w-0 flex-col gap-3">
+        <aside className="flex max-h-[40vh] min-h-0 min-w-0 flex-col gap-3 lg:max-h-none">
           <div className="glass-card shrink-0 rounded-xl p-3">
             <form
               className="flex gap-2"

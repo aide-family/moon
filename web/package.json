@@ -15,7 +15,8 @@
     "check:i18n": "node scripts/check-i18n.mjs",
     "check:ui": "node scripts/check-ui-conventions.mjs",
     "check": "npm run typecheck && npm run lint && npm run check:i18n && npm run check:ui",
-    "smoke": "node scripts/smoke-site.mjs"
+    "smoke": "node scripts/smoke-site.mjs",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.4",
@@ -53,6 +54,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10",
+    "@playwright/test": "^1.64.1",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",

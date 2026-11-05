@@ -10,7 +10,7 @@
  */
 
 export interface MarkdownHeading {
-  level: 2 | 3
+  level: 1 | 2 | 3 | 4 | 5 | 6
   /** 目录里显示的纯文本（已去掉行内 Markdown 标记）。 */
   text: string
   /** 锚点 id，正文标题与目录共用。 */
@@ -59,7 +59,11 @@ export function plainHeadingText(raw: string): string {
 }
 
 /** 提取正文里的 h2 / h3，按出现顺序返回。 */
-export function extractHeadings(markdown: string): MarkdownHeading[] {
+export function extractHeadings(
+  markdown: string,
+  options: { levels?: Array<MarkdownHeading["level"]> } = {}
+): MarkdownHeading[] {
+  const allowed = new Set(options.levels ?? [2, 3])
   const lines = markdown.replace(/\r\n?/g, "\n").split("\n")
   const headings: MarkdownHeading[] = []
   const used = new Set<string>()
@@ -106,7 +110,7 @@ export function extractHeadings(markdown: string): MarkdownHeading[] {
       continue
     }
     const level = match[1].length
-    if (level !== 2 && level !== 3) {
+    if (!allowed.has(level as MarkdownHeading["level"])) {
       continue
     }
     const text = plainHeadingText(
@@ -124,7 +128,12 @@ export function extractHeadings(markdown: string): MarkdownHeading[] {
       id = `${base}-${suffix}`
     }
     used.add(id)
-    headings.push({ level, text, id, line: index + 1 })
+    headings.push({
+      level: level as MarkdownHeading["level"],
+      text,
+      id,
+      line: index + 1,
+    })
   }
 
   return headings

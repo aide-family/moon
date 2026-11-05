@@ -1,5 +1,6 @@
 import { Check, Copy } from "lucide-react"
 import {
+  createElement,
   isValidElement,
   useEffect,
   useMemo,
@@ -149,7 +150,10 @@ function CodeBlock({ children }: { children?: ReactNode }) {
   const source = textOf(content).replace(/\n$/, "")
 
   return (
-    <div className="md-code-block overflow-hidden rounded-[12px] border border-border">
+    <div
+      data-slot="code-block"
+      className="md-code-block overflow-hidden rounded-[12px] border border-border"
+    >
       {language ? (
         <div className="md-code-block-bar flex items-center justify-between gap-3 border-b border-border px-4 py-1.5">
           <span className="font-mono text-xs">{language}</span>
@@ -250,6 +254,13 @@ interface SiteBodyProps {
   content: string
   emptyText: string
   className?: string
+  /**
+   * 文档页已经在外面渲染了 h1 标题，正文里的 `#` 要整体降一级，
+   * 否则同一页会出现两个 h1（SEO 与无障碍都会出问题）。
+   */
+  headingShift?: number
+  /** 与标题 id 提取保持一致的层级范围；文档页是 1..3，首页摘要只用 2..3。 */
+  headingLevels?: Array<1 | 2 | 3 | 4 | 5 | 6>
 }
 
 /**
@@ -259,27 +270,41 @@ interface SiteBodyProps {
  * 不开启 raw HTML，避免后台正文注入脚本。普通排版全部使用语义 token；代码块的
  * GitHub 语法配色是独立的主题资产（styles/site/code-github.css），只作用于 .md-body。
  */
-export function SiteBody({ content, emptyText, className }: SiteBodyProps) {
+export function SiteBody({
+  content,
+  emptyText,
+  className,
+  headingShift = 0,
+  headingLevels,
+}: SiteBodyProps) {
   // 标题 id 与 SiteArticle 的目录共用同一份提取结果（按源码行号对齐）。
   const lineIds = useMemo(() => {
     const map = new Map<number, string>()
-    for (const heading of extractHeadings(content)) {
+    for (const heading of extractHeadings(content, {
+      levels: headingLevels,
+    })) {
       map.set(heading.line, heading.id)
     }
     return map
-  }, [content])
-  const components = useMemo<Components>(
-    () => ({
+  }, [content, headingLevels])
+  const components = useMemo<Components>(() => {
+    const heading = (level: 1 | 2 | 3 | 4) => {
+      const tag = `h${Math.min(6, level + headingShift)}`
+      return ({ children, node }: { children?: ReactNode; node?: unknown }) =>
+        createElement(
+          tag,
+          { id: headingId(node as never, lineIds, children) },
+          children
+        )
+    }
+    return {
       ...markdownComponents,
-      h2({ children, node }) {
-        return <h2 id={headingId(node, lineIds, children)}>{children}</h2>
-      },
-      h3({ children, node }) {
-        return <h3 id={headingId(node, lineIds, children)}>{children}</h3>
-      },
-    }),
-    [lineIds]
-  )
+      h1: heading(1),
+      h2: heading(2),
+      h3: heading(3),
+      h4: heading(4),
+    }
+  }, [headingShift, lineIds])
 
   if (content.trim() === "") {
     return (

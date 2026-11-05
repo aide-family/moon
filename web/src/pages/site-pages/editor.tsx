@@ -1,15 +1,11 @@
 import {
   ChevronDown,
   ExternalLink,
+  Eye,
   Loader2,
   RefreshCw,
 } from "lucide-react"
-import {
-  useEffect,
-  useImperativeHandle,
-  useState,
-  type Ref,
-} from "react"
+import { useEffect, useImperativeHandle, useState, type Ref } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -24,10 +20,7 @@ import {
   updateSitePage,
   updateSitePageNav,
 } from "@/api/site/pages"
-import type {
-  CreateSitePageParams,
-  SitePageDetail,
-} from "@/api/site/types"
+import type { CreateSitePageParams, SitePageDetail } from "@/api/site/types"
 import { ConfirmAction } from "@/components/confirm-action"
 import { FormField } from "@/components/form-field"
 import { StatusBadge } from "@/components/status-badge"
@@ -56,6 +49,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { SitePreviewView } from "@/pages/public-site/site-preview-view"
 import { cn } from "@/lib/class-names"
 import { formatDateTime } from "@/lib/date-time"
 import {
@@ -132,10 +126,7 @@ function isHTTPURL(value: string): boolean {
   }
 }
 
-function localeLabel(
-  t: (key: string) => string,
-  locale: string
-): string {
+function localeLabel(t: (key: string) => string, locale: string): string {
   return locale === "en"
     ? t("sitePages.field.localeEn")
     : t("sitePages.field.localeZh")
@@ -336,10 +327,15 @@ export function PageEditor({
           ? t("sitePages.field.tooLong")
           : null,
       ],
-      ["summary", maxLength(form.summary, SUMMARY_MAX, t("sitePages.field.tooLong"))],
+      [
+        "summary",
+        maxLength(form.summary, SUMMARY_MAX, t("sitePages.field.tooLong")),
+      ],
       [
         "bodyMd",
-        Array.from(form.bodyMd).length > BODY_MAX ? t("sitePages.field.tooLong") : null,
+        Array.from(form.bodyMd).length > BODY_MAX
+          ? t("sitePages.field.tooLong")
+          : null,
       ],
       [
         "coverImageUrl",
@@ -354,7 +350,10 @@ export function PageEditor({
           ? t("sitePages.field.tooLong")
           : null,
       ],
-      ["seoTitle", maxLength(form.seoTitle, SEO_TITLE_MAX, t("sitePages.field.tooLong"))],
+      [
+        "seoTitle",
+        maxLength(form.seoTitle, SEO_TITLE_MAX, t("sitePages.field.tooLong")),
+      ],
       [
         "seoDescription",
         maxLength(
@@ -365,9 +364,7 @@ export function PageEditor({
       ],
       [
         "sortOrder",
-        !/^\d+$/.test(form.sortOrder.trim()) ||
-        sortOrder < 0 ||
-        sortOrder > 999
+        !/^\d+$/.test(form.sortOrder.trim()) || sortOrder < 0 || sortOrder > 999
           ? t("error.sitePageSortOrderInvalid")
           : null,
       ],
@@ -410,10 +407,7 @@ export function PageEditor({
       void openConflict()
       return
     }
-    if (
-      err instanceof ApiError &&
-      (err.status === 404 || err.status >= 500)
-    ) {
+    if (err instanceof ApiError && (err.status === 404 || err.status >= 500)) {
       // readFormError 把 404/5xx 留给页面级错误页；编辑器里没有错误页，直接展示原因。
       setFieldErrors({})
       setFormError(err.message || fallback)
@@ -462,6 +456,8 @@ export function PageEditor({
   }
 
   /** 打开完整官网预览：新标签读取草稿快照，未保存的改动不会出现，所以先要求保存。 */
+  const [inlinePreviewOpen, setInlinePreviewOpen] = useState(false)
+
   function openPreview() {
     if (!detail || creating || dirty) {
       return
@@ -639,7 +635,7 @@ export function PageEditor({
     : form.title.trim() || detail.item.slug || t("sitePages.editTitle")
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-col rounded-xl border border-border/60 bg-card lg:h-full lg:overflow-hidden">
+    <section className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card lg:h-full">
       <div className="shrink-0 border-b border-border/60 p-4">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="font-heading text-lg font-semibold tracking-tight break-words">
@@ -691,7 +687,7 @@ export function PageEditor({
         </p>
       </div>
 
-      <div className="min-h-0 p-4 lg:flex-1 lg:overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
         {!canWrite ? (
           <p className="mb-4 text-sm text-muted-foreground">
             {t("sitePages.readOnly")}
@@ -833,9 +829,7 @@ export function PageEditor({
               readOnly={!canWrite}
               placeholder={t("sitePages.field.coverPlaceholder")}
               aria-invalid={fieldErrors.coverImageUrl ? true : undefined}
-              onChange={(event) =>
-                update("coverImageUrl", event.target.value)
-              }
+              onChange={(event) => update("coverImageUrl", event.target.value)}
             />
           </FormField>
 
@@ -885,13 +879,9 @@ export function PageEditor({
                   value={form.seoDescription}
                   maxLength={SEO_DESCRIPTION_MAX}
                   readOnly={!canWrite}
-                  placeholder={t(
-                    "sitePages.field.seoDescriptionPlaceholder"
-                  )}
+                  placeholder={t("sitePages.field.seoDescriptionPlaceholder")}
                   className="min-h-16"
-                  aria-invalid={
-                    fieldErrors.seoDescription ? true : undefined
-                  }
+                  aria-invalid={fieldErrors.seoDescription ? true : undefined}
                   onChange={(event) =>
                     update("seoDescription", event.target.value)
                   }
@@ -934,9 +924,7 @@ export function PageEditor({
                   value={form.sortOrder}
                   readOnly={!canWrite}
                   aria-invalid={fieldErrors.sortOrder ? true : undefined}
-                  onChange={(event) =>
-                    update("sortOrder", event.target.value)
-                  }
+                  onChange={(event) => update("sortOrder", event.target.value)}
                 />
               </FormField>
             </div>
@@ -950,10 +938,25 @@ export function PageEditor({
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-border/60 p-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-border/60 bg-card p-3">
         <Button
           type="button"
           variant="outline"
+          size="sm"
+          disabled={!detail || creating || dirty}
+          title={
+            !detail || creating || dirty
+              ? t("sitePages.preview.saveHint")
+              : undefined
+          }
+          onClick={() => setInlinePreviewOpen(true)}
+        >
+          <Eye aria-hidden="true" data-icon="inline-start" />
+          {t("sitePages.action.previewInline")}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
           size="sm"
           disabled={!detail || creating || dirty}
           title={
@@ -1004,9 +1007,7 @@ export function PageEditor({
               variant="outline"
               size="sm"
               disabled={
-                pending !== "" ||
-                isHome ||
-                detail.item.state !== "PUBLISHED"
+                pending !== "" || isHome || detail.item.state !== "PUBLISHED"
               }
               title={isHome ? t("sitePages.homeLocked") : undefined}
               onClick={() => {
@@ -1180,6 +1181,41 @@ export function PageEditor({
           }
         }}
       />
+
+      <Dialog open={inlinePreviewOpen} onOpenChange={setInlinePreviewOpen}>
+        <DialogContent className="sm:max-w-6xl">
+          <DialogHeader>
+            <DialogTitle>{t("sitePages.preview.inlineTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("sitePages.preview.inlineHint")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody>
+            {detail ? <SitePreviewView uid={detail.item.uid} /> : null}
+          </DialogBody>
+          <DialogFooter>
+            {detail ? (
+              <Button asChild variant="outline">
+                <a
+                  href={`/site-preview/${encodeURIComponent(detail.item.uid)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <ExternalLink aria-hidden="true" data-icon="inline-start" />
+                  {t("sitePages.preview.openInNewTab")}
+                </a>
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setInlinePreviewOpen(false)}
+            >
+              {t("sitePages.preview.closeInline")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

@@ -9,3 +9,7 @@ web/dist/
 coverage.out
 .cache/
 .env
+# Playwright
+web/test-results/
+web/playwright-report/
+web/.playwright/

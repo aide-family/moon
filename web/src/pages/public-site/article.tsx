@@ -3,7 +3,7 @@ import { useMemo, type ReactNode } from "react"
 import { SiteBody } from "@/components/site-body"
 import { SiteToc } from "@/components/site-toc"
 import { cn } from "@/lib/class-names"
-import { extractHeadings } from "@/lib/markdown-headings"
+import { extractHeadings, slugifyHeading } from "@/lib/markdown-headings"
 
 interface SiteArticleProps {
   title: string
@@ -37,7 +37,20 @@ export function SiteArticle({
   beforeTitle,
   children,
 }: SiteArticleProps) {
-  const headings = useMemo(() => extractHeadings(bodyMd), [bodyMd])
+  const headings = useMemo(() => {
+    const items = extractHeadings(bodyMd, { levels: [1, 2, 3] })
+    // 正文第一个 h1 通常就是页面标题的重复：渲染时它被降级成 h2，
+    // 目录里也不该再为目标标题列一条同名项。
+    const first = items[0]
+    if (
+      first &&
+      first.level === 1 &&
+      slugifyHeading(first.text) === slugifyHeading(title)
+    ) {
+      return items.slice(1)
+    }
+    return items
+  }, [bodyMd, title])
   const hasToc = headings.length > 0
 
   return (
@@ -69,7 +82,13 @@ export function SiteArticle({
           />
         ) : null}
         {children}
-        <SiteBody content={bodyMd} emptyText={emptyText} className="mt-8" />
+        <SiteBody
+          content={bodyMd}
+          emptyText={emptyText}
+          className="mt-8"
+          headingShift={1}
+          headingLevels={[1, 2, 3]}
+        />
       </div>
       {hasToc ? <SiteToc headings={headings} /> : null}
     </div>
