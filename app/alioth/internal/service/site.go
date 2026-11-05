@@ -240,11 +240,23 @@ func parseOptionalTime(value string) (*time.Time, error) {
 	if value == "" {
 		return nil, nil
 	}
-	parsed, err := time.Parse(time.RFC3339, value)
-	if err != nil {
-		return nil, merr.Invalid("invalid updated at")
+	// 新客户端回传的是带纳秒的锁令牌；旧客户端可能只有秒级，两种都接受。
+	for _, layout := range []string{time.RFC3339Nano, time.RFC3339} {
+		parsed, err := time.Parse(layout, value)
+		if err == nil {
+			return &parsed, nil
+		}
 	}
-	return &parsed, nil
+	return nil, merr.Invalid("invalid updated at")
+}
+
+// formatLockTime 输出带纳秒的 RFC3339，用于乐观锁令牌。
+// 截到秒会让数据库里的微秒对不上，客户端把 updatedAt 原样回传也会 409。
+func formatLockTime(value time.Time) string {
+	if value.IsZero() {
+		return ""
+	}
+	return value.UTC().Format(time.RFC3339Nano)
 }
 
 func sitePageItem(item bo.SitePage) *v1.SitePageItem {
@@ -258,7 +270,7 @@ func sitePageItem(item bo.SitePage) *v1.SitePageItem {
 		Title:                 item.Draft.Title,
 		Summary:               item.Draft.Summary,
 		HasUnpublishedChanges: item.HasUnpublishedChanges(),
-		UpdatedAt:             formatTime(item.UpdatedAt),
+		UpdatedAt:             formatLockTime(item.UpdatedAt),
 		PublishedAt:           formatNullableTime(item.PublishedAt),
 	}
 }
