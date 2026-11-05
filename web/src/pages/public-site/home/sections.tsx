@@ -331,7 +331,7 @@ function PermSection({ home }: { home: SiteHomeContent }) {
       id="site-permissions"
       title={home.permTitle.trim() || t("site.landing.permTitleDefault")}
       body={home.permBody.trim() || t("site.landing.permBodyDefault")}
-      aside={<SiteShot name="packages" />}
+      aside={<SiteShot name="permissions" />}
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         {columns.map((column) => (

@@ -10,7 +10,7 @@ import { cn } from "@/lib/class-names"
 const SHOTS = {
   overview: "/site/overview",
   "alert-rules": "/site/alert-rules",
-  packages: "/site/packages",
+  permissions: "/site/permissions",
   workers: "/site/workers",
 } as const
 
