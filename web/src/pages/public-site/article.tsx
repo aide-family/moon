@@ -1,6 +1,9 @@
-import type { ReactNode } from "react"
+import { useMemo, type ReactNode } from "react"
 
 import { SiteBody } from "@/components/site-body"
+import { SiteToc } from "@/components/site-toc"
+import { cn } from "@/lib/class-names"
+import { extractHeadings } from "@/lib/markdown-headings"
 
 interface SiteArticleProps {
   title: string
@@ -9,15 +12,20 @@ interface SiteArticleProps {
   coverImageUrl?: string
   bodyMd: string
   emptyText: string
+  /** 标题前的返回入口；放在主栏里，才能和正文一起对齐到目录栅格。 */
+  beforeTitle?: ReactNode
   /** 元信息与正文之间的附加提示（例如语言回退提示）。 */
   children?: ReactNode
 }
 
 /**
- * 官网文档页的固定版式：标题、元信息、封面、附加提示与 Markdown 正文。
+ * 官网文档页的固定版式：标题、元信息、封面、附加提示、Markdown 正文与右侧目录。
  *
  * `/p/:slug`（已发布快照）与 `/site-preview/:uid`（后台草稿）共用这一份版式，
  * 两边的区别只在数据来源与分析行文案。
+ *
+ * 桌面（xl+）是「正文 68ch + 14rem 粘性目录」两栏；窄屏只保留单栏正文，避免横向挤压。
+ * 正文没有 h2/h3 时目录整列不渲染，单栏保持居中的 3xl 阅读宽度。
  */
 export function SiteArticle({
   title,
@@ -25,23 +33,44 @@ export function SiteArticle({
   coverImageUrl,
   bodyMd,
   emptyText,
+  beforeTitle,
   children,
 }: SiteArticleProps) {
+  const headings = useMemo(() => extractHeadings(bodyMd), [bodyMd])
+  const hasToc = headings.length > 0
+
   return (
-    <>
-      <h1 className="font-heading text-3xl font-semibold tracking-tight break-words sm:text-4xl">
-        {title}
-      </h1>
-      {meta}
-      {coverImageUrl ? (
-        <img
-          src={coverImageUrl}
-          alt=""
-          className="mt-6 w-full rounded-2xl border border-border/60 object-cover"
-        />
-      ) : null}
-      {children}
-      <SiteBody content={bodyMd} emptyText={emptyText} className="mt-8" />
-    </>
+    <div
+      className={cn(
+        "mx-auto w-full",
+        hasToc &&
+          "xl:grid xl:grid-cols-[minmax(0,68ch)_14rem] xl:justify-center xl:gap-12"
+      )}
+    >
+      <div
+        className={cn(
+          "min-w-0",
+          hasToc
+            ? "mx-auto w-full max-w-3xl xl:mx-0 xl:max-w-[68ch]"
+            : "mx-auto w-full max-w-3xl"
+        )}
+      >
+        {beforeTitle}
+        <h1 className="font-heading text-3xl font-semibold tracking-tight break-words sm:text-4xl">
+          {title}
+        </h1>
+        {meta}
+        {coverImageUrl ? (
+          <img
+            src={coverImageUrl}
+            alt=""
+            className="mt-6 w-full rounded-2xl border border-border/60 object-cover"
+          />
+        ) : null}
+        {children}
+        <SiteBody content={bodyMd} emptyText={emptyText} className="mt-8" />
+      </div>
+      {hasToc ? <SiteToc headings={headings} /> : null}
+    </div>
   )
 }

@@ -33,12 +33,7 @@ import { EMPTY_HOME, SiteHomeSections } from "./home/sections"
 import { HomeSkeleton } from "./home/skeleton"
 
 type PreviewState =
-  | "loading"
-  | "ready"
-  | "unauthenticated"
-  | "forbidden"
-  | "notFound"
-  | "failed"
+  "loading" | "ready" | "unauthenticated" | "forbidden" | "notFound" | "failed"
 
 /** 预览页头部：补齐草稿的 document.title / description，并阻止搜索引擎索引。 */
 function usePreviewHead(detail: SitePageDetail | null) {
@@ -203,8 +198,9 @@ export function SitePreviewPage() {
   }, [requestKey, uid])
 
   const loading = uid !== "" && settled?.key !== requestKey
-  const state: PreviewState = uid === "" ? "notFound" : loading ? "loading" : settled?.state ?? "failed"
-  const detail = state === "ready" ? settled?.detail ?? null : null
+  const state: PreviewState =
+    uid === "" ? "notFound" : loading ? "loading" : (settled?.state ?? "failed")
+  const detail = state === "ready" ? (settled?.detail ?? null) : null
 
   // 首页文案与导航是附加内容：任一失败都降级为默认文案 / 空导航，不让整页失败。
   // 同样用 key 标记「本轮是否已经落地」，请求期间先显示首页骨架。
@@ -363,7 +359,7 @@ export function SitePreviewPage() {
       ) : null}
 
       {state === "ready" && detail && !isHome ? (
-        <article className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+        <article className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
           <SiteArticle
             title={detail.draft.title.trim() || detail.item.slug}
             meta={

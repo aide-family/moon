@@ -128,15 +128,17 @@ export function SiteDocumentPage() {
         </div>
       ) : null}
       {!loading && state === "ready" && page ? (
-        <article className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-          <Button variant="ghost" size="sm" className="-ml-2 mb-6" asChild>
-            <Link to="/">
-              <ArrowLeft aria-hidden="true" data-icon="inline-start" />
-              {t("site.home")}
-            </Link>
-          </Button>
+        <article className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
           <SiteArticle
             title={page.title || page.slug}
+            beforeTitle={
+              <Button variant="ghost" size="sm" className="mb-6 -ml-2" asChild>
+                <Link to="/">
+                  <ArrowLeft aria-hidden="true" data-icon="inline-start" />
+                  {t("site.home")}
+                </Link>
+              </Button>
+            }
             meta={
               page.publishedAt ? (
                 <p className="mt-3 font-mono text-xs text-muted-foreground tabular-nums">

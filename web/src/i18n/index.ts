@@ -3667,6 +3667,9 @@ const zh = {
       "迁移包不含历史告警与消息日志的分库数据；需要保留历史时继续用旧库查询。",
   },
   site: {
+    tocTitle: "本页目录",
+    copyCode: "复制代码",
+    copiedCode: "已复制",
     landing: {
       skipToContent: "跳到主要内容",
       heroTitleDefault: "统一监控与告警，一条链路走完",
@@ -8050,6 +8053,9 @@ const en = {
       "The archive excludes history shards for alerts and message logs; keep querying the old database when you need that history.",
   },
   site: {
+    tocTitle: "On this page",
+    copyCode: "Copy code",
+    copiedCode: "Copied",
     landing: {
       skipToContent: "Skip to main content",
       heroTitleDefault: "Monitoring and alerting, one path end to end",
