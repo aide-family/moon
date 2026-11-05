@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 
 import { Skeleton } from "@/components/ui/skeleton"
 
-import { PanelFrame } from "./panels"
+import { ShotFrame } from "./site-shot"
 
 type PanelVariant = "hero" | "flow" | "permission" | "deploy"
 
@@ -108,9 +108,9 @@ export function HomeSkeleton() {
           <Skeleton className="h-11 w-32 rounded-[10px]" />
           <Skeleton className="h-11 w-28 rounded-[10px]" />
         </div>
-        <PanelFrame className="mt-12 w-full sm:mt-16">
+        <ShotFrame className="mt-12 w-full sm:mt-16">
           <PanelPlaceholder variant="hero" />
-        </PanelFrame>
+        </ShotFrame>
       </div>
 
       <div className="grid gap-6">
@@ -138,9 +138,9 @@ export function HomeSkeleton() {
               <Skeleton className="h-20 rounded-[18px]" />
             </div>
           </div>
-          <PanelFrame className="lg:col-span-7 lg:self-start">
+          <ShotFrame className="lg:col-span-7 lg:self-start">
             <PanelPlaceholder variant={variant} />
-          </PanelFrame>
+          </ShotFrame>
         </div>
       ))}
 
