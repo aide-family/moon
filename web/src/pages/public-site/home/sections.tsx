@@ -9,7 +9,7 @@ import type {
   SiteHomeContent,
   SiteNavItem,
 } from "@/api/site/types"
-import { useSiteAccount } from "@/components/site-shell"
+import { useSiteAccountOptional } from "@/components/site-shell"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/class-names"
 
@@ -55,10 +55,16 @@ function isInSiteHref(href: string): boolean {
 /** 主 CTA：未登录去注册，已登录调 SiteShell 的进入后台逻辑；Hero 与尾部共用。 */
 function PrimaryCta({ label }: { label: string }) {
   const { t } = useTranslation()
-  const { loggedIn, entering, enterAdmin, registerHref } = useSiteAccount()
+  // 后台预览会脱离 SiteShell 渲染这段版式：没有上下文时按未登录处理，
+  // 不要抛错（抛错会把整页打成白屏）。
+  const account = useSiteAccountOptional()
+  const loggedIn = account?.loggedIn ?? false
+  const entering = account?.entering ?? false
+  const enterAdmin = account?.enterAdmin
+  const registerHref = account?.registerHref ?? "/register?next=/"
   const className = "h-11 rounded-[10px] px-5"
 
-  if (loggedIn) {
+  if (loggedIn && enterAdmin) {
     return (
       <Button className={className} disabled={entering} onClick={enterAdmin}>
         {entering ? t("site.tenant.entering") : label}

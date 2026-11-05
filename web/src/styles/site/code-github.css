@@ -1,0 +1,94 @@
+/*
+ * GitHub Markdown 代码块主题资产（light / dark）。
+ *
+ * 为什么这里有颜色字面量：这段样式复刻的是 GitHub 官方 Markdown 代码配色，
+ * 是一份独立的主题资产，不参与品牌层 / 语义 token 体系；所有规则都限定在
+ * `.md-body`（SiteBody 的 Markdown 正文容器）内，不会污染应用其他区域。
+ * 其他组件仍然必须使用语义 token（见 web/AGENTS.md「Colors and theming」）。
+ *
+ * 取值来源：GitHub Primer 的 light / dark 代码配色。
+ * - light：底色 #f6f8fa、正文 #1f2328、注释 #6a737d、关键字 #cf222e、
+ *   字符串 #0a3069、数字 #0550ae、函数/标题 #8250df、属性名 #0550ae。
+ * - dark：底色 #161b22、正文 #c9d1d9、注释 #8b949e、关键字 #ff7b72、
+ *   字符串 #a5d6ff、数字 #79c0ff、函数/标题 #d2a8ff、属性名 #79c0ff。
+ *
+ * 代码块外框（圆角、1px 描边、语言栏、复制按钮、内部横向滚动）仍由组件负责；
+ * 这里只接管底色、正文色与 highlight.js token 颜色。
+ */
+
+.md-body {
+  --md-code-bg: #f6f8fa;
+  --md-code-fg: #1f2328;
+  --md-code-comment: #6a737d;
+  --md-code-keyword: #cf222e;
+  --md-code-string: #0a3069;
+  --md-code-number: #0550ae;
+  --md-code-function: #8250df;
+  --md-code-attr: #0550ae;
+}
+
+.dark .md-body {
+  --md-code-bg: #161b22;
+  --md-code-fg: #c9d1d9;
+  --md-code-comment: #8b949e;
+  --md-code-keyword: #ff7b72;
+  --md-code-string: #a5d6ff;
+  --md-code-number: #79c0ff;
+  --md-code-function: #d2a8ff;
+  --md-code-attr: #79c0ff;
+}
+
+/* 代码块外框：浅色恒为 #f6f8fa，深色恒为 #161b22，避免跟随品牌语义色偏移。 */
+.md-body .md-code-block {
+  background-color: var(--md-code-bg);
+  color: var(--md-code-fg);
+}
+
+/* 语言标签与复制按钮沿用 GitHub 的弱化灰。 */
+.md-body .md-code-block-bar {
+  color: var(--md-code-comment);
+}
+
+/* highlight.js token → GitHub 配色。
+   rehype-highlight 只在显式标注语言的代码块里生成这些 class（detect: false），
+   行内代码与没有语言信息的代码块保持默认正文色。 */
+
+.md-body .hljs-comment,
+.md-body .hljs-quote {
+  color: var(--md-code-comment);
+}
+
+.md-body .hljs-keyword,
+.md-body .hljs-selector-tag,
+.md-body .hljs-name,
+.md-body .hljs-tag {
+  color: var(--md-code-keyword);
+}
+
+.md-body .hljs-string,
+.md-body .hljs-regexp,
+.md-body .hljs-attr-value {
+  color: var(--md-code-string);
+}
+
+.md-body .hljs-number,
+.md-body .hljs-literal,
+.md-body .hljs-built_in,
+.md-body .hljs-symbol,
+.md-body .hljs-params,
+.md-body .hljs-meta,
+.md-body .hljs-variable {
+  color: var(--md-code-number);
+}
+
+.md-body .hljs-attr,
+.md-body .hljs-attribute,
+.md-body .hljs-property {
+  color: var(--md-code-attr);
+}
+
+.md-body .hljs-class,
+.md-body .hljs-title,
+.md-body .hljs-function {
+  color: var(--md-code-function);
+}

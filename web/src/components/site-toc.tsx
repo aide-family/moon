@@ -101,10 +101,10 @@ interface SiteTocProps {
 }
 
 /**
- * 文档页右侧目录（xl 及以上显示）。
+ * 文档页右侧目录（lg 及以上显示，1024px 起）。
  *
  * 没有 h2/h3 时由调用方整列不渲染；这里只负责列表、当前项高亮与键盘焦点环。
- * 移动端不显示，避免正文被横向挤压（窄屏仍可按标题层级顺序阅读正文）。
+ * lg 以下不显示，避免正文被横向挤压（窄屏仍可按标题层级顺序阅读正文）。
  */
 export function SiteToc({ headings }: SiteTocProps) {
   const { t, i18n } = useTranslation()
@@ -118,7 +118,7 @@ export function SiteToc({ headings }: SiteTocProps) {
   return (
     <nav
       aria-label={label}
-      className="hidden px-1 xl:sticky xl:top-24 xl:block xl:max-h-[calc(100svh-8rem)] xl:self-start xl:overflow-y-auto"
+      className="hidden px-1 lg:sticky lg:top-24 lg:block lg:max-h-[calc(100svh-8rem)] lg:self-start lg:overflow-y-auto"
     >
       <p className="font-mono text-meta tracking-[0.12em] text-muted-foreground uppercase">
         {label}

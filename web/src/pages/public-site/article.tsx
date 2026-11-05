@@ -24,7 +24,8 @@ interface SiteArticleProps {
  * `/p/:slug`（已发布快照）与 `/site-preview/:uid`（后台草稿）共用这一份版式，
  * 两边的区别只在数据来源与分析行文案。
  *
- * 桌面（xl+）是「正文 68ch + 14rem 粘性目录」两栏；窄屏只保留单栏正文，避免横向挤压。
+ * 桌面（lg+，1024px 起）是「正文 68ch + 14rem 粘性目录」两栏；lg 以下只保留单栏正文，
+ * 避免横向挤压。1024px 下正文仍有 68ch（≥ 60ch），不会因为目录提前出现而变窄。
  * 正文没有 h2/h3 时目录整列不渲染，单栏保持居中的 3xl 阅读宽度。
  */
 export function SiteArticle({
@@ -44,14 +45,14 @@ export function SiteArticle({
       className={cn(
         "mx-auto w-full",
         hasToc &&
-          "xl:grid xl:grid-cols-[minmax(0,68ch)_14rem] xl:justify-center xl:gap-12"
+          "lg:grid lg:grid-cols-[minmax(0,68ch)_14rem] lg:justify-center lg:gap-8 xl:gap-12"
       )}
     >
       <div
         className={cn(
           "min-w-0",
           hasToc
-            ? "mx-auto w-full max-w-3xl xl:mx-0 xl:max-w-[68ch]"
+            ? "mx-auto w-full max-w-3xl lg:mx-0 lg:max-w-[68ch]"
             : "mx-auto w-full max-w-3xl"
         )}
       >

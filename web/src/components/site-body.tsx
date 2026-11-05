@@ -9,6 +9,7 @@ import {
 } from "react"
 import { useTranslation } from "react-i18next"
 import ReactMarkdown, { type Components } from "react-markdown"
+import rehypeHighlight from "rehype-highlight"
 import remarkGfm from "remark-gfm"
 
 import { Button } from "@/components/ui/button"
@@ -132,7 +133,8 @@ function CopyCodeButton({ code }: { code: string }) {
 }
 
 /**
- * GitHub 风格的代码块外壳：语义底色 + 描边 + 圆角 + 语言标签栏 + 横向滚动。
+ * GitHub 风格的代码块外壳：底色与语法配色来自 code-github.css（主题资产），
+ * 这里只负责结构、语言标签栏、复制按钮、圆角描边与横向滚动。
  *
  * 语言名来自 fenced code 的 `language-xxx` 类；没有语言信息时不渲染标签栏。
  */
@@ -147,16 +149,14 @@ function CodeBlock({ children }: { children?: ReactNode }) {
   const source = textOf(content).replace(/\n$/, "")
 
   return (
-    <div className="overflow-hidden rounded-[12px] border border-border bg-muted">
+    <div className="md-code-block overflow-hidden rounded-[12px] border border-border">
       {language ? (
-        <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-1.5">
-          <span className="font-mono text-xs text-muted-foreground">
-            {language}
-          </span>
+        <div className="md-code-block-bar flex items-center justify-between gap-3 border-b border-border px-4 py-1.5">
+          <span className="font-mono text-xs">{language}</span>
           <CopyCodeButton code={source} />
         </div>
       ) : null}
-      <pre className="overflow-x-auto p-4 font-mono text-[13px] leading-[1.6] text-foreground">
+      <pre className="overflow-x-auto p-4 font-mono text-[13px] leading-[1.6]">
         <code>{content}</code>
       </pre>
     </div>
@@ -170,7 +170,8 @@ function CodeBlock({ children }: { children?: ReactNode }) {
  * 统一上色和定尺寸。代码块的外壳由 CodeBlock 负责，行内代码再单独与代码块区分开。
  */
 const markdownClassName = cn(
-  "grid min-w-0 gap-4 text-sm leading-7 break-words text-foreground/90 sm:text-base",
+  // md-body：GitHub 代码配色的作用域锚点（见 styles/site/code-github.css）。
+  "md-body grid min-w-0 gap-4 text-sm leading-7 break-words text-foreground/90 sm:text-base",
   // 标题阶梯；h2/h3 是目录锚点，滚动时给吸顶页头留出偏移。
   "[&_h1]:font-heading [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground",
   "[&_h2]:scroll-mt-24 [&_h2]:font-heading [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground",
@@ -255,7 +256,8 @@ interface SiteBodyProps {
  * 公开官网与后台草稿预览共用的正文渲染。
  *
  * 正文按 GitHub Flavored Markdown 解析（标题、列表、引用、代码块、表格、任务列表）；
- * 不开启 raw HTML，避免后台正文注入脚本。样式全部使用语义 token。
+ * 不开启 raw HTML，避免后台正文注入脚本。普通排版全部使用语义 token；代码块的
+ * GitHub 语法配色是独立的主题资产（styles/site/code-github.css），只作用于 .md-body。
  */
 export function SiteBody({ content, emptyText, className }: SiteBodyProps) {
   // 标题 id 与 SiteArticle 的目录共用同一份提取结果（按源码行号对齐）。
@@ -288,7 +290,14 @@ export function SiteBody({ content, emptyText, className }: SiteBodyProps) {
   }
   return (
     <div className={cn(markdownClassName, className)}>
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        // 只高亮显式标注语言的代码块；未知语言保持纯文本，不抛错也不猜语言。
+        rehypePlugins={[
+          [rehypeHighlight, { detect: false, ignoreMissing: true }],
+        ]}
+        components={components}
+      >
         {content}
       </ReactMarkdown>
     </div>

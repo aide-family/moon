@@ -9,6 +9,8 @@
 @import "./styles/theme/semantic.dark.css";
 /* 官网版式层：只加 --site-* 与少量类，不新增颜色。 */
 @import "./styles/site/site.tokens.css";
+/* GitHub Markdown 代码配色：独立主题资产，作用域限定在 .md-body。 */
+@import "./styles/site/code-github.css";
 
 @custom-variant dark (&:is(.dark *));
 

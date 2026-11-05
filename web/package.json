@@ -11,7 +11,11 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "tokens:gen": "node scripts/gen-brand-tokens.mjs --write && node scripts/sync-theme-preview.mjs",
-    "tokens:check": "node scripts/gen-brand-tokens.mjs --check && node scripts/check-theme-boot.mjs && node scripts/sync-theme-preview.mjs --check"
+    "tokens:check": "node scripts/gen-brand-tokens.mjs --check && node scripts/check-theme-boot.mjs && node scripts/sync-theme-preview.mjs --check",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "check:ui": "node scripts/check-ui-conventions.mjs",
+    "check": "npm run typecheck && npm run lint && npm run check:i18n && npm run check:ui",
+    "smoke": "node scripts/smoke-site.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.4",
@@ -39,6 +43,7 @@
     "react-i18next": "^17.0.16",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.18.4",
+    "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
     "shadcn": "^4.23.0",
     "shiki": "^4.5.0",

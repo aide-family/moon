@@ -67,6 +67,14 @@ export function useSiteAccount(): SiteAccountValue {
   return value
 }
 
+/**
+ * 可空版本：后台把首页版式渲染在对话框里预览时没有 SiteShell，
+ * 此时不能直接抛错（会整页白屏），由调用方回落到「未登录」的默认行为。
+ */
+export function useSiteAccountOptional(): SiteAccountValue | null {
+  return useContext(SiteAccountContext)
+}
+
 type TenantDialog = "none" | "pick" | null
 
 function accountName(user: UserItem | null): string {

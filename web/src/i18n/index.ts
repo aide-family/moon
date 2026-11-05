@@ -3927,6 +3927,19 @@ const zh = {
         "官网首页的版式是固定的，这里只填短文本与能力卡片；留空的字段会用默认文案。",
       localeLabel: "编辑哪个语言",
       locale: { zh: "中文", en: "English" },
+      unsaved: "有未保存的改动",
+      savedAt: "最后保存于 {{time}}",
+      preview: "预览首页",
+      previewTitle: "首页预览",
+      previewDescription:
+        "用当前未保存的内容渲染首页版式，保存后官网才会更新。",
+      previewClose: "关闭预览",
+      previewFailed: "预览渲染失败，请检查内容后重试。",
+      localeConfirmTitle: "切换语言会丢弃当前修改",
+      localeConfirmBody:
+        "当前语言下有未保存的改动，切换语言会重新加载该语言的已保存内容。",
+      localeConfirmAction: "放弃改动并切换",
+      count: "{{current}}/{{max}} 字",
       sections: {
         hero: "首屏",
         features: "能力卡片",
@@ -3959,6 +3972,7 @@ const zh = {
         closingButtonLabel: "行动区按钮文案",
       },
       features: {
+        heading: "能力卡片",
         add: "添加卡片",
         empty: "还没有能力卡片；不添加时首页这一整块不展示。",
         moveUp: "上移",
@@ -3987,6 +4001,8 @@ const zh = {
       save: "保存首页内容",
       loadFailed: "首页内容加载失败。",
       errors: {
+        tooLong: "超出字数上限（最多 {{max}} 字）。",
+        disallowedWording: "文案里有品牌禁用的营销词，请改写。",
         secondaryCtaPair: "次按钮的文案与地址要同时填写或同时留空。",
         invalidCtaLink: "次按钮地址只允许站内路径或锚点。",
         invalidHeroImage: "主视觉地址只接受 http(s) 链接。",
@@ -8327,6 +8343,20 @@ const en = {
         "The public home page layout is fixed. Fill in short copy and capability cards here; empty fields fall back to the default copy.",
       localeLabel: "Language to edit",
       locale: { zh: "中文", en: "English" },
+      unsaved: "Unsaved changes",
+      savedAt: "Last saved {{time}}",
+      preview: "Preview home page",
+      previewTitle: "Home page preview",
+      previewDescription:
+        "Renders the home page layout with the current unsaved content; the public site updates only after saving.",
+      previewClose: "Close preview",
+      previewFailed:
+        "The preview could not be rendered. Check the content and retry.",
+      localeConfirmTitle: "Switching language discards changes",
+      localeConfirmBody:
+        "This language has unsaved changes. Switching reloads the saved content of the other language.",
+      localeConfirmAction: "Discard and switch",
+      count: "{{current}}/{{max}} characters",
       sections: {
         hero: "Hero",
         features: "Capability cards",
@@ -8361,6 +8391,7 @@ const en = {
         closingButtonLabel: "Closing button label",
       },
       features: {
+        heading: "Capability cards",
         add: "Add card",
         empty:
           "No capability cards yet; the section is hidden until you add one.",
@@ -8390,6 +8421,8 @@ const en = {
       save: "Save home page",
       loadFailed: "Failed to load the home page.",
       errors: {
+        tooLong: "Exceeds the limit ({{max}} characters).",
+        disallowedWording: "The copy contains disallowed marketing wording.",
         secondaryCtaPair:
           "Set or clear the secondary button label and link together.",
         invalidCtaLink:
