@@ -15,15 +15,16 @@ import { cn } from "@/lib/class-names"
 
 import { plainParagraphs } from "./excerpt"
 import { FeatureIcon } from "./feature-icons"
+import {
+  ConsolePanel,
+  DeployPanel,
+  FlowPanel,
+  PanelFrame,
+  PermissionPanel,
+} from "./panels"
 
 /** 版式固定 6 张卡；后端也按 6 张校验。 */
 const MAX_FEATURES = 6
-
-/** 官网固定槽位用的产品截图（后台没填图时兜底）。 */
-const HERO_FALLBACK = "/site/overview.webp"
-const HOW_SHOT = "/site/alert-rules.webp"
-const PERM_SHOT = "/site/alerts.webp"
-const DEPLOY_SHOT = "/site/oncall.webp"
 
 /** 后端字段可能整段为空：空字符串表示「用前端默认文案」。 */
 const EMPTY_HOME: SiteHomeContent = {
@@ -94,39 +95,34 @@ function SecondaryCta({ label, href }: { label: string; href: string }) {
 }
 
 /**
- * 产品截图固定槽位：16:10 比例容器 + 细描边 + 卡片衬底。
- *
- * - 比例放在内层容器上，图片没加载完或加载失败时版式也不塌；
- * - 深色模式下截图本身是浅色，所以截图落在 `bg-card` + 描边里，和页面底色分开；
- * - 截图是装饰性产品图，alt 留空。
+ * Hero 主视觉：后台填了图就用真实截图（固定槽位、object-cover），
+ * 没填时用代码绘制的抽象控制台面板，深浅色都成立。
  */
-function ScreenshotFrame({
-  src,
-  priority = false,
+function HeroMedia({
+  imageUrl,
   className,
 }: {
-  src: string
-  priority?: boolean
+  imageUrl: string
   className?: string
 }) {
-  return (
-    <div
-      className={cn(
-        "min-w-0 overflow-hidden rounded-[22px] border border-border bg-card p-1.5 sm:p-2",
-        className
-      )}
-    >
-      <div className="aspect-[16/10] w-full overflow-hidden rounded-[16px] bg-muted">
+  if (imageUrl) {
+    return (
+      <PanelFrame className={className}>
         <img
-          src={src}
+          src={imageUrl}
           alt=""
-          loading={priority ? "eager" : "lazy"}
-          fetchPriority={priority ? "high" : "auto"}
+          loading="eager"
+          fetchPriority="high"
           decoding="async"
           className="size-full object-cover"
         />
-      </div>
-    </div>
+      </PanelFrame>
+    )
+  }
+  return (
+    <PanelFrame className={className}>
+      <ConsolePanel />
+    </PanelFrame>
   )
 }
 
@@ -148,7 +144,7 @@ function HeroSection({
   const secondaryHref = home.ctaSecondaryHref.trim()
   const showSecondary =
     secondaryLabel !== "" && secondaryHref !== "" && isInSiteHref(secondaryHref)
-  const heroImage = home.heroImageUrl.trim() || HERO_FALLBACK
+  const heroImage = home.heroImageUrl.trim()
 
   return (
     <section
@@ -174,11 +170,7 @@ function HeroSection({
           <SecondaryCta label={secondaryLabel} href={secondaryHref} />
         ) : null}
       </div>
-      <ScreenshotFrame
-        src={heroImage}
-        priority
-        className="mt-12 w-full sm:mt-16"
-      />
+      <HeroMedia imageUrl={heroImage} className="mt-12 w-full sm:mt-16" />
     </section>
   )
 }
@@ -238,20 +230,20 @@ function FeaturesSection({
 }
 
 /**
- * ③④⑤ 共用骨架：左侧 5 列标题、说明与固定结构，右侧 7 列产品截图。
- * 移动端单列，截图排在文字与结构之后。
+ * ③④⑤ 共用骨架：左侧 5 列标题、说明与固定结构，右侧 7 列代码绘制面板。
+ * 移动端单列，面板排在文字与结构之后。
  */
 function SplitSection({
   id,
   title,
   body,
-  screenshot,
+  aside,
   children,
 }: {
   id: string
   title: string
   body: string
-  screenshot: string
+  aside: ReactNode
   children: ReactNode
 }) {
   return (
@@ -269,10 +261,7 @@ function SplitSection({
         </p>
         <div className="mt-6">{children}</div>
       </div>
-      <ScreenshotFrame
-        src={screenshot}
-        className="lg:col-span-7 lg:self-start"
-      />
+      <PanelFrame className="lg:col-span-7 lg:self-start">{aside}</PanelFrame>
     </section>
   )
 }
@@ -298,7 +287,7 @@ function HowSection({ home }: { home: SiteHomeContent }) {
       id="site-how"
       title={home.howTitle.trim() || t("site.landing.howTitleDefault")}
       body={home.howBody.trim() || t("site.landing.howBodyDefault")}
-      screenshot={HOW_SHOT}
+      aside={<FlowPanel steps={steps.map((step) => step.title)} />}
     >
       <ol className="grid gap-3">
         {steps.map((step, index) => (
@@ -352,7 +341,7 @@ function PermSection({ home }: { home: SiteHomeContent }) {
       id="site-permissions"
       title={home.permTitle.trim() || t("site.landing.permTitleDefault")}
       body={home.permBody.trim() || t("site.landing.permBodyDefault")}
-      screenshot={PERM_SHOT}
+      aside={<PermissionPanel labels={columns.map((column) => column.label)} />}
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         {columns.map((column) => (
@@ -398,7 +387,7 @@ function DeploySection({ home }: { home: SiteHomeContent }) {
       id="site-deploy"
       title={home.deployTitle.trim() || t("site.landing.deployTitleDefault")}
       body={home.deployBody.trim() || t("site.landing.deployBodyDefault")}
-      screenshot={DEPLOY_SHOT}
+      aside={<DeployPanel />}
     >
       <ul className="flex flex-wrap gap-2.5">
         {chips.map((chip) => (
