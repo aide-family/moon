@@ -52,12 +52,12 @@ export function updateEmailSettings(
 
 /** GET /v1/system/site/home?locale= */
 export function getSiteHome(locale: "zh" | "en"): Promise<SiteHome> {
-  return get<SiteHome>("/site/home", { locale })
+  return get<SiteHome>("/system/site/home", { locale })
 }
 
 /** PUT /v1/system/site/home */
 export function updateSiteHome(body: SaveSiteHomeParams): Promise<SiteHome> {
-  return put<SiteHome>("/site/home", body)
+  return put<SiteHome>("/system/site/home", body)
 }
 
 /** GET /v1/system/auth/oauth-providers */
