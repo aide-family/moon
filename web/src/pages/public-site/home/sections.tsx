@@ -569,9 +569,12 @@ export function SiteHomeSections({
 
   return (
     <div className="relative">
+      {/* 跳过导航链接：未聚焦时用 sr-only 真正移出布局。
+          之前靠 -translate-y-24 上移隐藏，当首页区块被嵌到别的内容下面（例如预览页的
+          横幅之后）时，这个「隐藏位置」正好落回视口里，链接会一直可见。 */}
       <a
         href="#site-home-main"
-        className="absolute top-3 left-3 z-50 -translate-y-24 rounded-[10px] border border-border bg-card px-3 py-2 text-sm text-foreground focus:translate-y-0 focus:ring-3 focus:ring-ring focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-[10px] focus:border focus:border-border focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:text-foreground focus:ring-3 focus:ring-ring focus:outline-none"
       >
         {t("site.landing.skipToContent")}
       </a>
