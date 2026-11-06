@@ -55,6 +55,7 @@ The historical analysis panel exposed two independent mistakes: the shared Tabs 
 - [ ] Tabs use the primitive's actual active-state attributes and expose visible selection and panel changes.
 - [ ] Long-content page and table scrolling were tested at desktop and narrow viewports.
 - [ ] Every dialog keeps `max-h-[80vh]` / `80vw` at the frame, scrolls only inside `DialogBody`, and keeps its header and footer visible after scrolling the body to the end at a short viewport.
+- [ ] Focus rings inside `DialogBody` are not clipped: every control keeps at least 3px clearance to the body's clip edge on both sides, and fields still line up with the dialog title (`web/e2e/dialog-focus-ring.spec.ts`).
 - [ ] Browser verification limitations are stated explicitly.
 - [ ] Typecheck, lint, and production build passed.
 
@@ -64,7 +65,7 @@ The shared `Dialog` primitive owns the three-part frame (`web/src/components/ui/
 
 - `DialogContent` keeps `flex max-h-[80vh] ... flex-col overflow-hidden`; its width never exceeds 80vw (`w-[min(calc(100%-2rem),80vw)]` is built in). Never put `overflow-y-auto` on `DialogContent` — the frame itself must not scroll.
 - `DialogHeader` and `DialogFooter` are `shrink-0` (built in). The title and the action row stay visible at any content length; the footer must never sit inside `DialogBody` or any scrolling element. It may live inside the `<form>` as long as the form is `flex min-h-0 flex-1 flex-col` and `DialogBody` is its only scrolling child.
-- `DialogBody` is the only scroll owner: `min-h-0 min-w-0 flex-1 overflow-auto`. All fields and long read-only content go inside it. Wide content scrolls horizontally inside the body (the 80vw cap applies there), never by growing the dialog or adding a second scrollbar on an ancestor.
+- `DialogBody` is the only scroll owner: `min-h-0 min-w-0 flex-1 overflow-auto`, plus a 6px inner gutter via `p-1.5` and an equal `-m-1.5` margin. A scroll container clips at its padding edge, so without that gutter the outer focus ring (`ring-3`, 3px outside the border box) is cut off on the left and right of every field and only the 1px border color remains; the negative margin keeps the fields' boxes exactly where they were, so the gutter never shifts layout. A body that supplies its own padding (e.g. `px-4 py-4` inside a `DialogContent p-0` full-bleed frame) already has the clearance and must neutralize the margin with `m-0`, otherwise its fields shift and its scrollbar moves outside the frame. All fields and long read-only content go inside it. Wide content scrolls horizontally inside the body (the 80vw cap applies there), never by growing the dialog or adding a second scrollbar on an ancestor.
 - Form-level submit errors go between `DialogBody` and `DialogFooter` (outside the scroll area); field errors stay under their field inside the body.
 - Initial focus goes to the first text-like control, or to `DialogBody` itself when the dialog has none (built into `DialogContent`). Do not add a local `onOpenAutoFocus` unless a dialog must focus a specific field. Without this, the first `FormField` hint button takes focus, its tooltip covers the title, and the first Escape only dismisses the tooltip.
 

@@ -158,6 +158,10 @@ function DialogTitle({
 /**
  * 对话框中间内容区：唯一滚动所有者（纵向为主，宽内容横向滚动）。
  * 头部与页脚必须放在它外面、并保持 shrink-0，内容再多也不能把「取消/保存」挤出视口。
+ *
+ * 这里还额外留 6px 内边距 + 等量负外边距：滚动容器把自己的裁剪边界压在内容边缘上，
+ * 表单控件选中时的外扩焦点环（ring-3）在左右（以及首尾行的上下）会被裁掉，只剩 1px 边框色。
+ * 内边距给焦点环留出绘制空间，负外边距让内容盒子回到原位，字段位置和宽度都不变。
  */
 function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -165,7 +169,7 @@ function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="dialog-body"
       tabIndex={-1}
       className={cn(
-        "min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain outline-none",
+        "-m-1.5 min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain p-1.5 outline-none",
         className
       )}
       {...props}

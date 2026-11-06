@@ -1184,7 +1184,8 @@ export function NotificationOnCallPage() {
             className="flex min-h-0 flex-1 flex-col"
             onSubmit={onSave}
           >
-            <DialogBody className="grid gap-4 px-4 py-4">
+            {/* 自带 px-4 py-4 的焦点环净空，用 m-0 抵消 DialogBody 的 -m-1.5，字段与标题保持同一左边界。 */}
+            <DialogBody className="m-0 grid gap-4 px-4 py-4">
               <FormField
                 label={t("oncall.name")}
                 htmlFor="oncall-name"
