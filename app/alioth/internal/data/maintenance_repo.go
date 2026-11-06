@@ -34,6 +34,10 @@ var archivedTables = []string{
 	// 身份与租户。
 	"users",
 	"user_oauths",
+	// 平台登录方式与发信配置：SMTP、登录开关、第三方来源，都是配置数据，跟迁移包一起搬。
+	"auth_email_settings",
+	"auth_login_settings",
+	"auth_oauth_providers",
 	"namespaces",
 	"members",
 	"member_invites",
@@ -77,6 +81,12 @@ var archivedTables = []string{
 	"notification_subscription_groups",
 	"on_call_rotations",
 	"on_call_rotation_members",
+	// 官网配置与内容：站点设置、首页文案、能力卡片与页面草稿 / 发布快照，
+	// 都是后台维护的配置数据，跟迁移包一起搬。
+	"site_settings",
+	"site_home_contents",
+	"site_features",
+	"site_pages",
 	// 边缘。
 	"clusters",
 	"agents",
