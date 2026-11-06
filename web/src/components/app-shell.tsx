@@ -23,12 +23,15 @@ import {
   MessageSquare,
   Package,
   PanelsTopLeft,
+  Radar,
   ReceiptText,
   Repeat2,
   Server,
   Settings,
   Shield,
   ShieldAlert,
+  ShieldHalf,
+  SlidersHorizontal,
   Target,
   Terminal,
   UserRound,
@@ -201,13 +204,22 @@ const tenantLinks: {
   },
 ]
 
-const alertLinks: {
+type MenuLink = {
   to: string
   label: string
   permission: string
   capability?: string
   icon: LucideIcon
-}[] = [
+}
+
+// 告警域按「对象」拆成四个展示分组，任一条目只落一组：
+// 事件视图（看什么）、处置策略（怎么被处置）、产生告警的输入定义（怎么判定）、
+// 探测链路（目标 → SLA → 状态页，不走告警规则评测）。
+// 维护窗口与升级策略留在告警域、不进通知组：它们复用通知组和模板投递，
+// 但语义是「告警的处置」，放进通知会让通知组从投递配置漂成告警治理。
+// 侧边栏分组只是展示层，与 feature-catalog.ts 的能力模块（MODULES / MENU_CAPABILITIES）
+// 不是同一套映射，改这里不要同步改能力目录。
+const alertLinks: MenuLink[] = [
   {
     to: "/alerts",
     label: "nav.realtime",
@@ -223,6 +235,17 @@ const alertLinks: {
     icon: History,
   },
   {
+    to: "/alert-pages",
+    label: "nav.alertPages",
+    permission: "alert_page:read",
+    capability: MENU_CAPABILITIES["/alert-pages"],
+    icon: LayoutList,
+  },
+]
+
+// 处置策略：不产生也不展示告警，只改「告警怎么被处置」——按时间压制、未认领时逐级升级。
+const alertPolicyLinks: MenuLink[] = [
+  {
     to: "/alert-maintenance-windows",
     label: "nav.maintenanceWindows",
     permission: "alert_maintenance:read",
@@ -236,6 +259,10 @@ const alertLinks: {
     capability: MENU_CAPABILITIES["/alert-escalation-policies"],
     icon: ListOrdered,
   },
+]
+
+// 告警配置：告警产生前的输入定义——数据从哪来、怎么判定、等级怎么命名。
+const alertConfigLinks: MenuLink[] = [
   {
     to: "/datasources",
     label: "nav.datasources",
@@ -243,6 +270,24 @@ const alertLinks: {
     capability: MENU_CAPABILITIES["/datasources"],
     icon: Database,
   },
+  {
+    to: "/alert-rules",
+    label: "nav.alertRules",
+    permission: "alert_rule:read",
+    capability: MENU_CAPABILITIES["/alert-rules"],
+    icon: Bell,
+  },
+  {
+    to: "/alert-dictionaries",
+    label: "nav.alertDictionaries",
+    permission: "alert_dictionary:read",
+    capability: MENU_CAPABILITIES["/alert-dictionaries"],
+    icon: Gauge,
+  },
+]
+
+// 探测与可用性：一条独立的探测链路，不经过告警规则评测。
+const probeAvailabilityLinks: MenuLink[] = [
   {
     to: "/probe-targets",
     label: "nav.probeTargets",
@@ -264,26 +309,35 @@ const alertLinks: {
     capability: MENU_CAPABILITIES["/status-pages"],
     icon: Globe,
   },
+]
+
+type AlertNavGroup = {
+  id: string
+  label: string
+  icon: LucideIcon
+  links: MenuLink[]
+}
+
+// 数组顺序即侧边栏顺序：四个告警域分组相邻，其余分组相对位置不变。
+const alertNavGroups: AlertNavGroup[] = [
+  { id: "alert", label: "nav.alert", icon: Bell, links: alertLinks },
   {
-    to: "/alert-rules",
-    label: "nav.alertRules",
-    permission: "alert_rule:read",
-    capability: MENU_CAPABILITIES["/alert-rules"],
-    icon: Bell,
+    id: "alert-policies",
+    label: "nav.alertPolicies",
+    icon: ShieldHalf,
+    links: alertPolicyLinks,
   },
   {
-    to: "/alert-dictionaries",
-    label: "nav.alertDictionaries",
-    permission: "alert_dictionary:read",
-    capability: MENU_CAPABILITIES["/alert-dictionaries"],
-    icon: Gauge,
+    id: "alert-config",
+    label: "nav.alertConfig",
+    icon: SlidersHorizontal,
+    links: alertConfigLinks,
   },
   {
-    to: "/alert-pages",
-    label: "nav.alertPages",
-    permission: "alert_page:read",
-    capability: MENU_CAPABILITIES["/alert-pages"],
-    icon: LayoutList,
+    id: "probe-availability",
+    label: "nav.probeAvailability",
+    icon: Radar,
+    links: probeAvailabilityLinks,
   },
 ]
 
@@ -531,7 +585,11 @@ function ShellFrame() {
     }
     return tenantVisible(link)
   })
-  const alerts = alertLinks.filter(tenantVisible)
+  // 告警域四个分组各自过滤：整组没有权限时 NavGroup 返回 null，不会留下空壳分组。
+  const alertGroups = alertNavGroups.map((group) => ({
+    ...group,
+    links: group.links.filter(tenantVisible),
+  }))
   const notifies = notifyLinks.filter(tenantVisible)
   const kubes = kubeLinks.filter(tenantVisible)
   const edges = edgeLinks.filter(tenantVisible)
@@ -545,7 +603,10 @@ function ShellFrame() {
       location.pathname === link.to ||
       location.pathname.startsWith(`${link.to}/`)
   )
-  const alertActive = alerts.some((link) => location.pathname === link.to)
+  // 告警域拆组后每组独立算高亮；统一用前缀匹配，和其余分组保持一致，
+  // 也为将来给这些入口加详情子路由兜底。
+  const linkActive = (link: { to: string }) =>
+    location.pathname === link.to || location.pathname.startsWith(`${link.to}/`)
   const notifyActive = notifies.some((link) => location.pathname === link.to)
   const kubeActive = kubes.some(
     (link) =>
@@ -674,13 +735,19 @@ function ShellFrame() {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ) : null}
-                  <NavGroup
-                    key={`alert-${alertActive}`}
-                    label="nav.alert"
-                    icon={Bell}
-                    active={alertActive}
-                    links={alerts}
-                  />
+                  {alertGroups.map((group) => {
+                    const GroupIcon = group.icon
+                    const active = group.links.some((link) => linkActive(link))
+                    return (
+                      <NavGroup
+                        key={`${group.id}-${active}`}
+                        label={group.label}
+                        icon={GroupIcon}
+                        active={active}
+                        links={group.links}
+                      />
+                    )
+                  })}
                   <NavGroup
                     key={`notify-${notifyActive}`}
                     label="nav.notify"
