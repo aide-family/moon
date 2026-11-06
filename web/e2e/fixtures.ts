@@ -16,6 +16,15 @@ export const E2E_API = process.env.E2E_API_URL ?? "http://127.0.0.1:8100"
 export const E2E_WEB = process.env.E2E_WEB_URL ?? "http://127.0.0.1:8080"
 export const SHOT_DIR = path.resolve(import.meta.dirname, "../../tmp/acceptance")
 
+/** 接口返回的 JSON 值：解析结果先按这个类型接住，用到具体字段时再收窄。 */
+type JsonValue =
+  | null
+  | boolean
+  | number
+  | string
+  | JsonValue[]
+  | { [key: string]: JsonValue }
+
 export function mintToken(uid = E2E_UID, ttlSeconds = 3600): string {
   const encode = (value: Buffer | string) =>
     Buffer.from(value).toString("base64url")
@@ -58,13 +67,15 @@ export const test = base.extend<{
   api: ReturnType<typeof createApi>
   seedPage: SitePageSeed
 }>({
+  // 夹具的第二个参数只是 Playwright 交回夹具值用的回调，名字随意；
+  // 不叫 use，否则会被 react-hooks 当成 Hook 调用报错。
   // eslint-disable-next-line no-empty-pattern
-  api: async ({}, use) => {
+  api: async ({}, provide) => {
     const api = createApi()
-    await use(api)
+    await provide(api)
     await api.dispose()
   },
-  seedPage: async ({ api }, use) => {
+  seedPage: async ({ api }, provide) => {
     const slug = `e2e-doc-${Date.now()}`
     const bodyMd = [
       "# E2E 文档标题",
@@ -88,9 +99,11 @@ export const test = base.extend<{
       summary: "E2E 摘要",
       bodyMd,
     })
-    const uid = created.page.item.uid as string
+    // POST /v1/system/site/pages 返回 { page: { item } }，uid 在 item 里。
+    const createdPage = created.json as { page: { item: { uid: string } } }
+    const uid = createdPage.page.item.uid
     await api.post(`/v1/system/site/pages/${uid}/publish`, {})
-    await use({ uid, slug })
+    await provide({ uid, slug })
     await api.delete(`/v1/system/site/pages/${uid}`)
   },
 })
@@ -109,7 +122,7 @@ export function createApi() {
       body: data === undefined ? undefined : JSON.stringify(data),
     })
     const text = await response.text()
-    let json: any = null
+    let json: JsonValue = null
     try {
       json = text ? JSON.parse(text) : null
     } catch {
