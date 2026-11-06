@@ -1,5 +1,12 @@
-import { ChevronRight, CircleAlert, Eye, Loader2, Save } from "lucide-react"
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import {
+  ChevronRight,
+  CircleAlert,
+  Eye,
+  GripVertical,
+  Loader2,
+  Save,
+} from "lucide-react"
+import { Fragment, useEffect, useMemo, useState, type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
@@ -37,7 +44,9 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { RenderGuard } from "@/components/render-guard"
+import { usePointerReorder } from "@/hooks/use-flip-reorder"
 import { useSiteConfig } from "@/hooks/use-site-config"
+import { cn } from "@/lib/class-names"
 import { failureMessage } from "@/lib/form-error"
 import {
   FEATURE_ICON_KEYS,
@@ -54,9 +63,18 @@ type HomeField = keyof Omit<
 type HomeForm = Record<HomeField, string>
 
 interface FeatureForm {
+  /** 草稿的本地稳定键，只用于拖动排序与 React key，不提交。 */
+  key: string
   iconKey: string
   title: string
   description: string
+}
+
+let featureKeySeed = 0
+
+function nextFeatureKey(): string {
+  featureKeySeed += 1
+  return `home-feature-${featureKeySeed}`
 }
 
 type FieldErrors = Partial<Record<HomeField, string>> & {
@@ -199,6 +217,7 @@ function mapFeatures(
   items: Array<{ iconKey: string; title: string; description: string }>
 ): FeatureForm[] {
   return items.map((item) => ({
+    key: nextFeatureKey(),
     iconKey: item.iconKey,
     title: item.title,
     description: item.description,
@@ -242,6 +261,19 @@ export function HomeContentCard({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [previewOpen, setPreviewOpen] = useState(false)
   const [pendingLocale, setPendingLocale] = useState<"zh" | "en" | null>(null)
+  // 与实时告警自定义列一致的拖动排序：拖动源脱离列表流，目标位置只显示空占位。
+  const {
+    containerRef: featuresRef,
+    dragKey: draggingFeature,
+    dropTarget: dropFeature,
+    dropPosition: dropFeaturePosition,
+    dragSize: dragFeatureSize,
+    startDrag: startFeatureDrag,
+  } = usePointerReorder<HTMLDivElement>(
+    features.map((item) => item.key).join("|"),
+    "y",
+    reorderFeatures
+  )
 
   const dirty = useMemo(
     () =>
@@ -312,15 +344,24 @@ export function HomeContentCard({
     )
   }
 
-  function moveFeature(index: number, offset: number) {
+  function reorderFeatures(
+    sourceKey: string,
+    targetKey: string,
+    position: "before" | "after"
+  ) {
     setFeatures((current) => {
-      const target = index + offset
-      if (target < 0 || target >= current.length) {
+      const from = current.findIndex((item) => item.key === sourceKey)
+      const target = current.findIndex((item) => item.key === targetKey)
+      if (from < 0 || target < 0 || sourceKey === targetKey) {
         return current
       }
       const next = [...current]
-      const [item] = next.splice(index, 1)
-      next.splice(target, 0, item)
+      const [moved] = next.splice(from, 1)
+      let insertionIndex = target + (position === "after" ? 1 : 0)
+      if (from < insertionIndex) {
+        insertionIndex -= 1
+      }
+      next.splice(insertionIndex, 0, moved)
       return next
     })
   }
@@ -506,6 +547,7 @@ export function HomeContentCard({
           id={`home-${field}`}
           value={form[field]}
           maxLength={limit}
+          placeholder={t(`systemSite.home.placeholders.${field}`)}
           readOnly={!canWrite}
           aria-invalid={fieldErrors[field] ? true : undefined}
           onChange={(event) => update(field, event.target.value)}
@@ -530,6 +572,7 @@ export function HomeContentCard({
           id={`home-${field}`}
           value={form[field]}
           maxLength={limit}
+          placeholder={t(`systemSite.home.placeholders.${field}`)}
           rows={2}
           readOnly={!canWrite}
           aria-invalid={fieldErrors[field] ? true : undefined}
@@ -679,13 +722,30 @@ export function HomeContentCard({
                   {t("systemSite.home.features.empty")}
                 </p>
               ) : (
-                <ul className="grid gap-3">
+                <div
+                  ref={featuresRef}
+                  className={cn(
+                    "relative grid content-start gap-3",
+                    draggingFeature && "select-none"
+                  )}
+                >
                   {features.map((item, index) => {
                     const featureError = fieldErrors.features?.[index]
-                    return (
-                      <li
-                        key={index}
-                        className="grid gap-3 rounded-lg border border-border/60 p-3 sm:grid-cols-[9rem_minmax(0,1fr)_auto]"
+                    const row = (
+                      <div
+                        key={item.key}
+                        data-flip-id={
+                          draggingFeature === item.key ? undefined : item.key
+                        }
+                        data-sort-key={item.key}
+                        className={cn(
+                          "grid gap-3 rounded-lg border border-border/60 p-3 sm:grid-cols-[9rem_minmax(0,1fr)_auto]",
+                          dropFeature === item.key &&
+                            draggingFeature !== item.key &&
+                            "border-primary/60 ring-1 ring-primary/30",
+                          draggingFeature === item.key &&
+                            "pointer-events-none absolute opacity-0"
+                        )}
                       >
                         <FormField label={t("systemSite.home.features.icon")}>
                           {/* 图标键名只用作可读名称，界面上直接展示图标本身。 */}
@@ -735,6 +795,9 @@ export function HomeContentCard({
                               id={`feature-title-${index}`}
                               value={item.title}
                               maxLength={16}
+                              placeholder={t(
+                                "systemSite.home.features.titlePlaceholder"
+                              )}
                               readOnly={!canWrite}
                               aria-invalid={
                                 featureError?.title ? true : undefined
@@ -759,6 +822,9 @@ export function HomeContentCard({
                               id={`feature-desc-${index}`}
                               value={item.description}
                               maxLength={48}
+                              placeholder={t(
+                                "systemSite.home.features.descriptionPlaceholder"
+                              )}
                               rows={2}
                               readOnly={!canWrite}
                               aria-invalid={
@@ -773,34 +839,21 @@ export function HomeContentCard({
                           </FormField>
                         </div>
                         <div className="flex items-start gap-1 sm:pt-6">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            aria-label={t("systemSite.home.features.moveUp")}
-                            disabled={!canWrite || index === 0}
-                            onClick={() => moveFeature(index, -1)}
-                          >
-                            <ChevronRight
-                              className="size-4 -rotate-90"
-                              aria-hidden="true"
-                            />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            aria-label={t("systemSite.home.features.moveDown")}
-                            disabled={
-                              !canWrite || index === features.length - 1
+                          <GripVertical
+                            className={cn(
+                              "size-4 shrink-0 text-muted-foreground",
+                              canWrite
+                                ? "cursor-grab active:cursor-grabbing"
+                                : "opacity-40"
+                            )}
+                            aria-hidden
+                            style={{ touchAction: "none" }}
+                            onPointerDown={
+                              canWrite
+                                ? (event) => startFeatureDrag(item.key, event)
+                                : undefined
                             }
-                            onClick={() => moveFeature(index, 1)}
-                          >
-                            <ChevronRight
-                              className="size-4 rotate-90"
-                              aria-hidden="true"
-                            />
-                          </Button>
+                          />
                           <Button
                             type="button"
                             variant="ghost"
@@ -821,10 +874,35 @@ export function HomeContentCard({
                             />
                           </Button>
                         </div>
-                      </li>
+                      </div>
+                    )
+                    const showDropSlot =
+                      dropFeature === item.key && draggingFeature !== item.key
+                    const dropSlot = showDropSlot ? (
+                      <div
+                        key={`drop-slot:${item.key}`}
+                        data-drop-slot
+                        data-drop-target={dropFeature}
+                        data-drop-position={dropFeaturePosition}
+                        aria-hidden="true"
+                        className="w-full rounded-lg border border-dashed border-primary/60 bg-primary/5"
+                        style={{ height: dragFeatureSize.height || undefined }}
+                      />
+                    ) : null
+
+                    return (
+                      <Fragment key={item.key}>
+                        {showDropSlot && dropFeaturePosition === "before"
+                          ? dropSlot
+                          : null}
+                        {row}
+                        {showDropSlot && dropFeaturePosition === "after"
+                          ? dropSlot
+                          : null}
+                      </Fragment>
                     )
                   })}
-                </ul>
+                </div>
               )}
               <div>
                 <Button
@@ -835,7 +913,12 @@ export function HomeContentCard({
                   onClick={() =>
                     setFeatures((current) => [
                       ...current,
-                      { iconKey: "activity", title: "", description: "" },
+                      {
+                        key: nextFeatureKey(),
+                        iconKey: "activity",
+                        title: "",
+                        description: "",
+                      },
                     ])
                   }
                 >

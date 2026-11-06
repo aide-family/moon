@@ -2479,8 +2479,6 @@ const zh = {
     stepIndex: "第 {{index}} 步",
     delay: "延迟（分钟）",
     groups: "通知组",
-    moveUp: "上移",
-    moveDown: "下移",
     removeStep: "删除步骤",
     stepCount: "{{count}} 步",
     stepCountLabel: "步骤数",
@@ -3989,12 +3987,13 @@ const zh = {
         heading: "能力卡片",
         add: "添加卡片",
         empty: "还没有能力卡片；不添加时首页这一整块不展示。",
-        moveUp: "上移",
-        moveDown: "下移",
         remove: "删除该卡片",
         icon: "图标",
         title: "标题",
+        titlePlaceholder: "例如：多源告警评测",
         description: "描述",
+        descriptionPlaceholder:
+          "例如：Prometheus、Loki、Elasticsearch 统一接入并评测。",
         limit: "已添加 {{current}}/{{max}} 张",
       },
       icons: {
@@ -4010,6 +4009,31 @@ const zh = {
         users: "成员",
         "git-branch": "分支",
         layers: "分层",
+      },
+      placeholders: {
+        heroTitle: "例如：把告警、通知与值班接成一条线",
+        heroSubtitle:
+          "例如：数据源接得到，规则评测得出，通知送对人，值班接得住",
+        heroImageUrl: "https://example.com/hero.png（固定 4:3）",
+        ctaPrimaryLabel: "例如：开始使用",
+        ctaSecondaryLabel: "例如：阅读产品说明",
+        ctaSecondaryHref: "站内地址，例如 /p/home 或 #deploy",
+        featuresTitle: "例如：它解决什么",
+        featuresSubtitle: "例如：四条能力覆盖从采集到值班，不靠外部 SaaS",
+        howTitle: "例如：怎么工作",
+        howBody:
+          "例如：采集与评测由工作进程按规则调度，命中后生成事件、通知与升级策略投递。",
+        permTitle: "例如：谁能看到什么",
+        permBody:
+          "例如：租户隔离加角色授权，资源按命名空间隔离，操作留痕可审计。",
+        deployTitle: "例如：私有部署",
+        deployBody:
+          "例如：compose 或 k8s 起一套，PostgreSQL 与 Redis 都在你自己的环境里。",
+        docTitle: "例如：产品说明",
+        closingTitle: "例如：先跑起来，再决定",
+        closingDescription:
+          "例如：用 compose 或者 k8s 起一套，看看告警从产生到送达人之间到底发生了什么。",
+        closingButtonLabel: "例如：开始使用",
       },
       saved: "首页内容已保存",
       save: "保存首页内容",
@@ -6827,8 +6851,6 @@ const en = {
     stepIndex: "Step {{index}}",
     delay: "Delay (minutes)",
     groups: "Notification groups",
-    moveUp: "Move up",
-    moveDown: "Move down",
     removeStep: "Remove step",
     stepCount: "{{count}} steps",
     stepCountLabel: "Steps",
@@ -8423,12 +8445,13 @@ const en = {
         add: "Add card",
         empty:
           "No capability cards yet; the section is hidden until you add one.",
-        moveUp: "Move up",
-        moveDown: "Move down",
         remove: "Remove card",
         icon: "Icon",
         title: "Title",
+        titlePlaceholder: "e.g. Multi-source alert evaluation",
         description: "Description",
+        descriptionPlaceholder:
+          "e.g. Prometheus, Loki, and Elasticsearch ingested and evaluated together.",
         limit: "{{current}}/{{max}} cards",
       },
       icons: {
@@ -8444,6 +8467,32 @@ const en = {
         users: "Members",
         "git-branch": "Branch",
         layers: "Layers",
+      },
+      placeholders: {
+        heroTitle: "e.g. Alerts, notifications, and on-call in one chain",
+        heroSubtitle:
+          "e.g. Datasources connect, rules evaluate, the right people get notified, on-call holds",
+        heroImageUrl: "https://example.com/hero.png (4:3)",
+        ctaPrimaryLabel: "e.g. Get started",
+        ctaSecondaryLabel: "e.g. Read the product docs",
+        ctaSecondaryHref: "In-site path, e.g. /p/home or #deploy",
+        featuresTitle: "e.g. What it solves",
+        featuresSubtitle:
+          "e.g. Four capabilities from ingestion to on-call, with no external SaaS",
+        howTitle: "e.g. How it works",
+        howBody:
+          "e.g. Workers collect and evaluate on schedule; a hit creates the event, then notifications and escalation policies deliver it.",
+        permTitle: "e.g. Who sees what",
+        permBody:
+          "e.g. Tenant isolation plus role grants; resources are scoped per namespace and every action is audited.",
+        deployTitle: "e.g. Self-hosted",
+        deployBody:
+          "e.g. One compose or k8s stack; PostgreSQL and Redis stay in your own environment.",
+        docTitle: "e.g. Product docs",
+        closingTitle: "e.g. Run it first, decide later",
+        closingDescription:
+          "e.g. Bring up a compose or k8s stack and watch what happens between an alert firing and a human being paged.",
+        closingButtonLabel: "e.g. Get started",
       },
       saved: "Home page saved",
       save: "Save home page",

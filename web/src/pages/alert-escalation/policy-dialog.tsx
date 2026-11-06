@@ -1,5 +1,5 @@
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { GripVertical, Plus, Trash2 } from "lucide-react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import {
@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { usePointerReorder } from "@/hooks/use-flip-reorder"
+import { cn } from "@/lib/class-names"
 import {
   collectFieldErrors,
   hasFieldErrors,
@@ -149,6 +151,19 @@ export function AlertEscalationPolicyDialog({
   /** 步骤列表尾部的 ref：新增后把「添加步骤」留在视野内，方便连续添加。 */
   const stepsTailRef = useRef<HTMLDivElement>(null)
   const keepTailVisible = useRef(false)
+  // 与实时告警自定义列一致的拖动排序：拖动源脱离列表流，目标位置只显示空占位。
+  const {
+    containerRef: stepsRef,
+    dragKey,
+    dropTarget,
+    dropPosition,
+    dragSize,
+    startDrag,
+  } = usePointerReorder<HTMLDivElement>(
+    steps.map((step) => step.key).join("|"),
+    "y",
+    reorderSteps
+  )
 
   useEffect(() => {
     if (!keepTailVisible.current) {
@@ -175,14 +190,24 @@ export function AlertEscalationPolicyDialog({
     )
   }
 
-  function moveStep(index: number, offset: -1 | 1) {
+  function reorderSteps(
+    sourceKey: string,
+    targetKey: string,
+    position: "before" | "after"
+  ) {
     setSteps((current) => {
-      const target = index + offset
-      if (target < 0 || target >= current.length) {
+      const from = current.findIndex((step) => step.key === sourceKey)
+      const target = current.findIndex((step) => step.key === targetKey)
+      if (from < 0 || target < 0 || sourceKey === targetKey) {
         return current
       }
       const next = [...current]
-      ;[next[index], next[target]] = [next[target], next[index]]
+      const [moved] = next.splice(from, 1)
+      let insertionIndex = target + (position === "after" ? 1 : 0)
+      if (from < insertionIndex) {
+        insertionIndex -= 1
+      }
+      next.splice(insertionIndex, 0, moved)
       return next
     })
   }
@@ -479,7 +504,13 @@ export function AlertEscalationPolicyDialog({
                 selectedLabel={selectionSummary}
               />
             </FormField>
-            <div className="grid gap-3">
+            <div
+              ref={stepsRef}
+              className={cn(
+                "relative grid content-start gap-3",
+                dragKey && "select-none"
+              )}
+            >
               <div className="grid gap-1">
                 <p className="text-sm font-medium">{t("escalation.steps")}</p>
                 <p className="text-xs text-muted-foreground">
@@ -491,38 +522,33 @@ export function AlertEscalationPolicyDialog({
                   {fieldErrors.steps}
                 </p>
               ) : null}
-              {steps.map((step, index) => (
-                <div
-                  key={step.key}
-                  className="grid gap-3 rounded-lg border border-border/70 bg-muted/20 p-3"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {t("escalation.stepIndex", { index: index + 1 })}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={t("escalation.moveUp")}
-                        title={t("escalation.moveUp")}
-                        disabled={index === 0}
-                        onClick={() => moveStep(index, -1)}
-                      >
-                        <ArrowUp aria-hidden="true" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={t("escalation.moveDown")}
-                        title={t("escalation.moveDown")}
-                        disabled={index === steps.length - 1}
-                        onClick={() => moveStep(index, 1)}
-                      >
-                        <ArrowDown aria-hidden="true" />
-                      </Button>
+              {steps.map((step, index) => {
+                const row = (
+                  <div
+                    key={step.key}
+                    data-flip-id={dragKey === step.key ? undefined : step.key}
+                    data-sort-key={step.key}
+                    className={cn(
+                      "grid gap-3 rounded-lg border border-border/70 bg-muted/20 p-3",
+                      dropTarget === step.key &&
+                        dragKey !== step.key &&
+                        "border-primary/60 ring-1 ring-primary/30",
+                      dragKey === step.key &&
+                        "pointer-events-none absolute opacity-0"
+                    )}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <GripVertical
+                          className="size-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+                          aria-hidden
+                          style={{ touchAction: "none" }}
+                          onPointerDown={(event) => startDrag(step.key, event)}
+                        />
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {t("escalation.stepIndex", { index: index + 1 })}
+                        </span>
+                      </div>
                       <Button
                         type="button"
                         variant="ghost"
@@ -535,51 +561,74 @@ export function AlertEscalationPolicyDialog({
                         <Trash2 aria-hidden="true" />
                       </Button>
                     </div>
+                    <div className="grid gap-3 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                      <FormField
+                        label={t("escalation.delay")}
+                        htmlFor={`escalation-delay-${step.key}`}
+                        required
+                        error={fieldErrors[`step.${index}.delay`]}
+                      >
+                        <Input
+                          id={`escalation-delay-${step.key}`}
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          max={MAX_DELAY_MINUTES}
+                          value={step.delay}
+                          onChange={(event) =>
+                            patchStep(index, { delay: event.target.value })
+                          }
+                        />
+                      </FormField>
+                      <FormField
+                        label={t("escalation.groups")}
+                        htmlFor={`escalation-groups-${step.key}`}
+                        required
+                        error={fieldErrors[`step.${index}.groups`]}
+                      >
+                        <MultiSelect
+                          id={`escalation-groups-${step.key}`}
+                          values={step.groupUids}
+                          options={groups}
+                          onChange={(values) =>
+                            patchStep(index, { groupUids: values })
+                          }
+                          placeholder={t("multiSelect.placeholder")}
+                          searchPlaceholder={t("multiSelect.searchPlaceholder")}
+                          emptyText={t("escalation.noGroups")}
+                          allLabel={t("multiSelect.all")}
+                          clearLabel={t("multiSelect.clear")}
+                          selectedLabel={selectionSummary}
+                          invalid={Boolean(fieldErrors[`step.${index}.groups`])}
+                        />
+                      </FormField>
+                    </div>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-[10rem_minmax(0,1fr)]">
-                    <FormField
-                      label={t("escalation.delay")}
-                      htmlFor={`escalation-delay-${step.key}`}
-                      required
-                      error={fieldErrors[`step.${index}.delay`]}
-                    >
-                      <Input
-                        id={`escalation-delay-${step.key}`}
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        max={MAX_DELAY_MINUTES}
-                        value={step.delay}
-                        onChange={(event) =>
-                          patchStep(index, { delay: event.target.value })
-                        }
-                      />
-                    </FormField>
-                    <FormField
-                      label={t("escalation.groups")}
-                      htmlFor={`escalation-groups-${step.key}`}
-                      required
-                      error={fieldErrors[`step.${index}.groups`]}
-                    >
-                      <MultiSelect
-                        id={`escalation-groups-${step.key}`}
-                        values={step.groupUids}
-                        options={groups}
-                        onChange={(values) =>
-                          patchStep(index, { groupUids: values })
-                        }
-                        placeholder={t("multiSelect.placeholder")}
-                        searchPlaceholder={t("multiSelect.searchPlaceholder")}
-                        emptyText={t("escalation.noGroups")}
-                        allLabel={t("multiSelect.all")}
-                        clearLabel={t("multiSelect.clear")}
-                        selectedLabel={selectionSummary}
-                        invalid={Boolean(fieldErrors[`step.${index}.groups`])}
-                      />
-                    </FormField>
-                  </div>
-                </div>
-              ))}
+                )
+                const showDropSlot =
+                  dropTarget === step.key && dragKey !== step.key
+                const dropSlot = showDropSlot ? (
+                  <div
+                    key={`drop-slot:${step.key}`}
+                    data-drop-slot
+                    data-drop-target={dropTarget}
+                    data-drop-position={dropPosition}
+                    aria-hidden="true"
+                    className="w-full rounded-lg border border-dashed border-primary/60 bg-primary/5"
+                    style={{ height: dragSize.height || undefined }}
+                  />
+                ) : null
+
+                return (
+                  <Fragment key={step.key}>
+                    {showDropSlot && dropPosition === "before"
+                      ? dropSlot
+                      : null}
+                    {row}
+                    {showDropSlot && dropPosition === "after" ? dropSlot : null}
+                  </Fragment>
+                )
+              })}
               {/* 添加按钮放在步骤列表末尾：新增的步骤就在它上方，不用滚回顶部再滚回来。 */}
               <div ref={stepsTailRef} className="pt-1">
                 <Button
