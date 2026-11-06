@@ -62,7 +62,7 @@ checkout 被别的会话占用、或带着他人未提交改动时，不要在�
 | 推送分支自开 PR | `git push -u origin <分支>`，不加 `--force` |
 | 本地合并进 main | 先 `git rebase main`，再 `git switch main && git merge --ff-only <分支>` |
 | 保留分支 | 不执行任何命令 |
-| 删除分支 | `git branch -d <分支>`，用户明确要求时才删，不用 `-D` |
+| 删除分支 | 合并并推送后主动 `git branch -d <分支>`，不再询问；`-d` 拒绝时先用 `git cherry main <分支>` 确认补丁已进主线，再 `-D` |
 
 合并只走 rebase + `--ff-only`，`main` 保持单线；冲突不自动解，停下报给用户。
 
@@ -73,4 +73,4 @@ checkout 被别的会话占用、或带着他人未提交改动时，不要在�
 - `git push`、`git push --force`、`git commit --amend` 已推送提交、`git reset --hard`。
 - 对他人的分支 rebase；对本任务分支 rebase 后强推（除非用户明确同意）。
 - 用 `git merge`（含 `--no-ff`）把任务分支合进 `main`。
-- 自动合并、自动解冲突、自动打 tag、自动建 PR、自动删分支。
+- 自动合并、自动解冲突、自动打 tag、自动建 PR；删除只限已确认进 `main` 的分支（合并推送后主动删），未合并的分支不删。

@@ -111,6 +111,15 @@ git merge --ff-only <分支> # 没有快进空间就停下：说明 rebase 没�
 
 `.github/workflows/ci.yml` 对任意分支的 push 跑检查，`.github/workflows/release.yml` 在 push 到 `main` 和 `v*` tag 时构建并发布 GHCR 镜像。推送就会产生对外可见的构建结果，时机由用户定。
 
+## 分支清理
+
+任务分支按用户指示合并进 `main` 并推送后，主动 `git branch -d <分支>`，不再回头问一次。
+cherry-pick 过来的分支不是 `main` 的祖先，`-d` 会拒绝，这时先 `git cherry main <分支>`
+确认每条提交都是 `-`（补丁已在主线），再 `-D`；只要有一条是 `+`，说明还有没进主线的提交，
+停下问用户，不删。
+
+未合并进 `main` 的分支（用户保留、或还在等指示的）一律不动。
+
 ## 禁止清单
 
 - 在 `main` 上直接提交本任务的改动（用户明确指示除外）。
@@ -120,5 +129,5 @@ git merge --ff-only <分支> # 没有快进空间就停下：说明 rebase 没�
 - 对 `main` 或他人的分支执行 `git rebase`；对本任务分支 rebase 后强推，除非用户明确同意。
 - 用 `git merge` 把任务分支合进 `main`，包括 `--no-ff`。
 - 用 `git stash`、`git checkout --`、`git restore`、`git clean` 动不属于本任务的改动。
-- 自动合并、自动解冲突、自动打 tag、自动建 PR、自动删分支。
+- 自动合并、自动解冲突、自动打 tag、自动建 PR；删除只限已确认进 `main` 的分支（合并推送后主动删），未合并的分支不删。
 - 任务中途换分支处理另一件事。
