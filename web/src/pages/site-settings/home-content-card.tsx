@@ -34,18 +34,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { RenderGuard } from "@/components/render-guard"
 import { useSiteConfig } from "@/hooks/use-site-config"
 import { failureMessage } from "@/lib/form-error"
+import {
+  FEATURE_ICON_KEYS,
+  FeatureIcon,
+} from "@/pages/public-site/home/feature-icons"
 import { SiteHomeSections } from "@/pages/public-site/home/sections"
 
 /** 首页文案字段。版式固定，这里只有短文本；长度上限与后端校验保持一致。 */
@@ -65,22 +62,6 @@ interface FeatureForm {
 type FieldErrors = Partial<Record<HomeField, string>> & {
   features?: Record<number, { title?: string; description?: string }>
 }
-
-/** 能力卡片图标白名单，与后端 siteFeatureIcons 一一对应。 */
-const FEATURE_ICONS = [
-  "activity",
-  "bell",
-  "shield",
-  "database",
-  "globe",
-  "boxes",
-  "terminal",
-  "gauge",
-  "server",
-  "users",
-  "git-branch",
-  "layers",
-] as const
 
 const MAX_FEATURES = 6
 
@@ -704,33 +685,45 @@ export function HomeContentCard({
                     return (
                       <li
                         key={index}
-                        className="grid gap-3 rounded-lg border border-border/60 p-3 sm:grid-cols-[8rem_minmax(0,1fr)_auto]"
+                        className="grid gap-3 rounded-lg border border-border/60 p-3 sm:grid-cols-[9rem_minmax(0,1fr)_auto]"
                       >
-                        <FormField
-                          label={t("systemSite.home.features.icon")}
-                          htmlFor={`feature-icon-${index}`}
-                        >
-                          <Select
-                            value={item.iconKey}
-                            disabled={!canWrite}
-                            onValueChange={(value) =>
-                              updateFeature(index, { iconKey: value })
-                            }
+                        <FormField label={t("systemSite.home.features.icon")}>
+                          {/* 图标键名只用作可读名称，界面上直接展示图标本身。 */}
+                          <div
+                            role="group"
+                            aria-label={t("systemSite.home.features.icon")}
+                            className="grid w-fit grid-cols-4 gap-1"
                           >
-                            <SelectTrigger
-                              id={`feature-icon-${index}`}
-                              aria-label={t("systemSite.home.features.icon")}
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {FEATURE_ICONS.map((icon) => (
-                                <SelectItem key={icon} value={icon}>
-                                  {t(`systemSite.home.icons.${icon}`)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            {FEATURE_ICON_KEYS.map((iconKey) => {
+                              const name = t(`systemSite.home.icons.${iconKey}`)
+                              const selected = item.iconKey === iconKey
+                              return (
+                                <Button
+                                  key={iconKey}
+                                  type="button"
+                                  variant={selected ? "secondary" : "ghost"}
+                                  size="icon"
+                                  aria-pressed={selected}
+                                  aria-label={name}
+                                  title={name}
+                                  disabled={!canWrite}
+                                  className={
+                                    selected
+                                      ? "ring-1 ring-ring ring-inset"
+                                      : undefined
+                                  }
+                                  onClick={() =>
+                                    updateFeature(index, { iconKey })
+                                  }
+                                >
+                                  <FeatureIcon
+                                    iconKey={iconKey}
+                                    className="size-4"
+                                  />
+                                </Button>
+                              )
+                            })}
+                          </div>
                         </FormField>
                         <div className="grid gap-2">
                           <FormField
