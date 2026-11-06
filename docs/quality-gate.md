@@ -33,13 +33,28 @@
 
 ## 3. 每个改动都必须满足的 DoD
 
-### 3.1 代码
+### 3.1 验证矩阵
 
-- `make vet` / `make lint` / `make test`（后端改动），`npm run typecheck` / `npx eslint src` /
-  `npm run build`（前端改动）全部通过。
+**分级验证**：先按改动范围跑最小集，交付前再跑一次全量。全仓重跑不是"更稳"，是把时间花在没改的代码上。
+
+| 改动位置 | 最小验证（改完就跑） |
+| --- | --- |
+| 仅 `docs/`、`*.md` | 无；改完核对相对链接可达 |
+| `web/src/**` | `npm --prefix web run typecheck`、`npx eslint src`（或 `npm --prefix web run check`） |
+| `web/src/styles/theme/**`、`index.css` | 追加 `npm --prefix web run tokens:check` |
+| `web/e2e/**`、`web/scripts/**` | `npx eslint e2e scripts` + 跑受影响的 spec |
+| `app/alioth/internal/{data,biz,service,access}/**` | `go test -C app/alioth ./internal/<层>/...` |
+| `app/alioth/api/**` | `buf lint` + `go vet -C app/alioth ./...` |
+| `app/<其它服务>/**` | `go vet -C app/<服务> ./...` + `go test -C app/<服务> ./...` |
+| `pkg/**`、`api/**` | 对应模块 `go vet` + `go test` |
+| 生成代码（ent / wire / conf / buf） | 重新生成后 `git diff --stat` 复核，再跑受影响包测试 |
+| 交付前（一次） | `make vet && make lint && make test`，`npm --prefix web run check && npm --prefix web run build` |
+
+- 同一命令在一次任务里只跑一次；只有你又改了它覆盖的范围，才需要重跑。
 - 新接口：带真实令牌的 curl 往返一次；平台级接口要验证「不带 `X-Namespace` 也能调」。
 - 乐观锁/状态机/权限分支：补单测，覆盖成功与冲突两条路径。
 - 新路由：验证静态路径不会被同级 `{id}` 路由抢先匹配。
+
 
 ### 3.2 前端 UI
 
@@ -83,7 +98,10 @@ npm --prefix web run e2e
 - 登录态用 JWT 注入 `localStorage`，不走验证码；夹具里的默认值只对应本机开发环境。
 - 覆盖：公开配置、平台级接口免租户头、乐观锁往返与过期 409、首页、文档页 Markdown
   代码高亮与右侧目录、深色/窄屏无横向滚动、预览页、设置页快捷导航与首页内容预览、
-  切换语言确认、编辑器内联预览、保存冲突覆盖。
+  切换语言确认、编辑器内联预览、保存冲突覆盖、标签与滚动（`tabs-scroll.spec.ts`）。
+- 标签/滚动这类逐页检查用环境变量指路由，不再现场手写脚本：
+  `E2E_SCROLL_ROUTES=/alert-rule npx --prefix web playwright test tabs-scroll`。
+  缺场景就补进 `web/e2e/`，下一次任务直接复用。
 - 截图落在 `tmp/acceptance/`，作为浏览器证据随交付一起给出。
 - 用例里创建的数据都在 `finally` 里删除，跑完不污染开发库。
 

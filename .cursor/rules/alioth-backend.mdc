@@ -4,6 +4,8 @@ globs: app/**/*.go,api/**/*.proto,pkg/**/*.go
 alwaysApply: false
 ---
 
+> 权威版本见 [docs/iterations/conventions.md](../../docs/iterations/conventions.md)：DSH 读取的是 `AGENTS.md` 与 `docs/`，本文件是 Cursor 侧摘要，冲突时以 docs/ 为准。
+
 # Alioth 后端
 
 - 框架为 **Kratos v3** + `log/slog`；禁止 `kratos/v2` 与 v2 `log.Helper`。

@@ -19,13 +19,30 @@ These rules apply to all changes under `web/`. Read them before changing routes,
 
 ## Required regression checks for tabs and scrolling
 
-Before calling a UI change complete, use an authenticated local test session when the page requires authentication; never bypass login. At minimum, verify in a real browser:
+Run the scripted checks; do not hand-roll a CDP/Playwright script for a one-off look. A one-off script
+is throwaway work that gets rewritten next task, while the checks below stay in the repo.
 
-- Click each tab and use the keyboard (focus, arrow navigation, Enter/Space). Confirm `aria-selected`, the active indicator, visible panel content, and URL state all change together; also try browser back/forward for URL-backed tabs.
-- At a desktop viewport (e.g. 1366×768), scroll from the panel top to its last section and back. Confirm no content is clipped by the app shell and the active tab/filter controls remain reachable.
-- Repeat at a narrow viewport (e.g. 390×844); confirm controls wrap, the page can still be read vertically, and the table scrolls within its own viewport.
-- For a scroll bug, inspect the full ancestor chain for computed height, `min-height`, `overflow-y`, `scrollHeight`, and `clientHeight`. A successful build or screenshot of only the first viewport is not scroll verification.
-- Run the web typecheck, lint, and production build. If authentication or a browser is unavailable, report browser verification as not performed rather than claiming it passed.
+```sh
+npm --prefix web run check     # typecheck + eslint + i18n + UI conventions
+npm --prefix web run smoke     # real backend smoke (needs dev server + JWT)
+npm --prefix web run e2e       # Playwright, authenticated session (needs :8080 + :8100)
+```
+
+- `e2e/tabs-scroll.spec.ts` already covers the tabs/scroll checklist below at desktop and narrow
+  viewports. Point it at the route you changed with `E2E_SCROLL_ROUTES=/your/route` and run that spec:
+  `E2E_SCROLL_ROUTES=/alert-rule npx --prefix web playwright test tabs-scroll`.
+- A route that needs a new check gets a case in `web/e2e/`, not a local script. Reuse `fixtures.ts`
+  for the authenticated session (JWT injected into `localStorage`; never go through login).
+- Use a real browser for what the suite cannot cover: click every tab plus keyboard (focus, arrow
+  navigation, Enter/Space), confirm `aria-selected`, the active indicator, panel content and URL state
+  move together, and try back/forward for URL-backed tabs.
+- At 1366×768, scroll from the panel top to its last section and back; confirm nothing is clipped by
+  the app shell and the tab/filter controls stay reachable. Repeat at 390×844: controls wrap, the page
+  still reads vertically, the table scrolls inside its own viewport.
+- For a scroll bug, inspect the full ancestor chain for computed height, `min-height`, `overflow-y`,
+  `scrollHeight`, and `clientHeight`. A build or a first-viewport screenshot is not scroll verification.
+- If authentication or a browser is unavailable, report browser verification as not performed rather
+  than claiming it passed.
 
 ## Regression note: historical alerts
 

@@ -3,6 +3,8 @@ description: 做 Alioth 界面时先读设计标准，并把确认过的样式�
 alwaysApply: true
 ---
 
+> 权威版本见 [web/AGENTS.md](../../web/AGENTS.md)：DSH 读取的是 `AGENTS.md` 与 `docs/`，本文件是 Cursor 侧摘要，冲突时以 docs/ 为准。
+
 # 前端设计标准
 
 改 `web/` 的布局、间距、壳、页面或组件外观时，先读 [.cursor/skills/alioth-web-design/SKILL.md](../skills/alioth-web-design/SKILL.md)，再读 [revisions.md](../skills/alioth-web-design/revisions.md)。修订记录优先。
