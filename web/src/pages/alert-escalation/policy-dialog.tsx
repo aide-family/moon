@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import {
@@ -146,6 +146,20 @@ export function AlertEscalationPolicyDialog({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [formError, setFormError] = useState("")
   const [pending, setPending] = useState(false)
+  /** 步骤列表尾部的 ref：新增后把「添加步骤」留在视野内，方便连续添加。 */
+  const stepsTailRef = useRef<HTMLDivElement>(null)
+  const keepTailVisible = useRef(false)
+
+  useEffect(() => {
+    if (!keepTailVisible.current) {
+      return
+    }
+    keepTailVisible.current = false
+    stepsTailRef.current?.scrollIntoView({
+      block: "nearest",
+      behavior: "smooth",
+    })
+  }, [steps.length])
 
   function selectionSummary(selected: number, total: number): string {
     return selected >= total && total > 0
@@ -178,6 +192,7 @@ export function AlertEscalationPolicyDialog({
   }
 
   function addStep() {
+    keepTailVisible.current = true
     setSteps((current) => {
       const last = parseDelay(current[current.length - 1]?.delay ?? "")
       const nextDelay = last === null ? 5 : last + 5
@@ -465,23 +480,11 @@ export function AlertEscalationPolicyDialog({
               />
             </FormField>
             <div className="grid gap-3">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{t("escalation.steps")}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t("escalation.stepsHint")}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={pending || steps.length >= MAX_STEPS}
-                  onClick={addStep}
-                >
-                  <Plus aria-hidden="true" data-icon="inline-start" />
-                  {t("escalation.addStep")}
-                </Button>
+              <div className="grid gap-1">
+                <p className="text-sm font-medium">{t("escalation.steps")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("escalation.stepsHint")}
+                </p>
               </div>
               {fieldErrors.steps ? (
                 <p role="alert" className="text-sm text-destructive">
@@ -577,6 +580,19 @@ export function AlertEscalationPolicyDialog({
                   </div>
                 </div>
               ))}
+              {/* 添加按钮放在步骤列表末尾：新增的步骤就在它上方，不用滚回顶部再滚回来。 */}
+              <div ref={stepsTailRef} className="pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={pending || steps.length >= MAX_STEPS}
+                  onClick={addStep}
+                >
+                  <Plus aria-hidden="true" data-icon="inline-start" />
+                  {t("escalation.addStep")}
+                </Button>
+              </div>
             </div>
           </DialogBody>
           {formError ? (
