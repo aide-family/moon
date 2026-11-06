@@ -30,3 +30,5 @@
 | 前端界面约束 | [web/AGENTS.md](web/AGENTS.md) |
 | 当前里程碑与进度 | [docs/roadmap.md](docs/roadmap.md)（只读当前里程碑一节） |
 | 系统设计背景 | [docs/design.md](docs/design.md)（按章节 `grep` 定位再读） |
+| 项目技能（DSH 自动发现） | [.agents/skills/](.agents/skills/)，改哪类工作先读对应 `SKILL.md` |
+| 规则摘要（编辑器/agent 共用） | [.agents/rules/](.agents/rules/)，权威版本仍是 docs/ |

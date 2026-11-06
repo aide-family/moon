@@ -1,7 +1,7 @@
 # Alioth 概览页（Dashboard）设计规范
 
 > 状态：设计稿，待主会话按本文件开发。**本文件不改代码**，只给结构、视觉与文件级改动建议。
-> 依据：`README.md`、`docs/design.md`、`docs/roadmap.md`、`web/AGENTS.md`、`.cursor/skills/alioth-web-design/{SKILL.md,revisions.md}`、
+> 依据：`README.md`、`docs/design.md`、`docs/roadmap.md`、`web/AGENTS.md`、`.agents/skills/alioth-web-design/{SKILL.md,revisions.md}`、
 > `web/src/{App.tsx,index.css}`、`app-shell.tsx`、`pages/alert/*`、`api/**`、`i18n/index.ts`、
 > 以及 `api/alioth/v1/*.proto` 与 `app/alioth/internal/{service,biz,data}` 的现网实现。
 > 设计边界：本页只做**结构与视觉**。统计口径由「统计学家」定义，图表类型与刻度由「数据可视化工程师」定义；
@@ -540,7 +540,7 @@ OverviewPage                       页面编排、数据获取、URL 状态
 | 文件 | 说明 |
 | --- | --- |
 | `docs/dashboard-design.md` | 本文件 |
-| `.cursor/skills/alioth-web-design/revisions.md` | 开发完成后**必须**追加一条「概览页」约定（`SKILL.md` 末尾"改样式之后"流程） |
+| `.agents/skills/alioth-web-design/revisions.md` | 开发完成后**必须**追加一条「概览页」约定（`SKILL.md` 末尾"改样式之后"流程） |
 
 **可选后端项（不在本阶段）**
 

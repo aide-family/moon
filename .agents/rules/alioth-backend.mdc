@@ -4,7 +4,7 @@ globs: app/**/*.go,api/**/*.proto,pkg/**/*.go
 alwaysApply: false
 ---
 
-> 权威版本见 [docs/iterations/conventions.md](../../docs/iterations/conventions.md)：DSH 读取的是 `AGENTS.md` 与 `docs/`，本文件是 Cursor 侧摘要，冲突时以 docs/ 为准。
+> 权威版本见 [docs/iterations/conventions.md](../../docs/iterations/conventions.md)：DSH 读取的是 `AGENTS.md` 与 `docs/`，本文件是规则摘要，冲突时以 docs/ 为准。
 
 # Alioth 后端
 

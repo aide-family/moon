@@ -16,7 +16,7 @@
 | --- | --- |
 | [design.md](design.md) | 业务模型：告警事件、订阅、任务、投递日志、Agent |
 | [web/AGENTS.md](../web/AGENTS.md) | 布局、滚动归属、表格列宽、Tabs 约束 |
-| [.cursor/skills/alioth-web-design/SKILL.md](../.cursor/skills/alioth-web-design/SKILL.md) | 间距、卡片、页头、色板 |
+| [.agents/skills/alioth-web-design/SKILL.md](../.agents/skills/alioth-web-design/SKILL.md) | 间距、卡片、页头、色板 |
 | `web/src/pages/alert/history-insights.tsx` | 现有唯一统计实现，口径必须与之一致 |
 
 ---
