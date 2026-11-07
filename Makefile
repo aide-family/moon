@@ -17,6 +17,8 @@ VERSION ?= $(shell git -C $(ROOT) describe --tags --always --dirty 2>/dev/null |
 IMAGE_PREFIX ?= alioth
 # 摇光部署包的目标架构；本地验证时可只跑一个，例如 ARCHES=arm64。
 ARCHES ?= amd64 arm64
+# web 镜像内 npm ci 的源：默认官方源（CI 用），国内构建可改成镜像源。
+NPM_REGISTRY ?= https://registry.npmjs.org
 # 摇光 RPM 开关：auto 表示装了 rpmbuild 就打，1 强制打（缺 rpmbuild 直接失败），0 只打 tar.gz。
 RPM ?= auto
 
@@ -118,6 +120,7 @@ image-alkaid:
 
 image-web:
 	docker build -f $(ROOT)deploy/web/Dockerfile \
+		--build-arg NPM_REGISTRY=$(NPM_REGISTRY) \
 		-t $(IMAGE_PREFIX)/web:$(VERSION) $(ROOT)
 
 images: image-alioth image-megrez image-merak image-alkaid image-web
