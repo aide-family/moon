@@ -28,6 +28,8 @@ const (
 	AgentService_ListAgents_FullMethodName       = "/alioth.v1.AgentService/ListAgents"
 	AgentService_MatchAgents_FullMethodName      = "/alioth.v1.AgentService/MatchAgents"
 	AgentService_IssueShellTicket_FullMethodName = "/alioth.v1.AgentService/IssueShellTicket"
+	AgentService_DeployAgent_FullMethodName      = "/alioth.v1.AgentService/DeployAgent"
+	AgentService_GetAgentDeploy_FullMethodName   = "/alioth.v1.AgentService/GetAgentDeploy"
 	AgentService_Connect_FullMethodName          = "/alioth.v1.AgentService/Connect"
 )
 
@@ -55,6 +57,11 @@ type AgentServiceClient interface {
 	MatchAgents(ctx context.Context, in *MatchAgentsRequest, opts ...grpc.CallOption) (*MatchAgentsResponse, error)
 	// 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
 	IssueShellTicket(ctx context.Context, in *IssueShellTicketRequest, opts ...grpc.CallOption) (*IssueShellTicketResponse, error)
+	// 启动摇光 Agent 自动安装：服务端用保存的 SSH 凭据登录目标机器，把摇光装上去。
+	// 只接受具备 agent:write 的用户。安装过程异步执行，通过 GetAgentDeploy 轮询。
+	DeployAgent(ctx context.Context, in *DeployAgentRequest, opts ...grpc.CallOption) (*DeployAgentResponse, error)
+	// 查询最近一次安装的步骤与日志。没有安装记录时 deploy 为空。
+	GetAgentDeploy(ctx context.Context, in *GetAgentDeployRequest, opts ...grpc.CallOption) (*GetAgentDeployResponse, error)
 	// Agent 出站双向流。只接受 Agent 令牌。
 	Connect(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[AgentFrame, AgentFrame], error)
 }
@@ -157,6 +164,26 @@ func (c *agentServiceClient) IssueShellTicket(ctx context.Context, in *IssueShel
 	return out, nil
 }
 
+func (c *agentServiceClient) DeployAgent(ctx context.Context, in *DeployAgentRequest, opts ...grpc.CallOption) (*DeployAgentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeployAgentResponse)
+	err := c.cc.Invoke(ctx, AgentService_DeployAgent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) GetAgentDeploy(ctx context.Context, in *GetAgentDeployRequest, opts ...grpc.CallOption) (*GetAgentDeployResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAgentDeployResponse)
+	err := c.cc.Invoke(ctx, AgentService_GetAgentDeploy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) Connect(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[AgentFrame, AgentFrame], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &AgentService_ServiceDesc.Streams[0], AgentService_Connect_FullMethodName, cOpts...)
@@ -194,6 +221,11 @@ type AgentServiceServer interface {
 	MatchAgents(context.Context, *MatchAgentsRequest) (*MatchAgentsResponse, error)
 	// 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
 	IssueShellTicket(context.Context, *IssueShellTicketRequest) (*IssueShellTicketResponse, error)
+	// 启动摇光 Agent 自动安装：服务端用保存的 SSH 凭据登录目标机器，把摇光装上去。
+	// 只接受具备 agent:write 的用户。安装过程异步执行，通过 GetAgentDeploy 轮询。
+	DeployAgent(context.Context, *DeployAgentRequest) (*DeployAgentResponse, error)
+	// 查询最近一次安装的步骤与日志。没有安装记录时 deploy 为空。
+	GetAgentDeploy(context.Context, *GetAgentDeployRequest) (*GetAgentDeployResponse, error)
 	// Agent 出站双向流。只接受 Agent 令牌。
 	Connect(grpc.BidiStreamingServer[AgentFrame, AgentFrame]) error
 	mustEmbedUnimplementedAgentServiceServer()
@@ -232,6 +264,12 @@ func (UnimplementedAgentServiceServer) MatchAgents(context.Context, *MatchAgents
 }
 func (UnimplementedAgentServiceServer) IssueShellTicket(context.Context, *IssueShellTicketRequest) (*IssueShellTicketResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IssueShellTicket not implemented")
+}
+func (UnimplementedAgentServiceServer) DeployAgent(context.Context, *DeployAgentRequest) (*DeployAgentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeployAgent not implemented")
+}
+func (UnimplementedAgentServiceServer) GetAgentDeploy(context.Context, *GetAgentDeployRequest) (*GetAgentDeployResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAgentDeploy not implemented")
 }
 func (UnimplementedAgentServiceServer) Connect(grpc.BidiStreamingServer[AgentFrame, AgentFrame]) error {
 	return status.Error(codes.Unimplemented, "method Connect not implemented")
@@ -419,6 +457,42 @@ func _AgentService_IssueShellTicket_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_DeployAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeployAgentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).DeployAgent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_DeployAgent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).DeployAgent(ctx, req.(*DeployAgentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_GetAgentDeploy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentDeployRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).GetAgentDeploy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_GetAgentDeploy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).GetAgentDeploy(ctx, req.(*GetAgentDeployRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_Connect_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(AgentServiceServer).Connect(&grpc.GenericServerStream[AgentFrame, AgentFrame]{ServerStream: stream})
 }
@@ -468,6 +542,14 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IssueShellTicket",
 			Handler:    _AgentService_IssueShellTicket_Handler,
+		},
+		{
+			MethodName: "DeployAgent",
+			Handler:    _AgentService_DeployAgent_Handler,
+		},
+		{
+			MethodName: "GetAgentDeploy",
+			Handler:    _AgentService_GetAgentDeploy_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

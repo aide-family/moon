@@ -67,7 +67,7 @@ func newServeCmd() *cobra.Command {
 				log.WithFormat(log.FormatJSON),
 				log.WithAddSource(true),
 			)).With(slog.String("service", "alioth"))
-			app, cleanup, err := wireApp(cfg.Server, cfg.Data, cfg.Auth, logger)
+			app, cleanup, err := wireApp(cfg.Server, cfg.Data, cfg.Auth, cfg.Deploy, logger)
 			if err != nil {
 				return err
 			}

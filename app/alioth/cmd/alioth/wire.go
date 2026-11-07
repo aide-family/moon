@@ -17,6 +17,6 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/service"
 )
 
-func wireApp(*conf.Server, *conf.Data, *conf.Auth, *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(*conf.Server, *conf.Data, *conf.Auth, *conf.Deploy, *slog.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(server.ProviderSet, access.ProviderSet, data.ProviderSet, mailer.ProviderSet, biz.ProviderSet, service.ProviderSet, newApp))
 }

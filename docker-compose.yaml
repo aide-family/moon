@@ -161,6 +161,9 @@ services:
       <<: *service-env
       ALIOTH_HTTP_ADDR: 0.0.0.0:8000
       ALIOTH_GRPC_ADDR: 0.0.0.0:9000
+      # 机器页「自动安装」写入目标机器的控制面 gRPC 地址。
+      # 目标机器不在 compose 网络里时改成它实际能访问到的宿主机地址。
+      ALIOTH_DEPLOY_GRPC_ADDR: ${ALIOTH_DEPLOY_GRPC_ADDR:-127.0.0.1:9000}
     ports:
       - "8000:8000"
       - "9000:9000"

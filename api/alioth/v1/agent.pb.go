@@ -1293,6 +1293,390 @@ func (x *IssueShellTicketResponse) GetTicket() string {
 	return ""
 }
 
+// 启动自动安装。
+type DeployAgentRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 机器标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeployAgentRequest) Reset() {
+	*x = DeployAgentRequest{}
+	mi := &file_alioth_v1_agent_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeployAgentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeployAgentRequest) ProtoMessage() {}
+
+func (x *DeployAgentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_agent_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeployAgentRequest.ProtoReflect.Descriptor instead.
+func (*DeployAgentRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *DeployAgentRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 启动自动安装的结果。返回当前这一步的快照。
+type DeployAgentResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 安装进度。
+	Deploy        *AgentDeployItem `protobuf:"bytes,1,opt,name=deploy,proto3" json:"deploy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeployAgentResponse) Reset() {
+	*x = DeployAgentResponse{}
+	mi := &file_alioth_v1_agent_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeployAgentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeployAgentResponse) ProtoMessage() {}
+
+func (x *DeployAgentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_agent_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeployAgentResponse.ProtoReflect.Descriptor instead.
+func (*DeployAgentResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *DeployAgentResponse) GetDeploy() *AgentDeployItem {
+	if x != nil {
+		return x.Deploy
+	}
+	return nil
+}
+
+// 查询自动安装进度。
+type GetAgentDeployRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 机器标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentDeployRequest) Reset() {
+	*x = GetAgentDeployRequest{}
+	mi := &file_alioth_v1_agent_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentDeployRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentDeployRequest) ProtoMessage() {}
+
+func (x *GetAgentDeployRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_agent_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentDeployRequest.ProtoReflect.Descriptor instead.
+func (*GetAgentDeployRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetAgentDeployRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 自动安装进度。
+type GetAgentDeployResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 最近一次安装。还没安装过时为空。
+	Deploy        *AgentDeployItem `protobuf:"bytes,1,opt,name=deploy,proto3" json:"deploy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentDeployResponse) Reset() {
+	*x = GetAgentDeployResponse{}
+	mi := &file_alioth_v1_agent_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentDeployResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentDeployResponse) ProtoMessage() {}
+
+func (x *GetAgentDeployResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_agent_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentDeployResponse.ProtoReflect.Descriptor instead.
+func (*GetAgentDeployResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetAgentDeployResponse) GetDeploy() *AgentDeployItem {
+	if x != nil {
+		return x.Deploy
+	}
+	return nil
+}
+
+// 安装步骤。
+type AgentDeployStep struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 步骤键，例如 connect、install，供前端做本地化。
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// 步骤标题。
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// 状态，取值为 PENDING、RUNNING、SUCCEEDED、FAILED。
+	Status string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	// 补充说明。
+	Message       string `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentDeployStep) Reset() {
+	*x = AgentDeployStep{}
+	mi := &file_alioth_v1_agent_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentDeployStep) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentDeployStep) ProtoMessage() {}
+
+func (x *AgentDeployStep) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_agent_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentDeployStep.ProtoReflect.Descriptor instead.
+func (*AgentDeployStep) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *AgentDeployStep) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *AgentDeployStep) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *AgentDeployStep) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *AgentDeployStep) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+// 一次自动安装。
+type AgentDeployItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 本次安装标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 机器标识。
+	AgentUid string `protobuf:"bytes,2,opt,name=agent_uid,json=agentUid,proto3" json:"agent_uid,omitempty"`
+	// 状态，取值为 RUNNING、SUCCEEDED、FAILED。
+	Status string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	// 当前步骤键。
+	Step string `protobuf:"bytes,4,opt,name=step,proto3" json:"step,omitempty"`
+	// 全部步骤及状态。
+	Steps []*AgentDeployStep `protobuf:"bytes,5,rep,name=steps,proto3" json:"steps,omitempty"`
+	// 安装日志，按时间追加。过长时截断。
+	Log string `protobuf:"bytes,6,opt,name=log,proto3" json:"log,omitempty"`
+	// 日志是否已截断。
+	LogTruncated bool `protobuf:"varint,7,opt,name=log_truncated,json=logTruncated,proto3" json:"log_truncated,omitempty"`
+	// 失败原因。
+	Error string `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
+	// 开始时间，RFC3339。
+	StartedAt string `protobuf:"bytes,9,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	// 结束时间，RFC3339。未结束时为空。
+	FinishedAt    string `protobuf:"bytes,10,opt,name=finished_at,json=finishedAt,proto3" json:"finished_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentDeployItem) Reset() {
+	*x = AgentDeployItem{}
+	mi := &file_alioth_v1_agent_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentDeployItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentDeployItem) ProtoMessage() {}
+
+func (x *AgentDeployItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_agent_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentDeployItem.ProtoReflect.Descriptor instead.
+func (*AgentDeployItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *AgentDeployItem) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *AgentDeployItem) GetAgentUid() string {
+	if x != nil {
+		return x.AgentUid
+	}
+	return ""
+}
+
+func (x *AgentDeployItem) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *AgentDeployItem) GetStep() string {
+	if x != nil {
+		return x.Step
+	}
+	return ""
+}
+
+func (x *AgentDeployItem) GetSteps() []*AgentDeployStep {
+	if x != nil {
+		return x.Steps
+	}
+	return nil
+}
+
+func (x *AgentDeployItem) GetLog() string {
+	if x != nil {
+		return x.Log
+	}
+	return ""
+}
+
+func (x *AgentDeployItem) GetLogTruncated() bool {
+	if x != nil {
+		return x.LogTruncated
+	}
+	return false
+}
+
+func (x *AgentDeployItem) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *AgentDeployItem) GetStartedAt() string {
+	if x != nil {
+		return x.StartedAt
+	}
+	return ""
+}
+
+func (x *AgentDeployItem) GetFinishedAt() string {
+	if x != nil {
+		return x.FinishedAt
+	}
+	return ""
+}
+
 // Agent 与玉衡之间的一帧。
 type AgentFrame struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1322,7 +1706,7 @@ type AgentFrame struct {
 
 func (x *AgentFrame) Reset() {
 	*x = AgentFrame{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[19]
+	mi := &file_alioth_v1_agent_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1334,7 +1718,7 @@ func (x *AgentFrame) String() string {
 func (*AgentFrame) ProtoMessage() {}
 
 func (x *AgentFrame) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[19]
+	mi := &file_alioth_v1_agent_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1347,7 +1731,7 @@ func (x *AgentFrame) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentFrame.ProtoReflect.Descriptor instead.
 func (*AgentFrame) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{19}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AgentFrame) GetRegister() *AgentRegister {
@@ -1439,7 +1823,7 @@ type AgentRegister struct {
 
 func (x *AgentRegister) Reset() {
 	*x = AgentRegister{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[20]
+	mi := &file_alioth_v1_agent_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1451,7 +1835,7 @@ func (x *AgentRegister) String() string {
 func (*AgentRegister) ProtoMessage() {}
 
 func (x *AgentRegister) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[20]
+	mi := &file_alioth_v1_agent_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1464,7 +1848,7 @@ func (x *AgentRegister) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentRegister.ProtoReflect.Descriptor instead.
 func (*AgentRegister) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{20}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AgentRegister) GetNamespaceUid() string {
@@ -1513,7 +1897,7 @@ type AgentHeartbeat struct {
 
 func (x *AgentHeartbeat) Reset() {
 	*x = AgentHeartbeat{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[21]
+	mi := &file_alioth_v1_agent_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1525,7 +1909,7 @@ func (x *AgentHeartbeat) String() string {
 func (*AgentHeartbeat) ProtoMessage() {}
 
 func (x *AgentHeartbeat) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[21]
+	mi := &file_alioth_v1_agent_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1538,7 +1922,7 @@ func (x *AgentHeartbeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentHeartbeat.ProtoReflect.Descriptor instead.
 func (*AgentHeartbeat) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{21}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *AgentHeartbeat) GetSeq() int64 {
@@ -1567,7 +1951,7 @@ type AgentMachineInfo struct {
 
 func (x *AgentMachineInfo) Reset() {
 	*x = AgentMachineInfo{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[22]
+	mi := &file_alioth_v1_agent_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1579,7 +1963,7 @@ func (x *AgentMachineInfo) String() string {
 func (*AgentMachineInfo) ProtoMessage() {}
 
 func (x *AgentMachineInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[22]
+	mi := &file_alioth_v1_agent_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1592,7 +1976,7 @@ func (x *AgentMachineInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentMachineInfo.ProtoReflect.Descriptor instead.
 func (*AgentMachineInfo) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{22}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *AgentMachineInfo) GetHostname() string {
@@ -1657,7 +2041,7 @@ type AgentExecRequest struct {
 
 func (x *AgentExecRequest) Reset() {
 	*x = AgentExecRequest{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[23]
+	mi := &file_alioth_v1_agent_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1669,7 +2053,7 @@ func (x *AgentExecRequest) String() string {
 func (*AgentExecRequest) ProtoMessage() {}
 
 func (x *AgentExecRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[23]
+	mi := &file_alioth_v1_agent_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1682,7 +2066,7 @@ func (x *AgentExecRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentExecRequest.ProtoReflect.Descriptor instead.
 func (*AgentExecRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{23}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *AgentExecRequest) GetRequestUid() string {
@@ -1767,7 +2151,7 @@ type AgentExecResult struct {
 
 func (x *AgentExecResult) Reset() {
 	*x = AgentExecResult{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[24]
+	mi := &file_alioth_v1_agent_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1779,7 +2163,7 @@ func (x *AgentExecResult) String() string {
 func (*AgentExecResult) ProtoMessage() {}
 
 func (x *AgentExecResult) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[24]
+	mi := &file_alioth_v1_agent_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1792,7 +2176,7 @@ func (x *AgentExecResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentExecResult.ProtoReflect.Descriptor instead.
 func (*AgentExecResult) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{24}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *AgentExecResult) GetRequestUid() string {
@@ -1841,7 +2225,7 @@ type AgentClose struct {
 
 func (x *AgentClose) Reset() {
 	*x = AgentClose{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[25]
+	mi := &file_alioth_v1_agent_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1853,7 +2237,7 @@ func (x *AgentClose) String() string {
 func (*AgentClose) ProtoMessage() {}
 
 func (x *AgentClose) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[25]
+	mi := &file_alioth_v1_agent_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1866,7 +2250,7 @@ func (x *AgentClose) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentClose.ProtoReflect.Descriptor instead.
 func (*AgentClose) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{25}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *AgentClose) GetReason() string {
@@ -1901,7 +2285,7 @@ type AgentShellOpen struct {
 
 func (x *AgentShellOpen) Reset() {
 	*x = AgentShellOpen{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[26]
+	mi := &file_alioth_v1_agent_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1913,7 +2297,7 @@ func (x *AgentShellOpen) String() string {
 func (*AgentShellOpen) ProtoMessage() {}
 
 func (x *AgentShellOpen) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[26]
+	mi := &file_alioth_v1_agent_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1926,7 +2310,7 @@ func (x *AgentShellOpen) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentShellOpen.ProtoReflect.Descriptor instead.
 func (*AgentShellOpen) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{26}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *AgentShellOpen) GetSessionUid() string {
@@ -1998,7 +2382,7 @@ type AgentShellData struct {
 
 func (x *AgentShellData) Reset() {
 	*x = AgentShellData{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[27]
+	mi := &file_alioth_v1_agent_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2010,7 +2394,7 @@ func (x *AgentShellData) String() string {
 func (*AgentShellData) ProtoMessage() {}
 
 func (x *AgentShellData) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[27]
+	mi := &file_alioth_v1_agent_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2023,7 +2407,7 @@ func (x *AgentShellData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentShellData.ProtoReflect.Descriptor instead.
 func (*AgentShellData) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{27}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *AgentShellData) GetSessionUid() string {
@@ -2055,7 +2439,7 @@ type AgentShellResize struct {
 
 func (x *AgentShellResize) Reset() {
 	*x = AgentShellResize{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[28]
+	mi := &file_alioth_v1_agent_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2067,7 +2451,7 @@ func (x *AgentShellResize) String() string {
 func (*AgentShellResize) ProtoMessage() {}
 
 func (x *AgentShellResize) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[28]
+	mi := &file_alioth_v1_agent_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2080,7 +2464,7 @@ func (x *AgentShellResize) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentShellResize.ProtoReflect.Descriptor instead.
 func (*AgentShellResize) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{28}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *AgentShellResize) GetSessionUid() string {
@@ -2117,7 +2501,7 @@ type AgentShellClose struct {
 
 func (x *AgentShellClose) Reset() {
 	*x = AgentShellClose{}
-	mi := &file_alioth_v1_agent_proto_msgTypes[29]
+	mi := &file_alioth_v1_agent_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2129,7 +2513,7 @@ func (x *AgentShellClose) String() string {
 func (*AgentShellClose) ProtoMessage() {}
 
 func (x *AgentShellClose) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_agent_proto_msgTypes[29]
+	mi := &file_alioth_v1_agent_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2142,7 +2526,7 @@ func (x *AgentShellClose) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentShellClose.ProtoReflect.Descriptor instead.
 func (*AgentShellClose) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{29}
+	return file_alioth_v1_agent_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *AgentShellClose) GetSessionUid() string {
@@ -2252,7 +2636,34 @@ const file_alioth_v1_agent_proto_rawDesc = "" +
 	"\x17IssueShellTicketRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"2\n" +
 	"\x18IssueShellTicketResponse\x12\x16\n" +
-	"\x06ticket\x18\x01 \x01(\tR\x06ticket\"\xee\x04\n" +
+	"\x06ticket\x18\x01 \x01(\tR\x06ticket\"/\n" +
+	"\x12DeployAgentRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"I\n" +
+	"\x13DeployAgentResponse\x122\n" +
+	"\x06deploy\x18\x01 \x01(\v2\x1a.alioth.v1.AgentDeployItemR\x06deploy\"2\n" +
+	"\x15GetAgentDeployRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"L\n" +
+	"\x16GetAgentDeployResponse\x122\n" +
+	"\x06deploy\x18\x01 \x01(\v2\x1a.alioth.v1.AgentDeployItemR\x06deploy\"k\n" +
+	"\x0fAgentDeployStep\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x18\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\"\xab\x02\n" +
+	"\x0fAgentDeployItem\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x1b\n" +
+	"\tagent_uid\x18\x02 \x01(\tR\bagentUid\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x12\n" +
+	"\x04step\x18\x04 \x01(\tR\x04step\x120\n" +
+	"\x05steps\x18\x05 \x03(\v2\x1a.alioth.v1.AgentDeployStepR\x05steps\x12\x10\n" +
+	"\x03log\x18\x06 \x01(\tR\x03log\x12#\n" +
+	"\rlog_truncated\x18\a \x01(\bR\flogTruncated\x12\x14\n" +
+	"\x05error\x18\b \x01(\tR\x05error\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\t \x01(\tR\tstartedAt\x12\x1f\n" +
+	"\vfinished_at\x18\n" +
+	" \x01(\tR\n" +
+	"finishedAt\"\xee\x04\n" +
 	"\n" +
 	"AgentFrame\x124\n" +
 	"\bregister\x18\x01 \x01(\v2\x18.alioth.v1.AgentRegisterR\bregister\x127\n" +
@@ -2330,7 +2741,8 @@ const file_alioth_v1_agent_proto_rawDesc = "" +
 	"\x0fAgentShellClose\x12\x1f\n" +
 	"\vsession_uid\x18\x01 \x01(\tR\n" +
 	"sessionUid\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason2\x9f\b\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason2\x87\n" +
+	"\n" +
 	"\fAgentService\x12b\n" +
 	"\vCreateAgent\x12\x1d.alioth.v1.CreateAgentRequest\x1a\x1e.alioth.v1.CreateAgentResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/agent\x12h\n" +
 	"\vUpdateAgent\x12\x1d.alioth.v1.UpdateAgentRequest\x1a\x1e.alioth.v1.UpdateAgentResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\x1a\x0f/v1/agent/{uid}\x12}\n" +
@@ -2342,7 +2754,9 @@ const file_alioth_v1_agent_proto_rawDesc = "" +
 	"ListAgents\x12\x1c.alioth.v1.ListAgentsRequest\x1a\x1d.alioth.v1.ListAgentsResponse\"\x12\x82\xd3\xe4\x93\x02\f\x12\n" +
 	"/v1/agents\x12i\n" +
 	"\vMatchAgents\x12\x1d.alioth.v1.MatchAgentsRequest\x1a\x1e.alioth.v1.MatchAgentsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/agents/match\x12\x84\x01\n" +
-	"\x10IssueShellTicket\x12\".alioth.v1.IssueShellTicketRequest\x1a#.alioth.v1.IssueShellTicketResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/v1/agent/{uid}/shell-ticket\x12;\n" +
+	"\x10IssueShellTicket\x12\".alioth.v1.IssueShellTicketRequest\x1a#.alioth.v1.IssueShellTicketResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/v1/agent/{uid}/shell-ticket\x12o\n" +
+	"\vDeployAgent\x12\x1d.alioth.v1.DeployAgentRequest\x1a\x1e.alioth.v1.DeployAgentResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/v1/agent/{uid}/deploy\x12u\n" +
+	"\x0eGetAgentDeploy\x12 .alioth.v1.GetAgentDeployRequest\x1a!.alioth.v1.GetAgentDeployResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/agent/{uid}/deploy\x12;\n" +
 	"\aConnect\x12\x15.alioth.v1.AgentFrame\x1a\x15.alioth.v1.AgentFrame(\x010\x01B.Z,github.com/aide-family/moon/api/alioth/v1;v1b\x06proto3"
 
 var (
@@ -2357,7 +2771,7 @@ func file_alioth_v1_agent_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_agent_proto_rawDescData
 }
 
-var file_alioth_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
+var file_alioth_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_alioth_v1_agent_proto_goTypes = []any{
 	(*AgentItem)(nil),                // 0: alioth.v1.AgentItem
 	(*CreateAgentRequest)(nil),       // 1: alioth.v1.CreateAgentRequest
@@ -2378,18 +2792,24 @@ var file_alioth_v1_agent_proto_goTypes = []any{
 	(*MatchAgentsResponse)(nil),      // 16: alioth.v1.MatchAgentsResponse
 	(*IssueShellTicketRequest)(nil),  // 17: alioth.v1.IssueShellTicketRequest
 	(*IssueShellTicketResponse)(nil), // 18: alioth.v1.IssueShellTicketResponse
-	(*AgentFrame)(nil),               // 19: alioth.v1.AgentFrame
-	(*AgentRegister)(nil),            // 20: alioth.v1.AgentRegister
-	(*AgentHeartbeat)(nil),           // 21: alioth.v1.AgentHeartbeat
-	(*AgentMachineInfo)(nil),         // 22: alioth.v1.AgentMachineInfo
-	(*AgentExecRequest)(nil),         // 23: alioth.v1.AgentExecRequest
-	(*AgentExecResult)(nil),          // 24: alioth.v1.AgentExecResult
-	(*AgentClose)(nil),               // 25: alioth.v1.AgentClose
-	(*AgentShellOpen)(nil),           // 26: alioth.v1.AgentShellOpen
-	(*AgentShellData)(nil),           // 27: alioth.v1.AgentShellData
-	(*AgentShellResize)(nil),         // 28: alioth.v1.AgentShellResize
-	(*AgentShellClose)(nil),          // 29: alioth.v1.AgentShellClose
-	nil,                              // 30: alioth.v1.MatchAgentsRequest.LabelsEntry
+	(*DeployAgentRequest)(nil),       // 19: alioth.v1.DeployAgentRequest
+	(*DeployAgentResponse)(nil),      // 20: alioth.v1.DeployAgentResponse
+	(*GetAgentDeployRequest)(nil),    // 21: alioth.v1.GetAgentDeployRequest
+	(*GetAgentDeployResponse)(nil),   // 22: alioth.v1.GetAgentDeployResponse
+	(*AgentDeployStep)(nil),          // 23: alioth.v1.AgentDeployStep
+	(*AgentDeployItem)(nil),          // 24: alioth.v1.AgentDeployItem
+	(*AgentFrame)(nil),               // 25: alioth.v1.AgentFrame
+	(*AgentRegister)(nil),            // 26: alioth.v1.AgentRegister
+	(*AgentHeartbeat)(nil),           // 27: alioth.v1.AgentHeartbeat
+	(*AgentMachineInfo)(nil),         // 28: alioth.v1.AgentMachineInfo
+	(*AgentExecRequest)(nil),         // 29: alioth.v1.AgentExecRequest
+	(*AgentExecResult)(nil),          // 30: alioth.v1.AgentExecResult
+	(*AgentClose)(nil),               // 31: alioth.v1.AgentClose
+	(*AgentShellOpen)(nil),           // 32: alioth.v1.AgentShellOpen
+	(*AgentShellData)(nil),           // 33: alioth.v1.AgentShellData
+	(*AgentShellResize)(nil),         // 34: alioth.v1.AgentShellResize
+	(*AgentShellClose)(nil),          // 35: alioth.v1.AgentShellClose
+	nil,                              // 36: alioth.v1.MatchAgentsRequest.LabelsEntry
 }
 var file_alioth_v1_agent_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.CreateAgentResponse.agent:type_name -> alioth.v1.AgentItem
@@ -2398,43 +2818,50 @@ var file_alioth_v1_agent_proto_depIdxs = []int32{
 	0,  // 3: alioth.v1.RevokeAgentResponse.agent:type_name -> alioth.v1.AgentItem
 	0,  // 4: alioth.v1.GetAgentResponse.agent:type_name -> alioth.v1.AgentItem
 	0,  // 5: alioth.v1.ListAgentsResponse.items:type_name -> alioth.v1.AgentItem
-	30, // 6: alioth.v1.MatchAgentsRequest.labels:type_name -> alioth.v1.MatchAgentsRequest.LabelsEntry
+	36, // 6: alioth.v1.MatchAgentsRequest.labels:type_name -> alioth.v1.MatchAgentsRequest.LabelsEntry
 	0,  // 7: alioth.v1.MatchAgentsResponse.items:type_name -> alioth.v1.AgentItem
-	20, // 8: alioth.v1.AgentFrame.register:type_name -> alioth.v1.AgentRegister
-	21, // 9: alioth.v1.AgentFrame.heartbeat:type_name -> alioth.v1.AgentHeartbeat
-	22, // 10: alioth.v1.AgentFrame.machine_info:type_name -> alioth.v1.AgentMachineInfo
-	23, // 11: alioth.v1.AgentFrame.exec_request:type_name -> alioth.v1.AgentExecRequest
-	24, // 12: alioth.v1.AgentFrame.exec_result:type_name -> alioth.v1.AgentExecResult
-	25, // 13: alioth.v1.AgentFrame.close:type_name -> alioth.v1.AgentClose
-	26, // 14: alioth.v1.AgentFrame.shell_open:type_name -> alioth.v1.AgentShellOpen
-	27, // 15: alioth.v1.AgentFrame.shell_data:type_name -> alioth.v1.AgentShellData
-	28, // 16: alioth.v1.AgentFrame.shell_resize:type_name -> alioth.v1.AgentShellResize
-	29, // 17: alioth.v1.AgentFrame.shell_close:type_name -> alioth.v1.AgentShellClose
-	1,  // 18: alioth.v1.AgentService.CreateAgent:input_type -> alioth.v1.CreateAgentRequest
-	3,  // 19: alioth.v1.AgentService.UpdateAgent:input_type -> alioth.v1.UpdateAgentRequest
-	5,  // 20: alioth.v1.AgentService.RotateAgentToken:input_type -> alioth.v1.RotateAgentTokenRequest
-	7,  // 21: alioth.v1.AgentService.RevokeAgent:input_type -> alioth.v1.RevokeAgentRequest
-	9,  // 22: alioth.v1.AgentService.DeleteAgent:input_type -> alioth.v1.DeleteAgentRequest
-	11, // 23: alioth.v1.AgentService.GetAgent:input_type -> alioth.v1.GetAgentRequest
-	13, // 24: alioth.v1.AgentService.ListAgents:input_type -> alioth.v1.ListAgentsRequest
-	15, // 25: alioth.v1.AgentService.MatchAgents:input_type -> alioth.v1.MatchAgentsRequest
-	17, // 26: alioth.v1.AgentService.IssueShellTicket:input_type -> alioth.v1.IssueShellTicketRequest
-	19, // 27: alioth.v1.AgentService.Connect:input_type -> alioth.v1.AgentFrame
-	2,  // 28: alioth.v1.AgentService.CreateAgent:output_type -> alioth.v1.CreateAgentResponse
-	4,  // 29: alioth.v1.AgentService.UpdateAgent:output_type -> alioth.v1.UpdateAgentResponse
-	6,  // 30: alioth.v1.AgentService.RotateAgentToken:output_type -> alioth.v1.RotateAgentTokenResponse
-	8,  // 31: alioth.v1.AgentService.RevokeAgent:output_type -> alioth.v1.RevokeAgentResponse
-	10, // 32: alioth.v1.AgentService.DeleteAgent:output_type -> alioth.v1.DeleteAgentResponse
-	12, // 33: alioth.v1.AgentService.GetAgent:output_type -> alioth.v1.GetAgentResponse
-	14, // 34: alioth.v1.AgentService.ListAgents:output_type -> alioth.v1.ListAgentsResponse
-	16, // 35: alioth.v1.AgentService.MatchAgents:output_type -> alioth.v1.MatchAgentsResponse
-	18, // 36: alioth.v1.AgentService.IssueShellTicket:output_type -> alioth.v1.IssueShellTicketResponse
-	19, // 37: alioth.v1.AgentService.Connect:output_type -> alioth.v1.AgentFrame
-	28, // [28:38] is the sub-list for method output_type
-	18, // [18:28] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	24, // 8: alioth.v1.DeployAgentResponse.deploy:type_name -> alioth.v1.AgentDeployItem
+	24, // 9: alioth.v1.GetAgentDeployResponse.deploy:type_name -> alioth.v1.AgentDeployItem
+	23, // 10: alioth.v1.AgentDeployItem.steps:type_name -> alioth.v1.AgentDeployStep
+	26, // 11: alioth.v1.AgentFrame.register:type_name -> alioth.v1.AgentRegister
+	27, // 12: alioth.v1.AgentFrame.heartbeat:type_name -> alioth.v1.AgentHeartbeat
+	28, // 13: alioth.v1.AgentFrame.machine_info:type_name -> alioth.v1.AgentMachineInfo
+	29, // 14: alioth.v1.AgentFrame.exec_request:type_name -> alioth.v1.AgentExecRequest
+	30, // 15: alioth.v1.AgentFrame.exec_result:type_name -> alioth.v1.AgentExecResult
+	31, // 16: alioth.v1.AgentFrame.close:type_name -> alioth.v1.AgentClose
+	32, // 17: alioth.v1.AgentFrame.shell_open:type_name -> alioth.v1.AgentShellOpen
+	33, // 18: alioth.v1.AgentFrame.shell_data:type_name -> alioth.v1.AgentShellData
+	34, // 19: alioth.v1.AgentFrame.shell_resize:type_name -> alioth.v1.AgentShellResize
+	35, // 20: alioth.v1.AgentFrame.shell_close:type_name -> alioth.v1.AgentShellClose
+	1,  // 21: alioth.v1.AgentService.CreateAgent:input_type -> alioth.v1.CreateAgentRequest
+	3,  // 22: alioth.v1.AgentService.UpdateAgent:input_type -> alioth.v1.UpdateAgentRequest
+	5,  // 23: alioth.v1.AgentService.RotateAgentToken:input_type -> alioth.v1.RotateAgentTokenRequest
+	7,  // 24: alioth.v1.AgentService.RevokeAgent:input_type -> alioth.v1.RevokeAgentRequest
+	9,  // 25: alioth.v1.AgentService.DeleteAgent:input_type -> alioth.v1.DeleteAgentRequest
+	11, // 26: alioth.v1.AgentService.GetAgent:input_type -> alioth.v1.GetAgentRequest
+	13, // 27: alioth.v1.AgentService.ListAgents:input_type -> alioth.v1.ListAgentsRequest
+	15, // 28: alioth.v1.AgentService.MatchAgents:input_type -> alioth.v1.MatchAgentsRequest
+	17, // 29: alioth.v1.AgentService.IssueShellTicket:input_type -> alioth.v1.IssueShellTicketRequest
+	19, // 30: alioth.v1.AgentService.DeployAgent:input_type -> alioth.v1.DeployAgentRequest
+	21, // 31: alioth.v1.AgentService.GetAgentDeploy:input_type -> alioth.v1.GetAgentDeployRequest
+	25, // 32: alioth.v1.AgentService.Connect:input_type -> alioth.v1.AgentFrame
+	2,  // 33: alioth.v1.AgentService.CreateAgent:output_type -> alioth.v1.CreateAgentResponse
+	4,  // 34: alioth.v1.AgentService.UpdateAgent:output_type -> alioth.v1.UpdateAgentResponse
+	6,  // 35: alioth.v1.AgentService.RotateAgentToken:output_type -> alioth.v1.RotateAgentTokenResponse
+	8,  // 36: alioth.v1.AgentService.RevokeAgent:output_type -> alioth.v1.RevokeAgentResponse
+	10, // 37: alioth.v1.AgentService.DeleteAgent:output_type -> alioth.v1.DeleteAgentResponse
+	12, // 38: alioth.v1.AgentService.GetAgent:output_type -> alioth.v1.GetAgentResponse
+	14, // 39: alioth.v1.AgentService.ListAgents:output_type -> alioth.v1.ListAgentsResponse
+	16, // 40: alioth.v1.AgentService.MatchAgents:output_type -> alioth.v1.MatchAgentsResponse
+	18, // 41: alioth.v1.AgentService.IssueShellTicket:output_type -> alioth.v1.IssueShellTicketResponse
+	20, // 42: alioth.v1.AgentService.DeployAgent:output_type -> alioth.v1.DeployAgentResponse
+	22, // 43: alioth.v1.AgentService.GetAgentDeploy:output_type -> alioth.v1.GetAgentDeployResponse
+	25, // 44: alioth.v1.AgentService.Connect:output_type -> alioth.v1.AgentFrame
+	33, // [33:45] is the sub-list for method output_type
+	21, // [21:33] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_agent_proto_init() }
@@ -2448,7 +2875,7 @@ func file_alioth_v1_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_agent_proto_rawDesc), len(file_alioth_v1_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   31,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

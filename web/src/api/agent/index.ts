@@ -1,6 +1,7 @@
 import { del, get, post, put } from "@/api/http"
 
 import type {
+  AgentDeployItem,
   AgentItem,
   CreateAgentParams,
   ListAgentsParams,
@@ -50,6 +51,16 @@ export function issueShellTicket(uid: string): Promise<{ ticket: string }> {
   return post<{ ticket: string }>(`/agent/${uid}/shell-ticket`, {})
 }
 
+/** POST /v1/agent/{uid}/deploy：启动摇光自动安装，返回启动时的进度快照。 */
+export function deployAgent(uid: string): Promise<{ deploy: AgentDeployItem }> {
+  return post<{ deploy: AgentDeployItem }>(`/agent/${uid}/deploy`, {})
+}
+
+/** GET /v1/agent/{uid}/deploy：查询最近一次自动安装的步骤与日志。 */
+export function getAgentDeploy(uid: string): Promise<{ deploy?: AgentDeployItem }> {
+  return get<{ deploy?: AgentDeployItem }>(`/agent/${uid}/deploy`)
+}
+
 /** POST /v1/agents/match：按标签解析候选主机，只返回当前租户 ACTIVE 的机器。 */
 export function matchAgents(
   body: MatchAgentsParams
@@ -58,6 +69,8 @@ export function matchAgents(
 }
 
 export type {
+  AgentDeployItem,
+  AgentDeployStep,
   AgentItem,
   CreateAgentParams,
   ListAgentsParams,

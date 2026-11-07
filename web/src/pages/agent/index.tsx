@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
@@ -6,12 +6,14 @@ import { formErrorMessage, readFormError } from "@/lib/form-error"
 import {
   createAgent,
   deleteAgent,
+  deployAgent,
+  getAgentDeploy,
   listAgents,
   revokeAgent,
   rotateAgentToken,
   updateAgent,
 } from "@/api/agent"
-import type { AgentItem } from "@/api/agent/types"
+import type { AgentDeployItem, AgentDeployStep, AgentItem } from "@/api/agent/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -31,6 +33,7 @@ import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogBody,
@@ -104,6 +107,13 @@ export function AgentPage() {
   const [labelRows, setLabelRows] = useState<LabelRow[]>([])
   const [token, setToken] = useState("")
   const [tokenOpen, setTokenOpen] = useState(false)
+  const [autoDeploy, setAutoDeploy] = useState(true)
+  const [deployOpen, setDeployOpen] = useState(false)
+  const [deploy, setDeploy] = useState<AgentDeployItem | null>(null)
+  const [deployAgentUid, setDeployAgentUid] = useState("")
+  const [deployName, setDeployName] = useState("")
+  const [deployError, setDeployError] = useState("")
+  const [deployPending, setDeployPending] = useState(false)
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
@@ -129,6 +139,7 @@ export function AgentPage() {
     setSshPrivateKey("")
     setRemark("")
     setLabelRows([])
+    setAutoDeploy(true)
     setError("")
     setFieldErrors({})
     setOpen(true)
@@ -152,10 +163,19 @@ export function AgentPage() {
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const labelResult = labelsToJSON(labelRows)
-    const errors = collectFieldErrors([
+    const entries: Array<[string, string | null]> = [
       ["name", requireTrimmed(name, t("form.required"))],
       ["labels", labelResult.error ? t(labelErrorKey(labelResult.error)) : null],
-    ])
+    ]
+    const shouldDeploy = !editing && autoDeploy
+    if (shouldDeploy) {
+      entries.push(
+        ["sshHost", requireTrimmed(sshHost, t("form.required"))],
+        ["sshUser", requireTrimmed(sshUser, t("form.required"))],
+        ["sshPassword", requireTrimmed(sshPassword, t("form.required"))]
+      )
+    }
+    const errors = collectFieldErrors(entries)
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
       return
@@ -180,8 +200,12 @@ export function AgentPage() {
       } else {
         const result = await createAgent(body)
         setOpen(false)
-        setToken(result.token)
-        setTokenOpen(true)
+        if (shouldDeploy) {
+          void startDeploy(result.agent)
+        } else {
+          setToken(result.token)
+          setTokenOpen(true)
+        }
       }
       reload()
     } catch (err) {
@@ -192,6 +216,52 @@ export function AgentPage() {
       setPending(false)
     }
   }
+
+  async function startDeploy(item: Pick<AgentItem, "uid" | "name">) {
+    setDeployAgentUid(item.uid)
+    setDeployName(item.name)
+    setDeploy(null)
+    setDeployError("")
+    setDeployPending(true)
+    setDeployOpen(true)
+    try {
+      const result = await deployAgent(item.uid)
+      setDeploy(result.deploy)
+    } catch (err) {
+      setDeployError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setDeployPending(false)
+    }
+  }
+
+  // 安装进度存在服务端内存里，页面每秒拉一次；安装结束后停表并刷新列表。
+  useEffect(() => {
+    if (!deployOpen || deploy?.status !== "RUNNING") {
+      return
+    }
+    let cancelled = false
+    const timer = setInterval(() => {
+      getAgentDeploy(deployAgentUid)
+        .then((result) => {
+          if (cancelled || !result.deploy) {
+            return
+          }
+          setDeploy(result.deploy)
+          if (result.deploy.status !== "RUNNING") {
+            reload()
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setDeployError(formErrorMessage(err, t("state.failed")))
+          }
+        })
+    }, 1000)
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+    }
+  }, [deployOpen, deploy?.status, deployAgentUid, reload, t])
 
   async function onRotate(item: AgentItem) {
     setPending(true)
@@ -238,11 +308,53 @@ export function AgentPage() {
     }
     list.push(
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
+      { key: "deploy", label: t("agent.deploy"), onSelect: () => void startDeploy(item) },
       { key: "rotate", label: t("agent.rotate"), onSelect: () => void onRotate(item) },
       { key: "revoke", label: t("agent.revoke"), destructive: true, onSelect: () => setConfirm({ action: "revoke", item }) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     )
     return list
+  }
+
+  const deployStepLabels: Record<string, string> = {
+    connect: t("agent.deployStepConnect"),
+    inspect: t("agent.deployStepInspect"),
+    package: t("agent.deployStepPackage"),
+    upload: t("agent.deployStepUpload"),
+    install: t("agent.deployStepInstall"),
+    configure: t("agent.deployStepConfigure"),
+    service: t("agent.deployStepService"),
+    online: t("agent.deployStepOnline"),
+  }
+
+  function deployStepTitle(step: AgentDeployStep): string {
+    return deployStepLabels[step.key] ?? step.title
+  }
+
+  function deployStepBadge(status: string): { value: string; label: string } {
+    if (status === "SUCCEEDED") {
+      return { value: "DONE", label: t("agent.deployStepDone") }
+    }
+    if (status === "RUNNING") {
+      return { value: "WORKING", label: t("agent.deployRunning") }
+    }
+    if (status === "FAILED") {
+      return { value: "FAILED", label: t("agent.deployFailed") }
+    }
+    return { value: "PENDING", label: t("agent.deployPending") }
+  }
+
+  function deployStatusBadge(status: string): { value: string; label: string } {
+    if (status === "SUCCEEDED") {
+      return { value: "DONE", label: t("agent.deploySucceeded") }
+    }
+    if (status === "RUNNING") {
+      return { value: "WORKING", label: t("agent.deployRunning") }
+    }
+    if (status === "FAILED") {
+      return { value: "FAILED", label: t("agent.deployFailed") }
+    }
+    return { value: "PENDING", label: t("agent.deployPending") }
   }
 
   return (
@@ -338,16 +450,16 @@ export function AgentPage() {
               >
                 <Input id="agent-name" value={name} placeholder={t("agent.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
               </FormField>
-              <FormField label={t("agent.sshHost")} htmlFor="agent-host">
+              <FormField label={t("agent.sshHost")} htmlFor="agent-host" error={fieldErrors.sshHost}>
                 <Input id="agent-host" value={sshHost} placeholder={t("agent.sshHostPlaceholder")} onChange={(event) => setSshHost(event.target.value)} />
               </FormField>
               <FormField label={t("agent.sshPort")} htmlFor="agent-port">
                 <Input id="agent-port" value={sshPort} placeholder={t("agent.sshPortPlaceholder")} onChange={(event) => setSshPort(event.target.value)} />
               </FormField>
-              <FormField label={t("agent.sshUser")} htmlFor="agent-user">
+              <FormField label={t("agent.sshUser")} htmlFor="agent-user" error={fieldErrors.sshUser}>
                 <Input id="agent-user" value={sshUser} placeholder={t("agent.sshUserPlaceholder")} onChange={(event) => setSshUser(event.target.value)} />
               </FormField>
-              <FormField label={t("agent.sshPassword")} htmlFor="agent-password" className="sm:col-span-full">
+              <FormField label={t("agent.sshPassword")} htmlFor="agent-password" className="sm:col-span-full" error={fieldErrors.sshPassword}>
                 <Input id="agent-password" type="password" value={sshPassword} onChange={(event) => setSshPassword(event.target.value)} placeholder={t("agent.keepSecret")} />
               </FormField>
               <FormField label={t("agent.sshPrivateKey")} htmlFor="agent-key" className="sm:col-span-full">
@@ -369,6 +481,20 @@ export function AgentPage() {
                   idPrefix="agent-label"
                 />
               </FormField>
+              {!editing ? (
+                <label className="flex items-start gap-2.5 text-sm sm:col-span-full">
+                  <Checkbox
+                    checked={autoDeploy}
+                    onCheckedChange={(value) => setAutoDeploy(value === true)}
+                  />
+                  <span>
+                    {t("agent.deployAfterCreate")}
+                    <span className="mt-1 block text-xs text-muted-foreground">
+                      {t("agent.deployAfterCreateHint")}
+                    </span>
+                  </span>
+                </label>
+              ) : null}
             </DialogBody>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
@@ -393,6 +519,75 @@ export function AgentPage() {
           </DialogBody>
           <DialogFooter>
             <Button onClick={() => setTokenOpen(false)}>{t("action.confirm")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={deployOpen} onOpenChange={setDeployOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{t("agent.deployTitle")}</DialogTitle>
+          </DialogHeader>
+          <DialogBody className="grid gap-4">
+            <p className="text-sm text-muted-foreground">
+              {deployName ? `${deployName} · ` : ""}
+              {t("agent.deployDescription")}
+            </p>
+            {deploy ? (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge {...deployStatusBadge(deploy.status)} />
+                  {deploy.error ? (
+                    <p className="min-w-0 break-words text-sm text-destructive">
+                      {deploy.error}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="grid gap-2">
+                  <p className="text-sm font-medium">{t("agent.deploySteps")}</p>
+                  {deploy.steps.map((step) => (
+                    <div key={step.key} className="flex items-start gap-2">
+                      <StatusBadge {...deployStepBadge(step.status)} className="shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm">{deployStepTitle(step)}</p>
+                        {step.message ? (
+                          <p className="break-words text-xs text-muted-foreground">
+                            {step.message}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid gap-2">
+                  <p className="text-sm font-medium">{t("agent.deployLog")}</p>
+                  <pre className="max-h-64 overflow-auto rounded-md border bg-muted/40 p-3 font-mono text-xs break-all whitespace-pre-wrap">
+                    {deploy.log || t("agent.deployWaiting")}
+                  </pre>
+                  {deploy.logTruncated ? (
+                    <p className="text-xs text-muted-foreground">
+                      {t("agent.deployLogTruncated")}
+                    </p>
+                  ) : null}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {deployPending ? t("agent.deployWaiting") : t("agent.deployNoRecord")}
+              </p>
+            )}
+            {deployError ? <p className="text-sm text-destructive">{deployError}</p> : null}
+          </DialogBody>
+          <DialogFooter>
+            {deploy && deploy.status !== "RUNNING" ? (
+              <Button
+                variant="outline"
+                disabled={deployPending}
+                onClick={() => void startDeploy({ uid: deploy.agentUid, name: deployName })}
+              >
+                {t("agent.deployRetry")}
+              </Button>
+            ) : null}
+            <Button onClick={() => setDeployOpen(false)}>{t("agent.deployClose")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

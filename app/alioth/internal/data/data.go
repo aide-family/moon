@@ -41,6 +41,8 @@ var ProviderSet = wire.NewSet(
 	NewWorkerRepo,
 	NewAgentRepo,
 	NewSSHCommandRepo,
+	NewSSHDialer,
+	NewAgentPackageSource,
 	NewClusterRepo,
 	NewKubernetesRepo,
 	NewLockClient,

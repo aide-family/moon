@@ -53,7 +53,7 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, deploy *conf.Deploy, logger *slog.Logger) (*kratos.App, func(), error) {
 	dependencies, cleanup, err := data.NewDependencies(confData, confAuth, logger)
 	if err != nil {
 		return nil, nil, err
@@ -165,7 +165,10 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	alertEscalationRepo := data.NewAlertEscalationRepo(dependencies, logger)
 	alertescalationGateway := alertescalation.NewGateway(alertEscalationRepo, accessChecker, client, logger)
 	alertEscalationPolicyService := service.NewAlertEscalationPolicyService(alertescalationGateway)
-	agentService := service.NewAgentService(registry)
+	sshDialer := data.NewSSHDialer(deploy)
+	agentPackageSource := data.NewAgentPackageSource(deploy, logger)
+	deployer := agent.NewDeployer(registry, sshDialer, agentPackageSource, deploy)
+	agentService := service.NewAgentService(registry, deployer)
 	sshCommandRepo := data.NewSSHCommandRepo(dependencies, logger)
 	executor := ssh.NewExecutor(sshCommandRepo, agentRepo, hub, accessChecker)
 	sshCommandService := service.NewSSHCommandService(executor)

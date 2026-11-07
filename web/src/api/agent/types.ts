@@ -64,3 +64,25 @@ export interface MatchAgentsResult {
   items: AgentItem[]
   total: number
 }
+
+/** 自动安装中的一个步骤。 */
+export interface AgentDeployStep {
+  key: string
+  title: string
+  status: string
+  message: string
+}
+
+/** 一次自动安装的进度快照。 */
+export interface AgentDeployItem {
+  uid: string
+  agentUid: string
+  status: string
+  step: string
+  steps: AgentDeployStep[]
+  log: string
+  logTruncated: boolean
+  error: string
+  startedAt: string
+  finishedAt: string
+}

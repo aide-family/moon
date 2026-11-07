@@ -27,6 +27,7 @@ type Bootstrap struct {
 	Server        *Server                `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
 	Data          *Data                  `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
 	Auth          *Auth                  `protobuf:"bytes,3,opt,name=auth,proto3" json:"auth,omitempty"`
+	Deploy        *Deploy                `protobuf:"bytes,4,opt,name=deploy,proto3" json:"deploy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -78,6 +79,13 @@ func (x *Bootstrap) GetData() *Data {
 func (x *Bootstrap) GetAuth() *Auth {
 	if x != nil {
 		return x.Auth
+	}
+	return nil
+}
+
+func (x *Bootstrap) GetDeploy() *Deploy {
+	if x != nil {
+		return x.Deploy
 	}
 	return nil
 }
@@ -296,6 +304,97 @@ func (x *Auth) GetWebUrl() string {
 	return ""
 }
 
+// Deploy 是机器页「自动安装摇光 Agent」使用的配置。
+type Deploy struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 目标机器上安装的摇光版本。留空表示与控制面构建版本一致。
+	AlkaidVersion string `protobuf:"bytes,1,opt,name=alkaid_version,json=alkaidVersion,proto3" json:"alkaid_version,omitempty"`
+	// 安装包下载地址模板，支持 {version} 和 {arch} 占位，指向官方发布的 tar.gz。
+	AlkaidDownloadUrl string `protobuf:"bytes,2,opt,name=alkaid_download_url,json=alkaidDownloadUrl,proto3" json:"alkaid_download_url,omitempty"`
+	// 本地安装包路径。配置后优先使用，适合离线部署，跳过了下载步骤。
+	AlkaidPackagePath string `protobuf:"bytes,3,opt,name=alkaid_package_path,json=alkaidPackagePath,proto3" json:"alkaid_package_path,omitempty"`
+	// 目标机器可访问的控制面 gRPC 地址，会写进目标机器的 alkaid.env。
+	AliothGrpcAddr string `protobuf:"bytes,4,opt,name=alioth_grpc_addr,json=aliothGrpcAddr,proto3" json:"alioth_grpc_addr,omitempty"`
+	// 单条 SSH 命令的执行超时，也用于建立连接。
+	Timeout *durationpb.Duration `protobuf:"bytes,5,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	// 启动服务后等待 Agent 出站注册上线的最长时间。
+	OnlineTimeout *durationpb.Duration `protobuf:"bytes,6,opt,name=online_timeout,json=onlineTimeout,proto3" json:"online_timeout,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Deploy) Reset() {
+	*x = Deploy{}
+	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Deploy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Deploy) ProtoMessage() {}
+
+func (x *Deploy) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Deploy.ProtoReflect.Descriptor instead.
+func (*Deploy) Descriptor() ([]byte, []int) {
+	return file_internal_conf_conf_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Deploy) GetAlkaidVersion() string {
+	if x != nil {
+		return x.AlkaidVersion
+	}
+	return ""
+}
+
+func (x *Deploy) GetAlkaidDownloadUrl() string {
+	if x != nil {
+		return x.AlkaidDownloadUrl
+	}
+	return ""
+}
+
+func (x *Deploy) GetAlkaidPackagePath() string {
+	if x != nil {
+		return x.AlkaidPackagePath
+	}
+	return ""
+}
+
+func (x *Deploy) GetAliothGrpcAddr() string {
+	if x != nil {
+		return x.AliothGrpcAddr
+	}
+	return ""
+}
+
+func (x *Deploy) GetTimeout() *durationpb.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	return nil
+}
+
+func (x *Deploy) GetOnlineTimeout() *durationpb.Duration {
+	if x != nil {
+		return x.OnlineTimeout
+	}
+	return nil
+}
+
 type Server_HTTP struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Network       string                 `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
@@ -307,7 +406,7 @@ type Server_HTTP struct {
 
 func (x *Server_HTTP) Reset() {
 	*x = Server_HTTP{}
-	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	mi := &file_internal_conf_conf_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -319,7 +418,7 @@ func (x *Server_HTTP) String() string {
 func (*Server_HTTP) ProtoMessage() {}
 
 func (x *Server_HTTP) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	mi := &file_internal_conf_conf_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -367,7 +466,7 @@ type Server_GRPC struct {
 
 func (x *Server_GRPC) Reset() {
 	*x = Server_GRPC{}
-	mi := &file_internal_conf_conf_proto_msgTypes[5]
+	mi := &file_internal_conf_conf_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -379,7 +478,7 @@ func (x *Server_GRPC) String() string {
 func (*Server_GRPC) ProtoMessage() {}
 
 func (x *Server_GRPC) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[5]
+	mi := &file_internal_conf_conf_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -426,7 +525,7 @@ type Data_Database struct {
 
 func (x *Data_Database) Reset() {
 	*x = Data_Database{}
-	mi := &file_internal_conf_conf_proto_msgTypes[6]
+	mi := &file_internal_conf_conf_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -438,7 +537,7 @@ func (x *Data_Database) String() string {
 func (*Data_Database) ProtoMessage() {}
 
 func (x *Data_Database) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[6]
+	mi := &file_internal_conf_conf_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -478,7 +577,7 @@ type Data_Redis struct {
 
 func (x *Data_Redis) Reset() {
 	*x = Data_Redis{}
-	mi := &file_internal_conf_conf_proto_msgTypes[7]
+	mi := &file_internal_conf_conf_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -490,7 +589,7 @@ func (x *Data_Redis) String() string {
 func (*Data_Redis) ProtoMessage() {}
 
 func (x *Data_Redis) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[7]
+	mi := &file_internal_conf_conf_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -534,7 +633,7 @@ type Data_History struct {
 
 func (x *Data_History) Reset() {
 	*x = Data_History{}
-	mi := &file_internal_conf_conf_proto_msgTypes[8]
+	mi := &file_internal_conf_conf_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -546,7 +645,7 @@ func (x *Data_History) String() string {
 func (*Data_History) ProtoMessage() {}
 
 func (x *Data_History) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[8]
+	mi := &file_internal_conf_conf_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -593,7 +692,7 @@ type Auth_ServiceKey struct {
 
 func (x *Auth_ServiceKey) Reset() {
 	*x = Auth_ServiceKey{}
-	mi := &file_internal_conf_conf_proto_msgTypes[9]
+	mi := &file_internal_conf_conf_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -605,7 +704,7 @@ func (x *Auth_ServiceKey) String() string {
 func (*Auth_ServiceKey) ProtoMessage() {}
 
 func (x *Auth_ServiceKey) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[9]
+	mi := &file_internal_conf_conf_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -646,7 +745,7 @@ type Auth_OAuthClient struct {
 
 func (x *Auth_OAuthClient) Reset() {
 	*x = Auth_OAuthClient{}
-	mi := &file_internal_conf_conf_proto_msgTypes[10]
+	mi := &file_internal_conf_conf_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -658,7 +757,7 @@ func (x *Auth_OAuthClient) String() string {
 func (*Auth_OAuthClient) ProtoMessage() {}
 
 func (x *Auth_OAuthClient) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[10]
+	mi := &file_internal_conf_conf_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -708,7 +807,7 @@ type Auth_SMTP struct {
 
 func (x *Auth_SMTP) Reset() {
 	*x = Auth_SMTP{}
-	mi := &file_internal_conf_conf_proto_msgTypes[11]
+	mi := &file_internal_conf_conf_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -720,7 +819,7 @@ func (x *Auth_SMTP) String() string {
 func (*Auth_SMTP) ProtoMessage() {}
 
 func (x *Auth_SMTP) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[11]
+	mi := &file_internal_conf_conf_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -775,11 +874,12 @@ var File_internal_conf_conf_proto protoreflect.FileDescriptor
 
 const file_internal_conf_conf_proto_rawDesc = "" +
 	"\n" +
-	"\x18internal/conf/conf.proto\x12\valioth.conf\x1a\x1egoogle/protobuf/duration.proto\"\x86\x01\n" +
+	"\x18internal/conf/conf.proto\x12\valioth.conf\x1a\x1egoogle/protobuf/duration.proto\"\xb3\x01\n" +
 	"\tBootstrap\x12+\n" +
 	"\x06server\x18\x01 \x01(\v2\x13.alioth.conf.ServerR\x06server\x12%\n" +
 	"\x04data\x18\x02 \x01(\v2\x11.alioth.conf.DataR\x04data\x12%\n" +
-	"\x04auth\x18\x03 \x01(\v2\x11.alioth.conf.AuthR\x04auth\"\xba\x02\n" +
+	"\x04auth\x18\x03 \x01(\v2\x11.alioth.conf.AuthR\x04auth\x12+\n" +
+	"\x06deploy\x18\x04 \x01(\v2\x13.alioth.conf.DeployR\x06deploy\"\xba\x02\n" +
 	"\x06Server\x12,\n" +
 	"\x04http\x18\x01 \x01(\v2\x18.alioth.conf.Server.HTTPR\x04http\x12,\n" +
 	"\x04grpc\x18\x02 \x01(\v2\x18.alioth.conf.Server.GRPCR\x04grpc\x1ai\n" +
@@ -829,7 +929,14 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"\x04port\x18\x02 \x01(\x05R\x04port\x12\x1a\n" +
 	"\busername\x18\x03 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x04 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04from\x18\x05 \x01(\tR\x04fromB;Z9github.com/aide-family/moon/app/alioth/internal/conf;confb\x06proto3"
+	"\x04from\x18\x05 \x01(\tR\x04from\"\xb0\x02\n" +
+	"\x06Deploy\x12%\n" +
+	"\x0ealkaid_version\x18\x01 \x01(\tR\ralkaidVersion\x12.\n" +
+	"\x13alkaid_download_url\x18\x02 \x01(\tR\x11alkaidDownloadUrl\x12.\n" +
+	"\x13alkaid_package_path\x18\x03 \x01(\tR\x11alkaidPackagePath\x12(\n" +
+	"\x10alioth_grpc_addr\x18\x04 \x01(\tR\x0ealiothGrpcAddr\x123\n" +
+	"\atimeout\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\atimeout\x12@\n" +
+	"\x0eonline_timeout\x18\x06 \x01(\v2\x19.google.protobuf.DurationR\ronlineTimeoutB;Z9github.com/aide-family/moon/app/alioth/internal/conf;confb\x06proto3"
 
 var (
 	file_internal_conf_conf_proto_rawDescOnce sync.Once
@@ -843,41 +950,45 @@ func file_internal_conf_conf_proto_rawDescGZIP() []byte {
 	return file_internal_conf_conf_proto_rawDescData
 }
 
-var file_internal_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_internal_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_internal_conf_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: alioth.conf.Bootstrap
 	(*Server)(nil),              // 1: alioth.conf.Server
 	(*Data)(nil),                // 2: alioth.conf.Data
 	(*Auth)(nil),                // 3: alioth.conf.Auth
-	(*Server_HTTP)(nil),         // 4: alioth.conf.Server.HTTP
-	(*Server_GRPC)(nil),         // 5: alioth.conf.Server.GRPC
-	(*Data_Database)(nil),       // 6: alioth.conf.Data.Database
-	(*Data_Redis)(nil),          // 7: alioth.conf.Data.Redis
-	(*Data_History)(nil),        // 8: alioth.conf.Data.History
-	(*Auth_ServiceKey)(nil),     // 9: alioth.conf.Auth.ServiceKey
-	(*Auth_OAuthClient)(nil),    // 10: alioth.conf.Auth.OAuthClient
-	(*Auth_SMTP)(nil),           // 11: alioth.conf.Auth.SMTP
-	(*durationpb.Duration)(nil), // 12: google.protobuf.Duration
+	(*Deploy)(nil),              // 4: alioth.conf.Deploy
+	(*Server_HTTP)(nil),         // 5: alioth.conf.Server.HTTP
+	(*Server_GRPC)(nil),         // 6: alioth.conf.Server.GRPC
+	(*Data_Database)(nil),       // 7: alioth.conf.Data.Database
+	(*Data_Redis)(nil),          // 8: alioth.conf.Data.Redis
+	(*Data_History)(nil),        // 9: alioth.conf.Data.History
+	(*Auth_ServiceKey)(nil),     // 10: alioth.conf.Auth.ServiceKey
+	(*Auth_OAuthClient)(nil),    // 11: alioth.conf.Auth.OAuthClient
+	(*Auth_SMTP)(nil),           // 12: alioth.conf.Auth.SMTP
+	(*durationpb.Duration)(nil), // 13: google.protobuf.Duration
 }
 var file_internal_conf_conf_proto_depIdxs = []int32{
 	1,  // 0: alioth.conf.Bootstrap.server:type_name -> alioth.conf.Server
 	2,  // 1: alioth.conf.Bootstrap.data:type_name -> alioth.conf.Data
 	3,  // 2: alioth.conf.Bootstrap.auth:type_name -> alioth.conf.Auth
-	4,  // 3: alioth.conf.Server.http:type_name -> alioth.conf.Server.HTTP
-	5,  // 4: alioth.conf.Server.grpc:type_name -> alioth.conf.Server.GRPC
-	6,  // 5: alioth.conf.Data.database:type_name -> alioth.conf.Data.Database
-	7,  // 6: alioth.conf.Data.redis:type_name -> alioth.conf.Data.Redis
-	8,  // 7: alioth.conf.Data.history:type_name -> alioth.conf.Data.History
-	9,  // 8: alioth.conf.Auth.service_keys:type_name -> alioth.conf.Auth.ServiceKey
-	10, // 9: alioth.conf.Auth.oauth:type_name -> alioth.conf.Auth.OAuthClient
-	11, // 10: alioth.conf.Auth.smtp:type_name -> alioth.conf.Auth.SMTP
-	12, // 11: alioth.conf.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	12, // 12: alioth.conf.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	4,  // 3: alioth.conf.Bootstrap.deploy:type_name -> alioth.conf.Deploy
+	5,  // 4: alioth.conf.Server.http:type_name -> alioth.conf.Server.HTTP
+	6,  // 5: alioth.conf.Server.grpc:type_name -> alioth.conf.Server.GRPC
+	7,  // 6: alioth.conf.Data.database:type_name -> alioth.conf.Data.Database
+	8,  // 7: alioth.conf.Data.redis:type_name -> alioth.conf.Data.Redis
+	9,  // 8: alioth.conf.Data.history:type_name -> alioth.conf.Data.History
+	10, // 9: alioth.conf.Auth.service_keys:type_name -> alioth.conf.Auth.ServiceKey
+	11, // 10: alioth.conf.Auth.oauth:type_name -> alioth.conf.Auth.OAuthClient
+	12, // 11: alioth.conf.Auth.smtp:type_name -> alioth.conf.Auth.SMTP
+	13, // 12: alioth.conf.Deploy.timeout:type_name -> google.protobuf.Duration
+	13, // 13: alioth.conf.Deploy.online_timeout:type_name -> google.protobuf.Duration
+	13, // 14: alioth.conf.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	13, // 15: alioth.conf.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_internal_conf_conf_proto_init() }
@@ -891,7 +1002,7 @@ func file_internal_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_conf_conf_proto_rawDesc), len(file_internal_conf_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

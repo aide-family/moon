@@ -29,7 +29,7 @@ Alioth 是 aide-family 自建的运维平台，面向需要在自有环境里运
 - 通知与订阅：邮件、Webhook 渠道、模板、通知组与告警订阅。
 - OnCall 值班：按通知组接收时段路由，支持跨午夜。
 - Kubernetes 多集群：接入集群，管理节点、工作负载、Pod 与 Ingress。
-- 边缘 Agent：SSH 命令审核执行与 Web Shell。
+- 边缘 Agent：SSH 命令审核执行、Web Shell 与机器页一键自动安装。
 - 登录与身份：邮箱验证码登录，以及 GitHub、Gitee、飞书、钉钉第三方登录。
 
 ## 概览与多租户

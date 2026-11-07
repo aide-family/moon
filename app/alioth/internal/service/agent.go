@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	v1 "github.com/aide-family/moon/api/alioth/v1"
 	"github.com/aide-family/moon/app/alioth/internal/biz/agent"
@@ -12,10 +13,11 @@ import (
 type AgentService struct {
 	v1.UnimplementedAgentServiceServer
 	registry *agent.Registry
+	deployer *agent.Deployer
 }
 
-func NewAgentService(registry *agent.Registry) *AgentService {
-	return &AgentService{registry: registry}
+func NewAgentService(registry *agent.Registry, deployer *agent.Deployer) *AgentService {
+	return &AgentService{registry: registry, deployer: deployer}
 }
 
 func (s *AgentService) CreateAgent(ctx context.Context, req *v1.CreateAgentRequest) (*v1.CreateAgentResponse, error) {
@@ -77,6 +79,25 @@ func (s *AgentService) Connect(stream v1.AgentService_ConnectServer) error {
 	return s.registry.Connect(stream.Context(), stream)
 }
 
+func (s *AgentService) DeployAgent(ctx context.Context, req *v1.DeployAgentRequest) (*v1.DeployAgentResponse, error) {
+	item, err := s.deployer.Start(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DeployAgentResponse{Deploy: agentDeployItem(*item)}, nil
+}
+
+func (s *AgentService) GetAgentDeploy(ctx context.Context, req *v1.GetAgentDeployRequest) (*v1.GetAgentDeployResponse, error) {
+	item, err := s.deployer.Get(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	if item == nil {
+		return &v1.GetAgentDeployResponse{}, nil
+	}
+	return &v1.GetAgentDeployResponse{Deploy: agentDeployItem(*item)}, nil
+}
+
 func (s *AgentService) MatchAgents(ctx context.Context, req *v1.MatchAgentsRequest) (*v1.MatchAgentsResponse, error) {
 	items, err := s.registry.Match(ctx, req.GetLabels())
 	if err != nil {
@@ -110,6 +131,24 @@ func agentItems(items []bo.Agent) []*v1.AgentItem {
 		out = append(out, agentItem(item))
 	}
 	return out
+}
+
+func agentDeployItem(item bo.AgentDeploy) *v1.AgentDeployItem {
+	steps := make([]*v1.AgentDeployStep, 0, len(item.Steps))
+	for _, step := range item.Steps {
+		steps = append(steps, &v1.AgentDeployStep{
+			Key: step.Key, Title: step.Title, Status: step.Status, Message: step.Message,
+		})
+	}
+	finished := ""
+	if !item.FinishedAt.IsZero() {
+		finished = item.FinishedAt.Format(time.RFC3339)
+	}
+	return &v1.AgentDeployItem{
+		Uid: item.UID, AgentUid: item.AgentUID, Status: item.Status, Step: item.Step,
+		Steps: steps, Log: item.Log, LogTruncated: item.LogTruncated,
+		Error: item.Error, StartedAt: item.StartedAt.Format(time.RFC3339), FinishedAt: finished,
+	}
 }
 
 func applyCollect(item *v1.AgentItem, raw string) {

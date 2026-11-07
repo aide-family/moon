@@ -2,6 +2,38 @@
 
 alkaid 只出站连接 `alioth:9000`。控制面不回拨 Agent。8022 / 9022 仅供本机或集群内健康检查，不要发布到集群外，也不要写进 Web nginx。
 
+## 控制台自动安装
+
+机器页的「自动安装」入口会由 `alioth` 用录入时保存的 SSH 凭据登录目标机器，完成以下步骤并把每一步和命令输出显示在页面上：
+
+1. 建立 SSH 连接，读取 `uname` 和 `id -u`。
+2. 按目标架构（amd64 / arm64）准备摇光安装包。
+3. 上传并以安装用户解压到 `/tmp`。
+4. 以 root（SSH 用户本身是 root 时不再套 `sudo`）执行包内 `install.sh --no-start`。
+5. 重签 Agent 令牌，写入 `/etc/alioth/alkaid.env`（控制面 gRPC 地址与令牌）。
+6. `systemctl daemon-reload && systemctl enable --now alkaid`。
+7. 等待 Agent 向控制面注册，成功后机器页显示在线。
+
+前置条件：目标是 Linux，装有 `systemd`、`tar`、`sudo`（非 root 用户时）；`alioth`
+能主动访问目标的 22 端口（或录入的 SSH 端口），目标能访问 `deploy.alioth_grpc_addr`
+指向的控制面 gRPC 地址。安装包来源有两个，按部署环境选一个：
+
+```yaml
+deploy:
+  # 默认按控制面版本从 GitHub Release 下载 alkaid_<version>_linux_<arch>.tar.gz。
+  alkaid_version: v0.1.0
+  alkaid_download_url: https://github.com/aide-family/moon/releases/download/{version}/alkaid_{version}_linux_{arch}.tar.gz
+  # 离线环境直接指向本地安装包，优先级高于下载地址。
+  alkaid_package_path: /app/dist/alkaid_v0.1.0_linux_amd64.tar.gz
+  alioth_grpc_addr: 10.0.0.10:9000
+  timeout: 30s
+  online_timeout: 60s
+```
+
+控制面默认不校验目标机的主机密钥（与 `alkaid` 的 `ALKAID_SSH_KNOWN_HOSTS` 默认行为一致），
+安装动作只接受持有 `agent:write` 的租户成员。安装会话保存在 `alioth` 进程内存里，
+多副本部署时要让轮询请求落到发起请求的同一副本（使用会话保持或单副本入口）。
+
 ## 一键部署包（systemd）
 
 每个 `v*` tag 的 GitHub Release 附带 linux/amd64 与 linux/arm64 的裸二进制

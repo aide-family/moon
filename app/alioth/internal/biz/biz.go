@@ -61,6 +61,7 @@ var ProviderSet = wire.NewSet(
 	oncallrotation.ProviderSet,
 	agenthub.ProviderSet,
 	agent.ProviderSet,
+	agent.DeployProviderSet,
 	ssh.ProviderSet,
 	partition.ProviderSet,
 	migration.ProviderSet,

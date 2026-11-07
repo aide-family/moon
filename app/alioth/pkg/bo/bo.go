@@ -805,6 +805,37 @@ type Agent struct {
 	Labels string
 }
 
+// SSHTarget 是从控制面登录目标机器所需的凭据。
+type SSHTarget struct {
+	Host       string
+	Port       int
+	User       string
+	Password   string
+	PrivateKey string
+}
+
+// AgentDeployStep 是自动安装中的一步。
+type AgentDeployStep struct {
+	Key     string
+	Title   string
+	Status  string
+	Message string
+}
+
+// AgentDeploy 是一次自动安装的进度快照。
+type AgentDeploy struct {
+	UID          string
+	AgentUID     string
+	Status       string
+	Step         string
+	Steps        []AgentDeployStep
+	Log          string
+	LogTruncated bool
+	Error        string
+	StartedAt    time.Time
+	FinishedAt   time.Time
+}
+
 // SSHCommand 是一条 SSH 命令。
 type SSHCommand struct {
 	UID          string

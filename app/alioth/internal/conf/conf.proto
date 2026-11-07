@@ -10,6 +10,7 @@ message Bootstrap {
   Server server = 1;
   Data data = 2;
   Auth auth = 3;
+  Deploy deploy = 4;
 }
 
 message Server {
@@ -76,4 +77,20 @@ message Auth {
   string encrypt_key = 7;
   // 管理台对外地址，用于邮件里的邀请快捷链接。
   string web_url = 8;
+}
+
+// Deploy 是机器页「自动安装摇光 Agent」使用的配置。
+message Deploy {
+  // 目标机器上安装的摇光版本。留空表示与控制面构建版本一致。
+  string alkaid_version = 1;
+  // 安装包下载地址模板，支持 {version} 和 {arch} 占位，指向官方发布的 tar.gz。
+  string alkaid_download_url = 2;
+  // 本地安装包路径。配置后优先使用，适合离线部署，跳过了下载步骤。
+  string alkaid_package_path = 3;
+  // 目标机器可访问的控制面 gRPC 地址，会写进目标机器的 alkaid.env。
+  string alioth_grpc_addr = 4;
+  // 单条 SSH 命令的执行超时，也用于建立连接。
+  google.protobuf.Duration timeout = 5;
+  // 启动服务后等待 Agent 出站注册上线的最长时间。
+  google.protobuf.Duration online_timeout = 6;
 }

@@ -19,7 +19,9 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationAgentServiceCreateAgent = "/alioth.v1.AgentService/CreateAgent"
 const OperationAgentServiceDeleteAgent = "/alioth.v1.AgentService/DeleteAgent"
+const OperationAgentServiceDeployAgent = "/alioth.v1.AgentService/DeployAgent"
 const OperationAgentServiceGetAgent = "/alioth.v1.AgentService/GetAgent"
+const OperationAgentServiceGetAgentDeploy = "/alioth.v1.AgentService/GetAgentDeploy"
 const OperationAgentServiceIssueShellTicket = "/alioth.v1.AgentService/IssueShellTicket"
 const OperationAgentServiceListAgents = "/alioth.v1.AgentService/ListAgents"
 const OperationAgentServiceMatchAgents = "/alioth.v1.AgentService/MatchAgents"
@@ -32,8 +34,13 @@ type AgentServiceHTTPServer interface {
 	CreateAgent(context.Context, *CreateAgentRequest) (*CreateAgentResponse, error)
 	// DeleteAgent 删除机器。
 	DeleteAgent(context.Context, *DeleteAgentRequest) (*DeleteAgentResponse, error)
+	// DeployAgent 启动摇光 Agent 自动安装：服务端用保存的 SSH 凭据登录目标机器，把摇光装上去。
+	// 只接受具备 agent:write 的用户。安装过程异步执行，通过 GetAgentDeploy 轮询。
+	DeployAgent(context.Context, *DeployAgentRequest) (*DeployAgentResponse, error)
 	// GetAgent 获取机器详情。
 	GetAgent(context.Context, *GetAgentRequest) (*GetAgentResponse, error)
+	// GetAgentDeploy 查询最近一次安装的步骤与日志。没有安装记录时 deploy 为空。
+	GetAgentDeploy(context.Context, *GetAgentDeployRequest) (*GetAgentDeployResponse, error)
 	// IssueShellTicket 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
 	IssueShellTicket(context.Context, *IssueShellTicketRequest) (*IssueShellTicketResponse, error)
 	// ListAgents 分页列出机器。
@@ -59,6 +66,8 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.Handle("GET", "/v1/agents", _AgentService_ListAgents0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/agents/match", _AgentService_MatchAgents0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/agent/{uid}/shell-ticket", _AgentService_IssueShellTicket0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/agent/{uid}/deploy", _AgentService_DeployAgent0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/agent/{uid}/deploy", _AgentService_GetAgentDeploy0_HTTP_Handler(srv))
 }
 
 func _AgentService_CreateAgent0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
@@ -250,13 +259,62 @@ func _AgentService_IssueShellTicket0_HTTP_Handler(srv AgentServiceHTTPServer) fu
 	}
 }
 
+func _AgentService_DeployAgent0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeployAgentRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceDeployAgent)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeployAgent(ctx, req.(*DeployAgentRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeployAgentResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_GetAgentDeploy0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAgentDeployRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceGetAgentDeploy)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAgentDeploy(ctx, req.(*GetAgentDeployRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAgentDeployResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AgentServiceHTTPClient interface {
 	// CreateAgent 创建机器并签发令牌。明文令牌只在这次响应里出现。
 	CreateAgent(ctx context.Context, req *CreateAgentRequest, opts ...http.CallOption) (rsp *CreateAgentResponse, err error)
 	// DeleteAgent 删除机器。
 	DeleteAgent(ctx context.Context, req *DeleteAgentRequest, opts ...http.CallOption) (rsp *DeleteAgentResponse, err error)
+	// DeployAgent 启动摇光 Agent 自动安装：服务端用保存的 SSH 凭据登录目标机器，把摇光装上去。
+	// 只接受具备 agent:write 的用户。安装过程异步执行，通过 GetAgentDeploy 轮询。
+	DeployAgent(ctx context.Context, req *DeployAgentRequest, opts ...http.CallOption) (rsp *DeployAgentResponse, err error)
 	// GetAgent 获取机器详情。
 	GetAgent(ctx context.Context, req *GetAgentRequest, opts ...http.CallOption) (rsp *GetAgentResponse, err error)
+	// GetAgentDeploy 查询最近一次安装的步骤与日志。没有安装记录时 deploy 为空。
+	GetAgentDeploy(ctx context.Context, req *GetAgentDeployRequest, opts ...http.CallOption) (rsp *GetAgentDeployResponse, err error)
 	// IssueShellTicket 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
 	IssueShellTicket(ctx context.Context, req *IssueShellTicketRequest, opts ...http.CallOption) (rsp *IssueShellTicketResponse, err error)
 	// ListAgents 分页列出机器。
@@ -314,6 +372,25 @@ func (c *AgentServiceHTTPClientImpl) DeleteAgent(ctx context.Context, in *Delete
 	return &out, nil
 }
 
+// DeployAgent 启动摇光 Agent 自动安装：服务端用保存的 SSH 凭据登录目标机器，把摇光装上去。
+// 只接受具备 agent:write 的用户。安装过程异步执行，通过 GetAgentDeploy 轮询。
+func (c *AgentServiceHTTPClientImpl) DeployAgent(ctx context.Context, in *DeployAgentRequest, opts ...http.CallOption) (*DeployAgentResponse, error) {
+	var out DeployAgentResponse
+	pattern := "/v1/agent/{uid}/deploy"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAgentServiceDeployAgent),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetAgent 获取机器详情。
 func (c *AgentServiceHTTPClientImpl) GetAgent(ctx context.Context, in *GetAgentRequest, opts ...http.CallOption) (*GetAgentResponse, error) {
 	var out GetAgentResponse
@@ -322,6 +399,23 @@ func (c *AgentServiceHTTPClientImpl) GetAgent(ctx context.Context, in *GetAgentR
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationAgentServiceGetAgent),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAgentDeploy 查询最近一次安装的步骤与日志。没有安装记录时 deploy 为空。
+func (c *AgentServiceHTTPClientImpl) GetAgentDeploy(ctx context.Context, in *GetAgentDeployRequest, opts ...http.CallOption) (*GetAgentDeployResponse, error) {
+	var out GetAgentDeployResponse
+	pattern := "/v1/agent/{uid}/deploy"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAgentServiceGetAgentDeploy),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

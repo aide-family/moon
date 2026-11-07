@@ -63,6 +63,18 @@ service AgentService {
       body: "*"
     };
   }
+  // 启动摇光 Agent 自动安装：服务端用保存的 SSH 凭据登录目标机器，把摇光装上去。
+  // 只接受具备 agent:write 的用户。安装过程异步执行，通过 GetAgentDeploy 轮询。
+  rpc DeployAgent(DeployAgentRequest) returns (DeployAgentResponse) {
+    option (google.api.http) = {
+      post: "/v1/agent/{uid}/deploy"
+      body: "*"
+    };
+  }
+  // 查询最近一次安装的步骤与日志。没有安装记录时 deploy 为空。
+  rpc GetAgentDeploy(GetAgentDeployRequest) returns (GetAgentDeployResponse) {
+    option (google.api.http) = {get: "/v1/agent/{uid}/deploy"};
+  }
   // Agent 出站双向流。只接受 Agent 令牌。
   rpc Connect(stream AgentFrame) returns (stream AgentFrame);
 }
@@ -266,6 +278,66 @@ message IssueShellTicketRequest {
 message IssueShellTicketResponse {
   // 票据。
   string ticket = 1;
+}
+
+// 启动自动安装。
+message DeployAgentRequest {
+  // 机器标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 启动自动安装的结果。返回当前这一步的快照。
+message DeployAgentResponse {
+  // 安装进度。
+  AgentDeployItem deploy = 1;
+}
+
+// 查询自动安装进度。
+message GetAgentDeployRequest {
+  // 机器标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 自动安装进度。
+message GetAgentDeployResponse {
+  // 最近一次安装。还没安装过时为空。
+  AgentDeployItem deploy = 1;
+}
+
+// 安装步骤。
+message AgentDeployStep {
+  // 步骤键，例如 connect、install，供前端做本地化。
+  string key = 1;
+  // 步骤标题。
+  string title = 2;
+  // 状态，取值为 PENDING、RUNNING、SUCCEEDED、FAILED。
+  string status = 3;
+  // 补充说明。
+  string message = 4;
+}
+
+// 一次自动安装。
+message AgentDeployItem {
+  // 本次安装标识。
+  string uid = 1;
+  // 机器标识。
+  string agent_uid = 2 [json_name = "agentUid"];
+  // 状态，取值为 RUNNING、SUCCEEDED、FAILED。
+  string status = 3;
+  // 当前步骤键。
+  string step = 4;
+  // 全部步骤及状态。
+  repeated AgentDeployStep steps = 5;
+  // 安装日志，按时间追加。过长时截断。
+  string log = 6;
+  // 日志是否已截断。
+  bool log_truncated = 7 [json_name = "logTruncated"];
+  // 失败原因。
+  string error = 8;
+  // 开始时间，RFC3339。
+  string started_at = 9 [json_name = "startedAt"];
+  // 结束时间，RFC3339。未结束时为空。
+  string finished_at = 10 [json_name = "finishedAt"];
 }
 
 // Agent 与玉衡之间的一帧。
