@@ -13,9 +13,18 @@ RUN go build -C app/alioth -trimpath \
 	-ldflags "-s -w -X main.version=${VERSION}" \
 	-o /out/alioth ./cmd/alioth
 
+# 把 amd64 / arm64 的摇光部署包一起打进控制面镜像，自动安装不依赖 GitHub Release。
+COPY app/alkaid/ app/alkaid/
+COPY deploy/alkaid/ deploy/alkaid/
+COPY scripts/package-alkaid.sh scripts/
+RUN apk add --no-cache bash coreutils \
+	&& VERSION="${VERSION}" OUT=/out/alkaid-packages ARCHES="amd64 arm64" RPM=0 \
+		bash scripts/package-alkaid.sh
+
 FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /app
 COPY --from=build /out/alioth /app/alioth
+COPY --from=build /out/alkaid-packages/alkaid_*_linux_*.tar.gz /app/alkaid/
 COPY app/alioth/configs/ /app/configs/
 USER nonroot:nonroot
 EXPOSE 8000 9000

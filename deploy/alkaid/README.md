@@ -16,19 +16,33 @@ alkaid 只出站连接 `alioth:9000`。控制面不回拨 Agent。8022 / 9022 �
 
 前置条件：目标是 Linux，装有 `systemd`、`tar`、`sudo`（非 root 用户时）；`alioth`
 能主动访问目标的 22 端口（或录入的 SSH 端口），目标能访问 `deploy.alioth_grpc_addr`
-指向的控制面 gRPC 地址。安装包来源有两个，按部署环境选一个：
+指向的控制面 gRPC 地址。
+
+安装包按下面的顺序取，前一个拿不到才看下一个：
+
+1. **镜像内置包**：官方 `alioth` 镜像在构建时把 amd64 / arm64 两个
+   `alkaid_<version>_linux_<arch>.tar.gz` 打进 `/app/alkaid/`，默认配置直接命中，
+   不依赖 GitHub Release，内网也能用。默认路径是
+   `/app/alkaid/alkaid_<version>_linux_<arch>.tar.gz`，占位符按控制面版本和目标架构展开。
+2. **显式本地包**：`deploy.alkaid_package_path` 指向一个固定文件（离线部署最直接）。
+   显式固定路径不存在时直接报错，不会偷偷换成远程下载。
+3. **远程下载**：内置包和本地包都不可用时，按 `deploy.alkaid_download_url` 模板下载；
+   默认地址是 GitHub Release 的同版本资产，只有打过 `v*` tag、发过 Release 才存在。
 
 ```yaml
 deploy:
-  # 默认按控制面版本从 GitHub Release 下载 alkaid_<version>_linux_<arch>.tar.gz。
+  # 默认走镜像内置包；离线或特殊版本时改成固定本地文件。
+  alkaid_package_path: /app/alkaid/alkaid_<version>_linux_<arch>.tar.gz
+  # 可选：没有内置包时从制品库/Release 下载。
   alkaid_version: v0.1.0
-  alkaid_download_url: https://github.com/aide-family/moon/releases/download/{version}/alkaid_{version}_linux_{arch}.tar.gz
-  # 离线环境直接指向本地安装包，优先级高于下载地址。
-  alkaid_package_path: /app/dist/alkaid_v0.1.0_linux_amd64.tar.gz
+  alkaid_download_url: https://github.com/aide-family/moon/releases/download/<version>/alkaid_<version>_linux_<arch>.tar.gz
   alioth_grpc_addr: 10.0.0.10:9000
   timeout: 30s
   online_timeout: 60s
 ```
+
+直接用裸二进制运行 `alioth`（不在镜像里）时没有内置包，需要配置
+`alkaid_package_path`（本机 `make package-alkaid` 可生成）或指向可访问的下载地址。
 
 控制面默认不校验目标机的主机密钥（与 `alkaid` 的 `ALKAID_SSH_KNOWN_HOSTS` 默认行为一致），
 安装动作只接受持有 `agent:write` 的租户成员。安装会话保存在 `alioth` 进程内存里，

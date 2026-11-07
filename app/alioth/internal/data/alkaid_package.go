@@ -53,13 +53,29 @@ func NewAgentPackageSource(cfg *conf.Deploy, logger *slog.Logger) repository.Age
 	}
 }
 
+// expandPackageTemplate 展开 <version>/<arch>（兼容早期的 {version}/{arch} 写法）。
+func expandPackageTemplate(template, version, arch string) string {
+	return strings.NewReplacer(
+		"<version>", version, "<arch>", arch,
+		"{version}", version, "{arch}", arch,
+	).Replace(template)
+}
+
 func (source *agentPackageSource) Fetch(ctx context.Context, arch string) (string, io.ReadCloser, error) {
 	if source.localPath != "" {
-		file, err := os.Open(source.localPath)
-		if err != nil {
+		path := expandPackageTemplate(source.localPath, source.version, arch)
+		file, err := os.Open(path)
+		if err == nil {
+			return filepath.Base(path), file, nil
+		}
+		// 镜像内置的是 <version>/<arch> 模板路径；本地开发没有这个目录时继续走下载。
+		// 用户显式配置的固定路径缺失则直接报错，避免悄悄换成远程包。
+		if !strings.Contains(source.localPath, "<") || source.downloadURL == "" {
 			return "", nil, merr.Invalid(fmt.Sprintf("alkaid package is unavailable: %v", err))
 		}
-		return filepath.Base(source.localPath), file, nil
+		if source.log != nil {
+			source.log.Warn(fmt.Sprintf("bundled alkaid package is missing, falling back to download: %s", path))
+		}
 	}
 	if source.downloadURL == "" {
 		return "", nil, merr.Invalid("alkaid download url is empty")
@@ -67,7 +83,7 @@ func (source *agentPackageSource) Fetch(ctx context.Context, arch string) (strin
 	if source.version == "" || source.version == "dev" {
 		return "", nil, merr.Invalid("alkaid version is unknown; set deploy.alkaid_version or deploy.alkaid_package_path")
 	}
-	address := strings.NewReplacer("{version}", source.version, "{arch}", arch).Replace(source.downloadURL)
+	address := expandPackageTemplate(source.downloadURL, source.version, arch)
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
 	if err != nil {
 		return "", nil, merr.Invalid(fmt.Sprintf("alkaid download request failed: %v", err))

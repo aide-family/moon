@@ -54,10 +54,11 @@ auth:
 deploy:
   # 目标机器安装的摇光版本。留空表示与控制面同版本，发布版直接从同名 Release 取包。
   alkaid_version: ${ALIOTH_DEPLOY_ALKAID_VERSION:}
-  # 安装包下载地址模板，{version} 和 {arch} 会被替换；离线环境改成内网制品地址。
-  alkaid_download_url: ${ALIOTH_DEPLOY_ALKAID_DOWNLOAD_URL:https://github.com/aide-family/moon/releases/download/{version}/alkaid_{version}_linux_{arch}.tar.gz}
-  # 本地安装包路径。配置后优先使用，跳过下载，适合离线部署和内网机器。
-  alkaid_package_path: ${ALIOTH_DEPLOY_ALKAID_PACKAGE_PATH:}
+  # 安装包下载地址模板，<version> 和 <arch> 会被替换；离线环境改成内网制品地址。
+  alkaid_download_url: ${ALIOTH_DEPLOY_ALKAID_DOWNLOAD_URL:https://github.com/aide-family/moon/releases/download/<version>/alkaid_<version>_linux_<arch>.tar.gz}
+  # 本地安装包路径。优先级最高；支持 <version> 和 <arch> 占位。
+  # alioth 镜像会把 amd64/arm64 两个安装包一起打进 /app/alkaid/，默认走内置包。
+  alkaid_package_path: ${ALIOTH_DEPLOY_ALKAID_PACKAGE_PATH:/app/alkaid/alkaid_<version>_linux_<arch>.tar.gz}
   # 目标机器能访问到的控制面 gRPC 地址，写入目标机器的 alkaid.env。
   alioth_grpc_addr: ${ALIOTH_DEPLOY_GRPC_ADDR:127.0.0.1:9000}
   timeout: 30s

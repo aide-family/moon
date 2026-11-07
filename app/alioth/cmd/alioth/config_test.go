@@ -2,6 +2,7 @@ package main
 
 import (
 	"log/slog"
+	"strings"
 	"testing"
 
 	"github.com/aide-family/moon/app/alioth/internal/conf"
@@ -24,5 +25,12 @@ func TestLoadConfig(t *testing.T) {
 	}
 	if bc.GetData().GetRedis().GetAddr() != "127.0.0.1:6379" {
 		t.Fatalf("redis addr = %q", bc.GetData().GetRedis().GetAddr())
+	}
+	// 内置安装包路径的占位符不能带花括号，否则会被 ${VAR:default} 展开提前截断。
+	if got := bc.GetDeploy().GetAlkaidPackagePath(); got != "/app/alkaid/alkaid_<version>_linux_<arch>.tar.gz" {
+		t.Fatalf("alkaid package path = %q", got)
+	}
+	if got := bc.GetDeploy().GetAlkaidDownloadUrl(); !strings.Contains(got, "/alkaid_<version>_linux_<arch>.tar.gz") {
+		t.Fatalf("alkaid download url = %q", got)
 	}
 }
