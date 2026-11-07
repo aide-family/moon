@@ -125,7 +125,13 @@ image-web:
 
 images: image-alioth image-megrez image-merak image-alkaid image-web
 
+# 本地跑控制面时把仓库里的摇光包喂给自动安装：裸二进制没有镜像内置的 /app/alkaid，
+# 不指路径的话 package 步骤会因为「版本未知 + 找不到本地包」失败。先 make package-alkaid。
+# .env 里显式配置时以 .env 为准；版本号没注入时服务端会按通配符匹配 dist 里实际打好的包。
+ALIOTH_DEPLOY_ALKAID_PACKAGE_PATH ?= $(ROOT)dist/alkaid_<version>_linux_<arch>.tar.gz
+
 run-alioth:
+	ALIOTH_DEPLOY_ALKAID_PACKAGE_PATH='$(ALIOTH_DEPLOY_ALKAID_PACKAGE_PATH)' \
 	$(GO) run -C $(ROOT)app/alioth ./cmd/alioth serve --conf configs/config.yaml
 
 run-megrez:

@@ -62,26 +62,35 @@ func expandPackageTemplate(template, version, arch string) string {
 }
 
 func (source *agentPackageSource) Fetch(ctx context.Context, arch string) (string, io.ReadCloser, error) {
+	// 版本没注入时（例如 go run 或本地裸二进制）拼不出下载地址，但本机可能已经用
+	// make package-alkaid 打好了包。这时把本地路径里的 <version> 换成通配符，
+	// 命中 dist 下的实际包；有版本号时仍然是精确路径。
+	versionKnown := source.version != "" && source.version != "dev"
+	localVersion := source.version
+	if !versionKnown {
+		localVersion = "*"
+	}
+	var localPattern string
 	if source.localPath != "" {
-		path := expandPackageTemplate(source.localPath, source.version, arch)
-		file, err := os.Open(path)
+		localPattern = expandPackageTemplate(source.localPath, localVersion, arch)
+		file, name, err := openLocalPackage(localPattern)
 		if err == nil {
-			return filepath.Base(path), file, nil
+			return name, file, nil
 		}
 		// 镜像内置的是 <version>/<arch> 模板路径；本地开发没有这个目录时继续走下载。
 		// 用户显式配置的固定路径缺失则直接报错，避免悄悄换成远程包。
-		if !strings.Contains(source.localPath, "<") || source.downloadURL == "" {
+		if !strings.Contains(source.localPath, "<") {
 			return "", nil, merr.Invalid(fmt.Sprintf("alkaid package is unavailable: %v", err))
 		}
 		if source.log != nil {
-			source.log.Warn(fmt.Sprintf("bundled alkaid package is missing, falling back to download: %s", path))
+			source.log.Warn(fmt.Sprintf("bundled alkaid package is missing, falling back to download: %s", localPattern))
 		}
 	}
 	if source.downloadURL == "" {
 		return "", nil, merr.Invalid("alkaid download url is empty")
 	}
-	if source.version == "" || source.version == "dev" {
-		return "", nil, merr.Invalid("alkaid version is unknown; set deploy.alkaid_version or deploy.alkaid_package_path")
+	if !versionKnown {
+		return "", nil, merr.Invalid(unavailableMessage(source.version, arch, localPattern))
 	}
 	address := expandPackageTemplate(source.downloadURL, source.version, arch)
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
@@ -108,4 +117,51 @@ func (source *agentPackageSource) Fetch(ctx context.Context, arch string) (strin
 		source.log.Info(fmt.Sprintf("alkaid package: %s", address))
 	}
 	return name, response.Body, nil
+}
+
+// openLocalPackage 打开本地安装包。模式里带通配符（版本未知时的 <version>）时，
+// 取最近修改的那个文件，避免同名目录里堆积多个版本时随机命中旧的包。
+func openLocalPackage(pattern string) (io.ReadCloser, string, error) {
+	if !strings.ContainsAny(pattern, "*?[") {
+		file, err := os.Open(pattern)
+		if err != nil {
+			return nil, "", err
+		}
+		return file, filepath.Base(pattern), nil
+	}
+	matches, err := filepath.Glob(pattern)
+	if err != nil {
+		return nil, "", err
+	}
+	newest := ""
+	var newestTime time.Time
+	for _, match := range matches {
+		info, statErr := os.Stat(match)
+		if statErr != nil || info.IsDir() {
+			continue
+		}
+		if info.ModTime().After(newestTime) {
+			newest, newestTime = match, info.ModTime()
+		}
+	}
+	if newest == "" {
+		return nil, "", merr.Invalid("no package matched " + pattern)
+	}
+	file, err := os.Open(newest)
+	if err != nil {
+		return nil, "", err
+	}
+	return file, filepath.Base(newest), nil
+}
+
+// unavailableMessage 说明为什么既没有本地包也没法下载，并给出下一步动作。
+func unavailableMessage(version, arch, localPattern string) string {
+	looked := ""
+	if localPattern != "" {
+		looked = fmt.Sprintf("no file matched %s, and ", localPattern)
+	}
+	return fmt.Sprintf(
+		"alkaid package is unavailable for linux/%s: %sthe control plane version is unknown (%q), so the download URL cannot be expanded; run make package-alkaid ARCHES=%s and set deploy.alkaid_package_path (ALIOTH_DEPLOY_ALKAID_PACKAGE_PATH) to the built file, or set deploy.alkaid_version",
+		arch, looked, version, arch,
+	)
 }

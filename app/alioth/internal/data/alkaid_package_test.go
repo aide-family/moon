@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aide-family/moon/app/alioth/internal/conf"
 )
@@ -74,5 +75,77 @@ func TestAgentPackageSourceDownloadChecksVersion(t *testing.T) {
 	source := &agentPackageSource{downloadURL: "https://example.invalid/alkaid_<version>_<arch>.tar.gz"}
 	if _, _, err := source.Fetch(context.Background(), "amd64"); err == nil || !strings.Contains(err.Error(), "version is unknown") {
 		t.Fatalf("Fetch error = %v, want version unknown", err)
+	}
+}
+
+// 本地开发时版本号是 dev（go run 没注入 ldflags）：本机已打好的包必须还能命中，
+// 不能因为拼不出版本号就卡在 package 步骤。
+func TestAgentPackageSourceMatchesLocalPackageWithoutVersion(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "alkaid_dev_linux_amd64.tar.gz")
+	if err := os.WriteFile(path, []byte("local"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	source := NewAgentPackageSource(&conf.Deploy{
+		AlkaidPackagePath: filepath.Join(dir, "alkaid_<version>_linux_<arch>.tar.gz"),
+		AlkaidDownloadUrl: "http://127.0.0.1:1/unused",
+	}, slog.New(slog.DiscardHandler)).(*agentPackageSource)
+
+	name, content, err := source.Fetch(context.Background(), "amd64")
+	if err != nil {
+		t.Fatalf("Fetch: %v", err)
+	}
+	defer content.Close()
+	data, _ := io.ReadAll(content)
+	if string(data) != "local" || name != "alkaid_dev_linux_amd64.tar.gz" {
+		t.Fatalf("name = %q, body = %q", name, data)
+	}
+}
+
+// 通配符命中多个包时取最近修改的那个，避免堆了旧版本后随机装回旧包。
+func TestOpenLocalPackagePicksNewestMatch(t *testing.T) {
+	dir := t.TempDir()
+	older := filepath.Join(dir, "alkaid_v0.0.1_linux_amd64.tar.gz")
+	newer := filepath.Join(dir, "alkaid_v0.0.2_linux_amd64.tar.gz")
+	for path, body := range map[string]string{older: "old", newer: "new"} {
+		if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	old := time.Now().Add(-time.Hour)
+	if err := os.Chtimes(older, old, old); err != nil {
+		t.Fatal(err)
+	}
+	file, name, err := openLocalPackage(filepath.Join(dir, "alkaid_*_linux_amd64.tar.gz"))
+	if err != nil {
+		t.Fatalf("openLocalPackage: %v", err)
+	}
+	defer file.Close()
+	if name != "alkaid_v0.0.2_linux_amd64.tar.gz" {
+		t.Fatalf("name = %q, want the newest package", name)
+	}
+}
+
+// 本地和下载都不成立时，报错要写清看过的路径和该跑哪条命令。
+func TestAgentPackageSourceUnknownVersionExplainsFix(t *testing.T) {
+	dir := t.TempDir()
+	source := NewAgentPackageSource(&conf.Deploy{
+		AlkaidPackagePath: filepath.Join(dir, "alkaid_<version>_linux_<arch>.tar.gz"),
+		AlkaidDownloadUrl: "https://example.invalid/alkaid_<version>_<arch>.tar.gz",
+	}, slog.New(slog.DiscardHandler)).(*agentPackageSource)
+
+	_, _, err := source.Fetch(context.Background(), "amd64")
+	if err == nil {
+		t.Fatal("Fetch succeeded, want an actionable error")
+	}
+	for _, want := range []string{
+		"version is unknown",
+		"make package-alkaid ARCHES=amd64",
+		"ALIOTH_DEPLOY_ALKAID_PACKAGE_PATH",
+		"alkaid_*_linux_amd64.tar.gz",
+	} {
+		if !strings.Contains(err.Error(), want) {
+			t.Fatalf("error %q does not contain %q", err, want)
+		}
 	}
 }

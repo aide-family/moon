@@ -43,6 +43,14 @@ deploy:
 
 直接用裸二进制运行 `alioth`（不在镜像里）时没有内置包，需要配置
 `alkaid_package_path`（本机 `make package-alkaid` 可生成）或指向可访问的下载地址。
+`make run-alioth` 已经把 `ALIOTH_DEPLOY_ALKAID_PACKAGE_PATH` 默认指向仓库的
+`dist/alkaid_<version>_linux_<arch>.tar.gz`：先 `make package-alkaid ARCHES=amd64`
+再 `make run-alioth`，自动安装就能取到本机打的包。控制面版本号没注入时（`dev`，
+例如 `go run`），本地路径的 `<version>` 按通配符匹配 `dist/` 里实际打好的包，
+取最近修改的那个，不需要再手工填版本号。
+
+目标机不是控制面所在主机时，`alioth_grpc_addr` 必须写成目标机能访问到的地址
+（例如 `10.0.0.10:9000`），不要用 `127.0.0.1`：那是目标机自己，Agent 注册不上。
 
 控制面默认不校验目标机的主机密钥（与 `alkaid` 的 `ALKAID_SSH_KNOWN_HOSTS` 默认行为一致），
 安装动作只接受持有 `agent:write` 的租户成员。安装会话保存在 `alioth` 进程内存里，
