@@ -34,7 +34,10 @@ test("新增机器自动安装并显示安装步骤与日志", async ({ page, ap
     await expect(deployDialog.getByText(/安装(失败|完成)/).first()).toBeVisible({
       timeout: 50_000,
     })
-    const log = await deployDialog.locator("pre").innerText()
+    // 安装过程以终端的形式呈现：日志是终端里的纯文本，不是步骤卡片。
+    const console = deployDialog.getByTestId("deploy-console")
+    await expect(console).toBeVisible()
+    const log = await console.innerText()
     expect(log.length).toBeGreaterThan(0)
     expect(log).toContain("==>")
 

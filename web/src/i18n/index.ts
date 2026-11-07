@@ -2632,7 +2632,6 @@ const zh = {
     deployRetry: "重新安装",
     deployRunning: "安装中",
     deployPending: "等待中",
-    deployStepDone: "已完成",
     deploySucceeded: "安装完成",
     deployFailed: "安装失败",
     deployNoRecord: "还没有安装记录。",
@@ -2645,6 +2644,21 @@ const zh = {
     deployStepService: "注册并启动服务",
     deployStepOnline: "等待上线",
     deployLogTruncated: "日志过长，仅显示最近部分。",
+    deployFixCredentials: "更新 SSH 凭据",
+    deployHintConnect:
+      "SSH 登录失败：目标机拒绝了这组凭据。请确认用户名、密码或私钥正确，且目标机允许该用户登录（root 经常被禁止用密码登录）。",
+    deployHintInspect: "目标机不是 Linux，或 CPU 架构不在支持范围（只支持 amd64 / arm64）。",
+    deployHintPackage:
+      "控制面没有可用的摇光安装包：检查 deploy.alkaid_package_path 与下载地址是否覆盖该架构。",
+    deployHintUpload: "上传或解压安装包失败：检查目标机 /tmp 的权限和剩余空间。",
+    deployHintInstall: "install.sh 执行失败，终端里有完整输出。",
+    deployHintConfigure:
+      "写入 /etc/alioth/alkaid.env 失败：SSH 用户需要 root 权限或可用的 sudo 密码。",
+    deployHintService:
+      "systemd 注册或启动失败：确认目标机使用 systemd，并用 journalctl -u alkaid 查看原因。",
+    deployHintOnline:
+      "Agent 没有在超时前上线：确认目标机能访问控制面 gRPC 地址（deploy.alioth_grpc_addr）。",
+    deployHintUnknown: "安装失败，终端里有完整输出。",
     confirmBody: "此操作不可撤销。",
   },
   cluster: {
@@ -7036,7 +7050,6 @@ const en = {
     deployRetry: "Reinstall",
     deployRunning: "Installing",
     deployPending: "Pending",
-    deployStepDone: "Done",
     deploySucceeded: "Installed",
     deployFailed: "Install failed",
     deployNoRecord: "No installation yet.",
@@ -7049,6 +7062,23 @@ const en = {
     deployStepService: "Register and start the service",
     deployStepOnline: "Wait for the agent to register",
     deployLogTruncated: "The log is long; only the latest part is shown.",
+    deployFixCredentials: "Update SSH credentials",
+    deployHintConnect:
+      "The SSH login failed: the target rejected these credentials. Check the user, password, or private key, and confirm the target allows that user to log in by SSH (root is often blocked from password login).",
+    deployHintInspect:
+      "The target is not Linux, or its CPU architecture is unsupported (only amd64 and arm64).",
+    deployHintPackage:
+      "No Alkaid package is available: check that deploy.alkaid_package_path and the download URL cover this architecture.",
+    deployHintUpload:
+      "Uploading or extracting the package failed: check the permissions and free space of /tmp on the target.",
+    deployHintInstall: "install.sh failed; the terminal shows the full output.",
+    deployHintConfigure:
+      "Writing /etc/alioth/alkaid.env failed: the SSH user needs root access or a working sudo password.",
+    deployHintService:
+      "Registering or starting the systemd unit failed: confirm the target uses systemd and check journalctl -u alkaid.",
+    deployHintOnline:
+      "The agent did not come online before the timeout: confirm the target can reach the control-plane gRPC address (deploy.alioth_grpc_addr).",
+    deployHintUnknown: "The installation failed; the terminal shows the full output.",
     confirmBody: "This cannot be undone.",
   },
   cluster: {

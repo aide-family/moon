@@ -58,6 +58,34 @@ import { TABLE_MIN_WIDTH } from "@/lib/table-layout"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 
+import { DeployConsole } from "./deploy-console"
+
+// 安装失败的下一步提示：按失败步骤给出可照做的原因，终端里保留原始报错。
+const deployHintKeys: Record<string, string> = {
+  connect: "agent.deployHintConnect",
+  inspect: "agent.deployHintInspect",
+  package: "agent.deployHintPackage",
+  upload: "agent.deployHintUpload",
+  install: "agent.deployHintInstall",
+  configure: "agent.deployHintConfigure",
+  service: "agent.deployHintService",
+  online: "agent.deployHintOnline",
+}
+
+/** 步骤状态的颜色：文字与圆点同色，同时靠文案本身表达状态。 */
+function deployStepTone(status: string): string {
+  if (status === "SUCCEEDED") {
+    return "text-success"
+  }
+  if (status === "RUNNING") {
+    return "text-info"
+  }
+  if (status === "FAILED") {
+    return "text-danger"
+  }
+  return "text-muted-foreground"
+}
+
 function AgentLabelChips({ labels }: { labels: string }) {
   const entries = readLabelEntries(labels)
   if (!entries || entries.length === 0) {
@@ -110,8 +138,8 @@ export function AgentPage() {
   const [autoDeploy, setAutoDeploy] = useState(true)
   const [deployOpen, setDeployOpen] = useState(false)
   const [deploy, setDeploy] = useState<AgentDeployItem | null>(null)
-  const [deployAgentUid, setDeployAgentUid] = useState("")
-  const [deployName, setDeployName] = useState("")
+  // 保留整条机器记录：安装失败时可以直接打开编辑对话框改凭据，不用回列表再找一遍。
+  const [deployItem, setDeployItem] = useState<AgentItem | null>(null)
   const [deployError, setDeployError] = useState("")
   const [deployPending, setDeployPending] = useState(false)
   const [error, setError] = useState("")
@@ -217,9 +245,8 @@ export function AgentPage() {
     }
   }
 
-  async function startDeploy(item: Pick<AgentItem, "uid" | "name">) {
-    setDeployAgentUid(item.uid)
-    setDeployName(item.name)
+  async function startDeploy(item: AgentItem) {
+    setDeployItem(item)
     setDeploy(null)
     setDeployError("")
     setDeployPending(true)
@@ -236,12 +263,12 @@ export function AgentPage() {
 
   // 安装进度存在服务端内存里，页面每秒拉一次；安装结束后停表并刷新列表。
   useEffect(() => {
-    if (!deployOpen || deploy?.status !== "RUNNING") {
+    if (!deployOpen || !deployItem || deploy?.status !== "RUNNING") {
       return
     }
     let cancelled = false
     const timer = setInterval(() => {
-      getAgentDeploy(deployAgentUid)
+      getAgentDeploy(deployItem.uid)
         .then((result) => {
           if (cancelled || !result.deploy) {
             return
@@ -261,7 +288,7 @@ export function AgentPage() {
       cancelled = true
       clearInterval(timer)
     }
-  }, [deployOpen, deploy?.status, deployAgentUid, reload, t])
+  }, [deployOpen, deployItem, deploy?.status, reload, t])
 
   async function onRotate(item: AgentItem) {
     setPending(true)
@@ -331,18 +358,14 @@ export function AgentPage() {
     return deployStepLabels[step.key] ?? step.title
   }
 
-  function deployStepBadge(status: string): { value: string; label: string } {
-    if (status === "SUCCEEDED") {
-      return { value: "DONE", label: t("agent.deployStepDone") }
-    }
-    if (status === "RUNNING") {
-      return { value: "WORKING", label: t("agent.deployRunning") }
-    }
-    if (status === "FAILED") {
-      return { value: "FAILED", label: t("agent.deployFailed") }
-    }
-    return { value: "PENDING", label: t("agent.deployPending") }
-  }
+  const deployTarget = deployItem
+    ? `${deployItem.sshUser}@${deployItem.sshHost}:${deployItem.sshPort || 22}`
+    : ""
+  const failedStep = deploy?.steps.find((step) => step.status === "FAILED")?.key ?? ""
+  const deployHint =
+    deploy?.status === "FAILED"
+      ? t(deployHintKeys[failedStep] ?? "agent.deployHintUnknown")
+      : ""
 
   function deployStatusBadge(status: string): { value: string; label: string } {
     if (status === "SUCCEEDED") {
@@ -527,62 +550,66 @@ export function AgentPage() {
           <DialogHeader>
             <DialogTitle>{t("agent.deployTitle")}</DialogTitle>
           </DialogHeader>
-          <DialogBody className="grid gap-4">
-            <p className="text-sm text-muted-foreground">
-              {deployName ? `${deployName} · ` : ""}
-              {t("agent.deployDescription")}
-            </p>
-            {deploy ? (
-              <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge {...deployStatusBadge(deploy.status)} />
-                  {deploy.error ? (
-                    <p className="min-w-0 break-words text-sm text-destructive">
-                      {deploy.error}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="grid gap-2">
-                  <p className="text-sm font-medium">{t("agent.deploySteps")}</p>
-                  {deploy.steps.map((step) => (
-                    <div key={step.key} className="flex items-start gap-2">
-                      <StatusBadge {...deployStepBadge(step.status)} className="shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-sm">{deployStepTitle(step)}</p>
-                        {step.message ? (
-                          <p className="break-words text-xs text-muted-foreground">
-                            {step.message}
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid gap-2">
-                  <p className="text-sm font-medium">{t("agent.deployLog")}</p>
-                  <pre className="max-h-64 overflow-auto rounded-md border bg-muted/40 p-3 font-mono text-xs break-all whitespace-pre-wrap">
-                    {deploy.log || t("agent.deployWaiting")}
-                  </pre>
-                  {deploy.logTruncated ? (
-                    <p className="text-xs text-muted-foreground">
-                      {t("agent.deployLogTruncated")}
-                    </p>
-                  ) : null}
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {deployPending ? t("agent.deployWaiting") : t("agent.deployNoRecord")}
+          <DialogBody className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="min-w-0 flex-1 break-words text-sm text-muted-foreground">
+                {deployItem
+                  ? `${deployItem.name}${deployTarget ? ` · ${deployTarget}` : ""}`
+                  : t("agent.deployDescription")}
               </p>
-            )}
+              <StatusBadge {...deployStatusBadge(deploy?.status ?? "PENDING")} />
+            </div>
+            {deployHint ? (
+              <div className="flex flex-wrap items-center gap-2 rounded-md border border-danger-border bg-danger-soft px-3 py-2">
+                <p className="min-w-0 flex-1 break-words text-sm text-danger">
+                  {deployHint}
+                </p>
+                {failedStep === "connect" && canWrite && deployItem ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setDeployOpen(false)
+                      openEdit(deployItem)
+                    }}
+                  >
+                    {t("agent.deployFixCredentials")}
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
+            {deploy ? (
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
+                <span className="text-xs text-muted-foreground">
+                  {t("agent.deploySteps")}
+                </span>
+                {deploy.steps.map((step) => (
+                  <span
+                    key={step.key}
+                    className={`inline-flex items-center gap-1.5 text-xs ${deployStepTone(step.status)}`}
+                  >
+                    <span aria-hidden className="size-1.5 rounded-full bg-current" />
+                    {deployStepTitle(step)}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            <DeployConsole
+              title={deployTarget ? `${t("agent.deployLog")} · ${deployTarget}` : t("agent.deployLog")}
+              log={deploy?.log ?? ""}
+              running={deployPending || deploy?.status === "RUNNING"}
+              truncated={deploy?.logTruncated ?? false}
+              empty={deployPending ? t("agent.deployWaiting") : t("agent.deployNoRecord")}
+              truncatedNotice={t("agent.deployLogTruncated")}
+            />
             {deployError ? <p className="text-sm text-destructive">{deployError}</p> : null}
           </DialogBody>
           <DialogFooter>
-            {deploy && deploy.status !== "RUNNING" ? (
+            {deploy && deploy.status !== "RUNNING" && deployItem ? (
               <Button
                 variant="outline"
                 disabled={deployPending}
-                onClick={() => void startDeploy({ uid: deploy.agentUid, name: deployName })}
+                onClick={() => void startDeploy(deployItem)}
               >
                 {t("agent.deployRetry")}
               </Button>

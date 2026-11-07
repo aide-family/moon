@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"slices"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -52,26 +54,35 @@ func (d *sshDialer) Dial(ctx context.Context, target bo.SSHTarget) (repository.S
 	dialer := net.Dialer{Timeout: d.timeout}
 	conn, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
-		return nil, merr.Invalid(fmt.Sprintf("ssh connect failed: %v", err))
+		return nil, merr.Invalid(describeDialFailure(address, err))
 	}
 	// 机器录入时只保存了主机名、账号和密码，没有 known_hosts。
 	// 与 alkaid 的默认行为保持一致：不校验主机密钥，避免首次安装被阻断。
+	//
+	// AuthCallback 只用来抄一份服务端认可的方法：认证失败时才能说清楚
+	// 是「密码被拒绝」还是「目标机压根没开放我们有的登录方式」。返回 nil
+	// 表示不改变默认的方法选择顺序。
+	var allowed []string
 	config := &ssh.ClientConfig{
 		User:            target.User,
 		Auth:            auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         d.timeout,
+		AuthCallback: func(callback *ssh.ClientAuthContext) (ssh.AuthMethod, error) {
+			allowed = append([]string(nil), callback.AllowedMethods...)
+			return nil, nil
+		},
 	}
 	clientConn, channels, requests, err := ssh.NewClientConn(conn, address, config)
 	if err != nil {
 		_ = conn.Close()
-		return nil, merr.Invalid(fmt.Sprintf("ssh handshake failed: %v", err))
+		return nil, merr.Invalid(describeHandshakeFailure(target.User, address, target, allowed, err))
 	}
 	return &sshSession{client: ssh.NewClient(clientConn, channels, requests)}, nil
 }
 
 func sshAuth(target bo.SSHTarget) ([]ssh.AuthMethod, error) {
-	methods := make([]ssh.AuthMethod, 0, 2)
+	methods := make([]ssh.AuthMethod, 0, 3)
 	if target.PrivateKey != "" {
 		signer, err := ssh.ParsePrivateKey([]byte(target.PrivateKey))
 		if err != nil {
@@ -81,11 +92,89 @@ func sshAuth(target bo.SSHTarget) ([]ssh.AuthMethod, error) {
 	}
 	if target.Password != "" {
 		methods = append(methods, ssh.Password(target.Password))
+		// 有的 sshd 关掉了 password、只留 keyboard-interactive（PAM 应答），
+		// 用同一份密码回答它的问题；服务端不支持时客户端会自动跳过。
+		methods = append(methods, ssh.KeyboardInteractive(func(_, _ string, questions []string, _ []bool) ([]string, error) {
+			answers := make([]string, len(questions))
+			for index := range answers {
+				answers[index] = target.Password
+			}
+			return answers, nil
+		}))
 	}
 	if len(methods) == 0 {
 		return nil, merr.Invalid("ssh credentials are empty")
 	}
 	return methods, nil
+}
+
+// describeDialFailure 把 TCP 层失败翻译成能直接照着排查的一句话。
+func describeDialFailure(address string, err error) string {
+	var netErr net.Error
+	switch {
+	case errors.As(err, &netErr) && netErr.Timeout():
+		return fmt.Sprintf(
+			"ssh connect to %s timed out: the host did not answer on that port; check the network and whether sshd is listening there",
+			address,
+		)
+	case errors.Is(err, syscall.ECONNREFUSED):
+		return fmt.Sprintf("ssh connect to %s was refused: nothing is listening on that port", address)
+	default:
+		return fmt.Sprintf("ssh connect to %s failed: %v", address, err)
+	}
+}
+
+// describeHandshakeFailure 解释认证为什么失败。
+// allowed 是 sshd 交给客户端的方法列表；目标机拒绝凭据时它通常还是完整的，
+// 只有目标机自己拒绝时才可能为空。
+func describeHandshakeFailure(user, address string, target bo.SSHTarget, allowed []string, err error) string {
+	if !strings.Contains(err.Error(), "unable to authenticate") {
+		return fmt.Sprintf("ssh handshake with %s failed: %v", address, err)
+	}
+	offered := strings.Join(allowed, ",")
+	hasPassword := target.Password != ""
+	hasKey := target.PrivateKey != ""
+	var usable []string
+	if hasKey && slices.Contains(allowed, "publickey") {
+		usable = append(usable, "private key")
+	}
+	if hasPassword && (slices.Contains(allowed, "password") || slices.Contains(allowed, "keyboard-interactive")) {
+		usable = append(usable, "password")
+	}
+	switch {
+	case len(allowed) == 0:
+		return fmt.Sprintf(
+			"ssh authentication failed for %s@%s: the target rejected the credentials and did not accept any of the saved methods",
+			user, address,
+		)
+	case len(usable) == 0:
+		return fmt.Sprintf(
+			"ssh authentication failed for %s@%s: the target only allows %s, but the saved credentials are %s; enable a matching login method on the target or save the right credential",
+			user, address, offered, savedMethods(target),
+		)
+	case hasPassword && slices.Contains(allowed, "password"):
+		return fmt.Sprintf(
+			"ssh authentication failed for %s@%s: the target rejected the password (sshd allows %s); the password is wrong, or the account cannot log in with a password (locked, expired, or password login disabled)",
+			user, address, offered,
+		)
+	default:
+		return fmt.Sprintf(
+			"ssh authentication failed for %s@%s: the target rejected the credentials (sshd allows %s)",
+			user, address, offered,
+		)
+	}
+}
+
+// savedMethods 用人类可读的短句描述这条机器记录里保存的凭据。
+func savedMethods(target bo.SSHTarget) string {
+	switch {
+	case target.Password != "" && target.PrivateKey != "":
+		return "a private key and a password"
+	case target.PrivateKey != "":
+		return "a private key only"
+	default:
+		return "a password only"
+	}
 }
 
 // sshSession 包装一条 SSH 连接。Run 和 Upload 都由同一连接串行执行。

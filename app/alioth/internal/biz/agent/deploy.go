@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"strings"
 	"sync"
 	"time"
@@ -197,7 +198,7 @@ func (deployer *Deployer) install(ctx context.Context, machine *bo.Agent, target
 		return
 	}
 
-	if err := deployer.stepOnline(ctx, machine.UID, run); err != nil {
+	if err := deployer.stepOnline(ctx, machine, run); err != nil {
 		run.fail("online", err)
 		return
 	}
@@ -349,6 +350,9 @@ func (deployer *Deployer) stepConfigure(ctx context.Context, session repository.
 	if _, err := deployer.mustSudo(callCtx, session, root, password, command, []byte(content)); err != nil {
 		return err
 	}
+	if hint := deployer.controlPlaneHint(machine.SSHHost); hint != "" {
+		run.log("    warning: " + hint)
+	}
 	run.report("configure", "服务配置已写入 /etc/alioth/alkaid.env")
 	return nil
 }
@@ -371,8 +375,9 @@ func (deployer *Deployer) stepService(ctx context.Context, session repository.SS
 	return nil
 }
 
-func (deployer *Deployer) stepOnline(ctx context.Context, uid string, run *deployRun) error {
+func (deployer *Deployer) stepOnline(ctx context.Context, machine *bo.Agent, run *deployRun) error {
 	run.start("online", "等待 Agent 向控制面注册")
+	uid := machine.UID
 	deadline := time.NewTimer(deployer.onlineTimeout)
 	defer deadline.Stop()
 	ticker := time.NewTicker(deployOnlinePoll)
@@ -383,7 +388,7 @@ func (deployer *Deployer) stepOnline(ctx context.Context, uid string, run *deplo
 			return nil
 		}
 		// 多副本时 Agent 可能注册到别的副本；在线标记也会写进数据库。
-		if machine, err := deployer.registry.agents.GetAgentByUID(ctx, uid); err == nil && machine.Online {
+		if updated, err := deployer.registry.agents.GetAgentByUID(ctx, uid); err == nil && updated.Online {
 			run.report("online", "Agent 已上线")
 			return nil
 		}
@@ -391,10 +396,38 @@ func (deployer *Deployer) stepOnline(ctx context.Context, uid string, run *deplo
 		case <-ctx.Done():
 			return merr.Server("agent did not register before the request was cancelled")
 		case <-deadline.C:
-			return merr.Server("agent did not register before the timeout")
+			message := fmt.Sprintf("agent did not register within %s", deployer.onlineTimeout)
+			if hint := deployer.controlPlaneHint(machine.SSHHost); hint != "" {
+				message += ": " + hint
+			}
+			return merr.Server(message)
 		case <-ticker.C:
 		}
 	}
+}
+
+// controlPlaneHint 说明「写进目标机的控制面地址」为什么连不上。
+// 目标机不是本机、而配置的地址是 127.0.0.1 时，Agent 只会连回目标机自己，
+// 上线必然超时；两种情况都返回空串表示地址本身没问题。
+func (deployer *Deployer) controlPlaneHint(targetHost string) string {
+	host, _, err := net.SplitHostPort(deployer.grpcAddr)
+	if err != nil || host == "" || loopbackHost(targetHost) || !loopbackHost(host) {
+		return ""
+	}
+	return fmt.Sprintf(
+		"control plane address %s is a loopback address, so %s cannot reach it; set deploy.alioth_grpc_addr to an address the target machine can reach",
+		deployer.grpcAddr, targetHost,
+	)
+}
+
+// loopbackHost 判断主机是不是只指向本机：localhost、127.0.0.0/8 和 ::1。
+func loopbackHost(host string) bool {
+	host = strings.TrimSpace(host)
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }
 
 // mustRaw 以 SSH 登录用户直接执行命令，不经过 sudo，用于探测系统信息和 /tmp 操作。
