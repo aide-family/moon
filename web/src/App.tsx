@@ -26,6 +26,10 @@ import { MessagePage } from "@/pages/message"
 import { MessageLogPage } from "@/pages/message-log"
 import { NamespacePage } from "@/pages/namespace"
 import { NotFoundPage } from "@/pages/not-found"
+import { InspectionPlanPage } from "@/pages/inspection-plans"
+import { InspectionRunPage } from "@/pages/inspection-runs"
+import { InspectionTemplatePage } from "@/pages/inspection-templates"
+import { PublicInspectionReportPage } from "@/pages/public-inspection"
 import { NotificationChannelPage } from "@/pages/notification-channel"
 import { NotificationGroupPage } from "@/pages/notification-group"
 import { NotificationOnCallPage } from "@/pages/notification-oncall"
@@ -71,6 +75,11 @@ export function App() {
       <Route path="/site-preview/:uid" element={<SitePreviewPage />} />
       {/* 公开状态页：不需要登录与租户，独立布局，不能放进 AppShell。 */}
       <Route path="/status/:token" element={<PublicStatusPageView />} />
+      {/* 公开巡检报告：只需要 token，不挂登录与租户。 */}
+      <Route
+        path="/share/report/:token"
+        element={<PublicInspectionReportPage />}
+      />
       <Route element={<AppShell />}>
         {/* 登录后的着陆页：没有租户去租户页，否则回放上次访问的页面。 */}
         <Route path="/app" element={<LandingRedirect />} />
@@ -97,6 +106,12 @@ export function App() {
         <Route path="/probe-targets" element={<ProbeTargetPage />} />
         <Route path="/probe-sla" element={<ProbeSlaPage />} />
         <Route path="/status-pages" element={<StatusPageListPage />} />
+        <Route path="/inspection-plans" element={<InspectionPlanPage />} />
+        <Route
+          path="/inspection-templates"
+          element={<InspectionTemplatePage />}
+        />
+        <Route path="/inspection-runs" element={<InspectionRunPage />} />
         <Route path="/alert-rules" element={<AlertRulePage />} />
         <Route path="/alert-dictionaries" element={<AlertDictionaryPage />} />
         <Route path="/alert-pages" element={<AlertPageManagePage />} />

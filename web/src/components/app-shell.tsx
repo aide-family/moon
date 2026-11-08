@@ -8,6 +8,7 @@ import {
   CalendarClock,
   CalendarOff,
   ChevronRight,
+  ClipboardCheck,
   Database,
   FileText,
   Gauge,
@@ -311,6 +312,31 @@ const probeAvailabilityLinks: MenuLink[] = [
   },
 ]
 
+// 巡检是跨数据源、探测与告警的编排入口，独立成组。
+const inspectionLinks: MenuLink[] = [
+  {
+    to: "/inspection-plans",
+    label: "nav.inspectionPlans",
+    permission: "inspection:read",
+    capability: MENU_CAPABILITIES["/inspection-plans"],
+    icon: ClipboardCheck,
+  },
+  {
+    to: "/inspection-templates",
+    label: "nav.inspectionTemplates",
+    permission: "inspection_template:read",
+    capability: MENU_CAPABILITIES["/inspection-templates"],
+    icon: FileText,
+  },
+  {
+    to: "/inspection-runs",
+    label: "nav.inspectionRuns",
+    permission: "inspection:read",
+    capability: MENU_CAPABILITIES["/inspection-runs"],
+    icon: History,
+  },
+]
+
 type AlertNavGroup = {
   id: string
   label: string
@@ -338,6 +364,12 @@ const alertNavGroups: AlertNavGroup[] = [
     label: "nav.probeAvailability",
     icon: Radar,
     links: probeAvailabilityLinks,
+  },
+  {
+    id: "inspection",
+    label: "nav.inspection",
+    icon: ClipboardCheck,
+    links: inspectionLinks,
   },
 ]
 

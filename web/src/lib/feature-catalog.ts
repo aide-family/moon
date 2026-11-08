@@ -33,6 +33,7 @@ export const MODULES: ModuleDefinition[] = [
   { code: "member", label: { zh: "成员", en: "Members" } },
   { code: "role", label: { zh: "角色", en: "Roles" } },
   { code: "board", label: { zh: "大盘", en: "Boards" } },
+  { code: "inspection", label: { zh: "巡检", en: "Inspections" } },
   { code: "cluster", label: { zh: "Kubernetes", en: "Kubernetes" } },
   { code: "agent", label: { zh: "机器", en: "Machines" } },
   { code: "ssh", label: { zh: "SSH 与 Web Shell", en: "SSH & web shell" } },
@@ -44,6 +45,33 @@ export const MODULES: ModuleDefinition[] = [
  * notification / member / role / board）的全部能力，共 36 项。
  */
 export const CAPABILITIES: CapabilityDefinition[] = [
+  {
+    code: "inspection_plan",
+    module: "inspection",
+    label: { zh: "巡检任务", en: "Inspection plans" },
+    description: {
+      zh: "配置巡检计划、检查项、调度与通知组",
+      en: "Inspection schedules, items, schedules and groups",
+    },
+  },
+  {
+    code: "inspection_template",
+    module: "inspection",
+    label: { zh: "报告模板", en: "Report templates" },
+    description: {
+      zh: "管理巡检报告的 HTML / Markdown 模板",
+      en: "HTML and Markdown inspection report templates",
+    },
+  },
+  {
+    code: "inspection_run",
+    module: "inspection",
+    label: { zh: "执行记录与报告", en: "Runs & reports" },
+    description: {
+      zh: "查看执行记录、报告快照并生成公开分享链接",
+      en: "Inspect runs, report snapshots and public share links",
+    },
+  },
   {
     code: "alert_realtime",
     module: "alert",
@@ -626,6 +654,9 @@ export const MENU_CAPABILITIES: Record<string, string> = {
   "/probe-targets": "probe",
   "/probe-sla": "probe_sla",
   "/status-pages": "status_page",
+  "/inspection-plans": "inspection_plan",
+  "/inspection-templates": "inspection_template",
+  "/inspection-runs": "inspection_run",
   "/datasources": "datasource",
   "/notification-channels": "notification_channel",
   "/notification-templates": "notification_template",
@@ -653,6 +684,9 @@ export const MENU_LABELS: Record<string, LocalizedLabel> = {
   probe: { zh: "探测目标", en: "Probe targets" },
   probe_sla: { zh: "探测 SLA", en: "Probe SLA" },
   status_page: { zh: "状态页", en: "Status pages" },
+  inspection_plan: { zh: "巡检任务", en: "Inspection plans" },
+  inspection_template: { zh: "报告模板", en: "Report templates" },
+  inspection_run: { zh: "执行记录", en: "Inspection runs" },
   notification_channel: { zh: "通知渠道", en: "Notification channels" },
   notification_template: { zh: "消息模板", en: "Message templates" },
   notification_group: { zh: "通知组", en: "Notification groups" },
