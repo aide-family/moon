@@ -79,7 +79,11 @@ test.describe("巡检（真实后端，不 mock）", () => {
       await expect(reportFrame.locator("body")).toContainText("巡检结论")
 
       await page.getByRole("button", { name: "分享" }).first().click()
-      const shareURL = await page.locator("input[readonly]").first().inputValue()
+      await page.getByRole("button", { name: "生成链接" }).click()
+      const shareURL = await page
+        .locator("input[readonly]")
+        .first()
+        .inputValue({ timeout: 10_000 })
       expect(shareURL).toContain("/share/report/")
 
       const publicPage = await page.context().newPage()

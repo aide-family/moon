@@ -109,6 +109,9 @@ function ReportDialog({
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [shareToken, setShareToken] = useState("")
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareDays, setShareDays] = useState("7")
+  const [sharePassword, setSharePassword] = useState("")
   const [sharing, setSharing] = useState(false)
   const [resending, setResending] = useState(false)
 
@@ -196,8 +199,13 @@ function ReportDialog({
     }
     setSharing(true)
     try {
-      const result = await shareInspectionReport(active.uid, 7, "")
+      const result = await shareInspectionReport(
+        active.uid,
+        Number(shareDays),
+        sharePassword
+      )
       setShareToken(result.token)
+      setShareOpen(false)
       toast.success(t("inspection.shared"))
     } catch (err) {
       toast.error(formErrorMessage(err, t("state.failed")))
@@ -267,11 +275,41 @@ function ReportDialog({
                 <Button type="button" size="sm" variant="outline" onClick={() => void resend()} disabled={resending}>
                   {t("inspection.resend")}
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => void share()} disabled={sharing}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShareOpen((open) => !open)}
+                  disabled={sharing}
+                >
                   <Link2 data-icon="inline-start" />
                   {t("inspection.share")}
                 </Button>
               </div>
+              {shareOpen && !shareToken ? (
+                <div className="grid gap-2 rounded-lg border border-border bg-muted/30 p-3 sm:grid-cols-[160px_minmax(0,1fr)_auto]">
+                  <Select value={shareDays} onValueChange={setShareDays}>
+                    <SelectTrigger aria-label={t("inspection.shareExpiry")}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">{t("inspection.shareDays7")}</SelectItem>
+                      <SelectItem value="30">{t("inspection.shareDays30")}</SelectItem>
+                      <SelectItem value="0">{t("inspection.sharePermanent")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="password"
+                    value={sharePassword}
+                    onChange={(event) => setSharePassword(event.target.value)}
+                    placeholder={t("inspection.sharePassword")}
+                    aria-label={t("inspection.sharePassword")}
+                  />
+                  <Button type="button" size="sm" onClick={() => void share()} disabled={sharing}>
+                    {t("inspection.shareGenerate")}
+                  </Button>
+                </div>
+              ) : null}
               {shareToken ? (
                 <div className="flex flex-wrap items-center gap-2">
                   <Input readOnly value={`${window.location.origin}/share/report/${shareToken}`} className="min-w-0 flex-1 font-mono text-xs" />
@@ -281,6 +319,9 @@ function ReportDialog({
                   </Button>
                   <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={() => void revoke()}>
                     {t("inspection.shareDisable")}
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => { setShareToken(""); setShareOpen(true) }}>
+                    {t("inspection.share")}
                   </Button>
                 </div>
               ) : null}
