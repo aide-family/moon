@@ -885,3 +885,75 @@ func resolveGroupReceivers(ctx context.Context, tx *ent.Tx, group *ent.Notificat
 	}
 	return strings.Join(out, ","), nil
 }
+
+// CreateInspectionReportTasks 按通知组展开渠道，创建巡检报告任务。
+// 正文已经是最终文本，任务模板为空并标记 pre_rendered；天璇按原文发送。
+func (r *notificationRepo) CreateInspectionReportTasks(ctx context.Context, namespaceUID, sourceUID, subject, body string, groupUIDs []string) (int, error) {
+	if len(groupUIDs) == 0 {
+		return 0, nil
+	}
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return 0, r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	groups, err := tx.NotificationGroup.Query().Where(
+		notificationgroup.UIDIn(groupUIDs...),
+		notificationgroup.NamespaceUIDEQ(namespaceUID),
+		notificationgroup.StatusEQ(notificationgroup.StatusACTIVE),
+		notificationgroup.DeletedAtIsNil(),
+	).All(ctx)
+	if err != nil {
+		return 0, r.fail(err)
+	}
+	created := 0
+	for _, group := range groups {
+		targets, err := resolveGroupTargets(ctx, tx, group, "")
+		if err != nil {
+			return created, r.fail(err)
+		}
+		for _, target := range targets {
+			exists, err := tx.NotificationTask.Query().Where(
+				notificationtask.EventUIDEQ(sourceUID),
+				notificationtask.PhaseEQ(notificationtask.PhaseREPORT),
+				notificationtask.GroupUIDEQ(group.UID),
+				notificationtask.ChannelUIDEQ(target.ChannelUID),
+			).Exist(ctx)
+			if err != nil {
+				return created, r.fail(err)
+			}
+			if exists {
+				continue
+			}
+			err = tx.NotificationTask.Create().
+				SetUID(id.New()).
+				SetNamespaceUID(namespaceUID).
+				SetEventUID(sourceUID).
+				SetPhase(notificationtask.PhaseREPORT).
+				SetStatus(notificationtask.StatusPENDING).
+				SetGroupUID(group.UID).
+				SetChannelUID(target.ChannelUID).
+				SetSender(target.Sender).
+				SetReceivers(target.Receivers).
+				SetSubject(subject).
+				SetBody(body).
+				SetContent(body).
+				SetParams("{}").
+				SetPreRendered(true).
+				SetRetriesLeft(3).
+				Exec(ctx)
+			if err != nil {
+				if ent.IsConstraintError(err) {
+					continue
+				}
+				return created, r.fail(err)
+			}
+			created++
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return created, r.fail(err)
+	}
+	return created, nil
+}

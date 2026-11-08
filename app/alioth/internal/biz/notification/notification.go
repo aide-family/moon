@@ -929,3 +929,9 @@ func redactChannel(item *bo.NotificationChannel) *bo.NotificationChannel {
 	out.Secret = ""
 	return &out
 }
+
+// DispatchInspectionReport 为巡检报告创建投递任务。调用方已完成权限校验，
+// 这里只按通知组展开渠道；正文是最终文本，任务标记 pre_rendered。
+func (center *Center) DispatchInspectionReport(ctx context.Context, namespaceUID, sourceUID, subject, body string, groupUIDs []string) (int, error) {
+	return center.repo.CreateInspectionReportTasks(ctx, namespaceUID, sourceUID, subject, body, groupUIDs)
+}

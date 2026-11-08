@@ -23,7 +23,7 @@ func (NotificationTask) Fields() []ent.Field {
 		field.String("uid").NotEmpty().Immutable(),
 		field.String("namespace_uid").NotEmpty(),
 		field.String("event_uid").Default(""),
-		field.Enum("phase").Values("FIRING", "RECOVERED", "TEST").Default("TEST"),
+		field.Enum("phase").Values("FIRING", "RECOVERED", "TEST", "REPORT").Default("TEST"),
 		field.Enum("status").Values("PENDING", "SENDING", "SENT", "FAILED", "CANCELLED").Default("PENDING"),
 		field.String("rule_uid").Default(""),
 		// fingerprint 是事件指纹，用于同一告警的重复通知间隔判断。
@@ -44,6 +44,8 @@ func (NotificationTask) Fields() []ent.Field {
 		// 失败后的下一次可领取时间。为空表示立即可领取。
 		field.Time("next_attempt_at").Optional().Nillable(),
 		field.String("last_error").Default(""),
+		// pre_rendered 为 true 时正文已是最终文本，天璇跳过模板二次渲染。
+		field.Bool("pre_rendered").Default(false),
 	}
 }
 

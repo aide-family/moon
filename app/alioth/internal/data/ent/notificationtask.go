@@ -60,7 +60,9 @@ type NotificationTask struct {
 	// NextAttemptAt holds the value of the "next_attempt_at" field.
 	NextAttemptAt *time.Time `json:"next_attempt_at,omitempty"`
 	// LastError holds the value of the "last_error" field.
-	LastError    string `json:"last_error,omitempty"`
+	LastError string `json:"last_error,omitempty"`
+	// PreRendered holds the value of the "pre_rendered" field.
+	PreRendered  bool `json:"pre_rendered,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -69,6 +71,8 @@ func (*NotificationTask) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case notificationtask.FieldPreRendered:
+			values[i] = new(sql.NullBool)
 		case notificationtask.FieldID, notificationtask.FieldRetriesLeft:
 			values[i] = new(sql.NullInt64)
 		case notificationtask.FieldUID, notificationtask.FieldNamespaceUID, notificationtask.FieldEventUID, notificationtask.FieldPhase, notificationtask.FieldStatus, notificationtask.FieldRuleUID, notificationtask.FieldFingerprint, notificationtask.FieldSubscriptionUID, notificationtask.FieldGroupUID, notificationtask.FieldChannelUID, notificationtask.FieldTemplateUID, notificationtask.FieldSender, notificationtask.FieldReceivers, notificationtask.FieldSubject, notificationtask.FieldBody, notificationtask.FieldContent, notificationtask.FieldParams, notificationtask.FieldLastError:
@@ -229,6 +233,12 @@ func (_m *NotificationTask) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LastError = value.String
 			}
+		case notificationtask.FieldPreRendered:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field pre_rendered", values[i])
+			} else if value.Valid {
+				_m.PreRendered = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -332,6 +342,9 @@ func (_m *NotificationTask) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_error=")
 	builder.WriteString(_m.LastError)
+	builder.WriteString(", ")
+	builder.WriteString("pre_rendered=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PreRendered))
 	builder.WriteByte(')')
 	return builder.String()
 }

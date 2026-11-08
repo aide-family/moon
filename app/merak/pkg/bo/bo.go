@@ -24,6 +24,7 @@ type TaskSnapshot struct {
 	Params          string
 	Subject         string
 	Body            string
+	PreRendered     bool
 }
 
 // WorkerStatus is the safe instance heartbeat sent to Alioth.

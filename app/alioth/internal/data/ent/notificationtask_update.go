@@ -313,6 +313,20 @@ func (_u *NotificationTaskUpdate) SetNillableLastError(v *string) *NotificationT
 	return _u
 }
 
+// SetPreRendered sets the "pre_rendered" field.
+func (_u *NotificationTaskUpdate) SetPreRendered(v bool) *NotificationTaskUpdate {
+	_u.mutation.SetPreRendered(v)
+	return _u
+}
+
+// SetNillablePreRendered sets the "pre_rendered" field if the given value is not nil.
+func (_u *NotificationTaskUpdate) SetNillablePreRendered(v *bool) *NotificationTaskUpdate {
+	if v != nil {
+		_u.SetPreRendered(*v)
+	}
+	return _u
+}
+
 // Mutation returns the NotificationTaskMutation object of the builder.
 func (_u *NotificationTaskUpdate) Mutation() *NotificationTaskMutation {
 	return _u.mutation
@@ -456,6 +470,9 @@ func (_u *NotificationTaskUpdate) sqlSave(ctx context.Context) (_node int, err e
 	}
 	if value, ok := _u.mutation.LastError(); ok {
 		_spec.SetField(notificationtask.FieldLastError, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PreRendered(); ok {
+		_spec.SetField(notificationtask.FieldPreRendered, field.TypeBool, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -762,6 +779,20 @@ func (_u *NotificationTaskUpdateOne) SetNillableLastError(v *string) *Notificati
 	return _u
 }
 
+// SetPreRendered sets the "pre_rendered" field.
+func (_u *NotificationTaskUpdateOne) SetPreRendered(v bool) *NotificationTaskUpdateOne {
+	_u.mutation.SetPreRendered(v)
+	return _u
+}
+
+// SetNillablePreRendered sets the "pre_rendered" field if the given value is not nil.
+func (_u *NotificationTaskUpdateOne) SetNillablePreRendered(v *bool) *NotificationTaskUpdateOne {
+	if v != nil {
+		_u.SetPreRendered(*v)
+	}
+	return _u
+}
+
 // Mutation returns the NotificationTaskMutation object of the builder.
 func (_u *NotificationTaskUpdateOne) Mutation() *NotificationTaskMutation {
 	return _u.mutation
@@ -935,6 +966,9 @@ func (_u *NotificationTaskUpdateOne) sqlSave(ctx context.Context) (_node *Notifi
 	}
 	if value, ok := _u.mutation.LastError(); ok {
 		_spec.SetField(notificationtask.FieldLastError, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PreRendered(); ok {
+		_spec.SetField(notificationtask.FieldPreRendered, field.TypeBool, value)
 	}
 	_node = &NotificationTask{config: _u.config}
 	_spec.Assign = _node.assignValues

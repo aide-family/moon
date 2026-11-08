@@ -146,7 +146,9 @@ type TaskSnapshot struct {
 	// 模板标识。
 	TemplateUid string `protobuf:"bytes,19,opt,name=template_uid,json=templateUid,proto3" json:"template_uid,omitempty"`
 	// 发送方快照，SMTP 为发件地址，其余渠道为渠道标识名称。
-	Sender        string `protobuf:"bytes,20,opt,name=sender,proto3" json:"sender,omitempty"`
+	Sender string `protobuf:"bytes,20,opt,name=sender,proto3" json:"sender,omitempty"`
+	// 正文是否已渲染完成；为 true 时跳过模板渲染，按原文发送。
+	PreRendered   bool `protobuf:"varint,21,opt,name=pre_rendered,json=preRendered,proto3" json:"pre_rendered,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -319,6 +321,13 @@ func (x *TaskSnapshot) GetSender() string {
 		return x.Sender
 	}
 	return ""
+}
+
+func (x *TaskSnapshot) GetPreRendered() bool {
+	if x != nil {
+		return x.PreRendered
+	}
+	return false
 }
 
 // 把任务改为发送中。
@@ -658,7 +667,7 @@ const file_merak_v1_deliver_proto_rawDesc = "" +
 	"\x16merak/v1/deliver.proto\x12\bmerak.v1\"\x13\n" +
 	"\x11ClaimTasksRequest\"B\n" +
 	"\x12ClaimTasksResponse\x12,\n" +
-	"\x05tasks\x18\x01 \x03(\v2\x16.merak.v1.TaskSnapshotR\x05tasks\"\x9f\x05\n" +
+	"\x05tasks\x18\x01 \x03(\v2\x16.merak.v1.TaskSnapshotR\x05tasks\"\xc2\x05\n" +
 	"\fTaskSnapshot\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12#\n" +
 	"\rnamespace_uid\x18\x02 \x01(\tR\fnamespaceUid\x12\x14\n" +
@@ -682,7 +691,8 @@ const file_merak_v1_deliver_proto_rawDesc = "" +
 	"\vchannel_uid\x18\x12 \x01(\tR\n" +
 	"channelUid\x12!\n" +
 	"\ftemplate_uid\x18\x13 \x01(\tR\vtemplateUid\x12\x16\n" +
-	"\x06sender\x18\x14 \x01(\tR\x06sender\"/\n" +
+	"\x06sender\x18\x14 \x01(\tR\x06sender\x12!\n" +
+	"\fpre_rendered\x18\x15 \x01(\bR\vpreRendered\"/\n" +
 	"\x12MarkSendingRequest\x12\x19\n" +
 	"\btask_uid\x18\x01 \x01(\tR\ataskUid\"\x15\n" +
 	"\x13MarkSendingResponse\"\x8c\x01\n" +

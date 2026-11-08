@@ -38,13 +38,16 @@ func Deliver(ctx context.Context, task bo.TaskSnapshot) DeliveryResult {
 	if body == "" {
 		body = task.TemplateBody
 	}
-	subject, err := render(subject, task.Params)
-	if err != nil {
-		return DeliveryResult{Detail: err.Error(), Subject: subject, Content: body}
-	}
-	body, err = render(body, task.Params)
-	if err != nil {
-		return DeliveryResult{Detail: err.Error(), Subject: subject, Content: body}
+	if !task.PreRendered {
+		renderedSubject, err := render(subject, task.Params)
+		if err != nil {
+			return DeliveryResult{Detail: err.Error(), Subject: subject, Content: body}
+		}
+		renderedBody, err := render(body, task.Params)
+		if err != nil {
+			return DeliveryResult{Detail: err.Error(), Subject: subject, Content: body}
+		}
+		subject, body = renderedSubject, renderedBody
 	}
 	result := DeliveryResult{Subject: subject, Content: body}
 	impl, err := senderFor(task.ChannelType, task.ChannelApp)

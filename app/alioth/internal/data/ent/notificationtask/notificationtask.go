@@ -58,6 +58,8 @@ const (
 	FieldNextAttemptAt = "next_attempt_at"
 	// FieldLastError holds the string denoting the last_error field in the database.
 	FieldLastError = "last_error"
+	// FieldPreRendered holds the string denoting the pre_rendered field in the database.
+	FieldPreRendered = "pre_rendered"
 	// Table holds the table name of the notificationtask in the database.
 	Table = "notification_tasks"
 )
@@ -87,6 +89,7 @@ var Columns = []string{
 	FieldRetriesLeft,
 	FieldNextAttemptAt,
 	FieldLastError,
+	FieldPreRendered,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -140,6 +143,8 @@ var (
 	DefaultRetriesLeft int
 	// DefaultLastError holds the default value on creation for the "last_error" field.
 	DefaultLastError string
+	// DefaultPreRendered holds the default value on creation for the "pre_rendered" field.
+	DefaultPreRendered bool
 )
 
 // Phase defines the type for the "phase" enum field.
@@ -153,6 +158,7 @@ const (
 	PhaseFIRING    Phase = "FIRING"
 	PhaseRECOVERED Phase = "RECOVERED"
 	PhaseTEST      Phase = "TEST"
+	PhaseREPORT    Phase = "REPORT"
 )
 
 func (ph Phase) String() string {
@@ -162,7 +168,7 @@ func (ph Phase) String() string {
 // PhaseValidator is a validator for the "phase" field enum values. It is called by the builders before save.
 func PhaseValidator(ph Phase) error {
 	switch ph {
-	case PhaseFIRING, PhaseRECOVERED, PhaseTEST:
+	case PhaseFIRING, PhaseRECOVERED, PhaseTEST, PhaseREPORT:
 		return nil
 	default:
 		return fmt.Errorf("notificationtask: invalid enum value for phase field: %q", ph)
@@ -314,4 +320,9 @@ func ByNextAttemptAt(opts ...sql.OrderTermOption) OrderOption {
 // ByLastError orders the results by the last_error field.
 func ByLastError(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastError, opts...).ToFunc()
+}
+
+// ByPreRendered orders the results by the pre_rendered field.
+func ByPreRendered(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPreRendered, opts...).ToFunc()
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -164,10 +165,53 @@ func (gateway *Gateway) execute(ctx context.Context, run bo.InspectionRun) {
 	finished := time.Now().UTC()
 	run.FinishedAt = &finished
 	if err := gateway.persistReports(ctx, *plan, run, sections); err != nil {
-		status, run.Error = "FAILED", "render report: "+err.Error()
+		run.Status, run.Error = "FAILED", "render report: "+err.Error()
 		gateway.log.Error(fmt.Sprintf("render inspection run %s: %v", run.UID, err))
+		gateway.finish(ctx, run, run.Status, run.Error)
+		return
 	}
-	gateway.finish(ctx, run, status, run.Error)
+	gateway.finish(ctx, run, status, "")
+	gateway.deliver(ctx, *plan, run)
+}
+
+// deliver 按发送条件把报告摘要与链接投递到通知组。投递失败只记日志，不影响报告。
+func (gateway *Gateway) deliver(ctx context.Context, plan bo.InspectionPlan, run bo.InspectionRun) {
+	if len(plan.NotificationGroupUIDs) == 0 {
+		return
+	}
+	if plan.NotifyPolicy == "ON_ABNORMAL" && run.ItemWarn+run.ItemFailed == 0 {
+		return
+	}
+	finished := run.ScheduledAt
+	if run.FinishedAt != nil {
+		finished = *run.FinishedAt
+	}
+	subject := fmt.Sprintf("[巡检] %s · %s", plan.Name, finished.Local().Format("2006-01-02 15:04"))
+	baseURL := strings.TrimRight(strings.TrimSpace(os.Getenv("ALIOTH_CONSOLE_BASE_URL")), "/")
+	link := ""
+	if baseURL != "" {
+		link = baseURL + "/inspection/runs/" + run.UID
+	}
+	body := fmt.Sprintf(
+		"巡检：%s\n时间：%s\n结果：%d 项，%d 正常，%d 警告，%d 失败",
+		plan.Name, finished.Local().Format("2006-01-02 15:04"),
+		run.ItemTotal, run.ItemOK, run.ItemWarn, run.ItemFailed,
+	)
+	if link != "" {
+		body += "\n报告：" + link
+	} else {
+		body += "\n报告：请登录 Alioth 查看执行 " + run.UID
+	}
+	created, err := gateway.notifications.DispatchInspectionReport(ctx, run.NamespaceUID, run.UID, subject, body, plan.NotificationGroupUIDs)
+	if err != nil {
+		gateway.log.Error(fmt.Sprintf("deliver inspection run %s: %v", run.UID, err))
+		return
+	}
+	if created > 0 {
+		if err := gateway.repo.MarkInspectionRunNotified(context.WithoutCancel(ctx), run.UID, time.Now().UTC()); err != nil {
+			gateway.log.Error(fmt.Sprintf("mark inspection run %s notified: %v", run.UID, err))
+		}
+	}
 }
 
 func (gateway *Gateway) finish(ctx context.Context, run bo.InspectionRun, status, message string) {

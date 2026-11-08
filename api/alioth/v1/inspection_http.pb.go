@@ -305,21 +305,30 @@ func (c *InspectionPlanServiceHTTPClientImpl) UpdateInspectionPlanStatus(ctx con
 
 const OperationInspectionRunServiceGetInspectionReport = "/alioth.v1.InspectionRunService/GetInspectionReport"
 const OperationInspectionRunServiceGetInspectionRun = "/alioth.v1.InspectionRunService/GetInspectionRun"
+const OperationInspectionRunServiceGetSharedInspectionReport = "/alioth.v1.InspectionRunService/GetSharedInspectionReport"
 const OperationInspectionRunServiceListInspectionRuns = "/alioth.v1.InspectionRunService/ListInspectionRuns"
 const OperationInspectionRunServiceListRunReports = "/alioth.v1.InspectionRunService/ListRunReports"
+const OperationInspectionRunServiceRevokeInspectionReportShare = "/alioth.v1.InspectionRunService/RevokeInspectionReportShare"
 const OperationInspectionRunServiceRunInspectionPlan = "/alioth.v1.InspectionRunService/RunInspectionPlan"
+const OperationInspectionRunServiceShareInspectionReport = "/alioth.v1.InspectionRunService/ShareInspectionReport"
 
 type InspectionRunServiceHTTPServer interface {
 	// GetInspectionReport 获取报告快照，包含正文。
 	GetInspectionReport(context.Context, *GetInspectionReportRequest) (*GetInspectionReportResponse, error)
 	// GetInspectionRun 获取执行记录详情。
 	GetInspectionRun(context.Context, *GetInspectionRunRequest) (*GetInspectionRunResponse, error)
+	// GetSharedInspectionReport 按 token 读取公开报告，无需登录与租户头。
+	GetSharedInspectionReport(context.Context, *GetSharedInspectionReportRequest) (*GetSharedInspectionReportResponse, error)
 	// ListInspectionRuns 分页列出执行记录。
 	ListInspectionRuns(context.Context, *ListInspectionRunsRequest) (*ListInspectionRunsResponse, error)
 	// ListRunReports 列出一次执行生成的报告。
 	ListRunReports(context.Context, *ListRunReportsRequest) (*ListRunReportsResponse, error)
+	// RevokeInspectionReportShare 停用报告的公开链接。
+	RevokeInspectionReportShare(context.Context, *RevokeInspectionReportShareRequest) (*RevokeInspectionReportShareResponse, error)
 	// RunInspectionPlan 手动触发一次巡检。计划已有执行中的记录时返回冲突。
 	RunInspectionPlan(context.Context, *RunInspectionPlanRequest) (*RunInspectionPlanResponse, error)
+	// ShareInspectionReport 生成或轮换报告的公开链接，token 只在本次响应返回。
+	ShareInspectionReport(context.Context, *ShareInspectionReportRequest) (*ShareInspectionReportResponse, error)
 }
 
 func RegisterInspectionRunServiceHTTPServer(s *http.Server, srv InspectionRunServiceHTTPServer) {
@@ -329,6 +338,9 @@ func RegisterInspectionRunServiceHTTPServer(s *http.Server, srv InspectionRunSer
 	r.Handle("GET", "/v1/inspection/runs/{uid}", _InspectionRunService_GetInspectionRun0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/inspection/runs/{uid}/reports", _InspectionRunService_ListRunReports0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/inspection/reports/{uid}", _InspectionRunService_GetInspectionReport0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/inspection/reports/{uid}/share", _InspectionRunService_ShareInspectionReport0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/inspection/reports/{uid}/share", _InspectionRunService_RevokeInspectionReportShare0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/public/inspection-reports/{token}", _InspectionRunService_GetSharedInspectionReport0_HTTP_Handler(srv))
 }
 
 func _InspectionRunService_RunInspectionPlan0_HTTP_Handler(srv InspectionRunServiceHTTPServer) func(ctx http.Context) error {
@@ -438,17 +450,89 @@ func _InspectionRunService_GetInspectionReport0_HTTP_Handler(srv InspectionRunSe
 	}
 }
 
+func _InspectionRunService_ShareInspectionReport0_HTTP_Handler(srv InspectionRunServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ShareInspectionReportRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInspectionRunServiceShareInspectionReport)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ShareInspectionReport(ctx, req.(*ShareInspectionReportRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ShareInspectionReportResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InspectionRunService_RevokeInspectionReportShare0_HTTP_Handler(srv InspectionRunServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RevokeInspectionReportShareRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInspectionRunServiceRevokeInspectionReportShare)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RevokeInspectionReportShare(ctx, req.(*RevokeInspectionReportShareRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RevokeInspectionReportShareResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InspectionRunService_GetSharedInspectionReport0_HTTP_Handler(srv InspectionRunServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetSharedInspectionReportRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInspectionRunServiceGetSharedInspectionReport)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetSharedInspectionReport(ctx, req.(*GetSharedInspectionReportRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetSharedInspectionReportResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type InspectionRunServiceHTTPClient interface {
 	// GetInspectionReport 获取报告快照，包含正文。
 	GetInspectionReport(ctx context.Context, req *GetInspectionReportRequest, opts ...http.CallOption) (rsp *GetInspectionReportResponse, err error)
 	// GetInspectionRun 获取执行记录详情。
 	GetInspectionRun(ctx context.Context, req *GetInspectionRunRequest, opts ...http.CallOption) (rsp *GetInspectionRunResponse, err error)
+	// GetSharedInspectionReport 按 token 读取公开报告，无需登录与租户头。
+	GetSharedInspectionReport(ctx context.Context, req *GetSharedInspectionReportRequest, opts ...http.CallOption) (rsp *GetSharedInspectionReportResponse, err error)
 	// ListInspectionRuns 分页列出执行记录。
 	ListInspectionRuns(ctx context.Context, req *ListInspectionRunsRequest, opts ...http.CallOption) (rsp *ListInspectionRunsResponse, err error)
 	// ListRunReports 列出一次执行生成的报告。
 	ListRunReports(ctx context.Context, req *ListRunReportsRequest, opts ...http.CallOption) (rsp *ListRunReportsResponse, err error)
+	// RevokeInspectionReportShare 停用报告的公开链接。
+	RevokeInspectionReportShare(ctx context.Context, req *RevokeInspectionReportShareRequest, opts ...http.CallOption) (rsp *RevokeInspectionReportShareResponse, err error)
 	// RunInspectionPlan 手动触发一次巡检。计划已有执行中的记录时返回冲突。
 	RunInspectionPlan(ctx context.Context, req *RunInspectionPlanRequest, opts ...http.CallOption) (rsp *RunInspectionPlanResponse, err error)
+	// ShareInspectionReport 生成或轮换报告的公开链接，token 只在本次响应返回。
+	ShareInspectionReport(ctx context.Context, req *ShareInspectionReportRequest, opts ...http.CallOption) (rsp *ShareInspectionReportResponse, err error)
 }
 
 type InspectionRunServiceHTTPClientImpl struct {
@@ -493,6 +577,23 @@ func (c *InspectionRunServiceHTTPClientImpl) GetInspectionRun(ctx context.Contex
 	return &out, nil
 }
 
+// GetSharedInspectionReport 按 token 读取公开报告，无需登录与租户头。
+func (c *InspectionRunServiceHTTPClientImpl) GetSharedInspectionReport(ctx context.Context, in *GetSharedInspectionReportRequest, opts ...http.CallOption) (*GetSharedInspectionReportResponse, error) {
+	var out GetSharedInspectionReportResponse
+	pattern := "/v1/public/inspection-reports/{token}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationInspectionRunServiceGetSharedInspectionReport),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListInspectionRuns 分页列出执行记录。
 func (c *InspectionRunServiceHTTPClientImpl) ListInspectionRuns(ctx context.Context, in *ListInspectionRunsRequest, opts ...http.CallOption) (*ListInspectionRunsResponse, error) {
 	var out ListInspectionRunsResponse
@@ -527,6 +628,23 @@ func (c *InspectionRunServiceHTTPClientImpl) ListRunReports(ctx context.Context,
 	return &out, nil
 }
 
+// RevokeInspectionReportShare 停用报告的公开链接。
+func (c *InspectionRunServiceHTTPClientImpl) RevokeInspectionReportShare(ctx context.Context, in *RevokeInspectionReportShareRequest, opts ...http.CallOption) (*RevokeInspectionReportShareResponse, error) {
+	var out RevokeInspectionReportShareResponse
+	pattern := "/v1/inspection/reports/{uid}/share"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationInspectionRunServiceRevokeInspectionReportShare),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // RunInspectionPlan 手动触发一次巡检。计划已有执行中的记录时返回冲突。
 func (c *InspectionRunServiceHTTPClientImpl) RunInspectionPlan(ctx context.Context, in *RunInspectionPlanRequest, opts ...http.CallOption) (*RunInspectionPlanResponse, error) {
 	var out RunInspectionPlanResponse
@@ -536,6 +654,24 @@ func (c *InspectionRunServiceHTTPClientImpl) RunInspectionPlan(ctx context.Conte
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationInspectionRunServiceRunInspectionPlan),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ShareInspectionReport 生成或轮换报告的公开链接，token 只在本次响应返回。
+func (c *InspectionRunServiceHTTPClientImpl) ShareInspectionReport(ctx context.Context, in *ShareInspectionReportRequest, opts ...http.CallOption) (*ShareInspectionReportResponse, error) {
+	var out ShareInspectionReportResponse
+	pattern := "/v1/inspection/reports/{uid}/share"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationInspectionRunServiceShareInspectionReport),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

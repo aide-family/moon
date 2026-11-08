@@ -154,6 +154,11 @@ func LastError(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldLastError, v))
 }
 
+// PreRendered applies equality check predicate on the "pre_rendered" field. It's identical to PreRenderedEQ.
+func PreRendered(v bool) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldPreRendered, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldCreatedAt, v))
@@ -1402,6 +1407,16 @@ func LastErrorEqualFold(v string) predicate.NotificationTask {
 // LastErrorContainsFold applies the ContainsFold predicate on the "last_error" field.
 func LastErrorContainsFold(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldContainsFold(FieldLastError, v))
+}
+
+// PreRenderedEQ applies the EQ predicate on the "pre_rendered" field.
+func PreRenderedEQ(v bool) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldPreRendered, v))
+}
+
+// PreRenderedNEQ applies the NEQ predicate on the "pre_rendered" field.
+func PreRenderedNEQ(v bool) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNEQ(FieldPreRendered, v))
 }
 
 // And groups predicates with the AND operator between them.

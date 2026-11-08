@@ -679,8 +679,80 @@ func toInspectionReport(row *ent.InspectionReport) bo.InspectionReport {
 		UID: row.UID, NamespaceUID: row.NamespaceUID, RunUID: row.RunUID,
 		Format: string(row.Format), Title: row.Title, Content: row.Content,
 		Size: row.Size, Checksum: row.Checksum, ShareEnabled: row.ShareEnabled,
+		ShareTokenHash: row.ShareTokenHash, SharePasswordHash: row.SharePasswordHash,
 		ShareExpiresAt: row.ShareExpiresAt, ShareCreatedBy: row.ShareCreatedBy,
 		ShareCreatedAt: row.ShareCreatedAt, ShareViewCount: row.ShareViewCount,
 		ShareLastViewedAt: row.ShareLastViewedAt, CreatedAt: row.CreatedAt,
 	}
+}
+
+func (r *inspectionRepo) ShareInspectionReport(ctx context.Context, namespaceUID, uid, tokenHash string, expiresAt *time.Time, passwordHash, createdBy string) (*bo.InspectionReport, error) {
+	now := time.Now().UTC()
+	update := r.client.InspectionReport.Update().
+		Where(inspectionreport.UIDEQ(uid), inspectionreport.NamespaceUIDEQ(namespaceUID)).
+		SetShareTokenHash(tokenHash).
+		SetShareEnabled(true).
+		SetSharePasswordHash(passwordHash).
+		SetShareCreatedBy(createdBy).
+		SetShareCreatedAt(now)
+	if expiresAt != nil {
+		update.SetShareExpiresAt(*expiresAt)
+	} else {
+		update.ClearShareExpiresAt()
+	}
+	n, err := update.Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if n == 0 {
+		return nil, merr.NotFound("inspection report not found")
+	}
+	return r.GetInspectionReport(ctx, namespaceUID, uid)
+}
+
+func (r *inspectionRepo) RevokeInspectionReportShare(ctx context.Context, namespaceUID, uid string) (*bo.InspectionReport, error) {
+	n, err := r.client.InspectionReport.Update().
+		Where(inspectionreport.UIDEQ(uid), inspectionreport.NamespaceUIDEQ(namespaceUID)).
+		SetShareEnabled(false).
+		Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if n == 0 {
+		return nil, merr.NotFound("inspection report not found")
+	}
+	return r.GetInspectionReport(ctx, namespaceUID, uid)
+}
+
+func (r *inspectionRepo) GetSharedInspectionReport(ctx context.Context, tokenHash string, now time.Time) (*bo.InspectionReport, error) {
+	row, err := r.client.InspectionReport.Query().Where(
+		inspectionreport.ShareTokenHashEQ(tokenHash),
+		inspectionreport.ShareEnabledEQ(true),
+		inspectionreport.Or(
+			inspectionreport.ShareExpiresAtIsNil(),
+			inspectionreport.ShareExpiresAtGT(now),
+		),
+	).Only(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	item := toInspectionReport(row)
+	return &item, nil
+}
+
+func (r *inspectionRepo) TouchInspectionReportShare(ctx context.Context, uid string, now time.Time) error {
+	_, err := r.client.InspectionReport.Update().
+		Where(inspectionreport.UIDEQ(uid)).
+		AddShareViewCount(1).
+		SetShareLastViewedAt(now).
+		Save(ctx)
+	return r.fail(err)
+}
+
+func (r *inspectionRepo) MarkInspectionRunNotified(ctx context.Context, uid string, at time.Time) error {
+	_, err := r.client.InspectionRun.Update().
+		Where(inspectionrun.UIDEQ(uid)).
+		SetNotifiedAt(at).
+		Save(ctx)
+	return r.fail(err)
 }

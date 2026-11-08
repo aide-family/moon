@@ -75,3 +75,21 @@ func TestRenderFillsLegacyParams(t *testing.T) {
 		t.Fatalf("legacy render = %q", got)
 	}
 }
+
+// 巡检报告正文已经渲染完成，天璇必须跳过二次渲染，保留原文里的 {{ }}。
+func TestDeliverPreRenderedKeepsTemplateSyntax(t *testing.T) {
+	result := Deliver(context.Background(), bo.TaskSnapshot{
+		ChannelType: "UNSUPPORTED",
+		ChannelApp:  "OTHER",
+		PreRendered: true,
+		Subject:     "[巡检] 核心业务每日巡检 · 2026-11-07 09:00",
+		Body:        "订单服务延迟 1.82s，日志含 {{.raw}} 原文",
+		Params:      `{"raw":"ignored"}`,
+	})
+	if result.Subject != "[巡检] 核心业务每日巡检 · 2026-11-07 09:00" {
+		t.Fatalf("subject = %q", result.Subject)
+	}
+	if result.Content != "订单服务延迟 1.82s，日志含 {{.raw}} 原文" {
+		t.Fatalf("pre-rendered content changed: %q", result.Content)
+	}
+}

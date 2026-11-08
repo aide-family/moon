@@ -47,6 +47,17 @@ type InspectionRepo interface {
 	GetInspectionReport(ctx context.Context, namespaceUID, uid string) (*bo.InspectionReport, error)
 	// FirstBuiltinInspectionTemplate 返回内置模板中指定格式正文非空的第一条。
 	FirstBuiltinInspectionTemplate(ctx context.Context, format string) (*bo.InspectionTemplate, error)
+	// MarkInspectionRunNotified 记录一次投递入队完成时间。
+	MarkInspectionRunNotified(ctx context.Context, uid string, at time.Time) error
 	// PruneInspectionReports 删除 before 之前的报告，返回删除条数。
 	PruneInspectionReports(ctx context.Context, before time.Time) (int, error)
+
+	// ShareInspectionReport 写入分享 token 哈希、有效期与可选密码哈希。
+	ShareInspectionReport(ctx context.Context, namespaceUID, uid, tokenHash string, expiresAt *time.Time, passwordHash, createdBy string) (*bo.InspectionReport, error)
+	// RevokeInspectionReportShare 停用公开链接。
+	RevokeInspectionReportShare(ctx context.Context, namespaceUID, uid string) (*bo.InspectionReport, error)
+	// GetSharedInspectionReport 按 token 哈希读取启用且未过期的报告。
+	GetSharedInspectionReport(ctx context.Context, tokenHash string, now time.Time) (*bo.InspectionReport, error)
+	// TouchInspectionReportShare 记录一次公开访问。
+	TouchInspectionReportShare(ctx context.Context, uid string, now time.Time) error
 }

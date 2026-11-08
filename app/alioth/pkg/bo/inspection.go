@@ -114,6 +114,8 @@ type InspectionReport struct {
 	Size              int
 	Checksum          string
 	ShareEnabled      bool
+	ShareTokenHash    string
+	SharePasswordHash string
 	ShareExpiresAt    *time.Time
 	ShareCreatedBy    string
 	ShareCreatedAt    *time.Time

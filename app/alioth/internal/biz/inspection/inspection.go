@@ -14,6 +14,7 @@ import (
 
 	"github.com/aide-family/moon/app/alioth/internal/access"
 	"github.com/aide-family/moon/app/alioth/internal/biz/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
 	"github.com/aide-family/moon/app/alioth/pkg/actor"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
@@ -49,14 +50,15 @@ var (
 
 // Gateway 管理巡检计划与报告模板。调度与执行在后续里程碑接入。
 type Gateway struct {
-	repo        repository.InspectionRepo
-	datasources *datasource.Gateway
-	probes      repository.ProbeTargetRepo
-	events      repository.AlertEventRepo
-	namespaces  repository.NamespaceRepo
-	access      access.Checker
-	log         *slog.Logger
-	owner       string
+	repo          repository.InspectionRepo
+	datasources   *datasource.Gateway
+	probes        repository.ProbeTargetRepo
+	events        repository.AlertEventRepo
+	namespaces    repository.NamespaceRepo
+	notifications *notification.Center
+	access        access.Checker
+	log           *slog.Logger
+	owner         string
 }
 
 func NewGateway(
@@ -65,12 +67,13 @@ func NewGateway(
 	probes repository.ProbeTargetRepo,
 	events repository.AlertEventRepo,
 	namespaces repository.NamespaceRepo,
+	notifications *notification.Center,
 	checker access.Checker,
 	logger *slog.Logger,
 ) *Gateway {
 	return &Gateway{
 		repo: repo, datasources: datasources, probes: probes, events: events,
-		namespaces: namespaces, access: checker, log: logger, owner: id.New(),
+		namespaces: namespaces, notifications: notifications, access: checker, log: logger, owner: id.New(),
 	}
 }
 

@@ -50,7 +50,8 @@ func (g *gateway) Claim(ctx context.Context) ([]bo.TaskSnapshot, error) {
 			ChannelPassword: task.GetChannelPassword(), ChannelSecret: task.GetChannelSecret(),
 			ChannelFrom: task.GetChannelFrom(), Sender: task.GetSender(), TemplateUID: task.GetTemplateUid(), TemplateType: task.GetTemplateType(),
 			TemplateSubject: task.GetTemplateSubject(), TemplateBody: task.GetTemplateBody(),
-			Receivers: task.GetReceivers(), Params: task.GetParams(), Subject: task.GetSubject(), Body: task.GetBody(),
+			PreRendered: task.GetPreRendered(),
+			Receivers:   task.GetReceivers(), Params: task.GetParams(), Subject: task.GetSubject(), Body: task.GetBody(),
 		})
 	}
 	return items, nil

@@ -334,6 +334,7 @@ func (s *NotifyService) ClaimTasks(ctx context.Context, _ *merakv1.ClaimTasksReq
 			ChannelFrom: item.ChannelFrom, Sender: item.Sender, TemplateType: item.TemplateType, TemplateSubject: item.TemplateSubject,
 			TemplateBody: item.TemplateBody, Receivers: item.Receivers, Params: item.Params,
 			Subject: item.Subject, Body: item.Body, ChannelUid: item.ChannelUID, TemplateUid: item.TemplateUID,
+			PreRendered: item.PreRendered,
 		})
 	}
 	return &merakv1.ClaimTasksResponse{Tasks: tasks}, nil

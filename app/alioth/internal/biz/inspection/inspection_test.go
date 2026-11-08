@@ -172,3 +172,23 @@ func TestRenderTitle(t *testing.T) {
 		t.Fatalf("default title = %s err=%v", def, err)
 	}
 }
+
+func TestShareToken(t *testing.T) {
+	token, err := newShareToken()
+	if err != nil {
+		t.Fatalf("new token: %v", err)
+	}
+	if len(token) != 43 {
+		t.Fatalf("token length = %d", len(token))
+	}
+	other, _ := newShareToken()
+	if token == other {
+		t.Fatal("share tokens must be unique")
+	}
+	if hashShareToken(token) == token {
+		t.Fatal("token hash must not equal the token")
+	}
+	if hashShareToken(token) != hashShareToken(token) {
+		t.Fatal("token hash must be deterministic")
+	}
+}

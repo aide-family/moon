@@ -1917,7 +1917,7 @@ var (
 		{Name: "uid", Type: field.TypeString},
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "event_uid", Type: field.TypeString, Default: ""},
-		{Name: "phase", Type: field.TypeEnum, Enums: []string{"FIRING", "RECOVERED", "TEST"}, Default: "TEST"},
+		{Name: "phase", Type: field.TypeEnum, Enums: []string{"FIRING", "RECOVERED", "TEST", "REPORT"}, Default: "TEST"},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "SENDING", "SENT", "FAILED", "CANCELLED"}, Default: "PENDING"},
 		{Name: "rule_uid", Type: field.TypeString, Default: ""},
 		{Name: "fingerprint", Type: field.TypeString, Default: ""},
@@ -1934,6 +1934,7 @@ var (
 		{Name: "retries_left", Type: field.TypeInt, Default: 3},
 		{Name: "next_attempt_at", Type: field.TypeTime, Nullable: true},
 		{Name: "last_error", Type: field.TypeString, Default: ""},
+		{Name: "pre_rendered", Type: field.TypeBool, Default: false},
 	}
 	// NotificationTasksTable holds the schema information for the "notification_tasks" table.
 	NotificationTasksTable = &schema.Table{

@@ -67,6 +67,8 @@ message TaskSnapshot {
   string template_uid = 19;
   // 发送方快照，SMTP 为发件地址，其余渠道为渠道标识名称。
   string sender = 20;
+  // 正文是否已渲染完成；为 true 时跳过模板渲染，按原文发送。
+  bool pre_rendered = 21;
 }
 
 // 把任务改为发送中。

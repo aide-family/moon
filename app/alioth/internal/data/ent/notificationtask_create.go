@@ -304,6 +304,20 @@ func (_c *NotificationTaskCreate) SetNillableLastError(v *string) *NotificationT
 	return _c
 }
 
+// SetPreRendered sets the "pre_rendered" field.
+func (_c *NotificationTaskCreate) SetPreRendered(v bool) *NotificationTaskCreate {
+	_c.mutation.SetPreRendered(v)
+	return _c
+}
+
+// SetNillablePreRendered sets the "pre_rendered" field if the given value is not nil.
+func (_c *NotificationTaskCreate) SetNillablePreRendered(v *bool) *NotificationTaskCreate {
+	if v != nil {
+		_c.SetPreRendered(*v)
+	}
+	return _c
+}
+
 // Mutation returns the NotificationTaskMutation object of the builder.
 func (_c *NotificationTaskCreate) Mutation() *NotificationTaskMutation {
 	return _c.mutation
@@ -411,6 +425,10 @@ func (_c *NotificationTaskCreate) defaults() {
 		v := notificationtask.DefaultLastError
 		_c.mutation.SetLastError(v)
 	}
+	if _, ok := _c.mutation.PreRendered(); !ok {
+		v := notificationtask.DefaultPreRendered
+		_c.mutation.SetPreRendered(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -502,6 +520,9 @@ func (_c *NotificationTaskCreate) check() error {
 	}
 	if _, ok := _c.mutation.LastError(); !ok {
 		return &ValidationError{Name: "last_error", err: errors.New(`ent: missing required field "NotificationTask.last_error"`)}
+	}
+	if _, ok := _c.mutation.PreRendered(); !ok {
+		return &ValidationError{Name: "pre_rendered", err: errors.New(`ent: missing required field "NotificationTask.pre_rendered"`)}
 	}
 	return nil
 }
@@ -616,6 +637,10 @@ func (_c *NotificationTaskCreate) createSpec() (*NotificationTask, *sqlgraph.Cre
 	if value, ok := _c.mutation.LastError(); ok {
 		_spec.SetField(notificationtask.FieldLastError, field.TypeString, value)
 		_node.LastError = value
+	}
+	if value, ok := _c.mutation.PreRendered(); ok {
+		_spec.SetField(notificationtask.FieldPreRendered, field.TypeBool, value)
+		_node.PreRendered = value
 	}
 	return _node, _spec
 }

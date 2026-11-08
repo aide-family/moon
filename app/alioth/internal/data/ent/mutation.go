@@ -45375,6 +45375,7 @@ type NotificationTaskMutation struct {
 	addretries_left  *int
 	next_attempt_at  *time.Time
 	last_error       *string
+	pre_rendered     *bool
 	clearedFields    map[string]struct{}
 	done             bool
 	oldValue         func(context.Context) (*NotificationTask, error)
@@ -46304,6 +46305,42 @@ func (m *NotificationTaskMutation) ResetLastError() {
 	m.last_error = nil
 }
 
+// SetPreRendered sets the "pre_rendered" field.
+func (m *NotificationTaskMutation) SetPreRendered(b bool) {
+	m.pre_rendered = &b
+}
+
+// PreRendered returns the value of the "pre_rendered" field in the mutation.
+func (m *NotificationTaskMutation) PreRendered() (r bool, exists bool) {
+	v := m.pre_rendered
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreRendered returns the old "pre_rendered" field's value of the NotificationTask entity.
+// If the NotificationTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationTaskMutation) OldPreRendered(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreRendered is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreRendered requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreRendered: %w", err)
+	}
+	return oldValue.PreRendered, nil
+}
+
+// ResetPreRendered resets all changes to the "pre_rendered" field.
+func (m *NotificationTaskMutation) ResetPreRendered() {
+	m.pre_rendered = nil
+}
+
 // Where appends a list predicates to the NotificationTaskMutation builder.
 func (m *NotificationTaskMutation) Where(ps ...predicate.NotificationTask) {
 	m.predicates = append(m.predicates, ps...)
@@ -46338,7 +46375,7 @@ func (m *NotificationTaskMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationTaskMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 23)
 	if m.created_at != nil {
 		fields = append(fields, notificationtask.FieldCreatedAt)
 	}
@@ -46405,6 +46442,9 @@ func (m *NotificationTaskMutation) Fields() []string {
 	if m.last_error != nil {
 		fields = append(fields, notificationtask.FieldLastError)
 	}
+	if m.pre_rendered != nil {
+		fields = append(fields, notificationtask.FieldPreRendered)
+	}
 	return fields
 }
 
@@ -46457,6 +46497,8 @@ func (m *NotificationTaskMutation) Field(name string) (ent.Value, bool) {
 		return m.NextAttemptAt()
 	case notificationtask.FieldLastError:
 		return m.LastError()
+	case notificationtask.FieldPreRendered:
+		return m.PreRendered()
 	}
 	return nil, false
 }
@@ -46510,6 +46552,8 @@ func (m *NotificationTaskMutation) OldField(ctx context.Context, name string) (e
 		return m.OldNextAttemptAt(ctx)
 	case notificationtask.FieldLastError:
 		return m.OldLastError(ctx)
+	case notificationtask.FieldPreRendered:
+		return m.OldPreRendered(ctx)
 	}
 	return nil, fmt.Errorf("unknown NotificationTask field %s", name)
 }
@@ -46673,6 +46717,13 @@ func (m *NotificationTaskMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetLastError(v)
 		return nil
+	case notificationtask.FieldPreRendered:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreRendered(v)
+		return nil
 	}
 	return fmt.Errorf("unknown NotificationTask field %s", name)
 }
@@ -46811,6 +46862,9 @@ func (m *NotificationTaskMutation) ResetField(name string) error {
 		return nil
 	case notificationtask.FieldLastError:
 		m.ResetLastError()
+		return nil
+	case notificationtask.FieldPreRendered:
+		m.ResetPreRendered()
 		return nil
 	}
 	return fmt.Errorf("unknown NotificationTask field %s", name)

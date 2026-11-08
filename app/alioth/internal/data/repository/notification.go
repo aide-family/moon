@@ -59,6 +59,9 @@ type NotificationRepo interface {
 	ListGroupsForMember(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]bo.NotificationGroup, error)
 
 	CreateTestTask(ctx context.Context, in bo.NotificationTask) (*bo.NotificationTask, error)
+	// CreateInspectionReportTasks 按通知组展开渠道，创建「报告摘要 + 链接」任务。
+	// 正文已渲染完成，任务标记 pre_rendered，天璇不会再次执行模板渲染。
+	CreateInspectionReportTasks(ctx context.Context, namespaceUID, sourceUID, subject, body string, groupUIDs []string) (int, error)
 	ListTasks(ctx context.Context, namespaceUID string, filter bo.NotificationTaskListFilter, page, pageSize int) ([]bo.NotificationTask, int, error)
 	RetryTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error)
 	CancelTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error)

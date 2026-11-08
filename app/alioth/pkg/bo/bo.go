@@ -726,6 +726,7 @@ type NotificationTask struct {
 	Body            string
 	Content         string
 	Params          string
+	PreRendered     bool
 	RetriesLeft     int
 	LastError       string
 	// 以下字段只在列表展示时补出，用于定位消息来源。
@@ -916,6 +917,7 @@ type NotifySnapshot struct {
 	Params          string
 	Subject         string
 	Body            string
+	PreRendered     bool
 }
 
 // Board 是一块大盘：把多个 Grafana 面板链接按布局组合成一个整板。

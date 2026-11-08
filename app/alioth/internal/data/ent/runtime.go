@@ -2306,6 +2306,10 @@ func init() {
 	notificationtaskDescLastError := notificationtaskFields[19].Descriptor()
 	// notificationtask.DefaultLastError holds the default value on creation for the last_error field.
 	notificationtask.DefaultLastError = notificationtaskDescLastError.Default.(string)
+	// notificationtaskDescPreRendered is the schema descriptor for pre_rendered field.
+	notificationtaskDescPreRendered := notificationtaskFields[20].Descriptor()
+	// notificationtask.DefaultPreRendered holds the default value on creation for the pre_rendered field.
+	notificationtask.DefaultPreRendered = notificationtaskDescPreRendered.Default.(bool)
 	notificationtemplateMixin := schema.NotificationTemplate{}.Mixin()
 	notificationtemplateMixinFields0 := notificationtemplateMixin[0].Fields()
 	_ = notificationtemplateMixinFields0

@@ -293,3 +293,33 @@ func inspectionReportItem(in bo.InspectionReport, includeContent bool) *v1.Inspe
 	}
 	return item
 }
+
+func (s *InspectionRunService) ShareInspectionReport(ctx context.Context, req *v1.ShareInspectionReportRequest) (*v1.ShareInspectionReportResponse, error) {
+	report, token, err := s.gateway.ShareReport(ctx, req.GetUid(), req.GetDays(), req.GetPassword())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ShareInspectionReportResponse{
+		Token: token, ExpiresAt: formatOptionalTime(report.ShareExpiresAt),
+		Report: inspectionReportItem(*report, false),
+	}, nil
+}
+
+func (s *InspectionRunService) RevokeInspectionReportShare(ctx context.Context, req *v1.RevokeInspectionReportShareRequest) (*v1.RevokeInspectionReportShareResponse, error) {
+	report, err := s.gateway.RevokeReportShare(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.RevokeInspectionReportShareResponse{Report: inspectionReportItem(*report, false)}, nil
+}
+
+func (s *InspectionRunService) GetSharedInspectionReport(ctx context.Context, req *v1.GetSharedInspectionReportRequest) (*v1.GetSharedInspectionReportResponse, error) {
+	report, err := s.gateway.PublicReport(ctx, req.GetToken(), req.GetPassword())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetSharedInspectionReportResponse{
+		Title: report.Title, Format: report.Format, Content: report.Content,
+		CreatedAt: formatTime(report.CreatedAt),
+	}, nil
+}

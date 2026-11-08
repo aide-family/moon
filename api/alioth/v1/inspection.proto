@@ -69,6 +69,21 @@ service InspectionRunService {
   rpc GetInspectionReport(GetInspectionReportRequest) returns (GetInspectionReportResponse) {
     option (google.api.http) = {get: "/v1/inspection/reports/{uid}"};
   }
+  // 生成或轮换报告的公开链接，token 只在本次响应返回。
+  rpc ShareInspectionReport(ShareInspectionReportRequest) returns (ShareInspectionReportResponse) {
+    option (google.api.http) = {
+      post: "/v1/inspection/reports/{uid}/share"
+      body: "*"
+    };
+  }
+  // 停用报告的公开链接。
+  rpc RevokeInspectionReportShare(RevokeInspectionReportShareRequest) returns (RevokeInspectionReportShareResponse) {
+    option (google.api.http) = {delete: "/v1/inspection/reports/{uid}/share"};
+  }
+  // 按 token 读取公开报告，无需登录与租户头。
+  rpc GetSharedInspectionReport(GetSharedInspectionReportRequest) returns (GetSharedInspectionReportResponse) {
+    option (google.api.http) = {get: "/v1/public/inspection-reports/{token}"};
+  }
 }
 
 // 巡检报告模板：一份版式、两段正文，HTML 与 Markdown 共用同一份数据契约。
@@ -553,4 +568,57 @@ message GetInspectionReportRequest {
 message GetInspectionReportResponse {
   // 报告详情，包含正文。
   InspectionReport report = 1;
+}
+
+
+// 生成或轮换公开链接请求。
+message ShareInspectionReportRequest {
+  // 报告标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 有效期天数：0 永久、7 或 30 天。
+  int32 days = 2 [(buf.validate.field).int32 = {in: [0, 7, 30]}];
+  // 可选访问密码。
+  string password = 3 [(buf.validate.field).string = {max_len: 64}];
+}
+
+// 生成或轮换公开链接响应。
+message ShareInspectionReportResponse {
+  // 公开链接 token；只返回一次，服务端只存哈希。
+  string token = 1;
+  // 到期时间，RFC3339；永久时为空。
+  string expires_at = 2 [json_name = "expiresAt"];
+  // 报告元信息。
+  InspectionReport report = 3;
+}
+
+// 停用公开链接请求。
+message RevokeInspectionReportShareRequest {
+  // 报告标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 停用公开链接响应。
+message RevokeInspectionReportShareResponse {
+  // 报告元信息。
+  InspectionReport report = 1;
+}
+
+// 公开报告请求。
+message GetSharedInspectionReportRequest {
+  // 公开链接 token。
+  string token = 1 [(buf.validate.field).string.min_len = 1];
+  // 访问密码；报告未设密码时忽略。
+  string password = 2 [(buf.validate.field).string = {max_len: 64}];
+}
+
+// 公开报告响应，只返回展示必需字段。
+message GetSharedInspectionReportResponse {
+  // 报告标题。
+  string title = 1;
+  // 格式，取值为 HTML 或 MARKDOWN。
+  string format = 2;
+  // 报告正文快照。
+  string content = 3;
+  // 生成时间，RFC3339。
+  string created_at = 4 [json_name = "createdAt"];
 }

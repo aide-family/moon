@@ -1429,6 +1429,7 @@ func (r *notificationRepo) snapshot(ctx context.Context, row *ent.NotificationTa
 			ChannelPassword: password, ChannelSecret: secret, ChannelFrom: channel.FromAddress, Sender: sender,
 			TemplateUID: template.UID, TemplateType: templateType, TemplateSubject: template.Subject, TemplateBody: template.Body,
 			Receivers: row.Receivers, Params: row.Params, Subject: subject, Body: body,
+			PreRendered: row.PreRendered,
 		}, nil
 	}
 	return bo.NotifySnapshot{
@@ -1438,6 +1439,7 @@ func (r *notificationRepo) snapshot(ctx context.Context, row *ent.NotificationTa
 		ChannelPassword: password, ChannelSecret: secret, ChannelFrom: channel.FromAddress, Sender: sender,
 		TemplateUID: templateUID, TemplateType: templateType, TemplateSubject: subject, TemplateBody: body,
 		Receivers: row.Receivers, Params: row.Params, Subject: subject, Body: body,
+		PreRendered: row.PreRendered,
 	}, nil
 }
 
