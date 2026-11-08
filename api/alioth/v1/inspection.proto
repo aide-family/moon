@@ -61,6 +61,14 @@ service InspectionRunService {
   rpc GetInspectionRun(GetInspectionRunRequest) returns (GetInspectionRunResponse) {
     option (google.api.http) = {get: "/v1/inspection/runs/{uid}"};
   }
+  // 列出一次执行生成的报告。
+  rpc ListRunReports(ListRunReportsRequest) returns (ListRunReportsResponse) {
+    option (google.api.http) = {get: "/v1/inspection/runs/{uid}/reports"};
+  }
+  // 获取报告快照，包含正文。
+  rpc GetInspectionReport(GetInspectionReportRequest) returns (GetInspectionReportResponse) {
+    option (google.api.http) = {get: "/v1/inspection/reports/{uid}"};
+  }
 }
 
 // 巡检报告模板：一份版式、两段正文，HTML 与 Markdown 共用同一份数据契约。
@@ -498,4 +506,51 @@ message GetInspectionRunRequest {
 message GetInspectionRunResponse {
   // 执行记录。
   InspectionRun run = 1;
+}
+
+
+// 一份巡检报告快照。
+message InspectionReport {
+  // 标识。
+  string uid = 1;
+  // 归属执行。
+  string run_uid = 2 [json_name = "runUid"];
+  // 格式，取值为 HTML 或 MARKDOWN。
+  string format = 3;
+  // 渲染后的标题。
+  string title = 4;
+  // 正文；列表接口不返回。
+  string content = 5;
+  // 字节数。
+  int32 size = 6;
+  // 是否已开启公开分享。
+  bool share_enabled = 7 [json_name = "shareEnabled"];
+  // 分享到期时间，RFC3339。
+  string share_expires_at = 8 [json_name = "shareExpiresAt"];
+  // 创建时间，RFC3339。
+  string created_at = 9 [json_name = "createdAt"];
+}
+
+// 列出执行报告请求。
+message ListRunReportsRequest {
+  // 执行记录标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 列出执行报告响应。
+message ListRunReportsResponse {
+  // 报告列表，按格式排序。
+  repeated InspectionReport items = 1;
+}
+
+// 获取报告请求。
+message GetInspectionReportRequest {
+  // 报告标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取报告响应。
+message GetInspectionReportResponse {
+  // 报告详情，包含正文。
+  InspectionReport report = 1;
 }

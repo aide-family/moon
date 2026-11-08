@@ -128,3 +128,47 @@ func TestProbeStats(t *testing.T) {
 		t.Fatalf("checks=%d ok=%d latency=%d", checks, ok, latency)
 	}
 }
+
+func TestRenderBody(t *testing.T) {
+	data := bo.InspectionReportData{
+		Title:   "核心业务巡检",
+		Tenant:  bo.ReportTenant{Name: "星环科技"},
+		Plan:    bo.ReportPlan{Name: "核心业务巡检"},
+		Summary: bo.InspectionSummary{Total: 4, OK: 3, Warn: 1, Abnormal: 1},
+	}
+	html, err := renderBody("HTML", `<h1>{{.Title}}</h1><p>{{.Plan.Name}} · {{.Summary.Total}} 项</p>`, data)
+	if err != nil {
+		t.Fatalf("render html: %v", err)
+	}
+	if !strings.Contains(html, "核心业务巡检") || !strings.Contains(html, "4 项") {
+		t.Fatalf("unexpected html: %s", html)
+	}
+	markdown, err := renderBody("MARKDOWN", "# {{.Title}}\n\n{{.Summary.OK}} 正常", data)
+	if err != nil {
+		t.Fatalf("render markdown: %v", err)
+	}
+	if !strings.Contains(markdown, "3 正常") {
+		t.Fatalf("unexpected markdown: %s", markdown)
+	}
+	if _, err := renderBody("HTML", `{{if .Title}}`, data); err == nil {
+		t.Fatal("broken template should fail")
+	}
+}
+
+func TestRenderTitle(t *testing.T) {
+	data := bo.InspectionReportData{
+		Plan: bo.ReportPlan{Name: "核心业务巡检"},
+		Run:  bo.ReportRun{FinishedAt: time.Date(2026, 11, 7, 9, 0, 0, 0, time.Local)},
+	}
+	title, err := renderTitle(`{{.Plan.Name}} · {{.Run.FinishedAt | date "2006-01-02 15:04"}}`, data)
+	if err != nil {
+		t.Fatalf("render title: %v", err)
+	}
+	if title != "核心业务巡检 · 2026-11-07 09:00" {
+		t.Fatalf("title = %s", title)
+	}
+	def, err := renderTitle("", data)
+	if err != nil || !strings.HasPrefix(def, "核心业务巡检 · 2026-11-07 09:00") {
+		t.Fatalf("default title = %s err=%v", def, err)
+	}
+}

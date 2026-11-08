@@ -163,7 +163,11 @@ func (gateway *Gateway) execute(ctx context.Context, run bo.InspectionRun) {
 	run.Summary, run.Result = string(summary), string(result)
 	finished := time.Now().UTC()
 	run.FinishedAt = &finished
-	gateway.finish(ctx, run, status, "")
+	if err := gateway.persistReports(ctx, *plan, run, sections); err != nil {
+		status, run.Error = "FAILED", "render report: "+err.Error()
+		gateway.log.Error(fmt.Sprintf("render inspection run %s: %v", run.UID, err))
+	}
+	gateway.finish(ctx, run, status, run.Error)
 }
 
 func (gateway *Gateway) finish(ctx context.Context, run bo.InspectionRun, status, message string) {

@@ -33,6 +33,7 @@ type Scheduler struct {
 	lastBackfill      time.Time
 	lastLogBackfill   time.Time
 	lastProbePrune    time.Time
+	lastReportPrune   time.Time
 	lastSlaRollup     time.Time
 	cancel            context.CancelFunc
 	done              chan struct{}
@@ -116,6 +117,7 @@ func (s *Scheduler) tick(ctx context.Context) {
 	s.backfillHistory(ctx)
 	s.backfillMessageLogs(ctx)
 	s.pruneProbeResults(ctx)
+	s.pruneInspectionReports(ctx)
 	s.rollupProbeSla(ctx)
 	s.cleanupWorkerInstances(ctx)
 }
@@ -145,6 +147,17 @@ func (s *Scheduler) pruneProbeResults(ctx context.Context) {
 	s.lastProbePrune = time.Now()
 	if _, err := s.coordinator.PruneProbeResults(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("prune probe results: %v", err))
+	}
+}
+
+// pruneInspectionReports 每小时清理超过 90 天的报告快照。
+func (s *Scheduler) pruneInspectionReports(ctx context.Context) {
+	if s.inspections == nil || time.Since(s.lastReportPrune) < time.Hour {
+		return
+	}
+	s.lastReportPrune = time.Now()
+	if _, err := s.inspections.PruneReports(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("prune inspection reports: %v", err))
 	}
 }
 

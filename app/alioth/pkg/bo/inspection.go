@@ -105,21 +105,21 @@ type InspectionRunListFilter struct {
 
 // InspectionReport 是一次执行渲染出的报告快照。
 type InspectionReport struct {
-	UID             string
-	NamespaceUID    string
-	RunUID          string
-	Format          string
-	Title           string
-	Content         string
-	Size            int
-	Checksum        string
-	ShareEnabled    bool
-	ShareExpiresAt  *time.Time
-	ShareCreatedBy  string
-	ShareCreatedAt  *time.Time
-	ShareViewCount  int
-	ShareLastViewed *time.Time
-	CreatedAt       time.Time
+	UID               string
+	NamespaceUID      string
+	RunUID            string
+	Format            string
+	Title             string
+	Content           string
+	Size              int
+	Checksum          string
+	ShareEnabled      bool
+	ShareExpiresAt    *time.Time
+	ShareCreatedBy    string
+	ShareCreatedAt    *time.Time
+	ShareViewCount    int
+	ShareLastViewedAt *time.Time
+	CreatedAt         time.Time
 }
 
 // InspectionSection 是一个检查项的执行结果，模板只消费这个结构。
@@ -190,4 +190,48 @@ type InspectionSummary struct {
 	Failed   int `json:"failed"`
 	Abnormal int `json:"abnormal"`
 	Duration int `json:"durationMs"`
+}
+
+// InspectionReportData 是报告模板的数据契约，HTML 与 Markdown 共用同一份。
+type InspectionReportData struct {
+	Title       string
+	GeneratedAt time.Time
+	Tenant      ReportTenant
+	Plan        ReportPlan
+	Run         ReportRun
+	Summary     InspectionSummary
+	Sections    []InspectionSection
+	Abnormal    []InspectionSection
+	HasAbnormal bool
+}
+
+// ReportTenant 是报告里的租户信息。
+type ReportTenant struct {
+	Name string
+}
+
+// ReportPlan 是报告里的计划信息。
+type ReportPlan struct {
+	Name        string
+	Description string
+	Labels      string
+}
+
+// ReportRun 是报告里的执行信息。
+type ReportRun struct {
+	Trigger      string
+	StartedAt    time.Time
+	FinishedAt   time.Time
+	WindowStart  time.Time
+	WindowEnd    time.Time
+	Duration     string
+	OperatorName string
+}
+
+// InspectionReportListFilter 是报告列表的查询条件。
+type InspectionReportListFilter struct {
+	RunUID string
+	Format string
+	From   *time.Time
+	To     *time.Time
 }

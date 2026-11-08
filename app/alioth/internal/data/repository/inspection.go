@@ -39,4 +39,14 @@ type InspectionRepo interface {
 	FinishInspectionRun(ctx context.Context, in bo.InspectionRun) error
 	GetInspectionRun(ctx context.Context, namespaceUID, uid string) (*bo.InspectionRun, error)
 	ListInspectionRuns(ctx context.Context, namespaceUID string, filter bo.InspectionRunListFilter, page, pageSize int) ([]bo.InspectionRun, int, error)
+
+	// CreateInspectionReport 写入一份报告快照；(run_uid, format) 重复时返回 nil。
+	CreateInspectionReport(ctx context.Context, in bo.InspectionReport) (*bo.InspectionReport, error)
+	// ListInspectionReportsByRun 返回一次执行的全部报告。
+	ListInspectionReportsByRun(ctx context.Context, namespaceUID, runUID string) ([]bo.InspectionReport, error)
+	GetInspectionReport(ctx context.Context, namespaceUID, uid string) (*bo.InspectionReport, error)
+	// FirstBuiltinInspectionTemplate 返回内置模板中指定格式正文非空的第一条。
+	FirstBuiltinInspectionTemplate(ctx context.Context, format string) (*bo.InspectionTemplate, error)
+	// PruneInspectionReports 删除 before 之前的报告，返回删除条数。
+	PruneInspectionReports(ctx context.Context, before time.Time) (int, error)
 }

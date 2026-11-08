@@ -53,6 +53,7 @@ type Gateway struct {
 	datasources *datasource.Gateway
 	probes      repository.ProbeTargetRepo
 	events      repository.AlertEventRepo
+	namespaces  repository.NamespaceRepo
 	access      access.Checker
 	log         *slog.Logger
 	owner       string
@@ -63,12 +64,13 @@ func NewGateway(
 	datasources *datasource.Gateway,
 	probes repository.ProbeTargetRepo,
 	events repository.AlertEventRepo,
+	namespaces repository.NamespaceRepo,
 	checker access.Checker,
 	logger *slog.Logger,
 ) *Gateway {
 	return &Gateway{
 		repo: repo, datasources: datasources, probes: probes, events: events,
-		access: checker, log: logger, owner: id.New(),
+		namespaces: namespaces, access: checker, log: logger, owner: id.New(),
 	}
 }
 

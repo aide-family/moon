@@ -260,3 +260,36 @@ func inspectionRunItem(in bo.InspectionRun) *v1.InspectionRun {
 		OperatorName: in.OperatorName, NotifiedAt: formatOptionalTime(in.NotifiedAt),
 	}
 }
+
+func (s *InspectionRunService) ListRunReports(ctx context.Context, req *v1.ListRunReportsRequest) (*v1.ListRunReportsResponse, error) {
+	items, err := s.gateway.ListReports(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.InspectionReport, 0, len(items))
+	for _, item := range items {
+		out = append(out, inspectionReportItem(item, false))
+	}
+	return &v1.ListRunReportsResponse{Items: out}, nil
+}
+
+func (s *InspectionRunService) GetInspectionReport(ctx context.Context, req *v1.GetInspectionReportRequest) (*v1.GetInspectionReportResponse, error) {
+	item, err := s.gateway.GetReport(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetInspectionReportResponse{Report: inspectionReportItem(*item, true)}, nil
+}
+
+func inspectionReportItem(in bo.InspectionReport, includeContent bool) *v1.InspectionReport {
+	item := &v1.InspectionReport{
+		Uid: in.UID, RunUid: in.RunUID, Format: in.Format, Title: in.Title,
+		Size: int32(in.Size), ShareEnabled: in.ShareEnabled,
+		ShareExpiresAt: formatOptionalTime(in.ShareExpiresAt),
+		CreatedAt:      formatTime(in.CreatedAt),
+	}
+	if includeContent {
+		item.Content = in.Content
+	}
+	return item
+}

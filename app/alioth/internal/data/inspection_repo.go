@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionrun"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
@@ -592,5 +593,94 @@ func toInspectionRun(row *ent.InspectionRun) bo.InspectionRun {
 		OperatorUID: row.OperatorUID, OperatorName: row.OperatorName,
 		NotifiedAt: row.NotifiedAt, LeaseOwner: row.LeaseOwner, LeaseUntil: row.LeaseUntil,
 		CreatedAt: row.CreatedAt,
+	}
+}
+
+func (r *inspectionRepo) CreateInspectionReport(ctx context.Context, in bo.InspectionReport) (*bo.InspectionReport, error) {
+	row, err := r.client.InspectionReport.Create().
+		SetUID(id.New()).
+		SetNamespaceUID(in.NamespaceUID).
+		SetRunUID(in.RunUID).
+		SetFormat(inspectionreport.Format(in.Format)).
+		SetTitle(in.Title).
+		SetContent(in.Content).
+		SetSize(in.Size).
+		SetChecksum(in.Checksum).
+		Save(ctx)
+	if err != nil {
+		if ent.IsConstraintError(err) {
+			return nil, nil
+		}
+		return nil, r.fail(err)
+	}
+	return r.GetInspectionReport(ctx, in.NamespaceUID, row.UID)
+}
+
+func (r *inspectionRepo) ListInspectionReportsByRun(ctx context.Context, namespaceUID, runUID string) ([]bo.InspectionReport, error) {
+	rows, err := r.client.InspectionReport.Query().Where(
+		inspectionreport.NamespaceUIDEQ(namespaceUID),
+		inspectionreport.RunUIDEQ(runUID),
+	).Order(inspectionreport.ByFormat()).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items := make([]bo.InspectionReport, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, toInspectionReport(row))
+	}
+	return items, nil
+}
+
+func (r *inspectionRepo) GetInspectionReport(ctx context.Context, namespaceUID, uid string) (*bo.InspectionReport, error) {
+	row, err := r.client.InspectionReport.Query().Where(
+		inspectionreport.UIDEQ(uid),
+		inspectionreport.NamespaceUIDEQ(namespaceUID),
+	).Only(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	item := toInspectionReport(row)
+	return &item, nil
+}
+
+func (r *inspectionRepo) FirstBuiltinInspectionTemplate(ctx context.Context, format string) (*bo.InspectionTemplate, error) {
+	query := r.client.InspectionTemplate.Query().Where(
+		inspectiontemplate.IsBuiltinEQ(true),
+		inspectiontemplate.NamespaceUIDEQ(""),
+		inspectiontemplate.StatusEQ(inspectiontemplate.StatusACTIVE),
+		inspectiontemplate.DeletedAtIsNil(),
+	)
+	switch format {
+	case "HTML":
+		query = query.Where(inspectiontemplate.HTMLBodyNEQ(""))
+	case "MARKDOWN":
+		query = query.Where(inspectiontemplate.MarkdownBodyNEQ(""))
+	default:
+		return nil, merr.Invalid("invalid report format")
+	}
+	row, err := query.Order(ent.Desc(inspectiontemplate.FieldUpdatedAt)).First(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	item := toInspectionTemplate(row)
+	return &item, nil
+}
+
+func (r *inspectionRepo) PruneInspectionReports(ctx context.Context, before time.Time) (int, error) {
+	n, err := r.client.InspectionReport.Delete().Where(inspectionreport.CreatedAtLT(before)).Exec(ctx)
+	if err != nil {
+		return 0, r.fail(err)
+	}
+	return n, nil
+}
+
+func toInspectionReport(row *ent.InspectionReport) bo.InspectionReport {
+	return bo.InspectionReport{
+		UID: row.UID, NamespaceUID: row.NamespaceUID, RunUID: row.RunUID,
+		Format: string(row.Format), Title: row.Title, Content: row.Content,
+		Size: row.Size, Checksum: row.Checksum, ShareEnabled: row.ShareEnabled,
+		ShareExpiresAt: row.ShareExpiresAt, ShareCreatedBy: row.ShareCreatedBy,
+		ShareCreatedAt: row.ShareCreatedAt, ShareViewCount: row.ShareViewCount,
+		ShareLastViewedAt: row.ShareLastViewedAt, CreatedAt: row.CreatedAt,
 	}
 }

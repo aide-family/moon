@@ -739,7 +739,7 @@ const inspectionHTMLTemplate = `<!doctype html>
   <p style="margin:0;color:#9a6a2f;font-size:11px;letter-spacing:.12em">INSPECTION REPORT</p>
   <h1 style="margin:6px 0 4px;font-size:24px">{{.Plan.Name}}</h1>
   <p style="margin:0 0 18px;color:#6b7280;font-size:12px">
-    {{.Tenant.Name}} · {{.Run.WindowStart}} → {{.Run.WindowEnd}} · {{.Run.Trigger}}
+    {{.Tenant.Name}} · {{.Run.WindowStart | date "2006-01-02 15:04"}} → {{.Run.WindowEnd | date "2006-01-02 15:04"}} · {{.Run.Trigger}}
   </p>
   {{if .HasAbnormal}}
   <div style="border:1px solid #fde68a;background:#fffbeb;border-radius:10px;padding:12px 14px;margin-bottom:16px">
@@ -789,7 +789,7 @@ const inspectionHTMLTemplate = `<!doctype html>
 
 const inspectionMarkdownTemplate = `# {{.Title}}
 
-> {{.Tenant.Name}} · 执行窗口 {{.Run.WindowStart}} → {{.Run.WindowEnd}} · {{.Run.Trigger}}
+> {{.Tenant.Name}} · 执行窗口 {{.Run.WindowStart | date "2006-01-02 15:04"}} → {{.Run.WindowEnd | date "2006-01-02 15:04"}} · {{.Run.Trigger}}
 
 ## 结论
 

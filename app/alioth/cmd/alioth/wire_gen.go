@@ -134,7 +134,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	statuspageGateway := statuspage.NewGateway(statusPageRepo, probeTargetRepo, accessChecker, logger)
 	statusPageService := service.NewStatusPageService(statuspageGateway)
 	inspectionRepo := data.NewInspectionRepo(dependencies, logger)
-	inspectionGateway := inspection.NewGateway(inspectionRepo, gateway, probeTargetRepo, alertEventRepo, accessChecker, logger)
+	inspectionGateway := inspection.NewGateway(inspectionRepo, gateway, probeTargetRepo, alertEventRepo, namespaceRepo, accessChecker, logger)
 	inspectionPlanService := service.NewInspectionPlanService(inspectionGateway)
 	inspectionTemplateService := service.NewInspectionTemplateService(inspectionGateway)
 	inspectionRunService := service.NewInspectionRunService(inspectionGateway)
