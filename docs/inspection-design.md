@@ -181,8 +181,14 @@
 | `content` | text | 渲染结果，≤2MB |
 | `size` | int | 字节数 |
 | `checksum` | string | sha256，用于「重新发送」幂等与去重 |
+| `share_token_hash` | string | 公开链接 token 的 SHA-256；空表示未分享，不存原文 |
+| `share_enabled` | bool | 停用后立即失效，可重新启用或换新 token |
+| `share_expires_at` | time | 过期时间；空表示永久有效 |
+| `share_password_hash` | string | 可选访问密码（argon2id）；空表示不校验 |
+| `share_created_by` / `share_created_at` | string / time | 创建人与创建时间，审计用 |
+| `share_view_count` / `share_last_viewed_at` | int / time | 访问次数与最近访问时间 |
 
-索引：`(run_uid, format)` 唯一，`(namespace_uid, created_at)` 清理。
+索引：`(run_uid, format)` 唯一，`(namespace_uid, created_at)` 清理，`share_token_hash` 唯一（仅非空）。
 
 ### 3.6 投递不新建表
 
@@ -314,6 +320,18 @@ type ReportData struct {
 
 ---
 
+### 7.5 公开分享
+
+报告详情页提供「分享」，生成一条**只读公开链接**，无需登录即可查看同一份报告快照。
+
+- 一份报告同时最多一条有效链接；生成 32 字节随机 token，库里只存 SHA-256，URL 不写日志、不进 referrer。
+- 默认有效期 7 天，可选 30 天或永久；可选访问密码（argon2id）；可随时停用或重新生成，旧链接立即失效。
+- 公开页只返回该报告的渲染快照与最小元信息（租户名、生成时间、到期时间），不提供 API、列表或任何其他租户数据。
+- 响应头 `Cache-Control: no-store`、`X-Robots-Tag: noindex` 并按 IP + token 限流；过期、停用、密码错误统一返回 404 或密码页，不区分「不存在」与「无权」。
+- 审计：创建人、创建时间、有效期、停用操作与访问次数；公开页底部标注「由 Alioth 巡检生成」。
+
+---
+
 ## 8. API 设计
 
 新增 `api/alioth/v1/inspection.proto`（两个 service，中文注释，`google.api.http`）。
@@ -356,6 +374,15 @@ type ReportData struct {
 | `ListRunReports` | `GET /v1/inspection/runs/{uid}/reports` | `inspection:read` |
 | `GetInspectionReport` | `GET /v1/inspection/reports/{uid}` | `inspection:read` |
 | `ResendInspectionReport` | `POST /v1/inspection/runs/{uid}/resend` | `inspection:run` |
+| `ShareInspectionReport` | `POST /v1/inspection/reports/{uid}/share` | `inspection:share` |
+| `RevokeInspectionReportShare` | `DELETE /v1/inspection/reports/{uid}/share` | `inspection:share` |
+
+公开分享（不登录、不带 `X-Namespace`，独立注册在公开路由组）：
+
+| 方法 | 路由 | 说明 |
+| --- | --- | --- |
+| `GetSharedInspectionReport` | `GET /v1/public/inspection-reports/{token}` | 返回报告 HTML 与最小元信息；过期/停用 404 |
+| `UnlockSharedInspectionReport` | `POST /v1/public/inspection-reports/{token}/unlock` | 校验访问密码，成功返回短时只读 cookie |
 
 列表过滤：计划、状态、触发方式、时间区间（最多 30 天，服务端校验，照 `alertevent.MaxHistoryRangeDays` 的做法）。分页沿用 `pageNo/pageSize`。
 
@@ -391,9 +418,9 @@ type ReportData struct {
 四步 `StepForm`，宽对话框 `sm:max-w-5xl`（64rem），正文唯一滚动，`max-h-[80vh]`：
 
 1. **基础信息**：名称、说明、标签、整次超时、备注。
-2. **检查项**：左侧检查项列表（拖拽排序、启用/停用、删除），右侧当前项编辑器；顶部「添加检查项」弹出五类卡片（`METRICS_QUERY` / `LOGS_QUERY` / `PROBE_TARGET` / `ALERT_EVENTS` / `NOTE`）。编辑器按类型切换字段，并提供「试查询」结果面板（指标卡 / 表格 / 日志样本）。至少 1 项。
+2. **检查项**：单列折叠卡片，一次展开一项，方便逐项编辑/查看。卡片标题栏含拖拽把手、序号、类型图标、标题与类型摘要、展开箭头；正文内就地编辑标题、数据源/目标组、查询、时间窗、展示方式、异常阈值，并提供「试查询」结果面板（指标卡 / 表格 / 日志样本）与删除。列表末尾「添加检查项」，至少 1 项。
 3. **报告**：模板选择卡（内置 + 自定义，缩略预览）、输出格式复选（HTML / Markdown）、报告标题模板；右侧固定预览一份示例报告。
-4. **调度与通知**：执行频率（预设 + cron + 时区 + 下次执行时间）、通知组多选（展示渠道徽标）、发送条件（始终 / 仅异常）、启用开关。底部「保存并试运行」（保存后立即入队一次，不投递）。
+4. **调度与通知**：执行频率预设（每天 09:00 / 每周一 09:00 / 每月 1 日 / 自定义）。cron 输入始终可见：预设时只读并显示对应表达式，选「自定义 cron」后才可编辑；标签旁 `?` tooltip 说明 5 段含义、取值与示例。另有通知组多选（展示渠道徽标）、发送条件（始终 / 仅异常）、启用开关。底部「保存并试运行」（保存后立即入队一次，不投递）。
 
 跨步校验：保存时汇总错误跳回对应步骤，错误就地显示（`aria-invalid`），不只在底部报一条。
 
@@ -401,11 +428,12 @@ type ReportData struct {
 
 - 执行记录页：计划 / 状态 / 触发方式 / 开始时间 / 耗时 / 检查项（正常·警告·失败）/ 报告格式 / 操作（查看报告、重新发送）。过滤条件与上面 API 一致，时间区间最多 30 天。
 - 报告详情页：
-  - 顶部：返回、标题、状态徽标、计划名、时间、操作（下载 HTML / 下载 Markdown / 重新发送 / 重新执行）。
+  - 顶部：返回、标题、状态徽标、计划名、时间、操作（下载 / 分享 / 重新发送 / 重新执行）。分享打开对话框：启用开关、公开链接 + 复制、有效期（7 天 / 30 天 / 永久）、可选访问密码与风险提示；「预览公开页」进入无侧栏的只读报告页。
   - 元信息行：触发方式、耗时、数据窗口、检查项统计、模板、通知组。
   - 视图切换（`segmented`）：`报告预览` / `Markdown 源码` / `发送记录`。
   - 报告预览：白底报告画布（`iframe` 或隔离容器渲染存下来的 HTML），宽度 760，周围留灰底。
   - 发送记录：通知组 × 渠道 × 接收人 × 状态 × 时间，失败行提供「重试」。
+- 公开页：固定 760 报告纸、顶部只读标识与到期时间、无控制台导航；过期 / 停用 / 密码错误不暴露报告是否存在。
 - 报告是快照：重新发送用同一份内容；「重新执行」生成新的 run。
 
 ### 9.5 报告模板页
@@ -423,6 +451,8 @@ type ReportData struct {
 - 报告纸固定 760px、浅色、1px 纸边，深色模式不反色；画布只做灰底承托。
 - 横向溢出只发生在自己的滚动容器（表格 / 报告画布）；390 宽不得整页横滚，并提供「左右滑动」提示。
 - 列表行的「最近执行」只表达执行结果；计划暂停状态由任务状态表达，不用执行结果列代偿。
+- 对话框内容区留 6–8px 焦点环净空，聚焦控件提升 `z-index`，阴影不被裁切、也不被相邻控件盖住。
+- 检查项采用单列折叠卡，同屏只展开一项；标题栏始终可见，长表单里也能快速定位。
 
 ### 9.7 视觉与交互约束
 
@@ -441,7 +471,7 @@ type ReportData struct {
 | 模块 | `inspection`（名称：巡检） |
 | --- | --- |
 | 能力 | `inspection_plan`（巡检任务）、`inspection_template`（报告模板）、`inspection_run`（执行记录与报告） |
-| 权限 | `inspection:read/write/delete/run`、`inspection_template:read/write/delete` |
+| 权限 | `inspection:read/write/delete/run/share`、`inspection_template:read/write/delete` |
 | 菜单权限 | `menu:inspection_plan`、`menu:inspection_template`、`menu:inspection_run` |
 
 - `inspection_run` 只依赖 `inspection:read`，因此「只看报告」的角色可以不给写权限。
@@ -477,6 +507,7 @@ type ReportData struct {
 | 5 | 发送条件 | A 始终 / 仅异常两档；B 增加「仅失败」三档 | **A**，两档够用 |
 | 6 | 重新发送语义 | A 重发同一份报告（新任务）；B 只重试失败任务 | **A + 失败任务内联重试** |
 | 7 | 套餐归属 | A 基础套餐自带；B 单独能力包 | **B 更符合商业化**，但 A 更省事；需要产品确认 |
+| 8 | 公开分享默认策略 | A 7 天 + 可选密码 + 可停用；B 永久 + 强制密码 | **A**，按报告内容敏感度再调 |
 
 还有一个默认值请确认：**报告链接前缀**用新增配置 `ALIOTH_CONSOLE_BASE_URL`，还是复用站点设置里的某个地址？目前站点设置只服务于官网，没有控制台地址。
 

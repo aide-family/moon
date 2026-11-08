@@ -1029,6 +1029,88 @@
     .filter-grid .input { min-width: 0; }
     .stat-card .delta .dot { display: none; }
   }
+
+  /* ============================================================
+     8. 检查项折叠、cron tooltip、公开分享
+     ============================================================ */
+
+  /* 对话框内给焦点环留出 8px 横向净空，避免被 body 裁切/被邻项盖住 */
+  .dialog-body { padding: 4px 8px; margin: -4px -8px; }
+  .dialog-body .input:focus, .dialog-body .select:focus, .dialog-body .textarea:focus,
+  .dialog-body .code-area:focus, .dialog-body .code-area-item:focus { position: relative; z-index: 3; }
+
+  .item-accordion { display: flex; flex-direction: column; gap: 8px; }
+  .item-card {
+    border: 1px solid var(--border); border-radius: 12px; background: var(--popover); overflow: hidden;
+  }
+  .item-card.open { border-color: color-mix(in oklab, var(--primary) 42%, var(--border)); }
+  .item-head {
+    display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px;
+    border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer;
+  }
+  .item-head:hover { background: color-mix(in oklab, var(--muted) 45%, transparent); }
+  .item-card.open .item-head { background: color-mix(in oklab, var(--primary-soft) 32%, var(--popover)); }
+  .item-head .chev { margin-left: auto; display: inline-flex; color: var(--muted-foreground); transition: transform .15s; }
+  .item-card.open .item-head .chev { transform: rotate(180deg); }
+  .item-head .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .item-head .txt .n { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item-head .txt .m { font-size: 11.5px; color: var(--muted-foreground); }
+  .item-head .ord { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+  .item-body {
+    display: flex; flex-direction: column; gap: 12px; padding: 12px 12px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .item-add-line {
+    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px;
+    border: 1px dashed var(--input); border-radius: 12px; background: transparent;
+    color: var(--muted-foreground); font-size: 12.5px; cursor: pointer;
+  }
+  .item-add-line:hover { color: var(--primary-ink); border-color: var(--primary); background: var(--primary-soft); }
+
+  .label-with-tip { display: inline-flex; align-items: center; gap: 6px; }
+  .tip { position: relative; display: inline-flex; color: var(--muted-foreground); cursor: help; border-radius: 4px; }
+  .tip:hover, .tip:focus-visible { color: var(--primary-ink); }
+  .tip-panel {
+    display: none; position: absolute; top: calc(100% + 8px); left: -8px; z-index: 30;
+    width: 330px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--popover); color: var(--foreground); font-size: 12px; line-height: 1.7;
+    box-shadow: 0 16px 40px -20px rgb(2 6 23 / .4); white-space: normal;
+  }
+  .tip:hover .tip-panel, .tip:focus .tip-panel, .tip:focus-within .tip-panel { display: block; }
+  .tip-panel b { display: block; margin-bottom: 4px; font-size: 12px; }
+  .tip-panel code { font-family: var(--font-mono); font-size: 11px; background: var(--muted); padding: 1px 4px; border-radius: 4px; }
+  .tip-example { display: block; margin-top: 2px; color: var(--muted-foreground); }
+  .tip-example code { color: var(--foreground); }
+
+  .share-url { display: flex; gap: 6px; }
+  .share-url .input { font-size: 12px; }
+  .public-view {
+    position: fixed; inset: 0; z-index: 75; overflow-y: auto;
+    background: color-mix(in oklab, var(--muted) 60%, var(--background));
+  }
+  .public-top {
+    position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; border-bottom: 1px solid var(--border);
+    background: color-mix(in oklab, var(--popover) 94%, transparent); backdrop-filter: blur(8px);
+  }
+  .public-main { padding: 28px 16px 40px; }
+  .public-main .report-paper { width: min(100%, 760px); margin: 0 auto; }
+  .public-foot { max-width: 760px; margin: 14px auto 0; text-align: center; font-size: 12px; color: var(--muted-foreground); }
+
+  @media (max-width: 720px) {
+    .tip-panel { width: min(280px, calc(100vw - 48px)); }
+    .public-top { padding: 10px 12px; flex-wrap: wrap; }
+    .public-top .hint { display: none; }
+    .public-main { padding: 16px 10px 32px; }
+    .share-url { flex-direction: column; }
+    .share-url .btn { width: 100%; }
+  }
+
+  /* tooltip 放到信息图标右侧，避免盖住 cron 输入框 */
+  .tip-panel { left: calc(100% + 10px); top: -10px; }
+  @media (max-width: 720px) {
+    .tip-panel { left: auto; right: 0; top: calc(100% + 8px); }
+  }
 </style>
 </head>
 <body>
@@ -1321,6 +1403,10 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
               下载
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <button class="btn btn-outline" type="button" onclick="openShare()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+              分享
             </button>
             <button class="btn btn-outline" type="button" onclick="toast('已重新入队投递','运维值班组、DBA 组将在 1 分钟内收到','info')">重新发送</button>
             <button class="btn btn-primary" type="button" onclick="toast('已创建新的执行','核心业务每日巡检 · 手动触发','info')">重新执行</button>
@@ -1660,83 +1746,9 @@
       <div class="step-body" data-step="2" hidden>
         <div class="wizard-intro">
           <span class="t">检查项</span>
-          <span class="d">每一项是一段数据查询或一组探测目标，按顺序进入报告。单项失败不会中断整次巡检。</span>
+          <span class="d">每一项在卡片内展开编辑，按顺序进入报告；单项失败不会中断整次巡检。</span>
         </div>
-        <div class="item-workspace">
-          <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
-            <div class="item-list" id="wizard-items"></div>
-            <button class="item-row item-add" type="button" onclick="toast('原型演示：已打开检查项类型选择','实际实现为五类卡片弹层','info')">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              添加检查项
-            </button>
-          </div>
-
-          <div class="item-editor">
-            <div class="editor-head">
-              <span class="t" id="item-editor-title"><span class="badge tone-info">指标查询</span> 核心指标概览</span>
-              <div class="inline">
-                <button class="btn btn-sm btn-ghost btn-danger-ghost" type="button">删除</button>
-              </div>
-            </div>
-            <div class="row2">
-              <div class="field">
-                <label>章节标题</label>
-                <input class="input" id="item-title" value="核心指标概览" />
-              </div>
-              <div class="field">
-                <label>数据源</label>
-                <select class="select" id="item-source">
-                  <option>Prometheus 生产（指标）</option>
-                  <option>VictoriaMetrics 灾备（指标）</option>
-                  <option>Loki 生产（日志）</option>
-                  <option>Elasticsearch 审计（日志）</option>
-                </select>
-              </div>
-            </div>
-            <div class="field">
-              <label>查询语句</label>
-              <textarea class="code-area-item" id="item-query" spellcheck="false">histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="order"}[5m])))</textarea>
-            </div>
-            <div class="row3">
-              <div class="field">
-                <label>时间窗</label>
-                <select class="select"><option>最近 24 小时</option><option>最近 1 小时</option><option>最近 7 天</option></select>
-              </div>
-              <div class="field">
-                <label>展示方式</label>
-                <select class="select"><option>指标卡 + 表格</option><option>趋势图</option><option>仅表格</option></select>
-              </div>
-              <div class="field">
-                <label>异常阈值</label>
-                <input class="input" value="P95 > 0.8s 标警告" />
-              </div>
-            </div>
-            <div class="inline">
-              <button class="btn btn-sm btn-outline test-btn" type="button" id="test-query-btn" onclick="testQuery()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 3 14 9-14 9z"/></svg>
-                试查询
-              </button>
-              <span class="hint">只跑一次查询，不写历史、不影响报告。</span>
-            </div>
-            <div class="trial-panel" id="trial-panel" hidden>
-              <div class="th">
-                <span class="badge tone-success">查询成功</span>
-                <span class="muted" style="font-weight:400;font-size:11.5px">4 个序列 · 耗时 182 ms</span>
-                <span class="spinner" id="trial-spinner" hidden></span>
-              </div>
-              <div class="trial-kpis">
-                <div class="trial-kpi"><span class="k">P95 延迟</span><span class="v" style="color:var(--warning)">1.82 s</span></div>
-                <div class="trial-kpi"><span class="k">错误率</span><span class="v">0.42 %</span></div>
-                <div class="trial-kpi"><span class="k">连接数</span><span class="v">312</span></div>
-              </div>
-              <div class="mini-tbl" style="font-size:11.5px">
-                <div class="inline" style="justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span class="mono">09:00</span><span class="tnum" style="color:var(--warning)">1.82 s</span></div>
-                <div class="inline" style="justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span class="mono">08:00</span><span class="tnum">0.74 s</span></div>
-                <div class="inline" style="justify-content:space-between;padding:4px 0"><span class="mono">07:00</span><span class="tnum">0.61 s</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="item-accordion" id="wizard-items"></div>
       </div>
 
       <!-- Step 3 -->
@@ -1801,20 +1813,33 @@
         </div>
         <div class="row2">
           <div class="field">
-            <label>执行频率</label>
-            <select class="select">
+            <label for="wiz-frequency">执行频率</label>
+            <select class="select" id="wiz-frequency" onchange="syncCron()">
               <option>每天 09:00</option>
               <option>每天 08:00</option>
               <option>每周一 09:00</option>
               <option>每月 1 日 09:00</option>
               <option>自定义 cron</option>
             </select>
-            <span class="hint">预设只是 cron 的快捷填充，保存后按 cron 计算。</span>
+            <span class="hint">预设频率会生成对应 cron；选「自定义 cron」后可修改表达式。</span>
           </div>
           <div class="field">
-            <label for="wiz-cron">cron 表达式</label>
-            <input class="input mono" id="wiz-cron" value="0 9 * * *" />
-            <span class="hint">5 段：分 时 日 月 周；最短间隔 5 分钟。</span>
+            <label for="wiz-cron" class="label-with-tip">
+              cron 表达式
+              <span class="tip" tabindex="0" aria-label="cron 填写说明">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-5M12 8h.01"/></svg>
+                <span class="tip-panel" role="tooltip">
+                  <b>5 段格式：分 时 日 月 周</b>
+                  分钟 0–59，小时 0–23，日 1–31，月 1–12，周 0–7（0 和 7 都表示周日）。支持 <code>*</code>、<code>*/n</code>、<code>a-b</code>、<code>a,b</code>。
+                  <span class="tip-example"><code>0 9 * * *</code> 每天 09:00</span>
+                  <span class="tip-example"><code>0 */6 * * *</code> 每 6 小时</span>
+                  <span class="tip-example"><code>0 9 * * 1</code> 每周一 09:00</span>
+                  <span class="tip-example"><code>0 9 1 * *</code> 每月 1 日 09:00</span>
+                </span>
+              </span>
+            </label>
+            <input class="input mono is-readonly" id="wiz-cron" value="0 9 * * *" readonly />
+            <span class="hint" id="cron-hint">由「每天 09:00」生成；只读。选择「自定义 cron」后可编辑。</span>
           </div>
         </div>
         <div class="row2">
@@ -1826,7 +1851,7 @@
             <label>下次执行</label>
             <div class="schedule-preview">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-              2026-11-08 09:00 · Asia/Shanghai
+<span id="next-run-text">2026-11-09 09:00</span> · Asia/Shanghai
             </div>
           </div>
         </div>
@@ -1880,6 +1905,80 @@
       <button class="btn btn-primary" type="button" id="wiz-save" hidden onclick="saveAndRun()">保存并试运行</button>
     </div>
   </div>
+</div>
+
+<!-- ========================= 分享报告 ========================= -->
+<div class="overlay" id="share-dialog" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="share-title" style="width:min(calc(100% - 2rem), 34rem)">
+    <div class="dialog-head">
+      <button class="icon-btn dialog-close" type="button" onclick="closeShare()" aria-label="关闭">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <h2 class="dialog-title" id="share-title">分享报告</h2>
+      <p class="dialog-sub">公开链接无需登录即可查看这份报告快照（只读），可随时停用。</p>
+    </div>
+    <div class="dialog-body" style="display:flex;flex-direction:column;gap:14px">
+      <div class="inline" style="justify-content:space-between;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <b style="font-size:13px">启用公开链接</b>
+          <span class="hint">关闭后链接立即失效，已打开的页面不受影响。</span>
+        </div>
+        <button class="switch" id="share-switch" type="button" role="switch" aria-checked="true" onclick="toggleShare(this)">
+          <span class="track"></span>
+        </button>
+      </div>
+      <div id="share-config" style="display:flex;flex-direction:column;gap:12px">
+        <div class="field">
+          <label for="share-url">公开链接</label>
+          <div class="share-url">
+            <input class="input mono" id="share-url" readonly value="https://alioth.example.com/share/r/8fK2mQ7pXa" />
+            <button class="btn btn-outline" type="button" onclick="copyShare()">复制</button>
+          </div>
+          <span class="hint">32 位随机 token，无法被枚举；重新生成后旧链接立即失效。</span>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="share-expiry">有效期</label>
+            <select class="select" id="share-expiry">
+              <option>7 天</option>
+              <option>30 天</option>
+              <option>永久</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="share-password">访问密码（可选）</label>
+            <input class="input" id="share-password" placeholder="留空表示不校验" autocomplete="off" />
+          </div>
+        </div>
+        <div class="readonly-banner" style="align-items:flex-start">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:2px"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <span class="grow">报告包含指标、日志摘要与告警名称。请确认接收方可以查看这些内容；正式实现会记录创建人、有效期与停用操作。</span>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeShare()">取消</button>
+      <button class="btn btn-outline" type="button" onclick="openPublicView()">预览公开页</button>
+      <button class="btn btn-primary" type="button" onclick="applyShare()">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 公开报告页 ========================= -->
+<div class="public-view" id="public-view" hidden>
+  <header class="public-top">
+    <div class="brand" style="padding:0">
+      <div class="brand-mark">A</div>
+      <span class="brand-name">Alioth</span>
+    </div>
+    <span class="badge tone-neutral">公开分享 · 只读</span>
+    <span class="hint" id="public-expiry">链接有效期至 2026-11-14</span>
+    <button class="btn btn-sm btn-outline" type="button" style="margin-left:auto" onclick="closePublicView()">返回控制台</button>
+  </header>
+  <main class="public-main">
+    <div class="report-paper" id="public-paper"></div>
+    <div class="public-foot">由 Alioth 巡检生成 · 星环科技分享 · 报告快照不可修改</div>
+  </main>
 </div>
 
 <div class="toast-stack" id="toasts"></div>
@@ -2185,6 +2284,13 @@ const pageMeta = {
 function goto(page) {
   const meta = pageMeta[page] || pageMeta.tasks;
   document.getElementById("wizard").hidden = true;
+  const publicView = document.getElementById("public-view");
+  if (publicView && !publicView.hidden) {
+    publicView.hidden = true;
+    document.querySelector(".shell").style.display = "";
+    const bar = document.getElementById("proto-bar");
+    if (bar) bar.style.display = "";
+  }
   document.querySelectorAll(".page").forEach(function (p) { p.hidden = true; });
   const target = document.getElementById("page-" + page);
   if (target) target.hidden = false;
@@ -2201,6 +2307,7 @@ function goto(page) {
 
 window.addEventListener("hashchange", function () {
   const hash = location.hash.replace("#", "");
+  if (hash === "public") { openPublicView(); return; }
   if (hash === "wizard") { openWizard(); return; }
   if (hash.indexOf("wizard/") === 0) { openWizard(); wizardSet(Number(hash.split("/")[1])); return; }
   if (pageMeta[hash]) goto(hash);
@@ -2231,33 +2338,135 @@ function toggleNotifyCard(card) {
 
 /* ---------- 检查项 ---------- */
 
-function renderWizardItems(active) {
-  const list = document.getElementById("wizard-items");
-  list.innerHTML = wizardItems.map(function (item, i) {
-    return (
-      '<button class="item-row ' + (i === active ? "active" : "") + '" type="button" onclick="selectItem(' + i + ')">' +
-        '<span class="drag" aria-hidden="true"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01"/></svg></span>' +
-        '<span class="ord">' + String(i + 1).padStart(2, "0") + "</span>" +
-        '<span class="ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + item.icon + '</svg></span>' +
-        '<span class="txt"><span class="n">' + item.title + '</span><span class="m">' + item.kind + "</span></span>" +
-      "</button>"
-    );
-  }).join("");
+let openItem = 0;
+
+function itemSourceOptions(selected) {
+  return ["Prometheus 生产（指标）", "VictoriaMetrics 灾备（指标）", "Loki 生产（日志）", "Elasticsearch 审计（日志）"]
+    .map(function (value) { return "<option" + (value === selected ? " selected" : "") + ">" + value + "</option>"; })
+    .join("");
 }
 
-function selectItem(index) {
-  renderWizardItems(index);
-  const item = wizardItems[index];
-  const title = document.getElementById("item-editor-title");
-  title.innerHTML = '<span class="badge tone-info">' + item.kind + "</span> " + item.title;
-  document.getElementById("item-title").value = item.title;
-  document.getElementById("item-query").value = item.query;
-  const source = document.getElementById("item-source");
-  if (item.source) source.value = item.source;
-  document.getElementById("trial-panel").hidden = true;
-  const btn = document.getElementById("test-query-btn");
-  btn.disabled = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 3 14 9-14 9z"/></svg>试查询';
+function itemTrialPanel(kind) {
+  return (
+    '<div class="trial-panel" id="trial-panel" hidden>' +
+      '<div class="th"><span class="badge tone-success">' + (kind === "探测目标" ? "试探测完成" : "查询成功") +
+        '</span><span class="muted" style="font-weight:400;font-size:11.5px">4 个序列 · 耗时 182 ms</span></div>' +
+      '<div class="trial-kpis">' +
+        '<div class="trial-kpi"><span class="k">P95 延迟</span><span class="v" style="color:var(--warning)">1.82 s</span></div>' +
+        '<div class="trial-kpi"><span class="k">错误率</span><span class="v">0.42 %</span></div>' +
+        '<div class="trial-kpi"><span class="k">连接数</span><span class="v">312</span></div>' +
+      '</div>' +
+      '<div class="mini-tbl" style="font-size:11.5px">' +
+        '<div class="inline" style="justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span class="mono">09:00</span><span class="tnum" style="color:var(--warning)">1.82 s</span></div>' +
+        '<div class="inline" style="justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span class="mono">08:00</span><span class="tnum">0.74 s</span></div>' +
+        '<div class="inline" style="justify-content:space-between;padding:4px 0"><span class="mono">07:00</span><span class="tnum">0.61 s</span></div>' +
+      '</div>' +
+    "</div>"
+  );
+}
+
+function itemBody(item) {
+  const isNote = item.kind === "静态说明";
+  const isProbe = item.kind === "探测目标";
+  const isAlert = item.kind === "告警事件";
+  const isQuery = item.kind === "指标查询" || item.kind === "日志查询";
+  const titleField = '<div class="field"><label>章节标题</label><input class="input" value="' + item.title + '" /></div>';
+  let rightField = "";
+  if (isQuery) {
+    rightField = '<div class="field"><label>数据源</label><select class="select">' + itemSourceOptions(item.source) + "</select></div>";
+  } else if (isProbe) {
+    rightField = '<div class="field"><label>探测目标组</label><input class="input" value="核心交易 API、边缘节点（华东）" /><span class="hint">取窗口内可用率、延迟与失败目标明细。</span></div>';
+  } else if (isAlert) {
+    rightField = '<div class="field"><label>筛选条件</label><input class="input" value="未恢复 · 级别 ≥ WARNING" /><span class="hint">统计窗口内新增与仍未恢复的事件。</span></div>';
+  }
+
+  let content = "";
+  if (isNote) {
+    content =
+      '<div class="field"><label>说明内容（Markdown）</label>' +
+        '<textarea class="code-area-item" style="min-height:110px" spellcheck="false">' + item.query + '</textarea>' +
+        '<span class="hint">作为报告中的一个章节，不查询数据，也不会失败。</span>' +
+      "</div>";
+  } else {
+    const queryField = isQuery
+      ? '<div class="field"><label>查询语句</label><textarea class="code-area-item" id="item-query" spellcheck="false" style="min-height:84px">' + item.query + "</textarea></div>"
+      : "";
+    const threshold = isProbe ? "可用率 < 99.5% 标警告" : isAlert ? "存在 CRITICAL 标警告" : "P95 > 0.8s 标警告";
+    const display = isProbe ? "可用率表格" : isAlert ? "事件表格" : "指标卡 + 表格";
+    const testLabel = isProbe ? "试探测" : "试查询";
+    content =
+      queryField +
+      '<div class="row3">' +
+        '<div class="field"><label>时间窗</label><select class="select"><option>最近 24 小时</option><option>最近 1 小时</option><option>最近 7 天</option></select></div>' +
+        '<div class="field"><label>展示方式</label><select class="select"><option>' + display + '</option><option>趋势图</option></select></div>' +
+        '<div class="field"><label>异常阈值</label><input class="input" value="' + threshold + '" /></div>' +
+      "</div>" +
+      '<div class="inline">' +
+        (isAlert
+          ? ""
+          : '<button class="btn btn-sm btn-outline test-btn" type="button" id="test-query-btn" onclick="testQuery()">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 3 14 9-14 9z"/></svg>' + testLabel + "</button>" +
+            '<span class="hint">只跑一次，不写历史、不影响报告。</span>') +
+        '<button class="btn btn-sm btn-ghost btn-danger-ghost" type="button" style="margin-left:auto" onclick="removeWizardItem(' + openItem + ')">删除</button>' +
+      "</div>" +
+      (isAlert ? "" : itemTrialPanel(item.kind));
+  }
+
+  return '<div class="item-body"><div class="row2">' + titleField + rightField + "</div>" + content + "</div>";
+}
+
+function renderWizardItems() {
+  const list = document.getElementById("wizard-items");
+  list.innerHTML =
+    wizardItems.map(function (item, i) {
+      const isOpen = i === openItem;
+      return (
+        '<div class="item-card' + (isOpen ? " open" : "") + '">' +
+          '<button class="item-head" type="button" aria-expanded="' + isOpen + '" onclick="toggleItem(' + i + ')">' +
+            '<span class="drag" aria-hidden="true"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01"/></svg></span>' +
+            '<span class="ord">' + String(i + 1).padStart(2, "0") + "</span>" +
+            '<span class="ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + item.icon + "</svg></span>" +
+            '<span class="txt"><span class="n">' + item.title + '</span><span class="m">' + item.kind + (item.source ? " · " + item.source : "") + "</span></span>" +
+            (isOpen ? '<span class="badge tone-primary">编辑中</span>' : "") +
+            '<span class="chev"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>' +
+          "</button>" +
+          (isOpen ? itemBody(item) : "") +
+        "</div>"
+      );
+    }).join("") +
+    '<button class="item-add-line" type="button" onclick="addWizardItem()">' +
+      '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>' +
+      "添加检查项" +
+    "</button>";
+}
+
+function toggleItem(index) {
+  openItem = openItem === index ? -1 : index;
+  renderWizardItems();
+}
+
+function addWizardItem() {
+  wizardItems.push({
+    title: "新检查项",
+    kind: "指标查询",
+    icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>',
+    query: 'sum(rate(http_requests_total{service="api"}[5m]))',
+    source: "Prometheus 生产（指标）",
+  });
+  openItem = wizardItems.length - 1;
+  renderWizardItems();
+  toast("已添加检查项", "在卡片内填写查询与阈值", "info");
+}
+
+function removeWizardItem(index) {
+  if (wizardItems.length <= 1) {
+    toast("至少保留一个检查项", "报告不能没有内容", "warn");
+    return;
+  }
+  wizardItems.splice(index, 1);
+  openItem = Math.max(0, Math.min(openItem, wizardItems.length - 1));
+  renderWizardItems();
+  toast("已删除检查项", "", "info");
 }
 
 function testQuery() {
@@ -2282,9 +2491,10 @@ function testQuery() {
 let wizardCurrent = 1;
 
 function openWizard() {
+  openItem = 0;
   document.getElementById("wizard").hidden = false;
   wizardSet(1);
-  renderWizardItems(0);
+  renderWizardItems();
   if (location.hash !== "#wizard") history.replaceState(null, "", "#wizard");
 }
 
@@ -2397,6 +2607,86 @@ function pickPolicy(node) {
   if (input) input.checked = true;
 }
 
+/* ---------- 调度：预设与 cron 联动 ---------- */
+
+const cronPresets = {
+  "每天 09:00": { cron: "0 9 * * *", next: "2026-11-09 09:00" },
+  "每天 08:00": { cron: "0 8 * * *", next: "2026-11-09 08:00" },
+  "每周一 09:00": { cron: "0 9 * * 1", next: "2026-11-09 09:00" },
+  "每月 1 日 09:00": { cron: "0 9 1 * *", next: "2026-12-01 09:00" },
+};
+
+function syncCron() {
+  const frequency = document.getElementById("wiz-frequency");
+  const input = document.getElementById("wiz-cron");
+  const hint = document.getElementById("cron-hint");
+  const next = document.getElementById("next-run-text");
+  const custom = frequency.value === "自定义 cron";
+  input.readOnly = !custom;
+  input.classList.toggle("is-readonly", !custom);
+  if (custom) {
+    hint.textContent = "5 段：分 时 日 月 周；最短间隔 5 分钟。悬停问号查看写法。";
+    next.textContent = "按表达式计算";
+  } else {
+    const preset = cronPresets[frequency.value];
+    input.value = preset.cron;
+    next.textContent = preset.next;
+    hint.textContent = "由「" + frequency.value + "」生成；只读。选择「自定义 cron」后可编辑。";
+  }
+}
+
+/* ---------- 分享报告 ---------- */
+
+function openShare() {
+  document.getElementById("share-dialog").hidden = false;
+}
+
+function closeShare() {
+  document.getElementById("share-dialog").hidden = true;
+}
+
+function toggleShare(button) {
+  const on = button.getAttribute("aria-checked") !== "true";
+  button.setAttribute("aria-checked", on ? "true" : "false");
+  document.getElementById("share-config").hidden = !on;
+  toast(on ? "公开链接已启用" : "公开链接已停用", on ? "任何获得链接的人无需登录即可查看" : "旧链接立即失效", on ? "info" : "warn");
+}
+
+function copyShare() {
+  const url = document.getElementById("share-url").value;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).catch(function () {});
+  }
+  toast("已复制公开链接", url, "info");
+}
+
+function applyShare() {
+  closeShare();
+  toast("公开链接已更新", "有效期 7 天 · 可在报告详情再次管理", "info");
+}
+
+function openPublicView() {
+  document.getElementById("share-dialog").hidden = true;
+  const source = document.querySelector("#page-report .report-paper");
+  const target = document.getElementById("public-paper");
+  if (source && target) target.innerHTML = source.innerHTML;
+  document.querySelector(".shell").style.display = "none";
+  const bar = document.getElementById("proto-bar");
+  if (bar) bar.style.display = "none";
+  document.getElementById("public-view").hidden = false;
+  if (location.hash !== "#public") history.replaceState(null, "", "#public");
+  window.scrollTo(0, 0);
+}
+
+function closePublicView() {
+  document.getElementById("public-view").hidden = true;
+  document.querySelector(".shell").style.display = "";
+  const bar = document.getElementById("proto-bar");
+  if (bar) bar.style.display = "";
+  history.replaceState(null, "", "#report");
+  goto("report");
+}
+
 /* ---------- 计划详情抽屉 ---------- */
 
 function openPlanSheet(uid) {
@@ -2479,7 +2769,7 @@ function runPlan(uid, btn) {
 document.getElementById("md-source").textContent = markdownSource;
 renderPlans();
 renderRuns();
-renderWizardItems(0);
+renderWizardItems();
 
 if (new URLSearchParams(location.search).has("shot")) {
   document.body.classList.add("shot");
@@ -2488,6 +2778,7 @@ if (new URLSearchParams(location.search).has("shot")) {
 
 (function boot() {
   const hash = location.hash.replace("#", "");
+  if (hash === "public") { openPublicView(); return; }
   if (hash === "wizard") { openWizard(); return; }
   if (hash.indexOf("wizard/") === 0) { openWizard(); wizardSet(Number(hash.split("/")[1])); return; }
   if (pageMeta[hash]) { goto(hash); return; }
