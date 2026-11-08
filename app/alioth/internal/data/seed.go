@@ -771,7 +771,7 @@ const inspectionHTMLTemplate = `<!doctype html>
   <section style="margin-top:24px">
     <h2 style="margin:0 0 6px;font-size:15px">{{.Title}}</h2>
     {{if .Error}}<p style="margin:0 0 8px;color:#b42318;font-size:12.5px">取数失败：{{.Error}}</p>{{end}}
-    {{if .Note}}<p style="margin:0 0 8px;color:#6b7280;font-size:12px">{{.Note}}</p>{{end}}
+    {{if .Note}}<div style="color:#374151;font-size:12.5px">{{.Note | markdown}}</div>{{end}}
     {{if .Table}}
     <table style="width:100%;border-collapse:collapse;font-size:12px">
       <thead><tr>{{range .Table.Columns}}<th style="border:1px solid #e5e7eb;background:#f8fafc;padding:8px 10px;text-align:left;font-weight:600">{{.}}</th>{{end}}</tr></thead>

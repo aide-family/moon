@@ -88,7 +88,6 @@ export function PublicInspectionReportPage() {
         ) : null}
         {!loading && !failed ? (
           <>
-            <h1 className="mb-4 text-center font-heading text-xl font-semibold">{title}</h1>
             {format === "HTML" ? (
               <iframe
                 title={title}

@@ -260,7 +260,7 @@ function ReportDialog({
                     {t("inspection.shareCopy")}
                   </Button>
                   <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={() => void revoke()}>
-                    {t("inspection.shareRevoked")}
+                    {t("inspection.shareDisable")}
                   </Button>
                 </div>
               ) : null}
@@ -352,7 +352,7 @@ export function InspectionRunPage() {
           <p className="text-sm text-muted-foreground">{t("inspection.empty")}</p>
         ) : null}
         {!loading && !failed && items.length > 0 ? (
-          <Table className={TABLE_MIN_WIDTH.wide}>
+          <Table className={TABLE_MIN_WIDTH.default}>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("inspection.planName")}</TableHead>

@@ -275,7 +275,7 @@ export function InspectionPlanPage() {
           </div>
         ) : null}
         {!loading && !failed && items.length > 0 ? (
-          <Table className={TABLE_MIN_WIDTH.wide}>
+          <Table className={TABLE_MIN_WIDTH.default}>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("inspection.planName")}</TableHead>

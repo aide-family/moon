@@ -192,3 +192,10 @@ func TestShareToken(t *testing.T) {
 		t.Fatal("token hash must be deterministic")
 	}
 }
+
+func TestRenderMarkdown(t *testing.T) {
+	got := renderMarkdown("## 结论\n\n**正常**，共 4 项。")
+	if !strings.Contains(got, "<h3>结论</h3>") || !strings.Contains(got, "<strong>正常</strong>") {
+		t.Fatalf("unexpected markdown html: %s", got)
+	}
+}

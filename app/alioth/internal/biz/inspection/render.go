@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"html"
 	htmltmpl "html/template"
 	"strings"
 	texttmpl "text/template"
@@ -200,6 +201,9 @@ func reportFuncs() map[string]any {
 			return value
 		},
 		"join": func(values []string, sep string) string { return strings.Join(values, sep) },
+		"markdown": func(raw string) htmltmpl.HTML {
+			return htmltmpl.HTML(renderMarkdown(raw))
+		},
 		"json": func(value any) string {
 			out, _ := json.Marshal(value)
 			return string(out)
@@ -214,6 +218,49 @@ func reportFuncs() map[string]any {
 			return a / b
 		},
 	}
+}
+
+// renderMarkdown 是报告内说明字段的最小 Markdown 渲染：标题、加粗、行内代码与段落。
+// 报告模板仍由 html/template 负责外层结构，这里只处理说明文本。
+func renderMarkdown(raw string) string {
+	lines := strings.Split(html.EscapeString(raw), "\n")
+	var out strings.Builder
+	paragraph := make([]string, 0, 2)
+	flush := func() {
+		if len(paragraph) == 0 {
+			return
+		}
+		out.WriteString("<p style=\"margin:0 0 8px\">" + strings.Join(paragraph, " ") + "</p>")
+		paragraph = paragraph[:0]
+	}
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		switch {
+		case strings.HasPrefix(trimmed, "### "):
+			flush()
+			out.WriteString("<h4>" + inlineMarkdown(strings.TrimPrefix(trimmed, "### ")) + "</h4>")
+		case strings.HasPrefix(trimmed, "## "):
+			flush()
+			out.WriteString("<h3>" + inlineMarkdown(strings.TrimPrefix(trimmed, "## ")) + "</h3>")
+		case strings.HasPrefix(trimmed, "# "):
+			flush()
+			out.WriteString("<h2>" + inlineMarkdown(strings.TrimPrefix(trimmed, "# ")) + "</h2>")
+		case trimmed == "":
+			flush()
+		default:
+			paragraph = append(paragraph, inlineMarkdown(trimmed))
+		}
+	}
+	flush()
+	return out.String()
+}
+
+func inlineMarkdown(text string) string {
+	parts := strings.Split(text, "**")
+	for index := 1; index < len(parts); index += 2 {
+		parts[index] = "<strong>" + parts[index] + "</strong>"
+	}
+	return strings.Join(parts, "")
 }
 
 // ListReports 返回一次执行的全部报告。

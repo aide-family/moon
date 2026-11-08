@@ -1,11 +1,11 @@
 // 能力目录（套餐 / 租户功能授权 / 菜单可见性）。
 //
-// 能力 code 与后端 perm.Capabilities() 的 63 项定义保持一致；GET /v1/system/features
+// 能力 code 与后端 perm.Capabilities() 的 66 项定义保持一致；GET /v1/system/features
 // 返回的是同一份目录（code/module/name/description/permissions）。页面用这里的
 // 双语标签，不直接用接口里的 name/description，这样切到 en 时中文名也不会消失，
 // 后端没部署新接口时也能先用本地目录渲染勾选框。
 //
-// 目录分两级：MODULES 是所属菜单模块（11 个），CAPABILITIES 是具体能力（63 个）。
+// 目录分两级：MODULES 是所属菜单模块（12 个），CAPABILITIES 是具体能力（66 个）。
 // 新增 / 删除能力时同步：后端 perm.Capabilities()、本文件、i18n 里的菜单文案。
 
 export type LocalizedLabel = { zh: string; en: string }

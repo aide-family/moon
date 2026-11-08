@@ -9,7 +9,8 @@ import (
 // TestInspectionSeedTemplatesParse 确认内置模板语法可用；渲染函数在 biz 层注入。
 func TestInspectionSeedTemplatesParse(t *testing.T) {
 	funcs := htmltmpl.FuncMap{
-		"date": func(string, any) string { return "" },
+		"date":     func(string, any) string { return "" },
+		"markdown": func(string) htmltmpl.HTML { return "" },
 	}
 	if _, err := htmltmpl.New("report").Funcs(funcs).Parse(inspectionHTMLTemplate); err != nil {
 		t.Fatalf("parse builtin html: %v", err)
