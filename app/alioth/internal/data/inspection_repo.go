@@ -1,0 +1,400 @@
+package data
+
+import (
+	"context"
+	"time"
+
+	"entgo.io/ent/dialect/sql"
+
+	"github.com/aide-family/moon/app/alioth/internal/data/ent"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
+	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
+	"github.com/aide-family/moon/pkg/merr"
+)
+
+func (r *inspectionRepo) CreateInspectionPlan(ctx context.Context, in bo.InspectionPlan) (*bo.InspectionPlan, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	uid := id.New()
+	build := tx.InspectionPlan.Create().
+		SetUID(uid).
+		SetNamespaceUID(in.NamespaceUID).
+		SetName(in.Name).
+		SetDescription(in.Description).
+		SetStatus(inspectionplan.Status(in.Status)).
+		SetCron(in.Cron).
+		SetTimezone(in.Timezone).
+		SetTimeoutSeconds(in.TimeoutSeconds).
+		SetTemplateUID(in.TemplateUID).
+		SetOutputFormats(in.OutputFormats).
+		SetTitleTemplate(in.TitleTemplate).
+		SetNotificationGroupUids(in.NotificationGroupUIDs).
+		SetNotifyPolicy(inspectionplan.NotifyPolicy(in.NotifyPolicy)).
+		SetLabels(in.Labels).
+		SetRemark(in.Remark).
+		SetCreatedBy(in.CreatedBy)
+	if in.NextRunAt != nil {
+		build.SetNextRunAt(*in.NextRunAt)
+	}
+	if _, err := build.Save(ctx); err != nil {
+		return nil, r.fail(err)
+	}
+	if err := r.createInspectionItems(ctx, tx, in.NamespaceUID, uid, in.Items); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, r.fail(err)
+	}
+	return r.GetInspectionPlan(ctx, in.NamespaceUID, uid)
+}
+
+func (r *inspectionRepo) UpdateInspectionPlan(ctx context.Context, in bo.InspectionPlan) (*bo.InspectionPlan, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	update := tx.InspectionPlan.Update().
+		Where(
+			inspectionplan.UIDEQ(in.UID),
+			inspectionplan.NamespaceUIDEQ(in.NamespaceUID),
+			inspectionplan.DeletedAtIsNil(),
+		).
+		SetName(in.Name).
+		SetDescription(in.Description).
+		SetStatus(inspectionplan.Status(in.Status)).
+		SetCron(in.Cron).
+		SetTimezone(in.Timezone).
+		SetTimeoutSeconds(in.TimeoutSeconds).
+		SetTemplateUID(in.TemplateUID).
+		SetOutputFormats(in.OutputFormats).
+		SetTitleTemplate(in.TitleTemplate).
+		SetNotificationGroupUids(in.NotificationGroupUIDs).
+		SetNotifyPolicy(inspectionplan.NotifyPolicy(in.NotifyPolicy)).
+		SetLabels(in.Labels).
+		SetRemark(in.Remark)
+	if in.NextRunAt != nil {
+		update.SetNextRunAt(*in.NextRunAt)
+	} else {
+		update.ClearNextRunAt()
+	}
+	n, err := update.Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if n == 0 {
+		return nil, merr.NotFound("inspection plan not found")
+	}
+	// 检查项随计划整体保存：先清空再写入，避免前端漏传导致旧项残留。
+	if _, err := tx.InspectionItem.Delete().
+		Where(
+			inspectionitem.PlanUIDEQ(in.UID),
+			inspectionitem.NamespaceUIDEQ(in.NamespaceUID),
+		).Exec(ctx); err != nil {
+		return nil, r.fail(err)
+	}
+	if err := r.createInspectionItems(ctx, tx, in.NamespaceUID, in.UID, in.Items); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, r.fail(err)
+	}
+	return r.GetInspectionPlan(ctx, in.NamespaceUID, in.UID)
+}
+
+func (r *inspectionRepo) createInspectionItems(ctx context.Context, tx *ent.Tx, namespaceUID, planUID string, items []bo.InspectionItem) error {
+	for index, item := range items {
+		build := tx.InspectionItem.Create().
+			SetUID(id.New()).
+			SetNamespaceUID(namespaceUID).
+			SetPlanUID(planUID).
+			SetKind(inspectionitem.Kind(item.Kind)).
+			SetTitle(item.Title).
+			SetSort(index).
+			SetDatasourceUID(item.DatasourceUID).
+			SetQuery(item.Query).
+			SetWindowSeconds(item.WindowSeconds).
+			SetStepSeconds(item.StepSeconds).
+			SetDisplay(inspectionitem.Display(item.Display)).
+			SetParams(item.Params).
+			SetEnabled(item.Enabled)
+		if _, err := build.Save(ctx); err != nil {
+			return r.fail(err)
+		}
+	}
+	return nil
+}
+
+func (r *inspectionRepo) UpdateInspectionPlanStatus(ctx context.Context, namespaceUID, uid, status string, nextRunAt *time.Time) (*bo.InspectionPlan, error) {
+	update := r.client.InspectionPlan.Update().
+		Where(
+			inspectionplan.UIDEQ(uid),
+			inspectionplan.NamespaceUIDEQ(namespaceUID),
+			inspectionplan.DeletedAtIsNil(),
+		).
+		SetStatus(inspectionplan.Status(status))
+	if nextRunAt != nil {
+		update.SetNextRunAt(*nextRunAt)
+	} else {
+		update.ClearNextRunAt()
+	}
+	n, err := update.Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if n == 0 {
+		return nil, merr.NotFound("inspection plan not found")
+	}
+	return r.GetInspectionPlan(ctx, namespaceUID, uid)
+}
+
+func (r *inspectionRepo) DeleteInspectionPlan(ctx context.Context, namespaceUID, uid string) error {
+	now := time.Now().UTC()
+	n, err := r.client.InspectionPlan.Update().
+		Where(
+			inspectionplan.UIDEQ(uid),
+			inspectionplan.NamespaceUIDEQ(namespaceUID),
+			inspectionplan.DeletedAtIsNil(),
+		).
+		SetDeletedAt(now).
+		Save(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if n == 0 {
+		return merr.NotFound("inspection plan not found")
+	}
+	if _, err := r.client.InspectionItem.Update().
+		Where(
+			inspectionitem.PlanUIDEQ(uid),
+			inspectionitem.NamespaceUIDEQ(namespaceUID),
+			inspectionitem.DeletedAtIsNil(),
+		).
+		SetDeletedAt(now).
+		Save(ctx); err != nil {
+		return r.fail(err)
+	}
+	return nil
+}
+
+func (r *inspectionRepo) GetInspectionPlan(ctx context.Context, namespaceUID, uid string) (*bo.InspectionPlan, error) {
+	row, err := r.client.InspectionPlan.Query().Where(
+		inspectionplan.UIDEQ(uid),
+		inspectionplan.NamespaceUIDEQ(namespaceUID),
+		inspectionplan.DeletedAtIsNil(),
+	).Only(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items, err := r.client.InspectionItem.Query().Where(
+		inspectionitem.PlanUIDEQ(uid),
+		inspectionitem.NamespaceUIDEQ(namespaceUID),
+		inspectionitem.DeletedAtIsNil(),
+	).Order(inspectionitem.BySort()).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	plan := toInspectionPlan(row)
+	plan.Items = make([]bo.InspectionItem, 0, len(items))
+	for _, item := range items {
+		plan.Items = append(plan.Items, toInspectionItem(item))
+	}
+	return &plan, nil
+}
+
+func (r *inspectionRepo) ListInspectionPlans(ctx context.Context, namespaceUID string, filter bo.InspectionPlanListFilter, page, pageSize int) ([]bo.InspectionPlan, int, error) {
+	query := r.client.InspectionPlan.Query().Where(
+		inspectionplan.NamespaceUIDEQ(namespaceUID),
+		inspectionplan.DeletedAtIsNil(),
+	)
+	if filter.Name != "" {
+		query = query.Where(inspectionplan.NameContainsFold(filter.Name))
+	}
+	if filter.Status != "" {
+		query = query.Where(inspectionplan.StatusEQ(inspectionplan.Status(filter.Status)))
+	}
+	if filter.TemplateUID != "" {
+		query = query.Where(inspectionplan.TemplateUIDEQ(filter.TemplateUID))
+	}
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, r.fail(err)
+	}
+	rows, err := query.Order(ent.Desc(inspectionplan.FieldUpdatedAt)).
+		Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if err != nil {
+		return nil, 0, r.fail(err)
+	}
+	if len(rows) == 0 {
+		return []bo.InspectionPlan{}, total, nil
+	}
+	planUIDs := make([]string, 0, len(rows))
+	for _, row := range rows {
+		planUIDs = append(planUIDs, row.UID)
+	}
+	items, err := r.client.InspectionItem.Query().Where(
+		inspectionitem.PlanUIDIn(planUIDs...),
+		inspectionitem.NamespaceUIDEQ(namespaceUID),
+		inspectionitem.DeletedAtIsNil(),
+	).Order(inspectionitem.BySort()).All(ctx)
+	if err != nil {
+		return nil, 0, r.fail(err)
+	}
+	byPlan := make(map[string][]bo.InspectionItem, len(rows))
+	for _, item := range items {
+		byPlan[item.PlanUID] = append(byPlan[item.PlanUID], toInspectionItem(item))
+	}
+	plans := make([]bo.InspectionPlan, 0, len(rows))
+	for _, row := range rows {
+		plan := toInspectionPlan(row)
+		plan.Items = byPlan[row.UID]
+		if plan.Items == nil {
+			plan.Items = []bo.InspectionItem{}
+		}
+		plans = append(plans, plan)
+	}
+	return plans, total, nil
+}
+
+func (r *inspectionRepo) CreateInspectionTemplate(ctx context.Context, in bo.InspectionTemplate) (*bo.InspectionTemplate, error) {
+	row, err := r.client.InspectionTemplate.Create().
+		SetUID(id.New()).
+		SetNamespaceUID(in.NamespaceUID).
+		SetName(in.Name).
+		SetDescription(in.Description).
+		SetHTMLBody(in.HTMLBody).
+		SetMarkdownBody(in.MarkdownBody).
+		SetIsBuiltin(in.IsBuiltin).
+		SetStatus(inspectiontemplate.Status(in.Status)).
+		SetCreatedBy(in.CreatedBy).
+		Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	return r.GetInspectionTemplate(ctx, in.NamespaceUID, row.UID)
+}
+
+func (r *inspectionRepo) UpdateInspectionTemplate(ctx context.Context, in bo.InspectionTemplate) (*bo.InspectionTemplate, error) {
+	n, err := r.client.InspectionTemplate.Update().
+		Where(
+			inspectiontemplate.UIDEQ(in.UID),
+			inspectiontemplate.NamespaceUIDEQ(in.NamespaceUID),
+			inspectiontemplate.IsBuiltinEQ(false),
+			inspectiontemplate.DeletedAtIsNil(),
+		).
+		SetName(in.Name).
+		SetDescription(in.Description).
+		SetHTMLBody(in.HTMLBody).
+		SetMarkdownBody(in.MarkdownBody).
+		Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if n == 0 {
+		return nil, merr.NotFound("inspection template not found")
+	}
+	return r.GetInspectionTemplate(ctx, in.NamespaceUID, in.UID)
+}
+
+func (r *inspectionRepo) DeleteInspectionTemplate(ctx context.Context, namespaceUID, uid string) error {
+	n, err := r.client.InspectionTemplate.Update().
+		Where(
+			inspectiontemplate.UIDEQ(uid),
+			inspectiontemplate.NamespaceUIDEQ(namespaceUID),
+			inspectiontemplate.IsBuiltinEQ(false),
+			inspectiontemplate.DeletedAtIsNil(),
+		).
+		SetDeletedAt(time.Now().UTC()).
+		Save(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if n == 0 {
+		return merr.NotFound("inspection template not found")
+	}
+	return nil
+}
+
+func (r *inspectionRepo) GetInspectionTemplate(ctx context.Context, namespaceUID, uid string) (*bo.InspectionTemplate, error) {
+	row, err := r.client.InspectionTemplate.Query().Where(
+		inspectiontemplate.UIDEQ(uid),
+		inspectiontemplate.DeletedAtIsNil(),
+		inspectiontemplate.Or(
+			inspectiontemplate.NamespaceUIDEQ(namespaceUID),
+			inspectiontemplate.NamespaceUIDEQ(""),
+		),
+	).Only(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	item := toInspectionTemplate(row)
+	return &item, nil
+}
+
+func (r *inspectionRepo) ListInspectionTemplates(ctx context.Context, namespaceUID, name string, page, pageSize int) ([]bo.InspectionTemplate, int, error) {
+	query := r.client.InspectionTemplate.Query().Where(
+		inspectiontemplate.DeletedAtIsNil(),
+		inspectiontemplate.Or(
+			inspectiontemplate.NamespaceUIDEQ(namespaceUID),
+			inspectiontemplate.NamespaceUIDEQ(""),
+		),
+	)
+	if name != "" {
+		query = query.Where(inspectiontemplate.NameContainsFold(name))
+	}
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, r.fail(err)
+	}
+	rows, err := query.Order(
+		inspectiontemplate.ByIsBuiltin(sql.OrderDesc()),
+		ent.Desc(inspectiontemplate.FieldUpdatedAt),
+	).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if err != nil {
+		return nil, 0, r.fail(err)
+	}
+	items := make([]bo.InspectionTemplate, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, toInspectionTemplate(row))
+	}
+	return items, total, nil
+}
+
+func toInspectionPlan(row *ent.InspectionPlan) bo.InspectionPlan {
+	return bo.InspectionPlan{
+		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, Description: row.Description,
+		Status: string(row.Status), Cron: row.Cron, Timezone: row.Timezone,
+		TimeoutSeconds: row.TimeoutSeconds, TemplateUID: row.TemplateUID,
+		OutputFormats: row.OutputFormats, TitleTemplate: row.TitleTemplate,
+		NotificationGroupUIDs: row.NotificationGroupUids, NotifyPolicy: string(row.NotifyPolicy),
+		Labels: row.Labels, Remark: row.Remark, NextRunAt: row.NextRunAt, LastRunAt: row.LastRunAt,
+		CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
+	}
+}
+
+func toInspectionItem(row *ent.InspectionItem) bo.InspectionItem {
+	return bo.InspectionItem{
+		UID: row.UID, NamespaceUID: row.NamespaceUID, PlanUID: row.PlanUID,
+		Kind: string(row.Kind), Title: row.Title, Sort: row.Sort,
+		DatasourceUID: row.DatasourceUID, Query: row.Query,
+		WindowSeconds: row.WindowSeconds, StepSeconds: row.StepSeconds,
+		Display: string(row.Display), Params: row.Params, Enabled: row.Enabled,
+	}
+}
+
+func toInspectionTemplate(row *ent.InspectionTemplate) bo.InspectionTemplate {
+	return bo.InspectionTemplate{
+		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, Description: row.Description,
+		HTMLBody: row.HTMLBody, MarkdownBody: row.MarkdownBody,
+		IsBuiltin: row.IsBuiltin, Status: string(row.Status),
+		CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
+	}
+}

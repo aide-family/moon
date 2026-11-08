@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/namespacefeature"
@@ -61,6 +62,9 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 		return err
 	}
 	if err := ensureSuperAdmin(ctx, client, helper); err != nil {
+		return err
+	}
+	if err := seedInspectionTemplates(ctx, client, helper); err != nil {
 		return err
 	}
 	return seedNotificationPresets(ctx, client, helper)
@@ -695,3 +699,118 @@ func ensureSuperAdmin(ctx context.Context, client *ent.Client, helper *slog.Logg
 	}
 	return nil
 }
+
+// seedInspectionTemplates 写入内置巡检报告模板。按名称与空租户判断，重复执行跳过，
+// 不覆盖管理员数据；内置模板只读，租户复制后编辑。
+func seedInspectionTemplates(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	const name = "标准巡检报告"
+	exists, err := client.InspectionTemplate.Query().Where(
+		inspectiontemplate.NameEQ(name),
+		inspectiontemplate.NamespaceUIDEQ(""),
+		inspectiontemplate.DeletedAtIsNil(),
+	).Exist(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	if exists {
+		return nil
+	}
+	_, err = client.InspectionTemplate.Create().
+		SetUID(id.New()).
+		SetNamespaceUID("").
+		SetName(name).
+		SetDescription("封面、结论、摘要与检查项明细；HTML 与 Markdown 双正文。").
+		SetIsBuiltin(true).
+		SetStatus(inspectiontemplate.StatusACTIVE).
+		SetHTMLBody(inspectionHTMLTemplate).
+		SetMarkdownBody(inspectionMarkdownTemplate).
+		Save(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	return nil
+}
+
+const inspectionHTMLTemplate = `<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>{{.Title}}</title></head>
+<body style="margin:0;background:#f8fafc;color:#1f2937;font-family:-apple-system,'PingFang SC',sans-serif;line-height:1.65">
+<main style="max-width:760px;margin:0 auto;padding:36px 32px;background:#fff">
+  <p style="margin:0;color:#9a6a2f;font-size:11px;letter-spacing:.12em">INSPECTION REPORT</p>
+  <h1 style="margin:6px 0 4px;font-size:24px">{{.Plan.Name}}</h1>
+  <p style="margin:0 0 18px;color:#6b7280;font-size:12px">
+    {{.Tenant.Name}} · {{.Run.WindowStart}} → {{.Run.WindowEnd}} · {{.Run.Trigger}}
+  </p>
+  {{if .HasAbnormal}}
+  <div style="border:1px solid #fde68a;background:#fffbeb;border-radius:10px;padding:12px 14px;margin-bottom:16px">
+    <strong style="color:#78350f">本次巡检发现 {{.Summary.Abnormal}} 项需要关注</strong>
+    <p style="margin:4px 0 0;color:#92400e;font-size:12.5px">
+      {{.Summary.OK}} 项正常，{{.Summary.Warn}} 项警告，{{.Summary.Failed}} 项失败。
+    </p>
+  </div>
+  {{else}}
+  <div style="border:1px solid #a7f3d0;background:#ecfdf5;border-radius:10px;padding:12px 14px;margin-bottom:16px;color:#065f46">
+    <strong>全部 {{.Summary.Total}} 项检查正常</strong>
+  </div>
+  {{end}}
+  <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px">
+    <tr>
+      <td style="border:1px solid #e5e7eb;padding:8px 10px">检查项</td>
+      <td style="border:1px solid #e5e7eb;padding:8px 10px">正常</td>
+      <td style="border:1px solid #e5e7eb;padding:8px 10px">警告</td>
+      <td style="border:1px solid #e5e7eb;padding:8px 10px">失败</td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #e5e7eb;padding:8px 10px">{{.Summary.Total}}</td>
+      <td style="border:1px solid #e5e7eb;padding:8px 10px">{{.Summary.OK}}</td>
+      <td style="border:1px solid #e5e7eb;padding:8px 10px">{{.Summary.Warn}}</td>
+      <td style="border:1px solid #e5e7eb;padding:8px 10px">{{.Summary.Failed}}</td>
+    </tr>
+  </table>
+  {{range .Sections}}
+  <section style="margin-top:24px">
+    <h2 style="margin:0 0 6px;font-size:15px">{{.Title}}</h2>
+    {{if .Error}}<p style="margin:0 0 8px;color:#b42318;font-size:12.5px">取数失败：{{.Error}}</p>{{end}}
+    {{if .Note}}<p style="margin:0 0 8px;color:#6b7280;font-size:12px">{{.Note}}</p>{{end}}
+    {{if .Table}}
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>{{range .Table.Columns}}<th style="border:1px solid #e5e7eb;background:#f8fafc;padding:8px 10px;text-align:left;font-weight:600">{{.}}</th>{{end}}</tr></thead>
+      <tbody>{{range .Table.Rows}}<tr>{{range .}}<td style="border:1px solid #e5e7eb;padding:8px 10px">{{.}}</td>{{end}}</tr>{{end}}</tbody>
+    </table>
+    {{end}}
+  </section>
+  {{end}}
+  <p style="margin-top:28px;padding-top:12px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px">
+    由 Alioth 巡检生成 · 报告快照不可修改
+  </p>
+</main>
+</body>
+</html>`
+
+const inspectionMarkdownTemplate = `# {{.Title}}
+
+> {{.Tenant.Name}} · 执行窗口 {{.Run.WindowStart}} → {{.Run.WindowEnd}} · {{.Run.Trigger}}
+
+## 结论
+
+{{if .HasAbnormal}}本次巡检发现 **{{.Summary.Abnormal}} 项需要关注**：{{.Summary.OK}} 项正常，{{.Summary.Warn}} 项警告，{{.Summary.Failed}} 项失败。{{else}}全部 {{.Summary.Total}} 项检查正常。{{end}}
+
+| 检查项 | 正常 | 警告 | 失败 |
+| --- | --- | --- | --- |
+| {{.Summary.Total}} | {{.Summary.OK}} | {{.Summary.Warn}} | {{.Summary.Failed}} |
+
+{{range .Sections}}
+## {{.Title}}
+
+{{if .Error}}取数失败：{{.Error}}{{end}}
+{{if .Note}}{{.Note}}{{end}}
+{{if .Table}}
+| {{range .Table.Columns}}{{.}} | {{end}}
+| {{range .Table.Columns}}--- | {{end}}
+{{range .Table.Rows}}| {{range .}}{{.}} | {{end}}
+{{end}}{{end}}
+
+{{end}}
+---
+
+由 Alioth 巡检生成 · 报告快照不可修改`

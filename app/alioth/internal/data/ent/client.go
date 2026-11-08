@@ -41,6 +41,11 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionrun"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
@@ -140,6 +145,16 @@ type Client struct {
 	FeaturePackage *FeaturePackageClient
 	// FeaturePackageItem is the client for interacting with the FeaturePackageItem builders.
 	FeaturePackageItem *FeaturePackageItemClient
+	// InspectionItem is the client for interacting with the InspectionItem builders.
+	InspectionItem *InspectionItemClient
+	// InspectionPlan is the client for interacting with the InspectionPlan builders.
+	InspectionPlan *InspectionPlanClient
+	// InspectionReport is the client for interacting with the InspectionReport builders.
+	InspectionReport *InspectionReportClient
+	// InspectionRun is the client for interacting with the InspectionRun builders.
+	InspectionRun *InspectionRunClient
+	// InspectionTemplate is the client for interacting with the InspectionTemplate builders.
+	InspectionTemplate *InspectionTemplateClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
 	// MemberInvite is the client for interacting with the MemberInvite builders.
@@ -254,6 +269,11 @@ func (c *Client) init() {
 	c.EmailLoginCode = NewEmailLoginCodeClient(c.config)
 	c.FeaturePackage = NewFeaturePackageClient(c.config)
 	c.FeaturePackageItem = NewFeaturePackageItemClient(c.config)
+	c.InspectionItem = NewInspectionItemClient(c.config)
+	c.InspectionPlan = NewInspectionPlanClient(c.config)
+	c.InspectionReport = NewInspectionReportClient(c.config)
+	c.InspectionRun = NewInspectionRunClient(c.config)
+	c.InspectionTemplate = NewInspectionTemplateClient(c.config)
 	c.Member = NewMemberClient(c.config)
 	c.MemberInvite = NewMemberInviteClient(c.config)
 	c.MemberRole = NewMemberRoleClient(c.config)
@@ -411,6 +431,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
 		FeaturePackage:                NewFeaturePackageClient(cfg),
 		FeaturePackageItem:            NewFeaturePackageItemClient(cfg),
+		InspectionItem:                NewInspectionItemClient(cfg),
+		InspectionPlan:                NewInspectionPlanClient(cfg),
+		InspectionReport:              NewInspectionReportClient(cfg),
+		InspectionRun:                 NewInspectionRunClient(cfg),
+		InspectionTemplate:            NewInspectionTemplateClient(cfg),
 		Member:                        NewMemberClient(cfg),
 		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
@@ -495,6 +520,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
 		FeaturePackage:                NewFeaturePackageClient(cfg),
 		FeaturePackageItem:            NewFeaturePackageItemClient(cfg),
+		InspectionItem:                NewInspectionItemClient(cfg),
+		InspectionPlan:                NewInspectionPlanClient(cfg),
+		InspectionReport:              NewInspectionReportClient(cfg),
+		InspectionRun:                 NewInspectionRunClient(cfg),
+		InspectionTemplate:            NewInspectionTemplateClient(cfg),
 		Member:                        NewMemberClient(cfg),
 		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
@@ -568,17 +598,18 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
 		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
 		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
-		c.FeaturePackage, c.FeaturePackageItem, c.Member, c.MemberInvite, c.MemberRole,
-		c.MessageLog, c.MessageLogShard, c.Namespace, c.NamespaceFeature,
-		c.NamespaceOrder, c.NotificationChannel, c.NotificationGroup,
-		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
-		c.NotificationSubscription, c.NotificationSubscriptionGroup,
-		c.NotificationTask, c.NotificationTemplate, c.OnCallRotation,
-		c.OnCallRotationMember, c.Permission, c.ProbeResult, c.ProbeSlaDaily,
-		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
-		c.SSHCommandAudit, c.SiteFeature, c.SiteHomeContent, c.SitePage, c.SiteSetting,
-		c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
-		c.WorkerInstance,
+		c.FeaturePackage, c.FeaturePackageItem, c.InspectionItem, c.InspectionPlan,
+		c.InspectionReport, c.InspectionRun, c.InspectionTemplate, c.Member,
+		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
+		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
+		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
+		c.NotificationPreset, c.NotificationSubscription,
+		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
+		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
+		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
+		c.SSHCommand, c.SSHCommandAudit, c.SiteFeature, c.SiteHomeContent, c.SitePage,
+		c.SiteSetting, c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage,
+		c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -594,17 +625,18 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
 		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
 		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
-		c.FeaturePackage, c.FeaturePackageItem, c.Member, c.MemberInvite, c.MemberRole,
-		c.MessageLog, c.MessageLogShard, c.Namespace, c.NamespaceFeature,
-		c.NamespaceOrder, c.NotificationChannel, c.NotificationGroup,
-		c.NotificationOnCall, c.NotificationOnCallGroup, c.NotificationPreset,
-		c.NotificationSubscription, c.NotificationSubscriptionGroup,
-		c.NotificationTask, c.NotificationTemplate, c.OnCallRotation,
-		c.OnCallRotationMember, c.Permission, c.ProbeResult, c.ProbeSlaDaily,
-		c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission, c.SSHCommand,
-		c.SSHCommandAudit, c.SiteFeature, c.SiteHomeContent, c.SitePage, c.SiteSetting,
-		c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
-		c.WorkerInstance,
+		c.FeaturePackage, c.FeaturePackageItem, c.InspectionItem, c.InspectionPlan,
+		c.InspectionReport, c.InspectionRun, c.InspectionTemplate, c.Member,
+		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
+		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
+		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
+		c.NotificationPreset, c.NotificationSubscription,
+		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
+		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
+		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
+		c.SSHCommand, c.SSHCommandAudit, c.SiteFeature, c.SiteHomeContent, c.SitePage,
+		c.SiteSetting, c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage,
+		c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -667,6 +699,16 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FeaturePackage.mutate(ctx, m)
 	case *FeaturePackageItemMutation:
 		return c.FeaturePackageItem.mutate(ctx, m)
+	case *InspectionItemMutation:
+		return c.InspectionItem.mutate(ctx, m)
+	case *InspectionPlanMutation:
+		return c.InspectionPlan.mutate(ctx, m)
+	case *InspectionReportMutation:
+		return c.InspectionReport.mutate(ctx, m)
+	case *InspectionRunMutation:
+		return c.InspectionRun.mutate(ctx, m)
+	case *InspectionTemplateMutation:
+		return c.InspectionTemplate.mutate(ctx, m)
 	case *MemberMutation:
 		return c.Member.mutate(ctx, m)
 	case *MemberInviteMutation:
@@ -4336,6 +4378,671 @@ func (c *FeaturePackageItemClient) mutate(ctx context.Context, m *FeaturePackage
 		return (&FeaturePackageItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FeaturePackageItem mutation op: %q", m.Op())
+	}
+}
+
+// InspectionItemClient is a client for the InspectionItem schema.
+type InspectionItemClient struct {
+	config
+}
+
+// NewInspectionItemClient returns a client for the InspectionItem from the given config.
+func NewInspectionItemClient(c config) *InspectionItemClient {
+	return &InspectionItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `inspectionitem.Hooks(f(g(h())))`.
+func (c *InspectionItemClient) Use(hooks ...Hook) {
+	c.hooks.InspectionItem = append(c.hooks.InspectionItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `inspectionitem.Intercept(f(g(h())))`.
+func (c *InspectionItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InspectionItem = append(c.inters.InspectionItem, interceptors...)
+}
+
+// Create returns a builder for creating a InspectionItem entity.
+func (c *InspectionItemClient) Create() *InspectionItemCreate {
+	mutation := newInspectionItemMutation(c.config, OpCreate)
+	return &InspectionItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of InspectionItem entities.
+func (c *InspectionItemClient) CreateBulk(builders ...*InspectionItemCreate) *InspectionItemCreateBulk {
+	return &InspectionItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InspectionItemClient) MapCreateBulk(slice any, setFunc func(*InspectionItemCreate, int)) *InspectionItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InspectionItemCreateBulk{err: fmt.Errorf("calling to InspectionItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InspectionItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InspectionItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for InspectionItem.
+func (c *InspectionItemClient) Update() *InspectionItemUpdate {
+	mutation := newInspectionItemMutation(c.config, OpUpdate)
+	return &InspectionItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InspectionItemClient) UpdateOne(_m *InspectionItem) *InspectionItemUpdateOne {
+	mutation := newInspectionItemMutation(c.config, OpUpdateOne, withInspectionItem(_m))
+	return &InspectionItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InspectionItemClient) UpdateOneID(id int) *InspectionItemUpdateOne {
+	mutation := newInspectionItemMutation(c.config, OpUpdateOne, withInspectionItemID(id))
+	return &InspectionItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for InspectionItem.
+func (c *InspectionItemClient) Delete() *InspectionItemDelete {
+	mutation := newInspectionItemMutation(c.config, OpDelete)
+	return &InspectionItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InspectionItemClient) DeleteOne(_m *InspectionItem) *InspectionItemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InspectionItemClient) DeleteOneID(id int) *InspectionItemDeleteOne {
+	builder := c.Delete().Where(inspectionitem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InspectionItemDeleteOne{builder}
+}
+
+// Query returns a query builder for InspectionItem.
+func (c *InspectionItemClient) Query() *InspectionItemQuery {
+	return &InspectionItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInspectionItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a InspectionItem entity by its id.
+func (c *InspectionItemClient) Get(ctx context.Context, id int) (*InspectionItem, error) {
+	return c.Query().Where(inspectionitem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InspectionItemClient) GetX(ctx context.Context, id int) *InspectionItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *InspectionItemClient) Hooks() []Hook {
+	return c.hooks.InspectionItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *InspectionItemClient) Interceptors() []Interceptor {
+	return c.inters.InspectionItem
+}
+
+func (c *InspectionItemClient) mutate(ctx context.Context, m *InspectionItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InspectionItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InspectionItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InspectionItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InspectionItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InspectionItem mutation op: %q", m.Op())
+	}
+}
+
+// InspectionPlanClient is a client for the InspectionPlan schema.
+type InspectionPlanClient struct {
+	config
+}
+
+// NewInspectionPlanClient returns a client for the InspectionPlan from the given config.
+func NewInspectionPlanClient(c config) *InspectionPlanClient {
+	return &InspectionPlanClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `inspectionplan.Hooks(f(g(h())))`.
+func (c *InspectionPlanClient) Use(hooks ...Hook) {
+	c.hooks.InspectionPlan = append(c.hooks.InspectionPlan, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `inspectionplan.Intercept(f(g(h())))`.
+func (c *InspectionPlanClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InspectionPlan = append(c.inters.InspectionPlan, interceptors...)
+}
+
+// Create returns a builder for creating a InspectionPlan entity.
+func (c *InspectionPlanClient) Create() *InspectionPlanCreate {
+	mutation := newInspectionPlanMutation(c.config, OpCreate)
+	return &InspectionPlanCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of InspectionPlan entities.
+func (c *InspectionPlanClient) CreateBulk(builders ...*InspectionPlanCreate) *InspectionPlanCreateBulk {
+	return &InspectionPlanCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InspectionPlanClient) MapCreateBulk(slice any, setFunc func(*InspectionPlanCreate, int)) *InspectionPlanCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InspectionPlanCreateBulk{err: fmt.Errorf("calling to InspectionPlanClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InspectionPlanCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InspectionPlanCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for InspectionPlan.
+func (c *InspectionPlanClient) Update() *InspectionPlanUpdate {
+	mutation := newInspectionPlanMutation(c.config, OpUpdate)
+	return &InspectionPlanUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InspectionPlanClient) UpdateOne(_m *InspectionPlan) *InspectionPlanUpdateOne {
+	mutation := newInspectionPlanMutation(c.config, OpUpdateOne, withInspectionPlan(_m))
+	return &InspectionPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InspectionPlanClient) UpdateOneID(id int) *InspectionPlanUpdateOne {
+	mutation := newInspectionPlanMutation(c.config, OpUpdateOne, withInspectionPlanID(id))
+	return &InspectionPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for InspectionPlan.
+func (c *InspectionPlanClient) Delete() *InspectionPlanDelete {
+	mutation := newInspectionPlanMutation(c.config, OpDelete)
+	return &InspectionPlanDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InspectionPlanClient) DeleteOne(_m *InspectionPlan) *InspectionPlanDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InspectionPlanClient) DeleteOneID(id int) *InspectionPlanDeleteOne {
+	builder := c.Delete().Where(inspectionplan.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InspectionPlanDeleteOne{builder}
+}
+
+// Query returns a query builder for InspectionPlan.
+func (c *InspectionPlanClient) Query() *InspectionPlanQuery {
+	return &InspectionPlanQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInspectionPlan},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a InspectionPlan entity by its id.
+func (c *InspectionPlanClient) Get(ctx context.Context, id int) (*InspectionPlan, error) {
+	return c.Query().Where(inspectionplan.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InspectionPlanClient) GetX(ctx context.Context, id int) *InspectionPlan {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *InspectionPlanClient) Hooks() []Hook {
+	return c.hooks.InspectionPlan
+}
+
+// Interceptors returns the client interceptors.
+func (c *InspectionPlanClient) Interceptors() []Interceptor {
+	return c.inters.InspectionPlan
+}
+
+func (c *InspectionPlanClient) mutate(ctx context.Context, m *InspectionPlanMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InspectionPlanCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InspectionPlanUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InspectionPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InspectionPlanDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InspectionPlan mutation op: %q", m.Op())
+	}
+}
+
+// InspectionReportClient is a client for the InspectionReport schema.
+type InspectionReportClient struct {
+	config
+}
+
+// NewInspectionReportClient returns a client for the InspectionReport from the given config.
+func NewInspectionReportClient(c config) *InspectionReportClient {
+	return &InspectionReportClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `inspectionreport.Hooks(f(g(h())))`.
+func (c *InspectionReportClient) Use(hooks ...Hook) {
+	c.hooks.InspectionReport = append(c.hooks.InspectionReport, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `inspectionreport.Intercept(f(g(h())))`.
+func (c *InspectionReportClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InspectionReport = append(c.inters.InspectionReport, interceptors...)
+}
+
+// Create returns a builder for creating a InspectionReport entity.
+func (c *InspectionReportClient) Create() *InspectionReportCreate {
+	mutation := newInspectionReportMutation(c.config, OpCreate)
+	return &InspectionReportCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of InspectionReport entities.
+func (c *InspectionReportClient) CreateBulk(builders ...*InspectionReportCreate) *InspectionReportCreateBulk {
+	return &InspectionReportCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InspectionReportClient) MapCreateBulk(slice any, setFunc func(*InspectionReportCreate, int)) *InspectionReportCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InspectionReportCreateBulk{err: fmt.Errorf("calling to InspectionReportClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InspectionReportCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InspectionReportCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for InspectionReport.
+func (c *InspectionReportClient) Update() *InspectionReportUpdate {
+	mutation := newInspectionReportMutation(c.config, OpUpdate)
+	return &InspectionReportUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InspectionReportClient) UpdateOne(_m *InspectionReport) *InspectionReportUpdateOne {
+	mutation := newInspectionReportMutation(c.config, OpUpdateOne, withInspectionReport(_m))
+	return &InspectionReportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InspectionReportClient) UpdateOneID(id int) *InspectionReportUpdateOne {
+	mutation := newInspectionReportMutation(c.config, OpUpdateOne, withInspectionReportID(id))
+	return &InspectionReportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for InspectionReport.
+func (c *InspectionReportClient) Delete() *InspectionReportDelete {
+	mutation := newInspectionReportMutation(c.config, OpDelete)
+	return &InspectionReportDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InspectionReportClient) DeleteOne(_m *InspectionReport) *InspectionReportDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InspectionReportClient) DeleteOneID(id int) *InspectionReportDeleteOne {
+	builder := c.Delete().Where(inspectionreport.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InspectionReportDeleteOne{builder}
+}
+
+// Query returns a query builder for InspectionReport.
+func (c *InspectionReportClient) Query() *InspectionReportQuery {
+	return &InspectionReportQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInspectionReport},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a InspectionReport entity by its id.
+func (c *InspectionReportClient) Get(ctx context.Context, id int) (*InspectionReport, error) {
+	return c.Query().Where(inspectionreport.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InspectionReportClient) GetX(ctx context.Context, id int) *InspectionReport {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *InspectionReportClient) Hooks() []Hook {
+	return c.hooks.InspectionReport
+}
+
+// Interceptors returns the client interceptors.
+func (c *InspectionReportClient) Interceptors() []Interceptor {
+	return c.inters.InspectionReport
+}
+
+func (c *InspectionReportClient) mutate(ctx context.Context, m *InspectionReportMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InspectionReportCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InspectionReportUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InspectionReportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InspectionReportDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InspectionReport mutation op: %q", m.Op())
+	}
+}
+
+// InspectionRunClient is a client for the InspectionRun schema.
+type InspectionRunClient struct {
+	config
+}
+
+// NewInspectionRunClient returns a client for the InspectionRun from the given config.
+func NewInspectionRunClient(c config) *InspectionRunClient {
+	return &InspectionRunClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `inspectionrun.Hooks(f(g(h())))`.
+func (c *InspectionRunClient) Use(hooks ...Hook) {
+	c.hooks.InspectionRun = append(c.hooks.InspectionRun, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `inspectionrun.Intercept(f(g(h())))`.
+func (c *InspectionRunClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InspectionRun = append(c.inters.InspectionRun, interceptors...)
+}
+
+// Create returns a builder for creating a InspectionRun entity.
+func (c *InspectionRunClient) Create() *InspectionRunCreate {
+	mutation := newInspectionRunMutation(c.config, OpCreate)
+	return &InspectionRunCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of InspectionRun entities.
+func (c *InspectionRunClient) CreateBulk(builders ...*InspectionRunCreate) *InspectionRunCreateBulk {
+	return &InspectionRunCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InspectionRunClient) MapCreateBulk(slice any, setFunc func(*InspectionRunCreate, int)) *InspectionRunCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InspectionRunCreateBulk{err: fmt.Errorf("calling to InspectionRunClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InspectionRunCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InspectionRunCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for InspectionRun.
+func (c *InspectionRunClient) Update() *InspectionRunUpdate {
+	mutation := newInspectionRunMutation(c.config, OpUpdate)
+	return &InspectionRunUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InspectionRunClient) UpdateOne(_m *InspectionRun) *InspectionRunUpdateOne {
+	mutation := newInspectionRunMutation(c.config, OpUpdateOne, withInspectionRun(_m))
+	return &InspectionRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InspectionRunClient) UpdateOneID(id int) *InspectionRunUpdateOne {
+	mutation := newInspectionRunMutation(c.config, OpUpdateOne, withInspectionRunID(id))
+	return &InspectionRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for InspectionRun.
+func (c *InspectionRunClient) Delete() *InspectionRunDelete {
+	mutation := newInspectionRunMutation(c.config, OpDelete)
+	return &InspectionRunDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InspectionRunClient) DeleteOne(_m *InspectionRun) *InspectionRunDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InspectionRunClient) DeleteOneID(id int) *InspectionRunDeleteOne {
+	builder := c.Delete().Where(inspectionrun.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InspectionRunDeleteOne{builder}
+}
+
+// Query returns a query builder for InspectionRun.
+func (c *InspectionRunClient) Query() *InspectionRunQuery {
+	return &InspectionRunQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInspectionRun},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a InspectionRun entity by its id.
+func (c *InspectionRunClient) Get(ctx context.Context, id int) (*InspectionRun, error) {
+	return c.Query().Where(inspectionrun.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InspectionRunClient) GetX(ctx context.Context, id int) *InspectionRun {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *InspectionRunClient) Hooks() []Hook {
+	return c.hooks.InspectionRun
+}
+
+// Interceptors returns the client interceptors.
+func (c *InspectionRunClient) Interceptors() []Interceptor {
+	return c.inters.InspectionRun
+}
+
+func (c *InspectionRunClient) mutate(ctx context.Context, m *InspectionRunMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InspectionRunCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InspectionRunUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InspectionRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InspectionRunDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InspectionRun mutation op: %q", m.Op())
+	}
+}
+
+// InspectionTemplateClient is a client for the InspectionTemplate schema.
+type InspectionTemplateClient struct {
+	config
+}
+
+// NewInspectionTemplateClient returns a client for the InspectionTemplate from the given config.
+func NewInspectionTemplateClient(c config) *InspectionTemplateClient {
+	return &InspectionTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `inspectiontemplate.Hooks(f(g(h())))`.
+func (c *InspectionTemplateClient) Use(hooks ...Hook) {
+	c.hooks.InspectionTemplate = append(c.hooks.InspectionTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `inspectiontemplate.Intercept(f(g(h())))`.
+func (c *InspectionTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InspectionTemplate = append(c.inters.InspectionTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a InspectionTemplate entity.
+func (c *InspectionTemplateClient) Create() *InspectionTemplateCreate {
+	mutation := newInspectionTemplateMutation(c.config, OpCreate)
+	return &InspectionTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of InspectionTemplate entities.
+func (c *InspectionTemplateClient) CreateBulk(builders ...*InspectionTemplateCreate) *InspectionTemplateCreateBulk {
+	return &InspectionTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InspectionTemplateClient) MapCreateBulk(slice any, setFunc func(*InspectionTemplateCreate, int)) *InspectionTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InspectionTemplateCreateBulk{err: fmt.Errorf("calling to InspectionTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InspectionTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InspectionTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for InspectionTemplate.
+func (c *InspectionTemplateClient) Update() *InspectionTemplateUpdate {
+	mutation := newInspectionTemplateMutation(c.config, OpUpdate)
+	return &InspectionTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InspectionTemplateClient) UpdateOne(_m *InspectionTemplate) *InspectionTemplateUpdateOne {
+	mutation := newInspectionTemplateMutation(c.config, OpUpdateOne, withInspectionTemplate(_m))
+	return &InspectionTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InspectionTemplateClient) UpdateOneID(id int) *InspectionTemplateUpdateOne {
+	mutation := newInspectionTemplateMutation(c.config, OpUpdateOne, withInspectionTemplateID(id))
+	return &InspectionTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for InspectionTemplate.
+func (c *InspectionTemplateClient) Delete() *InspectionTemplateDelete {
+	mutation := newInspectionTemplateMutation(c.config, OpDelete)
+	return &InspectionTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InspectionTemplateClient) DeleteOne(_m *InspectionTemplate) *InspectionTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InspectionTemplateClient) DeleteOneID(id int) *InspectionTemplateDeleteOne {
+	builder := c.Delete().Where(inspectiontemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InspectionTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for InspectionTemplate.
+func (c *InspectionTemplateClient) Query() *InspectionTemplateQuery {
+	return &InspectionTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInspectionTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a InspectionTemplate entity by its id.
+func (c *InspectionTemplateClient) Get(ctx context.Context, id int) (*InspectionTemplate, error) {
+	return c.Query().Where(inspectiontemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InspectionTemplateClient) GetX(ctx context.Context, id int) *InspectionTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *InspectionTemplateClient) Hooks() []Hook {
+	return c.hooks.InspectionTemplate
+}
+
+// Interceptors returns the client interceptors.
+func (c *InspectionTemplateClient) Interceptors() []Interceptor {
+	return c.inters.InspectionTemplate
+}
+
+func (c *InspectionTemplateClient) mutate(ctx context.Context, m *InspectionTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InspectionTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InspectionTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InspectionTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InspectionTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InspectionTemplate mutation op: %q", m.Op())
 	}
 }
 
@@ -9402,8 +10109,9 @@ type (
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
 		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
 		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
-		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
-		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		FeaturePackageItem, InspectionItem, InspectionPlan, InspectionReport,
+		InspectionRun, InspectionTemplate, Member, MemberInvite, MemberRole,
+		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
@@ -9420,8 +10128,9 @@ type (
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
 		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
 		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
-		FeaturePackageItem, Member, MemberInvite, MemberRole, MessageLog,
-		MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		FeaturePackageItem, InspectionItem, InspectionPlan, InspectionReport,
+		InspectionRun, InspectionTemplate, Member, MemberInvite, MemberRole,
+		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
 		NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,

@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/biz/feature"
 	"github.com/aide-family/moon/app/alioth/internal/biz/health"
+	"github.com/aide-family/moon/app/alioth/internal/biz/inspection"
 	"github.com/aide-family/moon/app/alioth/internal/biz/member"
 	"github.com/aide-family/moon/app/alioth/internal/biz/message"
 	"github.com/aide-family/moon/app/alioth/internal/biz/migration"
@@ -49,6 +50,7 @@ var ProviderSet = wire.NewSet(
 	datasource.ProviderSet,
 	probe.ProviderSet,
 	probesla.ProviderSet,
+	inspection.ProviderSet,
 	statuspage.ProviderSet,
 	site.ProviderSet,
 	alertdictionary.ProviderSet,

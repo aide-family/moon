@@ -1,0 +1,387 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// 巡检计划：把数据源查询、探测目标与告警汇总成周期报告，按 cron 执行并投递到通知组。
+service InspectionPlanService {
+  // 创建巡检计划。
+  rpc CreateInspectionPlan(CreateInspectionPlanRequest) returns (CreateInspectionPlanResponse) {
+    option (google.api.http) = {
+      post: "/v1/inspection/plans"
+      body: "*"
+    };
+  }
+  // 更新巡检计划；检查项随计划整体保存。
+  rpc UpdateInspectionPlan(UpdateInspectionPlanRequest) returns (UpdateInspectionPlanResponse) {
+    option (google.api.http) = {
+      put: "/v1/inspection/plans/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或暂停巡检计划。
+  rpc UpdateInspectionPlanStatus(UpdateInspectionPlanStatusRequest) returns (UpdateInspectionPlanStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/inspection/plans/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除巡检计划。
+  rpc DeleteInspectionPlan(DeleteInspectionPlanRequest) returns (DeleteInspectionPlanResponse) {
+    option (google.api.http) = {delete: "/v1/inspection/plans/{uid}"};
+  }
+  // 获取巡检计划详情，包含检查项。
+  rpc GetInspectionPlan(GetInspectionPlanRequest) returns (GetInspectionPlanResponse) {
+    option (google.api.http) = {get: "/v1/inspection/plans/{uid}"};
+  }
+  // 分页列出巡检计划。
+  rpc ListInspectionPlans(ListInspectionPlansRequest) returns (ListInspectionPlansResponse) {
+    option (google.api.http) = {get: "/v1/inspection/plans"};
+  }
+}
+
+// 巡检报告模板：一份版式、两段正文，HTML 与 Markdown 共用同一份数据契约。
+service InspectionTemplateService {
+  // 创建报告模板。
+  rpc CreateInspectionTemplate(CreateInspectionTemplateRequest) returns (CreateInspectionTemplateResponse) {
+    option (google.api.http) = {
+      post: "/v1/inspection/templates"
+      body: "*"
+    };
+  }
+  // 更新报告模板。
+  rpc UpdateInspectionTemplate(UpdateInspectionTemplateRequest) returns (UpdateInspectionTemplateResponse) {
+    option (google.api.http) = {
+      put: "/v1/inspection/templates/{uid}"
+      body: "*"
+    };
+  }
+  // 删除报告模板；内置模板只读，不能删除。
+  rpc DeleteInspectionTemplate(DeleteInspectionTemplateRequest) returns (DeleteInspectionTemplateResponse) {
+    option (google.api.http) = {delete: "/v1/inspection/templates/{uid}"};
+  }
+  // 获取报告模板详情。
+  rpc GetInspectionTemplate(GetInspectionTemplateRequest) returns (GetInspectionTemplateResponse) {
+    option (google.api.http) = {get: "/v1/inspection/templates/{uid}"};
+  }
+  // 分页列出报告模板，内置模板排在前面。
+  rpc ListInspectionTemplates(ListInspectionTemplatesRequest) returns (ListInspectionTemplatesResponse) {
+    option (google.api.http) = {get: "/v1/inspection/templates"};
+  }
+}
+
+// 巡检检查项。
+message InspectionPlanItem {
+  // 标识；新建时为空。
+  string uid = 1;
+  // 类型，取值为 METRICS_QUERY、LOGS_QUERY、PROBE_TARGET、ALERT_EVENTS 或 NOTE。
+  string kind = 2;
+  // 章节标题。
+  string title = 3;
+  // 报告内顺序，从 0 开始。
+  int32 sort = 4;
+  // 指标或日志数据源标识；其它类型为空。
+  string datasource_uid = 5 [json_name = "datasourceUid"];
+  // 查询语句；说明项存 Markdown 文本。
+  string query = 6;
+  // 相对执行时刻的回看窗口，单位秒。
+  int32 window_seconds = 7 [json_name = "windowSeconds"];
+  // 指标趋势步长，单位秒。
+  int32 step_seconds = 8 [json_name = "stepSeconds"];
+  // 展示方式，取值为 METRIC、TABLE、TREND、LOGS 或 TEXT。
+  string display = 9;
+  // 类型专属配置 JSON：探测目标组、告警筛选、阈值等。
+  string params = 10;
+  // 是否参与本次巡检。
+  bool enabled = 11;
+}
+
+// 巡检计划。
+message InspectionPlan {
+  // 标识。
+  string uid = 1;
+  // 名称，租户内唯一。
+  string name = 2;
+  // 说明。
+  string description = 3;
+  // 状态，取值为 ACTIVE 或 PAUSED。
+  string status = 4;
+  // 5 段 cron 表达式。
+  string cron = 5;
+  // IANA 时区。
+  string timezone = 6;
+  // 整次执行超时，单位秒。
+  int32 timeout_seconds = 7 [json_name = "timeoutSeconds"];
+  // 报告模板标识。
+  string template_uid = 8 [json_name = "templateUid"];
+  // 输出格式，取值为 HTML、MARKDOWN，至少一个。
+  repeated string output_formats = 9 [json_name = "outputFormats"];
+  // 报告标题模板。
+  string title_template = 10 [json_name = "titleTemplate"];
+  // 投递通知组标识。
+  repeated string notification_group_uids = 11 [json_name = "notificationGroupUids"];
+  // 发送条件，取值为 ALWAYS 或 ON_ABNORMAL。
+  string notify_policy = 12 [json_name = "notifyPolicy"];
+  // 标签 JSON 对象。
+  string labels = 13;
+  // 备注。
+  string remark = 14;
+  // 检查项，按 sort 排序。
+  repeated InspectionPlanItem items = 15;
+  // 下次执行时间，RFC3339；暂停时为空。
+  string next_run_at = 16 [json_name = "nextRunAt"];
+  // 最近一次执行开始时间，RFC3339。
+  string last_run_at = 17 [json_name = "lastRunAt"];
+  // 创建人标识。
+  string created_by = 18 [json_name = "createdBy"];
+  // 创建时间，RFC3339。
+  string created_at = 19 [json_name = "createdAt"];
+  // 更新时间，RFC3339。
+  string updated_at = 20 [json_name = "updatedAt"];
+}
+
+// 巡检计划配置。创建与更新共用；检查项随计划整体保存。
+message InspectionPlanInput {
+  // 名称，租户内唯一，≤64 字符。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 说明。
+  string description = 2 [(buf.validate.field).string = {max_len: 255}];
+  // 5 段 cron 表达式。
+  string cron = 3 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  // IANA 时区，例如 Asia/Shanghai。
+  string timezone = 4 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 整次执行超时，单位秒。
+  int32 timeout_seconds = 5 [json_name = "timeoutSeconds", (buf.validate.field).int32 = {gte: 30, lte: 1800}];
+  // 报告模板标识。
+  string template_uid = 6 [json_name = "templateUid", (buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 输出格式，至少一个。
+  repeated string output_formats = 7 [json_name = "outputFormats"];
+  // 报告标题模板。
+  string title_template = 8 [json_name = "titleTemplate", (buf.validate.field).string = {max_len: 256}];
+  // 投递通知组标识，可为空。
+  repeated string notification_group_uids = 9 [json_name = "notificationGroupUids"];
+  // 发送条件，取值为 ALWAYS 或 ON_ABNORMAL。
+  string notify_policy = 10 [json_name = "notifyPolicy", (buf.validate.field).string = {in: ["ALWAYS", "ON_ABNORMAL"]}];
+  // 标签 JSON 对象。
+  string labels = 11 [(buf.validate.field).string = {max_len: 4096}];
+  // 备注。
+  string remark = 12 [(buf.validate.field).string = {max_len: 1024}];
+  // 检查项，至少一个，最多 50 个。
+  repeated InspectionPlanItemInput items = 13;
+}
+
+// 巡检检查项入参。
+message InspectionPlanItemInput {
+  // 类型，取值为 METRICS_QUERY、LOGS_QUERY、PROBE_TARGET、ALERT_EVENTS 或 NOTE。
+  string kind = 1 [(buf.validate.field).string = {in: ["METRICS_QUERY", "LOGS_QUERY", "PROBE_TARGET", "ALERT_EVENTS", "NOTE"]}];
+  // 章节标题。
+  string title = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 指标或日志数据源标识。
+  string datasource_uid = 3 [json_name = "datasourceUid", (buf.validate.field).string = {max_len: 64}];
+  // 查询语句；说明项存 Markdown。
+  string query = 4 [(buf.validate.field).string = {max_len: 65536}];
+  // 回看窗口，单位秒。
+  int32 window_seconds = 5 [json_name = "windowSeconds", (buf.validate.field).int32 = {gte: 60, lte: 2592000}];
+  // 指标趋势步长，单位秒。
+  int32 step_seconds = 6 [json_name = "stepSeconds", (buf.validate.field).int32 = {gte: 5, lte: 86400}];
+  // 展示方式，取值为 METRIC、TABLE、TREND、LOGS 或 TEXT。
+  string display = 7 [(buf.validate.field).string = {in: ["METRIC", "TABLE", "TREND", "LOGS", "TEXT"]}];
+  // 类型专属配置 JSON。
+  string params = 8 [(buf.validate.field).string = {max_len: 8192}];
+  // 是否参与本次巡检。
+  bool enabled = 9;
+}
+
+// 创建巡检计划请求。
+message CreateInspectionPlanRequest {
+  // 计划配置。
+  InspectionPlanInput plan = 1;
+}
+
+// 创建巡检计划响应。
+message CreateInspectionPlanResponse {
+  // 创建后的计划。
+  InspectionPlan plan = 1;
+}
+
+// 更新巡检计划请求。
+message UpdateInspectionPlanRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 计划配置。
+  InspectionPlanInput plan = 2;
+}
+
+// 更新巡检计划响应。
+message UpdateInspectionPlanResponse {
+  // 更新后的计划。
+  InspectionPlan plan = 1;
+}
+
+// 更新巡检计划状态请求。
+message UpdateInspectionPlanStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 PAUSED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "PAUSED"]}];
+}
+
+// 更新巡检计划状态响应。
+message UpdateInspectionPlanStatusResponse {
+  // 更新后的计划。
+  InspectionPlan plan = 1;
+}
+
+// 删除巡检计划请求。
+message DeleteInspectionPlanRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除巡检计划响应。
+message DeleteInspectionPlanResponse {}
+
+// 获取巡检计划请求。
+message GetInspectionPlanRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取巡检计划响应。
+message GetInspectionPlanResponse {
+  // 计划详情。
+  InspectionPlan plan = 1;
+}
+
+// 列出巡检计划请求。
+message ListInspectionPlansRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  // 每页数量。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 1, lte: 100}];
+  // 名称模糊搜索，可空。
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+  // 状态过滤，留空表示不限制。
+  string status = 4 [(buf.validate.field).string = {in: ["", "ACTIVE", "PAUSED"]}];
+  // 报告模板过滤，留空表示不限制。
+  string template_uid = 5 [json_name = "templateUid", (buf.validate.field).string = {max_len: 64}];
+}
+
+// 列出巡检计划响应。
+message ListInspectionPlansResponse {
+  // 当前页的计划。
+  repeated InspectionPlan items = 1;
+  // 总数量。
+  int32 total = 2;
+  // 当前页码。
+  int32 page = 3;
+  // 每页数量。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 巡检报告模板。
+message InspectionTemplate {
+  // 标识。
+  string uid = 1;
+  // 名称，租户内唯一。
+  string name = 2;
+  // 说明。
+  string description = 3;
+  // HTML 正文模板。
+  string html_body = 4 [json_name = "htmlBody"];
+  // Markdown 正文模板。
+  string markdown_body = 5 [json_name = "markdownBody"];
+  // 是否系统内置；内置模板只读。
+  bool is_builtin = 6 [json_name = "isBuiltin"];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 7;
+  // 创建时间，RFC3339。
+  string created_at = 8 [json_name = "createdAt"];
+  // 更新时间，RFC3339。
+  string updated_at = 9 [json_name = "updatedAt"];
+}
+
+// 创建巡检报告模板请求。
+message CreateInspectionTemplateRequest {
+  // 名称，租户内唯一，≤64 字符。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 说明。
+  string description = 2 [(buf.validate.field).string = {max_len: 255}];
+  // HTML 正文模板。
+  string html_body = 3 [json_name = "htmlBody", (buf.validate.field).string = {max_len: 65536}];
+  // Markdown 正文模板。
+  string markdown_body = 4 [json_name = "markdownBody", (buf.validate.field).string = {max_len: 65536}];
+}
+
+// 创建巡检报告模板响应。
+message CreateInspectionTemplateResponse {
+  // 创建后的模板。
+  InspectionTemplate template = 1;
+}
+
+// 更新巡检报告模板请求。
+message UpdateInspectionTemplateRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称，租户内唯一，≤64 字符。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 说明。
+  string description = 3 [(buf.validate.field).string = {max_len: 255}];
+  // HTML 正文模板。
+  string html_body = 4 [json_name = "htmlBody", (buf.validate.field).string = {max_len: 65536}];
+  // Markdown 正文模板。
+  string markdown_body = 5 [json_name = "markdownBody", (buf.validate.field).string = {max_len: 65536}];
+}
+
+// 更新巡检报告模板响应。
+message UpdateInspectionTemplateResponse {
+  // 更新后的模板。
+  InspectionTemplate template = 1;
+}
+
+// 删除巡检报告模板请求。
+message DeleteInspectionTemplateRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除巡检报告模板响应。
+message DeleteInspectionTemplateResponse {}
+
+// 获取巡检报告模板请求。
+message GetInspectionTemplateRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取巡检报告模板响应。
+message GetInspectionTemplateResponse {
+  // 模板详情。
+  InspectionTemplate template = 1;
+}
+
+// 列出巡检报告模板请求。
+message ListInspectionTemplatesRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  // 每页数量。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 1, lte: 100}];
+  // 名称模糊搜索，可空。
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+}
+
+// 列出巡检报告模板响应。
+message ListInspectionTemplatesResponse {
+  // 当前页的模板。
+  repeated InspectionTemplate items = 1;
+  // 总数量。
+  int32 total = 2;
+  // 当前页码。
+  int32 page = 3;
+  // 每页数量。
+  int32 page_size = 4 [json_name = "pageSize"];
+}

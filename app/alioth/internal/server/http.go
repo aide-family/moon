@@ -40,6 +40,8 @@ func NewHTTPServer(
 	maintenanceWindows *service.AlertMaintenanceService,
 	probeSla *service.ProbeSlaService,
 	statusPages *service.StatusPageService,
+	inspectionPlans *service.InspectionPlanService,
+	inspectionTemplates *service.InspectionTemplateService,
 	sites *service.SiteService,
 	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
@@ -117,6 +119,8 @@ func NewHTTPServer(
 	v1.RegisterAlertMaintenanceServiceHTTPServer(srv, maintenanceWindows)
 	v1.RegisterProbeSlaServiceHTTPServer(srv, probeSla)
 	v1.RegisterStatusPageServiceHTTPServer(srv, statusPages)
+	v1.RegisterInspectionPlanServiceHTTPServer(srv, inspectionPlans)
+	v1.RegisterInspectionTemplateServiceHTTPServer(srv, inspectionTemplates)
 	v1.RegisterSiteServiceHTTPServer(srv, sites)
 	v1.RegisterAlertDictionaryServiceHTTPServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceHTTPServer(srv, alertPages)

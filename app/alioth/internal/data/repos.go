@@ -50,6 +50,7 @@ type alertMaintenanceRepo struct{ *repoBase }
 // alertEscalationRepo 管理升级策略、步骤、事件升级记录与调度生成。
 type alertEscalationRepo struct{ *repoBase }
 type statusPageRepo struct{ *repoBase }
+type inspectionRepo struct{ *repoBase }
 type probeSlaRepo struct{ *repoBase }
 
 // siteRepo 维护官网的站点设置单例。
@@ -133,6 +134,10 @@ func NewAlertPageRepo(deps *Dependencies, logger *slog.Logger) repository.AlertP
 
 func NewStatusPageRepo(deps *Dependencies, logger *slog.Logger) repository.StatusPageRepo {
 	return &statusPageRepo{newBase(deps, logger)}
+}
+
+func NewInspectionRepo(deps *Dependencies, logger *slog.Logger) repository.InspectionRepo {
+	return &inspectionRepo{newBase(deps, logger)}
 }
 
 func NewProbeSlaRepo(deps *Dependencies, logger *slog.Logger) repository.ProbeSlaRepo {

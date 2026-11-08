@@ -32,6 +32,11 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionrun"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
@@ -1228,6 +1233,313 @@ func init() {
 	featurepackageitemDescFeature := featurepackageitemFields[2].Descriptor()
 	// featurepackageitem.FeatureValidator is a validator for the "feature" field. It is called by the builders before save.
 	featurepackageitem.FeatureValidator = featurepackageitemDescFeature.Validators[0].(func(string) error)
+	inspectionitemMixin := schema.InspectionItem{}.Mixin()
+	inspectionitemMixinFields0 := inspectionitemMixin[0].Fields()
+	_ = inspectionitemMixinFields0
+	inspectionitemFields := schema.InspectionItem{}.Fields()
+	_ = inspectionitemFields
+	// inspectionitemDescCreatedAt is the schema descriptor for created_at field.
+	inspectionitemDescCreatedAt := inspectionitemMixinFields0[0].Descriptor()
+	// inspectionitem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	inspectionitem.DefaultCreatedAt = inspectionitemDescCreatedAt.Default.(func() time.Time)
+	// inspectionitemDescUpdatedAt is the schema descriptor for updated_at field.
+	inspectionitemDescUpdatedAt := inspectionitemMixinFields0[1].Descriptor()
+	// inspectionitem.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	inspectionitem.DefaultUpdatedAt = inspectionitemDescUpdatedAt.Default.(func() time.Time)
+	// inspectionitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	inspectionitem.UpdateDefaultUpdatedAt = inspectionitemDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// inspectionitemDescUID is the schema descriptor for uid field.
+	inspectionitemDescUID := inspectionitemFields[0].Descriptor()
+	// inspectionitem.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	inspectionitem.UIDValidator = inspectionitemDescUID.Validators[0].(func(string) error)
+	// inspectionitemDescNamespaceUID is the schema descriptor for namespace_uid field.
+	inspectionitemDescNamespaceUID := inspectionitemFields[1].Descriptor()
+	// inspectionitem.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	inspectionitem.NamespaceUIDValidator = inspectionitemDescNamespaceUID.Validators[0].(func(string) error)
+	// inspectionitemDescPlanUID is the schema descriptor for plan_uid field.
+	inspectionitemDescPlanUID := inspectionitemFields[2].Descriptor()
+	// inspectionitem.PlanUIDValidator is a validator for the "plan_uid" field. It is called by the builders before save.
+	inspectionitem.PlanUIDValidator = inspectionitemDescPlanUID.Validators[0].(func(string) error)
+	// inspectionitemDescTitle is the schema descriptor for title field.
+	inspectionitemDescTitle := inspectionitemFields[4].Descriptor()
+	// inspectionitem.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	inspectionitem.TitleValidator = inspectionitemDescTitle.Validators[0].(func(string) error)
+	// inspectionitemDescSort is the schema descriptor for sort field.
+	inspectionitemDescSort := inspectionitemFields[5].Descriptor()
+	// inspectionitem.DefaultSort holds the default value on creation for the sort field.
+	inspectionitem.DefaultSort = inspectionitemDescSort.Default.(int)
+	// inspectionitemDescDatasourceUID is the schema descriptor for datasource_uid field.
+	inspectionitemDescDatasourceUID := inspectionitemFields[6].Descriptor()
+	// inspectionitem.DefaultDatasourceUID holds the default value on creation for the datasource_uid field.
+	inspectionitem.DefaultDatasourceUID = inspectionitemDescDatasourceUID.Default.(string)
+	// inspectionitemDescQuery is the schema descriptor for query field.
+	inspectionitemDescQuery := inspectionitemFields[7].Descriptor()
+	// inspectionitem.DefaultQuery holds the default value on creation for the query field.
+	inspectionitem.DefaultQuery = inspectionitemDescQuery.Default.(string)
+	// inspectionitemDescWindowSeconds is the schema descriptor for window_seconds field.
+	inspectionitemDescWindowSeconds := inspectionitemFields[8].Descriptor()
+	// inspectionitem.DefaultWindowSeconds holds the default value on creation for the window_seconds field.
+	inspectionitem.DefaultWindowSeconds = inspectionitemDescWindowSeconds.Default.(int)
+	// inspectionitemDescStepSeconds is the schema descriptor for step_seconds field.
+	inspectionitemDescStepSeconds := inspectionitemFields[9].Descriptor()
+	// inspectionitem.DefaultStepSeconds holds the default value on creation for the step_seconds field.
+	inspectionitem.DefaultStepSeconds = inspectionitemDescStepSeconds.Default.(int)
+	// inspectionitemDescParams is the schema descriptor for params field.
+	inspectionitemDescParams := inspectionitemFields[11].Descriptor()
+	// inspectionitem.DefaultParams holds the default value on creation for the params field.
+	inspectionitem.DefaultParams = inspectionitemDescParams.Default.(string)
+	// inspectionitemDescEnabled is the schema descriptor for enabled field.
+	inspectionitemDescEnabled := inspectionitemFields[12].Descriptor()
+	// inspectionitem.DefaultEnabled holds the default value on creation for the enabled field.
+	inspectionitem.DefaultEnabled = inspectionitemDescEnabled.Default.(bool)
+	inspectionplanMixin := schema.InspectionPlan{}.Mixin()
+	inspectionplanMixinFields0 := inspectionplanMixin[0].Fields()
+	_ = inspectionplanMixinFields0
+	inspectionplanFields := schema.InspectionPlan{}.Fields()
+	_ = inspectionplanFields
+	// inspectionplanDescCreatedAt is the schema descriptor for created_at field.
+	inspectionplanDescCreatedAt := inspectionplanMixinFields0[0].Descriptor()
+	// inspectionplan.DefaultCreatedAt holds the default value on creation for the created_at field.
+	inspectionplan.DefaultCreatedAt = inspectionplanDescCreatedAt.Default.(func() time.Time)
+	// inspectionplanDescUpdatedAt is the schema descriptor for updated_at field.
+	inspectionplanDescUpdatedAt := inspectionplanMixinFields0[1].Descriptor()
+	// inspectionplan.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	inspectionplan.DefaultUpdatedAt = inspectionplanDescUpdatedAt.Default.(func() time.Time)
+	// inspectionplan.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	inspectionplan.UpdateDefaultUpdatedAt = inspectionplanDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// inspectionplanDescUID is the schema descriptor for uid field.
+	inspectionplanDescUID := inspectionplanFields[0].Descriptor()
+	// inspectionplan.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	inspectionplan.UIDValidator = inspectionplanDescUID.Validators[0].(func(string) error)
+	// inspectionplanDescNamespaceUID is the schema descriptor for namespace_uid field.
+	inspectionplanDescNamespaceUID := inspectionplanFields[1].Descriptor()
+	// inspectionplan.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	inspectionplan.NamespaceUIDValidator = inspectionplanDescNamespaceUID.Validators[0].(func(string) error)
+	// inspectionplanDescName is the schema descriptor for name field.
+	inspectionplanDescName := inspectionplanFields[2].Descriptor()
+	// inspectionplan.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	inspectionplan.NameValidator = inspectionplanDescName.Validators[0].(func(string) error)
+	// inspectionplanDescDescription is the schema descriptor for description field.
+	inspectionplanDescDescription := inspectionplanFields[3].Descriptor()
+	// inspectionplan.DefaultDescription holds the default value on creation for the description field.
+	inspectionplan.DefaultDescription = inspectionplanDescDescription.Default.(string)
+	// inspectionplanDescCron is the schema descriptor for cron field.
+	inspectionplanDescCron := inspectionplanFields[5].Descriptor()
+	// inspectionplan.DefaultCron holds the default value on creation for the cron field.
+	inspectionplan.DefaultCron = inspectionplanDescCron.Default.(string)
+	// inspectionplanDescTimezone is the schema descriptor for timezone field.
+	inspectionplanDescTimezone := inspectionplanFields[6].Descriptor()
+	// inspectionplan.DefaultTimezone holds the default value on creation for the timezone field.
+	inspectionplan.DefaultTimezone = inspectionplanDescTimezone.Default.(string)
+	// inspectionplanDescTimeoutSeconds is the schema descriptor for timeout_seconds field.
+	inspectionplanDescTimeoutSeconds := inspectionplanFields[7].Descriptor()
+	// inspectionplan.DefaultTimeoutSeconds holds the default value on creation for the timeout_seconds field.
+	inspectionplan.DefaultTimeoutSeconds = inspectionplanDescTimeoutSeconds.Default.(int)
+	// inspectionplanDescTemplateUID is the schema descriptor for template_uid field.
+	inspectionplanDescTemplateUID := inspectionplanFields[8].Descriptor()
+	// inspectionplan.DefaultTemplateUID holds the default value on creation for the template_uid field.
+	inspectionplan.DefaultTemplateUID = inspectionplanDescTemplateUID.Default.(string)
+	// inspectionplanDescOutputFormats is the schema descriptor for output_formats field.
+	inspectionplanDescOutputFormats := inspectionplanFields[9].Descriptor()
+	// inspectionplan.DefaultOutputFormats holds the default value on creation for the output_formats field.
+	inspectionplan.DefaultOutputFormats = inspectionplanDescOutputFormats.Default.([]string)
+	// inspectionplanDescTitleTemplate is the schema descriptor for title_template field.
+	inspectionplanDescTitleTemplate := inspectionplanFields[10].Descriptor()
+	// inspectionplan.DefaultTitleTemplate holds the default value on creation for the title_template field.
+	inspectionplan.DefaultTitleTemplate = inspectionplanDescTitleTemplate.Default.(string)
+	// inspectionplanDescNotificationGroupUids is the schema descriptor for notification_group_uids field.
+	inspectionplanDescNotificationGroupUids := inspectionplanFields[11].Descriptor()
+	// inspectionplan.DefaultNotificationGroupUids holds the default value on creation for the notification_group_uids field.
+	inspectionplan.DefaultNotificationGroupUids = inspectionplanDescNotificationGroupUids.Default.([]string)
+	// inspectionplanDescLabels is the schema descriptor for labels field.
+	inspectionplanDescLabels := inspectionplanFields[13].Descriptor()
+	// inspectionplan.DefaultLabels holds the default value on creation for the labels field.
+	inspectionplan.DefaultLabels = inspectionplanDescLabels.Default.(string)
+	// inspectionplanDescRemark is the schema descriptor for remark field.
+	inspectionplanDescRemark := inspectionplanFields[14].Descriptor()
+	// inspectionplan.DefaultRemark holds the default value on creation for the remark field.
+	inspectionplan.DefaultRemark = inspectionplanDescRemark.Default.(string)
+	// inspectionplanDescCreatedBy is the schema descriptor for created_by field.
+	inspectionplanDescCreatedBy := inspectionplanFields[15].Descriptor()
+	// inspectionplan.DefaultCreatedBy holds the default value on creation for the created_by field.
+	inspectionplan.DefaultCreatedBy = inspectionplanDescCreatedBy.Default.(string)
+	inspectionreportMixin := schema.InspectionReport{}.Mixin()
+	inspectionreportMixinFields0 := inspectionreportMixin[0].Fields()
+	_ = inspectionreportMixinFields0
+	inspectionreportFields := schema.InspectionReport{}.Fields()
+	_ = inspectionreportFields
+	// inspectionreportDescCreatedAt is the schema descriptor for created_at field.
+	inspectionreportDescCreatedAt := inspectionreportMixinFields0[0].Descriptor()
+	// inspectionreport.DefaultCreatedAt holds the default value on creation for the created_at field.
+	inspectionreport.DefaultCreatedAt = inspectionreportDescCreatedAt.Default.(func() time.Time)
+	// inspectionreportDescUpdatedAt is the schema descriptor for updated_at field.
+	inspectionreportDescUpdatedAt := inspectionreportMixinFields0[1].Descriptor()
+	// inspectionreport.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	inspectionreport.DefaultUpdatedAt = inspectionreportDescUpdatedAt.Default.(func() time.Time)
+	// inspectionreport.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	inspectionreport.UpdateDefaultUpdatedAt = inspectionreportDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// inspectionreportDescUID is the schema descriptor for uid field.
+	inspectionreportDescUID := inspectionreportFields[0].Descriptor()
+	// inspectionreport.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	inspectionreport.UIDValidator = inspectionreportDescUID.Validators[0].(func(string) error)
+	// inspectionreportDescNamespaceUID is the schema descriptor for namespace_uid field.
+	inspectionreportDescNamespaceUID := inspectionreportFields[1].Descriptor()
+	// inspectionreport.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	inspectionreport.NamespaceUIDValidator = inspectionreportDescNamespaceUID.Validators[0].(func(string) error)
+	// inspectionreportDescRunUID is the schema descriptor for run_uid field.
+	inspectionreportDescRunUID := inspectionreportFields[2].Descriptor()
+	// inspectionreport.RunUIDValidator is a validator for the "run_uid" field. It is called by the builders before save.
+	inspectionreport.RunUIDValidator = inspectionreportDescRunUID.Validators[0].(func(string) error)
+	// inspectionreportDescTitle is the schema descriptor for title field.
+	inspectionreportDescTitle := inspectionreportFields[4].Descriptor()
+	// inspectionreport.DefaultTitle holds the default value on creation for the title field.
+	inspectionreport.DefaultTitle = inspectionreportDescTitle.Default.(string)
+	// inspectionreportDescContent is the schema descriptor for content field.
+	inspectionreportDescContent := inspectionreportFields[5].Descriptor()
+	// inspectionreport.DefaultContent holds the default value on creation for the content field.
+	inspectionreport.DefaultContent = inspectionreportDescContent.Default.(string)
+	// inspectionreportDescSize is the schema descriptor for size field.
+	inspectionreportDescSize := inspectionreportFields[6].Descriptor()
+	// inspectionreport.DefaultSize holds the default value on creation for the size field.
+	inspectionreport.DefaultSize = inspectionreportDescSize.Default.(int)
+	// inspectionreportDescChecksum is the schema descriptor for checksum field.
+	inspectionreportDescChecksum := inspectionreportFields[7].Descriptor()
+	// inspectionreport.DefaultChecksum holds the default value on creation for the checksum field.
+	inspectionreport.DefaultChecksum = inspectionreportDescChecksum.Default.(string)
+	// inspectionreportDescShareTokenHash is the schema descriptor for share_token_hash field.
+	inspectionreportDescShareTokenHash := inspectionreportFields[8].Descriptor()
+	// inspectionreport.DefaultShareTokenHash holds the default value on creation for the share_token_hash field.
+	inspectionreport.DefaultShareTokenHash = inspectionreportDescShareTokenHash.Default.(string)
+	// inspectionreportDescShareEnabled is the schema descriptor for share_enabled field.
+	inspectionreportDescShareEnabled := inspectionreportFields[9].Descriptor()
+	// inspectionreport.DefaultShareEnabled holds the default value on creation for the share_enabled field.
+	inspectionreport.DefaultShareEnabled = inspectionreportDescShareEnabled.Default.(bool)
+	// inspectionreportDescSharePasswordHash is the schema descriptor for share_password_hash field.
+	inspectionreportDescSharePasswordHash := inspectionreportFields[11].Descriptor()
+	// inspectionreport.DefaultSharePasswordHash holds the default value on creation for the share_password_hash field.
+	inspectionreport.DefaultSharePasswordHash = inspectionreportDescSharePasswordHash.Default.(string)
+	// inspectionreportDescShareCreatedBy is the schema descriptor for share_created_by field.
+	inspectionreportDescShareCreatedBy := inspectionreportFields[12].Descriptor()
+	// inspectionreport.DefaultShareCreatedBy holds the default value on creation for the share_created_by field.
+	inspectionreport.DefaultShareCreatedBy = inspectionreportDescShareCreatedBy.Default.(string)
+	// inspectionreportDescShareViewCount is the schema descriptor for share_view_count field.
+	inspectionreportDescShareViewCount := inspectionreportFields[14].Descriptor()
+	// inspectionreport.DefaultShareViewCount holds the default value on creation for the share_view_count field.
+	inspectionreport.DefaultShareViewCount = inspectionreportDescShareViewCount.Default.(int)
+	inspectionrunMixin := schema.InspectionRun{}.Mixin()
+	inspectionrunMixinFields0 := inspectionrunMixin[0].Fields()
+	_ = inspectionrunMixinFields0
+	inspectionrunFields := schema.InspectionRun{}.Fields()
+	_ = inspectionrunFields
+	// inspectionrunDescCreatedAt is the schema descriptor for created_at field.
+	inspectionrunDescCreatedAt := inspectionrunMixinFields0[0].Descriptor()
+	// inspectionrun.DefaultCreatedAt holds the default value on creation for the created_at field.
+	inspectionrun.DefaultCreatedAt = inspectionrunDescCreatedAt.Default.(func() time.Time)
+	// inspectionrunDescUpdatedAt is the schema descriptor for updated_at field.
+	inspectionrunDescUpdatedAt := inspectionrunMixinFields0[1].Descriptor()
+	// inspectionrun.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	inspectionrun.DefaultUpdatedAt = inspectionrunDescUpdatedAt.Default.(func() time.Time)
+	// inspectionrun.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	inspectionrun.UpdateDefaultUpdatedAt = inspectionrunDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// inspectionrunDescUID is the schema descriptor for uid field.
+	inspectionrunDescUID := inspectionrunFields[0].Descriptor()
+	// inspectionrun.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	inspectionrun.UIDValidator = inspectionrunDescUID.Validators[0].(func(string) error)
+	// inspectionrunDescNamespaceUID is the schema descriptor for namespace_uid field.
+	inspectionrunDescNamespaceUID := inspectionrunFields[1].Descriptor()
+	// inspectionrun.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	inspectionrun.NamespaceUIDValidator = inspectionrunDescNamespaceUID.Validators[0].(func(string) error)
+	// inspectionrunDescPlanUID is the schema descriptor for plan_uid field.
+	inspectionrunDescPlanUID := inspectionrunFields[2].Descriptor()
+	// inspectionrun.PlanUIDValidator is a validator for the "plan_uid" field. It is called by the builders before save.
+	inspectionrun.PlanUIDValidator = inspectionrunDescPlanUID.Validators[0].(func(string) error)
+	// inspectionrunDescPlanName is the schema descriptor for plan_name field.
+	inspectionrunDescPlanName := inspectionrunFields[3].Descriptor()
+	// inspectionrun.DefaultPlanName holds the default value on creation for the plan_name field.
+	inspectionrun.DefaultPlanName = inspectionrunDescPlanName.Default.(string)
+	// inspectionrunDescItemTotal is the schema descriptor for item_total field.
+	inspectionrunDescItemTotal := inspectionrunFields[11].Descriptor()
+	// inspectionrun.DefaultItemTotal holds the default value on creation for the item_total field.
+	inspectionrun.DefaultItemTotal = inspectionrunDescItemTotal.Default.(int)
+	// inspectionrunDescItemOk is the schema descriptor for item_ok field.
+	inspectionrunDescItemOk := inspectionrunFields[12].Descriptor()
+	// inspectionrun.DefaultItemOk holds the default value on creation for the item_ok field.
+	inspectionrun.DefaultItemOk = inspectionrunDescItemOk.Default.(int)
+	// inspectionrunDescItemWarn is the schema descriptor for item_warn field.
+	inspectionrunDescItemWarn := inspectionrunFields[13].Descriptor()
+	// inspectionrun.DefaultItemWarn holds the default value on creation for the item_warn field.
+	inspectionrun.DefaultItemWarn = inspectionrunDescItemWarn.Default.(int)
+	// inspectionrunDescItemFailed is the schema descriptor for item_failed field.
+	inspectionrunDescItemFailed := inspectionrunFields[14].Descriptor()
+	// inspectionrun.DefaultItemFailed holds the default value on creation for the item_failed field.
+	inspectionrun.DefaultItemFailed = inspectionrunDescItemFailed.Default.(int)
+	// inspectionrunDescSummary is the schema descriptor for summary field.
+	inspectionrunDescSummary := inspectionrunFields[15].Descriptor()
+	// inspectionrun.DefaultSummary holds the default value on creation for the summary field.
+	inspectionrun.DefaultSummary = inspectionrunDescSummary.Default.(string)
+	// inspectionrunDescError is the schema descriptor for error field.
+	inspectionrunDescError := inspectionrunFields[16].Descriptor()
+	// inspectionrun.DefaultError holds the default value on creation for the error field.
+	inspectionrun.DefaultError = inspectionrunDescError.Default.(string)
+	// inspectionrunDescOperatorUID is the schema descriptor for operator_uid field.
+	inspectionrunDescOperatorUID := inspectionrunFields[17].Descriptor()
+	// inspectionrun.DefaultOperatorUID holds the default value on creation for the operator_uid field.
+	inspectionrun.DefaultOperatorUID = inspectionrunDescOperatorUID.Default.(string)
+	// inspectionrunDescOperatorName is the schema descriptor for operator_name field.
+	inspectionrunDescOperatorName := inspectionrunFields[18].Descriptor()
+	// inspectionrun.DefaultOperatorName holds the default value on creation for the operator_name field.
+	inspectionrun.DefaultOperatorName = inspectionrunDescOperatorName.Default.(string)
+	// inspectionrunDescLeaseOwner is the schema descriptor for lease_owner field.
+	inspectionrunDescLeaseOwner := inspectionrunFields[19].Descriptor()
+	// inspectionrun.DefaultLeaseOwner holds the default value on creation for the lease_owner field.
+	inspectionrun.DefaultLeaseOwner = inspectionrunDescLeaseOwner.Default.(string)
+	inspectiontemplateMixin := schema.InspectionTemplate{}.Mixin()
+	inspectiontemplateMixinFields0 := inspectiontemplateMixin[0].Fields()
+	_ = inspectiontemplateMixinFields0
+	inspectiontemplateFields := schema.InspectionTemplate{}.Fields()
+	_ = inspectiontemplateFields
+	// inspectiontemplateDescCreatedAt is the schema descriptor for created_at field.
+	inspectiontemplateDescCreatedAt := inspectiontemplateMixinFields0[0].Descriptor()
+	// inspectiontemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	inspectiontemplate.DefaultCreatedAt = inspectiontemplateDescCreatedAt.Default.(func() time.Time)
+	// inspectiontemplateDescUpdatedAt is the schema descriptor for updated_at field.
+	inspectiontemplateDescUpdatedAt := inspectiontemplateMixinFields0[1].Descriptor()
+	// inspectiontemplate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	inspectiontemplate.DefaultUpdatedAt = inspectiontemplateDescUpdatedAt.Default.(func() time.Time)
+	// inspectiontemplate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	inspectiontemplate.UpdateDefaultUpdatedAt = inspectiontemplateDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// inspectiontemplateDescUID is the schema descriptor for uid field.
+	inspectiontemplateDescUID := inspectiontemplateFields[0].Descriptor()
+	// inspectiontemplate.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	inspectiontemplate.UIDValidator = inspectiontemplateDescUID.Validators[0].(func(string) error)
+	// inspectiontemplateDescNamespaceUID is the schema descriptor for namespace_uid field.
+	inspectiontemplateDescNamespaceUID := inspectiontemplateFields[1].Descriptor()
+	// inspectiontemplate.DefaultNamespaceUID holds the default value on creation for the namespace_uid field.
+	inspectiontemplate.DefaultNamespaceUID = inspectiontemplateDescNamespaceUID.Default.(string)
+	// inspectiontemplateDescName is the schema descriptor for name field.
+	inspectiontemplateDescName := inspectiontemplateFields[2].Descriptor()
+	// inspectiontemplate.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	inspectiontemplate.NameValidator = inspectiontemplateDescName.Validators[0].(func(string) error)
+	// inspectiontemplateDescDescription is the schema descriptor for description field.
+	inspectiontemplateDescDescription := inspectiontemplateFields[3].Descriptor()
+	// inspectiontemplate.DefaultDescription holds the default value on creation for the description field.
+	inspectiontemplate.DefaultDescription = inspectiontemplateDescDescription.Default.(string)
+	// inspectiontemplateDescHTMLBody is the schema descriptor for html_body field.
+	inspectiontemplateDescHTMLBody := inspectiontemplateFields[4].Descriptor()
+	// inspectiontemplate.DefaultHTMLBody holds the default value on creation for the html_body field.
+	inspectiontemplate.DefaultHTMLBody = inspectiontemplateDescHTMLBody.Default.(string)
+	// inspectiontemplateDescMarkdownBody is the schema descriptor for markdown_body field.
+	inspectiontemplateDescMarkdownBody := inspectiontemplateFields[5].Descriptor()
+	// inspectiontemplate.DefaultMarkdownBody holds the default value on creation for the markdown_body field.
+	inspectiontemplate.DefaultMarkdownBody = inspectiontemplateDescMarkdownBody.Default.(string)
+	// inspectiontemplateDescIsBuiltin is the schema descriptor for is_builtin field.
+	inspectiontemplateDescIsBuiltin := inspectiontemplateFields[6].Descriptor()
+	// inspectiontemplate.DefaultIsBuiltin holds the default value on creation for the is_builtin field.
+	inspectiontemplate.DefaultIsBuiltin = inspectiontemplateDescIsBuiltin.Default.(bool)
+	// inspectiontemplateDescCreatedBy is the schema descriptor for created_by field.
+	inspectiontemplateDescCreatedBy := inspectiontemplateFields[8].Descriptor()
+	// inspectiontemplate.DefaultCreatedBy holds the default value on creation for the created_by field.
+	inspectiontemplate.DefaultCreatedBy = inspectiontemplateDescCreatedBy.Default.(string)
 	memberMixin := schema.Member{}.Mixin()
 	memberMixinFields0 := memberMixin[0].Fields()
 	_ = memberMixinFields0

@@ -17,6 +17,8 @@ var ProviderSet = wire.NewSet(
 	NewProbeTargetService,
 	NewProbeSlaService,
 	NewStatusPageService,
+	NewInspectionPlanService,
+	NewInspectionTemplateService,
 	NewSiteService,
 	NewMetricQueryService,
 	NewLogsQueryService,

@@ -16,6 +16,7 @@ const (
 	FeatureMember       = "member"
 	FeatureRole         = "role"
 	FeatureBoard        = "board"
+	FeatureInspection   = "inspection"
 	FeatureCluster      = "cluster"
 	FeatureAgent        = "agent"
 	FeatureSSH          = "ssh"
@@ -41,6 +42,7 @@ var featureOrder = []string{
 	FeatureMember,
 	FeatureRole,
 	FeatureBoard,
+	FeatureInspection,
 	FeatureCluster,
 	FeatureAgent,
 	FeatureSSH,
@@ -60,6 +62,7 @@ var featureInfos = map[string]featureInfo{
 	FeatureMember:       {name: "成员", description: "邀请、移除成员并分配角色。"},
 	FeatureRole:         {name: "角色", description: "管理租户角色和角色权限。"},
 	FeatureBoard:        {name: "大盘", description: "把 Grafana 面板组合成值班大盘。"},
+	FeatureInspection:   {name: "巡检", description: "把数据源、探测与告警汇总成周期报告并投递。"},
 	FeatureCluster:      {name: "Kubernetes", description: "接入 Kubernetes 集群并使用资源级控制台。"},
 	FeatureAgent:        {name: "机器", description: "管理边缘机器和 Agent 状态。"},
 	FeatureSSH:          {name: "SSH 与 Web Shell", description: "使用 SSH 命令和 Web Shell。"},
@@ -110,6 +113,8 @@ func featureForResource(resource string) string {
 		return FeatureRole
 	case "board":
 		return FeatureBoard
+	case "inspection", "inspection_template":
+		return FeatureInspection
 	case "cluster":
 		return FeatureCluster
 	case "agent":

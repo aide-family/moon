@@ -37,6 +37,8 @@ func NewGRPCServer(
 	maintenanceWindows *service.AlertMaintenanceService,
 	probeSla *service.ProbeSlaService,
 	statusPages *service.StatusPageService,
+	inspectionPlans *service.InspectionPlanService,
+	inspectionTemplates *service.InspectionTemplateService,
 	sites *service.SiteService,
 	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
@@ -100,6 +102,8 @@ func NewGRPCServer(
 	v1.RegisterAlertMaintenanceServiceServer(srv, maintenanceWindows)
 	v1.RegisterProbeSlaServiceServer(srv, probeSla)
 	v1.RegisterStatusPageServiceServer(srv, statusPages)
+	v1.RegisterInspectionPlanServiceServer(srv, inspectionPlans)
+	v1.RegisterInspectionTemplateServiceServer(srv, inspectionTemplates)
 	v1.RegisterSiteServiceServer(srv, sites)
 	v1.RegisterAlertDictionaryServiceServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceServer(srv, alertPages)

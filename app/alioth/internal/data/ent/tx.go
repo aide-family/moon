@@ -66,6 +66,16 @@ type Tx struct {
 	FeaturePackage *FeaturePackageClient
 	// FeaturePackageItem is the client for interacting with the FeaturePackageItem builders.
 	FeaturePackageItem *FeaturePackageItemClient
+	// InspectionItem is the client for interacting with the InspectionItem builders.
+	InspectionItem *InspectionItemClient
+	// InspectionPlan is the client for interacting with the InspectionPlan builders.
+	InspectionPlan *InspectionPlanClient
+	// InspectionReport is the client for interacting with the InspectionReport builders.
+	InspectionReport *InspectionReportClient
+	// InspectionRun is the client for interacting with the InspectionRun builders.
+	InspectionRun *InspectionRunClient
+	// InspectionTemplate is the client for interacting with the InspectionTemplate builders.
+	InspectionTemplate *InspectionTemplateClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
 	// MemberInvite is the client for interacting with the MemberInvite builders.
@@ -300,6 +310,11 @@ func (tx *Tx) init() {
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
 	tx.FeaturePackage = NewFeaturePackageClient(tx.config)
 	tx.FeaturePackageItem = NewFeaturePackageItemClient(tx.config)
+	tx.InspectionItem = NewInspectionItemClient(tx.config)
+	tx.InspectionPlan = NewInspectionPlanClient(tx.config)
+	tx.InspectionReport = NewInspectionReportClient(tx.config)
+	tx.InspectionRun = NewInspectionRunClient(tx.config)
+	tx.InspectionTemplate = NewInspectionTemplateClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
 	tx.MemberInvite = NewMemberInviteClient(tx.config)
 	tx.MemberRole = NewMemberRoleClient(tx.config)

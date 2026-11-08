@@ -87,6 +87,21 @@ type FeaturePackage func(*sql.Selector)
 // FeaturePackageItem is the predicate function for featurepackageitem builders.
 type FeaturePackageItem func(*sql.Selector)
 
+// InspectionItem is the predicate function for inspectionitem builders.
+type InspectionItem func(*sql.Selector)
+
+// InspectionPlan is the predicate function for inspectionplan builders.
+type InspectionPlan func(*sql.Selector)
+
+// InspectionReport is the predicate function for inspectionreport builders.
+type InspectionReport func(*sql.Selector)
+
+// InspectionRun is the predicate function for inspectionrun builders.
+type InspectionRun func(*sql.Selector)
+
+// InspectionTemplate is the predicate function for inspectiontemplate builders.
+type InspectionTemplate func(*sql.Selector)
+
 // Member is the predicate function for member builders.
 type Member func(*sql.Selector)
 

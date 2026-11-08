@@ -333,6 +333,66 @@ func (f FeaturePackageItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeaturePackageItemMutation", m)
 }
 
+// The InspectionItemFunc type is an adapter to allow the use of ordinary
+// function as InspectionItem mutator.
+type InspectionItemFunc func(context.Context, *ent.InspectionItemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InspectionItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InspectionItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InspectionItemMutation", m)
+}
+
+// The InspectionPlanFunc type is an adapter to allow the use of ordinary
+// function as InspectionPlan mutator.
+type InspectionPlanFunc func(context.Context, *ent.InspectionPlanMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InspectionPlanFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InspectionPlanMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InspectionPlanMutation", m)
+}
+
+// The InspectionReportFunc type is an adapter to allow the use of ordinary
+// function as InspectionReport mutator.
+type InspectionReportFunc func(context.Context, *ent.InspectionReportMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InspectionReportFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InspectionReportMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InspectionReportMutation", m)
+}
+
+// The InspectionRunFunc type is an adapter to allow the use of ordinary
+// function as InspectionRun mutator.
+type InspectionRunFunc func(context.Context, *ent.InspectionRunMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InspectionRunFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InspectionRunMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InspectionRunMutation", m)
+}
+
+// The InspectionTemplateFunc type is an adapter to allow the use of ordinary
+// function as InspectionTemplate mutator.
+type InspectionTemplateFunc func(context.Context, *ent.InspectionTemplateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InspectionTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InspectionTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InspectionTemplateMutation", m)
+}
+
 // The MemberFunc type is an adapter to allow the use of ordinary
 // function as Member mutator.
 type MemberFunc func(context.Context, *ent.MemberMutation) (ent.Value, error)

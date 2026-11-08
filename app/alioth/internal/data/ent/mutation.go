@@ -38,6 +38,11 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionrun"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
@@ -115,6 +120,11 @@ const (
 	TypeEmailLoginCode                = "EmailLoginCode"
 	TypeFeaturePackage                = "FeaturePackage"
 	TypeFeaturePackageItem            = "FeaturePackageItem"
+	TypeInspectionItem                = "InspectionItem"
+	TypeInspectionPlan                = "InspectionPlan"
+	TypeInspectionReport              = "InspectionReport"
+	TypeInspectionRun                 = "InspectionRun"
+	TypeInspectionTemplate            = "InspectionTemplate"
 	TypeMember                        = "Member"
 	TypeMemberInvite                  = "MemberInvite"
 	TypeMemberRole                    = "MemberRole"
@@ -24360,6 +24370,6935 @@ func (m *FeaturePackageItemMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *FeaturePackageItemMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown FeaturePackageItem edge %s", name)
+}
+
+// InspectionItemMutation represents an operation that mutates the InspectionItem nodes in the graph.
+type InspectionItemMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	created_at        *time.Time
+	updated_at        *time.Time
+	deleted_at        *time.Time
+	uid               *string
+	namespace_uid     *string
+	plan_uid          *string
+	kind              *inspectionitem.Kind
+	title             *string
+	sort              *int
+	addsort           *int
+	datasource_uid    *string
+	query             *string
+	window_seconds    *int
+	addwindow_seconds *int
+	step_seconds      *int
+	addstep_seconds   *int
+	display           *inspectionitem.Display
+	params            *string
+	enabled           *bool
+	clearedFields     map[string]struct{}
+	done              bool
+	oldValue          func(context.Context) (*InspectionItem, error)
+	predicates        []predicate.InspectionItem
+}
+
+var _ ent.Mutation = (*InspectionItemMutation)(nil)
+
+// inspectionitemOption allows management of the mutation configuration using functional options.
+type inspectionitemOption func(*InspectionItemMutation)
+
+// newInspectionItemMutation creates new mutation for the InspectionItem entity.
+func newInspectionItemMutation(c config, op Op, opts ...inspectionitemOption) *InspectionItemMutation {
+	m := &InspectionItemMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeInspectionItem,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withInspectionItemID sets the ID field of the mutation.
+func withInspectionItemID(id int) inspectionitemOption {
+	return func(m *InspectionItemMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *InspectionItem
+		)
+		m.oldValue = func(ctx context.Context) (*InspectionItem, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().InspectionItem.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withInspectionItem sets the old InspectionItem of the mutation.
+func withInspectionItem(node *InspectionItem) inspectionitemOption {
+	return func(m *InspectionItemMutation) {
+		m.oldValue = func(context.Context) (*InspectionItem, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m InspectionItemMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m InspectionItemMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *InspectionItemMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *InspectionItemMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().InspectionItem.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *InspectionItemMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *InspectionItemMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *InspectionItemMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *InspectionItemMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *InspectionItemMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *InspectionItemMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *InspectionItemMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *InspectionItemMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *InspectionItemMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[inspectionitem.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *InspectionItemMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[inspectionitem.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *InspectionItemMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, inspectionitem.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *InspectionItemMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *InspectionItemMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *InspectionItemMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *InspectionItemMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *InspectionItemMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *InspectionItemMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetPlanUID sets the "plan_uid" field.
+func (m *InspectionItemMutation) SetPlanUID(s string) {
+	m.plan_uid = &s
+}
+
+// PlanUID returns the value of the "plan_uid" field in the mutation.
+func (m *InspectionItemMutation) PlanUID() (r string, exists bool) {
+	v := m.plan_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlanUID returns the old "plan_uid" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldPlanUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlanUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlanUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlanUID: %w", err)
+	}
+	return oldValue.PlanUID, nil
+}
+
+// ResetPlanUID resets all changes to the "plan_uid" field.
+func (m *InspectionItemMutation) ResetPlanUID() {
+	m.plan_uid = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *InspectionItemMutation) SetKind(i inspectionitem.Kind) {
+	m.kind = &i
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *InspectionItemMutation) Kind() (r inspectionitem.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldKind(ctx context.Context) (v inspectionitem.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *InspectionItemMutation) ResetKind() {
+	m.kind = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *InspectionItemMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *InspectionItemMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *InspectionItemMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetSort sets the "sort" field.
+func (m *InspectionItemMutation) SetSort(i int) {
+	m.sort = &i
+	m.addsort = nil
+}
+
+// Sort returns the value of the "sort" field in the mutation.
+func (m *InspectionItemMutation) Sort() (r int, exists bool) {
+	v := m.sort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSort returns the old "sort" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldSort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSort: %w", err)
+	}
+	return oldValue.Sort, nil
+}
+
+// AddSort adds i to the "sort" field.
+func (m *InspectionItemMutation) AddSort(i int) {
+	if m.addsort != nil {
+		*m.addsort += i
+	} else {
+		m.addsort = &i
+	}
+}
+
+// AddedSort returns the value that was added to the "sort" field in this mutation.
+func (m *InspectionItemMutation) AddedSort() (r int, exists bool) {
+	v := m.addsort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSort resets all changes to the "sort" field.
+func (m *InspectionItemMutation) ResetSort() {
+	m.sort = nil
+	m.addsort = nil
+}
+
+// SetDatasourceUID sets the "datasource_uid" field.
+func (m *InspectionItemMutation) SetDatasourceUID(s string) {
+	m.datasource_uid = &s
+}
+
+// DatasourceUID returns the value of the "datasource_uid" field in the mutation.
+func (m *InspectionItemMutation) DatasourceUID() (r string, exists bool) {
+	v := m.datasource_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDatasourceUID returns the old "datasource_uid" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldDatasourceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDatasourceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDatasourceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDatasourceUID: %w", err)
+	}
+	return oldValue.DatasourceUID, nil
+}
+
+// ResetDatasourceUID resets all changes to the "datasource_uid" field.
+func (m *InspectionItemMutation) ResetDatasourceUID() {
+	m.datasource_uid = nil
+}
+
+// SetQuery sets the "query" field.
+func (m *InspectionItemMutation) SetQuery(s string) {
+	m.query = &s
+}
+
+// Query returns the value of the "query" field in the mutation.
+func (m *InspectionItemMutation) Query() (r string, exists bool) {
+	v := m.query
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuery returns the old "query" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldQuery(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuery is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuery requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuery: %w", err)
+	}
+	return oldValue.Query, nil
+}
+
+// ResetQuery resets all changes to the "query" field.
+func (m *InspectionItemMutation) ResetQuery() {
+	m.query = nil
+}
+
+// SetWindowSeconds sets the "window_seconds" field.
+func (m *InspectionItemMutation) SetWindowSeconds(i int) {
+	m.window_seconds = &i
+	m.addwindow_seconds = nil
+}
+
+// WindowSeconds returns the value of the "window_seconds" field in the mutation.
+func (m *InspectionItemMutation) WindowSeconds() (r int, exists bool) {
+	v := m.window_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWindowSeconds returns the old "window_seconds" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldWindowSeconds(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWindowSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWindowSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWindowSeconds: %w", err)
+	}
+	return oldValue.WindowSeconds, nil
+}
+
+// AddWindowSeconds adds i to the "window_seconds" field.
+func (m *InspectionItemMutation) AddWindowSeconds(i int) {
+	if m.addwindow_seconds != nil {
+		*m.addwindow_seconds += i
+	} else {
+		m.addwindow_seconds = &i
+	}
+}
+
+// AddedWindowSeconds returns the value that was added to the "window_seconds" field in this mutation.
+func (m *InspectionItemMutation) AddedWindowSeconds() (r int, exists bool) {
+	v := m.addwindow_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetWindowSeconds resets all changes to the "window_seconds" field.
+func (m *InspectionItemMutation) ResetWindowSeconds() {
+	m.window_seconds = nil
+	m.addwindow_seconds = nil
+}
+
+// SetStepSeconds sets the "step_seconds" field.
+func (m *InspectionItemMutation) SetStepSeconds(i int) {
+	m.step_seconds = &i
+	m.addstep_seconds = nil
+}
+
+// StepSeconds returns the value of the "step_seconds" field in the mutation.
+func (m *InspectionItemMutation) StepSeconds() (r int, exists bool) {
+	v := m.step_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStepSeconds returns the old "step_seconds" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldStepSeconds(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStepSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStepSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStepSeconds: %w", err)
+	}
+	return oldValue.StepSeconds, nil
+}
+
+// AddStepSeconds adds i to the "step_seconds" field.
+func (m *InspectionItemMutation) AddStepSeconds(i int) {
+	if m.addstep_seconds != nil {
+		*m.addstep_seconds += i
+	} else {
+		m.addstep_seconds = &i
+	}
+}
+
+// AddedStepSeconds returns the value that was added to the "step_seconds" field in this mutation.
+func (m *InspectionItemMutation) AddedStepSeconds() (r int, exists bool) {
+	v := m.addstep_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStepSeconds resets all changes to the "step_seconds" field.
+func (m *InspectionItemMutation) ResetStepSeconds() {
+	m.step_seconds = nil
+	m.addstep_seconds = nil
+}
+
+// SetDisplay sets the "display" field.
+func (m *InspectionItemMutation) SetDisplay(i inspectionitem.Display) {
+	m.display = &i
+}
+
+// Display returns the value of the "display" field in the mutation.
+func (m *InspectionItemMutation) Display() (r inspectionitem.Display, exists bool) {
+	v := m.display
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplay returns the old "display" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldDisplay(ctx context.Context) (v inspectionitem.Display, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplay is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplay requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplay: %w", err)
+	}
+	return oldValue.Display, nil
+}
+
+// ResetDisplay resets all changes to the "display" field.
+func (m *InspectionItemMutation) ResetDisplay() {
+	m.display = nil
+}
+
+// SetParams sets the "params" field.
+func (m *InspectionItemMutation) SetParams(s string) {
+	m.params = &s
+}
+
+// Params returns the value of the "params" field in the mutation.
+func (m *InspectionItemMutation) Params() (r string, exists bool) {
+	v := m.params
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParams returns the old "params" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldParams(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParams is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParams requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParams: %w", err)
+	}
+	return oldValue.Params, nil
+}
+
+// ResetParams resets all changes to the "params" field.
+func (m *InspectionItemMutation) ResetParams() {
+	m.params = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *InspectionItemMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *InspectionItemMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the InspectionItem entity.
+// If the InspectionItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionItemMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *InspectionItemMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// Where appends a list predicates to the InspectionItemMutation builder.
+func (m *InspectionItemMutation) Where(ps ...predicate.InspectionItem) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the InspectionItemMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *InspectionItemMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.InspectionItem, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *InspectionItemMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *InspectionItemMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (InspectionItem).
+func (m *InspectionItemMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *InspectionItemMutation) Fields() []string {
+	fields := make([]string, 0, 16)
+	if m.created_at != nil {
+		fields = append(fields, inspectionitem.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, inspectionitem.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, inspectionitem.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, inspectionitem.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, inspectionitem.FieldNamespaceUID)
+	}
+	if m.plan_uid != nil {
+		fields = append(fields, inspectionitem.FieldPlanUID)
+	}
+	if m.kind != nil {
+		fields = append(fields, inspectionitem.FieldKind)
+	}
+	if m.title != nil {
+		fields = append(fields, inspectionitem.FieldTitle)
+	}
+	if m.sort != nil {
+		fields = append(fields, inspectionitem.FieldSort)
+	}
+	if m.datasource_uid != nil {
+		fields = append(fields, inspectionitem.FieldDatasourceUID)
+	}
+	if m.query != nil {
+		fields = append(fields, inspectionitem.FieldQuery)
+	}
+	if m.window_seconds != nil {
+		fields = append(fields, inspectionitem.FieldWindowSeconds)
+	}
+	if m.step_seconds != nil {
+		fields = append(fields, inspectionitem.FieldStepSeconds)
+	}
+	if m.display != nil {
+		fields = append(fields, inspectionitem.FieldDisplay)
+	}
+	if m.params != nil {
+		fields = append(fields, inspectionitem.FieldParams)
+	}
+	if m.enabled != nil {
+		fields = append(fields, inspectionitem.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *InspectionItemMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionitem.FieldCreatedAt:
+		return m.CreatedAt()
+	case inspectionitem.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case inspectionitem.FieldDeletedAt:
+		return m.DeletedAt()
+	case inspectionitem.FieldUID:
+		return m.UID()
+	case inspectionitem.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case inspectionitem.FieldPlanUID:
+		return m.PlanUID()
+	case inspectionitem.FieldKind:
+		return m.Kind()
+	case inspectionitem.FieldTitle:
+		return m.Title()
+	case inspectionitem.FieldSort:
+		return m.Sort()
+	case inspectionitem.FieldDatasourceUID:
+		return m.DatasourceUID()
+	case inspectionitem.FieldQuery:
+		return m.Query()
+	case inspectionitem.FieldWindowSeconds:
+		return m.WindowSeconds()
+	case inspectionitem.FieldStepSeconds:
+		return m.StepSeconds()
+	case inspectionitem.FieldDisplay:
+		return m.Display()
+	case inspectionitem.FieldParams:
+		return m.Params()
+	case inspectionitem.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *InspectionItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case inspectionitem.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case inspectionitem.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case inspectionitem.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case inspectionitem.FieldUID:
+		return m.OldUID(ctx)
+	case inspectionitem.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case inspectionitem.FieldPlanUID:
+		return m.OldPlanUID(ctx)
+	case inspectionitem.FieldKind:
+		return m.OldKind(ctx)
+	case inspectionitem.FieldTitle:
+		return m.OldTitle(ctx)
+	case inspectionitem.FieldSort:
+		return m.OldSort(ctx)
+	case inspectionitem.FieldDatasourceUID:
+		return m.OldDatasourceUID(ctx)
+	case inspectionitem.FieldQuery:
+		return m.OldQuery(ctx)
+	case inspectionitem.FieldWindowSeconds:
+		return m.OldWindowSeconds(ctx)
+	case inspectionitem.FieldStepSeconds:
+		return m.OldStepSeconds(ctx)
+	case inspectionitem.FieldDisplay:
+		return m.OldDisplay(ctx)
+	case inspectionitem.FieldParams:
+		return m.OldParams(ctx)
+	case inspectionitem.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown InspectionItem field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionItemMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case inspectionitem.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case inspectionitem.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case inspectionitem.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case inspectionitem.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case inspectionitem.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case inspectionitem.FieldPlanUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlanUID(v)
+		return nil
+	case inspectionitem.FieldKind:
+		v, ok := value.(inspectionitem.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	case inspectionitem.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case inspectionitem.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSort(v)
+		return nil
+	case inspectionitem.FieldDatasourceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDatasourceUID(v)
+		return nil
+	case inspectionitem.FieldQuery:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuery(v)
+		return nil
+	case inspectionitem.FieldWindowSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWindowSeconds(v)
+		return nil
+	case inspectionitem.FieldStepSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStepSeconds(v)
+		return nil
+	case inspectionitem.FieldDisplay:
+		v, ok := value.(inspectionitem.Display)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplay(v)
+		return nil
+	case inspectionitem.FieldParams:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParams(v)
+		return nil
+	case inspectionitem.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionItem field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *InspectionItemMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort != nil {
+		fields = append(fields, inspectionitem.FieldSort)
+	}
+	if m.addwindow_seconds != nil {
+		fields = append(fields, inspectionitem.FieldWindowSeconds)
+	}
+	if m.addstep_seconds != nil {
+		fields = append(fields, inspectionitem.FieldStepSeconds)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *InspectionItemMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionitem.FieldSort:
+		return m.AddedSort()
+	case inspectionitem.FieldWindowSeconds:
+		return m.AddedWindowSeconds()
+	case inspectionitem.FieldStepSeconds:
+		return m.AddedStepSeconds()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionItemMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case inspectionitem.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSort(v)
+		return nil
+	case inspectionitem.FieldWindowSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWindowSeconds(v)
+		return nil
+	case inspectionitem.FieldStepSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStepSeconds(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionItem numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *InspectionItemMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(inspectionitem.FieldDeletedAt) {
+		fields = append(fields, inspectionitem.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *InspectionItemMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *InspectionItemMutation) ClearField(name string) error {
+	switch name {
+	case inspectionitem.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionItem nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *InspectionItemMutation) ResetField(name string) error {
+	switch name {
+	case inspectionitem.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case inspectionitem.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case inspectionitem.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case inspectionitem.FieldUID:
+		m.ResetUID()
+		return nil
+	case inspectionitem.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case inspectionitem.FieldPlanUID:
+		m.ResetPlanUID()
+		return nil
+	case inspectionitem.FieldKind:
+		m.ResetKind()
+		return nil
+	case inspectionitem.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case inspectionitem.FieldSort:
+		m.ResetSort()
+		return nil
+	case inspectionitem.FieldDatasourceUID:
+		m.ResetDatasourceUID()
+		return nil
+	case inspectionitem.FieldQuery:
+		m.ResetQuery()
+		return nil
+	case inspectionitem.FieldWindowSeconds:
+		m.ResetWindowSeconds()
+		return nil
+	case inspectionitem.FieldStepSeconds:
+		m.ResetStepSeconds()
+		return nil
+	case inspectionitem.FieldDisplay:
+		m.ResetDisplay()
+		return nil
+	case inspectionitem.FieldParams:
+		m.ResetParams()
+		return nil
+	case inspectionitem.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionItem field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *InspectionItemMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *InspectionItemMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *InspectionItemMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *InspectionItemMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *InspectionItemMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *InspectionItemMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *InspectionItemMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown InspectionItem unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *InspectionItemMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown InspectionItem edge %s", name)
+}
+
+// InspectionPlanMutation represents an operation that mutates the InspectionPlan nodes in the graph.
+type InspectionPlanMutation struct {
+	config
+	op                            Op
+	typ                           string
+	id                            *int
+	created_at                    *time.Time
+	updated_at                    *time.Time
+	deleted_at                    *time.Time
+	uid                           *string
+	namespace_uid                 *string
+	name                          *string
+	description                   *string
+	status                        *inspectionplan.Status
+	cron                          *string
+	timezone                      *string
+	timeout_seconds               *int
+	addtimeout_seconds            *int
+	template_uid                  *string
+	output_formats                *[]string
+	appendoutput_formats          []string
+	title_template                *string
+	notification_group_uids       *[]string
+	appendnotification_group_uids []string
+	notify_policy                 *inspectionplan.NotifyPolicy
+	labels                        *string
+	remark                        *string
+	created_by                    *string
+	next_run_at                   *time.Time
+	last_run_at                   *time.Time
+	clearedFields                 map[string]struct{}
+	done                          bool
+	oldValue                      func(context.Context) (*InspectionPlan, error)
+	predicates                    []predicate.InspectionPlan
+}
+
+var _ ent.Mutation = (*InspectionPlanMutation)(nil)
+
+// inspectionplanOption allows management of the mutation configuration using functional options.
+type inspectionplanOption func(*InspectionPlanMutation)
+
+// newInspectionPlanMutation creates new mutation for the InspectionPlan entity.
+func newInspectionPlanMutation(c config, op Op, opts ...inspectionplanOption) *InspectionPlanMutation {
+	m := &InspectionPlanMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeInspectionPlan,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withInspectionPlanID sets the ID field of the mutation.
+func withInspectionPlanID(id int) inspectionplanOption {
+	return func(m *InspectionPlanMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *InspectionPlan
+		)
+		m.oldValue = func(ctx context.Context) (*InspectionPlan, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().InspectionPlan.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withInspectionPlan sets the old InspectionPlan of the mutation.
+func withInspectionPlan(node *InspectionPlan) inspectionplanOption {
+	return func(m *InspectionPlanMutation) {
+		m.oldValue = func(context.Context) (*InspectionPlan, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m InspectionPlanMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m InspectionPlanMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *InspectionPlanMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *InspectionPlanMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().InspectionPlan.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *InspectionPlanMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *InspectionPlanMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *InspectionPlanMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *InspectionPlanMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *InspectionPlanMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *InspectionPlanMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *InspectionPlanMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *InspectionPlanMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *InspectionPlanMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[inspectionplan.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *InspectionPlanMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[inspectionplan.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *InspectionPlanMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, inspectionplan.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *InspectionPlanMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *InspectionPlanMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *InspectionPlanMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *InspectionPlanMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *InspectionPlanMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *InspectionPlanMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetName sets the "name" field.
+func (m *InspectionPlanMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *InspectionPlanMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *InspectionPlanMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *InspectionPlanMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *InspectionPlanMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *InspectionPlanMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *InspectionPlanMutation) SetStatus(i inspectionplan.Status) {
+	m.status = &i
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *InspectionPlanMutation) Status() (r inspectionplan.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldStatus(ctx context.Context) (v inspectionplan.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *InspectionPlanMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetCron sets the "cron" field.
+func (m *InspectionPlanMutation) SetCron(s string) {
+	m.cron = &s
+}
+
+// Cron returns the value of the "cron" field in the mutation.
+func (m *InspectionPlanMutation) Cron() (r string, exists bool) {
+	v := m.cron
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCron returns the old "cron" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldCron(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCron is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCron requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCron: %w", err)
+	}
+	return oldValue.Cron, nil
+}
+
+// ResetCron resets all changes to the "cron" field.
+func (m *InspectionPlanMutation) ResetCron() {
+	m.cron = nil
+}
+
+// SetTimezone sets the "timezone" field.
+func (m *InspectionPlanMutation) SetTimezone(s string) {
+	m.timezone = &s
+}
+
+// Timezone returns the value of the "timezone" field in the mutation.
+func (m *InspectionPlanMutation) Timezone() (r string, exists bool) {
+	v := m.timezone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimezone returns the old "timezone" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldTimezone(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimezone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimezone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimezone: %w", err)
+	}
+	return oldValue.Timezone, nil
+}
+
+// ResetTimezone resets all changes to the "timezone" field.
+func (m *InspectionPlanMutation) ResetTimezone() {
+	m.timezone = nil
+}
+
+// SetTimeoutSeconds sets the "timeout_seconds" field.
+func (m *InspectionPlanMutation) SetTimeoutSeconds(i int) {
+	m.timeout_seconds = &i
+	m.addtimeout_seconds = nil
+}
+
+// TimeoutSeconds returns the value of the "timeout_seconds" field in the mutation.
+func (m *InspectionPlanMutation) TimeoutSeconds() (r int, exists bool) {
+	v := m.timeout_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimeoutSeconds returns the old "timeout_seconds" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldTimeoutSeconds(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimeoutSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimeoutSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimeoutSeconds: %w", err)
+	}
+	return oldValue.TimeoutSeconds, nil
+}
+
+// AddTimeoutSeconds adds i to the "timeout_seconds" field.
+func (m *InspectionPlanMutation) AddTimeoutSeconds(i int) {
+	if m.addtimeout_seconds != nil {
+		*m.addtimeout_seconds += i
+	} else {
+		m.addtimeout_seconds = &i
+	}
+}
+
+// AddedTimeoutSeconds returns the value that was added to the "timeout_seconds" field in this mutation.
+func (m *InspectionPlanMutation) AddedTimeoutSeconds() (r int, exists bool) {
+	v := m.addtimeout_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTimeoutSeconds resets all changes to the "timeout_seconds" field.
+func (m *InspectionPlanMutation) ResetTimeoutSeconds() {
+	m.timeout_seconds = nil
+	m.addtimeout_seconds = nil
+}
+
+// SetTemplateUID sets the "template_uid" field.
+func (m *InspectionPlanMutation) SetTemplateUID(s string) {
+	m.template_uid = &s
+}
+
+// TemplateUID returns the value of the "template_uid" field in the mutation.
+func (m *InspectionPlanMutation) TemplateUID() (r string, exists bool) {
+	v := m.template_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateUID returns the old "template_uid" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldTemplateUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateUID: %w", err)
+	}
+	return oldValue.TemplateUID, nil
+}
+
+// ResetTemplateUID resets all changes to the "template_uid" field.
+func (m *InspectionPlanMutation) ResetTemplateUID() {
+	m.template_uid = nil
+}
+
+// SetOutputFormats sets the "output_formats" field.
+func (m *InspectionPlanMutation) SetOutputFormats(s []string) {
+	m.output_formats = &s
+	m.appendoutput_formats = nil
+}
+
+// OutputFormats returns the value of the "output_formats" field in the mutation.
+func (m *InspectionPlanMutation) OutputFormats() (r []string, exists bool) {
+	v := m.output_formats
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutputFormats returns the old "output_formats" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldOutputFormats(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutputFormats is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutputFormats requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutputFormats: %w", err)
+	}
+	return oldValue.OutputFormats, nil
+}
+
+// AppendOutputFormats adds s to the "output_formats" field.
+func (m *InspectionPlanMutation) AppendOutputFormats(s []string) {
+	m.appendoutput_formats = append(m.appendoutput_formats, s...)
+}
+
+// AppendedOutputFormats returns the list of values that were appended to the "output_formats" field in this mutation.
+func (m *InspectionPlanMutation) AppendedOutputFormats() ([]string, bool) {
+	if len(m.appendoutput_formats) == 0 {
+		return nil, false
+	}
+	return m.appendoutput_formats, true
+}
+
+// ResetOutputFormats resets all changes to the "output_formats" field.
+func (m *InspectionPlanMutation) ResetOutputFormats() {
+	m.output_formats = nil
+	m.appendoutput_formats = nil
+}
+
+// SetTitleTemplate sets the "title_template" field.
+func (m *InspectionPlanMutation) SetTitleTemplate(s string) {
+	m.title_template = &s
+}
+
+// TitleTemplate returns the value of the "title_template" field in the mutation.
+func (m *InspectionPlanMutation) TitleTemplate() (r string, exists bool) {
+	v := m.title_template
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitleTemplate returns the old "title_template" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldTitleTemplate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitleTemplate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitleTemplate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitleTemplate: %w", err)
+	}
+	return oldValue.TitleTemplate, nil
+}
+
+// ResetTitleTemplate resets all changes to the "title_template" field.
+func (m *InspectionPlanMutation) ResetTitleTemplate() {
+	m.title_template = nil
+}
+
+// SetNotificationGroupUids sets the "notification_group_uids" field.
+func (m *InspectionPlanMutation) SetNotificationGroupUids(s []string) {
+	m.notification_group_uids = &s
+	m.appendnotification_group_uids = nil
+}
+
+// NotificationGroupUids returns the value of the "notification_group_uids" field in the mutation.
+func (m *InspectionPlanMutation) NotificationGroupUids() (r []string, exists bool) {
+	v := m.notification_group_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotificationGroupUids returns the old "notification_group_uids" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldNotificationGroupUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotificationGroupUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotificationGroupUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotificationGroupUids: %w", err)
+	}
+	return oldValue.NotificationGroupUids, nil
+}
+
+// AppendNotificationGroupUids adds s to the "notification_group_uids" field.
+func (m *InspectionPlanMutation) AppendNotificationGroupUids(s []string) {
+	m.appendnotification_group_uids = append(m.appendnotification_group_uids, s...)
+}
+
+// AppendedNotificationGroupUids returns the list of values that were appended to the "notification_group_uids" field in this mutation.
+func (m *InspectionPlanMutation) AppendedNotificationGroupUids() ([]string, bool) {
+	if len(m.appendnotification_group_uids) == 0 {
+		return nil, false
+	}
+	return m.appendnotification_group_uids, true
+}
+
+// ResetNotificationGroupUids resets all changes to the "notification_group_uids" field.
+func (m *InspectionPlanMutation) ResetNotificationGroupUids() {
+	m.notification_group_uids = nil
+	m.appendnotification_group_uids = nil
+}
+
+// SetNotifyPolicy sets the "notify_policy" field.
+func (m *InspectionPlanMutation) SetNotifyPolicy(ip inspectionplan.NotifyPolicy) {
+	m.notify_policy = &ip
+}
+
+// NotifyPolicy returns the value of the "notify_policy" field in the mutation.
+func (m *InspectionPlanMutation) NotifyPolicy() (r inspectionplan.NotifyPolicy, exists bool) {
+	v := m.notify_policy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotifyPolicy returns the old "notify_policy" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldNotifyPolicy(ctx context.Context) (v inspectionplan.NotifyPolicy, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotifyPolicy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotifyPolicy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotifyPolicy: %w", err)
+	}
+	return oldValue.NotifyPolicy, nil
+}
+
+// ResetNotifyPolicy resets all changes to the "notify_policy" field.
+func (m *InspectionPlanMutation) ResetNotifyPolicy() {
+	m.notify_policy = nil
+}
+
+// SetLabels sets the "labels" field.
+func (m *InspectionPlanMutation) SetLabels(s string) {
+	m.labels = &s
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *InspectionPlanMutation) Labels() (r string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldLabels(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *InspectionPlanMutation) ResetLabels() {
+	m.labels = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *InspectionPlanMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *InspectionPlanMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *InspectionPlanMutation) ResetRemark() {
+	m.remark = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *InspectionPlanMutation) SetCreatedBy(s string) {
+	m.created_by = &s
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *InspectionPlanMutation) CreatedBy() (r string, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldCreatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *InspectionPlanMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (m *InspectionPlanMutation) SetNextRunAt(t time.Time) {
+	m.next_run_at = &t
+}
+
+// NextRunAt returns the value of the "next_run_at" field in the mutation.
+func (m *InspectionPlanMutation) NextRunAt() (r time.Time, exists bool) {
+	v := m.next_run_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextRunAt returns the old "next_run_at" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldNextRunAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextRunAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextRunAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextRunAt: %w", err)
+	}
+	return oldValue.NextRunAt, nil
+}
+
+// ClearNextRunAt clears the value of the "next_run_at" field.
+func (m *InspectionPlanMutation) ClearNextRunAt() {
+	m.next_run_at = nil
+	m.clearedFields[inspectionplan.FieldNextRunAt] = struct{}{}
+}
+
+// NextRunAtCleared returns if the "next_run_at" field was cleared in this mutation.
+func (m *InspectionPlanMutation) NextRunAtCleared() bool {
+	_, ok := m.clearedFields[inspectionplan.FieldNextRunAt]
+	return ok
+}
+
+// ResetNextRunAt resets all changes to the "next_run_at" field.
+func (m *InspectionPlanMutation) ResetNextRunAt() {
+	m.next_run_at = nil
+	delete(m.clearedFields, inspectionplan.FieldNextRunAt)
+}
+
+// SetLastRunAt sets the "last_run_at" field.
+func (m *InspectionPlanMutation) SetLastRunAt(t time.Time) {
+	m.last_run_at = &t
+}
+
+// LastRunAt returns the value of the "last_run_at" field in the mutation.
+func (m *InspectionPlanMutation) LastRunAt() (r time.Time, exists bool) {
+	v := m.last_run_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastRunAt returns the old "last_run_at" field's value of the InspectionPlan entity.
+// If the InspectionPlan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionPlanMutation) OldLastRunAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastRunAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastRunAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastRunAt: %w", err)
+	}
+	return oldValue.LastRunAt, nil
+}
+
+// ClearLastRunAt clears the value of the "last_run_at" field.
+func (m *InspectionPlanMutation) ClearLastRunAt() {
+	m.last_run_at = nil
+	m.clearedFields[inspectionplan.FieldLastRunAt] = struct{}{}
+}
+
+// LastRunAtCleared returns if the "last_run_at" field was cleared in this mutation.
+func (m *InspectionPlanMutation) LastRunAtCleared() bool {
+	_, ok := m.clearedFields[inspectionplan.FieldLastRunAt]
+	return ok
+}
+
+// ResetLastRunAt resets all changes to the "last_run_at" field.
+func (m *InspectionPlanMutation) ResetLastRunAt() {
+	m.last_run_at = nil
+	delete(m.clearedFields, inspectionplan.FieldLastRunAt)
+}
+
+// Where appends a list predicates to the InspectionPlanMutation builder.
+func (m *InspectionPlanMutation) Where(ps ...predicate.InspectionPlan) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the InspectionPlanMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *InspectionPlanMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.InspectionPlan, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *InspectionPlanMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *InspectionPlanMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (InspectionPlan).
+func (m *InspectionPlanMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *InspectionPlanMutation) Fields() []string {
+	fields := make([]string, 0, 21)
+	if m.created_at != nil {
+		fields = append(fields, inspectionplan.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, inspectionplan.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, inspectionplan.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, inspectionplan.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, inspectionplan.FieldNamespaceUID)
+	}
+	if m.name != nil {
+		fields = append(fields, inspectionplan.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, inspectionplan.FieldDescription)
+	}
+	if m.status != nil {
+		fields = append(fields, inspectionplan.FieldStatus)
+	}
+	if m.cron != nil {
+		fields = append(fields, inspectionplan.FieldCron)
+	}
+	if m.timezone != nil {
+		fields = append(fields, inspectionplan.FieldTimezone)
+	}
+	if m.timeout_seconds != nil {
+		fields = append(fields, inspectionplan.FieldTimeoutSeconds)
+	}
+	if m.template_uid != nil {
+		fields = append(fields, inspectionplan.FieldTemplateUID)
+	}
+	if m.output_formats != nil {
+		fields = append(fields, inspectionplan.FieldOutputFormats)
+	}
+	if m.title_template != nil {
+		fields = append(fields, inspectionplan.FieldTitleTemplate)
+	}
+	if m.notification_group_uids != nil {
+		fields = append(fields, inspectionplan.FieldNotificationGroupUids)
+	}
+	if m.notify_policy != nil {
+		fields = append(fields, inspectionplan.FieldNotifyPolicy)
+	}
+	if m.labels != nil {
+		fields = append(fields, inspectionplan.FieldLabels)
+	}
+	if m.remark != nil {
+		fields = append(fields, inspectionplan.FieldRemark)
+	}
+	if m.created_by != nil {
+		fields = append(fields, inspectionplan.FieldCreatedBy)
+	}
+	if m.next_run_at != nil {
+		fields = append(fields, inspectionplan.FieldNextRunAt)
+	}
+	if m.last_run_at != nil {
+		fields = append(fields, inspectionplan.FieldLastRunAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *InspectionPlanMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionplan.FieldCreatedAt:
+		return m.CreatedAt()
+	case inspectionplan.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case inspectionplan.FieldDeletedAt:
+		return m.DeletedAt()
+	case inspectionplan.FieldUID:
+		return m.UID()
+	case inspectionplan.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case inspectionplan.FieldName:
+		return m.Name()
+	case inspectionplan.FieldDescription:
+		return m.Description()
+	case inspectionplan.FieldStatus:
+		return m.Status()
+	case inspectionplan.FieldCron:
+		return m.Cron()
+	case inspectionplan.FieldTimezone:
+		return m.Timezone()
+	case inspectionplan.FieldTimeoutSeconds:
+		return m.TimeoutSeconds()
+	case inspectionplan.FieldTemplateUID:
+		return m.TemplateUID()
+	case inspectionplan.FieldOutputFormats:
+		return m.OutputFormats()
+	case inspectionplan.FieldTitleTemplate:
+		return m.TitleTemplate()
+	case inspectionplan.FieldNotificationGroupUids:
+		return m.NotificationGroupUids()
+	case inspectionplan.FieldNotifyPolicy:
+		return m.NotifyPolicy()
+	case inspectionplan.FieldLabels:
+		return m.Labels()
+	case inspectionplan.FieldRemark:
+		return m.Remark()
+	case inspectionplan.FieldCreatedBy:
+		return m.CreatedBy()
+	case inspectionplan.FieldNextRunAt:
+		return m.NextRunAt()
+	case inspectionplan.FieldLastRunAt:
+		return m.LastRunAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *InspectionPlanMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case inspectionplan.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case inspectionplan.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case inspectionplan.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case inspectionplan.FieldUID:
+		return m.OldUID(ctx)
+	case inspectionplan.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case inspectionplan.FieldName:
+		return m.OldName(ctx)
+	case inspectionplan.FieldDescription:
+		return m.OldDescription(ctx)
+	case inspectionplan.FieldStatus:
+		return m.OldStatus(ctx)
+	case inspectionplan.FieldCron:
+		return m.OldCron(ctx)
+	case inspectionplan.FieldTimezone:
+		return m.OldTimezone(ctx)
+	case inspectionplan.FieldTimeoutSeconds:
+		return m.OldTimeoutSeconds(ctx)
+	case inspectionplan.FieldTemplateUID:
+		return m.OldTemplateUID(ctx)
+	case inspectionplan.FieldOutputFormats:
+		return m.OldOutputFormats(ctx)
+	case inspectionplan.FieldTitleTemplate:
+		return m.OldTitleTemplate(ctx)
+	case inspectionplan.FieldNotificationGroupUids:
+		return m.OldNotificationGroupUids(ctx)
+	case inspectionplan.FieldNotifyPolicy:
+		return m.OldNotifyPolicy(ctx)
+	case inspectionplan.FieldLabels:
+		return m.OldLabels(ctx)
+	case inspectionplan.FieldRemark:
+		return m.OldRemark(ctx)
+	case inspectionplan.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case inspectionplan.FieldNextRunAt:
+		return m.OldNextRunAt(ctx)
+	case inspectionplan.FieldLastRunAt:
+		return m.OldLastRunAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown InspectionPlan field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionPlanMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case inspectionplan.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case inspectionplan.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case inspectionplan.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case inspectionplan.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case inspectionplan.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case inspectionplan.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case inspectionplan.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case inspectionplan.FieldStatus:
+		v, ok := value.(inspectionplan.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case inspectionplan.FieldCron:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCron(v)
+		return nil
+	case inspectionplan.FieldTimezone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimezone(v)
+		return nil
+	case inspectionplan.FieldTimeoutSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimeoutSeconds(v)
+		return nil
+	case inspectionplan.FieldTemplateUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateUID(v)
+		return nil
+	case inspectionplan.FieldOutputFormats:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutputFormats(v)
+		return nil
+	case inspectionplan.FieldTitleTemplate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitleTemplate(v)
+		return nil
+	case inspectionplan.FieldNotificationGroupUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotificationGroupUids(v)
+		return nil
+	case inspectionplan.FieldNotifyPolicy:
+		v, ok := value.(inspectionplan.NotifyPolicy)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotifyPolicy(v)
+		return nil
+	case inspectionplan.FieldLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
+	case inspectionplan.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	case inspectionplan.FieldCreatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case inspectionplan.FieldNextRunAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextRunAt(v)
+		return nil
+	case inspectionplan.FieldLastRunAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastRunAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionPlan field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *InspectionPlanMutation) AddedFields() []string {
+	var fields []string
+	if m.addtimeout_seconds != nil {
+		fields = append(fields, inspectionplan.FieldTimeoutSeconds)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *InspectionPlanMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionplan.FieldTimeoutSeconds:
+		return m.AddedTimeoutSeconds()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionPlanMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case inspectionplan.FieldTimeoutSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTimeoutSeconds(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionPlan numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *InspectionPlanMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(inspectionplan.FieldDeletedAt) {
+		fields = append(fields, inspectionplan.FieldDeletedAt)
+	}
+	if m.FieldCleared(inspectionplan.FieldNextRunAt) {
+		fields = append(fields, inspectionplan.FieldNextRunAt)
+	}
+	if m.FieldCleared(inspectionplan.FieldLastRunAt) {
+		fields = append(fields, inspectionplan.FieldLastRunAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *InspectionPlanMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *InspectionPlanMutation) ClearField(name string) error {
+	switch name {
+	case inspectionplan.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case inspectionplan.FieldNextRunAt:
+		m.ClearNextRunAt()
+		return nil
+	case inspectionplan.FieldLastRunAt:
+		m.ClearLastRunAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionPlan nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *InspectionPlanMutation) ResetField(name string) error {
+	switch name {
+	case inspectionplan.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case inspectionplan.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case inspectionplan.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case inspectionplan.FieldUID:
+		m.ResetUID()
+		return nil
+	case inspectionplan.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case inspectionplan.FieldName:
+		m.ResetName()
+		return nil
+	case inspectionplan.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case inspectionplan.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case inspectionplan.FieldCron:
+		m.ResetCron()
+		return nil
+	case inspectionplan.FieldTimezone:
+		m.ResetTimezone()
+		return nil
+	case inspectionplan.FieldTimeoutSeconds:
+		m.ResetTimeoutSeconds()
+		return nil
+	case inspectionplan.FieldTemplateUID:
+		m.ResetTemplateUID()
+		return nil
+	case inspectionplan.FieldOutputFormats:
+		m.ResetOutputFormats()
+		return nil
+	case inspectionplan.FieldTitleTemplate:
+		m.ResetTitleTemplate()
+		return nil
+	case inspectionplan.FieldNotificationGroupUids:
+		m.ResetNotificationGroupUids()
+		return nil
+	case inspectionplan.FieldNotifyPolicy:
+		m.ResetNotifyPolicy()
+		return nil
+	case inspectionplan.FieldLabels:
+		m.ResetLabels()
+		return nil
+	case inspectionplan.FieldRemark:
+		m.ResetRemark()
+		return nil
+	case inspectionplan.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case inspectionplan.FieldNextRunAt:
+		m.ResetNextRunAt()
+		return nil
+	case inspectionplan.FieldLastRunAt:
+		m.ResetLastRunAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionPlan field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *InspectionPlanMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *InspectionPlanMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *InspectionPlanMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *InspectionPlanMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *InspectionPlanMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *InspectionPlanMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *InspectionPlanMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown InspectionPlan unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *InspectionPlanMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown InspectionPlan edge %s", name)
+}
+
+// InspectionReportMutation represents an operation that mutates the InspectionReport nodes in the graph.
+type InspectionReportMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *int
+	created_at           *time.Time
+	updated_at           *time.Time
+	uid                  *string
+	namespace_uid        *string
+	run_uid              *string
+	format               *inspectionreport.Format
+	title                *string
+	content              *string
+	size                 *int
+	addsize              *int
+	checksum             *string
+	share_token_hash     *string
+	share_enabled        *bool
+	share_expires_at     *time.Time
+	share_password_hash  *string
+	share_created_by     *string
+	share_created_at     *time.Time
+	share_view_count     *int
+	addshare_view_count  *int
+	share_last_viewed_at *time.Time
+	clearedFields        map[string]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*InspectionReport, error)
+	predicates           []predicate.InspectionReport
+}
+
+var _ ent.Mutation = (*InspectionReportMutation)(nil)
+
+// inspectionreportOption allows management of the mutation configuration using functional options.
+type inspectionreportOption func(*InspectionReportMutation)
+
+// newInspectionReportMutation creates new mutation for the InspectionReport entity.
+func newInspectionReportMutation(c config, op Op, opts ...inspectionreportOption) *InspectionReportMutation {
+	m := &InspectionReportMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeInspectionReport,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withInspectionReportID sets the ID field of the mutation.
+func withInspectionReportID(id int) inspectionreportOption {
+	return func(m *InspectionReportMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *InspectionReport
+		)
+		m.oldValue = func(ctx context.Context) (*InspectionReport, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().InspectionReport.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withInspectionReport sets the old InspectionReport of the mutation.
+func withInspectionReport(node *InspectionReport) inspectionreportOption {
+	return func(m *InspectionReportMutation) {
+		m.oldValue = func(context.Context) (*InspectionReport, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m InspectionReportMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m InspectionReportMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *InspectionReportMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *InspectionReportMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().InspectionReport.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *InspectionReportMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *InspectionReportMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *InspectionReportMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *InspectionReportMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *InspectionReportMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *InspectionReportMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *InspectionReportMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *InspectionReportMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *InspectionReportMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *InspectionReportMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *InspectionReportMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *InspectionReportMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetRunUID sets the "run_uid" field.
+func (m *InspectionReportMutation) SetRunUID(s string) {
+	m.run_uid = &s
+}
+
+// RunUID returns the value of the "run_uid" field in the mutation.
+func (m *InspectionReportMutation) RunUID() (r string, exists bool) {
+	v := m.run_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRunUID returns the old "run_uid" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldRunUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRunUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRunUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRunUID: %w", err)
+	}
+	return oldValue.RunUID, nil
+}
+
+// ResetRunUID resets all changes to the "run_uid" field.
+func (m *InspectionReportMutation) ResetRunUID() {
+	m.run_uid = nil
+}
+
+// SetFormat sets the "format" field.
+func (m *InspectionReportMutation) SetFormat(i inspectionreport.Format) {
+	m.format = &i
+}
+
+// Format returns the value of the "format" field in the mutation.
+func (m *InspectionReportMutation) Format() (r inspectionreport.Format, exists bool) {
+	v := m.format
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFormat returns the old "format" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldFormat(ctx context.Context) (v inspectionreport.Format, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFormat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFormat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFormat: %w", err)
+	}
+	return oldValue.Format, nil
+}
+
+// ResetFormat resets all changes to the "format" field.
+func (m *InspectionReportMutation) ResetFormat() {
+	m.format = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *InspectionReportMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *InspectionReportMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *InspectionReportMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetContent sets the "content" field.
+func (m *InspectionReportMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *InspectionReportMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *InspectionReportMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetSize sets the "size" field.
+func (m *InspectionReportMutation) SetSize(i int) {
+	m.size = &i
+	m.addsize = nil
+}
+
+// Size returns the value of the "size" field in the mutation.
+func (m *InspectionReportMutation) Size() (r int, exists bool) {
+	v := m.size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSize returns the old "size" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldSize(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSize: %w", err)
+	}
+	return oldValue.Size, nil
+}
+
+// AddSize adds i to the "size" field.
+func (m *InspectionReportMutation) AddSize(i int) {
+	if m.addsize != nil {
+		*m.addsize += i
+	} else {
+		m.addsize = &i
+	}
+}
+
+// AddedSize returns the value that was added to the "size" field in this mutation.
+func (m *InspectionReportMutation) AddedSize() (r int, exists bool) {
+	v := m.addsize
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSize resets all changes to the "size" field.
+func (m *InspectionReportMutation) ResetSize() {
+	m.size = nil
+	m.addsize = nil
+}
+
+// SetChecksum sets the "checksum" field.
+func (m *InspectionReportMutation) SetChecksum(s string) {
+	m.checksum = &s
+}
+
+// Checksum returns the value of the "checksum" field in the mutation.
+func (m *InspectionReportMutation) Checksum() (r string, exists bool) {
+	v := m.checksum
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChecksum returns the old "checksum" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldChecksum(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChecksum is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChecksum requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChecksum: %w", err)
+	}
+	return oldValue.Checksum, nil
+}
+
+// ResetChecksum resets all changes to the "checksum" field.
+func (m *InspectionReportMutation) ResetChecksum() {
+	m.checksum = nil
+}
+
+// SetShareTokenHash sets the "share_token_hash" field.
+func (m *InspectionReportMutation) SetShareTokenHash(s string) {
+	m.share_token_hash = &s
+}
+
+// ShareTokenHash returns the value of the "share_token_hash" field in the mutation.
+func (m *InspectionReportMutation) ShareTokenHash() (r string, exists bool) {
+	v := m.share_token_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareTokenHash returns the old "share_token_hash" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldShareTokenHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareTokenHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareTokenHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareTokenHash: %w", err)
+	}
+	return oldValue.ShareTokenHash, nil
+}
+
+// ResetShareTokenHash resets all changes to the "share_token_hash" field.
+func (m *InspectionReportMutation) ResetShareTokenHash() {
+	m.share_token_hash = nil
+}
+
+// SetShareEnabled sets the "share_enabled" field.
+func (m *InspectionReportMutation) SetShareEnabled(b bool) {
+	m.share_enabled = &b
+}
+
+// ShareEnabled returns the value of the "share_enabled" field in the mutation.
+func (m *InspectionReportMutation) ShareEnabled() (r bool, exists bool) {
+	v := m.share_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareEnabled returns the old "share_enabled" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldShareEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareEnabled: %w", err)
+	}
+	return oldValue.ShareEnabled, nil
+}
+
+// ResetShareEnabled resets all changes to the "share_enabled" field.
+func (m *InspectionReportMutation) ResetShareEnabled() {
+	m.share_enabled = nil
+}
+
+// SetShareExpiresAt sets the "share_expires_at" field.
+func (m *InspectionReportMutation) SetShareExpiresAt(t time.Time) {
+	m.share_expires_at = &t
+}
+
+// ShareExpiresAt returns the value of the "share_expires_at" field in the mutation.
+func (m *InspectionReportMutation) ShareExpiresAt() (r time.Time, exists bool) {
+	v := m.share_expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareExpiresAt returns the old "share_expires_at" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldShareExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareExpiresAt: %w", err)
+	}
+	return oldValue.ShareExpiresAt, nil
+}
+
+// ClearShareExpiresAt clears the value of the "share_expires_at" field.
+func (m *InspectionReportMutation) ClearShareExpiresAt() {
+	m.share_expires_at = nil
+	m.clearedFields[inspectionreport.FieldShareExpiresAt] = struct{}{}
+}
+
+// ShareExpiresAtCleared returns if the "share_expires_at" field was cleared in this mutation.
+func (m *InspectionReportMutation) ShareExpiresAtCleared() bool {
+	_, ok := m.clearedFields[inspectionreport.FieldShareExpiresAt]
+	return ok
+}
+
+// ResetShareExpiresAt resets all changes to the "share_expires_at" field.
+func (m *InspectionReportMutation) ResetShareExpiresAt() {
+	m.share_expires_at = nil
+	delete(m.clearedFields, inspectionreport.FieldShareExpiresAt)
+}
+
+// SetSharePasswordHash sets the "share_password_hash" field.
+func (m *InspectionReportMutation) SetSharePasswordHash(s string) {
+	m.share_password_hash = &s
+}
+
+// SharePasswordHash returns the value of the "share_password_hash" field in the mutation.
+func (m *InspectionReportMutation) SharePasswordHash() (r string, exists bool) {
+	v := m.share_password_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSharePasswordHash returns the old "share_password_hash" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldSharePasswordHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSharePasswordHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSharePasswordHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSharePasswordHash: %w", err)
+	}
+	return oldValue.SharePasswordHash, nil
+}
+
+// ResetSharePasswordHash resets all changes to the "share_password_hash" field.
+func (m *InspectionReportMutation) ResetSharePasswordHash() {
+	m.share_password_hash = nil
+}
+
+// SetShareCreatedBy sets the "share_created_by" field.
+func (m *InspectionReportMutation) SetShareCreatedBy(s string) {
+	m.share_created_by = &s
+}
+
+// ShareCreatedBy returns the value of the "share_created_by" field in the mutation.
+func (m *InspectionReportMutation) ShareCreatedBy() (r string, exists bool) {
+	v := m.share_created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareCreatedBy returns the old "share_created_by" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldShareCreatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareCreatedBy: %w", err)
+	}
+	return oldValue.ShareCreatedBy, nil
+}
+
+// ResetShareCreatedBy resets all changes to the "share_created_by" field.
+func (m *InspectionReportMutation) ResetShareCreatedBy() {
+	m.share_created_by = nil
+}
+
+// SetShareCreatedAt sets the "share_created_at" field.
+func (m *InspectionReportMutation) SetShareCreatedAt(t time.Time) {
+	m.share_created_at = &t
+}
+
+// ShareCreatedAt returns the value of the "share_created_at" field in the mutation.
+func (m *InspectionReportMutation) ShareCreatedAt() (r time.Time, exists bool) {
+	v := m.share_created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareCreatedAt returns the old "share_created_at" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldShareCreatedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareCreatedAt: %w", err)
+	}
+	return oldValue.ShareCreatedAt, nil
+}
+
+// ClearShareCreatedAt clears the value of the "share_created_at" field.
+func (m *InspectionReportMutation) ClearShareCreatedAt() {
+	m.share_created_at = nil
+	m.clearedFields[inspectionreport.FieldShareCreatedAt] = struct{}{}
+}
+
+// ShareCreatedAtCleared returns if the "share_created_at" field was cleared in this mutation.
+func (m *InspectionReportMutation) ShareCreatedAtCleared() bool {
+	_, ok := m.clearedFields[inspectionreport.FieldShareCreatedAt]
+	return ok
+}
+
+// ResetShareCreatedAt resets all changes to the "share_created_at" field.
+func (m *InspectionReportMutation) ResetShareCreatedAt() {
+	m.share_created_at = nil
+	delete(m.clearedFields, inspectionreport.FieldShareCreatedAt)
+}
+
+// SetShareViewCount sets the "share_view_count" field.
+func (m *InspectionReportMutation) SetShareViewCount(i int) {
+	m.share_view_count = &i
+	m.addshare_view_count = nil
+}
+
+// ShareViewCount returns the value of the "share_view_count" field in the mutation.
+func (m *InspectionReportMutation) ShareViewCount() (r int, exists bool) {
+	v := m.share_view_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareViewCount returns the old "share_view_count" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldShareViewCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareViewCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareViewCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareViewCount: %w", err)
+	}
+	return oldValue.ShareViewCount, nil
+}
+
+// AddShareViewCount adds i to the "share_view_count" field.
+func (m *InspectionReportMutation) AddShareViewCount(i int) {
+	if m.addshare_view_count != nil {
+		*m.addshare_view_count += i
+	} else {
+		m.addshare_view_count = &i
+	}
+}
+
+// AddedShareViewCount returns the value that was added to the "share_view_count" field in this mutation.
+func (m *InspectionReportMutation) AddedShareViewCount() (r int, exists bool) {
+	v := m.addshare_view_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetShareViewCount resets all changes to the "share_view_count" field.
+func (m *InspectionReportMutation) ResetShareViewCount() {
+	m.share_view_count = nil
+	m.addshare_view_count = nil
+}
+
+// SetShareLastViewedAt sets the "share_last_viewed_at" field.
+func (m *InspectionReportMutation) SetShareLastViewedAt(t time.Time) {
+	m.share_last_viewed_at = &t
+}
+
+// ShareLastViewedAt returns the value of the "share_last_viewed_at" field in the mutation.
+func (m *InspectionReportMutation) ShareLastViewedAt() (r time.Time, exists bool) {
+	v := m.share_last_viewed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareLastViewedAt returns the old "share_last_viewed_at" field's value of the InspectionReport entity.
+// If the InspectionReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportMutation) OldShareLastViewedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareLastViewedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareLastViewedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareLastViewedAt: %w", err)
+	}
+	return oldValue.ShareLastViewedAt, nil
+}
+
+// ClearShareLastViewedAt clears the value of the "share_last_viewed_at" field.
+func (m *InspectionReportMutation) ClearShareLastViewedAt() {
+	m.share_last_viewed_at = nil
+	m.clearedFields[inspectionreport.FieldShareLastViewedAt] = struct{}{}
+}
+
+// ShareLastViewedAtCleared returns if the "share_last_viewed_at" field was cleared in this mutation.
+func (m *InspectionReportMutation) ShareLastViewedAtCleared() bool {
+	_, ok := m.clearedFields[inspectionreport.FieldShareLastViewedAt]
+	return ok
+}
+
+// ResetShareLastViewedAt resets all changes to the "share_last_viewed_at" field.
+func (m *InspectionReportMutation) ResetShareLastViewedAt() {
+	m.share_last_viewed_at = nil
+	delete(m.clearedFields, inspectionreport.FieldShareLastViewedAt)
+}
+
+// Where appends a list predicates to the InspectionReportMutation builder.
+func (m *InspectionReportMutation) Where(ps ...predicate.InspectionReport) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the InspectionReportMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *InspectionReportMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.InspectionReport, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *InspectionReportMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *InspectionReportMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (InspectionReport).
+func (m *InspectionReportMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *InspectionReportMutation) Fields() []string {
+	fields := make([]string, 0, 18)
+	if m.created_at != nil {
+		fields = append(fields, inspectionreport.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, inspectionreport.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, inspectionreport.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, inspectionreport.FieldNamespaceUID)
+	}
+	if m.run_uid != nil {
+		fields = append(fields, inspectionreport.FieldRunUID)
+	}
+	if m.format != nil {
+		fields = append(fields, inspectionreport.FieldFormat)
+	}
+	if m.title != nil {
+		fields = append(fields, inspectionreport.FieldTitle)
+	}
+	if m.content != nil {
+		fields = append(fields, inspectionreport.FieldContent)
+	}
+	if m.size != nil {
+		fields = append(fields, inspectionreport.FieldSize)
+	}
+	if m.checksum != nil {
+		fields = append(fields, inspectionreport.FieldChecksum)
+	}
+	if m.share_token_hash != nil {
+		fields = append(fields, inspectionreport.FieldShareTokenHash)
+	}
+	if m.share_enabled != nil {
+		fields = append(fields, inspectionreport.FieldShareEnabled)
+	}
+	if m.share_expires_at != nil {
+		fields = append(fields, inspectionreport.FieldShareExpiresAt)
+	}
+	if m.share_password_hash != nil {
+		fields = append(fields, inspectionreport.FieldSharePasswordHash)
+	}
+	if m.share_created_by != nil {
+		fields = append(fields, inspectionreport.FieldShareCreatedBy)
+	}
+	if m.share_created_at != nil {
+		fields = append(fields, inspectionreport.FieldShareCreatedAt)
+	}
+	if m.share_view_count != nil {
+		fields = append(fields, inspectionreport.FieldShareViewCount)
+	}
+	if m.share_last_viewed_at != nil {
+		fields = append(fields, inspectionreport.FieldShareLastViewedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *InspectionReportMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionreport.FieldCreatedAt:
+		return m.CreatedAt()
+	case inspectionreport.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case inspectionreport.FieldUID:
+		return m.UID()
+	case inspectionreport.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case inspectionreport.FieldRunUID:
+		return m.RunUID()
+	case inspectionreport.FieldFormat:
+		return m.Format()
+	case inspectionreport.FieldTitle:
+		return m.Title()
+	case inspectionreport.FieldContent:
+		return m.Content()
+	case inspectionreport.FieldSize:
+		return m.Size()
+	case inspectionreport.FieldChecksum:
+		return m.Checksum()
+	case inspectionreport.FieldShareTokenHash:
+		return m.ShareTokenHash()
+	case inspectionreport.FieldShareEnabled:
+		return m.ShareEnabled()
+	case inspectionreport.FieldShareExpiresAt:
+		return m.ShareExpiresAt()
+	case inspectionreport.FieldSharePasswordHash:
+		return m.SharePasswordHash()
+	case inspectionreport.FieldShareCreatedBy:
+		return m.ShareCreatedBy()
+	case inspectionreport.FieldShareCreatedAt:
+		return m.ShareCreatedAt()
+	case inspectionreport.FieldShareViewCount:
+		return m.ShareViewCount()
+	case inspectionreport.FieldShareLastViewedAt:
+		return m.ShareLastViewedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *InspectionReportMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case inspectionreport.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case inspectionreport.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case inspectionreport.FieldUID:
+		return m.OldUID(ctx)
+	case inspectionreport.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case inspectionreport.FieldRunUID:
+		return m.OldRunUID(ctx)
+	case inspectionreport.FieldFormat:
+		return m.OldFormat(ctx)
+	case inspectionreport.FieldTitle:
+		return m.OldTitle(ctx)
+	case inspectionreport.FieldContent:
+		return m.OldContent(ctx)
+	case inspectionreport.FieldSize:
+		return m.OldSize(ctx)
+	case inspectionreport.FieldChecksum:
+		return m.OldChecksum(ctx)
+	case inspectionreport.FieldShareTokenHash:
+		return m.OldShareTokenHash(ctx)
+	case inspectionreport.FieldShareEnabled:
+		return m.OldShareEnabled(ctx)
+	case inspectionreport.FieldShareExpiresAt:
+		return m.OldShareExpiresAt(ctx)
+	case inspectionreport.FieldSharePasswordHash:
+		return m.OldSharePasswordHash(ctx)
+	case inspectionreport.FieldShareCreatedBy:
+		return m.OldShareCreatedBy(ctx)
+	case inspectionreport.FieldShareCreatedAt:
+		return m.OldShareCreatedAt(ctx)
+	case inspectionreport.FieldShareViewCount:
+		return m.OldShareViewCount(ctx)
+	case inspectionreport.FieldShareLastViewedAt:
+		return m.OldShareLastViewedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown InspectionReport field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionReportMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case inspectionreport.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case inspectionreport.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case inspectionreport.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case inspectionreport.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case inspectionreport.FieldRunUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRunUID(v)
+		return nil
+	case inspectionreport.FieldFormat:
+		v, ok := value.(inspectionreport.Format)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFormat(v)
+		return nil
+	case inspectionreport.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case inspectionreport.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case inspectionreport.FieldSize:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSize(v)
+		return nil
+	case inspectionreport.FieldChecksum:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChecksum(v)
+		return nil
+	case inspectionreport.FieldShareTokenHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareTokenHash(v)
+		return nil
+	case inspectionreport.FieldShareEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareEnabled(v)
+		return nil
+	case inspectionreport.FieldShareExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareExpiresAt(v)
+		return nil
+	case inspectionreport.FieldSharePasswordHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSharePasswordHash(v)
+		return nil
+	case inspectionreport.FieldShareCreatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareCreatedBy(v)
+		return nil
+	case inspectionreport.FieldShareCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareCreatedAt(v)
+		return nil
+	case inspectionreport.FieldShareViewCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareViewCount(v)
+		return nil
+	case inspectionreport.FieldShareLastViewedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareLastViewedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionReport field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *InspectionReportMutation) AddedFields() []string {
+	var fields []string
+	if m.addsize != nil {
+		fields = append(fields, inspectionreport.FieldSize)
+	}
+	if m.addshare_view_count != nil {
+		fields = append(fields, inspectionreport.FieldShareViewCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *InspectionReportMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionreport.FieldSize:
+		return m.AddedSize()
+	case inspectionreport.FieldShareViewCount:
+		return m.AddedShareViewCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionReportMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case inspectionreport.FieldSize:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSize(v)
+		return nil
+	case inspectionreport.FieldShareViewCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddShareViewCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionReport numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *InspectionReportMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(inspectionreport.FieldShareExpiresAt) {
+		fields = append(fields, inspectionreport.FieldShareExpiresAt)
+	}
+	if m.FieldCleared(inspectionreport.FieldShareCreatedAt) {
+		fields = append(fields, inspectionreport.FieldShareCreatedAt)
+	}
+	if m.FieldCleared(inspectionreport.FieldShareLastViewedAt) {
+		fields = append(fields, inspectionreport.FieldShareLastViewedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *InspectionReportMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *InspectionReportMutation) ClearField(name string) error {
+	switch name {
+	case inspectionreport.FieldShareExpiresAt:
+		m.ClearShareExpiresAt()
+		return nil
+	case inspectionreport.FieldShareCreatedAt:
+		m.ClearShareCreatedAt()
+		return nil
+	case inspectionreport.FieldShareLastViewedAt:
+		m.ClearShareLastViewedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionReport nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *InspectionReportMutation) ResetField(name string) error {
+	switch name {
+	case inspectionreport.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case inspectionreport.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case inspectionreport.FieldUID:
+		m.ResetUID()
+		return nil
+	case inspectionreport.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case inspectionreport.FieldRunUID:
+		m.ResetRunUID()
+		return nil
+	case inspectionreport.FieldFormat:
+		m.ResetFormat()
+		return nil
+	case inspectionreport.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case inspectionreport.FieldContent:
+		m.ResetContent()
+		return nil
+	case inspectionreport.FieldSize:
+		m.ResetSize()
+		return nil
+	case inspectionreport.FieldChecksum:
+		m.ResetChecksum()
+		return nil
+	case inspectionreport.FieldShareTokenHash:
+		m.ResetShareTokenHash()
+		return nil
+	case inspectionreport.FieldShareEnabled:
+		m.ResetShareEnabled()
+		return nil
+	case inspectionreport.FieldShareExpiresAt:
+		m.ResetShareExpiresAt()
+		return nil
+	case inspectionreport.FieldSharePasswordHash:
+		m.ResetSharePasswordHash()
+		return nil
+	case inspectionreport.FieldShareCreatedBy:
+		m.ResetShareCreatedBy()
+		return nil
+	case inspectionreport.FieldShareCreatedAt:
+		m.ResetShareCreatedAt()
+		return nil
+	case inspectionreport.FieldShareViewCount:
+		m.ResetShareViewCount()
+		return nil
+	case inspectionreport.FieldShareLastViewedAt:
+		m.ResetShareLastViewedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionReport field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *InspectionReportMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *InspectionReportMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *InspectionReportMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *InspectionReportMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *InspectionReportMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *InspectionReportMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *InspectionReportMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown InspectionReport unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *InspectionReportMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown InspectionReport edge %s", name)
+}
+
+// InspectionRunMutation represents an operation that mutates the InspectionRun nodes in the graph.
+type InspectionRunMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	uid            *string
+	namespace_uid  *string
+	plan_uid       *string
+	plan_name      *string
+	trigger        *inspectionrun.Trigger
+	status         *inspectionrun.Status
+	scheduled_at   *time.Time
+	started_at     *time.Time
+	finished_at    *time.Time
+	window_start   *time.Time
+	window_end     *time.Time
+	item_total     *int
+	additem_total  *int
+	item_ok        *int
+	additem_ok     *int
+	item_warn      *int
+	additem_warn   *int
+	item_failed    *int
+	additem_failed *int
+	summary        *string
+	error          *string
+	operator_uid   *string
+	operator_name  *string
+	lease_owner    *string
+	lease_until    *time.Time
+	notified_at    *time.Time
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*InspectionRun, error)
+	predicates     []predicate.InspectionRun
+}
+
+var _ ent.Mutation = (*InspectionRunMutation)(nil)
+
+// inspectionrunOption allows management of the mutation configuration using functional options.
+type inspectionrunOption func(*InspectionRunMutation)
+
+// newInspectionRunMutation creates new mutation for the InspectionRun entity.
+func newInspectionRunMutation(c config, op Op, opts ...inspectionrunOption) *InspectionRunMutation {
+	m := &InspectionRunMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeInspectionRun,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withInspectionRunID sets the ID field of the mutation.
+func withInspectionRunID(id int) inspectionrunOption {
+	return func(m *InspectionRunMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *InspectionRun
+		)
+		m.oldValue = func(ctx context.Context) (*InspectionRun, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().InspectionRun.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withInspectionRun sets the old InspectionRun of the mutation.
+func withInspectionRun(node *InspectionRun) inspectionrunOption {
+	return func(m *InspectionRunMutation) {
+		m.oldValue = func(context.Context) (*InspectionRun, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m InspectionRunMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m InspectionRunMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *InspectionRunMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *InspectionRunMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().InspectionRun.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *InspectionRunMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *InspectionRunMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *InspectionRunMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *InspectionRunMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *InspectionRunMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *InspectionRunMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *InspectionRunMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *InspectionRunMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *InspectionRunMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *InspectionRunMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *InspectionRunMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *InspectionRunMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetPlanUID sets the "plan_uid" field.
+func (m *InspectionRunMutation) SetPlanUID(s string) {
+	m.plan_uid = &s
+}
+
+// PlanUID returns the value of the "plan_uid" field in the mutation.
+func (m *InspectionRunMutation) PlanUID() (r string, exists bool) {
+	v := m.plan_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlanUID returns the old "plan_uid" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldPlanUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlanUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlanUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlanUID: %w", err)
+	}
+	return oldValue.PlanUID, nil
+}
+
+// ResetPlanUID resets all changes to the "plan_uid" field.
+func (m *InspectionRunMutation) ResetPlanUID() {
+	m.plan_uid = nil
+}
+
+// SetPlanName sets the "plan_name" field.
+func (m *InspectionRunMutation) SetPlanName(s string) {
+	m.plan_name = &s
+}
+
+// PlanName returns the value of the "plan_name" field in the mutation.
+func (m *InspectionRunMutation) PlanName() (r string, exists bool) {
+	v := m.plan_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlanName returns the old "plan_name" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldPlanName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlanName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlanName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlanName: %w", err)
+	}
+	return oldValue.PlanName, nil
+}
+
+// ResetPlanName resets all changes to the "plan_name" field.
+func (m *InspectionRunMutation) ResetPlanName() {
+	m.plan_name = nil
+}
+
+// SetTrigger sets the "trigger" field.
+func (m *InspectionRunMutation) SetTrigger(i inspectionrun.Trigger) {
+	m.trigger = &i
+}
+
+// Trigger returns the value of the "trigger" field in the mutation.
+func (m *InspectionRunMutation) Trigger() (r inspectionrun.Trigger, exists bool) {
+	v := m.trigger
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTrigger returns the old "trigger" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldTrigger(ctx context.Context) (v inspectionrun.Trigger, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTrigger is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTrigger requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTrigger: %w", err)
+	}
+	return oldValue.Trigger, nil
+}
+
+// ResetTrigger resets all changes to the "trigger" field.
+func (m *InspectionRunMutation) ResetTrigger() {
+	m.trigger = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *InspectionRunMutation) SetStatus(i inspectionrun.Status) {
+	m.status = &i
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *InspectionRunMutation) Status() (r inspectionrun.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldStatus(ctx context.Context) (v inspectionrun.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *InspectionRunMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetScheduledAt sets the "scheduled_at" field.
+func (m *InspectionRunMutation) SetScheduledAt(t time.Time) {
+	m.scheduled_at = &t
+}
+
+// ScheduledAt returns the value of the "scheduled_at" field in the mutation.
+func (m *InspectionRunMutation) ScheduledAt() (r time.Time, exists bool) {
+	v := m.scheduled_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScheduledAt returns the old "scheduled_at" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldScheduledAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScheduledAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScheduledAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScheduledAt: %w", err)
+	}
+	return oldValue.ScheduledAt, nil
+}
+
+// ResetScheduledAt resets all changes to the "scheduled_at" field.
+func (m *InspectionRunMutation) ResetScheduledAt() {
+	m.scheduled_at = nil
+}
+
+// SetStartedAt sets the "started_at" field.
+func (m *InspectionRunMutation) SetStartedAt(t time.Time) {
+	m.started_at = &t
+}
+
+// StartedAt returns the value of the "started_at" field in the mutation.
+func (m *InspectionRunMutation) StartedAt() (r time.Time, exists bool) {
+	v := m.started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartedAt returns the old "started_at" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldStartedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartedAt: %w", err)
+	}
+	return oldValue.StartedAt, nil
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (m *InspectionRunMutation) ClearStartedAt() {
+	m.started_at = nil
+	m.clearedFields[inspectionrun.FieldStartedAt] = struct{}{}
+}
+
+// StartedAtCleared returns if the "started_at" field was cleared in this mutation.
+func (m *InspectionRunMutation) StartedAtCleared() bool {
+	_, ok := m.clearedFields[inspectionrun.FieldStartedAt]
+	return ok
+}
+
+// ResetStartedAt resets all changes to the "started_at" field.
+func (m *InspectionRunMutation) ResetStartedAt() {
+	m.started_at = nil
+	delete(m.clearedFields, inspectionrun.FieldStartedAt)
+}
+
+// SetFinishedAt sets the "finished_at" field.
+func (m *InspectionRunMutation) SetFinishedAt(t time.Time) {
+	m.finished_at = &t
+}
+
+// FinishedAt returns the value of the "finished_at" field in the mutation.
+func (m *InspectionRunMutation) FinishedAt() (r time.Time, exists bool) {
+	v := m.finished_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinishedAt returns the old "finished_at" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldFinishedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinishedAt: %w", err)
+	}
+	return oldValue.FinishedAt, nil
+}
+
+// ClearFinishedAt clears the value of the "finished_at" field.
+func (m *InspectionRunMutation) ClearFinishedAt() {
+	m.finished_at = nil
+	m.clearedFields[inspectionrun.FieldFinishedAt] = struct{}{}
+}
+
+// FinishedAtCleared returns if the "finished_at" field was cleared in this mutation.
+func (m *InspectionRunMutation) FinishedAtCleared() bool {
+	_, ok := m.clearedFields[inspectionrun.FieldFinishedAt]
+	return ok
+}
+
+// ResetFinishedAt resets all changes to the "finished_at" field.
+func (m *InspectionRunMutation) ResetFinishedAt() {
+	m.finished_at = nil
+	delete(m.clearedFields, inspectionrun.FieldFinishedAt)
+}
+
+// SetWindowStart sets the "window_start" field.
+func (m *InspectionRunMutation) SetWindowStart(t time.Time) {
+	m.window_start = &t
+}
+
+// WindowStart returns the value of the "window_start" field in the mutation.
+func (m *InspectionRunMutation) WindowStart() (r time.Time, exists bool) {
+	v := m.window_start
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWindowStart returns the old "window_start" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldWindowStart(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWindowStart is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWindowStart requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWindowStart: %w", err)
+	}
+	return oldValue.WindowStart, nil
+}
+
+// ClearWindowStart clears the value of the "window_start" field.
+func (m *InspectionRunMutation) ClearWindowStart() {
+	m.window_start = nil
+	m.clearedFields[inspectionrun.FieldWindowStart] = struct{}{}
+}
+
+// WindowStartCleared returns if the "window_start" field was cleared in this mutation.
+func (m *InspectionRunMutation) WindowStartCleared() bool {
+	_, ok := m.clearedFields[inspectionrun.FieldWindowStart]
+	return ok
+}
+
+// ResetWindowStart resets all changes to the "window_start" field.
+func (m *InspectionRunMutation) ResetWindowStart() {
+	m.window_start = nil
+	delete(m.clearedFields, inspectionrun.FieldWindowStart)
+}
+
+// SetWindowEnd sets the "window_end" field.
+func (m *InspectionRunMutation) SetWindowEnd(t time.Time) {
+	m.window_end = &t
+}
+
+// WindowEnd returns the value of the "window_end" field in the mutation.
+func (m *InspectionRunMutation) WindowEnd() (r time.Time, exists bool) {
+	v := m.window_end
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWindowEnd returns the old "window_end" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldWindowEnd(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWindowEnd is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWindowEnd requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWindowEnd: %w", err)
+	}
+	return oldValue.WindowEnd, nil
+}
+
+// ClearWindowEnd clears the value of the "window_end" field.
+func (m *InspectionRunMutation) ClearWindowEnd() {
+	m.window_end = nil
+	m.clearedFields[inspectionrun.FieldWindowEnd] = struct{}{}
+}
+
+// WindowEndCleared returns if the "window_end" field was cleared in this mutation.
+func (m *InspectionRunMutation) WindowEndCleared() bool {
+	_, ok := m.clearedFields[inspectionrun.FieldWindowEnd]
+	return ok
+}
+
+// ResetWindowEnd resets all changes to the "window_end" field.
+func (m *InspectionRunMutation) ResetWindowEnd() {
+	m.window_end = nil
+	delete(m.clearedFields, inspectionrun.FieldWindowEnd)
+}
+
+// SetItemTotal sets the "item_total" field.
+func (m *InspectionRunMutation) SetItemTotal(i int) {
+	m.item_total = &i
+	m.additem_total = nil
+}
+
+// ItemTotal returns the value of the "item_total" field in the mutation.
+func (m *InspectionRunMutation) ItemTotal() (r int, exists bool) {
+	v := m.item_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemTotal returns the old "item_total" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldItemTotal(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemTotal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemTotal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemTotal: %w", err)
+	}
+	return oldValue.ItemTotal, nil
+}
+
+// AddItemTotal adds i to the "item_total" field.
+func (m *InspectionRunMutation) AddItemTotal(i int) {
+	if m.additem_total != nil {
+		*m.additem_total += i
+	} else {
+		m.additem_total = &i
+	}
+}
+
+// AddedItemTotal returns the value that was added to the "item_total" field in this mutation.
+func (m *InspectionRunMutation) AddedItemTotal() (r int, exists bool) {
+	v := m.additem_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetItemTotal resets all changes to the "item_total" field.
+func (m *InspectionRunMutation) ResetItemTotal() {
+	m.item_total = nil
+	m.additem_total = nil
+}
+
+// SetItemOk sets the "item_ok" field.
+func (m *InspectionRunMutation) SetItemOk(i int) {
+	m.item_ok = &i
+	m.additem_ok = nil
+}
+
+// ItemOk returns the value of the "item_ok" field in the mutation.
+func (m *InspectionRunMutation) ItemOk() (r int, exists bool) {
+	v := m.item_ok
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemOk returns the old "item_ok" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldItemOk(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemOk is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemOk requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemOk: %w", err)
+	}
+	return oldValue.ItemOk, nil
+}
+
+// AddItemOk adds i to the "item_ok" field.
+func (m *InspectionRunMutation) AddItemOk(i int) {
+	if m.additem_ok != nil {
+		*m.additem_ok += i
+	} else {
+		m.additem_ok = &i
+	}
+}
+
+// AddedItemOk returns the value that was added to the "item_ok" field in this mutation.
+func (m *InspectionRunMutation) AddedItemOk() (r int, exists bool) {
+	v := m.additem_ok
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetItemOk resets all changes to the "item_ok" field.
+func (m *InspectionRunMutation) ResetItemOk() {
+	m.item_ok = nil
+	m.additem_ok = nil
+}
+
+// SetItemWarn sets the "item_warn" field.
+func (m *InspectionRunMutation) SetItemWarn(i int) {
+	m.item_warn = &i
+	m.additem_warn = nil
+}
+
+// ItemWarn returns the value of the "item_warn" field in the mutation.
+func (m *InspectionRunMutation) ItemWarn() (r int, exists bool) {
+	v := m.item_warn
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemWarn returns the old "item_warn" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldItemWarn(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemWarn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemWarn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemWarn: %w", err)
+	}
+	return oldValue.ItemWarn, nil
+}
+
+// AddItemWarn adds i to the "item_warn" field.
+func (m *InspectionRunMutation) AddItemWarn(i int) {
+	if m.additem_warn != nil {
+		*m.additem_warn += i
+	} else {
+		m.additem_warn = &i
+	}
+}
+
+// AddedItemWarn returns the value that was added to the "item_warn" field in this mutation.
+func (m *InspectionRunMutation) AddedItemWarn() (r int, exists bool) {
+	v := m.additem_warn
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetItemWarn resets all changes to the "item_warn" field.
+func (m *InspectionRunMutation) ResetItemWarn() {
+	m.item_warn = nil
+	m.additem_warn = nil
+}
+
+// SetItemFailed sets the "item_failed" field.
+func (m *InspectionRunMutation) SetItemFailed(i int) {
+	m.item_failed = &i
+	m.additem_failed = nil
+}
+
+// ItemFailed returns the value of the "item_failed" field in the mutation.
+func (m *InspectionRunMutation) ItemFailed() (r int, exists bool) {
+	v := m.item_failed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemFailed returns the old "item_failed" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldItemFailed(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemFailed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemFailed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemFailed: %w", err)
+	}
+	return oldValue.ItemFailed, nil
+}
+
+// AddItemFailed adds i to the "item_failed" field.
+func (m *InspectionRunMutation) AddItemFailed(i int) {
+	if m.additem_failed != nil {
+		*m.additem_failed += i
+	} else {
+		m.additem_failed = &i
+	}
+}
+
+// AddedItemFailed returns the value that was added to the "item_failed" field in this mutation.
+func (m *InspectionRunMutation) AddedItemFailed() (r int, exists bool) {
+	v := m.additem_failed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetItemFailed resets all changes to the "item_failed" field.
+func (m *InspectionRunMutation) ResetItemFailed() {
+	m.item_failed = nil
+	m.additem_failed = nil
+}
+
+// SetSummary sets the "summary" field.
+func (m *InspectionRunMutation) SetSummary(s string) {
+	m.summary = &s
+}
+
+// Summary returns the value of the "summary" field in the mutation.
+func (m *InspectionRunMutation) Summary() (r string, exists bool) {
+	v := m.summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSummary returns the old "summary" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSummary: %w", err)
+	}
+	return oldValue.Summary, nil
+}
+
+// ResetSummary resets all changes to the "summary" field.
+func (m *InspectionRunMutation) ResetSummary() {
+	m.summary = nil
+}
+
+// SetError sets the "error" field.
+func (m *InspectionRunMutation) SetError(s string) {
+	m.error = &s
+}
+
+// Error returns the value of the "error" field in the mutation.
+func (m *InspectionRunMutation) Error() (r string, exists bool) {
+	v := m.error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldError returns the old "error" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldError(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldError: %w", err)
+	}
+	return oldValue.Error, nil
+}
+
+// ResetError resets all changes to the "error" field.
+func (m *InspectionRunMutation) ResetError() {
+	m.error = nil
+}
+
+// SetOperatorUID sets the "operator_uid" field.
+func (m *InspectionRunMutation) SetOperatorUID(s string) {
+	m.operator_uid = &s
+}
+
+// OperatorUID returns the value of the "operator_uid" field in the mutation.
+func (m *InspectionRunMutation) OperatorUID() (r string, exists bool) {
+	v := m.operator_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperatorUID returns the old "operator_uid" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldOperatorUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperatorUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperatorUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperatorUID: %w", err)
+	}
+	return oldValue.OperatorUID, nil
+}
+
+// ResetOperatorUID resets all changes to the "operator_uid" field.
+func (m *InspectionRunMutation) ResetOperatorUID() {
+	m.operator_uid = nil
+}
+
+// SetOperatorName sets the "operator_name" field.
+func (m *InspectionRunMutation) SetOperatorName(s string) {
+	m.operator_name = &s
+}
+
+// OperatorName returns the value of the "operator_name" field in the mutation.
+func (m *InspectionRunMutation) OperatorName() (r string, exists bool) {
+	v := m.operator_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperatorName returns the old "operator_name" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldOperatorName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperatorName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperatorName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperatorName: %w", err)
+	}
+	return oldValue.OperatorName, nil
+}
+
+// ResetOperatorName resets all changes to the "operator_name" field.
+func (m *InspectionRunMutation) ResetOperatorName() {
+	m.operator_name = nil
+}
+
+// SetLeaseOwner sets the "lease_owner" field.
+func (m *InspectionRunMutation) SetLeaseOwner(s string) {
+	m.lease_owner = &s
+}
+
+// LeaseOwner returns the value of the "lease_owner" field in the mutation.
+func (m *InspectionRunMutation) LeaseOwner() (r string, exists bool) {
+	v := m.lease_owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLeaseOwner returns the old "lease_owner" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldLeaseOwner(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLeaseOwner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLeaseOwner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLeaseOwner: %w", err)
+	}
+	return oldValue.LeaseOwner, nil
+}
+
+// ResetLeaseOwner resets all changes to the "lease_owner" field.
+func (m *InspectionRunMutation) ResetLeaseOwner() {
+	m.lease_owner = nil
+}
+
+// SetLeaseUntil sets the "lease_until" field.
+func (m *InspectionRunMutation) SetLeaseUntil(t time.Time) {
+	m.lease_until = &t
+}
+
+// LeaseUntil returns the value of the "lease_until" field in the mutation.
+func (m *InspectionRunMutation) LeaseUntil() (r time.Time, exists bool) {
+	v := m.lease_until
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLeaseUntil returns the old "lease_until" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldLeaseUntil(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLeaseUntil is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLeaseUntil requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLeaseUntil: %w", err)
+	}
+	return oldValue.LeaseUntil, nil
+}
+
+// ClearLeaseUntil clears the value of the "lease_until" field.
+func (m *InspectionRunMutation) ClearLeaseUntil() {
+	m.lease_until = nil
+	m.clearedFields[inspectionrun.FieldLeaseUntil] = struct{}{}
+}
+
+// LeaseUntilCleared returns if the "lease_until" field was cleared in this mutation.
+func (m *InspectionRunMutation) LeaseUntilCleared() bool {
+	_, ok := m.clearedFields[inspectionrun.FieldLeaseUntil]
+	return ok
+}
+
+// ResetLeaseUntil resets all changes to the "lease_until" field.
+func (m *InspectionRunMutation) ResetLeaseUntil() {
+	m.lease_until = nil
+	delete(m.clearedFields, inspectionrun.FieldLeaseUntil)
+}
+
+// SetNotifiedAt sets the "notified_at" field.
+func (m *InspectionRunMutation) SetNotifiedAt(t time.Time) {
+	m.notified_at = &t
+}
+
+// NotifiedAt returns the value of the "notified_at" field in the mutation.
+func (m *InspectionRunMutation) NotifiedAt() (r time.Time, exists bool) {
+	v := m.notified_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotifiedAt returns the old "notified_at" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldNotifiedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotifiedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotifiedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotifiedAt: %w", err)
+	}
+	return oldValue.NotifiedAt, nil
+}
+
+// ClearNotifiedAt clears the value of the "notified_at" field.
+func (m *InspectionRunMutation) ClearNotifiedAt() {
+	m.notified_at = nil
+	m.clearedFields[inspectionrun.FieldNotifiedAt] = struct{}{}
+}
+
+// NotifiedAtCleared returns if the "notified_at" field was cleared in this mutation.
+func (m *InspectionRunMutation) NotifiedAtCleared() bool {
+	_, ok := m.clearedFields[inspectionrun.FieldNotifiedAt]
+	return ok
+}
+
+// ResetNotifiedAt resets all changes to the "notified_at" field.
+func (m *InspectionRunMutation) ResetNotifiedAt() {
+	m.notified_at = nil
+	delete(m.clearedFields, inspectionrun.FieldNotifiedAt)
+}
+
+// Where appends a list predicates to the InspectionRunMutation builder.
+func (m *InspectionRunMutation) Where(ps ...predicate.InspectionRun) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the InspectionRunMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *InspectionRunMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.InspectionRun, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *InspectionRunMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *InspectionRunMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (InspectionRun).
+func (m *InspectionRunMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *InspectionRunMutation) Fields() []string {
+	fields := make([]string, 0, 24)
+	if m.created_at != nil {
+		fields = append(fields, inspectionrun.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, inspectionrun.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, inspectionrun.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, inspectionrun.FieldNamespaceUID)
+	}
+	if m.plan_uid != nil {
+		fields = append(fields, inspectionrun.FieldPlanUID)
+	}
+	if m.plan_name != nil {
+		fields = append(fields, inspectionrun.FieldPlanName)
+	}
+	if m.trigger != nil {
+		fields = append(fields, inspectionrun.FieldTrigger)
+	}
+	if m.status != nil {
+		fields = append(fields, inspectionrun.FieldStatus)
+	}
+	if m.scheduled_at != nil {
+		fields = append(fields, inspectionrun.FieldScheduledAt)
+	}
+	if m.started_at != nil {
+		fields = append(fields, inspectionrun.FieldStartedAt)
+	}
+	if m.finished_at != nil {
+		fields = append(fields, inspectionrun.FieldFinishedAt)
+	}
+	if m.window_start != nil {
+		fields = append(fields, inspectionrun.FieldWindowStart)
+	}
+	if m.window_end != nil {
+		fields = append(fields, inspectionrun.FieldWindowEnd)
+	}
+	if m.item_total != nil {
+		fields = append(fields, inspectionrun.FieldItemTotal)
+	}
+	if m.item_ok != nil {
+		fields = append(fields, inspectionrun.FieldItemOk)
+	}
+	if m.item_warn != nil {
+		fields = append(fields, inspectionrun.FieldItemWarn)
+	}
+	if m.item_failed != nil {
+		fields = append(fields, inspectionrun.FieldItemFailed)
+	}
+	if m.summary != nil {
+		fields = append(fields, inspectionrun.FieldSummary)
+	}
+	if m.error != nil {
+		fields = append(fields, inspectionrun.FieldError)
+	}
+	if m.operator_uid != nil {
+		fields = append(fields, inspectionrun.FieldOperatorUID)
+	}
+	if m.operator_name != nil {
+		fields = append(fields, inspectionrun.FieldOperatorName)
+	}
+	if m.lease_owner != nil {
+		fields = append(fields, inspectionrun.FieldLeaseOwner)
+	}
+	if m.lease_until != nil {
+		fields = append(fields, inspectionrun.FieldLeaseUntil)
+	}
+	if m.notified_at != nil {
+		fields = append(fields, inspectionrun.FieldNotifiedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *InspectionRunMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionrun.FieldCreatedAt:
+		return m.CreatedAt()
+	case inspectionrun.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case inspectionrun.FieldUID:
+		return m.UID()
+	case inspectionrun.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case inspectionrun.FieldPlanUID:
+		return m.PlanUID()
+	case inspectionrun.FieldPlanName:
+		return m.PlanName()
+	case inspectionrun.FieldTrigger:
+		return m.Trigger()
+	case inspectionrun.FieldStatus:
+		return m.Status()
+	case inspectionrun.FieldScheduledAt:
+		return m.ScheduledAt()
+	case inspectionrun.FieldStartedAt:
+		return m.StartedAt()
+	case inspectionrun.FieldFinishedAt:
+		return m.FinishedAt()
+	case inspectionrun.FieldWindowStart:
+		return m.WindowStart()
+	case inspectionrun.FieldWindowEnd:
+		return m.WindowEnd()
+	case inspectionrun.FieldItemTotal:
+		return m.ItemTotal()
+	case inspectionrun.FieldItemOk:
+		return m.ItemOk()
+	case inspectionrun.FieldItemWarn:
+		return m.ItemWarn()
+	case inspectionrun.FieldItemFailed:
+		return m.ItemFailed()
+	case inspectionrun.FieldSummary:
+		return m.Summary()
+	case inspectionrun.FieldError:
+		return m.Error()
+	case inspectionrun.FieldOperatorUID:
+		return m.OperatorUID()
+	case inspectionrun.FieldOperatorName:
+		return m.OperatorName()
+	case inspectionrun.FieldLeaseOwner:
+		return m.LeaseOwner()
+	case inspectionrun.FieldLeaseUntil:
+		return m.LeaseUntil()
+	case inspectionrun.FieldNotifiedAt:
+		return m.NotifiedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *InspectionRunMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case inspectionrun.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case inspectionrun.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case inspectionrun.FieldUID:
+		return m.OldUID(ctx)
+	case inspectionrun.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case inspectionrun.FieldPlanUID:
+		return m.OldPlanUID(ctx)
+	case inspectionrun.FieldPlanName:
+		return m.OldPlanName(ctx)
+	case inspectionrun.FieldTrigger:
+		return m.OldTrigger(ctx)
+	case inspectionrun.FieldStatus:
+		return m.OldStatus(ctx)
+	case inspectionrun.FieldScheduledAt:
+		return m.OldScheduledAt(ctx)
+	case inspectionrun.FieldStartedAt:
+		return m.OldStartedAt(ctx)
+	case inspectionrun.FieldFinishedAt:
+		return m.OldFinishedAt(ctx)
+	case inspectionrun.FieldWindowStart:
+		return m.OldWindowStart(ctx)
+	case inspectionrun.FieldWindowEnd:
+		return m.OldWindowEnd(ctx)
+	case inspectionrun.FieldItemTotal:
+		return m.OldItemTotal(ctx)
+	case inspectionrun.FieldItemOk:
+		return m.OldItemOk(ctx)
+	case inspectionrun.FieldItemWarn:
+		return m.OldItemWarn(ctx)
+	case inspectionrun.FieldItemFailed:
+		return m.OldItemFailed(ctx)
+	case inspectionrun.FieldSummary:
+		return m.OldSummary(ctx)
+	case inspectionrun.FieldError:
+		return m.OldError(ctx)
+	case inspectionrun.FieldOperatorUID:
+		return m.OldOperatorUID(ctx)
+	case inspectionrun.FieldOperatorName:
+		return m.OldOperatorName(ctx)
+	case inspectionrun.FieldLeaseOwner:
+		return m.OldLeaseOwner(ctx)
+	case inspectionrun.FieldLeaseUntil:
+		return m.OldLeaseUntil(ctx)
+	case inspectionrun.FieldNotifiedAt:
+		return m.OldNotifiedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown InspectionRun field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionRunMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case inspectionrun.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case inspectionrun.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case inspectionrun.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case inspectionrun.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case inspectionrun.FieldPlanUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlanUID(v)
+		return nil
+	case inspectionrun.FieldPlanName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlanName(v)
+		return nil
+	case inspectionrun.FieldTrigger:
+		v, ok := value.(inspectionrun.Trigger)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTrigger(v)
+		return nil
+	case inspectionrun.FieldStatus:
+		v, ok := value.(inspectionrun.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case inspectionrun.FieldScheduledAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScheduledAt(v)
+		return nil
+	case inspectionrun.FieldStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartedAt(v)
+		return nil
+	case inspectionrun.FieldFinishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinishedAt(v)
+		return nil
+	case inspectionrun.FieldWindowStart:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWindowStart(v)
+		return nil
+	case inspectionrun.FieldWindowEnd:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWindowEnd(v)
+		return nil
+	case inspectionrun.FieldItemTotal:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemTotal(v)
+		return nil
+	case inspectionrun.FieldItemOk:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemOk(v)
+		return nil
+	case inspectionrun.FieldItemWarn:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemWarn(v)
+		return nil
+	case inspectionrun.FieldItemFailed:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemFailed(v)
+		return nil
+	case inspectionrun.FieldSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSummary(v)
+		return nil
+	case inspectionrun.FieldError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetError(v)
+		return nil
+	case inspectionrun.FieldOperatorUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperatorUID(v)
+		return nil
+	case inspectionrun.FieldOperatorName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperatorName(v)
+		return nil
+	case inspectionrun.FieldLeaseOwner:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLeaseOwner(v)
+		return nil
+	case inspectionrun.FieldLeaseUntil:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLeaseUntil(v)
+		return nil
+	case inspectionrun.FieldNotifiedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotifiedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionRun field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *InspectionRunMutation) AddedFields() []string {
+	var fields []string
+	if m.additem_total != nil {
+		fields = append(fields, inspectionrun.FieldItemTotal)
+	}
+	if m.additem_ok != nil {
+		fields = append(fields, inspectionrun.FieldItemOk)
+	}
+	if m.additem_warn != nil {
+		fields = append(fields, inspectionrun.FieldItemWarn)
+	}
+	if m.additem_failed != nil {
+		fields = append(fields, inspectionrun.FieldItemFailed)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *InspectionRunMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionrun.FieldItemTotal:
+		return m.AddedItemTotal()
+	case inspectionrun.FieldItemOk:
+		return m.AddedItemOk()
+	case inspectionrun.FieldItemWarn:
+		return m.AddedItemWarn()
+	case inspectionrun.FieldItemFailed:
+		return m.AddedItemFailed()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionRunMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case inspectionrun.FieldItemTotal:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddItemTotal(v)
+		return nil
+	case inspectionrun.FieldItemOk:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddItemOk(v)
+		return nil
+	case inspectionrun.FieldItemWarn:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddItemWarn(v)
+		return nil
+	case inspectionrun.FieldItemFailed:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddItemFailed(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionRun numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *InspectionRunMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(inspectionrun.FieldStartedAt) {
+		fields = append(fields, inspectionrun.FieldStartedAt)
+	}
+	if m.FieldCleared(inspectionrun.FieldFinishedAt) {
+		fields = append(fields, inspectionrun.FieldFinishedAt)
+	}
+	if m.FieldCleared(inspectionrun.FieldWindowStart) {
+		fields = append(fields, inspectionrun.FieldWindowStart)
+	}
+	if m.FieldCleared(inspectionrun.FieldWindowEnd) {
+		fields = append(fields, inspectionrun.FieldWindowEnd)
+	}
+	if m.FieldCleared(inspectionrun.FieldLeaseUntil) {
+		fields = append(fields, inspectionrun.FieldLeaseUntil)
+	}
+	if m.FieldCleared(inspectionrun.FieldNotifiedAt) {
+		fields = append(fields, inspectionrun.FieldNotifiedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *InspectionRunMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *InspectionRunMutation) ClearField(name string) error {
+	switch name {
+	case inspectionrun.FieldStartedAt:
+		m.ClearStartedAt()
+		return nil
+	case inspectionrun.FieldFinishedAt:
+		m.ClearFinishedAt()
+		return nil
+	case inspectionrun.FieldWindowStart:
+		m.ClearWindowStart()
+		return nil
+	case inspectionrun.FieldWindowEnd:
+		m.ClearWindowEnd()
+		return nil
+	case inspectionrun.FieldLeaseUntil:
+		m.ClearLeaseUntil()
+		return nil
+	case inspectionrun.FieldNotifiedAt:
+		m.ClearNotifiedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionRun nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *InspectionRunMutation) ResetField(name string) error {
+	switch name {
+	case inspectionrun.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case inspectionrun.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case inspectionrun.FieldUID:
+		m.ResetUID()
+		return nil
+	case inspectionrun.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case inspectionrun.FieldPlanUID:
+		m.ResetPlanUID()
+		return nil
+	case inspectionrun.FieldPlanName:
+		m.ResetPlanName()
+		return nil
+	case inspectionrun.FieldTrigger:
+		m.ResetTrigger()
+		return nil
+	case inspectionrun.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case inspectionrun.FieldScheduledAt:
+		m.ResetScheduledAt()
+		return nil
+	case inspectionrun.FieldStartedAt:
+		m.ResetStartedAt()
+		return nil
+	case inspectionrun.FieldFinishedAt:
+		m.ResetFinishedAt()
+		return nil
+	case inspectionrun.FieldWindowStart:
+		m.ResetWindowStart()
+		return nil
+	case inspectionrun.FieldWindowEnd:
+		m.ResetWindowEnd()
+		return nil
+	case inspectionrun.FieldItemTotal:
+		m.ResetItemTotal()
+		return nil
+	case inspectionrun.FieldItemOk:
+		m.ResetItemOk()
+		return nil
+	case inspectionrun.FieldItemWarn:
+		m.ResetItemWarn()
+		return nil
+	case inspectionrun.FieldItemFailed:
+		m.ResetItemFailed()
+		return nil
+	case inspectionrun.FieldSummary:
+		m.ResetSummary()
+		return nil
+	case inspectionrun.FieldError:
+		m.ResetError()
+		return nil
+	case inspectionrun.FieldOperatorUID:
+		m.ResetOperatorUID()
+		return nil
+	case inspectionrun.FieldOperatorName:
+		m.ResetOperatorName()
+		return nil
+	case inspectionrun.FieldLeaseOwner:
+		m.ResetLeaseOwner()
+		return nil
+	case inspectionrun.FieldLeaseUntil:
+		m.ResetLeaseUntil()
+		return nil
+	case inspectionrun.FieldNotifiedAt:
+		m.ResetNotifiedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionRun field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *InspectionRunMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *InspectionRunMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *InspectionRunMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *InspectionRunMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *InspectionRunMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *InspectionRunMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *InspectionRunMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown InspectionRun unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *InspectionRunMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown InspectionRun edge %s", name)
+}
+
+// InspectionTemplateMutation represents an operation that mutates the InspectionTemplate nodes in the graph.
+type InspectionTemplateMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	deleted_at    *time.Time
+	uid           *string
+	namespace_uid *string
+	name          *string
+	description   *string
+	html_body     *string
+	markdown_body *string
+	is_builtin    *bool
+	status        *inspectiontemplate.Status
+	created_by    *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*InspectionTemplate, error)
+	predicates    []predicate.InspectionTemplate
+}
+
+var _ ent.Mutation = (*InspectionTemplateMutation)(nil)
+
+// inspectiontemplateOption allows management of the mutation configuration using functional options.
+type inspectiontemplateOption func(*InspectionTemplateMutation)
+
+// newInspectionTemplateMutation creates new mutation for the InspectionTemplate entity.
+func newInspectionTemplateMutation(c config, op Op, opts ...inspectiontemplateOption) *InspectionTemplateMutation {
+	m := &InspectionTemplateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeInspectionTemplate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withInspectionTemplateID sets the ID field of the mutation.
+func withInspectionTemplateID(id int) inspectiontemplateOption {
+	return func(m *InspectionTemplateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *InspectionTemplate
+		)
+		m.oldValue = func(ctx context.Context) (*InspectionTemplate, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().InspectionTemplate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withInspectionTemplate sets the old InspectionTemplate of the mutation.
+func withInspectionTemplate(node *InspectionTemplate) inspectiontemplateOption {
+	return func(m *InspectionTemplateMutation) {
+		m.oldValue = func(context.Context) (*InspectionTemplate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m InspectionTemplateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m InspectionTemplateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *InspectionTemplateMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *InspectionTemplateMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().InspectionTemplate.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *InspectionTemplateMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *InspectionTemplateMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *InspectionTemplateMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *InspectionTemplateMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *InspectionTemplateMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *InspectionTemplateMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *InspectionTemplateMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *InspectionTemplateMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *InspectionTemplateMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[inspectiontemplate.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *InspectionTemplateMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[inspectiontemplate.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *InspectionTemplateMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, inspectiontemplate.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *InspectionTemplateMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *InspectionTemplateMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *InspectionTemplateMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *InspectionTemplateMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *InspectionTemplateMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *InspectionTemplateMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetName sets the "name" field.
+func (m *InspectionTemplateMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *InspectionTemplateMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *InspectionTemplateMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *InspectionTemplateMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *InspectionTemplateMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *InspectionTemplateMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetHTMLBody sets the "html_body" field.
+func (m *InspectionTemplateMutation) SetHTMLBody(s string) {
+	m.html_body = &s
+}
+
+// HTMLBody returns the value of the "html_body" field in the mutation.
+func (m *InspectionTemplateMutation) HTMLBody() (r string, exists bool) {
+	v := m.html_body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHTMLBody returns the old "html_body" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldHTMLBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHTMLBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHTMLBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHTMLBody: %w", err)
+	}
+	return oldValue.HTMLBody, nil
+}
+
+// ResetHTMLBody resets all changes to the "html_body" field.
+func (m *InspectionTemplateMutation) ResetHTMLBody() {
+	m.html_body = nil
+}
+
+// SetMarkdownBody sets the "markdown_body" field.
+func (m *InspectionTemplateMutation) SetMarkdownBody(s string) {
+	m.markdown_body = &s
+}
+
+// MarkdownBody returns the value of the "markdown_body" field in the mutation.
+func (m *InspectionTemplateMutation) MarkdownBody() (r string, exists bool) {
+	v := m.markdown_body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMarkdownBody returns the old "markdown_body" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldMarkdownBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMarkdownBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMarkdownBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMarkdownBody: %w", err)
+	}
+	return oldValue.MarkdownBody, nil
+}
+
+// ResetMarkdownBody resets all changes to the "markdown_body" field.
+func (m *InspectionTemplateMutation) ResetMarkdownBody() {
+	m.markdown_body = nil
+}
+
+// SetIsBuiltin sets the "is_builtin" field.
+func (m *InspectionTemplateMutation) SetIsBuiltin(b bool) {
+	m.is_builtin = &b
+}
+
+// IsBuiltin returns the value of the "is_builtin" field in the mutation.
+func (m *InspectionTemplateMutation) IsBuiltin() (r bool, exists bool) {
+	v := m.is_builtin
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsBuiltin returns the old "is_builtin" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldIsBuiltin(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsBuiltin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsBuiltin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsBuiltin: %w", err)
+	}
+	return oldValue.IsBuiltin, nil
+}
+
+// ResetIsBuiltin resets all changes to the "is_builtin" field.
+func (m *InspectionTemplateMutation) ResetIsBuiltin() {
+	m.is_builtin = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *InspectionTemplateMutation) SetStatus(i inspectiontemplate.Status) {
+	m.status = &i
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *InspectionTemplateMutation) Status() (r inspectiontemplate.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldStatus(ctx context.Context) (v inspectiontemplate.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *InspectionTemplateMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *InspectionTemplateMutation) SetCreatedBy(s string) {
+	m.created_by = &s
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *InspectionTemplateMutation) CreatedBy() (r string, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldCreatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *InspectionTemplateMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
+// Where appends a list predicates to the InspectionTemplateMutation builder.
+func (m *InspectionTemplateMutation) Where(ps ...predicate.InspectionTemplate) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the InspectionTemplateMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *InspectionTemplateMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.InspectionTemplate, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *InspectionTemplateMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *InspectionTemplateMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (InspectionTemplate).
+func (m *InspectionTemplateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *InspectionTemplateMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, inspectiontemplate.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, inspectiontemplate.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, inspectiontemplate.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, inspectiontemplate.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, inspectiontemplate.FieldNamespaceUID)
+	}
+	if m.name != nil {
+		fields = append(fields, inspectiontemplate.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, inspectiontemplate.FieldDescription)
+	}
+	if m.html_body != nil {
+		fields = append(fields, inspectiontemplate.FieldHTMLBody)
+	}
+	if m.markdown_body != nil {
+		fields = append(fields, inspectiontemplate.FieldMarkdownBody)
+	}
+	if m.is_builtin != nil {
+		fields = append(fields, inspectiontemplate.FieldIsBuiltin)
+	}
+	if m.status != nil {
+		fields = append(fields, inspectiontemplate.FieldStatus)
+	}
+	if m.created_by != nil {
+		fields = append(fields, inspectiontemplate.FieldCreatedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *InspectionTemplateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case inspectiontemplate.FieldCreatedAt:
+		return m.CreatedAt()
+	case inspectiontemplate.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case inspectiontemplate.FieldDeletedAt:
+		return m.DeletedAt()
+	case inspectiontemplate.FieldUID:
+		return m.UID()
+	case inspectiontemplate.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case inspectiontemplate.FieldName:
+		return m.Name()
+	case inspectiontemplate.FieldDescription:
+		return m.Description()
+	case inspectiontemplate.FieldHTMLBody:
+		return m.HTMLBody()
+	case inspectiontemplate.FieldMarkdownBody:
+		return m.MarkdownBody()
+	case inspectiontemplate.FieldIsBuiltin:
+		return m.IsBuiltin()
+	case inspectiontemplate.FieldStatus:
+		return m.Status()
+	case inspectiontemplate.FieldCreatedBy:
+		return m.CreatedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *InspectionTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case inspectiontemplate.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case inspectiontemplate.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case inspectiontemplate.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case inspectiontemplate.FieldUID:
+		return m.OldUID(ctx)
+	case inspectiontemplate.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case inspectiontemplate.FieldName:
+		return m.OldName(ctx)
+	case inspectiontemplate.FieldDescription:
+		return m.OldDescription(ctx)
+	case inspectiontemplate.FieldHTMLBody:
+		return m.OldHTMLBody(ctx)
+	case inspectiontemplate.FieldMarkdownBody:
+		return m.OldMarkdownBody(ctx)
+	case inspectiontemplate.FieldIsBuiltin:
+		return m.OldIsBuiltin(ctx)
+	case inspectiontemplate.FieldStatus:
+		return m.OldStatus(ctx)
+	case inspectiontemplate.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown InspectionTemplate field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionTemplateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case inspectiontemplate.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case inspectiontemplate.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case inspectiontemplate.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case inspectiontemplate.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case inspectiontemplate.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case inspectiontemplate.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case inspectiontemplate.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case inspectiontemplate.FieldHTMLBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHTMLBody(v)
+		return nil
+	case inspectiontemplate.FieldMarkdownBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMarkdownBody(v)
+		return nil
+	case inspectiontemplate.FieldIsBuiltin:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsBuiltin(v)
+		return nil
+	case inspectiontemplate.FieldStatus:
+		v, ok := value.(inspectiontemplate.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case inspectiontemplate.FieldCreatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionTemplate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *InspectionTemplateMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *InspectionTemplateMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionTemplateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown InspectionTemplate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *InspectionTemplateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(inspectiontemplate.FieldDeletedAt) {
+		fields = append(fields, inspectiontemplate.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *InspectionTemplateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *InspectionTemplateMutation) ClearField(name string) error {
+	switch name {
+	case inspectiontemplate.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionTemplate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *InspectionTemplateMutation) ResetField(name string) error {
+	switch name {
+	case inspectiontemplate.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case inspectiontemplate.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case inspectiontemplate.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case inspectiontemplate.FieldUID:
+		m.ResetUID()
+		return nil
+	case inspectiontemplate.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case inspectiontemplate.FieldName:
+		m.ResetName()
+		return nil
+	case inspectiontemplate.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case inspectiontemplate.FieldHTMLBody:
+		m.ResetHTMLBody()
+		return nil
+	case inspectiontemplate.FieldMarkdownBody:
+		m.ResetMarkdownBody()
+		return nil
+	case inspectiontemplate.FieldIsBuiltin:
+		m.ResetIsBuiltin()
+		return nil
+	case inspectiontemplate.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case inspectiontemplate.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionTemplate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *InspectionTemplateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *InspectionTemplateMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *InspectionTemplateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *InspectionTemplateMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *InspectionTemplateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *InspectionTemplateMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *InspectionTemplateMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown InspectionTemplate unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *InspectionTemplateMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown InspectionTemplate edge %s", name)
 }
 
 // MemberMutation represents an operation that mutates the Member nodes in the graph.

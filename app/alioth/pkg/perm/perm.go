@@ -36,6 +36,16 @@ const (
 	StatusPageDelete = "status_page:delete"
 	ProbeSlaRead     = "probe_sla:read"
 
+	// 巡检是独立模块：计划、报告模板、执行记录与公开分享分别授权。
+	InspectionRead           = "inspection:read"
+	InspectionWrite          = "inspection:write"
+	InspectionDelete         = "inspection:delete"
+	InspectionRun            = "inspection:run"
+	InspectionShare          = "inspection:share"
+	InspectionTemplateRead   = "inspection_template:read"
+	InspectionTemplateWrite  = "inspection_template:write"
+	InspectionTemplateDelete = "inspection_template:delete"
+
 	AlertRuleRead   = "alert_rule:read"
 	AlertRuleWrite  = "alert_rule:write"
 	AlertRuleDelete = "alert_rule:delete"

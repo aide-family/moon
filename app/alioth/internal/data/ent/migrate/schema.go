@@ -1047,6 +1047,264 @@ var (
 			},
 		},
 	}
+	// InspectionItemsColumns holds the columns for the "inspection_items" table.
+	InspectionItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "plan_uid", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"METRICS_QUERY", "LOGS_QUERY", "PROBE_TARGET", "ALERT_EVENTS", "NOTE"}},
+		{Name: "title", Type: field.TypeString},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
+		{Name: "datasource_uid", Type: field.TypeString, Default: ""},
+		{Name: "query", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "window_seconds", Type: field.TypeInt, Default: 3600},
+		{Name: "step_seconds", Type: field.TypeInt, Default: 60},
+		{Name: "display", Type: field.TypeEnum, Enums: []string{"METRIC", "TABLE", "TREND", "LOGS", "TEXT"}, Default: "TABLE"},
+		{Name: "params", Type: field.TypeString, Default: "{}"},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+	}
+	// InspectionItemsTable holds the schema information for the "inspection_items" table.
+	InspectionItemsTable = &schema.Table{
+		Name:       "inspection_items",
+		Columns:    InspectionItemsColumns,
+		PrimaryKey: []*schema.Column{InspectionItemsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "inspectionitem_uid",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionItemsColumns[4]},
+			},
+			{
+				Name:    "inspectionitem_plan_uid_sort",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionItemsColumns[6], InspectionItemsColumns[9]},
+			},
+			{
+				Name:    "inspectionitem_namespace_uid_plan_uid",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionItemsColumns[5], InspectionItemsColumns[6]},
+			},
+		},
+	}
+	// InspectionPlansColumns holds the columns for the "inspection_plans" table.
+	InspectionPlansColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "PAUSED"}, Default: "ACTIVE"},
+		{Name: "cron", Type: field.TypeString, Default: ""},
+		{Name: "timezone", Type: field.TypeString, Default: "Asia/Shanghai"},
+		{Name: "timeout_seconds", Type: field.TypeInt, Default: 300},
+		{Name: "template_uid", Type: field.TypeString, Default: ""},
+		{Name: "output_formats", Type: field.TypeJSON},
+		{Name: "title_template", Type: field.TypeString, Default: ""},
+		{Name: "notification_group_uids", Type: field.TypeJSON},
+		{Name: "notify_policy", Type: field.TypeEnum, Enums: []string{"ALWAYS", "ON_ABNORMAL"}, Default: "ON_ABNORMAL"},
+		{Name: "labels", Type: field.TypeString, Default: "{}"},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "next_run_at", Type: field.TypeTime, Nullable: true},
+		{Name: "last_run_at", Type: field.TypeTime, Nullable: true},
+	}
+	// InspectionPlansTable holds the schema information for the "inspection_plans" table.
+	InspectionPlansTable = &schema.Table{
+		Name:       "inspection_plans",
+		Columns:    InspectionPlansColumns,
+		PrimaryKey: []*schema.Column{InspectionPlansColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "inspectionplan_uid",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionPlansColumns[4]},
+			},
+			{
+				Name:    "inspectionplan_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionPlansColumns[5], InspectionPlansColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "inspectionplan_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionPlansColumns[5], InspectionPlansColumns[8]},
+			},
+			{
+				Name:    "inspectionplan_status_next_run_at",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionPlansColumns[8], InspectionPlansColumns[20]},
+			},
+		},
+	}
+	// InspectionReportsColumns holds the columns for the "inspection_reports" table.
+	InspectionReportsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "run_uid", Type: field.TypeString},
+		{Name: "format", Type: field.TypeEnum, Enums: []string{"HTML", "MARKDOWN"}},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "content", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "size", Type: field.TypeInt, Default: 0},
+		{Name: "checksum", Type: field.TypeString, Default: ""},
+		{Name: "share_token_hash", Type: field.TypeString, Default: ""},
+		{Name: "share_enabled", Type: field.TypeBool, Default: false},
+		{Name: "share_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "share_password_hash", Type: field.TypeString, Default: ""},
+		{Name: "share_created_by", Type: field.TypeString, Default: ""},
+		{Name: "share_created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "share_view_count", Type: field.TypeInt, Default: 0},
+		{Name: "share_last_viewed_at", Type: field.TypeTime, Nullable: true},
+	}
+	// InspectionReportsTable holds the schema information for the "inspection_reports" table.
+	InspectionReportsTable = &schema.Table{
+		Name:       "inspection_reports",
+		Columns:    InspectionReportsColumns,
+		PrimaryKey: []*schema.Column{InspectionReportsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "inspectionreport_uid",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionReportsColumns[3]},
+			},
+			{
+				Name:    "inspectionreport_run_uid_format",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionReportsColumns[5], InspectionReportsColumns[6]},
+			},
+			{
+				Name:    "inspectionreport_namespace_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionReportsColumns[4], InspectionReportsColumns[1]},
+			},
+			{
+				Name:    "inspectionreport_share_token_hash",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionReportsColumns[11]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "share_token_hash <> ''",
+				},
+			},
+		},
+	}
+	// InspectionRunsColumns holds the columns for the "inspection_runs" table.
+	InspectionRunsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "plan_uid", Type: field.TypeString},
+		{Name: "plan_name", Type: field.TypeString, Default: ""},
+		{Name: "trigger", Type: field.TypeEnum, Enums: []string{"SCHEDULED", "MANUAL"}, Default: "SCHEDULED"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELED"}, Default: "PENDING"},
+		{Name: "scheduled_at", Type: field.TypeTime},
+		{Name: "started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
+		{Name: "window_start", Type: field.TypeTime, Nullable: true},
+		{Name: "window_end", Type: field.TypeTime, Nullable: true},
+		{Name: "item_total", Type: field.TypeInt, Default: 0},
+		{Name: "item_ok", Type: field.TypeInt, Default: 0},
+		{Name: "item_warn", Type: field.TypeInt, Default: 0},
+		{Name: "item_failed", Type: field.TypeInt, Default: 0},
+		{Name: "summary", Type: field.TypeString, Default: "{}"},
+		{Name: "error", Type: field.TypeString, Default: ""},
+		{Name: "operator_uid", Type: field.TypeString, Default: ""},
+		{Name: "operator_name", Type: field.TypeString, Default: ""},
+		{Name: "lease_owner", Type: field.TypeString, Default: ""},
+		{Name: "lease_until", Type: field.TypeTime, Nullable: true},
+		{Name: "notified_at", Type: field.TypeTime, Nullable: true},
+	}
+	// InspectionRunsTable holds the schema information for the "inspection_runs" table.
+	InspectionRunsTable = &schema.Table{
+		Name:       "inspection_runs",
+		Columns:    InspectionRunsColumns,
+		PrimaryKey: []*schema.Column{InspectionRunsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "inspectionrun_uid",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionRunsColumns[3]},
+			},
+			{
+				Name:    "inspectionrun_namespace_uid_plan_uid_scheduled_at",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionRunsColumns[4], InspectionRunsColumns[5], InspectionRunsColumns[9]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status <> 'CANCELED'",
+				},
+			},
+			{
+				Name:    "inspectionrun_namespace_uid_status_scheduled_at",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionRunsColumns[4], InspectionRunsColumns[8], InspectionRunsColumns[9]},
+			},
+			{
+				Name:    "inspectionrun_status_lease_until",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionRunsColumns[8], InspectionRunsColumns[23]},
+			},
+			{
+				Name:    "inspectionrun_plan_uid_scheduled_at",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionRunsColumns[5], InspectionRunsColumns[9]},
+			},
+		},
+	}
+	// InspectionTemplatesColumns holds the columns for the "inspection_templates" table.
+	InspectionTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString, Default: ""},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "html_body", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "markdown_body", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "is_builtin", Type: field.TypeBool, Default: false},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+	}
+	// InspectionTemplatesTable holds the schema information for the "inspection_templates" table.
+	InspectionTemplatesTable = &schema.Table{
+		Name:       "inspection_templates",
+		Columns:    InspectionTemplatesColumns,
+		PrimaryKey: []*schema.Column{InspectionTemplatesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "inspectiontemplate_uid",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionTemplatesColumns[4]},
+			},
+			{
+				Name:    "inspectiontemplate_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionTemplatesColumns[5], InspectionTemplatesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "inspectiontemplate_is_builtin",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionTemplatesColumns[10]},
+			},
+		},
+	}
 	// MembersColumns holds the columns for the "members" table.
 	MembersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -2637,6 +2895,11 @@ var (
 		EmailLoginCodesTable,
 		FeaturePackagesTable,
 		FeaturePackageItemsTable,
+		InspectionItemsTable,
+		InspectionPlansTable,
+		InspectionReportsTable,
+		InspectionRunsTable,
+		InspectionTemplatesTable,
 		MembersTable,
 		MemberInvitesTable,
 		MemberRolesTable,

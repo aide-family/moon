@@ -39,6 +39,11 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionrun"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/memberrole"
@@ -164,6 +169,11 @@ func checkColumn(t, c string) error {
 			emaillogincode.Table:                emaillogincode.ValidColumn,
 			featurepackage.Table:                featurepackage.ValidColumn,
 			featurepackageitem.Table:            featurepackageitem.ValidColumn,
+			inspectionitem.Table:                inspectionitem.ValidColumn,
+			inspectionplan.Table:                inspectionplan.ValidColumn,
+			inspectionreport.Table:              inspectionreport.ValidColumn,
+			inspectionrun.Table:                 inspectionrun.ValidColumn,
+			inspectiontemplate.Table:            inspectiontemplate.ValidColumn,
 			member.Table:                        member.ValidColumn,
 			memberinvite.Table:                  memberinvite.ValidColumn,
 			memberrole.Table:                    memberrole.ValidColumn,

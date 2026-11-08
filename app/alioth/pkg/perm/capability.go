@@ -21,13 +21,16 @@ const (
 	// 探测目标按驱动细分：HTTP / TCP / ICMP / DNS / TLS 各自对应一个能力，
 	// 套餐可以只买其中几种，未实现的类型不会出现在目录里。
 	// ProbeSla 是探测 SLA 报表的只读菜单。
-	CapabilityProbeSla   = "probe_sla"
-	CapabilityStatusPage = "status_page"
-	CapabilityProbeHTTP  = "probe_http"
-	CapabilityProbeTCP   = "probe_tcp"
-	CapabilityProbeICMP  = "probe_icmp"
-	CapabilityProbeDNS   = "probe_dns"
-	CapabilityProbeTLS   = "probe_tls"
+	CapabilityInspectionPlan     = "inspection_plan"
+	CapabilityInspectionTemplate = "inspection_template"
+	CapabilityInspectionRun      = "inspection_run"
+	CapabilityProbeSla           = "probe_sla"
+	CapabilityStatusPage         = "status_page"
+	CapabilityProbeHTTP          = "probe_http"
+	CapabilityProbeTCP           = "probe_tcp"
+	CapabilityProbeICMP          = "probe_icmp"
+	CapabilityProbeDNS           = "probe_dns"
+	CapabilityProbeTLS           = "probe_tls"
 	// 数据源按驱动细分：一个套餐可以只买 Prometheus，不买 Loki 或 ES。
 	// 六个编码与 datasource.driver 枚举一一对应，权限相同，由能力决定可用类型。
 	CapabilityDatasourcePrometheus      = "datasource_prometheus"
@@ -134,6 +137,21 @@ var capabilitySpecs = []Capability{
 		Code: CapabilityAlertDictionary, Module: FeatureAlertRule, Name: "告警字典",
 		Description: "维护告警级别与数据源级别字典。",
 		Permissions: []string{AlertDictionaryRead, AlertDictionaryWrite, AlertDictionaryDelete},
+	},
+	{
+		Code: CapabilityInspectionPlan, Module: FeatureInspection, Name: "巡检任务",
+		Description: "配置巡检计划、检查项、调度与通知组。",
+		Permissions: []string{InspectionRead, InspectionWrite, InspectionDelete, InspectionRun},
+	},
+	{
+		Code: CapabilityInspectionTemplate, Module: FeatureInspection, Name: "报告模板",
+		Description: "管理巡检报告的 HTML / Markdown 模板。",
+		Permissions: []string{InspectionTemplateRead, InspectionTemplateWrite, InspectionTemplateDelete},
+	},
+	{
+		Code: CapabilityInspectionRun, Module: FeatureInspection, Name: "执行记录与报告",
+		Description: "查看执行记录、报告快照并生成公开分享链接。",
+		Permissions: []string{InspectionRead, InspectionShare},
 	},
 	{
 		Code: CapabilityProbeSla, Module: FeatureProbe, Name: "探测 SLA",
