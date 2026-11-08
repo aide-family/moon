@@ -10,6 +10,7 @@ import (
 
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertescalation"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/biz/inspection"
 	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
 	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
 	"github.com/aide-family/moon/app/alioth/internal/biz/probesla"
@@ -25,6 +26,7 @@ type Scheduler struct {
 	roster            *workerbiz.Roster
 	sla               *probesla.Gateway
 	escalation        *alertescalation.Gateway
+	inspections       *inspection.Gateway
 	log               *slog.Logger
 	lastCheck         time.Time
 	lastWorkerCleanup time.Time
@@ -43,11 +45,12 @@ func NewScheduler(
 	roster *workerbiz.Roster,
 	sla *probesla.Gateway,
 	escalation *alertescalation.Gateway,
+	inspections *inspection.Gateway,
 	logger *slog.Logger,
 ) *Scheduler {
 	return &Scheduler{
 		coordinator: coordinator, center: center, maintainer: maintainer,
-		roster: roster, sla: sla, escalation: escalation, log: logger,
+		roster: roster, sla: sla, escalation: escalation, inspections: inspections, log: logger,
 	}
 }
 
@@ -68,6 +71,9 @@ func (s *Scheduler) Start(context.Context) error {
 		<-ctx.Done()
 		<-sched.Stop().Done()
 	}()
+	if s.inspections != nil {
+		go s.runInspections(ctx)
+	}
 	return nil
 }
 
@@ -98,6 +104,11 @@ func (s *Scheduler) tick(ctx context.Context) {
 			s.log.Error(fmt.Sprintf("schedule escalation: %v", err))
 		}
 	}
+	if s.inspections != nil {
+		if err := s.inspections.Schedule(ctx); err != nil {
+			s.log.Error(fmt.Sprintf("schedule inspection: %v", err))
+		}
+	}
 	if err := s.center.ReapStale(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("reap notify: %v", err))
 	}
@@ -107,6 +118,23 @@ func (s *Scheduler) tick(ctx context.Context) {
 	s.pruneProbeResults(ctx)
 	s.rollupProbeSla(ctx)
 	s.cleanupWorkerInstances(ctx)
+}
+
+// runInspections 每秒尝试领取一条巡检执行记录。执行是同步的，同一时刻
+// 只运行一个 run，避免后台查询把控制面打满。
+func (s *Scheduler) runInspections(ctx context.Context) {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := s.inspections.ExecuteNext(ctx); err != nil {
+				s.log.Error(fmt.Sprintf("execute inspection: %v", err))
+			}
+		}
+	}
 }
 
 // pruneProbeResults 每小时清理超过保留期的探测记录，判定窗口只用到最近几天。

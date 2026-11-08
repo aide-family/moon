@@ -39,6 +39,7 @@ func NewGRPCServer(
 	statusPages *service.StatusPageService,
 	inspectionPlans *service.InspectionPlanService,
 	inspectionTemplates *service.InspectionTemplateService,
+	inspectionRuns *service.InspectionRunService,
 	sites *service.SiteService,
 	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
@@ -104,6 +105,7 @@ func NewGRPCServer(
 	v1.RegisterStatusPageServiceServer(srv, statusPages)
 	v1.RegisterInspectionPlanServiceServer(srv, inspectionPlans)
 	v1.RegisterInspectionTemplateServiceServer(srv, inspectionTemplates)
+	v1.RegisterInspectionRunServiceServer(srv, inspectionRuns)
 	v1.RegisterSiteServiceServer(srv, sites)
 	v1.RegisterAlertDictionaryServiceServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceServer(srv, alertPages)

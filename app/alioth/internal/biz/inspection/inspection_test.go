@@ -94,3 +94,37 @@ func TestNormalizeTemplate(t *testing.T) {
 		t.Fatal("template without bodies should be rejected")
 	}
 }
+
+func TestParsePrometheusRange(t *testing.T) {
+	raw := `{"status":"success","data":{"resultType":"matrix","result":[{"metric":{"__name__":"up","job":"api"},"values":[[1700000000,"1"],[1700000060,"0.5"]]}]}}`
+	series, table, metrics := parsePrometheusRange(raw)
+	if len(series) != 1 || series[0].Name != "up{job=api}" || len(series[0].Points) != 2 {
+		t.Fatalf("unexpected series: %+v", series)
+	}
+	if table == nil || len(table.Rows) != 1 || table.Rows[0][1] != "0.5" {
+		t.Fatalf("unexpected table: %+v", table)
+	}
+	if len(metrics) != 1 || metrics[0].Value != "0.5" {
+		t.Fatalf("unexpected metrics: %+v", metrics)
+	}
+}
+
+func TestParseLogSamples(t *testing.T) {
+	raw := `{"data":{"result":[{"stream":{"app":"gateway"},"values":[["1700000000000000000","ERROR upstream timeout"],["1700000001000000000","INFO ok"]]}]}}`
+	samples, total := parseLogSamples(raw)
+	if total != 2 || len(samples) != 2 {
+		t.Fatalf("samples=%d total=%d", len(samples), total)
+	}
+	if samples[0].Level != "ERROR" || samples[1].Level != "INFO" {
+		t.Fatalf("unexpected levels: %+v", samples)
+	}
+}
+
+func TestProbeStats(t *testing.T) {
+	checks, ok, latency := probeStats([]bo.ProbeResult{
+		{OK: true, DurationMS: 100}, {OK: false, DurationMS: 200}, {OK: true, DurationMS: 300},
+	})
+	if checks != 3 || ok != 2 || latency != 200 {
+		t.Fatalf("checks=%d ok=%d latency=%d", checks, ok, latency)
+	}
+}

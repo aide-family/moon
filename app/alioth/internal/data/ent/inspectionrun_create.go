@@ -240,6 +240,20 @@ func (_c *InspectionRunCreate) SetNillableSummary(v *string) *InspectionRunCreat
 	return _c
 }
 
+// SetResult sets the "result" field.
+func (_c *InspectionRunCreate) SetResult(v string) *InspectionRunCreate {
+	_c.mutation.SetResult(v)
+	return _c
+}
+
+// SetNillableResult sets the "result" field if the given value is not nil.
+func (_c *InspectionRunCreate) SetNillableResult(v *string) *InspectionRunCreate {
+	if v != nil {
+		_c.SetResult(*v)
+	}
+	return _c
+}
+
 // SetError sets the "error" field.
 func (_c *InspectionRunCreate) SetError(v string) *InspectionRunCreate {
 	_c.mutation.SetError(v)
@@ -399,6 +413,10 @@ func (_c *InspectionRunCreate) defaults() {
 		v := inspectionrun.DefaultSummary
 		_c.mutation.SetSummary(v)
 	}
+	if _, ok := _c.mutation.Result(); !ok {
+		v := inspectionrun.DefaultResult
+		_c.mutation.SetResult(v)
+	}
 	if _, ok := _c.mutation.Error(); !ok {
 		v := inspectionrun.DefaultError
 		_c.mutation.SetError(v)
@@ -485,6 +503,9 @@ func (_c *InspectionRunCreate) check() error {
 	}
 	if _, ok := _c.mutation.Summary(); !ok {
 		return &ValidationError{Name: "summary", err: errors.New(`ent: missing required field "InspectionRun.summary"`)}
+	}
+	if _, ok := _c.mutation.Result(); !ok {
+		return &ValidationError{Name: "result", err: errors.New(`ent: missing required field "InspectionRun.result"`)}
 	}
 	if _, ok := _c.mutation.Error(); !ok {
 		return &ValidationError{Name: "error", err: errors.New(`ent: missing required field "InspectionRun.error"`)}
@@ -595,6 +616,10 @@ func (_c *InspectionRunCreate) createSpec() (*InspectionRun, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.Summary(); ok {
 		_spec.SetField(inspectionrun.FieldSummary, field.TypeString, value)
 		_node.Summary = value
+	}
+	if value, ok := _c.mutation.Result(); ok {
+		_spec.SetField(inspectionrun.FieldResult, field.TypeString, value)
+		_node.Result = value
 	}
 	if value, ok := _c.mutation.Error(); ok {
 		_spec.SetField(inspectionrun.FieldError, field.TypeString, value)

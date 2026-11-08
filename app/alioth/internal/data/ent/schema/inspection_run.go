@@ -36,6 +36,8 @@ func (InspectionRun) Fields() []ent.Field {
 		field.Int("item_failed").Default(0),
 		// summary 是报告摘要 JSON，列表与投递直接使用。
 		field.String("summary").Default("{}"),
+		// result 是各检查项结果的 JSON 快照，报告渲染只读它。
+		field.Text("result").Default(""),
 		field.String("error").Default(""),
 		field.String("operator_uid").Default(""),
 		field.String("operator_name").Default(""),

@@ -28567,6 +28567,7 @@ type InspectionRunMutation struct {
 	item_failed    *int
 	additem_failed *int
 	summary        *string
+	result         *string
 	error          *string
 	operator_uid   *string
 	operator_name  *string
@@ -29457,6 +29458,42 @@ func (m *InspectionRunMutation) ResetSummary() {
 	m.summary = nil
 }
 
+// SetResult sets the "result" field.
+func (m *InspectionRunMutation) SetResult(s string) {
+	m.result = &s
+}
+
+// Result returns the value of the "result" field in the mutation.
+func (m *InspectionRunMutation) Result() (r string, exists bool) {
+	v := m.result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResult returns the old "result" field's value of the InspectionRun entity.
+// If the InspectionRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionRunMutation) OldResult(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
+	}
+	return oldValue.Result, nil
+}
+
+// ResetResult resets all changes to the "result" field.
+func (m *InspectionRunMutation) ResetResult() {
+	m.result = nil
+}
+
 // SetError sets the "error" field.
 func (m *InspectionRunMutation) SetError(s string) {
 	m.error = &s
@@ -29733,7 +29770,7 @@ func (m *InspectionRunMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InspectionRunMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, inspectionrun.FieldCreatedAt)
 	}
@@ -29787,6 +29824,9 @@ func (m *InspectionRunMutation) Fields() []string {
 	}
 	if m.summary != nil {
 		fields = append(fields, inspectionrun.FieldSummary)
+	}
+	if m.result != nil {
+		fields = append(fields, inspectionrun.FieldResult)
 	}
 	if m.error != nil {
 		fields = append(fields, inspectionrun.FieldError)
@@ -29850,6 +29890,8 @@ func (m *InspectionRunMutation) Field(name string) (ent.Value, bool) {
 		return m.ItemFailed()
 	case inspectionrun.FieldSummary:
 		return m.Summary()
+	case inspectionrun.FieldResult:
+		return m.Result()
 	case inspectionrun.FieldError:
 		return m.Error()
 	case inspectionrun.FieldOperatorUID:
@@ -29907,6 +29949,8 @@ func (m *InspectionRunMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldItemFailed(ctx)
 	case inspectionrun.FieldSummary:
 		return m.OldSummary(ctx)
+	case inspectionrun.FieldResult:
+		return m.OldResult(ctx)
 	case inspectionrun.FieldError:
 		return m.OldError(ctx)
 	case inspectionrun.FieldOperatorUID:
@@ -30053,6 +30097,13 @@ func (m *InspectionRunMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSummary(v)
+		return nil
+	case inspectionrun.FieldResult:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResult(v)
 		return nil
 	case inspectionrun.FieldError:
 		v, ok := value.(string)
@@ -30288,6 +30339,9 @@ func (m *InspectionRunMutation) ResetField(name string) error {
 		return nil
 	case inspectionrun.FieldSummary:
 		m.ResetSummary()
+		return nil
+	case inspectionrun.FieldResult:
+		m.ResetResult()
 		return nil
 	case inspectionrun.FieldError:
 		m.ResetError()

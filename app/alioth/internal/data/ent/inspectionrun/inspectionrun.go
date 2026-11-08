@@ -50,6 +50,8 @@ const (
 	FieldItemFailed = "item_failed"
 	// FieldSummary holds the string denoting the summary field in the database.
 	FieldSummary = "summary"
+	// FieldResult holds the string denoting the result field in the database.
+	FieldResult = "result"
 	// FieldError holds the string denoting the error field in the database.
 	FieldError = "error"
 	// FieldOperatorUID holds the string denoting the operator_uid field in the database.
@@ -87,6 +89,7 @@ var Columns = []string{
 	FieldItemWarn,
 	FieldItemFailed,
 	FieldSummary,
+	FieldResult,
 	FieldError,
 	FieldOperatorUID,
 	FieldOperatorName,
@@ -130,6 +133,8 @@ var (
 	DefaultItemFailed int
 	// DefaultSummary holds the default value on creation for the "summary" field.
 	DefaultSummary string
+	// DefaultResult holds the default value on creation for the "result" field.
+	DefaultResult string
 	// DefaultError holds the default value on creation for the "error" field.
 	DefaultError string
 	// DefaultOperatorUID holds the default value on creation for the "operator_uid" field.
@@ -292,6 +297,11 @@ func ByItemFailed(opts ...sql.OrderTermOption) OrderOption {
 // BySummary orders the results by the summary field.
 func BySummary(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSummary, opts...).ToFunc()
+}
+
+// ByResult orders the results by the result field.
+func ByResult(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResult, opts...).ToFunc()
 }
 
 // ByError orders the results by the error field.

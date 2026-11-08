@@ -53,6 +53,8 @@ type InspectionRun struct {
 	ItemFailed int `json:"item_failed,omitempty"`
 	// Summary holds the value of the "summary" field.
 	Summary string `json:"summary,omitempty"`
+	// Result holds the value of the "result" field.
+	Result string `json:"result,omitempty"`
 	// Error holds the value of the "error" field.
 	Error string `json:"error,omitempty"`
 	// OperatorUID holds the value of the "operator_uid" field.
@@ -75,7 +77,7 @@ func (*InspectionRun) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case inspectionrun.FieldID, inspectionrun.FieldItemTotal, inspectionrun.FieldItemOk, inspectionrun.FieldItemWarn, inspectionrun.FieldItemFailed:
 			values[i] = new(sql.NullInt64)
-		case inspectionrun.FieldUID, inspectionrun.FieldNamespaceUID, inspectionrun.FieldPlanUID, inspectionrun.FieldPlanName, inspectionrun.FieldTrigger, inspectionrun.FieldStatus, inspectionrun.FieldSummary, inspectionrun.FieldError, inspectionrun.FieldOperatorUID, inspectionrun.FieldOperatorName, inspectionrun.FieldLeaseOwner:
+		case inspectionrun.FieldUID, inspectionrun.FieldNamespaceUID, inspectionrun.FieldPlanUID, inspectionrun.FieldPlanName, inspectionrun.FieldTrigger, inspectionrun.FieldStatus, inspectionrun.FieldSummary, inspectionrun.FieldResult, inspectionrun.FieldError, inspectionrun.FieldOperatorUID, inspectionrun.FieldOperatorName, inspectionrun.FieldLeaseOwner:
 			values[i] = new(sql.NullString)
 		case inspectionrun.FieldCreatedAt, inspectionrun.FieldUpdatedAt, inspectionrun.FieldScheduledAt, inspectionrun.FieldStartedAt, inspectionrun.FieldFinishedAt, inspectionrun.FieldWindowStart, inspectionrun.FieldWindowEnd, inspectionrun.FieldLeaseUntil, inspectionrun.FieldNotifiedAt:
 			values[i] = new(sql.NullTime)
@@ -212,6 +214,12 @@ func (_m *InspectionRun) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Summary = value.String
 			}
+		case inspectionrun.FieldResult:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field result", values[i])
+			} else if value.Valid {
+				_m.Result = value.String
+			}
 		case inspectionrun.FieldError:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field error", values[i])
@@ -347,6 +355,9 @@ func (_m *InspectionRun) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("summary=")
 	builder.WriteString(_m.Summary)
+	builder.WriteString(", ")
+	builder.WriteString("result=")
+	builder.WriteString(_m.Result)
 	builder.WriteString(", ")
 	builder.WriteString("error=")
 	builder.WriteString(_m.Error)

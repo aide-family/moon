@@ -303,6 +303,158 @@ func (c *InspectionPlanServiceHTTPClientImpl) UpdateInspectionPlanStatus(ctx con
 	return &out, nil
 }
 
+const OperationInspectionRunServiceGetInspectionRun = "/alioth.v1.InspectionRunService/GetInspectionRun"
+const OperationInspectionRunServiceListInspectionRuns = "/alioth.v1.InspectionRunService/ListInspectionRuns"
+const OperationInspectionRunServiceRunInspectionPlan = "/alioth.v1.InspectionRunService/RunInspectionPlan"
+
+type InspectionRunServiceHTTPServer interface {
+	// GetInspectionRun 获取执行记录详情。
+	GetInspectionRun(context.Context, *GetInspectionRunRequest) (*GetInspectionRunResponse, error)
+	// ListInspectionRuns 分页列出执行记录。
+	ListInspectionRuns(context.Context, *ListInspectionRunsRequest) (*ListInspectionRunsResponse, error)
+	// RunInspectionPlan 手动触发一次巡检。计划已有执行中的记录时返回冲突。
+	RunInspectionPlan(context.Context, *RunInspectionPlanRequest) (*RunInspectionPlanResponse, error)
+}
+
+func RegisterInspectionRunServiceHTTPServer(s *http.Server, srv InspectionRunServiceHTTPServer) {
+	r := s.Route("/")
+	r.Handle("POST", "/v1/inspection/plans/{uid}/run", _InspectionRunService_RunInspectionPlan0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/inspection/runs", _InspectionRunService_ListInspectionRuns0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/inspection/runs/{uid}", _InspectionRunService_GetInspectionRun0_HTTP_Handler(srv))
+}
+
+func _InspectionRunService_RunInspectionPlan0_HTTP_Handler(srv InspectionRunServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RunInspectionPlanRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInspectionRunServiceRunInspectionPlan)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RunInspectionPlan(ctx, req.(*RunInspectionPlanRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RunInspectionPlanResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InspectionRunService_ListInspectionRuns0_HTTP_Handler(srv InspectionRunServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListInspectionRunsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInspectionRunServiceListInspectionRuns)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListInspectionRuns(ctx, req.(*ListInspectionRunsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListInspectionRunsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InspectionRunService_GetInspectionRun0_HTTP_Handler(srv InspectionRunServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetInspectionRunRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInspectionRunServiceGetInspectionRun)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetInspectionRun(ctx, req.(*GetInspectionRunRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetInspectionRunResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+type InspectionRunServiceHTTPClient interface {
+	// GetInspectionRun 获取执行记录详情。
+	GetInspectionRun(ctx context.Context, req *GetInspectionRunRequest, opts ...http.CallOption) (rsp *GetInspectionRunResponse, err error)
+	// ListInspectionRuns 分页列出执行记录。
+	ListInspectionRuns(ctx context.Context, req *ListInspectionRunsRequest, opts ...http.CallOption) (rsp *ListInspectionRunsResponse, err error)
+	// RunInspectionPlan 手动触发一次巡检。计划已有执行中的记录时返回冲突。
+	RunInspectionPlan(ctx context.Context, req *RunInspectionPlanRequest, opts ...http.CallOption) (rsp *RunInspectionPlanResponse, err error)
+}
+
+type InspectionRunServiceHTTPClientImpl struct {
+	cc *http.Client
+}
+
+func NewInspectionRunServiceHTTPClient(client *http.Client) InspectionRunServiceHTTPClient {
+	return &InspectionRunServiceHTTPClientImpl{client}
+}
+
+// GetInspectionRun 获取执行记录详情。
+func (c *InspectionRunServiceHTTPClientImpl) GetInspectionRun(ctx context.Context, in *GetInspectionRunRequest, opts ...http.CallOption) (*GetInspectionRunResponse, error) {
+	var out GetInspectionRunResponse
+	pattern := "/v1/inspection/runs/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationInspectionRunServiceGetInspectionRun),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListInspectionRuns 分页列出执行记录。
+func (c *InspectionRunServiceHTTPClientImpl) ListInspectionRuns(ctx context.Context, in *ListInspectionRunsRequest, opts ...http.CallOption) (*ListInspectionRunsResponse, error) {
+	var out ListInspectionRunsResponse
+	pattern := "/v1/inspection/runs"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationInspectionRunServiceListInspectionRuns),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RunInspectionPlan 手动触发一次巡检。计划已有执行中的记录时返回冲突。
+func (c *InspectionRunServiceHTTPClientImpl) RunInspectionPlan(ctx context.Context, in *RunInspectionPlanRequest, opts ...http.CallOption) (*RunInspectionPlanResponse, error) {
+	var out RunInspectionPlanResponse
+	pattern := "/v1/inspection/plans/{uid}/run"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationInspectionRunServiceRunInspectionPlan),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 const OperationInspectionTemplateServiceCreateInspectionTemplate = "/alioth.v1.InspectionTemplateService/CreateInspectionTemplate"
 const OperationInspectionTemplateServiceDeleteInspectionTemplate = "/alioth.v1.InspectionTemplateService/DeleteInspectionTemplate"
 const OperationInspectionTemplateServiceGetInspectionTemplate = "/alioth.v1.InspectionTemplateService/GetInspectionTemplate"

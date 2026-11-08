@@ -84,10 +84,13 @@ type InspectionRun struct {
 	ItemWarn     int
 	ItemFailed   int
 	Summary      string
+	Result       string
 	Error        string
 	OperatorUID  string
 	OperatorName string
 	NotifiedAt   *time.Time
+	LeaseOwner   string
+	LeaseUntil   *time.Time
 	CreatedAt    time.Time
 }
 
@@ -117,4 +120,74 @@ type InspectionReport struct {
 	ShareViewCount  int
 	ShareLastViewed *time.Time
 	CreatedAt       time.Time
+}
+
+// InspectionSection 是一个检查项的执行结果，模板只消费这个结构。
+type InspectionSection struct {
+	Title   string                `json:"title"`
+	Kind    string                `json:"kind"`
+	Status  string                `json:"status"`
+	Error   string                `json:"error,omitempty"`
+	Note    string                `json:"note,omitempty"`
+	Metrics []InspectionMetric    `json:"metrics,omitempty"`
+	Table   *InspectionTable      `json:"table,omitempty"`
+	Series  []InspectionSeries    `json:"series,omitempty"`
+	Logs    []InspectionLogSample `json:"logs,omitempty"`
+	Alerts  []InspectionAlertRow  `json:"alerts,omitempty"`
+	Raw     string                `json:"raw,omitempty"`
+}
+
+// InspectionMetric 是报告中的指标卡。
+type InspectionMetric struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+	Unit  string `json:"unit,omitempty"`
+}
+
+// InspectionTable 是报告中的表格。
+type InspectionTable struct {
+	Columns []string   `json:"columns"`
+	Rows    [][]string `json:"rows"`
+}
+
+// InspectionSeries 是一条趋势序列。
+type InspectionSeries struct {
+	Name   string            `json:"name"`
+	Points []InspectionPoint `json:"points"`
+}
+
+// InspectionPoint 是趋势序列上的一个点。
+type InspectionPoint struct {
+	Timestamp int64   `json:"timestamp"`
+	Value     float64 `json:"value"`
+}
+
+// InspectionLogSample 是日志检查项的一条样本。
+type InspectionLogSample struct {
+	Time    string `json:"time"`
+	Level   string `json:"level"`
+	Message string `json:"message"`
+}
+
+// InspectionAlertRow 是告警检查项的一行事件。
+type InspectionAlertRow struct {
+	Title     string `json:"title"`
+	Level     string `json:"level"`
+	Status    string `json:"status"`
+	StartedAt string `json:"startedAt"`
+}
+
+// InspectionResult 是执行记录的 result JSON。
+type InspectionResult struct {
+	Sections []InspectionSection `json:"sections"`
+}
+
+// InspectionSummary 是执行记录的摘要 JSON。
+type InspectionSummary struct {
+	Total    int `json:"total"`
+	OK       int `json:"ok"`
+	Warn     int `json:"warn"`
+	Failed   int `json:"failed"`
+	Abnormal int `json:"abnormal"`
+	Duration int `json:"durationMs"`
 }

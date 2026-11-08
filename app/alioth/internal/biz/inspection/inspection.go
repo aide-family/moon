@@ -13,9 +13,11 @@ import (
 	robfigcron "github.com/robfig/cron/v3"
 
 	"github.com/aide-family/moon/app/alioth/internal/access"
+	"github.com/aide-family/moon/app/alioth/internal/biz/datasource"
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
 	"github.com/aide-family/moon/app/alioth/pkg/actor"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/app/alioth/pkg/id"
 	"github.com/aide-family/moon/app/alioth/pkg/page"
 	"github.com/aide-family/moon/app/alioth/pkg/perm"
 	"github.com/aide-family/moon/pkg/merr"
@@ -47,13 +49,27 @@ var (
 
 // Gateway 管理巡检计划与报告模板。调度与执行在后续里程碑接入。
 type Gateway struct {
-	repo   repository.InspectionRepo
-	access access.Checker
-	log    *slog.Logger
+	repo        repository.InspectionRepo
+	datasources *datasource.Gateway
+	probes      repository.ProbeTargetRepo
+	events      repository.AlertEventRepo
+	access      access.Checker
+	log         *slog.Logger
+	owner       string
 }
 
-func NewGateway(repo repository.InspectionRepo, checker access.Checker, logger *slog.Logger) *Gateway {
-	return &Gateway{repo: repo, access: checker, log: logger}
+func NewGateway(
+	repo repository.InspectionRepo,
+	datasources *datasource.Gateway,
+	probes repository.ProbeTargetRepo,
+	events repository.AlertEventRepo,
+	checker access.Checker,
+	logger *slog.Logger,
+) *Gateway {
+	return &Gateway{
+		repo: repo, datasources: datasources, probes: probes, events: events,
+		access: checker, log: logger, owner: id.New(),
+	}
 }
 
 // CreatePlan 校验并创建巡检计划，检查项随计划一起保存。
@@ -450,4 +466,33 @@ func nextRun(expression, timezone string, from time.Time) (time.Time, error) {
 		return time.Time{}, merr.Invalid("inspection schedule must be at least 5 minutes apart")
 	}
 	return first.UTC(), nil
+}
+
+// GetRun 读取执行记录详情。
+func (gateway *Gateway) GetRun(ctx context.Context, uid string) (*bo.InspectionRun, error) {
+	ns, err := gateway.access.Allow(ctx, perm.InspectionRead)
+	if err != nil {
+		return nil, err
+	}
+	item, err := gateway.repo.GetInspectionRun(ctx, ns, uid)
+	return item, gateway.access.Wrap(err)
+}
+
+// ListRuns 分页列出执行记录。
+func (gateway *Gateway) ListRuns(ctx context.Context, pageNo, pageSize int32, filter bo.InspectionRunListFilter) ([]bo.InspectionRun, int, int, int, error) {
+	ns, err := gateway.access.Allow(ctx, perm.InspectionRead)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	if filter.From != nil && filter.To != nil {
+		if filter.To.Before(*filter.From) {
+			return nil, 0, 0, 0, merr.Invalid("invalid time range")
+		}
+		if filter.To.Sub(*filter.From) > 30*24*time.Hour {
+			return nil, 0, 0, 0, merr.Invalid("inspection run range must be within 30 days")
+		}
+	}
+	p, s := page.Normalize(pageNo, pageSize)
+	items, total, err := gateway.repo.ListInspectionRuns(ctx, ns, filter, p, s)
+	return items, total, p, s, gateway.access.Wrap(err)
 }

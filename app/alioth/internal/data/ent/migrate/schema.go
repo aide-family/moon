@@ -1220,6 +1220,7 @@ var (
 		{Name: "item_warn", Type: field.TypeInt, Default: 0},
 		{Name: "item_failed", Type: field.TypeInt, Default: 0},
 		{Name: "summary", Type: field.TypeString, Default: "{}"},
+		{Name: "result", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "error", Type: field.TypeString, Default: ""},
 		{Name: "operator_uid", Type: field.TypeString, Default: ""},
 		{Name: "operator_name", Type: field.TypeString, Default: ""},
@@ -1254,7 +1255,7 @@ var (
 			{
 				Name:    "inspectionrun_status_lease_until",
 				Unique:  false,
-				Columns: []*schema.Column{InspectionRunsColumns[8], InspectionRunsColumns[23]},
+				Columns: []*schema.Column{InspectionRunsColumns[8], InspectionRunsColumns[24]},
 			},
 			{
 				Name:    "inspectionrun_plan_uid_scheduled_at",

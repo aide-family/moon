@@ -134,6 +134,11 @@ func Summary(v string) predicate.InspectionRun {
 	return predicate.InspectionRun(sql.FieldEQ(FieldSummary, v))
 }
 
+// Result applies equality check predicate on the "result" field. It's identical to ResultEQ.
+func Result(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldEQ(FieldResult, v))
+}
+
 // Error applies equality check predicate on the "error" field. It's identical to ErrorEQ.
 func Error(v string) predicate.InspectionRun {
 	return predicate.InspectionRun(sql.FieldEQ(FieldError, v))
@@ -1007,6 +1012,71 @@ func SummaryEqualFold(v string) predicate.InspectionRun {
 // SummaryContainsFold applies the ContainsFold predicate on the "summary" field.
 func SummaryContainsFold(v string) predicate.InspectionRun {
 	return predicate.InspectionRun(sql.FieldContainsFold(FieldSummary, v))
+}
+
+// ResultEQ applies the EQ predicate on the "result" field.
+func ResultEQ(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldEQ(FieldResult, v))
+}
+
+// ResultNEQ applies the NEQ predicate on the "result" field.
+func ResultNEQ(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldNEQ(FieldResult, v))
+}
+
+// ResultIn applies the In predicate on the "result" field.
+func ResultIn(vs ...string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldIn(FieldResult, vs...))
+}
+
+// ResultNotIn applies the NotIn predicate on the "result" field.
+func ResultNotIn(vs ...string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldNotIn(FieldResult, vs...))
+}
+
+// ResultGT applies the GT predicate on the "result" field.
+func ResultGT(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldGT(FieldResult, v))
+}
+
+// ResultGTE applies the GTE predicate on the "result" field.
+func ResultGTE(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldGTE(FieldResult, v))
+}
+
+// ResultLT applies the LT predicate on the "result" field.
+func ResultLT(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldLT(FieldResult, v))
+}
+
+// ResultLTE applies the LTE predicate on the "result" field.
+func ResultLTE(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldLTE(FieldResult, v))
+}
+
+// ResultContains applies the Contains predicate on the "result" field.
+func ResultContains(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldContains(FieldResult, v))
+}
+
+// ResultHasPrefix applies the HasPrefix predicate on the "result" field.
+func ResultHasPrefix(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldHasPrefix(FieldResult, v))
+}
+
+// ResultHasSuffix applies the HasSuffix predicate on the "result" field.
+func ResultHasSuffix(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldHasSuffix(FieldResult, v))
+}
+
+// ResultEqualFold applies the EqualFold predicate on the "result" field.
+func ResultEqualFold(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldEqualFold(FieldResult, v))
+}
+
+// ResultContainsFold applies the ContainsFold predicate on the "result" field.
+func ResultContainsFold(v string) predicate.InspectionRun {
+	return predicate.InspectionRun(sql.FieldContainsFold(FieldResult, v))
 }
 
 // ErrorEQ applies the EQ predicate on the "error" field.

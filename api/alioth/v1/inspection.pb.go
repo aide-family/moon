@@ -1949,6 +1949,562 @@ func (x *ListInspectionTemplatesResponse) GetPageSize() int32 {
 	return 0
 }
 
+// 一次巡检执行记录。
+type InspectionRun struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 计划标识。
+	PlanUid string `protobuf:"bytes,2,opt,name=plan_uid,json=planUid,proto3" json:"plan_uid,omitempty"`
+	// 计划名称快照。
+	PlanName string `protobuf:"bytes,3,opt,name=plan_name,json=planName,proto3" json:"plan_name,omitempty"`
+	// 触发方式，取值为 SCHEDULED 或 MANUAL。
+	Trigger string `protobuf:"bytes,4,opt,name=trigger,proto3" json:"trigger,omitempty"`
+	// 状态，取值为 PENDING、RUNNING、SUCCEEDED、PARTIAL、FAILED 或 CANCELED。
+	Status string `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	// 计划执行时刻，RFC3339。
+	ScheduledAt string `protobuf:"bytes,6,opt,name=scheduled_at,json=scheduledAt,proto3" json:"scheduled_at,omitempty"`
+	// 开始时间，RFC3339。
+	StartedAt string `protobuf:"bytes,7,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	// 结束时间，RFC3339。
+	FinishedAt string `protobuf:"bytes,8,opt,name=finished_at,json=finishedAt,proto3" json:"finished_at,omitempty"`
+	// 数据窗口开始，RFC3339。
+	WindowStart string `protobuf:"bytes,9,opt,name=window_start,json=windowStart,proto3" json:"window_start,omitempty"`
+	// 数据窗口结束，RFC3339。
+	WindowEnd string `protobuf:"bytes,10,opt,name=window_end,json=windowEnd,proto3" json:"window_end,omitempty"`
+	// 检查项总数。
+	ItemTotal int32 `protobuf:"varint,11,opt,name=item_total,json=itemTotal,proto3" json:"item_total,omitempty"`
+	// 正常项数。
+	ItemOk int32 `protobuf:"varint,12,opt,name=item_ok,json=itemOk,proto3" json:"item_ok,omitempty"`
+	// 警告项数。
+	ItemWarn int32 `protobuf:"varint,13,opt,name=item_warn,json=itemWarn,proto3" json:"item_warn,omitempty"`
+	// 失败项数。
+	ItemFailed int32 `protobuf:"varint,14,opt,name=item_failed,json=itemFailed,proto3" json:"item_failed,omitempty"`
+	// 摘要 JSON。
+	Summary string `protobuf:"bytes,15,opt,name=summary,proto3" json:"summary,omitempty"`
+	// 失败原因。
+	Error string `protobuf:"bytes,16,opt,name=error,proto3" json:"error,omitempty"`
+	// 手动触发人。
+	OperatorName string `protobuf:"bytes,17,opt,name=operator_name,json=operatorName,proto3" json:"operator_name,omitempty"`
+	// 投递完成时间，RFC3339。
+	NotifiedAt    string `protobuf:"bytes,18,opt,name=notified_at,json=notifiedAt,proto3" json:"notified_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InspectionRun) Reset() {
+	*x = InspectionRun{}
+	mi := &file_alioth_v1_inspection_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InspectionRun) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InspectionRun) ProtoMessage() {}
+
+func (x *InspectionRun) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_inspection_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InspectionRun.ProtoReflect.Descriptor instead.
+func (*InspectionRun) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_inspection_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *InspectionRun) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetPlanUid() string {
+	if x != nil {
+		return x.PlanUid
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetPlanName() string {
+	if x != nil {
+		return x.PlanName
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetTrigger() string {
+	if x != nil {
+		return x.Trigger
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetScheduledAt() string {
+	if x != nil {
+		return x.ScheduledAt
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetStartedAt() string {
+	if x != nil {
+		return x.StartedAt
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetFinishedAt() string {
+	if x != nil {
+		return x.FinishedAt
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetWindowStart() string {
+	if x != nil {
+		return x.WindowStart
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetWindowEnd() string {
+	if x != nil {
+		return x.WindowEnd
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetItemTotal() int32 {
+	if x != nil {
+		return x.ItemTotal
+	}
+	return 0
+}
+
+func (x *InspectionRun) GetItemOk() int32 {
+	if x != nil {
+		return x.ItemOk
+	}
+	return 0
+}
+
+func (x *InspectionRun) GetItemWarn() int32 {
+	if x != nil {
+		return x.ItemWarn
+	}
+	return 0
+}
+
+func (x *InspectionRun) GetItemFailed() int32 {
+	if x != nil {
+		return x.ItemFailed
+	}
+	return 0
+}
+
+func (x *InspectionRun) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetOperatorName() string {
+	if x != nil {
+		return x.OperatorName
+	}
+	return ""
+}
+
+func (x *InspectionRun) GetNotifiedAt() string {
+	if x != nil {
+		return x.NotifiedAt
+	}
+	return ""
+}
+
+// 手动触发巡检请求。
+type RunInspectionPlanRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 计划标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunInspectionPlanRequest) Reset() {
+	*x = RunInspectionPlanRequest{}
+	mi := &file_alioth_v1_inspection_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunInspectionPlanRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunInspectionPlanRequest) ProtoMessage() {}
+
+func (x *RunInspectionPlanRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_inspection_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunInspectionPlanRequest.ProtoReflect.Descriptor instead.
+func (*RunInspectionPlanRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_inspection_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *RunInspectionPlanRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 手动触发巡检响应。
+type RunInspectionPlanResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 创建的执行记录。
+	Run           *InspectionRun `protobuf:"bytes,1,opt,name=run,proto3" json:"run,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunInspectionPlanResponse) Reset() {
+	*x = RunInspectionPlanResponse{}
+	mi := &file_alioth_v1_inspection_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunInspectionPlanResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunInspectionPlanResponse) ProtoMessage() {}
+
+func (x *RunInspectionPlanResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_inspection_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunInspectionPlanResponse.ProtoReflect.Descriptor instead.
+func (*RunInspectionPlanResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_inspection_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *RunInspectionPlanResponse) GetRun() *InspectionRun {
+	if x != nil {
+		return x.Run
+	}
+	return nil
+}
+
+// 列出执行记录请求。
+type ListInspectionRunsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页码，从 1 开始。
+	Page int32 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页数量。
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 计划标识过滤。
+	PlanUid string `protobuf:"bytes,3,opt,name=plan_uid,json=planUid,proto3" json:"plan_uid,omitempty"`
+	// 状态过滤。
+	Status string `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	// 触发方式过滤。
+	Trigger string `protobuf:"bytes,5,opt,name=trigger,proto3" json:"trigger,omitempty"`
+	// 开始时间下界，RFC3339。
+	From string `protobuf:"bytes,6,opt,name=from,proto3" json:"from,omitempty"`
+	// 开始时间上界，RFC3339。
+	To            string `protobuf:"bytes,7,opt,name=to,proto3" json:"to,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListInspectionRunsRequest) Reset() {
+	*x = ListInspectionRunsRequest{}
+	mi := &file_alioth_v1_inspection_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListInspectionRunsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListInspectionRunsRequest) ProtoMessage() {}
+
+func (x *ListInspectionRunsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_inspection_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListInspectionRunsRequest.ProtoReflect.Descriptor instead.
+func (*ListInspectionRunsRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_inspection_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ListInspectionRunsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListInspectionRunsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListInspectionRunsRequest) GetPlanUid() string {
+	if x != nil {
+		return x.PlanUid
+	}
+	return ""
+}
+
+func (x *ListInspectionRunsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListInspectionRunsRequest) GetTrigger() string {
+	if x != nil {
+		return x.Trigger
+	}
+	return ""
+}
+
+func (x *ListInspectionRunsRequest) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *ListInspectionRunsRequest) GetTo() string {
+	if x != nil {
+		return x.To
+	}
+	return ""
+}
+
+// 列出执行记录响应。
+type ListInspectionRunsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页的执行记录。
+	Items []*InspectionRun `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 总数量。
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// 当前页码。
+	Page int32 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页数量。
+	PageSize      int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListInspectionRunsResponse) Reset() {
+	*x = ListInspectionRunsResponse{}
+	mi := &file_alioth_v1_inspection_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListInspectionRunsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListInspectionRunsResponse) ProtoMessage() {}
+
+func (x *ListInspectionRunsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_inspection_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListInspectionRunsResponse.ProtoReflect.Descriptor instead.
+func (*ListInspectionRunsResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_inspection_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *ListInspectionRunsResponse) GetItems() []*InspectionRun {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *ListInspectionRunsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListInspectionRunsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListInspectionRunsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+// 获取执行记录请求。
+type GetInspectionRunRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetInspectionRunRequest) Reset() {
+	*x = GetInspectionRunRequest{}
+	mi := &file_alioth_v1_inspection_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetInspectionRunRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInspectionRunRequest) ProtoMessage() {}
+
+func (x *GetInspectionRunRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_inspection_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInspectionRunRequest.ProtoReflect.Descriptor instead.
+func (*GetInspectionRunRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_inspection_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *GetInspectionRunRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 获取执行记录响应。
+type GetInspectionRunResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 执行记录。
+	Run           *InspectionRun `protobuf:"bytes,1,opt,name=run,proto3" json:"run,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetInspectionRunResponse) Reset() {
+	*x = GetInspectionRunResponse{}
+	mi := &file_alioth_v1_inspection_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetInspectionRunResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInspectionRunResponse) ProtoMessage() {}
+
+func (x *GetInspectionRunResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_inspection_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInspectionRunResponse.ProtoReflect.Descriptor instead.
+func (*GetInspectionRunResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_inspection_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GetInspectionRunResponse) GetRun() *InspectionRun {
+	if x != nil {
+		return x.Run
+	}
+	return nil
+}
+
 var File_alioth_v1_inspection_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_inspection_proto_rawDesc = "" +
@@ -2095,14 +2651,65 @@ const file_alioth_v1_inspection_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x1d.alioth.v1.InspectionTemplateR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xf5\x06\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x9c\x04\n" +
+	"\rInspectionRun\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x19\n" +
+	"\bplan_uid\x18\x02 \x01(\tR\aplanUid\x12\x1b\n" +
+	"\tplan_name\x18\x03 \x01(\tR\bplanName\x12\x18\n" +
+	"\atrigger\x18\x04 \x01(\tR\atrigger\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12!\n" +
+	"\fscheduled_at\x18\x06 \x01(\tR\vscheduledAt\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\a \x01(\tR\tstartedAt\x12\x1f\n" +
+	"\vfinished_at\x18\b \x01(\tR\n" +
+	"finishedAt\x12!\n" +
+	"\fwindow_start\x18\t \x01(\tR\vwindowStart\x12\x1d\n" +
+	"\n" +
+	"window_end\x18\n" +
+	" \x01(\tR\twindowEnd\x12\x1d\n" +
+	"\n" +
+	"item_total\x18\v \x01(\x05R\titemTotal\x12\x17\n" +
+	"\aitem_ok\x18\f \x01(\x05R\x06itemOk\x12\x1b\n" +
+	"\titem_warn\x18\r \x01(\x05R\bitemWarn\x12\x1f\n" +
+	"\vitem_failed\x18\x0e \x01(\x05R\n" +
+	"itemFailed\x12\x18\n" +
+	"\asummary\x18\x0f \x01(\tR\asummary\x12\x14\n" +
+	"\x05error\x18\x10 \x01(\tR\x05error\x12#\n" +
+	"\roperator_name\x18\x11 \x01(\tR\foperatorName\x12\x1f\n" +
+	"\vnotified_at\x18\x12 \x01(\tR\n" +
+	"notifiedAt\"5\n" +
+	"\x18RunInspectionPlanRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"G\n" +
+	"\x19RunInspectionPlanResponse\x12*\n" +
+	"\x03run\x18\x01 \x01(\v2\x18.alioth.v1.InspectionRunR\x03run\"\xb7\x02\n" +
+	"\x19ListInspectionRunsRequest\x12\x1b\n" +
+	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x04page\x12&\n" +
+	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01R\bpageSize\x12\"\n" +
+	"\bplan_uid\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18@R\aplanUid\x12W\n" +
+	"\x06status\x18\x04 \x01(\tB?\xbaH<r:R\x00R\aPENDINGR\aRUNNINGR\tSUCCEEDEDR\aPARTIALR\x06FAILEDR\bCANCELEDR\x06status\x124\n" +
+	"\atrigger\x18\x05 \x01(\tB\x1a\xbaH\x17r\x15R\x00R\tSCHEDULEDR\x06MANUALR\atrigger\x12\x12\n" +
+	"\x04from\x18\x06 \x01(\tR\x04from\x12\x0e\n" +
+	"\x02to\x18\a \x01(\tR\x02to\"\x93\x01\n" +
+	"\x1aListInspectionRunsResponse\x12.\n" +
+	"\x05items\x18\x01 \x03(\v2\x18.alioth.v1.InspectionRunR\x05items\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"4\n" +
+	"\x17GetInspectionRunRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"F\n" +
+	"\x18GetInspectionRunResponse\x12*\n" +
+	"\x03run\x18\x01 \x01(\v2\x18.alioth.v1.InspectionRunR\x03run2\xf5\x06\n" +
 	"\x15InspectionPlanService\x12\x88\x01\n" +
 	"\x14CreateInspectionPlan\x12&.alioth.v1.CreateInspectionPlanRequest\x1a'.alioth.v1.CreateInspectionPlanResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/inspection/plans\x12\x8e\x01\n" +
 	"\x14UpdateInspectionPlan\x12&.alioth.v1.UpdateInspectionPlanRequest\x1a'.alioth.v1.UpdateInspectionPlanResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/v1/inspection/plans/{uid}\x12\xa7\x01\n" +
 	"\x1aUpdateInspectionPlanStatus\x12,.alioth.v1.UpdateInspectionPlanStatusRequest\x1a-.alioth.v1.UpdateInspectionPlanStatusResponse\",\x82\xd3\xe4\x93\x02&:\x01*\x1a!/v1/inspection/plans/{uid}/status\x12\x8b\x01\n" +
 	"\x14DeleteInspectionPlan\x12&.alioth.v1.DeleteInspectionPlanRequest\x1a'.alioth.v1.DeleteInspectionPlanResponse\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/v1/inspection/plans/{uid}\x12\x82\x01\n" +
 	"\x11GetInspectionPlan\x12#.alioth.v1.GetInspectionPlanRequest\x1a$.alioth.v1.GetInspectionPlanResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/inspection/plans/{uid}\x12\x82\x01\n" +
-	"\x13ListInspectionPlans\x12%.alioth.v1.ListInspectionPlansRequest\x1a&.alioth.v1.ListInspectionPlansResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/inspection/plans2\x9f\x06\n" +
+	"\x13ListInspectionPlans\x12%.alioth.v1.ListInspectionPlansRequest\x1a&.alioth.v1.ListInspectionPlansResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/inspection/plans2\xa2\x03\n" +
+	"\x14InspectionRunService\x12\x89\x01\n" +
+	"\x11RunInspectionPlan\x12#.alioth.v1.RunInspectionPlanRequest\x1a$.alioth.v1.RunInspectionPlanResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/v1/inspection/plans/{uid}/run\x12~\n" +
+	"\x12ListInspectionRuns\x12$.alioth.v1.ListInspectionRunsRequest\x1a%.alioth.v1.ListInspectionRunsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/inspection/runs\x12~\n" +
+	"\x10GetInspectionRun\x12\".alioth.v1.GetInspectionRunRequest\x1a#.alioth.v1.GetInspectionRunResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/v1/inspection/runs/{uid}2\x9f\x06\n" +
 	"\x19InspectionTemplateService\x12\x98\x01\n" +
 	"\x18CreateInspectionTemplate\x12*.alioth.v1.CreateInspectionTemplateRequest\x1a+.alioth.v1.CreateInspectionTemplateResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/inspection/templates\x12\x9e\x01\n" +
 	"\x18UpdateInspectionTemplate\x12*.alioth.v1.UpdateInspectionTemplateRequest\x1a+.alioth.v1.UpdateInspectionTemplateResponse\")\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/v1/inspection/templates/{uid}\x12\x9b\x01\n" +
@@ -2122,7 +2729,7 @@ func file_alioth_v1_inspection_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_inspection_proto_rawDescData
 }
 
-var file_alioth_v1_inspection_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_alioth_v1_inspection_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_alioth_v1_inspection_proto_goTypes = []any{
 	(*InspectionPlanItem)(nil),                 // 0: alioth.v1.InspectionPlanItem
 	(*InspectionPlan)(nil),                     // 1: alioth.v1.InspectionPlan
@@ -2151,6 +2758,13 @@ var file_alioth_v1_inspection_proto_goTypes = []any{
 	(*GetInspectionTemplateResponse)(nil),      // 24: alioth.v1.GetInspectionTemplateResponse
 	(*ListInspectionTemplatesRequest)(nil),     // 25: alioth.v1.ListInspectionTemplatesRequest
 	(*ListInspectionTemplatesResponse)(nil),    // 26: alioth.v1.ListInspectionTemplatesResponse
+	(*InspectionRun)(nil),                      // 27: alioth.v1.InspectionRun
+	(*RunInspectionPlanRequest)(nil),           // 28: alioth.v1.RunInspectionPlanRequest
+	(*RunInspectionPlanResponse)(nil),          // 29: alioth.v1.RunInspectionPlanResponse
+	(*ListInspectionRunsRequest)(nil),          // 30: alioth.v1.ListInspectionRunsRequest
+	(*ListInspectionRunsResponse)(nil),         // 31: alioth.v1.ListInspectionRunsResponse
+	(*GetInspectionRunRequest)(nil),            // 32: alioth.v1.GetInspectionRunRequest
+	(*GetInspectionRunResponse)(nil),           // 33: alioth.v1.GetInspectionRunResponse
 }
 var file_alioth_v1_inspection_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.InspectionPlan.items:type_name -> alioth.v1.InspectionPlanItem
@@ -2166,33 +2780,42 @@ var file_alioth_v1_inspection_proto_depIdxs = []int32{
 	16, // 10: alioth.v1.UpdateInspectionTemplateResponse.template:type_name -> alioth.v1.InspectionTemplate
 	16, // 11: alioth.v1.GetInspectionTemplateResponse.template:type_name -> alioth.v1.InspectionTemplate
 	16, // 12: alioth.v1.ListInspectionTemplatesResponse.items:type_name -> alioth.v1.InspectionTemplate
-	4,  // 13: alioth.v1.InspectionPlanService.CreateInspectionPlan:input_type -> alioth.v1.CreateInspectionPlanRequest
-	6,  // 14: alioth.v1.InspectionPlanService.UpdateInspectionPlan:input_type -> alioth.v1.UpdateInspectionPlanRequest
-	8,  // 15: alioth.v1.InspectionPlanService.UpdateInspectionPlanStatus:input_type -> alioth.v1.UpdateInspectionPlanStatusRequest
-	10, // 16: alioth.v1.InspectionPlanService.DeleteInspectionPlan:input_type -> alioth.v1.DeleteInspectionPlanRequest
-	12, // 17: alioth.v1.InspectionPlanService.GetInspectionPlan:input_type -> alioth.v1.GetInspectionPlanRequest
-	14, // 18: alioth.v1.InspectionPlanService.ListInspectionPlans:input_type -> alioth.v1.ListInspectionPlansRequest
-	17, // 19: alioth.v1.InspectionTemplateService.CreateInspectionTemplate:input_type -> alioth.v1.CreateInspectionTemplateRequest
-	19, // 20: alioth.v1.InspectionTemplateService.UpdateInspectionTemplate:input_type -> alioth.v1.UpdateInspectionTemplateRequest
-	21, // 21: alioth.v1.InspectionTemplateService.DeleteInspectionTemplate:input_type -> alioth.v1.DeleteInspectionTemplateRequest
-	23, // 22: alioth.v1.InspectionTemplateService.GetInspectionTemplate:input_type -> alioth.v1.GetInspectionTemplateRequest
-	25, // 23: alioth.v1.InspectionTemplateService.ListInspectionTemplates:input_type -> alioth.v1.ListInspectionTemplatesRequest
-	5,  // 24: alioth.v1.InspectionPlanService.CreateInspectionPlan:output_type -> alioth.v1.CreateInspectionPlanResponse
-	7,  // 25: alioth.v1.InspectionPlanService.UpdateInspectionPlan:output_type -> alioth.v1.UpdateInspectionPlanResponse
-	9,  // 26: alioth.v1.InspectionPlanService.UpdateInspectionPlanStatus:output_type -> alioth.v1.UpdateInspectionPlanStatusResponse
-	11, // 27: alioth.v1.InspectionPlanService.DeleteInspectionPlan:output_type -> alioth.v1.DeleteInspectionPlanResponse
-	13, // 28: alioth.v1.InspectionPlanService.GetInspectionPlan:output_type -> alioth.v1.GetInspectionPlanResponse
-	15, // 29: alioth.v1.InspectionPlanService.ListInspectionPlans:output_type -> alioth.v1.ListInspectionPlansResponse
-	18, // 30: alioth.v1.InspectionTemplateService.CreateInspectionTemplate:output_type -> alioth.v1.CreateInspectionTemplateResponse
-	20, // 31: alioth.v1.InspectionTemplateService.UpdateInspectionTemplate:output_type -> alioth.v1.UpdateInspectionTemplateResponse
-	22, // 32: alioth.v1.InspectionTemplateService.DeleteInspectionTemplate:output_type -> alioth.v1.DeleteInspectionTemplateResponse
-	24, // 33: alioth.v1.InspectionTemplateService.GetInspectionTemplate:output_type -> alioth.v1.GetInspectionTemplateResponse
-	26, // 34: alioth.v1.InspectionTemplateService.ListInspectionTemplates:output_type -> alioth.v1.ListInspectionTemplatesResponse
-	24, // [24:35] is the sub-list for method output_type
-	13, // [13:24] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	27, // 13: alioth.v1.RunInspectionPlanResponse.run:type_name -> alioth.v1.InspectionRun
+	27, // 14: alioth.v1.ListInspectionRunsResponse.items:type_name -> alioth.v1.InspectionRun
+	27, // 15: alioth.v1.GetInspectionRunResponse.run:type_name -> alioth.v1.InspectionRun
+	4,  // 16: alioth.v1.InspectionPlanService.CreateInspectionPlan:input_type -> alioth.v1.CreateInspectionPlanRequest
+	6,  // 17: alioth.v1.InspectionPlanService.UpdateInspectionPlan:input_type -> alioth.v1.UpdateInspectionPlanRequest
+	8,  // 18: alioth.v1.InspectionPlanService.UpdateInspectionPlanStatus:input_type -> alioth.v1.UpdateInspectionPlanStatusRequest
+	10, // 19: alioth.v1.InspectionPlanService.DeleteInspectionPlan:input_type -> alioth.v1.DeleteInspectionPlanRequest
+	12, // 20: alioth.v1.InspectionPlanService.GetInspectionPlan:input_type -> alioth.v1.GetInspectionPlanRequest
+	14, // 21: alioth.v1.InspectionPlanService.ListInspectionPlans:input_type -> alioth.v1.ListInspectionPlansRequest
+	28, // 22: alioth.v1.InspectionRunService.RunInspectionPlan:input_type -> alioth.v1.RunInspectionPlanRequest
+	30, // 23: alioth.v1.InspectionRunService.ListInspectionRuns:input_type -> alioth.v1.ListInspectionRunsRequest
+	32, // 24: alioth.v1.InspectionRunService.GetInspectionRun:input_type -> alioth.v1.GetInspectionRunRequest
+	17, // 25: alioth.v1.InspectionTemplateService.CreateInspectionTemplate:input_type -> alioth.v1.CreateInspectionTemplateRequest
+	19, // 26: alioth.v1.InspectionTemplateService.UpdateInspectionTemplate:input_type -> alioth.v1.UpdateInspectionTemplateRequest
+	21, // 27: alioth.v1.InspectionTemplateService.DeleteInspectionTemplate:input_type -> alioth.v1.DeleteInspectionTemplateRequest
+	23, // 28: alioth.v1.InspectionTemplateService.GetInspectionTemplate:input_type -> alioth.v1.GetInspectionTemplateRequest
+	25, // 29: alioth.v1.InspectionTemplateService.ListInspectionTemplates:input_type -> alioth.v1.ListInspectionTemplatesRequest
+	5,  // 30: alioth.v1.InspectionPlanService.CreateInspectionPlan:output_type -> alioth.v1.CreateInspectionPlanResponse
+	7,  // 31: alioth.v1.InspectionPlanService.UpdateInspectionPlan:output_type -> alioth.v1.UpdateInspectionPlanResponse
+	9,  // 32: alioth.v1.InspectionPlanService.UpdateInspectionPlanStatus:output_type -> alioth.v1.UpdateInspectionPlanStatusResponse
+	11, // 33: alioth.v1.InspectionPlanService.DeleteInspectionPlan:output_type -> alioth.v1.DeleteInspectionPlanResponse
+	13, // 34: alioth.v1.InspectionPlanService.GetInspectionPlan:output_type -> alioth.v1.GetInspectionPlanResponse
+	15, // 35: alioth.v1.InspectionPlanService.ListInspectionPlans:output_type -> alioth.v1.ListInspectionPlansResponse
+	29, // 36: alioth.v1.InspectionRunService.RunInspectionPlan:output_type -> alioth.v1.RunInspectionPlanResponse
+	31, // 37: alioth.v1.InspectionRunService.ListInspectionRuns:output_type -> alioth.v1.ListInspectionRunsResponse
+	33, // 38: alioth.v1.InspectionRunService.GetInspectionRun:output_type -> alioth.v1.GetInspectionRunResponse
+	18, // 39: alioth.v1.InspectionTemplateService.CreateInspectionTemplate:output_type -> alioth.v1.CreateInspectionTemplateResponse
+	20, // 40: alioth.v1.InspectionTemplateService.UpdateInspectionTemplate:output_type -> alioth.v1.UpdateInspectionTemplateResponse
+	22, // 41: alioth.v1.InspectionTemplateService.DeleteInspectionTemplate:output_type -> alioth.v1.DeleteInspectionTemplateResponse
+	24, // 42: alioth.v1.InspectionTemplateService.GetInspectionTemplate:output_type -> alioth.v1.GetInspectionTemplateResponse
+	26, // 43: alioth.v1.InspectionTemplateService.ListInspectionTemplates:output_type -> alioth.v1.ListInspectionTemplatesResponse
+	30, // [30:44] is the sub-list for method output_type
+	16, // [16:30] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_inspection_proto_init() }
@@ -2206,9 +2829,9 @@ func file_alioth_v1_inspection_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_inspection_proto_rawDesc), len(file_alioth_v1_inspection_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   34,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   3,
 		},
 		GoTypes:           file_alioth_v1_inspection_proto_goTypes,
 		DependencyIndexes: file_alioth_v1_inspection_proto_depIdxs,

@@ -296,6 +296,20 @@ func (_u *InspectionRunUpdate) SetNillableSummary(v *string) *InspectionRunUpdat
 	return _u
 }
 
+// SetResult sets the "result" field.
+func (_u *InspectionRunUpdate) SetResult(v string) *InspectionRunUpdate {
+	_u.mutation.SetResult(v)
+	return _u
+}
+
+// SetNillableResult sets the "result" field if the given value is not nil.
+func (_u *InspectionRunUpdate) SetNillableResult(v *string) *InspectionRunUpdate {
+	if v != nil {
+		_u.SetResult(*v)
+	}
+	return _u
+}
+
 // SetError sets the "error" field.
 func (_u *InspectionRunUpdate) SetError(v string) *InspectionRunUpdate {
 	_u.mutation.SetError(v)
@@ -541,6 +555,9 @@ func (_u *InspectionRunUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	}
 	if value, ok := _u.mutation.Summary(); ok {
 		_spec.SetField(inspectionrun.FieldSummary, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Result(); ok {
+		_spec.SetField(inspectionrun.FieldResult, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Error(); ok {
 		_spec.SetField(inspectionrun.FieldError, field.TypeString, value)
@@ -854,6 +871,20 @@ func (_u *InspectionRunUpdateOne) SetNillableSummary(v *string) *InspectionRunUp
 	return _u
 }
 
+// SetResult sets the "result" field.
+func (_u *InspectionRunUpdateOne) SetResult(v string) *InspectionRunUpdateOne {
+	_u.mutation.SetResult(v)
+	return _u
+}
+
+// SetNillableResult sets the "result" field if the given value is not nil.
+func (_u *InspectionRunUpdateOne) SetNillableResult(v *string) *InspectionRunUpdateOne {
+	if v != nil {
+		_u.SetResult(*v)
+	}
+	return _u
+}
+
 // SetError sets the "error" field.
 func (_u *InspectionRunUpdateOne) SetError(v string) *InspectionRunUpdateOne {
 	_u.mutation.SetError(v)
@@ -1129,6 +1160,9 @@ func (_u *InspectionRunUpdateOne) sqlSave(ctx context.Context) (_node *Inspectio
 	}
 	if value, ok := _u.mutation.Summary(); ok {
 		_spec.SetField(inspectionrun.FieldSummary, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Result(); ok {
+		_spec.SetField(inspectionrun.FieldResult, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Error(); ok {
 		_spec.SetField(inspectionrun.FieldError, field.TypeString, value)

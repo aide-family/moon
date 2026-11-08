@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"time"
 
 	v1 "github.com/aide-family/moon/api/alioth/v1"
 	"github.com/aide-family/moon/app/alioth/internal/biz/inspection"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // InspectionPlanService 把巡检计划接口转成 biz 入参。
@@ -187,5 +189,74 @@ func inspectionTemplateItem(in bo.InspectionTemplate) *v1.InspectionTemplate {
 		HtmlBody: in.HTMLBody, MarkdownBody: in.MarkdownBody,
 		IsBuiltin: in.IsBuiltin, Status: in.Status,
 		CreatedAt: formatTime(in.CreatedAt), UpdatedAt: formatTime(in.UpdatedAt),
+	}
+}
+
+// InspectionRunService 把执行记录接口转成 biz 入参。
+type InspectionRunService struct {
+	v1.UnimplementedInspectionRunServiceServer
+	gateway *inspection.Gateway
+}
+
+func NewInspectionRunService(gateway *inspection.Gateway) *InspectionRunService {
+	return &InspectionRunService{gateway: gateway}
+}
+
+func (s *InspectionRunService) RunInspectionPlan(ctx context.Context, req *v1.RunInspectionPlanRequest) (*v1.RunInspectionPlanResponse, error) {
+	run, err := s.gateway.Trigger(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.RunInspectionPlanResponse{Run: inspectionRunItem(*run)}, nil
+}
+
+func (s *InspectionRunService) ListInspectionRuns(ctx context.Context, req *v1.ListInspectionRunsRequest) (*v1.ListInspectionRunsResponse, error) {
+	filter := bo.InspectionRunListFilter{
+		PlanUID: req.GetPlanUid(), Status: req.GetStatus(), Trigger: req.GetTrigger(),
+	}
+	if req.GetFrom() != "" {
+		value, err := time.Parse(time.RFC3339, req.GetFrom())
+		if err != nil {
+			return nil, merr.Invalid("invalid from time")
+		}
+		filter.From = &value
+	}
+	if req.GetTo() != "" {
+		value, err := time.Parse(time.RFC3339, req.GetTo())
+		if err != nil {
+			return nil, merr.Invalid("invalid to time")
+		}
+		filter.To = &value
+	}
+	items, total, pageNo, pageSize, err := s.gateway.ListRuns(ctx, req.GetPage(), req.GetPageSize(), filter)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.InspectionRun, 0, len(items))
+	for _, item := range items {
+		out = append(out, inspectionRunItem(item))
+	}
+	return &v1.ListInspectionRunsResponse{
+		Items: out, Total: int32(total), Page: int32(pageNo), PageSize: int32(pageSize),
+	}, nil
+}
+
+func (s *InspectionRunService) GetInspectionRun(ctx context.Context, req *v1.GetInspectionRunRequest) (*v1.GetInspectionRunResponse, error) {
+	run, err := s.gateway.GetRun(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetInspectionRunResponse{Run: inspectionRunItem(*run)}, nil
+}
+
+func inspectionRunItem(in bo.InspectionRun) *v1.InspectionRun {
+	return &v1.InspectionRun{
+		Uid: in.UID, PlanUid: in.PlanUID, PlanName: in.PlanName, Trigger: in.Trigger, Status: in.Status,
+		ScheduledAt: formatTime(in.ScheduledAt), StartedAt: formatOptionalTime(in.StartedAt),
+		FinishedAt:  formatOptionalTime(in.FinishedAt),
+		WindowStart: formatOptionalTime(in.WindowStart), WindowEnd: formatOptionalTime(in.WindowEnd),
+		ItemTotal: int32(in.ItemTotal), ItemOk: int32(in.ItemOK), ItemWarn: int32(in.ItemWarn),
+		ItemFailed: int32(in.ItemFailed), Summary: in.Summary, Error: in.Error,
+		OperatorName: in.OperatorName, NotifiedAt: formatOptionalTime(in.NotifiedAt),
 	}
 }

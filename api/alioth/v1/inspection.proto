@@ -44,6 +44,25 @@ service InspectionPlanService {
   }
 }
 
+// 巡检执行：手动触发、执行记录与检查项结果。
+service InspectionRunService {
+  // 手动触发一次巡检。计划已有执行中的记录时返回冲突。
+  rpc RunInspectionPlan(RunInspectionPlanRequest) returns (RunInspectionPlanResponse) {
+    option (google.api.http) = {
+      post: "/v1/inspection/plans/{uid}/run"
+      body: "*"
+    };
+  }
+  // 分页列出执行记录。
+  rpc ListInspectionRuns(ListInspectionRunsRequest) returns (ListInspectionRunsResponse) {
+    option (google.api.http) = {get: "/v1/inspection/runs"};
+  }
+  // 获取执行记录详情。
+  rpc GetInspectionRun(GetInspectionRunRequest) returns (GetInspectionRunResponse) {
+    option (google.api.http) = {get: "/v1/inspection/runs/{uid}"};
+  }
+}
+
 // 巡检报告模板：一份版式、两段正文，HTML 与 Markdown 共用同一份数据契约。
 service InspectionTemplateService {
   // 创建报告模板。
@@ -384,4 +403,99 @@ message ListInspectionTemplatesResponse {
   int32 page = 3;
   // 每页数量。
   int32 page_size = 4 [json_name = "pageSize"];
+}
+
+
+// 一次巡检执行记录。
+message InspectionRun {
+  // 标识。
+  string uid = 1;
+  // 计划标识。
+  string plan_uid = 2 [json_name = "planUid"];
+  // 计划名称快照。
+  string plan_name = 3 [json_name = "planName"];
+  // 触发方式，取值为 SCHEDULED 或 MANUAL。
+  string trigger = 4;
+  // 状态，取值为 PENDING、RUNNING、SUCCEEDED、PARTIAL、FAILED 或 CANCELED。
+  string status = 5;
+  // 计划执行时刻，RFC3339。
+  string scheduled_at = 6 [json_name = "scheduledAt"];
+  // 开始时间，RFC3339。
+  string started_at = 7 [json_name = "startedAt"];
+  // 结束时间，RFC3339。
+  string finished_at = 8 [json_name = "finishedAt"];
+  // 数据窗口开始，RFC3339。
+  string window_start = 9 [json_name = "windowStart"];
+  // 数据窗口结束，RFC3339。
+  string window_end = 10 [json_name = "windowEnd"];
+  // 检查项总数。
+  int32 item_total = 11 [json_name = "itemTotal"];
+  // 正常项数。
+  int32 item_ok = 12 [json_name = "itemOk"];
+  // 警告项数。
+  int32 item_warn = 13 [json_name = "itemWarn"];
+  // 失败项数。
+  int32 item_failed = 14 [json_name = "itemFailed"];
+  // 摘要 JSON。
+  string summary = 15;
+  // 失败原因。
+  string error = 16;
+  // 手动触发人。
+  string operator_name = 17 [json_name = "operatorName"];
+  // 投递完成时间，RFC3339。
+  string notified_at = 18 [json_name = "notifiedAt"];
+}
+
+// 手动触发巡检请求。
+message RunInspectionPlanRequest {
+  // 计划标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 手动触发巡检响应。
+message RunInspectionPlanResponse {
+  // 创建的执行记录。
+  InspectionRun run = 1;
+}
+
+// 列出执行记录请求。
+message ListInspectionRunsRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  // 每页数量。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 1, lte: 100}];
+  // 计划标识过滤。
+  string plan_uid = 3 [json_name = "planUid", (buf.validate.field).string = {max_len: 64}];
+  // 状态过滤。
+  string status = 4 [(buf.validate.field).string = {in: ["", "PENDING", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELED"]}];
+  // 触发方式过滤。
+  string trigger = 5 [(buf.validate.field).string = {in: ["", "SCHEDULED", "MANUAL"]}];
+  // 开始时间下界，RFC3339。
+  string from = 6;
+  // 开始时间上界，RFC3339。
+  string to = 7;
+}
+
+// 列出执行记录响应。
+message ListInspectionRunsResponse {
+  // 当前页的执行记录。
+  repeated InspectionRun items = 1;
+  // 总数量。
+  int32 total = 2;
+  // 当前页码。
+  int32 page = 3;
+  // 每页数量。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 获取执行记录请求。
+message GetInspectionRunRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 获取执行记录响应。
+message GetInspectionRunResponse {
+  // 执行记录。
+  InspectionRun run = 1;
 }

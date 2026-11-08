@@ -1477,20 +1477,24 @@ func init() {
 	inspectionrunDescSummary := inspectionrunFields[15].Descriptor()
 	// inspectionrun.DefaultSummary holds the default value on creation for the summary field.
 	inspectionrun.DefaultSummary = inspectionrunDescSummary.Default.(string)
+	// inspectionrunDescResult is the schema descriptor for result field.
+	inspectionrunDescResult := inspectionrunFields[16].Descriptor()
+	// inspectionrun.DefaultResult holds the default value on creation for the result field.
+	inspectionrun.DefaultResult = inspectionrunDescResult.Default.(string)
 	// inspectionrunDescError is the schema descriptor for error field.
-	inspectionrunDescError := inspectionrunFields[16].Descriptor()
+	inspectionrunDescError := inspectionrunFields[17].Descriptor()
 	// inspectionrun.DefaultError holds the default value on creation for the error field.
 	inspectionrun.DefaultError = inspectionrunDescError.Default.(string)
 	// inspectionrunDescOperatorUID is the schema descriptor for operator_uid field.
-	inspectionrunDescOperatorUID := inspectionrunFields[17].Descriptor()
+	inspectionrunDescOperatorUID := inspectionrunFields[18].Descriptor()
 	// inspectionrun.DefaultOperatorUID holds the default value on creation for the operator_uid field.
 	inspectionrun.DefaultOperatorUID = inspectionrunDescOperatorUID.Default.(string)
 	// inspectionrunDescOperatorName is the schema descriptor for operator_name field.
-	inspectionrunDescOperatorName := inspectionrunFields[18].Descriptor()
+	inspectionrunDescOperatorName := inspectionrunFields[19].Descriptor()
 	// inspectionrun.DefaultOperatorName holds the default value on creation for the operator_name field.
 	inspectionrun.DefaultOperatorName = inspectionrunDescOperatorName.Default.(string)
 	// inspectionrunDescLeaseOwner is the schema descriptor for lease_owner field.
-	inspectionrunDescLeaseOwner := inspectionrunFields[19].Descriptor()
+	inspectionrunDescLeaseOwner := inspectionrunFields[20].Descriptor()
 	// inspectionrun.DefaultLeaseOwner holds the default value on creation for the lease_owner field.
 	inspectionrun.DefaultLeaseOwner = inspectionrunDescLeaseOwner.Default.(string)
 	inspectiontemplateMixin := schema.InspectionTemplate{}.Mixin()

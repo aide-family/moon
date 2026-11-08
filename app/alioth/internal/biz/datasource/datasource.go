@@ -557,3 +557,48 @@ func redact(item *bo.Datasource) *bo.Datasource {
 	item.Secret = ""
 	return item
 }
+
+// QueryRangeForNamespace 供巡检执行器在后台调用：显式传租户，不依赖登录态，
+// 但仍校验数据源状态与类型。用户侧查询仍走 QueryRange。
+func (gateway *Gateway) QueryRangeForNamespace(ctx context.Context, namespaceUID, uid, expr string, start, end, step int64) (string, error) {
+	if end < start {
+		return "", merr.Invalid("invalid request")
+	}
+	item, err := gateway.datasources.GetDatasource(ctx, namespaceUID, uid)
+	if err != nil {
+		return "", gateway.access.Wrap(err)
+	}
+	if item.Type != "METRICS" {
+		return "", merr.Invalid("datasource is not metrics")
+	}
+	if item.Status != "ACTIVE" {
+		return "", merr.Invalid("datasource is disabled")
+	}
+	body, err := gateway.datasources.RangeQuery(ctx, *item, expr, start, end, step)
+	return body, gateway.access.Wrap(err)
+}
+
+// QueryLogsForNamespace 供巡检执行器在后台调用日志数据源。
+func (gateway *Gateway) QueryLogsForNamespace(ctx context.Context, namespaceUID, uid, query string, start, end int64, limit int32, direction string) (string, error) {
+	item, err := gateway.datasources.GetDatasource(ctx, namespaceUID, uid)
+	if err != nil {
+		return "", gateway.access.Wrap(err)
+	}
+	if item.Type != "LOGS" {
+		return "", merr.Invalid("datasource is not logs")
+	}
+	if item.Status != "ACTIVE" {
+		return "", merr.Invalid("datasource is disabled")
+	}
+	switch item.Driver {
+	case "LOGS_LOKI", "LOGS_VLOGS", "LOGS_ELASTICSEARCH":
+	default:
+		return "", merr.Invalid("invalid request")
+	}
+	query, size, dir, err := normalizeLogQuery(query, start, end, limit, direction)
+	if err != nil {
+		return "", err
+	}
+	body, err := gateway.datasources.QueryLogs(ctx, *item, query, start, end, size, dir)
+	return body, gateway.access.Wrap(err)
+}

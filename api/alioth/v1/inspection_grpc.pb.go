@@ -327,6 +327,194 @@ var InspectionPlanService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	InspectionRunService_RunInspectionPlan_FullMethodName  = "/alioth.v1.InspectionRunService/RunInspectionPlan"
+	InspectionRunService_ListInspectionRuns_FullMethodName = "/alioth.v1.InspectionRunService/ListInspectionRuns"
+	InspectionRunService_GetInspectionRun_FullMethodName   = "/alioth.v1.InspectionRunService/GetInspectionRun"
+)
+
+// InspectionRunServiceClient is the client API for InspectionRunService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// 巡检执行：手动触发、执行记录与检查项结果。
+type InspectionRunServiceClient interface {
+	// 手动触发一次巡检。计划已有执行中的记录时返回冲突。
+	RunInspectionPlan(ctx context.Context, in *RunInspectionPlanRequest, opts ...grpc.CallOption) (*RunInspectionPlanResponse, error)
+	// 分页列出执行记录。
+	ListInspectionRuns(ctx context.Context, in *ListInspectionRunsRequest, opts ...grpc.CallOption) (*ListInspectionRunsResponse, error)
+	// 获取执行记录详情。
+	GetInspectionRun(ctx context.Context, in *GetInspectionRunRequest, opts ...grpc.CallOption) (*GetInspectionRunResponse, error)
+}
+
+type inspectionRunServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewInspectionRunServiceClient(cc grpc.ClientConnInterface) InspectionRunServiceClient {
+	return &inspectionRunServiceClient{cc}
+}
+
+func (c *inspectionRunServiceClient) RunInspectionPlan(ctx context.Context, in *RunInspectionPlanRequest, opts ...grpc.CallOption) (*RunInspectionPlanResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RunInspectionPlanResponse)
+	err := c.cc.Invoke(ctx, InspectionRunService_RunInspectionPlan_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *inspectionRunServiceClient) ListInspectionRuns(ctx context.Context, in *ListInspectionRunsRequest, opts ...grpc.CallOption) (*ListInspectionRunsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInspectionRunsResponse)
+	err := c.cc.Invoke(ctx, InspectionRunService_ListInspectionRuns_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *inspectionRunServiceClient) GetInspectionRun(ctx context.Context, in *GetInspectionRunRequest, opts ...grpc.CallOption) (*GetInspectionRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInspectionRunResponse)
+	err := c.cc.Invoke(ctx, InspectionRunService_GetInspectionRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// InspectionRunServiceServer is the server API for InspectionRunService service.
+// All implementations must embed UnimplementedInspectionRunServiceServer
+// for forward compatibility.
+//
+// 巡检执行：手动触发、执行记录与检查项结果。
+type InspectionRunServiceServer interface {
+	// 手动触发一次巡检。计划已有执行中的记录时返回冲突。
+	RunInspectionPlan(context.Context, *RunInspectionPlanRequest) (*RunInspectionPlanResponse, error)
+	// 分页列出执行记录。
+	ListInspectionRuns(context.Context, *ListInspectionRunsRequest) (*ListInspectionRunsResponse, error)
+	// 获取执行记录详情。
+	GetInspectionRun(context.Context, *GetInspectionRunRequest) (*GetInspectionRunResponse, error)
+	mustEmbedUnimplementedInspectionRunServiceServer()
+}
+
+// UnimplementedInspectionRunServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedInspectionRunServiceServer struct{}
+
+func (UnimplementedInspectionRunServiceServer) RunInspectionPlan(context.Context, *RunInspectionPlanRequest) (*RunInspectionPlanResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RunInspectionPlan not implemented")
+}
+func (UnimplementedInspectionRunServiceServer) ListInspectionRuns(context.Context, *ListInspectionRunsRequest) (*ListInspectionRunsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListInspectionRuns not implemented")
+}
+func (UnimplementedInspectionRunServiceServer) GetInspectionRun(context.Context, *GetInspectionRunRequest) (*GetInspectionRunResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInspectionRun not implemented")
+}
+func (UnimplementedInspectionRunServiceServer) mustEmbedUnimplementedInspectionRunServiceServer() {}
+func (UnimplementedInspectionRunServiceServer) testEmbeddedByValue()                              {}
+
+// UnsafeInspectionRunServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to InspectionRunServiceServer will
+// result in compilation errors.
+type UnsafeInspectionRunServiceServer interface {
+	mustEmbedUnimplementedInspectionRunServiceServer()
+}
+
+func RegisterInspectionRunServiceServer(s grpc.ServiceRegistrar, srv InspectionRunServiceServer) {
+	// If the following call panics, it indicates UnimplementedInspectionRunServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&InspectionRunService_ServiceDesc, srv)
+}
+
+func _InspectionRunService_RunInspectionPlan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RunInspectionPlanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InspectionRunServiceServer).RunInspectionPlan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InspectionRunService_RunInspectionPlan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InspectionRunServiceServer).RunInspectionPlan(ctx, req.(*RunInspectionPlanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InspectionRunService_ListInspectionRuns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInspectionRunsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InspectionRunServiceServer).ListInspectionRuns(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InspectionRunService_ListInspectionRuns_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InspectionRunServiceServer).ListInspectionRuns(ctx, req.(*ListInspectionRunsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InspectionRunService_GetInspectionRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInspectionRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InspectionRunServiceServer).GetInspectionRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InspectionRunService_GetInspectionRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InspectionRunServiceServer).GetInspectionRun(ctx, req.(*GetInspectionRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// InspectionRunService_ServiceDesc is the grpc.ServiceDesc for InspectionRunService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var InspectionRunService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "alioth.v1.InspectionRunService",
+	HandlerType: (*InspectionRunServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "RunInspectionPlan",
+			Handler:    _InspectionRunService_RunInspectionPlan_Handler,
+		},
+		{
+			MethodName: "ListInspectionRuns",
+			Handler:    _InspectionRunService_ListInspectionRuns_Handler,
+		},
+		{
+			MethodName: "GetInspectionRun",
+			Handler:    _InspectionRunService_GetInspectionRun_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "alioth/v1/inspection.proto",
+}
+
+const (
 	InspectionTemplateService_CreateInspectionTemplate_FullMethodName = "/alioth.v1.InspectionTemplateService/CreateInspectionTemplate"
 	InspectionTemplateService_UpdateInspectionTemplate_FullMethodName = "/alioth.v1.InspectionTemplateService/UpdateInspectionTemplate"
 	InspectionTemplateService_DeleteInspectionTemplate_FullMethodName = "/alioth.v1.InspectionTemplateService/DeleteInspectionTemplate"
