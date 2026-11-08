@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import {
   getInspectionReport,
   listInspectionRuns,
+  resendInspectionReport,
   listRunReports,
   revokeInspectionReportShare,
   shareInspectionReport,
@@ -109,6 +110,7 @@ function ReportDialog({
   const [loading, setLoading] = useState(false)
   const [shareToken, setShareToken] = useState("")
   const [sharing, setSharing] = useState(false)
+  const [resending, setResending] = useState(false)
 
   useEffect(() => {
     if (!open || !run) {
@@ -171,6 +173,21 @@ function ReportDialog({
     anchor.download = `${active.title || "inspection-report"}.${active.format === "HTML" ? "html" : "md"}`
     anchor.click()
     URL.revokeObjectURL(url)
+  }
+
+  async function resend() {
+    if (!active || resending) {
+      return
+    }
+    setResending(true)
+    try {
+      await resendInspectionReport(active.uid)
+      toast.success(t("inspection.resent"))
+    } catch (err) {
+      toast.error(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setResending(false)
+    }
   }
 
   async function share() {
@@ -246,6 +263,9 @@ function ReportDialog({
                 <Button type="button" size="sm" variant="outline" onClick={download}>
                   <Download data-icon="inline-start" />
                   {t("inspection.download")}
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => void resend()} disabled={resending}>
+                  {t("inspection.resend")}
                 </Button>
                 <Button type="button" size="sm" variant="outline" onClick={() => void share()} disabled={sharing}>
                   <Link2 data-icon="inline-start" />

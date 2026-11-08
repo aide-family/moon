@@ -121,6 +121,13 @@ export function getInspectionReport(
   return get<{ report: InspectionReport }>(`/inspection/reports/${uid}`)
 }
 
+/** POST /v1/inspection/reports/{uid}/resend */
+export function resendInspectionReport(
+  uid: string
+): Promise<{ created: number }> {
+  return post<{ created: number }>(`/inspection/reports/${uid}/resend`, {})
+}
+
 /** POST /v1/inspection/reports/{uid}/share */
 export function shareInspectionReport(
   uid: string,

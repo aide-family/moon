@@ -84,6 +84,13 @@ service InspectionRunService {
   rpc GetSharedInspectionReport(GetSharedInspectionReportRequest) returns (GetSharedInspectionReportResponse) {
     option (google.api.http) = {get: "/v1/public/inspection-reports/{token}"};
   }
+  // 重新发送一份报告摘要到计划绑定的通知组。
+  rpc ResendInspectionReport(ResendInspectionReportRequest) returns (ResendInspectionReportResponse) {
+    option (google.api.http) = {
+      post: "/v1/inspection/reports/{uid}/resend"
+      body: "*"
+    };
+  }
 }
 
 // 巡检报告模板：一份版式、两段正文，HTML 与 Markdown 共用同一份数据契约。
@@ -621,4 +628,17 @@ message GetSharedInspectionReportResponse {
   string content = 3;
   // 生成时间，RFC3339。
   string created_at = 4 [json_name = "createdAt"];
+}
+
+
+// 重新发送报告请求。
+message ResendInspectionReportRequest {
+  // 报告标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 重新发送报告响应。
+message ResendInspectionReportResponse {
+  // 本次创建的投递任务数。
+  int32 created = 1;
 }

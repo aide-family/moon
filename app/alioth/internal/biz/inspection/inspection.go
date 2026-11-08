@@ -501,3 +501,30 @@ func (gateway *Gateway) ListRuns(ctx context.Context, pageNo, pageSize int32, fi
 	items, total, err := gateway.repo.ListInspectionRuns(ctx, ns, filter, p, s)
 	return items, total, p, s, gateway.access.Wrap(err)
 }
+
+// ResendReport 把指定报告重新入队投递。使用独立来源标识，避免被
+// (event_uid, phase, group_uid, channel_uid) 唯一索引挡住。
+func (gateway *Gateway) ResendReport(ctx context.Context, uid string) (int, error) {
+	ns, err := gateway.access.Allow(ctx, perm.InspectionRun)
+	if err != nil {
+		return 0, err
+	}
+	report, err := gateway.repo.GetInspectionReport(ctx, ns, uid)
+	if err != nil {
+		return 0, gateway.access.Wrap(err)
+	}
+	run, err := gateway.repo.GetInspectionRun(ctx, ns, report.RunUID)
+	if err != nil {
+		return 0, gateway.access.Wrap(err)
+	}
+	plan, err := gateway.repo.GetInspectionPlan(ctx, ns, run.PlanUID)
+	if err != nil {
+		return 0, gateway.access.Wrap(err)
+	}
+	if len(plan.NotificationGroupUIDs) == 0 {
+		return 0, merr.Invalid("inspection plan has no notification groups")
+	}
+	subject, body := reportNotice(*plan, *run)
+	source := run.UID + ":resend:" + id.New()
+	return gateway.notifications.DispatchInspectionReport(ctx, ns, source, subject, body, plan.NotificationGroupUIDs)
+}

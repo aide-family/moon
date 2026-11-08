@@ -3155,6 +3155,98 @@ func (x *GetSharedInspectionReportResponse) GetCreatedAt() string {
 	return ""
 }
 
+// 重新发送报告请求。
+type ResendInspectionReportRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 报告标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResendInspectionReportRequest) Reset() {
+	*x = ResendInspectionReportRequest{}
+	mi := &file_alioth_v1_inspection_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResendInspectionReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResendInspectionReportRequest) ProtoMessage() {}
+
+func (x *ResendInspectionReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_inspection_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResendInspectionReportRequest.ProtoReflect.Descriptor instead.
+func (*ResendInspectionReportRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_inspection_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *ResendInspectionReportRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 重新发送报告响应。
+type ResendInspectionReportResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 本次创建的投递任务数。
+	Created       int32 `protobuf:"varint,1,opt,name=created,proto3" json:"created,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResendInspectionReportResponse) Reset() {
+	*x = ResendInspectionReportResponse{}
+	mi := &file_alioth_v1_inspection_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResendInspectionReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResendInspectionReportResponse) ProtoMessage() {}
+
+func (x *ResendInspectionReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_inspection_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResendInspectionReportResponse.ProtoReflect.Descriptor instead.
+func (*ResendInspectionReportResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_inspection_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *ResendInspectionReportResponse) GetCreated() int32 {
+	if x != nil {
+		return x.Created
+	}
+	return 0
+}
+
 var File_alioth_v1_inspection_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_inspection_proto_rawDesc = "" +
@@ -3389,14 +3481,19 @@ const file_alioth_v1_inspection_proto_rawDesc = "" +
 	"\x06format\x18\x02 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\tR\tcreatedAt2\xf5\x06\n" +
+	"created_at\x18\x04 \x01(\tR\tcreatedAt\":\n" +
+	"\x1dResendInspectionReportRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\":\n" +
+	"\x1eResendInspectionReportResponse\x12\x18\n" +
+	"\acreated\x18\x01 \x01(\x05R\acreated2\xf5\x06\n" +
 	"\x15InspectionPlanService\x12\x88\x01\n" +
 	"\x14CreateInspectionPlan\x12&.alioth.v1.CreateInspectionPlanRequest\x1a'.alioth.v1.CreateInspectionPlanResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/inspection/plans\x12\x8e\x01\n" +
 	"\x14UpdateInspectionPlan\x12&.alioth.v1.UpdateInspectionPlanRequest\x1a'.alioth.v1.UpdateInspectionPlanResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/v1/inspection/plans/{uid}\x12\xa7\x01\n" +
 	"\x1aUpdateInspectionPlanStatus\x12,.alioth.v1.UpdateInspectionPlanStatusRequest\x1a-.alioth.v1.UpdateInspectionPlanStatusResponse\",\x82\xd3\xe4\x93\x02&:\x01*\x1a!/v1/inspection/plans/{uid}/status\x12\x8b\x01\n" +
 	"\x14DeleteInspectionPlan\x12&.alioth.v1.DeleteInspectionPlanRequest\x1a'.alioth.v1.DeleteInspectionPlanResponse\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/v1/inspection/plans/{uid}\x12\x82\x01\n" +
 	"\x11GetInspectionPlan\x12#.alioth.v1.GetInspectionPlanRequest\x1a$.alioth.v1.GetInspectionPlanResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/inspection/plans/{uid}\x12\x82\x01\n" +
-	"\x13ListInspectionPlans\x12%.alioth.v1.ListInspectionPlansRequest\x1a&.alioth.v1.ListInspectionPlansResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/inspection/plans2\xa1\t\n" +
+	"\x13ListInspectionPlans\x12%.alioth.v1.ListInspectionPlansRequest\x1a&.alioth.v1.ListInspectionPlansResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/inspection/plans2\xc1\n" +
+	"\n" +
 	"\x14InspectionRunService\x12\x89\x01\n" +
 	"\x11RunInspectionPlan\x12#.alioth.v1.RunInspectionPlanRequest\x1a$.alioth.v1.RunInspectionPlanResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/v1/inspection/plans/{uid}/run\x12~\n" +
 	"\x12ListInspectionRuns\x12$.alioth.v1.ListInspectionRunsRequest\x1a%.alioth.v1.ListInspectionRunsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/inspection/runs\x12~\n" +
@@ -3405,7 +3502,8 @@ const file_alioth_v1_inspection_proto_rawDesc = "" +
 	"\x13GetInspectionReport\x12%.alioth.v1.GetInspectionReportRequest\x1a&.alioth.v1.GetInspectionReportResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/v1/inspection/reports/{uid}\x12\x99\x01\n" +
 	"\x15ShareInspectionReport\x12'.alioth.v1.ShareInspectionReportRequest\x1a(.alioth.v1.ShareInspectionReportResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/v1/inspection/reports/{uid}/share\x12\xa8\x01\n" +
 	"\x1bRevokeInspectionReportShare\x12-.alioth.v1.RevokeInspectionReportShareRequest\x1a..alioth.v1.RevokeInspectionReportShareResponse\"*\x82\xd3\xe4\x93\x02$*\"/v1/inspection/reports/{uid}/share\x12\xa5\x01\n" +
-	"\x19GetSharedInspectionReport\x12+.alioth.v1.GetSharedInspectionReportRequest\x1a,.alioth.v1.GetSharedInspectionReportResponse\"-\x82\xd3\xe4\x93\x02'\x12%/v1/public/inspection-reports/{token}2\x9f\x06\n" +
+	"\x19GetSharedInspectionReport\x12+.alioth.v1.GetSharedInspectionReportRequest\x1a,.alioth.v1.GetSharedInspectionReportResponse\"-\x82\xd3\xe4\x93\x02'\x12%/v1/public/inspection-reports/{token}\x12\x9d\x01\n" +
+	"\x16ResendInspectionReport\x12(.alioth.v1.ResendInspectionReportRequest\x1a).alioth.v1.ResendInspectionReportResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/inspection/reports/{uid}/resend2\x9f\x06\n" +
 	"\x19InspectionTemplateService\x12\x98\x01\n" +
 	"\x18CreateInspectionTemplate\x12*.alioth.v1.CreateInspectionTemplateRequest\x1a+.alioth.v1.CreateInspectionTemplateResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/inspection/templates\x12\x9e\x01\n" +
 	"\x18UpdateInspectionTemplate\x12*.alioth.v1.UpdateInspectionTemplateRequest\x1a+.alioth.v1.UpdateInspectionTemplateResponse\")\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/v1/inspection/templates/{uid}\x12\x9b\x01\n" +
@@ -3425,7 +3523,7 @@ func file_alioth_v1_inspection_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_inspection_proto_rawDescData
 }
 
-var file_alioth_v1_inspection_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_alioth_v1_inspection_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
 var file_alioth_v1_inspection_proto_goTypes = []any{
 	(*InspectionPlanItem)(nil),                  // 0: alioth.v1.InspectionPlanItem
 	(*InspectionPlan)(nil),                      // 1: alioth.v1.InspectionPlan
@@ -3472,6 +3570,8 @@ var file_alioth_v1_inspection_proto_goTypes = []any{
 	(*RevokeInspectionReportShareResponse)(nil), // 42: alioth.v1.RevokeInspectionReportShareResponse
 	(*GetSharedInspectionReportRequest)(nil),    // 43: alioth.v1.GetSharedInspectionReportRequest
 	(*GetSharedInspectionReportResponse)(nil),   // 44: alioth.v1.GetSharedInspectionReportResponse
+	(*ResendInspectionReportRequest)(nil),       // 45: alioth.v1.ResendInspectionReportRequest
+	(*ResendInspectionReportResponse)(nil),      // 46: alioth.v1.ResendInspectionReportResponse
 }
 var file_alioth_v1_inspection_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.InspectionPlan.items:type_name -> alioth.v1.InspectionPlanItem
@@ -3508,32 +3608,34 @@ var file_alioth_v1_inspection_proto_depIdxs = []int32{
 	39, // 31: alioth.v1.InspectionRunService.ShareInspectionReport:input_type -> alioth.v1.ShareInspectionReportRequest
 	41, // 32: alioth.v1.InspectionRunService.RevokeInspectionReportShare:input_type -> alioth.v1.RevokeInspectionReportShareRequest
 	43, // 33: alioth.v1.InspectionRunService.GetSharedInspectionReport:input_type -> alioth.v1.GetSharedInspectionReportRequest
-	17, // 34: alioth.v1.InspectionTemplateService.CreateInspectionTemplate:input_type -> alioth.v1.CreateInspectionTemplateRequest
-	19, // 35: alioth.v1.InspectionTemplateService.UpdateInspectionTemplate:input_type -> alioth.v1.UpdateInspectionTemplateRequest
-	21, // 36: alioth.v1.InspectionTemplateService.DeleteInspectionTemplate:input_type -> alioth.v1.DeleteInspectionTemplateRequest
-	23, // 37: alioth.v1.InspectionTemplateService.GetInspectionTemplate:input_type -> alioth.v1.GetInspectionTemplateRequest
-	25, // 38: alioth.v1.InspectionTemplateService.ListInspectionTemplates:input_type -> alioth.v1.ListInspectionTemplatesRequest
-	5,  // 39: alioth.v1.InspectionPlanService.CreateInspectionPlan:output_type -> alioth.v1.CreateInspectionPlanResponse
-	7,  // 40: alioth.v1.InspectionPlanService.UpdateInspectionPlan:output_type -> alioth.v1.UpdateInspectionPlanResponse
-	9,  // 41: alioth.v1.InspectionPlanService.UpdateInspectionPlanStatus:output_type -> alioth.v1.UpdateInspectionPlanStatusResponse
-	11, // 42: alioth.v1.InspectionPlanService.DeleteInspectionPlan:output_type -> alioth.v1.DeleteInspectionPlanResponse
-	13, // 43: alioth.v1.InspectionPlanService.GetInspectionPlan:output_type -> alioth.v1.GetInspectionPlanResponse
-	15, // 44: alioth.v1.InspectionPlanService.ListInspectionPlans:output_type -> alioth.v1.ListInspectionPlansResponse
-	29, // 45: alioth.v1.InspectionRunService.RunInspectionPlan:output_type -> alioth.v1.RunInspectionPlanResponse
-	31, // 46: alioth.v1.InspectionRunService.ListInspectionRuns:output_type -> alioth.v1.ListInspectionRunsResponse
-	33, // 47: alioth.v1.InspectionRunService.GetInspectionRun:output_type -> alioth.v1.GetInspectionRunResponse
-	36, // 48: alioth.v1.InspectionRunService.ListRunReports:output_type -> alioth.v1.ListRunReportsResponse
-	38, // 49: alioth.v1.InspectionRunService.GetInspectionReport:output_type -> alioth.v1.GetInspectionReportResponse
-	40, // 50: alioth.v1.InspectionRunService.ShareInspectionReport:output_type -> alioth.v1.ShareInspectionReportResponse
-	42, // 51: alioth.v1.InspectionRunService.RevokeInspectionReportShare:output_type -> alioth.v1.RevokeInspectionReportShareResponse
-	44, // 52: alioth.v1.InspectionRunService.GetSharedInspectionReport:output_type -> alioth.v1.GetSharedInspectionReportResponse
-	18, // 53: alioth.v1.InspectionTemplateService.CreateInspectionTemplate:output_type -> alioth.v1.CreateInspectionTemplateResponse
-	20, // 54: alioth.v1.InspectionTemplateService.UpdateInspectionTemplate:output_type -> alioth.v1.UpdateInspectionTemplateResponse
-	22, // 55: alioth.v1.InspectionTemplateService.DeleteInspectionTemplate:output_type -> alioth.v1.DeleteInspectionTemplateResponse
-	24, // 56: alioth.v1.InspectionTemplateService.GetInspectionTemplate:output_type -> alioth.v1.GetInspectionTemplateResponse
-	26, // 57: alioth.v1.InspectionTemplateService.ListInspectionTemplates:output_type -> alioth.v1.ListInspectionTemplatesResponse
-	39, // [39:58] is the sub-list for method output_type
-	20, // [20:39] is the sub-list for method input_type
+	45, // 34: alioth.v1.InspectionRunService.ResendInspectionReport:input_type -> alioth.v1.ResendInspectionReportRequest
+	17, // 35: alioth.v1.InspectionTemplateService.CreateInspectionTemplate:input_type -> alioth.v1.CreateInspectionTemplateRequest
+	19, // 36: alioth.v1.InspectionTemplateService.UpdateInspectionTemplate:input_type -> alioth.v1.UpdateInspectionTemplateRequest
+	21, // 37: alioth.v1.InspectionTemplateService.DeleteInspectionTemplate:input_type -> alioth.v1.DeleteInspectionTemplateRequest
+	23, // 38: alioth.v1.InspectionTemplateService.GetInspectionTemplate:input_type -> alioth.v1.GetInspectionTemplateRequest
+	25, // 39: alioth.v1.InspectionTemplateService.ListInspectionTemplates:input_type -> alioth.v1.ListInspectionTemplatesRequest
+	5,  // 40: alioth.v1.InspectionPlanService.CreateInspectionPlan:output_type -> alioth.v1.CreateInspectionPlanResponse
+	7,  // 41: alioth.v1.InspectionPlanService.UpdateInspectionPlan:output_type -> alioth.v1.UpdateInspectionPlanResponse
+	9,  // 42: alioth.v1.InspectionPlanService.UpdateInspectionPlanStatus:output_type -> alioth.v1.UpdateInspectionPlanStatusResponse
+	11, // 43: alioth.v1.InspectionPlanService.DeleteInspectionPlan:output_type -> alioth.v1.DeleteInspectionPlanResponse
+	13, // 44: alioth.v1.InspectionPlanService.GetInspectionPlan:output_type -> alioth.v1.GetInspectionPlanResponse
+	15, // 45: alioth.v1.InspectionPlanService.ListInspectionPlans:output_type -> alioth.v1.ListInspectionPlansResponse
+	29, // 46: alioth.v1.InspectionRunService.RunInspectionPlan:output_type -> alioth.v1.RunInspectionPlanResponse
+	31, // 47: alioth.v1.InspectionRunService.ListInspectionRuns:output_type -> alioth.v1.ListInspectionRunsResponse
+	33, // 48: alioth.v1.InspectionRunService.GetInspectionRun:output_type -> alioth.v1.GetInspectionRunResponse
+	36, // 49: alioth.v1.InspectionRunService.ListRunReports:output_type -> alioth.v1.ListRunReportsResponse
+	38, // 50: alioth.v1.InspectionRunService.GetInspectionReport:output_type -> alioth.v1.GetInspectionReportResponse
+	40, // 51: alioth.v1.InspectionRunService.ShareInspectionReport:output_type -> alioth.v1.ShareInspectionReportResponse
+	42, // 52: alioth.v1.InspectionRunService.RevokeInspectionReportShare:output_type -> alioth.v1.RevokeInspectionReportShareResponse
+	44, // 53: alioth.v1.InspectionRunService.GetSharedInspectionReport:output_type -> alioth.v1.GetSharedInspectionReportResponse
+	46, // 54: alioth.v1.InspectionRunService.ResendInspectionReport:output_type -> alioth.v1.ResendInspectionReportResponse
+	18, // 55: alioth.v1.InspectionTemplateService.CreateInspectionTemplate:output_type -> alioth.v1.CreateInspectionTemplateResponse
+	20, // 56: alioth.v1.InspectionTemplateService.UpdateInspectionTemplate:output_type -> alioth.v1.UpdateInspectionTemplateResponse
+	22, // 57: alioth.v1.InspectionTemplateService.DeleteInspectionTemplate:output_type -> alioth.v1.DeleteInspectionTemplateResponse
+	24, // 58: alioth.v1.InspectionTemplateService.GetInspectionTemplate:output_type -> alioth.v1.GetInspectionTemplateResponse
+	26, // 59: alioth.v1.InspectionTemplateService.ListInspectionTemplates:output_type -> alioth.v1.ListInspectionTemplatesResponse
+	40, // [40:60] is the sub-list for method output_type
+	20, // [20:40] is the sub-list for method input_type
 	20, // [20:20] is the sub-list for extension type_name
 	20, // [20:20] is the sub-list for extension extendee
 	0,  // [0:20] is the sub-list for field type_name
@@ -3550,7 +3652,7 @@ func file_alioth_v1_inspection_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_inspection_proto_rawDesc), len(file_alioth_v1_inspection_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   45,
+			NumMessages:   47,
 			NumExtensions: 0,
 			NumServices:   3,
 		},

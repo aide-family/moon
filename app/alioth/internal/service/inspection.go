@@ -323,3 +323,11 @@ func (s *InspectionRunService) GetSharedInspectionReport(ctx context.Context, re
 		CreatedAt: formatTime(report.CreatedAt),
 	}, nil
 }
+
+func (s *InspectionRunService) ResendInspectionReport(ctx context.Context, req *v1.ResendInspectionReportRequest) (*v1.ResendInspectionReportResponse, error) {
+	created, err := s.gateway.ResendReport(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ResendInspectionReportResponse{Created: int32(created)}, nil
+}

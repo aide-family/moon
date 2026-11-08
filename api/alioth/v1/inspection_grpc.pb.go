@@ -335,6 +335,7 @@ const (
 	InspectionRunService_ShareInspectionReport_FullMethodName       = "/alioth.v1.InspectionRunService/ShareInspectionReport"
 	InspectionRunService_RevokeInspectionReportShare_FullMethodName = "/alioth.v1.InspectionRunService/RevokeInspectionReportShare"
 	InspectionRunService_GetSharedInspectionReport_FullMethodName   = "/alioth.v1.InspectionRunService/GetSharedInspectionReport"
+	InspectionRunService_ResendInspectionReport_FullMethodName      = "/alioth.v1.InspectionRunService/ResendInspectionReport"
 )
 
 // InspectionRunServiceClient is the client API for InspectionRunService service.
@@ -359,6 +360,8 @@ type InspectionRunServiceClient interface {
 	RevokeInspectionReportShare(ctx context.Context, in *RevokeInspectionReportShareRequest, opts ...grpc.CallOption) (*RevokeInspectionReportShareResponse, error)
 	// 按 token 读取公开报告，无需登录与租户头。
 	GetSharedInspectionReport(ctx context.Context, in *GetSharedInspectionReportRequest, opts ...grpc.CallOption) (*GetSharedInspectionReportResponse, error)
+	// 重新发送一份报告摘要到计划绑定的通知组。
+	ResendInspectionReport(ctx context.Context, in *ResendInspectionReportRequest, opts ...grpc.CallOption) (*ResendInspectionReportResponse, error)
 }
 
 type inspectionRunServiceClient struct {
@@ -449,6 +452,16 @@ func (c *inspectionRunServiceClient) GetSharedInspectionReport(ctx context.Conte
 	return out, nil
 }
 
+func (c *inspectionRunServiceClient) ResendInspectionReport(ctx context.Context, in *ResendInspectionReportRequest, opts ...grpc.CallOption) (*ResendInspectionReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResendInspectionReportResponse)
+	err := c.cc.Invoke(ctx, InspectionRunService_ResendInspectionReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // InspectionRunServiceServer is the server API for InspectionRunService service.
 // All implementations must embed UnimplementedInspectionRunServiceServer
 // for forward compatibility.
@@ -471,6 +484,8 @@ type InspectionRunServiceServer interface {
 	RevokeInspectionReportShare(context.Context, *RevokeInspectionReportShareRequest) (*RevokeInspectionReportShareResponse, error)
 	// 按 token 读取公开报告，无需登录与租户头。
 	GetSharedInspectionReport(context.Context, *GetSharedInspectionReportRequest) (*GetSharedInspectionReportResponse, error)
+	// 重新发送一份报告摘要到计划绑定的通知组。
+	ResendInspectionReport(context.Context, *ResendInspectionReportRequest) (*ResendInspectionReportResponse, error)
 	mustEmbedUnimplementedInspectionRunServiceServer()
 }
 
@@ -504,6 +519,9 @@ func (UnimplementedInspectionRunServiceServer) RevokeInspectionReportShare(conte
 }
 func (UnimplementedInspectionRunServiceServer) GetSharedInspectionReport(context.Context, *GetSharedInspectionReportRequest) (*GetSharedInspectionReportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSharedInspectionReport not implemented")
+}
+func (UnimplementedInspectionRunServiceServer) ResendInspectionReport(context.Context, *ResendInspectionReportRequest) (*ResendInspectionReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResendInspectionReport not implemented")
 }
 func (UnimplementedInspectionRunServiceServer) mustEmbedUnimplementedInspectionRunServiceServer() {}
 func (UnimplementedInspectionRunServiceServer) testEmbeddedByValue()                              {}
@@ -670,6 +688,24 @@ func _InspectionRunService_GetSharedInspectionReport_Handler(srv interface{}, ct
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InspectionRunService_ResendInspectionReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResendInspectionReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InspectionRunServiceServer).ResendInspectionReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InspectionRunService_ResendInspectionReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InspectionRunServiceServer).ResendInspectionReport(ctx, req.(*ResendInspectionReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InspectionRunService_ServiceDesc is the grpc.ServiceDesc for InspectionRunService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -708,6 +744,10 @@ var InspectionRunService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSharedInspectionReport",
 			Handler:    _InspectionRunService_GetSharedInspectionReport_Handler,
+		},
+		{
+			MethodName: "ResendInspectionReport",
+			Handler:    _InspectionRunService_ResendInspectionReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

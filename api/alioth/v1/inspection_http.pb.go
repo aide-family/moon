@@ -308,6 +308,7 @@ const OperationInspectionRunServiceGetInspectionRun = "/alioth.v1.InspectionRunS
 const OperationInspectionRunServiceGetSharedInspectionReport = "/alioth.v1.InspectionRunService/GetSharedInspectionReport"
 const OperationInspectionRunServiceListInspectionRuns = "/alioth.v1.InspectionRunService/ListInspectionRuns"
 const OperationInspectionRunServiceListRunReports = "/alioth.v1.InspectionRunService/ListRunReports"
+const OperationInspectionRunServiceResendInspectionReport = "/alioth.v1.InspectionRunService/ResendInspectionReport"
 const OperationInspectionRunServiceRevokeInspectionReportShare = "/alioth.v1.InspectionRunService/RevokeInspectionReportShare"
 const OperationInspectionRunServiceRunInspectionPlan = "/alioth.v1.InspectionRunService/RunInspectionPlan"
 const OperationInspectionRunServiceShareInspectionReport = "/alioth.v1.InspectionRunService/ShareInspectionReport"
@@ -323,6 +324,8 @@ type InspectionRunServiceHTTPServer interface {
 	ListInspectionRuns(context.Context, *ListInspectionRunsRequest) (*ListInspectionRunsResponse, error)
 	// ListRunReports 列出一次执行生成的报告。
 	ListRunReports(context.Context, *ListRunReportsRequest) (*ListRunReportsResponse, error)
+	// ResendInspectionReport 重新发送一份报告摘要到计划绑定的通知组。
+	ResendInspectionReport(context.Context, *ResendInspectionReportRequest) (*ResendInspectionReportResponse, error)
 	// RevokeInspectionReportShare 停用报告的公开链接。
 	RevokeInspectionReportShare(context.Context, *RevokeInspectionReportShareRequest) (*RevokeInspectionReportShareResponse, error)
 	// RunInspectionPlan 手动触发一次巡检。计划已有执行中的记录时返回冲突。
@@ -341,6 +344,7 @@ func RegisterInspectionRunServiceHTTPServer(s *http.Server, srv InspectionRunSer
 	r.Handle("POST", "/v1/inspection/reports/{uid}/share", _InspectionRunService_ShareInspectionReport0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/inspection/reports/{uid}/share", _InspectionRunService_RevokeInspectionReportShare0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/public/inspection-reports/{token}", _InspectionRunService_GetSharedInspectionReport0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/inspection/reports/{uid}/resend", _InspectionRunService_ResendInspectionReport0_HTTP_Handler(srv))
 }
 
 func _InspectionRunService_RunInspectionPlan0_HTTP_Handler(srv InspectionRunServiceHTTPServer) func(ctx http.Context) error {
@@ -516,6 +520,28 @@ func _InspectionRunService_GetSharedInspectionReport0_HTTP_Handler(srv Inspectio
 	}
 }
 
+func _InspectionRunService_ResendInspectionReport0_HTTP_Handler(srv InspectionRunServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResendInspectionReportRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInspectionRunServiceResendInspectionReport)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResendInspectionReport(ctx, req.(*ResendInspectionReportRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResendInspectionReportResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type InspectionRunServiceHTTPClient interface {
 	// GetInspectionReport 获取报告快照，包含正文。
 	GetInspectionReport(ctx context.Context, req *GetInspectionReportRequest, opts ...http.CallOption) (rsp *GetInspectionReportResponse, err error)
@@ -527,6 +553,8 @@ type InspectionRunServiceHTTPClient interface {
 	ListInspectionRuns(ctx context.Context, req *ListInspectionRunsRequest, opts ...http.CallOption) (rsp *ListInspectionRunsResponse, err error)
 	// ListRunReports 列出一次执行生成的报告。
 	ListRunReports(ctx context.Context, req *ListRunReportsRequest, opts ...http.CallOption) (rsp *ListRunReportsResponse, err error)
+	// ResendInspectionReport 重新发送一份报告摘要到计划绑定的通知组。
+	ResendInspectionReport(ctx context.Context, req *ResendInspectionReportRequest, opts ...http.CallOption) (rsp *ResendInspectionReportResponse, err error)
 	// RevokeInspectionReportShare 停用报告的公开链接。
 	RevokeInspectionReportShare(ctx context.Context, req *RevokeInspectionReportShareRequest, opts ...http.CallOption) (rsp *RevokeInspectionReportShareResponse, err error)
 	// RunInspectionPlan 手动触发一次巡检。计划已有执行中的记录时返回冲突。
@@ -622,6 +650,24 @@ func (c *InspectionRunServiceHTTPClientImpl) ListRunReports(ctx context.Context,
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ResendInspectionReport 重新发送一份报告摘要到计划绑定的通知组。
+func (c *InspectionRunServiceHTTPClientImpl) ResendInspectionReport(ctx context.Context, in *ResendInspectionReportRequest, opts ...http.CallOption) (*ResendInspectionReportResponse, error) {
+	var out ResendInspectionReportResponse
+	pattern := "/v1/inspection/reports/{uid}/resend"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationInspectionRunServiceResendInspectionReport),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

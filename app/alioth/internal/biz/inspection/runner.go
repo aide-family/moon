@@ -182,26 +182,7 @@ func (gateway *Gateway) deliver(ctx context.Context, plan bo.InspectionPlan, run
 	if plan.NotifyPolicy == "ON_ABNORMAL" && run.ItemWarn+run.ItemFailed == 0 {
 		return
 	}
-	finished := run.ScheduledAt
-	if run.FinishedAt != nil {
-		finished = *run.FinishedAt
-	}
-	subject := fmt.Sprintf("[巡检] %s · %s", plan.Name, finished.Local().Format("2006-01-02 15:04"))
-	baseURL := strings.TrimRight(strings.TrimSpace(os.Getenv("ALIOTH_CONSOLE_BASE_URL")), "/")
-	link := ""
-	if baseURL != "" {
-		link = baseURL + "/inspection/runs/" + run.UID
-	}
-	body := fmt.Sprintf(
-		"巡检：%s\n时间：%s\n结果：%d 项，%d 正常，%d 警告，%d 失败",
-		plan.Name, finished.Local().Format("2006-01-02 15:04"),
-		run.ItemTotal, run.ItemOK, run.ItemWarn, run.ItemFailed,
-	)
-	if link != "" {
-		body += "\n报告：" + link
-	} else {
-		body += "\n报告：请登录 Alioth 查看执行 " + run.UID
-	}
+	subject, body := reportNotice(plan, run)
 	created, err := gateway.notifications.DispatchInspectionReport(ctx, run.NamespaceUID, run.UID, subject, body, plan.NotificationGroupUIDs)
 	if err != nil {
 		gateway.log.Error(fmt.Sprintf("deliver inspection run %s: %v", run.UID, err))
@@ -381,6 +362,27 @@ func (gateway *Gateway) executeAlerts(ctx context.Context, plan bo.InspectionPla
 		section.Status = "WARN"
 	}
 	section.Note = fmt.Sprintf("窗口内 %s 事件 %d 条", params.Status, len(rows))
+}
+
+// reportNotice 生成投递摘要与报告链接。链接前缀来自 ALIOTH_CONSOLE_BASE_URL。
+func reportNotice(plan bo.InspectionPlan, run bo.InspectionRun) (string, string) {
+	finished := run.ScheduledAt
+	if run.FinishedAt != nil {
+		finished = *run.FinishedAt
+	}
+	subject := fmt.Sprintf("[巡检] %s · %s", plan.Name, finished.Local().Format("2006-01-02 15:04"))
+	baseURL := strings.TrimRight(strings.TrimSpace(os.Getenv("ALIOTH_CONSOLE_BASE_URL")), "/")
+	body := fmt.Sprintf(
+		"巡检：%s\n时间：%s\n结果：%d 项，%d 正常，%d 警告，%d 失败",
+		plan.Name, finished.Local().Format("2006-01-02 15:04"),
+		run.ItemTotal, run.ItemOK, run.ItemWarn, run.ItemFailed,
+	)
+	if baseURL != "" {
+		body += "\n报告：" + baseURL + "/inspection/runs/" + run.UID
+	} else {
+		body += "\n报告：请登录 Alioth 查看执行 " + run.UID
+	}
+	return subject, body
 }
 
 func maxWindow(items []bo.InspectionItem) time.Duration {
