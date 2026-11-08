@@ -804,6 +804,231 @@
     .toast-stack { left: 12px; right: 12px; bottom: 12px; }
     .toast { min-width: 0; max-width: none; width: 100%; }
   }
+
+  /* ============================================================
+     7. UI 评审落地：焦点、密度、对比度、表格与报告排版
+     ============================================================ */
+
+  :focus-visible {
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent);
+  }
+  .input:focus, .select:focus, .textarea:focus, .code-area:focus, .code-area-item:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent);
+  }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--primary); }
+  .switch:focus-visible, .notify-card:focus-within, .radio-card:focus-within {
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 45%, transparent);
+  }
+
+  @media (min-width: 768px) {
+    .content { padding: 24px 24px 32px; }
+  }
+  .stat-cards { gap: 16px; }
+  .stat-card .v { font-size: 30px; font-variant-numeric: tabular-nums; }
+  .stat-card .delta { font-size: 12px; }
+  .stat-card .k { font-size: 12px; font-weight: 500; }
+  .stat-card.plain { background: var(--card); }
+
+  table.tbl { font-size: 14px; }
+  table.tbl th {
+    position: static; background: var(--popover); backdrop-filter: none; height: 40px;
+  }
+  table.tbl td { padding: 8px; vertical-align: middle; }
+  .tbl-wrap { overscroll-behavior: contain; }
+  .cell-stack .sub, .field .hint, .section-hint, .tpl-item .r2, .tpl-card .md { font-size: 12px; }
+  .badge.tone-neutral { color: color-mix(in oklab, var(--foreground) 78%, transparent); }
+  .btn-outline { background: transparent; }
+  .segmented button { font-size: 13px; }
+  .row-actions { gap: 6px; }
+  .btn-run { min-width: 96px; }
+  .btn-danger-ghost { color: var(--danger); }
+  .btn-danger-ghost:hover { background: var(--danger-soft); }
+
+  /* 类别标签：与状态徽标分开，避免所有信息都像可点击 */
+  .tag {
+    display: inline-flex; align-items: center; height: 20px; padding: 0 6px;
+    border-radius: 4px; border: 0; background: var(--muted);
+    color: color-mix(in oklab, var(--foreground) 76%, transparent);
+    font-family: var(--font-mono); font-size: 11.5px; white-space: nowrap;
+  }
+  .group-stack { display: flex; flex-direction: column; gap: 1px; font-size: 12px; line-height: 1.5; min-width: 0; }
+  .group-stack span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  tr[tabindex]:focus-visible {
+    outline: 2px solid var(--ring); outline-offset: -2px;
+  }
+  .mobile-hint { display: none; }
+
+  /* 向导 */
+  .dialog.xl { width: min(calc(100% - 2rem), 64rem); max-height: 80vh; }
+  .step3-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+  .step3-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .step3-preview { position: sticky; top: 0; }
+  .item-row { position: relative; }
+  .item-row .drag {
+    display: inline-flex; color: var(--muted-foreground); opacity: 0; flex: none;
+    transition: opacity .12s ease;
+  }
+  .item-row:hover .drag, .item-row:focus-visible .drag, .item-row.active .drag { opacity: .7; }
+  .item-row .ico { width: 26px; height: 26px; }
+  .item-row.active .ico { background: var(--primary-soft); color: var(--primary-ink); border: 1px solid color-mix(in oklab, var(--primary) 30%, transparent); }
+  .item-row .ord { font-size: 11px; }
+  .code-area-item {
+    width: 100%; min-height: 88px; height: auto; padding: 10px 12px; resize: vertical;
+    font-family: var(--font-mono); font-size: 12px; line-height: 1.7;
+    color: var(--foreground); background: color-mix(in oklab, var(--muted) 55%, var(--popover));
+    border: 1px solid var(--input); border-radius: 10px; outline: none;
+  }
+  .trial-panel { min-height: 96px; }
+  .test-btn { min-width: 92px; }
+  .switch { border: 0; background: transparent; padding: 0; }
+  .switch .track { width: 36px; height: 20px; background: color-mix(in oklab, var(--muted-foreground) 38%, transparent); }
+  .switch .track::after { width: 16px; height: 16px; }
+  .switch[aria-checked="true"] .track::after { transform: translateX(16px); }
+  .schedule-preview {
+    background: color-mix(in oklab, var(--muted) 40%, var(--popover));
+    border: 1px solid var(--border); color: var(--foreground);
+    font-variant-numeric: tabular-nums;
+  }
+  .schedule-preview svg { color: var(--primary-ink); }
+  .enable-row { display: flex; align-items: center; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px; }
+  .enable-row .hint { margin: 0; }
+
+  /* 报告模板：只读提示与预览页签 */
+  .readonly-banner {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    border: 1px solid var(--warning-border); background: color-mix(in oklab, var(--warning-soft) 60%, var(--popover));
+    color: var(--warning); border-radius: 10px; padding: 8px 12px; font-size: 12.5px;
+  }
+  .readonly-banner .grow { flex: 1; }
+  .readonly-banner b { color: var(--warning); }
+  .is-readonly {
+    background: color-mix(in oklab, var(--muted) 55%, var(--popover));
+    color: var(--muted-foreground); cursor: default;
+  }
+  .tpl-preview-pane {
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+    background: color-mix(in oklab, var(--muted) 45%, var(--background));
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .tpl-preview-pane .paper { max-width: 760px; margin: 0 auto; width: 100%; }
+  .syntax-help { font-size: 12px; color: var(--muted-foreground); line-height: 1.7; }
+
+  /* 报告纸 */
+  .report-paper {
+    width: min(100%, 760px);
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 18px 40px -28px rgb(15 23 42 / .28);
+  }
+  .report-canvas {
+    background: color-mix(in oklab, var(--muted) 78%, var(--background));
+    border: 0; padding: 24px 24px 32px;
+  }
+  .report-meta { display: block; font-size: 12px; line-height: 1.9; color: var(--muted-foreground); }
+  .report-meta span { display: inline-block; }
+  .report-meta span + span::before { content: "·"; margin: 0 8px; color: color-mix(in oklab, var(--muted-foreground) 55%, transparent); }
+  .report-meta b { color: var(--foreground); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .report-head .page-title { font-size: 24px; }
+  .report-mobile-hint { display: none; }
+
+  .rp-meta { display: block; font-size: 12px; line-height: 1.9; color: #6b7280; }
+  .rp-meta span { display: inline-block; }
+  .rp-meta span + span::before { content: "·"; margin: 0 8px; color: #d1d5db; }
+  .rp-banner { margin-top: 24px; }
+  .rp-banner b { font-size: 14px; }
+  .rp-banner p { font-size: 12.5px; line-height: 1.7; max-width: 44em; }
+  .rp-banner .bi { background: #b45309; }
+  .rp-banner.ok .bi { background: #047857; }
+  .rp-banner.bad .bi { background: #b42318; }
+  .rp-summary { margin-top: 16px; }
+  .rp-section { margin-top: 24px; }
+  .rp-section h3 { font-size: 15px; }
+  .rp-section .note { font-size: 12px; }
+  .rp-table { font-size: 12.5px; }
+  .rp-table th, .rp-table td { padding: 8px 10px; }
+  .rp-table th { background: #f8fafc; }
+  .rp-code {
+    background: #f8fafc; border: 1px solid #e5e7eb; color: #334155; font-size: 11.5px;
+  }
+  .rp-code .lv-error { color: #b91c1c; }
+  .rp-code .lv-warn { color: #b45309; }
+  .rp-code .lv-time { color: #64748b; }
+  .rp-foot { font-size: 12px; color: #6b7280; }
+  .rp-flag { font-size: 11px; }
+
+  /* 执行记录分页 */
+  .table-pager {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 12px; border-top: 1px solid var(--border); background: var(--background);
+  }
+  .table-pager .info { font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+  .table-pager .pager { gap: 4px; }
+  .table-pager .pager span { font-size: 12px; }
+
+  @media (min-width: 1024px) {
+    .step3-grid { grid-template-columns: minmax(0, 1fr) 320px; }
+  }
+
+  @media (max-width: 720px) {
+    .content { padding: 16px 16px 24px; }
+    .stat-cards { gap: 12px; }
+    .stat-card .v { font-size: 24px; }
+    .page-head-actions .btn { height: 40px; }
+    .filter-grid .input, .filter-grid .select, .filter-grid .segmented { width: 100%; }
+    .filter-grid .inline { width: 100%; }
+    .filter-grid .inline .btn { flex: 1; }
+    .mobile-hint {
+      display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+      border-top: 1px solid var(--border); font-size: 12px; color: var(--muted-foreground);
+    }
+    .report-canvas { overflow-x: auto; overscroll-behavior-x: contain; padding: 12px; }
+    .report-paper { width: 760px; max-width: none; padding: 28px 24px; }
+    .report-mobile-hint {
+      display: flex; align-items: center; gap: 6px; padding: 8px 4px 0;
+      font-size: 12px; color: var(--muted-foreground);
+    }
+    .dialog.xl { width: calc(100% - 1rem); max-height: 92vh; }
+    .item-list { max-height: 240px; }
+    .tpl-preview-pane { padding: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+
+  .trigger-cell {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; color: var(--muted-foreground); white-space: nowrap;
+  }
+  .table-pager .icon-btn[disabled] { opacity: .4; pointer-events: none; }
+
+  .vars-label {
+    display: inline-flex; align-items: center; font-size: 11px; color: var(--muted-foreground);
+    margin-right: 2px; white-space: nowrap;
+  }
+  .rp-banner p { max-width: none; }
+  @media (max-width: 720px) {
+    .report-meta span + span::before { content: none; }
+    .report-meta span { margin-right: 12px; }
+    .report-meta { line-height: 2; }
+    .mobile-hint { border-top: 0; border-bottom: 1px solid var(--border); }
+    .report-mobile-hint { padding: 0 4px 10px; }
+  }
+
+  /* Toast 固定在右上，避免遮挡对话框底部操作 */
+  .toast-stack { top: 64px; bottom: auto; }
+  @media (max-width: 720px) {
+    .toast-stack { top: 56px; bottom: auto; }
+  }
+
+  @media (max-width: 720px) {
+    .filter-grid .select { width: 100% !important; }
+    .filter-grid .input { min-width: 0; }
+    .stat-card .delta .dot { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -923,18 +1148,18 @@
             <span class="delta up"><span class="dot"></span>全部调度正常</span>
           </div>
           <div class="stat-card">
-            <span class="k">今日已执行</span>
+            <span class="k">今日执行</span>
             <span class="v">12<small>次</small></span>
             <span class="delta">手动触发 2 次</span>
           </div>
           <div class="stat-card warn">
             <span class="k">需要关注</span>
             <span class="v">2<small>个任务</small></span>
-            <span class="delta down"><span class="dot"></span>1 份报告部分异常</span>
+            <span class="delta" style="color:var(--warning)"><span class="dot"></span>1 个执行失败 · 1 个部分异常</span>
           </div>
-          <div class="stat-card brand">
+          <div class="stat-card">
             <span class="k">下次执行</span>
-            <span class="v" style="font-size:19px">明天 09:00</span>
+            <span class="v">09:00<small>明天</small></span>
             <span class="delta">核心业务每日巡检</span>
           </div>
         </div>
@@ -954,8 +1179,8 @@
                 <button type="button" aria-pressed="false">暂停 <span class="count">2</span></button>
               </div>
               <span class="grow"></span>
-              <button class="btn btn-sm btn-outline" type="button">重置</button>
-              <button class="btn btn-sm btn-secondary" type="button">
+              <button class="btn btn-outline" type="button">重置</button>
+              <button class="btn btn-secondary" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 搜索
               </button>
@@ -966,7 +1191,7 @@
         <div class="card">
           <div class="control-bar">
             <div class="inline">
-              <strong style="font-size:13px">全部巡检任务</strong>
+              <strong style="font-size:13px">巡检任务</strong>
               <span class="badge tone-neutral" id="plan-total">8</span>
             </div>
             <div class="inline">
@@ -976,11 +1201,15 @@
               </button>
             </div>
           </div>
+          <div class="mobile-hint">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
+            左右滑动查看完整表格
+          </div>
           <div class="tbl-wrap">
-            <table class="tbl" style="min-width:1000px">
+            <table class="tbl" style="min-width:1040px">
               <colgroup>
-                <col /><col style="width:128px" /><col style="width:78px" /><col style="width:150px" />
-                <col style="width:116px" /><col style="width:148px" /><col style="width:96px" /><col style="width:104px" />
+                <col /><col style="width:136px" /><col style="width:72px" /><col style="width:160px" />
+                <col style="width:140px" /><col style="width:148px" /><col style="width:112px" /><col style="width:132px" />
               </colgroup>
               <thead>
                 <tr>
@@ -1001,12 +1230,7 @@
             <h1 class="page-title">执行记录</h1>
             <p class="page-desc">每次定时或手动执行都会留存报告快照；模板修改不会回写历史报告。</p>
           </div>
-          <div class="page-head-actions">
-            <button class="btn btn-outline" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
-              筛选
-            </button>
-          </div>
+
         </div>
 
         <div class="card filter-card">
@@ -1023,8 +1247,12 @@
                 <button type="button" aria-pressed="false">失败</button>
               </div>
               <span class="grow"></span>
-              <button class="btn btn-sm btn-outline" type="button">最近 7 天</button>
-              <button class="btn btn-sm btn-secondary" type="button">查询</button>
+              <button class="btn btn-outline" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                最近 7 天
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <button class="btn btn-secondary" type="button">查询</button>
             </div>
           </div>
         </div>
@@ -1034,20 +1262,36 @@
             <div class="inline"><strong style="font-size:13px">最近执行</strong><span class="badge tone-neutral">24</span></div>
             <span class="total">按开始时间倒序</span>
           </div>
+          <div class="mobile-hint">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
+            左右滑动查看完整表格
+          </div>
           <div class="tbl-wrap">
             <table class="tbl" style="min-width:980px">
               <colgroup>
-                <col /><col style="width:92px" /><col style="width:78px" /><col style="width:132px" />
-                <col style="width:86px" /><col style="width:112px" /><col style="width:128px" /><col style="width:92px" />
+                <col /><col style="width:92px" /><col style="width:92px" /><col style="width:132px" />
+                <col style="width:86px" /><col style="width:120px" /><col style="width:150px" /><col style="width:92px" />
               </colgroup>
               <thead>
                 <tr>
                   <th>巡检任务</th><th>状态</th><th>触发方式</th><th>开始时间</th>
-                  <th style="text-align:right">耗时</th><th>检查项<br /><span style="font-weight:400;font-size:10.5px;color:var(--muted-foreground)">正常 / 警告 / 失败</span></th><th>报告</th><th style="text-align:right">操作</th>
+                  <th style="text-align:right">耗时</th><th>检查项</th><th>报告</th><th style="text-align:right">操作</th>
                 </tr>
               </thead>
               <tbody id="run-rows"></tbody>
             </table>
+          </div>
+          <div class="table-pager">
+            <span class="info">共 24 条 · 每页 8 条</span>
+            <div class="pager">
+              <button class="icon-btn" type="button" disabled aria-label="上一页">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <span>1 / 3 页</span>
+              <button class="icon-btn" type="button" aria-label="下一页">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -1059,26 +1303,27 @@
             <div class="crumb">
               <button type="button" onclick="goto('runs')">执行记录</button>
               <span>/</span>
-              <span>2026-11-07 09:00 · 核心业务每日巡检</span>
+              <span>报告详情</span>
             </div>
-            <h1 class="page-title" style="font-size:22px">核心业务每日巡检 · 2026-11-07 09:00</h1>
+            <h1 class="page-title">核心业务每日巡检</h1>
             <div class="report-meta">
               <span class="inline"><span class="badge tone-warning"><span class="dot"></span>部分异常</span></span>
-              <span>触发方式 <b>定时</b></span>
+              <span>时间 <b>2026-11-07 09:00</b></span>
+              <span>触发 <b>定时</b></span>
               <span>耗时 <b class="tnum">12.4s</b></span>
-              <span>数据窗口 <b>11-06 09:00 → 11-07 09:00</b></span>
-              <span>检查项 <b>8 项 · 6 正常 / 1 警告 / 1 失败</b></span>
+              <span>窗口 <b>11-06 09:00 → 11-07 09:00</b></span>
+              <span>检查项 <b>6 正常 · 1 警告 · 1 失败</b></span>
               <span>模板 <b>标准巡检报告</b></span>
             </div>
           </div>
           <div class="actions">
-            <button class="btn btn-sm btn-outline" type="button" onclick="toast('已下载 HTML 报告','report-2026-11-07.html · 42 KB','info')">
+            <button class="btn btn-outline" type="button" onclick="toast('选择下载格式','原型：默认下载 HTML 报告（42 KB）','info')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
-              下载 HTML
+              下载
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </button>
-            <button class="btn btn-sm btn-outline" type="button" onclick="toast('已下载 Markdown 报告','report-2026-11-07.md · 6 KB','info')">下载 Markdown</button>
-            <button class="btn btn-sm btn-outline" type="button" onclick="toast('已重新入队投递','运维值班组、DBA 组将在 1 分钟内收到','info')">重新发送</button>
-            <button class="btn btn-sm btn-primary" type="button" onclick="toast('已创建新的执行','核心业务每日巡检 · 手动触发','info')">重新执行</button>
+            <button class="btn btn-outline" type="button" onclick="toast('已重新入队投递','运维值班组、DBA 组将在 1 分钟内收到','info')">重新发送</button>
+            <button class="btn btn-primary" type="button" onclick="toast('已创建新的执行','核心业务每日巡检 · 手动触发','info')">重新执行</button>
           </div>
         </div>
 
@@ -1089,27 +1334,29 @@
             <button type="button" aria-pressed="false" data-report-tab="deliveries" onclick="reportTab('deliveries')">发送记录 <span class="count">4</span></button>
           </div>
           <span class="grow"></span>
-          <button class="btn btn-sm btn-outline" type="button" onclick="toggleTheme()">切换深浅色看效果</button>
         </div>
 
         <div id="report-preview">
+          <div class="report-mobile-hint">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
+            左右滑动查看完整报告
+          </div>
           <div class="report-canvas">
             <article class="report-paper">
               <div class="rp-eyebrow">Inspection Report · 星环科技</div>
               <h2 class="rp-title">核心业务每日巡检</h2>
               <div class="rp-meta">
                 <span>执行窗口 2026-11-06 09:00 → 2026-11-07 09:00</span>
-                <span>·</span>
                 <span>生成于 2026-11-07 09:00:12</span>
-                <span>·</span>
-                <span>定时触发 · 耗时 12.4s</span>
+                <span>定时触发</span>
+                <span>耗时 12.4s</span>
               </div>
 
               <div class="rp-banner">
                 <div class="bi">!</div>
                 <div>
                   <b>本次巡检发现 2 项需要关注</b>
-                  <p>6 项正常，1 项警告（订单服务 P95 延迟超出阈值），1 项失败（边缘节点 cn-sh-03 探测不可达）。报告已发送至运维值班组、DBA 组。</p>
+                  <p>订单服务 P95 延迟超出阈值；边缘节点 cn-sh-03 探测不可达。报告已发送至运维值班组、DBA 组。</p>
                 </div>
               </div>
 
@@ -1161,9 +1408,9 @@
               <section class="rp-section">
                 <h3><span class="no">04</span>网关错误日志</h3>
                 <p class="note">日志数据源：Loki 生产 · 查询命中 37 条，展示最近 3 条</p>
-                <div class="rp-code"><span class="lv-time">09:00:02</span> <span class="lv-error">ERROR</span> order-svc upstream timeout after 3000ms <span class="lv-time">trace=8f2c1a</span>
-<span class="lv-time">09:00:03</span> <span class="lv-warn">WARN</span>  gateway retry exhausted path=/api/v1/orders <span class="lv-time">trace=8f2c1a</span>
-<span class="lv-time">09:00:05</span> <span class="lv-error">ERROR</span> order-svc upstream timeout after 3000ms <span class="lv-time">trace=91be04</span></div>
+                <div class="rp-code"><span class="lv-time">09:00:02</span>  <span class="lv-error">ERROR</span>  order-svc upstream timeout after 3000ms  <span class="lv-time">trace=8f2c1a</span>
+<span class="lv-time">09:00:03</span>  <span class="lv-warn">WARN</span>   gateway retry exhausted path=/api/v1/orders  <span class="lv-time">trace=8f2c1a</span>
+<span class="lv-time">09:00:05</span>  <span class="lv-error">ERROR</span>  order-svc upstream timeout after 3000ms  <span class="lv-time">trace=91be04</span></div>
               </section>
 
               <section class="rp-section">
@@ -1180,8 +1427,7 @@
                 <span>报告链接 /inspection-runs/run_01HZX9 · 第 1 次执行</span>
               </div>
             </article>
-          </div>
-        </div>
+          </div>        </div>
 
         <div id="report-markdown" hidden>
           <div class="code-view">
@@ -1226,7 +1472,6 @@
             <p class="page-desc">模板决定报告的版式与章节；HTML 与 Markdown 共享同一份数据契约。</p>
           </div>
           <div class="page-head-actions">
-            <button class="btn btn-outline" type="button" onclick="toast('已复制为自定义模板','标准巡检报告 副本','info')">复制为自定义</button>
             <button class="btn btn-primary" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
               新建模板
@@ -1260,31 +1505,41 @@
           </div>
 
           <div class="card card-body editor-card">
+            <div class="readonly-banner">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span class="grow"><b>系统内置模板不可修改。</b>复制为自定义模板后可编辑并保存。</span>
+              <button class="btn btn-sm btn-outline" type="button" onclick="toast('已复制为自定义模板','标准巡检报告 副本 · 可直接编辑','info')">复制为自定义</button>
+            </div>
             <div class="editor-toolbar">
               <div class="field grow">
                 <label for="tpl-name">模板名称</label>
-                <input class="input" id="tpl-name" value="标准巡检报告" />
+                <input class="input is-readonly" id="tpl-name" value="标准巡检报告" readonly />
               </div>
               <div class="field" style="width:150px">
                 <label>类型</label>
-                <div class="inline" style="height:32px"><span class="badge tone-info">系统内置</span><span class="badge tone-neutral">只读</span></div>
+                <div class="inline" style="height:32px"><span class="muted" style="font-size:12px">只读 · 系统内置</span></div>
               </div>
             </div>
             <div class="editor-toolbar">
-              <div class="segmented" role="group" aria-label="模板格式">
+              <div class="segmented" role="group" aria-label="模板视图">
                 <button type="button" aria-pressed="true" data-tpl-tab="html" onclick="tplTab('html')">HTML</button>
                 <button type="button" aria-pressed="false" data-tpl-tab="md" onclick="tplTab('md')">Markdown</button>
+                <button type="button" aria-pressed="false" data-tpl-tab="preview" onclick="tplTab('preview')">预览</button>
               </div>
               <span class="grow"></span>
               <button class="btn btn-sm btn-outline" type="button" onclick="toast('模板语法校验通过','Parse OK · 0 错误 0 警告','info')">校验语法</button>
-              <button class="btn btn-sm btn-secondary" type="button" onclick="toast('预览已按示例数据刷新','','info')">刷新预览</button>
             </div>
+            <div id="tpl-editor-pane">
             <div class="field">
               <label>变量（点击插入）</label>
               <div class="vars">
+                <span class="vars-label">报告</span>
                 <button type="button" onclick="insertVar('{{.Plan.Name}}')">{{.Plan.Name}}</button>
-                <button type="button" onclick="insertVar('{{.Run.FinishedAt}}')">{{.Run.FinishedAt}}</button>
                 <button type="button" onclick="insertVar('{{.Tenant.Name}}')">{{.Tenant.Name}}</button>
+                <button type="button" onclick="insertVar('{{.Run.FinishedAt}}')">{{.Run.FinishedAt}}</button>
+              </div>
+              <div class="vars" style="margin-top:6px">
+                <span class="vars-label">章节</span>
                 <button type="button" onclick="insertVar('{{.Summary.Abnormal}}')">{{.Summary.Abnormal}}</button>
                 <button type="button" onclick="insertVar('{{range .Sections}}')">{{range .Sections}}</button>
                 <button type="button" onclick="insertVar('{{range .Abnormal}}')">{{range .Abnormal}}</button>
@@ -1292,7 +1547,7 @@
             </div>
             <div class="field">
               <label for="tpl-code">HTML 正文</label>
-              <textarea class="code-area" id="tpl-code" spellcheck="false">&lt;!doctype html&gt;
+              <textarea class="code-area is-readonly" id="tpl-code" spellcheck="false" readonly>&lt;!doctype html&gt;
 &lt;html lang="zh-CN"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;{{.Title}}&lt;/title&gt;&lt;/head&gt;
 &lt;body style="margin:0;background:#f8fafc;font-family:-apple-system,'PingFang SC',sans-serif"&gt;
   &lt;main style="max-width:760px;margin:0 auto;padding:32px 28px;background:#fff"&gt;
@@ -1318,27 +1573,24 @@
 &lt;/body&gt;&lt;/html&gt;</textarea>
               <span class="hint">模板保存前会 Parse 校验；只开放 date / duration / percent / default / join / json 等白名单函数。</span>
             </div>
-            <div class="tpl-layout" style="grid-template-columns:1fr 260px;gap:12px">
-              <div class="wiz-preview" style="padding:12px">
+            </div>
+            <div class="tpl-preview-pane" id="tpl-preview-pane" hidden>
+              <div class="inline" style="justify-content:space-between">
                 <span class="lbl">示例预览 · 760px</span>
-                <div class="paper" style="padding:16px 18px">
+                <span class="badge tone-neutral">示例数据</span>
+              </div>
+              <div class="wiz-preview" style="padding:0;border:0;background:transparent">
+                <div class="paper" style="padding:18px 20px">
                   <div class="pm">INSPECTION REPORT · 星环科技</div>
                   <h4>核心业务每日巡检</h4>
                   <div class="pm">11-06 09:00 → 11-07 09:00 · 定时触发</div>
-                  <div class="pbanner"><b>本次巡检发现 2 项需要关注</b><br />6 项正常，1 项警告，1 项失败。</div>
+                  <div class="pbanner"><b>本次巡检发现 2 项需要关注</b><br />订单服务延迟超出阈值；边缘节点探测不可达。</div>
                   <div class="prow"><span>核心指标概览</span><b style="color:#b45309">警告</b></div>
                   <div class="prow"><span>探测可用性</span><b style="color:#b45309">警告</b></div>
                   <div class="prow"><span>网关错误日志</span><b style="color:#047857">正常</b></div>
                 </div>
               </div>
-              <div style="display:flex;flex-direction:column;gap:8px">
-                <span class="lbl">可用函数</span>
-                <div class="vars">
-                  <button type="button">date</button><button type="button">duration</button><button type="button">percent</button>
-                  <button type="button">default</button><button type="button">join</button><button type="button">json</button>
-                </div>
-                <span class="hint">渲染上限 2 MB，单次 10s；不能读取文件、环境变量或发起请求。</span>
-              </div>
+              <div class="syntax-help">可用函数：date / duration / percent / default / join / json。渲染上限 2 MB、单次 10s；不能读取文件、环境变量或发起请求。</div>
             </div>
           </div>
         </div>
@@ -1370,21 +1622,10 @@
     <div class="dialog-body wizard-body" id="wizard-body">
       <!-- Step 1 -->
       <div class="step-body" data-step="1">
-        <div class="row2">
-          <div class="field">
-            <label for="wiz-name">任务名称 <span class="req">*</span></label>
-            <input class="input" id="wiz-name" value="核心业务每日巡检（副本）" />
-            <span class="hint">租户内唯一，≤64 字符。</span>
-          </div>
-          <div class="field">
-            <label for="wiz-timeout">整次执行超时</label>
-            <select class="select" id="wiz-timeout">
-              <option>5 分钟（默认）</option>
-              <option>10 分钟</option>
-              <option>30 分钟</option>
-            </select>
-            <span class="hint">超时后未完成的检查项记为失败，报告标为部分异常。</span>
-          </div>
+        <div class="field">
+          <label for="wiz-name">任务名称 <span class="req">*</span></label>
+          <input class="input" id="wiz-name" placeholder="例如：核心业务每日巡检" autocomplete="off" />
+          <span class="hint">租户内唯一，≤64 字符。</span>
         </div>
         <div class="field">
           <label for="wiz-desc">说明</label>
@@ -1397,14 +1638,22 @@
             <span class="hint">用于列表筛选；键值对用逗号分隔。</span>
           </div>
           <div class="field">
-            <label>创建人</label>
-            <div class="inline" style="height:32px"><div class="avatar" style="width:24px;height:24px;font-size:10px">H</div><span style="font-size:13px">hubiao · 平台管理员</span></div>
+            <label for="wiz-timeout">整次执行超时</label>
+            <select class="select" id="wiz-timeout">
+              <option>5 分钟（默认）</option>
+              <option>10 分钟</option>
+              <option>30 分钟</option>
+            </select>
+            <span class="hint">超时后未完成的检查项记为失败，报告标为部分异常。</span>
           </div>
         </div>
         <div class="field">
           <label for="wiz-remark">备注</label>
           <textarea class="textarea" id="wiz-remark" placeholder="可选，写给同事看的上下文"></textarea>
         </div>
+        <p class="hint" style="display:flex;align-items:center;gap:6px;margin:0">
+          创建人 <span class="avatar" style="width:20px;height:20px;font-size:10px">H</span> hubiao · 平台管理员
+        </p>
       </div>
 
       <!-- Step 2 -->
@@ -1426,7 +1675,7 @@
             <div class="editor-head">
               <span class="t" id="item-editor-title"><span class="badge tone-info">指标查询</span> 核心指标概览</span>
               <div class="inline">
-                <button class="btn btn-sm btn-ghost" type="button">删除</button>
+                <button class="btn btn-sm btn-ghost btn-danger-ghost" type="button">删除</button>
               </div>
             </div>
             <div class="row2">
@@ -1446,7 +1695,7 @@
             </div>
             <div class="field">
               <label>查询语句</label>
-              <textarea class="textarea mono" style="min-height:64px;font-size:12px" id="item-query" spellcheck="false">histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="order"}[5m])))</textarea>
+              <textarea class="code-area-item" id="item-query" spellcheck="false">histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="order"}[5m])))</textarea>
             </div>
             <div class="row3">
               <div class="field">
@@ -1463,7 +1712,7 @@
               </div>
             </div>
             <div class="inline">
-              <button class="btn btn-sm btn-outline" type="button" id="test-query-btn" onclick="testQuery()">
+              <button class="btn btn-sm btn-outline test-btn" type="button" id="test-query-btn" onclick="testQuery()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 3 14 9-14 9z"/></svg>
                 试查询
               </button>
@@ -1496,45 +1745,50 @@
           <span class="t">报告</span>
           <span class="d">选择版式与输出格式；同一份数据会分别渲染成 HTML 与 Markdown。</span>
         </div>
-        <div class="tpl-cards">
-          <button class="tpl-card" type="button" aria-checked="true">
-            <div class="mini-paper"><i class="t"></i><i class="c" style="width:70%"></i><i></i><i style="width:88%"></i><i style="width:64%"></i><i style="width:76%"></i></div>
-            <span class="mt">标准巡检报告<span class="badge tone-info" style="height:16px;font-size:10px">系统</span></span>
-            <span class="md">HTML + Markdown 双正文；封面、结论、指标卡与检查项明细。</span>
-          </button>
-          <button class="tpl-card" type="button" aria-checked="false">
-            <div class="mini-paper"><i class="t"></i><i></i><i style="width:88%"></i><i style="width:52%"></i><i style="width:76%"></i></div>
-            <span class="mt">核心业务日报</span>
-            <span class="md">自定义双正文：突出指标环比与异常建议。</span>
-          </button>
-          <button class="tpl-card" type="button" aria-checked="false">
-            <div class="mini-paper"><i class="t"></i><i class="c" style="width:60%"></i><i></i><i style="width:82%"></i><i style="width:70%"></i></div>
-            <span class="mt">数据库巡检模板</span>
-            <span class="md">自定义 Markdown：DBA 组专用的精简结构。</span>
-          </button>
-        </div>
-        <div class="row2">
-          <div class="field">
-            <label>输出格式</label>
-            <label class="checkbox-row"><input type="checkbox" checked /><span class="ch"><b>HTML</b><span>单文件报告，含内联样式，适合下载与转发</span></span></label>
-            <label class="checkbox-row" style="margin-top:6px"><input type="checkbox" checked /><span class="ch"><b>Markdown</b><span>适合 Webhook 正文与消息渠道</span></span></label>
+        <div class="step3-grid">
+          <div class="step3-main">
+            <div class="tpl-cards">
+              <button class="tpl-card" type="button" aria-checked="true">
+                <div class="mini-paper"><i class="t"></i><i class="c" style="width:46%;height:6px"></i><i></i><i style="width:88%"></i><i style="width:72%"></i><i style="width:80%"></i></div>
+                <span class="mt">标准巡检报告<span class="badge tone-info" style="height:16px;font-size:10px">系统</span></span>
+                <span class="md">HTML + Markdown 双正文；封面、结论、指标卡与检查项明细。</span>
+              </button>
+              <button class="tpl-card" type="button" aria-checked="false">
+                <div class="mini-paper"><i class="t"></i><i style="width:52%"></i><i style="width:86%"></i><i style="width:68%"></i><i style="width:74%"></i><i style="width:44%"></i></div>
+                <span class="mt">核心业务日报</span>
+                <span class="md">自定义双正文：突出指标环比与异常建议。</span>
+              </button>
+              <button class="tpl-card" type="button" aria-checked="false">
+                <div class="mini-paper"><i class="t"></i><i class="c" style="width:62%;height:4px"></i><i style="width:100%"></i><i style="width:100%"></i><i style="width:100%"></i><i style="width:64%"></i></div>
+                <span class="mt">数据库巡检模板</span>
+                <span class="md">自定义 Markdown：DBA 组专用的精简结构。</span>
+              </button>
+            </div>
+            <div class="row2">
+              <div class="field" role="group" aria-labelledby="wiz-formats-label">
+                <label id="wiz-formats-label">输出格式</label>
+                <label class="checkbox-row"><input type="checkbox" checked /><span class="ch"><b>HTML</b><span>单文件报告，含内联样式，适合下载与转发</span></span></label>
+                <label class="checkbox-row" style="margin-top:6px"><input type="checkbox" checked /><span class="ch"><b>Markdown</b><span>适合 Webhook 正文与消息渠道</span></span></label>
+              </div>
+              <div class="field">
+                <label for="wiz-title-tpl">报告标题模板</label>
+                <input class="input mono" style="font-size:12px" id="wiz-title-tpl" value="{{.Plan.Name}} · {{.Run.FinishedAt | date &quot;2006-01-02 15:04&quot;}}" />
+                <span class="hint">留空使用默认标题。示例：核心业务每日巡检 · 2026-11-07 09:00</span>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label for="wiz-title-tpl">报告标题模板</label>
-            <input class="input mono" style="font-size:12px" id="wiz-title-tpl" value="{{.Plan.Name}} · {{.Run.FinishedAt | date &quot;2006-01-02 15:04&quot;}}" />
-            <span class="hint">留空使用默认标题。渲染结果示例：核心业务每日巡检 · 2026-11-07 09:00</span>
-          </div>
-        </div>
-        <div class="wiz-preview">
-          <span class="lbl">报告预览（示例数据，非真实查询）</span>
-          <div class="paper">
-            <div class="pm">INSPECTION REPORT · 星环科技</div>
-            <h4>核心业务每日巡检</h4>
-            <div class="pm">2026-11-06 09:00 → 2026-11-07 09:00 · 定时触发</div>
-            <div class="pbanner"><b>本次巡检发现 2 项需要关注</b><br />6 项正常，1 项警告，1 项失败。</div>
-            <div class="prow"><span>核心指标概览</span><b style="color:#b45309">警告</b></div>
-            <div class="prow"><span>探测可用性</span><b style="color:#b45309">警告</b></div>
-            <div class="prow"><span>未恢复告警</span><b style="color:#047857">正常</b></div>
+          <div class="wiz-preview step3-preview">
+            <span class="lbl">报告预览（示例数据）</span>
+            <div class="paper">
+              <div class="pm">INSPECTION REPORT · 星环科技</div>
+              <h4>核心业务每日巡检</h4>
+              <div class="pm">2026-11-06 09:00 → 2026-11-07 09:00 · 定时触发</div>
+              <div class="pbanner"><b>本次巡检发现 2 项需要关注</b><br />订单服务延迟超出阈值；边缘节点探测不可达。</div>
+              <div class="prow"><span>核心指标概览</span><b style="color:#b45309">警告</b></div>
+              <div class="prow"><span>探测可用性</span><b style="color:#b45309">警告</b></div>
+              <div class="prow"><span>未恢复告警</span><b style="color:#047857">正常</b></div>
+            </div>
+            <span class="hint">实际报告按所选模板渲染，纸张宽度 760px。</span>
           </div>
         </div>
       </div>
@@ -1607,10 +1861,10 @@
             </label>
           </div>
         </div>
-        <div class="inline" style="justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:10px">
-          <div class="inline">
-            <label class="switch" aria-checked="true" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked') === 'true' ? 'false' : 'true')"><span class="track"></span>保存后启用</label>
-          </div>
+        <div class="enable-row">
+          <button class="switch" type="button" role="switch" aria-checked="true" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked') === 'true' ? 'false' : 'true')">
+            <span class="track"></span>保存后启用
+          </button>
           <span class="hint">暂停的计划不再产生定时执行，已在队列中的执行会继续完成。</span>
         </div>
       </div>
@@ -1649,7 +1903,7 @@ const planData = [
   {
     uid: "p1", name: "核心业务每日巡检",
     desc: "指标 3 · 日志 1 · 探测 2 · 告警 1 · 说明 1",
-    schedule: "每天 09:00", tz: "Asia/Shanghai", items: 8,
+    schedule: "每天 09:00", tz: "UTC+8", items: 8,
     template: "标准巡检报告", formats: ["HTML", "Markdown"],
     groups: ["运维值班组", "DBA 组"],
     last: { tone: "warning", text: "部分异常" }, lastAt: "今天 09:00",
@@ -1658,7 +1912,7 @@ const planData = [
   {
     uid: "p2", name: "数据库集群巡检",
     desc: "指标 2 · 日志 2 · 告警 1",
-    schedule: "每天 08:30", tz: "Asia/Shanghai", items: 5,
+    schedule: "每天 08:30", tz: "UTC+8", items: 5,
     template: "数据库巡检模板", formats: ["Markdown"],
     groups: ["DBA 组"],
     last: { tone: "success", text: "成功" }, lastAt: "今天 08:30",
@@ -1667,7 +1921,7 @@ const planData = [
   {
     uid: "p3", name: "Kubernetes 生产集群巡检",
     desc: "指标 2 · 告警 2 · 说明 2",
-    schedule: "每天 08:00", tz: "Asia/Shanghai", items: 6,
+    schedule: "每天 08:00", tz: "UTC+8", items: 6,
     template: "核心业务日报", formats: ["HTML", "Markdown"],
     groups: ["运维值班组"],
     last: { tone: "success", text: "成功" }, lastAt: "今天 08:00",
@@ -1676,7 +1930,7 @@ const planData = [
   {
     uid: "p4", name: "边缘节点周检",
     desc: "探测 2 · 指标 1 · 告警 1",
-    schedule: "每周一 10:00", tz: "Asia/Shanghai", items: 4,
+    schedule: "每周一 10:00", tz: "UTC+8", items: 4,
     template: "标准巡检报告", formats: ["HTML"],
     groups: ["运维值班组"],
     last: { tone: "danger", text: "失败" }, lastAt: "11-03 10:00",
@@ -1685,7 +1939,7 @@ const planData = [
   {
     uid: "p5", name: "证书到期专项巡检",
     desc: "探测 3",
-    schedule: "每天 18:00", tz: "Asia/Shanghai", items: 3,
+    schedule: "每天 18:00", tz: "UTC+8", items: 3,
     template: "标准巡检报告", formats: ["Markdown"],
     groups: ["运维值班组", "平台负责人"],
     last: { tone: "success", text: "成功" }, lastAt: "昨天 18:00",
@@ -1694,7 +1948,7 @@ const planData = [
   {
     uid: "p6", name: "安全基线月度巡检",
     desc: "说明 1 · 告警 1",
-    schedule: "每月 1 日 09:00", tz: "Asia/Shanghai", items: 2,
+    schedule: "每月 1 日 09:00", tz: "UTC+8", items: 2,
     template: "安全基线报告", formats: ["HTML"],
     groups: ["平台负责人"],
     last: { tone: "neutral", text: "已暂停" }, lastAt: "11-01 09:00",
@@ -1703,7 +1957,7 @@ const planData = [
   {
     uid: "p7", name: "容量水位周报",
     desc: "指标 4",
-    schedule: "每周五 17:00", tz: "Asia/Shanghai", items: 4,
+    schedule: "每周五 17:00", tz: "UTC+8", items: 4,
     template: "核心业务日报", formats: ["HTML", "Markdown"],
     groups: ["平台负责人"],
     last: { tone: "success", text: "成功" }, lastAt: "11-06 17:00",
@@ -1712,7 +1966,7 @@ const planData = [
   {
     uid: "p8", name: "支付链路专项巡检",
     desc: "指标 2 · 探测 1",
-    schedule: "每天 12:00", tz: "Asia/Shanghai", items: 3,
+    schedule: "每天 12:00", tz: "UTC+8", items: 3,
     template: "标准巡检报告", formats: ["HTML"],
     groups: ["运维值班组"],
     last: { tone: "success", text: "成功" }, lastAt: "今天 12:00",
@@ -1764,12 +2018,12 @@ const runData = [
 ];
 
 const wizardItems = [
-  { title: "核心指标概览", kind: "指标查询", icon: "M3 3v18h18", query: 'histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="order"}[5m])))', source: "Prometheus 生产（指标）" },
-  { title: "订单服务延迟", kind: "指标查询", icon: "M3 17l6-6 4 4 7-7", query: 'histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="order"}[5m])))', source: "Prometheus 生产（指标）" },
-  { title: "网关错误日志", kind: "日志查询", icon: "M4 6h16M4 12h16M4 18h10", query: '{app="gateway"} |= "ERROR" | json | level="error"', source: "Loki 生产（日志）" },
-  { title: "核心交易 API 可用性", kind: "探测目标", icon: "M12 3v18M3 12h18", query: "探测目标组：核心交易 API", source: "" },
-  { title: "未恢复告警", kind: "告警事件", icon: "M12 9v4M12 17h.01", query: "当前未恢复 · 级别 >= WARNING", source: "" },
-  { title: "值班建议", kind: "静态说明", icon: "M4 6h16M4 12h16M4 18h10", query: "Markdown 说明段落，不查询数据。", source: "" },
+  { title: "核心指标概览", kind: "指标查询", icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>', query: 'histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="order"}[5m])))', source: "Prometheus 生产（指标）" },
+  { title: "订单服务延迟", kind: "指标查询", icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>', query: 'histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service="order"}[5m])))', source: "Prometheus 生产（指标）" },
+  { title: "网关错误日志", kind: "日志查询", icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/>', query: '{app="gateway"} |= "ERROR" | json | level="error"', source: "Loki 生产（日志）" },
+  { title: "核心交易 API 可用性", kind: "探测目标", icon: '<circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="10"/>', query: "探测目标组：核心交易 API", source: "" },
+  { title: "未恢复告警", kind: "告警事件", icon: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>', query: "当前未恢复 · 级别 >= WARNING", source: "" },
+  { title: "值班建议", kind: "静态说明", icon: '<path d="M4 6h16M4 12h16M4 18h10"/>', query: "Markdown 说明段落，不查询数据。", source: "" },
 ];
 
 const markdownSource = [
@@ -1838,6 +2092,10 @@ function el(html) {
   return tpl.content.firstElementChild;
 }
 
+function tag(text) {
+  return '<span class="tag">' + text + "</span>";
+}
+
 function badge(tone, text, dot) {
   return '<span class="badge tone-' + tone + '">' + (dot ? '<span class="dot"></span>' : "") + text + "</span>";
 }
@@ -1849,18 +2107,23 @@ function planStatusBadge(last) {
 function renderPlans() {
   const rows = document.getElementById("plan-rows");
   rows.innerHTML = planData.map(function (p) {
-    const formats = p.formats.map(function (f) { return badge("neutral", f); }).join("");
+    const formats = p.formats.map(tag).join("");
     const groups = p.groups.length
-      ? '<span class="sub" title="' + p.groups.join("、") + '">' + p.groups.join("、") + "</span>"
+      ? '<div class="group-stack" title="' + p.groups.join("、") + '">' +
+          p.groups.slice(0, 2).map(function (g) { return "<span>" + g + "</span>"; }).join("") +
+          (p.groups.length > 2 ? '<span class="muted">+' + (p.groups.length - 2) + "</span>" : "") +
+        "</div>"
       : '<span class="sub">不发送</span>';
     const lastCell = p.status === "PAUSED"
-      ? '<div class="cell-stack">' + badge("neutral", "已暂停") + '<span class="sub">' + p.lastAt + "</span></div>"
+      ? '<div class="cell-stack"><span class="muted" title="计划已暂停">—</span><span class="sub">计划已暂停</span></div>'
       : '<div class="cell-stack"><span class="row-status">' + planStatusBadge(p.last) + "</span><span class=\"sub\">" + p.lastAt + "</span></div>";
     const name = p.status === "PAUSED"
       ? '<span class="badge tone-neutral">暂停</span>'
       : "";
     return (
-      '<tr data-plan="' + p.uid + '" onclick="openPlanSheet(\'' + p.uid + '\')">' +
+      '<tr data-plan="' + p.uid + '" tabindex="0" role="button" aria-label="查看 ' + p.name + '"' +
+        ' onclick="openPlanSheet(\'' + p.uid + '\')"' +
+        ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openPlanSheet(\'' + p.uid + '\')}">' +
         '<td><div class="name-cell"><div class="top"><strong>' + p.name + "</strong>" + name + "</div>" +
           '<span class="sub">' + p.desc + "</span></div></td>" +
         '<td><div class="cell-stack"><span>' + p.schedule + '</span><span class="sub">' + p.tz + "</span></div></td>" +
@@ -1868,9 +2131,9 @@ function renderPlans() {
         '<td><div class="cell-stack"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + p.template + '</span><span class="inline-badges">' + formats + "</span></div></td>" +
         "<td>" + groups + "</td>" +
         "<td>" + lastCell + "</td>" +
-        '<td class="tnum" style="font-size:12.5px">' + p.next + "</td>" +
+        '<td class="tnum nowrap" style="font-size:13px">' + p.next + "</td>" +
         '<td style="text-align:right" onclick="event.stopPropagation()">' +
-          '<div class="row-actions"><button class="btn btn-sm btn-outline" type="button" onclick="runPlan(\'' + p.uid + '\', this)">' +
+          '<div class="row-actions"><button class="btn btn-sm btn-outline btn-run" type="button" onclick="runPlan(\'' + p.uid + '\', this)">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 3 14 9-14 9z"/></svg>立即执行</button>' +
             '<button class="icon-btn" type="button" aria-label="更多"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>' +
           "</div></td></tr>"
@@ -1883,7 +2146,7 @@ function renderRuns() {
   const rows = document.getElementById("run-rows");
   rows.innerHTML = runData.map(function (r, i) {
     const report = r.report
-      ? '<div class="inline-badges">' + r.formats.map(function (f) { return badge("neutral", f); }).join("") + "</div>"
+      ? '<div class="inline-badges" style="flex-wrap:nowrap">' + r.formats.map(tag).join("") + "</div>"
       : '<span class="muted" style="font-size:12px">未生成</span>';
     const action = r.report
       ? '<button class="link-btn" type="button" onclick="goto(\'report\')">查看报告</button>'
@@ -1892,10 +2155,17 @@ function renderRuns() {
       "<tr>" +
         '<td><div class="cell-stack"><span style="font-weight:500">' + r.plan + '</span><span class="sub">run_01HZX' + (9 - i) + "</span></div></td>" +
         "<td>" + badge(r.tone, r.status, true) + "</td>" +
-        "<td>" + '<span class="badge tone-neutral">' + r.trigger + "</span></td>" +
-        '<td class="tnum" style="font-size:12.5px">' + r.started + "</td>" +
+        '<td><span class="trigger-cell">' +
+          (r.trigger === "手动"
+            ? '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'
+            : '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>') +
+          r.trigger + "</span></td>" +
+        '<td class="tnum nowrap" style="font-size:13px">' + r.started + "</td>" +
         '<td class="tnum" style="text-align:right">' + r.duration + "</td>" +
-        '<td><span class="tnum">' + r.counts + "</span></td>" +
+        '<td title="正常 / 警告 / 失败">' + r.counts.split(" / ").map(function (n, idx) {
+          const tone = idx === 0 ? "var(--success)" : idx === 1 ? "var(--warning)" : "var(--danger)";
+          return '<span class="tnum" style="color:' + tone + '">' + n + "</span>";
+        }).join('<span class="muted"> / </span>') + "</td>" +
         "<td>" + report + "</td>" +
         '<td style="text-align:right">' + action + "</td>" +
       "</tr>"
@@ -1966,8 +2236,9 @@ function renderWizardItems(active) {
   list.innerHTML = wizardItems.map(function (item, i) {
     return (
       '<button class="item-row ' + (i === active ? "active" : "") + '" type="button" onclick="selectItem(' + i + ')">' +
+        '<span class="drag" aria-hidden="true"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01"/></svg></span>' +
         '<span class="ord">' + String(i + 1).padStart(2, "0") + "</span>" +
-        '<span class="ico"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + item.icon + '"/></svg></span>' +
+        '<span class="ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + item.icon + '</svg></span>' +
         '<span class="txt"><span class="n">' + item.title + '</span><span class="m">' + item.kind + "</span></span>" +
       "</button>"
     );
@@ -2093,6 +2364,12 @@ function tplTab(tab) {
   document.querySelectorAll("[data-tpl-tab]").forEach(function (btn) {
     btn.setAttribute("aria-pressed", btn.dataset.tplTab === tab ? "true" : "false");
   });
+  const editor = document.getElementById("tpl-editor-pane");
+  const preview = document.getElementById("tpl-preview-pane");
+  const isPreview = tab === "preview";
+  editor.hidden = isPreview;
+  preview.hidden = !isPreview;
+  if (isPreview) return;
   const area = document.getElementById("tpl-code");
   const label = area.closest(".field").querySelector("label");
   area.value = tab === "html" ? TPL_HTML : TPL_MD;
