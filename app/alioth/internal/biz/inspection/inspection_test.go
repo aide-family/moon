@@ -199,3 +199,14 @@ func TestRenderMarkdown(t *testing.T) {
 		t.Fatalf("unexpected markdown html: %s", got)
 	}
 }
+
+func TestNormalizeTemplateAllowsReportFunctions(t *testing.T) {
+	in := bo.InspectionTemplate{
+		Name:         "带函数的模板",
+		HTMLBody:     `<p>{{.Run.FinishedAt | date "2006-01-02 15:04"}}</p>`,
+		MarkdownBody: `# {{.Plan.Name}}`,
+	}
+	if err := normalizeTemplate(&in); err != nil {
+		t.Fatalf("report functions should be available while validating: %v", err)
+	}
+}

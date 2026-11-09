@@ -427,12 +427,12 @@ func normalizeTemplate(in *bo.InspectionTemplate) error {
 		in.Status = "ACTIVE"
 	}
 	if in.HTMLBody != "" {
-		if _, err := htmltmpl.New(in.Name).Parse(in.HTMLBody); err != nil {
+		if _, err := htmltmpl.New(in.Name).Funcs(reportFuncs()).Parse(in.HTMLBody); err != nil {
 			return merr.Invalid("invalid html template: " + err.Error())
 		}
 	}
 	if in.MarkdownBody != "" {
-		if _, err := texttmpl.New(in.Name).Parse(in.MarkdownBody); err != nil {
+		if _, err := texttmpl.New(in.Name).Funcs(reportFuncs()).Parse(in.MarkdownBody); err != nil {
 			return merr.Invalid("invalid markdown template: " + err.Error())
 		}
 	}
