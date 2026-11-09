@@ -43,6 +43,24 @@ test.describe("巡检（真实后端，不 mock）", () => {
     expect(bad.status).toBe(400)
   })
 
+  test("新建向导按类型切换检查项编辑器", async ({ page }) => {
+    page.on("dialog", (dialog) => void dialog.accept())
+    await page.goto("/inspection-plans")
+    await page.getByRole("button", { name: "新建巡检" }).first().click()
+    const dialog = page.getByRole("dialog")
+    await dialog.locator("input").first().fill("e2e-editor")
+    await page.getByRole("button", { name: "下一步" }).click()
+
+    await dialog.getByRole("button", { name: "日志查询" }).click()
+    await expect(dialog.getByText("级别过滤")).toBeVisible()
+    await dialog.getByRole("button", { name: "探测目标" }).click()
+    await expect(dialog.getByText("探测目标组")).toBeVisible()
+    await dialog.getByRole("button", { name: "告警事件" }).click()
+    await expect(dialog.getByText("告警级别").first()).toBeVisible()
+    await dialog.getByRole("button", { name: "静态说明" }).click()
+    await expect(dialog.getByText("说明内容（Markdown）")).toBeVisible()
+  })
+
   test("创建计划、执行、查看报告并公开分享", async ({ page }) => {
     const api = createApi()
     const templates = await api.get("/v1/inspection/templates?page=1&pageSize=20")
@@ -107,8 +125,9 @@ test.describe("巡检（真实后端，不 mock）", () => {
         .toBe("SUCCEEDED")
 
       await page.goto("/inspection-runs")
-      await expect(page.getByText(name).first()).toBeVisible()
-      await page.getByRole("button", { name: "查看报告" }).first().click()
+      const runRow = page.locator("table tbody tr").filter({ hasText: name }).first()
+      await expect(runRow).toBeVisible()
+      await runRow.getByRole("button", { name: "查看报告" }).click()
       const reportFrame = page.frameLocator("iframe")
       await expect(reportFrame.locator("body")).toContainText("巡检结论")
 

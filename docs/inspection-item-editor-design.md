@@ -5,6 +5,7 @@
 - 可交互原型：[inspection-item-editor-prototype.html](inspection-item-editor-prototype.html)
 - 关联设计：[inspection-design.md](inspection-design.md)
 - 基线：`main` @ `db7c2a50`
+- 状态：已实现（`feat/inspection-item-editor`，后端 `TestInspectionItem` + 前端 `InspectionItemEditor`）
 
 ## 界面预览
 

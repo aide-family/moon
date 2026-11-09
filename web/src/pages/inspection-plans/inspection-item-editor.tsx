@@ -33,7 +33,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useQueryLibrary } from "@/hooks/use-query-library"
 import { readFormError } from "@/lib/form-error"
+import { QueryTemplatePopover, type TemplateItem } from "@/pages/datasource/components/query-template-popover"
 
 export interface DraftItem extends InspectionItemInput {
   key: string
@@ -134,7 +136,7 @@ function defaultParams(kind: InspectionItemKind): string {
         warn_on_down: true,
       })
     case "ALERT_EVENTS":
-      return JSON.stringify({ status: "FIRING", level_uids: [], labels: "", limit: 50, warn_levels: ["CRITICAL"] })
+      return JSON.stringify({ status: "FIRING", level_uids: [], labels: "", limit: 50, warn_levels: [] })
     default:
       return "{}"
   }
@@ -218,12 +220,22 @@ export function InspectionItemEditor({
         : kind === "LOGS_QUERY"
           ? sources.logs[0]?.uid ?? ""
           : ""
+    const params = defaultParams(kind)
     onChange({
       kind,
       datasourceUid: source,
       query: "",
       display: defaultDisplay(kind),
-      params: defaultParams(kind),
+      params:
+        kind === "ALERT_EVENTS" && alertLevels[0]
+          ? JSON.stringify({
+              status: "FIRING",
+              level_uids: [],
+              labels: "",
+              limit: 50,
+              warn_levels: [alertLevels[0].label],
+            })
+          : params,
     })
   }
 
@@ -265,7 +277,7 @@ export function InspectionItemEditor({
         ))}
       </div>
 
-      <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="grid min-w-0 content-start gap-4">
           <FormField label={t("inspection.itemTitle")} required>
             <Input
@@ -496,7 +508,27 @@ function MetricsConfig({
   setParams: (params: object) => void
 }) {
   const { t } = useTranslation()
+  const library = useQueryLibrary(item.datasourceUid, "promql")
   const thresholds = params.thresholds ?? []
+  const libraryItems: TemplateItem[] = [
+    ...library.templates.map((template) => ({
+      id: template.id,
+      name: template.name,
+      statement: template.snapshot.expr,
+      patch: template.snapshot,
+      builtin: false,
+    })),
+    ...library.history
+      .filter((entry) => entry.ok)
+      .slice(0, 8)
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.statement,
+        statement: entry.statement,
+        patch: entry.snapshot,
+        builtin: true,
+      })),
+  ]
   function updateThreshold(index: number, patch: Partial<NonNullable<InspectionMetricParams["thresholds"]>[number]>) {
     const next = thresholds.map((threshold, current) => (current === index ? { ...threshold, ...patch } : threshold))
     setParams({ ...params, thresholds: next })
@@ -515,6 +547,15 @@ function MetricsConfig({
             </span>
             <span className="flex-1" />
             <span className="text-xs text-muted-foreground">{t("inspection.queryMode")}: PromQL</span>
+            <QueryTemplatePopover
+              items={libraryItems}
+              pending={false}
+              canSave={false}
+              onFill={(patch) => onChange({ query: patch.expr ?? "" })}
+              onRequestSave={() => undefined}
+              onRestoreDefault={() => undefined}
+              onDeleteTemplate={(id) => library.deleteTemplate(id)}
+            />
           </div>
           <QueryExpressionEditor
             value={item.query}
@@ -897,17 +938,21 @@ function AlertConfig({
         </FormField>
         <FormField label={t("inspection.warnLevels")}>
           <div className="flex flex-wrap gap-2">
-            {["CRITICAL", "WARNING"].map((level) => (
-              <Button
-                key={level}
-                type="button"
-                size="sm"
-                variant={(params.warn_levels ?? []).includes(level) ? "secondary" : "outline"}
-                onClick={() => toggleWarn(level)}
-              >
-                {t(level === "CRITICAL" ? "inspection.warnOnCritical" : "inspection.warnOnWarning")}
-              </Button>
-            ))}
+            {levels.length === 0 ? (
+              <span className="text-xs text-muted-foreground">{t("inspection.noAlertLevels")}</span>
+            ) : (
+              levels.map((level) => (
+                <Button
+                  key={level.value}
+                  type="button"
+                  size="sm"
+                  variant={(params.warn_levels ?? []).includes(level.label) ? "secondary" : "outline"}
+                  onClick={() => toggleWarn(level.label)}
+                >
+                  {level.label} {t("inspection.warning")}
+                </Button>
+              ))
+            )}
           </div>
         </FormField>
       </div>
@@ -946,7 +991,13 @@ function SectionPreview({ section }: { section: InspectionSection }) {
       {section.series && section.series.length > 0 && section.series[0].points.length > 1 ? (
         <Sparkline series={section.series[0].points} />
       ) : null}
-      {section.table ? <ResultTable table={section.table} /> : null}
+      {section.table ? (
+        section.kind === "PROBE_TARGET" ? (
+          <ProbePreviewTable table={section.table} />
+        ) : (
+          <ResultTable table={section.table} />
+        )
+      ) : null}
       {section.logs && section.logs.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-border">
           {section.logs.map((log, index) => (
@@ -980,6 +1031,37 @@ function SectionPreview({ section }: { section: InspectionSection }) {
       {section.raw ? (
         <pre className="max-h-48 overflow-auto rounded-lg bg-muted p-2 font-mono text-[10px] whitespace-pre-wrap">{section.raw}</pre>
       ) : null}
+    </div>
+  )
+}
+
+function ProbePreviewTable({ table }: { table: InspectionTable }) {
+  const groupIndex = table.columns.indexOf("目标组")
+  const targetIndex = table.columns.indexOf("目标")
+  const availabilityIndex = table.columns.indexOf("可用率")
+  const statusIndex = table.columns.indexOf("状态")
+  return (
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <table className="w-full text-left text-xs">
+        <thead className="text-muted-foreground">
+          <tr className="border-b border-border">
+            <th className="p-2 font-medium">目标组</th>
+            <th className="p-2 font-medium">目标</th>
+            <th className="p-2 font-medium">可用率</th>
+            <th className="p-2 font-medium">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          {table.rows.map((row, index) => (
+            <tr key={index} className="border-b border-border/60 last:border-0">
+              <td className="max-w-24 p-2 break-words">{row[groupIndex] ?? "—"}</td>
+              <td className="max-w-40 p-2 break-all">{row[targetIndex] ?? "—"}</td>
+              <td className="p-2 whitespace-nowrap">{row[availabilityIndex] ?? "—"}</td>
+              <td className="p-2 whitespace-nowrap">{row[statusIndex] ?? "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
