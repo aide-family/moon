@@ -25,6 +25,16 @@ import {
 import { FormField } from "@/components/form-field"
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select"
 import { StepForm } from "@/components/step-form"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -146,6 +156,7 @@ export function InspectionPlanDialog({
   const [alertLevels, setAlertLevels] = useState<MultiSelectOption[]>([])
   const [savedItems, setSavedItems] = useState<DraftItem[]>(() => draftFromPlan(plan))
   const [dirtyIndex, setDirtyIndex] = useState<number | null>(null)
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null)
   const [pending, setPending] = useState(false)
   const [formError, setFormError] = useState("")
 
@@ -230,18 +241,15 @@ export function InspectionPlanDialog({
   }
 
   function openItem(index: number) {
-    if (expanded === index) {
-      if (dirtyIndex === index && !window.confirm(t("inspection.discardChanges"))) {
-        return
-      }
-      setExpanded(-1)
+    const apply = () => {
+      setExpanded(expanded === index ? -1 : index)
+      setDirtyIndex(null)
+    }
+    if (dirtyIndex !== null && (expanded === index || dirtyIndex !== index)) {
+      setConfirmAction(() => apply)
       return
     }
-    if (dirtyIndex !== null && dirtyIndex !== index && !window.confirm(t("inspection.discardChanges"))) {
-      return
-    }
-    setExpanded(index)
-    setDirtyIndex(null)
+    apply()
   }
 
   function selectPreset(value: string) {
@@ -616,6 +624,26 @@ export function InspectionPlanDialog({
           ) : null}
         </StepForm>
       </DialogContent>
+      <AlertDialog open={confirmAction !== null} onOpenChange={(next) => { if (!next) setConfirmAction(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("inspection.itemDirty")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("inspection.discardChanges")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("action.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const action = confirmAction
+                setConfirmAction(null)
+                action?.()
+              }}
+            >
+              {t("inspection.discardChangesAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   )
 }

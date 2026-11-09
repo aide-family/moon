@@ -51,13 +51,20 @@ test.describe("巡检（真实后端，不 mock）", () => {
     await dialog.locator("input").first().fill("e2e-editor")
     await page.getByRole("button", { name: "下一步" }).click()
 
-    await dialog.getByRole("button", { name: "日志查询" }).click()
+    async function switchKind(name: string) {
+      await dialog.getByRole("button", { name }).click()
+      const confirm = page.getByRole("alertdialog")
+      if (await confirm.isVisible().catch(() => false)) {
+        await confirm.getByRole("button", { name: "放弃修改" }).click()
+      }
+    }
+    await switchKind("日志查询")
     await expect(dialog.getByText("级别过滤")).toBeVisible()
-    await dialog.getByRole("button", { name: "探测目标" }).click()
+    await switchKind("探测目标")
     await expect(dialog.getByText("探测目标组")).toBeVisible()
-    await dialog.getByRole("button", { name: "告警事件" }).click()
+    await switchKind("告警事件")
     await expect(dialog.getByText("告警级别").first()).toBeVisible()
-    await dialog.getByRole("button", { name: "静态说明" }).click()
+    await switchKind("静态说明")
     await expect(dialog.getByText("说明内容（Markdown）")).toBeVisible()
   })
 

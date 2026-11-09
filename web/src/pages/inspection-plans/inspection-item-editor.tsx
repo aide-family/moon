@@ -22,6 +22,16 @@ import { FormField } from "@/components/form-field"
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select"
 import { QueryExpressionEditor } from "@/components/query-expression-editor"
 import { StatusBadge } from "@/components/status-badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -201,6 +211,7 @@ export function InspectionItemEditor({
   onRemove,
 }: InspectionItemEditorProps) {
   const { t } = useTranslation()
+  const [pendingKind, setPendingKind] = useState<InspectionItemKind | null>(null)
   const [testing, setTesting] = useState(false)
   const [testError, setTestError] = useState("")
   const [result, setResult] = useState<TestInspectionItemResult | null>(null)
@@ -210,10 +221,7 @@ export function InspectionItemEditor({
     onChange({ params: JSON.stringify(params) })
   }
 
-  function changeKind(kind: InspectionItemKind) {
-    if (dirty && !window.confirm(t("inspection.discardChanges"))) {
-      return
-    }
+  function applyKind(kind: InspectionItemKind) {
     const source =
       kind === "METRICS_QUERY"
         ? sources.metrics[0]?.uid ?? ""
@@ -237,6 +245,14 @@ export function InspectionItemEditor({
             })
           : params,
     })
+  }
+
+  function changeKind(kind: InspectionItemKind) {
+    if (dirty) {
+      setPendingKind(kind)
+      return
+    }
+    applyKind(kind)
   }
 
   async function runTest() {
@@ -399,6 +415,26 @@ export function InspectionItemEditor({
           <p className="text-[11px] leading-relaxed text-muted-foreground">{t("inspection.testHint")}</p>
         </div>
       </div>
+      <AlertDialog open={pendingKind !== null} onOpenChange={(next) => { if (!next) setPendingKind(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("inspection.itemDirty")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("inspection.discardChanges")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("action.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const kind = pendingKind
+                setPendingKind(null)
+                if (kind) applyKind(kind)
+              }}
+            >
+              {t("inspection.discardChangesAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
