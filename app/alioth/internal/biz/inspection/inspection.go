@@ -208,18 +208,11 @@ func (gateway *Gateway) CreateTemplate(ctx context.Context, in bo.InspectionTemp
 	return item, gateway.access.Wrap(err)
 }
 
-// UpdateTemplate 更新报告模板；内置模板只读。
+// UpdateTemplate 更新报告模板。
 func (gateway *Gateway) UpdateTemplate(ctx context.Context, in bo.InspectionTemplate) (*bo.InspectionTemplate, error) {
 	ns, err := gateway.access.Allow(ctx, perm.InspectionTemplateWrite)
 	if err != nil {
 		return nil, err
-	}
-	current, err := gateway.repo.GetInspectionTemplate(ctx, ns, in.UID)
-	if err != nil {
-		return nil, gateway.access.Wrap(err)
-	}
-	if current.IsBuiltin {
-		return nil, merr.Invalid("builtin template is read-only")
 	}
 	in.NamespaceUID = ns
 	in.IsBuiltin = false
@@ -230,23 +223,16 @@ func (gateway *Gateway) UpdateTemplate(ctx context.Context, in bo.InspectionTemp
 	return item, gateway.access.Wrap(err)
 }
 
-// DeleteTemplate 删除租户模板；内置模板不可删除。
+// DeleteTemplate 删除租户模板。
 func (gateway *Gateway) DeleteTemplate(ctx context.Context, uid string) error {
 	ns, err := gateway.access.Allow(ctx, perm.InspectionTemplateDelete)
 	if err != nil {
 		return err
 	}
-	current, err := gateway.repo.GetInspectionTemplate(ctx, ns, uid)
-	if err != nil {
-		return gateway.access.Wrap(err)
-	}
-	if current.IsBuiltin {
-		return merr.Invalid("builtin template is read-only")
-	}
 	return gateway.access.Wrap(gateway.repo.DeleteInspectionTemplate(ctx, ns, uid))
 }
 
-// GetTemplate 读取模板，内置模板对所有租户可见。
+// GetTemplate 读取当前租户的模板。
 func (gateway *Gateway) GetTemplate(ctx context.Context, uid string) (*bo.InspectionTemplate, error) {
 	ns, err := gateway.access.Allow(ctx, perm.InspectionTemplateRead)
 	if err != nil {
@@ -329,9 +315,12 @@ func (gateway *Gateway) normalizePlan(ctx context.Context, namespaceUID string, 
 	if in.TemplateUID == "" {
 		return merr.Invalid("template is required")
 	}
-	if _, err := gateway.repo.GetInspectionTemplate(ctx, namespaceUID, in.TemplateUID); err != nil {
+	reportTemplate, err := gateway.repo.GetInspectionTemplate(ctx, namespaceUID, in.TemplateUID)
+	if err != nil {
 		return gateway.access.Wrap(err)
 	}
+	// 报告格式完全由模板决定，计划不再单独勾选格式。
+	in.OutputFormats = []string{reportTemplate.Format}
 	if len(in.Items) == 0 {
 		return merr.Invalid("at least one inspection item is required")
 	}
@@ -417,24 +406,32 @@ func normalizeItem(in *bo.InspectionItem, index int) error {
 func normalizeTemplate(in *bo.InspectionTemplate) error {
 	in.Name = strings.TrimSpace(in.Name)
 	in.Description = strings.TrimSpace(in.Description)
+	in.Format = strings.ToUpper(strings.TrimSpace(in.Format))
 	if in.Name == "" {
 		return merr.Invalid("name is required")
 	}
-	if in.HTMLBody == "" && in.MarkdownBody == "" {
-		return merr.Invalid("at least one template body is required")
+	if in.Format != "HTML" && in.Format != "MARKDOWN" {
+		return merr.Invalid("template format must be HTML or MARKDOWN")
 	}
-	if in.Status == "" {
-		in.Status = "ACTIVE"
-	}
-	if in.HTMLBody != "" {
+	if in.Format == "HTML" {
+		in.MarkdownBody = ""
+		if strings.TrimSpace(in.HTMLBody) == "" {
+			return merr.Invalid("html template body is required")
+		}
 		if _, err := htmltmpl.New(in.Name).Funcs(reportFuncs()).Parse(in.HTMLBody); err != nil {
 			return merr.Invalid("invalid html template: " + err.Error())
 		}
-	}
-	if in.MarkdownBody != "" {
+	} else {
+		in.HTMLBody = ""
+		if strings.TrimSpace(in.MarkdownBody) == "" {
+			return merr.Invalid("markdown template body is required")
+		}
 		if _, err := texttmpl.New(in.Name).Funcs(reportFuncs()).Parse(in.MarkdownBody); err != nil {
 			return merr.Invalid("invalid markdown template: " + err.Error())
 		}
+	}
+	if in.Status == "" {
+		in.Status = "ACTIVE"
 	}
 	return nil
 }

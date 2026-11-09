@@ -1274,6 +1274,7 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString, Default: ""},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "format", Type: field.TypeEnum, Enums: []string{"HTML", "MARKDOWN"}, Default: "HTML"},
 		{Name: "html_body", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "markdown_body", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "is_builtin", Type: field.TypeBool, Default: false},
@@ -1302,7 +1303,7 @@ var (
 			{
 				Name:    "inspectiontemplate_is_builtin",
 				Unique:  false,
-				Columns: []*schema.Column{InspectionTemplatesColumns[10]},
+				Columns: []*schema.Column{InspectionTemplatesColumns[11]},
 			},
 		},
 	}

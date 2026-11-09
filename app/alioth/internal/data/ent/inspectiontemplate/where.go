@@ -499,6 +499,26 @@ func DescriptionContainsFold(v string) predicate.InspectionTemplate {
 	return predicate.InspectionTemplate(sql.FieldContainsFold(FieldDescription, v))
 }
 
+// FormatEQ applies the EQ predicate on the "format" field.
+func FormatEQ(v Format) predicate.InspectionTemplate {
+	return predicate.InspectionTemplate(sql.FieldEQ(FieldFormat, v))
+}
+
+// FormatNEQ applies the NEQ predicate on the "format" field.
+func FormatNEQ(v Format) predicate.InspectionTemplate {
+	return predicate.InspectionTemplate(sql.FieldNEQ(FieldFormat, v))
+}
+
+// FormatIn applies the In predicate on the "format" field.
+func FormatIn(vs ...Format) predicate.InspectionTemplate {
+	return predicate.InspectionTemplate(sql.FieldIn(FieldFormat, vs...))
+}
+
+// FormatNotIn applies the NotIn predicate on the "format" field.
+func FormatNotIn(vs ...Format) predicate.InspectionTemplate {
+	return predicate.InspectionTemplate(sql.FieldNotIn(FieldFormat, vs...))
+}
+
 // HTMLBodyEQ applies the EQ predicate on the "html_body" field.
 func HTMLBodyEQ(v string) predicate.InspectionTemplate {
 	return predicate.InspectionTemplate(sql.FieldEQ(FieldHTMLBody, v))

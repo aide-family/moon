@@ -57,6 +57,7 @@ type InspectionTemplate struct {
 	NamespaceUID string
 	Name         string
 	Description  string
+	Format       string
 	HTMLBody     string
 	MarkdownBody string
 	IsBuiltin    bool

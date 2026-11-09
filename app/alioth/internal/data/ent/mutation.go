@@ -30426,6 +30426,7 @@ type InspectionTemplateMutation struct {
 	namespace_uid *string
 	name          *string
 	description   *string
+	format        *inspectiontemplate.Format
 	html_body     *string
 	markdown_body *string
 	is_builtin    *bool
@@ -30800,6 +30801,42 @@ func (m *InspectionTemplateMutation) ResetDescription() {
 	m.description = nil
 }
 
+// SetFormat sets the "format" field.
+func (m *InspectionTemplateMutation) SetFormat(i inspectiontemplate.Format) {
+	m.format = &i
+}
+
+// Format returns the value of the "format" field in the mutation.
+func (m *InspectionTemplateMutation) Format() (r inspectiontemplate.Format, exists bool) {
+	v := m.format
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFormat returns the old "format" field's value of the InspectionTemplate entity.
+// If the InspectionTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionTemplateMutation) OldFormat(ctx context.Context) (v inspectiontemplate.Format, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFormat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFormat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFormat: %w", err)
+	}
+	return oldValue.Format, nil
+}
+
+// ResetFormat resets all changes to the "format" field.
+func (m *InspectionTemplateMutation) ResetFormat() {
+	m.format = nil
+}
+
 // SetHTMLBody sets the "html_body" field.
 func (m *InspectionTemplateMutation) SetHTMLBody(s string) {
 	m.html_body = &s
@@ -31014,7 +31051,7 @@ func (m *InspectionTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InspectionTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, inspectiontemplate.FieldCreatedAt)
 	}
@@ -31035,6 +31072,9 @@ func (m *InspectionTemplateMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, inspectiontemplate.FieldDescription)
+	}
+	if m.format != nil {
+		fields = append(fields, inspectiontemplate.FieldFormat)
 	}
 	if m.html_body != nil {
 		fields = append(fields, inspectiontemplate.FieldHTMLBody)
@@ -31073,6 +31113,8 @@ func (m *InspectionTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case inspectiontemplate.FieldDescription:
 		return m.Description()
+	case inspectiontemplate.FieldFormat:
+		return m.Format()
 	case inspectiontemplate.FieldHTMLBody:
 		return m.HTMLBody()
 	case inspectiontemplate.FieldMarkdownBody:
@@ -31106,6 +31148,8 @@ func (m *InspectionTemplateMutation) OldField(ctx context.Context, name string) 
 		return m.OldName(ctx)
 	case inspectiontemplate.FieldDescription:
 		return m.OldDescription(ctx)
+	case inspectiontemplate.FieldFormat:
+		return m.OldFormat(ctx)
 	case inspectiontemplate.FieldHTMLBody:
 		return m.OldHTMLBody(ctx)
 	case inspectiontemplate.FieldMarkdownBody:
@@ -31173,6 +31217,13 @@ func (m *InspectionTemplateMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case inspectiontemplate.FieldFormat:
+		v, ok := value.(inspectiontemplate.Format)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFormat(v)
 		return nil
 	case inspectiontemplate.FieldHTMLBody:
 		v, ok := value.(string)
@@ -31287,6 +31338,9 @@ func (m *InspectionTemplateMutation) ResetField(name string) error {
 		return nil
 	case inspectiontemplate.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case inspectiontemplate.FieldFormat:
+		m.ResetFormat()
 		return nil
 	case inspectiontemplate.FieldHTMLBody:
 		m.ResetHTMLBody()

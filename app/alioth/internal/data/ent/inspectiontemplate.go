@@ -31,6 +31,8 @@ type InspectionTemplate struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Format holds the value of the "format" field.
+	Format inspectiontemplate.Format `json:"format,omitempty"`
 	// HTMLBody holds the value of the "html_body" field.
 	HTMLBody string `json:"html_body,omitempty"`
 	// MarkdownBody holds the value of the "markdown_body" field.
@@ -53,7 +55,7 @@ func (*InspectionTemplate) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case inspectiontemplate.FieldID:
 			values[i] = new(sql.NullInt64)
-		case inspectiontemplate.FieldUID, inspectiontemplate.FieldNamespaceUID, inspectiontemplate.FieldName, inspectiontemplate.FieldDescription, inspectiontemplate.FieldHTMLBody, inspectiontemplate.FieldMarkdownBody, inspectiontemplate.FieldStatus, inspectiontemplate.FieldCreatedBy:
+		case inspectiontemplate.FieldUID, inspectiontemplate.FieldNamespaceUID, inspectiontemplate.FieldName, inspectiontemplate.FieldDescription, inspectiontemplate.FieldFormat, inspectiontemplate.FieldHTMLBody, inspectiontemplate.FieldMarkdownBody, inspectiontemplate.FieldStatus, inspectiontemplate.FieldCreatedBy:
 			values[i] = new(sql.NullString)
 		case inspectiontemplate.FieldCreatedAt, inspectiontemplate.FieldUpdatedAt, inspectiontemplate.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -120,6 +122,12 @@ func (_m *InspectionTemplate) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				_m.Description = value.String
+			}
+		case inspectiontemplate.FieldFormat:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field format", values[i])
+			} else if value.Valid {
+				_m.Format = inspectiontemplate.Format(value.String)
 			}
 		case inspectiontemplate.FieldHTMLBody:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -209,6 +217,9 @@ func (_m *InspectionTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("format=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Format))
 	builder.WriteString(", ")
 	builder.WriteString("html_body=")
 	builder.WriteString(_m.HTMLBody)

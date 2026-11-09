@@ -6,8 +6,6 @@ import (
 	"errors"
 	"time"
 
-	"entgo.io/ent/dialect/sql"
-
 	"github.com/aide-family/moon/app/alioth/internal/data/ent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
@@ -274,6 +272,7 @@ func (r *inspectionRepo) CreateInspectionTemplate(ctx context.Context, in bo.Ins
 		SetNamespaceUID(in.NamespaceUID).
 		SetName(in.Name).
 		SetDescription(in.Description).
+		SetFormat(inspectiontemplate.Format(in.Format)).
 		SetHTMLBody(in.HTMLBody).
 		SetMarkdownBody(in.MarkdownBody).
 		SetIsBuiltin(in.IsBuiltin).
@@ -291,11 +290,11 @@ func (r *inspectionRepo) UpdateInspectionTemplate(ctx context.Context, in bo.Ins
 		Where(
 			inspectiontemplate.UIDEQ(in.UID),
 			inspectiontemplate.NamespaceUIDEQ(in.NamespaceUID),
-			inspectiontemplate.IsBuiltinEQ(false),
 			inspectiontemplate.DeletedAtIsNil(),
 		).
 		SetName(in.Name).
 		SetDescription(in.Description).
+		SetFormat(inspectiontemplate.Format(in.Format)).
 		SetHTMLBody(in.HTMLBody).
 		SetMarkdownBody(in.MarkdownBody).
 		Save(ctx)
@@ -313,7 +312,6 @@ func (r *inspectionRepo) DeleteInspectionTemplate(ctx context.Context, namespace
 		Where(
 			inspectiontemplate.UIDEQ(uid),
 			inspectiontemplate.NamespaceUIDEQ(namespaceUID),
-			inspectiontemplate.IsBuiltinEQ(false),
 			inspectiontemplate.DeletedAtIsNil(),
 		).
 		SetDeletedAt(time.Now().UTC()).
@@ -330,11 +328,8 @@ func (r *inspectionRepo) DeleteInspectionTemplate(ctx context.Context, namespace
 func (r *inspectionRepo) GetInspectionTemplate(ctx context.Context, namespaceUID, uid string) (*bo.InspectionTemplate, error) {
 	row, err := r.client.InspectionTemplate.Query().Where(
 		inspectiontemplate.UIDEQ(uid),
+		inspectiontemplate.NamespaceUIDEQ(namespaceUID),
 		inspectiontemplate.DeletedAtIsNil(),
-		inspectiontemplate.Or(
-			inspectiontemplate.NamespaceUIDEQ(namespaceUID),
-			inspectiontemplate.NamespaceUIDEQ(""),
-		),
 	).Only(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -345,11 +340,8 @@ func (r *inspectionRepo) GetInspectionTemplate(ctx context.Context, namespaceUID
 
 func (r *inspectionRepo) ListInspectionTemplates(ctx context.Context, namespaceUID, name string, page, pageSize int) ([]bo.InspectionTemplate, int, error) {
 	query := r.client.InspectionTemplate.Query().Where(
+		inspectiontemplate.NamespaceUIDEQ(namespaceUID),
 		inspectiontemplate.DeletedAtIsNil(),
-		inspectiontemplate.Or(
-			inspectiontemplate.NamespaceUIDEQ(namespaceUID),
-			inspectiontemplate.NamespaceUIDEQ(""),
-		),
 	)
 	if name != "" {
 		query = query.Where(inspectiontemplate.NameContainsFold(name))
@@ -359,7 +351,6 @@ func (r *inspectionRepo) ListInspectionTemplates(ctx context.Context, namespaceU
 		return nil, 0, r.fail(err)
 	}
 	rows, err := query.Order(
-		inspectiontemplate.ByIsBuiltin(sql.OrderDesc()),
 		ent.Desc(inspectiontemplate.FieldUpdatedAt),
 	).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
 	if err != nil {
@@ -398,7 +389,7 @@ func toInspectionTemplate(row *ent.InspectionTemplate) bo.InspectionTemplate {
 	return bo.InspectionTemplate{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, Description: row.Description,
 		HTMLBody: row.HTMLBody, MarkdownBody: row.MarkdownBody,
-		IsBuiltin: row.IsBuiltin, Status: string(row.Status),
+		Format: string(row.Format), IsBuiltin: row.IsBuiltin, Status: string(row.Status),
 		CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
 	}
 }
@@ -640,29 +631,6 @@ func (r *inspectionRepo) GetInspectionReport(ctx context.Context, namespaceUID, 
 		return nil, r.fail(err)
 	}
 	item := toInspectionReport(row)
-	return &item, nil
-}
-
-func (r *inspectionRepo) FirstBuiltinInspectionTemplate(ctx context.Context, format string) (*bo.InspectionTemplate, error) {
-	query := r.client.InspectionTemplate.Query().Where(
-		inspectiontemplate.IsBuiltinEQ(true),
-		inspectiontemplate.NamespaceUIDEQ(""),
-		inspectiontemplate.StatusEQ(inspectiontemplate.StatusACTIVE),
-		inspectiontemplate.DeletedAtIsNil(),
-	)
-	switch format {
-	case "HTML":
-		query = query.Where(inspectiontemplate.HTMLBodyNEQ(""))
-	case "MARKDOWN":
-		query = query.Where(inspectiontemplate.MarkdownBodyNEQ(""))
-	default:
-		return nil, merr.Invalid("invalid report format")
-	}
-	row, err := query.Order(ent.Desc(inspectiontemplate.FieldUpdatedAt)).First(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	item := toInspectionTemplate(row)
 	return &item, nil
 }
 

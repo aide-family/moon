@@ -103,7 +103,7 @@ func NewInspectionTemplateService(gateway *inspection.Gateway) *InspectionTempla
 func (s *InspectionTemplateService) CreateInspectionTemplate(ctx context.Context, req *v1.CreateInspectionTemplateRequest) (*v1.CreateInspectionTemplateResponse, error) {
 	item, err := s.gateway.CreateTemplate(ctx, bo.InspectionTemplate{
 		Name: req.GetName(), Description: req.GetDescription(),
-		HTMLBody: req.GetHtmlBody(), MarkdownBody: req.GetMarkdownBody(),
+		Format: req.GetFormat(), HTMLBody: req.GetHtmlBody(), MarkdownBody: req.GetMarkdownBody(),
 	})
 	if err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func (s *InspectionTemplateService) CreateInspectionTemplate(ctx context.Context
 func (s *InspectionTemplateService) UpdateInspectionTemplate(ctx context.Context, req *v1.UpdateInspectionTemplateRequest) (*v1.UpdateInspectionTemplateResponse, error) {
 	item, err := s.gateway.UpdateTemplate(ctx, bo.InspectionTemplate{
 		UID: req.GetUid(), Name: req.GetName(), Description: req.GetDescription(),
-		HTMLBody: req.GetHtmlBody(), MarkdownBody: req.GetMarkdownBody(),
+		Format: req.GetFormat(), HTMLBody: req.GetHtmlBody(), MarkdownBody: req.GetMarkdownBody(),
 	})
 	if err != nil {
 		return nil, err
@@ -203,7 +203,7 @@ func inspectionPlanItem(in bo.InspectionPlan) *v1.InspectionPlan {
 func inspectionTemplateItem(in bo.InspectionTemplate) *v1.InspectionTemplate {
 	return &v1.InspectionTemplate{
 		Uid: in.UID, Name: in.Name, Description: in.Description,
-		HtmlBody: in.HTMLBody, MarkdownBody: in.MarkdownBody,
+		Format: in.Format, HtmlBody: in.HTMLBody, MarkdownBody: in.MarkdownBody,
 		IsBuiltin: in.IsBuiltin, Status: in.Status,
 		CreatedAt: formatTime(in.CreatedAt), UpdatedAt: formatTime(in.UpdatedAt),
 	}

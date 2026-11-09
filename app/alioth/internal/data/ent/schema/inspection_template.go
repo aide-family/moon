@@ -7,8 +7,8 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// InspectionTemplate 是报告版式：一份模板两段正文，HTML 与 Markdown 共用同一份数据契约。
-// 内置模板的 namespace_uid 为空，只读；租户复制后成为自己的模板。
+// InspectionTemplate 是报告版式：一份模板只对应一种格式（HTML 或 Markdown）。
+// 模板全部由租户自定义，不再提供系统内置模板。
 type InspectionTemplate struct {
 	ent.Schema
 }
@@ -23,6 +23,8 @@ func (InspectionTemplate) Fields() []ent.Field {
 		field.String("namespace_uid").Default(""),
 		field.String("name").NotEmpty(),
 		field.String("description").Default(""),
+		// format 决定使用哪段正文，以及报告输出格式。
+		field.Enum("format").Values("HTML", "MARKDOWN").Default("HTML"),
 		field.Text("html_body").Default(""),
 		field.Text("markdown_body").Default(""),
 		field.Bool("is_builtin").Default(false),

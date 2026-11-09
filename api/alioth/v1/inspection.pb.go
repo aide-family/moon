@@ -1281,11 +1281,13 @@ type InspectionTemplate struct {
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// 说明。
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	// HTML 正文模板。
+	// 报告格式，取值为 HTML 或 MARKDOWN；一份模板只有一种格式。
+	Format string `protobuf:"bytes,10,opt,name=format,proto3" json:"format,omitempty"`
+	// HTML 正文模板；format=HTML 时使用。
 	HtmlBody string `protobuf:"bytes,4,opt,name=html_body,json=htmlBody,proto3" json:"html_body,omitempty"`
-	// Markdown 正文模板。
+	// Markdown 正文模板；format=MARKDOWN 时使用。
 	MarkdownBody string `protobuf:"bytes,5,opt,name=markdown_body,json=markdownBody,proto3" json:"markdown_body,omitempty"`
-	// 是否系统内置；内置模板只读。
+	// 是否系统内置；保留字段，当前不再产生内置模板。
 	IsBuiltin bool `protobuf:"varint,6,opt,name=is_builtin,json=isBuiltin,proto3" json:"is_builtin,omitempty"`
 	// 状态，取值为 ACTIVE 或 DISABLED。
 	Status string `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
@@ -1348,6 +1350,13 @@ func (x *InspectionTemplate) GetDescription() string {
 	return ""
 }
 
+func (x *InspectionTemplate) GetFormat() string {
+	if x != nil {
+		return x.Format
+	}
+	return ""
+}
+
 func (x *InspectionTemplate) GetHtmlBody() string {
 	if x != nil {
 		return x.HtmlBody
@@ -1397,9 +1406,11 @@ type CreateInspectionTemplateRequest struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// 说明。
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	// HTML 正文模板。
+	// 报告格式，HTML 或 MARKDOWN。
+	Format string `protobuf:"bytes,5,opt,name=format,proto3" json:"format,omitempty"`
+	// HTML 正文模板；format=HTML 时使用。
 	HtmlBody string `protobuf:"bytes,3,opt,name=html_body,json=htmlBody,proto3" json:"html_body,omitempty"`
-	// Markdown 正文模板。
+	// Markdown 正文模板；format=MARKDOWN 时使用。
 	MarkdownBody  string `protobuf:"bytes,4,opt,name=markdown_body,json=markdownBody,proto3" json:"markdown_body,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1445,6 +1456,13 @@ func (x *CreateInspectionTemplateRequest) GetName() string {
 func (x *CreateInspectionTemplateRequest) GetDescription() string {
 	if x != nil {
 		return x.Description
+	}
+	return ""
+}
+
+func (x *CreateInspectionTemplateRequest) GetFormat() string {
+	if x != nil {
+		return x.Format
 	}
 	return ""
 }
@@ -1518,9 +1536,11 @@ type UpdateInspectionTemplateRequest struct {
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// 说明。
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	// HTML 正文模板。
+	// 报告格式，HTML 或 MARKDOWN。
+	Format string `protobuf:"bytes,6,opt,name=format,proto3" json:"format,omitempty"`
+	// HTML 正文模板；format=HTML 时使用。
 	HtmlBody string `protobuf:"bytes,4,opt,name=html_body,json=htmlBody,proto3" json:"html_body,omitempty"`
-	// Markdown 正文模板。
+	// Markdown 正文模板；format=MARKDOWN 时使用。
 	MarkdownBody  string `protobuf:"bytes,5,opt,name=markdown_body,json=markdownBody,proto3" json:"markdown_body,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1573,6 +1593,13 @@ func (x *UpdateInspectionTemplateRequest) GetName() string {
 func (x *UpdateInspectionTemplateRequest) GetDescription() string {
 	if x != nil {
 		return x.Description
+	}
+	return ""
+}
+
+func (x *UpdateInspectionTemplateRequest) GetFormat() string {
+	if x != nil {
+		return x.Format
 	}
 	return ""
 }
@@ -3468,11 +3495,13 @@ const file_alioth_v1_inspection_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x19.alioth.v1.InspectionPlanR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x93\x02\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xab\x02\n" +
 	"\x12InspectionTemplate\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1b\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x16\n" +
+	"\x06format\x18\n" +
+	" \x01(\tR\x06format\x12\x1b\n" +
 	"\thtml_body\x18\x04 \x01(\tR\bhtmlBody\x12#\n" +
 	"\rmarkdown_body\x18\x05 \x01(\tR\fmarkdownBody\x12\x1d\n" +
 	"\n" +
@@ -3481,18 +3510,20 @@ const file_alioth_v1_inspection_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\tR\tupdatedAt\"\xc4\x01\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAt\"\xf3\x01\n" +
 	"\x1fCreateInspectionTemplateRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12*\n" +
-	"\vdescription\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\x12&\n" +
+	"\vdescription\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\x12-\n" +
+	"\x06format\x18\x05 \x01(\tB\x15\xbaH\x12r\x10R\x04HTMLR\bMARKDOWNR\x06format\x12&\n" +
 	"\thtml_body\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x18\x80\x80\x04R\bhtmlBody\x12.\n" +
 	"\rmarkdown_body\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x18\x80\x80\x04R\fmarkdownBody\"]\n" +
 	" CreateInspectionTemplateResponse\x129\n" +
-	"\btemplate\x18\x01 \x01(\v2\x1d.alioth.v1.InspectionTemplateR\btemplate\"\xdf\x01\n" +
+	"\btemplate\x18\x01 \x01(\v2\x1d.alioth.v1.InspectionTemplateR\btemplate\"\x8e\x02\n" +
 	"\x1fUpdateInspectionTemplateRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12*\n" +
-	"\vdescription\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\x12&\n" +
+	"\vdescription\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\x12-\n" +
+	"\x06format\x18\x06 \x01(\tB\x15\xbaH\x12r\x10R\x04HTMLR\bMARKDOWNR\x06format\x12&\n" +
 	"\thtml_body\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x18\x80\x80\x04R\bhtmlBody\x12.\n" +
 	"\rmarkdown_body\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x18\x80\x80\x04R\fmarkdownBody\"]\n" +
 	" UpdateInspectionTemplateResponse\x129\n" +

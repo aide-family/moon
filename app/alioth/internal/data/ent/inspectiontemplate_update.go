@@ -96,6 +96,20 @@ func (_u *InspectionTemplateUpdate) SetNillableDescription(v *string) *Inspectio
 	return _u
 }
 
+// SetFormat sets the "format" field.
+func (_u *InspectionTemplateUpdate) SetFormat(v inspectiontemplate.Format) *InspectionTemplateUpdate {
+	_u.mutation.SetFormat(v)
+	return _u
+}
+
+// SetNillableFormat sets the "format" field if the given value is not nil.
+func (_u *InspectionTemplateUpdate) SetNillableFormat(v *inspectiontemplate.Format) *InspectionTemplateUpdate {
+	if v != nil {
+		_u.SetFormat(*v)
+	}
+	return _u
+}
+
 // SetHTMLBody sets the "html_body" field.
 func (_u *InspectionTemplateUpdate) SetHTMLBody(v string) *InspectionTemplateUpdate {
 	_u.mutation.SetHTMLBody(v)
@@ -214,6 +228,11 @@ func (_u *InspectionTemplateUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "InspectionTemplate.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Format(); ok {
+		if err := inspectiontemplate.FormatValidator(v); err != nil {
+			return &ValidationError{Name: "format", err: fmt.Errorf(`ent: validator failed for field "InspectionTemplate.format": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := inspectiontemplate.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "InspectionTemplate.status": %w`, err)}
@@ -251,6 +270,9 @@ func (_u *InspectionTemplateUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(inspectiontemplate.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Format(); ok {
+		_spec.SetField(inspectiontemplate.FieldFormat, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.HTMLBody(); ok {
 		_spec.SetField(inspectiontemplate.FieldHTMLBody, field.TypeString, value)
@@ -351,6 +373,20 @@ func (_u *InspectionTemplateUpdateOne) SetDescription(v string) *InspectionTempl
 func (_u *InspectionTemplateUpdateOne) SetNillableDescription(v *string) *InspectionTemplateUpdateOne {
 	if v != nil {
 		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// SetFormat sets the "format" field.
+func (_u *InspectionTemplateUpdateOne) SetFormat(v inspectiontemplate.Format) *InspectionTemplateUpdateOne {
+	_u.mutation.SetFormat(v)
+	return _u
+}
+
+// SetNillableFormat sets the "format" field if the given value is not nil.
+func (_u *InspectionTemplateUpdateOne) SetNillableFormat(v *inspectiontemplate.Format) *InspectionTemplateUpdateOne {
+	if v != nil {
+		_u.SetFormat(*v)
 	}
 	return _u
 }
@@ -486,6 +522,11 @@ func (_u *InspectionTemplateUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "InspectionTemplate.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Format(); ok {
+		if err := inspectiontemplate.FormatValidator(v); err != nil {
+			return &ValidationError{Name: "format", err: fmt.Errorf(`ent: validator failed for field "InspectionTemplate.format": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := inspectiontemplate.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "InspectionTemplate.status": %w`, err)}
@@ -540,6 +581,9 @@ func (_u *InspectionTemplateUpdateOne) sqlSave(ctx context.Context) (_node *Insp
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(inspectiontemplate.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Format(); ok {
+		_spec.SetField(inspectiontemplate.FieldFormat, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.HTMLBody(); ok {
 		_spec.SetField(inspectiontemplate.FieldHTMLBody, field.TypeString, value)

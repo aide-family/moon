@@ -45,8 +45,6 @@ type InspectionRepo interface {
 	// ListInspectionReportsByRun 返回一次执行的全部报告。
 	ListInspectionReportsByRun(ctx context.Context, namespaceUID, runUID string) ([]bo.InspectionReport, error)
 	GetInspectionReport(ctx context.Context, namespaceUID, uid string) (*bo.InspectionReport, error)
-	// FirstBuiltinInspectionTemplate 返回内置模板中指定格式正文非空的第一条。
-	FirstBuiltinInspectionTemplate(ctx context.Context, format string) (*bo.InspectionTemplate, error)
 	// MarkInspectionRunNotified 记录一次投递入队完成时间。
 	MarkInspectionRunNotified(ctx context.Context, uid string, at time.Time) error
 	// PruneInspectionReports 删除 before 之前的报告，返回删除条数。

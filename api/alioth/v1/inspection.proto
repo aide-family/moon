@@ -347,11 +347,13 @@ message InspectionTemplate {
   string name = 2;
   // 说明。
   string description = 3;
-  // HTML 正文模板。
+  // 报告格式，取值为 HTML 或 MARKDOWN；一份模板只有一种格式。
+  string format = 10;
+  // HTML 正文模板；format=HTML 时使用。
   string html_body = 4 [json_name = "htmlBody"];
-  // Markdown 正文模板。
+  // Markdown 正文模板；format=MARKDOWN 时使用。
   string markdown_body = 5 [json_name = "markdownBody"];
-  // 是否系统内置；内置模板只读。
+  // 是否系统内置；保留字段，当前不再产生内置模板。
   bool is_builtin = 6 [json_name = "isBuiltin"];
   // 状态，取值为 ACTIVE 或 DISABLED。
   string status = 7;
@@ -367,9 +369,11 @@ message CreateInspectionTemplateRequest {
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   // 说明。
   string description = 2 [(buf.validate.field).string = {max_len: 255}];
-  // HTML 正文模板。
+  // 报告格式，HTML 或 MARKDOWN。
+  string format = 5 [(buf.validate.field).string = {in: ["HTML", "MARKDOWN"]}];
+  // HTML 正文模板；format=HTML 时使用。
   string html_body = 3 [json_name = "htmlBody", (buf.validate.field).string = {max_len: 65536}];
-  // Markdown 正文模板。
+  // Markdown 正文模板；format=MARKDOWN 时使用。
   string markdown_body = 4 [json_name = "markdownBody", (buf.validate.field).string = {max_len: 65536}];
 }
 
@@ -387,9 +391,11 @@ message UpdateInspectionTemplateRequest {
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   // 说明。
   string description = 3 [(buf.validate.field).string = {max_len: 255}];
-  // HTML 正文模板。
+  // 报告格式，HTML 或 MARKDOWN。
+  string format = 6 [(buf.validate.field).string = {in: ["HTML", "MARKDOWN"]}];
+  // HTML 正文模板；format=HTML 时使用。
   string html_body = 4 [json_name = "htmlBody", (buf.validate.field).string = {max_len: 65536}];
-  // Markdown 正文模板。
+  // Markdown 正文模板；format=MARKDOWN 时使用。
   string markdown_body = 5 [json_name = "markdownBody", (buf.validate.field).string = {max_len: 65536}];
 }
 

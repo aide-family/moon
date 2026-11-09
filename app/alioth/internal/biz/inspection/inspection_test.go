@@ -74,9 +74,9 @@ func TestNormalizedFormats(t *testing.T) {
 
 func TestNormalizeTemplate(t *testing.T) {
 	item := bo.InspectionTemplate{
-		Name:         " 每日报告 ",
-		HTMLBody:     `<h1>{{.Plan.Name}}</h1>`,
-		MarkdownBody: "# {{.Plan.Name}}",
+		Name:     " 每日报告 ",
+		Format:   "HTML",
+		HTMLBody: `<h1>{{.Plan.Name}}</h1>`,
 	}
 	if err := normalizeTemplate(&item); err != nil {
 		t.Fatalf("normalize template: %v", err)
@@ -85,11 +85,11 @@ func TestNormalizeTemplate(t *testing.T) {
 		t.Fatalf("unexpected template: %+v", item)
 	}
 
-	broken := bo.InspectionTemplate{Name: "坏模板", HTMLBody: `{{if .Plan}}`}
+	broken := bo.InspectionTemplate{Name: "坏模板", Format: "HTML", HTMLBody: `{{if .Plan}}`}
 	if err := normalizeTemplate(&broken); err == nil {
 		t.Fatal("broken html template should be rejected")
 	}
-	empty := bo.InspectionTemplate{Name: "空模板"}
+	empty := bo.InspectionTemplate{Name: "空模板", Format: "HTML"}
 	if err := normalizeTemplate(&empty); err == nil {
 		t.Fatal("template without bodies should be rejected")
 	}
@@ -202,9 +202,9 @@ func TestRenderMarkdown(t *testing.T) {
 
 func TestNormalizeTemplateAllowsReportFunctions(t *testing.T) {
 	in := bo.InspectionTemplate{
-		Name:         "带函数的模板",
-		HTMLBody:     `<p>{{.Run.FinishedAt | date "2006-01-02 15:04"}}</p>`,
-		MarkdownBody: `# {{.Plan.Name}}`,
+		Name:     "带函数的模板",
+		Format:   "HTML",
+		HTMLBody: `<p>{{.Run.FinishedAt | date "2006-01-02 15:04"}}</p>`,
 	}
 	if err := normalizeTemplate(&in); err != nil {
 		t.Fatalf("report functions should be available while validating: %v", err)

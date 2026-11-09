@@ -102,6 +102,20 @@ func (_c *InspectionTemplateCreate) SetNillableDescription(v *string) *Inspectio
 	return _c
 }
 
+// SetFormat sets the "format" field.
+func (_c *InspectionTemplateCreate) SetFormat(v inspectiontemplate.Format) *InspectionTemplateCreate {
+	_c.mutation.SetFormat(v)
+	return _c
+}
+
+// SetNillableFormat sets the "format" field if the given value is not nil.
+func (_c *InspectionTemplateCreate) SetNillableFormat(v *inspectiontemplate.Format) *InspectionTemplateCreate {
+	if v != nil {
+		_c.SetFormat(*v)
+	}
+	return _c
+}
+
 // SetHTMLBody sets the "html_body" field.
 func (_c *InspectionTemplateCreate) SetHTMLBody(v string) *InspectionTemplateCreate {
 	_c.mutation.SetHTMLBody(v)
@@ -223,6 +237,10 @@ func (_c *InspectionTemplateCreate) defaults() {
 		v := inspectiontemplate.DefaultDescription
 		_c.mutation.SetDescription(v)
 	}
+	if _, ok := _c.mutation.Format(); !ok {
+		v := inspectiontemplate.DefaultFormat
+		_c.mutation.SetFormat(v)
+	}
 	if _, ok := _c.mutation.HTMLBody(); !ok {
 		v := inspectiontemplate.DefaultHTMLBody
 		_c.mutation.SetHTMLBody(v)
@@ -274,6 +292,14 @@ func (_c *InspectionTemplateCreate) check() error {
 	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "InspectionTemplate.description"`)}
+	}
+	if _, ok := _c.mutation.Format(); !ok {
+		return &ValidationError{Name: "format", err: errors.New(`ent: missing required field "InspectionTemplate.format"`)}
+	}
+	if v, ok := _c.mutation.Format(); ok {
+		if err := inspectiontemplate.FormatValidator(v); err != nil {
+			return &ValidationError{Name: "format", err: fmt.Errorf(`ent: validator failed for field "InspectionTemplate.format": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.HTMLBody(); !ok {
 		return &ValidationError{Name: "html_body", err: errors.New(`ent: missing required field "InspectionTemplate.html_body"`)}
@@ -348,6 +374,10 @@ func (_c *InspectionTemplateCreate) createSpec() (*InspectionTemplate, *sqlgraph
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(inspectiontemplate.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := _c.mutation.Format(); ok {
+		_spec.SetField(inspectiontemplate.FieldFormat, field.TypeEnum, value)
+		_node.Format = value
 	}
 	if value, ok := _c.mutation.HTMLBody(); ok {
 		_spec.SetField(inspectiontemplate.FieldHTMLBody, field.TypeString, value)

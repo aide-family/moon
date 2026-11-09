@@ -28,6 +28,8 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldFormat holds the string denoting the format field in the database.
+	FieldFormat = "format"
 	// FieldHTMLBody holds the string denoting the html_body field in the database.
 	FieldHTMLBody = "html_body"
 	// FieldMarkdownBody holds the string denoting the markdown_body field in the database.
@@ -52,6 +54,7 @@ var Columns = []string{
 	FieldNamespaceUID,
 	FieldName,
 	FieldDescription,
+	FieldFormat,
 	FieldHTMLBody,
 	FieldMarkdownBody,
 	FieldIsBuiltin,
@@ -93,6 +96,32 @@ var (
 	// DefaultCreatedBy holds the default value on creation for the "created_by" field.
 	DefaultCreatedBy string
 )
+
+// Format defines the type for the "format" enum field.
+type Format string
+
+// FormatHTML is the default value of the Format enum.
+const DefaultFormat = FormatHTML
+
+// Format values.
+const (
+	FormatHTML     Format = "HTML"
+	FormatMARKDOWN Format = "MARKDOWN"
+)
+
+func (f Format) String() string {
+	return string(f)
+}
+
+// FormatValidator is a validator for the "format" field enum values. It is called by the builders before save.
+func FormatValidator(f Format) error {
+	switch f {
+	case FormatHTML, FormatMARKDOWN:
+		return nil
+	default:
+		return fmt.Errorf("inspectiontemplate: invalid enum value for format field: %q", f)
+	}
+}
 
 // Status defines the type for the "status" enum field.
 type Status string
@@ -161,6 +190,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByFormat orders the results by the format field.
+func ByFormat(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFormat, opts...).ToFunc()
 }
 
 // ByHTMLBody orders the results by the html_body field.

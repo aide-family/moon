@@ -48,6 +48,14 @@ M34 把数据源查询、探测目标与告警汇总成周期报告，按 cron �
 
 **验证**：真实 PostgreSQL + Prometheus + VictoriaLogs 调用 test-item；指标返回序列/指标卡，VLogs 解析出 10 条样本，探测与告警返回表格；Web 编辑器完成指标测试（1810ms）、类型切换、保存检查项与保存整份计划。
 
+## 报告模板 v2（单格式 + 可视化）
+
+- 模板 `format` 只能是 HTML 或 MARKDOWN，一份模板只保留一段正文；系统内置模板已移除，全部由租户自定义。
+- 模板正文用 Monaco 代码编辑器维护，保存时按格式 Parse 校验；格式创建后锁定，复制后可切换。
+- 计划绑定模板后 `output_formats` 自动收敛为该格式，报告只渲染一种格式。
+- 新增 HTML 报告 helper：`sectionHTML`、`metricCards`、`seriesChart`、`tableHTML`、`logsHTML`、`alertsHTML`；报告不再只展示原始数据。
+- aaa 租户验收数据：4 个计划、5 次执行、2 个自定义模板、5 份分享、2 条 REPORT 通知任务。
+
 ## 已知限制
 
 - 公开限流是进程内近似值，多副本按副本独立计算。

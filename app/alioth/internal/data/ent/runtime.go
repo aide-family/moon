@@ -1529,19 +1529,19 @@ func init() {
 	// inspectiontemplate.DefaultDescription holds the default value on creation for the description field.
 	inspectiontemplate.DefaultDescription = inspectiontemplateDescDescription.Default.(string)
 	// inspectiontemplateDescHTMLBody is the schema descriptor for html_body field.
-	inspectiontemplateDescHTMLBody := inspectiontemplateFields[4].Descriptor()
+	inspectiontemplateDescHTMLBody := inspectiontemplateFields[5].Descriptor()
 	// inspectiontemplate.DefaultHTMLBody holds the default value on creation for the html_body field.
 	inspectiontemplate.DefaultHTMLBody = inspectiontemplateDescHTMLBody.Default.(string)
 	// inspectiontemplateDescMarkdownBody is the schema descriptor for markdown_body field.
-	inspectiontemplateDescMarkdownBody := inspectiontemplateFields[5].Descriptor()
+	inspectiontemplateDescMarkdownBody := inspectiontemplateFields[6].Descriptor()
 	// inspectiontemplate.DefaultMarkdownBody holds the default value on creation for the markdown_body field.
 	inspectiontemplate.DefaultMarkdownBody = inspectiontemplateDescMarkdownBody.Default.(string)
 	// inspectiontemplateDescIsBuiltin is the schema descriptor for is_builtin field.
-	inspectiontemplateDescIsBuiltin := inspectiontemplateFields[6].Descriptor()
+	inspectiontemplateDescIsBuiltin := inspectiontemplateFields[7].Descriptor()
 	// inspectiontemplate.DefaultIsBuiltin holds the default value on creation for the is_builtin field.
 	inspectiontemplate.DefaultIsBuiltin = inspectiontemplateDescIsBuiltin.Default.(bool)
 	// inspectiontemplateDescCreatedBy is the schema descriptor for created_by field.
-	inspectiontemplateDescCreatedBy := inspectiontemplateFields[8].Descriptor()
+	inspectiontemplateDescCreatedBy := inspectiontemplateFields[9].Descriptor()
 	// inspectiontemplate.DefaultCreatedBy holds the default value on creation for the created_by field.
 	inspectiontemplate.DefaultCreatedBy = inspectiontemplateDescCreatedBy.Default.(string)
 	memberMixin := schema.Member{}.Mixin()

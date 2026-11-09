@@ -92,6 +92,10 @@ var archivedTables = []string{
 	"agents",
 	"ssh_commands",
 	"ssh_command_audits",
+	// 巡检配置：计划、检查项与报告模板随迁移包一起搬；执行与报告快照属于运行数据。
+	"inspection_plans",
+	"inspection_items",
+	"inspection_templates",
 }
 
 // runtimeTables 是明确不迁的运行数据。表清单与 ent 的 migrate.Tables 由单测对照，
@@ -111,6 +115,8 @@ var runtimeTables = []string{
 	"probe_results",
 	"probe_sla_dailies",
 	"worker_instances",
+	"inspection_runs",
+	"inspection_reports",
 }
 
 var (
