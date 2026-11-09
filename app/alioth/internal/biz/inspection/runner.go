@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"regexp"
 	"sort"
@@ -226,6 +227,7 @@ func (gateway *Gateway) executeSection(ctx context.Context, plan bo.InspectionPl
 }
 
 func (gateway *Gateway) executeMetrics(ctx context.Context, plan bo.InspectionPlan, item bo.InspectionItem, windowStart, windowEnd time.Time, section *bo.InspectionSection) {
+	params := parseMetricsParams(item.Params)
 	raw, err := gateway.datasources.QueryRangeForNamespace(
 		ctx, plan.NamespaceUID, item.DatasourceUID, item.Query,
 		windowStart.Unix(), windowEnd.Unix(), int64(item.StepSeconds),
@@ -236,41 +238,104 @@ func (gateway *Gateway) executeMetrics(ctx context.Context, plan bo.InspectionPl
 	}
 	series, table, metrics := parsePrometheusRange(raw)
 	section.Series, section.Table, section.Metrics = series, table, metrics
+	for index := range section.Metrics {
+		section.Metrics[index].Unit = params.Unit
+	}
 	section.Note = fmt.Sprintf("窗口 %s → %s，%d 条序列", windowStart.Local().Format("2006-01-02 15:04"), windowEnd.Local().Format("2006-01-02 15:04"), len(series))
 	if len(series) == 0 {
 		section.Note += "；窗口内没有数据"
+		if params.EmptyIsWarn {
+			section.Status = "WARN"
+			section.Note += "（已按配置标记警告）"
+		}
+		return
+	}
+	if status := metricThresholdStatus(series, params.Thresholds); status != "" {
+		section.Status = status
+		section.Note += fmt.Sprintf("；命中阈值，标记 %s", status)
 	}
 }
 
+// metricThresholdStatus 对每条序列的最新值评估阈值；任一失败优先返回 FAILED。
+func metricThresholdStatus(series []bo.InspectionSeries, thresholds []metricThreshold) string {
+	status := ""
+	for _, threshold := range thresholds {
+		for _, item := range series {
+			if len(item.Points) == 0 {
+				continue
+			}
+			value := item.Points[len(item.Points)-1].Value
+			matched := false
+			switch threshold.Op {
+			case ">":
+				matched = value > threshold.Value
+			case ">=":
+				matched = value >= threshold.Value
+			case "<":
+				matched = value < threshold.Value
+			case "<=":
+				matched = value <= threshold.Value
+			case "==":
+				matched = math.Abs(value-threshold.Value) < 1e-9
+			case "!=":
+				matched = math.Abs(value-threshold.Value) >= 1e-9
+			}
+			if !matched {
+				continue
+			}
+			if threshold.Status == "FAILED" {
+				return "FAILED"
+			}
+			status = "WARN"
+		}
+	}
+	return status
+}
+
 func (gateway *Gateway) executeLogs(ctx context.Context, plan bo.InspectionPlan, item bo.InspectionItem, windowStart, windowEnd time.Time, section *bo.InspectionSection) {
+	params := parseLogsParams(item.Params)
 	raw, err := gateway.datasources.QueryLogsForNamespace(
 		ctx, plan.NamespaceUID, item.DatasourceUID, item.Query,
-		windowStart.Unix(), windowEnd.Unix(), 50, "backward",
+		windowStart.Unix(), windowEnd.Unix(), int32(params.Limit), strings.ToLower(params.Direction),
 	)
 	if err != nil {
 		section.Status, section.Error = "FAILED", err.Error()
 		return
 	}
 	logs, total := parseLogSamples(raw)
+	if len(params.Levels) > 0 {
+		allowed := make(map[string]struct{}, len(params.Levels))
+		for _, level := range params.Levels {
+			allowed[strings.ToUpper(level)] = struct{}{}
+		}
+		filtered := make([]bo.InspectionLogSample, 0, len(logs))
+		for _, sample := range logs {
+			if _, ok := allowed[strings.ToUpper(sample.Level)]; ok {
+				filtered = append(filtered, sample)
+			}
+		}
+		logs = filtered
+	}
 	section.Logs = logs
 	if len(logs) == 0 {
 		section.Raw = truncateRaw(raw)
-		section.Note = fmt.Sprintf("已返回原始日志响应（%d 字节），未解析出样本", len(raw))
+		section.Note = fmt.Sprintf("已返回原始日志响应（%d 字节），未解析出匹配样本", len(raw))
 	} else {
-		section.Note = fmt.Sprintf("窗口内命中 %d 条日志，展示最近 %d 条", total, len(logs))
+		section.Note = fmt.Sprintf("窗口内命中 %d 条日志，展示 %d 条", total, len(logs))
+	}
+	if params.WarnAbove > 0 && total >= params.WarnAbove {
+		section.Status = "WARN"
+		section.Note += fmt.Sprintf("；命中数达到告警阈值 %d", params.WarnAbove)
 	}
 }
 
 func (gateway *Gateway) executeProbes(ctx context.Context, plan bo.InspectionPlan, item bo.InspectionItem, windowStart, windowEnd time.Time, section *bo.InspectionSection) {
-	var params struct {
-		GroupUIDs         []string `json:"group_uids"`
-		AvailabilityBelow float64  `json:"availability_below"`
-	}
-	if err := json.Unmarshal([]byte(item.Params), &params); err != nil || len(params.GroupUIDs) == 0 {
+	params := parseProbeParams(item.Params)
+	if len(params.GroupUIDs) == 0 {
 		section.Status, section.Error = "FAILED", "probe item requires group_uids"
 		return
 	}
-	table := &bo.InspectionTable{Columns: []string{"目标组", "目标", "检查次数", "可用率", "平均延迟", "状态"}}
+	table := &bo.InspectionTable{Columns: []string{"目标组", "目标", "检查次数", "可用率", "平均延迟", "P95", "证书剩余", "状态"}}
 	warnings := 0
 	for _, groupUID := range params.GroupUIDs {
 		group, err := gateway.probes.GetProbeTargetGroup(ctx, plan.NamespaceUID, groupUID)
@@ -297,21 +362,19 @@ func (gateway *Gateway) executeProbes(ctx context.Context, plan bo.InspectionPla
 			byTarget[result.TargetUID] = append(byTarget[result.TargetUID], result)
 		}
 		for _, target := range targets {
-			checks, ok, latency := probeStats(byTarget[target.UID])
-			availability := 100.0
-			if checks > 0 {
-				availability = float64(ok) / float64(checks) * 100
+			summary := summarizeProbe(byTarget[target.UID])
+			availability := 0.0
+			if summary.checks > 0 {
+				availability = float64(summary.ok) / float64(summary.checks) * 100
 			}
-			status := "正常"
-			if checks == 0 {
-				status = "无数据"
-			} else if availability < params.AvailabilityBelow || ok < checks {
-				status = "异常"
+			status := probeStatus(params, summary, availability)
+			if status == "异常" {
 				warnings++
 			}
 			table.Rows = append(table.Rows, []string{
-				group.Name, target.Spec, strconv.Itoa(checks),
-				fmt.Sprintf("%.2f%%", availability), fmt.Sprintf("%dms", latency), status,
+				group.Name, target.Spec, strconv.Itoa(summary.checks),
+				fmt.Sprintf("%.2f%%", availability), fmt.Sprintf("%dms", summary.avgLatency),
+				fmt.Sprintf("%dms", summary.p95Latency), probeCertText(summary.certDays), status,
 			})
 		}
 	}
@@ -319,49 +382,117 @@ func (gateway *Gateway) executeProbes(ctx context.Context, plan bo.InspectionPla
 	if warnings > 0 {
 		section.Status = "WARN"
 	}
-	section.Note = fmt.Sprintf("探测目标组 %d 个，异常目标 %d 个", len(params.GroupUIDs), warnings)
+	section.Note = fmt.Sprintf("探测目标组 %d 个，按%s评估，异常目标 %d 个", len(params.GroupUIDs), probeMetricLabel(params.Metric), warnings)
+}
+
+func probeStatus(params probeParams, summary probeSummary, availability float64) string {
+	if summary.checks == 0 {
+		return "无数据"
+	}
+	switch params.Metric {
+	case "LATENCY":
+		if summary.avgLatency > params.LatencyAboveMS {
+			return "异常"
+		}
+	case "P95":
+		if summary.p95Latency > params.LatencyAboveMS {
+			return "异常"
+		}
+	case "CERT_DAYS":
+		if summary.certDays <= 0 {
+			return "无数据"
+		}
+		if summary.certDays < params.CertDaysBelow {
+			return "异常"
+		}
+	default:
+		warnOnDown := params.WarnOnDown == nil || *params.WarnOnDown
+		if availability < params.AvailabilityBelow || (warnOnDown && summary.ok < summary.checks) {
+			return "异常"
+		}
+	}
+	return "正常"
+}
+
+func probeCertText(days int) string {
+	if days <= 0 {
+		return "—"
+	}
+	return fmt.Sprintf("%d天", days)
+}
+
+func probeMetricLabel(metric string) string {
+	switch metric {
+	case "LATENCY":
+		return "平均延迟"
+	case "P95":
+		return "P95 延迟"
+	case "CERT_DAYS":
+		return "证书剩余天数"
+	default:
+		return "可用率"
+	}
 }
 
 func (gateway *Gateway) executeAlerts(ctx context.Context, plan bo.InspectionPlan, item bo.InspectionItem, windowStart, windowEnd time.Time, section *bo.InspectionSection) {
-	var params struct {
-		Status     string   `json:"status"`
-		WarnLevels []string `json:"warn_levels"`
-		Limit      int      `json:"limit"`
+	params := parseAlertParams(item.Params)
+	fetchLimit := params.Limit
+	if len(params.LevelUIDs) > 0 || params.Labels != "" {
+		fetchLimit = 200
 	}
-	_ = json.Unmarshal([]byte(item.Params), &params)
-	if params.Status == "" {
-		params.Status = "FIRING"
-	}
-	if params.Limit <= 0 || params.Limit > 200 {
-		params.Limit = 100
+	status := params.Status
+	if status == "ALL" {
+		status = ""
 	}
 	events, _, err := gateway.events.ListEvents(ctx, plan.NamespaceUID, bo.AlertEventListFilter{
-		EventStatus: params.Status, StartsAtFrom: &windowStart, StartsAtTo: &windowEnd,
-	}, 1, params.Limit)
+		EventStatus: status, StartsAtFrom: &windowStart, StartsAtTo: &windowEnd,
+		LabelsJSON: params.Labels,
+	}, 1, fetchLimit)
 	if err != nil {
 		section.Status, section.Error = "FAILED", err.Error()
 		return
+	}
+	levelSet := make(map[string]struct{}, len(params.LevelUIDs))
+	for _, level := range params.LevelUIDs {
+		levelSet[level] = struct{}{}
 	}
 	warnSet := make(map[string]struct{}, len(params.WarnLevels))
 	for _, level := range params.WarnLevels {
 		warnSet[strings.ToUpper(strings.TrimSpace(level))] = struct{}{}
 	}
-	rows := make([]bo.InspectionAlertRow, 0, len(events))
+	rows := make([]bo.InspectionAlertRow, 0, params.Limit)
 	warned := 0
 	for _, event := range events {
+		if len(levelSet) > 0 {
+			if _, ok := levelSet[event.LevelUID]; !ok {
+				continue
+			}
+		}
 		rows = append(rows, bo.InspectionAlertRow{
 			Title: event.Summary, Level: event.LevelName, Status: event.Status,
 			StartedAt: event.StartsAt.Local().Format("2006-01-02 15:04"),
 		})
 		if _, ok := warnSet[strings.ToUpper(event.LevelName)]; ok {
 			warned++
+		} else if _, ok := warnSet[strings.ToUpper(event.LevelUID)]; ok {
+			warned++
+		}
+		if len(rows) >= params.Limit {
+			break
 		}
 	}
 	section.Alerts = rows
 	if warned > 0 {
 		section.Status = "WARN"
 	}
-	section.Note = fmt.Sprintf("窗口内 %s 事件 %d 条", params.Status, len(rows))
+	section.Note = fmt.Sprintf("窗口内 %s 事件 %d 条", alertStatusLabel(params.Status), len(rows))
+}
+
+func alertStatusLabel(status string) string {
+	if status == "ALL" {
+		return "全部"
+	}
+	return "未恢复"
 }
 
 // reportNotice 生成投递摘要与报告链接。链接前缀来自 ALIOTH_CONSOLE_BASE_URL。
@@ -393,6 +524,44 @@ func maxWindow(items []bo.InspectionItem) time.Duration {
 		}
 	}
 	return longest
+}
+
+type probeSummary struct {
+	checks     int
+	ok         int
+	avgLatency int
+	p95Latency int
+	certDays   int
+}
+
+func summarizeProbe(results []bo.ProbeResult) probeSummary {
+	checks, ok, avgLatency := probeStats(results)
+	summary := probeSummary{checks: checks, ok: ok, avgLatency: avgLatency}
+	if len(results) == 0 {
+		return summary
+	}
+	durations := make([]int, 0, len(results))
+	for _, result := range results {
+		durations = append(durations, result.DurationMS)
+		if result.Value != "" {
+			if days, err := strconv.ParseFloat(strings.TrimSpace(result.Value), 64); err == nil && days > 0 {
+				value := int(days)
+				if summary.certDays == 0 || value < summary.certDays {
+					summary.certDays = value
+				}
+			}
+		}
+	}
+	sort.Ints(durations)
+	index := int(math.Ceil(float64(len(durations))*0.95)) - 1
+	if index < 0 {
+		index = 0
+	}
+	if index >= len(durations) {
+		index = len(durations) - 1
+	}
+	summary.p95Latency = durations[index]
+	return summary
 }
 
 func probeStats(results []bo.ProbeResult) (checks, ok, avgLatency int) {
@@ -508,26 +677,106 @@ type lokiPayload struct {
 }
 
 func parseLogSamples(raw string) ([]bo.InspectionLogSample, int) {
-	var payload lokiPayload
-	if err := json.Unmarshal([]byte(raw), &payload); err != nil || len(payload.Data.Result) == 0 {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
 		return nil, 0
 	}
-	total := 0
-	samples := make([]bo.InspectionLogSample, 0, logSampleLimit)
-	for _, stream := range payload.Data.Result {
-		for _, value := range stream.Values {
-			total++
-			if len(samples) >= logSampleLimit || len(value) != 2 {
-				continue
+	// Loki: data.result[].values。
+	var loki lokiPayload
+	if err := json.Unmarshal([]byte(raw), &loki); err == nil && len(loki.Data.Result) > 0 {
+		total := 0
+		samples := make([]bo.InspectionLogSample, 0, logSampleLimit)
+		for _, stream := range loki.Data.Result {
+			for _, value := range stream.Values {
+				total++
+				if len(samples) >= logSampleLimit || len(value) != 2 {
+					continue
+				}
+				samples = append(samples, logSample(value[0], value[1]))
 			}
-			message := value[1]
-			if len(message) > 400 {
-				message = message[:400]
-			}
-			samples = append(samples, bo.InspectionLogSample{Time: value[0], Level: logLevel(message), Message: message})
 		}
+		return samples, total
+	}
+	// Elasticsearch: hits.hits[]._source。
+	var es struct {
+		Hits struct {
+			Total any `json:"total"`
+			Hits  []struct {
+				Source map[string]any `json:"_source"`
+			} `json:"hits"`
+		} `json:"hits"`
+	}
+	if err := json.Unmarshal([]byte(raw), &es); err == nil && len(es.Hits.Hits) > 0 {
+		total := len(es.Hits.Hits)
+		if object, ok := es.Hits.Total.(map[string]any); ok {
+			if value, ok := object["value"].(float64); ok {
+				total = int(value)
+			}
+		}
+		samples := make([]bo.InspectionLogSample, 0, logSampleLimit)
+		for _, hit := range es.Hits.Hits {
+			if len(samples) >= logSampleLimit {
+				break
+			}
+			samples = append(samples, logMapSample(hit.Source))
+		}
+		return samples, total
+	}
+	// VictoriaLogs 与其它驱动：JSON 行或纯文本行。
+	lines := strings.Split(raw, "\n")
+	samples := make([]bo.InspectionLogSample, 0, logSampleLimit)
+	total := 0
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		total++
+		if len(samples) >= logSampleLimit {
+			continue
+		}
+		var object map[string]any
+		if json.Unmarshal([]byte(line), &object) == nil {
+			samples = append(samples, logMapSample(object))
+			continue
+		}
+		samples = append(samples, logSample("", line))
 	}
 	return samples, total
+}
+
+func logSample(timestamp, message string) bo.InspectionLogSample {
+	if len(message) > 400 {
+		message = message[:400]
+	}
+	return bo.InspectionLogSample{Time: timestamp, Level: logLevel(message), Message: message}
+}
+
+func logMapSample(object map[string]any) bo.InspectionLogSample {
+	message := stringField(object, "_msg", "message", "msg", "log", "body")
+	timestamp := stringField(object, "_time", "@timestamp", "timestamp", "time")
+	level := strings.ToUpper(stringField(object, "level", "severity", "_level"))
+	if level == "" {
+		level = logLevel(message)
+	}
+	if len(message) > 400 {
+		message = message[:400]
+	}
+	return bo.InspectionLogSample{Time: timestamp, Level: level, Message: message}
+}
+
+func stringField(object map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if value, ok := object[key]; ok {
+			switch typed := value.(type) {
+			case string:
+				return typed
+			case float64:
+				return strconv.FormatFloat(typed, 'f', -1, 64)
+			}
+		}
+	}
+	return ""
 }
 
 func logLevel(message string) string {

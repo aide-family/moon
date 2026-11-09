@@ -34,6 +34,13 @@ service InspectionPlanService {
   rpc DeleteInspectionPlan(DeleteInspectionPlanRequest) returns (DeleteInspectionPlanResponse) {
     option (google.api.http) = {delete: "/v1/inspection/plans/{uid}"};
   }
+  // 用真实数据测试一个检查项配置，不落库、不产生告警、不投递。
+  rpc TestInspectionItem(TestInspectionItemRequest) returns (TestInspectionItemResponse) {
+    option (google.api.http) = {
+      post: "/v1/inspection/test-item"
+      body: "*"
+    };
+  }
   // 获取巡检计划详情，包含检查项。
   rpc GetInspectionPlan(GetInspectionPlanRequest) returns (GetInspectionPlanResponse) {
     option (google.api.http) = {get: "/v1/inspection/plans/{uid}"};
@@ -641,4 +648,23 @@ message ResendInspectionReportRequest {
 message ResendInspectionReportResponse {
   // 本次创建的投递任务数。
   int32 created = 1;
+}
+
+
+// 测试检查项请求。
+message TestInspectionItemRequest {
+  // 与计划保存相同的检查项配置。
+  InspectionPlanItemInput item = 1;
+}
+
+// 测试检查项响应。执行错误放在 error/status 中，配置错误仍返回 400。
+message TestInspectionItemResponse {
+  // OK / WARN / FAILED。
+  string status = 1;
+  // 执行失败原因。
+  string error = 2;
+  // 与 run.result 中 Section 同构的 JSON。
+  string result_json = 3 [json_name = "resultJson"];
+  // 本次执行耗时，毫秒。
+  int64 elapsed_ms = 4 [json_name = "elapsedMs"];
 }

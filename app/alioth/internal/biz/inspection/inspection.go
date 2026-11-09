@@ -157,6 +157,27 @@ func (gateway *Gateway) GetPlan(ctx context.Context, uid string) (*bo.Inspection
 	return item, gateway.access.Wrap(err)
 }
 
+// TestItem 用真实数据执行一个检查项配置；不落库、不产生告警、不投递。
+func (gateway *Gateway) TestItem(ctx context.Context, in bo.InspectionItem) (*bo.InspectionSection, int64, error) {
+	ns, err := gateway.access.Allow(ctx, perm.InspectionRead)
+	if err != nil {
+		return nil, 0, err
+	}
+	in.NamespaceUID = ns
+	in.Enabled = true
+	if err := normalizeItem(&in, 0); err != nil {
+		return nil, 0, err
+	}
+	plan := bo.InspectionPlan{NamespaceUID: ns}
+	end := time.Now().UTC()
+	start := end.Add(-time.Duration(in.WindowSeconds) * time.Second)
+	runCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	started := time.Now()
+	section := gateway.executeSection(runCtx, plan, in, start, end)
+	return &section, time.Since(started).Milliseconds(), nil
+}
+
 // ListPlans 分页列出巡检计划。
 func (gateway *Gateway) ListPlans(ctx context.Context, pageNo, pageSize int32, filter bo.InspectionPlanListFilter) ([]bo.InspectionPlan, int, int, int, error) {
 	ns, err := gateway.access.Allow(ctx, perm.InspectionRead)
@@ -362,12 +383,20 @@ func normalizeItem(in *bo.InspectionItem, index int) error {
 	if _, ok := itemDisplays[in.Display]; !ok {
 		return merr.Invalid("invalid inspection item display")
 	}
+	if !displayAllowed(in.Kind, in.Display) {
+		return merr.Invalid("inspection item display does not match its kind")
+	}
 	if in.Params == "" {
 		in.Params = "{}"
 	}
 	if err := validateJSONObject(in.Params, "params"); err != nil {
 		return err
 	}
+	normalizedParams, err := normalizeItemParams(in.Kind, in.Params)
+	if err != nil {
+		return err
+	}
+	in.Params = normalizedParams
 	switch in.Kind {
 	case "METRICS_QUERY", "LOGS_QUERY":
 		if in.DatasourceUID == "" {
@@ -408,6 +437,21 @@ func normalizeTemplate(in *bo.InspectionTemplate) error {
 		}
 	}
 	return nil
+}
+
+func displayAllowed(kind, display string) bool {
+	switch kind {
+	case "METRICS_QUERY":
+		return display == "METRIC" || display == "TABLE" || display == "TREND"
+	case "LOGS_QUERY":
+		return display == "LOGS" || display == "TABLE"
+	case "PROBE_TARGET", "ALERT_EVENTS":
+		return display == "TABLE"
+	case "NOTE":
+		return display == "TEXT"
+	default:
+		return false
+	}
 }
 
 func normalizedFormats(values []string) []string {

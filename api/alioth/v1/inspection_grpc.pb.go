@@ -23,6 +23,7 @@ const (
 	InspectionPlanService_UpdateInspectionPlan_FullMethodName       = "/alioth.v1.InspectionPlanService/UpdateInspectionPlan"
 	InspectionPlanService_UpdateInspectionPlanStatus_FullMethodName = "/alioth.v1.InspectionPlanService/UpdateInspectionPlanStatus"
 	InspectionPlanService_DeleteInspectionPlan_FullMethodName       = "/alioth.v1.InspectionPlanService/DeleteInspectionPlan"
+	InspectionPlanService_TestInspectionItem_FullMethodName         = "/alioth.v1.InspectionPlanService/TestInspectionItem"
 	InspectionPlanService_GetInspectionPlan_FullMethodName          = "/alioth.v1.InspectionPlanService/GetInspectionPlan"
 	InspectionPlanService_ListInspectionPlans_FullMethodName        = "/alioth.v1.InspectionPlanService/ListInspectionPlans"
 )
@@ -41,6 +42,8 @@ type InspectionPlanServiceClient interface {
 	UpdateInspectionPlanStatus(ctx context.Context, in *UpdateInspectionPlanStatusRequest, opts ...grpc.CallOption) (*UpdateInspectionPlanStatusResponse, error)
 	// 删除巡检计划。
 	DeleteInspectionPlan(ctx context.Context, in *DeleteInspectionPlanRequest, opts ...grpc.CallOption) (*DeleteInspectionPlanResponse, error)
+	// 用真实数据测试一个检查项配置，不落库、不产生告警、不投递。
+	TestInspectionItem(ctx context.Context, in *TestInspectionItemRequest, opts ...grpc.CallOption) (*TestInspectionItemResponse, error)
 	// 获取巡检计划详情，包含检查项。
 	GetInspectionPlan(ctx context.Context, in *GetInspectionPlanRequest, opts ...grpc.CallOption) (*GetInspectionPlanResponse, error)
 	// 分页列出巡检计划。
@@ -95,6 +98,16 @@ func (c *inspectionPlanServiceClient) DeleteInspectionPlan(ctx context.Context, 
 	return out, nil
 }
 
+func (c *inspectionPlanServiceClient) TestInspectionItem(ctx context.Context, in *TestInspectionItemRequest, opts ...grpc.CallOption) (*TestInspectionItemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TestInspectionItemResponse)
+	err := c.cc.Invoke(ctx, InspectionPlanService_TestInspectionItem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *inspectionPlanServiceClient) GetInspectionPlan(ctx context.Context, in *GetInspectionPlanRequest, opts ...grpc.CallOption) (*GetInspectionPlanResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetInspectionPlanResponse)
@@ -129,6 +142,8 @@ type InspectionPlanServiceServer interface {
 	UpdateInspectionPlanStatus(context.Context, *UpdateInspectionPlanStatusRequest) (*UpdateInspectionPlanStatusResponse, error)
 	// 删除巡检计划。
 	DeleteInspectionPlan(context.Context, *DeleteInspectionPlanRequest) (*DeleteInspectionPlanResponse, error)
+	// 用真实数据测试一个检查项配置，不落库、不产生告警、不投递。
+	TestInspectionItem(context.Context, *TestInspectionItemRequest) (*TestInspectionItemResponse, error)
 	// 获取巡检计划详情，包含检查项。
 	GetInspectionPlan(context.Context, *GetInspectionPlanRequest) (*GetInspectionPlanResponse, error)
 	// 分页列出巡检计划。
@@ -154,6 +169,9 @@ func (UnimplementedInspectionPlanServiceServer) UpdateInspectionPlanStatus(conte
 }
 func (UnimplementedInspectionPlanServiceServer) DeleteInspectionPlan(context.Context, *DeleteInspectionPlanRequest) (*DeleteInspectionPlanResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteInspectionPlan not implemented")
+}
+func (UnimplementedInspectionPlanServiceServer) TestInspectionItem(context.Context, *TestInspectionItemRequest) (*TestInspectionItemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TestInspectionItem not implemented")
 }
 func (UnimplementedInspectionPlanServiceServer) GetInspectionPlan(context.Context, *GetInspectionPlanRequest) (*GetInspectionPlanResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetInspectionPlan not implemented")
@@ -254,6 +272,24 @@ func _InspectionPlanService_DeleteInspectionPlan_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InspectionPlanService_TestInspectionItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TestInspectionItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InspectionPlanServiceServer).TestInspectionItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InspectionPlanService_TestInspectionItem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InspectionPlanServiceServer).TestInspectionItem(ctx, req.(*TestInspectionItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _InspectionPlanService_GetInspectionPlan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetInspectionPlanRequest)
 	if err := dec(in); err != nil {
@@ -312,6 +348,10 @@ var InspectionPlanService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteInspectionPlan",
 			Handler:    _InspectionPlanService_DeleteInspectionPlan_Handler,
+		},
+		{
+			MethodName: "TestInspectionItem",
+			Handler:    _InspectionPlanService_TestInspectionItem_Handler,
 		},
 		{
 			MethodName: "GetInspectionPlan",

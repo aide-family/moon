@@ -21,6 +21,7 @@ const OperationInspectionPlanServiceCreateInspectionPlan = "/alioth.v1.Inspectio
 const OperationInspectionPlanServiceDeleteInspectionPlan = "/alioth.v1.InspectionPlanService/DeleteInspectionPlan"
 const OperationInspectionPlanServiceGetInspectionPlan = "/alioth.v1.InspectionPlanService/GetInspectionPlan"
 const OperationInspectionPlanServiceListInspectionPlans = "/alioth.v1.InspectionPlanService/ListInspectionPlans"
+const OperationInspectionPlanServiceTestInspectionItem = "/alioth.v1.InspectionPlanService/TestInspectionItem"
 const OperationInspectionPlanServiceUpdateInspectionPlan = "/alioth.v1.InspectionPlanService/UpdateInspectionPlan"
 const OperationInspectionPlanServiceUpdateInspectionPlanStatus = "/alioth.v1.InspectionPlanService/UpdateInspectionPlanStatus"
 
@@ -33,6 +34,8 @@ type InspectionPlanServiceHTTPServer interface {
 	GetInspectionPlan(context.Context, *GetInspectionPlanRequest) (*GetInspectionPlanResponse, error)
 	// ListInspectionPlans 分页列出巡检计划。
 	ListInspectionPlans(context.Context, *ListInspectionPlansRequest) (*ListInspectionPlansResponse, error)
+	// TestInspectionItem 用真实数据测试一个检查项配置，不落库、不产生告警、不投递。
+	TestInspectionItem(context.Context, *TestInspectionItemRequest) (*TestInspectionItemResponse, error)
 	// UpdateInspectionPlan 更新巡检计划；检查项随计划整体保存。
 	UpdateInspectionPlan(context.Context, *UpdateInspectionPlanRequest) (*UpdateInspectionPlanResponse, error)
 	// UpdateInspectionPlanStatus 启用或暂停巡检计划。
@@ -45,6 +48,7 @@ func RegisterInspectionPlanServiceHTTPServer(s *http.Server, srv InspectionPlanS
 	r.Handle("PUT", "/v1/inspection/plans/{uid}", _InspectionPlanService_UpdateInspectionPlan0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/inspection/plans/{uid}/status", _InspectionPlanService_UpdateInspectionPlanStatus0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/inspection/plans/{uid}", _InspectionPlanService_DeleteInspectionPlan0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/inspection/test-item", _InspectionPlanService_TestInspectionItem0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/inspection/plans/{uid}", _InspectionPlanService_GetInspectionPlan0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/inspection/plans", _InspectionPlanService_ListInspectionPlans0_HTTP_Handler(srv))
 }
@@ -134,6 +138,25 @@ func _InspectionPlanService_DeleteInspectionPlan0_HTTP_Handler(srv InspectionPla
 	}
 }
 
+func _InspectionPlanService_TestInspectionItem0_HTTP_Handler(srv InspectionPlanServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TestInspectionItemRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInspectionPlanServiceTestInspectionItem)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TestInspectionItem(ctx, req.(*TestInspectionItemRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TestInspectionItemResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _InspectionPlanService_GetInspectionPlan0_HTTP_Handler(srv InspectionPlanServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetInspectionPlanRequest
@@ -184,6 +207,8 @@ type InspectionPlanServiceHTTPClient interface {
 	GetInspectionPlan(ctx context.Context, req *GetInspectionPlanRequest, opts ...http.CallOption) (rsp *GetInspectionPlanResponse, err error)
 	// ListInspectionPlans 分页列出巡检计划。
 	ListInspectionPlans(ctx context.Context, req *ListInspectionPlansRequest, opts ...http.CallOption) (rsp *ListInspectionPlansResponse, err error)
+	// TestInspectionItem 用真实数据测试一个检查项配置，不落库、不产生告警、不投递。
+	TestInspectionItem(ctx context.Context, req *TestInspectionItemRequest, opts ...http.CallOption) (rsp *TestInspectionItemResponse, err error)
 	// UpdateInspectionPlan 更新巡检计划；检查项随计划整体保存。
 	UpdateInspectionPlan(ctx context.Context, req *UpdateInspectionPlanRequest, opts ...http.CallOption) (rsp *UpdateInspectionPlanResponse, err error)
 	// UpdateInspectionPlanStatus 启用或暂停巡检计划。
@@ -261,6 +286,24 @@ func (c *InspectionPlanServiceHTTPClientImpl) ListInspectionPlans(ctx context.Co
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// TestInspectionItem 用真实数据测试一个检查项配置，不落库、不产生告警、不投递。
+func (c *InspectionPlanServiceHTTPClientImpl) TestInspectionItem(ctx context.Context, in *TestInspectionItemRequest, opts ...http.CallOption) (*TestInspectionItemResponse, error) {
+	var out TestInspectionItemResponse
+	pattern := "/v1/inspection/test-item"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationInspectionPlanServiceTestInspectionItem),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

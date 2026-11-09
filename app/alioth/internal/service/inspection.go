@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	v1 "github.com/aide-family/moon/api/alioth/v1"
@@ -51,6 +52,18 @@ func (s *InspectionPlanService) DeleteInspectionPlan(ctx context.Context, req *v
 		return nil, err
 	}
 	return &v1.DeleteInspectionPlanResponse{}, nil
+}
+
+func (s *InspectionPlanService) TestInspectionItem(ctx context.Context, req *v1.TestInspectionItemRequest) (*v1.TestInspectionItemResponse, error) {
+	section, elapsed, err := s.gateway.TestItem(ctx, toInspectionItem(req.GetItem()))
+	if err != nil {
+		return nil, err
+	}
+	raw, _ := json.Marshal(section)
+	return &v1.TestInspectionItemResponse{
+		Status: section.Status, Error: section.Error,
+		ResultJson: string(raw), ElapsedMs: elapsed,
+	}, nil
 }
 
 func (s *InspectionPlanService) GetInspectionPlan(ctx context.Context, req *v1.GetInspectionPlanRequest) (*v1.GetInspectionPlanResponse, error) {
@@ -152,14 +165,18 @@ func toInspectionPlanInput(in *v1.InspectionPlanInput) bo.InspectionPlan {
 	}
 	plan.Items = make([]bo.InspectionItem, 0, len(in.GetItems()))
 	for _, item := range in.GetItems() {
-		plan.Items = append(plan.Items, bo.InspectionItem{
-			Kind: item.GetKind(), Title: item.GetTitle(), DatasourceUID: item.GetDatasourceUid(),
-			Query: item.GetQuery(), WindowSeconds: int(item.GetWindowSeconds()),
-			StepSeconds: int(item.GetStepSeconds()), Display: item.GetDisplay(),
-			Params: item.GetParams(), Enabled: item.GetEnabled(),
-		})
+		plan.Items = append(plan.Items, toInspectionItem(item))
 	}
 	return plan
+}
+
+func toInspectionItem(item *v1.InspectionPlanItemInput) bo.InspectionItem {
+	return bo.InspectionItem{
+		Kind: item.GetKind(), Title: item.GetTitle(), DatasourceUID: item.GetDatasourceUid(),
+		Query: item.GetQuery(), WindowSeconds: int(item.GetWindowSeconds()),
+		StepSeconds: int(item.GetStepSeconds()), Display: item.GetDisplay(),
+		Params: item.GetParams(), Enabled: item.GetEnabled(),
+	}
 }
 
 func inspectionPlanItem(in bo.InspectionPlan) *v1.InspectionPlan {
