@@ -1,21 +1,27 @@
-import { Info, Plus, Trash2 } from "lucide-react"
+import { Info, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 
-import { selectDatasources } from "@/api/datasource"
+import { listAlertDictionaries } from "@/api/alert-dictionary"
+import { listDatasources } from "@/api/datasource"
+import type { DatasourceItem } from "@/api/datasource/types"
 import {
   createInspectionPlan,
   updateInspectionPlan,
 } from "@/api/inspection"
+import { listProbeTargetGroups } from "@/api/probe-target"
 import type {
-  InspectionItemDisplay,
-  InspectionItemInput,
   InspectionItemKind,
   InspectionOutputFormat,
   InspectionPlan,
   InspectionPlanInput,
   InspectionTemplate,
 } from "@/api/inspection/types"
+import {
+  InspectionItemEditor,
+  type DraftItem,
+} from "@/pages/inspection-plans/inspection-item-editor"
 import { FormField } from "@/components/form-field"
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select"
 import { StepForm } from "@/components/step-form"
@@ -35,7 +41,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Tooltip,
   TooltipContent,
@@ -43,20 +48,6 @@ import {
 } from "@/components/ui/tooltip"
 import { readFormError } from "@/lib/form-error"
 
-const ITEM_KINDS: InspectionItemKind[] = [
-  "METRICS_QUERY",
-  "LOGS_QUERY",
-  "PROBE_TARGET",
-  "ALERT_EVENTS",
-  "NOTE",
-]
-const DISPLAYS: InspectionItemDisplay[] = [
-  "METRIC",
-  "TABLE",
-  "TREND",
-  "LOGS",
-  "TEXT",
-]
 const FORMATS: InspectionOutputFormat[] = ["HTML", "MARKDOWN"]
 
 const CRON_PRESETS = [
@@ -66,10 +57,6 @@ const CRON_PRESETS = [
   { value: "0 9 1 * *", zh: "每月 1 日 09:00", en: "Monthly 1st 09:00" },
 ]
 const CUSTOM_CRON = "custom"
-
-interface DraftItem extends InspectionItemInput {
-  key: string
-}
 
 interface InspectionPlanDialogProps {
   open: boolean
@@ -87,9 +74,9 @@ function emptyItem(): DraftItem {
     title: "",
     datasourceUid: "",
     query: "",
-    windowSeconds: 3600,
+    windowSeconds: 86400,
     stepSeconds: 60,
-    display: "TABLE",
+    display: "METRIC",
     params: "{}",
     enabled: true,
   }
@@ -153,28 +140,38 @@ export function InspectionPlanDialog({
   const [notifyPolicy, setNotifyPolicy] = useState<"ALWAYS" | "ON_ABNORMAL">(
     () => plan?.notifyPolicy ?? "ON_ABNORMAL"
   )
-  const [metricSources, setMetricSources] = useState<MultiSelectOption[]>([])
-  const [logSources, setLogSources] = useState<MultiSelectOption[]>([])
+  const [metricSources, setMetricSources] = useState<DatasourceItem[]>([])
+  const [logSources, setLogSources] = useState<DatasourceItem[]>([])
+  const [probeGroups, setProbeGroups] = useState<MultiSelectOption[]>([])
+  const [alertLevels, setAlertLevels] = useState<MultiSelectOption[]>([])
+  const [savedItems, setSavedItems] = useState<DraftItem[]>(() => draftFromPlan(plan))
+  const [dirtyIndex, setDirtyIndex] = useState<number | null>(null)
   const [pending, setPending] = useState(false)
   const [formError, setFormError] = useState("")
 
   useEffect(() => {
     let active = true
     Promise.all([
-      selectDatasources({ type: "METRICS", limit: 100 }),
-      selectDatasources({ type: "LOGS", limit: 100 }),
+      listDatasources({ page: 1, pageSize: 100, type: "METRICS" }),
+      listDatasources({ page: 1, pageSize: 100, type: "LOGS" }),
+      listProbeTargetGroups({ page: 1, pageSize: 100 }),
+      listAlertDictionaries({ page: 1, pageSize: 100, type: "ALERT" }),
     ])
-      .then(([metrics, logs]) => {
+      .then(([metrics, logs, groups, levels]) => {
         if (!active) {
           return
         }
-        setMetricSources(metrics.items.map((item) => ({ value: item.uid, label: item.name })))
-        setLogSources(logs.items.map((item) => ({ value: item.uid, label: item.name })))
+        setMetricSources(metrics.items.filter((item) => item.status === "ACTIVE"))
+        setLogSources(logs.items.filter((item) => item.status === "ACTIVE"))
+        setProbeGroups(groups.items.map((item) => ({ value: item.uid, label: item.name })))
+        setAlertLevels(levels.items.map((item) => ({ value: item.uid, label: item.name })))
       })
       .catch(() => {
         if (active) {
           setMetricSources([])
           setLogSources([])
+          setProbeGroups([])
+          setAlertLevels([])
         }
       })
     return () => {
@@ -190,6 +187,61 @@ export function InspectionPlanDialog({
         itemIndex === index ? { ...item, ...patch } : item
       )
     )
+    setDirtyIndex(index)
+  }
+
+  function saveItem(index: number) {
+    const item = items[index]
+    if (!item.title.trim()) {
+      toast.error(t("inspection.itemTitle"))
+      return
+    }
+    if ((item.kind === "METRICS_QUERY" || item.kind === "LOGS_QUERY") && (!item.datasourceUid || !item.query.trim())) {
+      toast.error(t("inspection.query"))
+      return
+    }
+    if (item.kind === "PROBE_TARGET") {
+      const params = JSON.parse(item.params || "{}") as { group_uids?: string[] }
+      if (!params.group_uids || params.group_uids.length === 0) {
+        toast.error(t("inspection.probeGroups"))
+        return
+      }
+    }
+    setSavedItems((current) =>
+      current.map((item, itemIndex) =>
+        itemIndex === index ? JSON.parse(JSON.stringify(items[index])) : item
+      )
+    )
+    setDirtyIndex(null)
+    toast.success(t("inspection.itemSavedToast"))
+  }
+
+  function restoreItem(index: number) {
+    const snapshot = savedItems[index]
+    if (!snapshot) {
+      return
+    }
+    setItems((current) =>
+      current.map((item, itemIndex) =>
+        itemIndex === index ? JSON.parse(JSON.stringify(snapshot)) : item
+      )
+    )
+    setDirtyIndex(null)
+  }
+
+  function openItem(index: number) {
+    if (expanded === index) {
+      if (dirtyIndex === index && !window.confirm(t("inspection.discardChanges"))) {
+        return
+      }
+      setExpanded(-1)
+      return
+    }
+    if (dirtyIndex !== null && dirtyIndex !== index && !window.confirm(t("inspection.discardChanges"))) {
+      return
+    }
+    setExpanded(index)
+    setDirtyIndex(null)
   }
 
   function selectPreset(value: string) {
@@ -278,24 +330,9 @@ export function InspectionPlanDialog({
     }
   }
 
-  function displayLabel(display: InspectionItemDisplay): string {
-    switch (display) {
-      case "METRIC":
-        return t("inspection.displayMetric")
-      case "TREND":
-        return t("inspection.displayTrend")
-      case "LOGS":
-        return t("inspection.displayLogs")
-      case "TEXT":
-        return t("inspection.displayText")
-      default:
-        return t("inspection.displayTable")
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>
             {plan ? t("inspection.editPlan") : t("inspection.newPlan")}
@@ -379,8 +416,6 @@ export function InspectionPlanDialog({
           {step === 1 ? (
             <div className="grid gap-3">
               {items.map((item, index) => {
-                const queryKinds = item.kind === "METRICS_QUERY" || item.kind === "LOGS_QUERY"
-                const sources = item.kind === "LOGS_QUERY" ? logSources : metricSources
                 const open = expanded === index
                 return (
                   <div
@@ -391,7 +426,7 @@ export function InspectionPlanDialog({
                       type="button"
                       className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-muted/40"
                       aria-expanded={open}
-                      onClick={() => setExpanded(open ? -1 : index)}
+                      onClick={() => openItem(index)}
                     >
                       <span className="font-mono text-xs text-muted-foreground">
                         {String(index + 1).padStart(2, "0")}
@@ -399,144 +434,33 @@ export function InspectionPlanDialog({
                       <span className="min-w-0 flex-1 truncate text-sm font-medium">
                         {item.title || t("inspection.items")}
                       </span>
-                      <span className="text-xs text-muted-foreground">
-                        {kindLabel(item.kind)}
-                      </span>
+                      {dirtyIndex === index ? (
+                        <span className="text-xs text-warning">{t("inspection.itemDirty")}</span>
+                      ) : null}
+                      <span className="text-xs text-muted-foreground">{kindLabel(item.kind)}</span>
                     </button>
                     {open ? (
-                      <div className="grid gap-3 border-t border-border px-3 py-3">
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <FormField label={t("inspection.itemTitle")}>
-                            <Input
-                              value={item.title}
-                              onChange={(event) =>
-                                updateItem(index, { title: event.target.value })
-                              }
-                            />
-                          </FormField>
-                          <FormField label={t("inspection.kind")}>
-                            <Select
-                              value={item.kind}
-                              onValueChange={(value) =>
-                                updateItem(index, {
-                                  kind: value as InspectionItemKind,
-                                  display: value === "NOTE" ? "TEXT" : item.display,
-                                })
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {ITEM_KINDS.map((kind) => (
-                                  <SelectItem key={kind} value={kind}>
-                                    {kindLabel(kind)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormField>
-                        </div>
-                        {queryKinds ? (
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            <FormField label={t("inspection.datasource")}>
-                              <Select
-                                value={item.datasourceUid}
-                                onValueChange={(value) =>
-                                  updateItem(index, { datasourceUid: value })
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder={t("inspection.datasource")} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {sources.map((source) => (
-                                    <SelectItem key={source.value} value={source.value}>
-                                      {source.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </FormField>
-                            <FormField label={t("inspection.window")}>
-                              <Input
-                                type="number"
-                                min={60}
-                                value={item.windowSeconds}
-                                onChange={(event) =>
-                                  updateItem(index, {
-                                    windowSeconds: Number(event.target.value) || 3600,
-                                  })
-                                }
-                              />
-                            </FormField>
-                          </div>
-                        ) : null}
-                        <FormField
-                          label={
-                            item.kind === "NOTE"
-                              ? t("inspection.noteContent")
-                              : t("inspection.query")
-                          }
-                        >
-                          <Textarea
-                            rows={3}
-                            className="font-mono text-xs"
-                            value={item.query}
-                            onChange={(event) =>
-                              updateItem(index, { query: event.target.value })
+                      <div className="border-t border-border p-3">
+                        <InspectionItemEditor
+                          key={`${item.key}-${item.kind}`}
+                          item={item}
+                          sources={{ metrics: metricSources, logs: logSources }}
+                          probeGroups={probeGroups}
+                          alertLevels={alertLevels}
+                          dirty={dirtyIndex === index}
+                          onChange={(patch) => updateItem(index, patch)}
+                          onSave={() => saveItem(index)}
+                          onRestore={() => restoreItem(index)}
+                          onRemove={() => {
+                            if (items.length <= 1) {
+                              return
                             }
-                          />
-                        </FormField>
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <FormField label={t("inspection.display")}>
-                            <Select
-                              value={item.display}
-                              onValueChange={(value) =>
-                                updateItem(index, {
-                                  display: value as InspectionItemDisplay,
-                                })
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {DISPLAYS.map((display) => (
-                                  <SelectItem key={display} value={display}>
-                                    {displayLabel(display)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormField>
-                          <div className="flex items-end justify-between gap-2 pb-2">
-                            <label className="flex items-center gap-2 text-sm">
-                              <Checkbox
-                                checked={item.enabled}
-                                onCheckedChange={(value) =>
-                                  updateItem(index, { enabled: value === true })
-                                }
-                              />
-                              {t("inspection.enabled")}
-                            </label>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="ghost"
-                              className="text-destructive"
-                              disabled={items.length <= 1}
-                              onClick={() =>
-                                setItems((current) =>
-                                  current.filter((_, currentIndex) => currentIndex !== index)
-                                )
-                              }
-                            >
-                              <Trash2 data-icon="inline-start" />
-                              {t("inspection.remove")}
-                            </Button>
-                          </div>
-                        </div>
+                            setItems((current) => current.filter((_, currentIndex) => currentIndex !== index))
+                            setSavedItems((current) => current.filter((_, currentIndex) => currentIndex !== index))
+                            setExpanded(-1)
+                            setDirtyIndex(null)
+                          }}
+                        />
                       </div>
                     ) : null}
                   </div>
@@ -546,8 +470,11 @@ export function InspectionPlanDialog({
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  setItems((current) => [...current, emptyItem()])
+                  const created = emptyItem()
+                  setItems((current) => [...current, created])
+                  setSavedItems((current) => [...current, JSON.parse(JSON.stringify(created))])
                   setExpanded(items.length)
+                  setDirtyIndex(null)
                 }}
               >
                 <Plus data-icon="inline-start" />

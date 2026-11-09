@@ -9,6 +9,40 @@ test.use({ storageState: storageState("light") })
  * 依赖租户已开通 inspection 能力；未开通时跳过，避免把环境差异报成代码失败。
  */
 test.describe("巡检（真实后端，不 mock）", () => {
+  test("检查项测试接口执行说明项并拒绝非法参数", async () => {
+    const api = createApi()
+    const ok = await api.post("/v1/inspection/test-item", {
+      item: {
+        kind: "NOTE",
+        title: "测试说明",
+        datasourceUid: "",
+        query: "## 结论\n正常",
+        windowSeconds: 3600,
+        stepSeconds: 60,
+        display: "TEXT",
+        params: "{}",
+        enabled: true,
+      },
+    })
+    expect(ok.status).toBe(200)
+    expect((ok.json as { status: string }).status).toBe("OK")
+
+    const bad = await api.post("/v1/inspection/test-item", {
+      item: {
+        kind: "METRICS_QUERY",
+        title: "非法参数",
+        datasourceUid: "missing",
+        query: "up",
+        windowSeconds: 3600,
+        stepSeconds: 60,
+        display: "METRIC",
+        params: '{"unknown":true}',
+        enabled: true,
+      },
+    })
+    expect(bad.status).toBe(400)
+  })
+
   test("创建计划、执行、查看报告并公开分享", async ({ page }) => {
     const api = createApi()
     const templates = await api.get("/v1/inspection/templates?page=1&pageSize=20")

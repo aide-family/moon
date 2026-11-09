@@ -689,6 +689,8 @@ interface QueryExpressionEditorProps {
   variant?: "promql" | "logql" | "logsql" | "json"
   /** 表达式为空时显示的提示；文案需与当前查询语言一致。 */
   placeholder?: string
+  /** 最小高度；巡检等嵌入式编辑器需要固定可视区域。 */
+  minHeight?: number
 }
 
 export function QueryExpressionEditor({
@@ -698,6 +700,7 @@ export function QueryExpressionEditor({
   onSubmit,
   variant = "promql",
   placeholder,
+  minHeight = 0,
 }: QueryExpressionEditorProps) {
   const { theme } = useTheme()
   const overflowWidgetsDomNode = useMonacoOverflowNode()
@@ -728,9 +731,9 @@ export function QueryExpressionEditor({
     const lines = lineCountOf(value)
     return Math.min(
       MAX_HEIGHT,
-      Math.max(MIN_HEIGHT, lines * LINE_HEIGHT + EDITOR_PADDING_Y * 2)
+      Math.max(minHeight, MIN_HEIGHT, lines * LINE_HEIGHT + EDITOR_PADDING_Y * 2)
     )
-  }, [value])
+  }, [value, minHeight])
 
   const editorTheme =
     theme === "dark" ||

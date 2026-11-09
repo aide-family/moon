@@ -190,3 +190,94 @@ export interface ShareInspectionReportResult {
   expiresAt: string
   report: InspectionReport
 }
+
+/** 测试检查项返回的章节结构与 run.result.sections[] 相同。 */
+export interface InspectionSection {
+  title: string
+  kind: InspectionItemKind
+  status: "OK" | "WARN" | "FAILED"
+  error?: string
+  note?: string
+  metrics?: InspectionMetric[]
+  table?: InspectionTable
+  series?: InspectionSeries[]
+  logs?: InspectionLogSample[]
+  alerts?: InspectionAlertRow[]
+  raw?: string
+}
+
+export interface InspectionMetric {
+  name: string
+  value: string
+  unit?: string
+}
+
+export interface InspectionTable {
+  columns: string[]
+  rows: string[][]
+}
+
+export interface InspectionPoint {
+  timestamp: number
+  value: number
+}
+
+export interface InspectionSeries {
+  name: string
+  points: InspectionPoint[]
+}
+
+export interface InspectionLogSample {
+  time: string
+  level: string
+  message: string
+}
+
+export interface InspectionAlertRow {
+  title: string
+  level: string
+  status: string
+  startedAt: string
+}
+
+export interface TestInspectionItemResult {
+  status: "OK" | "WARN" | "FAILED"
+  error: string
+  resultJson: string
+  /** proto int64 在 JSON 中是字符串。 */
+  elapsedMs: string | number
+}
+
+/** 指标检查项的 params。 */
+export interface InspectionMetricParams {
+  unit?: string
+  empty_is_warn?: boolean
+  thresholds?: Array<{ op: string; value: number; status: "WARN" | "FAILED" }>
+}
+
+/** 日志检查项的 params。 */
+export interface InspectionLogParams {
+  levels?: string[]
+  limit?: number
+  direction?: "BACKWARD" | "FORWARD"
+  warn_above?: number
+}
+
+/** 探测检查项的 params。 */
+export interface InspectionProbeParams {
+  group_uids: string[]
+  metric?: "AVAILABILITY" | "LATENCY" | "P95" | "CERT_DAYS"
+  availability_below?: number
+  latency_above_ms?: number
+  cert_days_below?: number
+  warn_on_down?: boolean
+}
+
+/** 告警检查项的 params。 */
+export interface InspectionAlertParams {
+  status?: "FIRING" | "ALL"
+  level_uids?: string[]
+  labels?: string
+  limit?: number
+  warn_levels?: string[]
+}

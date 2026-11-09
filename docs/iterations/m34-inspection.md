@@ -33,6 +33,21 @@ M34 把数据源查询、探测目标与告警汇总成周期报告，按 cron �
 - 通知任务落库验证：`phase=REPORT`、`pre_rendered=true`
 - 公开页响应头与限流验证：30 次/秒/token，超额 429
 
+## 检查项编辑器 v2（分类型）
+
+检查项不再共用一个 query 文本域，按五类分别配置，详细方案见 `docs/inspection-item-editor-design.md`。
+
+- 指标：PromQL 编辑器、窗口/步长、单位、展示方式、阈值（WARN/FAILED）、空窗口告警
+- 日志：按驱动切换 LogQL / LogsQL / ES DSL，级别过滤、条数/排序、命中数阈值
+- 探测：目标组、可用率/平均延迟/P95/证书天数、阈值、down 目标告警
+- 告警：未恢复/全部、级别、标签匹配、条数、告警级别条件
+- 说明：Markdown 编辑与预览
+- 统一测试接口 `POST /v1/inspection/test-item`，与正式执行共用 `executeSection`，不落库、不产生告警、不投递
+- `params` 按类型严格校验，未知键拒绝；探测/日志/告警的新字段已接入执行器
+- 指标/日志查询结果补充 ES、VictoriaLogs 解析；探测表增加 P95 与证书剩余列
+
+**验证**：真实 PostgreSQL + Prometheus + VictoriaLogs 调用 test-item；指标返回序列/指标卡，VLogs 解析出 10 条样本，探测与告警返回表格；Web 编辑器完成指标测试（1810ms）、类型切换、保存检查项与保存整份计划。
+
 ## 已知限制
 
 - 公开限流是进程内近似值，多副本按副本独立计算。

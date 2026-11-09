@@ -1,6 +1,8 @@
 import { del, get, post, put } from "@/api/http"
 
 import type {
+  TestInspectionItemResult,
+  InspectionItemInput,
   InspectionPlan,
   InspectionPlanInput,
   InspectionPlanStatus,
@@ -119,6 +121,13 @@ export function getInspectionReport(
   uid: string
 ): Promise<{ report: InspectionReport }> {
   return get<{ report: InspectionReport }>(`/inspection/reports/${uid}`)
+}
+
+/** POST /v1/inspection/test-item：真实执行一次检查项，不落库。 */
+export function testInspectionItem(
+  item: InspectionItemInput
+): Promise<TestInspectionItemResult> {
+  return post<TestInspectionItemResult>("/inspection/test-item", { item })
 }
 
 /** POST /v1/inspection/reports/{uid}/resend */
