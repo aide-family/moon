@@ -13,7 +13,6 @@ import {
 import { listProbeTargetGroups } from "@/api/probe-target"
 import type {
   InspectionItemKind,
-  InspectionOutputFormat,
   InspectionPlan,
   InspectionPlanInput,
   InspectionTemplate,
@@ -24,6 +23,7 @@ import {
 } from "@/pages/inspection-plans/inspection-item-editor"
 import { FormField } from "@/components/form-field"
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select"
+import { StatusBadge } from "@/components/status-badge"
 import { StepForm } from "@/components/step-form"
 import {
   AlertDialog,
@@ -36,7 +36,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -58,7 +57,6 @@ import {
 } from "@/components/ui/tooltip"
 import { readFormError } from "@/lib/form-error"
 
-const FORMATS: InspectionOutputFormat[] = ["HTML", "MARKDOWN"]
 
 const CRON_PRESETS = [
   { value: "0 9 * * *", zh: "每天 09:00", en: "Daily 09:00" },
@@ -130,9 +128,6 @@ export function InspectionPlanDialog({
   const [items, setItems] = useState<DraftItem[]>(() => draftFromPlan(plan))
   const [expanded, setExpanded] = useState(0)
   const [templateUid, setTemplateUid] = useState(() => plan?.templateUid ?? "")
-  const [formats, setFormats] = useState<InspectionOutputFormat[]>(
-    () => plan?.outputFormats ?? ["HTML"]
-  )
   const [titleTemplate, setTitleTemplate] = useState(
     () => plan?.titleTemplate ?? ""
   )
@@ -191,6 +186,7 @@ export function InspectionPlanDialog({
   }, [])
 
   const effectiveTemplateUid = templateUid || templates[0]?.uid || ""
+  const selectedTemplate = templates.find((item) => item.uid === effectiveTemplateUid)
 
   function updateItem(index: number, patch: Partial<DraftItem>) {
     setItems((current) =>
@@ -269,9 +265,6 @@ export function InspectionPlanDialog({
     if (!effectiveTemplateUid) {
       return t("inspection.template")
     }
-    if (formats.length === 0) {
-      return t("inspection.outputFormats")
-    }
     return ""
   }
 
@@ -289,7 +282,7 @@ export function InspectionPlanDialog({
       timezone: timezone.trim(),
       timeoutSeconds,
       templateUid: effectiveTemplateUid,
-      outputFormats: formats,
+      outputFormats: selectedTemplate ? [selectedTemplate.format] : [],
       titleTemplate: titleTemplate.trim(),
       notificationGroupUids: groupUids,
       notifyPolicy,
@@ -502,29 +495,23 @@ export function InspectionPlanDialog({
                     {templates.map((template) => (
                       <SelectItem key={template.uid} value={template.uid}>
                         {template.name}
-                        {template.isBuiltin ? ` · ${t("inspection.builtin")}` : ""}
+                        {" · "}
+                        {template.format === "MARKDOWN" ? "Markdown" : "HTML"}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </FormField>
-              <FormField label={t("inspection.outputFormats")} required>
-                <div className="flex flex-wrap gap-4">
-                  {FORMATS.map((format) => (
-                    <label key={format} className="flex items-center gap-2 text-sm">
-                      <Checkbox
-                        checked={formats.includes(format)}
-                        onCheckedChange={(value) =>
-                          setFormats((current) =>
-                            value === true
-                              ? [...new Set([...current, format])]
-                              : current.filter((item) => item !== format)
-                          )
-                        }
-                      />
-                      {format}
-                    </label>
-                  ))}
+              <FormField label={t("inspection.templateFormat")}>
+                <div className="flex items-center gap-2 text-sm">
+                  <StatusBadge
+                    value={selectedTemplate?.format ?? "HTML"}
+                    label={selectedTemplate?.format === "MARKDOWN" ? "Markdown" : "HTML"}
+                    tone={selectedTemplate?.format === "MARKDOWN" ? "violet" : "info"}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {t("inspection.templateFormatHint")}
+                  </span>
                 </div>
               </FormField>
               <FormField

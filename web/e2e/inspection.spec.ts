@@ -81,9 +81,11 @@ test.describe("巡检（真实后端，不 mock）", () => {
       "inspection feature is not enabled for this tenant"
     )
     expect(templates.status).toBe(200)
-    const template = (
-      templates.json as { items: Array<{ uid: string }> }
-    ).items[0]
+    const templateItems = (
+      templates.json as { items: Array<{ uid: string; format?: string }> }
+    ).items
+    const template =
+      templateItems.find((item) => item.format === "HTML") ?? templateItems[0]
     expect(template).toBeTruthy()
 
     const name = `e2e-inspection-${Date.now()}`

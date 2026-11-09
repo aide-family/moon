@@ -102,10 +102,13 @@ export interface ListInspectionPlansResult {
 }
 
 /** 报告模板：一份版式、两段正文。 */
+export type InspectionTemplateFormat = "HTML" | "MARKDOWN"
+
 export interface InspectionTemplate {
   uid: string
   name: string
   description: string
+  format: InspectionTemplateFormat
   htmlBody: string
   markdownBody: string
   isBuiltin: boolean
@@ -130,6 +133,7 @@ export interface ListInspectionTemplatesResult {
 export interface SaveInspectionTemplateParams {
   name: string
   description: string
+  format: InspectionTemplateFormat
   htmlBody: string
   markdownBody: string
 }

@@ -9,7 +9,7 @@ import {
   listInspectionTemplates,
   updateInspectionTemplate,
 } from "@/api/inspection"
-import type { InspectionTemplate } from "@/api/inspection/types"
+import type { InspectionTemplate, InspectionTemplateFormat } from "@/api/inspection/types"
 import { useSession } from "@/auth/session"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
@@ -25,7 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { TemplateCodeEditor } from "@/components/template-code-editor"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
@@ -62,12 +62,16 @@ function TemplateDialog({
   const [description, setDescription] = useState(
     () => template?.description ?? base?.description ?? ""
   )
-  const [htmlBody, setHtmlBody] = useState(
-    () => template?.htmlBody ?? base?.htmlBody ?? ""
+  const [format, setFormat] = useState<InspectionTemplateFormat>(
+    () => template?.format ?? base?.format ?? "HTML"
   )
-  const [markdownBody, setMarkdownBody] = useState(
-    () => template?.markdownBody ?? base?.markdownBody ?? ""
-  )
+  const [body, setBody] = useState(() => {
+    const source = template ?? base
+    if (!source) {
+      return ""
+    }
+    return source.format === "MARKDOWN" ? source.markdownBody : source.htmlBody
+  })
   const [pending, setPending] = useState(false)
   const [error, setError] = useState("")
 
@@ -83,8 +87,9 @@ function TemplateDialog({
       const payload = {
         name: name.trim(),
         description: description.trim(),
-        htmlBody,
-        markdownBody,
+        format,
+        htmlBody: format === "HTML" ? body : "",
+        markdownBody: format === "MARKDOWN" ? body : "",
       }
       if (template) {
         await updateInspectionTemplate(template.uid, payload)
@@ -101,7 +106,7 @@ function TemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>
             {template ? t("inspection.templateName") : t("inspection.newTemplate")}
@@ -121,24 +126,45 @@ function TemplateDialog({
               placeholder={t("inspection.templateDescription")}
               aria-label={t("inspection.templateDescription")}
             />
-            <label className="grid gap-2 text-sm">
-              {t("inspection.htmlBody")}
-              <Textarea
-                rows={8}
-                className="font-mono text-xs"
-                value={htmlBody}
-                onChange={(event) => setHtmlBody(event.target.value)}
+            <div className="grid gap-2 text-sm">
+              <span>{t("inspection.templateFormat")}</span>
+              {template ? (
+                <StatusBadge
+                  value={format}
+                  label={format === "HTML" ? "HTML" : "Markdown"}
+                  tone={format === "HTML" ? "info" : "violet"}
+                />
+              ) : (
+                <div className="flex gap-2">
+                  {(["HTML", "MARKDOWN"] as InspectionTemplateFormat[]).map((value) => (
+                    <Button
+                      key={value}
+                      type="button"
+                      size="sm"
+                      variant={format === value ? "default" : "outline"}
+                      onClick={() => {
+                        setFormat(value)
+                        setBody("")
+                      }}
+                    >
+                      {value === "HTML" ? "HTML" : "Markdown"}
+                    </Button>
+                  ))}
+                </div>
+              )}
+              <span className="text-xs text-muted-foreground">
+                {t("inspection.templateFormatHint")}
+              </span>
+            </div>
+            <div className="grid gap-2 text-sm">
+              <span>{t("inspection.templateBody")}</span>
+              <TemplateCodeEditor
+                language={format === "HTML" ? "html" : "markdown"}
+                value={body}
+                onChange={setBody}
+                height={360}
               />
-            </label>
-            <label className="grid gap-2 text-sm">
-              {t("inspection.markdownBody")}
-              <Textarea
-                rows={6}
-                className="font-mono text-xs"
-                value={markdownBody}
-                onChange={(event) => setMarkdownBody(event.target.value)}
-              />
-            </label>
+            </div>
           </DialogBody>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <DialogFooter>
@@ -205,7 +231,7 @@ export function InspectionTemplatePage() {
         onSelect: () => openEditor(null, template),
       })
     }
-    if (canDelete && !template.isBuiltin) {
+    if (canDelete) {
       list.push({
         key: "delete",
         label: t("inspection.delete"),
@@ -267,7 +293,7 @@ export function InspectionTemplatePage() {
               <TableRow>
                 <TableHead>{t("inspection.templateName")}</TableHead>
                 <TableHead>{t("inspection.templateDescription")}</TableHead>
-                <TableHead>{t("inspection.kind")}</TableHead>
+                <TableHead>{t("inspection.templateFormat")}</TableHead>
                 <TableHead>{t("inspection.startedAt")}</TableHead>
                 <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
@@ -281,13 +307,9 @@ export function InspectionTemplatePage() {
                   </TableCell>
                   <TableCell>
                     <StatusBadge
-                      value={template.isBuiltin ? "SYSTEM" : "CUSTOM"}
-                      label={
-                        template.isBuiltin
-                          ? t("inspection.builtin")
-                          : t("inspection.newTemplate")
-                      }
-                      tone={template.isBuiltin ? "info" : "neutral"}
+                      value={template.format}
+                      label={template.format === "HTML" ? "HTML" : "Markdown"}
+                      tone={template.format === "HTML" ? "info" : "violet"}
                     />
                   </TableCell>
                   <TableCell className="font-mono text-xs">
@@ -299,7 +321,7 @@ export function InspectionTemplatePage() {
                       detailLabel={t("action.edit")}
                       moreLabel={t("action.more")}
                       onDetail={() => openEditor(template, null)}
-                      detailDisabled={!canWrite || template.isBuiltin}
+                      detailDisabled={!canWrite}
                       actions={actions(template)}
                     />
                   </TableCell>
