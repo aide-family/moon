@@ -66,6 +66,11 @@ test.describe("巡检（真实后端，不 mock）", () => {
     await expect(dialog.getByText("告警级别").first()).toBeVisible()
     await switchKind("静态说明")
     await expect(dialog.getByText("说明内容（Markdown）")).toBeVisible()
+    await dialog.locator("textarea:not(.ime-text-area)").first().fill("## 结论\n\n全部正常。")
+    await dialog.getByRole("button", { name: "预览结果" }).click()
+    const preview = page.getByRole("dialog").last()
+    await expect(preview.getByText("全部正常")).toBeVisible()
+    await preview.getByRole("button", { name: "取消" }).click()
   })
 
   test("创建计划、执行、查看报告并公开分享", async ({ page }) => {

@@ -1,4 +1,4 @@
-import { Plus, RotateCcw, Save, Trash2 } from "lucide-react"
+import { Eye, Loader2, Plus, RotateCcw, Save, Trash2 } from "lucide-react"
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useTranslation } from "react-i18next"
@@ -33,6 +33,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
@@ -212,6 +220,7 @@ export function InspectionItemEditor({
 }: InspectionItemEditorProps) {
   const { t } = useTranslation()
   const [pendingKind, setPendingKind] = useState<InspectionItemKind | null>(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [testing, setTesting] = useState(false)
   const [testError, setTestError] = useState("")
   const [result, setResult] = useState<TestInspectionItemResult | null>(null)
@@ -271,6 +280,13 @@ export function InspectionItemEditor({
     }
   }
 
+  function openPreview() {
+    setPreviewOpen(true)
+    if (item.kind !== "NOTE") {
+      void runTest()
+    }
+  }
+
   const metrics = metricParams(item)
   const logs = logParams(item)
   const probe = probeParams(item)
@@ -279,21 +295,27 @@ export function InspectionItemEditor({
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border p-1">
-        {KINDS.map((kind) => (
-          <Button
-            key={kind}
-            type="button"
-            size="sm"
-            variant={item.kind === kind ? "default" : "ghost"}
-            onClick={() => changeKind(kind)}
-          >
-            {kindLabel(t, kind)}
-          </Button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border p-1">
+          {KINDS.map((kind) => (
+            <Button
+              key={kind}
+              type="button"
+              size="sm"
+              variant={item.kind === kind ? "default" : "ghost"}
+              onClick={() => changeKind(kind)}
+            >
+              {kindLabel(t, kind)}
+            </Button>
+          ))}
+        </div>
+        <Button type="button" size="sm" variant="outline" onClick={openPreview}>
+          <Eye data-icon="inline-start" />
+          {t("inspection.previewResult")}
+        </Button>
       </div>
 
-      <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="mx-auto grid w-full max-w-3xl min-w-0 gap-4">
         <div className="grid min-w-0 content-start gap-4">
           <FormField label={t("inspection.itemTitle")} required>
             <Input
@@ -378,42 +400,6 @@ export function InspectionItemEditor({
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-3 self-start rounded-xl border border-border bg-muted/20 p-3 lg:sticky lg:top-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-              {t("inspection.preview")}
-            </span>
-            <span className="flex-1" />
-            {item.kind === "NOTE" ? null : (
-              <Button type="button" size="sm" variant="outline" onClick={() => void runTest()} disabled={testing}>
-                {testing ? t("inspection.testing") : t("inspection.test")}
-              </Button>
-            )}
-          </div>
-          <div className="grid min-h-48 gap-3" aria-live="polite">
-            {item.kind === "NOTE" ? <MarkdownPreview content={item.query} /> : null}
-            {item.kind !== "NOTE" && !result && !testError ? (
-              <div className="m-auto grid max-w-xs gap-1 text-center text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">{t("inspection.untested")}</span>
-                <span>{t("inspection.untestedHint")}</span>
-              </div>
-            ) : null}
-            {testError ? <p className="text-sm text-destructive">{testError}</p> : null}
-            {result && section ? (
-              <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge value={section.status} label={statusLabel(t, section.status)} tone={statusTone(section.status)} />
-                  <span className="text-xs text-muted-foreground">
-                    {Number(result.elapsedMs)}ms
-                  </span>
-                </div>
-                {section.error ? <p className="text-sm text-destructive">{section.error}</p> : null}
-                <SectionPreview section={section} />
-              </>
-            ) : null}
-          </div>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">{t("inspection.testHint")}</p>
-        </div>
       </div>
       <AlertDialog open={pendingKind !== null} onOpenChange={(next) => { if (!next) setPendingKind(null) }}>
         <AlertDialogContent>
@@ -435,6 +421,55 @@ export function InspectionItemEditor({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              {item.title || t("inspection.items")} · {t("inspection.preview")}
+            </DialogTitle>
+          </DialogHeader>
+          <DialogBody className="grid gap-3">
+            {item.kind === "NOTE" ? <MarkdownPreview content={item.query} /> : null}
+            {item.kind !== "NOTE" && testing ? (
+              <div className="grid place-items-center gap-2 py-12 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                {t("inspection.testing")}
+              </div>
+            ) : null}
+            {item.kind !== "NOTE" && !testing && testError ? (
+              <p className="text-sm text-destructive">{testError}</p>
+            ) : null}
+            {item.kind !== "NOTE" && !testing && !testError && result && section ? (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge value={section.status} label={statusLabel(t, section.status)} tone={statusTone(section.status)} />
+                  <span className="text-xs text-muted-foreground">{Number(result.elapsedMs)}ms</span>
+                </div>
+                {section.error ? <p className="text-sm text-destructive">{section.error}</p> : null}
+                <SectionPreview section={section} />
+              </>
+            ) : null}
+            {item.kind !== "NOTE" && !testing && !testError && !result ? (
+              <div className="grid place-items-center gap-1 py-12 text-center text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{t("inspection.untested")}</span>
+                <span>{t("inspection.untestedHint")}</span>
+              </div>
+            ) : null}
+            <p className="text-[11px] leading-relaxed text-muted-foreground">{t("inspection.testHint")}</p>
+          </DialogBody>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setPreviewOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            {item.kind !== "NOTE" ? (
+              <Button type="button" onClick={() => void runTest()} disabled={testing}>
+                {t("inspection.rerun")}
+              </Button>
+            ) : null}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
