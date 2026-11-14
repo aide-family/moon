@@ -2,12 +2,7 @@ import ReactMarkdown from "react-markdown"
 import { useTranslation } from "react-i18next"
 import remarkGfm from "remark-gfm"
 
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+import { DetailSheet } from "@/components/detail-sheet"
 
 const ZH_GUIDE = `## 报告模板怎么工作
 
@@ -194,17 +189,18 @@ export function InspectionTemplateGuide({
   const { t, i18n } = useTranslation()
   const content = i18n.language.startsWith("zh") ? ZH_GUIDE : EN_GUIDE
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="data-[side=right]:w-full sm:max-w-3xl">
-        <SheetHeader className="shrink-0 border-b border-border">
-          <SheetTitle>{t("inspection.templateGuideTitle")}</SheetTitle>
-        </SheetHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
-          <div className="prose prose-sm max-w-none text-sm dark:prose-invert">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+    <DetailSheet
+      open={open}
+      onOpenChange={onOpenChange}
+      size="80vw"
+      title={t("inspection.templateGuideTitle")}
+      description={t("inspection.templateGuideDesc")}
+    >
+      <div className="mx-auto w-full max-w-[960px]">
+        <article className="prose prose-sm max-w-none rounded-xl border border-border bg-card px-6 py-6 text-sm shadow-sm sm:px-10 sm:py-8 dark:prose-invert">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+        </article>
+      </div>
+    </DetailSheet>
   )
 }

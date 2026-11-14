@@ -18,6 +18,8 @@ import type {
 import { listNotificationGroups } from "@/api/notification-group"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
+import { FilterChips, type FilterChip } from "@/components/filter-chips"
+import { FilterToggle } from "@/components/filter-toggle"
 import { ListFrame } from "@/components/list-frame"
 import type { MultiSelectOption } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
@@ -72,6 +74,10 @@ export function InspectionPlanPage() {
   const session = useSession()
   const query = useListQuery()
   const [draftName, setDraftName] = useState(query.name)
+  const [draftStatus, setDraftStatus] = useState(
+    query.status === "ACTIVE" || query.status === "PAUSED" ? query.status : ""
+  )
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [templates, setTemplates] = useState<InspectionTemplate[]>([])
   const [templatesLoaded, setTemplatesLoaded] = useState(false)
   const [groups, setGroups] = useState<MultiSelectOption[]>([])
@@ -199,16 +205,14 @@ export function InspectionPlanPage() {
   }
 
   function rowActions(plan: InspectionPlan): RowAction[] {
-    const actions: RowAction[] = [
-      {
-        key: "detail",
-        label: t("inspection.detail"),
-        onSelect: () => {
-          setDetailPlan(plan)
-          setDetailOpen(true)
-        },
-      },
-    ]
+    const actions: RowAction[] = []
+    if (canWrite) {
+      actions.push({
+        key: "edit",
+        label: t("action.edit"),
+        onSelect: () => openEdit(plan),
+      })
+    }
     if (canRun && plan.status === "ACTIVE") {
       actions.push({
         key: "run",
@@ -237,55 +241,104 @@ export function InspectionPlanPage() {
     return actions
   }
 
+  const filterChips: FilterChip[] = []
+  if (query.name) {
+    filterChips.push({
+      key: "name",
+      label: `${t("inspection.planName")}: ${query.name}`,
+      onRemove: () => {
+        setDraftName("")
+        query.update({ name: "" })
+      },
+    })
+  }
+  if (status) {
+    filterChips.push({
+      key: "status",
+      label: `${t("inspection.runStatus")}: ${
+        status === "ACTIVE"
+          ? t("inspection.statusActive")
+          : t("inspection.statusPaused")
+      }`,
+      onRemove: () => {
+        setDraftStatus("")
+        query.update({ status: "" })
+      },
+    })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
         title={t("inspection.plans")}
         description={t("inspection.plansDesc")}
       >
-        {canWrite ? (
-          <Button onClick={openCreate} disabled={!templatesLoaded}>
-            {t("inspection.newPlan")}
-          </Button>
-        ) : null}
-      </PageHeader>
-      <form
-        className="flex flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draftName.trim() })
-        }}
-      >
-        <div className="min-w-0 flex-1 basis-48">
-          <Input
-            value={draftName}
-            placeholder={t("inspection.planName")}
-            aria-label={t("inspection.planName")}
-            onChange={(event) => setDraftName(event.target.value)}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <FilterToggle
+            open={filtersOpen}
+            count={filterChips.length}
+            controls="inspection-plan-filters"
+            onClick={() => setFiltersOpen((open) => !open)}
           />
+          {canWrite ? (
+            <Button onClick={openCreate} disabled={!templatesLoaded}>
+              {t("inspection.newPlan")}
+            </Button>
+          ) : null}
         </div>
-        <div className="w-full shrink-0 sm:w-40">
-          <Select
-            value={status || ALL_STATUS}
-            onValueChange={(value) =>
-              query.update({ status: value === ALL_STATUS ? "" : value })
-            }
-          >
-            <SelectTrigger className="w-full" aria-label={t("inspection.runStatus")}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_STATUS}>{t("inspection.all")}</SelectItem>
-              <SelectItem value="ACTIVE">{t("inspection.statusActive")}</SelectItem>
-              <SelectItem value="PAUSED">{t("inspection.statusPaused")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Button type="submit" variant="outline">
-          <Search data-icon="inline-start" />
-          {t("filter.apply")}
-        </Button>
-      </form>
+      </PageHeader>
+      <div
+        className={`min-w-0 flex-col gap-2 ${filtersOpen || filterChips.length > 0 ? "flex" : "hidden"}`}
+      >
+        {filterChips.length > 0 ? (
+          <FilterChips
+            items={filterChips}
+            onClearAll={() => {
+              setDraftName("")
+              setDraftStatus("")
+              query.update({ name: "", status: "" })
+            }}
+          />
+        ) : null}
+        <form
+          id="inspection-plan-filters"
+          className={`flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:flex-nowrap sm:p-4 ${filtersOpen ? "" : "hidden"}`}
+          onSubmit={(event) => {
+            event.preventDefault()
+            query.update({ name: draftName.trim(), status: draftStatus })
+          }}
+        >
+          <div className="min-w-0 flex-1 basis-48">
+            <Input
+              value={draftName}
+              placeholder={t("inspection.planName")}
+              aria-label={t("inspection.planName")}
+              onChange={(event) => setDraftName(event.target.value)}
+            />
+          </div>
+          <div className="w-full shrink-0 sm:w-40">
+            <Select
+              value={draftStatus || ALL_STATUS}
+              onValueChange={(value) =>
+                setDraftStatus(value === ALL_STATUS ? "" : value)
+              }
+            >
+              <SelectTrigger className="w-full" aria-label={t("inspection.runStatus")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_STATUS}>{t("inspection.all")}</SelectItem>
+                <SelectItem value="ACTIVE">{t("inspection.statusActive")}</SelectItem>
+                <SelectItem value="PAUSED">{t("inspection.statusPaused")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button type="submit" variant="outline">
+            <Search data-icon="inline-start" />
+            {t("filter.apply")}
+          </Button>
+        </form>
+      </div>
       <ListFrame
         total={total}
         page={query.page}
@@ -369,10 +422,12 @@ export function InspectionPlanPage() {
                   <TableCell>
                     <RowActions
                       nowrap
-                      detailLabel={t("action.edit")}
+                      detailLabel={t("inspection.detail")}
                       moreLabel={t("action.more")}
-                      onDetail={() => openEdit(plan)}
-                      detailDisabled={!canWrite}
+                      onDetail={() => {
+                        setDetailPlan(plan)
+                        setDetailOpen(true)
+                      }}
                       actions={rowActions(plan)}
                     />
                   </TableCell>

@@ -12,6 +12,8 @@ import {
 } from "@/api/inspection"
 import type { InspectionTemplate, InspectionTemplateFormat } from "@/api/inspection/types"
 import { useSession } from "@/auth/session"
+import { FilterChips, type FilterChip } from "@/components/filter-chips"
+import { FilterToggle } from "@/components/filter-toggle"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
@@ -31,6 +33,7 @@ import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
 import { formErrorMessage } from "@/lib/form-error"
+import { InspectionTemplateDetail } from "@/pages/inspection-templates/template-detail"
 import { InspectionTemplateGuide } from "@/pages/inspection-templates/template-guide"
 import {
   Table,
@@ -244,6 +247,9 @@ export function InspectionTemplatePage() {
   )
   const [editorKey, setEditorKey] = useState(0)
   const [guideOpen, setGuideOpen] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [detailTemplate, setDetailTemplate] = useState<InspectionTemplate | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
   const canWrite = session.can("inspection_template:write")
   const canDelete = session.can("inspection_template:delete")
 
@@ -285,8 +291,13 @@ export function InspectionTemplatePage() {
     const list: RowAction[] = []
     if (canWrite) {
       list.push({
+        key: "edit",
+        label: t("action.edit"),
+        onSelect: () => openEditor(template, null),
+      })
+      list.push({
         key: "clone",
-        label: t("inspection.newTemplate"),
+        label: t("inspection.cloneTemplate"),
         onSelect: () => openEditor(null, template),
       })
     }
@@ -301,40 +312,84 @@ export function InspectionTemplatePage() {
     return list
   }
 
+  const filterChips: FilterChip[] = []
+  if (query.name) {
+    filterChips.push({
+      key: "name",
+      label: `${t("inspection.templateName")}: ${query.name}`,
+      onRemove: () => {
+        setDraftName("")
+        query.update({ name: "" })
+      },
+    })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
         title={t("inspection.templates")}
         description={t("inspection.templatesDesc")}
-      >
-        <Button variant="outline" onClick={() => setGuideOpen(true)}>
-          <BookOpen data-icon="inline-start" />
-          {t("inspection.templateGuideOpen")}
-        </Button>
-        {canWrite ? (
-          <Button onClick={() => openEditor(null, null)}>
-            {t("inspection.newTemplate")}
+        titleAccessory={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t("inspection.templateGuideOpen")}
+            title={t("inspection.templateGuideOpen")}
+            onClick={() => setGuideOpen(true)}
+          >
+            <BookOpen />
           </Button>
-        ) : null}
-      </PageHeader>
-      <form
-        className="flex flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draftName.trim() })
-        }}
+        }
       >
-        <Input
-          value={draftName}
-          placeholder={t("inspection.templateName")}
-          aria-label={t("inspection.templateName")}
-          onChange={(event) => setDraftName(event.target.value)}
-        />
-        <Button type="submit" variant="outline">
-          <Search data-icon="inline-start" />
-          {t("filter.apply")}
-        </Button>
-      </form>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <FilterToggle
+            open={filtersOpen}
+            count={filterChips.length}
+            controls="inspection-template-filters"
+            onClick={() => setFiltersOpen((open) => !open)}
+          />
+          {canWrite ? (
+            <Button onClick={() => openEditor(null, null)}>
+              {t("inspection.newTemplate")}
+            </Button>
+          ) : null}
+        </div>
+      </PageHeader>
+      <div
+        className={`min-w-0 flex-col gap-2 ${filtersOpen || filterChips.length > 0 ? "flex" : "hidden"}`}
+      >
+        {filterChips.length > 0 ? (
+          <FilterChips
+            items={filterChips}
+            onClearAll={() => {
+              setDraftName("")
+              query.update({ name: "" })
+            }}
+          />
+        ) : null}
+        <form
+          id="inspection-template-filters"
+          className={`flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:flex-nowrap sm:p-4 ${filtersOpen ? "" : "hidden"}`}
+          onSubmit={(event) => {
+            event.preventDefault()
+            query.update({ name: draftName.trim() })
+          }}
+        >
+          <div className="min-w-0 flex-1 basis-48">
+            <Input
+              value={draftName}
+              placeholder={t("inspection.templateName")}
+              aria-label={t("inspection.templateName")}
+              onChange={(event) => setDraftName(event.target.value)}
+            />
+          </div>
+          <Button type="submit" variant="outline">
+            <Search data-icon="inline-start" />
+            {t("filter.apply")}
+          </Button>
+        </form>
+      </div>
       <ListFrame
         total={total}
         page={query.page}
@@ -381,10 +436,12 @@ export function InspectionTemplatePage() {
                   <TableCell className="text-right">
                     <RowActions
                       nowrap
-                      detailLabel={t("action.edit")}
+                      detailLabel={t("inspection.detail")}
                       moreLabel={t("action.more")}
-                      onDetail={() => openEditor(template, null)}
-                      detailDisabled={!canWrite}
+                      onDetail={() => {
+                        setDetailTemplate(template)
+                        setDetailOpen(true)
+                      }}
                       actions={actions(template)}
                     />
                   </TableCell>
@@ -394,6 +451,18 @@ export function InspectionTemplatePage() {
           </Table>
         ) : null}
       </ListFrame>
+      <InspectionTemplateDetail
+        open={detailOpen}
+        template={detailTemplate}
+        canWrite={canWrite}
+        onEdit={() => {
+          if (detailTemplate) {
+            setDetailOpen(false)
+            openEditor(detailTemplate, null)
+          }
+        }}
+        onOpenChange={setDetailOpen}
+      />
       <InspectionTemplateGuide open={guideOpen} onOpenChange={setGuideOpen} />
       <TemplateDialog
         key={editorKey}

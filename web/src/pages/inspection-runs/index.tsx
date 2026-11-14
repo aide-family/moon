@@ -1,21 +1,17 @@
-import { FileText, Search } from "lucide-react"
+import { Search } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { listInspectionRuns } from "@/api/inspection"
 import type { InspectionRun, InspectionRunStatus } from "@/api/inspection/types"
 import { useSession } from "@/auth/session"
+import { FilterChips, type FilterChip } from "@/components/filter-chips"
+import { FilterToggle } from "@/components/filter-toggle"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { StatusBadge } from "@/components/status-badge"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
@@ -97,6 +93,14 @@ export function InspectionRunPage() {
   const [reportOpen, setReportOpen] = useState(false)
   const [shareRun, setShareRun] = useState<InspectionRun | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
+  const [draftStatus, setDraftStatus] = useState(
+    ["PENDING", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELED"].includes(
+      query.status
+    )
+      ? query.status
+      : ""
+  )
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const canShare = session.can("inspection:share")
   const status =
     ["PENDING", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELED"].includes(
@@ -123,40 +127,74 @@ export function InspectionRunPage() {
     setShareOpen(true)
   }
 
+  const filterChips: FilterChip[] = []
+  if (status) {
+    filterChips.push({
+      key: "status",
+      label: `${t("inspection.runStatus")}: ${runLabel(t, status)}`,
+      onRemove: () => {
+        setDraftStatus("")
+        query.update({ status: "" })
+      },
+    })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
         title={t("inspection.runs")}
         description={t("inspection.runsDesc")}
-      />
-      <form
-        className="flex flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3"
-        onSubmit={(event) => {
-          event.preventDefault()
-        }}
       >
-        <Select
-          value={status || ALL_STATUS}
-          onValueChange={(value) =>
-            query.update({ status: value === ALL_STATUS ? "" : value })
-          }
+        <FilterToggle
+          open={filtersOpen}
+          count={filterChips.length}
+          controls="inspection-run-filters"
+          onClick={() => setFiltersOpen((open) => !open)}
+        />
+      </PageHeader>
+      <div
+        className={`min-w-0 flex-col gap-2 ${filtersOpen || filterChips.length > 0 ? "flex" : "hidden"}`}
+      >
+        {filterChips.length > 0 ? (
+          <FilterChips
+            items={filterChips}
+            onClearAll={() => {
+              setDraftStatus("")
+              query.update({ status: "" })
+            }}
+          />
+        ) : null}
+        <form
+          id="inspection-run-filters"
+          className={`flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:flex-nowrap sm:p-4 ${filtersOpen ? "" : "hidden"}`}
+          onSubmit={(event) => {
+            event.preventDefault()
+            query.update({ status: draftStatus === ALL_STATUS ? "" : draftStatus })
+          }}
         >
-          <SelectTrigger className="w-40" aria-label={t("inspection.runStatus")}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL_STATUS}>{t("inspection.all")}</SelectItem>
-            <SelectItem value="SUCCEEDED">{t("inspection.runSucceeded")}</SelectItem>
-            <SelectItem value="PARTIAL">{t("inspection.runPartial")}</SelectItem>
-            <SelectItem value="FAILED">{t("inspection.runFailed")}</SelectItem>
-            <SelectItem value="RUNNING">{t("inspection.runRunning")}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button type="submit" variant="outline">
-          <Search data-icon="inline-start" />
-          {t("filter.apply")}
-        </Button>
-      </form>
+          <div className="w-full shrink-0 sm:w-40">
+            <Select
+              value={draftStatus || ALL_STATUS}
+              onValueChange={setDraftStatus}
+            >
+              <SelectTrigger className="w-full" aria-label={t("inspection.runStatus")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_STATUS}>{t("inspection.all")}</SelectItem>
+                <SelectItem value="SUCCEEDED">{t("inspection.runSucceeded")}</SelectItem>
+                <SelectItem value="PARTIAL">{t("inspection.runPartial")}</SelectItem>
+                <SelectItem value="FAILED">{t("inspection.runFailed")}</SelectItem>
+                <SelectItem value="RUNNING">{t("inspection.runRunning")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button type="submit" variant="outline">
+            <Search data-icon="inline-start" />
+            {t("filter.apply")}
+          </Button>
+        </form>
+      </div>
       <ListFrame
         total={total}
         page={query.page}
@@ -200,24 +238,11 @@ export function InspectionRunPage() {
               {items.map((run) => (
                 <TableRow key={run.uid}>
                   <TableCell>
-                    <div className="flex min-w-0 items-start gap-1">
-                      <div className="grid min-w-0 gap-1">
-                        <span className="font-medium break-words">{run.planName}</span>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {run.uid}
-                        </span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        className="mt-0.5 shrink-0"
-                        aria-label={t("inspection.viewReport")}
-                        title={t("inspection.viewReport")}
-                        onClick={() => openReport(run)}
-                      >
-                        <FileText />
-                      </Button>
+                    <div className="grid gap-1">
+                      <span className="font-medium break-words">{run.planName}</span>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {run.uid}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className={TABLE_NOWRAP}>
@@ -242,24 +267,25 @@ export function InspectionRunPage() {
                     {run.itemOk} / {run.itemWarn} / {run.itemFailed}
                   </TableCell>
                   <TableCell>
-                    <div className="flex justify-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="link" size="sm" className="h-auto px-0">
-                            {t("action.more")}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => openReport(run)}>
-                            {t("inspection.viewReport")}
-                          </DropdownMenuItem>
-                          {canShare ? (
-                            <DropdownMenuItem onSelect={() => openShare(run)}>
-                              {t("inspection.share")}
-                            </DropdownMenuItem>
-                          ) : null}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto px-0"
+                        onClick={() => openReport(run)}
+                      >
+                        {t("inspection.viewReport")}
+                      </Button>
+                      {canShare ? (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="h-auto px-0"
+                          onClick={() => openShare(run)}
+                        >
+                          {t("inspection.share")}
+                        </Button>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>
