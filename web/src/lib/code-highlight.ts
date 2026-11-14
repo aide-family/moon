@@ -8,7 +8,7 @@ import type { HighlighterCore, LanguageRegistration } from "shiki/core"
  * light 固定 github-light、dark 固定 github-dark，靠 CSS 变量在 .dark 下切换，
  * 所以切换主题不需要重新高亮，也不会闪一下未着色的文本。
  */
-export type CodeLanguage = "yaml" | "json" | "bash" | "log" | "text"
+export type CodeLanguage = "yaml" | "json" | "bash" | "log" | "html" | "markdown" | "text"
 
 type LoadedLanguage = Exclude<CodeLanguage, "text">
 
@@ -27,6 +27,10 @@ const languageAliases: Record<string, CodeLanguage> = {
   zsh: "bash",
   log: "log",
   logs: "log",
+  html: "html",
+  htm: "html",
+  markdown: "markdown",
+  md: "markdown",
   text: "text",
   plain: "text",
   plaintext: "text",
@@ -41,6 +45,8 @@ const languageLoaders: Record<
   json: () => import("shiki/langs/json.mjs"),
   bash: () => import("shiki/langs/bash.mjs"),
   log: () => import("shiki/langs/log.mjs"),
+  html: () => import("shiki/langs/html.mjs"),
+  markdown: () => import("shiki/langs/markdown.mjs"),
 }
 
 // key → 已高亮的 HTML；只保留最近若干块，避免长时间浏览时无限增长。

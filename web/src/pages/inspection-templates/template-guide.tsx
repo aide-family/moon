@@ -178,7 +178,35 @@ For a complete report with minimal markup:
 - Do not reference external CSS, JS or images; inline styles so the downloaded single-file report opens standalone.
 - A report is an immutable snapshot; later template edits never rewrite history.`
 
-/** 报告模板编写说明抽屉。 */
+function headingText(children: React.ReactNode): string {
+  if (typeof children === "string" || typeof children === "number") {
+    return String(children)
+  }
+  if (Array.isArray(children)) {
+    return children.map(headingText).join("")
+  }
+  return ""
+}
+
+function slugify(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
+function guideHeadings(content: string): Array<{ text: string; id: string }> {
+  return content
+    .split("\n")
+    .filter((line) => line.startsWith("## "))
+    .map((line) => {
+      const text = line.replace(/^##\s+/, "").replace(/`/g, "").trim()
+      return { text, id: slugify(text) }
+    })
+}
+
+/** 报告模板编写说明：技术文档式布局，左侧目录 + 右侧渲染后的 Markdown 正文。 */
 export function InspectionTemplateGuide({
   open,
   onOpenChange,
@@ -188,6 +216,7 @@ export function InspectionTemplateGuide({
 }) {
   const { t, i18n } = useTranslation()
   const content = i18n.language.startsWith("zh") ? ZH_GUIDE : EN_GUIDE
+  const headings = guideHeadings(content)
   return (
     <DetailSheet
       open={open}
@@ -196,9 +225,47 @@ export function InspectionTemplateGuide({
       title={t("inspection.templateGuideTitle")}
       description={t("inspection.templateGuideDesc")}
     >
-      <div className="mx-auto w-full max-w-[960px]">
+      <div className="mx-auto grid w-full max-w-[1180px] gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="hidden lg:block">
+          <nav className="sticky top-0 grid gap-1 rounded-xl border border-border bg-muted/20 p-3">
+            <p className="px-1 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              {i18n.language.startsWith("zh") ? "目录" : "Contents"}
+            </p>
+            {headings.map((heading) => (
+              <a
+                key={heading.id}
+                href={`#${heading.id}`}
+                className="rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                {heading.text}
+              </a>
+            ))}
+            <div className="mt-2 grid gap-1 border-t border-border pt-2 text-[11px] text-muted-foreground">
+              <span>Go template</span>
+              <span>HTML / Markdown</span>
+              <span>≤ 2 MB · 10s</span>
+            </div>
+          </nav>
+        </aside>
         <article className="prose prose-sm max-w-none rounded-xl border border-border bg-card px-6 py-6 text-sm shadow-sm sm:px-10 sm:py-8 dark:prose-invert">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              h2: ({ children }) => {
+                const text = headingText(children)
+                return (
+                  <h2
+                    id={slugify(text)}
+                    className="scroll-mt-4 border-b border-border pb-2 text-base font-semibold"
+                  >
+                    {children}
+                  </h2>
+                )
+              },
+            }}
+          >
+            {content}
+          </ReactMarkdown>
         </article>
       </div>
     </DetailSheet>

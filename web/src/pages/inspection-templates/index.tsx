@@ -177,6 +177,28 @@ function TemplateDialog({
                 {t("inspection.templateFormatHint")}
               </span>
             </div>
+            <div className="grid gap-1.5 rounded-lg border border-border bg-muted/20 p-2.5">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <span className="text-xs font-medium">{t("inspection.variables")}</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {t("inspection.variablesHint")}
+                </span>
+              </div>
+              <div className="flex max-h-[3.5rem] flex-wrap gap-1.5 overflow-y-auto pr-1">
+                {TEMPLATE_SNIPPETS.map((snippet) => (
+                  <Button
+                    key={snippet.label}
+                    type="button"
+                    size="xs"
+                    variant="outline"
+                    className="font-mono text-[11px]"
+                    onClick={() => insertRef.current?.(snippet.insert)}
+                  >
+                    {snippet.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
             <div className="grid gap-2 text-sm">
               <span>{t("inspection.templateBody")}</span>
               <TemplateEditor
@@ -190,28 +212,6 @@ function TemplateDialog({
                   insertRef.current = insert
                 }}
               />
-              <div className="grid gap-2 rounded-lg border border-border bg-muted/20 p-3">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className="text-xs font-medium">{t("inspection.variables")}</span>
-                  <span className="text-[11px] text-muted-foreground">
-                    {t("inspection.variablesHint")}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {TEMPLATE_SNIPPETS.map((snippet) => (
-                    <Button
-                      key={snippet.label}
-                      type="button"
-                      size="xs"
-                      variant="outline"
-                      className="font-mono text-[11px]"
-                      onClick={() => insertRef.current?.(snippet.insert)}
-                    >
-                      {snippet.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
             </div>
           </DialogBody>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
