@@ -31,7 +31,7 @@ export interface DetailSection {
   content?: ReactNode
 }
 
-export type DetailSheetSize = "default" | "wide" | "40vw"
+export type DetailSheetSize = "default" | "wide" | "40vw" | "80vw"
 
 export interface DetailSheetProps {
   open: boolean
@@ -71,6 +71,7 @@ const sizeClassNames: Record<DetailSheetSize, string> = {
   wide: "data-[side=right]:w-full data-[side=right]:sm:max-w-3xl!",
   "40vw":
     "data-[side=right]:w-full data-[side=right]:sm:w-[40vw] data-[side=right]:sm:min-w-[26rem] data-[side=right]:sm:max-w-[56rem]!",
+  "80vw": "data-[side=right]:w-full data-[side=right]:sm:w-[80vw] data-[side=right]:sm:max-w-[80vw]!",
 }
 
 /**

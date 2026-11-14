@@ -89,6 +89,61 @@ const alertVariableResultFields: TemplateField[] = [
   { label: ".VarLabels", detail: "自定义变量结果的标签 map" },
 ]
 
+// inspectionTemplateFields 是巡检报告模板的数据契约（bo.InspectionReportData）。
+// 字段在 range .Sections 内时指向单个检查项；补全只负责给名字，具体结构由报告说明描述。
+const inspectionTemplateFields: TemplateField[] = [
+  { label: ".Title", detail: "报告标题" },
+  { label: ".GeneratedAt", detail: "报告生成时间" },
+  { label: ".Tenant.Name", detail: "租户名称" },
+  { label: ".Plan.Name", detail: "巡检计划名称" },
+  { label: ".Plan.Description", detail: "巡检计划说明" },
+  { label: ".Plan.Labels", detail: "计划标签 JSON" },
+  { label: ".Run.Trigger", detail: "触发方式：SCHEDULED / MANUAL" },
+  { label: ".Run.StartedAt", detail: "执行开始时间" },
+  { label: ".Run.FinishedAt", detail: "执行结束时间" },
+  { label: ".Run.Duration", detail: "执行耗时文本" },
+  { label: ".Run.WindowStart", detail: "数据窗口开始时间" },
+  { label: ".Run.WindowEnd", detail: "数据窗口结束时间" },
+  { label: ".Summary.Total", detail: "检查项总数" },
+  { label: ".Summary.OK", detail: "正常项数" },
+  { label: ".Summary.Warn", detail: "警告项数" },
+  { label: ".Summary.Failed", detail: "失败项数" },
+  { label: ".Summary.Abnormal", detail: "异常项数（警告 + 失败）" },
+  { label: ".Sections", detail: "全部检查项，配合 range 遍历" },
+  { label: ".Abnormal", detail: "仅异常检查项" },
+  { label: ".HasAbnormal", detail: "是否存在异常项" },
+  { label: ".Status", detail: "章节状态：OK / WARN / FAILED（range .Sections 内）" },
+  { label: ".Kind", detail: "章节类型（range .Sections 内）" },
+  { label: ".Error", detail: "取数失败原因（range .Sections 内）" },
+  { label: ".Note", detail: "章节说明，可用 markdown 渲染（range .Sections 内）" },
+  { label: ".Metrics", detail: "指标卡（range .Sections 内）" },
+  { label: ".Table", detail: "表格（range .Sections 内）" },
+  { label: ".Series", detail: "趋势序列（range .Sections 内）" },
+  { label: ".Logs", detail: "日志样本（range .Sections 内）" },
+  { label: ".Alerts", detail: "告警行（range .Sections 内）" },
+  { label: ".Raw", detail: "原始响应（range .Sections 内）" },
+]
+
+const inspectionTemplateFunctions: Array<{ label: string; detail: string }> = [
+  { label: "date", detail: '格式化时间：date "2006-01-02 15:04" .Run.StartedAt' },
+  { label: "duration", detail: "格式化时长：duration .Run.Duration" },
+  { label: "percent", detail: "格式化百分比：percent 85.5" },
+  { label: "default", detail: '空值兜底：default "—" .Plan.Description' },
+  { label: "join", detail: '拼接切片：join .Plan.Labels ","' },
+  { label: "markdown", detail: "渲染说明字段的 Markdown：markdown .Note" },
+  { label: "metricCards", detail: "渲染指标卡：metricCards .Metrics" },
+  { label: "tableHTML", detail: "渲染表格：tableHTML .Table" },
+  { label: "seriesChart", detail: "渲染趋势图：seriesChart .Series" },
+  { label: "logsHTML", detail: "渲染日志样本：logsHTML .Logs" },
+  { label: "alertsHTML", detail: "渲染告警表：alertsHTML .Alerts" },
+  { label: "sectionHTML", detail: "渲染整个章节：sectionHTML ." },
+  { label: "json", detail: "输出 JSON：json ." },
+  { label: "add", detail: "整数相加" },
+  { label: "sub", detail: "整数相减" },
+  { label: "mul", detail: "整数相乘" },
+  { label: "div", detail: "整数相除" },
+]
+
 const templateLabelKeys = [
   "app",
   "namespace",
@@ -131,7 +186,7 @@ const templateFunctions: Array<{ label: string; detail: string }> = [
   { label: "range", detail: "自定义数字范围" },
 ]
 
-export type TemplateScope = "notification" | "alert"
+export type TemplateScope = "notification" | "alert" | "inspection"
 
 interface TemplateContext {
   scope: TemplateScope
@@ -216,11 +271,20 @@ function setupTemplateLanguage(monaco: Monaco) {
           ? variableNames.length > 0
             ? [...alertTemplateFields, ...alertVariableResultFields]
             : alertTemplateFields
-          : notificationTemplateFields
+          : scope === "inspection"
+            ? inspectionTemplateFields
+            : notificationTemplateFields
+      const functions =
+        scope === "inspection" ? inspectionTemplateFunctions : templateFunctions
       const suggestions: monacoEditor.languages.CompletionItem[] = []
       const insideTemplate = lastOpen > lastClose
       if (!insideTemplate) {
-        const snippet = scope === "alert" ? "{{ $labels.instance }}" : "{{ .summary }}"
+        const snippet =
+          scope === "alert"
+            ? "{{ $labels.instance }}"
+            : scope === "inspection"
+              ? "{{ .Summary.Abnormal }}"
+              : "{{ .summary }}"
         suggestions.push({
           label: snippet,
           kind: monaco.languages.CompletionItemKind.Snippet,
@@ -271,7 +335,7 @@ function setupTemplateLanguage(monaco: Monaco) {
           range,
         })
       }
-      for (const fn of templateFunctions) {
+      for (const fn of functions) {
         if (word && !fn.label.startsWith(word.replace(/^\$/, ""))) {
           continue
         }
@@ -308,6 +372,8 @@ interface TemplateEditorProps {
    * 会补全 `$name` 和 `.Vars`；变量查询语句编辑器不传，避免写出求值前不存在的引用。
    */
   variableNames?: string[]
+  /** 编辑器挂载后返回插入文本的入口，用于「可用变量」快捷插入。 */
+  onEditorReady?: (insert: (text: string) => void) => void
 }
 
 /**
@@ -328,9 +394,11 @@ export function TemplateEditor({
   expression = "",
   labelKeys,
   variableNames,
+  onEditorReady,
 }: TemplateEditorProps) {
   const { theme } = useTheme()
   const onChangeRef = useRef(onChange)
+  const onEditorReadyRef = useRef(onEditorReady)
   const overflowWidgetsDomNode = useMonacoOverflowNode()
   const editorHeight = singleLine ? 40 : height
   const modelUriRef = useRef<string | null>(null)
@@ -377,6 +445,10 @@ export function TemplateEditor({
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
+
+  useEffect(() => {
+    onEditorReadyRef.current = onEditorReady
+  }, [onEditorReady])
 
   // 数据源标签是异步查询的：防抖后探测一次，失败或没有数据源时只用内置键。
   useEffect(() => {
@@ -446,6 +518,18 @@ export function TemplateEditor({
         return
       })
     }
+    onEditorReadyRef.current?.((text) => {
+      const selection = editor.getSelection()
+      if (!selection) {
+        return
+      }
+      editor.pushUndoStop()
+      editor.executeEdits("template-insert", [
+        { range: selection, text, forceMoveMarkers: true },
+      ])
+      editor.pushUndoStop()
+      editor.focus()
+    })
     editor.layout()
   }
 

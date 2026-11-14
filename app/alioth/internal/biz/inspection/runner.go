@@ -252,11 +252,16 @@ func (gateway *Gateway) executeMetrics(ctx context.Context, plan bo.InspectionPl
 	}
 	if status := metricThresholdStatus(series, params.Thresholds); status != "" {
 		section.Status = status
-		section.Note += fmt.Sprintf("；命中阈值，标记 %s", status)
+		if status == "OK" {
+			section.Note += "；命中正常阈值"
+		} else {
+			section.Note += fmt.Sprintf("；命中阈值，标记 %s", status)
+		}
 	}
 }
 
-// metricThresholdStatus 对每条序列的最新值评估阈值；任一失败优先返回 FAILED。
+// metricThresholdStatus 对每条序列的最新值评估阈值。状态按严重度取最高：
+// FAILED > WARN > OK；OK 阈值用于显式声明「命中即正常」，不会覆盖异常。
 func metricThresholdStatus(series []bo.InspectionSeries, thresholds []metricThreshold) string {
 	status := ""
 	for _, threshold := range thresholds {
@@ -283,10 +288,16 @@ func metricThresholdStatus(series []bo.InspectionSeries, thresholds []metricThre
 			if !matched {
 				continue
 			}
-			if threshold.Status == "FAILED" {
+			switch threshold.Status {
+			case "FAILED":
 				return "FAILED"
+			case "WARN":
+				status = "WARN"
+			case "OK":
+				if status == "" {
+					status = "OK"
+				}
 			}
-			status = "WARN"
 		}
 	}
 	return status

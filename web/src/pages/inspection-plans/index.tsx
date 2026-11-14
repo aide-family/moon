@@ -1,6 +1,7 @@
 import { Search } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import {
@@ -23,6 +24,16 @@ import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -50,16 +61,19 @@ import {
   TABLE_NOWRAP,
 } from "@/lib/table-layout"
 
+import { InspectionPlanDetail } from "./inspection-plan-detail"
 import { InspectionPlanDialog } from "./inspection-plan-dialog"
 
 const ALL_STATUS = "ALL"
 
 export function InspectionPlanPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const session = useSession()
   const query = useListQuery()
   const [draftName, setDraftName] = useState(query.name)
   const [templates, setTemplates] = useState<InspectionTemplate[]>([])
+  const [templatesLoaded, setTemplatesLoaded] = useState(false)
   const [groups, setGroups] = useState<MultiSelectOption[]>([])
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorSession, setEditorSession] = useState(0)
@@ -68,6 +82,9 @@ export function InspectionPlanPage() {
   const [confirmPending, setConfirmPending] = useState(false)
   const [confirmError, setConfirmError] = useState("")
   const [runningUid, setRunningUid] = useState("")
+  const [detailPlan, setDetailPlan] = useState<InspectionPlan | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [noTemplateOpen, setNoTemplateOpen] = useState(false)
 
   const canWrite = session.can("inspection:write")
   const canDelete = session.can("inspection:delete")
@@ -89,11 +106,13 @@ export function InspectionPlanPage() {
       .then((result) => {
         if (active) {
           setTemplates(result.items)
+          setTemplatesLoaded(true)
         }
       })
       .catch(() => {
         if (active) {
           setTemplates([])
+          setTemplatesLoaded(true)
         }
       })
     listNotificationGroups({ page: 1, pageSize: 100 })
@@ -116,6 +135,13 @@ export function InspectionPlanPage() {
     templates.find((template) => template.uid === uid)?.name ?? "—"
 
   function openCreate() {
+    if (!templatesLoaded) {
+      return
+    }
+    if (templates.length === 0) {
+      setNoTemplateOpen(true)
+      return
+    }
     setEditing(null)
     setEditorSession((value) => value + 1)
     setEditorOpen(true)
@@ -173,7 +199,16 @@ export function InspectionPlanPage() {
   }
 
   function rowActions(plan: InspectionPlan): RowAction[] {
-    const actions: RowAction[] = []
+    const actions: RowAction[] = [
+      {
+        key: "detail",
+        label: t("inspection.detail"),
+        onSelect: () => {
+          setDetailPlan(plan)
+          setDetailOpen(true)
+        },
+      },
+    ]
     if (canRun && plan.status === "ACTIVE") {
       actions.push({
         key: "run",
@@ -209,7 +244,9 @@ export function InspectionPlanPage() {
         description={t("inspection.plansDesc")}
       >
         {canWrite ? (
-          <Button onClick={openCreate}>{t("inspection.newPlan")}</Button>
+          <Button onClick={openCreate} disabled={!templatesLoaded}>
+            {t("inspection.newPlan")}
+          </Button>
         ) : null}
       </PageHeader>
       <form
@@ -358,6 +395,32 @@ export function InspectionPlanPage() {
           reload()
         }}
       />
+      <InspectionPlanDetail
+        open={detailOpen}
+        plan={detailPlan}
+        templateName={detailPlan ? templateName(detailPlan.templateUid) : "—"}
+        groups={groups}
+        onOpenChange={setDetailOpen}
+      />
+      <AlertDialog open={noTemplateOpen} onOpenChange={setNoTemplateOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("inspection.noTemplateTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("inspection.noTemplateDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("action.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setNoTemplateOpen(false)
+                navigate("/inspection-templates?create=1")
+              }}
+            >
+              {t("inspection.noTemplateAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <ConfirmAction
         open={confirm !== null}
         title={t("inspection.delete")}

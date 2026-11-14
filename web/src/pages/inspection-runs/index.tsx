@@ -1,24 +1,9 @@
-import { Copy, Download, Link2, Search } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { FileText, Search } from "lucide-react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
 
-import {
-  getInspectionReport,
-  listInspectionReportShares,
-  listInspectionRuns,
-  listRunReports,
-  resendInspectionReport,
-  revokeInspectionReportShare,
-  revokeInspectionReportShareLink,
-  shareInspectionReport,
-} from "@/api/inspection"
-import type {
-  InspectionReport,
-  InspectionReportShare,
-  InspectionRun,
-  InspectionRunStatus,
-} from "@/api/inspection/types"
+import { listInspectionRuns } from "@/api/inspection"
+import type { InspectionRun, InspectionRunStatus } from "@/api/inspection/types"
 import { useSession } from "@/auth/session"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
@@ -26,13 +11,11 @@ import { StatusBadge } from "@/components/status-badge"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
@@ -51,8 +34,14 @@ import {
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
-import { formErrorMessage } from "@/lib/form-error"
-import { TABLE_COLUMN_WIDTH, TABLE_MIN_WIDTH, TABLE_NOWRAP } from "@/lib/table-layout"
+import {
+  TABLE_COLUMN_WIDTH,
+  TABLE_MIN_WIDTH,
+  TABLE_NOWRAP,
+} from "@/lib/table-layout"
+
+import { InspectionReportSheet } from "./report-sheet"
+import { InspectionReportShareDialog } from "./report-share-dialog"
 
 const ALL_STATUS = "ALL"
 
@@ -71,7 +60,10 @@ function runTone(status: InspectionRunStatus) {
   }
 }
 
-function runLabel(t: (key: string) => string, status: InspectionRunStatus): string {
+function runLabel(
+  t: (key: string) => string,
+  status: InspectionRunStatus
+): string {
   switch (status) {
     case "SUCCEEDED":
       return t("inspection.runSucceeded")
@@ -86,20 +78,6 @@ function runLabel(t: (key: string) => string, status: InspectionRunStatus): stri
   }
 }
 
-function shareStatusLabel(
-  t: (key: string) => string,
-  status: InspectionReportShare["status"]
-): string {
-  switch (status) {
-    case "ACTIVE":
-      return t("inspection.shareStatusActive")
-    case "EXPIRED":
-      return t("inspection.shareStatusExpired")
-    default:
-      return t("inspection.shareStatusRevoked")
-  }
-}
-
 function runDuration(run: InspectionRun): string {
   if (!run.startedAt || !run.finishedAt) {
     return "—"
@@ -111,361 +89,46 @@ function runDuration(run: InspectionRun): string {
   return `${(ms / 1000).toFixed(1)}s`
 }
 
-function ReportDialog({
-  open,
-  run,
-  onOpenChange,
-}: {
-  open: boolean
-  run: InspectionRun | null
-  onOpenChange: (open: boolean) => void
-}) {
-  const { t } = useTranslation()
-  const session = useSession()
-  const canShare = session.can("inspection:share")
-  const [reports, setReports] = useState<InspectionReport[]>([])
-  const [active, setActive] = useState<InspectionReport | null>(null)
-  const [content, setContent] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [shares, setShares] = useState<InspectionReportShare[]>([])
-  const [sharesLoading, setSharesLoading] = useState(false)
-  const [shareToken, setShareToken] = useState("")
-  const [shareOpen, setShareOpen] = useState(false)
-  const [shareDays, setShareDays] = useState("7")
-  const [sharePassword, setSharePassword] = useState("")
-  const [sharing, setSharing] = useState(false)
-  const [resending, setResending] = useState(false)
-
-  const loadShares = useCallback(
-    (report: InspectionReport) => {
-      if (!canShare) {
-        setShares([])
-        return
-      }
-      setSharesLoading(true)
-      listInspectionReportShares(report.uid)
-        .then((result) => setShares(result.items))
-        .catch((err) => toast.error(formErrorMessage(err, t("state.failed"))))
-        .finally(() => setSharesLoading(false))
-    },
-    [canShare, t]
-  )
-
-  useEffect(() => {
-    if (!open || !run) {
-      return
-    }
-    let cancelled = false
-    listRunReports(run.uid)
-      .then((result) => {
-        if (cancelled) {
-          return
-        }
-        setReports(result.items)
-        const first = result.items.find((item) => item.format === "HTML") ?? result.items[0]
-        if (!first) {
-          setShares([])
-          setLoading(false)
-          return
-        }
-        setActive(first)
-        loadShares(first)
-        return getInspectionReport(first.uid).then((response) => {
-          if (!cancelled) {
-            setContent(response.report.content)
-          }
-        })
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          toast.error(formErrorMessage(err, t("state.failed")))
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [open, run, t, loadShares])
-
-  function switchReport(report: InspectionReport) {
-    setActive(report)
-    setContent("")
-    setLoading(true)
-    setShareToken("")
-    setShareOpen(false)
-    loadShares(report)
-    getInspectionReport(report.uid)
-      .then((response) => setContent(response.report.content))
-      .catch((err) => toast.error(formErrorMessage(err, t("state.failed"))))
-      .finally(() => setLoading(false))
-  }
-
-  function download() {
-    if (!active || !content) {
-      return
-    }
-    const blob = new Blob([content], {
-      type: active.format === "HTML" ? "text/html" : "text/markdown",
-    })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement("a")
-    anchor.href = url
-    anchor.download = `${active.title || "inspection-report"}.${active.format === "HTML" ? "html" : "md"}`
-    anchor.click()
-    URL.revokeObjectURL(url)
-  }
-
-  async function resend() {
-    if (!active || resending) {
-      return
-    }
-    setResending(true)
-    try {
-      await resendInspectionReport(active.uid)
-      toast.success(t("inspection.resent"))
-    } catch (err) {
-      toast.error(formErrorMessage(err, t("state.failed")))
-    } finally {
-      setResending(false)
-    }
-  }
-
-  async function share() {
-    if (!active || sharing) {
-      return
-    }
-    setSharing(true)
-    try {
-      const result = await shareInspectionReport(
-        active.uid,
-        Number(shareDays),
-        sharePassword
-      )
-      setShareToken(result.token)
-      setShareOpen(false)
-      loadShares(active)
-      toast.success(t("inspection.shared"))
-    } catch (err) {
-      toast.error(formErrorMessage(err, t("state.failed")))
-    } finally {
-      setSharing(false)
-    }
-  }
-
-  async function revokeShare(share: InspectionReportShare) {
-    if (!active) {
-      return
-    }
-    try {
-      if (share.uid) {
-        await revokeInspectionReportShareLink(active.uid, share.uid)
-      } else {
-        await revokeInspectionReportShare(active.uid)
-      }
-      setShareToken("")
-      toast.success(t("inspection.shareRevoked"))
-      loadShares(active)
-    } catch (err) {
-      toast.error(formErrorMessage(err, t("state.failed")))
-    }
-  }
-
-  async function copy() {
-    if (!shareToken) {
-      return
-    }
-    const url = `${window.location.origin}/share/report/${shareToken}`
-    try {
-      await navigator.clipboard.writeText(url)
-      toast.success(t("inspection.shareCopied"))
-    } catch {
-      toast.error(t("action.copyFailed"))
-    }
-  }
-
-  const isHtml = active?.format === "HTML"
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>{run?.planName || t("inspection.reportTitle")}</DialogTitle>
-        </DialogHeader>
-        <DialogBody className="grid gap-3">
-          {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
-          {!loading && reports.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("inspection.noReport")}</p>
-          ) : null}
-          {!loading && reports.length > 0 ? (
-            <>
-              <div className="flex flex-wrap items-center gap-2">
-                {reports.map((report) => (
-                  <Button
-                    key={report.uid}
-                    type="button"
-                    size="sm"
-                    variant={active?.uid === report.uid ? "secondary" : "outline"}
-                    onClick={() => switchReport(report)}
-                  >
-                    {report.format}
-                  </Button>
-                ))}
-                <span className="flex-1" />
-                <Button type="button" size="sm" variant="outline" onClick={download}>
-                  <Download data-icon="inline-start" />
-                  {t("inspection.download")}
-                </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => void resend()} disabled={resending}>
-                  {t("inspection.resend")}
-                </Button>
-                {canShare ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShareOpen((open) => !open)}
-                    disabled={sharing}
-                  >
-                    <Link2 data-icon="inline-start" />
-                    {t("inspection.share")}
-                  </Button>
-                ) : null}
-              </div>
-              {shareOpen && canShare ? (
-                <div className="grid gap-2 rounded-lg border border-border bg-muted/30 p-3 sm:grid-cols-[160px_minmax(0,1fr)_auto]">
-                  <Select value={shareDays} onValueChange={setShareDays}>
-                    <SelectTrigger aria-label={t("inspection.shareExpiry")}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="7">{t("inspection.shareDays7")}</SelectItem>
-                      <SelectItem value="30">{t("inspection.shareDays30")}</SelectItem>
-                      <SelectItem value="0">{t("inspection.sharePermanent")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    type="password"
-                    value={sharePassword}
-                    onChange={(event) => setSharePassword(event.target.value)}
-                    placeholder={t("inspection.sharePassword")}
-                    aria-label={t("inspection.sharePassword")}
-                  />
-                  <Button type="button" size="sm" onClick={() => void share()} disabled={sharing}>
-                    {t("inspection.shareGenerate")}
-                  </Button>
-                </div>
-              ) : null}
-              {shareToken ? (
-                <div className="grid gap-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Input readOnly value={`${window.location.origin}/share/report/${shareToken}`} className="min-w-0 flex-1 font-mono text-xs" />
-                    <Button type="button" size="sm" variant="outline" onClick={() => void copy()}>
-                      <Copy data-icon="inline-start" />
-                      {t("inspection.shareCopy")}
-                    </Button>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">{t("inspection.shareTokenOnce")}</p>
-                </div>
-              ) : null}
-              {canShare ? (
-                <div className="overflow-hidden rounded-lg border border-border">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border bg-muted/30 px-3 py-2">
-                    <span className="text-sm font-medium">{t("inspection.shareList")}</span>
-                    <span className="text-xs text-muted-foreground">{t("inspection.shareListHint")}</span>
-                  </div>
-                  {sharesLoading ? (
-                    <p className="px-3 py-3 text-xs text-muted-foreground">{t("state.loading")}</p>
-                  ) : null}
-                  {!sharesLoading && shares.length === 0 ? (
-                    <p className="px-3 py-3 text-xs text-muted-foreground">{t("inspection.shareListEmpty")}</p>
-                  ) : null}
-                  {!sharesLoading && shares.length > 0 ? (
-                    <ul className="divide-y divide-border">
-                      {shares.map((share, index) => (
-                        <li key={share.uid || `legacy-${index}`} className="flex flex-wrap items-center gap-3 px-3 py-2">
-                          <StatusBadge
-                            value={share.status}
-                            label={shareStatusLabel(t, share.status)}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium">
-                              {share.uid ? t("inspection.share") : t("inspection.shareLegacy")}
-                              {share.hasPassword ? ` · ${t("inspection.shareProtected")}` : ""}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground">
-                              {t("inspection.shareCreatedAt")} {formatDateTime(share.createdAt) || "—"}
-                              {" · "}
-                              {t("inspection.shareExpires")} {share.expiresAt ? formatDateTime(share.expiresAt) : t("inspection.shareNeverExpires")}
-                              {" · "}
-                              {t("inspection.shareViews")} {share.viewCount}
-                              {share.lastViewedAt ? ` · ${t("inspection.shareLastViewed")} ${formatDateTime(share.lastViewedAt)}` : ""}
-                            </p>
-                            {!share.uid ? (
-                              <p className="text-[11px] text-muted-foreground">{t("inspection.shareLegacyHint")}</p>
-                            ) : null}
-                          </div>
-                          {share.status === "ACTIVE" ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="ghost"
-                              className="text-destructive"
-                              onClick={() => void revokeShare(share)}
-                            >
-                              {t("inspection.shareRevokeLink")}
-                            </Button>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-              ) : null}
-              {isHtml ? (
-                <iframe
-                  title={t("inspection.reportPreview")}
-                  sandbox=""
-                  srcDoc={content}
-                  className="h-[520px] w-full rounded-lg border border-border bg-white"
-                />
-              ) : (
-                <pre className="max-h-[520px] overflow-auto rounded-lg border border-border bg-muted/40 p-3 font-mono text-xs whitespace-pre-wrap">
-                  {content}
-                </pre>
-              )}
-            </>
-          ) : null}
-        </DialogBody>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 export function InspectionRunPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
   const [reportRun, setReportRun] = useState<InspectionRun | null>(null)
   const [reportOpen, setReportOpen] = useState(false)
+  const [shareRun, setShareRun] = useState<InspectionRun | null>(null)
+  const [shareOpen, setShareOpen] = useState(false)
+  const canShare = session.can("inspection:share")
   const status =
-    ["PENDING", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELED"].includes(query.status)
+    ["PENDING", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELED"].includes(
+      query.status
+    )
       ? (query.status as InspectionRunStatus)
       : ""
 
-  const { items, total, loading, failed, error, reload } = usePagedList<InspectionRun>({
-    page: query.page,
-    pageSize: query.pageSize,
-    filterKey: `${session.namespaceUid}|${status}`,
-    fetch: (page, pageSize) => listInspectionRuns({ page, pageSize, status }),
-  })
+  const { items, total, loading, failed, error, reload } =
+    usePagedList<InspectionRun>({
+      page: query.page,
+      pageSize: query.pageSize,
+      filterKey: `${session.namespaceUid}|${status}`,
+      fetch: (page, pageSize) => listInspectionRuns({ page, pageSize, status }),
+    })
+
+  function openReport(run: InspectionRun) {
+    setReportRun(run)
+    setReportOpen(true)
+  }
+
+  function openShare(run: InspectionRun) {
+    setShareRun(run)
+    setShareOpen(true)
+  }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
-      <PageHeader title={t("inspection.runs")} description={t("inspection.runsDesc")} />
+      <PageHeader
+        title={t("inspection.runs")}
+        description={t("inspection.runsDesc")}
+      />
       <form
         className="flex flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3"
         onSubmit={(event) => {
@@ -474,7 +137,9 @@ export function InspectionRunPage() {
       >
         <Select
           value={status || ALL_STATUS}
-          onValueChange={(value) => query.update({ status: value === ALL_STATUS ? "" : value })}
+          onValueChange={(value) =>
+            query.update({ status: value === ALL_STATUS ? "" : value })
+          }
         >
           <SelectTrigger className="w-40" aria-label={t("inspection.runStatus")}>
             <SelectValue />
@@ -500,10 +165,14 @@ export function InspectionRunPage() {
         onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
         onNext={() => query.update({ page: query.page + 1 })}
       >
-        {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
+        {loading ? (
+          <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
+        ) : null}
         {!loading && failed ? (
           <div className="flex items-center gap-2">
-            <p className="text-sm text-destructive">{error || t("inspection.failed")}</p>
+            <p className="text-sm text-destructive">
+              {error || t("inspection.failed")}
+            </p>
             <Button variant="outline" onClick={() => reload()}>
               {t("inspection.retry")}
             </Button>
@@ -524,16 +193,31 @@ export function InspectionRunPage() {
                 </TableHead>
                 <TableHead className={TABLE_NOWRAP}>{t("inspection.duration")}</TableHead>
                 <TableHead className={TABLE_NOWRAP}>{t("inspection.itemCounts")}</TableHead>
-                <TableActionsHead>{t("inspection.report")}</TableActionsHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((run) => (
                 <TableRow key={run.uid}>
                   <TableCell>
-                    <div className="grid gap-1">
-                      <span className="font-medium">{run.planName}</span>
-                      <span className="font-mono text-xs text-muted-foreground">{run.uid}</span>
+                    <div className="flex min-w-0 items-start gap-1">
+                      <div className="grid min-w-0 gap-1">
+                        <span className="font-medium break-words">{run.planName}</span>
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {run.uid}
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        className="mt-0.5 shrink-0"
+                        aria-label={t("inspection.viewReport")}
+                        title={t("inspection.viewReport")}
+                        onClick={() => openReport(run)}
+                      >
+                        <FileText />
+                      </Button>
                     </div>
                   </TableCell>
                   <TableCell className={TABLE_NOWRAP}>
@@ -544,27 +228,39 @@ export function InspectionRunPage() {
                     />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {run.trigger === "MANUAL" ? t("inspection.manual") : t("inspection.scheduled")}
+                    {run.trigger === "MANUAL"
+                      ? t("inspection.manual")
+                      : t("inspection.scheduled")}
                   </TableCell>
                   <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>
                     {formatDateTime(run.startedAt) || "—"}
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{runDuration(run)}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {runDuration(run)}
+                  </TableCell>
                   <TableCell className="font-mono text-xs">
                     {run.itemOk} / {run.itemWarn} / {run.itemFailed}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="link"
-                      onClick={() => {
-                        setReportRun(run)
-                        setReportOpen(true)
-                      }}
-                    >
-                      {t("inspection.viewReport")}
-                    </Button>
+                    <div className="flex justify-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="link" size="sm" className="h-auto px-0">
+                            {t("action.more")}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={() => openReport(run)}>
+                            {t("inspection.viewReport")}
+                          </DropdownMenuItem>
+                          {canShare ? (
+                            <DropdownMenuItem onSelect={() => openShare(run)}>
+                              {t("inspection.share")}
+                            </DropdownMenuItem>
+                          ) : null}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -572,11 +268,17 @@ export function InspectionRunPage() {
           </Table>
         ) : null}
       </ListFrame>
-      <ReportDialog
+      <InspectionReportSheet
         key={`${reportRun?.uid ?? "none"}-${reportOpen}`}
         open={reportOpen}
         run={reportRun}
         onOpenChange={setReportOpen}
+      />
+      <InspectionReportShareDialog
+        key={`${shareRun?.uid ?? "none"}-${shareOpen}`}
+        open={shareOpen}
+        run={shareRun}
+        onOpenChange={setShareOpen}
       />
     </section>
   )

@@ -85,6 +85,21 @@ func TestMetricThresholdStatus(t *testing.T) {
 	if got := metricThresholdStatus(series, []metricThreshold{{Op: ">", Value: 1, Status: "WARN"}}); got != "" {
 		t.Fatalf("want empty, got %q", got)
 	}
+	if got := metricThresholdStatus(series, []metricThreshold{{Op: "<", Value: 1, Status: "OK"}}); got != "OK" {
+		t.Fatalf("want OK, got %q", got)
+	}
+	if got := metricThresholdStatus(series, []metricThreshold{
+		{Op: "<", Value: 1, Status: "OK"},
+		{Op: ">", Value: 0.8, Status: "WARN"},
+	}); got != "WARN" {
+		t.Fatalf("OK must not override WARN, got %q", got)
+	}
+	if got := metricThresholdStatus(series, []metricThreshold{
+		{Op: "<", Value: 1, Status: "OK"},
+		{Op: ">", Value: 0.8, Status: "FAILED"},
+	}); got != "FAILED" {
+		t.Fatalf("OK must not override FAILED, got %q", got)
+	}
 }
 
 func TestProbeStatusByMetric(t *testing.T) {

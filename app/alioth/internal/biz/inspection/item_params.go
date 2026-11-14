@@ -51,7 +51,7 @@ type alertParams struct {
 
 var (
 	thresholdOps   = map[string]struct{}{">": {}, ">=": {}, "<": {}, "<=": {}, "==": {}, "!=": {}}
-	thresholdState = map[string]struct{}{"WARN": {}, "FAILED": {}}
+	thresholdState = map[string]struct{}{"WARN": {}, "FAILED": {}, "OK": {}}
 	logLevels      = map[string]struct{}{"ERROR": {}, "WARN": {}, "INFO": {}, "DEBUG": {}}
 	logDirections  = map[string]struct{}{"BACKWARD": {}, "FORWARD": {}}
 	probeMetrics   = map[string]struct{}{"AVAILABILITY": {}, "LATENCY": {}, "P95": {}, "CERT_DAYS": {}}

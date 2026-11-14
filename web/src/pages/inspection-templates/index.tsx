@@ -1,6 +1,7 @@
 import { BookOpen, Search } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import {
@@ -25,7 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { TemplateCodeEditor } from "@/components/template-code-editor"
+import { TemplateEditor } from "@/components/template-editor"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
@@ -39,6 +40,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
+const TEMPLATE_SNIPPETS: Array<{ label: string; insert: string }> = [
+  { label: "{{ .Title }}", insert: "{{ .Title }}" },
+  { label: "{{ .Tenant.Name }}", insert: "{{ .Tenant.Name }}" },
+  { label: "{{ .Plan.Name }}", insert: "{{ .Plan.Name }}" },
+  { label: "{{ .Summary.Abnormal }}", insert: "{{ .Summary.Abnormal }}" },
+  { label: "{{ range .Sections }}", insert: "{{ range .Sections }}\n\n{{ end }}" },
+  { label: "date", insert: '{{ .Run.StartedAt | date "2006-01-02 15:04" }}' },
+  { label: "{{ .Status }}", insert: "{{ .Status }}" },
+  { label: "{{ .Note | markdown }}", insert: "{{ markdown .Note }}" },
+  { label: "{{ metricCards .Metrics }}", insert: "{{ metricCards .Metrics }}" },
+  { label: "{{ seriesChart .Series }}", insert: "{{ seriesChart .Series }}" },
+  { label: "{{ tableHTML .Table }}", insert: "{{ tableHTML .Table }}" },
+  { label: "{{ sectionHTML . }}", insert: "{{ sectionHTML . }}" },
+]
 
 function TemplateDialog({
   open,
@@ -75,6 +91,7 @@ function TemplateDialog({
   })
   const [pending, setPending] = useState(false)
   const [error, setError] = useState("")
+  const insertRef = useRef<((text: string) => void) | null>(null)
 
   async function save(event: React.FormEvent) {
     event.preventDefault()
@@ -107,7 +124,7 @@ function TemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-[60vw]">
         <DialogHeader>
           <DialogTitle>
             {template ? t("inspection.templateName") : t("inspection.newTemplate")}
@@ -159,13 +176,39 @@ function TemplateDialog({
             </div>
             <div className="grid gap-2 text-sm">
               <span>{t("inspection.templateBody")}</span>
-              <TemplateCodeEditor
-                language={format === "HTML" ? "html" : "markdown"}
+              <TemplateEditor
                 value={body}
                 onChange={setBody}
                 height={360}
+                scope="inspection"
                 placeholder={t("inspection.templateBodyPlaceholder")}
+                ariaLabel={t("inspection.templateBody")}
+                onEditorReady={(insert) => {
+                  insertRef.current = insert
+                }}
               />
+              <div className="grid gap-2 rounded-lg border border-border bg-muted/20 p-3">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-xs font-medium">{t("inspection.variables")}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {t("inspection.variablesHint")}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {TEMPLATE_SNIPPETS.map((snippet) => (
+                    <Button
+                      key={snippet.label}
+                      type="button"
+                      size="xs"
+                      variant="outline"
+                      className="font-mono text-[11px]"
+                      onClick={() => insertRef.current?.(snippet.insert)}
+                    >
+                      {snippet.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
           </DialogBody>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -191,14 +234,27 @@ export function InspectionTemplatePage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const createParam = searchParams.get("create")
   const [draftName, setDraftName] = useState(query.name)
   const [editing, setEditing] = useState<InspectionTemplate | null>(null)
   const [base, setBase] = useState<InspectionTemplate | null>(null)
-  const [editorOpen, setEditorOpen] = useState(false)
+  const [editorOpen, setEditorOpen] = useState(
+    () => createParam === "1" && session.can("inspection_template:write")
+  )
   const [editorKey, setEditorKey] = useState(0)
   const [guideOpen, setGuideOpen] = useState(false)
   const canWrite = session.can("inspection_template:write")
   const canDelete = session.can("inspection_template:delete")
+
+  useEffect(() => {
+    if (createParam !== "1") {
+      return
+    }
+    const next = new URLSearchParams(searchParams)
+    next.delete("create")
+    setSearchParams(next, { replace: true })
+  }, [createParam, searchParams, setSearchParams])
 
   const { items, total, loading, failed, error, reload } =
     usePagedList<InspectionTemplate>({

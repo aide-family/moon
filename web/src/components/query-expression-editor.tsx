@@ -1,6 +1,6 @@
 import Editor, { loader, type Monaco, type OnMount } from "@monaco-editor/react"
 import { promLanguageDefinition } from "monaco-promql"
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import * as monacoEditor from "monaco-editor"
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
@@ -691,6 +691,12 @@ interface QueryExpressionEditorProps {
   placeholder?: string
   /** 最小高度；巡检等嵌入式编辑器需要固定可视区域。 */
   minHeight?: number
+  /** 嵌入到已有边框的容器时去掉自身边框。 */
+  bordered?: boolean
+  /** 允许拖动右下角调整高度；开启后不再随内容自动增高。 */
+  resizable?: boolean
+  /** 拖动手柄的无障碍名称。 */
+  resizeLabel?: string
 }
 
 export function QueryExpressionEditor({
@@ -701,6 +707,9 @@ export function QueryExpressionEditor({
   variant = "promql",
   placeholder,
   minHeight = 0,
+  bordered = true,
+  resizable = false,
+  resizeLabel = "Resize editor",
 }: QueryExpressionEditorProps) {
   const { theme } = useTheme()
   const overflowWidgetsDomNode = useMonacoOverflowNode()
@@ -708,6 +717,9 @@ export function QueryExpressionEditor({
   const variantRef = useRef(variant)
   const onSubmitRef = useRef(onSubmit)
   const disposeRef = useRef<(() => void) | null>(null)
+  const [manualHeight, setManualHeight] = useState(() =>
+    Math.max(minHeight, LINE_HEIGHT * 2 + EDITOR_PADDING_Y * 2)
+  )
 
   useEffect(() => {
     uidRef.current = datasourceUid
@@ -727,13 +739,35 @@ export function QueryExpressionEditor({
     }
   }, [])
 
-  const height = useMemo(() => {
+  const autoHeight = useMemo(() => {
     const lines = lineCountOf(value)
     return Math.min(
       MAX_HEIGHT,
       Math.max(minHeight, MIN_HEIGHT, lines * LINE_HEIGHT + EDITOR_PADDING_Y * 2)
     )
   }, [value, minHeight])
+  const height = resizable ? manualHeight : autoHeight
+
+  function startResize(event: React.PointerEvent<HTMLDivElement>) {
+    event.preventDefault()
+    const startY = event.clientY
+    const startHeight = manualHeight
+    document.body.style.userSelect = "none"
+    const move = (moveEvent: PointerEvent) => {
+      const next = Math.max(
+        LINE_HEIGHT * 2 + EDITOR_PADDING_Y * 2,
+        Math.min(640, startHeight + moveEvent.clientY - startY)
+      )
+      setManualHeight(next)
+    }
+    const stop = () => {
+      document.body.style.userSelect = ""
+      window.removeEventListener("pointermove", move)
+      window.removeEventListener("pointerup", stop)
+    }
+    window.addEventListener("pointermove", move)
+    window.addEventListener("pointerup", stop)
+  }
 
   const editorTheme =
     theme === "dark" ||
@@ -770,7 +804,9 @@ export function QueryExpressionEditor({
 
   return (
     <div
-      className="relative overflow-hidden rounded-md border border-input bg-background px-2.5 [&_.margin]:!bg-background [&_.monaco-editor]:!bg-background [&_.monaco-editor-background]:!bg-background"
+      className={`relative overflow-hidden bg-background px-2.5 [&_.margin]:!bg-background [&_.monaco-editor]:!bg-background [&_.monaco-editor-background]:!bg-background ${
+        bordered ? "rounded-md border border-input" : ""
+      }`}
       style={{ height }}
     >
       {value === "" && placeholder ? (
@@ -825,10 +861,10 @@ export function QueryExpressionEditor({
           automaticLayout: true,
           padding: { top: EDITOR_PADDING_Y, bottom: EDITOR_PADDING_Y },
           scrollbar: {
-            vertical: height >= MAX_HEIGHT ? "auto" : "hidden",
+            vertical: resizable || height >= MAX_HEIGHT ? "auto" : "hidden",
             horizontal: "hidden",
             verticalScrollbarSize: 8,
-            handleMouseWheel: height >= MAX_HEIGHT,
+            handleMouseWheel: resizable || height >= MAX_HEIGHT,
           },
           guides: { indentation: false },
           renderWhitespace: "none",
@@ -838,6 +874,24 @@ export function QueryExpressionEditor({
           tabCompletion: "on",
         }}
       />
+      {resizable ? (
+        <div
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label={resizeLabel}
+          onPointerDown={startResize}
+          className="absolute right-1 bottom-1 z-20 flex size-4 touch-none cursor-ns-resize items-end justify-end text-muted-foreground/70 hover:text-foreground"
+        >
+          <svg viewBox="0 0 12 12" className="size-3" aria-hidden="true">
+            <path
+              d="M10 2 2 10M10 6 6 10M10 10h.01"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+      ) : null}
     </div>
   )
 }

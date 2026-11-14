@@ -269,7 +269,7 @@ export interface TestInspectionItemResult {
 export interface InspectionMetricParams {
   unit?: string
   empty_is_warn?: boolean
-  thresholds?: Array<{ op: string; value: number; status: "WARN" | "FAILED" }>
+  thresholds?: Array<{ op: string; value: number; status: "OK" | "WARN" | "FAILED" }>
 }
 
 /** 日志检查项的 params。 */

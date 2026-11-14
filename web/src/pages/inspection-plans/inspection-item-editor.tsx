@@ -276,7 +276,7 @@ export function InspectionItemEditor({
         </Button>
       </div>
 
-      <div className="mx-auto grid w-full max-w-3xl min-w-0 gap-4">
+      <div className="grid w-full min-w-0 gap-4">
         <div className="grid min-w-0 content-start gap-4">
           <FormField label={t("inspection.itemTitle")} required>
             <Input
@@ -431,7 +431,7 @@ export function inspectionKindLabel(t: (key: string) => string, kind: Inspection
   }
 }
 
-function displayLabel(t: (key: string) => string, display: InspectionItemDisplay): string {
+export function inspectionDisplayLabel(t: (key: string) => string, display: InspectionItemDisplay): string {
   switch (display) {
     case "METRIC":
       return t("inspection.displayMetric")
@@ -581,7 +581,10 @@ function MetricsConfig({
             onChange={(value) => onChange({ query: value })}
             datasourceUid={item.datasourceUid}
             variant="promql"
-            minHeight={150}
+            minHeight={56}
+            bordered={false}
+            resizable
+            resizeLabel={t("inspection.resizeEditor")}
             placeholder="histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m])))"
           />
         </div>
@@ -609,7 +612,7 @@ function MetricsConfig({
             <SelectContent>
               {(["METRIC", "TABLE", "TREND"] as InspectionItemDisplay[]).map((display) => (
                 <SelectItem key={display} value={display}>
-                  {displayLabel(t, display)}
+                  {inspectionDisplayLabel(t, display)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -628,47 +631,58 @@ function MetricsConfig({
       </label>
       <div className="grid gap-2">
         <span className="text-sm font-medium">{t("inspection.thresholds")}</span>
-        {thresholds.map((threshold, index) => (
-          <div key={index} className="grid grid-cols-[5rem_7rem_7rem_2rem] items-center gap-2">
-            <Select value={threshold.op} onValueChange={(value) => updateThreshold(index, { op: value })}>
-              <SelectTrigger aria-label={t("inspection.thresholdValue")}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[">", ">=", "<", "<=", "==", "!="].map((op) => (
-                  <SelectItem key={op} value={op}>
-                    {op}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              type="number"
-              value={threshold.value}
-              placeholder={t("inspection.thresholdPlaceholder")}
-              onChange={(event) => updateThreshold(index, { value: Number(event.target.value) })}
-              aria-label={t("inspection.thresholdValue")}
-            />
-            <Select value={threshold.status} onValueChange={(value) => updateThreshold(index, { status: value as "WARN" | "FAILED" })}>
-              <SelectTrigger aria-label={t("inspection.warning")}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="WARN">{t("inspection.warning")}</SelectItem>
-                <SelectItem value="FAILED">{t("inspection.failedStatus")}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              aria-label={t("inspection.remove")}
-              onClick={() => setParams({ ...params, thresholds: thresholds.filter((_, current) => current !== index) })}
-            >
-              ×
-            </Button>
-          </div>
-        ))}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {thresholds.map((threshold, index) => (
+            <div key={index} className="grid gap-2 rounded-lg border border-border bg-background p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {t("inspection.thresholdValue")} #{index + 1}
+                </span>
+                <Button
+                  type="button"
+                  size="icon-sm"
+                  variant="ghost"
+                  aria-label={t("inspection.remove")}
+                  onClick={() => setParams({ ...params, thresholds: thresholds.filter((_, current) => current !== index) })}
+                >
+                  ×
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Select value={threshold.op} onValueChange={(value) => updateThreshold(index, { op: value })}>
+                  <SelectTrigger className="w-full" aria-label={t("inspection.thresholdValue")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[">", ">=", "<", "<=", "==", "!="].map((op) => (
+                      <SelectItem key={op} value={op}>
+                        {op}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  className="w-full"
+                  value={threshold.value}
+                  placeholder={t("inspection.thresholdPlaceholder")}
+                  onChange={(event) => updateThreshold(index, { value: Number(event.target.value) })}
+                  aria-label={t("inspection.thresholdValue")}
+                />
+              </div>
+              <Select value={threshold.status} onValueChange={(value) => updateThreshold(index, { status: value as "OK" | "WARN" | "FAILED" })}>
+                <SelectTrigger className="w-full" aria-label={t("inspection.warning")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="OK">{t("inspection.statusOk")}</SelectItem>
+                  <SelectItem value="WARN">{t("inspection.warning")}</SelectItem>
+                  <SelectItem value="FAILED">{t("inspection.failedStatus")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          ))}
+        </div>
         <Button
           type="button"
           size="sm"
@@ -737,7 +751,10 @@ function LogsConfig({
             onChange={(value) => onChange({ query: value })}
             datasourceUid={item.datasourceUid}
             variant={logVariant(selected)}
-            minHeight={150}
+            minHeight={56}
+            bordered={false}
+            resizable
+            resizeLabel={t("inspection.resizeEditor")}
             placeholder={logVariant(selected) === "json" ? '{ "query": { "match_all": {} } }' : '{app="gateway"} |= "ERROR"'}
           />
         </div>

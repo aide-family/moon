@@ -226,7 +226,7 @@ type Section struct {
 | `ALERT_EVENTS` | 告警事件表 | 当前未恢复事件、窗口内新增事件、按级别分布 | 存在 `CRITICAL` 事件（可配） |
 | `NOTE` | 不查询 | Markdown 段落 | 永不失败 |
 
-阈值放在 `item.params`，例如 `{"availability_below": 99.5, "latency_ms_above": 800}`。阈值命中只把该项标成 `WARN`，不改计划状态。
+阈值放在 `item.params`，例如 `{"availability_below": 99.5, "latency_ms_above": 800}`。指标阈值支持 `OK` / `WARN` / `FAILED` 三种标记，命中后按严重度取最高（FAILED > WARN > OK），只改该项状态，不改计划状态。
 
 **时间窗**：所有相对窗口在 run 开始时一次性解析成 `window_start/window_end`，写入 run；模板里展示的是绝对区间，避免报告重看时含义漂移。定时计划默认「截至计划时刻往前一个窗口」，手动执行同样。
 
