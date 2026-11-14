@@ -33,6 +33,8 @@ jobs:
       - uses: bufbuild/buf-setup-action@v1
         with:
           version: "1.47.2"
+          # 传 token 走认证请求，避免匿名 GitHub API 限流导致下载 URL 解析失败。
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: buf deps
         run: buf dep update
       # gofmt + buf lint；与本地 `make lint` 同一条命令，避免两套真相。
