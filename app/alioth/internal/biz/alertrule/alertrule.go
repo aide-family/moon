@@ -26,6 +26,9 @@ var ProviderSet = wire.NewSet(NewRulebook)
 // maxGroupName 与 proto 校验保持一致，避免绕过 HTTP 的调用写入超长名称。
 const maxGroupName = 64
 
+// maxGroupDepth 是规则组层级的最大值：顶级为第 1 级，最多 3 级。
+const maxGroupDepth = 3
+
 // 自定义查询变量的限制，与 proto 校验和设计文档保持一致。名字的长度和字符
 // 集由 variableNamePattern 覆盖。
 const (
@@ -57,7 +60,7 @@ func NewRulebook(rules repository.AlertRuleRepo, dictionaries repository.AlertDi
 	return &Rulebook{rules: rules, dictionaries: dictionaries, datasources: datasources, events: events, access: checker}
 }
 
-func (rulebook *Rulebook) CreateGroup(ctx context.Context, name string) (*bo.AlertRuleGroup, error) {
+func (rulebook *Rulebook) CreateGroup(ctx context.Context, name, parentUID string) (*bo.AlertRuleGroup, error) {
 	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
@@ -66,11 +69,15 @@ func (rulebook *Rulebook) CreateGroup(ctx context.Context, name string) (*bo.Ale
 	if err := validateGroupName(trimmed); err != nil {
 		return nil, err
 	}
-	item, err := rulebook.rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: trimmed})
+	parentUID = strings.TrimSpace(parentUID)
+	if err := rulebook.validateGroupParent(ctx, ns, "", parentUID); err != nil {
+		return nil, err
+	}
+	item, err := rulebook.rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: trimmed, ParentUID: parentUID})
 	return item, rulebook.access.Wrap(err)
 }
 
-func (rulebook *Rulebook) UpdateGroup(ctx context.Context, uid, name string) (*bo.AlertRuleGroup, error) {
+func (rulebook *Rulebook) UpdateGroup(ctx context.Context, uid, name, parentUID string) (*bo.AlertRuleGroup, error) {
 	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
@@ -79,8 +86,73 @@ func (rulebook *Rulebook) UpdateGroup(ctx context.Context, uid, name string) (*b
 	if err := validateGroupName(trimmed); err != nil {
 		return nil, err
 	}
-	item, err := rulebook.rules.UpdateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, UID: uid, Name: trimmed})
+	parentUID = strings.TrimSpace(parentUID)
+	if err := rulebook.validateGroupParent(ctx, ns, uid, parentUID); err != nil {
+		return nil, err
+	}
+	item, err := rulebook.rules.UpdateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, UID: uid, Name: trimmed, ParentUID: parentUID})
 	return item, rulebook.access.Wrap(err)
+}
+
+// validateGroupParent 校验层级：父组必须存在，最多 3 级，且不能把组移动到
+// 自己或自己的后代下面。一次加载全部组，既用于找父链，也用于算子树的深度。
+func (rulebook *Rulebook) validateGroupParent(ctx context.Context, namespaceUID, uid, parentUID string) error {
+	if parentUID == "" {
+		return nil
+	}
+	if uid != "" && parentUID == uid {
+		return merr.Invalid("invalid parent group")
+	}
+	groups, err := rulebook.rules.ListAllAlertRuleGroups(ctx, namespaceUID)
+	if err != nil {
+		return err
+	}
+	byUID := make(map[string]bo.AlertRuleGroup, len(groups))
+	children := make(map[string][]string, len(groups))
+	for _, group := range groups {
+		byUID[group.UID] = group
+		if group.ParentUID != "" {
+			children[group.ParentUID] = append(children[group.ParentUID], group.UID)
+		}
+	}
+	parent, ok := byUID[parentUID]
+	if !ok {
+		return merr.Invalid("invalid parent group")
+	}
+	depth := 1
+	seen := map[string]bool{parent.UID: true}
+	for current := parent; current.ParentUID != ""; {
+		next, found := byUID[current.ParentUID]
+		if !found || seen[next.UID] {
+			return merr.Invalid("invalid parent group")
+		}
+		seen[next.UID] = true
+		depth++
+		current = next
+	}
+	if depth >= maxGroupDepth {
+		return merr.Invalid("group hierarchy is too deep")
+	}
+	if uid == "" {
+		return nil
+	}
+	if seen[uid] {
+		return merr.Invalid("invalid parent group")
+	}
+	var subtreeDepth func(string) int
+	subtreeDepth = func(id string) int {
+		maxChild := 0
+		for _, child := range children[id] {
+			if depth := subtreeDepth(child); depth > maxChild {
+				maxChild = depth
+			}
+		}
+		return maxChild + 1
+	}
+	if depth+subtreeDepth(uid) > maxGroupDepth {
+		return merr.Invalid("group hierarchy is too deep")
+	}
+	return nil
 }
 
 func (rulebook *Rulebook) UpdateGroupStatus(ctx context.Context, uid, status string) (*bo.AlertRuleGroup, error) {
@@ -112,12 +184,16 @@ func (rulebook *Rulebook) DeleteGroup(ctx context.Context, uid string) error {
 	return rulebook.access.Wrap(rulebook.rules.DeleteAlertRuleGroup(ctx, ns, uid))
 }
 
-func (rulebook *Rulebook) ListGroups(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.AlertRuleGroup, int, int, int, error) {
+func (rulebook *Rulebook) ListGroups(ctx context.Context, pageNo, pageSize int32, name string, all bool) ([]bo.AlertRuleGroup, int, int, int, error) {
 	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
+	if all {
+		items, listErr := rulebook.rules.ListAllAlertRuleGroups(ctx, ns)
+		return items, len(items), 1, len(items), rulebook.access.Wrap(listErr)
+	}
 	items, total, err := rulebook.rules.ListAlertRuleGroups(ctx, ns, p, s, strings.TrimSpace(name))
 	return items, total, p, s, rulebook.access.Wrap(err)
 }

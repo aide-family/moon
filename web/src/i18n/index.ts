@@ -242,7 +242,6 @@ const zh = {
     unapplied: "有未应用的改动",
     toggle: "筛选",
     hide: "收起筛选",
-    activeCount: "{{count}} 个条件已生效",
   },
   shell: {
     account: "账户",
@@ -466,6 +465,8 @@ const zh = {
     resourceNameRequired: "请填写资源名称。",
     yamlTooLarge: "YAML 内容过大，无法预览。",
     namespaceNameRequired: "请填写命名空间和名称。",
+    groupHierarchyTooDeep: "规则组最多支持三级。",
+    groupHasChildren: "该规则组下还有子组，请先移走或删除子组。",
     invalidLabels:
       "标签格式不正确：键和值只能包含字母、数字、点、下划线和连字符。",
     labelsRequired: "请至少填写一对标签。",
@@ -1253,7 +1254,7 @@ const zh = {
   },
   datasource: {
     title: "数据源",
-    description: "管理指标、日志和链路数据源，并在右侧查询。",
+    description: "管理指标、日志和链路数据源；详情、元数据和查询从操作栏进入。",
     name: "名称",
     namePlaceholder: "数据源名称",
     type: "类型",
@@ -1308,7 +1309,7 @@ const zh = {
     remark: "备注",
     remarkPlaceholder: "可选备注",
     connectionExists: "相同连接的数据源已存在，不能重复添加。",
-    empty: "还没有数据源。新建一个之后可以在右侧查询。",
+    empty: "还没有数据源。新建一个后可从操作栏打开详情和查询。",
     pick: "从左侧选择一个数据源。",
     expr: "表达式",
     exprPlaceholder: "up",
@@ -1508,7 +1509,7 @@ const zh = {
     typeHint:
       "探测类型决定目标写法与观测指标：HTTP 是 URL，TCP / TLS 是 host:port，ICMP 是主机名或 IP，DNS 是域名；只提供套餐已开通的类型。",
     remarkTooLong: "备注最多 200 个字符",
-    empty: "还没有探测目标组。新建一个之后可以在右侧查看目标与探测记录。",
+    empty: "还没有探测目标组。新建一个后可在详情中查看目标与探测记录。",
     pick: "从左侧选择一个探测目标组。",
     targetCountBadge: "{{count}} 个目标",
     activeCountBadge: "{{count}} 个启用",
@@ -1695,6 +1696,11 @@ const zh = {
     group: "规则组",
     groupPlaceholder: "规则组名称",
     createGroup: "新建规则组",
+    createChildGroup: "新建子组",
+    groupSearchPlaceholder: "搜索规则组",
+    groupSearchEmpty: "没有匹配的规则组。",
+    parentGroup: "上级规则组",
+    rootGroup: "无（顶级规则组）",
     groupEmpty: "还没有规则组。先新建一组。",
     pickGroup: "从左侧选择一个规则组。",
     name: "名称",
@@ -4716,7 +4722,6 @@ const en = {
     unapplied: "Unapplied changes",
     toggle: "Filters",
     hide: "Hide filters",
-    activeCount: "{{count}} filters active",
   },
   shell: {
     account: "Account",
@@ -4973,6 +4978,9 @@ const en = {
     resourceNameRequired: "A resource name is required.",
     yamlTooLarge: "The YAML is too large to preview.",
     namespaceNameRequired: "A namespace and a name are required.",
+    groupHierarchyTooDeep: "Rule groups support at most three levels.",
+    groupHasChildren:
+      "This group still has child groups; move or delete them first.",
     invalidLabels:
       "The labels are not valid: keys and values may only contain letters, digits, dots, underscores and hyphens.",
     labelsRequired: "Add at least one label pair.",
@@ -5848,7 +5856,7 @@ const en = {
   datasource: {
     title: "Datasources",
     description:
-      "Manage metrics, logs, and trace sources, then query on the right.",
+      "Manage metrics, logs, and trace sources. Open details, metadata, and queries from the row actions.",
     name: "Name",
     namePlaceholder: "Datasource name",
     type: "Type",
@@ -5907,7 +5915,7 @@ const en = {
     remark: "Remark",
     remarkPlaceholder: "Optional remark",
     connectionExists: "A datasource with the same connection already exists.",
-    empty: "No datasources yet. Create one to query it on the right.",
+    empty: "No datasources yet. Create one, then open its details and query from the row actions.",
     pick: "Select a datasource from the list.",
     expr: "Expression",
     exprPlaceholder: "up",
@@ -6323,6 +6331,11 @@ const en = {
     group: "Group",
     groupPlaceholder: "Group name",
     createGroup: "Create group",
+    createChildGroup: "Create child group",
+    groupSearchPlaceholder: "Search groups",
+    groupSearchEmpty: "No matching groups.",
+    parentGroup: "Parent group",
+    rootGroup: "None (top-level group)",
     groupEmpty: "No groups yet. Create one first.",
     pickGroup: "Select a group from the list.",
     name: "Name",

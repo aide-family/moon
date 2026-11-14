@@ -50,6 +50,7 @@ type AlertRuleRepo interface {
 	DeleteAlertRuleGroup(ctx context.Context, namespaceUID, uid string) error
 	GetAlertRuleGroup(ctx context.Context, namespaceUID, uid string) (*bo.AlertRuleGroup, error)
 	ListAlertRuleGroups(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.AlertRuleGroup, int, error)
+	ListAllAlertRuleGroups(ctx context.Context, namespaceUID string) ([]bo.AlertRuleGroup, error)
 	CreateAlertRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error)
 	UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error)
 	UpdateAlertRuleStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.AlertRule, error)

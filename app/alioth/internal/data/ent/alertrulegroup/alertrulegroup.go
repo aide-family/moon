@@ -26,6 +26,8 @@ const (
 	FieldNamespaceUID = "namespace_uid"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldParentUID holds the string denoting the parent_uid field in the database.
+	FieldParentUID = "parent_uid"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// Table holds the table name of the alertrulegroup in the database.
@@ -41,6 +43,7 @@ var Columns = []string{
 	FieldUID,
 	FieldNamespaceUID,
 	FieldName,
+	FieldParentUID,
 	FieldStatus,
 }
 
@@ -67,6 +70,8 @@ var (
 	NamespaceUIDValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DefaultParentUID holds the default value on creation for the "parent_uid" field.
+	DefaultParentUID string
 )
 
 // Status defines the type for the "status" enum field.
@@ -131,6 +136,11 @@ func ByNamespaceUID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByParentUID orders the results by the parent_uid field.
+func ByParentUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldParentUID, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

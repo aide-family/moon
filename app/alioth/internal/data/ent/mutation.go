@@ -12983,6 +12983,7 @@ type AlertRuleGroupMutation struct {
 	uid           *string
 	namespace_uid *string
 	name          *string
+	parent_uid    *string
 	status        *alertrulegroup.Status
 	clearedFields map[string]struct{}
 	done          bool
@@ -13317,6 +13318,42 @@ func (m *AlertRuleGroupMutation) ResetName() {
 	m.name = nil
 }
 
+// SetParentUID sets the "parent_uid" field.
+func (m *AlertRuleGroupMutation) SetParentUID(s string) {
+	m.parent_uid = &s
+}
+
+// ParentUID returns the value of the "parent_uid" field in the mutation.
+func (m *AlertRuleGroupMutation) ParentUID() (r string, exists bool) {
+	v := m.parent_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentUID returns the old "parent_uid" field's value of the AlertRuleGroup entity.
+// If the AlertRuleGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertRuleGroupMutation) OldParentUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentUID: %w", err)
+	}
+	return oldValue.ParentUID, nil
+}
+
+// ResetParentUID resets all changes to the "parent_uid" field.
+func (m *AlertRuleGroupMutation) ResetParentUID() {
+	m.parent_uid = nil
+}
+
 // SetStatus sets the "status" field.
 func (m *AlertRuleGroupMutation) SetStatus(a alertrulegroup.Status) {
 	m.status = &a
@@ -13387,7 +13424,7 @@ func (m *AlertRuleGroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlertRuleGroupMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, alertrulegroup.FieldCreatedAt)
 	}
@@ -13405,6 +13442,9 @@ func (m *AlertRuleGroupMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, alertrulegroup.FieldName)
+	}
+	if m.parent_uid != nil {
+		fields = append(fields, alertrulegroup.FieldParentUID)
 	}
 	if m.status != nil {
 		fields = append(fields, alertrulegroup.FieldStatus)
@@ -13429,6 +13469,8 @@ func (m *AlertRuleGroupMutation) Field(name string) (ent.Value, bool) {
 		return m.NamespaceUID()
 	case alertrulegroup.FieldName:
 		return m.Name()
+	case alertrulegroup.FieldParentUID:
+		return m.ParentUID()
 	case alertrulegroup.FieldStatus:
 		return m.Status()
 	}
@@ -13452,6 +13494,8 @@ func (m *AlertRuleGroupMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldNamespaceUID(ctx)
 	case alertrulegroup.FieldName:
 		return m.OldName(ctx)
+	case alertrulegroup.FieldParentUID:
+		return m.OldParentUID(ctx)
 	case alertrulegroup.FieldStatus:
 		return m.OldStatus(ctx)
 	}
@@ -13504,6 +13548,13 @@ func (m *AlertRuleGroupMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case alertrulegroup.FieldParentUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentUID(v)
 		return nil
 	case alertrulegroup.FieldStatus:
 		v, ok := value.(alertrulegroup.Status)
@@ -13587,6 +13638,9 @@ func (m *AlertRuleGroupMutation) ResetField(name string) error {
 		return nil
 	case alertrulegroup.FieldName:
 		m.ResetName()
+		return nil
+	case alertrulegroup.FieldParentUID:
+		m.ResetParentUID()
 		return nil
 	case alertrulegroup.FieldStatus:
 		m.ResetStatus()

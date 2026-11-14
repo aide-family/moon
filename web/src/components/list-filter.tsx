@@ -28,8 +28,6 @@ interface ListFilterProps {
   hint?: string
   /** 与筛选按钮同一行的右侧操作（统计、批量操作、视图切换）。 */
   actions?: ReactNode
-  /** 条件字段的布局类；简单的页内联排，多条件页面用 grid。 */
-  fieldsClassName?: string
   children: ReactNode
 }
 
@@ -51,7 +49,6 @@ export function ListFilter({
   dirty = false,
   hint,
   actions,
-  fieldsClassName,
   children,
 }: ListFilterProps) {
   const { t } = useTranslation()
@@ -82,30 +79,18 @@ export function ListFilter({
           !open && "hidden"
         )}
       >
-        <div
-          className={cn(
-            "min-w-0",
-            fieldsClassName ?? "flex flex-wrap items-end gap-3"
-          )}
-        >
+        <div className="flex min-w-0 flex-wrap items-end gap-3">
           {children}
-        </div>
-        <div className="mt-3 flex flex-col gap-2 border-t border-border/60 pt-3 sm:flex-row sm:items-center sm:justify-between">
-          <p
-            role={dirty ? "status" : undefined}
-            className={cn(
-              "min-h-5 text-xs",
-              dirty ? "text-warning" : "text-muted-foreground"
-            )}
-          >
-            {dirty
-              ? t("filter.unapplied")
-              : hint ||
-                (applied > 0
-                  ? t("filter.activeCount", { count: applied })
-                  : "")}
-          </p>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          {/* 清除/应用和条件同一行；一行放不下时整组换到下一行。 */}
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            {dirty ? (
+              <span
+                role="status"
+                className="text-xs whitespace-nowrap text-warning"
+              >
+                {t("filter.unapplied")}
+              </span>
+            ) : null}
             <Button
               type="button"
               variant="ghost"
@@ -122,6 +107,9 @@ export function ListFilter({
             </Button>
           </div>
         </div>
+        {hint ? (
+          <p className="mt-2 text-xs text-muted-foreground">{hint}</p>
+        ) : null}
       </form>
     </div>
   )

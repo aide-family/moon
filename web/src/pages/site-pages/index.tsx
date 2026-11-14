@@ -382,9 +382,8 @@ export function SitePagesPage() {
               appliedCount={chips.length}
               dirty={dirty}
               onApply={applyFilters}
-              fieldsClassName="grid gap-2"
             >
-              <Field className="min-w-0">
+              <Field className="min-w-0 w-full">
                 <FieldLabel
                   htmlFor="site-pages-keyword"
                   className="text-xs text-muted-foreground"
@@ -405,7 +404,7 @@ export function SitePagesPage() {
                   />
                 </div>
               </Field>
-              <Field className="min-w-0">
+              <Field className="min-w-0 w-full">
                 <FieldLabel
                   htmlFor="site-pages-state"
                   className="text-xs text-muted-foreground"
@@ -455,7 +454,7 @@ export function SitePagesPage() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field className="min-w-0">
+              <Field className="min-w-0 w-full">
                 <FieldLabel
                   htmlFor="site-pages-locale"
                   className="text-xs text-muted-foreground"

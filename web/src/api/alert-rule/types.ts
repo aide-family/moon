@@ -1,6 +1,8 @@
 export interface AlertRuleGroupItem {
   uid: string
   name: string
+  /** 上级规则组；空字符串表示顶级。 */
+  parentUid?: string
   status: string
 }
 
@@ -58,6 +60,8 @@ export interface ListAlertRuleGroupsParams {
   page?: number
   pageSize?: number
   name?: string
+  /** 一次返回全部规则组，用于本地树形搜索。 */
+  all?: boolean
 }
 
 export interface ListAlertRuleGroupsResult {

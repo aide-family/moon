@@ -20,6 +20,7 @@ func (r *alertRuleRepo) CreateAlertRuleGroup(ctx context.Context, in bo.AlertRul
 		SetUID(id.New()).
 		SetNamespaceUID(in.NamespaceUID).
 		SetName(in.Name).
+		SetParentUID(in.ParentUID).
 		SetStatus(alertrulegroup.StatusACTIVE).
 		Save(ctx)
 	if err != nil {
@@ -34,7 +35,7 @@ func (r *alertRuleRepo) UpdateAlertRuleGroup(ctx context.Context, in bo.AlertRul
 		alertrulegroup.NamespaceUIDEQ(in.NamespaceUID),
 		alertrulegroup.UIDEQ(in.UID),
 		alertrulegroup.DeletedAtIsNil(),
-	).SetName(in.Name).Save(ctx)
+	).SetName(in.Name).SetParentUID(in.ParentUID).Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
@@ -64,6 +65,17 @@ func (r *alertRuleRepo) UpdateAlertRuleGroupStatus(ctx context.Context, namespac
 }
 
 func (r *alertRuleRepo) DeleteAlertRuleGroup(ctx context.Context, namespaceUID, uid string) error {
+	children, err := r.client.AlertRuleGroup.Query().Where(
+		alertrulegroup.NamespaceUIDEQ(namespaceUID),
+		alertrulegroup.ParentUIDEQ(uid),
+		alertrulegroup.DeletedAtIsNil(),
+	).Exist(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if children {
+		return merr.Conflict("group still has children")
+	}
 	used, err := r.client.AlertRule.Query().Where(
 		alertrule.NamespaceUIDEQ(namespaceUID),
 		alertrule.GroupUIDEQ(uid),
@@ -120,6 +132,21 @@ func (r *alertRuleRepo) ListAlertRuleGroups(ctx context.Context, namespaceUID st
 		items = append(items, toGroup(row))
 	}
 	return items, total, nil
+}
+
+func (r *alertRuleRepo) ListAllAlertRuleGroups(ctx context.Context, namespaceUID string) ([]bo.AlertRuleGroup, error) {
+	rows, err := r.client.AlertRuleGroup.Query().
+		Where(alertrulegroup.NamespaceUIDEQ(namespaceUID), alertrulegroup.DeletedAtIsNil()).
+		Order(ent.Asc(alertrulegroup.FieldUID)).
+		All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items := make([]bo.AlertRuleGroup, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, toGroup(row))
+	}
+	return items, nil
 }
 
 func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error) {
@@ -572,7 +599,10 @@ func (r *alertRuleRepo) withLevels(ctx context.Context, namespaceUID string, row
 }
 
 func toGroup(row *ent.AlertRuleGroup) bo.AlertRuleGroup {
-	return bo.AlertRuleGroup{UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, Status: string(row.Status)}
+	return bo.AlertRuleGroup{
+		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name,
+		ParentUID: row.ParentUID, Status: string(row.Status),
+	}
 }
 
 // probeMetricValue 把观测指标归一成合法枚举。历史调用方与测试可能不传这个字段，

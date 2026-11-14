@@ -1,14 +1,12 @@
-import { EllipsisVertical, Search } from "lucide-react"
+import { Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useSearchParams } from "react-router-dom"
 
 import { listAlertDictionaries } from "@/api/alert-dictionary"
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
 import {
   createDatasource,
   deleteDatasource,
-  getDatasource,
   listDatasources,
   updateDatasource,
   updateDatasourceStatus,
@@ -23,18 +21,23 @@ import { useSession } from "@/auth/session"
 import { authorizedDatasourceDrivers } from "@/lib/feature-catalog"
 import { BrandIcon } from "@/components/brand-icon"
 import { ConfirmAction } from "@/components/confirm-action"
+import { DetailSheet } from "@/components/detail-sheet"
 import { EnumIcon } from "@/components/enum-icon"
 import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
-import { LabelTags } from "@/components/label-tags"
 import { ListFilter } from "@/components/list-filter"
 import { MultiSelect } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
 import { ListFrame } from "@/components/list-frame"
+import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { StepForm } from "@/components/step-form"
+import {
+  TableActionsHead,
+  TableStatusHead,
+  TableTypeHead,
+} from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
@@ -42,16 +45,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -59,6 +54,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { cn } from "@/lib/class-names"
 import { enumLabel } from "@/lib/enum-label"
 import {
   collectFieldErrors,
@@ -74,9 +78,15 @@ import {
   type LabelPair,
 } from "@/lib/labels"
 import { loadAllSelectItems } from "@/lib/select-pages"
+import {
+  TABLE_COLUMN_WIDTH,
+  TABLE_MIN_WIDTH,
+  TABLE_NOWRAP,
+} from "@/lib/table-layout"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
+import { DatasourceDetailSheet } from "@/pages/datasource/detail"
 import { MetadataPanel } from "@/pages/datasource/metadata-panel"
 import { QueryPanel } from "@/pages/datasource/query-panel"
 
@@ -151,19 +161,20 @@ export function DatasourcePage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [params, setParams] = useSearchParams()
-  const type = params.get("type") || ""
-  const selected = params.get("uid") || ""
+  const type = query.type
   const [filtersOpen, setFiltersOpen] = useState(false)
   const { draft, update, dirty } = useFilterDraft({ name: query.name, type })
-  const [current, setCurrent] = useState<DatasourceItem | null>(null)
+  // 三个抽屉共用列表项：列表响应已经包含详情字段，不需要再按 uid 拉一次详情。
+  const [detailItem, setDetailItem] = useState<DatasourceItem | null>(null)
+  const [metadataItem, setMetadataItem] = useState<DatasourceItem | null>(null)
+  const [queryItem, setQueryItem] = useState<DatasourceItem | null>(null)
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [notificationGroups, setNotificationGroups] = useState<
     NotificationGroupSelectItem[]
   >([])
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [open, setOpen] = useState(false)
-  const [editing, setEditing] = useState(false)
+  const [editingItem, setEditingItem] = useState<DatasourceItem | null>(null)
   const [formStep, setFormStep] = useState(0)
   const [form, setForm] = useState<Draft>(emptyDraft)
   const [error, setError] = useState("")
@@ -217,47 +228,6 @@ export function DatasourcePage() {
     setShownAction(action)
     setConfirm({ action, uid })
   }
-
-  useEffect(() => {
-    let active = true
-    async function load() {
-      if (!selected) {
-        setCurrent(null)
-        return
-      }
-      try {
-        const result = await getDatasource(selected)
-        if (active) {
-          setCurrent(result.datasource)
-        }
-      } catch {
-        if (active) {
-          setCurrent(null)
-        }
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [selected, version, session.namespaceUid])
-
-  // 进入数据源菜单时如果 URL 没有 uid，默认选中列表里的第一个数据源，
-  // 让右侧详情面板直接可用，而不是停在“从左侧选择一个数据源”的空态。
-  // 已有 uid（深链、上一页选择）优先，创建流程保存后写入的 uid 也不会被覆盖；
-  // 列表为空（含筛选后无结果）、加载中或加载失败时保持原来的占位提示。
-  // 条件是幂等的：选中一旦写入 URL，selected 非空，本 effect 不再动作。
-  useEffect(() => {
-    if (selected || loading || failed || items.length === 0) {
-      return
-    }
-    // 自动补选不写历史记录：否则用户在无 uid 的地址上点后退，本 effect 会
-    // 立刻把 uid 写回去，后退看起来永远停在同一页。
-    setParam("uid", items[0].uid, { replace: true })
-    // setParam 每次渲染都是新函数；只依赖“是否已有选中项 + 列表状态”，
-    // 写入 uid 后 selected 非空，本 effect 自然停下，不会重复触发。
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, loading, failed, items])
 
   const canReadLevels = session.can("alert_dictionary:read")
   const canReadNotificationGroups = session.can("notification_group:read")
@@ -320,25 +290,8 @@ export function DatasourcePage() {
     version,
   ])
 
-  function setParam(
-    key: string,
-    value: string,
-    options: { replace?: boolean } = {}
-  ) {
-    const next = new URLSearchParams(params)
-    if (value) {
-      next.set(key, value)
-    } else {
-      next.delete(key)
-    }
-    if (key !== "uid") {
-      next.set("page", "1")
-    }
-    setParams(next, { replace: options.replace })
-  }
-
   function openCreate() {
-    setEditing(false)
+    setEditingItem(null)
     setForm(draftForAllowedTypes())
     setError("")
     setFieldErrors({})
@@ -348,7 +301,7 @@ export function DatasourcePage() {
 
   // 编辑时把当前数据源已绑定的通知组补进选项：select 接口带 activeOnly，
   // 停用的通知组不会返回，不补的话下拉框只能显示 uid。
-  // 名称取自详情响应的 notificationGroupNames（只用于展示）；只有名称与
+  // 名称取自列表响应的 notificationGroupNames（只用于展示）；只有名称与
   // uid 数量一致时才按下标补齐，避免把名称错配到别的通知组上。
   const notificationGroupOptions = useMemo(() => {
     const options = notificationGroups.map((item) => ({
@@ -357,8 +310,8 @@ export function DatasourcePage() {
     }))
     const known = new Set(options.map((option) => option.value))
     // 新建时不要把上一次编辑的数据源绑定补进选项。
-    const uids = editing ? current?.notificationGroupUids ?? [] : []
-    const names = editing ? current?.notificationGroupNames ?? [] : []
+    const uids = editingItem?.notificationGroupUids ?? []
+    const names = editingItem?.notificationGroupNames ?? []
     if (uids.length === names.length) {
       uids.forEach((uid, index) => {
         const name = names[index]
@@ -368,11 +321,10 @@ export function DatasourcePage() {
       })
     }
     return options
-  }, [notificationGroups, current, editing])
+  }, [notificationGroups, editingItem])
 
   function openEdit(item: DatasourceItem) {
-    setParam("uid", item.uid)
-    setEditing(true)
+    setEditingItem(item)
     setForm({
       name: item.name,
       type: item.type,
@@ -493,11 +445,10 @@ export function DatasourcePage() {
         failureThreshold: Number(form.failureThreshold),
         notificationGroupUids: form.notificationGroupUids,
       }
-      if (editing && current) {
-        await updateDatasource({ uid: current.uid, ...payload })
+      if (editingItem) {
+        await updateDatasource({ uid: editingItem.uid, ...payload })
       } else {
-        const created = await createDatasource(payload)
-        setParam("uid", created.datasource.uid)
+        await createDatasource(payload)
       }
       setOpen(false)
       reload()
@@ -519,9 +470,10 @@ export function DatasourcePage() {
     try {
       if (confirm.action === "delete") {
         await deleteDatasource(confirm.uid)
-        if (selected === confirm.uid) {
-          setParam("uid", "")
-        }
+        // 删除后列表会少一行，顺手关掉指向该数据源的抽屉，避免继续操作已删除资源。
+        setDetailItem((item) => (item?.uid === confirm.uid ? null : item))
+        setMetadataItem((item) => (item?.uid === confirm.uid ? null : item))
+        setQueryItem((item) => (item?.uid === confirm.uid ? null : item))
       } else {
         await updateDatasourceStatus(confirm.uid, "DISABLED")
       }
@@ -547,8 +499,50 @@ export function DatasourcePage() {
     }
   }
 
-  // 详情里的通知组名称来自响应，仅用于展示；空数组表示未绑定通知组。
-  const availabilityGroupNames = current?.notificationGroupNames ?? []
+  // 更多菜单：详情之外的入口全部收进菜单；有危险操作时 RowActions 会自动加分隔线。
+  function rowActions(item: DatasourceItem): RowAction[] {
+    const actions: RowAction[] = [
+      {
+        key: "metadata",
+        label: t("datasource.tabMetadata"),
+        onSelect: () => setMetadataItem(item),
+      },
+      {
+        key: "query",
+        label: t("datasource.tabQuery"),
+        onSelect: () => setQueryItem(item),
+      },
+    ]
+    if (!canWrite) {
+      return actions
+    }
+    actions.push({
+      key: "edit",
+      label: t("action.edit"),
+      onSelect: () => openEdit(item),
+    })
+    actions.push(
+      item.status === "ACTIVE"
+        ? {
+            key: "disable",
+            label: t("action.disable"),
+            destructive: true,
+            onSelect: () => askConfirm("disable", item.uid),
+          }
+        : {
+            key: "enable",
+            label: t("action.enable"),
+            onSelect: () => void enableItem(item),
+          }
+    )
+    actions.push({
+      key: "delete",
+      label: t("action.delete"),
+      destructive: true,
+      onSelect: () => askConfirm("delete", item.uid),
+    })
+    return actions
+  }
 
   const chips: FilterChip[] = []
   if (query.name) {
@@ -656,271 +650,103 @@ export function DatasourcePage() {
           </Select>
         </Field>
       </ListFilter>
-      <div className="grid min-h-0 min-w-0 flex-1 gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-        <ListFrame
-          total={total}
-          page={query.page}
-          pageSize={query.pageSize}
-          showPager={!loading && !failed && items.length > 0}
-          onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
-          onNext={() => query.update({ page: query.page + 1 })}
-        >
-          {loading ? (
-            <p className="text-sm text-muted-foreground">
-              {t("state.loading")}
+      <ListFrame
+        total={total}
+        page={query.page}
+        pageSize={query.pageSize}
+        showPager={!loading && !failed && items.length > 0}
+        onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
+        onNext={() => query.update({ page: query.page + 1 })}
+      >
+        {loading ? (
+          <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
+        ) : null}
+        {!loading && failed ? (
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-destructive">
+              {loadError || t("state.failed")}
             </p>
-          ) : null}
-          {!loading && failed ? (
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-destructive">
-                {loadError || t("state.failed")}
-              </p>
-              <Button variant="outline" onClick={() => reload()}>
-                {t("action.retry")}
-              </Button>
-            </div>
-          ) : null}
-          {!loading && !failed && items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("datasource.empty")}
-            </p>
-          ) : null}
-          <div className="grid min-h-0 min-w-0 flex-1 content-start gap-2 overflow-x-hidden overflow-y-auto">
-            {items.map((item) => (
-              <div key={item.uid} className="flex min-w-0 items-center gap-1">
-                <Button
-                  variant={item.uid === selected ? "secondary" : "ghost"}
-                  className="h-auto min-w-0 flex-1 justify-start overflow-hidden px-2 py-2"
-                  onClick={() => setParam("uid", item.uid)}
+            <Button variant="outline" onClick={() => reload()}>
+              {t("action.retry")}
+            </Button>
+          </div>
+        ) : null}
+        {!loading && !failed && items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t("datasource.empty")}
+          </p>
+        ) : null}
+        {!loading && !failed && items.length > 0 ? (
+          <Table className={TABLE_MIN_WIDTH.default}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("datasource.name")}</TableHead>
+                <TableTypeHead>{t("datasource.type")}</TableTypeHead>
+                <TableHead
+                  className={cn(TABLE_COLUMN_WIDTH.type, TABLE_NOWRAP)}
                 >
-                  <span className="flex w-full min-w-0 items-center gap-2">
-                    <BrandIcon
-                      driver={item.driver}
-                      className="size-5 shrink-0 rounded-md border bg-background p-0.5"
-                    />
-                    <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
-                      <span
-                        className="w-full truncate text-left"
-                        title={item.name}
-                      >
+                  {t("datasource.driver")}
+                </TableHead>
+                <TableHead>{t("datasource.endpoint")}</TableHead>
+                <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.uid}>
+                  <TableCell className="min-w-0 whitespace-normal">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <BrandIcon
+                        driver={item.driver}
+                        className="size-5 shrink-0 rounded-md border bg-background p-0.5"
+                      />
+                      <span className="min-w-0 break-words font-medium">
                         {item.name}
                       </span>
-                      <span className="flex flex-wrap gap-1">
-                        <StatusBadge value={item.type} />
-                        <StatusBadge value={item.status} />
-                      </span>
                     </span>
-                  </span>
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={t("action.more")}
-                    >
-                      <EllipsisVertical />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canWrite ? (
-                      <DropdownMenuItem onSelect={() => openEdit(item)}>
-                        {t("action.edit")}
-                      </DropdownMenuItem>
-                    ) : null}
-                    {canWrite && item.status !== "ACTIVE" ? (
-                      <DropdownMenuItem onSelect={() => void enableItem(item)}>
-                        {t("action.enable")}
-                      </DropdownMenuItem>
-                    ) : null}
-                    {canWrite ? <DropdownMenuSeparator /> : null}
-                    {canWrite && item.status === "ACTIVE" ? (
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onSelect={() => askConfirm("disable", item.uid)}
-                      >
-                        {t("action.disable")}
-                      </DropdownMenuItem>
-                    ) : null}
-                    {canWrite ? (
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onSelect={() => askConfirm("delete", item.uid)}
-                      >
-                        {t("action.delete")}
-                      </DropdownMenuItem>
-                    ) : null}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ))}
-          </div>
-        </ListFrame>
-        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
-            {!current ? (
-              <p className="text-sm text-muted-foreground">
-                {t("datasource.pick")}
-              </p>
-            ) : null}
-            {current ? (
-              <Tabs
-                defaultValue="detail"
-                className="flex min-h-0 flex-1 flex-col"
-              >
-                <TabsList className="shrink-0">
-                  <TabsTrigger value="detail">
-                    {t("datasource.tabDetail")}
-                  </TabsTrigger>
-                  <TabsTrigger value="metadata">
-                    {t("datasource.tabMetadata")}
-                  </TabsTrigger>
-                  <TabsTrigger value="query">
-                    {t("datasource.tabQuery")}
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent
-                  value="detail"
-                  className="min-h-0 flex-1 overflow-y-auto"
-                >
-                  <div className="grid gap-4">
-                    <div className="grid gap-2">
-                      <h2 className="flex min-w-0 items-center gap-2 text-lg font-semibold">
-                        <BrandIcon
-                          driver={current.driver}
-                          className="size-7 rounded-md border bg-background p-0.5"
-                        />
-                        <span className="min-w-0 truncate" title={current.name}>
-                          {current.name}
-                        </span>
-                      </h2>
-                      <p className="text-sm text-muted-foreground">
-                        {current.endpoint}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <StatusBadge value={current.type} />
-                        <StatusBadge value={current.driver} />
-                        <StatusBadge value={current.status} />
-                      </div>
-                    </div>
-                    <dl className="grid min-w-0 gap-4 sm:grid-cols-2">
-                      <div className="grid min-w-0 gap-1">
-                        <dt className="text-sm text-muted-foreground">
-                          {t("datasource.level")}
-                        </dt>
-                        <dd className="min-w-0 break-words">
-                          {current.levelName || current.levelUid || "—"}
-                        </dd>
-                      </div>
-                      <div className="grid min-w-0 gap-1">
-                        <dt className="text-sm text-muted-foreground">
-                          {t("datasource.secretSet")}
-                        </dt>
-                        <dd>
-                          {current.secretSet
-                            ? t("datasource.yes")
-                            : t("datasource.no")}
-                        </dd>
-                      </div>
-                      <div className="grid min-w-0 gap-1 sm:col-span-full">
-                        <dt className="text-sm text-muted-foreground">
-                          {t("datasource.labels")}
-                        </dt>
-                        <dd className="min-w-0">
-                          <LabelTags labels={current.labels} />
-                        </dd>
-                      </div>
-                      <div className="grid min-w-0 gap-1 sm:col-span-full">
-                        <dt className="text-sm text-muted-foreground">
-                          {t("datasource.remark")}
-                        </dt>
-                        <dd className="min-w-0 break-words whitespace-pre-wrap">
-                          {current.remark || "—"}
-                        </dd>
-                      </div>
-                    </dl>
-                    <section className="grid min-w-0 gap-3 border-t pt-4">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <h3 className="text-sm font-medium">
-                          {t("datasource.availabilityAlertTitle")}
-                        </h3>
-                        <span className="text-sm text-muted-foreground">
-                          {current.availabilityAlertEnabled
-                            ? t("datasource.availabilityAlertOn")
-                            : t("datasource.availabilityAlertOff")}
-                        </span>
-                      </div>
-                      <dl className="grid min-w-0 gap-4 sm:grid-cols-2">
-                        <div className="grid min-w-0 gap-1">
-                          <dt className="text-sm text-muted-foreground">
-                            {t("datasource.failureWindow")}
-                          </dt>
-                          <dd className="tabular-nums">
-                            {t("datasource.failureWindowValue", {
-                              count: current.failureWindowMinutes,
-                            })}
-                          </dd>
-                        </div>
-                        <div className="grid min-w-0 gap-1">
-                          <dt className="text-sm text-muted-foreground">
-                            {t("datasource.failureThreshold")}
-                          </dt>
-                          <dd className="tabular-nums">
-                            {t("datasource.failureThresholdValue", {
-                              count: current.failureThreshold,
-                            })}
-                          </dd>
-                        </div>
-                        <div className="grid min-w-0 gap-1 sm:col-span-full">
-                          <dt className="text-sm text-muted-foreground">
-                            {t("datasource.notificationGroups")}
-                          </dt>
-                          <dd className="min-w-0 break-words">
-                            {availabilityGroupNames.length > 0
-                              ? availabilityGroupNames.join(", ")
-                              : t("datasource.notificationGroupsUnbound")}
-                          </dd>
-                        </div>
-                      </dl>
-                      {current.availabilityAlertEnabled &&
-                      availabilityGroupNames.length === 0 ? (
-                        <p className="rounded-md border border-warning-border bg-warning-soft px-2.5 py-1.5 text-xs text-warning">
-                          {t("datasource.noNotificationGroupsHint")}
-                        </p>
-                      ) : null}
-                    </section>
-                  </div>
-                </TabsContent>
-                <TabsContent
-                  value="metadata"
-                  className="flex min-h-0 flex-1 flex-col overflow-hidden"
-                >
-                  <MetadataPanel datasource={current} />
-                </TabsContent>
-                <TabsContent
-                  value="query"
-                  className="flex min-h-0 flex-1 flex-col overflow-hidden"
-                >
-                  <QueryPanel key={current.uid} datasource={current} />
-                </TabsContent>
-              </Tabs>
-            ) : null}
-          </CardContent>
-        </Card>
-      </div>
+                  </TableCell>
+                  <TableCell className={TABLE_NOWRAP}>
+                    <StatusBadge value={item.type} />
+                  </TableCell>
+                  <TableCell className={TABLE_NOWRAP}>
+                    <StatusBadge value={item.driver} />
+                  </TableCell>
+                  <TableCell className="max-w-[20rem] text-sm break-all whitespace-normal text-muted-foreground">
+                    {item.endpoint}
+                  </TableCell>
+                  <TableCell className={TABLE_NOWRAP}>
+                    <StatusBadge value={item.status} />
+                  </TableCell>
+                  <TableCell>
+                    <RowActions
+                      nowrap
+                      detailLabel={t("action.detail")}
+                      moreLabel={t("action.more")}
+                      onDetail={() => setDetailItem(item)}
+                      actions={rowActions(item)}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : null}
+      </ListFrame>
       <Dialog
         open={open}
         onOpenChange={(value) => {
           setOpen(value)
           if (!value) {
             setError("")
+            setEditingItem(null)
           }
         }}
       >
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editing ? t("action.edit") : t("action.create")}
+              {editingItem ? t("action.edit") : t("action.create")}
             </DialogTitle>
           </DialogHeader>
           <StepForm
@@ -1321,6 +1147,47 @@ export function DatasourcePage() {
           </StepForm>
         </DialogContent>
       </Dialog>
+      <DatasourceDetailSheet
+        item={detailItem}
+        onOpenChange={(value) => {
+          if (!value) {
+            setDetailItem(null)
+          }
+        }}
+      />
+      <DetailSheet
+        open={metadataItem !== null}
+        title={metadataItem?.name ?? ""}
+        description={
+          metadataItem ? t("datasource.tabMetadata") : undefined
+        }
+        size="80vw"
+        onOpenChange={(value) => {
+          if (!value) {
+            setMetadataItem(null)
+          }
+        }}
+      >
+        {metadataItem ? <MetadataPanel datasource={metadataItem} /> : null}
+      </DetailSheet>
+      <DetailSheet
+        open={queryItem !== null}
+        title={queryItem?.name ?? ""}
+        description={queryItem ? t("datasource.tabQuery") : undefined}
+        size="80vw"
+        contentMode="fill"
+        onOpenChange={(value) => {
+          if (!value) {
+            setQueryItem(null)
+          }
+        }}
+      >
+        {queryItem ? (
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col px-4 py-4 sm:px-5">
+            <QueryPanel key={queryItem.uid} datasource={queryItem} />
+          </div>
+        ) : null}
+      </DetailSheet>
       <ConfirmAction
         open={confirm !== null}
         title={

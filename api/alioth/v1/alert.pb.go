@@ -2232,7 +2232,9 @@ type AlertRuleGroupItem struct {
 	// 名称。
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// 状态，取值为 ACTIVE 或 DISABLED。
-	Status        string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Status string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	// 上级规则组标识；空字符串表示顶级规则组。
+	ParentUid     string `protobuf:"bytes,4,opt,name=parent_uid,json=parentUid,proto3" json:"parent_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2288,11 +2290,20 @@ func (x *AlertRuleGroupItem) GetStatus() string {
 	return ""
 }
 
+func (x *AlertRuleGroupItem) GetParentUid() string {
+	if x != nil {
+		return x.ParentUid
+	}
+	return ""
+}
+
 // 创建规则组。
 type CreateAlertRuleGroupRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 名称。
-	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 上级规则组标识；空字符串表示创建顶级规则组。
+	ParentUid     string `protobuf:"bytes,2,opt,name=parent_uid,json=parentUid,proto3" json:"parent_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2330,6 +2341,13 @@ func (*CreateAlertRuleGroupRequest) Descriptor() ([]byte, []int) {
 func (x *CreateAlertRuleGroupRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateAlertRuleGroupRequest) GetParentUid() string {
+	if x != nil {
+		return x.ParentUid
 	}
 	return ""
 }
@@ -2386,7 +2404,9 @@ type UpdateAlertRuleGroupRequest struct {
 	// 标识。
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	// 名称。
-	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 上级规则组标识；空字符串表示移动到顶级。
+	ParentUid     string `protobuf:"bytes,3,opt,name=parent_uid,json=parentUid,proto3" json:"parent_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2431,6 +2451,13 @@ func (x *UpdateAlertRuleGroupRequest) GetUid() string {
 func (x *UpdateAlertRuleGroupRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateAlertRuleGroupRequest) GetParentUid() string {
+	if x != nil {
+		return x.ParentUid
 	}
 	return ""
 }
@@ -2673,7 +2700,9 @@ type ListAlertRuleGroupsRequest struct {
 	// 每页条数，最大 100。
 	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// 名称。
-	Name          string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// 一次返回全部规则组；为 true 时忽略 page/page_size，用于本地树形搜索。
+	All           bool `protobuf:"varint,4,opt,name=all,proto3" json:"all,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2727,6 +2756,13 @@ func (x *ListAlertRuleGroupsRequest) GetName() string {
 		return x.Name
 	}
 	return ""
+}
+
+func (x *ListAlertRuleGroupsRequest) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
 }
 
 // 规则组分页结果。
@@ -4948,18 +4984,24 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\x04path\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04path\x12\x12\n" +
 	"\x04body\x18\x04 \x01(\tR\x04body\"(\n" +
 	"\x12ProxyQueryResponse\x12\x12\n" +
-	"\x04body\x18\x01 \x01(\tR\x04body\"R\n" +
+	"\x04body\x18\x01 \x01(\tR\x04body\"q\n" +
 	"\x12AlertRuleGroupItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
-	"\x06status\x18\x03 \x01(\tR\x06status\"<\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"parent_uid\x18\x04 \x01(\tR\tparentUid\"[\n" +
 	"\x1bCreateAlertRuleGroupRequest\x12\x1d\n" +
-	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\"S\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\x1d\n" +
+	"\n" +
+	"parent_uid\x18\x02 \x01(\tR\tparentUid\"S\n" +
 	"\x1cCreateAlertRuleGroupResponse\x123\n" +
-	"\x05group\x18\x01 \x01(\v2\x1d.alioth.v1.AlertRuleGroupItemR\x05group\"W\n" +
+	"\x05group\x18\x01 \x01(\v2\x1d.alioth.v1.AlertRuleGroupItemR\x05group\"v\n" +
 	"\x1bUpdateAlertRuleGroupRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
-	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\"S\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\x1d\n" +
+	"\n" +
+	"parent_uid\x18\x03 \x01(\tR\tparentUid\"S\n" +
 	"\x1cUpdateAlertRuleGroupResponse\x123\n" +
 	"\x05group\x18\x01 \x01(\v2\x1d.alioth.v1.AlertRuleGroupItemR\x05group\"o\n" +
 	"!UpdateAlertRuleGroupStatusRequest\x12\x19\n" +
@@ -4969,11 +5011,12 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\x05group\x18\x01 \x01(\v2\x1d.alioth.v1.AlertRuleGroupItemR\x05group\"8\n" +
 	"\x1bDeleteAlertRuleGroupRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"\x1e\n" +
-	"\x1cDeleteAlertRuleGroupResponse\"u\n" +
+	"\x1cDeleteAlertRuleGroupResponse\"\x87\x01\n" +
 	"\x1aListAlertRuleGroupsRequest\x12\x1b\n" +
 	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04page\x12&\n" +
 	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"\x99\x01\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x10\n" +
+	"\x03all\x18\x04 \x01(\bR\x03all\"\x99\x01\n" +
 	"\x1bListAlertRuleGroupsResponse\x123\n" +
 	"\x05items\x18\x01 \x03(\v2\x1d.alioth.v1.AlertRuleGroupItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +

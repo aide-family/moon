@@ -16,13 +16,33 @@ export function listAlertRuleGroups(params: ListAlertRuleGroupsParams = {}): Pro
 }
 
 /** POST /v1/alert-rule-group */
-export function createAlertRuleGroup(name: string): Promise<{ group: AlertRuleGroupItem }> {
-  return post<{ group: AlertRuleGroupItem }>("/alert-rule-group", { name })
+export function createAlertRuleGroup(
+  name: string,
+  parentUid = ""
+): Promise<{ group: AlertRuleGroupItem }> {
+  return post<{ group: AlertRuleGroupItem }>("/alert-rule-group", {
+    name,
+    parentUid,
+  })
 }
 
 /** PUT /v1/alert-rule-group/{uid} */
-export function updateAlertRuleGroup(uid: string, name: string): Promise<{ group: AlertRuleGroupItem }> {
-  return put<{ group: AlertRuleGroupItem }>(`/alert-rule-group/${uid}`, { uid, name })
+export function updateAlertRuleGroup(
+  uid: string,
+  name: string,
+  parentUid = ""
+): Promise<{ group: AlertRuleGroupItem }> {
+  return put<{ group: AlertRuleGroupItem }>(`/alert-rule-group/${uid}`, {
+    uid,
+    name,
+    parentUid,
+  })
+}
+
+/** 一次取回全部规则组，供前端构建树和本地搜索。 */
+export async function listAllAlertRuleGroups(): Promise<AlertRuleGroupItem[]> {
+  const result = await listAlertRuleGroups({ all: true })
+  return result.items ?? []
 }
 
 /** PUT /v1/alert-rule-group/{uid}/status */

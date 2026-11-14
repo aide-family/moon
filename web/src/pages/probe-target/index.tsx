@@ -1,11 +1,5 @@
-import {
-  ChevronDown,
-  ChevronRight,
-  EllipsisVertical,
-  Search,
-  Trash2,
-} from "lucide-react"
-import { Fragment, useEffect, useMemo, useState } from "react"
+import { Search, Trash2 } from "lucide-react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 
@@ -14,8 +8,6 @@ import {
   deleteProbeTargetGroup,
   getProbeTargetGroup,
   listProbeTargetGroups,
-  listProbeTargetResults,
-  probeTargetGroupNow,
   probeTrial,
   updateProbeTargetGroup,
   updateProbeTargetGroupStatus,
@@ -36,11 +28,11 @@ import { LabelTags } from "@/components/label-tags"
 import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
+import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { StepForm } from "@/components/step-form"
-import { Badge } from "@/components/ui/badge"
+import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
@@ -48,13 +40,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
@@ -94,12 +79,16 @@ import {
   TABLE_NOWRAP,
 } from "@/lib/table-layout"
 
-// 探测类型。页面按套餐授权展示可选类型，五种类型的目标写法与判定口径不同。
-const PROBE_HTTP = "PROBE_HTTP"
-const PROBE_TCP = "PROBE_TCP"
-const PROBE_ICMP = "PROBE_ICMP"
-const PROBE_DNS = "PROBE_DNS"
-const PROBE_TLS = "PROBE_TLS"
+import { ProbeTargetDetailSheet } from "./probe-target-detail"
+import {
+  PROBE_DNS,
+  PROBE_HTTP,
+  PROBE_ICMP,
+  PROBE_TCP,
+  PROBE_TLS,
+  ProbeDetailSummary,
+} from "./probe-target-shared"
+
 const dnsRecordTypes = ["A", "AAAA", "CNAME", "MX", "TXT", "NS"]
 const MAX_TARGETS = 50
 const MAX_TARGET_SPEC = 2048
@@ -580,71 +569,6 @@ function timeoutHintKey(driver: string): string {
   return "probeTarget.timeoutInvalid"
 }
 
-/**
- * 非 HTTP 探测结果的「探测详情」摘要：DNS 答案与记录数、ICMP 丢包/抖动/RTT 极值、
- * TLS 协议与套件/证书主体。HTTP 保留状态码与证书列，不使用这个单元格。
- */
-function ProbeDetailSummary({
-  driver,
-  result,
-}: {
-  driver: string
-  result?: ProbeResultItem | null
-}) {
-  const { t } = useTranslation()
-  if (!result) {
-    return <>—</>
-  }
-  if (driver === PROBE_DNS) {
-    if (!result.dnsAnswers && !result.answerCount) {
-      return <>—</>
-    }
-    return (
-      <span className="break-words">
-        {t("probeTarget.detailDns", {
-          count: result.answerCount,
-          answers: result.dnsAnswers || "—",
-        })}
-      </span>
-    )
-  }
-  if (driver === PROBE_ICMP) {
-    return (
-      <span className="break-words tabular-nums">
-        {t("probeTarget.detailIcmp", {
-          loss: result.packetLoss,
-          jitter: result.jitterMs,
-          min: result.minRttMs,
-          max: result.maxRttMs,
-        })}
-      </span>
-    )
-  }
-  if (driver === PROBE_TLS) {
-    if (!result.tlsVersion && !result.tlsCipher && !result.certSubject) {
-      return <>—</>
-    }
-    return (
-      <span className="grid min-w-0 gap-0.5">
-        <span className="break-words tabular-nums">
-          {t("probeTarget.detailTlsProtocol", {
-            version: result.tlsVersion || "—",
-            cipher: result.tlsCipher || "—",
-          })}
-        </span>
-        <span className="text-xs break-words text-muted-foreground">
-          {result.certSubject
-            ? t("probeTarget.detailTlsCert", {
-                subject: result.certSubject,
-              })
-            : "—"}
-        </span>
-      </span>
-    )
-  }
-  return <>—</>
-}
-
 /** 期望状态码表达式是否非法：单值、区间与逗号列表，值域 100..599。 */
 function expectStatusInvalid(value: string): boolean {
   const text = value.replace(/\s+/g, "")
@@ -762,35 +686,41 @@ function buildTargets(form: ProbeDraft): ProbeTargetInput[] {
   }))
 }
 
+/** 列表行是否要展示标签：空对象和无内容的 JSON 不占一行。 */
+function hasLabels(raw: string): boolean {
+  try {
+    const parsed: unknown = JSON.parse(raw || "{}")
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return false
+    }
+    return Object.keys(parsed as Record<string, unknown>).length > 0
+  } catch {
+    return raw.trim() !== ""
+  }
+}
+
 export function ProbeTargetPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
   const [params, setParams] = useSearchParams()
-  const selected = params.get("uid") || ""
+  // 详情抽屉的开关状态直接落在 URL 的 uid 上，保留深链；目标组数据由抽屉按需拉取。
+  const detailUid = params.get("uid") || ""
   const [filtersOpen, setFiltersOpen] = useState(false)
   const { draft, update, dirty } = useFilterDraft({
     name: query.name,
     type: query.type,
   })
-  const [current, setCurrent] = useState<ProbeTargetGroupItem | null>(null)
-  // 探测记录按目标展开：一行目标点开后只拉这个目标的记录，按目标缓存。
-  const [expandedTarget, setExpandedTarget] = useState("")
-  const [targetRecords, setTargetRecords] = useState<
-    Record<string, { items: ProbeResultItem[]; total: number; loading: boolean }>
-  >({})
-  const [detailLoading, setDetailLoading] = useState(false)
   const [detailVersion, setDetailVersion] = useState(0)
   const [open, setOpen] = useState(false)
-  const [editing, setEditing] = useState(false)
+  // 编辑中的目标组 uid；为空表示新建。
+  const [editingUid, setEditingUid] = useState("")
   const [formStep, setFormStep] = useState(0)
   const [form, setForm] = useState<ProbeDraft>(emptyDraft)
   const [bulkOpen, setBulkOpen] = useState(false)
   const [bulkText, setBulkText] = useState("")
   const [trialResults, setTrialResults] = useState<TrialEntry[]>([])
   const [trialPending, setTrialPending] = useState(false)
-  const [probing, setProbing] = useState(false)
-  const [note, setNote] = useState("")
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [pending, setPending] = useState(false)
@@ -831,7 +761,6 @@ export function ProbeTargetPage() {
     loading,
     failed,
     error: loadError,
-    version,
     reload,
     fail,
   } = usePagedList<ProbeTargetGroupItem>({
@@ -869,96 +798,8 @@ export function ProbeTargetPage() {
     setConfirm({ action, uid })
   }
 
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setExpandedTarget("")
-      setTargetRecords({})
-      if (!selected) {
-        setCurrent(null)
-        return
-      }
-      setDetailLoading(true)
-      try {
-        const groupResult = await getProbeTargetGroup(selected)
-        if (active) {
-          setCurrent(groupResult.group)
-        }
-      } catch {
-        if (active) {
-          setCurrent(null)
-        }
-      }
-      if (active) {
-        setDetailLoading(false)
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [selected, version, detailVersion, session.namespaceUid])
-
-  // 进入菜单时默认选中第一个目标组，右侧详情直接可用；只有 URL 没有 uid 时才补选。
-  useEffect(() => {
-    if (selected || loading || failed || items.length === 0) {
-      return
-    }
-    setParam("uid", items[0].uid, { replace: true })
-    // setParam 每次渲染都是新函数；写入 uid 后 selected 非空，本 effect 自然停下。
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, loading, failed, items])
-
-  // loadTargetRecords 拉一个目标的探测记录；force 用于「刷新」按钮。
-  async function loadTargetRecords(targetUid: string, force = false) {
-    if (!selected) {
-      return
-    }
-    if (!force && targetRecords[targetUid] && !targetRecords[targetUid].loading) {
-      return
-    }
-    setTargetRecords((prev) => ({
-      ...prev,
-      [targetUid]: {
-        items: prev[targetUid]?.items ?? [],
-        total: prev[targetUid]?.total ?? 0,
-        loading: true,
-      },
-    }))
-    try {
-      const result = await listProbeTargetResults(selected, {
-        targetUid,
-        page: 1,
-        pageSize: 20,
-      })
-      setTargetRecords((prev) => ({
-        ...prev,
-        [targetUid]: {
-          items: result.items ?? [],
-          total: result.total ?? 0,
-          loading: false,
-        },
-      }))
-    } catch {
-      setTargetRecords((prev) => ({
-        ...prev,
-        [targetUid]: { items: [], total: 0, loading: false },
-      }))
-    }
-  }
-
-  // toggleTargetRecords 展开当前目标的记录行，第一次展开时拉数据。
-  function toggleTargetRecords(targetUid: string) {
-    if (expandedTarget === targetUid) {
-      setExpandedTarget("")
-      return
-    }
-    setExpandedTarget(targetUid)
-    void loadTargetRecords(targetUid)
-  }
-
   function openCreate() {
-    setEditing(false)
+    setEditingUid("")
     // 默认选中第一个已开通的探测类型；一个都没开通时留空，由校验拦住保存。
     setForm({ ...emptyDraft(), driver: authorizedDrivers[0] ?? "" })
     setBulkOpen(false)
@@ -967,7 +808,6 @@ export function ProbeTargetPage() {
     setError("")
     setFieldErrors({})
     setFormStep(0)
-    setNote("")
     setOpen(true)
   }
 
@@ -976,8 +816,7 @@ export function ProbeTargetPage() {
     void (async () => {
       try {
         const result = await getProbeTargetGroup(item.uid)
-        setParam("uid", item.uid)
-        setEditing(true)
+        setEditingUid(item.uid)
         setForm(draftFromItem(result.group))
         setBulkOpen(false)
         setBulkText("")
@@ -985,7 +824,6 @@ export function ProbeTargetPage() {
         setError("")
         setFieldErrors({})
         setFormStep(0)
-        setNote("")
         setOpen(true)
       } catch (err) {
         const failure = readFormError(err, t("state.failed"))
@@ -1243,13 +1081,15 @@ export function ProbeTargetPage() {
         remark: form.remark.trim(),
         targets: buildTargets(form),
       }
-      if (editing && current) {
-        await updateProbeTargetGroup({ uid: current.uid, ...payload })
+      if (editingUid) {
+        await updateProbeTargetGroup({ uid: editingUid, ...payload })
       } else {
         const created = await createProbeTargetGroup(payload)
+        // 新建完成后直接打开新目标组的详情，和原主从布局的选中行为一致。
         setParam("uid", created.group.uid, { replace: true })
       }
       setOpen(false)
+      setDetailVersion((value) => value + 1)
       reload()
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
@@ -1269,7 +1109,7 @@ export function ProbeTargetPage() {
     try {
       if (confirm.action === "delete") {
         await deleteProbeTargetGroup(confirm.uid)
-        if (selected === confirm.uid) {
+        if (detailUid === confirm.uid) {
           setParam("uid", "")
         }
       } else {
@@ -1296,50 +1136,6 @@ export function ProbeTargetPage() {
       if (failure.form) {
         fail(failure.form)
       }
-    }
-  }
-
-  async function toggleCurrentStatus() {
-    if (!current) {
-      return
-    }
-    setPending(true)
-    setNote("")
-    try {
-      const nextStatus = current.status === "ACTIVE" ? "DISABLED" : "ACTIVE"
-      await updateProbeTargetGroupStatus(current.uid, nextStatus)
-      setDetailVersion((value) => value + 1)
-      reload()
-    } catch (err) {
-      const failure = readFormError(err, t("state.failed"))
-      if (failure.form) {
-        fail(failure.form)
-      }
-    } finally {
-      setPending(false)
-    }
-  }
-
-  async function probeNow() {
-    if (!current) {
-      return
-    }
-    setProbing(true)
-    setNote("")
-    try {
-      const result = await probeTargetGroupNow(current.uid)
-      setNote(
-        t("probeTarget.probeNowDone", { count: result.results?.length ?? 0 })
-      )
-      setDetailVersion((value) => value + 1)
-      reload()
-    } catch (err) {
-      const failure = readFormError(err, t("state.failed"))
-      if (failure.form) {
-        fail(failure.form)
-      }
-    } finally {
-      setProbing(false)
     }
   }
 
@@ -1456,9 +1252,42 @@ export function ProbeTargetPage() {
     query.update({ name: "", type: "" })
   }
 
-  const targets = current?.targets ?? []
-  // HTTP 专属列（状态码、证书剩余天数）只对 HTTP 目标组展示。
-  const currentIsHttp = current?.driver === PROBE_HTTP
+  // 抽屉标题先用列表行的名称，避免打开瞬间只剩页面名；深链时等详情返回。
+  const detailName = items.find((item) => item.uid === detailUid)?.name ?? ""
+
+  // 行操作：固定「详情 + 更多」；编辑、启停在前，删除作为危险项排在分隔线之后。
+  function rowActions(item: ProbeTargetGroupItem): RowAction[] {
+    const actions: RowAction[] = []
+    if (!canWrite) {
+      return actions
+    }
+    actions.push({
+      key: "edit",
+      label: t("action.edit"),
+      onSelect: () => openEdit(item),
+    })
+    actions.push(
+      item.status === "ACTIVE"
+        ? {
+            key: "disable",
+            label: t("action.disable"),
+            destructive: true,
+            onSelect: () => askConfirm("disable", item.uid),
+          }
+        : {
+            key: "enable",
+            label: t("action.enable"),
+            onSelect: () => void enableItem(item),
+          }
+    )
+    actions.push({
+      key: "delete",
+      label: t("action.delete"),
+      destructive: true,
+      onSelect: () => askConfirm("delete", item.uid),
+    })
+    return actions
+  }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
@@ -1541,474 +1370,128 @@ export function ProbeTargetPage() {
           </Select>
         </Field>
       </ListFilter>
-      <div className="grid min-h-0 min-w-0 flex-1 gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-        <ListFrame
-          total={total}
-          page={query.page}
-          pageSize={query.pageSize}
-          showPager={!loading && !failed && items.length > 0}
-          onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
-          onNext={() => query.update({ page: query.page + 1 })}
-        >
-          {loading ? (
-            <p className="text-sm text-muted-foreground">
-              {t("state.loading")}
+      <ListFrame
+        total={total}
+        page={query.page}
+        pageSize={query.pageSize}
+        showPager={!loading && !failed && items.length > 0}
+        onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
+        onNext={() => query.update({ page: query.page + 1 })}
+      >
+        {loading ? (
+          <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
+        ) : null}
+        {!loading && failed ? (
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-destructive">
+              {loadError || t("state.failed")}
             </p>
-          ) : null}
-          {!loading && failed ? (
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-destructive">
-                {loadError || t("state.failed")}
-              </p>
-              <Button variant="outline" onClick={() => reload()}>
-                {t("action.retry")}
-              </Button>
-            </div>
-          ) : null}
-          {!loading && !failed && items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("probeTarget.empty")}
-            </p>
-          ) : null}
-          <div className="grid min-h-0 min-w-0 flex-1 content-start gap-2 overflow-x-hidden overflow-y-auto">
-            {items.map((item) => (
-              <div key={item.uid} className="flex min-w-0 items-center gap-1">
-                <Button
-                  variant={item.uid === selected ? "secondary" : "ghost"}
-                  className="h-auto min-w-0 flex-1 justify-start overflow-hidden px-2 py-2"
-                  onClick={() => setParam("uid", item.uid)}
-                >
-                  <span className="flex w-full min-w-0 flex-col items-start gap-1">
-                    <span className="w-full truncate text-left" title={item.name}>
-                      {item.name}
-                    </span>
-                    <span className="flex flex-wrap gap-1">
-                      <StatusBadge value={item.driver} />
-                      <StatusBadge value={item.status} />
-                    </span>
-                  </span>
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={t("action.more")}
-                    >
-                      <EllipsisVertical />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canWrite ? (
-                      <DropdownMenuItem onSelect={() => openEdit(item)}>
-                        {t("action.edit")}
-                      </DropdownMenuItem>
-                    ) : null}
-                    {canWrite && item.status !== "ACTIVE" ? (
-                      <DropdownMenuItem onSelect={() => void enableItem(item)}>
-                        {t("action.enable")}
-                      </DropdownMenuItem>
-                    ) : null}
-                    {canWrite ? <DropdownMenuSeparator /> : null}
-                    {canWrite && item.status === "ACTIVE" ? (
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onSelect={() => askConfirm("disable", item.uid)}
-                      >
-                        {t("action.disable")}
-                      </DropdownMenuItem>
-                    ) : null}
-                    {canWrite ? (
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onSelect={() => askConfirm("delete", item.uid)}
-                      >
-                        {t("action.delete")}
-                      </DropdownMenuItem>
-                    ) : null}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ))}
+            <Button variant="outline" onClick={() => reload()}>
+              {t("action.retry")}
+            </Button>
           </div>
-        </ListFrame>
-        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
-            {!current ? (
-              <p className="text-sm text-muted-foreground">
-                {detailLoading ? t("state.loading") : t("probeTarget.pick")}
-              </p>
-            ) : null}
-            {current ? (
-              <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-                <div className="grid min-w-0 gap-4">
-                  <div className="grid gap-2">
-                    <h2 className="flex min-w-0 flex-wrap items-center gap-2 text-lg font-semibold">
-                      <span className="min-w-0 truncate" title={current.name}>
-                        {current.name}
+        ) : null}
+        {!loading && !failed && items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t("probeTarget.empty")}
+          </p>
+        ) : null}
+        {!loading && !failed && items.length > 0 ? (
+          <Table className={TABLE_MIN_WIDTH.default}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("probeTarget.name")}</TableHead>
+                <TableHead
+                  className={`${TABLE_COLUMN_WIDTH.type} ${TABLE_NOWRAP}`}
+                >
+                  {t("probeTarget.type")}
+                </TableHead>
+                <TableHead
+                  className={`${TABLE_COLUMN_WIDTH.status} ${TABLE_NOWRAP}`}
+                >
+                  {t("probeTarget.targetCountLabel")}
+                </TableHead>
+                <TableStatusHead>{t("namespace.status")}</TableStatusHead>
+                <TableHead
+                  className={`${TABLE_COLUMN_WIDTH.time} ${TABLE_NOWRAP}`}
+                >
+                  {t("probeTarget.lastProbedAt")}
+                </TableHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.uid}>
+                  <TableCell className="min-w-0">
+                    <div className="grid min-w-0 gap-1">
+                      <span className="font-medium break-words">
+                        {item.name}
                       </span>
-                      <Badge variant="secondary">
+                      {hasLabels(item.labels) ? (
+                        <LabelTags labels={item.labels} />
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell className={TABLE_NOWRAP}>
+                    <StatusBadge value={item.driver} />
+                  </TableCell>
+                  <TableCell className={TABLE_NOWRAP}>
+                    <span className="flex flex-col gap-0.5 tabular-nums">
+                      <span>
                         {t("probeTarget.targetCountBadge", {
-                          count: current.targetCount,
+                          count: item.targetCount,
                         })}
-                      </Badge>
-                      <StatusBadge value={current.driver} />
-                      <StatusBadge value={current.status} />
-                    </h2>
-                  </div>
-                  <dl className="grid min-w-0 gap-4 sm:grid-cols-2">
-                    <div className="grid min-w-0 gap-1">
-                      <dt className="text-sm text-muted-foreground">
-                        {t("probeTarget.type")}
-                      </dt>
-                      <dd>
-                        <StatusBadge value={current.driver} />
-                      </dd>
-                    </div>
-                    <div className="grid min-w-0 gap-1">
-                      <dt className="text-sm text-muted-foreground">
-                        {t("probeTarget.targetCountLabel")}
-                      </dt>
-                      <dd className="tabular-nums">
-                        {t("probeTarget.targetCountValue", {
-                          total: current.targetCount,
-                          active: current.activeTargetCount,
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("probeTarget.activeCountBadge", {
+                          count: item.activeTargetCount,
                         })}
-                      </dd>
-                    </div>
-                    <div className="grid min-w-0 gap-1">
-                      <dt className="text-sm text-muted-foreground">
-                        {t("probeTarget.executor")}
-                      </dt>
-                      <dd className="grid gap-1">
-                        <span>{t("probeTarget.executorCluster")}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {t("probeTarget.executorHint")}
-                        </span>
-                      </dd>
-                    </div>
-                    <div className="grid min-w-0 gap-1">
-                      <dt className="text-sm text-muted-foreground">
-                        {t("probeTarget.lastProbedAt")}
-                      </dt>
-                      <dd className="tabular-nums break-words">
-                        {current.lastProbedAt
-                          ? formatDateTime(current.lastProbedAt)
-                          : t("probeTarget.neverProbed")}
-                      </dd>
-                    </div>
-                    <div className="grid min-w-0 gap-1 sm:col-span-full">
-                      <dt className="text-sm text-muted-foreground">
-                        {t("probeTarget.labels")}
-                      </dt>
-                      <dd className="min-w-0">
-                        <LabelTags labels={current.labels} />
-                      </dd>
-                    </div>
-                    <div className="grid min-w-0 gap-1 sm:col-span-full">
-                      <dt className="text-sm text-muted-foreground">
-                        {t("probeTarget.remark")}
-                      </dt>
-                      <dd className="min-w-0 break-words whitespace-pre-wrap">
-                        {current.remark || "—"}
-                      </dd>
-                    </div>
-                  </dl>
-                  <section className="grid min-w-0 gap-2 border-t pt-4">
-                    <h3 className="text-sm font-medium">
-                      {t("probeTarget.targetsSection")}
-                    </h3>
-                    <div className="flex max-h-[18rem] min-h-0 flex-col">
-                    <Table className={TABLE_MIN_WIDTH.default}>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-10" />
-                          <TableHead>{t("probeTarget.targetUrl")}</TableHead>
-                          <TableHead className={TABLE_COLUMN_WIDTH.status}>
-                            {t("namespace.status")}
-                          </TableHead>
-                          <TableHead className={TABLE_COLUMN_WIDTH.status}>
-                            {t("probeTarget.lastResult")}
-                          </TableHead>
-                          {currentIsHttp ? (
-                            <TableHead className={TABLE_COLUMN_WIDTH.type}>
-                              {t("probeTarget.statusCode")}
-                            </TableHead>
-                          ) : (
-                            <TableHead className="min-w-[10rem]">
-                              {t("probeTarget.detailColumn")}
-                            </TableHead>
-                          )}
-                          <TableHead className={TABLE_COLUMN_WIDTH.type}>
-                            {t("probeTarget.duration")}
-                          </TableHead>
-                          {currentIsHttp ? (
-                            <TableHead className={TABLE_COLUMN_WIDTH.type}>
-                              {t("probeTarget.certDays")}
-                            </TableHead>
-                          ) : null}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {targets.map((target) => {
-                          const targetKey = target.uid || target.spec
-                          const expanded = expandedTarget === targetKey
-                          const records = targetRecords[targetKey]
-                          return (
-                          <Fragment key={targetKey}>
-                          <TableRow>
-                            <TableCell className={TABLE_NOWRAP}>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-expanded={expanded}
-                                aria-controls={`probe-records-${targetKey}`}
-                                aria-label={
-                                  expanded
-                                    ? t("probeTarget.recordsCollapse")
-                                    : t("probeTarget.recordsExpand")
-                                }
-                                onClick={() => toggleTargetRecords(targetKey)}
-                              >
-                                {expanded ? <ChevronDown /> : <ChevronRight />}
-                              </Button>
-                            </TableCell>
-                            <TableCell className="min-w-0 break-all">
-                              {target.spec}
-                            </TableCell>
-                            <TableCell className={TABLE_NOWRAP}>
-                              <StatusBadge value={target.status} />
-                            </TableCell>
-                            <TableCell className={TABLE_NOWRAP}>
-                              {target.lastResult ? (
-                                <StatusBadge
-                                  value={target.lastResult.ok ? "OK" : "FAILED"}
-                                  label={
-                                    target.lastResult.ok
-                                      ? t("probeTarget.ok")
-                                      : t("probeTarget.failed")
-                                  }
-                                />
-                              ) : (
-                                "—"
-                              )}
-                            </TableCell>
-                            {currentIsHttp ? (
-                              <TableCell className={TABLE_NOWRAP}>
-                                {target.lastResult?.statusCode || "—"}
-                              </TableCell>
-                            ) : (
-                              <TableCell className="max-w-[16rem] min-w-0 align-top">
-                                <ProbeDetailSummary
-                                  driver={current.driver}
-                                  result={target.lastResult}
-                                />
-                              </TableCell>
-                            )}
-                            <TableCell className={TABLE_NOWRAP}>
-                              {target.lastResult
-                                ? t("probeTarget.durationValue", {
-                                    ms: target.lastResult.durationMs,
-                                  })
-                                : "—"}
-                            </TableCell>
-                            {currentIsHttp ? (
-                              <TableCell className={TABLE_NOWRAP}>
-                                {target.lastResult?.certDays
-                                  ? t("probeTarget.certDaysValue", {
-                                      days: target.lastResult.certDays,
-                                    })
-                                  : "—"}
-                              </TableCell>
-                            ) : null}
-                          </TableRow>
-                          {expanded ? (
-                            <TableRow
-                              id={`probe-records-${targetKey}`}
-                              className="bg-muted/20 hover:bg-muted/20"
-                            >
-                              <TableCell
-                                colSpan={currentIsHttp ? 7 : 6}
-                                className="min-w-0"
-                              >
-                                <div className="grid min-w-0 gap-2 py-1">
-                                  <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <span className="text-xs text-muted-foreground">
-                                      {t("probeTarget.recordsTotal", {
-                                        count: records?.total ?? 0,
-                                      })}
-                                    </span>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      disabled={records?.loading}
-                                      onClick={() =>
-                                        void loadTargetRecords(targetKey, true)
-                                      }
-                                    >
-                                      {t("action.refresh")}
-                                    </Button>
-                                  </div>
-                                  {records?.loading && !records.items.length ? (
-                                    <p className="text-sm text-muted-foreground">
-                                      {t("state.loading")}
-                                    </p>
-                                  ) : null}
-                                  {!records?.loading &&
-                                  (records?.items.length ?? 0) === 0 ? (
-                                    <p className="text-sm text-muted-foreground">
-                                      {t("probeTarget.recordsEmpty")}
-                                    </p>
-                                  ) : null}
-                                  {(records?.items.length ?? 0) > 0 ? (
-                                    <div className="flex max-h-64 min-h-0 flex-col">
-                                    <Table className={TABLE_MIN_WIDTH.wide}>
-                                      <TableHeader>
-                                        <TableRow>
-                                          <TableHead
-                                            className={TABLE_COLUMN_WIDTH.time}
-                                          >
-                                            {t("probeTarget.resultTime")}
-                                          </TableHead>
-                                          <TableHead>
-                                            {t("probeTarget.rule")}
-                                          </TableHead>
-                                          <TableHead
-                                            className={TABLE_COLUMN_WIDTH.status}
-                                          >
-                                            {t("probeTarget.resultStatus")}
-                                          </TableHead>
-                                          {currentIsHttp ? (
-                                            <TableHead
-                                              className={
-                                                TABLE_COLUMN_WIDTH.type
-                                              }
-                                            >
-                                              {t("probeTarget.statusCode")}
-                                            </TableHead>
-                                          ) : (
-                                            <TableHead className="min-w-[10rem]">
-                                              {t("probeTarget.detailColumn")}
-                                            </TableHead>
-                                          )}
-                                          <TableHead
-                                            className={TABLE_COLUMN_WIDTH.type}
-                                          >
-                                            {t("probeTarget.duration")}
-                                          </TableHead>
-                                          <TableHead>
-                                            {t("probeTarget.errorMessage")}
-                                          </TableHead>
-                                        </TableRow>
-                                      </TableHeader>
-                                      <TableBody>
-                                        {records.items.map((item) => (
-                                          <TableRow
-                                            key={`${item.targetUid}-${item.slot || item.probedAt}`}
-                                          >
-                                            <TableCell
-                                              className={`${TABLE_COLUMN_WIDTH.time} ${TABLE_NOWRAP} tabular-nums`}
-                                            >
-                                              {formatDateTime(
-                                                item.probedAt || item.slot
-                                              )}
-                                            </TableCell>
-                                            <TableCell className="min-w-0 break-words">
-                                              {item.ruleName ||
-                                                (item.ruleUid
-                                                  ? "—"
-                                                  : t("probeTarget.manualProbe"))}
-                                            </TableCell>
-                                            <TableCell className={TABLE_NOWRAP}>
-                                              <StatusBadge
-                                                value={item.ok ? "OK" : "FAILED"}
-                                                label={
-                                                  item.ok
-                                                    ? t("probeTarget.ok")
-                                                    : t("probeTarget.failed")
-                                                }
-                                              />
-                                            </TableCell>
-                                            {currentIsHttp ? (
-                                              <TableCell
-                                                className={TABLE_NOWRAP}
-                                              >
-                                                {item.statusCode || "—"}
-                                              </TableCell>
-                                            ) : (
-                                              <TableCell className="max-w-[16rem] min-w-0 align-top">
-                                                <ProbeDetailSummary
-                                                  driver={current.driver}
-                                                  result={item}
-                                                />
-                                              </TableCell>
-                                            )}
-                                            <TableCell className={TABLE_NOWRAP}>
-                                              {t("probeTarget.durationValue", {
-                                                ms: item.durationMs,
-                                              })}
-                                            </TableCell>
-                                            <TableCell className="min-w-0 break-words">
-                                              {item.ok
-                                                ? item.errorMessage || "—"
-                                                : `${item.errorKind ? `${item.errorKind}: ` : ""}${item.errorMessage || "—"}`}
-                                            </TableCell>
-                                          </TableRow>
-                                        ))}
-                                      </TableBody>
-                                    </Table>
-                                    </div>
-                                  ) : null}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ) : null}
-                          </Fragment>
-                          )
-                        })}
-                      </TableBody>
-                    </Table>
-                    </div>
-                  </section>
-                </div>
-              </div>
-            ) : null}
-            {current ? (
-              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t pt-3">
-                {note ? (
-                  <p className="mr-auto text-sm text-muted-foreground">
-                    {note}
-                  </p>
-                ) : null}
-                {canWrite ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      disabled={pending}
-                      onClick={() => void toggleCurrentStatus()}
-                    >
-                      {current.status === "ACTIVE"
-                        ? t("action.disable")
-                        : t("action.enable")}
-                    </Button>
-                    <Button
-                      disabled={
-                        probing || current.activeTargetCount === 0
-                      }
-                      onClick={() => void probeNow()}
-                    >
-                      {probing
-                        ? t("probeTarget.probing")
-                        : t("probeTarget.probeNow")}
-                    </Button>
-                  </>
-                ) : null}
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-      </div>
+                      </span>
+                    </span>
+                  </TableCell>
+                  <TableCell className={TABLE_NOWRAP}>
+                    <StatusBadge value={item.status} />
+                  </TableCell>
+                  <TableCell
+                    className={`${TABLE_COLUMN_WIDTH.time} ${TABLE_NOWRAP} tabular-nums`}
+                  >
+                    {item.lastProbedAt
+                      ? formatDateTime(item.lastProbedAt)
+                      : t("probeTarget.neverProbed")}
+                  </TableCell>
+                  <TableCell>
+                    <RowActions
+                      nowrap
+                      detailLabel={t("action.detail")}
+                      moreLabel={t("action.more")}
+                      onDetail={() => setParam("uid", item.uid)}
+                      actions={rowActions(item)}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : null}
+      </ListFrame>
+      <ProbeTargetDetailSheet
+        key={detailUid}
+        uid={detailUid}
+        name={detailName}
+        version={detailVersion}
+        canWrite={canWrite}
+        onOpenChange={(value) => {
+          if (!value) {
+            setParam("uid", "")
+          }
+        }}
+        onChanged={() => {
+          setDetailVersion((value) => value + 1)
+          reload()
+        }}
+        onError={(message) => fail(message)}
+      />
       <Dialog
         open={open}
         onOpenChange={(value) => {
@@ -2021,7 +1504,7 @@ export function ProbeTargetPage() {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editing ? t("action.edit") : t("action.create")}
+              {editingUid ? t("action.edit") : t("action.create")}
             </DialogTitle>
           </DialogHeader>
           <StepForm

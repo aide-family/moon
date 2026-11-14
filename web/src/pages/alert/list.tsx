@@ -937,7 +937,7 @@ export function AlertEventList({
                   }
                   className={
                     view === "HISTORY"
-                      ? "grid w-full min-w-0 gap-4"
+                      ? "flex w-full min-w-0 flex-col gap-2"
                       : `flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4 ${realtimeFiltersOpen ? "" : "hidden"}`
                   }
                   onSubmit={(event) => {
@@ -951,7 +951,8 @@ export function AlertEventList({
                 >
                   {view === "HISTORY" ? (
                     <>
-                      <FieldGroup className="grid-cols-2 xl:grid-cols-4">
+                      <div className="flex w-full min-w-0 flex-wrap items-end gap-3">
+                      <FieldGroup className="min-w-0 flex-1 basis-full gap-3 lg:basis-0 grid-cols-2 xl:grid-cols-4">
                         <Field className="col-span-2 max-w-[500px] xl:col-span-2">
                           <FieldLabel
                             htmlFor="history-detail-name"
@@ -1159,30 +1160,7 @@ export function AlertEventList({
                           />
                         </Field>
                       </FieldGroup>
-                      <div className="flex flex-col gap-2 border-t border-border/60 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="min-h-5 flex-1">
-                          {invalidHistoryDateRange ? (
-                            <p
-                              id="history-detail-date-error"
-                              role="alert"
-                              aria-live="polite"
-                              className="text-xs text-destructive"
-                            >
-                              {t("alertEvent.invalidDateRange")}
-                            </p>
-                          ) : (
-                            <p className="text-xs text-muted-foreground">
-                              {historyDraftDirty
-                                ? t("alertEvent.unappliedChanges")
-                                : filterChips.length > 0
-                                  ? t("alertEvent.activeFilterCount", {
-                                      count: filterChips.length,
-                                    })
-                                  : t("alertEvent.detailSearchHint")}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center justify-end gap-2">
+                        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
                           <Button
                             type="button"
                             variant="ghost"
@@ -1204,6 +1182,28 @@ export function AlertEventList({
                             {t("alertEvent.applyFilters")}
                           </Button>
                         </div>
+                      </div>
+                      <div className="min-h-5">
+                        {invalidHistoryDateRange ? (
+                          <p
+                            id="history-detail-date-error"
+                            role="alert"
+                            aria-live="polite"
+                            className="text-xs text-destructive"
+                          >
+                            {t("alertEvent.invalidDateRange")}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            {historyDraftDirty
+                              ? t("alertEvent.unappliedChanges")
+                              : filterChips.length > 0
+                                ? t("alertEvent.activeFilterCount", {
+                                    count: filterChips.length,
+                                  })
+                                : t("alertEvent.detailSearchHint")}
+                          </p>
+                        )}
                       </div>
                     </>
                   ) : (

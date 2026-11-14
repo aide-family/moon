@@ -251,6 +251,7 @@ type AlertRuleGroup struct {
 	UID          string
 	NamespaceUID string
 	Name         string
+	ParentUID    string
 	Status       string
 }
 

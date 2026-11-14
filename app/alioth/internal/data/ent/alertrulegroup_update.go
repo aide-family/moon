@@ -82,6 +82,20 @@ func (_u *AlertRuleGroupUpdate) SetNillableName(v *string) *AlertRuleGroupUpdate
 	return _u
 }
 
+// SetParentUID sets the "parent_uid" field.
+func (_u *AlertRuleGroupUpdate) SetParentUID(v string) *AlertRuleGroupUpdate {
+	_u.mutation.SetParentUID(v)
+	return _u
+}
+
+// SetNillableParentUID sets the "parent_uid" field if the given value is not nil.
+func (_u *AlertRuleGroupUpdate) SetNillableParentUID(v *string) *AlertRuleGroupUpdate {
+	if v != nil {
+		_u.SetParentUID(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *AlertRuleGroupUpdate) SetStatus(v alertrulegroup.Status) *AlertRuleGroupUpdate {
 	_u.mutation.SetStatus(v)
@@ -184,6 +198,9 @@ func (_u *AlertRuleGroupUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(alertrulegroup.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.ParentUID(); ok {
+		_spec.SetField(alertrulegroup.FieldParentUID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(alertrulegroup.FieldStatus, field.TypeEnum, value)
 	}
@@ -257,6 +274,20 @@ func (_u *AlertRuleGroupUpdateOne) SetName(v string) *AlertRuleGroupUpdateOne {
 func (_u *AlertRuleGroupUpdateOne) SetNillableName(v *string) *AlertRuleGroupUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetParentUID sets the "parent_uid" field.
+func (_u *AlertRuleGroupUpdateOne) SetParentUID(v string) *AlertRuleGroupUpdateOne {
+	_u.mutation.SetParentUID(v)
+	return _u
+}
+
+// SetNillableParentUID sets the "parent_uid" field if the given value is not nil.
+func (_u *AlertRuleGroupUpdateOne) SetNillableParentUID(v *string) *AlertRuleGroupUpdateOne {
+	if v != nil {
+		_u.SetParentUID(*v)
 	}
 	return _u
 }
@@ -392,6 +423,9 @@ func (_u *AlertRuleGroupUpdateOne) sqlSave(ctx context.Context) (_node *AlertRul
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(alertrulegroup.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ParentUID(); ok {
+		_spec.SetField(alertrulegroup.FieldParentUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(alertrulegroup.FieldStatus, field.TypeEnum, value)

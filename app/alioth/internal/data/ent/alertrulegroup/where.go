@@ -84,6 +84,11 @@ func Name(v string) predicate.AlertRuleGroup {
 	return predicate.AlertRuleGroup(sql.FieldEQ(FieldName, v))
 }
 
+// ParentUID applies equality check predicate on the "parent_uid" field. It's identical to ParentUIDEQ.
+func ParentUID(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldEQ(FieldParentUID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.AlertRuleGroup {
 	return predicate.AlertRuleGroup(sql.FieldEQ(FieldCreatedAt, v))
@@ -407,6 +412,71 @@ func NameEqualFold(v string) predicate.AlertRuleGroup {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.AlertRuleGroup {
 	return predicate.AlertRuleGroup(sql.FieldContainsFold(FieldName, v))
+}
+
+// ParentUIDEQ applies the EQ predicate on the "parent_uid" field.
+func ParentUIDEQ(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldEQ(FieldParentUID, v))
+}
+
+// ParentUIDNEQ applies the NEQ predicate on the "parent_uid" field.
+func ParentUIDNEQ(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldNEQ(FieldParentUID, v))
+}
+
+// ParentUIDIn applies the In predicate on the "parent_uid" field.
+func ParentUIDIn(vs ...string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldIn(FieldParentUID, vs...))
+}
+
+// ParentUIDNotIn applies the NotIn predicate on the "parent_uid" field.
+func ParentUIDNotIn(vs ...string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldNotIn(FieldParentUID, vs...))
+}
+
+// ParentUIDGT applies the GT predicate on the "parent_uid" field.
+func ParentUIDGT(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldGT(FieldParentUID, v))
+}
+
+// ParentUIDGTE applies the GTE predicate on the "parent_uid" field.
+func ParentUIDGTE(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldGTE(FieldParentUID, v))
+}
+
+// ParentUIDLT applies the LT predicate on the "parent_uid" field.
+func ParentUIDLT(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldLT(FieldParentUID, v))
+}
+
+// ParentUIDLTE applies the LTE predicate on the "parent_uid" field.
+func ParentUIDLTE(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldLTE(FieldParentUID, v))
+}
+
+// ParentUIDContains applies the Contains predicate on the "parent_uid" field.
+func ParentUIDContains(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldContains(FieldParentUID, v))
+}
+
+// ParentUIDHasPrefix applies the HasPrefix predicate on the "parent_uid" field.
+func ParentUIDHasPrefix(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldHasPrefix(FieldParentUID, v))
+}
+
+// ParentUIDHasSuffix applies the HasSuffix predicate on the "parent_uid" field.
+func ParentUIDHasSuffix(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldHasSuffix(FieldParentUID, v))
+}
+
+// ParentUIDEqualFold applies the EqualFold predicate on the "parent_uid" field.
+func ParentUIDEqualFold(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldEqualFold(FieldParentUID, v))
+}
+
+// ParentUIDContainsFold applies the ContainsFold predicate on the "parent_uid" field.
+func ParentUIDContainsFold(v string) predicate.AlertRuleGroup {
+	return predicate.AlertRuleGroup(sql.FieldContainsFold(FieldParentUID, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

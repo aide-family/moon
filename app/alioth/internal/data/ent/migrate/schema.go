@@ -587,6 +587,7 @@ var (
 		{Name: "uid", Type: field.TypeString},
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
+		{Name: "parent_uid", Type: field.TypeString, Default: ""},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
 	}
 	// AlertRuleGroupsTable holds the schema information for the "alert_rule_groups" table.
@@ -612,6 +613,11 @@ var (
 				Name:    "alertrulegroup_namespace_uid",
 				Unique:  false,
 				Columns: []*schema.Column{AlertRuleGroupsColumns[5]},
+			},
+			{
+				Name:    "alertrulegroup_namespace_uid_parent_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertRuleGroupsColumns[5], AlertRuleGroupsColumns[7]},
 			},
 		},
 	}

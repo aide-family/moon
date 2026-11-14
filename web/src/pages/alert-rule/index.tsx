@@ -1,5 +1,11 @@
-import { EllipsisVertical, Search, Trash2 } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import {
+  ChevronDown,
+  ChevronRight,
+  EllipsisVertical,
+  Search,
+  Trash2,
+} from "lucide-react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -12,7 +18,7 @@ import {
   deleteAlertRule,
   deleteAlertRuleGroup,
   getAlertRule,
-  listAlertRuleGroups,
+  listAllAlertRuleGroups,
   listAlertRules,
   updateAlertRule,
   updateAlertRuleGroup,
@@ -102,9 +108,16 @@ import { failureMessage, readFormError } from "@/lib/form-error"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { loadAllPagedItems } from "@/lib/select-pages"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
-import { useListQuery } from "@/hooks/use-list-query"
 
 import { AlertRuleDetailSheet } from "./detail"
+import {
+  alertRuleGroupDescendantUids,
+  alertRuleGroupSubtreeHeight,
+  buildAlertRuleGroupTree,
+  flattenAlertRuleGroupTree,
+  visibleAlertRuleGroupUids,
+  type AlertRuleGroupNode,
+} from "./group-tree"
 import {
   datasourceMatchKeys,
   datasourceMatchValues,
@@ -137,6 +150,8 @@ const drivers = [
 ]
 // 探测规则：匹配同类型目标组而不是数据源，观测指标与探测周期随规则保存。
 const probeIntervals = [15, 30, 60, 300]
+// 规则列表的每页条数；规则组改为一次加载全量、本地树形展示，不再共用分页。
+const rulePageSize = 20
 const conditions = ["EQ", "NE", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN"]
 const samples = ["FOR", "MAX", "MIN"]
 
@@ -273,7 +288,6 @@ function ProbeTargetMatchCell({
 export function AlertRulePage() {
   const { t } = useTranslation()
   const session = useSession()
-  const groupsQuery = useListQuery()
   const [params, setParams] = useSearchParams()
   const groupUid = params.get("groupUid") || ""
   const ruleUid = params.get("ruleUid") || ""
@@ -281,12 +295,11 @@ export function AlertRulePage() {
   const ruleName = params.get("ruleName") || ""
   // 类型分段筛选：空 / query / probe。探测规则与查询规则共用告警规则列表。
   const ruleType = params.get("ruleType") || ""
-  const [groupFiltersOpen, setGroupFiltersOpen] = useState(false)
-  const {
-    draft: groupDraft,
-    update: updateGroupDraft,
-    dirty: groupDirty,
-  } = useFilterDraft({ name: groupsQuery.name })
+  const [groupSearch, setGroupSearch] = useState("")
+  // 默认全部展开；记录用户主动收起的组，新建/加载后仍保持展开。
+  const [collapsedGroupUids, setCollapsedGroupUids] = useState<Set<string>>(
+    () => new Set()
+  )
   const [ruleFiltersOpen, setRuleFiltersOpen] = useState(false)
   const {
     draft: ruleDraft,
@@ -294,7 +307,6 @@ export function AlertRulePage() {
     dirty: ruleDirty,
   } = useFilterDraft({ name: ruleName, ruleType })
   const [groups, setGroups] = useState<AlertRuleGroupItem[]>([])
-  const [groupTotal, setGroupTotal] = useState(0)
   const [rules, setRules] = useState<AlertRuleItem[]>([])
   const [ruleTotal, setRuleTotal] = useState(0)
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
@@ -309,6 +321,7 @@ export function AlertRulePage() {
   const [attempt, setAttempt] = useState(0)
   const [groupOpen, setGroupOpen] = useState(false)
   const [groupName, setGroupName] = useState("")
+  const [groupParentUid, setGroupParentUid] = useState("")
   const [editingGroup, setEditingGroup] = useState<AlertRuleGroupItem | null>(
     null
   )
@@ -467,16 +480,11 @@ export function AlertRulePage() {
       setLoading(true)
       setFailed(false)
       try {
-        const result = await listAlertRuleGroups({
-          page: groupsQuery.page,
-          pageSize: groupsQuery.pageSize,
-          name: groupsQuery.name,
-        })
+        const result = await listAllAlertRuleGroups()
         if (!active) {
           return
         }
-        setGroups(result.items ?? [])
-        setGroupTotal(result.total ?? 0)
+        setGroups(result)
       } catch (err) {
         if (active) {
           setFailed(true)
@@ -493,13 +501,7 @@ export function AlertRulePage() {
     return () => {
       active = false
     }
-  }, [
-    groupsQuery.page,
-    groupsQuery.pageSize,
-    groupsQuery.name,
-    attempt,
-    session.namespaceUid,
-  ])
+  }, [attempt, session.namespaceUid])
 
   useEffect(() => {
     let active = true
@@ -513,7 +515,7 @@ export function AlertRulePage() {
         if (!ruleType) {
           const result = await listAlertRules({
             page: rulePage,
-            pageSize: groupsQuery.pageSize,
+            pageSize: rulePageSize,
             groupUid,
             name: ruleName,
           })
@@ -536,8 +538,8 @@ export function AlertRulePage() {
         if (!active) {
           return
         }
-        const start = (rulePage - 1) * groupsQuery.pageSize
-        setRules(filtered.slice(start, start + groupsQuery.pageSize))
+        const start = (rulePage - 1) * rulePageSize
+        setRules(filtered.slice(start, start + rulePageSize))
         setRuleTotal(filtered.length)
       } catch {
         if (active) {
@@ -555,7 +557,6 @@ export function AlertRulePage() {
     rulePage,
     ruleName,
     ruleType,
-    groupsQuery.pageSize,
     attempt,
     session.namespaceUid,
   ])
@@ -609,7 +610,8 @@ export function AlertRulePage() {
       return
     }
     const next = new URLSearchParams(params)
-    next.set("groupUid", groups[0].uid)
+    const firstGroup = buildAlertRuleGroupTree(groups)[0]?.uid ?? groups[0].uid
+    next.set("groupUid", firstGroup)
     setParams(next, { replace: true })
   }, [
     loading,
@@ -795,9 +797,13 @@ export function AlertRulePage() {
     try {
       const trimmed = groupName.trim()
       if (editingGroup) {
-        await updateAlertRuleGroup(editingGroup.uid, trimmed)
+        await updateAlertRuleGroup(
+          editingGroup.uid,
+          trimmed,
+          groupParentUid
+        )
       } else {
-        const created = await createAlertRuleGroup(trimmed)
+        const created = await createAlertRuleGroup(trimmed, groupParentUid)
         setParam("groupUid", created.group.uid)
       }
       setGroupOpen(false)
@@ -1114,24 +1120,31 @@ export function AlertRulePage() {
     ]
   }
 
-  const groupChips: FilterChip[] = groupsQuery.name
-    ? [
-        {
-          key: "name",
-          label: `${t("alertRule.group")}: ${groupsQuery.name}`,
-          onRemove: clearGroupFilters,
-        },
-      ]
-    : []
-
-  function applyGroupFilters() {
-    groupsQuery.update({ name: groupDraft.name.trim() })
-    setGroupFiltersOpen(false)
-  }
-
-  function clearGroupFilters() {
-    groupsQuery.update({ name: "" })
-  }
+  const groupTree = useMemo(() => buildAlertRuleGroupTree(groups), [groups])
+  const groupFlat = useMemo(
+    () => flattenAlertRuleGroupTree(groupTree),
+    [groupTree]
+  )
+  const visibleGroupUids = useMemo(
+    () => visibleAlertRuleGroupUids(groupTree, groupSearch),
+    [groupTree, groupSearch]
+  )
+  // 编辑时不能把组挂到自己或后代下面；移动子树后也不能超过 3 级。
+  const parentOptions = useMemo(() => {
+    const excluded = editingGroup
+      ? alertRuleGroupDescendantUids(groupTree, editingGroup.uid)
+      : new Set<string>()
+    const editedNode = editingGroup
+      ? groupFlat.find((node) => node.uid === editingGroup.uid)
+      : undefined
+    const subtreeHeight = editedNode
+      ? alertRuleGroupSubtreeHeight(editedNode)
+      : 1
+    return groupFlat.filter(
+      (node) =>
+        !excluded.has(node.uid) && node.depth + subtreeHeight <= 3
+    )
+  }, [editingGroup, groupFlat, groupTree])
 
   const ruleTypeLabel =
     ruleType === "query"
@@ -1188,6 +1201,145 @@ export function AlertRulePage() {
     setParams(next)
   }
 
+  function toggleGroup(uid: string) {
+    setCollapsedGroupUids((current) => {
+      const next = new Set(current)
+      if (next.has(uid)) {
+        next.delete(uid)
+      } else {
+        next.add(uid)
+      }
+      return next
+    })
+  }
+
+  function openCreateGroup(parentUid = "") {
+    setEditingGroup(null)
+    setGroupName("")
+    setGroupParentUid(parentUid)
+    setError("")
+    setFieldErrors({})
+    setGroupOpen(true)
+  }
+
+  function openEditGroup(item: AlertRuleGroupItem) {
+    setEditingGroup(item)
+    setGroupName(item.name)
+    setGroupParentUid(item.parentUid ?? "")
+    setError("")
+    setFieldErrors({})
+    setGroupOpen(true)
+  }
+
+  function renderGroupNode(node: AlertRuleGroupNode): ReactNode {
+    if (!visibleGroupUids.has(node.uid)) {
+      return null
+    }
+    const hasChildren = node.children.length > 0
+    const expanded =
+      groupSearch.trim() !== "" || !collapsedGroupUids.has(node.uid)
+    const selected = node.uid === groupUid
+    return (
+      <div key={node.uid} className="grid gap-1">
+        <div
+          className="flex min-w-0 items-center gap-1"
+          style={{ paddingLeft: `${(node.depth - 1) * 16}px` }}
+        >
+          {hasChildren ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-6 shrink-0"
+              aria-label={node.name}
+              aria-expanded={expanded}
+              onClick={() => toggleGroup(node.uid)}
+            >
+              {expanded ? (
+                <ChevronDown aria-hidden="true" />
+              ) : (
+                <ChevronRight aria-hidden="true" />
+              )}
+            </Button>
+          ) : (
+            <span className="size-6 shrink-0" aria-hidden="true" />
+          )}
+          <Button
+            variant={selected ? "secondary" : "ghost"}
+            className="h-auto min-w-0 flex-1 justify-start overflow-hidden px-2 py-1.5"
+            onClick={() => setParam("groupUid", node.uid)}
+            title={node.name}
+          >
+            <span className="flex w-full min-w-0 items-center gap-2">
+              <span className="min-w-0 flex-1 truncate text-left">
+                {node.name}
+              </span>
+              <StatusBadge value={node.status} />
+            </span>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 shrink-0"
+                aria-label={t("action.more")}
+              >
+                <EllipsisVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setGroupDetail(node)}>
+                {t("action.detail")}
+              </DropdownMenuItem>
+              {canWrite && node.depth < 3 ? (
+                <DropdownMenuItem onSelect={() => openCreateGroup(node.uid)}>
+                  {t("alertRule.createChildGroup")}
+                </DropdownMenuItem>
+              ) : null}
+              {canWrite ? (
+                <DropdownMenuItem onSelect={() => openEditGroup(node)}>
+                  {t("action.edit")}
+                </DropdownMenuItem>
+              ) : null}
+              {canWrite && node.status !== "ACTIVE" ? (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    void updateAlertRuleGroupStatus(node.uid, "ACTIVE").then(
+                      () => setAttempt((value) => value + 1)
+                    )
+                  }}
+                >
+                  {t("action.enable")}
+                </DropdownMenuItem>
+              ) : null}
+              {canWrite ? <DropdownMenuSeparator /> : null}
+              {canWrite && node.status === "ACTIVE" ? (
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => askConfirm("group", "disable", node.uid)}
+                >
+                  {t("action.disable")}
+                </DropdownMenuItem>
+              ) : null}
+              {canWrite ? (
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => askConfirm("group", "delete", node.uid)}
+                >
+                  {t("action.delete")}
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        {hasChildren && expanded
+          ? node.children.map((child) => renderGroupNode(child))
+          : null}
+      </div>
+    )
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
@@ -1196,171 +1348,69 @@ export function AlertRulePage() {
       />
       <div className="grid min-h-0 min-w-0 flex-1 gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
         <div className="flex min-h-0 min-w-0 flex-col gap-4">
-          <ListFilter
-            id="alert-rule-group-filters"
-            open={groupFiltersOpen}
-            onOpenChange={setGroupFiltersOpen}
-            chips={groupChips}
-            onClearAll={clearGroupFilters}
-            onClear={clearGroupFilters}
-            appliedCount={groupChips.length}
-            dirty={groupDirty}
-            onApply={applyGroupFilters}
+          {canWrite ? (
+            <Button onClick={() => openCreateGroup()}>
+              {t("alertRule.createGroup")}
+            </Button>
+          ) : null}
+          <ListFrame
+            total={groups.length}
+            page={1}
+            pageSize={Math.max(groups.length, 1)}
+            showPager={false}
+            onPrev={() => undefined}
+            onNext={() => undefined}
+            onRefresh={() => setAttempt((value) => value + 1)}
+            refreshing={loading}
           >
-            <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
-              <FieldLabel
-                htmlFor="alert-rule-group-name"
-                className="text-xs text-muted-foreground"
-              >
-                {t("alertRule.group")}
-              </FieldLabel>
-              <div className="relative">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+              <div className="relative shrink-0">
                 <Search
                   aria-hidden="true"
                   className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
                 />
                 <Input
-                  id="alert-rule-group-name"
                   className="pl-9"
-                  value={groupDraft.name}
-                  placeholder={t("alertRule.groupPlaceholder")}
-                  onChange={(event) =>
-                    updateGroupDraft("name", event.target.value)
-                  }
+                  value={groupSearch}
+                  placeholder={t("alertRule.groupSearchPlaceholder")}
+                  aria-label={t("alertRule.groupSearchPlaceholder")}
+                  onChange={(event) => setGroupSearch(event.target.value)}
                 />
               </div>
-            </Field>
-          </ListFilter>
-          {canWrite ? (
-            <Button
-              onClick={() => {
-                setEditingGroup(null)
-                setGroupName("")
-                setError("")
-                setFieldErrors({})
-                setGroupOpen(true)
-              }}
-            >
-              {t("alertRule.createGroup")}
-            </Button>
-          ) : null}
-          <ListFrame
-            total={groupTotal}
-            page={groupsQuery.page}
-            pageSize={groupsQuery.pageSize}
-            showPager={!loading && !failed && groups.length > 0}
-            onPrev={() =>
-              groupsQuery.update({ page: Math.max(1, groupsQuery.page - 1) })
-            }
-            onNext={() => groupsQuery.update({ page: groupsQuery.page + 1 })}
-            onRefresh={() => setAttempt((value) => value + 1)}
-            refreshing={loading}
-          >
-            {loading ? (
-              <p className="text-sm text-muted-foreground">
-                {t("state.loading")}
-              </p>
-            ) : null}
-            {!loading && failed ? (
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-destructive">
-                  {loadError || t("state.failed")}
+              {loading ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("state.loading")}
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => setAttempt((value) => value + 1)}
-                >
-                  {t("action.retry")}
-                </Button>
-              </div>
-            ) : null}
-            {!loading && !failed && groups.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {t("alertRule.groupEmpty")}
-              </p>
-            ) : null}
-            <div className="grid min-h-0 min-w-0 flex-1 content-start gap-2 overflow-x-hidden overflow-y-auto">
-              {groups.map((item) => (
-                <div key={item.uid} className="flex min-w-0 items-center gap-1">
+              ) : null}
+              {!loading && failed ? (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-destructive">
+                    {loadError || t("state.failed")}
+                  </p>
                   <Button
-                    variant={item.uid === groupUid ? "secondary" : "ghost"}
-                    className="h-auto min-w-0 flex-1 justify-start overflow-hidden px-2 py-2"
-                    onClick={() => setParam("groupUid", item.uid)}
+                    variant="outline"
+                    onClick={() => setAttempt((value) => value + 1)}
                   >
-                    <span className="flex w-full min-w-0 items-center gap-2">
-                      <span
-                        className="min-w-0 flex-1 truncate text-left"
-                        title={item.name}
-                      >
-                        {item.name}
-                      </span>
-                      <StatusBadge value={item.status} />
-                    </span>
+                    {t("action.retry")}
                   </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={t("action.more")}
-                      >
-                        <EllipsisVertical />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onSelect={() => setGroupDetail(item)}>
-                        {t("action.detail")}
-                      </DropdownMenuItem>
-                      {canWrite ? (
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            setEditingGroup(item)
-                            setGroupName(item.name)
-                            setError("")
-                            setFieldErrors({})
-                            setGroupOpen(true)
-                          }}
-                        >
-                          {t("action.edit")}
-                        </DropdownMenuItem>
-                      ) : null}
-                      {canWrite && item.status !== "ACTIVE" ? (
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            void updateAlertRuleGroupStatus(
-                              item.uid,
-                              "ACTIVE"
-                            ).then(() => setAttempt((value) => value + 1))
-                          }}
-                        >
-                          {t("action.enable")}
-                        </DropdownMenuItem>
-                      ) : null}
-                      {canWrite ? <DropdownMenuSeparator /> : null}
-                      {canWrite && item.status === "ACTIVE" ? (
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onSelect={() =>
-                            askConfirm("group", "disable", item.uid)
-                          }
-                        >
-                          {t("action.disable")}
-                        </DropdownMenuItem>
-                      ) : null}
-                      {canWrite ? (
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onSelect={() =>
-                            askConfirm("group", "delete", item.uid)
-                          }
-                        >
-                          {t("action.delete")}
-                        </DropdownMenuItem>
-                      ) : null}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
-              ))}
+              ) : null}
+              {!loading && !failed && groups.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("alertRule.groupEmpty")}
+                </p>
+              ) : null}
+              {!loading &&
+              !failed &&
+              groups.length > 0 &&
+              visibleGroupUids.size === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("alertRule.groupSearchEmpty")}
+                </p>
+              ) : null}
+              <div className="min-h-0 min-w-0 flex-1 content-start overflow-x-hidden overflow-y-auto">
+                {groupTree.map((node) => renderGroupNode(node))}
+              </div>
             </div>
           </ListFrame>
         </div>
@@ -1449,7 +1499,7 @@ export function AlertRulePage() {
           <ListFrame
             total={ruleTotal}
             page={rulePage}
-            pageSize={groupsQuery.pageSize}
+            pageSize={rulePageSize}
             showPager={Boolean(groupUid) && rules.length > 0}
             onPrev={() =>
               setParam("rulePage", String(Math.max(1, rulePage - 1)))
@@ -1533,6 +1583,31 @@ export function AlertRulePage() {
                   onChange={(event) => setGroupName(event.target.value)}
                   required
                 />
+              </FormField>
+              <FormField
+                label={t("alertRule.parentGroup")}
+                htmlFor="group-parent"
+              >
+                <Select
+                  value={groupParentUid || "ROOT"}
+                  onValueChange={(value) =>
+                    setGroupParentUid(value === "ROOT" ? "" : value)
+                  }
+                >
+                  <SelectTrigger id="group-parent" className="w-full">
+                    <SelectValue placeholder={t("alertRule.rootGroup")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ROOT">
+                      {t("alertRule.rootGroup")}
+                    </SelectItem>
+                    {parentOptions.map((node) => (
+                      <SelectItem key={node.uid} value={node.uid}>
+                        {`${"— ".repeat(node.depth - 1)}${node.name}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
             </DialogBody>
             <DialogFooter>
@@ -2472,7 +2547,16 @@ export function AlertRulePage() {
         }}
         fields={
           groupDetail
-            ? [{ label: t("detail.uid"), value: groupDetail.uid }]
+            ? [
+                { label: t("detail.uid"), value: groupDetail.uid },
+                {
+                  label: t("alertRule.parentGroup"),
+                  value: groupDetail.parentUid
+                    ? groups.find((item) => item.uid === groupDetail.parentUid)
+                        ?.name ?? groupDetail.parentUid
+                    : t("alertRule.rootGroup"),
+                },
+              ]
             : []
         }
       />

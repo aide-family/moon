@@ -80,6 +80,20 @@ func (_c *AlertRuleGroupCreate) SetName(v string) *AlertRuleGroupCreate {
 	return _c
 }
 
+// SetParentUID sets the "parent_uid" field.
+func (_c *AlertRuleGroupCreate) SetParentUID(v string) *AlertRuleGroupCreate {
+	_c.mutation.SetParentUID(v)
+	return _c
+}
+
+// SetNillableParentUID sets the "parent_uid" field if the given value is not nil.
+func (_c *AlertRuleGroupCreate) SetNillableParentUID(v *string) *AlertRuleGroupCreate {
+	if v != nil {
+		_c.SetParentUID(*v)
+	}
+	return _c
+}
+
 // SetStatus sets the "status" field.
 func (_c *AlertRuleGroupCreate) SetStatus(v alertrulegroup.Status) *AlertRuleGroupCreate {
 	_c.mutation.SetStatus(v)
@@ -137,6 +151,10 @@ func (_c *AlertRuleGroupCreate) defaults() {
 		v := alertrulegroup.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.ParentUID(); !ok {
+		v := alertrulegroup.DefaultParentUID
+		_c.mutation.SetParentUID(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := alertrulegroup.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -174,6 +192,9 @@ func (_c *AlertRuleGroupCreate) check() error {
 		if err := alertrulegroup.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AlertRuleGroup.name": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.ParentUID(); !ok {
+		return &ValidationError{Name: "parent_uid", err: errors.New(`ent: missing required field "AlertRuleGroup.parent_uid"`)}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "AlertRuleGroup.status"`)}
@@ -232,6 +253,10 @@ func (_c *AlertRuleGroupCreate) createSpec() (*AlertRuleGroup, *sqlgraph.CreateS
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(alertrulegroup.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.ParentUID(); ok {
+		_spec.SetField(alertrulegroup.FieldParentUID, field.TypeString, value)
+		_node.ParentUID = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(alertrulegroup.FieldStatus, field.TypeEnum, value)

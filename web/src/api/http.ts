@@ -34,6 +34,8 @@ const messageKeys: Record<string, string> = {
   "invalid datasource endpoint": "form.invalidUrl",
   "datasource connection already exists": "datasource.connectionExists",
   "name is too long": "form.nameTooLong",
+  "group hierarchy is too deep": "error.groupHierarchyTooDeep",
+  "group still has children": "error.groupHasChildren",
   // Kubernetes 集群接口的后端错误原文，避免中文界面直接露英文。
   "invalid kubeconfig": "error.invalidKubeconfig",
   "kubeconfig is empty": "error.invalidKubeconfig",

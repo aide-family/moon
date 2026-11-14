@@ -28,7 +28,7 @@ func datasourceItems(items []bo.Datasource) []*v1.DatasourceItem {
 }
 
 func groupItem(item bo.AlertRuleGroup) *v1.AlertRuleGroupItem {
-	return &v1.AlertRuleGroupItem{Uid: item.UID, Name: item.Name, Status: item.Status}
+	return &v1.AlertRuleGroupItem{Uid: item.UID, Name: item.Name, Status: item.Status, ParentUid: item.ParentUID}
 }
 
 func groupItems(items []bo.AlertRuleGroup) []*v1.AlertRuleGroupItem {

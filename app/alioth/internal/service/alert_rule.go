@@ -18,7 +18,7 @@ func NewAlertRuleService(rulebook *alertrule.Rulebook) *AlertRuleService {
 }
 
 func (s *AlertRuleService) CreateAlertRuleGroup(ctx context.Context, req *v1.CreateAlertRuleGroupRequest) (*v1.CreateAlertRuleGroupResponse, error) {
-	item, err := s.rulebook.CreateGroup(ctx, req.GetName())
+	item, err := s.rulebook.CreateGroup(ctx, req.GetName(), req.GetParentUid())
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (s *AlertRuleService) CreateAlertRuleGroup(ctx context.Context, req *v1.Cre
 }
 
 func (s *AlertRuleService) UpdateAlertRuleGroup(ctx context.Context, req *v1.UpdateAlertRuleGroupRequest) (*v1.UpdateAlertRuleGroupResponse, error) {
-	item, err := s.rulebook.UpdateGroup(ctx, req.GetUid(), req.GetName())
+	item, err := s.rulebook.UpdateGroup(ctx, req.GetUid(), req.GetName(), req.GetParentUid())
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (s *AlertRuleService) DeleteAlertRuleGroup(ctx context.Context, req *v1.Del
 }
 
 func (s *AlertRuleService) ListAlertRuleGroups(ctx context.Context, req *v1.ListAlertRuleGroupsRequest) (*v1.ListAlertRuleGroupsResponse, error) {
-	items, total, page, pageSize, err := s.rulebook.ListGroups(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.rulebook.ListGroups(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetAll())
 	if err != nil {
 		return nil, err
 	}

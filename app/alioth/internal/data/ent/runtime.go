@@ -702,6 +702,10 @@ func init() {
 	alertrulegroupDescName := alertrulegroupFields[2].Descriptor()
 	// alertrulegroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	alertrulegroup.NameValidator = alertrulegroupDescName.Validators[0].(func(string) error)
+	// alertrulegroupDescParentUID is the schema descriptor for parent_uid field.
+	alertrulegroupDescParentUID := alertrulegroupFields[3].Descriptor()
+	// alertrulegroup.DefaultParentUID holds the default value on creation for the parent_uid field.
+	alertrulegroup.DefaultParentUID = alertrulegroupDescParentUID.Default.(string)
 	alertrulelevelMixin := schema.AlertRuleLevel{}.Mixin()
 	alertrulelevelMixinFields0 := alertrulelevelMixin[0].Fields()
 	_ = alertrulelevelMixinFields0
