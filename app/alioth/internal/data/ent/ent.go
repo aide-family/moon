@@ -42,6 +42,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreportshare"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionrun"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
@@ -172,6 +173,7 @@ func checkColumn(t, c string) error {
 			inspectionitem.Table:                inspectionitem.ValidColumn,
 			inspectionplan.Table:                inspectionplan.ValidColumn,
 			inspectionreport.Table:              inspectionreport.ValidColumn,
+			inspectionreportshare.Table:         inspectionreportshare.ValidColumn,
 			inspectionrun.Table:                 inspectionrun.ValidColumn,
 			inspectiontemplate.Table:            inspectiontemplate.ValidColumn,
 			member.Table:                        member.ValidColumn,

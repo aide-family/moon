@@ -72,6 +72,8 @@ type Tx struct {
 	InspectionPlan *InspectionPlanClient
 	// InspectionReport is the client for interacting with the InspectionReport builders.
 	InspectionReport *InspectionReportClient
+	// InspectionReportShare is the client for interacting with the InspectionReportShare builders.
+	InspectionReportShare *InspectionReportShareClient
 	// InspectionRun is the client for interacting with the InspectionRun builders.
 	InspectionRun *InspectionRunClient
 	// InspectionTemplate is the client for interacting with the InspectionTemplate builders.
@@ -313,6 +315,7 @@ func (tx *Tx) init() {
 	tx.InspectionItem = NewInspectionItemClient(tx.config)
 	tx.InspectionPlan = NewInspectionPlanClient(tx.config)
 	tx.InspectionReport = NewInspectionReportClient(tx.config)
+	tx.InspectionReportShare = NewInspectionReportShareClient(tx.config)
 	tx.InspectionRun = NewInspectionRunClient(tx.config)
 	tx.InspectionTemplate = NewInspectionTemplateClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)

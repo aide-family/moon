@@ -1,7 +1,8 @@
 import { Eye, Loader2, Plus, RotateCcw, Save, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 
 import type { DatasourceItem } from "@/api/datasource/types"
 import { testInspectionItem } from "@/api/inspection"
@@ -22,16 +23,6 @@ import { FormField } from "@/components/form-field"
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select"
 import { QueryExpressionEditor } from "@/components/query-expression-editor"
 import { StatusBadge } from "@/components/status-badge"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -53,7 +44,9 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { useQueryLibrary } from "@/hooks/use-query-library"
 import { readFormError } from "@/lib/form-error"
+import { normalizeSnapshot } from "@/lib/query-store"
 import { QueryTemplatePopover, type TemplateItem } from "@/pages/datasource/components/query-template-popover"
+import { SaveTemplateDialog } from "@/pages/datasource/components/save-template-dialog"
 
 export interface DraftItem extends InspectionItemInput {
   key: string
@@ -65,13 +58,14 @@ interface InspectionItemEditorProps {
   probeGroups: MultiSelectOption[]
   alertLevels: MultiSelectOption[]
   dirty: boolean
+  autoFocus?: boolean
   onChange: (patch: Partial<DraftItem>) => void
   onSave: () => void
   onRestore: () => void
   onRemove: () => void
 }
 
-const KINDS: InspectionItemKind[] = [
+export const INSPECTION_ITEM_KINDS: InspectionItemKind[] = [
   "METRICS_QUERY",
   "LOGS_QUERY",
   "PROBE_TARGET",
@@ -138,7 +132,7 @@ function alertParams(item: DraftItem): InspectionAlertParams {
   }
 }
 
-function defaultParams(kind: InspectionItemKind): string {
+export function defaultInspectionParams(kind: InspectionItemKind): string {
   switch (kind) {
     case "METRICS_QUERY":
       return JSON.stringify({ unit: "", empty_is_warn: false, thresholds: [] })
@@ -160,7 +154,7 @@ function defaultParams(kind: InspectionItemKind): string {
   }
 }
 
-function defaultDisplay(kind: InspectionItemKind): InspectionItemDisplay {
+export function defaultInspectionDisplay(kind: InspectionItemKind): InspectionItemDisplay {
   switch (kind) {
     case "METRICS_QUERY":
       return "METRIC"
@@ -213,13 +207,14 @@ export function InspectionItemEditor({
   probeGroups,
   alertLevels,
   dirty,
+  autoFocus = false,
   onChange,
   onSave,
   onRestore,
   onRemove,
 }: InspectionItemEditorProps) {
   const { t } = useTranslation()
-  const [pendingKind, setPendingKind] = useState<InspectionItemKind | null>(null)
+  const titleRef = useRef<HTMLInputElement>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [testing, setTesting] = useState(false)
   const [testError, setTestError] = useState("")
@@ -230,39 +225,13 @@ export function InspectionItemEditor({
     onChange({ params: JSON.stringify(params) })
   }
 
-  function applyKind(kind: InspectionItemKind) {
-    const source =
-      kind === "METRICS_QUERY"
-        ? sources.metrics[0]?.uid ?? ""
-        : kind === "LOGS_QUERY"
-          ? sources.logs[0]?.uid ?? ""
-          : ""
-    const params = defaultParams(kind)
-    onChange({
-      kind,
-      datasourceUid: source,
-      query: "",
-      display: defaultDisplay(kind),
-      params:
-        kind === "ALERT_EVENTS" && alertLevels[0]
-          ? JSON.stringify({
-              status: "FIRING",
-              level_uids: [],
-              labels: "",
-              limit: 50,
-              warn_levels: [alertLevels[0].label],
-            })
-          : params,
-    })
-  }
-
-  function changeKind(kind: InspectionItemKind) {
-    if (dirty) {
-      setPendingKind(kind)
+  useEffect(() => {
+    if (!autoFocus) {
       return
     }
-    applyKind(kind)
-  }
+    const frame = window.requestAnimationFrame(() => titleRef.current?.focus())
+    return () => window.cancelAnimationFrame(frame)
+  }, [autoFocus])
 
   async function runTest() {
     setTesting(true)
@@ -296,18 +265,10 @@ export function InspectionItemEditor({
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border p-1">
-          {KINDS.map((kind) => (
-            <Button
-              key={kind}
-              type="button"
-              size="sm"
-              variant={item.kind === kind ? "default" : "ghost"}
-              onClick={() => changeKind(kind)}
-            >
-              {kindLabel(t, kind)}
-            </Button>
-          ))}
+        <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-xs">
+          <span className="text-muted-foreground">{t("inspection.kind")}</span>
+          <span className="font-medium text-foreground">{inspectionKindLabel(t, item.kind)}</span>
+          <span className="hidden text-muted-foreground sm:inline">· {t("inspection.typeLocked")}</span>
         </div>
         <Button type="button" size="sm" variant="outline" onClick={openPreview}>
           <Eye data-icon="inline-start" />
@@ -319,9 +280,10 @@ export function InspectionItemEditor({
         <div className="grid min-w-0 content-start gap-4">
           <FormField label={t("inspection.itemTitle")} required>
             <Input
+              ref={titleRef}
               value={item.title}
               onChange={(event) => onChange({ title: event.target.value })}
-              placeholder={t("inspection.itemTitle")}
+              placeholder={t("inspection.itemTitlePlaceholder")}
             />
           </FormField>
           <label className="flex items-center gap-2 text-sm">
@@ -375,6 +337,7 @@ export function InspectionItemEditor({
                 rows={7}
                 className="font-mono text-xs"
                 value={item.query}
+                placeholder={t("inspection.notePlaceholder")}
                 onChange={(event) => onChange({ query: event.target.value })}
               />
             </FormField>
@@ -401,27 +364,6 @@ export function InspectionItemEditor({
         </div>
 
       </div>
-      <AlertDialog open={pendingKind !== null} onOpenChange={(next) => { if (!next) setPendingKind(null) }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("inspection.itemDirty")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("inspection.discardChanges")}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("action.cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                const kind = pendingKind
-                setPendingKind(null)
-                if (kind) applyKind(kind)
-              }}
-            >
-              {t("inspection.discardChangesAction")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
@@ -474,7 +416,7 @@ export function InspectionItemEditor({
   )
 }
 
-function kindLabel(t: (key: string) => string, kind: InspectionItemKind): string {
+export function inspectionKindLabel(t: (key: string) => string, kind: InspectionItemKind): string {
   switch (kind) {
     case "METRICS_QUERY":
       return t("inspection.kindMetrics")
@@ -580,7 +522,13 @@ function MetricsConfig({
 }) {
   const { t } = useTranslation()
   const library = useQueryLibrary(item.datasourceUid, "promql")
+  const [saveOpen, setSaveOpen] = useState(false)
   const thresholds = params.thresholds ?? []
+  const statement = item.query.trim()
+  const snapshot = normalizeSnapshot({
+    expr: statement,
+    step: String(item.stepSeconds),
+  })
   const libraryItems: TemplateItem[] = [
     ...library.templates.map((template) => ({
       id: template.id,
@@ -621,10 +569,10 @@ function MetricsConfig({
             <QueryTemplatePopover
               items={libraryItems}
               pending={false}
-              canSave={false}
+              canSave={statement.length > 0}
               onFill={(patch) => onChange({ query: patch.expr ?? "" })}
-              onRequestSave={() => undefined}
-              onRestoreDefault={() => undefined}
+              onRequestSave={() => setSaveOpen(true)}
+              onRestoreDefault={() => onChange({ query: "" })}
               onDeleteTemplate={(id) => library.deleteTemplate(id)}
             />
           </div>
@@ -697,6 +645,7 @@ function MetricsConfig({
             <Input
               type="number"
               value={threshold.value}
+              placeholder={t("inspection.thresholdPlaceholder")}
               onChange={(event) => updateThreshold(index, { value: Number(event.target.value) })}
               aria-label={t("inspection.thresholdValue")}
             />
@@ -731,6 +680,15 @@ function MetricsConfig({
           {t("inspection.addThreshold")}
         </Button>
       </div>
+      <SaveTemplateDialog
+        open={saveOpen}
+        onOpenChange={setSaveOpen}
+        statement={statement}
+        onSubmit={({ name, description }) => {
+          library.saveTemplate({ name, description, snapshot })
+          toast.success(t("datasource.query.templateSaved"))
+        }}
+      />
     </>
   )
 }
@@ -831,6 +789,7 @@ function LogsConfig({
             type="number"
             min={0}
             value={params.warn_above ?? 0}
+            placeholder={t("inspection.warnAbovePlaceholder")}
             onChange={(event) => setParams({ ...params, warn_above: Number(event.target.value) })}
           />
         </FormField>
@@ -893,6 +852,7 @@ function ProbeConfig({
               max={100}
               step="0.1"
               value={params.availability_below ?? 99.5}
+              placeholder={t("inspection.availabilityBelowPlaceholder")}
               onChange={(event) => setParams({ ...params, availability_below: Number(event.target.value) })}
             />
           </FormField>
@@ -903,6 +863,7 @@ function ProbeConfig({
               type="number"
               min={0}
               value={params.latency_above_ms ?? 500}
+              placeholder={t("inspection.latencyAbovePlaceholder")}
               onChange={(event) => setParams({ ...params, latency_above_ms: Number(event.target.value) })}
             />
           </FormField>
@@ -913,6 +874,7 @@ function ProbeConfig({
               type="number"
               min={0}
               value={params.cert_days_below ?? 14}
+              placeholder={t("inspection.certBelowPlaceholder")}
               onChange={(event) => setParams({ ...params, cert_days_below: Number(event.target.value) })}
             />
           </FormField>

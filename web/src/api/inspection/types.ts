@@ -195,6 +195,19 @@ export interface ShareInspectionReportResult {
   report: InspectionReport
 }
 
+/** 一条报告分享链接；token 只在生成时返回一次。 */
+export interface InspectionReportShare {
+  uid: string
+  reportUid: string
+  status: "ACTIVE" | "EXPIRED" | "REVOKED"
+  createdAt: string
+  expiresAt: string
+  revokedAt: string
+  viewCount: number
+  lastViewedAt: string
+  hasPassword: boolean
+}
+
 /** 测试检查项返回的章节结构与 run.result.sections[] 相同。 */
 export interface InspectionSection {
   title: string

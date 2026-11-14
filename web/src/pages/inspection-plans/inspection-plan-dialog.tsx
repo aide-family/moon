@@ -1,5 +1,5 @@
 import { Info, Plus } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
@@ -18,7 +18,11 @@ import type {
   InspectionTemplate,
 } from "@/api/inspection/types"
 import {
+  INSPECTION_ITEM_KINDS,
   InspectionItemEditor,
+  defaultInspectionDisplay,
+  defaultInspectionParams,
+  inspectionKindLabel,
   type DraftItem,
 } from "@/pages/inspection-plans/inspection-item-editor"
 import { FormField } from "@/components/form-field"
@@ -75,24 +79,9 @@ interface InspectionPlanDialogProps {
   onSaved: () => void
 }
 
-function emptyItem(): DraftItem {
-  return {
-    key: `item-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    kind: "METRICS_QUERY",
-    title: "",
-    datasourceUid: "",
-    query: "",
-    windowSeconds: 86400,
-    stepSeconds: 60,
-    display: "METRIC",
-    params: "{}",
-    enabled: true,
-  }
-}
-
 function draftFromPlan(plan: InspectionPlan | null): DraftItem[] {
   if (!plan || plan.items.length === 0) {
-    return [emptyItem()]
+    return []
   }
   return plan.items.map((item) => ({
     key: item.uid || `item-${Math.random().toString(36).slice(2, 8)}`,
@@ -126,7 +115,10 @@ export function InspectionPlanDialog({
     () => plan?.timeoutSeconds || 300
   )
   const [items, setItems] = useState<DraftItem[]>(() => draftFromPlan(plan))
-  const [expanded, setExpanded] = useState(0)
+  const [expanded, setExpanded] = useState(plan ? 0 : -1)
+  const [choosingType, setChoosingType] = useState(false)
+  const [focusKey, setFocusKey] = useState<string | null>(null)
+  const nextItemKey = useRef(0)
   const [templateUid, setTemplateUid] = useState(() => plan?.templateUid ?? "")
   const [titleTemplate, setTitleTemplate] = useState(
     () => plan?.titleTemplate ?? ""
@@ -188,6 +180,62 @@ export function InspectionPlanDialog({
   const effectiveTemplateUid = templateUid || templates[0]?.uid || ""
   const selectedTemplate = templates.find((item) => item.uid === effectiveTemplateUid)
 
+  function createDraftItem(kind: InspectionItemKind): DraftItem {
+    const source =
+      kind === "METRICS_QUERY"
+        ? metricSources[0]?.uid ?? ""
+        : kind === "LOGS_QUERY"
+          ? logSources[0]?.uid ?? ""
+          : ""
+    const params =
+      kind === "ALERT_EVENTS" && alertLevels[0]
+        ? JSON.stringify({
+            status: "FIRING",
+            level_uids: [],
+            labels: "",
+            limit: 50,
+            warn_levels: [alertLevels[0].label],
+          })
+        : defaultInspectionParams(kind)
+    return {
+      key: `item-${kind}-${nextItemKey.current++}`,
+      kind,
+      title: "",
+      datasourceUid: source,
+      query: "",
+      windowSeconds: 86400,
+      stepSeconds: 60,
+      display: defaultInspectionDisplay(kind),
+      params,
+      enabled: true,
+    }
+  }
+
+  function addItem(kind: InspectionItemKind) {
+    const created = createDraftItem(kind)
+    setItems((current) => [...current, created])
+    setSavedItems((current) => [...current, JSON.parse(JSON.stringify(created))])
+    setExpanded(items.length)
+    setDirtyIndex(null)
+    setFocusKey(created.key)
+    setChoosingType(false)
+  }
+
+  function kindHint(kind: InspectionItemKind): string {
+    switch (kind) {
+      case "METRICS_QUERY":
+        return t("inspection.kindMetricsHint")
+      case "LOGS_QUERY":
+        return t("inspection.kindLogsHint")
+      case "PROBE_TARGET":
+        return t("inspection.kindProbeHint")
+      case "ALERT_EVENTS":
+        return t("inspection.kindAlertHint")
+      default:
+        return t("inspection.kindNoteHint")
+    }
+  }
+
   function updateItem(index: number, patch: Partial<DraftItem>) {
     setItems((current) =>
       current.map((item, itemIndex) =>
@@ -240,6 +288,7 @@ export function InspectionPlanDialog({
     const apply = () => {
       setExpanded(expanded === index ? -1 : index)
       setDirtyIndex(null)
+      setFocusKey(null)
     }
     if (dirtyIndex !== null && (expanded === index || dirtyIndex !== index)) {
       setConfirmAction(() => apply)
@@ -316,21 +365,6 @@ export function InspectionPlanDialog({
     }
   }
 
-  function kindLabel(kind: InspectionItemKind): string {
-    switch (kind) {
-      case "METRICS_QUERY":
-        return t("inspection.kindMetrics")
-      case "LOGS_QUERY":
-        return t("inspection.kindLogs")
-      case "PROBE_TARGET":
-        return t("inspection.kindProbe")
-      case "ALERT_EVENTS":
-        return t("inspection.kindAlert")
-      default:
-        return t("inspection.kindNote")
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-5xl">
@@ -385,6 +419,7 @@ export function InspectionPlanDialog({
                   id="inspection-plan-desc"
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
+                  placeholder={t("inspection.descriptionPlaceholder")}
                 />
               </FormField>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -398,6 +433,7 @@ export function InspectionPlanDialog({
                     min={30}
                     max={1800}
                     value={timeoutSeconds}
+                    placeholder={t("inspection.timeoutPlaceholder")}
                     onChange={(event) =>
                       setTimeoutSeconds(Number(event.target.value) || 300)
                     }
@@ -408,6 +444,7 @@ export function InspectionPlanDialog({
                     id="inspection-plan-tz"
                     value={timezone}
                     onChange={(event) => setTimezone(event.target.value)}
+                    placeholder={t("inspection.timezonePlaceholder")}
                   />
                 </FormField>
               </div>
@@ -438,7 +475,7 @@ export function InspectionPlanDialog({
                       {dirtyIndex === index ? (
                         <span className="text-xs text-warning">{t("inspection.itemDirty")}</span>
                       ) : null}
-                      <span className="text-xs text-muted-foreground">{kindLabel(item.kind)}</span>
+                      <span className="text-xs text-muted-foreground">{inspectionKindLabel(t, item.kind)}</span>
                     </button>
                     {open ? (
                       <div className="border-t border-border p-3">
@@ -449,17 +486,16 @@ export function InspectionPlanDialog({
                           probeGroups={probeGroups}
                           alertLevels={alertLevels}
                           dirty={dirtyIndex === index}
+                          autoFocus={focusKey === item.key}
                           onChange={(patch) => updateItem(index, patch)}
                           onSave={() => saveItem(index)}
                           onRestore={() => restoreItem(index)}
                           onRemove={() => {
-                            if (items.length <= 1) {
-                              return
-                            }
                             setItems((current) => current.filter((_, currentIndex) => currentIndex !== index))
                             setSavedItems((current) => current.filter((_, currentIndex) => currentIndex !== index))
                             setExpanded(-1)
                             setDirtyIndex(null)
+                            setFocusKey(null)
                           }}
                         />
                       </div>
@@ -467,20 +503,48 @@ export function InspectionPlanDialog({
                   </div>
                 )
               })}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  const created = emptyItem()
-                  setItems((current) => [...current, created])
-                  setSavedItems((current) => [...current, JSON.parse(JSON.stringify(created))])
-                  setExpanded(items.length)
-                  setDirtyIndex(null)
-                }}
-              >
-                <Plus data-icon="inline-start" />
-                {t("inspection.addItem")}
-              </Button>
+              {choosingType ? (
+                <div className="grid gap-3 rounded-lg border border-primary/40 bg-muted/20 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="grid gap-1">
+                      <p className="text-sm font-medium">{t("inspection.chooseItemType")}</p>
+                      <p className="text-xs text-muted-foreground">{t("inspection.chooseItemTypeHint")}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setChoosingType(false)}
+                    >
+                      {t("action.cancel")}
+                    </Button>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {INSPECTION_ITEM_KINDS.map((kind) => (
+                      <button
+                        key={kind}
+                        type="button"
+                        className="grid gap-1 rounded-lg border border-border bg-background px-3 py-2 text-left transition hover:border-primary/50 hover:bg-muted/40 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                        onClick={() => addItem(kind)}
+                      >
+                        <span className="text-sm font-medium">{inspectionKindLabel(t, kind)}</span>
+                        <span className="text-xs leading-relaxed text-muted-foreground">
+                          {kindHint(kind)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setChoosingType(true)}
+                >
+                  <Plus data-icon="inline-start" />
+                  {t("inspection.addItem")}
+                </Button>
+              )}
             </div>
           ) : null}
 
@@ -552,6 +616,7 @@ export function InspectionPlanDialog({
                   <Input
                     value={timezone}
                     onChange={(event) => setTimezone(event.target.value)}
+                    placeholder={t("inspection.timezonePlaceholder")}
                   />
                 </FormField>
               </div>
@@ -575,6 +640,7 @@ export function InspectionPlanDialog({
                   className={`font-mono text-xs ${cronPreset !== CUSTOM_CRON ? "bg-muted text-muted-foreground" : ""}`}
                   value={cron}
                   readOnly={cronPreset !== CUSTOM_CRON}
+                  placeholder={t("inspection.cronPlaceholder")}
                   onChange={(event) => setCron(event.target.value)}
                 />
               </FormField>

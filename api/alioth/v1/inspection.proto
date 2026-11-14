@@ -76,7 +76,7 @@ service InspectionRunService {
   rpc GetInspectionReport(GetInspectionReportRequest) returns (GetInspectionReportResponse) {
     option (google.api.http) = {get: "/v1/inspection/reports/{uid}"};
   }
-  // 生成或轮换报告的公开链接，token 只在本次响应返回。
+  // 生成一条报告的公开链接，token 只在本次响应返回；旧链接需显式停用。
   rpc ShareInspectionReport(ShareInspectionReportRequest) returns (ShareInspectionReportResponse) {
     option (google.api.http) = {
       post: "/v1/inspection/reports/{uid}/share"
@@ -86,6 +86,14 @@ service InspectionRunService {
   // 停用报告的公开链接。
   rpc RevokeInspectionReportShare(RevokeInspectionReportShareRequest) returns (RevokeInspectionReportShareResponse) {
     option (google.api.http) = {delete: "/v1/inspection/reports/{uid}/share"};
+  }
+  // 列出报告的全部分享链接记录。
+  rpc ListInspectionReportShares(ListInspectionReportSharesRequest) returns (ListInspectionReportSharesResponse) {
+    option (google.api.http) = {get: "/v1/inspection/reports/{uid}/shares"};
+  }
+  // 停用一条分享链接。
+  rpc RevokeInspectionReportShareLink(RevokeInspectionReportShareLinkRequest) returns (RevokeInspectionReportShareLinkResponse) {
+    option (google.api.http) = {delete: "/v1/inspection/reports/{uid}/shares/{share_uid}"};
   }
   // 按 token 读取公开报告，无需登录与租户头。
   rpc GetSharedInspectionReport(GetSharedInspectionReportRequest) returns (GetSharedInspectionReportResponse) {
@@ -621,6 +629,54 @@ message RevokeInspectionReportShareRequest {
 message RevokeInspectionReportShareResponse {
   // 报告元信息。
   InspectionReport report = 1;
+}
+
+// 一条报告分享链接记录；token 本身只在创建时返回一次。
+message InspectionReportShare {
+  // 标识；旧版单链接记录为空字符串。
+  string uid = 1;
+  // 归属报告。
+  string report_uid = 2 [json_name = "reportUid"];
+  // 状态，取值为 ACTIVE、EXPIRED 或 REVOKED。
+  string status = 3;
+  // 创建时间，RFC3339。
+  string created_at = 4 [json_name = "createdAt"];
+  // 到期时间，RFC3339；永久时为空。
+  string expires_at = 5 [json_name = "expiresAt"];
+  // 停用时间，RFC3339。
+  string revoked_at = 6 [json_name = "revokedAt"];
+  // 访问次数。
+  int32 view_count = 7 [json_name = "viewCount"];
+  // 最近访问时间，RFC3339。
+  string last_viewed_at = 8 [json_name = "lastViewedAt"];
+  // 是否设置了访问密码。
+  bool has_password = 9 [json_name = "hasPassword"];
+}
+
+// 列出报告分享记录请求。
+message ListInspectionReportSharesRequest {
+  // 报告标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 列出报告分享记录响应。
+message ListInspectionReportSharesResponse {
+  // 分享记录，最新的在前。
+  repeated InspectionReportShare items = 1;
+}
+
+// 停用一条分享链接请求。
+message RevokeInspectionReportShareLinkRequest {
+  // 报告标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 分享记录标识。
+  string share_uid = 2 [json_name = "shareUid", (buf.validate.field).string.min_len = 1];
+}
+
+// 停用一条分享链接响应。
+message RevokeInspectionReportShareLinkResponse {
+  // 停用后的分享记录。
+  InspectionReportShare share = 1;
 }
 
 // 公开报告请求。

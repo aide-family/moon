@@ -367,15 +367,17 @@ var InspectionPlanService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	InspectionRunService_RunInspectionPlan_FullMethodName           = "/alioth.v1.InspectionRunService/RunInspectionPlan"
-	InspectionRunService_ListInspectionRuns_FullMethodName          = "/alioth.v1.InspectionRunService/ListInspectionRuns"
-	InspectionRunService_GetInspectionRun_FullMethodName            = "/alioth.v1.InspectionRunService/GetInspectionRun"
-	InspectionRunService_ListRunReports_FullMethodName              = "/alioth.v1.InspectionRunService/ListRunReports"
-	InspectionRunService_GetInspectionReport_FullMethodName         = "/alioth.v1.InspectionRunService/GetInspectionReport"
-	InspectionRunService_ShareInspectionReport_FullMethodName       = "/alioth.v1.InspectionRunService/ShareInspectionReport"
-	InspectionRunService_RevokeInspectionReportShare_FullMethodName = "/alioth.v1.InspectionRunService/RevokeInspectionReportShare"
-	InspectionRunService_GetSharedInspectionReport_FullMethodName   = "/alioth.v1.InspectionRunService/GetSharedInspectionReport"
-	InspectionRunService_ResendInspectionReport_FullMethodName      = "/alioth.v1.InspectionRunService/ResendInspectionReport"
+	InspectionRunService_RunInspectionPlan_FullMethodName               = "/alioth.v1.InspectionRunService/RunInspectionPlan"
+	InspectionRunService_ListInspectionRuns_FullMethodName              = "/alioth.v1.InspectionRunService/ListInspectionRuns"
+	InspectionRunService_GetInspectionRun_FullMethodName                = "/alioth.v1.InspectionRunService/GetInspectionRun"
+	InspectionRunService_ListRunReports_FullMethodName                  = "/alioth.v1.InspectionRunService/ListRunReports"
+	InspectionRunService_GetInspectionReport_FullMethodName             = "/alioth.v1.InspectionRunService/GetInspectionReport"
+	InspectionRunService_ShareInspectionReport_FullMethodName           = "/alioth.v1.InspectionRunService/ShareInspectionReport"
+	InspectionRunService_RevokeInspectionReportShare_FullMethodName     = "/alioth.v1.InspectionRunService/RevokeInspectionReportShare"
+	InspectionRunService_ListInspectionReportShares_FullMethodName      = "/alioth.v1.InspectionRunService/ListInspectionReportShares"
+	InspectionRunService_RevokeInspectionReportShareLink_FullMethodName = "/alioth.v1.InspectionRunService/RevokeInspectionReportShareLink"
+	InspectionRunService_GetSharedInspectionReport_FullMethodName       = "/alioth.v1.InspectionRunService/GetSharedInspectionReport"
+	InspectionRunService_ResendInspectionReport_FullMethodName          = "/alioth.v1.InspectionRunService/ResendInspectionReport"
 )
 
 // InspectionRunServiceClient is the client API for InspectionRunService service.
@@ -394,10 +396,14 @@ type InspectionRunServiceClient interface {
 	ListRunReports(ctx context.Context, in *ListRunReportsRequest, opts ...grpc.CallOption) (*ListRunReportsResponse, error)
 	// 获取报告快照，包含正文。
 	GetInspectionReport(ctx context.Context, in *GetInspectionReportRequest, opts ...grpc.CallOption) (*GetInspectionReportResponse, error)
-	// 生成或轮换报告的公开链接，token 只在本次响应返回。
+	// 生成一条报告的公开链接，token 只在本次响应返回；旧链接需显式停用。
 	ShareInspectionReport(ctx context.Context, in *ShareInspectionReportRequest, opts ...grpc.CallOption) (*ShareInspectionReportResponse, error)
 	// 停用报告的公开链接。
 	RevokeInspectionReportShare(ctx context.Context, in *RevokeInspectionReportShareRequest, opts ...grpc.CallOption) (*RevokeInspectionReportShareResponse, error)
+	// 列出报告的全部分享链接记录。
+	ListInspectionReportShares(ctx context.Context, in *ListInspectionReportSharesRequest, opts ...grpc.CallOption) (*ListInspectionReportSharesResponse, error)
+	// 停用一条分享链接。
+	RevokeInspectionReportShareLink(ctx context.Context, in *RevokeInspectionReportShareLinkRequest, opts ...grpc.CallOption) (*RevokeInspectionReportShareLinkResponse, error)
 	// 按 token 读取公开报告，无需登录与租户头。
 	GetSharedInspectionReport(ctx context.Context, in *GetSharedInspectionReportRequest, opts ...grpc.CallOption) (*GetSharedInspectionReportResponse, error)
 	// 重新发送一份报告摘要到计划绑定的通知组。
@@ -482,6 +488,26 @@ func (c *inspectionRunServiceClient) RevokeInspectionReportShare(ctx context.Con
 	return out, nil
 }
 
+func (c *inspectionRunServiceClient) ListInspectionReportShares(ctx context.Context, in *ListInspectionReportSharesRequest, opts ...grpc.CallOption) (*ListInspectionReportSharesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInspectionReportSharesResponse)
+	err := c.cc.Invoke(ctx, InspectionRunService_ListInspectionReportShares_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *inspectionRunServiceClient) RevokeInspectionReportShareLink(ctx context.Context, in *RevokeInspectionReportShareLinkRequest, opts ...grpc.CallOption) (*RevokeInspectionReportShareLinkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeInspectionReportShareLinkResponse)
+	err := c.cc.Invoke(ctx, InspectionRunService_RevokeInspectionReportShareLink_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *inspectionRunServiceClient) GetSharedInspectionReport(ctx context.Context, in *GetSharedInspectionReportRequest, opts ...grpc.CallOption) (*GetSharedInspectionReportResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetSharedInspectionReportResponse)
@@ -518,10 +544,14 @@ type InspectionRunServiceServer interface {
 	ListRunReports(context.Context, *ListRunReportsRequest) (*ListRunReportsResponse, error)
 	// 获取报告快照，包含正文。
 	GetInspectionReport(context.Context, *GetInspectionReportRequest) (*GetInspectionReportResponse, error)
-	// 生成或轮换报告的公开链接，token 只在本次响应返回。
+	// 生成一条报告的公开链接，token 只在本次响应返回；旧链接需显式停用。
 	ShareInspectionReport(context.Context, *ShareInspectionReportRequest) (*ShareInspectionReportResponse, error)
 	// 停用报告的公开链接。
 	RevokeInspectionReportShare(context.Context, *RevokeInspectionReportShareRequest) (*RevokeInspectionReportShareResponse, error)
+	// 列出报告的全部分享链接记录。
+	ListInspectionReportShares(context.Context, *ListInspectionReportSharesRequest) (*ListInspectionReportSharesResponse, error)
+	// 停用一条分享链接。
+	RevokeInspectionReportShareLink(context.Context, *RevokeInspectionReportShareLinkRequest) (*RevokeInspectionReportShareLinkResponse, error)
 	// 按 token 读取公开报告，无需登录与租户头。
 	GetSharedInspectionReport(context.Context, *GetSharedInspectionReportRequest) (*GetSharedInspectionReportResponse, error)
 	// 重新发送一份报告摘要到计划绑定的通知组。
@@ -556,6 +586,12 @@ func (UnimplementedInspectionRunServiceServer) ShareInspectionReport(context.Con
 }
 func (UnimplementedInspectionRunServiceServer) RevokeInspectionReportShare(context.Context, *RevokeInspectionReportShareRequest) (*RevokeInspectionReportShareResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RevokeInspectionReportShare not implemented")
+}
+func (UnimplementedInspectionRunServiceServer) ListInspectionReportShares(context.Context, *ListInspectionReportSharesRequest) (*ListInspectionReportSharesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListInspectionReportShares not implemented")
+}
+func (UnimplementedInspectionRunServiceServer) RevokeInspectionReportShareLink(context.Context, *RevokeInspectionReportShareLinkRequest) (*RevokeInspectionReportShareLinkResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RevokeInspectionReportShareLink not implemented")
 }
 func (UnimplementedInspectionRunServiceServer) GetSharedInspectionReport(context.Context, *GetSharedInspectionReportRequest) (*GetSharedInspectionReportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSharedInspectionReport not implemented")
@@ -710,6 +746,42 @@ func _InspectionRunService_RevokeInspectionReportShare_Handler(srv interface{}, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InspectionRunService_ListInspectionReportShares_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInspectionReportSharesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InspectionRunServiceServer).ListInspectionReportShares(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InspectionRunService_ListInspectionReportShares_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InspectionRunServiceServer).ListInspectionReportShares(ctx, req.(*ListInspectionReportSharesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InspectionRunService_RevokeInspectionReportShareLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeInspectionReportShareLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InspectionRunServiceServer).RevokeInspectionReportShareLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InspectionRunService_RevokeInspectionReportShareLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InspectionRunServiceServer).RevokeInspectionReportShareLink(ctx, req.(*RevokeInspectionReportShareLinkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _InspectionRunService_GetSharedInspectionReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSharedInspectionReportRequest)
 	if err := dec(in); err != nil {
@@ -780,6 +852,14 @@ var InspectionRunService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RevokeInspectionReportShare",
 			Handler:    _InspectionRunService_RevokeInspectionReportShare_Handler,
+		},
+		{
+			MethodName: "ListInspectionReportShares",
+			Handler:    _InspectionRunService_ListInspectionReportShares_Handler,
+		},
+		{
+			MethodName: "RevokeInspectionReportShareLink",
+			Handler:    _InspectionRunService_RevokeInspectionReportShareLink_Handler,
 		},
 		{
 			MethodName: "GetSharedInspectionReport",

@@ -16,6 +16,7 @@ import type {
   ListInspectionTemplatesResult,
   SaveInspectionTemplateParams,
   ShareInspectionReportResult,
+  InspectionReportShare,
 } from "./types"
 
 /** GET /v1/inspection/plans */
@@ -154,6 +155,25 @@ export function revokeInspectionReportShare(
   uid: string
 ): Promise<{ report: InspectionReport }> {
   return del<{ report: InspectionReport }>(`/inspection/reports/${uid}/share`)
+}
+
+/** GET /v1/inspection/reports/{uid}/shares */
+export function listInspectionReportShares(
+  uid: string
+): Promise<{ items: InspectionReportShare[] }> {
+  return get<{ items: InspectionReportShare[] }>(
+    `/inspection/reports/${uid}/shares`
+  )
+}
+
+/** DELETE /v1/inspection/reports/{uid}/shares/{shareUid} */
+export function revokeInspectionReportShareLink(
+  uid: string,
+  shareUid: string
+): Promise<{ share: InspectionReportShare }> {
+  return del<{ share: InspectionReportShare }>(
+    `/inspection/reports/${uid}/shares/${shareUid}`
+  )
 }
 
 /** GET /v1/public/inspection-reports/{token}：公开页使用，不走登录态。 */

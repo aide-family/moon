@@ -1199,6 +1199,45 @@ var (
 			},
 		},
 	}
+	// InspectionReportSharesColumns holds the columns for the "inspection_report_shares" table.
+	InspectionReportSharesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "report_uid", Type: field.TypeString},
+		{Name: "token_hash", Type: field.TypeString},
+		{Name: "password_hash", Type: field.TypeString, Default: ""},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "revoked_at", Type: field.TypeTime, Nullable: true},
+		{Name: "view_count", Type: field.TypeInt, Default: 0},
+		{Name: "last_viewed_at", Type: field.TypeTime, Nullable: true},
+	}
+	// InspectionReportSharesTable holds the schema information for the "inspection_report_shares" table.
+	InspectionReportSharesTable = &schema.Table{
+		Name:       "inspection_report_shares",
+		Columns:    InspectionReportSharesColumns,
+		PrimaryKey: []*schema.Column{InspectionReportSharesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "inspectionreportshare_uid",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionReportSharesColumns[3]},
+			},
+			{
+				Name:    "inspectionreportshare_token_hash",
+				Unique:  true,
+				Columns: []*schema.Column{InspectionReportSharesColumns[6]},
+			},
+			{
+				Name:    "inspectionreportshare_namespace_uid_report_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{InspectionReportSharesColumns[4], InspectionReportSharesColumns[5], InspectionReportSharesColumns[1]},
+			},
+		},
+	}
 	// InspectionRunsColumns holds the columns for the "inspection_runs" table.
 	InspectionRunsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -2901,6 +2940,7 @@ var (
 		InspectionItemsTable,
 		InspectionPlansTable,
 		InspectionReportsTable,
+		InspectionReportSharesTable,
 		InspectionRunsTable,
 		InspectionTemplatesTable,
 		MembersTable,

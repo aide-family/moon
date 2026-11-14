@@ -41,6 +41,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreportshare"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionrun"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
@@ -123,6 +124,7 @@ const (
 	TypeInspectionItem                = "InspectionItem"
 	TypeInspectionPlan                = "InspectionPlan"
 	TypeInspectionReport              = "InspectionReport"
+	TypeInspectionReportShare         = "InspectionReportShare"
 	TypeInspectionRun                 = "InspectionRun"
 	TypeInspectionTemplate            = "InspectionTemplate"
 	TypeMember                        = "Member"
@@ -28537,6 +28539,1022 @@ func (m *InspectionReportMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *InspectionReportMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown InspectionReport edge %s", name)
+}
+
+// InspectionReportShareMutation represents an operation that mutates the InspectionReportShare nodes in the graph.
+type InspectionReportShareMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	uid            *string
+	namespace_uid  *string
+	report_uid     *string
+	token_hash     *string
+	password_hash  *string
+	expires_at     *time.Time
+	created_by     *string
+	revoked_at     *time.Time
+	view_count     *int
+	addview_count  *int
+	last_viewed_at *time.Time
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*InspectionReportShare, error)
+	predicates     []predicate.InspectionReportShare
+}
+
+var _ ent.Mutation = (*InspectionReportShareMutation)(nil)
+
+// inspectionreportshareOption allows management of the mutation configuration using functional options.
+type inspectionreportshareOption func(*InspectionReportShareMutation)
+
+// newInspectionReportShareMutation creates new mutation for the InspectionReportShare entity.
+func newInspectionReportShareMutation(c config, op Op, opts ...inspectionreportshareOption) *InspectionReportShareMutation {
+	m := &InspectionReportShareMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeInspectionReportShare,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withInspectionReportShareID sets the ID field of the mutation.
+func withInspectionReportShareID(id int) inspectionreportshareOption {
+	return func(m *InspectionReportShareMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *InspectionReportShare
+		)
+		m.oldValue = func(ctx context.Context) (*InspectionReportShare, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().InspectionReportShare.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withInspectionReportShare sets the old InspectionReportShare of the mutation.
+func withInspectionReportShare(node *InspectionReportShare) inspectionreportshareOption {
+	return func(m *InspectionReportShareMutation) {
+		m.oldValue = func(context.Context) (*InspectionReportShare, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m InspectionReportShareMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m InspectionReportShareMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *InspectionReportShareMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *InspectionReportShareMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().InspectionReportShare.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *InspectionReportShareMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *InspectionReportShareMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *InspectionReportShareMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *InspectionReportShareMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *InspectionReportShareMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *InspectionReportShareMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *InspectionReportShareMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *InspectionReportShareMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *InspectionReportShareMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *InspectionReportShareMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *InspectionReportShareMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *InspectionReportShareMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetReportUID sets the "report_uid" field.
+func (m *InspectionReportShareMutation) SetReportUID(s string) {
+	m.report_uid = &s
+}
+
+// ReportUID returns the value of the "report_uid" field in the mutation.
+func (m *InspectionReportShareMutation) ReportUID() (r string, exists bool) {
+	v := m.report_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReportUID returns the old "report_uid" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldReportUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReportUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReportUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReportUID: %w", err)
+	}
+	return oldValue.ReportUID, nil
+}
+
+// ResetReportUID resets all changes to the "report_uid" field.
+func (m *InspectionReportShareMutation) ResetReportUID() {
+	m.report_uid = nil
+}
+
+// SetTokenHash sets the "token_hash" field.
+func (m *InspectionReportShareMutation) SetTokenHash(s string) {
+	m.token_hash = &s
+}
+
+// TokenHash returns the value of the "token_hash" field in the mutation.
+func (m *InspectionReportShareMutation) TokenHash() (r string, exists bool) {
+	v := m.token_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenHash returns the old "token_hash" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldTokenHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenHash: %w", err)
+	}
+	return oldValue.TokenHash, nil
+}
+
+// ResetTokenHash resets all changes to the "token_hash" field.
+func (m *InspectionReportShareMutation) ResetTokenHash() {
+	m.token_hash = nil
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (m *InspectionReportShareMutation) SetPasswordHash(s string) {
+	m.password_hash = &s
+}
+
+// PasswordHash returns the value of the "password_hash" field in the mutation.
+func (m *InspectionReportShareMutation) PasswordHash() (r string, exists bool) {
+	v := m.password_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPasswordHash returns the old "password_hash" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldPasswordHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPasswordHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPasswordHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPasswordHash: %w", err)
+	}
+	return oldValue.PasswordHash, nil
+}
+
+// ResetPasswordHash resets all changes to the "password_hash" field.
+func (m *InspectionReportShareMutation) ResetPasswordHash() {
+	m.password_hash = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *InspectionReportShareMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *InspectionReportShareMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (m *InspectionReportShareMutation) ClearExpiresAt() {
+	m.expires_at = nil
+	m.clearedFields[inspectionreportshare.FieldExpiresAt] = struct{}{}
+}
+
+// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
+func (m *InspectionReportShareMutation) ExpiresAtCleared() bool {
+	_, ok := m.clearedFields[inspectionreportshare.FieldExpiresAt]
+	return ok
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *InspectionReportShareMutation) ResetExpiresAt() {
+	m.expires_at = nil
+	delete(m.clearedFields, inspectionreportshare.FieldExpiresAt)
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *InspectionReportShareMutation) SetCreatedBy(s string) {
+	m.created_by = &s
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *InspectionReportShareMutation) CreatedBy() (r string, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldCreatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *InspectionReportShareMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
+// SetRevokedAt sets the "revoked_at" field.
+func (m *InspectionReportShareMutation) SetRevokedAt(t time.Time) {
+	m.revoked_at = &t
+}
+
+// RevokedAt returns the value of the "revoked_at" field in the mutation.
+func (m *InspectionReportShareMutation) RevokedAt() (r time.Time, exists bool) {
+	v := m.revoked_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevokedAt returns the old "revoked_at" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldRevokedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevokedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevokedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevokedAt: %w", err)
+	}
+	return oldValue.RevokedAt, nil
+}
+
+// ClearRevokedAt clears the value of the "revoked_at" field.
+func (m *InspectionReportShareMutation) ClearRevokedAt() {
+	m.revoked_at = nil
+	m.clearedFields[inspectionreportshare.FieldRevokedAt] = struct{}{}
+}
+
+// RevokedAtCleared returns if the "revoked_at" field was cleared in this mutation.
+func (m *InspectionReportShareMutation) RevokedAtCleared() bool {
+	_, ok := m.clearedFields[inspectionreportshare.FieldRevokedAt]
+	return ok
+}
+
+// ResetRevokedAt resets all changes to the "revoked_at" field.
+func (m *InspectionReportShareMutation) ResetRevokedAt() {
+	m.revoked_at = nil
+	delete(m.clearedFields, inspectionreportshare.FieldRevokedAt)
+}
+
+// SetViewCount sets the "view_count" field.
+func (m *InspectionReportShareMutation) SetViewCount(i int) {
+	m.view_count = &i
+	m.addview_count = nil
+}
+
+// ViewCount returns the value of the "view_count" field in the mutation.
+func (m *InspectionReportShareMutation) ViewCount() (r int, exists bool) {
+	v := m.view_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldViewCount returns the old "view_count" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldViewCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldViewCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldViewCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldViewCount: %w", err)
+	}
+	return oldValue.ViewCount, nil
+}
+
+// AddViewCount adds i to the "view_count" field.
+func (m *InspectionReportShareMutation) AddViewCount(i int) {
+	if m.addview_count != nil {
+		*m.addview_count += i
+	} else {
+		m.addview_count = &i
+	}
+}
+
+// AddedViewCount returns the value that was added to the "view_count" field in this mutation.
+func (m *InspectionReportShareMutation) AddedViewCount() (r int, exists bool) {
+	v := m.addview_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetViewCount resets all changes to the "view_count" field.
+func (m *InspectionReportShareMutation) ResetViewCount() {
+	m.view_count = nil
+	m.addview_count = nil
+}
+
+// SetLastViewedAt sets the "last_viewed_at" field.
+func (m *InspectionReportShareMutation) SetLastViewedAt(t time.Time) {
+	m.last_viewed_at = &t
+}
+
+// LastViewedAt returns the value of the "last_viewed_at" field in the mutation.
+func (m *InspectionReportShareMutation) LastViewedAt() (r time.Time, exists bool) {
+	v := m.last_viewed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastViewedAt returns the old "last_viewed_at" field's value of the InspectionReportShare entity.
+// If the InspectionReportShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InspectionReportShareMutation) OldLastViewedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastViewedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastViewedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastViewedAt: %w", err)
+	}
+	return oldValue.LastViewedAt, nil
+}
+
+// ClearLastViewedAt clears the value of the "last_viewed_at" field.
+func (m *InspectionReportShareMutation) ClearLastViewedAt() {
+	m.last_viewed_at = nil
+	m.clearedFields[inspectionreportshare.FieldLastViewedAt] = struct{}{}
+}
+
+// LastViewedAtCleared returns if the "last_viewed_at" field was cleared in this mutation.
+func (m *InspectionReportShareMutation) LastViewedAtCleared() bool {
+	_, ok := m.clearedFields[inspectionreportshare.FieldLastViewedAt]
+	return ok
+}
+
+// ResetLastViewedAt resets all changes to the "last_viewed_at" field.
+func (m *InspectionReportShareMutation) ResetLastViewedAt() {
+	m.last_viewed_at = nil
+	delete(m.clearedFields, inspectionreportshare.FieldLastViewedAt)
+}
+
+// Where appends a list predicates to the InspectionReportShareMutation builder.
+func (m *InspectionReportShareMutation) Where(ps ...predicate.InspectionReportShare) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the InspectionReportShareMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *InspectionReportShareMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.InspectionReportShare, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *InspectionReportShareMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *InspectionReportShareMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (InspectionReportShare).
+func (m *InspectionReportShareMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *InspectionReportShareMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, inspectionreportshare.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, inspectionreportshare.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, inspectionreportshare.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, inspectionreportshare.FieldNamespaceUID)
+	}
+	if m.report_uid != nil {
+		fields = append(fields, inspectionreportshare.FieldReportUID)
+	}
+	if m.token_hash != nil {
+		fields = append(fields, inspectionreportshare.FieldTokenHash)
+	}
+	if m.password_hash != nil {
+		fields = append(fields, inspectionreportshare.FieldPasswordHash)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, inspectionreportshare.FieldExpiresAt)
+	}
+	if m.created_by != nil {
+		fields = append(fields, inspectionreportshare.FieldCreatedBy)
+	}
+	if m.revoked_at != nil {
+		fields = append(fields, inspectionreportshare.FieldRevokedAt)
+	}
+	if m.view_count != nil {
+		fields = append(fields, inspectionreportshare.FieldViewCount)
+	}
+	if m.last_viewed_at != nil {
+		fields = append(fields, inspectionreportshare.FieldLastViewedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *InspectionReportShareMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionreportshare.FieldCreatedAt:
+		return m.CreatedAt()
+	case inspectionreportshare.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case inspectionreportshare.FieldUID:
+		return m.UID()
+	case inspectionreportshare.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case inspectionreportshare.FieldReportUID:
+		return m.ReportUID()
+	case inspectionreportshare.FieldTokenHash:
+		return m.TokenHash()
+	case inspectionreportshare.FieldPasswordHash:
+		return m.PasswordHash()
+	case inspectionreportshare.FieldExpiresAt:
+		return m.ExpiresAt()
+	case inspectionreportshare.FieldCreatedBy:
+		return m.CreatedBy()
+	case inspectionreportshare.FieldRevokedAt:
+		return m.RevokedAt()
+	case inspectionreportshare.FieldViewCount:
+		return m.ViewCount()
+	case inspectionreportshare.FieldLastViewedAt:
+		return m.LastViewedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *InspectionReportShareMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case inspectionreportshare.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case inspectionreportshare.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case inspectionreportshare.FieldUID:
+		return m.OldUID(ctx)
+	case inspectionreportshare.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case inspectionreportshare.FieldReportUID:
+		return m.OldReportUID(ctx)
+	case inspectionreportshare.FieldTokenHash:
+		return m.OldTokenHash(ctx)
+	case inspectionreportshare.FieldPasswordHash:
+		return m.OldPasswordHash(ctx)
+	case inspectionreportshare.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case inspectionreportshare.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case inspectionreportshare.FieldRevokedAt:
+		return m.OldRevokedAt(ctx)
+	case inspectionreportshare.FieldViewCount:
+		return m.OldViewCount(ctx)
+	case inspectionreportshare.FieldLastViewedAt:
+		return m.OldLastViewedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown InspectionReportShare field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionReportShareMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case inspectionreportshare.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case inspectionreportshare.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case inspectionreportshare.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case inspectionreportshare.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case inspectionreportshare.FieldReportUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReportUID(v)
+		return nil
+	case inspectionreportshare.FieldTokenHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenHash(v)
+		return nil
+	case inspectionreportshare.FieldPasswordHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPasswordHash(v)
+		return nil
+	case inspectionreportshare.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case inspectionreportshare.FieldCreatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case inspectionreportshare.FieldRevokedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevokedAt(v)
+		return nil
+	case inspectionreportshare.FieldViewCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetViewCount(v)
+		return nil
+	case inspectionreportshare.FieldLastViewedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastViewedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionReportShare field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *InspectionReportShareMutation) AddedFields() []string {
+	var fields []string
+	if m.addview_count != nil {
+		fields = append(fields, inspectionreportshare.FieldViewCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *InspectionReportShareMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case inspectionreportshare.FieldViewCount:
+		return m.AddedViewCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InspectionReportShareMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case inspectionreportshare.FieldViewCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddViewCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionReportShare numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *InspectionReportShareMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(inspectionreportshare.FieldExpiresAt) {
+		fields = append(fields, inspectionreportshare.FieldExpiresAt)
+	}
+	if m.FieldCleared(inspectionreportshare.FieldRevokedAt) {
+		fields = append(fields, inspectionreportshare.FieldRevokedAt)
+	}
+	if m.FieldCleared(inspectionreportshare.FieldLastViewedAt) {
+		fields = append(fields, inspectionreportshare.FieldLastViewedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *InspectionReportShareMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *InspectionReportShareMutation) ClearField(name string) error {
+	switch name {
+	case inspectionreportshare.FieldExpiresAt:
+		m.ClearExpiresAt()
+		return nil
+	case inspectionreportshare.FieldRevokedAt:
+		m.ClearRevokedAt()
+		return nil
+	case inspectionreportshare.FieldLastViewedAt:
+		m.ClearLastViewedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionReportShare nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *InspectionReportShareMutation) ResetField(name string) error {
+	switch name {
+	case inspectionreportshare.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case inspectionreportshare.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case inspectionreportshare.FieldUID:
+		m.ResetUID()
+		return nil
+	case inspectionreportshare.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case inspectionreportshare.FieldReportUID:
+		m.ResetReportUID()
+		return nil
+	case inspectionreportshare.FieldTokenHash:
+		m.ResetTokenHash()
+		return nil
+	case inspectionreportshare.FieldPasswordHash:
+		m.ResetPasswordHash()
+		return nil
+	case inspectionreportshare.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case inspectionreportshare.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case inspectionreportshare.FieldRevokedAt:
+		m.ResetRevokedAt()
+		return nil
+	case inspectionreportshare.FieldViewCount:
+		m.ResetViewCount()
+		return nil
+	case inspectionreportshare.FieldLastViewedAt:
+		m.ResetLastViewedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown InspectionReportShare field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *InspectionReportShareMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *InspectionReportShareMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *InspectionReportShareMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *InspectionReportShareMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *InspectionReportShareMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *InspectionReportShareMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *InspectionReportShareMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown InspectionReportShare unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *InspectionReportShareMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown InspectionReportShare edge %s", name)
 }
 
 // InspectionRunMutation represents an operation that mutates the InspectionRun nodes in the graph.

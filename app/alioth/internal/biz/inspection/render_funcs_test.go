@@ -3,9 +3,28 @@ package inspection
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 )
+
+func TestSeriesChartRendersAxes(t *testing.T) {
+	start := time.Date(2026, 11, 14, 9, 0, 0, 0, time.Local)
+	points := []bo.InspectionPoint{
+		{Timestamp: start.Unix(), Value: 0},
+		{Timestamp: start.Add(10 * time.Minute).Unix(), Value: 50},
+		{Timestamp: start.Add(20 * time.Minute).Unix(), Value: 100},
+	}
+	output := string(seriesChart([]bo.InspectionSeries{{Name: "node-a", Points: points}}))
+	for _, want := range []string{
+		`text-anchor="end"`, "100", "50.0", "0.00",
+		start.Format("01-02 15:04"), start.Add(20 * time.Minute).Format("01-02 15:04"),
+	} {
+		if !strings.Contains(output, want) {
+			t.Fatalf("series chart missing axis label %q: %s", want, output)
+		}
+	}
+}
 
 func TestReportHelperFuncsRegistered(t *testing.T) {
 	funcs := reportFuncs()

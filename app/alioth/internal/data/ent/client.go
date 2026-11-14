@@ -44,6 +44,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreportshare"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionrun"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
@@ -151,6 +152,8 @@ type Client struct {
 	InspectionPlan *InspectionPlanClient
 	// InspectionReport is the client for interacting with the InspectionReport builders.
 	InspectionReport *InspectionReportClient
+	// InspectionReportShare is the client for interacting with the InspectionReportShare builders.
+	InspectionReportShare *InspectionReportShareClient
 	// InspectionRun is the client for interacting with the InspectionRun builders.
 	InspectionRun *InspectionRunClient
 	// InspectionTemplate is the client for interacting with the InspectionTemplate builders.
@@ -272,6 +275,7 @@ func (c *Client) init() {
 	c.InspectionItem = NewInspectionItemClient(c.config)
 	c.InspectionPlan = NewInspectionPlanClient(c.config)
 	c.InspectionReport = NewInspectionReportClient(c.config)
+	c.InspectionReportShare = NewInspectionReportShareClient(c.config)
 	c.InspectionRun = NewInspectionRunClient(c.config)
 	c.InspectionTemplate = NewInspectionTemplateClient(c.config)
 	c.Member = NewMemberClient(c.config)
@@ -434,6 +438,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		InspectionItem:                NewInspectionItemClient(cfg),
 		InspectionPlan:                NewInspectionPlanClient(cfg),
 		InspectionReport:              NewInspectionReportClient(cfg),
+		InspectionReportShare:         NewInspectionReportShareClient(cfg),
 		InspectionRun:                 NewInspectionRunClient(cfg),
 		InspectionTemplate:            NewInspectionTemplateClient(cfg),
 		Member:                        NewMemberClient(cfg),
@@ -523,6 +528,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		InspectionItem:                NewInspectionItemClient(cfg),
 		InspectionPlan:                NewInspectionPlanClient(cfg),
 		InspectionReport:              NewInspectionReportClient(cfg),
+		InspectionReportShare:         NewInspectionReportShareClient(cfg),
 		InspectionRun:                 NewInspectionRunClient(cfg),
 		InspectionTemplate:            NewInspectionTemplateClient(cfg),
 		Member:                        NewMemberClient(cfg),
@@ -599,11 +605,11 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
 		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
 		c.FeaturePackage, c.FeaturePackageItem, c.InspectionItem, c.InspectionPlan,
-		c.InspectionReport, c.InspectionRun, c.InspectionTemplate, c.Member,
-		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
-		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
-		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
-		c.NotificationPreset, c.NotificationSubscription,
+		c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
+		c.InspectionTemplate, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
+		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
+		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
+		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
 		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
@@ -626,11 +632,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
 		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
 		c.FeaturePackage, c.FeaturePackageItem, c.InspectionItem, c.InspectionPlan,
-		c.InspectionReport, c.InspectionRun, c.InspectionTemplate, c.Member,
-		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
-		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
-		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
-		c.NotificationPreset, c.NotificationSubscription,
+		c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
+		c.InspectionTemplate, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
+		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
+		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
+		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
 		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
@@ -705,6 +711,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.InspectionPlan.mutate(ctx, m)
 	case *InspectionReportMutation:
 		return c.InspectionReport.mutate(ctx, m)
+	case *InspectionReportShareMutation:
+		return c.InspectionReportShare.mutate(ctx, m)
 	case *InspectionRunMutation:
 		return c.InspectionRun.mutate(ctx, m)
 	case *InspectionTemplateMutation:
@@ -4777,6 +4785,139 @@ func (c *InspectionReportClient) mutate(ctx context.Context, m *InspectionReport
 		return (&InspectionReportDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown InspectionReport mutation op: %q", m.Op())
+	}
+}
+
+// InspectionReportShareClient is a client for the InspectionReportShare schema.
+type InspectionReportShareClient struct {
+	config
+}
+
+// NewInspectionReportShareClient returns a client for the InspectionReportShare from the given config.
+func NewInspectionReportShareClient(c config) *InspectionReportShareClient {
+	return &InspectionReportShareClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `inspectionreportshare.Hooks(f(g(h())))`.
+func (c *InspectionReportShareClient) Use(hooks ...Hook) {
+	c.hooks.InspectionReportShare = append(c.hooks.InspectionReportShare, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `inspectionreportshare.Intercept(f(g(h())))`.
+func (c *InspectionReportShareClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InspectionReportShare = append(c.inters.InspectionReportShare, interceptors...)
+}
+
+// Create returns a builder for creating a InspectionReportShare entity.
+func (c *InspectionReportShareClient) Create() *InspectionReportShareCreate {
+	mutation := newInspectionReportShareMutation(c.config, OpCreate)
+	return &InspectionReportShareCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of InspectionReportShare entities.
+func (c *InspectionReportShareClient) CreateBulk(builders ...*InspectionReportShareCreate) *InspectionReportShareCreateBulk {
+	return &InspectionReportShareCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InspectionReportShareClient) MapCreateBulk(slice any, setFunc func(*InspectionReportShareCreate, int)) *InspectionReportShareCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InspectionReportShareCreateBulk{err: fmt.Errorf("calling to InspectionReportShareClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InspectionReportShareCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InspectionReportShareCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for InspectionReportShare.
+func (c *InspectionReportShareClient) Update() *InspectionReportShareUpdate {
+	mutation := newInspectionReportShareMutation(c.config, OpUpdate)
+	return &InspectionReportShareUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InspectionReportShareClient) UpdateOne(_m *InspectionReportShare) *InspectionReportShareUpdateOne {
+	mutation := newInspectionReportShareMutation(c.config, OpUpdateOne, withInspectionReportShare(_m))
+	return &InspectionReportShareUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InspectionReportShareClient) UpdateOneID(id int) *InspectionReportShareUpdateOne {
+	mutation := newInspectionReportShareMutation(c.config, OpUpdateOne, withInspectionReportShareID(id))
+	return &InspectionReportShareUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for InspectionReportShare.
+func (c *InspectionReportShareClient) Delete() *InspectionReportShareDelete {
+	mutation := newInspectionReportShareMutation(c.config, OpDelete)
+	return &InspectionReportShareDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InspectionReportShareClient) DeleteOne(_m *InspectionReportShare) *InspectionReportShareDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InspectionReportShareClient) DeleteOneID(id int) *InspectionReportShareDeleteOne {
+	builder := c.Delete().Where(inspectionreportshare.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InspectionReportShareDeleteOne{builder}
+}
+
+// Query returns a query builder for InspectionReportShare.
+func (c *InspectionReportShareClient) Query() *InspectionReportShareQuery {
+	return &InspectionReportShareQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInspectionReportShare},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a InspectionReportShare entity by its id.
+func (c *InspectionReportShareClient) Get(ctx context.Context, id int) (*InspectionReportShare, error) {
+	return c.Query().Where(inspectionreportshare.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InspectionReportShareClient) GetX(ctx context.Context, id int) *InspectionReportShare {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *InspectionReportShareClient) Hooks() []Hook {
+	return c.hooks.InspectionReportShare
+}
+
+// Interceptors returns the client interceptors.
+func (c *InspectionReportShareClient) Interceptors() []Interceptor {
+	return c.inters.InspectionReportShare
+}
+
+func (c *InspectionReportShareClient) mutate(ctx context.Context, m *InspectionReportShareMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InspectionReportShareCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InspectionReportShareUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InspectionReportShareUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InspectionReportShareDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InspectionReportShare mutation op: %q", m.Op())
 	}
 }
 
@@ -10110,9 +10251,9 @@ type (
 		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
 		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
 		FeaturePackageItem, InspectionItem, InspectionPlan, InspectionReport,
-		InspectionRun, InspectionTemplate, Member, MemberInvite, MemberRole,
-		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
-		NotificationChannel, NotificationGroup, NotificationOnCall,
+		InspectionReportShare, InspectionRun, InspectionTemplate, Member, MemberInvite,
+		MemberRole, MessageLog, MessageLogShard, Namespace, NamespaceFeature,
+		NamespaceOrder, NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
@@ -10129,9 +10270,9 @@ type (
 		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
 		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
 		FeaturePackageItem, InspectionItem, InspectionPlan, InspectionReport,
-		InspectionRun, InspectionTemplate, Member, MemberInvite, MemberRole,
-		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
-		NotificationChannel, NotificationGroup, NotificationOnCall,
+		InspectionReportShare, InspectionRun, InspectionTemplate, Member, MemberInvite,
+		MemberRole, MessageLog, MessageLogShard, Namespace, NamespaceFeature,
+		NamespaceOrder, NotificationChannel, NotificationGroup, NotificationOnCall,
 		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
 		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
 		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,

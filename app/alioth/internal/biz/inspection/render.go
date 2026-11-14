@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html"
 	htmltmpl "html/template"
+	"math"
 	"strconv"
 	"strings"
 	texttmpl "text/template"
@@ -333,11 +334,15 @@ func tableHTML(table *bo.InspectionTable) htmltmpl.HTML {
 }
 
 // seriesChart 渲染多序列趋势 SVG；模板不需要引入前端图表库。
+// 图表带 Y 轴数值刻度与 X 轴时间刻度，导出成单文件 HTML 后也能读数。
 func seriesChart(series []bo.InspectionSeries) htmltmpl.HTML {
 	if len(series) == 0 {
 		return ""
 	}
-	const width, height, padding = 720.0, 190.0, 26.0
+	const width, height = 720.0, 210.0
+	const left, right, top, bottom = 52.0, 16.0, 20.0, 30.0
+	plotWidth := width - left - right
+	plotHeight := height - top - bottom
 	min, max := 0.0, 0.0
 	first := true
 	for _, item := range series {
@@ -364,11 +369,36 @@ func seriesChart(series []bo.InspectionSeries) htmltmpl.HTML {
 	colors := []string{"#1677ff", "#db7a0e", "#047857", "#7c3aed", "#dc2626", "#0891b2"}
 	var out strings.Builder
 	out.WriteString(`<div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin:12px 0;background:#fff">`)
-	out.WriteString(`<svg viewBox="0 0 720 190" style="width:100%;height:auto;display:block" role="img">`)
+	out.WriteString(`<svg viewBox="0 0 720 210" style="width:100%;height:auto;display:block" role="img">`)
+	// 横向网格与 Y 轴数值：上边界是 max，下边界是 min。
 	for line := 0; line <= 4; line++ {
-		y := padding + (height-2*padding)*float64(line)/4
-		out.WriteString(`<line x1="26" y1="` + formatFloat(y) + `" x2="694" y2="` + formatFloat(y) + `" stroke="#f1f5f9" stroke-width="1"/>`)
+		y := top + plotHeight*float64(line)/4
+		value := max - (max-min)*float64(line)/4
+		out.WriteString(`<line x1="` + formatFloat(left) + `" y1="` + formatFloat(y) + `" x2="` + formatFloat(width-right) + `" y2="` + formatFloat(y) + `" stroke="#f1f5f9" stroke-width="1"/>`)
+		out.WriteString(`<text x="` + formatFloat(left-6) + `" y="` + formatFloat(y+3) + `" fill="#94a3b8" font-size="10" text-anchor="end">` + html.EscapeString(axisValue(value)) + `</text>`)
 	}
+	// X 轴时间刻度取第一条有数据的序列的首、中、尾三个点。
+	var base *bo.InspectionSeries
+	for index := range series {
+		if len(series[index].Points) > 0 {
+			base = &series[index]
+			break
+		}
+	}
+	if base != nil && len(base.Points) > 0 {
+		last := len(base.Points) - 1
+		positions := []float64{0, 0.5, 1}
+		anchors := []string{"start", "middle", "end"}
+		for tick, ratio := range positions {
+			pointIndex := int(math.Round(float64(last) * ratio))
+			x := left + plotWidth*ratio
+			out.WriteString(`<line x1="` + formatFloat(x) + `" y1="` + formatFloat(top) + `" x2="` + formatFloat(x) + `" y2="` + formatFloat(top+plotHeight) + `" stroke="#f8fafc" stroke-width="1"/>`)
+			label := time.Unix(base.Points[pointIndex].Timestamp, 0).Local().Format("01-02 15:04")
+			out.WriteString(`<text x="` + formatFloat(x) + `" y="` + formatFloat(height-8) + `" fill="#94a3b8" font-size="10" text-anchor="` + anchors[tick] + `">` + html.EscapeString(label) + `</text>`)
+		}
+	}
+	out.WriteString(`<line x1="` + formatFloat(left) + `" y1="` + formatFloat(top+plotHeight) + `" x2="` + formatFloat(width-right) + `" y2="` + formatFloat(top+plotHeight) + `" stroke="#e2e8f0" stroke-width="1"/>`)
+	out.WriteString(`<line x1="` + formatFloat(left) + `" y1="` + formatFloat(top) + `" x2="` + formatFloat(left) + `" y2="` + formatFloat(top+plotHeight) + `" stroke="#e2e8f0" stroke-width="1"/>`)
 	limit := len(series)
 	if limit > 6 {
 		limit = 6
@@ -380,8 +410,8 @@ func seriesChart(series []bo.InspectionSeries) htmltmpl.HTML {
 		}
 		out.WriteString(`<path d="`)
 		for pointIndex, point := range item.Points {
-			x := padding + (width-2*padding)*float64(pointIndex)/float64(len(item.Points)-1)
-			y := height - padding - (point.Value-min)/span*(height-2*padding)
+			x := left + plotWidth*float64(pointIndex)/float64(len(item.Points)-1)
+			y := top + plotHeight - (point.Value-min)/span*plotHeight
 			if pointIndex == 0 {
 				out.WriteString("M")
 			} else {
@@ -390,10 +420,29 @@ func seriesChart(series []bo.InspectionSeries) htmltmpl.HTML {
 			out.WriteString(formatFloat(x) + " " + formatFloat(y))
 		}
 		out.WriteString(`" fill="none" stroke="` + colors[index%len(colors)] + `" stroke-width="2" stroke-linejoin="round"/>`)
-		out.WriteString(`<text x="26" y="` + formatFloat(16+float64(index)*14) + `" fill="` + colors[index%len(colors)] + `" font-size="10">` + html.EscapeString(truncateText(item.Name, 56)) + `</text>`)
+		out.WriteString(`<text x="` + formatFloat(left+4) + `" y="` + formatFloat(12+float64(index)*13) + `" fill="` + colors[index%len(colors)] + `" font-size="10">` + html.EscapeString(truncateText(item.Name, 56)) + `</text>`)
 	}
 	out.WriteString(`</svg></div>`)
 	return htmltmpl.HTML(out.String())
+}
+
+// axisValue 把坐标轴数值压缩成易读文本，避免长小数挤爆刻度。
+func axisValue(value float64) string {
+	abs := math.Abs(value)
+	switch {
+	case abs >= 1_000_000_000:
+		return strconv.FormatFloat(value/1_000_000_000, 'f', 1, 64) + "G"
+	case abs >= 1_000_000:
+		return strconv.FormatFloat(value/1_000_000, 'f', 1, 64) + "M"
+	case abs >= 1_000:
+		return strconv.FormatFloat(value/1_000, 'f', 1, 64) + "k"
+	case abs >= 100:
+		return strconv.FormatFloat(value, 'f', 0, 64)
+	case abs >= 1:
+		return strconv.FormatFloat(value, 'f', 1, 64)
+	default:
+		return strconv.FormatFloat(value, 'f', 2, 64)
+	}
 }
 
 // logsHTML 渲染日志样本列表。

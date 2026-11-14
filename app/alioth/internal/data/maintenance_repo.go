@@ -117,6 +117,7 @@ var runtimeTables = []string{
 	"worker_instances",
 	"inspection_runs",
 	"inspection_reports",
+	"inspection_report_shares",
 }
 
 var (

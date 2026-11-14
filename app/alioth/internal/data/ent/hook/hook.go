@@ -369,6 +369,18 @@ func (f InspectionReportFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InspectionReportMutation", m)
 }
 
+// The InspectionReportShareFunc type is an adapter to allow the use of ordinary
+// function as InspectionReportShare mutator.
+type InspectionReportShareFunc func(context.Context, *ent.InspectionReportShareMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InspectionReportShareFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InspectionReportShareMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InspectionReportShareMutation", m)
+}
+
 // The InspectionRunFunc type is an adapter to allow the use of ordinary
 // function as InspectionRun mutator.
 type InspectionRunFunc func(context.Context, *ent.InspectionRunMutation) (ent.Value, error)

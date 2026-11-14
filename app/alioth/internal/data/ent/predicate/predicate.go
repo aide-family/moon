@@ -96,6 +96,9 @@ type InspectionPlan func(*sql.Selector)
 // InspectionReport is the predicate function for inspectionreport builders.
 type InspectionReport func(*sql.Selector)
 
+// InspectionReportShare is the predicate function for inspectionreportshare builders.
+type InspectionReportShare func(*sql.Selector)
+
 // InspectionRun is the predicate function for inspectionrun builders.
 type InspectionRun func(*sql.Selector)
 

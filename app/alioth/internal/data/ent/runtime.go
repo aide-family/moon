@@ -35,6 +35,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreportshare"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionrun"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectiontemplate"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/member"
@@ -1426,6 +1427,49 @@ func init() {
 	inspectionreportDescShareViewCount := inspectionreportFields[14].Descriptor()
 	// inspectionreport.DefaultShareViewCount holds the default value on creation for the share_view_count field.
 	inspectionreport.DefaultShareViewCount = inspectionreportDescShareViewCount.Default.(int)
+	inspectionreportshareMixin := schema.InspectionReportShare{}.Mixin()
+	inspectionreportshareMixinFields0 := inspectionreportshareMixin[0].Fields()
+	_ = inspectionreportshareMixinFields0
+	inspectionreportshareFields := schema.InspectionReportShare{}.Fields()
+	_ = inspectionreportshareFields
+	// inspectionreportshareDescCreatedAt is the schema descriptor for created_at field.
+	inspectionreportshareDescCreatedAt := inspectionreportshareMixinFields0[0].Descriptor()
+	// inspectionreportshare.DefaultCreatedAt holds the default value on creation for the created_at field.
+	inspectionreportshare.DefaultCreatedAt = inspectionreportshareDescCreatedAt.Default.(func() time.Time)
+	// inspectionreportshareDescUpdatedAt is the schema descriptor for updated_at field.
+	inspectionreportshareDescUpdatedAt := inspectionreportshareMixinFields0[1].Descriptor()
+	// inspectionreportshare.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	inspectionreportshare.DefaultUpdatedAt = inspectionreportshareDescUpdatedAt.Default.(func() time.Time)
+	// inspectionreportshare.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	inspectionreportshare.UpdateDefaultUpdatedAt = inspectionreportshareDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// inspectionreportshareDescUID is the schema descriptor for uid field.
+	inspectionreportshareDescUID := inspectionreportshareFields[0].Descriptor()
+	// inspectionreportshare.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	inspectionreportshare.UIDValidator = inspectionreportshareDescUID.Validators[0].(func(string) error)
+	// inspectionreportshareDescNamespaceUID is the schema descriptor for namespace_uid field.
+	inspectionreportshareDescNamespaceUID := inspectionreportshareFields[1].Descriptor()
+	// inspectionreportshare.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	inspectionreportshare.NamespaceUIDValidator = inspectionreportshareDescNamespaceUID.Validators[0].(func(string) error)
+	// inspectionreportshareDescReportUID is the schema descriptor for report_uid field.
+	inspectionreportshareDescReportUID := inspectionreportshareFields[2].Descriptor()
+	// inspectionreportshare.ReportUIDValidator is a validator for the "report_uid" field. It is called by the builders before save.
+	inspectionreportshare.ReportUIDValidator = inspectionreportshareDescReportUID.Validators[0].(func(string) error)
+	// inspectionreportshareDescTokenHash is the schema descriptor for token_hash field.
+	inspectionreportshareDescTokenHash := inspectionreportshareFields[3].Descriptor()
+	// inspectionreportshare.TokenHashValidator is a validator for the "token_hash" field. It is called by the builders before save.
+	inspectionreportshare.TokenHashValidator = inspectionreportshareDescTokenHash.Validators[0].(func(string) error)
+	// inspectionreportshareDescPasswordHash is the schema descriptor for password_hash field.
+	inspectionreportshareDescPasswordHash := inspectionreportshareFields[4].Descriptor()
+	// inspectionreportshare.DefaultPasswordHash holds the default value on creation for the password_hash field.
+	inspectionreportshare.DefaultPasswordHash = inspectionreportshareDescPasswordHash.Default.(string)
+	// inspectionreportshareDescCreatedBy is the schema descriptor for created_by field.
+	inspectionreportshareDescCreatedBy := inspectionreportshareFields[6].Descriptor()
+	// inspectionreportshare.DefaultCreatedBy holds the default value on creation for the created_by field.
+	inspectionreportshare.DefaultCreatedBy = inspectionreportshareDescCreatedBy.Default.(string)
+	// inspectionreportshareDescViewCount is the schema descriptor for view_count field.
+	inspectionreportshareDescViewCount := inspectionreportshareFields[8].Descriptor()
+	// inspectionreportshare.DefaultViewCount holds the default value on creation for the view_count field.
+	inspectionreportshare.DefaultViewCount = inspectionreportshareDescViewCount.Default.(int)
 	inspectionrunMixin := schema.InspectionRun{}.Mixin()
 	inspectionrunMixinFields0 := inspectionrunMixin[0].Fields()
 	_ = inspectionrunMixinFields0

@@ -1,4 +1,4 @@
-import { Search } from "lucide-react"
+import { BookOpen, Search } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -30,6 +30,7 @@ import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
 import { formErrorMessage } from "@/lib/form-error"
+import { InspectionTemplateGuide } from "@/pages/inspection-templates/template-guide"
 import {
   Table,
   TableBody,
@@ -163,6 +164,7 @@ function TemplateDialog({
                 value={body}
                 onChange={setBody}
                 height={360}
+                placeholder={t("inspection.templateBodyPlaceholder")}
               />
             </div>
           </DialogBody>
@@ -194,6 +196,7 @@ export function InspectionTemplatePage() {
   const [base, setBase] = useState<InspectionTemplate | null>(null)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorKey, setEditorKey] = useState(0)
+  const [guideOpen, setGuideOpen] = useState(false)
   const canWrite = session.can("inspection_template:write")
   const canDelete = session.can("inspection_template:delete")
 
@@ -248,6 +251,10 @@ export function InspectionTemplatePage() {
         title={t("inspection.templates")}
         description={t("inspection.templatesDesc")}
       >
+        <Button variant="outline" onClick={() => setGuideOpen(true)}>
+          <BookOpen data-icon="inline-start" />
+          {t("inspection.templateGuideOpen")}
+        </Button>
         {canWrite ? (
           <Button onClick={() => openEditor(null, null)}>
             {t("inspection.newTemplate")}
@@ -331,6 +338,7 @@ export function InspectionTemplatePage() {
           </Table>
         ) : null}
       </ListFrame>
+      <InspectionTemplateGuide open={guideOpen} onOpenChange={setGuideOpen} />
       <TemplateDialog
         key={editorKey}
         open={editorOpen}

@@ -1,18 +1,21 @@
 import { Copy, Download, Link2, Search } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import {
   getInspectionReport,
+  listInspectionReportShares,
   listInspectionRuns,
-  resendInspectionReport,
   listRunReports,
+  resendInspectionReport,
   revokeInspectionReportShare,
+  revokeInspectionReportShareLink,
   shareInspectionReport,
 } from "@/api/inspection"
 import type {
   InspectionReport,
+  InspectionReportShare,
   InspectionRun,
   InspectionRunStatus,
 } from "@/api/inspection/types"
@@ -83,6 +86,20 @@ function runLabel(t: (key: string) => string, status: InspectionRunStatus): stri
   }
 }
 
+function shareStatusLabel(
+  t: (key: string) => string,
+  status: InspectionReportShare["status"]
+): string {
+  switch (status) {
+    case "ACTIVE":
+      return t("inspection.shareStatusActive")
+    case "EXPIRED":
+      return t("inspection.shareStatusExpired")
+    default:
+      return t("inspection.shareStatusRevoked")
+  }
+}
+
 function runDuration(run: InspectionRun): string {
   if (!run.startedAt || !run.finishedAt) {
     return "—"
@@ -104,16 +121,35 @@ function ReportDialog({
   onOpenChange: (open: boolean) => void
 }) {
   const { t } = useTranslation()
+  const session = useSession()
+  const canShare = session.can("inspection:share")
   const [reports, setReports] = useState<InspectionReport[]>([])
   const [active, setActive] = useState<InspectionReport | null>(null)
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
+  const [shares, setShares] = useState<InspectionReportShare[]>([])
+  const [sharesLoading, setSharesLoading] = useState(false)
   const [shareToken, setShareToken] = useState("")
   const [shareOpen, setShareOpen] = useState(false)
   const [shareDays, setShareDays] = useState("7")
   const [sharePassword, setSharePassword] = useState("")
   const [sharing, setSharing] = useState(false)
   const [resending, setResending] = useState(false)
+
+  const loadShares = useCallback(
+    (report: InspectionReport) => {
+      if (!canShare) {
+        setShares([])
+        return
+      }
+      setSharesLoading(true)
+      listInspectionReportShares(report.uid)
+        .then((result) => setShares(result.items))
+        .catch((err) => toast.error(formErrorMessage(err, t("state.failed"))))
+        .finally(() => setSharesLoading(false))
+    },
+    [canShare, t]
+  )
 
   useEffect(() => {
     if (!open || !run) {
@@ -128,10 +164,12 @@ function ReportDialog({
         setReports(result.items)
         const first = result.items.find((item) => item.format === "HTML") ?? result.items[0]
         if (!first) {
+          setShares([])
           setLoading(false)
           return
         }
         setActive(first)
+        loadShares(first)
         return getInspectionReport(first.uid).then((response) => {
           if (!cancelled) {
             setContent(response.report.content)
@@ -151,12 +189,15 @@ function ReportDialog({
     return () => {
       cancelled = true
     }
-  }, [open, run, t])
+  }, [open, run, t, loadShares])
 
   function switchReport(report: InspectionReport) {
     setActive(report)
     setContent("")
     setLoading(true)
+    setShareToken("")
+    setShareOpen(false)
+    loadShares(report)
     getInspectionReport(report.uid)
       .then((response) => setContent(response.report.content))
       .catch((err) => toast.error(formErrorMessage(err, t("state.failed"))))
@@ -206,6 +247,7 @@ function ReportDialog({
       )
       setShareToken(result.token)
       setShareOpen(false)
+      loadShares(active)
       toast.success(t("inspection.shared"))
     } catch (err) {
       toast.error(formErrorMessage(err, t("state.failed")))
@@ -214,14 +256,19 @@ function ReportDialog({
     }
   }
 
-  async function revoke() {
+  async function revokeShare(share: InspectionReportShare) {
     if (!active) {
       return
     }
     try {
-      await revokeInspectionReportShare(active.uid)
+      if (share.uid) {
+        await revokeInspectionReportShareLink(active.uid, share.uid)
+      } else {
+        await revokeInspectionReportShare(active.uid)
+      }
       setShareToken("")
       toast.success(t("inspection.shareRevoked"))
+      loadShares(active)
     } catch (err) {
       toast.error(formErrorMessage(err, t("state.failed")))
     }
@@ -275,18 +322,20 @@ function ReportDialog({
                 <Button type="button" size="sm" variant="outline" onClick={() => void resend()} disabled={resending}>
                   {t("inspection.resend")}
                 </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShareOpen((open) => !open)}
-                  disabled={sharing}
-                >
-                  <Link2 data-icon="inline-start" />
-                  {t("inspection.share")}
-                </Button>
+                {canShare ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShareOpen((open) => !open)}
+                    disabled={sharing}
+                  >
+                    <Link2 data-icon="inline-start" />
+                    {t("inspection.share")}
+                  </Button>
+                ) : null}
               </div>
-              {shareOpen && !shareToken ? (
+              {shareOpen && canShare ? (
                 <div className="grid gap-2 rounded-lg border border-border bg-muted/30 p-3 sm:grid-cols-[160px_minmax(0,1fr)_auto]">
                   <Select value={shareDays} onValueChange={setShareDays}>
                     <SelectTrigger aria-label={t("inspection.shareExpiry")}>
@@ -311,18 +360,69 @@ function ReportDialog({
                 </div>
               ) : null}
               {shareToken ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <Input readOnly value={`${window.location.origin}/share/report/${shareToken}`} className="min-w-0 flex-1 font-mono text-xs" />
-                  <Button type="button" size="sm" variant="outline" onClick={() => void copy()}>
-                    <Copy data-icon="inline-start" />
-                    {t("inspection.shareCopy")}
-                  </Button>
-                  <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={() => void revoke()}>
-                    {t("inspection.shareDisable")}
-                  </Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={() => { setShareToken(""); setShareOpen(true) }}>
-                    {t("inspection.share")}
-                  </Button>
+                <div className="grid gap-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input readOnly value={`${window.location.origin}/share/report/${shareToken}`} className="min-w-0 flex-1 font-mono text-xs" />
+                    <Button type="button" size="sm" variant="outline" onClick={() => void copy()}>
+                      <Copy data-icon="inline-start" />
+                      {t("inspection.shareCopy")}
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">{t("inspection.shareTokenOnce")}</p>
+                </div>
+              ) : null}
+              {canShare ? (
+                <div className="overflow-hidden rounded-lg border border-border">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border bg-muted/30 px-3 py-2">
+                    <span className="text-sm font-medium">{t("inspection.shareList")}</span>
+                    <span className="text-xs text-muted-foreground">{t("inspection.shareListHint")}</span>
+                  </div>
+                  {sharesLoading ? (
+                    <p className="px-3 py-3 text-xs text-muted-foreground">{t("state.loading")}</p>
+                  ) : null}
+                  {!sharesLoading && shares.length === 0 ? (
+                    <p className="px-3 py-3 text-xs text-muted-foreground">{t("inspection.shareListEmpty")}</p>
+                  ) : null}
+                  {!sharesLoading && shares.length > 0 ? (
+                    <ul className="divide-y divide-border">
+                      {shares.map((share, index) => (
+                        <li key={share.uid || `legacy-${index}`} className="flex flex-wrap items-center gap-3 px-3 py-2">
+                          <StatusBadge
+                            value={share.status}
+                            label={shareStatusLabel(t, share.status)}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium">
+                              {share.uid ? t("inspection.share") : t("inspection.shareLegacy")}
+                              {share.hasPassword ? ` · ${t("inspection.shareProtected")}` : ""}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {t("inspection.shareCreatedAt")} {formatDateTime(share.createdAt) || "—"}
+                              {" · "}
+                              {t("inspection.shareExpires")} {share.expiresAt ? formatDateTime(share.expiresAt) : t("inspection.shareNeverExpires")}
+                              {" · "}
+                              {t("inspection.shareViews")} {share.viewCount}
+                              {share.lastViewedAt ? ` · ${t("inspection.shareLastViewed")} ${formatDateTime(share.lastViewedAt)}` : ""}
+                            </p>
+                            {!share.uid ? (
+                              <p className="text-[11px] text-muted-foreground">{t("inspection.shareLegacyHint")}</p>
+                            ) : null}
+                          </div>
+                          {share.status === "ACTIVE" ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive"
+                              onClick={() => void revokeShare(share)}
+                            >
+                              {t("inspection.shareRevokeLink")}
+                            </Button>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               ) : null}
               {isHtml ? (

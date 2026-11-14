@@ -238,3 +238,20 @@ type InspectionReportListFilter struct {
 	From   *time.Time
 	To     *time.Time
 }
+
+// InspectionReportShare 是一份报告的一条公开分享链接。
+// TokenHash 与 PasswordHash 只在用例内部使用，离开接口前必须清空。
+type InspectionReportShare struct {
+	UID          string
+	NamespaceUID string
+	ReportUID    string
+	TokenHash    string
+	PasswordHash string
+	HasPassword  bool
+	ExpiresAt    *time.Time
+	CreatedBy    string
+	CreatedAt    time.Time
+	RevokedAt    *time.Time
+	ViewCount    int
+	LastViewedAt *time.Time
+}

@@ -311,8 +311,23 @@ func inspectionReportItem(in bo.InspectionReport, includeContent bool) *v1.Inspe
 	return item
 }
 
+func inspectionReportShareItem(in bo.InspectionReportShare) *v1.InspectionReportShare {
+	status := "ACTIVE"
+	if in.RevokedAt != nil {
+		status = "REVOKED"
+	} else if in.ExpiresAt != nil && !in.ExpiresAt.After(time.Now().UTC()) {
+		status = "EXPIRED"
+	}
+	return &v1.InspectionReportShare{
+		Uid: in.UID, ReportUid: in.ReportUID, Status: status,
+		CreatedAt: formatTime(in.CreatedAt), ExpiresAt: formatOptionalTime(in.ExpiresAt),
+		RevokedAt: formatOptionalTime(in.RevokedAt), ViewCount: int32(in.ViewCount),
+		LastViewedAt: formatOptionalTime(in.LastViewedAt), HasPassword: in.HasPassword,
+	}
+}
+
 func (s *InspectionRunService) ShareInspectionReport(ctx context.Context, req *v1.ShareInspectionReportRequest) (*v1.ShareInspectionReportResponse, error) {
-	report, token, err := s.gateway.ShareReport(ctx, req.GetUid(), req.GetDays(), req.GetPassword())
+	report, _, token, err := s.gateway.ShareReport(ctx, req.GetUid(), req.GetDays(), req.GetPassword())
 	if err != nil {
 		return nil, err
 	}
@@ -328,6 +343,26 @@ func (s *InspectionRunService) RevokeInspectionReportShare(ctx context.Context, 
 		return nil, err
 	}
 	return &v1.RevokeInspectionReportShareResponse{Report: inspectionReportItem(*report, false)}, nil
+}
+
+func (s *InspectionRunService) ListInspectionReportShares(ctx context.Context, req *v1.ListInspectionReportSharesRequest) (*v1.ListInspectionReportSharesResponse, error) {
+	items, err := s.gateway.ListReportShares(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	shares := make([]*v1.InspectionReportShare, 0, len(items))
+	for _, item := range items {
+		shares = append(shares, inspectionReportShareItem(item))
+	}
+	return &v1.ListInspectionReportSharesResponse{Items: shares}, nil
+}
+
+func (s *InspectionRunService) RevokeInspectionReportShareLink(ctx context.Context, req *v1.RevokeInspectionReportShareLinkRequest) (*v1.RevokeInspectionReportShareLinkResponse, error) {
+	share, err := s.gateway.RevokeReportShareLink(ctx, req.GetUid(), req.GetShareUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.RevokeInspectionReportShareLinkResponse{Share: inspectionReportShareItem(*share)}, nil
 }
 
 func (s *InspectionRunService) GetSharedInspectionReport(ctx context.Context, req *v1.GetSharedInspectionReportRequest) (*v1.GetSharedInspectionReportResponse, error) {

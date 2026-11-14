@@ -58,4 +58,17 @@ type InspectionRepo interface {
 	GetSharedInspectionReport(ctx context.Context, tokenHash string, now time.Time) (*bo.InspectionReport, error)
 	// TouchInspectionReportShare 记录一次公开访问。
 	TouchInspectionReportShare(ctx context.Context, uid string, now time.Time) error
+
+	// CreateInspectionReportShare 新增一条公开分享记录。
+	CreateInspectionReportShare(ctx context.Context, in bo.InspectionReportShare) (*bo.InspectionReportShare, error)
+	// ListInspectionReportShares 返回报告的全部分享记录，最新的在前。
+	ListInspectionReportShares(ctx context.Context, namespaceUID, reportUID string) ([]bo.InspectionReportShare, error)
+	// RevokeInspectionReportShareByUID 停用指定的分享记录。
+	RevokeInspectionReportShareByUID(ctx context.Context, namespaceUID, reportUID, shareUID string, now time.Time) (*bo.InspectionReportShare, error)
+	// RevokeAllInspectionReportShares 停用报告当前全部有效分享记录。
+	RevokeAllInspectionReportShares(ctx context.Context, namespaceUID, reportUID string, now time.Time) error
+	// GetInspectionReportShareByToken 按 token 哈希读取有效分享记录及其报告。
+	GetInspectionReportShareByToken(ctx context.Context, tokenHash string, now time.Time) (*bo.InspectionReportShare, *bo.InspectionReport, error)
+	// TouchInspectionReportShareByUID 记录一次指定分享记录的访问。
+	TouchInspectionReportShareByUID(ctx context.Context, shareUID string, now time.Time) error
 }
