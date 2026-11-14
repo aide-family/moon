@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Building2 } from "lucide-react"
+import { Building2, Search } from "lucide-react"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import { listMembers } from "@/api/member"
@@ -33,7 +33,9 @@ import { TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS } from "@/lib/table-layout"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
+import { ListFilter } from "@/components/list-filter"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { ListFrame } from "@/components/list-frame"
@@ -47,6 +49,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -61,6 +64,7 @@ import {
   requireSelected,
   requireTrimmed,
 } from "@/lib/form"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 
@@ -70,7 +74,8 @@ export function NamespacePage() {
   const query = useListQuery()
   // 表头和每一行都是独立的 grid 容器，必须共用同一份列模板才能对齐。
   const rowGrid = TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [remark, setRemark] = useState("")
@@ -483,6 +488,25 @@ export function NamespacePage() {
     (item) => item.status === "ACTIVE"
   ).length
 
+  const chips: FilterChip[] = query.name
+    ? [
+        {
+          key: "name",
+          label: `${t("namespace.name")}: ${query.name}`,
+          onRemove: clearFilters,
+        },
+      ]
+    : []
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-5">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -621,24 +645,39 @@ export function NamespacePage() {
         ) : null}
       </section>
 
-      <form
-        className="flex gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
+      <ListFilter
+        id="namespace-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input
-          className="max-w-sm"
-          aria-label={t("namespace.switcher.search")}
-          placeholder={t("namespace.switcher.searchPlaceholder")}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-        />
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="namespace-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("namespace.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="namespace-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("namespace.switcher.searchPlaceholder")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+      </ListFilter>
 
       <ListFrame
         total={total}

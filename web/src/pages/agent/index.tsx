@@ -1,3 +1,4 @@
+import { Search } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
@@ -17,6 +18,7 @@ import type { AgentDeployItem, AgentDeployStep, AgentItem } from "@/api/agent/ty
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
 import {
   LabelEditor,
@@ -27,6 +29,7 @@ import {
   type LabelRow,
 } from "@/components/label-editor"
 import { LabelTags } from "@/components/label-tags"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
@@ -43,6 +46,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Table,
   TableBody,
@@ -55,6 +59,7 @@ import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Textarea } from "@/components/ui/textarea"
 import { requireTrimmed, collectFieldErrors, hasFieldErrors } from "@/lib/form"
 import { TABLE_MIN_WIDTH } from "@/lib/table-layout"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 
@@ -122,7 +127,8 @@ export function AgentPage() {
   const navigate = useNavigate()
   const session = useSession()
   const query = useListQuery()
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AgentItem | null>(null)
   const [name, setName] = useState("")
@@ -380,24 +386,64 @@ export function AgentPage() {
     return { value: "PENDING", label: t("agent.deployPending") }
   }
 
+  const filterChips: FilterChip[] = query.name
+    ? [
+        {
+          key: "name",
+          label: `${t("agent.name")}: ${query.name}`,
+          onRemove: () => query.update({ name: "" }),
+        },
+      ]
+    : []
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("agent.title")} description={t("agent.description")}>
         {canWrite ? <Button onClick={openCreate}>{t("action.create")}</Button> : null}
       </PageHeader>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
+      <ListFilter
+        id="agent-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={filterChips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input className="max-w-sm" value={draft} placeholder={t("agent.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="agent-name-filter"
+            className="text-xs text-muted-foreground"
+          >
+            {t("agent.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="agent-name-filter"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("agent.namePlaceholder")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

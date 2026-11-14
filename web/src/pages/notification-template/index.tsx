@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import type { TFunction } from "i18next"
+import { Search } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
@@ -22,7 +23,9 @@ import {
 import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { NotificationTestDialog } from "@/components/notification-test-dialog"
 import { PageHeader } from "@/components/page-header"
@@ -40,6 +43,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Select,
   SelectContent,
@@ -62,6 +66,7 @@ import {
   requireTrimmed,
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { runAction } from "@/lib/action"
@@ -82,7 +87,12 @@ export function NotificationTemplatePage() {
   const session = useSession()
   const query = useListQuery()
   const navigate = useNavigate()
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    name: query.name,
+    type: query.type,
+    app: query.app,
+  })
   const [channels, setChannels] = useState<NotificationChannelItem[]>([])
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<NotificationTemplateItem | null>(null)
@@ -268,6 +278,42 @@ export function NotificationTemplatePage() {
     [formPreview, type, app, subject, body],
   )
 
+  const chips: FilterChip[] = []
+  if (query.name) {
+    chips.push({
+      key: "name",
+      label: `${t("template.name")}: ${query.name}`,
+      onRemove: () => query.update({ name: "" }),
+    })
+  }
+  if (query.type) {
+    chips.push({
+      key: "type",
+      label: `${t("template.type")}: ${enumLabel(t, query.type)}`,
+      onRemove: () => query.update({ type: "" }),
+    })
+  }
+  if (query.app) {
+    chips.push({
+      key: "app",
+      label: `${t("template.app")}: ${enumLabel(t, query.app)}`,
+      onRemove: () => query.update({ app: "" }),
+    })
+  }
+
+  function applyFilters() {
+    query.update({
+      name: draft.name.trim(),
+      type: draft.type,
+      app: draft.app,
+    })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "", type: "", app: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("template.title")} description={t("template.description")}>
@@ -282,62 +328,132 @@ export function NotificationTemplatePage() {
           </div>
         ) : null}
       </PageHeader>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
+      <ListFilter
+        id="notification-template-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input className="max-w-sm" value={draft} placeholder={t("template.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-        <Select value={query.type || "ALL"} onValueChange={(value) => query.update({ type: value === "ALL" ? "" : value })}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder={t("template.typeFilter")}>
-              <span className="flex items-center gap-2">
-                <ChannelLogo type={query.type || "EMAIL"} className="size-4" />
-                <span>{query.type ? enumLabel(t, query.type) : t("template.allTypes")}</span>
-              </span>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectOption value="ALL">{t("template.allTypes")}</SelectOption>
-            {allowedTypes.map((item) => (
-              <SelectOption key={item} value={item}>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="notification-template-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("template.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="notification-template-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("template.namePlaceholder")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+        <Field className="w-44 shrink-0">
+          <FieldLabel
+            htmlFor="notification-template-filter-type"
+            className="text-xs text-muted-foreground"
+          >
+            {t("template.type")}
+          </FieldLabel>
+          <Select
+            value={draft.type || "ALL"}
+            onValueChange={(value) =>
+              update("type", value === "ALL" ? "" : value)
+            }
+          >
+            <SelectTrigger
+              id="notification-template-filter-type"
+              className="w-full"
+            >
+              <SelectValue placeholder={t("template.typeFilter")}>
                 <span className="flex items-center gap-2">
-                  <ChannelLogo type={item} className="size-4" />
-                  <span>{enumLabel(t, item)}</span>
-                </span>
-              </SelectOption>
-            ))}
-          </SelectContent>
-        </Select>
-        {allowedWebhookApps.length > 0 ? (
-          <Select value={query.app || "ALL"} onValueChange={(value) => query.update({ app: value === "ALL" ? "" : value })}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder={t("template.appFilter")}>
-                <span className="flex items-center gap-2">
-                  <ChannelLogo type="WEBHOOK" app={query.app || "OTHER"} className="size-4" />
-                  <span>{query.app ? enumLabel(t, query.app) : t("template.allApps")}</span>
+                  <ChannelLogo
+                    type={draft.type || "EMAIL"}
+                    className="size-4"
+                  />
+                  <span>
+                    {draft.type
+                      ? enumLabel(t, draft.type)
+                      : t("template.allTypes")}
+                  </span>
                 </span>
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectOption value="ALL">{t("template.allApps")}</SelectOption>
-              {allowedWebhookApps.map((item) => (
+              <SelectOption value="ALL">{t("template.allTypes")}</SelectOption>
+              {allowedTypes.map((item) => (
                 <SelectOption key={item} value={item}>
                   <span className="flex items-center gap-2">
-                    <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                    <ChannelLogo type={item} className="size-4" />
                     <span>{enumLabel(t, item)}</span>
                   </span>
                 </SelectOption>
               ))}
             </SelectContent>
           </Select>
+        </Field>
+        {allowedWebhookApps.length > 0 ? (
+          <Field className="w-44 shrink-0">
+            <FieldLabel
+              htmlFor="notification-template-filter-app"
+              className="text-xs text-muted-foreground"
+            >
+              {t("template.app")}
+            </FieldLabel>
+            <Select
+              value={draft.app || "ALL"}
+              onValueChange={(value) =>
+                update("app", value === "ALL" ? "" : value)
+              }
+            >
+              <SelectTrigger
+                id="notification-template-filter-app"
+                className="w-full"
+              >
+                <SelectValue placeholder={t("template.appFilter")}>
+                  <span className="flex items-center gap-2">
+                    <ChannelLogo
+                      type="WEBHOOK"
+                      app={draft.app || "OTHER"}
+                      className="size-4"
+                    />
+                    <span>
+                      {draft.app
+                        ? enumLabel(t, draft.app)
+                        : t("template.allApps")}
+                    </span>
+                  </span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectOption value="ALL">
+                  {t("template.allApps")}
+                </SelectOption>
+                {allowedWebhookApps.map((item) => (
+                  <SelectOption key={item} value={item}>
+                    <span className="flex items-center gap-2">
+                      <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                      <span>{enumLabel(t, item)}</span>
+                    </span>
+                  </SelectOption>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         ) : null}
-        <Button type="submit" variant="outline" className="shrink-0">
-          {t("action.search")}
-        </Button>
-      </form>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

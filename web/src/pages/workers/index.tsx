@@ -226,9 +226,20 @@ export function WorkerStatusPage() {
   return (
     <div className="flex min-h-0 flex-col gap-5 overflow-y-auto">
       <PageHeader title={t("worker.title")} description={t("worker.description")}>
-        <Button type="button" variant="outline" size="sm" onClick={() => setAttempt((value) => value + 1)} disabled={refreshing}>
-          <RefreshCw className={refreshing ? "motion-safe:animate-spin" : ""} aria-hidden="true" />
-          {t("action.refresh")}
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="size-8"
+          aria-label={t("action.refresh")}
+          title={t("action.refresh")}
+          onClick={() => setAttempt((value) => value + 1)}
+          disabled={refreshing}
+        >
+          <RefreshCw
+            aria-hidden="true"
+            className={cn(refreshing && "animate-spin motion-reduce:animate-none")}
+          />
         </Button>
       </PageHeader>
 

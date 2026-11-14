@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
 import { ApiError } from "@/api/http"
+import { LIST_REFRESH_EVENT } from "@/hooks/use-list-refresh"
 import { failureMessage } from "@/lib/form-error"
 
 export interface PagedListData<T> {
@@ -84,6 +85,16 @@ export function usePagedList<T>({
       }
     }
   })
+
+  // 统一刷新按钮：递增 attempt 触发一次正常加载，仍使用当前页码和筛选条件。
+  useEffect(() => {
+    if (!enabled) {
+      return
+    }
+    const listener = () => setAttempt((value) => value + 1)
+    window.addEventListener(LIST_REFRESH_EVENT, listener)
+    return () => window.removeEventListener(LIST_REFRESH_EVENT, listener)
+  }, [enabled])
 
   useEffect(() => {
     if (!enabled) {

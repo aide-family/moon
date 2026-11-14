@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { Search } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
@@ -24,7 +25,9 @@ import {
 import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
@@ -39,6 +42,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Select,
   SelectContent,
@@ -63,6 +67,7 @@ import {
   type FieldErrors,
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { runAction } from "@/lib/action"
@@ -102,7 +107,8 @@ export function NotificationGroupPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [channels, setChannels] = useState<NotificationChannelItem[]>([])
   const [templates, setTemplates] = useState<NotificationTemplateItem[]>([])
   const [members, setMembers] = useState<MemberItem[]>([])
@@ -487,6 +493,25 @@ export function NotificationGroupPage() {
     return parts.length > 0 ? parts.join(" · ") : t("group.noReceivers")
   }
 
+  const chips: FilterChip[] = query.name
+    ? [
+        {
+          key: "name",
+          label: `${t("group.name")}: ${query.name}`,
+          onRemove: clearFilters,
+        },
+      ]
+    : []
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("group.title")} description={t("group.description")}>
@@ -494,18 +519,39 @@ export function NotificationGroupPage() {
           <Button onClick={openCreate}>{t("action.create")}</Button>
         ) : null}
       </PageHeader>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
+      <ListFilter
+        id="notification-group-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input className="max-w-sm" value={draft} placeholder={t("group.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="notification-group-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("group.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="notification-group-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("group.namePlaceholder")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

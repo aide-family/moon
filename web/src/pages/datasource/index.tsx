@@ -1,4 +1,4 @@
-import { EllipsisVertical } from "lucide-react"
+import { EllipsisVertical, Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
@@ -23,8 +23,11 @@ import { useSession } from "@/auth/session"
 import { authorizedDatasourceDrivers } from "@/lib/feature-catalog"
 import { BrandIcon } from "@/components/brand-icon"
 import { ConfirmAction } from "@/components/confirm-action"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
 import { LabelTags } from "@/components/label-tags"
+import { ListFilter } from "@/components/list-filter"
 import { MultiSelect } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
 import { ListFrame } from "@/components/list-frame"
@@ -47,6 +50,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
@@ -70,6 +74,7 @@ import {
   type LabelPair,
 } from "@/lib/labels"
 import { loadAllSelectItems } from "@/lib/select-pages"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { MetadataPanel } from "@/pages/datasource/metadata-panel"
@@ -149,7 +154,8 @@ export function DatasourcePage() {
   const [params, setParams] = useSearchParams()
   const type = params.get("type") || ""
   const selected = params.get("uid") || ""
-  const [draftName, setDraftName] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name, type })
   const [current, setCurrent] = useState<DatasourceItem | null>(null)
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [notificationGroups, setNotificationGroups] = useState<
@@ -544,6 +550,31 @@ export function DatasourcePage() {
   // 详情里的通知组名称来自响应，仅用于展示；空数组表示未绑定通知组。
   const availabilityGroupNames = current?.notificationGroupNames ?? []
 
+  const chips: FilterChip[] = []
+  if (query.name) {
+    chips.push({
+      key: "name",
+      label: `${t("datasource.name")}: ${query.name}`,
+      onRemove: () => query.update({ name: "" }),
+    })
+  }
+  if (type) {
+    chips.push({
+      key: "type",
+      label: `${t("datasource.type")}: ${enumLabel(t, type)}`,
+      onRemove: () => query.update({ type: "" }),
+    })
+  }
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim(), type: draft.type })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "", type: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
@@ -554,41 +585,77 @@ export function DatasourcePage() {
           <Button onClick={openCreate}>{t("action.create")}</Button>
         ) : null}
       </PageHeader>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draftName })
-        }}
+      <ListFilter
+        id="datasource-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input
-          className="max-w-sm"
-          value={draftName}
-          placeholder={t("datasource.namePlaceholder")}
-          onChange={(event) => setDraftName(event.target.value)}
-        />
-        <Select
-          value={type || "ALL"}
-          onValueChange={(value) =>
-            setParam("type", value === "ALL" ? "" : value)
-          }
-        >
-          <SelectTrigger className="w-40" aria-label={t("datasource.type")}>
-            <SelectValue placeholder={t("datasource.typePlaceholder")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">{t("datasource.typeAll")}</SelectItem>
-            {allowedTypes.map((item) => (
-              <SelectItem key={item} value={item}>
-                {enumLabel(t, item)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="datasource-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("datasource.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="datasource-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("datasource.namePlaceholder")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+        <Field className="w-40 shrink-0">
+          <FieldLabel
+            htmlFor="datasource-filter-type"
+            className="text-xs text-muted-foreground"
+          >
+            {t("datasource.type")}
+          </FieldLabel>
+          <Select
+            value={draft.type || "ALL"}
+            onValueChange={(value) =>
+              update("type", value === "ALL" ? "" : value)
+            }
+          >
+            <SelectTrigger id="datasource-filter-type" className="w-full">
+              <SelectValue placeholder={t("datasource.typePlaceholder")}>
+                <span className="flex items-center gap-2">
+                  <EnumIcon value={draft.type} />
+                  <span>
+                    {draft.type
+                      ? enumLabel(t, draft.type)
+                      : t("datasource.typeAll")}
+                  </span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">{t("datasource.typeAll")}</SelectItem>
+              {allowedTypes.map((item) => (
+                <SelectItem key={item} value={item}>
+                  <span className="flex items-center gap-2">
+                    <EnumIcon value={item} />
+                    <span>{enumLabel(t, item)}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </ListFilter>
       <div className="grid min-h-0 min-w-0 flex-1 gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
         <ListFrame
           total={total}

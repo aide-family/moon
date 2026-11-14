@@ -7,13 +7,14 @@ import { deleteCluster, listClusters, testCluster } from "@/api/cluster"
 import type { ClusterItem, ClusterProbe } from "@/api/cluster"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
-import { FilterChips, type FilterChip } from "@/components/filter-chips"
-import { FilterToggle } from "@/components/filter-toggle"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { TableActionsHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -23,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formErrorMessage } from "@/lib/form-error"
@@ -43,8 +45,8 @@ export function ClusterPage() {
   const session = useSession()
   const navigate = useNavigate()
   const query = useListQuery()
-  const [draftName, setDraftName] = useState(query.name)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorSession, setEditorSession] = useState(0)
   const [editing, setEditing] = useState<ClusterItem | null>(null)
@@ -92,13 +94,19 @@ export function ClusterPage() {
         {
           key: "name",
           label: `${t("cluster.name")}: ${query.name}`,
-          onRemove: () => {
-            setDraftName("")
-            query.update({ name: "" })
-          },
+          onRemove: () => query.update({ name: "" }),
         },
       ]
     : []
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
+  }
 
   function openCreate() {
     setEditing(null)
@@ -186,75 +194,43 @@ export function ClusterPage() {
         title={t("cluster.title")}
         description={t("cluster.description")}
       >
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <FilterToggle
-            open={filtersOpen}
-            count={filterChips.length}
-            controls="cluster-filters"
-            onClick={() => setFiltersOpen((open) => !open)}
-          />
-          {canWrite ? (
-            <Button onClick={openCreate}>{t("action.create")}</Button>
-          ) : null}
-        </div>
-      </PageHeader>
-      <div
-        className={`min-w-0 flex-col gap-2 ${filtersOpen || filterChips.length > 0 ? "flex" : "hidden"}`}
-      >
-        {filterChips.length > 0 ? (
-          <FilterChips
-            items={filterChips}
-            onClearAll={() => {
-              setDraftName("")
-              query.update({ name: "" })
-            }}
-          />
+        {canWrite ? (
+          <Button onClick={openCreate}>{t("action.create")}</Button>
         ) : null}
-        <form
-          id="cluster-filters"
-          className={`flex min-w-0 flex-nowrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4 ${filtersOpen ? "" : "hidden"}`}
-          onSubmit={(event) => {
-            event.preventDefault()
-            query.update({ name: draftName.trim() })
-          }}
-        >
-          <div className="min-w-0 flex-1 basis-48">
+      </PageHeader>
+      <ListFilter
+        id="cluster-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={filterChips.length}
+        dirty={dirty}
+        onApply={applyFilters}
+      >
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="cluster-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("cluster.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
-              id="cluster-name-filter"
-              value={draftName}
+              id="cluster-name"
+              className="pl-9"
+              value={draft.name}
               placeholder={t("cluster.searchPlaceholder")}
-              aria-label={t("cluster.name")}
-              onChange={(event) => setDraftName(event.target.value)}
+              onChange={(event) => update("name", event.target.value)}
             />
           </div>
-          <div className="flex shrink-0 flex-nowrap items-center gap-2">
-            {draftName.trim() !== query.name ? (
-              <span
-                className="text-xs whitespace-nowrap text-amber-600 dark:text-amber-400"
-                role="status"
-              >
-                {t("filter.unapplied")}
-              </span>
-            ) : null}
-            {query.name ? (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setDraftName("")
-                  query.update({ name: "" })
-                }}
-              >
-                {t("filter.clear")}
-              </Button>
-            ) : null}
-            <Button type="submit" variant="outline">
-              <Search aria-hidden="true" data-icon="inline-start" />
-              {t("filter.apply")}
-            </Button>
-          </div>
-        </form>
-      </div>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

@@ -1,5 +1,5 @@
-import { RefreshCw, Search, X } from "lucide-react"
-import { useEffect, useState, type FormEvent, type ReactNode } from "react"
+import { Search } from "lucide-react"
+import { useEffect, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Navigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -20,6 +20,9 @@ import type {
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet, type DetailSection } from "@/components/detail-sheet"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import type { MultiSelectOption } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
@@ -27,6 +30,7 @@ import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -45,6 +49,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { cn } from "@/lib/class-names"
@@ -82,8 +87,11 @@ export function OnCallRotationPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [nameDraft, setNameDraft] = useState(query.name)
-  const [statusDraft, setStatusDraft] = useState(query.status)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    name: query.name,
+    status: normalizeStatus(query.status),
+  })
   const [members, setMembers] = useState<MultiSelectOption[]>([])
   const [open, setOpen] = useState(false)
   const [editorSession, setEditorSession] = useState(0)
@@ -216,15 +224,40 @@ export function OnCallRotationPage() {
     return <Navigate to="/forbidden" replace />
   }
 
-  function applyFilters(event: FormEvent) {
-    event.preventDefault()
-    query.update({ name: nameDraft.trim(), status: statusDraft })
+  function applyFilters() {
+    query.update({ name: draft.name.trim(), status: draft.status })
+    setFiltersOpen(false)
   }
 
   function clearFilters() {
-    setNameDraft("")
-    setStatusDraft("")
     query.update({ name: "", status: "" })
+  }
+
+  /** 状态筛选只认 ACTIVE / DISABLED，其它值按「全部状态」展示。 */
+  function statusLabel(value: string): string {
+    if (value === "ACTIVE") {
+      return t("rotation.filterActive")
+    }
+    if (value === "DISABLED") {
+      return t("rotation.filterDisabled")
+    }
+    return t("rotation.allStatuses")
+  }
+
+  const filterChips: FilterChip[] = []
+  if (query.name) {
+    filterChips.push({
+      key: "name",
+      label: `${t("rotation.name")}: ${query.name}`,
+      onRemove: () => query.update({ name: "" }),
+    })
+  }
+  if (status) {
+    filterChips.push({
+      key: "status",
+      label: `${t("rotation.statusFilter")}: ${statusLabel(status)}`,
+      onRemove: () => query.update({ status: "" }),
+    })
   }
 
   function openCreate() {
@@ -483,78 +516,82 @@ export function OnCallRotationPage() {
         ) : null}
       </PageHeader>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
-        <form
-          className="flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4"
-          onSubmit={applyFilters}
+        <ListFilter
+          id="rotation-filters"
+          open={filtersOpen}
+          onOpenChange={setFiltersOpen}
+          chips={filterChips}
+          onClearAll={clearFilters}
+          onClear={clearFilters}
+          appliedCount={filterChips.length}
+          dirty={dirty}
+          onApply={applyFilters}
         >
-          <div className="flex min-w-0 flex-1 basis-56 items-center gap-2">
-            <Input
-              className="min-w-0 flex-1"
-              value={nameDraft}
-              placeholder={t("rotation.searchPlaceholder")}
-              aria-label={t("rotation.name")}
-              onChange={(event) => setNameDraft(event.target.value)}
-            />
-          </div>
-          <Select
-            value={statusDraft || "ALL"}
-            onValueChange={(value) =>
-              setStatusDraft(value === "ALL" ? "" : value)
-            }
-          >
-            <SelectTrigger
-              className="w-40 shrink-0"
-              aria-label={t("rotation.statusFilter")}
+          <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+            <FieldLabel
+              htmlFor="rotation-filter-name"
+              className="text-xs text-muted-foreground"
             >
-              <SelectValue placeholder={t("rotation.allStatuses")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="ALL">{t("rotation.allStatuses")}</SelectItem>
-                <SelectItem value="ACTIVE">
-                  {t("rotation.filterActive")}
-                </SelectItem>
-                <SelectItem value="DISABLED">
-                  {t("rotation.filterDisabled")}
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <div className="flex shrink-0 items-center gap-2">
-            {query.name || query.status ? (
-              <Button type="button" variant="ghost" onClick={clearFilters}>
-                <X aria-hidden data-icon="inline-start" />
-                {t("filter.clear")}
-              </Button>
-            ) : null}
-            <Button type="submit" variant="outline">
-              <Search aria-hidden data-icon="inline-start" />
-              {t("action.search")}
-            </Button>
-          </div>
-        </form>
+              {t("rotation.name")}
+            </FieldLabel>
+            <div className="relative">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+              <Input
+                id="rotation-filter-name"
+                className="pl-9"
+                value={draft.name}
+                placeholder={t("rotation.searchPlaceholder")}
+                onChange={(event) => update("name", event.target.value)}
+              />
+            </div>
+          </Field>
+          <Field className="w-40 shrink-0">
+            <FieldLabel
+              htmlFor="rotation-filter-status"
+              className="text-xs text-muted-foreground"
+            >
+              {t("rotation.statusFilter")}
+            </FieldLabel>
+            <Select
+              value={draft.status || "ALL"}
+              onValueChange={(value) =>
+                update("status", value === "ALL" ? "" : value)
+              }
+            >
+              <SelectTrigger id="rotation-filter-status" className="w-full">
+                <SelectValue placeholder={t("rotation.allStatuses")}>
+                  <span className="flex items-center gap-2">
+                    {draft.status ? <EnumIcon value={draft.status} /> : null}
+                    <span>{statusLabel(draft.status)}</span>
+                  </span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="ALL">
+                    {t("rotation.allStatuses")}
+                  </SelectItem>
+                  {["ACTIVE", "DISABLED"].map((item) => (
+                    <SelectItem key={item} value={item}>
+                      <span className="flex items-center gap-2">
+                        <EnumIcon value={item} />
+                        <span>{statusLabel(item)}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+        </ListFilter>
         <ListFrame
           total={total}
           page={query.page}
           pageSize={query.pageSize}
           showPager={!loading && !failed && total > 0}
-          actions={
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="size-8"
-              aria-label={t("action.refresh")}
-              title={t("action.refresh")}
-              disabled={loading}
-              onClick={() => reload()}
-            >
-              <RefreshCw
-                aria-hidden
-                className={cn(loading && "animate-spin")}
-              />
-            </Button>
-          }
           onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
           onNext={() => query.update({ page: query.page + 1 })}
         >

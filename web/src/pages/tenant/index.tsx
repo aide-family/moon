@@ -1,4 +1,4 @@
-import { Building2 } from "lucide-react"
+import { Building2, Search } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Navigate, useNavigate } from "react-router-dom"
@@ -11,6 +11,8 @@ import {
 import type { SystemNamespaceItem } from "@/api/system-namespace/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
@@ -22,6 +24,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -31,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { cn } from "@/lib/class-names"
@@ -60,7 +64,8 @@ export function TenantPage() {
   const session = useSession()
   const navigate = useNavigate()
   const query = useListQuery()
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [entering, setEntering] = useState("")
   const [enterError, setEnterError] = useState("")
   // 功能授权弹窗只对超级管理员开放；系统管理员只读视角不显示该操作。
@@ -215,30 +220,64 @@ export function TenantPage() {
     return <Navigate to="/forbidden" replace />
   }
 
+  const chips: FilterChip[] = query.name
+    ? [
+        {
+          key: "name",
+          label: `${t("tenantAdmin.name")}: ${query.name}`,
+          onRemove: clearFilters,
+        },
+      ]
+    : []
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-5">
       <PageHeader
         title={t("tenantAdmin.title")}
         description={t("tenantAdmin.description")}
       />
-      <form
-        className="flex gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
+      <ListFilter
+        id="tenant-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input
-          className="max-w-sm"
-          aria-label={t("tenantAdmin.search")}
-          placeholder={t("tenantAdmin.search")}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-        />
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="tenant-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("tenantAdmin.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="tenant-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("tenantAdmin.search")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+      </ListFilter>
       {entering ? (
         <p aria-live="polite" className="text-sm text-muted-foreground">
           {t("tenantAdmin.entering")}

@@ -1,7 +1,9 @@
+import { RefreshCw } from "lucide-react"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
+import { LIST_REFRESH_EVENT } from "@/hooks/use-list-refresh"
 import { cn } from "@/lib/class-names"
 
 interface ListFrameProps {
@@ -13,6 +15,9 @@ interface ListFrameProps {
   onNext: () => void
   // actions 渲染在分页控件右侧，供列表页放工具栏图标按钮。
   actions?: ReactNode
+  // 刷新当前列表；缺省时派发统一刷新事件，由 usePagedList 按当前条件重载。
+  onRefresh?: () => void
+  refreshing?: boolean
   children: ReactNode
 }
 
@@ -24,6 +29,8 @@ export function ListFrame({
   onPrev,
   onNext,
   actions,
+  onRefresh,
+  refreshing = false,
   children,
 }: ListFrameProps) {
   const { t } = useTranslation()
@@ -59,6 +66,24 @@ export function ListFrame({
               </Button>
             </>
           ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-8"
+            aria-label={t("action.refresh")}
+            title={t("action.refresh")}
+            disabled={refreshing}
+            onClick={
+              onRefresh ??
+              (() => window.dispatchEvent(new Event(LIST_REFRESH_EVENT)))
+            }
+          >
+            <RefreshCw
+              aria-hidden="true"
+              className={cn(refreshing && "animate-spin motion-reduce:animate-none")}
+            />
+          </Button>
           {actions}
         </div>
       </div>

@@ -2,6 +2,7 @@ import {
   ChevronDown,
   ChevronRight,
   EllipsisVertical,
+  Search,
   Trash2,
 } from "lucide-react"
 import { Fragment, useEffect, useMemo, useState } from "react"
@@ -28,8 +29,11 @@ import type {
 } from "@/api/probe-target/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
 import { LabelTags } from "@/components/label-tags"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { StatusBadge } from "@/components/status-badge"
@@ -51,6 +55,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -68,6 +73,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
@@ -762,7 +768,11 @@ export function ProbeTargetPage() {
   const query = useListQuery()
   const [params, setParams] = useSearchParams()
   const selected = params.get("uid") || ""
-  const [draftName, setDraftName] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    name: query.name,
+    type: query.type,
+  })
   const [current, setCurrent] = useState<ProbeTargetGroupItem | null>(null)
   // 探测记录按目标展开：一行目标点开后只拉这个目标的记录，按目标缓存。
   const [expandedTarget, setExpandedTarget] = useState("")
@@ -1421,6 +1431,31 @@ export function ProbeTargetPage() {
     }
   }
 
+  const filterChips: FilterChip[] = []
+  if (query.name) {
+    filterChips.push({
+      key: "name",
+      label: `${t("probeTarget.name")}: ${query.name}`,
+      onRemove: () => query.update({ name: "" }),
+    })
+  }
+  if (query.type) {
+    filterChips.push({
+      key: "type",
+      label: `${t("probeTarget.type")}: ${enumLabel(t, query.type)}`,
+      onRemove: () => query.update({ type: "" }),
+    })
+  }
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim(), type: draft.type })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "", type: "" })
+  }
+
   const targets = current?.targets ?? []
   // HTTP 专属列（状态码、证书剩余天数）只对 HTTP 目标组展示。
   const currentIsHttp = current?.driver === PROBE_HTTP
@@ -1435,41 +1470,77 @@ export function ProbeTargetPage() {
           <Button onClick={openCreate}>{t("action.create")}</Button>
         ) : null}
       </PageHeader>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draftName })
-        }}
+      <ListFilter
+        id="probe-target-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={filterChips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input
-          className="max-w-sm"
-          value={draftName}
-          placeholder={t("probeTarget.namePlaceholder")}
-          onChange={(event) => setDraftName(event.target.value)}
-        />
-        <Select
-          value={query.type || "ALL"}
-          onValueChange={(value) =>
-            query.update({ type: value === "ALL" ? "" : value })
-          }
-        >
-          <SelectTrigger className="w-40" aria-label={t("probeTarget.type")}>
-            <SelectValue placeholder={t("probeTarget.typePlaceholder")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">{t("probeTarget.typeAll")}</SelectItem>
-            {filterDriverChoices.map((driver) => (
-              <SelectItem key={driver} value={driver}>
-                {enumLabel(t, driver)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="probe-target-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("probeTarget.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="probe-target-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("probeTarget.namePlaceholder")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+        <Field className="w-40 shrink-0">
+          <FieldLabel
+            htmlFor="probe-target-filter-type"
+            className="text-xs text-muted-foreground"
+          >
+            {t("probeTarget.type")}
+          </FieldLabel>
+          <Select
+            value={draft.type || "ALL"}
+            onValueChange={(value) =>
+              update("type", value === "ALL" ? "" : value)
+            }
+          >
+            <SelectTrigger id="probe-target-filter-type" className="w-full">
+              <SelectValue placeholder={t("probeTarget.typePlaceholder")}>
+                <span className="flex items-center gap-2">
+                  {draft.type ? <EnumIcon value={draft.type} /> : null}
+                  <span>
+                    {draft.type
+                      ? enumLabel(t, draft.type)
+                      : t("probeTarget.typeAll")}
+                  </span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">{t("probeTarget.typeAll")}</SelectItem>
+              {filterDriverChoices.map((driver) => (
+                <SelectItem key={driver} value={driver}>
+                  <span className="flex items-center gap-2">
+                    <EnumIcon value={driver} />
+                    <span>{enumLabel(t, driver)}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </ListFilter>
       <div className="grid min-h-0 min-w-0 flex-1 gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
         <ListFrame
           total={total}

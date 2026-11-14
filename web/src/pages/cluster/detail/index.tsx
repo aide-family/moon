@@ -11,13 +11,15 @@ import {
 import type { ClusterItem, ClusterProbe } from "@/api/cluster"
 import { ApiError } from "@/api/http"
 import { useSession } from "@/auth/session"
-import { FilterChips, type FilterChip } from "@/components/filter-chips"
-import { FilterToggle } from "@/components/filter-toggle"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { PageHeader } from "@/components/page-header"
 import { SearchableSelect } from "@/components/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { failureMessage, formErrorMessage } from "@/lib/form-error"
 
 import { KubernetesConfigMapsTab } from "../configmaps-tab"
@@ -80,13 +82,10 @@ export function ClusterDetailPage() {
   const [namespacesFailed, setNamespacesFailed] = useState(false)
   const [namespacesAttempt, setNamespacesAttempt] = useState(0)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   // 连接状态整块卡片默认收起，由页头的集群名称控制显隐。
   const [summaryOpen, setSummaryOpen] = useState(false)
   const [metricsBindOpen, setMetricsBindOpen] = useState(false)
-  const [draftState, setDraftState] = useState<{
-    signature: string
-    name: string
-  } | null>(null)
 
   const can = session.can
   // 页面级门槛仍是 cluster:read：它代表集群接入与连接权限，不是资源读写权限。
@@ -263,10 +262,6 @@ export function ClusterDetailPage() {
     namespace: query.namespace,
     name: query.name,
   }
-  const appliedSignature = JSON.stringify(applied)
-  const draftName =
-    draftState?.signature === appliedSignature ? draftState.name : applied.name
-  const filtersDirty = draftName !== applied.name
   const appliedCount = applied.name ? 1 : 0
   const filterChips: FilterChip[] = applied.name
     ? [
@@ -287,18 +282,15 @@ export function ClusterDetailPage() {
       return
     }
     query.update({ section: nextSection, kind: nextKind ?? "" })
-    setDraftState(null)
   }
 
   function applyFilters() {
-    query.update({ name: draftName })
-    setDraftState(null)
+    query.update({ name: draft.name.trim() })
     setFiltersOpen(false)
   }
 
   function clearFilters() {
     query.update({ name: "" })
-    setDraftState(null)
   }
 
   async function runTest() {
@@ -612,14 +604,6 @@ export function ClusterDetailPage() {
                     </Button>
                   </div>
                 ) : null}
-                {supportsNameFilter ? (
-                  <FilterToggle
-                    open={filtersOpen}
-                    count={appliedCount}
-                    controls={FILTER_PANEL_ID}
-                    onClick={() => setFiltersOpen((open) => !open)}
-                  />
-                ) : null}
                 <Button
                   variant="outline"
                   size="icon"
@@ -630,56 +614,44 @@ export function ClusterDetailPage() {
                 </Button>
               </div>
             </div>
-            {supportsNameFilter && filterChips.length > 0 ? (
-              <FilterChips items={filterChips} onClearAll={clearFilters} />
-            ) : null}
             {supportsNameFilter ? (
-              <form
-                id={FILTER_PANEL_ID}
-                className={`flex min-w-0 shrink-0 flex-nowrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 ${filtersOpen ? "" : "hidden"}`}
-                onSubmit={(event) => {
-                  event.preventDefault()
-                  applyFilters()
-                }}
-              >
-                <div className="min-w-0 flex-1 basis-48">
-                  <Input
-                    id="cluster-resource-name-filter"
-                    value={draftName}
-                    placeholder={t("kube.namePlaceholder")}
-                    aria-label={t("kube.name")}
-                    onChange={(event) =>
-                      setDraftState({
-                        signature: appliedSignature,
-                        name: event.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="flex shrink-0 flex-nowrap items-center gap-2">
-                  {filtersDirty ? (
-                    <span
-                      className="text-xs whitespace-nowrap text-amber-600 dark:text-amber-400"
-                      role="status"
+              <div className="shrink-0">
+                <ListFilter
+                  id={FILTER_PANEL_ID}
+                  open={filtersOpen}
+                  onOpenChange={setFiltersOpen}
+                  chips={filterChips}
+                  onClearAll={clearFilters}
+                  onClear={clearFilters}
+                  appliedCount={appliedCount}
+                  dirty={dirty}
+                  onApply={applyFilters}
+                >
+                  <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+                    <FieldLabel
+                      htmlFor="cluster-resource-name"
+                      className="text-xs text-muted-foreground"
                     >
-                      {t("filter.unapplied")}
-                    </span>
-                  ) : null}
-                  {appliedCount > 0 ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={clearFilters}
-                    >
-                      {t("filter.clear")}
-                    </Button>
-                  ) : null}
-                  <Button type="submit" variant="outline">
-                    <Search aria-hidden="true" data-icon="inline-start" />
-                    {t("filter.apply")}
-                  </Button>
-                </div>
-              </form>
+                      {t("kube.name")}
+                    </FieldLabel>
+                    <div className="relative">
+                      <Search
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                      />
+                      <Input
+                        id="cluster-resource-name"
+                        className="pl-9"
+                        value={draft.name}
+                        placeholder={t("kube.namePlaceholder")}
+                        onChange={(event) =>
+                          update("name", event.target.value)
+                        }
+                      />
+                    </div>
+                  </Field>
+                </ListFilter>
+              </div>
             ) : null}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               {renderResourcePanel()}

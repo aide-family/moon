@@ -1,3 +1,4 @@
+import { RefreshCw } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -91,7 +92,22 @@ export function InvitationPage() {
       <PageHeader
         title={t("invitation.title")}
         description={t("invitation.description")}
-      />
+      >
+        <Button
+          variant="outline"
+          size="icon"
+          className="size-8"
+          aria-label={t("action.refresh")}
+          title={t("action.refresh")}
+          disabled={loading}
+          onClick={() => setTick((value) => value + 1)}
+        >
+          <RefreshCw
+            aria-hidden="true"
+            className={loading ? "animate-spin motion-reduce:animate-none" : undefined}
+          />
+        </Button>
+      </PageHeader>
       {loading ? (
         <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
       ) : null}

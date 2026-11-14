@@ -8,11 +8,15 @@ import type { ProbeSlaGroup, ProbeSlaReport } from "@/api/probe-sla/types"
 import { listProbeTargetGroups } from "@/api/probe-target"
 import { useSession } from "@/auth/session"
 import { DateRangePicker } from "@/components/date-range-picker"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import {
   addDays,
   dayEndISO,
@@ -221,9 +225,17 @@ export function ProbeSlaPage() {
   const defaultFrom = formatDateValue(addDays(new Date(), -DEFAULT_DAYS + 1))
   const fromParam = searchParams.get("from") ?? ""
   const toParam = searchParams.get("to") ?? ""
+  const groupsParam = searchParams.get("groups") ?? ""
   const from = parseDateValue(fromParam) ? fromParam : defaultFrom
   const to = parseDateValue(toParam) ? toParam : todayKey
-  const selectedGroups = (searchParams.get("groups") ?? "")
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  // 已生效条件来自 URL；URL 没有日期时以「最近 7 天」为基线，草稿可在此基础上修改。
+  const { draft, updateMany, dirty, reset } = useFilterDraft({
+    from,
+    to,
+    groups: groupsParam,
+  })
+  const draftGroupUids = draft.groups
     .split(",")
     .map((uid) => uid.trim())
     .filter(Boolean)
@@ -303,31 +315,46 @@ export function ProbeSlaPage() {
     return <Navigate to="/forbidden" replace />
   }
 
-  function updateRange(next: { from: string; to: string }) {
-    setLoading(true)
+  /** 只有 URL 真的变化才进入加载态，避免条件未变时空转。 */
+  function writeParams(mutate: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams)
-    if (next.from) {
-      params.set("from", next.from)
-    } else {
-      params.delete("from")
+    mutate(params)
+    if (params.toString() === searchParams.toString()) {
+      return
     }
-    if (next.to) {
-      params.set("to", next.to)
-    } else {
-      params.delete("to")
-    }
+    setLoading(true)
     setSearchParams(params)
   }
 
-  function updateGroups(values: string[]) {
-    setLoading(true)
-    const params = new URLSearchParams(searchParams)
-    if (values.length > 0) {
-      params.set("groups", values.join(","))
-    } else {
+  function applyFilters() {
+    writeParams((params) => {
+      if (draft.from) {
+        params.set("from", draft.from)
+      } else {
+        params.delete("from")
+      }
+      if (draft.to) {
+        params.set("to", draft.to)
+      } else {
+        params.delete("to")
+      }
+      if (draftGroupUids.length > 0) {
+        params.set("groups", draftGroupUids.join(","))
+      } else {
+        params.delete("groups")
+      }
+    })
+    // 草稿可能把日期清空后等价于默认区间（URL 不变），这里主动回落到基线。
+    reset()
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    writeParams((params) => {
+      params.delete("from")
+      params.delete("to")
       params.delete("groups")
-    }
-    setSearchParams(params)
+    })
   }
 
   function retry() {
@@ -339,6 +366,33 @@ export function ProbeSlaPage() {
     return selected >= total && total > 0
       ? t("multiSelect.allSelected", { count: selected })
       : t("multiSelect.summary", { count: selected, total })
+  }
+
+  const filterChips: FilterChip[] = []
+  if (fromParam || toParam) {
+    filterChips.push({
+      key: "range",
+      label: `${t("probeSla.dateRange")}: ${from} → ${to}`,
+      onRemove: () =>
+        writeParams((params) => {
+          params.delete("from")
+          params.delete("to")
+        }),
+    })
+  }
+  if (groupsParam) {
+    const groupLabels = groupsParam
+      .split(",")
+      .map((uid) => uid.trim())
+      .filter(Boolean)
+      .map(
+        (uid) => groups.find((group) => group.value === uid)?.label ?? uid
+      )
+    filterChips.push({
+      key: "groups",
+      label: `${t("probeSla.targetGroups")}: ${groupLabels.join(", ")}`,
+      onRemove: () => writeParams((params) => params.delete("groups")),
+    })
   }
 
   const overall =
@@ -377,58 +431,76 @@ export function ProbeSlaPage() {
         description={t("probeSla.description")}
       >
         <div className="flex shrink-0 items-center gap-2">
-          <Button variant="outline" disabled={loading} onClick={retry}>
+          {/* 该页没有 ListFrame，刷新入口放在页头，与列表页的刷新图标一致。 */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-8"
+            aria-label={t("action.refresh")}
+            title={t("action.refresh")}
+            disabled={loading}
+            onClick={retry}
+          >
             <RefreshCw
               aria-hidden="true"
-              data-icon="inline-start"
               className={loading ? "animate-spin" : undefined}
             />
-            {t("action.refresh")}
           </Button>
         </div>
       </PageHeader>
-      <Card className="min-w-0 px-4">
-        <div className="flex min-w-0 flex-wrap items-end gap-3">
-          <div className="min-w-0 flex-1 basis-64">
-            <label
-              htmlFor="probe-sla-groups"
-              className="mb-1.5 block text-xs font-medium text-muted-foreground"
-            >
-              {t("probeSla.targetGroups")}
-            </label>
-            <MultiSelect
-              id="probe-sla-groups"
-              values={selectedGroups}
-              options={groups}
-              onChange={updateGroups}
-              placeholder={t("multiSelect.placeholder")}
-              searchPlaceholder={t("multiSelect.searchPlaceholder")}
-              emptyText={t("probeSla.noTargetGroups")}
-              allLabel={t("multiSelect.all")}
-              clearLabel={t("multiSelect.clear")}
-              selectedLabel={selectionSummary}
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t("probeSla.dateRange")}
-            </label>
-            <DateRangePicker
-              id="probe-sla-range"
-              ariaLabel={t("probeSla.dateRange")}
-              from={from}
-              to={to}
-              maxDays={MAX_DAYS}
-              maxDate={todayKey}
-              invalid={rangeInvalid}
-              onChange={updateRange}
-            />
-          </div>
-          <p className="min-w-0 basis-full text-xs text-muted-foreground">
-            {t("probeSla.rangeHint", { max: MAX_DAYS })}
-          </p>
-        </div>
-      </Card>
+      <ListFilter
+        id="probe-sla-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={filterChips.length}
+        dirty={dirty}
+        hint={t("probeSla.rangeHint", { max: MAX_DAYS })}
+        onApply={applyFilters}
+      >
+        <Field className="min-w-0 flex-1 basis-64">
+          <FieldLabel
+            htmlFor="probe-sla-groups"
+            className="text-xs text-muted-foreground"
+          >
+            {t("probeSla.targetGroups")}
+          </FieldLabel>
+          <MultiSelect
+            id="probe-sla-groups"
+            values={draftGroupUids}
+            options={groups}
+            onChange={(values) => updateMany({ groups: values.join(",") })}
+            placeholder={t("multiSelect.placeholder")}
+            searchPlaceholder={t("multiSelect.searchPlaceholder")}
+            emptyText={t("probeSla.noTargetGroups")}
+            allLabel={t("multiSelect.all")}
+            clearLabel={t("multiSelect.clear")}
+            selectedLabel={selectionSummary}
+          />
+        </Field>
+        <Field className="w-64 shrink-0">
+          <FieldLabel
+            htmlFor="probe-sla-range"
+            className="text-xs text-muted-foreground"
+          >
+            {t("probeSla.dateRange")}
+          </FieldLabel>
+          <DateRangePicker
+            id="probe-sla-range"
+            ariaLabel={t("probeSla.dateRange")}
+            from={draft.from}
+            to={draft.to}
+            maxDays={MAX_DAYS}
+            maxDate={todayKey}
+            invalid={rangeInvalid}
+            onChange={(range) =>
+              updateMany({ from: range.from, to: range.to })
+            }
+          />
+        </Field>
+      </ListFilter>
       {rangeInvalid ? (
         <Card className="min-w-0 border-danger-border bg-danger-soft px-4 py-3">
           <p className="text-sm text-danger">

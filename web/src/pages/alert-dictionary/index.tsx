@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Check } from "lucide-react"
+import { Check, Search } from "lucide-react"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 import { useSearchParams } from "react-router-dom"
 
@@ -15,7 +15,10 @@ import type { AlertDictionaryItem, AlertDictionaryType } from "@/api/alert-dicti
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
+import { ListFilter } from "@/components/list-filter"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
@@ -30,6 +33,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Select,
   SelectContent,
@@ -52,6 +56,7 @@ import {
   requireTrimmed,
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { runAction } from "@/lib/action"
@@ -119,7 +124,8 @@ export function AlertDictionaryPage() {
   const [params, setParams] = useSearchParams()
   const type = params.get("type") || ""
   const detailUid = params.get("uid") || ""
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name, type })
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AlertDictionaryItem | null>(null)
   const [name, setName] = useState("")
@@ -280,48 +286,105 @@ export function AlertDictionaryPage() {
     ]
   }
 
+  const chips: FilterChip[] = []
+  if (query.name) {
+    chips.push({
+      key: "name",
+      label: `${t("alertDictionary.name")}: ${query.name}`,
+      onRemove: () => query.update({ name: "" }),
+    })
+  }
+  if (type) {
+    chips.push({
+      key: "type",
+      label: `${t("datasource.type")}: ${enumLabel(t, type)}`,
+      onRemove: () => query.update({ type: "" }),
+    })
+  }
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim(), type: draft.type })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "", type: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("alertDictionary.title")} description={t("alertDictionary.description")}>
         {canWrite ? <Button onClick={openCreate}>{t("action.create")}</Button> : null}
       </PageHeader>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
+      <ListFilter
+        id="alert-dictionary-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input className="max-w-sm" value={draft} placeholder={t("alertDictionary.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-        <Select
-          value={type || "ALL"}
-          onValueChange={(value) => {
-            const next = new URLSearchParams(params)
-            if (value === "ALL") {
-              next.delete("type")
-            } else {
-              next.set("type", value)
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="alert-dictionary-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("alertDictionary.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="alert-dictionary-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("alertDictionary.namePlaceholder")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+        <Field className="w-40 shrink-0">
+          <FieldLabel
+            htmlFor="alert-dictionary-filter-type"
+            className="text-xs text-muted-foreground"
+          >
+            {t("datasource.type")}
+          </FieldLabel>
+          <Select
+            value={draft.type || "ALL"}
+            onValueChange={(value) =>
+              update("type", value === "ALL" ? "" : value)
             }
-            next.set("page", "1")
-            setParams(next)
-          }}
-        >
-          <SelectTrigger className="w-40" aria-label={t("datasource.type")}>
-            <SelectValue placeholder={t("datasource.typePlaceholder")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">{t("datasource.typeAll")}</SelectItem>
-            {types.map((item) => (
-              <SelectItem key={item} value={item}>
-                {enumLabel(t, item)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+          >
+            <SelectTrigger id="alert-dictionary-filter-type" className="w-full">
+              <SelectValue placeholder={t("datasource.typePlaceholder")}>
+                <span className="flex items-center gap-2">
+                  <EnumIcon value={draft.type} />
+                  <span>
+                    {draft.type ? enumLabel(t, draft.type) : t("datasource.typeAll")}
+                  </span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">{t("datasource.typeAll")}</SelectItem>
+              {types.map((item) => (
+                <SelectItem key={item} value={item}>
+                  <span className="flex items-center gap-2">
+                    <EnumIcon value={item} />
+                    <span>{enumLabel(t, item)}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

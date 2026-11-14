@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Search } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Navigate } from "react-router-dom"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
@@ -8,12 +9,15 @@ import type { UserItem } from "@/api/user/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
+import { ListFilter } from "@/components/list-filter"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { cn } from "@/lib/class-names"
 import { collectFieldErrors, hasFieldErrors, requireSelected } from "@/lib/form"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { ListFrame } from "@/components/list-frame"
@@ -26,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -63,7 +68,8 @@ export function UserPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [detail, setDetail] = useState<UserItem | null>(null)
   const [banning, setBanning] = useState<UserItem | null>(null)
   const [deleting, setDeleting] = useState<UserItem | null>(null)
@@ -214,26 +220,61 @@ export function UserPage() {
     return actions
   }
 
+  const chips: FilterChip[] = query.name
+    ? [
+        {
+          key: "name",
+          label: `${t("user.name")}: ${query.name}`,
+          onRemove: clearFilters,
+        },
+      ]
+    : []
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("user.title")} description={t("user.description")} />
-      <form
-        className="flex gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
+      <ListFilter
+        id="user-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input
-          className="max-w-sm"
-          value={draft}
-          placeholder={t("user.name")}
-          onChange={(event) => setDraft(event.target.value)}
-        />
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="user-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("user.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="user-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("user.name")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

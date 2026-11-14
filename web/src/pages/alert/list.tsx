@@ -952,7 +952,7 @@ export function AlertEventList({
                   {view === "HISTORY" ? (
                     <>
                       <FieldGroup className="grid-cols-2 xl:grid-cols-4">
-                        <Field className="col-span-2 xl:col-span-2">
+                        <Field className="col-span-2 max-w-[500px] xl:col-span-2">
                           <FieldLabel
                             htmlFor="history-detail-name"
                             className="text-xs text-muted-foreground"
@@ -1208,7 +1208,7 @@ export function AlertEventList({
                     </>
                   ) : (
                     <>
-                      <Field className="min-w-0 flex-1 basis-56">
+                      <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
                         <FieldLabel
                           htmlFor="realtime-name"
                           className="text-xs text-muted-foreground"

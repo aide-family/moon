@@ -16,9 +16,10 @@ import type {
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DateRangePicker } from "@/components/date-range-picker"
-import { FilterChips, type FilterChip } from "@/components/filter-chips"
-import { FilterToggle } from "@/components/filter-toggle"
 import { DetailSheet } from "@/components/detail-sheet"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
@@ -53,9 +54,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Search } from "lucide-react"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 
-interface MessageLogFilters {
+type MessageLogFilters = {
   status: string
   taskUid: string
   from: string
@@ -93,28 +95,26 @@ export function MessageLogPage() {
   } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   // 筛选条件同样以 URL 为唯一来源：面板里编辑的是草稿，点“应用筛选”才生效。
-  const appliedFilters: MessageLogFilters = {
+  const appliedFilters = {
     status: params.get("status") ?? "",
     taskUid: params.get("taskUid") ?? "",
     from: params.get("from") ?? "",
     to: params.get("to") ?? "",
   }
-  const appliedSignature = JSON.stringify(appliedFilters)
-  const [draftState, setDraftState] = useState<{
-    signature: string
-    filters: MessageLogFilters
-  } | null>(null)
-  const filters =
-    draftState?.signature === appliedSignature
-      ? draftState.filters
-      : appliedFilters
-  const filtersDirty = JSON.stringify(filters) !== appliedSignature
-  const appliedCount = Object.values(appliedFilters).filter(Boolean).length
-  // 默认无筛选时展开，应用后收起；与历史告警明细一致。
-  const [filtersOpen, setFiltersOpen] = useState(appliedCount === 0)
+  const {
+    draft: filters,
+    update: updateDraft,
+    updateMany: updateFilters,
+    dirty: filtersDirty,
+    reset: resetFilters,
+  } = useFilterDraft(appliedFilters)
+  // 面板默认收起，已生效条件以 chips 展示；展开后编辑的是草稿。
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const canWrite = session.can("message_log:write")
   const taskStatuses = ["PENDING", "SENDING", "SENT", "FAILED", "CANCELLED"]
   const logStatuses = ["SENT", "FAILED"]
+  // 两个视图共用状态筛选，选项按当前 tab 的接口枚举切换。
+  const statusOptions = tab === "tasks" ? taskStatuses : logStatuses
 
   useEffect(() => {
     let active = true
@@ -192,20 +192,20 @@ export function MessageLogPage() {
       next.delete(key)
     }
     setParams(next)
-    setDraftState(null)
-  }
-
-  function updateDraft(key: keyof MessageLogFilters, value: string) {
-    setDraftState({
-      signature: appliedSignature,
-      filters: { ...filters, [key]: value },
-    })
+    // 两个视图的草稿不通用：切 tab 时把未应用的修改丢回 URL 基线。
+    resetFilters()
   }
 
   function applyFilters() {
     const next = new URLSearchParams(params)
+    const values: MessageLogFilters = {
+      status: filters.status,
+      taskUid: filters.taskUid.trim(),
+      from: filters.from,
+      to: filters.to,
+    }
     for (const key of ["status", "taskUid", "from", "to"] as const) {
-      const value = filters[key]
+      const value = values[key]
       if (value) {
         next.set(key, value)
       } else {
@@ -214,7 +214,6 @@ export function MessageLogPage() {
     }
     next.set("page", "1")
     setParams(next)
-    setDraftState(null)
     setFiltersOpen(false)
   }
 
@@ -225,7 +224,10 @@ export function MessageLogPage() {
     }
     next.set("page", "1")
     setParams(next)
-    setDraftState(null)
+  }
+
+  function clearFilters() {
+    removeFilters(["status", "taskUid", "from", "to"])
   }
 
   const filterChips: FilterChip[] = []
@@ -328,14 +330,17 @@ export function MessageLogPage() {
       {actionError ? (
         <p className="text-sm text-destructive">{actionError}</p>
       ) : null}
-      <div className="flex min-w-0 flex-col gap-2">
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <FilterToggle
-            open={filtersOpen}
-            count={appliedCount}
-            controls="message-log-filters"
-            onClick={() => setFiltersOpen((open) => !open)}
-          />
+      <ListFilter
+        id="message-log-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={filterChips.length}
+        dirty={filtersDirty}
+        onApply={applyFilters}
+        actions={
           <Tabs
             value={tab}
             onValueChange={(value) => setTab(value as "logs" | "tasks")}
@@ -345,151 +350,93 @@ export function MessageLogPage() {
               <TabsTrigger value="tasks">{t("messageLog.tasks")}</TabsTrigger>
             </TabsList>
           </Tabs>
-        </div>
-        {filterChips.length > 0 ? (
-          <FilterChips
-            items={filterChips}
-            onClearAll={() =>
-              removeFilters(["status", "taskUid", "from", "to"])
+        }
+      >
+        <Field className="w-40 shrink-0">
+          <FieldLabel
+            htmlFor="log-status"
+            className="text-xs text-muted-foreground"
+          >
+            {t("messageLog.statusFilter")}
+          </FieldLabel>
+          <Select
+            value={filters.status || "ALL"}
+            onValueChange={(value) =>
+              updateDraft("status", value === "ALL" ? "" : value)
             }
-          />
-        ) : null}
-        <form
-          id="message-log-filters"
-          onSubmit={(event) => {
-            event.preventDefault()
-            applyFilters()
-          }}
-          className={`flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4 ${filtersOpen ? "" : "hidden"}`}
-        >
-          {tab === "tasks" ? (
-            <Field className="w-44 shrink-0">
-              <FieldLabel
-                htmlFor="log-status"
-                className="text-xs text-muted-foreground"
-              >
-                {t("messageLog.statusFilter")}
-              </FieldLabel>
-              <Select
-                value={filters.status || "ALL"}
-                onValueChange={(value) =>
-                  updateDraft("status", value === "ALL" ? "" : value)
-                }
-              >
-                <SelectTrigger id="log-status" className="w-full">
-                  <SelectValue placeholder={t("messageLog.allStatus")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="ALL">
-                      {t("messageLog.allStatus")}
-                    </SelectItem>
-                    {taskStatuses.map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {enumLabel(t, item)}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Field>
-          ) : (
-            <>
-              <Field className="w-40 shrink-0">
-                <FieldLabel
-                  htmlFor="log-status"
-                  className="text-xs text-muted-foreground"
-                >
-                  {t("messageLog.statusFilter")}
-                </FieldLabel>
-                <Select
-                  value={filters.status || "ALL"}
-                  onValueChange={(value) =>
-                    updateDraft("status", value === "ALL" ? "" : value)
-                  }
-                >
-                  <SelectTrigger id="log-status" className="w-full">
-                    <SelectValue placeholder={t("messageLog.allStatus")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="ALL">
-                        {t("messageLog.allStatus")}
-                      </SelectItem>
-                      {logStatuses.map((item) => (
-                        <SelectItem key={item} value={item}>
-                          {enumLabel(t, item)}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field className="min-w-0 flex-1 basis-56">
-                <FieldLabel
-                  htmlFor="log-task"
-                  className="text-xs text-muted-foreground"
-                >
-                  {t("messageLog.taskFilter")}
-                </FieldLabel>
-                <Input
-                  id="log-task"
-                  value={filters.taskUid}
-                  placeholder={t("messageLog.taskFilterPlaceholder")}
-                  onChange={(event) =>
-                    updateDraft("taskUid", event.target.value)
-                  }
-                />
-              </Field>
-            </>
-          )}
-          <Field className="w-64 shrink-0">
+          >
+            <SelectTrigger id="log-status" className="w-full">
+              <SelectValue placeholder={t("messageLog.allStatus")}>
+                <span className="flex items-center gap-2">
+                  {filters.status ? (
+                    <EnumIcon value={filters.status} />
+                  ) : null}
+                  <span>
+                    {filters.status
+                      ? enumLabel(t, filters.status)
+                      : t("messageLog.allStatus")}
+                  </span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="ALL">
+                  {t("messageLog.allStatus")}
+                </SelectItem>
+                {statusOptions.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    <span className="flex items-center gap-2">
+                      <EnumIcon value={item} />
+                      <span>{enumLabel(t, item)}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Field>
+        {tab === "logs" ? (
+          <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
             <FieldLabel
-              htmlFor="log-range"
+              htmlFor="log-task"
               className="text-xs text-muted-foreground"
             >
-              {t("filter.timeRange")}
+              {t("messageLog.taskFilter")}
             </FieldLabel>
-            {/* 默认上限就是 30 天，且不能选未来日期。 */}
-            <DateRangePicker
-              id="log-range"
-              from={filters.from}
-              to={filters.to}
-              onChange={(range) =>
-                setDraftState({
-                  signature: appliedSignature,
-                  filters: { ...filters, from: range.from, to: range.to },
-                })
-              }
-            />
+            <div className="relative">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+              <Input
+                id="log-task"
+                className="pl-9"
+                value={filters.taskUid}
+                placeholder={t("messageLog.taskFilterPlaceholder")}
+                onChange={(event) => updateDraft("taskUid", event.target.value)}
+              />
+            </div>
           </Field>
-          <div className="flex items-center gap-2">
-            {filtersDirty ? (
-              <span
-                className="text-xs text-amber-600 dark:text-amber-400"
-                role="status"
-              >
-                {t("filter.unapplied")}
-              </span>
-            ) : null}
-            {appliedCount > 0 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() =>
-                  removeFilters(["status", "taskUid", "from", "to"])
-                }
-              >
-                {t("filter.clear")}
-              </Button>
-            ) : null}
-            <Button type="submit" variant="outline">
-              <Search aria-hidden="true" data-icon="inline-start" />
-              {t("filter.apply")}
-            </Button>
-          </div>
-        </form>
-      </div>
+        ) : null}
+        <Field className="w-64 shrink-0">
+          <FieldLabel
+            htmlFor="log-range"
+            className="text-xs text-muted-foreground"
+          >
+            {t("filter.timeRange")}
+          </FieldLabel>
+          {/* 默认上限就是 30 天，且不能选未来日期。 */}
+          <DateRangePicker
+            id="log-range"
+            from={filters.from}
+            to={filters.to}
+            onChange={(range) =>
+              updateFilters({ from: range.from, to: range.to })
+            }
+          />
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}
@@ -501,6 +448,8 @@ export function MessageLogPage() {
         }
         onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
         onNext={() => query.update({ page: query.page + 1 })}
+        onRefresh={() => setAttempt((value) => value + 1)}
+        refreshing={loading}
       >
         {loading ? (
           <p className="text-sm text-muted-foreground">{t("state.loading")}</p>

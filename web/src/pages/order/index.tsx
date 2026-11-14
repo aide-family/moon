@@ -7,12 +7,16 @@ import type { OrderItem } from "@/api/order/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { TableActionsHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Select,
   SelectContent,
@@ -28,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { cn } from "@/lib/class-names"
@@ -52,7 +57,8 @@ export function OrderPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [status, setStatus] = useState(ALL_STATUS)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ status: query.status })
   const [cancelling, setCancelling] = useState<OrderItem | null>(null)
   const [pending, setPending] = useState(false)
   const [actionError, setActionError] = useState("")
@@ -69,12 +75,12 @@ export function OrderPage() {
   } = usePagedList<OrderItem>({
     page: query.page,
     pageSize: query.pageSize,
-    filterKey: status,
+    filterKey: query.status,
     fetch: (page, pageSize) =>
       listOrders({
         page,
         pageSize,
-        status: status === ALL_STATUS ? undefined : status,
+        status: query.status || undefined,
       }),
   })
 
@@ -135,32 +141,89 @@ export function OrderPage() {
     ]
   }
 
+  const chips: FilterChip[] = query.status
+    ? [
+        {
+          key: "status",
+          label: `${t("order.status")}: ${orderStatusLabel(t, query.status)}`,
+          onRemove: clearFilters,
+        },
+      ]
+    : []
+
+  function applyFilters() {
+    query.update({ status: draft.status })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ status: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-5">
-      <PageHeader title={t("order.title")} description={t("order.description")}>
-        <div className="flex shrink-0 items-center gap-2">
-          <Select
-            value={status}
-            onValueChange={(value) => {
-              setStatus(value)
-              query.update({ page: 1 })
-            }}
+      <PageHeader title={t("order.title")} description={t("order.description")} />
+
+      <ListFilter
+        id="order-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
+      >
+        <Field className="w-44 shrink-0">
+          <FieldLabel
+            htmlFor="order-filter-status"
+            className="text-xs text-muted-foreground"
           >
-            <SelectTrigger className="w-32" aria-label={t("order.status")}>
-              <SelectValue />
+            {t("order.status")}
+          </FieldLabel>
+          <Select
+            value={draft.status || ALL_STATUS}
+            onValueChange={(value) =>
+              update("status", value === ALL_STATUS ? "" : value)
+            }
+          >
+            <SelectTrigger id="order-filter-status" className="w-full">
+              <SelectValue placeholder={t("order.allStatus")}>
+                <span className="flex items-center gap-2">
+                  <EnumIcon value={draft.status} />
+                  <span>
+                    {draft.status
+                      ? orderStatusLabel(t, draft.status)
+                      : t("order.allStatus")}
+                  </span>
+                </span>
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL_STATUS}>{t("order.allStatus")}</SelectItem>
-              <SelectItem value="PENDING">{t("order.pending")}</SelectItem>
-              <SelectItem value="PAID">{t("order.paid")}</SelectItem>
-              <SelectItem value="CANCELLED">{t("order.cancelled")}</SelectItem>
+              <SelectItem value="PENDING">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="PENDING" />
+                  <span>{t("order.pending")}</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="PAID">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="PAID" />
+                  <span>{t("order.paid")}</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="CANCELLED">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="CANCELLED" />
+                  <span>{t("order.cancelled")}</span>
+                </span>
+              </SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={() => reload()}>
-            {t("action.refresh")}
-          </Button>
-        </div>
-      </PageHeader>
+        </Field>
+      </ListFilter>
 
       {actionError ? (
         <div

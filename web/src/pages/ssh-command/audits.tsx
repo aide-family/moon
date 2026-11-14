@@ -1,4 +1,4 @@
-import { Search } from "lucide-react"
+import { Search, Terminal } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
@@ -11,8 +11,9 @@ import { CodeBlock } from "@/components/code-block"
 import { DateRangePicker } from "@/components/date-range-picker"
 import { DetailSheet } from "@/components/detail-sheet"
 import { DetailCopyText } from "@/components/detail-values"
-import { FilterChips, type FilterChip } from "@/components/filter-chips"
-import { FilterToggle } from "@/components/filter-toggle"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { RowActions } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
@@ -36,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { dayStartSeconds, nextDayStartSeconds } from "@/lib/date-range"
 import { formatDateTime } from "@/lib/date-time"
@@ -57,7 +59,7 @@ const FILTER_KEYS = [
   "to",
 ] as const
 
-interface AuditFilters {
+type AuditFilters = {
   keyword: string
   status: string
   agentUid: string
@@ -101,17 +103,9 @@ export function SSHCommandAudits() {
     to: params.get("to") ?? "",
   }
   const appliedSignature = JSON.stringify(appliedFilters)
-  const [draftState, setDraftState] = useState<{
-    signature: string
-    filters: AuditFilters
-  } | null>(null)
-  const filters =
-    draftState?.signature === appliedSignature
-      ? draftState.filters
-      : appliedFilters
-  const filtersDirty = JSON.stringify(filters) !== appliedSignature
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, updateMany, dirty } = useFilterDraft(appliedFilters)
   const appliedCount = Object.values(appliedFilters).filter(Boolean).length
-  const [filtersOpen, setFiltersOpen] = useState(appliedCount === 0)
   const [agents, setAgents] = useState<AgentItem[]>([])
   const [detail, setDetail] = useState<SSHCommandAuditItem | null>(null)
 
@@ -158,13 +152,6 @@ export function SSHCommandAudits() {
     [agents]
   )
 
-  function updateDraft(key: keyof AuditFilters, value: string) {
-    setDraftState({
-      signature: appliedSignature,
-      filters: { ...filters, [key]: value },
-    })
-  }
-
   function patchFilters(patch: AuditFilters, keys: readonly string[]) {
     const next = new URLSearchParams(params)
     for (const key of keys) {
@@ -180,9 +167,19 @@ export function SSHCommandAudits() {
   }
 
   function applyFilters() {
-    patchFilters(filters, FILTER_KEYS)
-    setDraftState(null)
+    patchFilters(
+      {
+        ...draft,
+        keyword: draft.keyword.trim(),
+        operatorUid: draft.operatorUid.trim(),
+      },
+      FILTER_KEYS
+    )
     setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    removeFilters([...FILTER_KEYS])
   }
 
   function removeFilters(keys: string[]) {
@@ -192,7 +189,6 @@ export function SSHCommandAudits() {
     }
     next.set("page", "1")
     setParams(next)
-    setDraftState(null)
   }
 
   function goToPage(nextPage: number) {
@@ -246,154 +242,163 @@ export function SSHCommandAudits() {
 
   return (
     <>
-      <div className="flex min-w-0 flex-col gap-2">
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <FilterToggle
-            open={filtersOpen}
-            count={appliedCount}
-            controls={FILTER_PANEL_ID}
-            onClick={() => setFiltersOpen((open) => !open)}
-          />
-        </div>
-        {filterChips.length > 0 ? (
-          <FilterChips items={filterChips} onClearAll={() => removeFilters([...FILTER_KEYS])} />
-        ) : null}
-        <form
-          id={FILTER_PANEL_ID}
-          onSubmit={(event) => {
-            event.preventDefault()
-            applyFilters()
-          }}
-          className={`flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4 ${filtersOpen ? "" : "hidden"}`}
-        >
-          <Field className="min-w-0 flex-1 basis-56">
-            <FieldLabel
-              htmlFor="ssh-audit-keyword"
-              className="text-xs text-muted-foreground"
-            >
-              {t("ssh.auditKeyword")}
-            </FieldLabel>
+      <ListFilter
+        id={FILTER_PANEL_ID}
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={appliedCount}
+        dirty={dirty}
+        onApply={applyFilters}
+      >
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="ssh-audit-keyword"
+            className="text-xs text-muted-foreground"
+          >
+            {t("ssh.auditKeyword")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
               id="ssh-audit-keyword"
-              value={filters.keyword}
+              className="pl-9"
+              value={draft.keyword}
               placeholder={t("ssh.auditKeywordPlaceholder")}
-              onChange={(event) => updateDraft("keyword", event.target.value)}
+              onChange={(event) => update("keyword", event.target.value)}
             />
-          </Field>
-          <Field className="w-40 shrink-0">
-            <FieldLabel
-              htmlFor="ssh-audit-status"
-              className="text-xs text-muted-foreground"
-            >
-              {t("ssh.status")}
-            </FieldLabel>
-            <Select
-              value={filters.status || "ALL"}
-              onValueChange={(value) =>
-                updateDraft("status", value === "ALL" ? "" : value)
-              }
-            >
-              <SelectTrigger id="ssh-audit-status" className="w-full">
-                <SelectValue placeholder={t("ssh.allStatus")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="ALL">{t("ssh.allStatus")}</SelectItem>
-                  {AUDIT_STATUSES.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {enumLabel(t, item)}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field className="w-48 shrink-0">
-            <FieldLabel
-              htmlFor="ssh-audit-agent"
-              className="text-xs text-muted-foreground"
-            >
-              {t("ssh.machine")}
-            </FieldLabel>
-            <Select
-              value={filters.agentUid || "ALL"}
-              onValueChange={(value) =>
-                updateDraft("agentUid", value === "ALL" ? "" : value)
-              }
-            >
-              <SelectTrigger id="ssh-audit-agent" className="w-full">
-                <SelectValue placeholder={t("ssh.allMachines")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="ALL">{t("ssh.allMachines")}</SelectItem>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.uid} value={agent.uid}>
-                      {agent.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field className="w-44 shrink-0">
-            <FieldLabel
-              htmlFor="ssh-audit-operator"
-              className="text-xs text-muted-foreground"
-            >
-              {t("ssh.operator")}
-            </FieldLabel>
+          </div>
+        </Field>
+        <Field className="w-40 shrink-0">
+          <FieldLabel
+            htmlFor="ssh-audit-status"
+            className="text-xs text-muted-foreground"
+          >
+            {t("ssh.status")}
+          </FieldLabel>
+          <Select
+            value={draft.status || "ALL"}
+            onValueChange={(value) =>
+              update("status", value === "ALL" ? "" : value)
+            }
+          >
+            <SelectTrigger id="ssh-audit-status" className="w-full">
+              <SelectValue placeholder={t("ssh.allStatus")}>
+                <span className="flex items-center gap-2">
+                  <EnumIcon value={draft.status} />
+                  <span>
+                    {draft.status
+                      ? enumLabel(t, draft.status)
+                      : t("ssh.allStatus")}
+                  </span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="ALL">{t("ssh.allStatus")}</SelectItem>
+                {AUDIT_STATUSES.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    <span className="flex items-center gap-2">
+                      <EnumIcon value={item} />
+                      <span>{enumLabel(t, item)}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field className="w-48 shrink-0">
+          <FieldLabel
+            htmlFor="ssh-audit-agent"
+            className="text-xs text-muted-foreground"
+          >
+            {t("ssh.machine")}
+          </FieldLabel>
+          <Select
+            value={draft.agentUid || "ALL"}
+            onValueChange={(value) =>
+              update("agentUid", value === "ALL" ? "" : value)
+            }
+          >
+            <SelectTrigger id="ssh-audit-agent" className="w-full">
+              <SelectValue placeholder={t("ssh.allMachines")}>
+                <span className="flex items-center gap-2">
+                  <Terminal
+                    aria-hidden="true"
+                    className="size-4 shrink-0 text-muted-foreground"
+                  />
+                  <span>
+                    {draft.agentUid
+                      ? machineLabel(draft.agentUid)
+                      : t("ssh.allMachines")}
+                  </span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="ALL">{t("ssh.allMachines")}</SelectItem>
+                {agents.map((agent) => (
+                  <SelectItem key={agent.uid} value={agent.uid}>
+                    <span className="flex items-center gap-2">
+                      <Terminal
+                        aria-hidden="true"
+                        className="size-4 shrink-0 text-muted-foreground"
+                      />
+                      <span>{agent.name}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field className="w-44 shrink-0">
+          <FieldLabel
+            htmlFor="ssh-audit-operator"
+            className="text-xs text-muted-foreground"
+          >
+            {t("ssh.operator")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
               id="ssh-audit-operator"
-              value={filters.operatorUid}
+              className="pl-9"
+              value={draft.operatorUid}
               placeholder={t("ssh.operatorUidPlaceholder")}
-              onChange={(event) =>
-                updateDraft("operatorUid", event.target.value)
-              }
+              onChange={(event) => update("operatorUid", event.target.value)}
             />
-          </Field>
-          <Field className="w-64 shrink-0">
-            <FieldLabel
-              htmlFor="ssh-audit-range"
-              className="text-xs text-muted-foreground"
-            >
-              {t("filter.timeRange")}
-            </FieldLabel>
-            {/* 默认最多 30 天，且不能选未来日期。 */}
-            <DateRangePicker
-              id="ssh-audit-range"
-              from={filters.from}
-              to={filters.to}
-              onChange={(range) =>
-                setDraftState({
-                  signature: appliedSignature,
-                  filters: { ...filters, from: range.from, to: range.to },
-                })
-              }
-            />
-          </Field>
-          <div className="flex items-center gap-2">
-            {filtersDirty ? (
-              <span className="text-xs text-warning" role="status">
-                {t("filter.unapplied")}
-              </span>
-            ) : null}
-            {appliedCount > 0 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => removeFilters([...FILTER_KEYS])}
-              >
-                {t("filter.clear")}
-              </Button>
-            ) : null}
-            <Button type="submit" variant="outline">
-              <Search aria-hidden="true" data-icon="inline-start" />
-              {t("filter.apply")}
-            </Button>
           </div>
-        </form>
-      </div>
+        </Field>
+        <Field className="w-64 shrink-0">
+          <FieldLabel
+            htmlFor="ssh-audit-range"
+            className="text-xs text-muted-foreground"
+          >
+            {t("filter.timeRange")}
+          </FieldLabel>
+          {/* 默认最多 30 天，且不能选未来日期。 */}
+          <DateRangePicker
+            id="ssh-audit-range"
+            from={draft.from}
+            to={draft.to}
+            onChange={(range) =>
+              updateMany({ from: range.from, to: range.to })
+            }
+          />
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={page}

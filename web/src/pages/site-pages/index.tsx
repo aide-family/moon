@@ -1,4 +1,4 @@
-import { CircleAlert, Plus, RefreshCw, Search } from "lucide-react"
+import { CircleAlert, Languages, Plus, Search } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Navigate, useSearchParams } from "react-router-dom"
@@ -7,12 +7,14 @@ import { getSitePage, listSitePages } from "@/api/site/pages"
 import type { SitePageDetail, SitePageItem } from "@/api/site/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
-import { FilterChips, type FilterChip } from "@/components/filter-chips"
-import { FilterToggle } from "@/components/filter-toggle"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -22,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { cn } from "@/lib/class-names"
 import { formatDateTime } from "@/lib/date-time"
@@ -150,8 +153,12 @@ export function SitePagesPage() {
   const rawLocale = searchParams.get("locale") ?? ""
   const localeFilter = rawLocale === "zh" || rawLocale === "en" ? rawLocale : ""
 
-  const [draftKeyword, setDraftKeyword] = useState(keyword)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    keyword,
+    state: stateFilter,
+    locale: localeFilter,
+  })
   // 预览页的「返回编辑」带 uid 回来，直接选中该页面继续编辑。
   const initialUid = searchParams.get("uid") ?? ""
   const [mode, setMode] = useState<"none" | "edit" | "create">(
@@ -314,26 +321,36 @@ export function SitePagesPage() {
   if (keyword) {
     chips.push({
       key: "keyword",
-      label: keyword,
-      onRemove: () => {
-        setDraftKeyword("")
-        updateQuery({ keyword: "" })
-      },
+      label: `${t("sitePages.searchPlaceholder")}: ${keyword}`,
+      onRemove: () => updateQuery({ keyword: "" }),
     })
   }
   if (stateFilter) {
     chips.push({
       key: "state",
-      label: stateLabel(t, stateFilter),
+      label: `${t("sitePages.stateFilter")}: ${stateLabel(t, stateFilter)}`,
       onRemove: () => updateQuery({ state: "" }),
     })
   }
   if (localeFilter) {
     chips.push({
       key: "locale",
-      label: localeLabel(t, localeFilter),
+      label: `${t("sitePages.localeFilter")}: ${localeLabel(t, localeFilter)}`,
       onRemove: () => updateQuery({ locale: "" }),
     })
+  }
+
+  function applyFilters() {
+    updateQuery({
+      keyword: draft.keyword.trim(),
+      state: draft.state,
+      locale: draft.locale,
+    })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    updateQuery({ keyword: "", state: "", locale: "" })
   }
 
   return (
@@ -343,10 +360,6 @@ export function SitePagesPage() {
         description={t("sitePages.description")}
       >
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={reload}>
-            <RefreshCw aria-hidden="true" data-icon="inline-start" />
-            {t("action.refresh")}
-          </Button>
           {canWrite ? (
             <Button type="button" size="sm" onClick={requestCreate}>
               <Plus aria-hidden="true" data-icon="inline-start" />
@@ -358,106 +371,144 @@ export function SitePagesPage() {
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,21rem)_minmax(0,1fr)]">
         <aside className="flex max-h-[40vh] min-h-0 min-w-0 flex-col gap-3 lg:max-h-none">
-          <div className="glass-card shrink-0 rounded-xl p-3">
-            <form
-              className="flex gap-2"
-              onSubmit={(event) => {
-                event.preventDefault()
-                updateQuery({ keyword: draftKeyword.trim() })
-              }}
-            >
-              <Input
-                type="search"
-                value={draftKeyword}
-                aria-label={t("sitePages.searchPlaceholder")}
-                placeholder={t("sitePages.searchPlaceholder")}
-                className="min-w-0 flex-1"
-                onChange={(event) => setDraftKeyword(event.target.value)}
-              />
-              <Button
-                type="submit"
-                variant="outline"
-                size="icon"
-                aria-label={t("action.search")}
-              >
-                <Search aria-hidden="true" />
-              </Button>
-            </form>
-            <div className="mt-2 flex items-center justify-between gap-2">
-              <FilterToggle
-                open={filtersOpen}
-                count={chips.length}
-                controls="site-pages-filters"
-                onClick={() => setFiltersOpen((value) => !value)}
-              />
-            </div>
-            <div
+          <div className="shrink-0">
+            <ListFilter
               id="site-pages-filters"
-              hidden={!filtersOpen}
-              className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-1"
+              open={filtersOpen}
+              onOpenChange={setFiltersOpen}
+              chips={chips}
+              onClearAll={clearFilters}
+              onClear={clearFilters}
+              appliedCount={chips.length}
+              dirty={dirty}
+              onApply={applyFilters}
+              fieldsClassName="grid gap-2"
             >
-              <Select
-                value={stateFilter || ALL}
-                onValueChange={(value) =>
-                  updateQuery({ state: value === ALL ? "" : value })
-                }
-              >
-                <SelectTrigger
-                  className="w-full"
-                  aria-label={t("sitePages.stateFilter")}
+              <Field className="min-w-0">
+                <FieldLabel
+                  htmlFor="site-pages-keyword"
+                  className="text-xs text-muted-foreground"
                 >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL}>
-                    {t("sitePages.allStates")}
-                  </SelectItem>
-                  <SelectItem value="DRAFT">
-                    {t("sitePages.state.DRAFT")}
-                  </SelectItem>
-                  <SelectItem value="PUBLISHED">
-                    {t("sitePages.state.PUBLISHED")}
-                  </SelectItem>
-                  <SelectItem value="ARCHIVED">
-                    {t("sitePages.state.ARCHIVED")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={localeFilter || ALL}
-                onValueChange={(value) =>
-                  updateQuery({ locale: value === ALL ? "" : value })
-                }
-              >
-                <SelectTrigger
-                  className="w-full"
-                  aria-label={t("sitePages.localeFilter")}
+                  {t("sitePages.searchPlaceholder")}
+                </FieldLabel>
+                <div className="relative">
+                  <Search
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    id="site-pages-keyword"
+                    className="pl-9"
+                    value={draft.keyword}
+                    placeholder={t("sitePages.searchPlaceholder")}
+                    onChange={(event) => update("keyword", event.target.value)}
+                  />
+                </div>
+              </Field>
+              <Field className="min-w-0">
+                <FieldLabel
+                  htmlFor="site-pages-state"
+                  className="text-xs text-muted-foreground"
                 >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL}>
-                    {t("sitePages.allLocales")}
-                  </SelectItem>
-                  <SelectItem value="zh">
-                    {t("sitePages.field.localeZh")}
-                  </SelectItem>
-                  <SelectItem value="en">
-                    {t("sitePages.field.localeEn")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {chips.length > 0 ? (
-              <FilterChips
-                className="mt-2 flex flex-wrap items-center gap-1.5"
-                items={chips}
-                onClearAll={() => {
-                  setDraftKeyword("")
-                  updateQuery({ keyword: "", state: "", locale: "" })
-                }}
-              />
-            ) : null}
+                  {t("sitePages.stateFilter")}
+                </FieldLabel>
+                <Select
+                  value={draft.state || ALL}
+                  onValueChange={(value) =>
+                    update("state", value === ALL ? "" : value)
+                  }
+                >
+                  <SelectTrigger id="site-pages-state" className="w-full">
+                    <SelectValue placeholder={t("sitePages.allStates")}>
+                      <span className="flex items-center gap-2">
+                        <EnumIcon value={draft.state} />
+                        <span>
+                          {draft.state
+                            ? stateLabel(t, draft.state)
+                            : t("sitePages.allStates")}
+                        </span>
+                      </span>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>
+                      {t("sitePages.allStates")}
+                    </SelectItem>
+                    <SelectItem value="DRAFT">
+                      <span className="flex items-center gap-2">
+                        <EnumIcon value="DRAFT" />
+                        <span>{t("sitePages.state.DRAFT")}</span>
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="PUBLISHED">
+                      <span className="flex items-center gap-2">
+                        <EnumIcon value="PUBLISHED" />
+                        <span>{t("sitePages.state.PUBLISHED")}</span>
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="ARCHIVED">
+                      <span className="flex items-center gap-2">
+                        <EnumIcon value="ARCHIVED" />
+                        <span>{t("sitePages.state.ARCHIVED")}</span>
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field className="min-w-0">
+                <FieldLabel
+                  htmlFor="site-pages-locale"
+                  className="text-xs text-muted-foreground"
+                >
+                  {t("sitePages.localeFilter")}
+                </FieldLabel>
+                <Select
+                  value={draft.locale || ALL}
+                  onValueChange={(value) =>
+                    update("locale", value === ALL ? "" : value)
+                  }
+                >
+                  <SelectTrigger id="site-pages-locale" className="w-full">
+                    <SelectValue placeholder={t("sitePages.allLocales")}>
+                      <span className="flex items-center gap-2">
+                        <Languages
+                          aria-hidden="true"
+                          className="size-4 shrink-0 text-muted-foreground"
+                        />
+                        <span>
+                          {draft.locale
+                            ? localeLabel(t, draft.locale)
+                            : t("sitePages.allLocales")}
+                        </span>
+                      </span>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>
+                      {t("sitePages.allLocales")}
+                    </SelectItem>
+                    <SelectItem value="zh">
+                      <span className="flex items-center gap-2">
+                        <Languages
+                          aria-hidden="true"
+                          className="size-4 shrink-0 text-muted-foreground"
+                        />
+                        <span>{t("sitePages.field.localeZh")}</span>
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="en">
+                      <span className="flex items-center gap-2">
+                        <Languages
+                          aria-hidden="true"
+                          className="size-4 shrink-0 text-muted-foreground"
+                        />
+                        <span>{t("sitePages.field.localeEn")}</span>
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </ListFilter>
           </div>
 
           <ListFrame

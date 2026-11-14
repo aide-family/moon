@@ -1,3 +1,4 @@
+import { Search } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
@@ -25,6 +26,8 @@ import { useSession } from "@/auth/session"
 import { CodeBlock } from "@/components/code-block"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
 import {
   LabelEditor,
@@ -32,6 +35,7 @@ import {
   labelsToJSON,
   type LabelRow,
 } from "@/components/label-editor"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
@@ -47,6 +51,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -79,6 +84,7 @@ import {
   requireTrimmed,
   type FieldErrors,
 } from "@/lib/form"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { enumLabel } from "@/lib/enum-label"
@@ -95,7 +101,11 @@ export function SSHCommandPage() {
   const [params, setParams] = useSearchParams()
   // 标签页由 URL 决定：tab=audits 是统一执行审计，缺省是命令列表。
   const tab = params.get("tab") === "audits" ? "audits" : "commands"
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    name: query.name,
+    reviewStatus: query.reviewStatus,
+  })
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<SSHCommandItem | null>(null)
   const [name, setName] = useState("")
@@ -378,6 +388,34 @@ export function SSHCommandPage() {
     return list
   }
 
+  const filterChips: FilterChip[] = []
+  if (query.name) {
+    filterChips.push({
+      key: "name",
+      label: `${t("ssh.name")}: ${query.name}`,
+      onRemove: () => query.update({ name: "" }),
+    })
+  }
+  if (query.reviewStatus) {
+    filterChips.push({
+      key: "reviewStatus",
+      label: `${t("ssh.reviewStatus")}: ${enumLabel(t, query.reviewStatus)}`,
+      onRemove: () => query.update({ reviewStatus: "" }),
+    })
+  }
+
+  function applyFilters() {
+    query.update({
+      name: draft.name.trim(),
+      reviewStatus: draft.reviewStatus,
+    })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "", reviewStatus: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("ssh.title")} description={t("ssh.description")}>
@@ -400,36 +438,84 @@ export function SSHCommandPage() {
         <SSHCommandAudits />
       ) : (
         <>
-          <form
-            className="flex flex-wrap gap-2"
-            onSubmit={(event) => {
-              event.preventDefault()
-              query.update({ name: draft })
-            }}
+          <ListFilter
+            id="ssh-command-filters"
+            open={filtersOpen}
+            onOpenChange={setFiltersOpen}
+            chips={filterChips}
+            onClearAll={clearFilters}
+            onClear={clearFilters}
+            appliedCount={filterChips.length}
+            dirty={dirty}
+            onApply={applyFilters}
           >
-            <Input className="max-w-sm" value={draft} placeholder={t("ssh.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-            <Select
-              value={query.reviewStatus || "ALL"}
-              onValueChange={(value) => query.update({ reviewStatus: value === "ALL" ? "" : value })}
-            >
-              <SelectTrigger id="ssh-review-status" className="w-40" aria-label={t("ssh.reviewStatus")}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="ALL">{t("ssh.allReviewStatus")}</SelectItem>
-                  {REVIEW_STATUSES.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {enumLabel(t, item)}
+            <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+              <FieldLabel
+                htmlFor="ssh-command-name"
+                className="text-xs text-muted-foreground"
+              >
+                {t("ssh.name")}
+              </FieldLabel>
+              <div className="relative">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
+                  id="ssh-command-name"
+                  className="pl-9"
+                  value={draft.name}
+                  placeholder={t("ssh.namePlaceholder")}
+                  onChange={(event) => update("name", event.target.value)}
+                />
+              </div>
+            </Field>
+            <Field className="w-40 shrink-0">
+              <FieldLabel
+                htmlFor="ssh-command-review-status"
+                className="text-xs text-muted-foreground"
+              >
+                {t("ssh.reviewStatus")}
+              </FieldLabel>
+              <Select
+                value={draft.reviewStatus || "ALL"}
+                onValueChange={(value) =>
+                  update("reviewStatus", value === "ALL" ? "" : value)
+                }
+              >
+                <SelectTrigger
+                  id="ssh-command-review-status"
+                  className="w-full"
+                >
+                  <SelectValue placeholder={t("ssh.allReviewStatus")}>
+                    <span className="flex items-center gap-2">
+                      <EnumIcon value={draft.reviewStatus} />
+                      <span>
+                        {draft.reviewStatus
+                          ? enumLabel(t, draft.reviewStatus)
+                          : t("ssh.allReviewStatus")}
+                      </span>
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="ALL">
+                      {t("ssh.allReviewStatus")}
                     </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <Button type="submit" variant="outline">
-              {t("action.search")}
-            </Button>
-          </form>
+                    {REVIEW_STATUSES.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        <span className="flex items-center gap-2">
+                          <EnumIcon value={item} />
+                          <span>{enumLabel(t, item)}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+          </ListFilter>
           <ListFrame
             total={total}
             page={query.page}

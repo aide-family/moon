@@ -13,13 +13,15 @@ import {
 } from "@/api/inspection"
 import type {
   InspectionPlan,
+  InspectionPlanStatus,
   InspectionTemplate,
 } from "@/api/inspection/types"
 import { listNotificationGroups } from "@/api/notification-group"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
-import { FilterChips, type FilterChip } from "@/components/filter-chips"
-import { FilterToggle } from "@/components/filter-toggle"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import type { MultiSelectOption } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
@@ -37,6 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -53,6 +56,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
@@ -68,16 +72,21 @@ import { InspectionPlanDialog } from "./inspection-plan-dialog"
 
 const ALL_STATUS = "ALL"
 
+// 计划只有启用/暂停两种状态，URL 里的其他值按不筛选处理。
+function normalizePlanStatus(value: string): "" | InspectionPlanStatus {
+  return value === "ACTIVE" || value === "PAUSED" ? value : ""
+}
+
 export function InspectionPlanPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const session = useSession()
   const query = useListQuery()
-  const [draftName, setDraftName] = useState(query.name)
-  const [draftStatus, setDraftStatus] = useState(
-    query.status === "ACTIVE" || query.status === "PAUSED" ? query.status : ""
-  )
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    name: query.name,
+    status: normalizePlanStatus(query.status),
+  })
   const [templates, setTemplates] = useState<InspectionTemplate[]>([])
   const [templatesLoaded, setTemplatesLoaded] = useState(false)
   const [groups, setGroups] = useState<MultiSelectOption[]>([])
@@ -95,7 +104,7 @@ export function InspectionPlanPage() {
   const canWrite = session.can("inspection:write")
   const canDelete = session.can("inspection:delete")
   const canRun = session.can("inspection:run")
-  const status = query.status === "ACTIVE" || query.status === "PAUSED" ? query.status : ""
+  const status = normalizePlanStatus(query.status)
 
   const { items, total, loading, failed, error, reload } =
     usePagedList<InspectionPlan>({
@@ -246,10 +255,7 @@ export function InspectionPlanPage() {
     filterChips.push({
       key: "name",
       label: `${t("inspection.planName")}: ${query.name}`,
-      onRemove: () => {
-        setDraftName("")
-        query.update({ name: "" })
-      },
+      onRemove: () => query.update({ name: "" }),
     })
   }
   if (status) {
@@ -260,11 +266,17 @@ export function InspectionPlanPage() {
           ? t("inspection.statusActive")
           : t("inspection.statusPaused")
       }`,
-      onRemove: () => {
-        setDraftStatus("")
-        query.update({ status: "" })
-      },
+      onRemove: () => query.update({ status: "" }),
     })
+  }
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim(), status: draft.status })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "", status: "" })
   }
 
   return (
@@ -273,72 +285,89 @@ export function InspectionPlanPage() {
         title={t("inspection.plans")}
         description={t("inspection.plansDesc")}
       >
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <FilterToggle
-            open={filtersOpen}
-            count={filterChips.length}
-            controls="inspection-plan-filters"
-            onClick={() => setFiltersOpen((open) => !open)}
-          />
-          {canWrite ? (
-            <Button onClick={openCreate} disabled={!templatesLoaded}>
-              {t("inspection.newPlan")}
-            </Button>
-          ) : null}
-        </div>
-      </PageHeader>
-      <div
-        className={`min-w-0 flex-col gap-2 ${filtersOpen || filterChips.length > 0 ? "flex" : "hidden"}`}
-      >
-        {filterChips.length > 0 ? (
-          <FilterChips
-            items={filterChips}
-            onClearAll={() => {
-              setDraftName("")
-              setDraftStatus("")
-              query.update({ name: "", status: "" })
-            }}
-          />
+        {canWrite ? (
+          <Button onClick={openCreate} disabled={!templatesLoaded}>
+            {t("inspection.newPlan")}
+          </Button>
         ) : null}
-        <form
-          id="inspection-plan-filters"
-          className={`flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:flex-nowrap sm:p-4 ${filtersOpen ? "" : "hidden"}`}
-          onSubmit={(event) => {
-            event.preventDefault()
-            query.update({ name: draftName.trim(), status: draftStatus })
-          }}
-        >
-          <div className="min-w-0 flex-1 basis-48">
+      </PageHeader>
+      <ListFilter
+        id="inspection-plan-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={filterChips.length}
+        dirty={dirty}
+        onApply={applyFilters}
+      >
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="inspection-plan-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("inspection.planName")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
-              value={draftName}
+              id="inspection-plan-name"
+              className="pl-9"
+              value={draft.name}
               placeholder={t("inspection.planName")}
-              aria-label={t("inspection.planName")}
-              onChange={(event) => setDraftName(event.target.value)}
+              onChange={(event) => update("name", event.target.value)}
             />
           </div>
-          <div className="w-full shrink-0 sm:w-40">
-            <Select
-              value={draftStatus || ALL_STATUS}
-              onValueChange={(value) =>
-                setDraftStatus(value === ALL_STATUS ? "" : value)
-              }
-            >
-              <SelectTrigger className="w-full" aria-label={t("inspection.runStatus")}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_STATUS}>{t("inspection.all")}</SelectItem>
-                <SelectItem value="ACTIVE">{t("inspection.statusActive")}</SelectItem>
-                <SelectItem value="PAUSED">{t("inspection.statusPaused")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" variant="outline">
-            <Search data-icon="inline-start" />
-            {t("filter.apply")}
-          </Button>
-        </form>
-      </div>
+        </Field>
+        <Field className="w-40 shrink-0">
+          <FieldLabel
+            htmlFor="inspection-plan-status"
+            className="text-xs text-muted-foreground"
+          >
+            {t("inspection.runStatus")}
+          </FieldLabel>
+          <Select
+            value={draft.status || ALL_STATUS}
+            onValueChange={(value) =>
+              update("status", normalizePlanStatus(value))
+            }
+          >
+            <SelectTrigger id="inspection-plan-status" className="w-full">
+              <SelectValue placeholder={t("inspection.all")}>
+                <span className="flex items-center gap-2">
+                  <EnumIcon value={draft.status} />
+                  <span>
+                    {draft.status === "ACTIVE"
+                      ? t("inspection.statusActive")
+                      : draft.status === "PAUSED"
+                        ? t("inspection.statusPaused")
+                        : t("inspection.all")}
+                  </span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_STATUS}>{t("inspection.all")}</SelectItem>
+              <SelectItem value="ACTIVE">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="ACTIVE" />
+                  <span>{t("inspection.statusActive")}</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="PAUSED">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="PAUSED" />
+                  <span>{t("inspection.statusPaused")}</span>
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

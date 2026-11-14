@@ -1,17 +1,18 @@
-import { Search } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { listInspectionRuns } from "@/api/inspection"
 import type { InspectionRun, InspectionRunStatus } from "@/api/inspection/types"
 import { useSession } from "@/auth/session"
-import { FilterChips, type FilterChip } from "@/components/filter-chips"
-import { FilterToggle } from "@/components/filter-toggle"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { StatusBadge } from "@/components/status-badge"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Select,
   SelectContent,
@@ -27,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
@@ -40,6 +42,21 @@ import { InspectionReportSheet } from "./report-sheet"
 import { InspectionReportShareDialog } from "./report-share-dialog"
 
 const ALL_STATUS = "ALL"
+const RUN_STATUSES: InspectionRunStatus[] = [
+  "PENDING",
+  "RUNNING",
+  "SUCCEEDED",
+  "PARTIAL",
+  "FAILED",
+  "CANCELED",
+]
+
+// URL 里的状态只认执行记录的真实枚举，非法值按不筛选处理。
+function normalizeRunStatus(value: string): InspectionRunStatus | "" {
+  return RUN_STATUSES.includes(value as InspectionRunStatus)
+    ? (value as InspectionRunStatus)
+    : ""
+}
 
 function runTone(status: InspectionRunStatus) {
   switch (status) {
@@ -93,21 +110,12 @@ export function InspectionRunPage() {
   const [reportOpen, setReportOpen] = useState(false)
   const [shareRun, setShareRun] = useState<InspectionRun | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
-  const [draftStatus, setDraftStatus] = useState(
-    ["PENDING", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELED"].includes(
-      query.status
-    )
-      ? query.status
-      : ""
-  )
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    status: normalizeRunStatus(query.status),
+  })
   const canShare = session.can("inspection:share")
-  const status =
-    ["PENDING", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELED"].includes(
-      query.status
-    )
-      ? (query.status as InspectionRunStatus)
-      : ""
+  const status = normalizeRunStatus(query.status)
 
   const { items, total, loading, failed, error, reload } =
     usePagedList<InspectionRun>({
@@ -132,11 +140,17 @@ export function InspectionRunPage() {
     filterChips.push({
       key: "status",
       label: `${t("inspection.runStatus")}: ${runLabel(t, status)}`,
-      onRemove: () => {
-        setDraftStatus("")
-        query.update({ status: "" })
-      },
+      onRemove: () => query.update({ status: "" }),
     })
+  }
+
+  function applyFilters() {
+    query.update({ status: draft.status })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ status: "" })
   }
 
   return (
@@ -144,57 +158,74 @@ export function InspectionRunPage() {
       <PageHeader
         title={t("inspection.runs")}
         description={t("inspection.runsDesc")}
+      />
+      <ListFilter
+        id="inspection-run-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={filterChips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <FilterToggle
-          open={filtersOpen}
-          count={filterChips.length}
-          controls="inspection-run-filters"
-          onClick={() => setFiltersOpen((open) => !open)}
-        />
-      </PageHeader>
-      <div
-        className={`min-w-0 flex-col gap-2 ${filtersOpen || filterChips.length > 0 ? "flex" : "hidden"}`}
-      >
-        {filterChips.length > 0 ? (
-          <FilterChips
-            items={filterChips}
-            onClearAll={() => {
-              setDraftStatus("")
-              query.update({ status: "" })
-            }}
-          />
-        ) : null}
-        <form
-          id="inspection-run-filters"
-          className={`flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:flex-nowrap sm:p-4 ${filtersOpen ? "" : "hidden"}`}
-          onSubmit={(event) => {
-            event.preventDefault()
-            query.update({ status: draftStatus === ALL_STATUS ? "" : draftStatus })
-          }}
-        >
-          <div className="w-full shrink-0 sm:w-40">
-            <Select
-              value={draftStatus || ALL_STATUS}
-              onValueChange={setDraftStatus}
-            >
-              <SelectTrigger className="w-full" aria-label={t("inspection.runStatus")}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_STATUS}>{t("inspection.all")}</SelectItem>
-                <SelectItem value="SUCCEEDED">{t("inspection.runSucceeded")}</SelectItem>
-                <SelectItem value="PARTIAL">{t("inspection.runPartial")}</SelectItem>
-                <SelectItem value="FAILED">{t("inspection.runFailed")}</SelectItem>
-                <SelectItem value="RUNNING">{t("inspection.runRunning")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" variant="outline">
-            <Search data-icon="inline-start" />
-            {t("filter.apply")}
-          </Button>
-        </form>
-      </div>
+        <Field className="w-40 shrink-0">
+          <FieldLabel
+            htmlFor="inspection-run-status"
+            className="text-xs text-muted-foreground"
+          >
+            {t("inspection.runStatus")}
+          </FieldLabel>
+          <Select
+            value={draft.status || ALL_STATUS}
+            onValueChange={(value) =>
+              update(
+                "status",
+                normalizeRunStatus(value === ALL_STATUS ? "" : value)
+              )
+            }
+          >
+            <SelectTrigger id="inspection-run-status" className="w-full">
+              <SelectValue placeholder={t("inspection.all")}>
+                <span className="flex items-center gap-2">
+                  <EnumIcon value={draft.status} />
+                  <span>
+                    {draft.status ? runLabel(t, draft.status) : t("inspection.all")}
+                  </span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_STATUS}>{t("inspection.all")}</SelectItem>
+              <SelectItem value="SUCCEEDED">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="SUCCEEDED" />
+                  <span>{t("inspection.runSucceeded")}</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="PARTIAL">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="PARTIAL" />
+                  <span>{t("inspection.runPartial")}</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="FAILED">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="FAILED" />
+                  <span>{t("inspection.runFailed")}</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="RUNNING">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="RUNNING" />
+                  <span>{t("inspection.runRunning")}</span>
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

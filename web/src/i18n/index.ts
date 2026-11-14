@@ -242,6 +242,7 @@ const zh = {
     unapplied: "有未应用的改动",
     toggle: "筛选",
     hide: "收起筛选",
+    activeCount: "{{count}} 个条件已生效",
   },
   shell: {
     account: "账户",
@@ -4715,6 +4716,7 @@ const en = {
     unapplied: "Unapplied changes",
     toggle: "Filters",
     hide: "Hide filters",
+    activeCount: "{{count}} filters active",
   },
   shell: {
     account: "Account",

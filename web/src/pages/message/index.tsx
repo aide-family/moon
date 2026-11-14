@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Inbox,
+  RefreshCw,
   UserRoundCheck,
   UserRoundMinus,
   UserRoundPlus,
@@ -347,6 +348,22 @@ export function MessagePage() {
               </span>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8"
+                aria-label={t("action.refresh")}
+                title={t("action.refresh")}
+                disabled={loading}
+                onClick={() => reload()}
+              >
+                <RefreshCw
+                  aria-hidden="true"
+                  className={
+                    loading ? "animate-spin motion-reduce:animate-none" : undefined
+                  }
+                />
+              </Button>
               <span className="hidden text-xs text-muted-foreground sm:inline">
                 {t("message.latestFirst")}
               </span>

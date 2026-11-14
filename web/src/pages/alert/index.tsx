@@ -509,6 +509,7 @@ export function AlertRealtimePage() {
               </span>
             </div>
             <Input
+              className="max-w-[500px]"
               value={pickerFilter}
               placeholder={t("alertEvent.pickerFilterPlaceholder")}
               aria-label={t("alertEvent.pickerFilterPlaceholder")}

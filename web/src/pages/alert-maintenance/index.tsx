@@ -1,4 +1,4 @@
-import { RefreshCw, Search, X } from "lucide-react"
+import { Search } from "lucide-react"
 import { useEffect, useState, type FormEvent, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -24,9 +24,12 @@ import { ApiError } from "@/api/http"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet, type DetailSection } from "@/components/detail-sheet"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
 import { LabelTags } from "@/components/label-tags"
 import { LevelBadge, StatusBadge } from "@/components/status-badge"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { MultiSelect } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
@@ -42,6 +45,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Select,
   SelectContent,
@@ -60,6 +64,7 @@ import {
 } from "@/components/ui/table"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Textarea } from "@/components/ui/textarea"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import {
@@ -172,8 +177,11 @@ export function AlertMaintenancePage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [nameDraft, setNameDraft] = useState(query.name)
-  const [statusDraft, setStatusDraft] = useState(query.status)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    name: query.name,
+    status: query.status,
+  })
   const {
     items,
     total,
@@ -277,14 +285,12 @@ export function AlertMaintenancePage() {
       : t("multiSelect.summary", { count: selected, total })
   }
 
-  function applyFilters(event: FormEvent) {
-    event.preventDefault()
-    query.update({ name: nameDraft.trim(), status: statusDraft })
+  function applyFilters() {
+    query.update({ name: draft.name.trim(), status: draft.status })
+    setFiltersOpen(false)
   }
 
   function clearFilters() {
-    setNameDraft("")
-    setStatusDraft("")
     query.update({ name: "", status: "" })
   }
 
@@ -627,6 +633,26 @@ export function AlertMaintenancePage() {
     ]
   }
 
+  const filterChips: FilterChip[] = []
+  if (query.name) {
+    filterChips.push({
+      key: "name",
+      label: `${t("maintenanceWindow.name")}: ${query.name}`,
+      onRemove: () => query.update({ name: "" }),
+    })
+  }
+  if (query.status) {
+    filterChips.push({
+      key: "status",
+      label: `${t("maintenanceWindow.statusFilter")}: ${
+        query.status === "ACTIVE"
+          ? t("maintenanceWindow.filterActive")
+          : t("maintenanceWindow.filterDisabled")
+      }`,
+      onRemove: () => query.update({ status: "" }),
+    })
+  }
+
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
       <PageHeader
@@ -638,80 +664,83 @@ export function AlertMaintenancePage() {
         ) : null}
       </PageHeader>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
-        <form
-          className="flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4"
-          onSubmit={applyFilters}
+        <ListFilter
+          id="maintenance-filters"
+          open={filtersOpen}
+          onOpenChange={setFiltersOpen}
+          chips={filterChips}
+          onClearAll={clearFilters}
+          onClear={clearFilters}
+          appliedCount={filterChips.length}
+          dirty={dirty}
+          onApply={applyFilters}
         >
-          <div className="flex min-w-0 flex-1 basis-56 items-center gap-2">
-            <Input
-              className="min-w-0 flex-1"
-              value={nameDraft}
-              placeholder={t("maintenanceWindow.searchPlaceholder")}
-              aria-label={t("maintenanceWindow.name")}
-              onChange={(event) => setNameDraft(event.target.value)}
-            />
-          </div>
-          <Select
-            value={statusDraft || "ALL"}
-            onValueChange={(value) =>
-              setStatusDraft(value === "ALL" ? "" : value)
-            }
-          >
-            <SelectTrigger
-              className="w-40 shrink-0"
-              aria-label={t("maintenanceWindow.statusFilter")}
+          <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+            <FieldLabel
+              htmlFor="maintenance-name"
+              className="text-xs text-muted-foreground"
             >
-              <SelectValue placeholder={t("maintenanceWindow.allStatuses")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="ALL">
-                  {t("maintenanceWindow.allStatuses")}
-                </SelectItem>
-                <SelectItem value="ACTIVE">
-                  {t("maintenanceWindow.filterActive")}
-                </SelectItem>
-                <SelectItem value="DISABLED">
-                  {t("maintenanceWindow.filterDisabled")}
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <div className="flex shrink-0 items-center gap-2">
-            {query.name || query.status ? (
-              <Button type="button" variant="ghost" onClick={clearFilters}>
-                <X aria-hidden data-icon="inline-start" />
-                {t("filter.clear")}
-              </Button>
-            ) : null}
-            <Button type="submit" variant="outline">
-              <Search aria-hidden data-icon="inline-start" />
-              {t("action.search")}
-            </Button>
-          </div>
-        </form>
+              {t("maintenanceWindow.name")}
+            </FieldLabel>
+            <div className="relative">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+              <Input
+                id="maintenance-name"
+                className="pl-9"
+                value={draft.name}
+                placeholder={t("maintenanceWindow.searchPlaceholder")}
+                onChange={(event) => update("name", event.target.value)}
+              />
+            </div>
+          </Field>
+          <Field className="w-40 shrink-0">
+            <FieldLabel
+              htmlFor="maintenance-status"
+              className="text-xs text-muted-foreground"
+            >
+              {t("maintenanceWindow.statusFilter")}
+            </FieldLabel>
+            <Select
+              value={draft.status || "ALL"}
+              onValueChange={(value) =>
+                update("status", value === "ALL" ? "" : value)
+              }
+            >
+              <SelectTrigger id="maintenance-status" className="w-full">
+                <SelectValue
+                  placeholder={t("maintenanceWindow.allStatuses")}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="ALL">
+                    {t("maintenanceWindow.allStatuses")}
+                  </SelectItem>
+                  <SelectItem value="ACTIVE">
+                    <span className="flex items-center gap-2">
+                      <EnumIcon value="ACTIVE" />
+                      <span>{t("maintenanceWindow.filterActive")}</span>
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="DISABLED">
+                    <span className="flex items-center gap-2">
+                      <EnumIcon value="DISABLED" />
+                      <span>{t("maintenanceWindow.filterDisabled")}</span>
+                    </span>
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+        </ListFilter>
         <ListFrame
           total={total}
           page={query.page}
           pageSize={query.pageSize}
           showPager={!loading && !failed && total > 0}
-          actions={
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="size-8"
-              aria-label={t("action.refresh")}
-              title={t("action.refresh")}
-              disabled={loading}
-              onClick={() => reload()}
-            >
-              <RefreshCw
-                aria-hidden
-                className={cn(loading && "animate-spin")}
-              />
-            </Button>
-          }
           onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
           onNext={() => query.update({ page: query.page + 1 })}
         >

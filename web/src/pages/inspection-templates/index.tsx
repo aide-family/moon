@@ -12,8 +12,8 @@ import {
 } from "@/api/inspection"
 import type { InspectionTemplate, InspectionTemplateFormat } from "@/api/inspection/types"
 import { useSession } from "@/auth/session"
-import { FilterChips, type FilterChip } from "@/components/filter-chips"
-import { FilterToggle } from "@/components/filter-toggle"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
@@ -27,8 +27,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { TemplateEditor } from "@/components/template-editor"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
@@ -239,7 +241,6 @@ export function InspectionTemplatePage() {
   const query = useListQuery()
   const [searchParams, setSearchParams] = useSearchParams()
   const createParam = searchParams.get("create")
-  const [draftName, setDraftName] = useState(query.name)
   const [editing, setEditing] = useState<InspectionTemplate | null>(null)
   const [base, setBase] = useState<InspectionTemplate | null>(null)
   const [editorOpen, setEditorOpen] = useState(
@@ -248,6 +249,7 @@ export function InspectionTemplatePage() {
   const [editorKey, setEditorKey] = useState(0)
   const [guideOpen, setGuideOpen] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [detailTemplate, setDetailTemplate] = useState<InspectionTemplate | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const canWrite = session.can("inspection_template:write")
@@ -317,11 +319,17 @@ export function InspectionTemplatePage() {
     filterChips.push({
       key: "name",
       label: `${t("inspection.templateName")}: ${query.name}`,
-      onRemove: () => {
-        setDraftName("")
-        query.update({ name: "" })
-      },
+      onRemove: () => query.update({ name: "" }),
     })
+  }
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
   }
 
   return (
@@ -342,54 +350,45 @@ export function InspectionTemplatePage() {
           </Button>
         }
       >
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <FilterToggle
-            open={filtersOpen}
-            count={filterChips.length}
-            controls="inspection-template-filters"
-            onClick={() => setFiltersOpen((open) => !open)}
-          />
-          {canWrite ? (
-            <Button onClick={() => openEditor(null, null)}>
-              {t("inspection.newTemplate")}
-            </Button>
-          ) : null}
-        </div>
-      </PageHeader>
-      <div
-        className={`min-w-0 flex-col gap-2 ${filtersOpen || filterChips.length > 0 ? "flex" : "hidden"}`}
-      >
-        {filterChips.length > 0 ? (
-          <FilterChips
-            items={filterChips}
-            onClearAll={() => {
-              setDraftName("")
-              query.update({ name: "" })
-            }}
-          />
+        {canWrite ? (
+          <Button onClick={() => openEditor(null, null)}>
+            {t("inspection.newTemplate")}
+          </Button>
         ) : null}
-        <form
-          id="inspection-template-filters"
-          className={`flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:flex-nowrap sm:p-4 ${filtersOpen ? "" : "hidden"}`}
-          onSubmit={(event) => {
-            event.preventDefault()
-            query.update({ name: draftName.trim() })
-          }}
-        >
-          <div className="min-w-0 flex-1 basis-48">
+      </PageHeader>
+      <ListFilter
+        id="inspection-template-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={filterChips.length}
+        dirty={dirty}
+        onApply={applyFilters}
+      >
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="inspection-template-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("inspection.templateName")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
-              value={draftName}
+              id="inspection-template-name"
+              className="pl-9"
+              value={draft.name}
               placeholder={t("inspection.templateName")}
-              aria-label={t("inspection.templateName")}
-              onChange={(event) => setDraftName(event.target.value)}
+              onChange={(event) => update("name", event.target.value)}
             />
           </div>
-          <Button type="submit" variant="outline">
-            <Search data-icon="inline-start" />
-            {t("filter.apply")}
-          </Button>
-        </form>
-      </div>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

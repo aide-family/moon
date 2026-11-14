@@ -1,4 +1,4 @@
-import { Package } from "lucide-react"
+import { Package, Search } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
@@ -24,7 +24,9 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FeaturePicker } from "@/components/feature-picker"
 import { FeatureTags } from "@/components/feature-tags"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
@@ -40,6 +42,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -58,6 +61,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { cn } from "@/lib/class-names"
@@ -142,7 +146,8 @@ export function PackagePage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [catalog, setCatalog] = useState<FeatureItem[]>([])
   const [catalogStatus, setCatalogStatus] = useState<CatalogStatus>("loading")
   const [catalogTick, setCatalogTick] = useState(0)
@@ -450,6 +455,25 @@ export function PackagePage() {
     return actions
   }
 
+  const chips: FilterChip[] = query.name
+    ? [
+        {
+          key: "name",
+          label: `${t("packageAdmin.name")}: ${query.name}`,
+          onRemove: clearFilters,
+        },
+      ]
+    : []
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
@@ -460,24 +484,39 @@ export function PackagePage() {
           <Button onClick={openCreate}>{t("action.create")}</Button>
         ) : null}
       </PageHeader>
-      <form
-        className="flex gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
+      <ListFilter
+        id="package-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input
-          className="max-w-sm"
-          aria-label={t("packageAdmin.search")}
-          placeholder={t("packageAdmin.search")}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-        />
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="package-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("packageAdmin.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="package-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("packageAdmin.search")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

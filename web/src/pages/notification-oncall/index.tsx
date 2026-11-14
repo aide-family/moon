@@ -1,4 +1,4 @@
-import { Copy } from "lucide-react"
+import { Copy, Search } from "lucide-react"
 import { useEffect, useState, type FormEvent, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
@@ -34,8 +34,10 @@ import { ApiError } from "@/api/http"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet, type DetailSection } from "@/components/detail-sheet"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
 import { LabelTags } from "@/components/label-tags"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { MultiSelect } from "@/components/multi-select"
 import { OnCallMyShifts } from "@/components/oncall-my-shifts"
@@ -56,6 +58,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -74,6 +77,7 @@ import {
 } from "@/components/ui/table"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
@@ -248,7 +252,8 @@ export function NotificationOnCallPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [groups, setGroups] = useState<GroupOption[]>([])
   const [rotations, setRotations] = useState<OnCallRotationItem[]>([])
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
@@ -998,6 +1003,25 @@ export function NotificationOnCallPage() {
     ]
   }
 
+  const chips: FilterChip[] = query.name
+    ? [
+        {
+          key: "name",
+          label: `${t("oncall.name")}: ${query.name}`,
+          onRemove: () => query.update({ name: "" }),
+        },
+      ]
+    : []
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
@@ -1008,36 +1032,52 @@ export function NotificationOnCallPage() {
           <Button onClick={openCreate}>{t("action.create")}</Button>
         ) : null}
       </PageHeader>
-      {/* 搜索框与按钮固定一行：输入框可缩、按钮不缩，窄屏时整组（而不是按钮）换行。 */}
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <form
-          className="flex min-w-0 flex-1 items-center gap-2"
-          onSubmit={(event) => {
-            event.preventDefault()
-            query.update({ name: draft })
-          }}
-        >
-          <Input
-            className="min-w-0 flex-1 sm:max-w-72"
-            value={draft}
-            placeholder={t("oncall.namePlaceholder")}
-            onChange={(event) => setDraft(event.target.value)}
-          />
-          <Button type="submit" variant="outline" className="shrink-0">
-            {t("action.search")}
-          </Button>
-        </form>
-        <Tabs
-          className="w-full shrink-0 sm:w-auto"
-          value={view}
-          onValueChange={(value) => setView(value as "list" | "time")}
-        >
-          <TabsList>
-            <TabsTrigger value="time">{t("oncall.viewTime")}</TabsTrigger>
-            <TabsTrigger value="list">{t("oncall.viewList")}</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+      {/* 搜索框与筛选按钮同一行，视图切换放在筛选行的操作槽里。 */}
+      <ListFilter
+        id="oncall-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
+        actions={
+          <Tabs
+            className="w-full shrink-0 sm:w-auto"
+            value={view}
+            onValueChange={(value) => setView(value as "list" | "time")}
+          >
+            <TabsList>
+              <TabsTrigger value="time">{t("oncall.viewTime")}</TabsTrigger>
+              <TabsTrigger value="list">{t("oncall.viewList")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        }
+      >
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="oncall-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("oncall.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="oncall-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("oncall.namePlaceholder")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+      </ListFilter>
       {view === "time" ? (
         // app shell 是 h-svh overflow-hidden：这里必须是唯一纵向滚动 owner。
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">

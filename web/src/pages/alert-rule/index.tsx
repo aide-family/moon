@@ -1,4 +1,4 @@
-import { EllipsisVertical, Trash2 } from "lucide-react"
+import { EllipsisVertical, Search, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
@@ -38,7 +38,9 @@ import {
 } from "@/lib/feature-catalog"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
+import { ListFilter } from "@/components/list-filter"
 import { PageHeader } from "@/components/page-header"
 import {
   LogQLEditor,
@@ -69,6 +71,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Select,
   SelectContent,
@@ -98,6 +101,7 @@ import {
 import { failureMessage, readFormError } from "@/lib/form-error"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { loadAllPagedItems } from "@/lib/select-pages"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 
 import { AlertRuleDetailSheet } from "./detail"
@@ -277,8 +281,18 @@ export function AlertRulePage() {
   const ruleName = params.get("ruleName") || ""
   // 类型分段筛选：空 / query / probe。探测规则与查询规则共用告警规则列表。
   const ruleType = params.get("ruleType") || ""
-  const [groupDraft, setGroupDraft] = useState(groupsQuery.name)
-  const [ruleDraft, setRuleDraft] = useState(ruleName)
+  const [groupFiltersOpen, setGroupFiltersOpen] = useState(false)
+  const {
+    draft: groupDraft,
+    update: updateGroupDraft,
+    dirty: groupDirty,
+  } = useFilterDraft({ name: groupsQuery.name })
+  const [ruleFiltersOpen, setRuleFiltersOpen] = useState(false)
+  const {
+    draft: ruleDraft,
+    update: updateRuleDraft,
+    dirty: ruleDirty,
+  } = useFilterDraft({ name: ruleName, ruleType })
   const [groups, setGroups] = useState<AlertRuleGroupItem[]>([])
   const [groupTotal, setGroupTotal] = useState(0)
   const [rules, setRules] = useState<AlertRuleItem[]>([])
@@ -1100,6 +1114,80 @@ export function AlertRulePage() {
     ]
   }
 
+  const groupChips: FilterChip[] = groupsQuery.name
+    ? [
+        {
+          key: "name",
+          label: `${t("alertRule.group")}: ${groupsQuery.name}`,
+          onRemove: clearGroupFilters,
+        },
+      ]
+    : []
+
+  function applyGroupFilters() {
+    groupsQuery.update({ name: groupDraft.name.trim() })
+    setGroupFiltersOpen(false)
+  }
+
+  function clearGroupFilters() {
+    groupsQuery.update({ name: "" })
+  }
+
+  const ruleTypeLabel =
+    ruleType === "query"
+      ? t("alertRule.ruleTypeQuery")
+      : ruleType === "probe"
+        ? t("alertRule.ruleTypeProbe")
+        : t("alertRule.ruleTypeAll")
+  const ruleChips: FilterChip[] = []
+  if (ruleName) {
+    ruleChips.push({
+      key: "ruleName",
+      label: `${t("alertRule.name")}: ${ruleName}`,
+      onRemove: () => removeRuleFilter("ruleName"),
+    })
+  }
+  if (ruleType) {
+    ruleChips.push({
+      key: "ruleType",
+      label: `${t("alertRule.observation")}: ${ruleTypeLabel}`,
+      onRemove: () => removeRuleFilter("ruleType"),
+    })
+  }
+
+  function removeRuleFilter(key: "ruleName" | "ruleType") {
+    const next = new URLSearchParams(params)
+    next.delete(key)
+    next.set("rulePage", "1")
+    setParams(next)
+  }
+
+  function applyRuleFilters() {
+    const next = new URLSearchParams(params)
+    const name = ruleDraft.name.trim()
+    if (name) {
+      next.set("ruleName", name)
+    } else {
+      next.delete("ruleName")
+    }
+    if (ruleDraft.ruleType) {
+      next.set("ruleType", ruleDraft.ruleType)
+    } else {
+      next.delete("ruleType")
+    }
+    next.set("rulePage", "1")
+    setParams(next)
+    setRuleFiltersOpen(false)
+  }
+
+  function clearRuleFilters() {
+    const next = new URLSearchParams(params)
+    next.delete("ruleName")
+    next.delete("ruleType")
+    next.set("rulePage", "1")
+    setParams(next)
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
@@ -1108,22 +1196,41 @@ export function AlertRulePage() {
       />
       <div className="grid min-h-0 min-w-0 flex-1 gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
         <div className="flex min-h-0 min-w-0 flex-col gap-4">
-          <form
-            className="flex gap-2"
-            onSubmit={(event) => {
-              event.preventDefault()
-              groupsQuery.update({ name: groupDraft })
-            }}
+          <ListFilter
+            id="alert-rule-group-filters"
+            open={groupFiltersOpen}
+            onOpenChange={setGroupFiltersOpen}
+            chips={groupChips}
+            onClearAll={clearGroupFilters}
+            onClear={clearGroupFilters}
+            appliedCount={groupChips.length}
+            dirty={groupDirty}
+            onApply={applyGroupFilters}
           >
-            <Input
-              value={groupDraft}
-              placeholder={t("alertRule.groupPlaceholder")}
-              onChange={(event) => setGroupDraft(event.target.value)}
-            />
-            <Button type="submit" variant="outline">
-              {t("action.search")}
-            </Button>
-          </form>
+            <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+              <FieldLabel
+                htmlFor="alert-rule-group-name"
+                className="text-xs text-muted-foreground"
+              >
+                {t("alertRule.group")}
+              </FieldLabel>
+              <div className="relative">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
+                  id="alert-rule-group-name"
+                  className="pl-9"
+                  value={groupDraft.name}
+                  placeholder={t("alertRule.groupPlaceholder")}
+                  onChange={(event) =>
+                    updateGroupDraft("name", event.target.value)
+                  }
+                />
+              </div>
+            </Field>
+          </ListFilter>
           {canWrite ? (
             <Button
               onClick={() => {
@@ -1146,6 +1253,8 @@ export function AlertRulePage() {
               groupsQuery.update({ page: Math.max(1, groupsQuery.page - 1) })
             }
             onNext={() => groupsQuery.update({ page: groupsQuery.page + 1 })}
+            onRefresh={() => setAttempt((value) => value + 1)}
+            refreshing={loading}
           >
             {loading ? (
               <p className="text-sm text-muted-foreground">
@@ -1261,46 +1370,66 @@ export function AlertRulePage() {
               {t("alertRule.pickGroup")}
             </p>
           ) : null}
+          {groupUid && canWrite ? (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Button onClick={() => openRule()}>{t("action.create")}</Button>
+            </div>
+          ) : null}
           {groupUid ? (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <form
-                className="flex gap-2"
-                onSubmit={(event) => {
-                  event.preventDefault()
-                  const next = new URLSearchParams(params)
-                  if (ruleDraft) {
-                    next.set("ruleName", ruleDraft)
-                  } else {
-                    next.delete("ruleName")
-                  }
-                  next.set("rulePage", "1")
-                  setParams(next)
-                }}
-              >
-                <Input
-                  value={ruleDraft}
-                  placeholder={t("alertRule.namePlaceholder")}
-                  onChange={(event) => setRuleDraft(event.target.value)}
-                />
-                <Button type="submit" variant="outline">
-                  {t("action.search")}
-                </Button>
-              </form>
-              <div className="flex flex-wrap items-center gap-2">
-                <Tabs
-                  value={ruleType || "all"}
-                  onValueChange={(value) => {
-                    const next = new URLSearchParams(params)
-                    if (value === "all") {
-                      next.delete("ruleType")
-                    } else {
-                      next.set("ruleType", value)
-                    }
-                    next.set("rulePage", "1")
-                    setParams(next)
-                  }}
+            <ListFilter
+              id="alert-rule-filters"
+              open={ruleFiltersOpen}
+              onOpenChange={setRuleFiltersOpen}
+              chips={ruleChips}
+              onClearAll={clearRuleFilters}
+              onClear={clearRuleFilters}
+              appliedCount={ruleChips.length}
+              dirty={ruleDirty}
+              onApply={applyRuleFilters}
+            >
+              <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+                <FieldLabel
+                  htmlFor="alert-rule-filter-name"
+                  className="text-xs text-muted-foreground"
                 >
-                  <TabsList aria-label={t("alertRule.observation")}>
+                  {t("alertRule.name")}
+                </FieldLabel>
+                <div className="relative">
+                  <Search
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    id="alert-rule-filter-name"
+                    className="pl-9"
+                    value={ruleDraft.name}
+                    placeholder={t("alertRule.namePlaceholder")}
+                    onChange={(event) =>
+                      updateRuleDraft("name", event.target.value)
+                    }
+                  />
+                </div>
+              </Field>
+              <Field className="min-w-0">
+                <FieldLabel
+                  htmlFor="alert-rule-filter-type"
+                  className="text-xs text-muted-foreground"
+                >
+                  {t("alertRule.observation")}
+                </FieldLabel>
+                <Tabs
+                  value={ruleDraft.ruleType || "all"}
+                  onValueChange={(value) =>
+                    updateRuleDraft(
+                      "ruleType",
+                      value === "all" ? "" : value
+                    )
+                  }
+                >
+                  <TabsList
+                    id="alert-rule-filter-type"
+                    aria-label={t("alertRule.observation")}
+                  >
                     <TabsTrigger value="all">
                       {t("alertRule.ruleTypeAll")}
                     </TabsTrigger>
@@ -1314,13 +1443,8 @@ export function AlertRulePage() {
                     ) : null}
                   </TabsList>
                 </Tabs>
-                {canWrite ? (
-                  <Button onClick={() => openRule()}>
-                    {t("action.create")}
-                  </Button>
-                ) : null}
-              </div>
-            </div>
+              </Field>
+            </ListFilter>
           ) : null}
           <ListFrame
             total={ruleTotal}
@@ -1331,6 +1455,7 @@ export function AlertRulePage() {
               setParam("rulePage", String(Math.max(1, rulePage - 1)))
             }
             onNext={() => setParam("rulePage", String(rulePage + 1))}
+            onRefresh={() => setAttempt((value) => value + 1)}
           >
             {groupUid && rules.length === 0 ? (
               <p className="text-sm text-muted-foreground">

@@ -1,5 +1,5 @@
-import { Info, RefreshCw, Search, X } from "lucide-react"
-import { useEffect, useState, type FormEvent, type ReactNode } from "react"
+import { Info, Search } from "lucide-react"
+import { useEffect, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Navigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -22,13 +22,17 @@ import type { SelectItem as GroupOption } from "@/api/notification-group/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet, type DetailSection } from "@/components/detail-sheet"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
 import { LabelTags } from "@/components/label-tags"
 import { LevelBadge, StatusBadge } from "@/components/status-badge"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -47,9 +51,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { cn } from "@/lib/class-names"
 import { formatDateTime } from "@/lib/date-time"
 import { formErrorMessage } from "@/lib/form-error"
 import { parseLabelPairs } from "@/lib/labels"
@@ -71,8 +75,11 @@ export function AlertEscalationPolicyPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [nameDraft, setNameDraft] = useState(query.name)
-  const [statusDraft, setStatusDraft] = useState(query.status)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    name: query.name,
+    status: query.status,
+  })
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [datasources, setDatasources] = useState<DatasourceOption[]>([])
   const [rules, setRules] = useState<AlertRuleItem[]>([])
@@ -160,14 +167,12 @@ export function AlertEscalationPolicyPage() {
     return <Navigate to="/forbidden" replace />
   }
 
-  function applyFilters(event: FormEvent) {
-    event.preventDefault()
-    query.update({ name: nameDraft.trim(), status: statusDraft })
+  function applyFilters() {
+    query.update({ name: draft.name.trim(), status: draft.status })
+    setFiltersOpen(false)
   }
 
   function clearFilters() {
-    setNameDraft("")
-    setStatusDraft("")
     query.update({ name: "", status: "" })
   }
 
@@ -432,6 +437,26 @@ export function AlertEscalationPolicyPage() {
     ]
   }
 
+  const filterChips: FilterChip[] = []
+  if (query.name) {
+    filterChips.push({
+      key: "name",
+      label: `${t("escalation.name")}: ${query.name}`,
+      onRemove: () => query.update({ name: "" }),
+    })
+  }
+  if (query.status) {
+    filterChips.push({
+      key: "status",
+      label: `${t("escalation.statusFilter")}: ${
+        query.status === "ACTIVE"
+          ? t("escalation.filterActive")
+          : t("escalation.filterDisabled")
+      }`,
+      onRemove: () => query.update({ status: "" }),
+    })
+  }
+
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
       <PageHeader
@@ -450,80 +475,81 @@ export function AlertEscalationPolicyPage() {
         <p className="min-w-0 break-words">{t("escalation.skipHint")}</p>
       </div>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
-        <form
-          className="flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:p-4"
-          onSubmit={applyFilters}
+        <ListFilter
+          id="escalation-filters"
+          open={filtersOpen}
+          onOpenChange={setFiltersOpen}
+          chips={filterChips}
+          onClearAll={clearFilters}
+          onClear={clearFilters}
+          appliedCount={filterChips.length}
+          dirty={dirty}
+          onApply={applyFilters}
         >
-          <div className="flex min-w-0 flex-1 basis-56 items-center gap-2">
-            <Input
-              className="min-w-0 flex-1"
-              value={nameDraft}
-              placeholder={t("escalation.searchPlaceholder")}
-              aria-label={t("escalation.name")}
-              onChange={(event) => setNameDraft(event.target.value)}
-            />
-          </div>
-          <Select
-            value={statusDraft || "ALL"}
-            onValueChange={(value) =>
-              setStatusDraft(value === "ALL" ? "" : value)
-            }
-          >
-            <SelectTrigger
-              className="w-40 shrink-0"
-              aria-label={t("escalation.statusFilter")}
+          <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+            <FieldLabel
+              htmlFor="escalation-name"
+              className="text-xs text-muted-foreground"
             >
-              <SelectValue placeholder={t("escalation.allStatuses")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="ALL">
-                  {t("escalation.allStatuses")}
-                </SelectItem>
-                <SelectItem value="ACTIVE">
-                  {t("escalation.filterActive")}
-                </SelectItem>
-                <SelectItem value="DISABLED">
-                  {t("escalation.filterDisabled")}
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <div className="flex shrink-0 items-center gap-2">
-            {query.name || query.status ? (
-              <Button type="button" variant="ghost" onClick={clearFilters}>
-                <X aria-hidden data-icon="inline-start" />
-                {t("filter.clear")}
-              </Button>
-            ) : null}
-            <Button type="submit" variant="outline">
-              <Search aria-hidden data-icon="inline-start" />
-              {t("action.search")}
-            </Button>
-          </div>
-        </form>
+              {t("escalation.name")}
+            </FieldLabel>
+            <div className="relative">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+              <Input
+                id="escalation-name"
+                className="pl-9"
+                value={draft.name}
+                placeholder={t("escalation.searchPlaceholder")}
+                onChange={(event) => update("name", event.target.value)}
+              />
+            </div>
+          </Field>
+          <Field className="w-40 shrink-0">
+            <FieldLabel
+              htmlFor="escalation-status"
+              className="text-xs text-muted-foreground"
+            >
+              {t("escalation.statusFilter")}
+            </FieldLabel>
+            <Select
+              value={draft.status || "ALL"}
+              onValueChange={(value) =>
+                update("status", value === "ALL" ? "" : value)
+              }
+            >
+              <SelectTrigger id="escalation-status" className="w-full">
+                <SelectValue placeholder={t("escalation.allStatuses")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="ALL">
+                    {t("escalation.allStatuses")}
+                  </SelectItem>
+                  <SelectItem value="ACTIVE">
+                    <span className="flex items-center gap-2">
+                      <EnumIcon value="ACTIVE" />
+                      <span>{t("escalation.filterActive")}</span>
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="DISABLED">
+                    <span className="flex items-center gap-2">
+                      <EnumIcon value="DISABLED" />
+                      <span>{t("escalation.filterDisabled")}</span>
+                    </span>
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+        </ListFilter>
         <ListFrame
           total={total}
           page={query.page}
           pageSize={query.pageSize}
           showPager={!loading && !failed && total > 0}
-          actions={
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="size-8"
-              aria-label={t("action.refresh")}
-              title={t("action.refresh")}
-              disabled={loading}
-              onClick={() => reload()}
-            >
-              <RefreshCw
-                aria-hidden
-                className={cn(loading && "animate-spin")}
-              />
-            </Button>
-          }
           onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
           onNext={() => query.update({ page: query.page + 1 })}
         >

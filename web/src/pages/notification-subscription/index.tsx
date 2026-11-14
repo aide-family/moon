@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Search } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
@@ -22,7 +23,9 @@ import type {
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { MultiSelect } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
@@ -38,6 +41,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Table,
   TableBody,
@@ -55,6 +59,7 @@ import {
 } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { loadAllPagedItems, loadAllSelectItems } from "@/lib/select-pages"
 import { runAction } from "@/lib/action"
@@ -75,7 +80,8 @@ export function NotificationSubscriptionPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [draft, setDraft] = useState(query.name)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({ name: query.name })
   const [groups, setGroups] = useState<GroupOption[]>([])
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [datasourceLevels, setDatasourceLevels] = useState<AlertDictionaryItem[]>([])
@@ -315,23 +321,63 @@ export function NotificationSubscriptionPage() {
     return parts.length > 0 ? parts.join(" · ") : t("subscription.anyEvent")
   }
 
+  const chips: FilterChip[] = query.name
+    ? [
+        {
+          key: "name",
+          label: `${t("subscription.name")}: ${query.name}`,
+          onRemove: clearFilters,
+        },
+      ]
+    : []
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim() })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "" })
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("subscription.title")} description={t("subscription.description")}>
         {canWrite ? <Button onClick={openCreate}>{t("action.create")}</Button> : null}
       </PageHeader>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
+      <ListFilter
+        id="notification-subscription-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={chips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={chips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        <Input className="max-w-sm" value={draft} placeholder={t("subscription.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
-      </form>
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="notification-subscription-filter-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("subscription.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              id="notification-subscription-filter-name"
+              className="pl-9"
+              value={draft.name}
+              placeholder={t("subscription.namePlaceholder")}
+              onChange={(event) => update("name", event.target.value)}
+            />
+          </div>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}

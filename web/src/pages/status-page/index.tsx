@@ -15,8 +15,9 @@ import type { StatusPageItem, StatusPageStatus } from "@/api/status-page/types"
 import { ApiError } from "@/api/http"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
-import { FilterChips, type FilterChip } from "@/components/filter-chips"
-import { FilterToggle } from "@/components/filter-toggle"
+import { EnumIcon } from "@/components/enum-icon"
+import type { FilterChip } from "@/components/filter-chips"
+import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import type { MultiSelectOption } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
@@ -24,6 +25,7 @@ import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -40,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
@@ -71,8 +74,11 @@ export function StatusPageListPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
-  const [draftName, setDraftName] = useState(query.name)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const { draft, update, dirty } = useFilterDraft({
+    name: query.name,
+    status: normalizeStatus(query.status),
+  })
   const [groups, setGroups] = useState<MultiSelectOption[]>([])
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorSession, setEditorSession] = useState(0)
@@ -140,10 +146,7 @@ export function StatusPageListPage() {
     filterChips.push({
       key: "name",
       label: `${t("statusPage.name")}: ${query.name}`,
-      onRemove: () => {
-        setDraftName("")
-        query.update({ name: "" })
-      },
+      onRemove: () => query.update({ name: "" }),
     })
   }
   if (status) {
@@ -152,6 +155,15 @@ export function StatusPageListPage() {
       label: `${t("statusPage.status")}: ${t(`enum.${status}`)}`,
       onRemove: () => query.update({ status: "" }),
     })
+  }
+
+  function applyFilters() {
+    query.update({ name: draft.name.trim(), status: draft.status })
+    setFiltersOpen(false)
+  }
+
+  function clearFilters() {
+    query.update({ name: "", status: "" })
   }
 
   function openCreate() {
@@ -270,17 +282,9 @@ export function StatusPageListPage() {
         title={t("statusPage.title")}
         description={t("statusPage.description")}
       >
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <FilterToggle
-            open={filtersOpen}
-            count={filterChips.length}
-            controls="status-page-filters"
-            onClick={() => setFiltersOpen((open) => !open)}
-          />
-          {canWrite ? (
-            <Button onClick={openCreate}>{t("action.create")}</Button>
-          ) : null}
-        </div>
+        {canWrite ? (
+          <Button onClick={openCreate}>{t("action.create")}</Button>
+        ) : null}
       </PageHeader>
       <div
         role="note"
@@ -289,88 +293,86 @@ export function StatusPageListPage() {
         <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
         <p className="min-w-0 break-words">{t("statusPage.credentialHint")}</p>
       </div>
-      <div
-        className={`min-w-0 flex-col gap-2 ${filtersOpen || filterChips.length > 0 ? "flex" : "hidden"}`}
+      <ListFilter
+        id="status-page-filters"
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        chips={filterChips}
+        onClearAll={clearFilters}
+        onClear={clearFilters}
+        appliedCount={filterChips.length}
+        dirty={dirty}
+        onApply={applyFilters}
       >
-        {filterChips.length > 0 ? (
-          <FilterChips
-            items={filterChips}
-            onClearAll={() => {
-              setDraftName("")
-              query.update({ name: "", status: "" })
-            }}
-          />
-        ) : null}
-        <form
-          id="status-page-filters"
-          className={`flex min-w-0 flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/70 p-3 sm:flex-nowrap sm:p-4 ${filtersOpen ? "" : "hidden"}`}
-          onSubmit={(event) => {
-            event.preventDefault()
-            query.update({ name: draftName.trim() })
-          }}
-        >
-          <div className="min-w-0 flex-1 basis-48">
+        <Field className="min-w-0 w-full max-w-[500px] flex-1 basis-56">
+          <FieldLabel
+            htmlFor="status-page-name"
+            className="text-xs text-muted-foreground"
+          >
+            {t("statusPage.name")}
+          </FieldLabel>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
-              id="status-page-name-filter"
-              value={draftName}
+              id="status-page-name"
+              className="pl-9"
+              value={draft.name}
               placeholder={t("statusPage.searchPlaceholder")}
-              aria-label={t("statusPage.name")}
-              onChange={(event) => setDraftName(event.target.value)}
+              onChange={(event) => update("name", event.target.value)}
             />
           </div>
-          <div className="w-full shrink-0 sm:w-40">
-            <Select
-              value={status || ALL_STATUS}
-              onValueChange={(value) =>
-                query.update({
-                  status: value === ALL_STATUS ? "" : value,
-                })
-              }
-            >
-              <SelectTrigger
-                id="status-page-status-filter"
-                className="w-full"
-                aria-label={t("statusPage.status")}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_STATUS}>
-                  {t("statusPage.allStatus")}
-                </SelectItem>
-                <SelectItem value="ACTIVE">{t("enum.ACTIVE")}</SelectItem>
-                <SelectItem value="DISABLED">{t("enum.DISABLED")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex shrink-0 flex-nowrap items-center gap-2">
-            {draftName.trim() !== query.name ? (
-              <span
-                className="text-xs whitespace-nowrap text-warning"
-                role="status"
-              >
-                {t("filter.unapplied")}
-              </span>
-            ) : null}
-            {query.name || status ? (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setDraftName("")
-                  query.update({ name: "", status: "" })
-                }}
-              >
-                {t("filter.clear")}
-              </Button>
-            ) : null}
-            <Button type="submit" variant="outline">
-              <Search aria-hidden="true" data-icon="inline-start" />
-              {t("filter.apply")}
-            </Button>
-          </div>
-        </form>
-      </div>
+        </Field>
+        <Field className="w-40 shrink-0">
+          <FieldLabel
+            htmlFor="status-page-status"
+            className="text-xs text-muted-foreground"
+          >
+            {t("statusPage.status")}
+          </FieldLabel>
+          <Select
+            value={draft.status || ALL_STATUS}
+            onValueChange={(value) =>
+              update(
+                "status",
+                value === ALL_STATUS ? "" : (value as StatusPageStatus)
+              )
+            }
+          >
+            <SelectTrigger id="status-page-status" className="w-full">
+              <SelectValue placeholder={t("statusPage.allStatus")}>
+                <span className="flex items-center gap-2">
+                  <EnumIcon value={draft.status} />
+                  <span>
+                    {draft.status
+                      ? t(`enum.${draft.status}`)
+                      : t("statusPage.allStatus")}
+                  </span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_STATUS}>
+                {t("statusPage.allStatus")}
+              </SelectItem>
+              <SelectItem value="ACTIVE">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="ACTIVE" />
+                  <span>{t("enum.ACTIVE")}</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="DISABLED">
+                <span className="flex items-center gap-2">
+                  <EnumIcon value="DISABLED" />
+                  <span>{t("enum.DISABLED")}</span>
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      </ListFilter>
       <ListFrame
         total={total}
         page={query.page}
