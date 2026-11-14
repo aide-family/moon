@@ -88,7 +88,7 @@ export function OnCallRotationPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     status: normalizeStatus(query.status),
   })
@@ -231,6 +231,7 @@ export function OnCallRotationPage() {
 
   function clearFilters() {
     query.update({ name: "", status: "" })
+    reset()
   }
 
   /** 状态筛选只认 ACTIVE / DISABLED，其它值按「全部状态」展示。 */

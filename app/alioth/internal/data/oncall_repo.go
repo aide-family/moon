@@ -56,6 +56,7 @@ func (r *notificationRepo) CreateOnCall(ctx context.Context, in bo.NotificationO
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetOnCall(ctx, in.NamespaceUID, row.UID)
 }
 
@@ -95,6 +96,7 @@ func (r *notificationRepo) UpdateOnCall(ctx context.Context, in bo.NotificationO
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetOnCall(ctx, in.NamespaceUID, in.UID)
 }
 
@@ -147,6 +149,7 @@ func (r *notificationRepo) DeleteOnCall(ctx context.Context, namespaceUID, uid s
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)
 	}
+	r.labels.Invalidate(ctx, namespaceUID)
 	return nil
 }
 

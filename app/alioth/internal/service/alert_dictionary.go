@@ -18,7 +18,7 @@ func NewAlertDictionaryService(catalog *alertdictionary.Catalog) *AlertDictionar
 }
 
 func (s *AlertDictionaryService) CreateAlertDictionary(ctx context.Context, req *v1.CreateAlertDictionaryRequest) (*v1.CreateAlertDictionaryResponse, error) {
-	item, err := s.catalog.CreateAlertDictionary(ctx, bo.AlertDictionary{Name: req.GetName(), Color: req.GetColor(), Type: req.GetType()})
+	item, err := s.catalog.CreateAlertDictionary(ctx, bo.AlertDictionary{Name: req.GetName(), Color: req.GetColor(), Type: req.GetType(), Sort: int(req.GetSort())})
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (s *AlertDictionaryService) CreateAlertDictionary(ctx context.Context, req 
 }
 
 func (s *AlertDictionaryService) UpdateAlertDictionary(ctx context.Context, req *v1.UpdateAlertDictionaryRequest) (*v1.UpdateAlertDictionaryResponse, error) {
-	item, err := s.catalog.UpdateAlertDictionary(ctx, bo.AlertDictionary{UID: req.GetUid(), Name: req.GetName(), Color: req.GetColor()})
+	item, err := s.catalog.UpdateAlertDictionary(ctx, bo.AlertDictionary{UID: req.GetUid(), Name: req.GetName(), Color: req.GetColor(), Sort: int(req.GetSort())})
 	if err != nil {
 		return nil, err
 	}

@@ -155,6 +155,10 @@ service AlertRuleService {
   rpc ListAlertRules(ListAlertRulesRequest) returns (ListAlertRulesResponse) {
     option (google.api.http) = {get: "/v1/alert-rules"};
   }
+  // 获取当前租户出现过的标签键值集合，供规则的数据源/目标组匹配选择。
+  rpc ListLabelOptions(ListLabelOptionsRequest) returns (ListLabelOptionsResponse) {
+    option (google.api.http) = {get: "/v1/label-options"};
+  }
 }
 
 // 告警字典。条目类型仍是告警级别或数据源级别。
@@ -553,6 +557,8 @@ message AlertRuleGroupItem {
   string status = 3;
   // 上级规则组标识；空字符串表示顶级规则组。
   string parent_uid = 4 [json_name = "parentUid"];
+  // 规则组标签，JSON 对象。
+  string labels = 5;
 }
 
 // 创建规则组。
@@ -561,6 +567,8 @@ message CreateAlertRuleGroupRequest {
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   // 上级规则组标识；空字符串表示创建顶级规则组。
   string parent_uid = 2 [json_name = "parentUid"];
+  // 规则组标签，JSON 对象；留空表示无标签。
+  string labels = 3;
 }
 
 // 创建规则组的结果。
@@ -577,6 +585,8 @@ message UpdateAlertRuleGroupRequest {
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   // 上级规则组标识；空字符串表示移动到顶级。
   string parent_uid = 3 [json_name = "parentUid"];
+  // 规则组标签，JSON 对象；留空表示无标签。
+  string labels = 4;
 }
 
 // 更新规则组的结果。
@@ -859,6 +869,8 @@ message ListAlertRulesRequest {
   string group_uid = 3 [json_name = "groupUid"];
   // 名称。
   string name = 4;
+  // 同时返回子级规则组的规则；用于父组选中时展示整棵子树的规则。
+  bool include_descendants = 5 [json_name = "includeDescendants"];
 }
 
 // 规则分页结果。
@@ -873,6 +885,23 @@ message ListAlertRulesResponse {
   int32 page_size = 4 [json_name = "pageSize"];
 }
 
+// 标签集合中的一项。
+message LabelOptionItem {
+  // 标签键。
+  string key = 1;
+  // 该键出现过的值。
+  repeated string values = 2;
+}
+
+// 查询租户标签集合。
+message ListLabelOptionsRequest {}
+
+// 租户标签集合。
+message ListLabelOptionsResponse {
+  // 标签键值。
+  repeated LabelOptionItem items = 1;
+}
+
 // 字典项。
 message AlertDictionaryItem {
   // 标识。
@@ -885,6 +914,8 @@ message AlertDictionaryItem {
   string type = 4;
   // 状态，取值为 ACTIVE 或 DISABLED。
   string status = 5;
+  // 排序数值，值越大越靠前。
+  int32 sort = 6 [json_name = "sort"];
 }
 
 // 创建字典项。
@@ -895,6 +926,8 @@ message CreateAlertDictionaryRequest {
   string color = 2 [(buf.validate.field).string.max_len = 32];
   // 类型，取值为 ALERT 或 DATASOURCE。
   string type = 3 [(buf.validate.field).string = {in: ["ALERT", "DATASOURCE"]}];
+  // 排序数值，值越大越靠前；0 为默认值。
+  int32 sort = 4 [json_name = "sort", (buf.validate.field).int32 = {gte: 0, lte: 10000}];
 }
 
 // 创建字典项的结果。
@@ -911,6 +944,8 @@ message UpdateAlertDictionaryRequest {
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   // 展示色。
   string color = 3 [(buf.validate.field).string.max_len = 32];
+  // 排序数值，值越大越靠前；0 为默认值。
+  int32 sort = 4 [json_name = "sort", (buf.validate.field).int32 = {gte: 0, lte: 10000}];
 }
 
 // 更新字典项的结果。

@@ -18,7 +18,7 @@ func NewAlertRuleService(rulebook *alertrule.Rulebook) *AlertRuleService {
 }
 
 func (s *AlertRuleService) CreateAlertRuleGroup(ctx context.Context, req *v1.CreateAlertRuleGroupRequest) (*v1.CreateAlertRuleGroupResponse, error) {
-	item, err := s.rulebook.CreateGroup(ctx, req.GetName(), req.GetParentUid())
+	item, err := s.rulebook.CreateGroup(ctx, req.GetName(), req.GetParentUid(), req.GetLabels())
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (s *AlertRuleService) CreateAlertRuleGroup(ctx context.Context, req *v1.Cre
 }
 
 func (s *AlertRuleService) UpdateAlertRuleGroup(ctx context.Context, req *v1.UpdateAlertRuleGroupRequest) (*v1.UpdateAlertRuleGroupResponse, error) {
-	item, err := s.rulebook.UpdateGroup(ctx, req.GetUid(), req.GetName(), req.GetParentUid())
+	item, err := s.rulebook.UpdateGroup(ctx, req.GetUid(), req.GetName(), req.GetParentUid(), req.GetLabels())
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +54,18 @@ func (s *AlertRuleService) ListAlertRuleGroups(ctx context.Context, req *v1.List
 		return nil, err
 	}
 	return &v1.ListAlertRuleGroupsResponse{Items: groupItems(items), Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
+}
+
+func (s *AlertRuleService) ListLabelOptions(ctx context.Context, req *v1.ListLabelOptionsRequest) (*v1.ListLabelOptionsResponse, error) {
+	items, err := s.rulebook.LabelOptions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.LabelOptionItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.LabelOptionItem{Key: item.Key, Values: item.Values})
+	}
+	return &v1.ListLabelOptionsResponse{Items: out}, nil
 }
 
 func (s *AlertRuleService) CreateAlertRule(ctx context.Context, req *v1.CreateAlertRuleRequest) (*v1.CreateAlertRuleResponse, error) {
@@ -104,7 +116,7 @@ func (s *AlertRuleService) GetAlertRule(ctx context.Context, req *v1.GetAlertRul
 }
 
 func (s *AlertRuleService) ListAlertRules(ctx context.Context, req *v1.ListAlertRulesRequest) (*v1.ListAlertRulesResponse, error) {
-	items, total, page, pageSize, err := s.rulebook.ListRules(ctx, req.GetPage(), req.GetPageSize(), req.GetGroupUid(), req.GetName())
+	items, total, page, pageSize, err := s.rulebook.ListRules(ctx, req.GetPage(), req.GetPageSize(), req.GetGroupUid(), req.GetName(), req.GetIncludeDescendants())
 	if err != nil {
 		return nil, err
 	}

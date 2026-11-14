@@ -75,7 +75,7 @@ export function StatusPageListPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     status: normalizeStatus(query.status),
   })
@@ -164,6 +164,7 @@ export function StatusPageListPage() {
 
   function clearFilters() {
     query.update({ name: "", status: "" })
+    reset()
   }
 
   function openCreate() {

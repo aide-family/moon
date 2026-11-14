@@ -65,7 +65,7 @@ export function TenantPage() {
   const navigate = useNavigate()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [entering, setEntering] = useState("")
   const [enterError, setEnterError] = useState("")
   // 功能授权弹窗只对超级管理员开放；系统管理员只读视角不显示该操作。
@@ -237,6 +237,7 @@ export function TenantPage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (

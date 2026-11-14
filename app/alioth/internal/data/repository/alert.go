@@ -51,12 +51,13 @@ type AlertRuleRepo interface {
 	GetAlertRuleGroup(ctx context.Context, namespaceUID, uid string) (*bo.AlertRuleGroup, error)
 	ListAlertRuleGroups(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.AlertRuleGroup, int, error)
 	ListAllAlertRuleGroups(ctx context.Context, namespaceUID string) ([]bo.AlertRuleGroup, error)
+	LabelOptions(ctx context.Context, namespaceUID string) ([]bo.LabelOption, error)
 	CreateAlertRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error)
 	UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error)
 	UpdateAlertRuleStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.AlertRule, error)
 	DeleteAlertRule(ctx context.Context, namespaceUID, uid string) error
 	GetAlertRule(ctx context.Context, namespaceUID, uid string) (*bo.AlertRule, error)
-	ListAlertRules(ctx context.Context, namespaceUID string, page, pageSize int, groupUID, name string, drivers []string) ([]bo.AlertRule, int, error)
+	ListAlertRules(ctx context.Context, namespaceUID string, page, pageSize int, groupUIDs []string, name string, drivers []string) ([]bo.AlertRule, int, error)
 	ListRuleUIDs(ctx context.Context, namespaceUID, groupUID string) ([]string, error)
 	ListEvalCandidates(ctx context.Context, now time.Time) ([]bo.AlertRule, error)
 	ScheduleDue(ctx context.Context, now, next time.Time) error

@@ -1646,6 +1646,8 @@ type AlertDictionaryMutation struct {
 	color         *string
 	_type         *alertdictionary.Type
 	status        *alertdictionary.Status
+	sort          *int
+	addsort       *int
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*AlertDictionary, error)
@@ -2087,6 +2089,62 @@ func (m *AlertDictionaryMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetSort sets the "sort" field.
+func (m *AlertDictionaryMutation) SetSort(i int) {
+	m.sort = &i
+	m.addsort = nil
+}
+
+// Sort returns the value of the "sort" field in the mutation.
+func (m *AlertDictionaryMutation) Sort() (r int, exists bool) {
+	v := m.sort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSort returns the old "sort" field's value of the AlertDictionary entity.
+// If the AlertDictionary object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertDictionaryMutation) OldSort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSort: %w", err)
+	}
+	return oldValue.Sort, nil
+}
+
+// AddSort adds i to the "sort" field.
+func (m *AlertDictionaryMutation) AddSort(i int) {
+	if m.addsort != nil {
+		*m.addsort += i
+	} else {
+		m.addsort = &i
+	}
+}
+
+// AddedSort returns the value that was added to the "sort" field in this mutation.
+func (m *AlertDictionaryMutation) AddedSort() (r int, exists bool) {
+	v := m.addsort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSort resets all changes to the "sort" field.
+func (m *AlertDictionaryMutation) ResetSort() {
+	m.sort = nil
+	m.addsort = nil
+}
+
 // Where appends a list predicates to the AlertDictionaryMutation builder.
 func (m *AlertDictionaryMutation) Where(ps ...predicate.AlertDictionary) {
 	m.predicates = append(m.predicates, ps...)
@@ -2121,7 +2179,7 @@ func (m *AlertDictionaryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlertDictionaryMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, alertdictionary.FieldCreatedAt)
 	}
@@ -2149,6 +2207,9 @@ func (m *AlertDictionaryMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, alertdictionary.FieldStatus)
 	}
+	if m.sort != nil {
+		fields = append(fields, alertdictionary.FieldSort)
+	}
 	return fields
 }
 
@@ -2175,6 +2236,8 @@ func (m *AlertDictionaryMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case alertdictionary.FieldStatus:
 		return m.Status()
+	case alertdictionary.FieldSort:
+		return m.Sort()
 	}
 	return nil, false
 }
@@ -2202,6 +2265,8 @@ func (m *AlertDictionaryMutation) OldField(ctx context.Context, name string) (en
 		return m.OldType(ctx)
 	case alertdictionary.FieldStatus:
 		return m.OldStatus(ctx)
+	case alertdictionary.FieldSort:
+		return m.OldSort(ctx)
 	}
 	return nil, fmt.Errorf("unknown AlertDictionary field %s", name)
 }
@@ -2274,6 +2339,13 @@ func (m *AlertDictionaryMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case alertdictionary.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSort(v)
+		return nil
 	}
 	return fmt.Errorf("unknown AlertDictionary field %s", name)
 }
@@ -2281,13 +2353,21 @@ func (m *AlertDictionaryMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *AlertDictionaryMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addsort != nil {
+		fields = append(fields, alertdictionary.FieldSort)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *AlertDictionaryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case alertdictionary.FieldSort:
+		return m.AddedSort()
+	}
 	return nil, false
 }
 
@@ -2296,6 +2376,13 @@ func (m *AlertDictionaryMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *AlertDictionaryMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case alertdictionary.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSort(v)
+		return nil
 	}
 	return fmt.Errorf("unknown AlertDictionary numeric field %s", name)
 }
@@ -2358,6 +2445,9 @@ func (m *AlertDictionaryMutation) ResetField(name string) error {
 		return nil
 	case alertdictionary.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case alertdictionary.FieldSort:
+		m.ResetSort()
 		return nil
 	}
 	return fmt.Errorf("unknown AlertDictionary field %s", name)
@@ -12984,6 +13074,7 @@ type AlertRuleGroupMutation struct {
 	namespace_uid *string
 	name          *string
 	parent_uid    *string
+	labels        *string
 	status        *alertrulegroup.Status
 	clearedFields map[string]struct{}
 	done          bool
@@ -13354,6 +13445,42 @@ func (m *AlertRuleGroupMutation) ResetParentUID() {
 	m.parent_uid = nil
 }
 
+// SetLabels sets the "labels" field.
+func (m *AlertRuleGroupMutation) SetLabels(s string) {
+	m.labels = &s
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *AlertRuleGroupMutation) Labels() (r string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the AlertRuleGroup entity.
+// If the AlertRuleGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertRuleGroupMutation) OldLabels(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *AlertRuleGroupMutation) ResetLabels() {
+	m.labels = nil
+}
+
 // SetStatus sets the "status" field.
 func (m *AlertRuleGroupMutation) SetStatus(a alertrulegroup.Status) {
 	m.status = &a
@@ -13424,7 +13551,7 @@ func (m *AlertRuleGroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlertRuleGroupMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, alertrulegroup.FieldCreatedAt)
 	}
@@ -13445,6 +13572,9 @@ func (m *AlertRuleGroupMutation) Fields() []string {
 	}
 	if m.parent_uid != nil {
 		fields = append(fields, alertrulegroup.FieldParentUID)
+	}
+	if m.labels != nil {
+		fields = append(fields, alertrulegroup.FieldLabels)
 	}
 	if m.status != nil {
 		fields = append(fields, alertrulegroup.FieldStatus)
@@ -13471,6 +13601,8 @@ func (m *AlertRuleGroupMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case alertrulegroup.FieldParentUID:
 		return m.ParentUID()
+	case alertrulegroup.FieldLabels:
+		return m.Labels()
 	case alertrulegroup.FieldStatus:
 		return m.Status()
 	}
@@ -13496,6 +13628,8 @@ func (m *AlertRuleGroupMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldName(ctx)
 	case alertrulegroup.FieldParentUID:
 		return m.OldParentUID(ctx)
+	case alertrulegroup.FieldLabels:
+		return m.OldLabels(ctx)
 	case alertrulegroup.FieldStatus:
 		return m.OldStatus(ctx)
 	}
@@ -13555,6 +13689,13 @@ func (m *AlertRuleGroupMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetParentUID(v)
+		return nil
+	case alertrulegroup.FieldLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
 		return nil
 	case alertrulegroup.FieldStatus:
 		v, ok := value.(alertrulegroup.Status)
@@ -13641,6 +13782,9 @@ func (m *AlertRuleGroupMutation) ResetField(name string) error {
 		return nil
 	case alertrulegroup.FieldParentUID:
 		m.ResetParentUID()
+		return nil
+	case alertrulegroup.FieldLabels:
+		m.ResetLabels()
 		return nil
 	case alertrulegroup.FieldStatus:
 		m.ResetStatus()

@@ -76,7 +76,7 @@ export function AlertEscalationPolicyPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     status: query.status,
   })
@@ -174,6 +174,7 @@ export function AlertEscalationPolicyPage() {
 
   function clearFilters() {
     query.update({ name: "", status: "" })
+    reset()
   }
 
   function openCreate() {

@@ -19,6 +19,7 @@ import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { SearchableSelect } from "@/components/searchable-select"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -48,15 +49,17 @@ import {
 } from "@/lib/form"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
+import { useLabelOptions } from "@/hooks/use-label-options"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 
 export function AlertPageManagePage() {
   const { t } = useTranslation()
   const session = useSession()
+  const labelOptions = useLabelOptions()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AlertPageItem | null>(null)
   const [name, setName] = useState("")
@@ -178,6 +181,7 @@ export function AlertPageManagePage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (
@@ -308,28 +312,84 @@ export function AlertPageManagePage() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">{t("alertPage.labelsHint")}</p>
-                {labels.map((pair, index) => (
-                  <div key={index} className="grid gap-2 sm:grid-cols-2">
-                    <Input
-                      value={pair.key}
-                      placeholder={t("alertPage.labelKeyPlaceholder")}
-                      onChange={(event) => {
-                        const next = [...labels]
-                        next[index] = { ...pair, key: event.target.value }
-                        setLabels(next)
-                      }}
-                    />
-                    <Input
-                      value={pair.value}
-                      placeholder={t("alertPage.labelValuePlaceholder")}
-                      onChange={(event) => {
-                        const next = [...labels]
-                        next[index] = { ...pair, value: event.target.value }
-                        setLabels(next)
-                      }}
-                    />
-                  </div>
-                ))}
+                {labels.map((pair, index) => {
+                  // 编辑旧数据时，历史键/值可能已不在标签集合里；保留为可选项，保存时不会丢数据。
+                  const keyOptions = labelOptions.map(({ key }) => ({
+                    value: key,
+                    label: key,
+                  }))
+                  if (
+                    pair.key !== "" &&
+                    !keyOptions.some((option) => option.value === pair.key)
+                  ) {
+                    keyOptions.push({ value: pair.key, label: pair.key })
+                  }
+                  const values =
+                    labelOptions.find((option) => option.key === pair.key)
+                      ?.values ?? []
+                  const valueOptions = values.map((value) => ({
+                    value,
+                    label: value,
+                  }))
+                  if (pair.value !== "" && !values.includes(pair.value)) {
+                    valueOptions.push({ value: pair.value, label: pair.value })
+                  }
+                  return (
+                    <div key={index} className="grid gap-2 sm:grid-cols-2">
+                      <SearchableSelect
+                        value={pair.key}
+                        options={keyOptions}
+                        placeholder={t("alertPage.labelKeyPlaceholder")}
+                        searchPlaceholder={t(
+                          "alertRule.datasourceLabelKeySearch"
+                        )}
+                        emptyText={t("alertRule.customKeyHint")}
+                        allowCustom
+                        customLabel={(value) =>
+                          t("alertRule.customKey", { value })
+                        }
+                        customHint={t("alertRule.customKeyHint")}
+                        clearLabel={t("alertRule.datasourceLabelClear")}
+                        onChange={(key) => {
+                          if (key === pair.key) {
+                            return
+                          }
+                          const nextValues =
+                            labelOptions.find((option) => option.key === key)
+                              ?.values ?? []
+                          const next = [...labels]
+                          next[index] = {
+                            key,
+                            value: nextValues.includes(pair.value)
+                              ? pair.value
+                              : "",
+                          }
+                          setLabels(next)
+                        }}
+                      />
+                      <SearchableSelect
+                        value={pair.value}
+                        options={valueOptions}
+                        placeholder={t("alertPage.labelValuePlaceholder")}
+                        searchPlaceholder={t(
+                          "alertRule.datasourceLabelValueSearch"
+                        )}
+                        emptyText={t("alertRule.datasourceLabelValueEmpty")}
+                        allowCustom
+                        customLabel={(value) =>
+                          t("alertRule.datasourceLabelCustomValue", { value })
+                        }
+                        customHint={t("alertRule.datasourceLabelCustomHint")}
+                        clearLabel={t("alertRule.datasourceLabelClear")}
+                        onChange={(value) => {
+                          const next = [...labels]
+                          next[index] = { ...pair, value }
+                          setLabels(next)
+                        }}
+                      />
+                    </div>
+                  )
+                })}
               </div>
               <FormField label={t("alertPage.remark")} htmlFor="alert-page-remark" className="sm:col-span-full">
                 <Input

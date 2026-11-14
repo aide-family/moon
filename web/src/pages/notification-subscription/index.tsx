@@ -30,6 +30,7 @@ import { ListFrame } from "@/components/list-frame"
 import { MultiSelect } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { SearchableSelect } from "@/components/searchable-select"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -60,6 +61,7 @@ import {
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
+import { useLabelOptions } from "@/hooks/use-label-options"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { loadAllPagedItems, loadAllSelectItems } from "@/lib/select-pages"
 import { runAction } from "@/lib/action"
@@ -79,9 +81,10 @@ function toMinutes(seconds: number | undefined): number {
 export function NotificationSubscriptionPage() {
   const { t } = useTranslation()
   const session = useSession()
+  const labelOptions = useLabelOptions()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [groups, setGroups] = useState<GroupOption[]>([])
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [datasourceLevels, setDatasourceLevels] = useState<AlertDictionaryItem[]>([])
@@ -338,6 +341,7 @@ export function NotificationSubscriptionPage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (
@@ -469,35 +473,95 @@ export function NotificationSubscriptionPage() {
               </FormField>
               <FormField label={t("subscription.labels")} hint={t("subscription.labelsHint")} error={fieldErrors.labels}>
                 <div className="grid gap-2">
-                  {labels.map((pair, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Input
-                        value={pair.key}
-                        placeholder={t("subscription.labelKey")}
-                        onChange={(event) => {
-                          const next = [...labels]
-                          next[index] = { ...pair, key: event.target.value }
-                          setLabels(next)
-                        }}
-                      />
-                      <Input
-                        value={pair.value}
-                        placeholder={t("subscription.labelValue")}
-                        onChange={(event) => {
-                          const next = [...labels]
-                          next[index] = { ...pair, value: event.target.value }
-                          setLabels(next)
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setLabels(labels.filter((_, current) => current !== index))}
-                      >
-                        {t("action.delete")}
-                      </Button>
-                    </div>
-                  ))}
+                  {labels.map((pair, index) => {
+                    // 编辑旧数据时，历史键/值可能已不在标签集合里；保留为可选项，保存时不会丢数据。
+                    const keyOptions = labelOptions.map(({ key }) => ({
+                      value: key,
+                      label: key,
+                    }))
+                    if (
+                      pair.key !== "" &&
+                      !keyOptions.some((option) => option.value === pair.key)
+                    ) {
+                      keyOptions.push({ value: pair.key, label: pair.key })
+                    }
+                    const values =
+                      labelOptions.find((option) => option.key === pair.key)
+                        ?.values ?? []
+                    const valueOptions = values.map((value) => ({
+                      value,
+                      label: value,
+                    }))
+                    if (pair.value !== "" && !values.includes(pair.value)) {
+                      valueOptions.push({ value: pair.value, label: pair.value })
+                    }
+                    return (
+                      <div key={index} className="flex items-center gap-2">
+                        <SearchableSelect
+                          value={pair.key}
+                          options={keyOptions}
+                          placeholder={t("subscription.labelKey")}
+                          searchPlaceholder={t(
+                            "alertRule.datasourceLabelKeySearch"
+                          )}
+                          emptyText={t("alertRule.customKeyHint")}
+                          allowCustom
+                          customLabel={(value) =>
+                            t("alertRule.customKey", { value })
+                          }
+                          customHint={t("alertRule.customKeyHint")}
+                          clearLabel={t("alertRule.datasourceLabelClear")}
+                          className="flex-1"
+                          onChange={(key) => {
+                            if (key === pair.key) {
+                              return
+                            }
+                            const nextValues =
+                              labelOptions.find((option) => option.key === key)
+                                ?.values ?? []
+                            const next = [...labels]
+                            next[index] = {
+                              key,
+                              value: nextValues.includes(pair.value)
+                                ? pair.value
+                                : "",
+                            }
+                            setLabels(next)
+                          }}
+                        />
+                        <SearchableSelect
+                          value={pair.value}
+                          options={valueOptions}
+                          placeholder={t("subscription.labelValue")}
+                          searchPlaceholder={t(
+                            "alertRule.datasourceLabelValueSearch"
+                          )}
+                          emptyText={t("alertRule.datasourceLabelValueEmpty")}
+                          allowCustom
+                          customLabel={(value) =>
+                            t("alertRule.datasourceLabelCustomValue", { value })
+                          }
+                          customHint={t(
+                            "alertRule.datasourceLabelCustomHint"
+                          )}
+                          clearLabel={t("alertRule.datasourceLabelClear")}
+                          className="flex-1"
+                          onChange={(value) => {
+                            const next = [...labels]
+                            next[index] = { ...pair, value }
+                            setLabels(next)
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => setLabels(labels.filter((_, current) => current !== index))}
+                        >
+                          {t("action.delete")}
+                        </Button>
+                      </div>
+                    )
+                  })}
                   <Button type="button" variant="outline" onClick={() => setLabels([...labels, { key: "", value: "" }])}>
                     {t("subscription.addLabel")}
                   </Button>

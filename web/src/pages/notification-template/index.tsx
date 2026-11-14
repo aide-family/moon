@@ -88,7 +88,7 @@ export function NotificationTemplatePage() {
   const query = useListQuery()
   const navigate = useNavigate()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     type: query.type,
     app: query.app,
@@ -312,6 +312,7 @@ export function NotificationTemplatePage() {
 
   function clearFilters() {
     query.update({ name: "", type: "", app: "" })
+    reset()
   }
 
   return (

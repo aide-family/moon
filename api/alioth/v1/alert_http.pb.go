@@ -683,6 +683,7 @@ const OperationAlertRuleServiceDeleteAlertRuleGroup = "/alioth.v1.AlertRuleServi
 const OperationAlertRuleServiceGetAlertRule = "/alioth.v1.AlertRuleService/GetAlertRule"
 const OperationAlertRuleServiceListAlertRuleGroups = "/alioth.v1.AlertRuleService/ListAlertRuleGroups"
 const OperationAlertRuleServiceListAlertRules = "/alioth.v1.AlertRuleService/ListAlertRules"
+const OperationAlertRuleServiceListLabelOptions = "/alioth.v1.AlertRuleService/ListLabelOptions"
 const OperationAlertRuleServiceUpdateAlertRule = "/alioth.v1.AlertRuleService/UpdateAlertRule"
 const OperationAlertRuleServiceUpdateAlertRuleGroup = "/alioth.v1.AlertRuleService/UpdateAlertRuleGroup"
 const OperationAlertRuleServiceUpdateAlertRuleGroupStatus = "/alioth.v1.AlertRuleService/UpdateAlertRuleGroupStatus"
@@ -703,6 +704,8 @@ type AlertRuleServiceHTTPServer interface {
 	ListAlertRuleGroups(context.Context, *ListAlertRuleGroupsRequest) (*ListAlertRuleGroupsResponse, error)
 	// ListAlertRules 分页列出规则。
 	ListAlertRules(context.Context, *ListAlertRulesRequest) (*ListAlertRulesResponse, error)
+	// ListLabelOptions 获取当前租户出现过的标签键值集合，供规则的数据源/目标组匹配选择。
+	ListLabelOptions(context.Context, *ListLabelOptionsRequest) (*ListLabelOptionsResponse, error)
 	// UpdateAlertRule 更新规则、表达式和级别条件。
 	UpdateAlertRule(context.Context, *UpdateAlertRuleRequest) (*UpdateAlertRuleResponse, error)
 	// UpdateAlertRuleGroup 更新规则组名称。
@@ -726,6 +729,7 @@ func RegisterAlertRuleServiceHTTPServer(s *http.Server, srv AlertRuleServiceHTTP
 	r.Handle("DELETE", "/v1/alert-rule/{uid}", _AlertRuleService_DeleteAlertRule0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/alert-rule/{uid}", _AlertRuleService_GetAlertRule0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/alert-rules", _AlertRuleService_ListAlertRules0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/label-options", _AlertRuleService_ListLabelOptions0_HTTP_Handler(srv))
 }
 
 func _AlertRuleService_CreateAlertRuleGroup0_HTTP_Handler(srv AlertRuleServiceHTTPServer) func(ctx http.Context) error {
@@ -958,6 +962,25 @@ func _AlertRuleService_ListAlertRules0_HTTP_Handler(srv AlertRuleServiceHTTPServ
 	}
 }
 
+func _AlertRuleService_ListLabelOptions0_HTTP_Handler(srv AlertRuleServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListLabelOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertRuleServiceListLabelOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListLabelOptions(ctx, req.(*ListLabelOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListLabelOptionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AlertRuleServiceHTTPClient interface {
 	// CreateAlertRule 创建规则，并保存表达式和级别条件。
 	CreateAlertRule(ctx context.Context, req *CreateAlertRuleRequest, opts ...http.CallOption) (rsp *CreateAlertRuleResponse, err error)
@@ -973,6 +996,8 @@ type AlertRuleServiceHTTPClient interface {
 	ListAlertRuleGroups(ctx context.Context, req *ListAlertRuleGroupsRequest, opts ...http.CallOption) (rsp *ListAlertRuleGroupsResponse, err error)
 	// ListAlertRules 分页列出规则。
 	ListAlertRules(ctx context.Context, req *ListAlertRulesRequest, opts ...http.CallOption) (rsp *ListAlertRulesResponse, err error)
+	// ListLabelOptions 获取当前租户出现过的标签键值集合，供规则的数据源/目标组匹配选择。
+	ListLabelOptions(ctx context.Context, req *ListLabelOptionsRequest, opts ...http.CallOption) (rsp *ListLabelOptionsResponse, err error)
 	// UpdateAlertRule 更新规则、表达式和级别条件。
 	UpdateAlertRule(ctx context.Context, req *UpdateAlertRuleRequest, opts ...http.CallOption) (rsp *UpdateAlertRuleResponse, err error)
 	// UpdateAlertRuleGroup 更新规则组名称。
@@ -1103,6 +1128,23 @@ func (c *AlertRuleServiceHTTPClientImpl) ListAlertRules(ctx context.Context, in 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationAlertRuleServiceListAlertRules),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListLabelOptions 获取当前租户出现过的标签键值集合，供规则的数据源/目标组匹配选择。
+func (c *AlertRuleServiceHTTPClientImpl) ListLabelOptions(ctx context.Context, in *ListLabelOptionsRequest, opts ...http.CallOption) (*ListLabelOptionsResponse, error) {
+	var out ListLabelOptionsResponse
+	pattern := "/v1/label-options"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertRuleServiceListLabelOptions),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

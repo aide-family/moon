@@ -43,6 +43,7 @@ func (r *agentRepo) CreateAgent(ctx context.Context, in bo.Agent, tokenHash stri
 	if err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	item := toAgent(row)
 	return &item, nil
 }
@@ -112,6 +113,7 @@ func (r *agentRepo) DeleteAgent(ctx context.Context, namespaceUID, uid string) e
 	if n == 0 {
 		return merr.NotFound("not found")
 	}
+	r.labels.Invalidate(ctx, namespaceUID)
 	return nil
 }
 

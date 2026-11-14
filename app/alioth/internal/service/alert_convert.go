@@ -28,7 +28,7 @@ func datasourceItems(items []bo.Datasource) []*v1.DatasourceItem {
 }
 
 func groupItem(item bo.AlertRuleGroup) *v1.AlertRuleGroupItem {
-	return &v1.AlertRuleGroupItem{Uid: item.UID, Name: item.Name, Status: item.Status, ParentUid: item.ParentUID}
+	return &v1.AlertRuleGroupItem{Uid: item.UID, Name: item.Name, Status: item.Status, ParentUid: item.ParentUID, Labels: item.Labels}
 }
 
 func groupItems(items []bo.AlertRuleGroup) []*v1.AlertRuleGroupItem {
@@ -93,7 +93,7 @@ func variableInputs(items []*v1.AlertRuleVariableInput) []bo.AlertRuleVariable {
 }
 
 func dictionaryItem(item bo.AlertDictionary) *v1.AlertDictionaryItem {
-	return &v1.AlertDictionaryItem{Uid: item.UID, Name: item.Name, Color: item.Color, Type: item.Type, Status: item.Status}
+	return &v1.AlertDictionaryItem{Uid: item.UID, Name: item.Name, Color: item.Color, Type: item.Type, Status: item.Status, Sort: int32(item.Sort)}
 }
 
 func dictionaryItems(items []bo.AlertDictionary) []*v1.AlertDictionaryItem {

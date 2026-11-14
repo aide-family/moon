@@ -83,7 +83,7 @@ export function InspectionPlanPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     status: normalizePlanStatus(query.status),
   })
@@ -277,6 +277,7 @@ export function InspectionPlanPage() {
 
   function clearFilters() {
     query.update({ name: "", status: "" })
+    reset()
   }
 
   return (

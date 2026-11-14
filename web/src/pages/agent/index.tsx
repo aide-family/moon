@@ -128,7 +128,7 @@ export function AgentPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AgentItem | null>(null)
   const [name, setName] = useState("")
@@ -403,6 +403,7 @@ export function AgentPage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (

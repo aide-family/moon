@@ -147,7 +147,7 @@ export function PackagePage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [catalog, setCatalog] = useState<FeatureItem[]>([])
   const [catalogStatus, setCatalogStatus] = useState<CatalogStatus>("loading")
   const [catalogTick, setCatalogTick] = useState(0)
@@ -472,6 +472,7 @@ export function PackagePage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (

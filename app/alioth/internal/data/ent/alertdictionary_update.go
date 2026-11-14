@@ -124,6 +124,27 @@ func (_u *AlertDictionaryUpdate) SetNillableStatus(v *alertdictionary.Status) *A
 	return _u
 }
 
+// SetSort sets the "sort" field.
+func (_u *AlertDictionaryUpdate) SetSort(v int) *AlertDictionaryUpdate {
+	_u.mutation.ResetSort()
+	_u.mutation.SetSort(v)
+	return _u
+}
+
+// SetNillableSort sets the "sort" field if the given value is not nil.
+func (_u *AlertDictionaryUpdate) SetNillableSort(v *int) *AlertDictionaryUpdate {
+	if v != nil {
+		_u.SetSort(*v)
+	}
+	return _u
+}
+
+// AddSort adds value to the "sort" field.
+func (_u *AlertDictionaryUpdate) AddSort(v int) *AlertDictionaryUpdate {
+	_u.mutation.AddSort(v)
+	return _u
+}
+
 // Mutation returns the AlertDictionaryMutation object of the builder.
 func (_u *AlertDictionaryUpdate) Mutation() *AlertDictionaryMutation {
 	return _u.mutation
@@ -225,6 +246,12 @@ func (_u *AlertDictionaryUpdate) sqlSave(ctx context.Context) (_node int, err er
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(alertdictionary.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Sort(); ok {
+		_spec.SetField(alertdictionary.FieldSort, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSort(); ok {
+		_spec.AddField(alertdictionary.FieldSort, field.TypeInt, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -339,6 +366,27 @@ func (_u *AlertDictionaryUpdateOne) SetNillableStatus(v *alertdictionary.Status)
 	if v != nil {
 		_u.SetStatus(*v)
 	}
+	return _u
+}
+
+// SetSort sets the "sort" field.
+func (_u *AlertDictionaryUpdateOne) SetSort(v int) *AlertDictionaryUpdateOne {
+	_u.mutation.ResetSort()
+	_u.mutation.SetSort(v)
+	return _u
+}
+
+// SetNillableSort sets the "sort" field if the given value is not nil.
+func (_u *AlertDictionaryUpdateOne) SetNillableSort(v *int) *AlertDictionaryUpdateOne {
+	if v != nil {
+		_u.SetSort(*v)
+	}
+	return _u
+}
+
+// AddSort adds value to the "sort" field.
+func (_u *AlertDictionaryUpdateOne) AddSort(v int) *AlertDictionaryUpdateOne {
+	_u.mutation.AddSort(v)
 	return _u
 }
 
@@ -473,6 +521,12 @@ func (_u *AlertDictionaryUpdateOne) sqlSave(ctx context.Context) (_node *AlertDi
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(alertdictionary.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Sort(); ok {
+		_spec.SetField(alertdictionary.FieldSort, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSort(); ok {
+		_spec.AddField(alertdictionary.FieldSort, field.TypeInt, value)
 	}
 	_node = &AlertDictionary{config: _u.config}
 	_spec.Assign = _node.assignValues

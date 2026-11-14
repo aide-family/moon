@@ -46,7 +46,7 @@ export function ClusterPage() {
   const navigate = useNavigate()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorSession, setEditorSession] = useState(0)
   const [editing, setEditing] = useState<ClusterItem | null>(null)
@@ -106,6 +106,7 @@ export function ClusterPage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   function openCreate() {

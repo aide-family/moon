@@ -269,6 +269,9 @@ export function AlertEventList({
       : null
   const draft = realtimeDraft?.name ?? query.name
   const draftLevel = realtimeDraft?.level ?? analysisLevel
+  // 草稿改过但还没应用时也要能清除：URL 为空时已生效条件计数是 0。
+  const realtimeDraftDirty =
+    draft !== query.name || draftLevel !== analysisLevel
   const setDraft = (name: string) =>
     setRealtimeDraftState({
       signature: realtimeSignature,
@@ -650,8 +653,8 @@ export function AlertEventList({
     next.delete("level")
     next.set("page", "1")
     setParams(next)
-    setDraft("")
-    setDraftLevel("")
+    // 清 URL 后把草稿状态整体作废，字段回落到 URL 基线（空值）。
+    setRealtimeDraftState(null)
   }
 
   function removeRealtimeFilter(key: "name" | "level") {
@@ -659,8 +662,8 @@ export function AlertEventList({
     next.delete(key)
     next.set("page", "1")
     setParams(next)
-    if (key === "name") setDraft("")
-    else setDraftLevel("")
+    // 删除单个标签后草稿同样回落到剩余已生效条件，避免字段残留旧值。
+    setRealtimeDraftState(null)
   }
 
   // 页码可能来自历史 URL 或被收缩后的结果集：总数更小或结果为空时回到最后一页，
@@ -1165,7 +1168,10 @@ export function AlertEventList({
                             type="button"
                             variant="ghost"
                             size="sm"
-                            disabled={appliedHistoryFilterCount === 0}
+                            disabled={
+                              appliedHistoryFilterCount === 0 &&
+                              !historyDraftDirty
+                            }
                             onClick={clearHistoryFilters}
                           >
                             <X aria-hidden="true" data-icon="inline-start" />
@@ -1261,7 +1267,7 @@ export function AlertEventList({
                         </Select>
                       </Field>
                       <div className="flex shrink-0 items-center gap-2">
-                        {realtimeChips.length > 0 ? (
+                        {realtimeChips.length > 0 || realtimeDraftDirty ? (
                           <Button
                             type="button"
                             variant="ghost"

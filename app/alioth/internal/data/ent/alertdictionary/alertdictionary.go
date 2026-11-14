@@ -32,6 +32,8 @@ const (
 	FieldType = "type"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldSort holds the string denoting the sort field in the database.
+	FieldSort = "sort"
 	// Table holds the table name of the alertdictionary in the database.
 	Table = "alert_dictionaries"
 )
@@ -48,6 +50,7 @@ var Columns = []string{
 	FieldColor,
 	FieldType,
 	FieldStatus,
+	FieldSort,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -75,6 +78,8 @@ var (
 	NameValidator func(string) error
 	// DefaultColor holds the default value on creation for the "color" field.
 	DefaultColor string
+	// DefaultSort holds the default value on creation for the "sort" field.
+	DefaultSort int
 )
 
 // Type defines the type for the "type" enum field.
@@ -177,4 +182,9 @@ func ByType(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// BySort orders the results by the sort field.
+func BySort(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSort, opts...).ToFunc()
 }

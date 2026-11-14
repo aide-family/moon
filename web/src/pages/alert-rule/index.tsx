@@ -12,6 +12,8 @@ import { toast } from "sonner"
 
 import { listAlertDictionaries } from "@/api/alert-dictionary"
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
+import { listLabelOptions } from "@/api/label"
+import type { LabelOption } from "@/api/label"
 import {
   createAlertRule,
   createAlertRuleGroup,
@@ -46,6 +48,13 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import type { FilterChip } from "@/components/filter-chips"
 import { FormField } from "@/components/form-field"
+import {
+  LabelEditor,
+  labelErrorKey,
+  labelsFromJSON,
+  labelsToJSON,
+  type LabelRow,
+} from "@/components/label-editor"
 import { ListFilter } from "@/components/list-filter"
 import { PageHeader } from "@/components/page-header"
 import {
@@ -78,6 +87,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
+import { LabelTags } from "@/components/label-tags"
 import {
   Select,
   SelectContent,
@@ -205,7 +215,7 @@ interface RuleDraft {
   name: string
   driver: string
   expr: string
-  labels: string
+  labels: LabelRow[]
   datasourceLabels: LabelPair[]
   probeGroupLabels: LabelPair[]
   probeIntervalSeconds: number
@@ -228,7 +238,7 @@ const emptyRule: RuleDraft = {
   name: "",
   driver: "METRICS_PROMETHEUS",
   expr: "",
-  labels: "",
+  labels: [],
   datasourceLabels: [{ key: "", value: "" }],
   probeGroupLabels: [],
   probeIntervalSeconds: 30,
@@ -305,8 +315,10 @@ export function AlertRulePage() {
     draft: ruleDraft,
     update: updateRuleDraft,
     dirty: ruleDirty,
+    reset: resetRuleDraft,
   } = useFilterDraft({ name: ruleName, ruleType })
   const [groups, setGroups] = useState<AlertRuleGroupItem[]>([])
+  const [labelOptions, setLabelOptions] = useState<LabelOption[]>([])
   const [rules, setRules] = useState<AlertRuleItem[]>([])
   const [ruleTotal, setRuleTotal] = useState(0)
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
@@ -322,6 +334,7 @@ export function AlertRulePage() {
   const [groupOpen, setGroupOpen] = useState(false)
   const [groupName, setGroupName] = useState("")
   const [groupParentUid, setGroupParentUid] = useState("")
+  const [groupLabels, setGroupLabels] = useState<LabelRow[]>([])
   const [editingGroup, setEditingGroup] = useState<AlertRuleGroupItem | null>(
     null
   )
@@ -376,7 +389,7 @@ export function AlertRulePage() {
   )
   // 探测事件的标签里有 datasource（目标组名）、probe_target、probe_kind，模板补全要带上。
   const labelKeys = useMemo(() => {
-    const keys = ruleLabelKeys(form.labels)
+    const keys = ruleLabelKeys(labelsToJSON(form.labels).json)
     return isProbe
       ? [...keys, "datasource", "probe_target", "probe_kind"]
       : keys
@@ -410,22 +423,39 @@ export function AlertRulePage() {
       : t(`alertRule.variableExample${variableDriver}`)
   // 「数据源类型」就是规则驱动：匹配键 = 系统键 + 同驱动启用数据源的自定义标签键。
   // 具体的值在渲染每个匹配标签时按当前键推导。
+  const mergeCatalogKeys = useMemo(
+    () =>
+      (keys: string[]): string[] => {
+        const merged = [...keys]
+        const seen = new Set(keys)
+        for (const option of labelOptions) {
+          if (!seen.has(option.key)) {
+            seen.add(option.key)
+            merged.push(option.key)
+          }
+        }
+        return merged
+      },
+    [labelOptions]
+  )
+  function catalogValues(key: string): string[] {
+    return labelOptions.find((option) => option.key === key)?.values ?? []
+  }
   const datasourceMatchKeyOptions = useMemo(
     () =>
-      datasourceMatchKeys(sources, form.driver).map((key) => ({
+      mergeCatalogKeys(datasourceMatchKeys(sources, form.driver)).map((key) => ({
         value: key,
         label: key,
       })),
-    [sources, form.driver]
+    [sources, form.driver, mergeCatalogKeys]
   )
   // 探测规则：匹配键 = probe_group + 同探测类型启用目标组的自定义标签键。
   const probeMatchKeyOptions = useMemo(
     () =>
-      probeTargetMatchKeys(probeGroups, form.driver).map((key) => ({
-        value: key,
-        label: key,
-      })),
-    [probeGroups, form.driver]
+      mergeCatalogKeys(probeTargetMatchKeys(probeGroups, form.driver)).map(
+        (key) => ({ value: key, label: key })
+      ),
+    [probeGroups, form.driver, mergeCatalogKeys]
   )
   // 「按目标组选择」只列出与规则同探测类型的启用目标组。
   const probeGroupOptions = useMemo(
@@ -503,6 +533,26 @@ export function AlertRulePage() {
     }
   }, [attempt, session.namespaceUid])
 
+  // 全租户标签集合：用于规则里的数据源/目标组标签匹配，补上当前已加载对象
+  // 之外的键值；集合外键值仍可在选择器里直接输入。
+  useEffect(() => {
+    let active = true
+    listLabelOptions()
+      .then((result) => {
+        if (active) {
+          setLabelOptions(result.items ?? [])
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setLabelOptions([])
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [session.namespaceUid])
+
   useEffect(() => {
     let active = true
     async function load() {
@@ -518,6 +568,7 @@ export function AlertRulePage() {
             pageSize: rulePageSize,
             groupUid,
             name: ruleName,
+            includeDescendants: true,
           })
           if (active) {
             setRules(result.items ?? [])
@@ -528,7 +579,13 @@ export function AlertRulePage() {
         // 列表接口没有 driver 过滤：类型筛选时取回该组全部规则再本地分页，
         // 保证「全部 / 查询规则 / 探测规则」的数量与分页一致。
         const all = await loadAllPagedItems((page, pageSize) =>
-          listAlertRules({ page, pageSize, groupUid, name: ruleName })
+          listAlertRules({
+            page,
+            pageSize,
+            groupUid,
+            name: ruleName,
+            includeDescendants: true,
+          })
         )
         const filtered = all.filter((item) =>
           ruleType === "probe"
@@ -704,7 +761,7 @@ export function AlertRulePage() {
             name: item.name,
             driver: item.driver,
             expr: item.expr,
-            labels: item.labels,
+            labels: labelsFromJSON(item.labels),
             datasourceLabels: parseLabelPairs(item.datasourceLabels),
             probeGroupLabels: parseLabelPairs(item.probeGroupLabels),
             probeIntervalSeconds: item.probeIntervalSeconds || 30,
@@ -783,9 +840,14 @@ export function AlertRulePage() {
 
   async function onSaveGroup(event: React.FormEvent) {
     event.preventDefault()
+    const labelsResult = labelsToJSON(groupLabels)
     const errors = collectFieldErrors([
       ["name", requireTrimmed(groupName, t("form.required"))],
       ["name", maxLength(groupName, 64, t("form.nameTooLong"))],
+      [
+        "labels",
+        labelsResult.error ? t(labelErrorKey(labelsResult.error)) : null,
+      ],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -800,10 +862,15 @@ export function AlertRulePage() {
         await updateAlertRuleGroup(
           editingGroup.uid,
           trimmed,
-          groupParentUid
+          groupParentUid,
+          labelsResult.json
         )
       } else {
-        const created = await createAlertRuleGroup(trimmed, groupParentUid)
+        const created = await createAlertRuleGroup(
+          trimmed,
+          groupParentUid,
+          labelsResult.json
+        )
         setParam("groupUid", created.group.uid)
       }
       setGroupOpen(false)
@@ -829,6 +896,11 @@ export function AlertRulePage() {
       if (!isProbe) {
         checks.push(["expr", requireTrimmed(form.expr, t("form.required"))])
       }
+      const labelsError = labelsToJSON(form.labels).error
+      checks.push([
+        "labels",
+        labelsError ? t(labelErrorKey(labelsError)) : null,
+      ])
       return collectFieldErrors(checks)
     }
     if (step === 1) {
@@ -1005,7 +1077,7 @@ export function AlertRulePage() {
         groupUid,
         name: form.name.trim(),
         driver: form.driver,
-        labels: form.labels,
+        labels: labelsToJSON(form.labels).json,
         summary: form.summary,
         description: form.description,
         levels: form.levels,
@@ -1199,6 +1271,7 @@ export function AlertRulePage() {
     next.delete("ruleType")
     next.set("rulePage", "1")
     setParams(next)
+    resetRuleDraft()
   }
 
   function toggleGroup(uid: string) {
@@ -1217,6 +1290,7 @@ export function AlertRulePage() {
     setEditingGroup(null)
     setGroupName("")
     setGroupParentUid(parentUid)
+    setGroupLabels([])
     setError("")
     setFieldErrors({})
     setGroupOpen(true)
@@ -1226,6 +1300,7 @@ export function AlertRulePage() {
     setEditingGroup(item)
     setGroupName(item.name)
     setGroupParentUid(item.parentUid ?? "")
+    setGroupLabels(labelsFromJSON(item.labels ?? "{}"))
     setError("")
     setFieldErrors({})
     setGroupOpen(true)
@@ -1609,6 +1684,17 @@ export function AlertRulePage() {
                   </SelectContent>
                 </Select>
               </FormField>
+              <FormField
+                label={t("alertRule.labels")}
+                htmlFor="group-labels"
+                error={fieldErrors.labels}
+              >
+                <LabelEditor
+                  labels={groupLabels}
+                  idPrefix="group-labels"
+                  onChange={setGroupLabels}
+                />
+              </FormField>
             </DialogBody>
             <DialogFooter>
               <Button type="submit" disabled={pending}>
@@ -1756,11 +1842,16 @@ export function AlertRulePage() {
                               ...probeMatchKeyOptions,
                               { value: pair.key, label: pair.key },
                             ]
-                      const values = probeTargetMatchValues(
-                        probeGroups,
-                        form.driver,
-                        pair.key
-                      )
+                      const values = [
+                        ...new Set([
+                          ...probeTargetMatchValues(
+                            probeGroups,
+                            form.driver,
+                            pair.key
+                          ),
+                          ...catalogValues(pair.key),
+                        ]),
+                      ]
                       const valueOptions = values.map((value) => ({
                         value,
                         label: value,
@@ -1784,16 +1875,26 @@ export function AlertRulePage() {
                               "alertRule.probeGroupLabelKeySearch"
                             )}
                             emptyText={t("alertRule.probeGroupLabelKeyEmpty")}
+                            allowCustom
+                            customLabel={(value) =>
+                              t("alertRule.customKey", { value })
+                            }
+                            customHint={t("alertRule.customKeyHint")}
                             clearLabel={t("alertRule.probeGroupLabelClear")}
                             onChange={(key) => {
                               if (key === pair.key) {
                                 return
                               }
-                              const nextValues = probeTargetMatchValues(
-                                probeGroups,
-                                form.driver,
-                                key
-                              )
+                              const nextValues = [
+                                ...new Set([
+                                  ...probeTargetMatchValues(
+                                    probeGroups,
+                                    form.driver,
+                                    key
+                                  ),
+                                  ...catalogValues(key),
+                                ]),
+                              ]
                               updateProbeGroupLabel(index, {
                                 key,
                                 value: nextValues.includes(pair.value)
@@ -1956,11 +2057,16 @@ export function AlertRulePage() {
                             ...datasourceMatchKeyOptions,
                             { value: pair.key, label: pair.key },
                           ]
-                    const values = datasourceMatchValues(
-                      sources,
-                      form.driver,
-                      pair.key
-                    )
+                    const values = [
+                      ...new Set([
+                        ...datasourceMatchValues(
+                          sources,
+                          form.driver,
+                          pair.key
+                        ),
+                        ...catalogValues(pair.key),
+                      ]),
+                    ]
                     const valueOptions = values.map((value) => ({
                       value,
                       label: value,
@@ -1984,17 +2090,27 @@ export function AlertRulePage() {
                             "alertRule.datasourceLabelKeySearch"
                           )}
                           emptyText={t("alertRule.datasourceLabelKeyEmpty")}
+                          allowCustom
+                          customLabel={(value) =>
+                            t("alertRule.customKey", { value })
+                          }
+                          customHint={t("alertRule.customKeyHint")}
                           clearLabel={t("alertRule.datasourceLabelClear")}
                           onChange={(key) => {
                             // 重新选中同一个键不算变更，避免丢掉编辑态里保留的值。
                             if (key === pair.key) {
                               return
                             }
-                            const nextValues = datasourceMatchValues(
-                              sources,
-                              form.driver,
-                              key
-                            )
+                            const nextValues = [
+                              ...new Set([
+                                ...datasourceMatchValues(
+                                  sources,
+                                  form.driver,
+                                  key
+                                ),
+                                ...catalogValues(key),
+                              ]),
+                            ]
                             updateDatasourceLabel(index, {
                               key,
                               value: nextValues.includes(pair.value)
@@ -2088,14 +2204,12 @@ export function AlertRulePage() {
                   htmlFor="rule-labels"
                   hint={t("alertRule.labelsHint")}
                   className="sm:col-span-full"
+                  error={fieldErrors.labels}
                 >
-                  <Input
-                    id="rule-labels"
-                    value={form.labels}
-                    placeholder='{"job":"api"}'
-                    onChange={(event) =>
-                      setForm({ ...form, labels: event.target.value })
-                    }
+                  <LabelEditor
+                    labels={form.labels}
+                    idPrefix="rule-labels"
+                    onChange={(labels) => setForm({ ...form, labels })}
                   />
                 </FormField>
               </>
@@ -2555,6 +2669,10 @@ export function AlertRulePage() {
                     ? groups.find((item) => item.uid === groupDetail.parentUid)
                         ?.name ?? groupDetail.parentUid
                     : t("alertRule.rootGroup"),
+                },
+                {
+                  label: t("alertRule.labels"),
+                  value: <LabelTags labels={groupDetail.labels ?? "{}"} />,
                 },
               ]
             : []

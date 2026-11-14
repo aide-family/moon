@@ -15,12 +15,13 @@ type repoBase struct {
 	log         *slog.Logger
 	history     *historyStore
 	messageLogs *messageLogStore
+	labels      *labelCache
 }
 
 func newBase(deps *Dependencies, logger *slog.Logger) *repoBase {
 	return &repoBase{
 		client: deps.client, db: deps.db, box: deps.box, log: logger,
-		history: deps.history, messageLogs: deps.messageLogs,
+		history: deps.history, messageLogs: deps.messageLogs, labels: deps.labels,
 	}
 }
 

@@ -55,6 +55,7 @@ func (r *inspectionRepo) CreateInspectionPlan(ctx context.Context, in bo.Inspect
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetInspectionPlan(ctx, in.NamespaceUID, uid)
 }
 
@@ -110,6 +111,7 @@ func (r *inspectionRepo) UpdateInspectionPlan(ctx context.Context, in bo.Inspect
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetInspectionPlan(ctx, in.NamespaceUID, in.UID)
 }
 
@@ -185,6 +187,7 @@ func (r *inspectionRepo) DeleteInspectionPlan(ctx context.Context, namespaceUID,
 		Save(ctx); err != nil {
 		return r.fail(err)
 	}
+	r.labels.Invalidate(ctx, namespaceUID)
 	return nil
 }
 

@@ -96,6 +96,20 @@ func (_u *AlertRuleGroupUpdate) SetNillableParentUID(v *string) *AlertRuleGroupU
 	return _u
 }
 
+// SetLabels sets the "labels" field.
+func (_u *AlertRuleGroupUpdate) SetLabels(v string) *AlertRuleGroupUpdate {
+	_u.mutation.SetLabels(v)
+	return _u
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (_u *AlertRuleGroupUpdate) SetNillableLabels(v *string) *AlertRuleGroupUpdate {
+	if v != nil {
+		_u.SetLabels(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *AlertRuleGroupUpdate) SetStatus(v alertrulegroup.Status) *AlertRuleGroupUpdate {
 	_u.mutation.SetStatus(v)
@@ -201,6 +215,9 @@ func (_u *AlertRuleGroupUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if value, ok := _u.mutation.ParentUID(); ok {
 		_spec.SetField(alertrulegroup.FieldParentUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Labels(); ok {
+		_spec.SetField(alertrulegroup.FieldLabels, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(alertrulegroup.FieldStatus, field.TypeEnum, value)
 	}
@@ -288,6 +305,20 @@ func (_u *AlertRuleGroupUpdateOne) SetParentUID(v string) *AlertRuleGroupUpdateO
 func (_u *AlertRuleGroupUpdateOne) SetNillableParentUID(v *string) *AlertRuleGroupUpdateOne {
 	if v != nil {
 		_u.SetParentUID(*v)
+	}
+	return _u
+}
+
+// SetLabels sets the "labels" field.
+func (_u *AlertRuleGroupUpdateOne) SetLabels(v string) *AlertRuleGroupUpdateOne {
+	_u.mutation.SetLabels(v)
+	return _u
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (_u *AlertRuleGroupUpdateOne) SetNillableLabels(v *string) *AlertRuleGroupUpdateOne {
+	if v != nil {
+		_u.SetLabels(*v)
 	}
 	return _u
 }
@@ -426,6 +457,9 @@ func (_u *AlertRuleGroupUpdateOne) sqlSave(ctx context.Context) (_node *AlertRul
 	}
 	if value, ok := _u.mutation.ParentUID(); ok {
 		_spec.SetField(alertrulegroup.FieldParentUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Labels(); ok {
+		_spec.SetField(alertrulegroup.FieldLabels, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(alertrulegroup.FieldStatus, field.TypeEnum, value)

@@ -70,7 +70,7 @@ export function MemberPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [roles, setRoles] = useState<RoleItem[]>([])
   const [roleQuery, setRoleQuery] = useState("")
   const [open, setOpen] = useState(false)
@@ -334,6 +334,7 @@ export function MemberPage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (

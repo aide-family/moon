@@ -23,6 +23,8 @@ func (AlertDictionary) Fields() []ent.Field {
 		field.String("color").Default(""),
 		field.Enum("type").Values("ALERT", "DATASOURCE"),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
+		// sort 是展示排序数值，值越大越靠前；默认 0。
+		field.Int("sort").Default(0),
 	}
 }
 

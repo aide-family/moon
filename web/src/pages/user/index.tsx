@@ -69,7 +69,7 @@ export function UserPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [detail, setDetail] = useState<UserItem | null>(null)
   const [banning, setBanning] = useState<UserItem | null>(null)
   const [deleting, setDeleting] = useState<UserItem | null>(null)
@@ -237,6 +237,7 @@ export function UserPage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (

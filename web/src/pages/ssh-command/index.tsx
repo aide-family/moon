@@ -102,7 +102,7 @@ export function SSHCommandPage() {
   // 标签页由 URL 决定：tab=audits 是统一执行审计，缺省是命令列表。
   const tab = params.get("tab") === "audits" ? "audits" : "commands"
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     reviewStatus: query.reviewStatus,
   })
@@ -414,6 +414,7 @@ export function SSHCommandPage() {
 
   function clearFilters() {
     query.update({ name: "", reviewStatus: "" })
+    reset()
   }
 
   return (

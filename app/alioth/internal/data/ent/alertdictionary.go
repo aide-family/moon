@@ -34,7 +34,9 @@ type AlertDictionary struct {
 	// Type holds the value of the "type" field.
 	Type alertdictionary.Type `json:"type,omitempty"`
 	// Status holds the value of the "status" field.
-	Status       alertdictionary.Status `json:"status,omitempty"`
+	Status alertdictionary.Status `json:"status,omitempty"`
+	// Sort holds the value of the "sort" field.
+	Sort         int `json:"sort,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -43,7 +45,7 @@ func (*AlertDictionary) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case alertdictionary.FieldID:
+		case alertdictionary.FieldID, alertdictionary.FieldSort:
 			values[i] = new(sql.NullInt64)
 		case alertdictionary.FieldUID, alertdictionary.FieldNamespaceUID, alertdictionary.FieldName, alertdictionary.FieldColor, alertdictionary.FieldType, alertdictionary.FieldStatus:
 			values[i] = new(sql.NullString)
@@ -125,6 +127,12 @@ func (_m *AlertDictionary) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Status = alertdictionary.Status(value.String)
 			}
+		case alertdictionary.FieldSort:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field sort", values[i])
+			} else if value.Valid {
+				_m.Sort = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -189,6 +197,9 @@ func (_m *AlertDictionary) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("sort=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Sort))
 	builder.WriteByte(')')
 	return builder.String()
 }

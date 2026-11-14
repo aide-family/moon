@@ -94,6 +94,20 @@ func (_c *AlertRuleGroupCreate) SetNillableParentUID(v *string) *AlertRuleGroupC
 	return _c
 }
 
+// SetLabels sets the "labels" field.
+func (_c *AlertRuleGroupCreate) SetLabels(v string) *AlertRuleGroupCreate {
+	_c.mutation.SetLabels(v)
+	return _c
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (_c *AlertRuleGroupCreate) SetNillableLabels(v *string) *AlertRuleGroupCreate {
+	if v != nil {
+		_c.SetLabels(*v)
+	}
+	return _c
+}
+
 // SetStatus sets the "status" field.
 func (_c *AlertRuleGroupCreate) SetStatus(v alertrulegroup.Status) *AlertRuleGroupCreate {
 	_c.mutation.SetStatus(v)
@@ -155,6 +169,10 @@ func (_c *AlertRuleGroupCreate) defaults() {
 		v := alertrulegroup.DefaultParentUID
 		_c.mutation.SetParentUID(v)
 	}
+	if _, ok := _c.mutation.Labels(); !ok {
+		v := alertrulegroup.DefaultLabels
+		_c.mutation.SetLabels(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := alertrulegroup.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -195,6 +213,9 @@ func (_c *AlertRuleGroupCreate) check() error {
 	}
 	if _, ok := _c.mutation.ParentUID(); !ok {
 		return &ValidationError{Name: "parent_uid", err: errors.New(`ent: missing required field "AlertRuleGroup.parent_uid"`)}
+	}
+	if _, ok := _c.mutation.Labels(); !ok {
+		return &ValidationError{Name: "labels", err: errors.New(`ent: missing required field "AlertRuleGroup.labels"`)}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "AlertRuleGroup.status"`)}
@@ -257,6 +278,10 @@ func (_c *AlertRuleGroupCreate) createSpec() (*AlertRuleGroup, *sqlgraph.CreateS
 	if value, ok := _c.mutation.ParentUID(); ok {
 		_spec.SetField(alertrulegroup.FieldParentUID, field.TypeString, value)
 		_node.ParentUID = value
+	}
+	if value, ok := _c.mutation.Labels(); ok {
+		_spec.SetField(alertrulegroup.FieldLabels, field.TypeString, value)
+		_node.Labels = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(alertrulegroup.FieldStatus, field.TypeEnum, value)

@@ -31,6 +31,8 @@ type AlertRuleGroup struct {
 	Name string `json:"name,omitempty"`
 	// ParentUID holds the value of the "parent_uid" field.
 	ParentUID string `json:"parent_uid,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels string `json:"labels,omitempty"`
 	// Status holds the value of the "status" field.
 	Status       alertrulegroup.Status `json:"status,omitempty"`
 	selectValues sql.SelectValues
@@ -43,7 +45,7 @@ func (*AlertRuleGroup) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case alertrulegroup.FieldID:
 			values[i] = new(sql.NullInt64)
-		case alertrulegroup.FieldUID, alertrulegroup.FieldNamespaceUID, alertrulegroup.FieldName, alertrulegroup.FieldParentUID, alertrulegroup.FieldStatus:
+		case alertrulegroup.FieldUID, alertrulegroup.FieldNamespaceUID, alertrulegroup.FieldName, alertrulegroup.FieldParentUID, alertrulegroup.FieldLabels, alertrulegroup.FieldStatus:
 			values[i] = new(sql.NullString)
 		case alertrulegroup.FieldCreatedAt, alertrulegroup.FieldUpdatedAt, alertrulegroup.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -111,6 +113,12 @@ func (_m *AlertRuleGroup) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ParentUID = value.String
 			}
+		case alertrulegroup.FieldLabels:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value.Valid {
+				_m.Labels = value.String
+			}
 		case alertrulegroup.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
@@ -175,6 +183,9 @@ func (_m *AlertRuleGroup) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("parent_uid=")
 	builder.WriteString(_m.ParentUID)
+	builder.WriteString(", ")
+	builder.WriteString("labels=")
+	builder.WriteString(_m.Labels)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

@@ -154,7 +154,7 @@ export function SitePagesPage() {
   const localeFilter = rawLocale === "zh" || rawLocale === "en" ? rawLocale : ""
 
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     keyword,
     state: stateFilter,
     locale: localeFilter,
@@ -351,6 +351,7 @@ export function SitePagesPage() {
 
   function clearFilters() {
     updateQuery({ keyword: "", state: "", locale: "" })
+    reset()
   }
 
   return (

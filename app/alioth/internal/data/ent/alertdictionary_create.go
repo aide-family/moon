@@ -114,6 +114,20 @@ func (_c *AlertDictionaryCreate) SetNillableStatus(v *alertdictionary.Status) *A
 	return _c
 }
 
+// SetSort sets the "sort" field.
+func (_c *AlertDictionaryCreate) SetSort(v int) *AlertDictionaryCreate {
+	_c.mutation.SetSort(v)
+	return _c
+}
+
+// SetNillableSort sets the "sort" field if the given value is not nil.
+func (_c *AlertDictionaryCreate) SetNillableSort(v *int) *AlertDictionaryCreate {
+	if v != nil {
+		_c.SetSort(*v)
+	}
+	return _c
+}
+
 // Mutation returns the AlertDictionaryMutation object of the builder.
 func (_c *AlertDictionaryCreate) Mutation() *AlertDictionaryMutation {
 	return _c.mutation
@@ -164,6 +178,10 @@ func (_c *AlertDictionaryCreate) defaults() {
 	if _, ok := _c.mutation.Status(); !ok {
 		v := alertdictionary.DefaultStatus
 		_c.mutation.SetStatus(v)
+	}
+	if _, ok := _c.mutation.Sort(); !ok {
+		v := alertdictionary.DefaultSort
+		_c.mutation.SetSort(v)
 	}
 }
 
@@ -217,6 +235,9 @@ func (_c *AlertDictionaryCreate) check() error {
 		if err := alertdictionary.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AlertDictionary.status": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.Sort(); !ok {
+		return &ValidationError{Name: "sort", err: errors.New(`ent: missing required field "AlertDictionary.sort"`)}
 	}
 	return nil
 }
@@ -279,6 +300,10 @@ func (_c *AlertDictionaryCreate) createSpec() (*AlertDictionary, *sqlgraph.Creat
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(alertdictionary.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := _c.mutation.Sort(); ok {
+		_spec.SetField(alertdictionary.FieldSort, field.TypeInt, value)
+		_node.Sort = value
 	}
 	return _node, _spec
 }

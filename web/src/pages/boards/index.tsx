@@ -68,7 +68,7 @@ export function BoardPage() {
   const navigate = useNavigate()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     status: normalizeStatus(query.status),
   })
@@ -132,6 +132,7 @@ export function BoardPage() {
 
   function clearFilters() {
     query.update({ name: "", status: "" })
+    reset()
   }
 
   function openCreate() {

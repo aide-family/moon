@@ -3,6 +3,8 @@ export interface AlertRuleGroupItem {
   name: string
   /** 上级规则组；空字符串表示顶级。 */
   parentUid?: string
+  /** 规则组标签 JSON。 */
+  labels?: string
   status: string
 }
 
@@ -76,6 +78,8 @@ export interface ListAlertRulesParams {
   pageSize?: number
   groupUid?: string
   name?: string
+  /** 同时返回子级规则组的规则。 */
+  includeDescendants?: boolean
 }
 
 export interface ListAlertRulesResult {

@@ -355,6 +355,8 @@ export function ProbeSlaPage() {
       params.delete("to")
       params.delete("groups")
     })
+    // 清除后回到默认「最近 7 天」区间，草稿也跟随 URL 基线回落。
+    reset()
   }
 
   function retry() {

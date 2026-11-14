@@ -58,7 +58,9 @@ export function OrderPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ status: query.status })
+  const { draft, update, dirty, reset } = useFilterDraft({
+    status: query.status,
+  })
   const [cancelling, setCancelling] = useState<OrderItem | null>(null)
   const [pending, setPending] = useState(false)
   const [actionError, setActionError] = useState("")
@@ -158,6 +160,7 @@ export function OrderPage() {
 
   function clearFilters() {
     query.update({ status: "" })
+    reset()
   }
 
   return (

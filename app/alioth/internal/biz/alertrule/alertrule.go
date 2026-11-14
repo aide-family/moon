@@ -60,24 +60,28 @@ func NewRulebook(rules repository.AlertRuleRepo, dictionaries repository.AlertDi
 	return &Rulebook{rules: rules, dictionaries: dictionaries, datasources: datasources, events: events, access: checker}
 }
 
-func (rulebook *Rulebook) CreateGroup(ctx context.Context, name, parentUID string) (*bo.AlertRuleGroup, error) {
+func (rulebook *Rulebook) CreateGroup(ctx context.Context, name, parentUID, labels string) (*bo.AlertRuleGroup, error) {
 	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
 	}
 	trimmed := strings.TrimSpace(name)
 	if err := validateGroupName(trimmed); err != nil {
+		return nil, err
+	}
+	groupLabels, err := normalizeGroupLabels(labels)
+	if err != nil {
 		return nil, err
 	}
 	parentUID = strings.TrimSpace(parentUID)
 	if err := rulebook.validateGroupParent(ctx, ns, "", parentUID); err != nil {
 		return nil, err
 	}
-	item, err := rulebook.rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: trimmed, ParentUID: parentUID})
+	item, err := rulebook.rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: trimmed, ParentUID: parentUID, Labels: groupLabels})
 	return item, rulebook.access.Wrap(err)
 }
 
-func (rulebook *Rulebook) UpdateGroup(ctx context.Context, uid, name, parentUID string) (*bo.AlertRuleGroup, error) {
+func (rulebook *Rulebook) UpdateGroup(ctx context.Context, uid, name, parentUID, labels string) (*bo.AlertRuleGroup, error) {
 	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
@@ -86,11 +90,15 @@ func (rulebook *Rulebook) UpdateGroup(ctx context.Context, uid, name, parentUID 
 	if err := validateGroupName(trimmed); err != nil {
 		return nil, err
 	}
+	groupLabels, err := normalizeGroupLabels(labels)
+	if err != nil {
+		return nil, err
+	}
 	parentUID = strings.TrimSpace(parentUID)
 	if err := rulebook.validateGroupParent(ctx, ns, uid, parentUID); err != nil {
 		return nil, err
 	}
-	item, err := rulebook.rules.UpdateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, UID: uid, Name: trimmed, ParentUID: parentUID})
+	item, err := rulebook.rules.UpdateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, UID: uid, Name: trimmed, ParentUID: parentUID, Labels: groupLabels})
 	return item, rulebook.access.Wrap(err)
 }
 
@@ -184,6 +192,16 @@ func (rulebook *Rulebook) DeleteGroup(ctx context.Context, uid string) error {
 	return rulebook.access.Wrap(rulebook.rules.DeleteAlertRuleGroup(ctx, ns, uid))
 }
 
+func (rulebook *Rulebook) LabelOptions(ctx context.Context) ([]bo.LabelOption, error) {
+	// 标签集合是租户配置的汇总，供多个模块的匹配表单使用；只要能看到租户即可读取。
+	ns, err := rulebook.access.Allow(ctx, perm.NamespaceRead)
+	if err != nil {
+		return nil, err
+	}
+	options, err := rulebook.rules.LabelOptions(ctx, ns)
+	return options, rulebook.access.Wrap(err)
+}
+
 func (rulebook *Rulebook) ListGroups(ctx context.Context, pageNo, pageSize int32, name string, all bool) ([]bo.AlertRuleGroup, int, int, int, error) {
 	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleRead)
 	if err != nil {
@@ -196,6 +214,18 @@ func (rulebook *Rulebook) ListGroups(ctx context.Context, pageNo, pageSize int32
 	}
 	items, total, err := rulebook.rules.ListAlertRuleGroups(ctx, ns, p, s, strings.TrimSpace(name))
 	return items, total, p, s, rulebook.access.Wrap(err)
+}
+
+// normalizeGroupLabels 把规则组标签统一成紧凑 JSON；非法 JSON 直接拒绝。
+func normalizeGroupLabels(raw string) (string, error) {
+	if strings.TrimSpace(raw) == "" {
+		return "{}", nil
+	}
+	normalized, err := labelsutil.NormalizeObject(raw)
+	if err != nil {
+		return "", merr.Invalid("invalid labels")
+	}
+	return normalized, nil
 }
 
 func validateGroupName(name string) error {
@@ -308,7 +338,7 @@ func (rulebook *Rulebook) GetRule(ctx context.Context, uid string) (*bo.AlertRul
 	return item, nil
 }
 
-func (rulebook *Rulebook) ListRules(ctx context.Context, pageNo, pageSize int32, groupUID, name string) ([]bo.AlertRule, int, int, int, error) {
+func (rulebook *Rulebook) ListRules(ctx context.Context, pageNo, pageSize int32, groupUID, name string, includeDescendants bool) ([]bo.AlertRule, int, int, int, error) {
 	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
@@ -321,7 +351,31 @@ func (rulebook *Rulebook) ListRules(ctx context.Context, pageNo, pageSize int32,
 	if len(drivers) == 0 {
 		return []bo.AlertRule{}, 0, p, s, nil
 	}
-	items, total, err := rulebook.rules.ListAlertRules(ctx, ns, p, s, groupUID, strings.TrimSpace(name), drivers)
+	groupUIDs := make([]string, 0, 1)
+	if groupUID != "" {
+		groupUIDs = append(groupUIDs, groupUID)
+		if includeDescendants {
+			groups, listErr := rulebook.rules.ListAllAlertRuleGroups(ctx, ns)
+			if listErr != nil {
+				return nil, 0, 0, 0, rulebook.access.Wrap(listErr)
+			}
+			children := make(map[string][]string, len(groups))
+			for _, group := range groups {
+				if group.ParentUID != "" {
+					children[group.ParentUID] = append(children[group.ParentUID], group.UID)
+				}
+			}
+			var walk func(string)
+			walk = func(uid string) {
+				for _, child := range children[uid] {
+					groupUIDs = append(groupUIDs, child)
+					walk(child)
+				}
+			}
+			walk(groupUID)
+		}
+	}
+	items, total, err := rulebook.rules.ListAlertRules(ctx, ns, p, s, groupUIDs, strings.TrimSpace(name), drivers)
 	return items, total, p, s, rulebook.access.Wrap(err)
 }
 

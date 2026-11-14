@@ -87,7 +87,7 @@ export function NotificationChannelPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     type: query.type,
     app: query.app,
@@ -301,6 +301,7 @@ export function NotificationChannelPage() {
 
   function clearFilters() {
     query.update({ name: "", type: "", app: "" })
+    reset()
   }
 
   return (

@@ -728,6 +728,7 @@ const (
 	AlertRuleService_DeleteAlertRule_FullMethodName            = "/alioth.v1.AlertRuleService/DeleteAlertRule"
 	AlertRuleService_GetAlertRule_FullMethodName               = "/alioth.v1.AlertRuleService/GetAlertRule"
 	AlertRuleService_ListAlertRules_FullMethodName             = "/alioth.v1.AlertRuleService/ListAlertRules"
+	AlertRuleService_ListLabelOptions_FullMethodName           = "/alioth.v1.AlertRuleService/ListLabelOptions"
 )
 
 // AlertRuleServiceClient is the client API for AlertRuleService service.
@@ -758,6 +759,8 @@ type AlertRuleServiceClient interface {
 	GetAlertRule(ctx context.Context, in *GetAlertRuleRequest, opts ...grpc.CallOption) (*GetAlertRuleResponse, error)
 	// 分页列出规则。
 	ListAlertRules(ctx context.Context, in *ListAlertRulesRequest, opts ...grpc.CallOption) (*ListAlertRulesResponse, error)
+	// 获取当前租户出现过的标签键值集合，供规则的数据源/目标组匹配选择。
+	ListLabelOptions(ctx context.Context, in *ListLabelOptionsRequest, opts ...grpc.CallOption) (*ListLabelOptionsResponse, error)
 }
 
 type alertRuleServiceClient struct {
@@ -878,6 +881,16 @@ func (c *alertRuleServiceClient) ListAlertRules(ctx context.Context, in *ListAle
 	return out, nil
 }
 
+func (c *alertRuleServiceClient) ListLabelOptions(ctx context.Context, in *ListLabelOptionsRequest, opts ...grpc.CallOption) (*ListLabelOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListLabelOptionsResponse)
+	err := c.cc.Invoke(ctx, AlertRuleService_ListLabelOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlertRuleServiceServer is the server API for AlertRuleService service.
 // All implementations must embed UnimplementedAlertRuleServiceServer
 // for forward compatibility.
@@ -906,6 +919,8 @@ type AlertRuleServiceServer interface {
 	GetAlertRule(context.Context, *GetAlertRuleRequest) (*GetAlertRuleResponse, error)
 	// 分页列出规则。
 	ListAlertRules(context.Context, *ListAlertRulesRequest) (*ListAlertRulesResponse, error)
+	// 获取当前租户出现过的标签键值集合，供规则的数据源/目标组匹配选择。
+	ListLabelOptions(context.Context, *ListLabelOptionsRequest) (*ListLabelOptionsResponse, error)
 	mustEmbedUnimplementedAlertRuleServiceServer()
 }
 
@@ -948,6 +963,9 @@ func (UnimplementedAlertRuleServiceServer) GetAlertRule(context.Context, *GetAle
 }
 func (UnimplementedAlertRuleServiceServer) ListAlertRules(context.Context, *ListAlertRulesRequest) (*ListAlertRulesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAlertRules not implemented")
+}
+func (UnimplementedAlertRuleServiceServer) ListLabelOptions(context.Context, *ListLabelOptionsRequest) (*ListLabelOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListLabelOptions not implemented")
 }
 func (UnimplementedAlertRuleServiceServer) mustEmbedUnimplementedAlertRuleServiceServer() {}
 func (UnimplementedAlertRuleServiceServer) testEmbeddedByValue()                          {}
@@ -1168,6 +1186,24 @@ func _AlertRuleService_ListAlertRules_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertRuleService_ListLabelOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListLabelOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertRuleServiceServer).ListLabelOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertRuleService_ListLabelOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertRuleServiceServer).ListLabelOptions(ctx, req.(*ListLabelOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AlertRuleService_ServiceDesc is the grpc.ServiceDesc for AlertRuleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1218,6 +1254,10 @@ var AlertRuleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAlertRules",
 			Handler:    _AlertRuleService_ListAlertRules_Handler,
+		},
+		{
+			MethodName: "ListLabelOptions",
+			Handler:    _AlertRuleService_ListLabelOptions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

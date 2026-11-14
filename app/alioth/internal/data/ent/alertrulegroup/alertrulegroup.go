@@ -28,6 +28,8 @@ const (
 	FieldName = "name"
 	// FieldParentUID holds the string denoting the parent_uid field in the database.
 	FieldParentUID = "parent_uid"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// Table holds the table name of the alertrulegroup in the database.
@@ -44,6 +46,7 @@ var Columns = []string{
 	FieldNamespaceUID,
 	FieldName,
 	FieldParentUID,
+	FieldLabels,
 	FieldStatus,
 }
 
@@ -72,6 +75,8 @@ var (
 	NameValidator func(string) error
 	// DefaultParentUID holds the default value on creation for the "parent_uid" field.
 	DefaultParentUID string
+	// DefaultLabels holds the default value on creation for the "labels" field.
+	DefaultLabels string
 )
 
 // Status defines the type for the "status" enum field.
@@ -141,6 +146,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByParentUID orders the results by the parent_uid field.
 func ByParentUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldParentUID, opts...).ToFunc()
+}
+
+// ByLabels orders the results by the labels field.
+func ByLabels(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLabels, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

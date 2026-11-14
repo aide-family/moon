@@ -82,7 +82,7 @@ export function ClusterDetailPage() {
   const [namespacesFailed, setNamespacesFailed] = useState(false)
   const [namespacesAttempt, setNamespacesAttempt] = useState(0)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   // 连接状态整块卡片默认收起，由页头的集群名称控制显隐。
   const [summaryOpen, setSummaryOpen] = useState(false)
   const [metricsBindOpen, setMetricsBindOpen] = useState(false)
@@ -291,6 +291,7 @@ export function ClusterDetailPage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   async function runTest() {

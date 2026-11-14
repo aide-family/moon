@@ -6,6 +6,8 @@ export interface AlertDictionaryItem {
   color: string
   type: AlertDictionaryType | string
   status: string
+  /** 展示排序数值，值越大越靠前。 */
+  sort: number
 }
 
 export interface ListAlertDictionariesParams {
@@ -26,4 +28,6 @@ export interface SaveAlertDictionaryParams {
   name: string
   color: string
   type?: AlertDictionaryType
+  /** 展示排序数值，值越大越靠前；0 为默认值。 */
+  sort?: number
 }

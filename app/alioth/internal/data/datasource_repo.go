@@ -57,6 +57,7 @@ func (r *datasourceRepo) CreateDatasource(ctx context.Context, in bo.Datasource)
 	if err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.present(ctx, row, true)
 }
 
@@ -112,6 +113,7 @@ func (r *datasourceRepo) UpdateDatasource(ctx context.Context, in bo.Datasource)
 	if err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.present(ctx, updated, true)
 }
 
@@ -184,6 +186,7 @@ func (r *datasourceRepo) DeleteDatasource(ctx context.Context, namespaceUID, uid
 	if n == 0 {
 		return merr.NotFound("not found")
 	}
+	r.labels.Invalidate(ctx, namespaceUID)
 	return nil
 }
 

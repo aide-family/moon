@@ -163,7 +163,7 @@ export function DatasourcePage() {
   const query = useListQuery()
   const type = query.type
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name, type })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name, type })
   // 三个抽屉共用列表项：列表响应已经包含详情字段，不需要再按 uid 拉一次详情。
   const [detailItem, setDetailItem] = useState<DatasourceItem | null>(null)
   const [metadataItem, setMetadataItem] = useState<DatasourceItem | null>(null)
@@ -567,6 +567,7 @@ export function DatasourcePage() {
 
   function clearFilters() {
     query.update({ name: "", type: "" })
+    reset()
   }
 
   return (

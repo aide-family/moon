@@ -76,6 +76,7 @@ type Dependencies struct {
 	messageLogs *messageLogStore
 	shards      *shardStore
 	clients     *clusterClients
+	labels      *labelCache
 	// encryptKeyCheck 是 ENCRYPT_KEY 的 SHA-256 前 16 位，用于比对迁移包与目标环境。
 	encryptKeyCheck string
 }
@@ -101,7 +102,9 @@ func NewDependencies(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Depen
 	shards := newShardStore(db, c.Database.Source, c.GetHistory().GetDatabasePrefix(), logger)
 	history := newHistoryStore(shards, c.GetHistory().GetTablePrefix())
 	messageLogs := newMessageLogStore(shards, c.GetHistory().GetMessageTablePrefix())
+	labelCache, cleanupLabels := newLabelCache(c, client, logger)
 	cleanup := func() {
+		cleanupLabels()
 		shards.close()
 		if err := client.Close(); err != nil {
 			logger.Error(fmt.Sprintf("close database: %v", err))
@@ -109,7 +112,8 @@ func NewDependencies(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Depen
 	}
 	keyCheck := sha256.Sum256([]byte(auth.GetEncryptKey()))
 	deps := &Dependencies{
-		db: db, client: client, box: box, history: history, messageLogs: messageLogs, shards: shards,
+		db: db, client: client, box: box, history: history, messageLogs: messageLogs,
+		shards: shards, labels: labelCache,
 		encryptKeyCheck: hex.EncodeToString(keyCheck[:])[:16],
 	}
 	// 集群客户端缓存按集群 UID 共享，集群仓储和资源仓储共用同一份。

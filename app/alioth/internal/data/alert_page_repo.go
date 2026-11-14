@@ -27,6 +27,7 @@ func (r *alertPageRepo) CreateAlertPage(ctx context.Context, in bo.AlertPage) (*
 	if err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	item := toAlertPage(row)
 	return &item, nil
 }
@@ -48,6 +49,7 @@ func (r *alertPageRepo) UpdateAlertPage(ctx context.Context, in bo.AlertPage) (*
 	if n == 0 {
 		return nil, merr.NotFound("not found")
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetAlertPage(ctx, in.NamespaceUID, in.UID)
 }
 

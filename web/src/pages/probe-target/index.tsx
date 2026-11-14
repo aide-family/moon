@@ -707,7 +707,7 @@ export function ProbeTargetPage() {
   // 详情抽屉的开关状态直接落在 URL 的 uid 上，保留深链；目标组数据由抽屉按需拉取。
   const detailUid = params.get("uid") || ""
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     type: query.type,
   })
@@ -1250,6 +1250,7 @@ export function ProbeTargetPage() {
 
   function clearFilters() {
     query.update({ name: "", type: "" })
+    reset()
   }
 
   // 抽屉标题先用列表行的名称，避免打开瞬间只剩页面名；深链时等详情返回。

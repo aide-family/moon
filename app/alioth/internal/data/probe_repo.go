@@ -55,6 +55,7 @@ func (r *probeRepo) CreateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetProbeTargetGroup(ctx, in.NamespaceUID, row.UID)
 }
 
@@ -137,6 +138,7 @@ func (r *probeRepo) UpdateProbeTargetGroup(ctx context.Context, in bo.ProbeTarge
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetProbeTargetGroup(ctx, in.NamespaceUID, in.UID)
 }
 
@@ -174,6 +176,7 @@ func (r *probeRepo) DeleteProbeTargetGroup(ctx context.Context, namespaceUID, ui
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)
 	}
+	r.labels.Invalidate(ctx, namespaceUID)
 	return nil
 }
 

@@ -108,7 +108,7 @@ export function NotificationGroupPage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [channels, setChannels] = useState<NotificationChannelItem[]>([])
   const [templates, setTemplates] = useState<NotificationTemplateItem[]>([])
   const [members, setMembers] = useState<MemberItem[]>([])
@@ -510,6 +510,7 @@ export function NotificationGroupPage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (

@@ -22,7 +22,7 @@ interface ListFilterProps {
   onApply: () => void
   /** 已生效条件数，用于禁用「清除筛选」。 */
   appliedCount?: number
-  /** 草稿与已生效条件不一致时，页脚显示「有未应用的改动」。 */
+  /** 草稿与已生效条件不一致时，页脚显示「有未应用的改动」，并允许清除草稿。 */
   dirty?: boolean
   /** 没有草稿改动和生效条件时页脚左侧的说明。 */
   hint?: string
@@ -95,7 +95,7 @@ export function ListFilter({
               type="button"
               variant="ghost"
               size="sm"
-              disabled={applied === 0}
+              disabled={!dirty && applied === 0}
               onClick={onClear ?? onClearAll}
             >
               <X aria-hidden="true" data-icon="inline-start" />

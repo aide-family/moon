@@ -89,6 +89,11 @@ func Color(v string) predicate.AlertDictionary {
 	return predicate.AlertDictionary(sql.FieldEQ(FieldColor, v))
 }
 
+// Sort applies equality check predicate on the "sort" field. It's identical to SortEQ.
+func Sort(v int) predicate.AlertDictionary {
+	return predicate.AlertDictionary(sql.FieldEQ(FieldSort, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.AlertDictionary {
 	return predicate.AlertDictionary(sql.FieldEQ(FieldCreatedAt, v))
@@ -517,6 +522,46 @@ func StatusIn(vs ...Status) predicate.AlertDictionary {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.AlertDictionary {
 	return predicate.AlertDictionary(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// SortEQ applies the EQ predicate on the "sort" field.
+func SortEQ(v int) predicate.AlertDictionary {
+	return predicate.AlertDictionary(sql.FieldEQ(FieldSort, v))
+}
+
+// SortNEQ applies the NEQ predicate on the "sort" field.
+func SortNEQ(v int) predicate.AlertDictionary {
+	return predicate.AlertDictionary(sql.FieldNEQ(FieldSort, v))
+}
+
+// SortIn applies the In predicate on the "sort" field.
+func SortIn(vs ...int) predicate.AlertDictionary {
+	return predicate.AlertDictionary(sql.FieldIn(FieldSort, vs...))
+}
+
+// SortNotIn applies the NotIn predicate on the "sort" field.
+func SortNotIn(vs ...int) predicate.AlertDictionary {
+	return predicate.AlertDictionary(sql.FieldNotIn(FieldSort, vs...))
+}
+
+// SortGT applies the GT predicate on the "sort" field.
+func SortGT(v int) predicate.AlertDictionary {
+	return predicate.AlertDictionary(sql.FieldGT(FieldSort, v))
+}
+
+// SortGTE applies the GTE predicate on the "sort" field.
+func SortGTE(v int) predicate.AlertDictionary {
+	return predicate.AlertDictionary(sql.FieldGTE(FieldSort, v))
+}
+
+// SortLT applies the LT predicate on the "sort" field.
+func SortLT(v int) predicate.AlertDictionary {
+	return predicate.AlertDictionary(sql.FieldLT(FieldSort, v))
+}
+
+// SortLTE applies the LTE predicate on the "sort" field.
+func SortLTE(v int) predicate.AlertDictionary {
+	return predicate.AlertDictionary(sql.FieldLTE(FieldSort, v))
 }
 
 // And groups predicates with the AND operator between them.

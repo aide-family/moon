@@ -75,7 +75,7 @@ export function NamespacePage() {
   // 表头和每一行都是独立的 grid 容器，必须共用同一份列模板才能对齐。
   const rowGrid = TABLE_GRID_MAIN_IDENTITY_STATUS_ACTIONS
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [remark, setRemark] = useState("")
@@ -505,6 +505,7 @@ export function NamespacePage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (

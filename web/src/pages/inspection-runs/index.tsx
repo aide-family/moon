@@ -111,7 +111,7 @@ export function InspectionRunPage() {
   const [shareRun, setShareRun] = useState<InspectionRun | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     status: normalizeRunStatus(query.status),
   })
   const canShare = session.can("inspection:share")
@@ -151,6 +151,7 @@ export function InspectionRunPage() {
 
   function clearFilters() {
     query.update({ status: "" })
+    reset()
   }
 
   return (

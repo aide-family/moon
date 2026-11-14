@@ -23,6 +23,10 @@ import type { SelectItem as DatasourceOption } from "@/api/datasource/types"
 import { ApiError } from "@/api/http"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
+import {
+  DateTimeRangePicker,
+  type DateTimeRange,
+} from "@/components/date-time-range-picker"
 import { DetailSheet, type DetailSection } from "@/components/detail-sheet"
 import { EnumIcon } from "@/components/enum-icon"
 import type { FilterChip } from "@/components/filter-chips"
@@ -83,6 +87,7 @@ import {
 import { loadAllPagedItems, loadAllSelectItems } from "@/lib/select-pages"
 import { cn } from "@/lib/class-names"
 import { formatDateTime } from "@/lib/date-time"
+import { formatDateTimeValue, parseDateTimeValue } from "@/lib/date-range"
 import {
   TABLE_COLUMN_WIDTH,
   TABLE_MIN_WIDTH,
@@ -100,28 +105,16 @@ interface LabelPairErrors {
   value?: string
 }
 
-/** RFC3339 → datetime-local 输入值（本地时区，精确到分钟）。 */
-function toDateTimeInput(value: string): string {
-  if (!value) {
-    return ""
-  }
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return ""
-  }
-  const pad = (part: number) => String(part).padStart(2, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate()
-  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+/** RFC3339 → 选择器使用的本地 YYYY-MM-DDTHH:mm（精确到分钟）。 */
+function toDateTimeValue(value: string): string {
+  const date = parseDateTimeValue(value)
+  return date ? formatDateTimeValue(date) : ""
 }
 
-/** datetime-local 输入值按本地时区解释，提交前转成 RFC3339。 */
+/** 选择器的本地 YYYY-MM-DDTHH:mm → RFC3339（提交给后端）。 */
 function toRFC3339(value: string): string {
-  if (!value) {
-    return ""
-  }
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? "" : date.toISOString()
+  const date = parseDateTimeValue(value)
+  return date ? date.toISOString() : ""
 }
 
 /**
@@ -178,7 +171,7 @@ export function AlertMaintenancePage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({
+  const { draft, update, dirty, reset } = useFilterDraft({
     name: query.name,
     status: query.status,
   })
@@ -292,6 +285,7 @@ export function AlertMaintenancePage() {
 
   function clearFilters() {
     query.update({ name: "", status: "" })
+    reset()
   }
 
   function resetForm() {
@@ -318,8 +312,8 @@ export function AlertMaintenancePage() {
     setEditing(item)
     setName(item.name)
     setDescription(item.description ?? "")
-    setStartsAt(toDateTimeInput(item.startsAt))
-    setEndsAt(toDateTimeInput(item.endsAt))
+    setStartsAt(toDateTimeValue(item.startsAt))
+    setEndsAt(toDateTimeValue(item.endsAt))
     setLabels(parseLabelPairs(item.labels))
     setLabelPairErrors([])
     setLevelUids(item.levelUids ?? [])
@@ -333,6 +327,26 @@ export function AlertMaintenancePage() {
   function openDetail(item: AlertMaintenanceWindowItem) {
     setDetail(item)
     setDetailOpen(true)
+  }
+
+  /**
+   * 开始/结束共用一个控件：值直接写回原有状态，组件给的是本地
+   * YYYY-MM-DDTHH:mm，提交时再由 toRFC3339 转成 RFC3339。
+   * 同时撤掉上一次提交留下的时间类错误，避免改了还挂着红字。
+   */
+  function updateTimeRange(range: DateTimeRange) {
+    setStartsAt(range.from)
+    setEndsAt(range.to)
+    setFieldErrors((current) => {
+      if (!current.startsAt && !current.endsAt && !current.timeRange) {
+        return current
+      }
+      const next = { ...current }
+      delete next.startsAt
+      delete next.endsAt
+      delete next.timeRange
+      return next
+    })
   }
 
   /** 标签行逐项校验：键不能有值无键、不能重复，值必须是合法正则。 */
@@ -633,6 +647,11 @@ export function AlertMaintenancePage() {
     ]
   }
 
+  // 开始/结束共用一个控件，校验结果合成一条就地提示：
+  // 区间顺序（两端都填了才可能出错）优先，其次是两端的必填。
+  const timeFieldError =
+    fieldErrors.timeRange ?? fieldErrors.startsAt ?? fieldErrors.endsAt
+
   const filterChips: FilterChip[] = []
   if (query.name) {
     filterChips.push({
@@ -892,39 +911,30 @@ export function AlertMaintenancePage() {
                   onChange={(event) => setDescription(event.target.value)}
                 />
               </FormField>
-              <FormField
-                label={t("maintenanceWindow.timeRange")}
-                required
-                error={fieldErrors.timeRange}
-              >
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <FormField
-                    label={t("maintenanceWindow.startsAt")}
-                    htmlFor="maintenance-starts-at"
-                    required
-                    error={fieldErrors.startsAt}
+              <FormField label={t("maintenanceWindow.timeRange")} required>
+                {/* 值由 DateTimeRangePicker 统一给出（本地 YYYY-MM-DDTHH:mm），
+                    写回原有的 startsAt / endsAt 状态，提交时再转 RFC3339。
+                    错误信息自己渲染，是为了给控件一个 aria-describedby 的落点。 */}
+                <DateTimeRangePicker
+                  id="maintenance-time-range"
+                  ariaLabel={t("maintenanceWindow.timeRange")}
+                  from={startsAt}
+                  to={endsAt}
+                  invalid={Boolean(timeFieldError)}
+                  describedBy={
+                    timeFieldError ? "maintenance-time-range-error" : undefined
+                  }
+                  onChange={updateTimeRange}
+                />
+                {timeFieldError ? (
+                  <p
+                    id="maintenance-time-range-error"
+                    role="alert"
+                    className="text-sm text-destructive"
                   >
-                    <Input
-                      id="maintenance-starts-at"
-                      type="datetime-local"
-                      value={startsAt}
-                      onChange={(event) => setStartsAt(event.target.value)}
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("maintenanceWindow.endsAt")}
-                    htmlFor="maintenance-ends-at"
-                    required
-                    error={fieldErrors.endsAt}
-                  >
-                    <Input
-                      id="maintenance-ends-at"
-                      type="datetime-local"
-                      value={endsAt}
-                      onChange={(event) => setEndsAt(event.target.value)}
-                    />
-                  </FormField>
-                </div>
+                    {timeFieldError}
+                  </p>
+                ) : null}
               </FormField>
               <FormField
                 label={t("maintenanceWindow.labels")}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Check, Search } from "lucide-react"
+import { Search } from "lucide-react"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 import { useSearchParams } from "react-router-dom"
 
@@ -63,34 +63,6 @@ import { runAction } from "@/lib/action"
 
 const types = ["ALERT", "DATASOURCE"]
 
-// 新建字典项时可一键带入的预设。颜色是字典项的数据值（会随字典保存并展示），
-// 因此这里允许写 hex，而不是主题 token；不要把这些颜色换成 Tailwind 调色板类。
-const presetGroups: Array<{
-  type: AlertDictionaryType
-  labelKey: string
-  items: Array<{ key: string; nameKey: string; color: string }>
-}> = [
-  {
-    type: "ALERT",
-    labelKey: "alertDictionary.typeAlert",
-    items: [
-      { key: "alert-p0", nameKey: "alertDictionary.presetAlert.p0", color: "#e41a0c" },
-      { key: "alert-p1", nameKey: "alertDictionary.presetAlert.p1", color: "#f06f05" },
-      { key: "alert-p2", nameKey: "alertDictionary.presetAlert.p2", color: "#dfbb07" },
-      { key: "alert-p3", nameKey: "alertDictionary.presetAlert.p3", color: "#2ac02d" },
-    ],
-  },
-  {
-    type: "DATASOURCE",
-    labelKey: "alertDictionary.typeDatasource",
-    items: [
-      { key: "datasource-high", nameKey: "alertDictionary.presetDatasource.high", color: "#d92d20" },
-      { key: "datasource-medium", nameKey: "alertDictionary.presetDatasource.medium", color: "#dfbb07" },
-      { key: "datasource-low", nameKey: "alertDictionary.presetDatasource.low", color: "#2ac02d" },
-    ],
-  },
-]
-
 function normalizeColor(value: string): string {
   const trimmed = value.trim()
   if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) {
@@ -125,11 +97,12 @@ export function AlertDictionaryPage() {
   const type = params.get("type") || ""
   const detailUid = params.get("uid") || ""
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name, type })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name, type })
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AlertDictionaryItem | null>(null)
   const [name, setName] = useState("")
   const [color, setColor] = useState("")
+  const [sort, setSort] = useState("0")
   const [levelType, setLevelType] = useState("ALERT")
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -175,6 +148,7 @@ export function AlertDictionaryPage() {
     setEditing(null)
     setName("")
     setColor("#d92d20")
+    setSort("0")
     setLevelType("ALERT")
     setError("")
     setFieldErrors({})
@@ -184,34 +158,11 @@ export function AlertDictionaryPage() {
 
   const colorSwatch = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#1677ff"
 
-  // 选中的预设由当前表单值反推：预设填入后若再手改任一字段，选中态自然消失，
-  // 不会出现“标着 P0 实际是别的值”的误导。
-  const selectedPresetKey = (() => {
-    for (const group of presetGroups) {
-      if (group.type !== levelType) {
-        continue
-      }
-      for (const item of group.items) {
-        if (name.trim() === t(item.nameKey) && normalizeColor(color) === item.color) {
-          return item.key
-        }
-      }
-    }
-    return null
-  })()
-
-  function applyPreset(preset: { type: AlertDictionaryType; name: string; color: string }) {
-    setLevelType(preset.type)
-    setName(preset.name)
-    setColor(preset.color)
-    setError("")
-    setFieldErrors({})
-  }
-
   function openEdit(item: AlertDictionaryItem) {
     setEditing(item)
     setName(item.name)
     setColor(item.color)
+    setSort(String(item.sort ?? 0))
     setLevelType(item.type)
     setError("")
     setFieldErrors({})
@@ -220,8 +171,15 @@ export function AlertDictionaryPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const sortValue = Number(sort)
+    const sortInvalid =
+      sort.trim() === "" ||
+      !Number.isInteger(sortValue) ||
+      sortValue < 0 ||
+      sortValue > 10000
     const errors = collectFieldErrors([
       ["name", requireTrimmed(name, t("form.required"))],
+      ["sort", sortInvalid ? t("alertDictionary.sortInvalid") : null],
       [
         "type",
         editing ? null : requireTrimmed(levelType, t("form.required")),
@@ -237,9 +195,9 @@ export function AlertDictionaryPage() {
     try {
       const nextColor = normalizeColor(color)
       if (editing) {
-        await updateAlertDictionary({ uid: editing.uid, name: name.trim(), color: nextColor })
+        await updateAlertDictionary({ uid: editing.uid, name: name.trim(), color: nextColor, sort: sortValue })
       } else {
-        await createAlertDictionary({ name: name.trim(), color: nextColor, type: levelType as AlertDictionaryType })
+        await createAlertDictionary({ name: name.trim(), color: nextColor, type: levelType as AlertDictionaryType, sort: sortValue })
       }
       setOpen(false)
       reload()
@@ -309,6 +267,7 @@ export function AlertDictionaryPage() {
 
   function clearFilters() {
     query.update({ name: "", type: "" })
+    reset()
   }
 
   return (
@@ -408,6 +367,7 @@ export function AlertDictionaryPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("alertDictionary.name")}</TableHead>
+                  <TableHead className="whitespace-nowrap">{t("alertDictionary.sort")}</TableHead>
                   <TableHead>{t("alertDictionary.color")}</TableHead>
                   <TableTypeHead>{t("datasource.type")}</TableTypeHead>
                   <TableStatusHead>{t("namespace.status")}</TableStatusHead>
@@ -418,6 +378,7 @@ export function AlertDictionaryPage() {
                 {items.map((item) => (
                   <TableRow key={item.uid}>
                     <TableCell>{item.name}</TableCell>
+                    <TableCell className="tabular-nums">{item.sort ?? 0}</TableCell>
                     <TableCell>
                       <ColorChip value={item.color} />
                     </TableCell>
@@ -438,63 +399,12 @@ export function AlertDictionaryPage() {
           ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent
-          className="sm:max-w-2xl"
-          onOpenAutoFocus={(event) => {
-            // 预设行（含提示按钮）排在名称输入之前，默认焦点会落到预设上；
-            // 固定聚焦名称，保持打开对话框后可直接输入，避免提示气泡自动弹出。
-            event.preventDefault()
-            const content = event.currentTarget as HTMLElement | null
-            content?.querySelector<HTMLInputElement>("#level-name")?.focus()
-          }}
-        >
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
           <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSave}>
             <DialogBody className="grid gap-4 sm:grid-cols-2">
-            {!editing ? (
-              <FormField
-                label={t("alertDictionary.presetLabel")}
-                hint={t("alertDictionary.presetHint")}
-                className="sm:col-span-full"
-              >
-                <div className="grid gap-2" role="group" aria-label={t("alertDictionary.presetLabel")}>
-                  {presetGroups.map((group) => (
-                    <div key={group.type} className="flex flex-wrap items-center gap-2">
-                      <span className="min-w-16 text-xs text-muted-foreground">{t(group.labelKey)}</span>
-                      {group.items.map((item) => {
-                        const presetName = t(item.nameKey)
-                        const selected = selectedPresetKey === item.key
-                        return (
-                          <Button
-                            key={item.key}
-                            type="button"
-                            size="sm"
-                            variant={selected ? "default" : "outline"}
-                            aria-pressed={selected}
-                            onClick={() => applyPreset({ type: group.type, name: presetName, color: item.color })}
-                          >
-                            <span
-                              aria-hidden
-                              className="size-3 shrink-0 rounded-sm border border-border"
-                              style={{ backgroundColor: item.color }}
-                            />
-                            <span>{presetName}</span>
-                            {selected ? (
-                              <>
-                                <Check aria-hidden className="size-3.5" />
-                                <span className="text-xs">{t("alertDictionary.presetApplied")}</span>
-                              </>
-                            ) : null}
-                          </Button>
-                        )
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </FormField>
-            ) : null}
             <FormField
               label={t("alertDictionary.name")}
               htmlFor="level-name"
@@ -524,6 +434,26 @@ export function AlertDictionaryPage() {
                   onChange={(event) => setColor(event.target.value)}
                 />
               </div>
+            </FormField>
+            <FormField
+              label={t("alertDictionary.sort")}
+              htmlFor="level-sort"
+              hint={t("alertDictionary.sortHint")}
+              required
+              error={fieldErrors.sort}
+            >
+              <Input
+                id="level-sort"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={10000}
+                step={1}
+                value={sort}
+                placeholder={t("alertDictionary.sortPlaceholder")}
+                onChange={(event) => setSort(event.target.value)}
+                required
+              />
             </FormField>
             {!editing ? (
               <FormField
@@ -583,6 +513,7 @@ export function AlertDictionaryPage() {
           detail
             ? [
                 { label: t("detail.uid"), value: detail.uid },
+                { label: t("alertDictionary.sort"), value: String(detail.sort ?? 0) },
                 { label: t("alertDictionary.color"), value: <ColorChip value={detail.color} /> },
                 { label: t("datasource.type"), value: <StatusBadge value={detail.type} /> },
                 { label: t("namespace.status"), value: <StatusBadge value={detail.status} /> },

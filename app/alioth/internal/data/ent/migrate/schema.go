@@ -77,6 +77,7 @@ var (
 		{Name: "color", Type: field.TypeString, Default: ""},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"ALERT", "DATASOURCE"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
 	}
 	// AlertDictionariesTable holds the schema information for the "alert_dictionaries" table.
 	AlertDictionariesTable = &schema.Table{
@@ -588,6 +589,7 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "parent_uid", Type: field.TypeString, Default: ""},
+		{Name: "labels", Type: field.TypeString, Default: "{}"},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
 	}
 	// AlertRuleGroupsTable holds the schema information for the "alert_rule_groups" table.

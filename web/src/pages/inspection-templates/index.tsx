@@ -249,7 +249,7 @@ export function InspectionTemplatePage() {
   const [editorKey, setEditorKey] = useState(0)
   const [guideOpen, setGuideOpen] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [detailTemplate, setDetailTemplate] = useState<InspectionTemplate | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const canWrite = session.can("inspection_template:write")
@@ -330,6 +330,7 @@ export function InspectionTemplatePage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (

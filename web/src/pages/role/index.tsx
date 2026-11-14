@@ -70,7 +70,7 @@ export function RolePage() {
   const session = useSession()
   const query = useListQuery()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, dirty } = useFilterDraft({ name: query.name })
+  const { draft, update, dirty, reset } = useFilterDraft({ name: query.name })
   const [catalog, setCatalog] = useState<PermissionItem[]>([])
   // 菜单目录由后端返回，授权页按「分组 → 菜单 → 子权限」渲染。
   const [menus, setMenus] = useState<PermissionMenu[]>([])
@@ -312,6 +312,7 @@ export function RolePage() {
 
   function clearFilters() {
     query.update({ name: "" })
+    reset()
   }
 
   return (

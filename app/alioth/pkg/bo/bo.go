@@ -244,14 +244,23 @@ type AlertDictionary struct {
 	Color        string
 	Type         string
 	Status       string
+	// Sort 是展示排序数值，值越大越靠前。
+	Sort int
 }
 
 // AlertRuleGroup 是租户内的规则组。名称在未删除记录上唯一。
+// LabelOption 是租户标签集合里的一个键及出现过的值。
+type LabelOption struct {
+	Key    string
+	Values []string
+}
+
 type AlertRuleGroup struct {
 	UID          string
 	NamespaceUID string
 	Name         string
 	ParentUID    string
+	Labels       string
 	Status       string
 }
 

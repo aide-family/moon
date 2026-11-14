@@ -228,6 +228,7 @@ export function MessageLogPage() {
 
   function clearFilters() {
     removeFilters(["status", "taskUid", "from", "to"])
+    resetFilters()
   }
 
   const filterChips: FilterChip[] = []

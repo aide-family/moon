@@ -104,7 +104,8 @@ export function SSHCommandAudits() {
   }
   const appliedSignature = JSON.stringify(appliedFilters)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { draft, update, updateMany, dirty } = useFilterDraft(appliedFilters)
+  const { draft, update, updateMany, dirty, reset } =
+    useFilterDraft(appliedFilters)
   const appliedCount = Object.values(appliedFilters).filter(Boolean).length
   const [agents, setAgents] = useState<AgentItem[]>([])
   const [detail, setDetail] = useState<SSHCommandAuditItem | null>(null)
@@ -180,6 +181,7 @@ export function SSHCommandAudits() {
 
   function clearFilters() {
     removeFilters([...FILTER_KEYS])
+    reset()
   }
 
   function removeFilters(keys: string[]) {

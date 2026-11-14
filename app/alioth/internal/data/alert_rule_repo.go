@@ -21,11 +21,13 @@ func (r *alertRuleRepo) CreateAlertRuleGroup(ctx context.Context, in bo.AlertRul
 		SetNamespaceUID(in.NamespaceUID).
 		SetName(in.Name).
 		SetParentUID(in.ParentUID).
+		SetLabels(in.Labels).
 		SetStatus(alertrulegroup.StatusACTIVE).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	item := toGroup(row)
 	return &item, nil
 }
@@ -35,13 +37,14 @@ func (r *alertRuleRepo) UpdateAlertRuleGroup(ctx context.Context, in bo.AlertRul
 		alertrulegroup.NamespaceUIDEQ(in.NamespaceUID),
 		alertrulegroup.UIDEQ(in.UID),
 		alertrulegroup.DeletedAtIsNil(),
-	).SetName(in.Name).SetParentUID(in.ParentUID).Save(ctx)
+	).SetName(in.Name).SetParentUID(in.ParentUID).SetLabels(in.Labels).Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
 	if n == 0 {
 		return nil, merr.NotFound("not found")
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetAlertRuleGroup(ctx, in.NamespaceUID, in.UID)
 }
 
@@ -98,6 +101,7 @@ func (r *alertRuleRepo) DeleteAlertRuleGroup(ctx context.Context, namespaceUID, 
 	if n == 0 {
 		return merr.NotFound("not found")
 	}
+	r.labels.Invalidate(ctx, namespaceUID)
 	return nil
 }
 
@@ -149,6 +153,10 @@ func (r *alertRuleRepo) ListAllAlertRuleGroups(ctx context.Context, namespaceUID
 	return items, nil
 }
 
+func (r *alertRuleRepo) LabelOptions(ctx context.Context, namespaceUID string) ([]bo.LabelOption, error) {
+	return r.labels.Options(ctx, namespaceUID)
+}
+
 func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error) {
 	driver, err := ruleDriver(in.Driver)
 	if err != nil {
@@ -189,6 +197,7 @@ func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetAlertRule(ctx, in.NamespaceUID, row.UID)
 }
 
@@ -243,6 +252,7 @@ func (r *alertRuleRepo) UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
+	r.labels.Invalidate(ctx, in.NamespaceUID)
 	return r.GetAlertRule(ctx, in.NamespaceUID, in.UID)
 }
 
@@ -302,6 +312,7 @@ func (r *alertRuleRepo) DeleteAlertRule(ctx context.Context, namespaceUID, uid s
 	if err := recoverRuleFiring(ctx, r.client, r.history, r.log, namespaceUID, uid); err != nil {
 		return r.fail(err)
 	}
+	r.labels.Invalidate(ctx, namespaceUID)
 	return nil
 }
 
@@ -321,10 +332,10 @@ func (r *alertRuleRepo) GetAlertRule(ctx context.Context, namespaceUID, uid stri
 	return &items[0], nil
 }
 
-func (r *alertRuleRepo) ListAlertRules(ctx context.Context, namespaceUID string, page, pageSize int, groupUID, name string, drivers []string) ([]bo.AlertRule, int, error) {
+func (r *alertRuleRepo) ListAlertRules(ctx context.Context, namespaceUID string, page, pageSize int, groupUIDs []string, name string, drivers []string) ([]bo.AlertRule, int, error) {
 	query := r.client.AlertRule.Query().Where(alertrule.NamespaceUIDEQ(namespaceUID), alertrule.DeletedAtIsNil())
-	if groupUID != "" {
-		query = query.Where(alertrule.GroupUIDEQ(groupUID))
+	if len(groupUIDs) > 0 {
+		query = query.Where(alertrule.GroupUIDIn(groupUIDs...))
 	}
 	if name != "" {
 		query = query.Where(alertrule.NameContainsFold(name))
@@ -601,7 +612,7 @@ func (r *alertRuleRepo) withLevels(ctx context.Context, namespaceUID string, row
 func toGroup(row *ent.AlertRuleGroup) bo.AlertRuleGroup {
 	return bo.AlertRuleGroup{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name,
-		ParentUID: row.ParentUID, Status: string(row.Status),
+		ParentUID: row.ParentUID, Labels: row.Labels, Status: string(row.Status),
 	}
 }
 

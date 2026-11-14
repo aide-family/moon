@@ -24,6 +24,7 @@ func (r *alertDictionaryRepo) CreateAlertDictionary(ctx context.Context, in bo.A
 		SetColor(in.Color).
 		SetType(kind).
 		SetStatus(alertdictionary.StatusACTIVE).
+		SetSort(in.Sort).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -37,7 +38,7 @@ func (r *alertDictionaryRepo) UpdateAlertDictionary(ctx context.Context, in bo.A
 		alertdictionary.NamespaceUIDEQ(in.NamespaceUID),
 		alertdictionary.UIDEQ(in.UID),
 		alertdictionary.DeletedAtIsNil(),
-	).SetName(in.Name).SetColor(in.Color).Save(ctx)
+	).SetName(in.Name).SetColor(in.Color).SetSort(in.Sort).Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
@@ -123,7 +124,12 @@ func (r *alertDictionaryRepo) ListAlertDictionaries(ctx context.Context, namespa
 	if err != nil {
 		return nil, 0, r.fail(err)
 	}
-	rows, err := query.Order(ent.Asc(alertdictionary.FieldUID)).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	// 展示顺序统一由仓储决定：sort 大的在前，同一 sort 按名称、UID 稳定排序。
+	rows, err := query.Order(
+		ent.Desc(alertdictionary.FieldSort),
+		ent.Asc(alertdictionary.FieldName),
+		ent.Asc(alertdictionary.FieldUID),
+	).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
 	if err != nil {
 		return nil, 0, r.fail(err)
 	}
@@ -138,6 +144,7 @@ func toAlertDictionary(row *ent.AlertDictionary) bo.AlertDictionary {
 	return bo.AlertDictionary{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name,
 		Color: row.Color, Type: string(row.Type), Status: string(row.Status),
+		Sort: row.Sort,
 	}
 }
 

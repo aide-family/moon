@@ -18,11 +18,13 @@ export function listAlertRuleGroups(params: ListAlertRuleGroupsParams = {}): Pro
 /** POST /v1/alert-rule-group */
 export function createAlertRuleGroup(
   name: string,
-  parentUid = ""
+  parentUid = "",
+  labels = "{}"
 ): Promise<{ group: AlertRuleGroupItem }> {
   return post<{ group: AlertRuleGroupItem }>("/alert-rule-group", {
     name,
     parentUid,
+    labels,
   })
 }
 
@@ -30,12 +32,14 @@ export function createAlertRuleGroup(
 export function updateAlertRuleGroup(
   uid: string,
   name: string,
-  parentUid = ""
+  parentUid = "",
+  labels = "{}"
 ): Promise<{ group: AlertRuleGroupItem }> {
   return put<{ group: AlertRuleGroupItem }>(`/alert-rule-group/${uid}`, {
     uid,
     name,
     parentUid,
+    labels,
   })
 }
 

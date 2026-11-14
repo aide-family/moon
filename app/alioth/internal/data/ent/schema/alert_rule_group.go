@@ -22,6 +22,8 @@ func (AlertRuleGroup) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		// 上级规则组标识；空字符串表示顶级规则组。
 		field.String("parent_uid").Default(""),
+		// 规则组标签，JSON 对象；供标签匹配与展示使用。
+		field.String("labels").Default("{}"),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
 	}
 }

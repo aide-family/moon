@@ -197,6 +197,10 @@ func init() {
 	alertdictionaryDescColor := alertdictionaryFields[3].Descriptor()
 	// alertdictionary.DefaultColor holds the default value on creation for the color field.
 	alertdictionary.DefaultColor = alertdictionaryDescColor.Default.(string)
+	// alertdictionaryDescSort is the schema descriptor for sort field.
+	alertdictionaryDescSort := alertdictionaryFields[6].Descriptor()
+	// alertdictionary.DefaultSort holds the default value on creation for the sort field.
+	alertdictionary.DefaultSort = alertdictionaryDescSort.Default.(int)
 	alertescalationpolicyMixin := schema.AlertEscalationPolicy{}.Mixin()
 	alertescalationpolicyMixinFields0 := alertescalationpolicyMixin[0].Fields()
 	_ = alertescalationpolicyMixinFields0
@@ -706,6 +710,10 @@ func init() {
 	alertrulegroupDescParentUID := alertrulegroupFields[3].Descriptor()
 	// alertrulegroup.DefaultParentUID holds the default value on creation for the parent_uid field.
 	alertrulegroup.DefaultParentUID = alertrulegroupDescParentUID.Default.(string)
+	// alertrulegroupDescLabels is the schema descriptor for labels field.
+	alertrulegroupDescLabels := alertrulegroupFields[4].Descriptor()
+	// alertrulegroup.DefaultLabels holds the default value on creation for the labels field.
+	alertrulegroup.DefaultLabels = alertrulegroupDescLabels.Default.(string)
 	alertrulelevelMixin := schema.AlertRuleLevel{}.Mixin()
 	alertrulelevelMixinFields0 := alertrulelevelMixin[0].Fields()
 	_ = alertrulelevelMixinFields0
