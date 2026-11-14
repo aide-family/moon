@@ -134,7 +134,7 @@ function TemplateDialog({
           </DialogTitle>
         </DialogHeader>
         <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={save}>
-          <DialogBody className="grid gap-4">
+          <DialogBody className="grid gap-3 pb-4">
             <Input
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -204,7 +204,7 @@ function TemplateDialog({
               <TemplateEditor
                 value={body}
                 onChange={setBody}
-                height={360}
+                height={260}
                 scope="inspection"
                 placeholder={t("inspection.templateBodyPlaceholder")}
                 ariaLabel={t("inspection.templateBody")}

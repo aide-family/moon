@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 
 import type { InspectionTemplate } from "@/api/inspection/types"
 import { CodeBlock } from "@/components/code-block"
-import { DetailSheet, type DetailSection } from "@/components/detail-sheet"
+import { DetailSheet } from "@/components/detail-sheet"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { formatDateTime } from "@/lib/date-time"
@@ -27,21 +27,6 @@ export function InspectionTemplateDetail({
     return null
   }
   const body = template.format === "MARKDOWN" ? template.markdownBody : template.htmlBody
-  const sections: DetailSection[] = [
-    {
-      title: t("inspection.templateBody"),
-      content: (
-        <CodeBlock
-          code={body}
-          language={template.format === "MARKDOWN" ? "markdown" : "html"}
-          label={template.format === "MARKDOWN" ? "Markdown" : "HTML"}
-          copyable
-          wrap
-          maxHeightClass="max-h-[60vh]"
-        />
-      ),
-    },
-  ]
 
   return (
     <DetailSheet
@@ -67,25 +52,45 @@ export function InspectionTemplateDetail({
           </Button>
         ) : null
       }
-      sections={[
-        {
-          title: t("inspection.stepBasic"),
-          fields: [
-            { label: t("inspection.templateName"), value: template.name },
-            {
-              label: t("inspection.templateDescription"),
-              value: template.description || "—",
-              span: 2,
-            },
-            { label: t("inspection.templateFormat"), value: template.format },
-            {
-              label: t("inspection.startedAt"),
-              value: formatDateTime(template.updatedAt) || "—",
-            },
-          ],
-        },
-        ...sections,
-      ]}
-    />
+      contentMode="fill"
+    >
+      <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4 sm:px-5">
+        <section className="grid shrink-0 gap-2">
+          <h3 className="border-b pb-1.5 font-heading text-xs font-semibold tracking-wide">
+            {t("inspection.stepBasic")}
+          </h3>
+          <dl className="grid gap-x-6 gap-y-3 @md:grid-cols-2">
+            {[
+              [t("inspection.templateName"), template.name],
+              [t("inspection.templateDescription"), template.description || "—"],
+              [t("inspection.templateFormat"), template.format],
+              [
+                t("inspection.startedAt"),
+                formatDateTime(template.updatedAt) || "—",
+              ],
+            ].map(([label, value]) => (
+              <div key={label} className="grid min-w-0 gap-1">
+                <dt className="text-xs text-muted-foreground">{label}</dt>
+                <dd className="text-sm break-words">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+        <section className="flex min-h-0 flex-1 flex-col gap-2">
+          <h3 className="shrink-0 border-b pb-1.5 font-heading text-xs font-semibold tracking-wide">
+            {t("inspection.templateBody")}
+          </h3>
+          <CodeBlock
+            code={body}
+            language={template.format === "MARKDOWN" ? "markdown" : "html"}
+            label={template.format === "MARKDOWN" ? "Markdown" : "HTML"}
+            copyable
+            wrap
+            fill
+            className="min-h-0 flex-1"
+          />
+        </section>
+      </div>
+    </DetailSheet>
   )
 }

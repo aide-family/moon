@@ -2,6 +2,7 @@ import ReactMarkdown from "react-markdown"
 import { useTranslation } from "react-i18next"
 import remarkGfm from "remark-gfm"
 
+import { CodeBlock } from "@/components/code-block"
 import { DetailSheet } from "@/components/detail-sheet"
 
 const ZH_GUIDE = `## 报告模板怎么工作
@@ -251,6 +252,27 @@ export function InspectionTemplateGuide({
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
+              pre: ({ children }) => <>{children}</>,
+              code: ({ className, children }) => {
+                const language = /language-([\w-]+)/.exec(className ?? "")?.[1]
+                if (!language) {
+                  return (
+                    <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.9em]">
+                      {children}
+                    </code>
+                  )
+                }
+                return (
+                  <CodeBlock
+                    code={String(children).replace(/\n$/, "")}
+                    language={language}
+                    label={language.toUpperCase()}
+                    copyable
+                    wrap
+                    maxHeightClass="max-h-80"
+                  />
+                )
+              },
               h2: ({ children }) => {
                 const text = headingText(children)
                 return (
