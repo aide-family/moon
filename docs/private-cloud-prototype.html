@@ -1,0 +1,1528 @@
+<!doctype html>
+<html lang="zh-CN" data-brand="sunset" class="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Alioth · 私有云：镜像仓库与应用商店原型</title>
+<link rel="stylesheet" href="private-cloud-prototype.css" />
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <span class="brand-name">Alioth</span>
+    </div>
+    <nav class="nav" aria-label="主导航">
+      <button class="nav-item" type="button" onclick="toast('原型仅覆盖私有云','概览、告警、巡检等页面沿用现有实现','info')">
+        <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span>
+        概览
+      </button>
+      <button class="nav-item" type="button" onclick="toast('原型仅覆盖私有云','大盘沿用现有实现','info')">
+        <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span>
+        大盘
+      </button>
+      <button class="nav-item" type="button" aria-expanded="false" onclick="toast('原型仅覆盖私有云','告警分组沿用现有实现','info')">
+        <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+        告警
+        <span class="chev"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+      </button>
+      <button class="nav-item" type="button" aria-expanded="false" onclick="toast('原型仅覆盖私有云','通知分组沿用现有实现','info')">
+        <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></span>
+        通知
+        <span class="chev"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+      </button>
+      <button class="nav-item" type="button" aria-expanded="false" onclick="toast('原型仅覆盖私有云','探测与巡检分组沿用现有实现','info')">
+        <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
+        探测与巡检
+        <span class="chev"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+      </button>
+
+      <button class="nav-item" type="button" id="nav-private-cloud-trigger" aria-expanded="true" onclick="toggleNav()">
+        <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m12 12 8-4.5"/><path d="M12 12v9"/><path d="m12 12-8-4.5"/></svg></span>
+        私有云
+        <span class="chev"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+      </button>
+      <div class="nav-sub" id="nav-private-cloud">
+        <button class="nav-item" type="button" data-page="clusters" onclick="goto('clusters')">
+          <span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          Kubernetes
+        </button>
+        <button class="nav-item active" type="button" data-page="registry" onclick="goto('registry')">
+          <span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></span>
+          镜像仓库
+        </button>
+        <button class="nav-item" type="button" data-page="apps" onclick="goto('apps')">
+          <span class="icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.5 10.5a2 2 0 0 1-2 1.5H6.5a2 2 0 0 1-2-1.5z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg></span>
+          应用商店
+        </button>
+      </div>
+
+      <button class="nav-item" type="button" aria-expanded="false" onclick="toast('原型仅覆盖私有云','边缘与租户分组沿用现有实现','info')">
+        <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/><path d="M6 7h.01M6 17h.01"/></svg></span>
+        边缘
+        <span class="chev"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+      </button>
+      <button class="nav-item" type="button" aria-expanded="false" onclick="toast('原型仅覆盖私有云','系统管理沿用现有实现','info')">
+        <span class="icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        系统管理
+        <span class="chev"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+      </button>
+    </nav>
+    <div class="sidebar-foot">原型演示 · 静态数据 · 浅色 / 深色</div>
+  </aside>
+
+  <div class="inset">
+    <header class="topbar">
+      <button class="icon-btn" type="button" aria-label="收起侧边栏" onclick="toast('原型未实现折叠','生产页面沿用现有 Sidebar 折叠','info')">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+      </button>
+      <div class="crumb" id="topbar-crumb">私有云<span class="crumb-sep">/</span>镜像仓库</div>
+      <div class="right">
+        <button class="icon-btn" type="button" id="theme-toggle" onclick="toggleTheme()" aria-label="切换深浅色">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+        <button class="icon-btn" type="button" aria-label="通知" onclick="toast('通知','同步失败与部署失败的通知将在后续版本接入','info')">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        </button>
+        <button class="tenant-chip" type="button" onclick="toast('切换租户','原型使用固定租户：星环科技','info')">
+          <span class="badge tone-primary" style="height:18px;padding:0 6px">租户</span>
+          星环科技
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="avatar" aria-label="当前用户">H</div>
+      </div>
+    </header>
+
+    <main class="content" id="content">
+
+      <!-- ========================= Kubernetes 占位 ========================= -->
+      <section class="page" id="page-clusters" hidden>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Kubernetes</h1>
+            <p class="page-desc">集群接入与资源控制台沿用现有页面，本原型不重复绘制。</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="goto('registry')">去镜像仓库</button>
+          </div>
+        </div>
+        <div class="card"><div class="card-body">
+          <div class="empty-hint">
+            现有实现：集群列表、集群详情、节点 / 工作负载 / Pod / Job / CronJob / Ingress / Service / ConfigMap / Secret / PV / PVC。<br />
+            本次只改一级分组名称，并新增「镜像仓库」「应用商店」两个入口。
+          </div>
+        </div></div>
+      </section>
+
+      <!-- ========================= 镜像仓库：仓库连接 ========================= -->
+      <section class="page" id="page-registry">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">镜像仓库</h1>
+            <p class="page-desc">接入 Harbor 或标准 OCI Registry，浏览镜像版本与多架构，把镜像同步到私有仓库。</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="goto('syncs')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M3 21v-5h5"/><path d="M21 3v5h-5"/></svg>
+              同步任务
+            </button>
+            <button class="btn btn-primary" type="button" onclick="openDlg('dlg-connect')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              接入仓库
+            </button>
+          </div>
+        </div>
+
+        <div class="stat-cards">
+          <div class="stat-card">
+            <span class="k">仓库连接</span>
+            <span class="v">3<small>个</small></span>
+            <span class="delta up"><span class="dot"></span>2 个可用</span>
+          </div>
+          <div class="stat-card">
+            <span class="k">镜像仓库</span>
+            <span class="v">36<small>个仓库</small></span>
+            <span class="delta">共 214 个版本</span>
+          </div>
+          <div class="stat-card brand">
+            <span class="k">运行中同步</span>
+            <span class="v">2<small>个任务</small></span>
+            <span class="delta">共复制 12 层 / 18 层</span>
+          </div>
+          <div class="stat-card warn">
+            <span class="k">需要关注</span>
+            <span class="v">1<small>个连接</small></span>
+            <span class="delta" style="color:var(--warning)"><span class="dot"></span>证书过期</span>
+          </div>
+        </div>
+
+        <div class="tabs-row">
+          <div class="segmented" role="group" aria-label="镜像仓库视图">
+            <button type="button" aria-pressed="true" onclick="goto('registry')">仓库连接 <span class="count">3</span></button>
+            <button type="button" aria-pressed="false" onclick="goto('syncs')">同步任务 <span class="count">2</span></button>
+          </div>
+          <span class="muted-sm">镜像元数据实时读取远端，不落库。</span>
+        </div>
+
+        <div class="card filter-card">
+          <div class="card-body">
+            <div class="filter-grid">
+              <input class="input" placeholder="搜索仓库连接名称" aria-label="搜索仓库连接名称" />
+              <select class="select" style="width:170px" aria-label="驱动筛选">
+                <option>全部驱动</option>
+                <option>Harbor</option>
+                <option>标准 Registry</option>
+              </select>
+              <select class="select" style="width:170px" aria-label="状态筛选">
+                <option>全部状态</option>
+                <option>可用</option>
+                <option>不可用</option>
+              </select>
+              <div class="inline" style="margin-left:auto">
+                <button class="btn btn-outline btn-sm" type="button" onclick="toast('已刷新','仓库连接与检测状态已更新','success')">刷新</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-top">
+            <span class="total">共 3 个仓库连接</span>
+            <span class="muted-sm">最近检测时间由「测试连接」刷新</span>
+          </div>
+          <div class="tbl-wrap tbl-scroll">
+            <table class="tbl">
+              <colgroup><col /><col style="width:110px" /><col style="width:220px" /><col style="width:88px" /><col style="width:160px" /><col style="width:90px" /><col style="width:150px" /></colgroup>
+              <thead><tr><th>名称</th><th>驱动</th><th>Endpoint</th><th>仓库数</th><th>最近检测</th><th>状态</th><th class="col-actions">操作</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name">Harbor 私有仓库</span><span class="cell-sub">生产默认仓库 · 用于私有镜像</span></div></td>
+                  <td><span class="badge tone-violet">HARBOR</span></td>
+                  <td><span class="cell-mono">https://harbor.aide.local</span></td>
+                  <td><span class="tnum">24</span></td>
+                  <td><div class="cell-stack"><span>2 分钟前</span><span class="cell-sub">v2.0 探测成功</span></div></td>
+                  <td><span class="badge tone-success"><span class="dot"></span>可用</span></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('registry-detail')">详情</button><button class="link-btn" type="button" onclick="toast('更多操作','测试连接 / 编辑 / 删除','info')">更多</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name">集群内 Registry</span><span class="cell-sub">192.168.10.172:5000 · containerd 拉取</span></div></td>
+                  <td><span class="badge tone-info">DOCKER_V2</span></td>
+                  <td><span class="cell-mono">http://192.168.10.172:5000</span></td>
+                  <td><span class="tnum">12</span></td>
+                  <td><div class="cell-stack"><span>5 分钟前</span><span class="cell-sub">匿名只读</span></div></td>
+                  <td><span class="badge tone-success"><span class="dot"></span>可用</span></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('集群内 Registry','DOCKER_V2 详情页结构与 Harbor 一致，元数据较少','info')">详情</button><button class="link-btn" type="button" onclick="toast('更多操作','测试连接 / 编辑 / 删除','info')">更多</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name">上游镜像代理</span><span class="cell-sub">同步 Docker Hub 的中间仓库</span></div></td>
+                  <td><span class="badge tone-violet">HARBOR</span></td>
+                  <td><span class="cell-mono">https://registry.example.com</span></td>
+                  <td><span class="tnum">—</span></td>
+                  <td><div class="cell-stack"><span>1 小时前</span><span class="cell-sub">x509: certificate expired</span></div></td>
+                  <td><span class="badge tone-danger"><span class="dot"></span>不可用</span></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('详情','证书过期，请替换或打开「允许不安全 TLS」','info')">详情</button><button class="link-btn" type="button" onclick="openDlg('dlg-connect')">编辑</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="list-note">凭据加密保存，任何接口都不回传密码或 robot token；更新时留空表示保持原值。</div>
+        </div>
+      </section>
+
+      <!-- ========================= 镜像仓库：仓库详情 ========================= -->
+      <section class="page" id="page-registry-detail" hidden>
+        <div class="breadcrumb">
+          <button type="button" onclick="goto('registry')">镜像仓库</button><span>/</span><span>Harbor 私有仓库</span>
+        </div>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Harbor 私有仓库</h1>
+            <p class="page-desc">生产默认仓库 · 用于私有镜像与上游镜像落库。</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="toast('连接测试成功','v2.0 · 24 projects · 82 ms','success')">测试连接</button>
+            <button class="btn btn-outline" type="button" onclick="openDlg('dlg-connect')">编辑</button>
+            <button class="btn btn-primary" type="button" onclick="openDlg('dlg-sync')">同步镜像</button>
+          </div>
+        </div>
+        <div class="meta-bar">
+          <span class="item">驱动 <b>HARBOR</b></span>
+          <span class="item">Endpoint <b class="mono-sm">https://harbor.aide.local</b></span>
+          <span class="item">状态 <span class="badge tone-success" style="height:19px"><span class="dot"></span>可用</span></span>
+          <span class="item">最近检测 <b>2 分钟前</b></span>
+          <span class="item">项目 <b>4</b></span>
+          <span class="item">备注 <b>生产默认仓库</b></span>
+        </div>
+        <div class="kpi-strip">
+          <div class="cell"><span>项目</span><b>4</b></div>
+          <div class="cell"><span>镜像仓库</span><b>36</b></div>
+          <div class="cell"><span>版本</span><b>214</b></div>
+          <div class="cell"><span>多架构版本</span><b>58<small>%</small></b></div>
+        </div>
+        <div class="card filter-card">
+          <div class="card-body">
+            <div class="filter-grid">
+              <select class="select" style="width:180px" aria-label="项目">
+                <option>全部项目</option>
+                <option>library</option>
+                <option>infra</option>
+                <option>apps</option>
+                <option>monitoring</option>
+              </select>
+              <input class="input" placeholder="搜索镜像仓库，例如 library/nginx" aria-label="搜索镜像仓库" />
+              <button class="btn btn-outline btn-sm" type="button" onclick="toast('筛选已应用','原型仅演示单页静态数据','info')">应用</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-top"><span class="total">共 36 个镜像仓库</span><span class="muted-sm">版本数与大小来自 Harbor API</span></div>
+          <div class="tbl-wrap tbl-scroll">
+            <table class="tbl">
+              <colgroup><col /><col style="width:110px" /><col style="width:90px" /><col style="width:110px" /><col style="width:180px" /><col style="width:150px" /></colgroup>
+              <thead><tr><th>镜像仓库</th><th>项目</th><th>版本数</th><th>大小</th><th>最近推送</th><th class="col-actions">操作</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">library/gateway</span><span class="cell-sub">订单网关 · 2 个容器镜像引用</span></div></td>
+                  <td>library</td><td class="tnum">12</td><td class="tnum">86.4 MB</td>
+                  <td><div class="cell-stack"><span>2 小时前</span><span class="cell-sub">1.4.0 · 多架构</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('repo')">查看版本</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">library/redis</span><span class="cell-sub">缓存与队列</span></div></td>
+                  <td>library</td><td class="tnum">8</td><td class="tnum">42.1 MB</td>
+                  <td><div class="cell-stack"><span>昨天</span><span class="cell-sub">7.4.1</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('查看版本','原型只展开 www/gateway','info')">查看版本</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">library/postgres</span><span class="cell-sub">业务主库</span></div></td>
+                  <td>library</td><td class="tnum">6</td><td class="tnum">128.0 MB</td>
+                  <td><div class="cell-stack"><span>2 天前</span><span class="cell-sub">16.4</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('查看版本','原型只展开 www/gateway','info')">查看版本</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">infra/order-service</span><span class="cell-sub">订单服务</span></div></td>
+                  <td>infra</td><td class="tnum">21</td><td class="tnum">112.7 MB</td>
+                  <td><div class="cell-stack"><span>6 小时前</span><span class="cell-sub">2.8.3 · 多架构</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('查看版本','原型只展开 www/gateway','info')">查看版本</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">monitoring/grafana</span><span class="cell-sub">大盘</span></div></td>
+                  <td>monitoring</td><td class="tnum">4</td><td class="tnum">386.2 MB</td>
+                  <td><div class="cell-stack"><span>3 天前</span><span class="cell-sub">11.3.0</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('查看版本','原型只展开 www/gateway','info')">查看版本</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================= 镜像仓库：镜像详情 ========================= -->
+      <section class="page" id="page-repo" hidden>
+        <div class="breadcrumb">
+          <button type="button" onclick="goto('registry')">镜像仓库</button><span>/</span>
+          <button type="button" onclick="goto('registry-detail')">Harbor 私有仓库</button><span>/</span>
+          <span>library/gateway</span>
+        </div>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title mono">library/gateway</h1>
+            <p class="page-desc">订单网关 · 最近推送 2 小时前 · 拉取 1,284 次</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="openDlg('dlg-picker')">选择镜像版本</button>
+            <button class="btn btn-primary" type="button" onclick="openDlg('dlg-sync')">同步镜像</button>
+          </div>
+        </div>
+        <div class="meta-bar">
+          <span class="item">项目 <b>library</b></span>
+          <span class="item">版本 <b>12</b></span>
+          <span class="item">多架构 <b>8</b></span>
+          <span class="item">最近推送 <b>1.4.0</b></span>
+          <span class="item">被发布包引用 <b>2 个版本</b></span>
+        </div>
+
+        <div class="grid-2 repo-layout">
+          <div class="col">
+            <div class="card">
+              <div class="table-top">
+                <div class="inline">
+                  <div class="segmented" role="group" aria-label="架构筛选">
+                    <button type="button" aria-pressed="true" onclick="toast('架构筛选','全部架构：12 个版本','info')">全部</button>
+                    <button type="button" aria-pressed="false" onclick="toast('架构筛选','amd64：12 个版本','info')">amd64</button>
+                    <button type="button" aria-pressed="false" onclick="toast('架构筛选','arm64：8 个版本','info')">arm64</button>
+                  </div>
+                </div>
+                <input class="input input-sm" style="width:190px" placeholder="搜索 Tag" aria-label="搜索 Tag" />
+              </div>
+              <div class="tbl-wrap tbl-scroll">
+                <table class="tbl" style="table-layout:auto;min-width:640px">
+                  <colgroup><col /><col style="width:150px" /><col style="width:130px" /><col style="width:104px" /><col style="width:76px" /><col style="width:120px" /></colgroup>
+                  <thead><tr><th>Tag / 版本</th><th>架构</th><th>Digest</th><th>推送时间</th><th>被引用</th><th class="col-actions">操作</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><div class="cell-stack"><span class="cell-name mono">1.4.0</span><span class="cell-sub">release-2026.11.14 · 86.4 MB</span></div></td>
+                      <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div></td>
+                      <td><span class="mono-sm">3f9c…a71e</span></td>
+                      <td>2 小时前</td>
+                      <td><span class="badge tone-primary">2 个版本</span></td>
+                      <td><div class="row-actions"><button class="link-btn" type="button" onclick="openTagSheet()">详情</button><button class="link-btn" type="button" onclick="askDelete('删除 Tag','library/gateway:1.4.0','该 Tag 被 2 个已发布版本引用，删除会被拒绝。')">删除</button></div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-stack"><span class="cell-name mono">1.3.2</span><span class="cell-sub">上一个稳定版本 · 85.9 MB</span></div></td>
+                      <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div></td>
+                      <td><span class="mono-sm">81b2…09dc</span></td>
+                      <td>3 天前</td>
+                      <td><span class="badge tone-neutral">1 个版本</span></td>
+                      <td><div class="row-actions"><button class="link-btn" type="button" onclick="openTagSheet()">详情</button><button class="link-btn" type="button" onclick="askDelete('删除 Tag','library/gateway:1.3.2','该 Tag 被 1 个已发布版本引用，删除会被拒绝。')">删除</button></div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-stack"><span class="cell-name mono">1.3.1</span><span class="cell-sub">hotfix · 84.2 MB</span></div></td>
+                      <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span></div></td>
+                      <td><span class="mono-sm">c40d…b611</span></td>
+                      <td>11 天前</td>
+                      <td><span class="badge tone-neutral">0</span></td>
+                      <td><div class="row-actions"><button class="link-btn" type="button" onclick="openTagSheet()">详情</button><button class="link-btn" type="button" onclick="askDelete('删除 Tag','library/gateway:1.3.1','删除后无法恢复。')">删除</button></div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-stack"><span class="cell-name mono">latest</span><span class="cell-sub">指向 1.4.0 · 86.4 MB</span></div></td>
+                      <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div></td>
+                      <td><span class="mono-sm">3f9c…a71e</span></td>
+                      <td>2 小时前</td>
+                      <td><span class="badge tone-neutral">0</span></td>
+                      <td><div class="row-actions"><button class="link-btn" type="button" onclick="openTagSheet()">详情</button><button class="link-btn" type="button" onclick="askDelete('删除 Tag','library/gateway:latest','删除后无法恢复；不影响按 digest 的引用。')">删除</button></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="list-note">复制 / 同步 / 删除都按 digest 定位；Tag 在操作期间被覆盖会返回冲突。</div>
+            </div>
+          </div>
+
+          <aside class="side-panel">
+            <div class="card">
+              <div class="side-head"><span class="side-title">镜像概览</span><span class="badge tone-violet">HARBOR</span></div>
+              <div class="side-body">
+                <dl class="kv-grid">
+                  <dt>完整引用</dt><dd class="mono-sm">harbor.aide.local/library/gateway:1.4.0</dd>
+                  <dt>Digest</dt><dd class="mono-sm">sha256:3f9c2b7d1a8e4c6f0b5d92e1a7c34f89d21b6e5a7c9d0e1f2a3b4c5d6e7f8a71e</dd>
+                  <dt>Media type</dt><dd class="mono-sm">application/vnd.oci.image.index.v1+json</dd>
+                  <dt>平台</dt><dd><div class="chip-list"><span class="arch-chip on">linux/amd64</span><span class="arch-chip on">linux/arm64/v8</span></div></dd>
+                  <dt>推送时间</dt><dd>2026-11-15 08:42</dd>
+                </dl>
+              </div>
+            </div>
+            <div class="card">
+              <div class="side-head"><span class="side-title">被谁引用</span><span class="badge tone-primary">2 个版本</span></div>
+              <div class="side-body">
+                <div class="image-ref"><span class="name">order-gateway · 1.4.0</span><span class="meta"><span class="badge tone-success">PUBLISHED</span><span>1 个部署实例</span></span></div>
+                <div class="image-ref"><span class="name">order-gateway · 1.3.2</span><span class="meta"><span class="badge tone-neutral">DEPRECATED</span><span>0 个部署实例</span></span></div>
+                <p class="muted-sm">删除 Tag 前会检查这里；有引用时返回 409 并列出应用版本。</p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="side-head"><span class="side-title">同步到私有仓库</span></div>
+              <div class="side-body">
+                <p class="muted-sm">当前版本已存在多架构 index，可全部同步或只同步指定平台。</p>
+                <button class="btn btn-outline" type="button" onclick="openDlg('dlg-sync')">创建同步任务</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ========================= 镜像仓库：同步任务 ========================= -->
+      <section class="page" id="page-syncs" hidden>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">同步任务</h1>
+            <p class="page-desc">把源镜像的全部或指定架构复制到目标仓库；失败可重试，运行中可取消。</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="goto('registry')">返回仓库</button>
+            <button class="btn btn-primary" type="button" onclick="openDlg('dlg-sync')">新建同步</button>
+          </div>
+        </div>
+        <div class="tabs-row">
+          <div class="segmented" role="group" aria-label="镜像仓库视图">
+            <button type="button" aria-pressed="false" onclick="goto('registry')">仓库连接 <span class="count">3</span></button>
+            <button type="button" aria-pressed="true" onclick="goto('syncs')">同步任务 <span class="count">2</span></button>
+          </div>
+          <span class="muted-sm">有活动任务时列表每 3 秒刷新一次，页面卸载即停止。</span>
+        </div>
+        <div class="card filter-card">
+          <div class="card-body">
+            <div class="filter-grid">
+              <select class="select" style="width:170px" aria-label="状态筛选"><option>全部状态</option><option>运行中</option><option>成功</option><option>失败</option><option>已取消</option></select>
+              <select class="select" style="width:200px" aria-label="源仓库"><option>全部源仓库</option><option>Harbor 私有仓库</option><option>集群内 Registry</option></select>
+              <input class="input" placeholder="搜索镜像名" aria-label="搜索镜像名" />
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-top"><span class="total">共 5 个任务</span><span class="muted-sm">同一源/目标的活动任务不允许重复排队</span></div>
+          <div class="tbl-wrap tbl-scroll-lg">
+            <table class="tbl">
+              <colgroup><col /><col /><col style="width:130px" /><col style="width:200px" /><col style="width:150px" /><col style="width:140px" /></colgroup>
+              <thead><tr><th>源镜像</th><th>目标镜像</th><th>架构</th><th>状态 / 进度</th><th>创建人 · 耗时</th><th class="col-actions">操作</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">harbor.aide.local/library/nginx:1.27.2</span><span class="cell-sub">源 Harbor 私有仓库</span></div></td>
+                  <td><div class="cell-stack"><span class="cell-name mono">192.168.10.172:5000/library/nginx:1.27.2</span><span class="cell-sub">集群内 Registry</span></div></td>
+                  <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div></td>
+                  <td><div class="cell-stack"><span class="badge tone-info"><span class="dot"></span>复制层 7 / 12</span><div class="progress-row"><div class="progress" style="width:100%"><i style="width:58%"></i></div><span>58%</span></div></div></td>
+                  <td><div class="cell-stack"><span>H · 3 分钟前</span><span class="cell-sub">进行中</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('任务详情','阶段：COPY_BLOBS · 7/12 层','info')">详情</button><button class="link-btn" type="button" onclick="toast('已请求取消','运行中的任务会在写入 Tag 前停止','warn')">取消</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">harbor.aide.local/library/gateway:1.4.0</span><span class="cell-sub">源 Harbor 私有仓库</span></div></td>
+                  <td><div class="cell-stack"><span class="cell-name mono">192.168.10.172:5000/library/gateway:1.4.0</span><span class="cell-sub">集群内 Registry</span></div></td>
+                  <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div></td>
+                  <td><span class="badge tone-success"><span class="dot"></span>成功</span></td>
+                  <td><div class="cell-stack"><span>W · 18 分钟前</span><span class="cell-sub">耗时 42s · 校验通过</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('任务详情','目标 digest 已写回；平台完整','success')">详情</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">harbor.aide.local/library/redis:7.4.1</span><span class="cell-sub">源 Harbor 私有仓库</span></div></td>
+                  <td><div class="cell-stack"><span class="cell-name mono">192.168.10.172:5000/library/redis:7.4.1</span><span class="cell-sub">集群内 Registry</span></div></td>
+                  <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span></div></td>
+                  <td><div class="cell-stack"><span class="badge tone-danger"><span class="dot"></span>失败</span><span class="cell-sub">目标仓库返回 401</span></div></td>
+                  <td><div class="cell-stack"><span>H · 1 小时前</span><span class="cell-sub">不可重试 · 凭据被拒绝</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('任务详情','401 Unauthorized：请更新目标仓库凭据','warn')">详情</button><button class="link-btn" type="button" onclick="toast('已重试','已创建新的同步任务','success')">重试</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">registry.example.com/library/postgres:16.4</span><span class="cell-sub">上游镜像代理</span></div></td>
+                  <td><div class="cell-stack"><span class="cell-name mono">harbor.aide.local/library/postgres:16.4</span><span class="cell-sub">Harbor 私有仓库</span></div></td>
+                  <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span></div></td>
+                  <td><span class="badge tone-warning"><span class="dot"></span>等待执行</span></td>
+                  <td><div class="cell-stack"><span>W · 2 分钟前</span><span class="cell-sub">队列第 1 位</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('任务详情','PENDING：等待执行器认领','info')">详情</button><button class="link-btn" type="button" onclick="toast('已取消','PENDING 任务已取消','warn')">取消</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">harbor.aide.local/library/worker:2.8.3</span><span class="cell-sub">源 Harbor 私有仓库</span></div></td>
+                  <td><div class="cell-stack"><span class="cell-name mono">192.168.10.172:5000/library/worker:2.8.3</span><span class="cell-sub">集群内 Registry</span></div></td>
+                  <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div></td>
+                  <td><span class="badge tone-neutral"><span class="dot"></span>已取消</span></td>
+                  <td><div class="cell-stack"><span>H · 昨天</span><span class="cell-sub">用户取消 · 未写 Tag</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('任务详情','已取消：未写入目标 Tag','info')">详情</button><button class="link-btn" type="button" onclick="toast('已重试','已创建新的同步任务','success')">重试</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================= 应用商店：应用 ========================= -->
+      <section class="page" id="page-apps" hidden>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">应用商店</h1>
+            <p class="page-desc">把工作负载、Service、Ingress、RBAC、配置与 PVC 打包成发布包版本，部署到集群命名空间。</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="goto('releases')">部署实例</button>
+            <button class="btn btn-primary" type="button" onclick="openDlg('dlg-create-app')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              新建应用
+            </button>
+          </div>
+        </div>
+        <div class="stat-cards">
+          <div class="stat-card"><span class="k">应用</span><span class="v">8<small>个</small></span><span class="delta">覆盖 5 个分类</span></div>
+          <div class="stat-card"><span class="k">已发布版本</span><span class="v">21<small>个</small></span><span class="delta up"><span class="dot"></span>本周新增 3 个</span></div>
+          <div class="stat-card brand"><span class="k">运行中实例</span><span class="v">6<small>个</small></span><span class="delta">2 个集群 · 4 个命名空间</span></div>
+          <div class="stat-card warn"><span class="k">待处理</span><span class="v">3<small>个草稿</small></span><span class="delta" style="color:var(--warning)"><span class="dot"></span>1 个部署失败</span></div>
+        </div>
+        <div class="tabs-row">
+          <div class="segmented" role="group" aria-label="应用商店视图">
+            <button type="button" aria-pressed="true" onclick="goto('apps')">应用 <span class="count">8</span></button>
+            <button type="button" aria-pressed="false" onclick="goto('releases')">部署实例 <span class="count">6</span></button>
+          </div>
+          <span class="muted-sm">版本发布后不可变；部署时只允许有限参数覆盖。</span>
+        </div>
+        <div class="card filter-card">
+          <div class="card-body">
+            <div class="filter-grid">
+              <input class="input" placeholder="搜索应用名称" aria-label="搜索应用名称" />
+              <select class="select" style="width:170px" aria-label="分类筛选"><option>全部分类</option><option>数据库</option><option>中间件</option><option>可观测性</option><option>工具</option><option>其它</option></select>
+              <select class="select" style="width:170px" aria-label="版本状态"><option>全部状态</option><option>有已发布版本</option><option>仅有草稿</option></select>
+            </div>
+          </div>
+        </div>
+        <div class="app-grid">
+          <article class="app-card">
+            <div class="app-card-head"><div class="app-icon">OG</div><div style="min-width:0"><div class="app-card-name">order-gateway</div><div class="muted-sm">订单网关</div></div><span class="badge tone-success" style="margin-left:auto">2 版本</span></div>
+            <p class="app-card-desc">订单入口网关：Deployment + Service + Ingress + RBAC，支持多版本发布与回滚。</p>
+            <div class="app-kpis"><span>最新 <b>1.4.0</b></span><span>镜像 <b>2</b></span><span>实例 <b>1</b></span></div>
+            <div class="app-card-foot"><span class="badge tone-info">中间件</span><div class="inline"><button class="btn btn-ghost btn-sm" type="button" onclick="goto('app-detail')">详情</button><button class="btn btn-primary btn-sm" type="button" onclick="openDlg('dlg-deploy')">部署</button></div></div>
+          </article>
+          <article class="app-card">
+            <div class="app-card-head"><div class="app-icon">RH</div><div style="min-width:0"><div class="app-card-name">redis-ha</div><div class="muted-sm">Redis 高可用</div></div><span class="badge tone-success" style="margin-left:auto">2 版本</span></div>
+            <p class="app-card-desc">主从 + Sentinel，含 ConfigMap、Secret 与 PVC；同步上游镜像后发布。</p>
+            <div class="app-kpis"><span>最新 <b>7.4.1</b></span><span>镜像 <b>3</b></span><span>实例 <b>1</b></span></div>
+            <div class="app-card-foot"><span class="badge tone-violet">数据库</span><div class="inline"><button class="btn btn-ghost btn-sm" type="button" onclick="toast('应用详情','原型只展开 order-gateway','info')">详情</button><button class="btn btn-primary btn-sm" type="button" onclick="openDlg('dlg-deploy')">部署</button></div></div>
+          </article>
+          <article class="app-card">
+            <div class="app-card-head"><div class="app-icon">PG</div><div style="min-width:0"><div class="app-card-name">postgresql</div><div class="muted-sm">PostgreSQL</div></div><span class="badge tone-success" style="margin-left:auto">4 版本</span></div>
+            <p class="app-card-desc">单实例与流复制两套拓扑，PVC 默认保留；升级不自动扩缩容。</p>
+            <div class="app-kpis"><span>最新 <b>16.4</b></span><span>镜像 <b>1</b></span><span>实例 <b>1</b></span></div>
+            <div class="app-card-foot"><span class="badge tone-violet">数据库</span><div class="inline"><button class="btn btn-ghost btn-sm" type="button" onclick="toast('应用详情','原型只展开 order-gateway','info')">详情</button><button class="btn btn-primary btn-sm" type="button" onclick="openDlg('dlg-deploy')">部署</button></div></div>
+          </article>
+          <article class="app-card">
+            <div class="app-card-head"><div class="app-icon">OB</div><div style="min-width:0"><div class="app-card-name">observability</div><div class="muted-sm">可观测性栈</div></div><span class="badge tone-success" style="margin-left:auto">3 版本</span></div>
+            <p class="app-card-desc">Prometheus、Grafana 与 exporter 的组合发布包；含 Ingress 与 RBAC。</p>
+            <div class="app-kpis"><span>最新 <b>3.2.0</b></span><span>镜像 <b>5</b></span><span>实例 <b>1</b></span></div>
+            <div class="app-card-foot"><span class="badge tone-warning">可观测性</span><div class="inline"><button class="btn btn-ghost btn-sm" type="button" onclick="toast('应用详情','原型只展开 order-gateway','info')">详情</button><button class="btn btn-primary btn-sm" type="button" onclick="openDlg('dlg-deploy')">部署</button></div></div>
+          </article>
+          <article class="app-card">
+            <div class="app-card-head"><div class="app-icon">NI</div><div style="min-width:0"><div class="app-card-name">nginx-ingress</div><div class="muted-sm">Ingress 控制器</div></div><span class="badge tone-success" style="margin-left:auto">2 版本</span></div>
+            <p class="app-card-desc">DaemonSet + Service + RBAC；多架构镜像，按节点架构自动拉取。</p>
+            <div class="app-kpis"><span>最新 <b>1.11.3</b></span><span>镜像 <b>1</b></span><span>实例 <b>1</b></span></div>
+            <div class="app-card-foot"><span class="badge tone-info">工具</span><div class="inline"><button class="btn btn-ghost btn-sm" type="button" onclick="toast('应用详情','原型只展开 order-gateway','info')">详情</button><button class="btn btn-primary btn-sm" type="button" onclick="openDlg('dlg-deploy')">部署</button></div></div>
+          </article>
+          <article class="app-card">
+            <div class="app-card-head"><div class="app-icon">JS</div><div style="min-width:0"><div class="app-card-name">job-scheduler</div><div class="muted-sm">任务调度器</div></div><span class="badge tone-warning" style="margin-left:auto">仅草稿</span></div>
+            <p class="app-card-desc">CronJob + ConfigMap；草稿阶段，镜像尚未校验，暂不能部署。</p>
+            <div class="app-kpis"><span>最新 <b>0.3.0</b></span><span>镜像 <b>1</b></span><span>实例 <b>0</b></span></div>
+            <div class="app-card-foot"><span class="badge tone-neutral">工具</span><div class="inline"><button class="btn btn-ghost btn-sm" type="button" onclick="toast('应用详情','原型只展开 order-gateway','info')">详情</button><button class="btn btn-primary btn-sm" type="button" disabled>部署</button></div></div>
+          </article>
+        </div>
+        <div class="card"><div class="card-body"><div class="table-pager"><span class="info">共 8 个应用 · 第 1 / 1 页</span><div class="pager"><button class="btn btn-outline btn-sm" type="button" disabled>上一页</button><span>1</span><button class="btn btn-outline btn-sm" type="button" disabled>下一页</button></div></div></div></div>
+      </section>
+
+      <!-- ========================= 应用商店：应用详情 ========================= -->
+      <section class="page" id="page-app-detail" hidden>
+        <div class="breadcrumb"><button type="button" onclick="goto('apps')">应用商店</button><span>/</span><span>order-gateway</span></div>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">order-gateway</h1>
+            <p class="page-desc">订单入口网关 · 中间件 · 创建于 2026-10-28 · 4 个版本</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="openDlg('dlg-create-version')">新建版本</button>
+            <button class="btn btn-primary" type="button" onclick="openDlg('dlg-deploy')">部署</button>
+          </div>
+        </div>
+        <div class="grid-2 app-detail-layout">
+          <div class="col">
+            <div class="card">
+              <div class="table-top"><span class="total">版本 · 4 个</span><div class="segmented" role="group" aria-label="版本状态"><button type="button" aria-pressed="true">全部</button><button type="button" aria-pressed="false">已发布</button><button type="button" aria-pressed="false">草稿</button></div></div>
+              <div class="tbl-wrap tbl-scroll">
+                <table class="tbl">
+                  <colgroup><col /><col style="width:96px" /><col /><col style="width:88px" /><col style="width:130px" /><col style="width:150px" /></colgroup>
+                  <thead><tr><th>版本</th><th>状态</th><th>镜像</th><th>实例</th><th>发布时间</th><th class="col-actions">操作</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><div class="cell-stack"><span class="cell-name mono">1.4.0</span><span class="cell-sub">当前稳定版本</span></div></td>
+                      <td><span class="badge tone-success">PUBLISHED</span></td>
+                      <td><div class="chip-list"><span class="arch-chip">gateway:1.4.0</span><span class="arch-chip">redis:7.4.1</span></div></td>
+                      <td class="tnum">1</td><td>2026-11-14 18:20</td>
+                      <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('version')">详情</button><button class="link-btn" type="button" onclick="openDlg('dlg-deploy')">部署</button></div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-stack"><span class="cell-name mono">1.3.2</span><span class="cell-sub">上一稳定版本</span></div></td>
+                      <td><span class="badge tone-neutral">DEPRECATED</span></td>
+                      <td><div class="chip-list"><span class="arch-chip">gateway:1.3.2</span><span class="arch-chip">redis:7.2.5</span></div></td>
+                      <td class="tnum">0</td><td>2026-10-29 11:02</td>
+                      <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('version')">详情</button><button class="link-btn" type="button" onclick="toast('部署','已下架版本仅允许回滚，不允许新部署','warn')">部署</button></div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-stack"><span class="cell-name mono">1.5.0</span><span class="cell-sub">草稿 · 镜像待校验</span></div></td>
+                      <td><span class="badge tone-warning">DRAFT</span></td>
+                      <td><div class="chip-list"><span class="arch-chip">gateway:1.5.0-rc1</span></div></td>
+                      <td class="tnum">0</td><td>—</td>
+                      <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('version')">编辑</button><button class="link-btn" type="button" onclick="toast('发布校验','1 个镜像未解析，不能发布','warn')">发布</button></div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-stack"><span class="cell-name mono">1.2.0</span><span class="cell-sub">历史版本</span></div></td>
+                      <td><span class="badge tone-neutral">DEPRECATED</span></td>
+                      <td><div class="chip-list"><span class="arch-chip">gateway:1.2.0</span></div></td>
+                      <td class="tnum">0</td><td>2026-09-18 09:40</td>
+                      <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('version')">详情</button><button class="link-btn" type="button" onclick="toast('部署','已下架版本仅允许回滚','warn')">部署</button></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="list-note">发布后不可编辑；要改资源或镜像，新建版本。</div>
+            </div>
+            <div class="card">
+              <div class="side-head"><span class="side-title">说明</span><span class="muted-sm">Markdown</span></div>
+              <div class="side-body readme">
+                <h3>订单入口网关</h3>
+                <p>为订单域提供统一入口：TLS 终止、路由与限流，所有工作负载由本发布包创建。</p>
+                <pre><code>kubectl -n order get deploy,svc,ingress \
+  -l alioth.io/release-uid</code></pre>
+                <h3>部署前检查</h3>
+                <p>确认目标命名空间已存在、TLS Secret 已由平台 Secret 创建；Ingress Host 在部署对话框中按环境覆盖。</p>
+              </div>
+            </div>
+          </div>
+          <aside class="side-panel">
+            <div class="card">
+              <div class="side-head"><span class="side-title">应用信息</span><span class="badge tone-info">中间件</span></div>
+              <div class="side-body">
+                <dl class="kv-grid">
+                  <dt>应用名</dt><dd class="mono-sm">order-gateway</dd>
+                  <dt>展示名</dt><dd>订单网关</dd>
+                  <dt>最新版本</dt><dd class="mono-sm">1.4.0</dd>
+                  <dt>版本数</dt><dd>4（2 已发布 / 1 草稿 / 1 已下架）</dd>
+                  <dt>镜像来源</dt><dd>Harbor 私有仓库</dd>
+                  <dt>部署实例</dt><dd><button class="link-btn" type="button" onclick="goto('releases')">1 个运行中</button></dd>
+                </dl>
+              </div>
+            </div>
+            <div class="card">
+              <div class="side-head"><span class="side-title">镜像</span><span class="badge tone-primary">2 个</span></div>
+              <div class="side-body">
+                <div class="image-ref"><span class="name">harbor.aide.local/library/gateway:1.4.0</span><span class="meta"><span>sha256:3f9c…a71e</span><span>amd64 · arm64</span></span></div>
+                <div class="image-ref"><span class="name">harbor.aide.local/library/redis:7.4.1</span><span class="meta"><span>sha256:9d21…b3f0</span><span>amd64 · arm64</span></span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="side-head"><span class="side-title">部署</span></div>
+              <div class="side-body">
+                <p class="muted-sm">部署到集群命名空间，可覆盖副本数、镜像 Tag、Ingress Host 与 Secret 值。</p>
+                <button class="btn btn-primary" type="button" onclick="openDlg('dlg-deploy')">新建部署实例</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ========================= 应用商店：版本详情 / 编辑 ========================= -->
+      <section class="page" id="page-version" hidden>
+        <div class="breadcrumb">
+          <button type="button" onclick="goto('apps')">应用商店</button><span>/</span>
+          <button type="button" onclick="goto('app-detail')">order-gateway</button><span>/</span>
+          <span>1.4.0</span>
+        </div>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">order-gateway <span class="mono" style="font-size:18px;color:var(--muted-foreground)">1.4.0</span></h1>
+            <p class="page-desc">发布包版本 · 已发布 · 2026-11-14 18:20 · 发布后不可编辑</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="toast('校验通过','2 个镜像可解析；3 个资源警告','success')">校验镜像</button>
+            <button class="btn btn-primary" type="button" onclick="openDlg('dlg-deploy')">部署</button>
+          </div>
+        </div>
+        <div class="meta-bar">
+          <span class="item">状态 <span class="badge tone-success" style="height:19px">PUBLISHED</span></span>
+          <span class="item">镜像 <b>2</b></span>
+          <span class="item">工作负载 <b>2</b></span>
+          <span class="item">资源对象 <b>10</b></span>
+          <span class="item">部署实例 <b>1</b></span>
+          <span class="item">变更说明 <b>网关限流与优雅退出</b></span>
+        </div>
+
+        <div class="editor-layout">
+          <nav class="anchor-nav" aria-label="版本分区">
+            <button class="on" type="button" onclick="toast('锚点导航','滚动到概览（原型静态）','info')">概览 <span class="count">9</span></button>
+            <button type="button" onclick="toast('锚点导航','滚动到工作负载（原型静态）','info')">工作负载 <span class="count">2</span></button>
+            <button type="button" onclick="toast('锚点导航','滚动到服务与路由（原型静态）','info')">服务与路由 <span class="count">2</span></button>
+            <button type="button" onclick="toast('锚点导航','滚动到 RBAC（原型静态）','info')">RBAC <span class="count">3</span></button>
+            <button type="button" onclick="toast('锚点导航','滚动到配置（原型静态）','info')">配置 <span class="count">2</span></button>
+            <button type="button" onclick="toast('锚点导航','滚动到部署参数（原型静态）','info')">部署参数 <span class="count">4</span></button>
+          </nav>
+
+          <div class="editor-main">
+            <div class="card">
+              <div class="side-head"><span class="side-title">概览</span><span class="badge tone-success">镜像校验通过</span></div>
+              <div class="side-body">
+                <div class="kpi-strip" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+                  <div class="cell"><span>工作负载</span><b>2</b></div>
+                  <div class="cell"><span>Service / Ingress</span><b>2</b></div>
+                  <div class="cell"><span>RBAC</span><b>3</b></div>
+                  <div class="cell"><span>配置 / PVC</span><b>3</b></div>
+                </div>
+                <div class="image-ref"><span class="name">harbor.aide.local/library/gateway:1.4.0</span><span class="meta"><span class="badge tone-success">digest 已校验</span><span>sha256:3f9c…a71e</span><span>linux/amd64 · linux/arm64</span></span></div>
+                <div class="image-ref"><span class="name">harbor.aide.local/library/redis:7.4.1</span><span class="meta"><span class="badge tone-success">digest 已校验</span><span>sha256:9d21…b3f0</span><span>linux/amd64 · linux/arm64</span></span></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="side-head"><span class="side-title">工作负载</span><span class="inline"><span class="muted-sm">2 个</span><button class="btn btn-outline btn-sm" type="button" onclick="toast('添加工作负载','生产页面使用对话框新增 Deployment / StatefulSet / DaemonSet / CronJob','info')">添加</button></span></div>
+              <div class="side-body">
+                <div class="workload-card">
+                  <div class="workload-head"><span class="badge tone-info">Deployment</span><span class="cell-name mono">gateway</span><span class="muted-sm">3 副本</span><span class="badge tone-success" style="margin-left:auto">就绪 3/3</span></div>
+                  <div class="workload-body">
+                    <div class="container-row">
+                      <div class="main">
+                        <div class="inline"><span class="cell-name mono">gateway</span><span class="badge tone-neutral">主容器</span></div>
+                        <div class="image-line"><span class="mono-sm">harbor.aide.local/library/gateway:1.4.0</span><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span><span class="muted-sm">sha256:3f9c…a71e</span></div>
+                        <div class="inline-list"><span>端口 <b>8080</b></span><span>env <b>8</b></span><span>CPU <b>500m / 1</b></span><span>内存 <b>512Mi / 1Gi</b></span><span>就绪 <b>/healthz</b></span></div>
+                      </div>
+                      <button class="btn btn-outline btn-sm" type="button" onclick="openDlg('dlg-picker')">更换镜像</button>
+                    </div>
+                    <div class="container-row">
+                      <div class="main">
+                        <div class="inline"><span class="cell-name mono">log-shipper</span><span class="badge tone-neutral">sidecar</span></div>
+                        <div class="image-line"><span class="mono-sm">harbor.aide.local/library/fluent-bit:3.1.9</span><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div>
+                        <div class="inline-list"><span>端口 <b>2020</b></span><span>env <b>3</b></span><span>CPU <b>100m / 200m</b></span><span>内存 <b>64Mi / 128Mi</b></span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="workload-card">
+                  <div class="workload-head"><span class="badge tone-info">Deployment</span><span class="cell-name mono">worker</span><span class="muted-sm">2 副本</span><span class="badge tone-success" style="margin-left:auto">就绪 2/2</span></div>
+                  <div class="workload-body">
+                    <div class="container-row">
+                      <div class="main">
+                        <div class="inline"><span class="cell-name mono">worker</span><span class="badge tone-neutral">主容器</span></div>
+                        <div class="image-line"><span class="mono-sm">harbor.aide.local/library/worker:2.8.3</span><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div>
+                        <div class="inline-list"><span>端口 <b>9090</b></span><span>env <b>6</b></span><span>CPU <b>250m / 500m</b></span><span>内存 <b>256Mi / 512Mi</b></span></div>
+                      </div>
+                      <button class="btn btn-outline btn-sm" type="button" onclick="openDlg('dlg-picker')">更换镜像</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="side-head"><span class="side-title">服务与路由</span><span class="muted-sm">1 Service · 1 Ingress</span></div>
+              <div class="tbl-wrap">
+                <table class="tbl">
+                  <colgroup><col /><col style="width:120px" /><col /><col style="width:160px" /></colgroup>
+                  <thead><tr><th>对象</th><th>类型</th><th>端口 / 规则</th><th>说明</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="cell-name mono">gateway</span></td><td><span class="badge tone-neutral">ClusterIP</span></td><td class="mono-sm">80 → 8080/TCP</td><td class="muted-sm">selector: app=gateway</td></tr>
+                    <tr><td><span class="cell-name mono">gateway</span></td><td><span class="badge tone-info">Ingress</span></td><td class="mono-sm">gateway.example.com / → gateway:80</td><td class="muted-sm">TLS: gateway-tls · class: nginx</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="side-head"><span class="side-title">RBAC</span><span class="badge tone-neutral">命名空间级</span></div>
+              <div class="side-body">
+                <div class="res-grid">
+                  <div class="res-cell"><div class="kind">ServiceAccount</div><div class="name mono">gateway</div><div class="state"><span class="status-dot" style="color:var(--success)"></span>镜像拉取凭据：harbor-pull</div></div>
+                  <div class="res-cell"><div class="kind">Role</div><div class="name mono">gateway-read-config</div><div class="state">get / list / watch configmaps</div></div>
+                  <div class="res-cell"><div class="kind">RoleBinding</div><div class="name mono">gateway-read-config</div><div class="state">→ ServiceAccount gateway</div></div>
+                </div>
+                <p class="muted-sm">只允许命名空间级 RBAC；不创建 ClusterRole / ClusterRoleBinding。</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="side-head"><span class="side-title">配置</span><span class="muted-sm">1 ConfigMap · 1 Secret</span></div>
+              <div class="side-body">
+                <div class="image-ref"><span class="name mono">gateway-config</span><span class="meta"><span>LOG_LEVEL=info</span><span>UPSTREAM_TIMEOUT=3s</span><span>RATE_LIMIT=200</span><span>… 5 个 key</span></span></div>
+                <div class="secret-row"><div><span class="mono-sm">gateway-secret</span><div class="inline-list"><span>ADMIN_TOKEN</span><span>REDIS_PASSWORD</span><span>TLS_KEY</span></div></div><span class="hideable">•••••••• 已加密</span></div>
+                <p class="muted-sm">Secret 只返回 key；值用 ALIOTH_ENCRYPT_KEY 派生密钥加密，部署时只在执行器内存中解密。</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="side-head"><span class="side-title">部署参数</span><span class="muted-sm">部署时可覆盖</span></div>
+              <div class="tbl-wrap">
+                <table class="tbl">
+                  <colgroup><col style="width:180px" /><col /><col style="width:140px" /></colgroup>
+                  <thead><tr><th>参数</th><th>默认值</th><th>作用域</th></tr></thead>
+                  <tbody>
+                    <tr><td class="mono-sm">workload.gateway.replicas</td><td>3</td><td>gateway</td></tr>
+                    <tr><td class="mono-sm">image.gateway.tag</td><td>1.4.0（同仓库 Tag）</td><td>gateway 容器</td></tr>
+                    <tr><td class="mono-sm">ingress.gateway.host</td><td>gateway.example.com</td><td>Ingress 规则</td></tr>
+                    <tr><td class="mono-sm">secret.gateway-secret.*</td><td>按版本值（只写）</td><td>Secret key</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================= 应用商店：部署实例 ========================= -->
+      <section class="page" id="page-releases" hidden>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">部署实例</h1>
+            <p class="page-desc">同一应用版本在不同集群 / 命名空间的安装；升级、回滚、卸载都留操作记录。</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="goto('apps')">返回应用</button>
+            <button class="btn btn-primary" type="button" onclick="openDlg('dlg-deploy')">部署应用</button>
+          </div>
+        </div>
+        <div class="stat-cards">
+          <div class="stat-card"><span class="k">运行中</span><span class="v">4<small>个实例</small></span><span class="delta up"><span class="dot"></span>全部就绪</span></div>
+          <div class="stat-card"><span class="k">部署中</span><span class="v">1<small>个</small></span><span class="delta">order-gateway-staging</span></div>
+          <div class="stat-card warn"><span class="k">失败</span><span class="v">1<small>个</small></span><span class="delta" style="color:var(--warning)"><span class="dot"></span>可重新部署</span></div>
+          <div class="stat-card"><span class="k">已卸载</span><span class="v">1<small>个</small></span><span class="delta">记录保留</span></div>
+        </div>
+        <div class="tabs-row">
+          <div class="segmented" role="group" aria-label="应用商店视图">
+            <button type="button" aria-pressed="false" onclick="goto('apps')">应用 <span class="count">8</span></button>
+            <button type="button" aria-pressed="true" onclick="goto('releases')">部署实例 <span class="count">6</span></button>
+          </div>
+          <span class="muted-sm">同一实例同一时刻只允许一个活动操作。</span>
+        </div>
+        <div class="card filter-card"><div class="card-body"><div class="filter-grid">
+          <input class="input" placeholder="搜索实例名称" aria-label="搜索实例名称" />
+          <select class="select" style="width:170px" aria-label="集群"><option>全部集群</option><option>生产集群</option><option>测试集群</option></select>
+          <select class="select" style="width:170px" aria-label="状态"><option>全部状态</option><option>运行中</option><option>部署中</option><option>失败</option><option>已卸载</option></select>
+        </div></div></div>
+        <div class="card">
+          <div class="table-top"><span class="total">共 6 个实例</span><span class="muted-sm">默认隐藏已卸载实例的详情入口</span></div>
+          <div class="tbl-wrap tbl-scroll-lg">
+            <table class="tbl">
+              <colgroup><col /><col /><col /><col style="width:104px" /><col style="width:170px" /><col style="width:150px" /></colgroup>
+              <thead><tr><th>实例</th><th>应用 / 版本</th><th>集群 / 命名空间</th><th>状态</th><th>最近操作</th><th class="col-actions">操作</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">order-gateway-prod</span><span class="cell-sub">创建于 2026-10-30</span></div></td>
+                  <td><div class="cell-stack"><span>order-gateway</span><span class="cell-sub mono">1.4.0</span></div></td>
+                  <td><div class="cell-stack"><span>生产集群</span><span class="cell-sub mono">order</span></div></td>
+                  <td><span class="badge tone-success"><span class="dot"></span>运行中</span></td>
+                  <td><div class="cell-stack"><span>升级到 1.4.0</span><span class="cell-sub">成功 · 2 小时前 · H</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('release-detail')">详情</button><button class="link-btn" type="button" onclick="toast('更多','升级 / 重新部署 / 卸载','info')">更多</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">order-gateway-staging</span><span class="cell-sub">创建于 2026-11-01</span></div></td>
+                  <td><div class="cell-stack"><span>order-gateway</span><span class="cell-sub mono">1.4.0</span></div></td>
+                  <td><div class="cell-stack"><span>测试集群</span><span class="cell-sub mono">order-staging</span></div></td>
+                  <td><span class="badge tone-warning"><span class="dot"></span>部署中</span></td>
+                  <td><div class="cell-stack"><span>重新部署 1.4.0</span><span class="cell-sub">等待 Deployment 就绪 · 34s</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('部署中','有操作进行中，升级/卸载入口暂不可用','warn')">详情</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">redis-ha-prod</span><span class="cell-sub">创建于 2026-10-22</span></div></td>
+                  <td><div class="cell-stack"><span>redis-ha</span><span class="cell-sub mono">7.4.1</span></div></td>
+                  <td><div class="cell-stack"><span>生产集群</span><span class="cell-sub mono">data</span></div></td>
+                  <td><span class="badge tone-success"><span class="dot"></span>运行中</span></td>
+                  <td><div class="cell-stack"><span>安装 7.4.1</span><span class="cell-sub">成功 · 3 天前 · W</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('实例详情','原型只展开 order-gateway-prod','info')">详情</button><button class="link-btn" type="button" onclick="toast('更多','升级 / 重新部署 / 卸载','info')">更多</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">observability-prod</span><span class="cell-sub">创建于 2026-10-18</span></div></td>
+                  <td><div class="cell-stack"><span>observability</span><span class="cell-sub mono">3.2.0</span></div></td>
+                  <td><div class="cell-stack"><span>生产集群</span><span class="cell-sub mono">monitoring</span></div></td>
+                  <td><span class="badge tone-danger"><span class="dot"></span>失败</span></td>
+                  <td><div class="cell-stack"><span>升级到 3.2.0</span><span class="cell-sub">超时 · 部分资源已创建</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('实例详情','原型只展开 order-gateway-prod','info')">详情</button><button class="link-btn" type="button" onclick="toast('重新部署','已创建 REDEPLOY 操作','success')">重新部署</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-stack"><span class="cell-name mono">postgres-dev</span><span class="cell-sub">创建于 2026-09-12</span></div></td>
+                  <td><div class="cell-stack"><span>postgresql</span><span class="cell-sub mono">16.4</span></div></td>
+                  <td><div class="cell-stack"><span>测试集群</span><span class="cell-sub mono">dev</span></div></td>
+                  <td><span class="badge tone-neutral"><span class="dot"></span>已卸载</span></td>
+                  <td><div class="cell-stack"><span>卸载</span><span class="cell-sub">成功 · 1 个月前 · H</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('实例详情','已卸载实例只保留记录','info')">详情</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================= 应用商店：部署实例详情 ========================= -->
+      <section class="page" id="page-release-detail" hidden>
+        <div class="breadcrumb">
+          <button type="button" onclick="goto('apps')">应用商店</button><span>/</span>
+          <button type="button" onclick="goto('releases')">部署实例</button><span>/</span>
+          <span>order-gateway-prod</span>
+        </div>
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">order-gateway-prod</h1>
+            <p class="page-desc">order-gateway 1.4.0 · 生产集群 / order · 最近成功部署 2 小时前</p>
+          </div>
+          <div class="page-head-actions">
+            <button class="btn btn-outline" type="button" onclick="openDlg('dlg-upgrade')">升级</button>
+            <button class="btn btn-outline" type="button" onclick="toast('重新部署','已创建 REDEPLOY 操作（原型）','success')">重新部署</button>
+            <button class="btn btn-danger" type="button" onclick="askUninstall()">卸载</button>
+          </div>
+        </div>
+        <div class="meta-bar">
+          <span class="item">状态 <span class="badge tone-success" style="height:19px"><span class="dot"></span>运行中</span></span>
+          <span class="item">应用 <b>order-gateway</b></span>
+          <span class="item">版本 <b class="mono-sm">1.4.0</b></span>
+          <span class="item">集群 <b>生产集群</b></span>
+          <span class="item">命名空间 <b class="mono-sm">order</b></span>
+          <span class="item">最近操作人 <b>H</b></span>
+        </div>
+        <div class="kpi-strip">
+          <div class="cell"><span>资源就绪</span><b>7<small>/ 7</small></b></div>
+          <div class="cell"><span>工作负载 Pod</span><b>5<small>/ 5 Ready</small></b></div>
+          <div class="cell"><span>镜像</span><b>3<small>个 digest</small></b></div>
+          <div class="cell"><span>最近部署</span><b style="font-size:16px">2 小时前</b></div>
+        </div>
+
+        <div class="grid-2 release-detail-layout">
+          <div class="col">
+            <div class="card">
+              <div class="side-head"><span class="side-title">资源</span><span class="inline"><span class="badge tone-success">实时读取</span><button class="btn btn-outline btn-sm" type="button" onclick="toast('已刷新','按 release label 重新读取集群资源','success')">刷新</button></span></div>
+              <div class="side-body">
+                <div class="res-grid">
+                  <div class="res-cell"><div class="kind">Deployment</div><div class="name mono">gateway</div><div class="state"><span class="status-dot" style="color:var(--success)"></span>3/3 Ready</div></div>
+                  <div class="res-cell"><div class="kind">Deployment</div><div class="name mono">worker</div><div class="state"><span class="status-dot" style="color:var(--success)"></span>2/2 Ready</div></div>
+                  <div class="res-cell"><div class="kind">Service</div><div class="name mono">gateway</div><div class="state">ClusterIP · 10.96.14.22</div></div>
+                  <div class="res-cell"><div class="kind">Ingress</div><div class="name mono">gateway</div><div class="state">gateway.example.com</div></div>
+                  <div class="res-cell"><div class="kind">ConfigMap</div><div class="name mono">gateway-config</div><div class="state">5 keys</div></div>
+                  <div class="res-cell"><div class="kind">Secret</div><div class="name mono">gateway-secret</div><div class="state">3 keys · 值不展示</div></div>
+                  <div class="res-cell"><div class="kind">ServiceAccount</div><div class="name mono">gateway</div><div class="state">harbor-pull</div></div>
+                  <div class="res-cell"><div class="kind">Role / Binding</div><div class="name mono">gateway-read-config</div><div class="state">命名空间级</div></div>
+                  <div class="res-cell"><div class="kind">PVC</div><div class="name mono">gateway-cache</div><div class="state">5Gi · 保留</div></div>
+                </div>
+                <p class="muted-sm">资源状态由实例 label 实时读取；读取失败只显示 — 与 warning，不影响实例本身。</p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="side-head"><span class="side-title">操作记录</span><span class="badge tone-neutral">5 条</span></div>
+              <div class="side-body">
+                <div class="timeline">
+                  <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot ok"></span><span class="timeline-line"></span></div><div class="timeline-body"><div class="timeline-title">升级 <span class="badge tone-success">SUCCEEDED</span><span class="muted-sm">1.3.2 → 1.4.0</span></div><div class="timeline-meta">2026-11-15 09:42 · H · 耗时 1m 18s · 更新 6 · 新增 1 · 删除 0</div></div></div>
+                  <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot ok"></span><span class="timeline-line"></span></div><div class="timeline-body"><div class="timeline-title">升级 <span class="badge tone-success">SUCCEEDED</span><span class="muted-sm">1.3.1 → 1.3.2</span></div><div class="timeline-meta">2026-10-30 16:05 · W · 耗时 1m 02s · 更新 4 · 新增 0 · 删除 0</div></div></div>
+                  <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot ok"></span><span class="timeline-line"></span></div><div class="timeline-body"><div class="timeline-title">安装 <span class="badge tone-success">SUCCEEDED</span><span class="muted-sm">1.3.1</span></div><div class="timeline-meta">2026-10-30 15:20 · H · 耗时 58s · 创建 8 个资源</div></div></div>
+                  <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot mute"></span></div><div class="timeline-body"><div class="timeline-title">重新部署 <span class="badge tone-neutral">CANCELED</span></div><div class="timeline-meta">2026-11-15 10:10 · H · 未开始执行</div></div></div>
+                </div>
+                <div class="table-pager" style="margin-top:6px"><span class="info">第 1 / 1 页</span><div class="pager"><button class="btn btn-outline btn-sm" type="button" disabled>上一页</button><span>1</span><button class="btn btn-outline btn-sm" type="button" disabled>下一页</button></div></div>
+              </div>
+            </div>
+          </div>
+          <aside class="side-panel">
+            <div class="card">
+              <div class="side-head"><span class="side-title">镜像</span><span class="badge tone-primary">3 个</span></div>
+              <div class="side-body">
+                <div class="image-ref"><span class="name">library/gateway:1.4.0</span><span class="meta"><span>sha256:3f9c…a71e</span><span>amd64 · arm64</span></span></div>
+                <div class="image-ref"><span class="name">library/worker:2.8.3</span><span class="meta"><span>sha256:5a2e…c912</span><span>amd64 · arm64</span></span></div>
+                <div class="image-ref"><span class="name">library/fluent-bit:3.1.9</span><span class="meta"><span>sha256:9d21…b3f0</span><span>amd64 · arm64</span></span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="side-head"><span class="side-title">部署参数</span></div>
+              <div class="side-body">
+                <dl class="kv-grid">
+                  <dt>实例名</dt><dd class="mono-sm">order-gateway-prod</dd>
+                  <dt>副本覆盖</dt><dd>gateway=3 · worker=2</dd>
+                  <dt>镜像 Tag</dt><dd class="mono-sm">gateway=1.4.0</dd>
+                  <dt>Ingress Host</dt><dd class="mono-sm">gateway.example.com</dd>
+                  <dt>Secret 覆盖</dt><dd>2 个 key（只写）</dd>
+                </dl>
+              </div>
+            </div>
+            <div class="card">
+              <div class="side-head"><span class="side-title">危险操作</span></div>
+              <div class="side-body">
+                <p class="muted-sm">卸载会删除实例 label 下的资源；默认保留 PVC。删除 PVC 不可恢复。</p>
+                <button class="btn btn-danger" type="button" onclick="askUninstall()">卸载实例</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ========================= 对话框：接入仓库 ========================= -->
+<div class="overlay" id="dlg-connect" hidden>
+  <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="connect-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="connect-title">接入镜像仓库</h2>
+      <p class="dialog-sub">保存前会先测试连通性与认证；密码只以密文入库。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-connect')">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="row2">
+        <div class="field"><label>名称 <span class="req">*</span></label><input class="input" value="Harbor 私有仓库" placeholder="例如生产 Harbor" /></div>
+        <div class="field"><label>驱动 <span class="req">*</span></label><select class="select"><option>HARBOR（Harbor v2.0）</option><option>DOCKER_V2（标准 OCI Registry）</option></select></div>
+      </div>
+      <div class="field"><label>Endpoint <span class="req">*</span></label><input class="input mono" value="https://harbor.aide.local" placeholder="https://harbor.example.com" /><span class="hint">支持 http(s) 与子路径；默认校验 TLS。</span></div>
+      <div class="row2">
+        <div class="field"><label>用户名 / Robot 名</label><input class="input" value="robot$alioth" placeholder="匿名只读仓库可留空" /></div>
+        <div class="field"><label>密码 / Robot Token</label><input class="input" type="password" value="••••••••" placeholder="更新时留空表示保持原值" /></div>
+      </div>
+      <label class="checkbox-row"><input type="checkbox" /> 允许不安全 TLS（仅内网自签证书；开启后凭据可能被中间人获取）</label>
+      <div class="field"><label>备注</label><textarea class="textarea" placeholder="用途、负责团队等（可选）">生产默认仓库，用于私有镜像与上游镜像落库。</textarea></div>
+      <div class="card" style="padding:12px;background:color-mix(in oklab,var(--success-soft) 40%,var(--popover));border-color:var(--success-border)">
+        <div class="inline" style="justify-content:space-between"><span class="inline"><span class="status-dot" style="color:var(--success)"></span><b>连接测试通过</b></span><span class="muted-sm">Harbor v2.0 · 82 ms · 24 projects</span></div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-connect')">取消</button>
+      <button class="btn btn-outline" type="button" onclick="toast('连接测试通过','Harbor v2.0 · 24 projects · 82 ms','success')">测试连接</button>
+      <button class="btn btn-primary" type="button" onclick="closeDlg('dlg-connect'); toast('已接入仓库','Harbor 私有仓库已保存；密码已加密','success')">保存并接入</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 对话框：同步镜像 ========================= -->
+<div class="overlay" id="dlg-sync" hidden>
+  <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="sync-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="sync-title">同步镜像</h2>
+      <p class="dialog-sub">支持全部架构或指定平台；目标 Tag 最后写入，失败不会留下不完整引用。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-sync')">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="picked-bar"><div class="grow"><div class="muted-sm">源镜像</div><div class="ref" id="sync-source">harbor.aide.local/library/gateway:1.4.0</div></div><span class="badge tone-violet">HARBOR</span></div>
+      <div class="row2">
+        <div class="field"><label>目标仓库 <span class="req">*</span></label><select class="select"><option>集群内 Registry（192.168.10.172:5000）</option><option>Harbor 私有仓库（harbor.aide.local）</option></select></div>
+        <div class="field"><label>目标 Repository <span class="req">*</span></label><input class="input mono" value="library/gateway" placeholder="library/gateway" /></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>目标 Tag <span class="req">*</span></label><input class="input mono" value="1.4.0" placeholder="例如 1.4.0" /></div>
+        <div class="field"><label>架构</label><div class="pill-select"><button type="button" class="on" onclick="togglePill(this)">全部平台</button><button type="button" onclick="togglePill(this)">linux/amd64</button><button type="button" onclick="togglePill(this)">linux/arm64/v8</button></div><span class="hint">只同步一个平台时，目标 Tag 会变成单架构 manifest。</span></div>
+      </div>
+      <label class="checkbox-row"><input type="checkbox" /> 目标 Tag 已存在时覆盖（默认关闭；覆盖不可撤销）</label>
+      <div class="inline" style="align-items:flex-start;padding:10px;border-radius:9px;background:var(--warning-soft);border:1px solid var(--warning-border)"><span class="badge tone-warning" style="height:19px">注意</span><span class="muted-sm" style="color:var(--foreground)">目标尚无同名 Tag。创建后可在同步任务页查看阶段与层进度；失败可重试或取消。</span></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-sync')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="submitSync()">创建同步任务</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 对话框：镜像选择器 ========================= -->
+<div class="overlay" id="dlg-picker" hidden>
+  <div class="dialog xl" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="picker-title">选择镜像版本</h2>
+      <p class="dialog-sub">镜像只能来自已接入的仓库；确认后写入发布包版本并快照 digest 与平台。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-picker')">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="picker-grid">
+        <div class="picker-list">
+          <div class="muted-sm" style="padding:6px 8px">仓库连接</div>
+          <button class="picker-item on" type="button" onclick="pickRepo(this,'library/gateway')"><span>Harbor 私有仓库</span><small>library/gateway</small></button>
+          <button class="picker-item" type="button" onclick="pickRepo(this,'infra/order-service')"><span>Harbor 私有仓库</span><small>infra/order-service</small></button>
+          <button class="picker-item" type="button" onclick="pickRepo(this,'library/redis')"><span>Harbor 私有仓库</span><small>library/redis</small></button>
+          <button class="picker-item" type="button" onclick="pickRepo(this,'library/gateway')"><span>集群内 Registry</span><small>library/gateway</small></button>
+        </div>
+        <div class="col" style="gap:8px">
+          <div class="inline" style="justify-content:space-between"><span class="cell-name mono" id="picker-repo">library/gateway</span><span class="muted-sm">4 个 Tag</span></div>
+          <div class="tbl-wrap tbl-scroll" style="max-height:300px">
+            <table class="tbl">
+              <colgroup><col style="width:110px" /><col /><col style="width:120px" /><col style="width:80px" /></colgroup>
+              <thead><tr><th>Tag</th><th>架构</th><th>Digest</th><th>大小</th></tr></thead>
+              <tbody>
+                <tr><td><button class="link-btn mono" type="button" onclick="pickTag(this,'harbor.aide.local/library/gateway:1.4.0','sha256:3f9c2b7d1a8e4c6f0b5d92e1a7c34f89d21b6e5a7c9d0e1f2a3b4c5d6e7f8a71e','linux/amd64 · linux/arm64/v8')">1.4.0</button></td><td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div></td><td class="mono-sm">3f9c…a71e</td><td>86.4 MB</td></tr>
+                <tr><td><button class="link-btn mono" type="button" onclick="pickTag(this,'harbor.aide.local/library/gateway:1.3.2','sha256:81b2f0c3a7d94b1e6f8c2d5a0b7e9f13c4d6a8b2e5f7091c3d5b7a9e1f2c4d6','linux/amd64 · linux/arm64/v8')">1.3.2</button></td><td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div></td><td class="mono-sm">81b2…09dc</td><td>85.9 MB</td></tr>
+                <tr><td><button class="link-btn mono" type="button" onclick="pickTag(this,'harbor.aide.local/library/gateway:1.3.1','sha256:c40d9e2a6b1f7c3d8e5a0b4f2c9d7e6a1b3c5d8f0e2a4c6b9d1f3e5a7c2b4d6','linux/amd64')">1.3.1</button></td><td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span></div></td><td class="mono-sm">c40d…b611</td><td>84.2 MB</td></tr>
+                <tr><td><button class="link-btn mono" type="button" onclick="pickTag(this,'harbor.aide.local/library/gateway:1.5.0-rc1','','linux/amd64')">1.5.0-rc1</button></td><td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span></div></td><td class="mono-sm" style="color:var(--danger)">未解析</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted-sm">选择已解析 digest 的 Tag 才能确认；未解析的 Tag 需要先修复仓库连接或镜像。</p>
+        </div>
+      </div>
+      <div class="picked-bar"><div class="grow"><div class="muted-sm">已选择</div><div class="ref" id="picked-ref">尚未选择</div><div class="muted-sm" id="picked-digest">—</div><div class="muted-sm" id="picked-arch">—</div></div><span class="badge tone-primary" id="picked-badge" hidden>digest 已解析</span></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-picker')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmPick()">使用该镜像</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 对话框：新建应用 ========================= -->
+<div class="overlay" id="dlg-create-app" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="create-app-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="create-app-title">新建应用</h2>
+      <p class="dialog-sub">应用是发布包的身份；创建后再建第一个版本。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-create-app')">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field"><label>应用名 <span class="req">*</span></label><input class="input mono" placeholder="例如 order-gateway" /><span class="hint">租户内唯一，DNS-1123，创建后不可修改。</span></div>
+      <div class="row2">
+        <div class="field"><label>展示名</label><input class="input" placeholder="例如订单网关" /></div>
+        <div class="field"><label>分类</label><select class="select"><option>中间件</option><option>数据库</option><option>可观测性</option><option>工具</option><option>其它</option></select></div>
+      </div>
+      <div class="field"><label>说明</label><textarea class="textarea" placeholder="一句话说明这个应用（可选）"></textarea></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-create-app')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="closeDlg('dlg-create-app'); toast('应用已创建','下一步创建第一个发布包版本','success')">创建应用</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 对话框：新建版本 ========================= -->
+<div class="overlay" id="dlg-create-version" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="create-version-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="create-version-title">新建发布包版本</h2>
+      <p class="dialog-sub">版本号在应用内唯一；草稿可编辑、可删除，发布后不可变。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-create-version')">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="row2">
+        <div class="field"><label>版本号 <span class="req">*</span></label><input class="input mono" placeholder="例如 1.5.0" /></div>
+        <div class="field"><label>复制自</label><select class="select"><option>不复制，创建空白版本</option><option>1.4.0（当前稳定版本）</option><option>1.3.2</option></select></div>
+      </div>
+      <div class="field"><label>变更说明</label><textarea class="textarea" placeholder="这次发布改了什么（可选）"></textarea></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-create-version')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="closeDlg('dlg-create-version'); goto('version'); toast('草稿已创建','开始添工作负载与镜像','success')">创建草稿</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 对话框：部署三步 ========================= -->
+<div class="overlay" id="dlg-deploy" hidden>
+  <div class="dialog xl" role="dialog" aria-modal="true" aria-labelledby="deploy-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="deploy-title">部署 order-gateway 1.4.0</h2>
+      <p class="dialog-sub">部署只创建 PENDING 操作，执行器在后台应用资源；页面轮询状态。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-deploy')">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="stepbar" id="deploy-stepbar">
+        <span class="step on"><b>1</b>目标</span><span class="sep"></span>
+        <span class="step"><b>2</b>参数</span><span class="sep"></span>
+        <span class="step"><b>3</b>预览</span>
+      </div>
+      <div data-deploy-step="1">
+        <div class="row2">
+          <div class="field"><label>目标集群 <span class="req">*</span></label><select class="select" id="deploy-cluster"><option>生产集群</option><option>测试集群</option></select></div>
+          <div class="field"><label>命名空间 <span class="req">*</span></label><select class="select"><option>order</option><option>order-staging</option><option>data</option><option>monitoring</option></select></div>
+        </div>
+        <div class="field" style="margin-top:12px"><label>实例名 <span class="req">*</span></label><input class="input mono" value="order-gateway-prod" placeholder="同一集群同一命名空间内唯一" /></div>
+        <p class="muted-sm" style="margin-top:8px">目标命名空间必须已存在；一期不自动创建命名空间。</p>
+      </div>
+      <div data-deploy-step="2" hidden>
+        <div class="row2">
+          <div class="field"><label>gateway 副本数</label><input class="input" type="number" value="3" min="0" max="100" /></div>
+          <div class="field"><label>worker 副本数</label><input class="input" type="number" value="2" min="0" max="100" /></div>
+        </div>
+        <div class="row2" style="margin-top:12px">
+          <div class="field"><label>gateway 镜像 Tag</label><select class="select"><option>1.4.0（版本默认）</option><option>1.4.1（同仓库）</option><option>1.3.2（同仓库）</option></select><span class="hint">只允许同 repository 的 Tag，不能换仓库。</span></div>
+          <div class="field"><label>Ingress Host</label><input class="input mono" value="gateway.example.com" placeholder="不填表示保持版本值" /></div>
+        </div>
+        <div class="field" style="margin-top:12px"><label>Secret 值覆盖</label><div class="secret-row"><span class="mono-sm">ADMIN_TOKEN</span><span class="hideable">••••••••（保持版本值）</span></div><div class="secret-row" style="margin-top:6px"><span class="mono-sm">REDIS_PASSWORD</span><input class="input input-sm" type="password" placeholder="留空表示保持版本值" style="width:200px" /></div></div>
+      </div>
+      <div data-deploy-step="3" hidden>
+        <div class="inline" style="justify-content:space-between;margin-bottom:8px"><span class="badge tone-success">校验通过</span><span class="muted-sm">镜像 digest 均可解析 · 3 个 Secret key</span></div>
+        <div class="res-grid">
+          <div class="res-cell"><div class="kind">新建</div><div class="name">Deployment gateway / worker</div><div class="state">2 个工作负载</div></div>
+          <div class="res-cell"><div class="kind">新建</div><div class="name">Service / Ingress</div><div class="state">gateway · gateway.example.com</div></div>
+          <div class="res-cell"><div class="kind">新建</div><div class="name">RBAC · Config · Secret</div><div class="state">SA + Role + Binding · 5 + 3 keys</div></div>
+        </div>
+        <p class="muted-sm" style="margin-top:10px">执行顺序：RBAC → 配置 → Service → 工作负载 → Ingress。超时 10 分钟；部分资源可能已创建，失败后可重新部署或回滚。</p>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-deploy')">取消</button>
+      <button class="btn btn-outline" id="deploy-prev" type="button" onclick="deployStep(-1)" hidden>上一步</button>
+      <button class="btn btn-primary" id="deploy-next" type="button" onclick="deployStep(1)">下一步</button>
+      <button class="btn btn-primary" id="deploy-submit" type="button" onclick="submitDeploy()" hidden>创建部署</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 对话框：升级 ========================= -->
+<div class="overlay" id="dlg-upgrade" hidden>
+  <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="upgrade-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="upgrade-title">升级 order-gateway-prod</h2>
+      <p class="dialog-sub">升级会应用新版本并裁剪上一次成功操作中不再存在的资源。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-upgrade')">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="picked-bar"><div class="grow"><div class="muted-sm">当前版本</div><div class="ref">order-gateway 1.4.0</div></div><span class="badge tone-success">运行中</span></div>
+      <div class="field"><label>目标版本 <span class="req">*</span></label><select class="select"><option>1.5.0（草稿，需先发布）</option><option>1.3.2（已下架，允许回滚）</option></select></div>
+      <p class="muted-sm">草稿版本不能直接升级；请先在版本页发布。下架版本只允许回滚到对应版本。</p>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-upgrade')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="closeDlg('dlg-upgrade'); toast('升级任务已创建','等待执行器认领；页面将轮询操作状态','success')">创建升级</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 对话框：确认 ========================= -->
+<div class="overlay" id="dlg-confirm" hidden>
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="confirm-title">确认操作</h2>
+      <p class="dialog-sub" id="confirm-sub">此操作不可恢复。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-confirm')">×</button>
+    </div>
+    <div class="dialog-body"><p class="muted-sm" id="confirm-body">请确认是否继续。</p></div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-confirm')">取消</button>
+      <button class="btn btn-danger" type="button" onclick="confirmDanger()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 抽屉：Tag 详情 ========================= -->
+<div class="sheet-overlay" id="sheet-tag-overlay" hidden onclick="closeSheet()"></div>
+<aside class="sheet" id="sheet-tag" hidden aria-label="Tag 详情">
+  <div class="sheet-head">
+    <div class="inline" style="justify-content:space-between"><span class="side-title">library/gateway:1.4.0</span><button class="icon-btn" type="button" aria-label="关闭" onclick="closeSheet()">×</button></div>
+    <span class="muted-sm">多架构 index · 推送于 2026-11-15 08:42</span>
+  </div>
+  <div class="sheet-body">
+    <div class="inline"><span class="badge tone-success">digest 已校验</span><span class="badge tone-violet">HARBOR</span><span class="badge tone-primary">2 个引用</span></div>
+    <div class="stat-row"><div class="stat"><div class="k">大小</div><div class="v">86.4 MB</div></div><div class="stat"><div class="k">平台</div><div class="v">2</div></div><div class="stat"><div class="k">层</div><div class="v">12</div></div></div>
+    <div>
+      <div class="section-title-row" style="margin-bottom:8px"><span class="side-title">Manifest 平台</span><span class="muted-sm">按 digest 定位</span></div>
+      <table class="mini-tbl">
+        <thead><tr><th>平台</th><th>Digest</th><th>大小</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">linux/amd64</td><td class="mono">sha256:7a1e…d4c2</td><td>43.1 MB</td></tr>
+          <tr><td class="mono">linux/arm64/v8</td><td class="mono">sha256:b3f0…91ac</td><td>43.3 MB</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="section-title-row" style="margin-bottom:8px"><span class="side-title">镜像配置</span></div>
+      <dl class="kv-grid">
+        <dt>Entrypoint</dt><dd class="mono-sm">/app/gateway</dd>
+        <dt>Cmd</dt><dd class="mono-sm">--config /etc/gateway/config.yaml</dd>
+        <dt>Env</dt><dd>18 个</dd>
+        <dt>Labels</dt><dd>4 个</dd>
+        <dt>创建时间</dt><dd>2026-11-15 08:40</dd>
+      </dl>
+    </div>
+    <div>
+      <div class="section-title-row" style="margin-bottom:8px"><span class="side-title">引用</span><span class="muted-sm">删除前检查</span></div>
+      <div class="image-ref"><span class="name">order-gateway · 1.4.0</span><span class="meta"><span class="badge tone-success">PUBLISHED</span><span>部署实例 order-gateway-prod</span></span></div>
+      <div class="image-ref" style="margin-top:6px"><span class="name">order-gateway · 1.3.2</span><span class="meta"><span class="badge tone-neutral">DEPRECATED</span><span>无活动实例</span></span></div>
+    </div>
+    <div class="op-actions">
+      <button class="btn btn-outline" type="button" onclick="closeSheet(); openDlg('dlg-sync')">同步到…</button>
+      <button class="btn btn-outline" type="button" onclick="toast('复制 Tag','同仓库复制 / 改名（原型）','info')">复制 Tag</button>
+      <button class="btn btn-danger" type="button" onclick="closeSheet(); askDelete('删除 Tag','library/gateway:1.4.0','该 Tag 被 2 个已发布版本引用，删除会被拒绝。')">删除 Tag</button>
+    </div>
+  </div>
+</aside>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+
+<script>
+const PAGE_CRUMBS = {
+  clusters: ["私有云", "Kubernetes"],
+  registry: ["私有云", "镜像仓库"],
+  "registry-detail": ["私有云", "镜像仓库", "Harbor 私有仓库"],
+  repo: ["私有云", "镜像仓库", "library/gateway"],
+  syncs: ["私有云", "镜像仓库", "同步任务"],
+  apps: ["私有云", "应用商店"],
+  "app-detail": ["私有云", "应用商店", "order-gateway"],
+  version: ["私有云", "应用商店", "order-gateway", "1.4.0"],
+  releases: ["私有云", "应用商店", "部署实例"],
+  "release-detail": ["私有云", "应用商店", "部署实例", "order-gateway-prod"],
+};
+const NAV_FOR_PAGE = {
+  clusters: "clusters",
+  registry: "registry",
+  "registry-detail": "registry",
+  repo: "registry",
+  syncs: "registry",
+  apps: "apps",
+  "app-detail": "apps",
+  version: "apps",
+  releases: "apps",
+  "release-detail": "apps",
+};
+let currentPage = "registry";
+let pickedImage = null;
+let deployStepIndex = 1;
+let confirmKind = "delete";
+
+function goto(page) {
+  if (!PAGE_CRUMBS[page]) return;
+  currentPage = page;
+  document.querySelectorAll(".page").forEach((el) => {
+    el.hidden = el.id !== "page-" + page;
+  });
+  const navKey = NAV_FOR_PAGE[page] || page;
+  document.querySelectorAll(".nav-sub .nav-item[data-page]").forEach((el) => {
+    el.classList.toggle("active", el.dataset.page === navKey);
+  });
+  const crumb = document.getElementById("topbar-crumb");
+  crumb.textContent = "";
+  PAGE_CRUMBS[page].forEach((part, index) => {
+    if (index > 0) {
+      const sep = document.createElement("span");
+      sep.className = "crumb-sep";
+      sep.textContent = "/";
+      crumb.appendChild(sep);
+    }
+    const span = document.createElement("span");
+    span.textContent = part;
+    crumb.appendChild(span);
+  });
+  document.getElementById("content").scrollTop = 0;
+  closeSheet();
+  ["dlg-connect", "dlg-sync", "dlg-picker", "dlg-create-app", "dlg-create-version", "dlg-deploy", "dlg-upgrade", "dlg-confirm"].forEach(closeDlg);
+}
+
+function toggleNav() {
+  const panel = document.getElementById("nav-private-cloud");
+  const trigger = document.getElementById("nav-private-cloud-trigger");
+  const open = panel.hidden;
+  panel.hidden = !open;
+  trigger.setAttribute("aria-expanded", String(open));
+}
+
+function toggleTheme() {
+  document.documentElement.classList.toggle("dark");
+  const dark = document.documentElement.classList.contains("dark");
+  document.getElementById("theme-toggle").setAttribute("aria-label", dark ? "切换到浅色" : "切换到深色");
+}
+
+function openDlg(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.hidden = false;
+  if (id === "dlg-picker") {
+    document.getElementById("picked-badge").hidden = true;
+    document.getElementById("picked-ref").textContent = "尚未选择";
+    document.getElementById("picked-digest").textContent = "—";
+    document.getElementById("picked-arch").textContent = "—";
+    pickedImage = null;
+  }
+  if (id === "dlg-deploy") deployStepIndex = 1, renderDeployStep();
+}
+
+function closeDlg(id) {
+  const el = document.getElementById(id);
+  if (el) el.hidden = true;
+}
+
+function openSheet() {
+  document.getElementById("sheet-tag-overlay").hidden = false;
+  document.getElementById("sheet-tag").hidden = false;
+}
+
+function closeSheet() {
+  document.getElementById("sheet-tag-overlay").hidden = true;
+  document.getElementById("sheet-tag").hidden = true;
+}
+
+function openTagSheet() { openSheet(); }
+
+function toast(title, sub, kind) {
+  const stack = document.getElementById("toast-stack");
+  const el = document.createElement("div");
+  el.className = "toast " + (kind || "success");
+  const icon = document.createElement("span");
+  icon.className = "ti";
+  icon.textContent = kind === "warn" ? "!" : kind === "info" ? "i" : "✓";
+  const text = document.createElement("div");
+  text.className = "tt";
+  const b = document.createElement("b");
+  b.textContent = title;
+  text.appendChild(b);
+  if (sub) {
+    const span = document.createElement("span");
+    span.textContent = sub;
+    text.appendChild(span);
+  }
+  el.appendChild(icon);
+  el.appendChild(text);
+  stack.appendChild(el);
+  window.setTimeout(() => el.remove(), 3800);
+}
+
+function togglePill(button) {
+  const group = button.parentElement;
+  if (button.textContent.trim() === "全部平台") {
+    group.querySelectorAll("button").forEach((el) => el.classList.toggle("on", el === button));
+    return;
+  }
+  group.querySelector('button:first-child').classList.remove("on");
+  button.classList.toggle("on");
+}
+
+function pickRepo(button, repo) {
+  button.parentElement.querySelectorAll(".picker-item").forEach((el) => el.classList.toggle("on", el === button));
+  document.getElementById("picker-repo").textContent = repo;
+}
+
+function pickTag(button, ref, digest, arch) {
+  if (!digest) {
+    toast("镜像未解析", "该 Tag 没有可用的 digest，不能用于发布包", "warn");
+    return;
+  }
+  document.querySelectorAll('#dlg-picker .tbl tbody .link-btn').forEach((el) => {
+    el.style.fontWeight = el === button ? "600" : "400";
+  });
+  pickedImage = { ref: ref, digest: digest, arch: arch };
+  document.getElementById("picked-ref").textContent = ref;
+  document.getElementById("picked-digest").textContent = digest;
+  document.getElementById("picked-arch").textContent = arch;
+  document.getElementById("picked-badge").hidden = false;
+}
+
+function confirmPick() {
+  if (!pickedImage) {
+    toast("请先选择镜像", "选择一个已解析 digest 的 Tag", "warn");
+    return;
+  }
+  closeDlg("dlg-picker");
+  toast("镜像已更新", pickedImage.ref, "success");
+}
+
+function submitSync() {
+  closeDlg("dlg-sync");
+  goto("syncs");
+  toast("同步任务已创建", "PENDING → 执行器认领后开始复制；可在列表中查看阶段", "success");
+}
+
+function askDelete(kind, name, extra) {
+  confirmKind = "delete";
+  document.getElementById("confirm-title").textContent = kind;
+  document.getElementById("confirm-sub").textContent = name;
+  document.getElementById("confirm-body").textContent = extra || "删除后无法恢复。";
+  openDlg("dlg-confirm");
+}
+
+function askUninstall() {
+  confirmKind = "uninstall";
+  document.getElementById("confirm-title").textContent = "卸载 order-gateway-prod？";
+  document.getElementById("confirm-sub").textContent = "将删除实例 label 下的资源，默认保留 PVC。";
+  document.getElementById("confirm-body").textContent = "这是不可逆操作：卸载完成后实例记录保留为 UNINSTALLED，重新安装会创建新实例。勾选删除 PVC 会永久丢失数据。";
+  openDlg("dlg-confirm");
+}
+
+function confirmDanger() {
+  closeDlg("dlg-confirm");
+  if (confirmKind === "uninstall") {
+    toast("已提交卸载", "后台执行；默认保留 PVC，完成前实例处于 UNINSTALLING", "warn");
+    goto("releases");
+    return;
+  }
+  toast("删除操作已提交", "若有发布包版本或实例引用，服务端会返回 409 并列出引用", "warn");
+}
+
+function deployStep(delta) {
+  deployStepIndex = Math.max(1, Math.min(3, deployStepIndex + delta));
+  renderDeployStep();
+}
+
+function renderDeployStep() {
+  document.querySelectorAll("[data-deploy-step]").forEach((el) => {
+    el.hidden = Number(el.dataset.deployStep) !== deployStepIndex;
+  });
+  const steps = document.querySelectorAll("#deploy-stepbar .step");
+  steps.forEach((el, index) => el.classList.toggle("on", index + 1 === deployStepIndex));
+  document.getElementById("deploy-prev").hidden = deployStepIndex === 1;
+  document.getElementById("deploy-next").hidden = deployStepIndex === 3;
+  document.getElementById("deploy-submit").hidden = deployStepIndex !== 3;
+}
+
+function submitDeploy() {
+  closeDlg("dlg-deploy");
+  goto("release-detail");
+  toast("部署任务已创建", "PENDING 操作已落库；执行器认领后应用资源", "success");
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  ["dlg-connect", "dlg-sync", "dlg-picker", "dlg-create-app", "dlg-create-version", "dlg-deploy", "dlg-upgrade", "dlg-confirm"].forEach(closeDlg);
+  closeSheet();
+});
+</script>
+</body>
+</html>
