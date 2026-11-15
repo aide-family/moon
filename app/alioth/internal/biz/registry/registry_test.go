@@ -65,3 +65,13 @@ func TestValidateRegistry(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateRegistryConnectionAllowsEmptyName(t *testing.T) {
+	in := bo.Registry{Driver: "DOCKER_V2", Endpoint: "http://192.168.10.172:5000/"}
+	if err := validateRegistryConnection(&in, ""); err != nil {
+		t.Fatalf("probe connection rejected: %v", err)
+	}
+	if in.Endpoint != "http://192.168.10.172:5000" {
+		t.Fatalf("endpoint not normalized: %q", in.Endpoint)
+	}
+}

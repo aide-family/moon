@@ -137,10 +137,10 @@ func (registry *Registry) Probe(ctx context.Context, driver, endpoint, username,
 		return nil, err
 	}
 	in := bo.Registry{Driver: driver, Endpoint: endpoint, Username: username, AllowInsecureTLS: allowInsecureTLS}
-	if err := validateRegistry(&in, password); err != nil {
+	if err := validateRegistryConnection(&in, password); err != nil {
 		return nil, err
 	}
-	probe, err := registry.images.Probe(ctx, driver, strings.TrimSuffix(strings.TrimSpace(endpoint), "/"), strings.TrimSpace(username), password, allowInsecureTLS)
+	probe, err := registry.images.Probe(ctx, in.Driver, in.Endpoint, in.Username, password, in.AllowInsecureTLS)
 	return probe, registry.access.Wrap(err)
 }
 
@@ -149,6 +149,19 @@ func validateRegistry(in *bo.Registry, password string) error {
 	if in.Name == "" || len([]rune(in.Name)) > maxNameRunes {
 		return merr.Invalid("registry name is required and must not exceed 64 characters")
 	}
+	if err := validateRegistryConnection(in, password); err != nil {
+		return err
+	}
+	in.Remark = strings.TrimSpace(in.Remark)
+	if len(in.Remark) > maxRemarkBytes {
+		return merr.Invalid("registry remark is too long")
+	}
+	return nil
+}
+
+// validateRegistryConnection 只校验探测连接所需的字段，不要求名称/备注；
+// 新建仓库的「测试连接」发生在填写名称之前。
+func validateRegistryConnection(in *bo.Registry, password string) error {
 	if in.Driver != "HARBOR" && in.Driver != "DOCKER_V2" {
 		return merr.Invalid("invalid registry driver")
 	}
@@ -166,10 +179,6 @@ func validateRegistry(in *bo.Registry, password string) error {
 	}
 	if len(password) > maxPasswordBytes {
 		return merr.Invalid("registry password is too long")
-	}
-	in.Remark = strings.TrimSpace(in.Remark)
-	if len(in.Remark) > maxRemarkBytes {
-		return merr.Invalid("registry remark is too long")
 	}
 	return nil
 }
