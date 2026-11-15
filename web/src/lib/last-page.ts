@@ -51,6 +51,8 @@ const knownPaths = new Set([
   "/oncall-rotations",
   "/message-logs",
   "/clusters",
+  "/registries",
+  "/registries/syncs",
   "/agents",
   "/ssh-commands",
 ])
@@ -59,6 +61,8 @@ const knownPaths = new Set([
 const knownPatterns = [
   /^\/boards\/[^/]+$/,
   /^\/clusters\/[^/]+$/,
+  /^\/registries\/[^/]+$/,
+  /^\/registries\/[^/]+\/repository$/,
   /^\/tenants\/[^/]+\/orders$/,
   /^\/agents\/[^/]+\/shell$/,
   /^\/ssh-commands\/[^/]+\/results$/,

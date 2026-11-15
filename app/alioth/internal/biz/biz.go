@@ -28,6 +28,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
 	"github.com/aide-family/moon/app/alioth/internal/biz/probe"
 	"github.com/aide-family/moon/app/alioth/internal/biz/probesla"
+	"github.com/aide-family/moon/app/alioth/internal/biz/registry"
 	"github.com/aide-family/moon/app/alioth/internal/biz/role"
 	"github.com/aide-family/moon/app/alioth/internal/biz/site"
 	"github.com/aide-family/moon/app/alioth/internal/biz/ssh"
@@ -68,6 +69,7 @@ var ProviderSet = wire.NewSet(
 	partition.ProviderSet,
 	migration.ProviderSet,
 	cluster.ProviderSet,
+	registry.ProviderSet,
 	board.ProviderSet,
 	wire.Bind(new(auth.AgentTokenLookup), new(*agent.Registry)),
 )

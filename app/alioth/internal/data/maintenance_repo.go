@@ -89,6 +89,8 @@ var archivedTables = []string{
 	"site_pages",
 	// 边缘。
 	"clusters",
+	// 镜像仓库连接属于配置，密码以密文随迁移包搬。
+	"registries",
 	"agents",
 	"ssh_commands",
 	"ssh_command_audits",
@@ -118,6 +120,7 @@ var runtimeTables = []string{
 	"inspection_runs",
 	"inspection_reports",
 	"inspection_report_shares",
+	"image_syncs",
 }
 
 var (

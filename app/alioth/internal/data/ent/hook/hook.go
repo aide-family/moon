@@ -333,6 +333,18 @@ func (f FeaturePackageItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeaturePackageItemMutation", m)
 }
 
+// The ImageSyncFunc type is an adapter to allow the use of ordinary
+// function as ImageSync mutator.
+type ImageSyncFunc func(context.Context, *ent.ImageSyncMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ImageSyncFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ImageSyncMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ImageSyncMutation", m)
+}
+
 // The InspectionItemFunc type is an adapter to allow the use of ordinary
 // function as InspectionItem mutator.
 type InspectionItemFunc func(context.Context, *ent.InspectionItemMutation) (ent.Value, error)
@@ -691,6 +703,18 @@ func (f ProbeTargetGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProbeTargetGroupMutation", m)
+}
+
+// The RegistryFunc type is an adapter to allow the use of ordinary
+// function as Registry mutator.
+type RegistryFunc func(context.Context, *ent.RegistryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RegistryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RegistryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RegistryMutation", m)
 }
 
 // The RoleFunc type is an adapter to allow the use of ordinary

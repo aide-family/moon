@@ -66,6 +66,8 @@ type Tx struct {
 	FeaturePackage *FeaturePackageClient
 	// FeaturePackageItem is the client for interacting with the FeaturePackageItem builders.
 	FeaturePackageItem *FeaturePackageItemClient
+	// ImageSync is the client for interacting with the ImageSync builders.
+	ImageSync *ImageSyncClient
 	// InspectionItem is the client for interacting with the InspectionItem builders.
 	InspectionItem *InspectionItemClient
 	// InspectionPlan is the client for interacting with the InspectionPlan builders.
@@ -126,6 +128,8 @@ type Tx struct {
 	ProbeTarget *ProbeTargetClient
 	// ProbeTargetGroup is the client for interacting with the ProbeTargetGroup builders.
 	ProbeTargetGroup *ProbeTargetGroupClient
+	// Registry is the client for interacting with the Registry builders.
+	Registry *RegistryClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// RolePermission is the client for interacting with the RolePermission builders.
@@ -312,6 +316,7 @@ func (tx *Tx) init() {
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
 	tx.FeaturePackage = NewFeaturePackageClient(tx.config)
 	tx.FeaturePackageItem = NewFeaturePackageItemClient(tx.config)
+	tx.ImageSync = NewImageSyncClient(tx.config)
 	tx.InspectionItem = NewInspectionItemClient(tx.config)
 	tx.InspectionPlan = NewInspectionPlanClient(tx.config)
 	tx.InspectionReport = NewInspectionReportClient(tx.config)
@@ -342,6 +347,7 @@ func (tx *Tx) init() {
 	tx.ProbeSlaDaily = NewProbeSlaDailyClient(tx.config)
 	tx.ProbeTarget = NewProbeTargetClient(tx.config)
 	tx.ProbeTargetGroup = NewProbeTargetGroupClient(tx.config)
+	tx.Registry = NewRegistryClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RolePermission = NewRolePermissionClient(tx.config)
 	tx.SSHCommand = NewSSHCommandClient(tx.config)

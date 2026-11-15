@@ -87,6 +87,9 @@ type FeaturePackage func(*sql.Selector)
 // FeaturePackageItem is the predicate function for featurepackageitem builders.
 type FeaturePackageItem func(*sql.Selector)
 
+// ImageSync is the predicate function for imagesync builders.
+type ImageSync func(*sql.Selector)
+
 // InspectionItem is the predicate function for inspectionitem builders.
 type InspectionItem func(*sql.Selector)
 
@@ -176,6 +179,9 @@ type ProbeTarget func(*sql.Selector)
 
 // ProbeTargetGroup is the predicate function for probetargetgroup builders.
 type ProbeTargetGroup func(*sql.Selector)
+
+// Registry is the predicate function for registry builders.
+type Registry func(*sql.Selector)
 
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)

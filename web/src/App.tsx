@@ -44,6 +44,10 @@ import { PackagePage } from "@/pages/package"
 import { ProfilePage } from "@/pages/profile"
 import { ProbeSlaPage } from "@/pages/probe-sla"
 import { ProbeTargetPage } from "@/pages/probe-target"
+import { RegistryPage } from "@/pages/registry"
+import { RegistryDetailPage } from "@/pages/registry/detail"
+import { RegistryRepositoryPage } from "@/pages/registry/repository"
+import { RegistrySyncPage } from "@/pages/registry/syncs"
 import { SiteDocumentPage } from "@/pages/public-site/document"
 import { SiteHomePage } from "@/pages/public-site"
 import { SitePreviewPage } from "@/pages/public-site/preview"
@@ -152,6 +156,10 @@ export function App() {
         <Route path="/oncall-rotations" element={<OnCallRotationPage />} />
         <Route path="/message-logs" element={<MessageLogPage />} />
         <Route path="/clusters" element={<ClusterPage />} />
+        <Route path="/registries" element={<RegistryPage />} />
+        <Route path="/registries/syncs" element={<RegistrySyncPage />} />
+        <Route path="/registries/:uid" element={<RegistryDetailPage />} />
+        <Route path="/registries/:uid/repository" element={<RegistryRepositoryPage />} />
         <Route path="/clusters/:uid" element={<ClusterDetailPage />} />
         <Route
           path="/clusters/:uid/pods/:namespace/:name/exec"

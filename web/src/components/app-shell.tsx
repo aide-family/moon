@@ -440,10 +440,17 @@ const kubeLinks: {
 }[] = [
   {
     to: "/clusters",
-    label: "nav.clusters",
+    label: "nav.kubernetesCluster",
     permission: "cluster:read",
     capability: MENU_CAPABILITIES["/clusters"],
     icon: Boxes,
+  },
+  {
+    to: "/registries",
+    label: "nav.registries",
+    permission: "registry:read",
+    capability: MENU_CAPABILITIES["/registries"],
+    icon: Database,
   },
 ]
 
@@ -789,7 +796,7 @@ function ShellFrame() {
                   />
                   <NavGroup
                     key={`kube-${kubeActive}`}
-                    label="nav.kubernetes"
+                    label="nav.privateCloud"
                     icon={Boxes}
                     active={kubeActive}
                     links={kubes}

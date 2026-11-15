@@ -41,6 +41,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/imagesync"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
@@ -71,6 +72,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/registry"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitefeature"
@@ -146,6 +148,8 @@ type Client struct {
 	FeaturePackage *FeaturePackageClient
 	// FeaturePackageItem is the client for interacting with the FeaturePackageItem builders.
 	FeaturePackageItem *FeaturePackageItemClient
+	// ImageSync is the client for interacting with the ImageSync builders.
+	ImageSync *ImageSyncClient
 	// InspectionItem is the client for interacting with the InspectionItem builders.
 	InspectionItem *InspectionItemClient
 	// InspectionPlan is the client for interacting with the InspectionPlan builders.
@@ -206,6 +210,8 @@ type Client struct {
 	ProbeTarget *ProbeTargetClient
 	// ProbeTargetGroup is the client for interacting with the ProbeTargetGroup builders.
 	ProbeTargetGroup *ProbeTargetGroupClient
+	// Registry is the client for interacting with the Registry builders.
+	Registry *RegistryClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// RolePermission is the client for interacting with the RolePermission builders.
@@ -272,6 +278,7 @@ func (c *Client) init() {
 	c.EmailLoginCode = NewEmailLoginCodeClient(c.config)
 	c.FeaturePackage = NewFeaturePackageClient(c.config)
 	c.FeaturePackageItem = NewFeaturePackageItemClient(c.config)
+	c.ImageSync = NewImageSyncClient(c.config)
 	c.InspectionItem = NewInspectionItemClient(c.config)
 	c.InspectionPlan = NewInspectionPlanClient(c.config)
 	c.InspectionReport = NewInspectionReportClient(c.config)
@@ -302,6 +309,7 @@ func (c *Client) init() {
 	c.ProbeSlaDaily = NewProbeSlaDailyClient(c.config)
 	c.ProbeTarget = NewProbeTargetClient(c.config)
 	c.ProbeTargetGroup = NewProbeTargetGroupClient(c.config)
+	c.Registry = NewRegistryClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RolePermission = NewRolePermissionClient(c.config)
 	c.SSHCommand = NewSSHCommandClient(c.config)
@@ -435,6 +443,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
 		FeaturePackage:                NewFeaturePackageClient(cfg),
 		FeaturePackageItem:            NewFeaturePackageItemClient(cfg),
+		ImageSync:                     NewImageSyncClient(cfg),
 		InspectionItem:                NewInspectionItemClient(cfg),
 		InspectionPlan:                NewInspectionPlanClient(cfg),
 		InspectionReport:              NewInspectionReportClient(cfg),
@@ -465,6 +474,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ProbeSlaDaily:                 NewProbeSlaDailyClient(cfg),
 		ProbeTarget:                   NewProbeTargetClient(cfg),
 		ProbeTargetGroup:              NewProbeTargetGroupClient(cfg),
+		Registry:                      NewRegistryClient(cfg),
 		Role:                          NewRoleClient(cfg),
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
@@ -525,6 +535,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
 		FeaturePackage:                NewFeaturePackageClient(cfg),
 		FeaturePackageItem:            NewFeaturePackageItemClient(cfg),
+		ImageSync:                     NewImageSyncClient(cfg),
 		InspectionItem:                NewInspectionItemClient(cfg),
 		InspectionPlan:                NewInspectionPlanClient(cfg),
 		InspectionReport:              NewInspectionReportClient(cfg),
@@ -555,6 +566,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ProbeSlaDaily:                 NewProbeSlaDailyClient(cfg),
 		ProbeTarget:                   NewProbeTargetClient(cfg),
 		ProbeTargetGroup:              NewProbeTargetGroupClient(cfg),
+		Registry:                      NewRegistryClient(cfg),
 		Role:                          NewRoleClient(cfg),
 		RolePermission:                NewRolePermissionClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
@@ -604,18 +616,18 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
 		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
 		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
-		c.FeaturePackage, c.FeaturePackageItem, c.InspectionItem, c.InspectionPlan,
-		c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
+		c.FeaturePackage, c.FeaturePackageItem, c.ImageSync, c.InspectionItem,
+		c.InspectionPlan, c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
 		c.InspectionTemplate, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
 		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
 		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
 		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
-		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
-		c.SSHCommand, c.SSHCommandAudit, c.SiteFeature, c.SiteHomeContent, c.SitePage,
-		c.SiteSetting, c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage,
-		c.UserOAuth, c.WorkerInstance,
+		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Registry, c.Role,
+		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SiteFeature,
+		c.SiteHomeContent, c.SitePage, c.SiteSetting, c.StatusPage, c.SystemMessage,
+		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -631,18 +643,18 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
 		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
 		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
-		c.FeaturePackage, c.FeaturePackageItem, c.InspectionItem, c.InspectionPlan,
-		c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
+		c.FeaturePackage, c.FeaturePackageItem, c.ImageSync, c.InspectionItem,
+		c.InspectionPlan, c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
 		c.InspectionTemplate, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
 		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
 		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
 		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
-		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Role, c.RolePermission,
-		c.SSHCommand, c.SSHCommandAudit, c.SiteFeature, c.SiteHomeContent, c.SitePage,
-		c.SiteSetting, c.StatusPage, c.SystemMessage, c.User, c.UserAlertPage,
-		c.UserOAuth, c.WorkerInstance,
+		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Registry, c.Role,
+		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SiteFeature,
+		c.SiteHomeContent, c.SitePage, c.SiteSetting, c.StatusPage, c.SystemMessage,
+		c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -705,6 +717,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FeaturePackage.mutate(ctx, m)
 	case *FeaturePackageItemMutation:
 		return c.FeaturePackageItem.mutate(ctx, m)
+	case *ImageSyncMutation:
+		return c.ImageSync.mutate(ctx, m)
 	case *InspectionItemMutation:
 		return c.InspectionItem.mutate(ctx, m)
 	case *InspectionPlanMutation:
@@ -765,6 +779,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ProbeTarget.mutate(ctx, m)
 	case *ProbeTargetGroupMutation:
 		return c.ProbeTargetGroup.mutate(ctx, m)
+	case *RegistryMutation:
+		return c.Registry.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
 	case *RolePermissionMutation:
@@ -4386,6 +4402,139 @@ func (c *FeaturePackageItemClient) mutate(ctx context.Context, m *FeaturePackage
 		return (&FeaturePackageItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FeaturePackageItem mutation op: %q", m.Op())
+	}
+}
+
+// ImageSyncClient is a client for the ImageSync schema.
+type ImageSyncClient struct {
+	config
+}
+
+// NewImageSyncClient returns a client for the ImageSync from the given config.
+func NewImageSyncClient(c config) *ImageSyncClient {
+	return &ImageSyncClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `imagesync.Hooks(f(g(h())))`.
+func (c *ImageSyncClient) Use(hooks ...Hook) {
+	c.hooks.ImageSync = append(c.hooks.ImageSync, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `imagesync.Intercept(f(g(h())))`.
+func (c *ImageSyncClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ImageSync = append(c.inters.ImageSync, interceptors...)
+}
+
+// Create returns a builder for creating a ImageSync entity.
+func (c *ImageSyncClient) Create() *ImageSyncCreate {
+	mutation := newImageSyncMutation(c.config, OpCreate)
+	return &ImageSyncCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ImageSync entities.
+func (c *ImageSyncClient) CreateBulk(builders ...*ImageSyncCreate) *ImageSyncCreateBulk {
+	return &ImageSyncCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ImageSyncClient) MapCreateBulk(slice any, setFunc func(*ImageSyncCreate, int)) *ImageSyncCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ImageSyncCreateBulk{err: fmt.Errorf("calling to ImageSyncClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ImageSyncCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ImageSyncCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ImageSync.
+func (c *ImageSyncClient) Update() *ImageSyncUpdate {
+	mutation := newImageSyncMutation(c.config, OpUpdate)
+	return &ImageSyncUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ImageSyncClient) UpdateOne(_m *ImageSync) *ImageSyncUpdateOne {
+	mutation := newImageSyncMutation(c.config, OpUpdateOne, withImageSync(_m))
+	return &ImageSyncUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ImageSyncClient) UpdateOneID(id int) *ImageSyncUpdateOne {
+	mutation := newImageSyncMutation(c.config, OpUpdateOne, withImageSyncID(id))
+	return &ImageSyncUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ImageSync.
+func (c *ImageSyncClient) Delete() *ImageSyncDelete {
+	mutation := newImageSyncMutation(c.config, OpDelete)
+	return &ImageSyncDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ImageSyncClient) DeleteOne(_m *ImageSync) *ImageSyncDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ImageSyncClient) DeleteOneID(id int) *ImageSyncDeleteOne {
+	builder := c.Delete().Where(imagesync.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ImageSyncDeleteOne{builder}
+}
+
+// Query returns a query builder for ImageSync.
+func (c *ImageSyncClient) Query() *ImageSyncQuery {
+	return &ImageSyncQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeImageSync},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ImageSync entity by its id.
+func (c *ImageSyncClient) Get(ctx context.Context, id int) (*ImageSync, error) {
+	return c.Query().Where(imagesync.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ImageSyncClient) GetX(ctx context.Context, id int) *ImageSync {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ImageSyncClient) Hooks() []Hook {
+	return c.hooks.ImageSync
+}
+
+// Interceptors returns the client interceptors.
+func (c *ImageSyncClient) Interceptors() []Interceptor {
+	return c.inters.ImageSync
+}
+
+func (c *ImageSyncClient) mutate(ctx context.Context, m *ImageSyncMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ImageSyncCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ImageSyncUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ImageSyncUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ImageSyncDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ImageSync mutation op: %q", m.Op())
 	}
 }
 
@@ -8379,6 +8528,139 @@ func (c *ProbeTargetGroupClient) mutate(ctx context.Context, m *ProbeTargetGroup
 	}
 }
 
+// RegistryClient is a client for the Registry schema.
+type RegistryClient struct {
+	config
+}
+
+// NewRegistryClient returns a client for the Registry from the given config.
+func NewRegistryClient(c config) *RegistryClient {
+	return &RegistryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `registry.Hooks(f(g(h())))`.
+func (c *RegistryClient) Use(hooks ...Hook) {
+	c.hooks.Registry = append(c.hooks.Registry, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `registry.Intercept(f(g(h())))`.
+func (c *RegistryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Registry = append(c.inters.Registry, interceptors...)
+}
+
+// Create returns a builder for creating a Registry entity.
+func (c *RegistryClient) Create() *RegistryCreate {
+	mutation := newRegistryMutation(c.config, OpCreate)
+	return &RegistryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Registry entities.
+func (c *RegistryClient) CreateBulk(builders ...*RegistryCreate) *RegistryCreateBulk {
+	return &RegistryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RegistryClient) MapCreateBulk(slice any, setFunc func(*RegistryCreate, int)) *RegistryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RegistryCreateBulk{err: fmt.Errorf("calling to RegistryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RegistryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RegistryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Registry.
+func (c *RegistryClient) Update() *RegistryUpdate {
+	mutation := newRegistryMutation(c.config, OpUpdate)
+	return &RegistryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RegistryClient) UpdateOne(_m *Registry) *RegistryUpdateOne {
+	mutation := newRegistryMutation(c.config, OpUpdateOne, withRegistry(_m))
+	return &RegistryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RegistryClient) UpdateOneID(id int) *RegistryUpdateOne {
+	mutation := newRegistryMutation(c.config, OpUpdateOne, withRegistryID(id))
+	return &RegistryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Registry.
+func (c *RegistryClient) Delete() *RegistryDelete {
+	mutation := newRegistryMutation(c.config, OpDelete)
+	return &RegistryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RegistryClient) DeleteOne(_m *Registry) *RegistryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RegistryClient) DeleteOneID(id int) *RegistryDeleteOne {
+	builder := c.Delete().Where(registry.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RegistryDeleteOne{builder}
+}
+
+// Query returns a query builder for Registry.
+func (c *RegistryClient) Query() *RegistryQuery {
+	return &RegistryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRegistry},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Registry entity by its id.
+func (c *RegistryClient) Get(ctx context.Context, id int) (*Registry, error) {
+	return c.Query().Where(registry.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RegistryClient) GetX(ctx context.Context, id int) *Registry {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *RegistryClient) Hooks() []Hook {
+	return c.hooks.Registry
+}
+
+// Interceptors returns the client interceptors.
+func (c *RegistryClient) Interceptors() []Interceptor {
+	return c.inters.Registry
+}
+
+func (c *RegistryClient) mutate(ctx context.Context, m *RegistryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RegistryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RegistryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RegistryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RegistryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Registry mutation op: %q", m.Op())
+	}
+}
+
 // RoleClient is a client for the Role schema.
 type RoleClient struct {
 	config
@@ -10250,17 +10532,17 @@ type (
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
 		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
 		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
-		FeaturePackageItem, InspectionItem, InspectionPlan, InspectionReport,
-		InspectionReportShare, InspectionRun, InspectionTemplate, Member, MemberInvite,
-		MemberRole, MessageLog, MessageLogShard, Namespace, NamespaceFeature,
-		NamespaceOrder, NotificationChannel, NotificationGroup, NotificationOnCall,
-		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
-		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, SiteFeature, SiteHomeContent, SitePage, SiteSetting,
-		StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Hook
+		FeaturePackageItem, ImageSync, InspectionItem, InspectionPlan,
+		InspectionReport, InspectionReportShare, InspectionRun, InspectionTemplate,
+		Member, MemberInvite, MemberRole, MessageLog, MessageLogShard, Namespace,
+		NamespaceFeature, NamespaceOrder, NotificationChannel, NotificationGroup,
+		NotificationOnCall, NotificationOnCallGroup, NotificationPreset,
+		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
+		NotificationTemplate, OnCallRotation, OnCallRotationMember, Permission,
+		ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Registry, Role,
+		RolePermission, SSHCommand, SSHCommandAudit, SiteFeature, SiteHomeContent,
+		SitePage, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
+		UserOAuth, WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEscalationPolicy, AlertEscalationStep,
@@ -10269,16 +10551,16 @@ type (
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
 		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
 		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
-		FeaturePackageItem, InspectionItem, InspectionPlan, InspectionReport,
-		InspectionReportShare, InspectionRun, InspectionTemplate, Member, MemberInvite,
-		MemberRole, MessageLog, MessageLogShard, Namespace, NamespaceFeature,
-		NamespaceOrder, NotificationChannel, NotificationGroup, NotificationOnCall,
-		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
-		ProbeTarget, ProbeTargetGroup, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, SiteFeature, SiteHomeContent, SitePage, SiteSetting,
-		StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Interceptor
+		FeaturePackageItem, ImageSync, InspectionItem, InspectionPlan,
+		InspectionReport, InspectionReportShare, InspectionRun, InspectionTemplate,
+		Member, MemberInvite, MemberRole, MessageLog, MessageLogShard, Namespace,
+		NamespaceFeature, NamespaceOrder, NotificationChannel, NotificationGroup,
+		NotificationOnCall, NotificationOnCallGroup, NotificationPreset,
+		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
+		NotificationTemplate, OnCallRotation, OnCallRotationMember, Permission,
+		ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Registry, Role,
+		RolePermission, SSHCommand, SSHCommandAudit, SiteFeature, SiteHomeContent,
+		SitePage, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
+		UserOAuth, WorkerInstance []ent.Interceptor
 	}
 )

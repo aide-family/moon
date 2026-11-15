@@ -1,0 +1,405 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// RegistryService 管理镜像仓库连接，并读取远端镜像仓库、Tag 与多架构信息。
+// 凭据只在接入与更新时提交，任何响应都不回传明文。
+service RegistryService {
+  // 接入镜像仓库。保存前会做一次连通性探测。
+  rpc CreateRegistry(CreateRegistryRequest) returns (CreateRegistryResponse) {
+    option (google.api.http) = {
+      post: "/v1/registry"
+      body: "*"
+    };
+  }
+  // 更新连接名称、Endpoint 或凭据。password 为空表示保持原值。
+  rpc UpdateRegistry(UpdateRegistryRequest) returns (UpdateRegistryResponse) {
+    option (google.api.http) = {
+      put: "/v1/registry/{uid}"
+      body: "*"
+    };
+  }
+  // 删除连接。被发布包引用或存在活动同步任务时返回冲突。
+  rpc DeleteRegistry(DeleteRegistryRequest) returns (DeleteRegistryResponse) {
+    option (google.api.http) = {delete: "/v1/registry/{uid}"};
+  }
+  // 获取连接详情。不返回密码。
+  rpc GetRegistry(GetRegistryRequest) returns (GetRegistryResponse) {
+    option (google.api.http) = {get: "/v1/registry/{uid}"};
+  }
+  // 分页列出当前租户的镜像仓库连接。
+  rpc ListRegistries(ListRegistriesRequest) returns (ListRegistriesResponse) {
+    option (google.api.http) = {get: "/v1/registries"};
+  }
+  // 用已保存的凭据测试连通性并刷新检测结果。
+  rpc TestRegistry(TestRegistryRequest) returns (TestRegistryResponse) {
+    option (google.api.http) = {
+      post: "/v1/registry/{uid}/test"
+      body: "*"
+    };
+  }
+  // 用尚未保存的凭据测试连通性，供接入表单预检。
+  rpc ProbeRegistry(ProbeRegistryRequest) returns (ProbeRegistryResponse) {
+    option (google.api.http) = {
+      post: "/v1/registry/probe"
+      body: "*"
+    };
+  }
+  // 列出项目（Harbor）或由 repository 路径推导的项目前缀。
+  rpc ListRegistryProjects(ListRegistryProjectsRequest) returns (ListRegistryProjectsResponse) {
+    option (google.api.http) = {get: "/v1/registry/{uid}/projects"};
+  }
+  // 分页列出某个项目的镜像仓库。
+  rpc ListRegistryRepositories(ListRegistryRepositoriesRequest) returns (ListRegistryRepositoriesResponse) {
+    option (google.api.http) = {get: "/v1/registry/{uid}/repositories"};
+  }
+  // 分页列出某个镜像仓库的 Tag；architecture 非空时只返回包含该平台的 Tag。
+  rpc ListRegistryTags(ListRegistryTagsRequest) returns (ListRegistryTagsResponse) {
+    option (google.api.http) = {get: "/v1/registry/{uid}/tags"};
+  }
+  // 获取单个 Tag 的 manifest、平台、镜像配置与引用。
+  rpc GetRegistryTag(GetRegistryTagRequest) returns (GetRegistryTagResponse) {
+    option (google.api.http) = {get: "/v1/registry/{uid}/tag"};
+  }
+  // 在同一仓库内按 digest 复制/改名 Tag。
+  rpc CopyRegistryTag(CopyRegistryTagRequest) returns (CopyRegistryTagResponse) {
+    option (google.api.http) = {
+      post: "/v1/registry/{uid}/tag/copy"
+      body: "*"
+    };
+  }
+  // 按 digest 删除 Tag；被发布包引用时返回冲突。
+  rpc DeleteRegistryTag(DeleteRegistryTagRequest) returns (DeleteRegistryTagResponse) {
+    option (google.api.http) = {
+      post: "/v1/registry/{uid}/tag/delete"
+      body: "*"
+    };
+  }
+}
+
+// ImageSyncService 管理镜像同步任务。源可以是已接入仓库或外部 OCI 引用。
+service ImageSyncService {
+  // 分页列出同步任务。
+  rpc ListImageSyncs(ListImageSyncsRequest) returns (ListImageSyncsResponse) {
+    option (google.api.http) = {get: "/v1/image-syncs"};
+  }
+  // 解析外部/已接入源镜像并检查目标，不落库。
+  rpc PreviewImageSync(PreviewImageSyncRequest) returns (PreviewImageSyncResponse) {
+    option (google.api.http) = {
+      post: "/v1/image-syncs/preview"
+      body: "*"
+    };
+  }
+  // 批量创建同步任务；逐条校验、逐条落库。
+  rpc CreateImageSyncs(CreateImageSyncsRequest) returns (CreateImageSyncsResponse) {
+    option (google.api.http) = {
+      post: "/v1/image-syncs"
+      body: "*"
+    };
+  }
+  // 获取单个同步任务。
+  rpc GetImageSync(GetImageSyncRequest) returns (GetImageSyncResponse) {
+    option (google.api.http) = {get: "/v1/image-syncs/{uid}"};
+  }
+  // 重试失败或已取消的任务。
+  rpc RetryImageSync(RetryImageSyncRequest) returns (RetryImageSyncResponse) {
+    option (google.api.http) = {
+      post: "/v1/image-syncs/{uid}/retry"
+      body: "*"
+    };
+  }
+  // 取消 PENDING 或 RUNNING 的任务。
+  rpc CancelImageSync(CancelImageSyncRequest) returns (CancelImageSyncResponse) {
+    option (google.api.http) = {
+      post: "/v1/image-syncs/{uid}/cancel"
+      body: "*"
+    };
+  }
+}
+
+// RegistryItem 是仓库连接的展示元数据，不含密码。
+message RegistryItem {
+  string uid = 1;
+  string name = 2;
+  // HARBOR 或 DOCKER_V2。
+  string driver = 3;
+  string endpoint = 4;
+  string username = 5;
+  bool allow_insecure_tls = 6 [json_name = "allowInsecureTls"];
+  string remark = 7;
+  int64 last_checked_at = 8 [json_name = "lastCheckedAt"];
+  string last_error = 9 [json_name = "lastError"];
+  int64 created_at = 10 [json_name = "createdAt"];
+}
+
+// RegistryProbe 是一次连通性探测结果。
+message RegistryProbe {
+  string endpoint = 1;
+  string driver = 2;
+  int32 repository_count = 3 [json_name = "repositoryCount"];
+}
+
+message CreateRegistryRequest {
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string driver = 2 [(buf.validate.field).string = {in: ["HARBOR", "DOCKER_V2"]}];
+  string endpoint = 3 [(buf.validate.field).string = {min_len: 1, max_len: 512, pattern: "^https?://"}];
+  string username = 4 [(buf.validate.field).string = {max_len: 256}];
+  string password = 5 [(buf.validate.field).string = {max_len: 1024}];
+  bool allow_insecure_tls = 6 [json_name = "allowInsecureTls"];
+  string remark = 7 [(buf.validate.field).string = {max_len: 512}];
+}
+message CreateRegistryResponse { RegistryItem registry = 1; }
+
+message UpdateRegistryRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string driver = 3 [(buf.validate.field).string = {in: ["HARBOR", "DOCKER_V2"]}];
+  string endpoint = 4 [(buf.validate.field).string = {min_len: 1, max_len: 512, pattern: "^https?://"}];
+  string username = 5 [(buf.validate.field).string = {max_len: 256}];
+  string password = 6 [(buf.validate.field).string = {max_len: 1024}];
+  bool clear_password = 7 [json_name = "clearPassword"];
+  bool allow_insecure_tls = 8 [json_name = "allowInsecureTls"];
+  string remark = 9 [(buf.validate.field).string = {max_len: 512}];
+}
+message UpdateRegistryResponse { RegistryItem registry = 1; }
+
+message DeleteRegistryRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message DeleteRegistryResponse {}
+
+message GetRegistryRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message GetRegistryResponse { RegistryItem registry = 1; }
+
+message ListRegistriesRequest {
+  int32 page = 1 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+  string driver = 4 [(buf.validate.field).string = {in: ["", "HARBOR", "DOCKER_V2"]}];
+}
+message ListRegistriesResponse {
+  repeated RegistryItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+message TestRegistryRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message TestRegistryResponse {
+  RegistryProbe probe = 1;
+  RegistryItem registry = 2;
+}
+
+message ProbeRegistryRequest {
+  string driver = 1 [(buf.validate.field).string = {in: ["HARBOR", "DOCKER_V2"]}];
+  string endpoint = 2 [(buf.validate.field).string = {min_len: 1, max_len: 512, pattern: "^https?://"}];
+  string username = 3 [(buf.validate.field).string = {max_len: 256}];
+  string password = 4 [(buf.validate.field).string = {max_len: 1024}];
+  bool allow_insecure_tls = 5 [json_name = "allowInsecureTls"];
+}
+message ProbeRegistryResponse { RegistryProbe probe = 1; }
+
+message RegistryProjectItem {
+  string name = 1;
+  int32 repository_count = 2 [json_name = "repositoryCount"];
+}
+message ListRegistryProjectsRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string name = 2 [(buf.validate.field).string = {max_len: 128}];
+}
+message ListRegistryProjectsResponse { repeated RegistryProjectItem items = 1; }
+
+message RegistryRepositoryItem {
+  string name = 1;
+  string project = 2;
+  int32 tag_count = 3 [json_name = "tagCount"];
+  int64 updated_at = 4 [json_name = "updatedAt"];
+}
+message ListRegistryRepositoriesRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string project = 2 [(buf.validate.field).string = {max_len: 128}];
+  string name = 3 [(buf.validate.field).string = {max_len: 256}];
+  int32 page = 4 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 5 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+}
+message ListRegistryRepositoriesResponse {
+  repeated RegistryRepositoryItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// RegistryPlatform 是多架构 index 中的一个平台。
+message RegistryPlatform {
+  string os = 1;
+  string architecture = 2;
+  string variant = 3;
+  string digest = 4;
+  int64 size = 5;
+}
+
+message RegistryTagItem {
+  string tag = 1;
+  string digest = 2;
+  int64 size = 3;
+  // 平台短格式，例如 linux/amd64、linux/arm64/v8。
+  repeated string platforms = 4;
+  int64 pushed_at = 5 [json_name = "pushedAt"];
+  int32 reference_count = 6 [json_name = "referenceCount"];
+}
+message ListRegistryTagsRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string project = 2 [(buf.validate.field).string = {max_len: 128}];
+  string repository = 3 [(buf.validate.field).string = {min_len: 1, max_len: 256}];
+  string architecture = 4 [(buf.validate.field).string = {max_len: 32}];
+  string name = 5 [(buf.validate.field).string = {max_len: 128}];
+  int32 page = 6 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 7 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+}
+message ListRegistryTagsResponse {
+  repeated RegistryTagItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+message RegistryTagReference {
+  string application_uid = 1 [json_name = "applicationUid"];
+  string application_name = 2 [json_name = "applicationName"];
+  string version_uid = 3 [json_name = "versionUid"];
+  string version = 4;
+  string status = 5;
+}
+message RegistryTagDetail {
+  string tag = 1;
+  string digest = 2;
+  int64 size = 3;
+  string media_type = 4 [json_name = "mediaType"];
+  repeated RegistryPlatform platforms = 5;
+  string config_digest = 6 [json_name = "configDigest"];
+  repeated string labels = 7;
+  int64 created_at = 8 [json_name = "createdAt"];
+  repeated RegistryTagReference references = 9;
+}
+message GetRegistryTagRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string project = 2 [(buf.validate.field).string = {max_len: 128}];
+  string repository = 3 [(buf.validate.field).string = {min_len: 1, max_len: 256}];
+  string tag = 4 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+}
+message GetRegistryTagResponse { RegistryTagDetail tag = 1; }
+
+message CopyRegistryTagRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string project = 2 [(buf.validate.field).string = {max_len: 128}];
+  string repository = 3 [(buf.validate.field).string = {min_len: 1, max_len: 256}];
+  string tag = 4 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  string digest = 5 [(buf.validate.field).string = {max_len: 128}];
+  string target_repository = 6 [json_name = "targetRepository", (buf.validate.field).string = {min_len: 1, max_len: 256}];
+  string target_tag = 7 [json_name = "targetTag", (buf.validate.field).string = {min_len: 1, max_len: 128}];
+}
+message CopyRegistryTagResponse { RegistryTagItem tag = 1; }
+
+message DeleteRegistryTagRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string project = 2 [(buf.validate.field).string = {max_len: 128}];
+  string repository = 3 [(buf.validate.field).string = {min_len: 1, max_len: 256}];
+  string tag = 4 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  string digest = 5 [(buf.validate.field).string = {max_len: 128}];
+}
+message DeleteRegistryTagResponse {}
+
+// ImageSyncItem 是一条同步任务。
+message ImageSyncItem {
+  string uid = 1;
+  // CONNECTION 或 EXTERNAL。
+  string source_kind = 2 [json_name = "sourceKind"];
+  string source_registry_uid = 3 [json_name = "sourceRegistryUid"];
+  string source_registry_name = 4 [json_name = "sourceRegistryName"];
+  string source_image = 5 [json_name = "sourceImage"];
+  string source_digest = 6 [json_name = "sourceDigest"];
+  repeated string source_platforms = 7 [json_name = "sourcePlatforms"];
+  string target_registry_uid = 8 [json_name = "targetRegistryUid"];
+  string target_registry_name = 9 [json_name = "targetRegistryName"];
+  string target_repository = 10 [json_name = "targetRepository"];
+  string target_tag = 11 [json_name = "targetTag"];
+  string target_digest = 12 [json_name = "targetDigest"];
+  string mode = 13;
+  bool overwrite = 14;
+  string status = 15;
+  string stage = 16;
+  int32 copied_blobs = 17 [json_name = "copiedBlobs"];
+  int32 total_blobs = 18 [json_name = "totalBlobs"];
+  string message = 19;
+  int32 attempt = 20;
+  string operator_name = 21 [json_name = "operatorName"];
+  int64 created_at = 22 [json_name = "createdAt"];
+  int64 started_at = 23 [json_name = "startedAt"];
+  int64 finished_at = 24 [json_name = "finishedAt"];
+}
+
+message ListImageSyncsRequest {
+  int32 page = 1 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+  string status = 3 [(buf.validate.field).string = {in: ["", "PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED"]}];
+  string source_kind = 4 [json_name = "sourceKind", (buf.validate.field).string = {in: ["", "CONNECTION", "EXTERNAL"]}];
+  string registry_uid = 5 [json_name = "registryUid"];
+}
+message ListImageSyncsResponse {
+  repeated ImageSyncItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// ImageSyncInput 是一条同步请求。source 为 EXTERNAL 时 source_image 必填；
+// CONNECTION 时 source_registry_uid 必填。
+message ImageSyncInput {
+  string source_kind = 1 [json_name = "sourceKind", (buf.validate.field).string = {in: ["CONNECTION", "EXTERNAL"]}];
+  string source_registry_uid = 2 [json_name = "sourceRegistryUid"];
+  string source_image = 3 [json_name = "sourceImage"];
+  string source_username = 4 [json_name = "sourceUsername"];
+  string source_password = 5 [json_name = "sourcePassword"];
+  bool source_allow_insecure_tls = 6 [json_name = "sourceAllowInsecureTls"];
+  string target_registry_uid = 7 [json_name = "targetRegistryUid", (buf.validate.field).string = {min_len: 1}];
+  string target_repository = 8 [json_name = "targetRepository", (buf.validate.field).string = {min_len: 1, max_len: 256}];
+  string target_tag = 9 [json_name = "targetTag", (buf.validate.field).string = {min_len: 1, max_len: 128}];
+  repeated string platforms = 10;
+  bool overwrite = 11;
+}
+
+message PreviewImageSyncRequest {
+  ImageSyncInput source = 1;
+  string target_registry_uid = 2 [json_name = "targetRegistryUid"];
+  string target_repository = 3 [json_name = "targetRepository"];
+  string target_tag = 4 [json_name = "targetTag"];
+}
+message PreviewImageSyncResponse {
+  string source_image = 1 [json_name = "sourceImage"];
+  string source_digest = 2 [json_name = "sourceDigest"];
+  repeated string source_platforms = 3 [json_name = "sourcePlatforms"];
+  bool target_exists = 4 [json_name = "targetExists"];
+  string target_digest = 5 [json_name = "targetDigest"];
+}
+
+message CreateImageSyncsRequest { repeated ImageSyncInput items = 1; }
+message ImageSyncFailure {
+  int32 index = 1;
+  string message = 2;
+}
+message CreateImageSyncsResponse {
+  repeated ImageSyncItem created = 1;
+  repeated ImageSyncFailure failed = 2;
+}
+
+message GetImageSyncRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message GetImageSyncResponse { ImageSyncItem item = 1; }
+
+message RetryImageSyncRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message RetryImageSyncResponse { ImageSyncItem item = 1; }
+
+message CancelImageSyncRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message CancelImageSyncResponse { ImageSyncItem item = 1; }

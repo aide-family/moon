@@ -61,7 +61,12 @@ const (
 	CapabilityBoard                        = "board"
 	// Kubernetes 能力细到具体操作：一个操作一个能力、一个权限，套餐可以只开通「设置镜像」
 	// 而不开通「回滚」，也可以只开通 Pod 日志而不开通 Pod 终端。
-	CapabilityClusterAccess       = "cluster_access"
+	CapabilityClusterAccess = "cluster_access"
+	// 镜像仓库：接入、镜像版本管理、同步三类能力。registry:read 同时存在于
+	// 三个能力里，作为读取仓库与镜像的公共依赖。
+	CapabilityRegistryAccess      = "registry_access"
+	CapabilityRegistryImage       = "registry_image"
+	CapabilityRegistrySync        = "registry_sync"
 	CapabilityK8sNodeRead         = "k8s_node_read"
 	CapabilityK8sNodeCordon       = "k8s_node_cordon"
 	CapabilityK8sWorkloadRead     = "k8s_workload_read"
@@ -417,6 +422,21 @@ var capabilitySpecs = []Capability{
 		Code: CapabilityK8sCronJobDelete, Module: FeatureCluster, Name: "删除 CronJob",
 		Description: "删除 CronJob 及它创建的 Job。",
 		Permissions: []string{K8sCronJobDelete},
+	},
+	{
+		Code: CapabilityRegistryAccess, Module: FeatureCluster, Name: "仓库接入",
+		Description: "接入 Harbor 或标准 OCI Registry，测试连通性并浏览镜像。",
+		Permissions: []string{RegistryRead, RegistryWrite, RegistryDelete},
+	},
+	{
+		Code: CapabilityRegistryImage, Module: FeatureCluster, Name: "镜像版本管理",
+		Description: "复制或删除镜像 Tag，查看多架构与 digest。",
+		Permissions: []string{RegistryRead, RegistryImageWrite, RegistryImageDelete},
+	},
+	{
+		Code: CapabilityRegistrySync, Module: FeatureCluster, Name: "镜像同步",
+		Description: "从已接入仓库或外部镜像同步镜像到私有仓库。",
+		Permissions: []string{RegistryRead, RegistrySyncRead, RegistrySyncWrite},
 	},
 	{
 		Code: CapabilityAgentMachine, Module: FeatureAgent, Name: "机器",

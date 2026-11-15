@@ -107,6 +107,16 @@ const (
 	ClusterWrite  = "cluster:write"
 	ClusterDelete = "cluster:delete"
 
+	// 镜像仓库是私有云模块下的独立菜单。registry:* 管理仓库连接与读取，
+	// registry_image:* 管理镜像版本（复制/删除 Tag），registry_sync:* 管理同步任务。
+	RegistryRead        = "registry:read"
+	RegistryWrite       = "registry:write"
+	RegistryDelete      = "registry:delete"
+	RegistryImageWrite  = "registry_image:write"
+	RegistryImageDelete = "registry_image:delete"
+	RegistrySyncRead    = "registry_sync:read"
+	RegistrySyncWrite   = "registry_sync:write"
+
 	// Kubernetes 控制台按「资源 + 操作」细分。cluster:* 只保留集群接入与连接：
 	// 列表、详情、测试连通性、修改 kubeconfig 和删除集群；进入控制台仍然要求 cluster:read。
 	// 一个操作一个权限，套餐能力也按操作拆：读、封锁节点、扩缩容、滚动重启、设置镜像、

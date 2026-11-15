@@ -14,29 +14,32 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
 	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
 	"github.com/aide-family/moon/app/alioth/internal/biz/probesla"
+	"github.com/aide-family/moon/app/alioth/internal/biz/registry"
 	workerbiz "github.com/aide-family/moon/app/alioth/internal/biz/worker"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
 // Scheduler 按固定周期扫描到期规则。锁由 biz 层获取，扫描结束后释放。
 type Scheduler struct {
-	coordinator       *alertevent.Coordinator
-	center            *notification.Center
-	maintainer        *partition.Maintainer
-	roster            *workerbiz.Roster
-	sla               *probesla.Gateway
-	escalation        *alertescalation.Gateway
-	inspections       *inspection.Gateway
-	log               *slog.Logger
-	lastCheck         time.Time
-	lastWorkerCleanup time.Time
-	lastBackfill      time.Time
-	lastLogBackfill   time.Time
-	lastProbePrune    time.Time
-	lastReportPrune   time.Time
-	lastSlaRollup     time.Time
-	cancel            context.CancelFunc
-	done              chan struct{}
+	coordinator        *alertevent.Coordinator
+	center             *notification.Center
+	maintainer         *partition.Maintainer
+	roster             *workerbiz.Roster
+	sla                *probesla.Gateway
+	escalation         *alertescalation.Gateway
+	inspections        *inspection.Gateway
+	imageSyncs         *registry.Synchronizer
+	log                *slog.Logger
+	lastCheck          time.Time
+	lastWorkerCleanup  time.Time
+	lastBackfill       time.Time
+	lastLogBackfill    time.Time
+	lastProbePrune     time.Time
+	lastReportPrune    time.Time
+	lastSlaRollup      time.Time
+	lastImageSyncPrune time.Time
+	cancel             context.CancelFunc
+	done               chan struct{}
 }
 
 func NewScheduler(
@@ -47,11 +50,12 @@ func NewScheduler(
 	sla *probesla.Gateway,
 	escalation *alertescalation.Gateway,
 	inspections *inspection.Gateway,
+	imageSyncs *registry.Synchronizer,
 	logger *slog.Logger,
 ) *Scheduler {
 	return &Scheduler{
 		coordinator: coordinator, center: center, maintainer: maintainer,
-		roster: roster, sla: sla, escalation: escalation, inspections: inspections, log: logger,
+		roster: roster, sla: sla, escalation: escalation, inspections: inspections, imageSyncs: imageSyncs, log: logger,
 	}
 }
 
@@ -74,6 +78,9 @@ func (s *Scheduler) Start(context.Context) error {
 	}()
 	if s.inspections != nil {
 		go s.runInspections(ctx)
+	}
+	if s.imageSyncs != nil {
+		go s.runImageSyncs(ctx)
 	}
 	return nil
 }
@@ -120,6 +127,7 @@ func (s *Scheduler) tick(ctx context.Context) {
 	s.pruneInspectionReports(ctx)
 	s.rollupProbeSla(ctx)
 	s.cleanupWorkerInstances(ctx)
+	s.pruneImageSyncs(ctx)
 }
 
 // runInspections 每秒尝试领取一条巡检执行记录。执行是同步的，同一时刻
@@ -136,6 +144,33 @@ func (s *Scheduler) runInspections(ctx context.Context) {
 				s.log.Error(fmt.Sprintf("execute inspection: %v", err))
 			}
 		}
+	}
+}
+
+// runImageSyncs 每 2 秒尝试领取一条镜像同步任务；执行是同步的，避免带宽被吃满。
+func (s *Scheduler) runImageSyncs(ctx context.Context) {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := s.imageSyncs.ExecuteNext(ctx); err != nil {
+				s.log.Error(fmt.Sprintf("execute image sync: %v", err))
+			}
+		}
+	}
+}
+
+// pruneImageSyncs 每小时清理一次终态任务的外部临时凭据。
+func (s *Scheduler) pruneImageSyncs(ctx context.Context) {
+	if time.Since(s.lastImageSyncPrune) < time.Hour {
+		return
+	}
+	s.lastImageSyncPrune = time.Now()
+	if err := s.imageSyncs.Cleanup(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("prune image sync: %v", err))
 	}
 }
 

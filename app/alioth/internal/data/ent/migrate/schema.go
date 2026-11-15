@@ -1055,6 +1055,87 @@ var (
 			},
 		},
 	}
+	// ImageSyncsColumns holds the columns for the "image_syncs" table.
+	ImageSyncsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "source_kind", Type: field.TypeEnum, Enums: []string{"CONNECTION", "EXTERNAL"}, Default: "CONNECTION"},
+		{Name: "source_registry_uid", Type: field.TypeString, Default: ""},
+		{Name: "source_registry_name", Type: field.TypeString, Default: ""},
+		{Name: "source_endpoint", Type: field.TypeString, Default: ""},
+		{Name: "source_image", Type: field.TypeString, Default: ""},
+		{Name: "source_username", Type: field.TypeString, Default: ""},
+		{Name: "source_repository", Type: field.TypeString, Default: ""},
+		{Name: "source_tag", Type: field.TypeString, Default: ""},
+		{Name: "source_digest", Type: field.TypeString, Default: ""},
+		{Name: "source_platforms", Type: field.TypeString, Default: "[]"},
+		{Name: "source_credential_cipher", Type: field.TypeString, Default: ""},
+		{Name: "source_allow_insecure_tls", Type: field.TypeBool, Default: false},
+		{Name: "target_registry_uid", Type: field.TypeString},
+		{Name: "target_registry_name", Type: field.TypeString, Default: ""},
+		{Name: "target_endpoint", Type: field.TypeString, Default: ""},
+		{Name: "target_repository", Type: field.TypeString},
+		{Name: "target_tag", Type: field.TypeString},
+		{Name: "target_digest", Type: field.TypeString, Default: ""},
+		{Name: "mode", Type: field.TypeEnum, Enums: []string{"ALL_PLATFORMS", "SELECTED_PLATFORMS"}, Default: "ALL_PLATFORMS"},
+		{Name: "overwrite", Type: field.TypeBool, Default: false},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED"}, Default: "PENDING"},
+		{Name: "stage", Type: field.TypeString, Default: ""},
+		{Name: "copied_blobs", Type: field.TypeInt, Default: 0},
+		{Name: "total_blobs", Type: field.TypeInt, Default: 0},
+		{Name: "message", Type: field.TypeString, Default: ""},
+		{Name: "attempt", Type: field.TypeInt, Default: 0},
+		{Name: "operator_uid", Type: field.TypeString, Default: ""},
+		{Name: "operator_name", Type: field.TypeString, Default: ""},
+		{Name: "lease_owner", Type: field.TypeString, Default: ""},
+		{Name: "lease_until", Type: field.TypeTime, Nullable: true},
+		{Name: "started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ImageSyncsTable holds the schema information for the "image_syncs" table.
+	ImageSyncsTable = &schema.Table{
+		Name:       "image_syncs",
+		Columns:    ImageSyncsColumns,
+		PrimaryKey: []*schema.Column{ImageSyncsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "imagesync_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ImageSyncsColumns[3]},
+			},
+			{
+				Name:    "imagesync_namespace_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ImageSyncsColumns[4], ImageSyncsColumns[1]},
+			},
+			{
+				Name:    "imagesync_status",
+				Unique:  false,
+				Columns: []*schema.Column{ImageSyncsColumns[25]},
+			},
+			{
+				Name:    "imagesync_source_registry_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ImageSyncsColumns[6]},
+			},
+			{
+				Name:    "imagesync_target_registry_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ImageSyncsColumns[17]},
+			},
+			{
+				Name:    "imagesync_namespace_uid_source_kind_source_image_target_registry_uid_target_repository_target_tag",
+				Unique:  true,
+				Columns: []*schema.Column{ImageSyncsColumns[4], ImageSyncsColumns[5], ImageSyncsColumns[9], ImageSyncsColumns[17], ImageSyncsColumns[20], ImageSyncsColumns[21]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status IN ('PENDING','RUNNING')",
+				},
+			},
+		},
+	}
 	// InspectionItemsColumns holds the columns for the "inspection_items" table.
 	InspectionItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -2362,6 +2443,50 @@ var (
 			},
 		},
 	}
+	// RegistriesColumns holds the columns for the "registries" table.
+	RegistriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "driver", Type: field.TypeEnum, Enums: []string{"HARBOR", "DOCKER_V2"}, Default: "HARBOR"},
+		{Name: "endpoint", Type: field.TypeString},
+		{Name: "username", Type: field.TypeString, Default: ""},
+		{Name: "password_cipher", Type: field.TypeString, Default: ""},
+		{Name: "allow_insecure_tls", Type: field.TypeBool, Default: false},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+		{Name: "last_checked_at", Type: field.TypeInt64, Default: 0},
+		{Name: "last_error", Type: field.TypeString, Default: ""},
+	}
+	// RegistriesTable holds the schema information for the "registries" table.
+	RegistriesTable = &schema.Table{
+		Name:       "registries",
+		Columns:    RegistriesColumns,
+		PrimaryKey: []*schema.Column{RegistriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "registry_uid",
+				Unique:  true,
+				Columns: []*schema.Column{RegistriesColumns[4]},
+			},
+			{
+				Name:    "registry_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{RegistriesColumns[5], RegistriesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "registry_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{RegistriesColumns[5]},
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -2945,6 +3070,7 @@ var (
 		EmailLoginCodesTable,
 		FeaturePackagesTable,
 		FeaturePackageItemsTable,
+		ImageSyncsTable,
 		InspectionItemsTable,
 		InspectionPlansTable,
 		InspectionReportsTable,
@@ -2975,6 +3101,7 @@ var (
 		ProbeSLADailiesTable,
 		ProbeTargetsTable,
 		ProbeTargetGroupsTable,
+		RegistriesTable,
 		RolesTable,
 		RolePermissionsTable,
 		SSHCommandsTable,

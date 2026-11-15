@@ -60,6 +60,8 @@ func NewHTTPServer(
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
 	clusters *service.ClusterService,
+	registries *service.RegistryService,
+	imageSyncs *service.ImageSyncService,
 	kubeResources *service.KubernetesService,
 	authenticator *auth.Authenticator,
 	logger *slog.Logger,
@@ -140,6 +142,8 @@ func NewHTTPServer(
 	v1.RegisterAgentServiceHTTPServer(srv, agents)
 	v1.RegisterSSHCommandServiceHTTPServer(srv, sshCommands)
 	v1.RegisterClusterServiceHTTPServer(srv, clusters)
+	v1.RegisterRegistryServiceHTTPServer(srv, registries)
+	v1.RegisterImageSyncServiceHTTPServer(srv, imageSyncs)
 	v1.RegisterKubernetesServiceHTTPServer(srv, kubeResources)
 	srv.HandleFunc("/v1/agent/{uid}/shell", agents.ServeShell)
 	// Pod 终端也走裸 HTTP 处理器：浏览器 WebSocket 无法带 Authorization 头，

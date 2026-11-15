@@ -39,6 +39,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/imagesync"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
@@ -69,6 +70,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/registry"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/sitefeature"
@@ -170,6 +172,7 @@ func checkColumn(t, c string) error {
 			emaillogincode.Table:                emaillogincode.ValidColumn,
 			featurepackage.Table:                featurepackage.ValidColumn,
 			featurepackageitem.Table:            featurepackageitem.ValidColumn,
+			imagesync.Table:                     imagesync.ValidColumn,
 			inspectionitem.Table:                inspectionitem.ValidColumn,
 			inspectionplan.Table:                inspectionplan.ValidColumn,
 			inspectionreport.Table:              inspectionreport.ValidColumn,
@@ -200,6 +203,7 @@ func checkColumn(t, c string) error {
 			probesladaily.Table:                 probesladaily.ValidColumn,
 			probetarget.Table:                   probetarget.ValidColumn,
 			probetargetgroup.Table:              probetargetgroup.ValidColumn,
+			registry.Table:                      registry.ValidColumn,
 			role.Table:                          role.ValidColumn,
 			rolepermission.Table:                rolepermission.ValidColumn,
 			sshcommand.Table:                    sshcommand.ValidColumn,

@@ -32,6 +32,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/imagesync"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionitem"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionplan"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/inspectionreport"
@@ -62,6 +63,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probesladaily"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetarget"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/probetargetgroup"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/registry"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/schema"
@@ -1246,6 +1248,133 @@ func init() {
 	featurepackageitemDescFeature := featurepackageitemFields[2].Descriptor()
 	// featurepackageitem.FeatureValidator is a validator for the "feature" field. It is called by the builders before save.
 	featurepackageitem.FeatureValidator = featurepackageitemDescFeature.Validators[0].(func(string) error)
+	imagesyncMixin := schema.ImageSync{}.Mixin()
+	imagesyncMixinFields0 := imagesyncMixin[0].Fields()
+	_ = imagesyncMixinFields0
+	imagesyncFields := schema.ImageSync{}.Fields()
+	_ = imagesyncFields
+	// imagesyncDescCreatedAt is the schema descriptor for created_at field.
+	imagesyncDescCreatedAt := imagesyncMixinFields0[0].Descriptor()
+	// imagesync.DefaultCreatedAt holds the default value on creation for the created_at field.
+	imagesync.DefaultCreatedAt = imagesyncDescCreatedAt.Default.(func() time.Time)
+	// imagesyncDescUpdatedAt is the schema descriptor for updated_at field.
+	imagesyncDescUpdatedAt := imagesyncMixinFields0[1].Descriptor()
+	// imagesync.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	imagesync.DefaultUpdatedAt = imagesyncDescUpdatedAt.Default.(func() time.Time)
+	// imagesync.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	imagesync.UpdateDefaultUpdatedAt = imagesyncDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// imagesyncDescUID is the schema descriptor for uid field.
+	imagesyncDescUID := imagesyncFields[0].Descriptor()
+	// imagesync.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	imagesync.UIDValidator = imagesyncDescUID.Validators[0].(func(string) error)
+	// imagesyncDescNamespaceUID is the schema descriptor for namespace_uid field.
+	imagesyncDescNamespaceUID := imagesyncFields[1].Descriptor()
+	// imagesync.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	imagesync.NamespaceUIDValidator = imagesyncDescNamespaceUID.Validators[0].(func(string) error)
+	// imagesyncDescSourceRegistryUID is the schema descriptor for source_registry_uid field.
+	imagesyncDescSourceRegistryUID := imagesyncFields[3].Descriptor()
+	// imagesync.DefaultSourceRegistryUID holds the default value on creation for the source_registry_uid field.
+	imagesync.DefaultSourceRegistryUID = imagesyncDescSourceRegistryUID.Default.(string)
+	// imagesyncDescSourceRegistryName is the schema descriptor for source_registry_name field.
+	imagesyncDescSourceRegistryName := imagesyncFields[4].Descriptor()
+	// imagesync.DefaultSourceRegistryName holds the default value on creation for the source_registry_name field.
+	imagesync.DefaultSourceRegistryName = imagesyncDescSourceRegistryName.Default.(string)
+	// imagesyncDescSourceEndpoint is the schema descriptor for source_endpoint field.
+	imagesyncDescSourceEndpoint := imagesyncFields[5].Descriptor()
+	// imagesync.DefaultSourceEndpoint holds the default value on creation for the source_endpoint field.
+	imagesync.DefaultSourceEndpoint = imagesyncDescSourceEndpoint.Default.(string)
+	// imagesyncDescSourceImage is the schema descriptor for source_image field.
+	imagesyncDescSourceImage := imagesyncFields[6].Descriptor()
+	// imagesync.DefaultSourceImage holds the default value on creation for the source_image field.
+	imagesync.DefaultSourceImage = imagesyncDescSourceImage.Default.(string)
+	// imagesyncDescSourceUsername is the schema descriptor for source_username field.
+	imagesyncDescSourceUsername := imagesyncFields[7].Descriptor()
+	// imagesync.DefaultSourceUsername holds the default value on creation for the source_username field.
+	imagesync.DefaultSourceUsername = imagesyncDescSourceUsername.Default.(string)
+	// imagesyncDescSourceRepository is the schema descriptor for source_repository field.
+	imagesyncDescSourceRepository := imagesyncFields[8].Descriptor()
+	// imagesync.DefaultSourceRepository holds the default value on creation for the source_repository field.
+	imagesync.DefaultSourceRepository = imagesyncDescSourceRepository.Default.(string)
+	// imagesyncDescSourceTag is the schema descriptor for source_tag field.
+	imagesyncDescSourceTag := imagesyncFields[9].Descriptor()
+	// imagesync.DefaultSourceTag holds the default value on creation for the source_tag field.
+	imagesync.DefaultSourceTag = imagesyncDescSourceTag.Default.(string)
+	// imagesyncDescSourceDigest is the schema descriptor for source_digest field.
+	imagesyncDescSourceDigest := imagesyncFields[10].Descriptor()
+	// imagesync.DefaultSourceDigest holds the default value on creation for the source_digest field.
+	imagesync.DefaultSourceDigest = imagesyncDescSourceDigest.Default.(string)
+	// imagesyncDescSourcePlatforms is the schema descriptor for source_platforms field.
+	imagesyncDescSourcePlatforms := imagesyncFields[11].Descriptor()
+	// imagesync.DefaultSourcePlatforms holds the default value on creation for the source_platforms field.
+	imagesync.DefaultSourcePlatforms = imagesyncDescSourcePlatforms.Default.(string)
+	// imagesyncDescSourceCredentialCipher is the schema descriptor for source_credential_cipher field.
+	imagesyncDescSourceCredentialCipher := imagesyncFields[12].Descriptor()
+	// imagesync.DefaultSourceCredentialCipher holds the default value on creation for the source_credential_cipher field.
+	imagesync.DefaultSourceCredentialCipher = imagesyncDescSourceCredentialCipher.Default.(string)
+	// imagesyncDescSourceAllowInsecureTLS is the schema descriptor for source_allow_insecure_tls field.
+	imagesyncDescSourceAllowInsecureTLS := imagesyncFields[13].Descriptor()
+	// imagesync.DefaultSourceAllowInsecureTLS holds the default value on creation for the source_allow_insecure_tls field.
+	imagesync.DefaultSourceAllowInsecureTLS = imagesyncDescSourceAllowInsecureTLS.Default.(bool)
+	// imagesyncDescTargetRegistryUID is the schema descriptor for target_registry_uid field.
+	imagesyncDescTargetRegistryUID := imagesyncFields[14].Descriptor()
+	// imagesync.TargetRegistryUIDValidator is a validator for the "target_registry_uid" field. It is called by the builders before save.
+	imagesync.TargetRegistryUIDValidator = imagesyncDescTargetRegistryUID.Validators[0].(func(string) error)
+	// imagesyncDescTargetRegistryName is the schema descriptor for target_registry_name field.
+	imagesyncDescTargetRegistryName := imagesyncFields[15].Descriptor()
+	// imagesync.DefaultTargetRegistryName holds the default value on creation for the target_registry_name field.
+	imagesync.DefaultTargetRegistryName = imagesyncDescTargetRegistryName.Default.(string)
+	// imagesyncDescTargetEndpoint is the schema descriptor for target_endpoint field.
+	imagesyncDescTargetEndpoint := imagesyncFields[16].Descriptor()
+	// imagesync.DefaultTargetEndpoint holds the default value on creation for the target_endpoint field.
+	imagesync.DefaultTargetEndpoint = imagesyncDescTargetEndpoint.Default.(string)
+	// imagesyncDescTargetRepository is the schema descriptor for target_repository field.
+	imagesyncDescTargetRepository := imagesyncFields[17].Descriptor()
+	// imagesync.TargetRepositoryValidator is a validator for the "target_repository" field. It is called by the builders before save.
+	imagesync.TargetRepositoryValidator = imagesyncDescTargetRepository.Validators[0].(func(string) error)
+	// imagesyncDescTargetTag is the schema descriptor for target_tag field.
+	imagesyncDescTargetTag := imagesyncFields[18].Descriptor()
+	// imagesync.TargetTagValidator is a validator for the "target_tag" field. It is called by the builders before save.
+	imagesync.TargetTagValidator = imagesyncDescTargetTag.Validators[0].(func(string) error)
+	// imagesyncDescTargetDigest is the schema descriptor for target_digest field.
+	imagesyncDescTargetDigest := imagesyncFields[19].Descriptor()
+	// imagesync.DefaultTargetDigest holds the default value on creation for the target_digest field.
+	imagesync.DefaultTargetDigest = imagesyncDescTargetDigest.Default.(string)
+	// imagesyncDescOverwrite is the schema descriptor for overwrite field.
+	imagesyncDescOverwrite := imagesyncFields[21].Descriptor()
+	// imagesync.DefaultOverwrite holds the default value on creation for the overwrite field.
+	imagesync.DefaultOverwrite = imagesyncDescOverwrite.Default.(bool)
+	// imagesyncDescStage is the schema descriptor for stage field.
+	imagesyncDescStage := imagesyncFields[23].Descriptor()
+	// imagesync.DefaultStage holds the default value on creation for the stage field.
+	imagesync.DefaultStage = imagesyncDescStage.Default.(string)
+	// imagesyncDescCopiedBlobs is the schema descriptor for copied_blobs field.
+	imagesyncDescCopiedBlobs := imagesyncFields[24].Descriptor()
+	// imagesync.DefaultCopiedBlobs holds the default value on creation for the copied_blobs field.
+	imagesync.DefaultCopiedBlobs = imagesyncDescCopiedBlobs.Default.(int)
+	// imagesyncDescTotalBlobs is the schema descriptor for total_blobs field.
+	imagesyncDescTotalBlobs := imagesyncFields[25].Descriptor()
+	// imagesync.DefaultTotalBlobs holds the default value on creation for the total_blobs field.
+	imagesync.DefaultTotalBlobs = imagesyncDescTotalBlobs.Default.(int)
+	// imagesyncDescMessage is the schema descriptor for message field.
+	imagesyncDescMessage := imagesyncFields[26].Descriptor()
+	// imagesync.DefaultMessage holds the default value on creation for the message field.
+	imagesync.DefaultMessage = imagesyncDescMessage.Default.(string)
+	// imagesyncDescAttempt is the schema descriptor for attempt field.
+	imagesyncDescAttempt := imagesyncFields[27].Descriptor()
+	// imagesync.DefaultAttempt holds the default value on creation for the attempt field.
+	imagesync.DefaultAttempt = imagesyncDescAttempt.Default.(int)
+	// imagesyncDescOperatorUID is the schema descriptor for operator_uid field.
+	imagesyncDescOperatorUID := imagesyncFields[28].Descriptor()
+	// imagesync.DefaultOperatorUID holds the default value on creation for the operator_uid field.
+	imagesync.DefaultOperatorUID = imagesyncDescOperatorUID.Default.(string)
+	// imagesyncDescOperatorName is the schema descriptor for operator_name field.
+	imagesyncDescOperatorName := imagesyncFields[29].Descriptor()
+	// imagesync.DefaultOperatorName holds the default value on creation for the operator_name field.
+	imagesync.DefaultOperatorName = imagesyncDescOperatorName.Default.(string)
+	// imagesyncDescLeaseOwner is the schema descriptor for lease_owner field.
+	imagesyncDescLeaseOwner := imagesyncFields[30].Descriptor()
+	// imagesync.DefaultLeaseOwner holds the default value on creation for the lease_owner field.
+	imagesync.DefaultLeaseOwner = imagesyncDescLeaseOwner.Default.(string)
 	inspectionitemMixin := schema.InspectionItem{}.Mixin()
 	inspectionitemMixinFields0 := inspectionitemMixin[0].Fields()
 	_ = inspectionitemMixinFields0
@@ -2770,6 +2899,61 @@ func init() {
 	probetargetgroupDescRemark := probetargetgroupFields[8].Descriptor()
 	// probetargetgroup.DefaultRemark holds the default value on creation for the remark field.
 	probetargetgroup.DefaultRemark = probetargetgroupDescRemark.Default.(string)
+	registryMixin := schema.Registry{}.Mixin()
+	registryMixinFields0 := registryMixin[0].Fields()
+	_ = registryMixinFields0
+	registryFields := schema.Registry{}.Fields()
+	_ = registryFields
+	// registryDescCreatedAt is the schema descriptor for created_at field.
+	registryDescCreatedAt := registryMixinFields0[0].Descriptor()
+	// registry.DefaultCreatedAt holds the default value on creation for the created_at field.
+	registry.DefaultCreatedAt = registryDescCreatedAt.Default.(func() time.Time)
+	// registryDescUpdatedAt is the schema descriptor for updated_at field.
+	registryDescUpdatedAt := registryMixinFields0[1].Descriptor()
+	// registry.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	registry.DefaultUpdatedAt = registryDescUpdatedAt.Default.(func() time.Time)
+	// registry.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	registry.UpdateDefaultUpdatedAt = registryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// registryDescUID is the schema descriptor for uid field.
+	registryDescUID := registryFields[0].Descriptor()
+	// registry.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	registry.UIDValidator = registryDescUID.Validators[0].(func(string) error)
+	// registryDescNamespaceUID is the schema descriptor for namespace_uid field.
+	registryDescNamespaceUID := registryFields[1].Descriptor()
+	// registry.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	registry.NamespaceUIDValidator = registryDescNamespaceUID.Validators[0].(func(string) error)
+	// registryDescName is the schema descriptor for name field.
+	registryDescName := registryFields[2].Descriptor()
+	// registry.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	registry.NameValidator = registryDescName.Validators[0].(func(string) error)
+	// registryDescEndpoint is the schema descriptor for endpoint field.
+	registryDescEndpoint := registryFields[4].Descriptor()
+	// registry.EndpointValidator is a validator for the "endpoint" field. It is called by the builders before save.
+	registry.EndpointValidator = registryDescEndpoint.Validators[0].(func(string) error)
+	// registryDescUsername is the schema descriptor for username field.
+	registryDescUsername := registryFields[5].Descriptor()
+	// registry.DefaultUsername holds the default value on creation for the username field.
+	registry.DefaultUsername = registryDescUsername.Default.(string)
+	// registryDescPasswordCipher is the schema descriptor for password_cipher field.
+	registryDescPasswordCipher := registryFields[6].Descriptor()
+	// registry.DefaultPasswordCipher holds the default value on creation for the password_cipher field.
+	registry.DefaultPasswordCipher = registryDescPasswordCipher.Default.(string)
+	// registryDescAllowInsecureTLS is the schema descriptor for allow_insecure_tls field.
+	registryDescAllowInsecureTLS := registryFields[7].Descriptor()
+	// registry.DefaultAllowInsecureTLS holds the default value on creation for the allow_insecure_tls field.
+	registry.DefaultAllowInsecureTLS = registryDescAllowInsecureTLS.Default.(bool)
+	// registryDescRemark is the schema descriptor for remark field.
+	registryDescRemark := registryFields[8].Descriptor()
+	// registry.DefaultRemark holds the default value on creation for the remark field.
+	registry.DefaultRemark = registryDescRemark.Default.(string)
+	// registryDescLastCheckedAt is the schema descriptor for last_checked_at field.
+	registryDescLastCheckedAt := registryFields[9].Descriptor()
+	// registry.DefaultLastCheckedAt holds the default value on creation for the last_checked_at field.
+	registry.DefaultLastCheckedAt = registryDescLastCheckedAt.Default.(int64)
+	// registryDescLastError is the schema descriptor for last_error field.
+	registryDescLastError := registryFields[10].Descriptor()
+	// registry.DefaultLastError holds the default value on creation for the last_error field.
+	registry.DefaultLastError = registryDescLastError.Default.(string)
 	roleMixin := schema.Role{}.Mixin()
 	roleMixinFields0 := roleMixin[0].Fields()
 	_ = roleMixinFields0

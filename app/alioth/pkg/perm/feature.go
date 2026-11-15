@@ -63,7 +63,7 @@ var featureInfos = map[string]featureInfo{
 	FeatureRole:         {name: "角色", description: "管理租户角色和角色权限。"},
 	FeatureBoard:        {name: "大盘", description: "把 Grafana 面板组合成值班大盘。"},
 	FeatureInspection:   {name: "巡检", description: "把数据源、探测与告警汇总成周期报告并投递。"},
-	FeatureCluster:      {name: "Kubernetes", description: "接入 Kubernetes 集群并使用资源级控制台。"},
+	FeatureCluster:      {name: "私有云", description: "接入 Kubernetes 集群、管理镜像仓库与应用部署。"},
 	FeatureAgent:        {name: "机器", description: "管理边缘机器和 Agent 状态。"},
 	FeatureSSH:          {name: "SSH 与 Web Shell", description: "使用 SSH 命令和 Web Shell。"},
 }

@@ -24,3 +24,9 @@ export function formatUnixDate(value?: number | string | null): string {
   const seconds = unixSeconds(value)
   return seconds > 0 ? new Date(seconds * 1000).toLocaleDateString() : ""
 }
+
+/** Unix 秒 → 本地日期+时间；未设置返回空串。 */
+export function formatUnixDateTime(value?: number | string | null): string {
+  const seconds = unixSeconds(value)
+  return seconds > 0 ? new Date(seconds * 1000).toLocaleString() : ""
+}
