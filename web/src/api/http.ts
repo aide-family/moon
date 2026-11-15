@@ -73,6 +73,14 @@ const messageKeys: Record<string, string> = {
   "a cluster release already has an active operation": "error.operationInProgress",
   "select between 1 and 20 clusters": "error.clusterSelectionInvalid",
   "at least one resource is required": "error.resourceRequired",
+  "deleting cluster-scoped resources requires release:cluster": "error.clusterScopePermission",
+  "registry has active image sync jobs": "error.registryHasActiveSync",
+  "registry is referenced by application versions": "error.registryReferenced",
+  "application has published versions": "error.applicationHasPublished",
+  "application has active deployments": "error.applicationHasDeployments",
+  "version is referenced by active deployments": "error.versionHasDeployments",
+  "replicas must be between 0 and 100": "error.replicasOutOfRange",
+  "replicas can only be overridden for Deployment or StatefulSet": "error.replicasNotWorkload",
   // 镜像仓库与同步任务的错误原文。
   "registry credentials were rejected": "error.registryCredentialRejected",
   "registry is unreachable": "error.registryUnreachable",
@@ -406,6 +414,10 @@ export class ApiError extends Error {
 }
 
 export function localizeMessage(message: string, reason = ""): string {
+  const tagPrefix = "tag is referenced by published application versions: "
+  if (message.startsWith(tagPrefix)) {
+    return i18n.t("error.tagReferenced", { detail: message.slice(tagPrefix.length) })
+  }
   const key = messageKeys[message]
   if (key) {
     return i18n.t(key)

@@ -36,6 +36,8 @@ func (ApplicationReleaseOperation) Fields() []ent.Field {
 		field.String("message").Default(""),
 		field.String("operator_uid").Default(""),
 		field.String("operator_name").Default(""),
+		field.Bool("keep_persistent_volume_claims").Default(true),
+		field.Bool("delete_cluster_scoped_resources").Default(false),
 		field.String("lease_owner").Default(""),
 		field.Time("lease_until").Optional().Nillable(),
 		field.Time("started_at").Optional().Nillable(),

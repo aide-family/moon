@@ -1029,8 +1029,16 @@ func init() {
 	applicationreleaseoperationDescOperatorName := applicationreleaseoperationFields[16].Descriptor()
 	// applicationreleaseoperation.DefaultOperatorName holds the default value on creation for the operator_name field.
 	applicationreleaseoperation.DefaultOperatorName = applicationreleaseoperationDescOperatorName.Default.(string)
+	// applicationreleaseoperationDescKeepPersistentVolumeClaims is the schema descriptor for keep_persistent_volume_claims field.
+	applicationreleaseoperationDescKeepPersistentVolumeClaims := applicationreleaseoperationFields[17].Descriptor()
+	// applicationreleaseoperation.DefaultKeepPersistentVolumeClaims holds the default value on creation for the keep_persistent_volume_claims field.
+	applicationreleaseoperation.DefaultKeepPersistentVolumeClaims = applicationreleaseoperationDescKeepPersistentVolumeClaims.Default.(bool)
+	// applicationreleaseoperationDescDeleteClusterScopedResources is the schema descriptor for delete_cluster_scoped_resources field.
+	applicationreleaseoperationDescDeleteClusterScopedResources := applicationreleaseoperationFields[18].Descriptor()
+	// applicationreleaseoperation.DefaultDeleteClusterScopedResources holds the default value on creation for the delete_cluster_scoped_resources field.
+	applicationreleaseoperation.DefaultDeleteClusterScopedResources = applicationreleaseoperationDescDeleteClusterScopedResources.Default.(bool)
 	// applicationreleaseoperationDescLeaseOwner is the schema descriptor for lease_owner field.
-	applicationreleaseoperationDescLeaseOwner := applicationreleaseoperationFields[17].Descriptor()
+	applicationreleaseoperationDescLeaseOwner := applicationreleaseoperationFields[19].Descriptor()
 	// applicationreleaseoperation.DefaultLeaseOwner holds the default value on creation for the lease_owner field.
 	applicationreleaseoperation.DefaultLeaseOwner = applicationreleaseoperationDescLeaseOwner.Default.(string)
 	applicationversionMixin := schema.ApplicationVersion{}.Mixin()

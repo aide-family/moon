@@ -155,28 +155,39 @@ type ApplicationReleaseFilter struct {
 
 // ApplicationOperation 是某个集群实例的一次操作。
 type ApplicationOperation struct {
-	UID            string
-	NamespaceUID   string
-	DeploymentUID  string
-	ReleaseUID     string
-	BatchUID       string
-	ClusterUID     string
-	ClusterName    string
-	Action         string
-	Status         string
-	FromVersionUID string
-	ToVersionUID   string
-	Values         ApplicationDeployValues
-	Resources      []ResourceRef
-	Diff           map[string]int32
-	Message        string
-	OperatorUID    string
-	OperatorName   string
-	LeaseOwner     string
-	LeaseUntil     *time.Time
-	StartedAt      *time.Time
-	FinishedAt     *time.Time
-	CreatedAt      time.Time
+	UID                 string
+	NamespaceUID        string
+	DeploymentUID       string
+	ReleaseUID          string
+	BatchUID            string
+	ClusterUID          string
+	ClusterName         string
+	Action              string
+	Status              string
+	FromVersionUID      string
+	ToVersionUID        string
+	Values              ApplicationDeployValues
+	Resources           []ResourceRef
+	Diff                map[string]int32
+	Message             string
+	OperatorUID         string
+	OperatorName        string
+	KeepPVC             bool
+	DeleteClusterScoped bool
+	LeaseOwner          string
+	LeaseUntil          *time.Time
+	StartedAt           *time.Time
+	FinishedAt          *time.Time
+	CreatedAt           time.Time
+}
+
+// ApplicationImageReference 是发布包版本对镜像的引用。
+type ApplicationImageReference struct {
+	ApplicationUID  string
+	ApplicationName string
+	VersionUID      string
+	Version         string
+	Status          string
 }
 
 // ResourceRef 是 Kubernetes 资源标识。

@@ -254,6 +254,34 @@ func (_c *ApplicationReleaseOperationCreate) SetNillableOperatorName(v *string) 
 	return _c
 }
 
+// SetKeepPersistentVolumeClaims sets the "keep_persistent_volume_claims" field.
+func (_c *ApplicationReleaseOperationCreate) SetKeepPersistentVolumeClaims(v bool) *ApplicationReleaseOperationCreate {
+	_c.mutation.SetKeepPersistentVolumeClaims(v)
+	return _c
+}
+
+// SetNillableKeepPersistentVolumeClaims sets the "keep_persistent_volume_claims" field if the given value is not nil.
+func (_c *ApplicationReleaseOperationCreate) SetNillableKeepPersistentVolumeClaims(v *bool) *ApplicationReleaseOperationCreate {
+	if v != nil {
+		_c.SetKeepPersistentVolumeClaims(*v)
+	}
+	return _c
+}
+
+// SetDeleteClusterScopedResources sets the "delete_cluster_scoped_resources" field.
+func (_c *ApplicationReleaseOperationCreate) SetDeleteClusterScopedResources(v bool) *ApplicationReleaseOperationCreate {
+	_c.mutation.SetDeleteClusterScopedResources(v)
+	return _c
+}
+
+// SetNillableDeleteClusterScopedResources sets the "delete_cluster_scoped_resources" field if the given value is not nil.
+func (_c *ApplicationReleaseOperationCreate) SetNillableDeleteClusterScopedResources(v *bool) *ApplicationReleaseOperationCreate {
+	if v != nil {
+		_c.SetDeleteClusterScopedResources(*v)
+	}
+	return _c
+}
+
 // SetLeaseOwner sets the "lease_owner" field.
 func (_c *ApplicationReleaseOperationCreate) SetLeaseOwner(v string) *ApplicationReleaseOperationCreate {
 	_c.mutation.SetLeaseOwner(v)
@@ -405,6 +433,14 @@ func (_c *ApplicationReleaseOperationCreate) defaults() {
 		v := applicationreleaseoperation.DefaultOperatorName
 		_c.mutation.SetOperatorName(v)
 	}
+	if _, ok := _c.mutation.KeepPersistentVolumeClaims(); !ok {
+		v := applicationreleaseoperation.DefaultKeepPersistentVolumeClaims
+		_c.mutation.SetKeepPersistentVolumeClaims(v)
+	}
+	if _, ok := _c.mutation.DeleteClusterScopedResources(); !ok {
+		v := applicationreleaseoperation.DefaultDeleteClusterScopedResources
+		_c.mutation.SetDeleteClusterScopedResources(v)
+	}
 	if _, ok := _c.mutation.LeaseOwner(); !ok {
 		v := applicationreleaseoperation.DefaultLeaseOwner
 		_c.mutation.SetLeaseOwner(v)
@@ -499,6 +535,12 @@ func (_c *ApplicationReleaseOperationCreate) check() error {
 	}
 	if _, ok := _c.mutation.OperatorName(); !ok {
 		return &ValidationError{Name: "operator_name", err: errors.New(`ent: missing required field "ApplicationReleaseOperation.operator_name"`)}
+	}
+	if _, ok := _c.mutation.KeepPersistentVolumeClaims(); !ok {
+		return &ValidationError{Name: "keep_persistent_volume_claims", err: errors.New(`ent: missing required field "ApplicationReleaseOperation.keep_persistent_volume_claims"`)}
+	}
+	if _, ok := _c.mutation.DeleteClusterScopedResources(); !ok {
+		return &ValidationError{Name: "delete_cluster_scoped_resources", err: errors.New(`ent: missing required field "ApplicationReleaseOperation.delete_cluster_scoped_resources"`)}
 	}
 	if _, ok := _c.mutation.LeaseOwner(); !ok {
 		return &ValidationError{Name: "lease_owner", err: errors.New(`ent: missing required field "ApplicationReleaseOperation.lease_owner"`)}
@@ -604,6 +646,14 @@ func (_c *ApplicationReleaseOperationCreate) createSpec() (*ApplicationReleaseOp
 	if value, ok := _c.mutation.OperatorName(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldOperatorName, field.TypeString, value)
 		_node.OperatorName = value
+	}
+	if value, ok := _c.mutation.KeepPersistentVolumeClaims(); ok {
+		_spec.SetField(applicationreleaseoperation.FieldKeepPersistentVolumeClaims, field.TypeBool, value)
+		_node.KeepPersistentVolumeClaims = value
+	}
+	if value, ok := _c.mutation.DeleteClusterScopedResources(); ok {
+		_spec.SetField(applicationreleaseoperation.FieldDeleteClusterScopedResources, field.TypeBool, value)
+		_node.DeleteClusterScopedResources = value
 	}
 	if value, ok := _c.mutation.LeaseOwner(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldLeaseOwner, field.TypeString, value)

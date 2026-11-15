@@ -34,12 +34,14 @@ const (
 type Registry struct {
 	registries repository.RegistryRepo
 	images     repository.ImageRegistryRepo
+	apps       repository.ApplicationRepo
+	syncs      repository.ImageSyncRepo
 	access     access.Checker
 	log        *slog.Logger
 }
 
-func NewRegistry(registries repository.RegistryRepo, images repository.ImageRegistryRepo, checker access.Checker, logger *slog.Logger) *Registry {
-	return &Registry{registries: registries, images: images, access: checker, log: logger}
+func NewRegistry(registries repository.RegistryRepo, images repository.ImageRegistryRepo, apps repository.ApplicationRepo, syncs repository.ImageSyncRepo, checker access.Checker, logger *slog.Logger) *Registry {
+	return &Registry{registries: registries, images: images, apps: apps, syncs: syncs, access: checker, log: logger}
 }
 
 func (registry *Registry) Create(ctx context.Context, in bo.Registry, password string) (*bo.Registry, error) {
@@ -72,6 +74,16 @@ func (registry *Registry) Delete(ctx context.Context, uid string) error {
 	ns, err := registry.access.Allow(ctx, perm.RegistryDelete)
 	if err != nil {
 		return err
+	}
+	if active, err := registry.syncs.HasActiveForRegistry(ctx, ns, uid); err != nil {
+		return registry.access.Wrap(err)
+	} else if active {
+		return merr.Conflict("registry has active image sync jobs")
+	}
+	if referenced, err := registry.apps.HasImageReferencesForRegistry(ctx, ns, uid); err != nil {
+		return registry.access.Wrap(err)
+	} else if referenced {
+		return merr.Conflict("registry is referenced by application versions")
 	}
 	return registry.access.Wrap(registry.registries.DeleteRegistry(ctx, ns, uid))
 }

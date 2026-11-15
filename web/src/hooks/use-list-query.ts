@@ -18,6 +18,7 @@ export function useListQuery() {
   const reviewStatus = params.get("reviewStatus") || ""
   // 大盘按状态筛选；其他列表页不使用这个键，保留在 URL 里也无副作用。
   const status = params.get("status") || ""
+  const clusterUid = params.get("clusterUid") || ""
 
   function update(next: {
     page?: number
@@ -26,6 +27,7 @@ export function useListQuery() {
     app?: string
     reviewStatus?: string
     status?: string
+    clusterUid?: string
   }) {
     const query = new URLSearchParams(params)
     if (next.page !== undefined) {
@@ -71,9 +73,17 @@ export function useListQuery() {
       }
       query.set("page", "1")
     }
+    if (next.clusterUid !== undefined) {
+      if (next.clusterUid) {
+        query.set("clusterUid", next.clusterUid)
+      } else {
+        query.delete("clusterUid")
+      }
+      query.set("page", "1")
+    }
     query.set("pageSize", String(pageSize))
     setParams(query)
   }
 
-  return { page, pageSize, name, type, app, reviewStatus, status, update }
+  return { page, pageSize, name, type, app, reviewStatus, status, clusterUid, update }
 }

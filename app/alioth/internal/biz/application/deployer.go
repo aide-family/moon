@@ -126,6 +126,9 @@ func (deployer *Deployer) Create(ctx context.Context, applicationUID, versionUID
 		}
 		clusters = append(clusters, bo.DeploymentCluster{UID: cluster.UID, Name: cluster.Name, Status: "PENDING"})
 	}
+	if err := validateDeployValues(values, version); err != nil {
+		return nil, err
+	}
 	if err := deployer.preflight(ctx, ns, clusters, targetNamespace, version); err != nil {
 		return nil, err
 	}
@@ -149,7 +152,7 @@ func (deployer *Deployer) Create(ctx context.Context, applicationUID, versionUID
 		operations = append(operations, bo.ApplicationOperation{
 			NamespaceUID: ns, BatchUID: batchUID, ClusterUID: cluster.UID, ClusterName: cluster.Name,
 			Action: "INSTALL", Status: "PENDING", ToVersionUID: version.UID,
-			Values: values, OperatorUID: operator, OperatorName: operator,
+			Values: values, OperatorUID: operator, OperatorName: operator, KeepPVC: true,
 		})
 	}
 	item, err := deployer.releases.CreateDeployment(ctx, deployment, releases, operations)
@@ -171,6 +174,9 @@ func (deployer *Deployer) Upgrade(ctx context.Context, uid, versionUID string, c
 	}
 	if version.Status != "PUBLISHED" {
 		return nil, merr.Conflict("only a published version can be upgraded to")
+	}
+	if err := validateDeployValues(values, version); err != nil {
+		return nil, err
 	}
 	return deployer.createOperations(ctx, deployment, version, clusterUIDs, values, "UPGRADE")
 }
@@ -207,10 +213,15 @@ func (deployer *Deployer) Redeploy(ctx context.Context, uid string, clusterUIDs 
 	return deployer.createOperations(ctx, deployment, version, clusterUIDs, deployment.Values, "REDEPLOY")
 }
 
-func (deployer *Deployer) Uninstall(ctx context.Context, uid string, clusterUIDs []string) (*bo.ApplicationDeployment, error) {
+func (deployer *Deployer) Uninstall(ctx context.Context, uid string, clusterUIDs []string, keepPVC, deleteClusterScoped bool) (*bo.ApplicationDeployment, error) {
 	ns, err := deployer.access.Allow(ctx, perm.ReleaseDelete)
 	if err != nil {
 		return nil, err
+	}
+	if deleteClusterScoped {
+		if err := deployer.access.Require(ctx, perm.ReleaseCluster); err != nil {
+			return nil, merr.Forbidden("deleting cluster-scoped resources requires release:cluster")
+		}
 	}
 	deployment, err := deployer.releases.GetDeployment(ctx, ns, uid)
 	if err != nil {
@@ -235,6 +246,7 @@ func (deployer *Deployer) Uninstall(ctx context.Context, uid string, clusterUIDs
 			BatchUID: batchUID, ClusterName: release.ClusterName, Action: "UNINSTALL",
 			Status: "PENDING", FromVersionUID: release.VersionUID, ToVersionUID: release.VersionUID,
 			Values: release.Values, OperatorUID: operator, OperatorName: operator,
+			KeepPVC: keepPVC, DeleteClusterScoped: deleteClusterScoped,
 		}); err != nil {
 			return nil, deployer.access.Wrap(err)
 		}
@@ -251,6 +263,13 @@ func (deployer *Deployer) createOperations(ctx context.Context, deployment *bo.A
 	if len(selected) == 0 {
 		return nil, merr.Invalid("no active cluster release selected")
 	}
+	clusters := make([]bo.DeploymentCluster, 0, len(selected))
+	for _, release := range selected {
+		clusters = append(clusters, bo.DeploymentCluster{UID: release.ClusterUID, Name: release.ClusterName})
+	}
+	if err := deployer.preflight(ctx, deployment.NamespaceUID, clusters, deployment.TargetNamespace, version); err != nil {
+		return nil, err
+	}
 	batchUID := id.New()
 	operator, _ := actor.UserID(ctx)
 	for _, release := range selected {
@@ -265,7 +284,7 @@ func (deployer *Deployer) createOperations(ctx context.Context, deployment *bo.A
 			NamespaceUID: deployment.NamespaceUID, DeploymentUID: deployment.UID, ReleaseUID: release.UID,
 			BatchUID: batchUID, ClusterName: release.ClusterName, Action: action,
 			Status: "PENDING", FromVersionUID: release.VersionUID, ToVersionUID: version.UID,
-			Values: values, OperatorUID: operator, OperatorName: operator,
+			Values: values, OperatorUID: operator, OperatorName: operator, KeepPVC: true,
 		}); err != nil {
 			return nil, deployer.access.Wrap(err)
 		}
@@ -319,6 +338,24 @@ func (deployer *Deployer) preflight(ctx context.Context, namespaceUID string, cl
 		}
 		if image.Digest != "" && digest != "" && image.Digest != digest {
 			return merr.Conflict("image digest changed since the version was published")
+		}
+	}
+	return nil
+}
+
+func validateDeployValues(values bo.ApplicationDeployValues, version *bo.ApplicationVersion) error {
+	workloads := map[string]string{}
+	for _, resource := range version.Resources {
+		if resource.Kind == "Deployment" || resource.Kind == "StatefulSet" {
+			workloads[resource.Item] = resource.Kind
+		}
+	}
+	for item, replicas := range values.Replicas {
+		if replicas < 0 || replicas > 100 {
+			return merr.Invalid("replicas must be between 0 and 100")
+		}
+		if _, ok := workloads[item]; !ok {
+			return merr.Invalid("replicas can only be overridden for Deployment or StatefulSet")
 		}
 	}
 	return nil

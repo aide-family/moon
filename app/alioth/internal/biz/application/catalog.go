@@ -26,14 +26,15 @@ const (
 // Catalog 管理应用与发布包版本：解析任意资源、解析镜像、发布校验。
 type Catalog struct {
 	apps       repository.ApplicationRepo
+	releases   repository.ApplicationReleaseRepo
 	registries repository.RegistryRepo
 	images     repository.ImageRegistryRepo
 	access     access.Checker
 	log        *slog.Logger
 }
 
-func NewCatalog(apps repository.ApplicationRepo, registries repository.RegistryRepo, images repository.ImageRegistryRepo, checker access.Checker, logger *slog.Logger) *Catalog {
-	return &Catalog{apps: apps, registries: registries, images: images, access: checker, log: logger}
+func NewCatalog(apps repository.ApplicationRepo, releases repository.ApplicationReleaseRepo, registries repository.RegistryRepo, images repository.ImageRegistryRepo, checker access.Checker, logger *slog.Logger) *Catalog {
+	return &Catalog{apps: apps, releases: releases, registries: registries, images: images, access: checker, log: logger}
 }
 
 func (catalog *Catalog) CreateApplication(ctx context.Context, in bo.Application) (*bo.Application, error) {
@@ -67,11 +68,16 @@ func (catalog *Catalog) DeleteApplication(ctx context.Context, uid string) error
 	if err != nil {
 		return err
 	}
-	app, err := catalog.apps.GetApplication(ctx, ns, uid)
-	if err != nil {
+	if published, err := catalog.apps.HasNonDraftVersions(ctx, ns, uid); err != nil {
 		return catalog.access.Wrap(err)
+	} else if published {
+		return merr.Conflict("application has published versions")
 	}
-	_ = app
+	if active, err := catalog.releases.HasActiveDeploymentsForApplication(ctx, ns, uid); err != nil {
+		return catalog.access.Wrap(err)
+	} else if active {
+		return merr.Conflict("application has active deployments")
+	}
 	return catalog.access.Wrap(catalog.apps.DeleteApplication(ctx, ns, uid))
 }
 
@@ -165,6 +171,11 @@ func (catalog *Catalog) DeleteVersion(ctx context.Context, applicationUID, uid s
 	ns, err := catalog.access.Allow(ctx, perm.ApplicationWrite)
 	if err != nil {
 		return err
+	}
+	if active, err := catalog.releases.HasDeploymentsForVersion(ctx, ns, uid); err != nil {
+		return catalog.access.Wrap(err)
+	} else if active {
+		return merr.Conflict("version is referenced by active deployments")
 	}
 	return catalog.access.Wrap(catalog.apps.DeleteVersion(ctx, ns, applicationUID, uid))
 }

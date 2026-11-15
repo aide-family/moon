@@ -436,3 +436,70 @@ func toApplication(row *ent.Application) bo.Application {
 		Category: string(row.Category), Description: row.Description, Readme: row.Readme, CreatedAt: row.CreatedAt,
 	}
 }
+
+func (r *applicationRepo) HasNonDraftVersions(ctx context.Context, namespaceUID, applicationUID string) (bool, error) {
+	ok, err := r.client.ApplicationVersion.Query().Where(
+		applicationversion.NamespaceUIDEQ(namespaceUID),
+		applicationversion.ApplicationUIDEQ(applicationUID),
+		applicationversion.DeletedAtIsNil(),
+		applicationversion.StatusIn(applicationversion.StatusPUBLISHED, applicationversion.StatusDEPRECATED),
+	).Exist(ctx)
+	if err != nil {
+		return false, r.fail(err)
+	}
+	return ok, nil
+}
+
+func (r *applicationRepo) FindImageReferences(ctx context.Context, namespaceUID, registryUID, repository, tag string) ([]bo.ApplicationImageReference, error) {
+	images, err := r.client.ApplicationVersionImage.Query().Where(
+		applicationversionimage.NamespaceUIDEQ(namespaceUID),
+		applicationversionimage.RegistryUIDEQ(registryUID),
+		applicationversionimage.RepositoryEQ(repository),
+		applicationversionimage.TagEQ(tag),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	seen := map[string]struct{}{}
+	items := make([]bo.ApplicationImageReference, 0)
+	for _, image := range images {
+		version, err := r.client.ApplicationVersion.Query().Where(
+			applicationversion.UIDEQ(image.VersionUID), applicationversion.DeletedAtIsNil(),
+		).Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				continue
+			}
+			return nil, r.fail(err)
+		}
+		if _, ok := seen[version.UID]; ok {
+			continue
+		}
+		seen[version.UID] = struct{}{}
+		app, err := r.client.Application.Query().Where(
+			application.UIDEQ(version.ApplicationUID), application.DeletedAtIsNil(),
+		).Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				continue
+			}
+			return nil, r.fail(err)
+		}
+		items = append(items, bo.ApplicationImageReference{
+			ApplicationUID: app.UID, ApplicationName: app.Name,
+			VersionUID: version.UID, Version: version.Version, Status: string(version.Status),
+		})
+	}
+	return items, nil
+}
+
+func (r *applicationRepo) HasImageReferencesForRegistry(ctx context.Context, namespaceUID, registryUID string) (bool, error) {
+	ok, err := r.client.ApplicationVersionImage.Query().Where(
+		applicationversionimage.NamespaceUIDEQ(namespaceUID),
+		applicationversionimage.RegistryUIDEQ(registryUID),
+	).Exist(ctx)
+	if err != nil {
+		return false, r.fail(err)
+	}
+	return ok, nil
+}

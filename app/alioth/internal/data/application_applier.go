@@ -84,6 +84,10 @@ func (applier *applicationApplier) Preflight(ctx context.Context, clusterUID, na
 			break
 		}
 	}
+	client, err := applier.clients.dynamicClient(ctx, clusterUID)
+	if err != nil {
+		return nil, err
+	}
 	refs := make([]bo.ResourceRef, 0, len(resources))
 	for _, resource := range resources {
 		mapping, err := applier.mapping(mapper, resource.APIVersion, resource.Kind)
@@ -103,6 +107,11 @@ func (applier *applicationApplier) Preflight(ctx context.Context, clusterUID, na
 			ref.Namespace = namespace
 		} else {
 			ref.Namespace = ""
+		}
+		if resource.Kind != "CustomResourceDefinition" {
+			if err := applier.dryRunOne(ctx, client, mapping, namespace, resource); err != nil {
+				return nil, err
+			}
 		}
 		refs = append(refs, ref)
 	}
@@ -203,6 +212,40 @@ func (applier *applicationApplier) Delete(ctx context.Context, clusterUID, relea
 		if err := target.Delete(ctx, ref.Name, metav1.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
 			return appKubeError(err)
 		}
+	}
+	return nil
+}
+
+func (applier *applicationApplier) dryRunOne(ctx context.Context, client dynamic.Interface, mapping *meta.RESTMapping, namespace string, resource bo.ApplicationResource) error {
+	var manifest map[string]any
+	if err := yaml.Unmarshal([]byte(resource.Manifest), &manifest); err != nil {
+		return merr.Invalid("invalid resource yaml")
+	}
+	metadata, _ := manifest["metadata"].(map[string]any)
+	if metadata == nil {
+		metadata = map[string]any{}
+		manifest["metadata"] = metadata
+	}
+	if mapping.Scope.Name() == "namespace" {
+		metadata["namespace"] = namespace
+	} else {
+		delete(metadata, "namespace")
+	}
+	body, err := json.Marshal(manifest)
+	if err != nil {
+		return merr.Invalid("invalid resource")
+	}
+	resourceClient := client.Resource(mapping.Resource)
+	var target dynamic.ResourceInterface = resourceClient
+	if mapping.Scope.Name() == "namespace" {
+		target = resourceClient.Namespace(namespace)
+	}
+	force := true
+	_, err = target.Patch(ctx, resource.Name, types.ApplyPatchType, body, metav1.PatchOptions{
+		FieldManager: appStoreFieldManager, Force: &force, DryRun: []string{"All"},
+	})
+	if err != nil {
+		return appKubeError(err)
 	}
 	return nil
 }

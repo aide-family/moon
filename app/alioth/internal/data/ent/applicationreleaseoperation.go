@@ -55,6 +55,10 @@ type ApplicationReleaseOperation struct {
 	OperatorUID string `json:"operator_uid,omitempty"`
 	// OperatorName holds the value of the "operator_name" field.
 	OperatorName string `json:"operator_name,omitempty"`
+	// KeepPersistentVolumeClaims holds the value of the "keep_persistent_volume_claims" field.
+	KeepPersistentVolumeClaims bool `json:"keep_persistent_volume_claims,omitempty"`
+	// DeleteClusterScopedResources holds the value of the "delete_cluster_scoped_resources" field.
+	DeleteClusterScopedResources bool `json:"delete_cluster_scoped_resources,omitempty"`
 	// LeaseOwner holds the value of the "lease_owner" field.
 	LeaseOwner string `json:"lease_owner,omitempty"`
 	// LeaseUntil holds the value of the "lease_until" field.
@@ -71,6 +75,8 @@ func (*ApplicationReleaseOperation) scanValues(columns []string) ([]any, error) 
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case applicationreleaseoperation.FieldKeepPersistentVolumeClaims, applicationreleaseoperation.FieldDeleteClusterScopedResources:
+			values[i] = new(sql.NullBool)
 		case applicationreleaseoperation.FieldID:
 			values[i] = new(sql.NullInt64)
 		case applicationreleaseoperation.FieldUID, applicationreleaseoperation.FieldNamespaceUID, applicationreleaseoperation.FieldDeploymentUID, applicationreleaseoperation.FieldReleaseUID, applicationreleaseoperation.FieldClusterName, applicationreleaseoperation.FieldBatchUID, applicationreleaseoperation.FieldAction, applicationreleaseoperation.FieldStatus, applicationreleaseoperation.FieldFromVersionUID, applicationreleaseoperation.FieldToVersionUID, applicationreleaseoperation.FieldValues, applicationreleaseoperation.FieldSecretValuesCipher, applicationreleaseoperation.FieldResources, applicationreleaseoperation.FieldDiff, applicationreleaseoperation.FieldMessage, applicationreleaseoperation.FieldOperatorUID, applicationreleaseoperation.FieldOperatorName, applicationreleaseoperation.FieldLeaseOwner:
@@ -212,6 +218,18 @@ func (_m *ApplicationReleaseOperation) assignValues(columns []string, values []a
 			} else if value.Valid {
 				_m.OperatorName = value.String
 			}
+		case applicationreleaseoperation.FieldKeepPersistentVolumeClaims:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field keep_persistent_volume_claims", values[i])
+			} else if value.Valid {
+				_m.KeepPersistentVolumeClaims = value.Bool
+			}
+		case applicationreleaseoperation.FieldDeleteClusterScopedResources:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field delete_cluster_scoped_resources", values[i])
+			} else if value.Valid {
+				_m.DeleteClusterScopedResources = value.Bool
+			}
 		case applicationreleaseoperation.FieldLeaseOwner:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field lease_owner", values[i])
@@ -330,6 +348,12 @@ func (_m *ApplicationReleaseOperation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("operator_name=")
 	builder.WriteString(_m.OperatorName)
+	builder.WriteString(", ")
+	builder.WriteString("keep_persistent_volume_claims=")
+	builder.WriteString(fmt.Sprintf("%v", _m.KeepPersistentVolumeClaims))
+	builder.WriteString(", ")
+	builder.WriteString("delete_cluster_scoped_resources=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DeleteClusterScopedResources))
 	builder.WriteString(", ")
 	builder.WriteString("lease_owner=")
 	builder.WriteString(_m.LeaseOwner)

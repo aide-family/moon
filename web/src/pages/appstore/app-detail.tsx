@@ -218,6 +218,7 @@ export function ApplicationDetailPage() {
           applicationUid={uid}
           versionUid={deployVersion.uid}
           version={deployVersion.version}
+          hasClusterScoped={deployVersion.resources.some((resource) => resource.clusterScoped)}
           onOpenChange={(open) => { if (!open) setDeployVersion(null) }}
           onCreated={(deployment) => {
             setDeployVersion(null)

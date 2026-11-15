@@ -248,3 +248,18 @@ func (r *imageSyncRepo) sourceCredential(ctx context.Context, uid string) (strin
 	}
 	return plain, nil
 }
+
+func (r *imageSyncRepo) HasActiveForRegistry(ctx context.Context, namespaceUID, registryUID string) (bool, error) {
+	ok, err := r.client.ImageSync.Query().Where(
+		imagesync.NamespaceUIDEQ(namespaceUID),
+		imagesync.StatusIn(imagesync.StatusPENDING, imagesync.StatusRUNNING),
+		imagesync.Or(
+			imagesync.SourceRegistryUIDEQ(registryUID),
+			imagesync.TargetRegistryUIDEQ(registryUID),
+		),
+	).Exist(ctx)
+	if err != nil {
+		return false, r.fail(err)
+	}
+	return ok, nil
+}

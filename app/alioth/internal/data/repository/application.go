@@ -28,6 +28,12 @@ type ApplicationRepo interface {
 	ListVersionImages(ctx context.Context, namespaceUID, versionUID string) ([]bo.ApplicationVersionImage, error)
 	// GetVersionSecrets 解密版本里保存的 Secret 值，仅供执行器使用。
 	GetVersionSecrets(ctx context.Context, namespaceUID, versionUID string) (map[string]string, error)
+	// HasNonDraftVersions 判断应用是否有已发布/已下架版本（删除应用时保护）。
+	HasNonDraftVersions(ctx context.Context, namespaceUID, applicationUID string) (bool, error)
+	// FindImageReferences 查询引用指定镜像的所有发布包版本。
+	FindImageReferences(ctx context.Context, namespaceUID, registryUID, repository, tag string) ([]bo.ApplicationImageReference, error)
+	// HasImageReferencesForRegistry 判断是否有任何版本镜像引用该仓库连接。
+	HasImageReferencesForRegistry(ctx context.Context, namespaceUID, registryUID string) (bool, error)
 }
 
 // ApplicationApplier 把发布包资源应用到目标集群。
@@ -61,4 +67,8 @@ type ApplicationReleaseRepo interface {
 	HasActiveOperation(ctx context.Context, releaseUID string) (bool, error)
 	// LastSuccessfulOperation 返回实例最近一次成功的操作，用于升级裁剪。
 	LastSuccessfulOperation(ctx context.Context, releaseUID string) (*bo.ApplicationOperation, error)
+	// HasActiveDeploymentsForApplication 判断应用是否有未卸载的部署组。
+	HasActiveDeploymentsForApplication(ctx context.Context, namespaceUID, applicationUID string) (bool, error)
+	// HasDeploymentsForVersion 判断版本是否仍被未卸载的集群实例引用。
+	HasDeploymentsForVersion(ctx context.Context, namespaceUID, versionUID string) (bool, error)
 }

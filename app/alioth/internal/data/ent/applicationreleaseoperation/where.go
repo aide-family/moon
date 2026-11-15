@@ -139,6 +139,16 @@ func OperatorName(v string) predicate.ApplicationReleaseOperation {
 	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldOperatorName, v))
 }
 
+// KeepPersistentVolumeClaims applies equality check predicate on the "keep_persistent_volume_claims" field. It's identical to KeepPersistentVolumeClaimsEQ.
+func KeepPersistentVolumeClaims(v bool) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldKeepPersistentVolumeClaims, v))
+}
+
+// DeleteClusterScopedResources applies equality check predicate on the "delete_cluster_scoped_resources" field. It's identical to DeleteClusterScopedResourcesEQ.
+func DeleteClusterScopedResources(v bool) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldDeleteClusterScopedResources, v))
+}
+
 // LeaseOwner applies equality check predicate on the "lease_owner" field. It's identical to LeaseOwnerEQ.
 func LeaseOwner(v string) predicate.ApplicationReleaseOperation {
 	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldLeaseOwner, v))
@@ -1252,6 +1262,26 @@ func OperatorNameEqualFold(v string) predicate.ApplicationReleaseOperation {
 // OperatorNameContainsFold applies the ContainsFold predicate on the "operator_name" field.
 func OperatorNameContainsFold(v string) predicate.ApplicationReleaseOperation {
 	return predicate.ApplicationReleaseOperation(sql.FieldContainsFold(FieldOperatorName, v))
+}
+
+// KeepPersistentVolumeClaimsEQ applies the EQ predicate on the "keep_persistent_volume_claims" field.
+func KeepPersistentVolumeClaimsEQ(v bool) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldKeepPersistentVolumeClaims, v))
+}
+
+// KeepPersistentVolumeClaimsNEQ applies the NEQ predicate on the "keep_persistent_volume_claims" field.
+func KeepPersistentVolumeClaimsNEQ(v bool) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldNEQ(FieldKeepPersistentVolumeClaims, v))
+}
+
+// DeleteClusterScopedResourcesEQ applies the EQ predicate on the "delete_cluster_scoped_resources" field.
+func DeleteClusterScopedResourcesEQ(v bool) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldDeleteClusterScopedResources, v))
+}
+
+// DeleteClusterScopedResourcesNEQ applies the NEQ predicate on the "delete_cluster_scoped_resources" field.
+func DeleteClusterScopedResourcesNEQ(v bool) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldNEQ(FieldDeleteClusterScopedResources, v))
 }
 
 // LeaseOwnerEQ applies the EQ predicate on the "lease_owner" field.

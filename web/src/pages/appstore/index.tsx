@@ -1,14 +1,16 @@
 import { Search } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom"
 
 import { listApplications, listApplicationDeployments } from "@/api/application"
+import { listClusters } from "@/api/cluster"
 import type {
   ApplicationDeploymentItem,
   ApplicationItem,
   DeploymentStatus,
 } from "@/api/application/types"
+import type { ClusterItem } from "@/api/cluster/types"
 import { useSession } from "@/auth/session"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
@@ -152,11 +154,23 @@ function DeploymentsView({ navigate }: { navigate: (path: string) => void }) {
   const session = useSession()
   const query = useListQuery()
   const status = STATUSES.includes(query.status as DeploymentStatus) ? (query.status as DeploymentStatus) : ""
+  const [clusters, setClusters] = useState<ClusterItem[]>([])
+  useEffect(() => {
+    let active = true
+    void listClusters({ page: 1, pageSize: 100 })
+      .then((result) => {
+        if (active) setClusters(result.items)
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [])
   const { items, total, loading, failed, error, reload } = usePagedList<ApplicationDeploymentItem>({
     page: query.page,
     pageSize: query.pageSize,
-    filterKey: `${session.namespaceUid}|${query.name}|${status}`,
-    fetch: (page, pageSize) => listApplicationDeployments({ page, pageSize, name: query.name, status }),
+    filterKey: `${session.namespaceUid}|${query.name}|${status}|${query.clusterUid}`,
+    fetch: (page, pageSize) => listApplicationDeployments({ page, pageSize, name: query.name, status, clusterUid: query.clusterUid }),
   })
   return (
     <>
@@ -170,6 +184,13 @@ function DeploymentsView({ navigate }: { navigate: (path: string) => void }) {
           <SelectContent>
             <SelectItem value={ALL}>{t("appStore.allStatuses")}</SelectItem>
             {STATUSES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={query.clusterUid || ALL} onValueChange={(value) => query.update({ clusterUid: value === ALL ? "" : value })}>
+          <SelectTrigger className="w-44"><SelectValue>{clusters.find((item) => item.uid === query.clusterUid)?.name || t("appStore.allClusters")}</SelectValue></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{t("appStore.allClusters")}</SelectItem>
+            {clusters.map((item) => <SelectItem key={item.uid} value={item.uid}>{item.name}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>

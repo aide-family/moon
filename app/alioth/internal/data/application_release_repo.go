@@ -93,7 +93,8 @@ func (r *applicationReleaseRepo) CreateDeployment(ctx context.Context, deploymen
 			SetBatchUID(operation.BatchUID).SetAction(applicationreleaseoperation.Action(operation.Action)).
 			SetStatus(applicationreleaseoperation.StatusPENDING).SetToVersionUID(operation.ToVersionUID).
 			SetValues(string(opValues)).SetSecretValuesCipher(opCipher).SetResources(string(opResources)).
-			SetDiff(string(opDiff)).SetOperatorUID(operation.OperatorUID).SetOperatorName(operation.OperatorName).Save(ctx); err != nil {
+			SetDiff(string(opDiff)).SetOperatorUID(operation.OperatorUID).SetOperatorName(operation.OperatorName).
+			SetKeepPersistentVolumeClaims(operation.KeepPVC).SetDeleteClusterScopedResources(operation.DeleteClusterScoped).Save(ctx); err != nil {
 			return nil, r.fail(err)
 		}
 	}
@@ -133,6 +134,20 @@ func (r *applicationReleaseRepo) ListDeployments(ctx context.Context, namespaceU
 	}
 	if filter.ApplicationUID != "" {
 		query.Where(applicationdeployment.ApplicationUIDEQ(filter.ApplicationUID))
+	}
+	if filter.ClusterUID != "" {
+		uids, err := r.client.ApplicationRelease.Query().Where(
+			applicationrelease.NamespaceUIDEQ(namespaceUID),
+			applicationrelease.ClusterUIDEQ(filter.ClusterUID),
+			applicationrelease.DeletedAtIsNil(),
+		).Select(applicationrelease.FieldDeploymentUID).Strings(ctx)
+		if err != nil {
+			return nil, 0, r.fail(err)
+		}
+		if len(uids) == 0 {
+			return []bo.ApplicationDeployment{}, 0, nil
+		}
+		query.Where(applicationdeployment.UIDIn(uids...))
 	}
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -215,7 +230,8 @@ func (r *applicationReleaseRepo) CreateOperation(ctx context.Context, in bo.Appl
 		SetFromVersionUID(in.FromVersionUID).SetToVersionUID(in.ToVersionUID).
 		SetValues(string(values)).SetSecretValuesCipher(cipher).SetResources(string(resources)).
 		SetDiff(string(diff)).SetMessage(in.Message).SetOperatorUID(in.OperatorUID).
-		SetOperatorName(in.OperatorName).Save(ctx)
+		SetOperatorName(in.OperatorName).SetKeepPersistentVolumeClaims(in.KeepPVC).
+		SetDeleteClusterScopedResources(in.DeleteClusterScoped).Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
@@ -411,10 +427,37 @@ func toOperation(row *ent.ApplicationReleaseOperation) bo.ApplicationOperation {
 		Action: string(row.Action), Status: string(row.Status),
 		FromVersionUID: row.FromVersionUID, ToVersionUID: row.ToVersionUID,
 		Message: row.Message, OperatorUID: row.OperatorUID, OperatorName: row.OperatorName,
+		KeepPVC: row.KeepPersistentVolumeClaims, DeleteClusterScoped: row.DeleteClusterScopedResources,
 		LeaseOwner: row.LeaseOwner, LeaseUntil: row.LeaseUntil, StartedAt: row.StartedAt,
 		FinishedAt: row.FinishedAt, CreatedAt: row.CreatedAt, Values: readValues(row.Values),
 	}
 	_ = json.Unmarshal([]byte(row.Resources), &item.Resources)
 	_ = json.Unmarshal([]byte(row.Diff), &item.Diff)
 	return item
+}
+
+func (r *applicationReleaseRepo) HasActiveDeploymentsForApplication(ctx context.Context, namespaceUID, applicationUID string) (bool, error) {
+	ok, err := r.client.ApplicationDeployment.Query().Where(
+		applicationdeployment.NamespaceUIDEQ(namespaceUID),
+		applicationdeployment.ApplicationUIDEQ(applicationUID),
+		applicationdeployment.DeletedAtIsNil(),
+		applicationdeployment.StatusNEQ(applicationdeployment.StatusUNINSTALLED),
+	).Exist(ctx)
+	if err != nil {
+		return false, r.fail(err)
+	}
+	return ok, nil
+}
+
+func (r *applicationReleaseRepo) HasDeploymentsForVersion(ctx context.Context, namespaceUID, versionUID string) (bool, error) {
+	ok, err := r.client.ApplicationRelease.Query().Where(
+		applicationrelease.NamespaceUIDEQ(namespaceUID),
+		applicationrelease.VersionUIDEQ(versionUID),
+		applicationrelease.DeletedAtIsNil(),
+		applicationrelease.StatusNEQ(applicationrelease.StatusUNINSTALLED),
+	).Exist(ctx)
+	if err != nil {
+		return false, r.fail(err)
+	}
+	return ok, nil
 }

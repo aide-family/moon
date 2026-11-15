@@ -841,6 +841,8 @@ var (
 		{Name: "message", Type: field.TypeString, Default: ""},
 		{Name: "operator_uid", Type: field.TypeString, Default: ""},
 		{Name: "operator_name", Type: field.TypeString, Default: ""},
+		{Name: "keep_persistent_volume_claims", Type: field.TypeBool, Default: true},
+		{Name: "delete_cluster_scoped_resources", Type: field.TypeBool, Default: false},
 		{Name: "lease_owner", Type: field.TypeString, Default: ""},
 		{Name: "lease_until", Type: field.TypeTime, Nullable: true},
 		{Name: "started_at", Type: field.TypeTime, Nullable: true},
@@ -878,7 +880,7 @@ var (
 			{
 				Name:    "applicationreleaseoperation_status_lease_until",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[10], ApplicationReleaseOperationsColumns[21]},
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[10], ApplicationReleaseOperationsColumns[23]},
 			},
 		},
 	}

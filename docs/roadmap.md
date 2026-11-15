@@ -37,6 +37,7 @@
 - [M31 Kubernetes 控制台概况聚合与资源详情](iterations/m31-k8s-console-overview-details.md)
 - [M32 Grafana 大盘](iterations/m32-grafana-boards.md)
 - [M33 官网公开站与值班个人视图](iterations/m33-official-site-and-oncall-personal-view.md)
+- [M35–M37 私有云：镜像仓库与应用商店](iterations/m35-m37-private-cloud.md)
 
 端口以设计文档第 2.1 节为准：
 
@@ -479,6 +480,14 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台
 依赖：M1、M19、M21、M22。
 
 交付与验收细则见 [iterations/m32-grafana-boards.md](iterations/m32-grafana-boards.md)。
+
+## M35–M37 私有云
+
+目标：在「私有云」菜单下提供镜像仓库、应用商店与多集群部署；镜像仓库支持连接、版本/多架构浏览与同步，应用商店把任意 Kubernetes 资源打包成发布包并部署到 1–20 个集群，集群级资源单独授权。
+
+依赖：M1、M14、M19、M22。
+
+交付与验收细则见 [iterations/m35-m37-private-cloud.md](iterations/m35-m37-private-cloud.md)。
 
 ## 完成标准
 

@@ -50,4 +50,6 @@ type ImageSyncRepo interface {
 	UpdateImageSync(ctx context.Context, in bo.ImageSync) error
 	// ClearExpiredCredential 清空终态超过 before 的外部临时凭据。
 	ClearExpiredCredential(ctx context.Context, before time.Time) (int, error)
+	// HasActiveForRegistry 判断是否有进行中的同步任务使用该仓库连接。
+	HasActiveForRegistry(ctx context.Context, namespaceUID, registryUID string) (bool, error)
 }

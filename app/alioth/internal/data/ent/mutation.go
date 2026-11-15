@@ -18404,36 +18404,38 @@ func (m *ApplicationReleaseMutation) ResetEdge(name string) error {
 // ApplicationReleaseOperationMutation represents an operation that mutates the ApplicationReleaseOperation nodes in the graph.
 type ApplicationReleaseOperationMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	created_at           *time.Time
-	updated_at           *time.Time
-	uid                  *string
-	namespace_uid        *string
-	deployment_uid       *string
-	release_uid          *string
-	cluster_name         *string
-	batch_uid            *string
-	action               *applicationreleaseoperation.Action
-	status               *applicationreleaseoperation.Status
-	from_version_uid     *string
-	to_version_uid       *string
-	values               *string
-	secret_values_cipher *string
-	resources            *string
-	diff                 *string
-	message              *string
-	operator_uid         *string
-	operator_name        *string
-	lease_owner          *string
-	lease_until          *time.Time
-	started_at           *time.Time
-	finished_at          *time.Time
-	clearedFields        map[string]struct{}
-	done                 bool
-	oldValue             func(context.Context) (*ApplicationReleaseOperation, error)
-	predicates           []predicate.ApplicationReleaseOperation
+	op                              Op
+	typ                             string
+	id                              *int
+	created_at                      *time.Time
+	updated_at                      *time.Time
+	uid                             *string
+	namespace_uid                   *string
+	deployment_uid                  *string
+	release_uid                     *string
+	cluster_name                    *string
+	batch_uid                       *string
+	action                          *applicationreleaseoperation.Action
+	status                          *applicationreleaseoperation.Status
+	from_version_uid                *string
+	to_version_uid                  *string
+	values                          *string
+	secret_values_cipher            *string
+	resources                       *string
+	diff                            *string
+	message                         *string
+	operator_uid                    *string
+	operator_name                   *string
+	keep_persistent_volume_claims   *bool
+	delete_cluster_scoped_resources *bool
+	lease_owner                     *string
+	lease_until                     *time.Time
+	started_at                      *time.Time
+	finished_at                     *time.Time
+	clearedFields                   map[string]struct{}
+	done                            bool
+	oldValue                        func(context.Context) (*ApplicationReleaseOperation, error)
+	predicates                      []predicate.ApplicationReleaseOperation
 }
 
 var _ ent.Mutation = (*ApplicationReleaseOperationMutation)(nil)
@@ -19218,6 +19220,78 @@ func (m *ApplicationReleaseOperationMutation) ResetOperatorName() {
 	m.operator_name = nil
 }
 
+// SetKeepPersistentVolumeClaims sets the "keep_persistent_volume_claims" field.
+func (m *ApplicationReleaseOperationMutation) SetKeepPersistentVolumeClaims(b bool) {
+	m.keep_persistent_volume_claims = &b
+}
+
+// KeepPersistentVolumeClaims returns the value of the "keep_persistent_volume_claims" field in the mutation.
+func (m *ApplicationReleaseOperationMutation) KeepPersistentVolumeClaims() (r bool, exists bool) {
+	v := m.keep_persistent_volume_claims
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKeepPersistentVolumeClaims returns the old "keep_persistent_volume_claims" field's value of the ApplicationReleaseOperation entity.
+// If the ApplicationReleaseOperation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationReleaseOperationMutation) OldKeepPersistentVolumeClaims(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKeepPersistentVolumeClaims is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKeepPersistentVolumeClaims requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKeepPersistentVolumeClaims: %w", err)
+	}
+	return oldValue.KeepPersistentVolumeClaims, nil
+}
+
+// ResetKeepPersistentVolumeClaims resets all changes to the "keep_persistent_volume_claims" field.
+func (m *ApplicationReleaseOperationMutation) ResetKeepPersistentVolumeClaims() {
+	m.keep_persistent_volume_claims = nil
+}
+
+// SetDeleteClusterScopedResources sets the "delete_cluster_scoped_resources" field.
+func (m *ApplicationReleaseOperationMutation) SetDeleteClusterScopedResources(b bool) {
+	m.delete_cluster_scoped_resources = &b
+}
+
+// DeleteClusterScopedResources returns the value of the "delete_cluster_scoped_resources" field in the mutation.
+func (m *ApplicationReleaseOperationMutation) DeleteClusterScopedResources() (r bool, exists bool) {
+	v := m.delete_cluster_scoped_resources
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeleteClusterScopedResources returns the old "delete_cluster_scoped_resources" field's value of the ApplicationReleaseOperation entity.
+// If the ApplicationReleaseOperation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationReleaseOperationMutation) OldDeleteClusterScopedResources(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeleteClusterScopedResources is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeleteClusterScopedResources requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeleteClusterScopedResources: %w", err)
+	}
+	return oldValue.DeleteClusterScopedResources, nil
+}
+
+// ResetDeleteClusterScopedResources resets all changes to the "delete_cluster_scoped_resources" field.
+func (m *ApplicationReleaseOperationMutation) ResetDeleteClusterScopedResources() {
+	m.delete_cluster_scoped_resources = nil
+}
+
 // SetLeaseOwner sets the "lease_owner" field.
 func (m *ApplicationReleaseOperationMutation) SetLeaseOwner(s string) {
 	m.lease_owner = &s
@@ -19435,7 +19509,7 @@ func (m *ApplicationReleaseOperationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationReleaseOperationMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, applicationreleaseoperation.FieldCreatedAt)
 	}
@@ -19492,6 +19566,12 @@ func (m *ApplicationReleaseOperationMutation) Fields() []string {
 	}
 	if m.operator_name != nil {
 		fields = append(fields, applicationreleaseoperation.FieldOperatorName)
+	}
+	if m.keep_persistent_volume_claims != nil {
+		fields = append(fields, applicationreleaseoperation.FieldKeepPersistentVolumeClaims)
+	}
+	if m.delete_cluster_scoped_resources != nil {
+		fields = append(fields, applicationreleaseoperation.FieldDeleteClusterScopedResources)
 	}
 	if m.lease_owner != nil {
 		fields = append(fields, applicationreleaseoperation.FieldLeaseOwner)
@@ -19551,6 +19631,10 @@ func (m *ApplicationReleaseOperationMutation) Field(name string) (ent.Value, boo
 		return m.OperatorUID()
 	case applicationreleaseoperation.FieldOperatorName:
 		return m.OperatorName()
+	case applicationreleaseoperation.FieldKeepPersistentVolumeClaims:
+		return m.KeepPersistentVolumeClaims()
+	case applicationreleaseoperation.FieldDeleteClusterScopedResources:
+		return m.DeleteClusterScopedResources()
 	case applicationreleaseoperation.FieldLeaseOwner:
 		return m.LeaseOwner()
 	case applicationreleaseoperation.FieldLeaseUntil:
@@ -19606,6 +19690,10 @@ func (m *ApplicationReleaseOperationMutation) OldField(ctx context.Context, name
 		return m.OldOperatorUID(ctx)
 	case applicationreleaseoperation.FieldOperatorName:
 		return m.OldOperatorName(ctx)
+	case applicationreleaseoperation.FieldKeepPersistentVolumeClaims:
+		return m.OldKeepPersistentVolumeClaims(ctx)
+	case applicationreleaseoperation.FieldDeleteClusterScopedResources:
+		return m.OldDeleteClusterScopedResources(ctx)
 	case applicationreleaseoperation.FieldLeaseOwner:
 		return m.OldLeaseOwner(ctx)
 	case applicationreleaseoperation.FieldLeaseUntil:
@@ -19755,6 +19843,20 @@ func (m *ApplicationReleaseOperationMutation) SetField(name string, value ent.Va
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOperatorName(v)
+		return nil
+	case applicationreleaseoperation.FieldKeepPersistentVolumeClaims:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKeepPersistentVolumeClaims(v)
+		return nil
+	case applicationreleaseoperation.FieldDeleteClusterScopedResources:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeleteClusterScopedResources(v)
 		return nil
 	case applicationreleaseoperation.FieldLeaseOwner:
 		v, ok := value.(string)
@@ -19910,6 +20012,12 @@ func (m *ApplicationReleaseOperationMutation) ResetField(name string) error {
 		return nil
 	case applicationreleaseoperation.FieldOperatorName:
 		m.ResetOperatorName()
+		return nil
+	case applicationreleaseoperation.FieldKeepPersistentVolumeClaims:
+		m.ResetKeepPersistentVolumeClaims()
+		return nil
+	case applicationreleaseoperation.FieldDeleteClusterScopedResources:
+		m.ResetDeleteClusterScopedResources()
 		return nil
 	case applicationreleaseoperation.FieldLeaseOwner:
 		m.ResetLeaseOwner()

@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"time"
 
+	"sigs.k8s.io/yaml"
+
 	"github.com/aide-family/moon/app/alioth/internal/data/repository"
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/app/alioth/pkg/id"
@@ -57,7 +59,8 @@ func (executor *Executor) execute(ctx context.Context, operation bo.ApplicationO
 		return
 	}
 	secrets, _ := executor.apps.GetVersionSecrets(ctx, operation.NamespaceUID, version.UID)
-	refs, err := executor.applier.Apply(ctx, release.ClusterUID, release.TargetNamespace, deployment.UID, release.UID, release.Name, version.Resources, secrets)
+	resources := applyReplicaOverrides(version.Resources, operation.Values)
+	refs, err := executor.applier.Apply(ctx, release.ClusterUID, release.TargetNamespace, deployment.UID, release.UID, release.Name, resources, secrets)
 	if err != nil {
 		executor.fail(ctx, operation, err)
 		return
@@ -96,7 +99,7 @@ func (executor *Executor) uninstall(ctx context.Context, operation bo.Applicatio
 		return
 	}
 	if previous != nil {
-		if err := executor.applier.Delete(ctx, release.ClusterUID, release.UID, previous.Resources, true, false); err != nil {
+		if err := executor.applier.Delete(ctx, release.ClusterUID, release.UID, previous.Resources, operation.KeepPVC, operation.DeleteClusterScoped); err != nil {
 			executor.fail(ctx, operation, err)
 			return
 		}
@@ -152,6 +155,40 @@ func (executor *Executor) fail(ctx context.Context, operation bo.ApplicationOper
 		_ = executor.releases.UpdateRelease(ctx, *release)
 	}
 	executor.inspector.Recompute(ctx, operation.NamespaceUID, operation.DeploymentUID)
+}
+
+// applyReplicaOverrides 只覆盖标准工作负载的 spec.replicas；其它字段不开放覆盖。
+func applyReplicaOverrides(resources []bo.ApplicationResource, values bo.ApplicationDeployValues) []bo.ApplicationResource {
+	if len(values.Replicas) == 0 {
+		return resources
+	}
+	out := make([]bo.ApplicationResource, 0, len(resources))
+	for _, resource := range resources {
+		replicas, ok := values.Replicas[resource.Item]
+		if !ok || (resource.Kind != "Deployment" && resource.Kind != "StatefulSet") {
+			out = append(out, resource)
+			continue
+		}
+		var manifest map[string]any
+		if err := yaml.Unmarshal([]byte(resource.Manifest), &manifest); err != nil {
+			out = append(out, resource)
+			continue
+		}
+		spec, _ := manifest["spec"].(map[string]any)
+		if spec == nil {
+			spec = map[string]any{}
+			manifest["spec"] = spec
+		}
+		spec["replicas"] = replicas
+		raw, err := yaml.Marshal(manifest)
+		if err != nil {
+			out = append(out, resource)
+			continue
+		}
+		resource.Manifest = string(raw)
+		out = append(out, resource)
+	}
+	return out
 }
 
 func refKey(ref bo.ResourceRef) string {

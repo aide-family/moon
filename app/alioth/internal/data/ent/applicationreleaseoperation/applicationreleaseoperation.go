@@ -52,6 +52,10 @@ const (
 	FieldOperatorUID = "operator_uid"
 	// FieldOperatorName holds the string denoting the operator_name field in the database.
 	FieldOperatorName = "operator_name"
+	// FieldKeepPersistentVolumeClaims holds the string denoting the keep_persistent_volume_claims field in the database.
+	FieldKeepPersistentVolumeClaims = "keep_persistent_volume_claims"
+	// FieldDeleteClusterScopedResources holds the string denoting the delete_cluster_scoped_resources field in the database.
+	FieldDeleteClusterScopedResources = "delete_cluster_scoped_resources"
 	// FieldLeaseOwner holds the string denoting the lease_owner field in the database.
 	FieldLeaseOwner = "lease_owner"
 	// FieldLeaseUntil holds the string denoting the lease_until field in the database.
@@ -86,6 +90,8 @@ var Columns = []string{
 	FieldMessage,
 	FieldOperatorUID,
 	FieldOperatorName,
+	FieldKeepPersistentVolumeClaims,
+	FieldDeleteClusterScopedResources,
 	FieldLeaseOwner,
 	FieldLeaseUntil,
 	FieldStartedAt,
@@ -139,6 +145,10 @@ var (
 	DefaultOperatorUID string
 	// DefaultOperatorName holds the default value on creation for the "operator_name" field.
 	DefaultOperatorName string
+	// DefaultKeepPersistentVolumeClaims holds the default value on creation for the "keep_persistent_volume_claims" field.
+	DefaultKeepPersistentVolumeClaims bool
+	// DefaultDeleteClusterScopedResources holds the default value on creation for the "delete_cluster_scoped_resources" field.
+	DefaultDeleteClusterScopedResources bool
 	// DefaultLeaseOwner holds the default value on creation for the "lease_owner" field.
 	DefaultLeaseOwner string
 )
@@ -302,6 +312,16 @@ func ByOperatorUID(opts ...sql.OrderTermOption) OrderOption {
 // ByOperatorName orders the results by the operator_name field.
 func ByOperatorName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOperatorName, opts...).ToFunc()
+}
+
+// ByKeepPersistentVolumeClaims orders the results by the keep_persistent_volume_claims field.
+func ByKeepPersistentVolumeClaims(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKeepPersistentVolumeClaims, opts...).ToFunc()
+}
+
+// ByDeleteClusterScopedResources orders the results by the delete_cluster_scoped_resources field.
+func ByDeleteClusterScopedResources(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeleteClusterScopedResources, opts...).ToFunc()
 }
 
 // ByLeaseOwner orders the results by the lease_owner field.

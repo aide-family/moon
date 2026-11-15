@@ -18,9 +18,9 @@ import type {
   ApplicationVersionItem,
 } from "@/api/application/types"
 import { useSession } from "@/auth/session"
-import { ConfirmAction } from "@/components/confirm-action"
 import { PageHeader } from "@/components/page-header"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -62,8 +62,11 @@ export function ApplicationDeploymentPage() {
   const [error, setError] = useState("")
   const [actionOpen, setActionOpen] = useState<"upgrade" | "rollback" | null>(null)
   const [selectedVersion, setSelectedVersion] = useState("")
+  const [selectedClusters, setSelectedClusters] = useState<string[]>([])
   const [actionPending, setActionPending] = useState(false)
   const [uninstallOpen, setUninstallOpen] = useState(false)
+  const [keepPVC, setKeepPVC] = useState(true)
+  const [deleteClusterScoped, setDeleteClusterScoped] = useState(false)
 
   async function reload() {
     try {
@@ -118,9 +121,9 @@ export function ApplicationDeploymentPage() {
     setActionPending(true)
     try {
       if (actionOpen === "upgrade") {
-        await upgradeApplicationDeployment(uid, selectedVersion, [])
+        await upgradeApplicationDeployment(uid, selectedVersion, selectedClusters)
       } else {
-        await rollbackApplicationDeployment(uid, selectedVersion, [])
+        await rollbackApplicationDeployment(uid, selectedVersion, selectedClusters)
       }
       setActionOpen(null)
       toast.success(t("appStore.operationSubmitted"))
@@ -132,9 +135,9 @@ export function ApplicationDeploymentPage() {
     }
   }
 
-  async function redeploy() {
+  async function redeploy(clusterUIDs = selectedClusters) {
     try {
-      await redeployApplicationDeployment(uid, [])
+      await redeployApplicationDeployment(uid, clusterUIDs)
       toast.success(t("appStore.operationSubmitted"))
       await reload()
     } catch (err) {
@@ -145,7 +148,7 @@ export function ApplicationDeploymentPage() {
   async function uninstall() {
     setActionPending(true)
     try {
-      await uninstallApplicationDeployment(uid, [], true, false)
+      await uninstallApplicationDeployment(uid, selectedClusters, keepPVC, deleteClusterScoped)
       setUninstallOpen(false)
       toast.success(t("appStore.operationSubmitted"))
       await reload()
@@ -162,7 +165,7 @@ export function ApplicationDeploymentPage() {
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
         title={deployment.name}
-        description={`${deployment.applicationName} ${deployment.version} · ${deployment.targetNamespace} · ${deployment.status}`}
+        description={`${deployment.applicationName} ${deployment.version} · ${deployment.targetNamespace} · ${deployment.status}${selectedClusters.length > 0 ? ` · ${t("appStore.selectedClusters", { count: selectedClusters.length })}` : ""}`}
       >
         <Button variant="outline" onClick={() => navigate("/appstore?tab=deployments")}>{t("action.goBack")}</Button>
         {session.can("release:write") ? <Button variant="outline" onClick={() => void redeploy()}>{t("appStore.redeploy")}</Button> : null}
@@ -174,15 +177,17 @@ export function ApplicationDeploymentPage() {
       <div className="rounded-xl border border-border/60 bg-card">
         <div className="border-b border-border px-4 py-3"><h2 className="font-heading text-base font-semibold">{t("appStore.targetClusters")}</h2></div>
         <Table className={TABLE_MIN_WIDTH.default}>
-          <TableHeader><TableRow><TableHead>{t("appStore.cluster")}</TableHead><TableHead>{t("appStore.status")}</TableHead><TableHead>{t("appStore.version")}</TableHead><TableHead>{t("appStore.targetNamespace")}</TableHead><TableHead>{t("appStore.message")}</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead className="w-10"><Checkbox checked={selectedClusters.length === deployment.clusters.length && deployment.clusters.length > 0} onCheckedChange={(value) => setSelectedClusters(value === true ? deployment.clusters.map((cluster) => cluster.uid) : [])} /></TableHead><TableHead>{t("appStore.cluster")}</TableHead><TableHead>{t("appStore.status")}</TableHead><TableHead>{t("appStore.version")}</TableHead><TableHead>{t("appStore.targetNamespace")}</TableHead><TableHead>{t("appStore.message")}</TableHead><TableHead className="text-right">{t("action.actions")}</TableHead></TableRow></TableHeader>
           <TableBody>
             {deployment.clusters.map((cluster) => (
               <TableRow key={cluster.uid}>
+                <TableCell><Checkbox checked={selectedClusters.includes(cluster.uid)} onCheckedChange={(value) => setSelectedClusters((current) => value === true ? [...current, cluster.uid] : current.filter((uid) => uid !== cluster.uid))} /></TableCell>
                 <TableCell>{cluster.name}</TableCell>
                 <TableCell><Badge variant={cluster.status === "RUNNING" ? "secondary" : cluster.status === "FAILED" ? "destructive" : "outline"}>{cluster.status}</Badge></TableCell>
                 <TableCell className="font-mono text-xs">{cluster.version || "—"}</TableCell>
                 <TableCell className="font-mono text-xs">{deployment.targetNamespace}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{cluster.message || "—"}</TableCell>
+                <TableCell className="text-right"><Button variant="link" size="sm" disabled={actionPending || cluster.status === "UNINSTALLED"} onClick={() => void redeploy([cluster.uid])}>{t("appStore.retryCluster")}</Button></TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -223,16 +228,28 @@ export function ApplicationDeploymentPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <ConfirmAction
-        open={uninstallOpen}
-        title={t("appStore.uninstallTitle")}
-        description={t("appStore.uninstallDescription")}
-        confirmLabel={t("appStore.uninstall")}
-        cancelLabel={t("action.cancel")}
-        pending={actionPending}
-        onOpenChange={setUninstallOpen}
-        onConfirm={() => void uninstall()}
-      />
+      <Dialog open={uninstallOpen} onOpenChange={setUninstallOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>{t("appStore.uninstallTitle")}</DialogTitle></DialogHeader>
+          <DialogBody className="grid gap-3 text-sm">
+            <p className="text-muted-foreground">{t("appStore.uninstallDescription")}</p>
+            <p className="text-xs text-muted-foreground">{selectedClusters.length === 0 ? t("appStore.allClustersHint") : t("appStore.selectedClusters", { count: selectedClusters.length })}</p>
+            <label className="flex items-center gap-3 rounded-md border border-border/60 p-3">
+              <Checkbox checked={keepPVC} onCheckedChange={(value) => setKeepPVC(value === true)} />
+              <span>{t("appStore.keepPVC")}</span>
+            </label>
+            <label className="flex items-center gap-3 rounded-md border border-border/60 p-3">
+              <Checkbox checked={deleteClusterScoped} onCheckedChange={(value) => setDeleteClusterScoped(value === true)} />
+              <span className="grid gap-1"><span>{t("appStore.deleteClusterScoped")}</span><span className="text-xs text-muted-foreground">{t("appStore.deleteClusterScopedHint")}</span></span>
+            </label>
+            {selectedClusters.length > 0 ? <p className="text-xs text-muted-foreground">{t("appStore.selectedClusters", { count: selectedClusters.length })}</p> : null}
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setUninstallOpen(false)}>{t("action.cancel")}</Button>
+            <Button variant="destructive" disabled={actionPending} onClick={() => void uninstall()}>{actionPending ? t("action.saving") : t("appStore.uninstall")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

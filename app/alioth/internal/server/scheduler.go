@@ -180,8 +180,15 @@ func (s *Scheduler) pruneImageSyncs(ctx context.Context) {
 	}
 }
 
-// runApplicationOperations 每 2 秒尝试领取一条应用部署操作。
+// runApplicationOperations 启动两个执行器，每个每 2 秒尝试领取一条操作。
+// 数据库的 SKIP LOCKED 认领保证不同 worker 不会重复执行同一条操作。
 func (s *Scheduler) runApplicationOperations(ctx context.Context) {
+	for worker := 0; worker < 2; worker++ {
+		go s.runApplicationWorker(ctx)
+	}
+}
+
+func (s *Scheduler) runApplicationWorker(ctx context.Context) {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 	for {

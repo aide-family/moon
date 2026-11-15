@@ -17,12 +17,13 @@ import (
 type Explorer struct {
 	registries repository.RegistryRepo
 	images     repository.ImageRegistryRepo
+	apps       repository.ApplicationRepo
 	access     access.Checker
 	log        *slog.Logger
 }
 
-func NewExplorer(registries repository.RegistryRepo, images repository.ImageRegistryRepo, checker access.Checker, logger *slog.Logger) *Explorer {
-	return &Explorer{registries: registries, images: images, access: checker, log: logger}
+func NewExplorer(registries repository.RegistryRepo, images repository.ImageRegistryRepo, apps repository.ApplicationRepo, checker access.Checker, logger *slog.Logger) *Explorer {
+	return &Explorer{registries: registries, images: images, apps: apps, access: checker, log: logger}
 }
 
 func (explorer *Explorer) ListProjects(ctx context.Context, registryUID, name string) ([]bo.RegistryProject, error) {
@@ -104,6 +105,22 @@ func (explorer *Explorer) DeleteTag(ctx context.Context, registryUID, project, r
 	repository, tag = strings.TrimSpace(repository), strings.TrimSpace(tag)
 	if repository == "" || tag == "" {
 		return merr.Invalid("repository and tag are required")
+	}
+	references, err := explorer.apps.FindImageReferences(ctx, ns, registryUID, repository, tag)
+	if err != nil {
+		return explorer.access.Wrap(err)
+	}
+	protected := make([]string, 0)
+	for _, reference := range references {
+		if reference.Status == "PUBLISHED" || reference.Status == "DEPRECATED" {
+			protected = append(protected, reference.ApplicationName+"/"+reference.Version)
+		}
+	}
+	if len(protected) > 0 {
+		return merr.Conflict("tag is referenced by published application versions: " + strings.Join(protected, ", "))
+	}
+	if len(references) > 0 {
+		explorer.log.Warn("delete tag referenced by drafts", "tag", tag, "drafts", len(references))
 	}
 	return explorer.access.Wrap(explorer.images.DeleteTag(ctx, *item, strings.TrimSpace(project), repository, tag, strings.TrimSpace(digest)))
 }

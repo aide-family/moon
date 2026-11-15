@@ -15,14 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { formErrorMessage } from "@/lib/form-error"
 
 interface DeployDialogProps {
@@ -30,15 +24,16 @@ interface DeployDialogProps {
   applicationUid: string
   versionUid: string
   version: string
+  hasClusterScoped?: boolean
   onOpenChange: (open: boolean) => void
   onCreated: (deployment: ApplicationDeploymentItem) => void
 }
 
-/** M36 单集群部署对话框；M37 再扩展为多选。 */
-export function DeployDialog({ open, applicationUid, versionUid, version, onOpenChange, onCreated }: DeployDialogProps) {
+/** 多集群部署对话框：一次创建部署组 + 每集群实例与操作。 */
+export function DeployDialog({ open, applicationUid, versionUid, version, hasClusterScoped, onOpenChange, onCreated }: DeployDialogProps) {
   const { t } = useTranslation()
   const [clusters, setClusters] = useState<ClusterItem[]>([])
-  const [clusterUid, setClusterUid] = useState("")
+  const [selected, setSelected] = useState<string[]>([])
   const [name, setName] = useState("")
   const [namespace, setNamespace] = useState("default")
   const [saving, setSaving] = useState(false)
@@ -51,8 +46,8 @@ export function DeployDialog({ open, applicationUid, versionUid, version, onOpen
       .then((result) => {
         if (!active) return
         setClusters(result.items)
-        if (!clusterUid && result.items[0]) {
-          setClusterUid(result.items[0].uid)
+        if (selected.length === 0 && result.items[0]) {
+          setSelected([result.items[0].uid])
         }
         if (!name) {
           setName(`app-${version.replace(/\./g, "-")}`)
@@ -62,11 +57,11 @@ export function DeployDialog({ open, applicationUid, versionUid, version, onOpen
     return () => {
       active = false
     }
-  }, [open, clusterUid, name, version])
+  }, [open, selected.length, name, version])
 
   async function submit() {
-    if (!clusterUid || !name.trim() || !namespace.trim()) {
-      setError(t("form.required"))
+    if (selected.length === 0 || selected.length > 20 || !name.trim() || !namespace.trim()) {
+      setError(t("appStore.clusterSelectionInvalid"))
       return
     }
     setSaving(true)
@@ -77,7 +72,7 @@ export function DeployDialog({ open, applicationUid, versionUid, version, onOpen
         versionUid,
         name: name.trim(),
         targetNamespace: namespace.trim(),
-        clusterUids: [clusterUid],
+        clusterUids: selected,
       })
       onCreated(result.deployment)
     } catch (err) {
@@ -94,14 +89,25 @@ export function DeployDialog({ open, applicationUid, versionUid, version, onOpen
           <DialogTitle>{t("appStore.deployTitle", { version })}</DialogTitle>
         </DialogHeader>
         <DialogBody className="grid gap-4">
-          <FormField label={t("appStore.targetCluster")} htmlFor="deploy-cluster" required>
-            <Select value={clusterUid} onValueChange={setClusterUid}>
-              <SelectTrigger id="deploy-cluster"><SelectValue placeholder={t("appStore.selectCluster")} /></SelectTrigger>
-              <SelectContent>
-                {clusters.map((cluster) => <SelectItem key={cluster.uid} value={cluster.uid}>{cluster.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <FormField label={t("appStore.targetClusters")} required hint={t("appStore.clusterSelectionHint", { count: selected.length })}>
+            <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-border/60 p-2">
+              {clusters.map((cluster) => {
+                const checked = selected.includes(cluster.uid)
+                return (
+                  <label key={cluster.uid} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted">
+                    <Checkbox checked={checked} onCheckedChange={(value) => setSelected((current) => value === true ? [...current, cluster.uid] : current.filter((uid) => uid !== cluster.uid))} />
+                    <span className="grid min-w-0 flex-1 gap-0.5">
+                      <span className="text-sm font-medium">{cluster.name}</span>
+                      <span className="truncate font-mono text-xs text-muted-foreground">{cluster.server} · {cluster.version || "—"}</span>
+                    </span>
+                  </label>
+                )
+              })}
+              {clusters.length === 0 ? <p className="p-2 text-sm text-muted-foreground">{t("appStore.noClusters")}</p> : null}
+            </div>
           </FormField>
+          <p className="text-xs text-muted-foreground">{t("appStore.multiClusterHint")}</p>
+          {hasClusterScoped ? <p className="rounded-lg border border-warning-border bg-warning-soft p-2 text-xs text-warning">{t("appStore.clusterScopedWarning")}</p> : null}
           <FormField label={t("appStore.deploymentName")} htmlFor="deploy-name" required>
             <Input id="deploy-name" className="font-mono" value={name} onChange={(event) => setName(event.target.value)} />
           </FormField>

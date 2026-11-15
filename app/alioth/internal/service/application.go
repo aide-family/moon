@@ -214,7 +214,7 @@ func (s *ApplicationDeploymentService) RedeployApplicationDeployment(ctx context
 }
 
 func (s *ApplicationDeploymentService) UninstallApplicationDeployment(ctx context.Context, req *v1.UninstallApplicationDeploymentRequest) (*v1.UninstallApplicationDeploymentResponse, error) {
-	item, err := s.deployer.Uninstall(ctx, req.GetUid(), req.GetClusterUids())
+	item, err := s.deployer.Uninstall(ctx, req.GetUid(), req.GetClusterUids(), req.GetKeepPersistentVolumeClaims(), req.GetDeleteClusterScopedResources())
 	if err != nil {
 		return nil, err
 	}
