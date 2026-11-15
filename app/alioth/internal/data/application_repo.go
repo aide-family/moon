@@ -176,6 +176,11 @@ func (r *applicationRepo) UpdateVersion(ctx context.Context, in bo.ApplicationVe
 	if err != nil {
 		return nil, err
 	}
+	// 版本详情不会回读 Secret 值；更新时未携带新值则保留旧密文，
+	// 避免只改其它资源就把已保存的 Secret 清空。
+	if cipher == "" && row.SecretsCipher != "" {
+		cipher = row.SecretsCipher
+	}
 	if _, err := r.client.ApplicationVersion.UpdateOne(row).
 		SetChangelog(in.Changelog).SetSpec(spec).SetSecretsCipher(cipher).SetValidation(validation).Save(ctx); err != nil {
 		return nil, r.fail(err)

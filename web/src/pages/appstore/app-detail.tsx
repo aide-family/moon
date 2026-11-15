@@ -17,6 +17,7 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions } from "@/components/row-actions"
+import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -154,13 +155,15 @@ export function ApplicationDetailPage() {
         <Button variant="outline" onClick={() => navigate("/appstore")}>{t("action.goBack")}</Button>
         {session.can("application:write") ? <Button onClick={() => setVersionDialogOpen(true)}>{t("appStore.newVersion")}</Button> : null}
       </PageHeader>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="grid gap-6 pb-2">
       <ListFrame total={total} page={1} pageSize={100} showPager={false} onPrev={() => undefined} onNext={() => undefined}>
         {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
         {!loading && failed ? <p className="text-sm text-destructive">{error || t("state.failed")}</p> : null}
         {!loading && !failed && items.length === 0 ? <p className="text-sm text-muted-foreground">{t("appStore.emptyVersions")}</p> : null}
         {!loading && !failed && items.length > 0 ? (
           <Table className={TABLE_MIN_WIDTH.default}>
-            <TableHeader><TableRow><TableHead>{t("appStore.version")}</TableHead><TableHead>{t("appStore.status")}</TableHead><TableHead>{t("appStore.resources")}</TableHead><TableHead>{t("appStore.images")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("action.createdAt")}</TableHead><TableHead className="text-right">{t("action.actions")}</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>{t("appStore.version")}</TableHead><TableHead>{t("appStore.status")}</TableHead><TableHead>{t("appStore.resources")}</TableHead><TableHead>{t("appStore.images")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("action.createdAt")}</TableHead><TableActionsHead>{t("action.actions")}</TableActionsHead></TableRow></TableHeader>
             <TableBody>
               {items.map((item) => (
                 <TableRow key={item.uid}>
@@ -169,7 +172,7 @@ export function ApplicationDetailPage() {
                   <TableCell className="font-mono text-xs">{item.resources.length}</TableCell>
                   <TableCell className="font-mono text-xs">{item.images.length}</TableCell>
                   <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{formatUnixDateTime(item.createdAt) || "—"}</TableCell>
-                  <TableCell>
+                  <TableActionsCell>
                     <RowActions
                       nowrap
                       detailLabel={t("action.detail")}
@@ -182,7 +185,7 @@ export function ApplicationDetailPage() {
                         ...(item.status === "DRAFT" ? [{ key: "delete", label: t("action.delete"), destructive: true, onSelect: () => { setActionError(""); setDeleting(item) } }] : []),
                       ]}
                     />
-                  </TableCell>
+                  </TableActionsCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -192,18 +195,20 @@ export function ApplicationDetailPage() {
       {app?.readme ? (
         <div className="rounded-xl border border-border/60 bg-card p-4">
           <h2 className="mb-2 font-heading text-base font-semibold">{t("appStore.readme")}</h2>
-          <pre className="whitespace-pre-wrap text-sm text-muted-foreground">{app.readme}</pre>
+          <pre className="whitespace-pre-wrap text-sm text-foreground/90">{app.readme}</pre>
         </div>
       ) : null}
+      </div>
+      </div>
       <Dialog open={versionDialogOpen} onOpenChange={setVersionDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>{t("appStore.newVersion")}</DialogTitle></DialogHeader>
           <DialogBody className="grid gap-4">
-            <FormField label={t("appStore.version")} htmlFor="new-version" required error={createError}>
-              <Input id="new-version" className="font-mono" value={version} placeholder="1.0.0" onChange={(event) => setVersion(event.target.value)} />
+            <FormField label={t("appStore.version")} htmlFor="new-version" required error={createError} description={t("appStore.versionHelp")}>
+              <Input id="new-version" className="font-mono" value={version} placeholder={t("appStore.versionPlaceholder")} onChange={(event) => setVersion(event.target.value)} />
             </FormField>
-            <FormField label={t("appStore.changelog")} htmlFor="new-changelog">
-              <Textarea id="new-changelog" value={changelog} onChange={(event) => setChangelog(event.target.value)} />
+            <FormField label={t("appStore.changelog")} htmlFor="new-changelog" description={t("appStore.changelogHelp")}>
+              <Textarea id="new-changelog" value={changelog} placeholder={t("appStore.changelogPlaceholder")} onChange={(event) => setChangelog(event.target.value)} />
             </FormField>
           </DialogBody>
           <DialogFooter>

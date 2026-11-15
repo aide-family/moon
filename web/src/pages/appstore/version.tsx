@@ -13,7 +13,10 @@ import {
 import type { ApplicationVersionItem } from "@/api/application/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
+import { HeaderActionsMenu } from "@/components/header-actions-menu"
 import { PageHeader } from "@/components/page-header"
+import { RowActions } from "@/components/row-actions"
+import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,6 +46,8 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { formErrorMessage } from "@/lib/form-error"
 import { TABLE_MIN_WIDTH, TABLE_NOWRAP } from "@/lib/table-layout"
+
+import { ResourceFormDialog } from "./resource-form-dialog"
 
 const KINDS = ["Deployment", "StatefulSet", "DaemonSet", "CronJob", "Service", "Ingress", "ConfigMap", "Secret", "HorizontalPodAutoscaler", "NetworkPolicy", "ClusterRole", "CustomResourceDefinition", "CustomResource"]
 
@@ -162,13 +167,13 @@ function YamlResourceDialog({ open, title, initialKind, initialManifest, onOpenC
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
         <DialogBody className="grid gap-4">
-          <FormField label={t("appStore.resourceKind")} htmlFor="resource-kind">
+          <FormField label={t("appStore.resourceKind")} htmlFor="resource-kind" description={t("appStore.resourceForm.kindHelp")}>
             <Select value={kind} onValueChange={(value) => { setKind(value); setManifest(TEMPLATES[value] || TEMPLATES.CustomResource) }}>
               <SelectTrigger id="resource-kind"><SelectValue /></SelectTrigger>
               <SelectContent>{KINDS.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
             </Select>
           </FormField>
-          <FormField label={t("appStore.resourceYaml")} htmlFor="resource-yaml">
+          <FormField label={t("appStore.resourceYaml")} htmlFor="resource-yaml" description={t("appStore.resourceForm.yamlHelp")}>
             <Textarea id="resource-yaml" className="min-h-[360px] font-mono text-xs" value={manifest} onChange={(event) => setManifest(event.target.value)} />
           </FormField>
         </DialogBody>
@@ -193,6 +198,7 @@ export function ApplicationVersionPage() {
   const [error, setError] = useState("")
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [validationWarnings, setValidationWarnings] = useState<string[]>([])
+  const [formOpen, setFormOpen] = useState(false)
   const [yamlOpen, setYamlOpen] = useState(false)
   const [yamlIndex, setYamlIndex] = useState(-1)
   const [yamlKind, setYamlKind] = useState("Deployment")
@@ -317,10 +323,12 @@ export function ApplicationVersionPage() {
   }
 
   function addResource() {
-    setYamlIndex(-1)
-    setYamlKind("Deployment")
-    setYamlManifest(TEMPLATES.Deployment)
-    setYamlOpen(true)
+    setFormOpen(true)
+  }
+
+  function appendResource(manifest: string) {
+    const inspected = inspectManifest(manifest)
+    setResources((current) => [...current, { item: `r-${Date.now()}`, manifest, ...inspected }])
   }
 
   function saveResource(manifest: string) {
@@ -336,25 +344,34 @@ export function ApplicationVersionPage() {
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
         title={`${version.version}`}
-        description={`${version.status} · ${t("appStore.resources")}: ${resources.length} · ${t("appStore.images")}: ${version.images.length}`}
+        description={t("appStore.versionDescription", { status: version.status, resources: resources.length, images: version.images.length })}
       >
         <Button variant="outline" onClick={() => navigate(`/appstore/apps/${uid}`)}>{t("action.goBack")}</Button>
-        {editable ? <Button variant="outline" onClick={() => void validate()}>{t("appStore.validate")}</Button> : null}
         {editable ? <Button variant="outline" disabled={saving} onClick={() => void saveDraft()}>{t("appStore.saveDraft")}</Button> : null}
         {editable ? <Button disabled={saving} onClick={() => void publish()}>{t("appStore.publish")}</Button> : null}
-        {editable ? <Button variant="destructive" onClick={() => setDeleteOpen(true)}>{t("action.delete")}</Button> : null}
+        {editable ? (
+          <HeaderActionsMenu
+            label={t("action.more")}
+            actions={[
+              { key: "validate", label: t("appStore.validate"), onSelect: () => void validate() },
+              { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setDeleteOpen(true) },
+            ]}
+          />
+        ) : null}
       </PageHeader>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="grid gap-6 pb-2">
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      {validationErrors.length > 0 ? <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{validationErrors.join("; ")}</div> : null}
-      {validationWarnings.length > 0 ? <div className="rounded-lg border border-warning-border bg-warning-soft p-3 text-sm text-warning">{validationWarnings.join("; ")}</div> : null}
+      {validationErrors.length > 0 ? <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"><ul className="list-disc pl-5">{validationErrors.map((item) => <li key={item}>{item}</li>)}</ul></div> : null}
+      {validationWarnings.length > 0 ? <div className="rounded-lg border border-warning-border bg-warning-soft p-3 text-sm text-warning"><ul className="list-disc pl-5">{validationWarnings.map((item) => <li key={item}>{item}</li>)}</ul></div> : null}
       <div className="rounded-xl border border-border/60 bg-card">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2 className="font-heading text-base font-semibold">{t("appStore.resourceList")}</h2>
           {editable ? <Button variant="outline" size="sm" onClick={addResource}>{t("appStore.addResource")}</Button> : null}
         </div>
-        <div className="overflow-auto p-4">
+        <div className="p-4">
           <Table className={TABLE_MIN_WIDTH.wide}>
-            <TableHeader><TableRow><TableHead>{t("appStore.resourceKind")}</TableHead><TableHead>{t("appStore.resourceName")}</TableHead><TableHead>{t("appStore.resourceScope")}</TableHead><TableHead>{t("appStore.images")}</TableHead><TableHead>{t("appStore.secretKeys")}</TableHead><TableHead className="text-right">{t("action.actions")}</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>{t("appStore.resourceKind")}</TableHead><TableHead>{t("appStore.resourceName")}</TableHead><TableHead>{t("appStore.resourceScope")}</TableHead><TableHead>{t("appStore.images")}</TableHead><TableHead>{t("appStore.secretKeys")}</TableHead><TableActionsHead>{t("action.actions")}</TableActionsHead></TableRow></TableHeader>
             <TableBody>
               {resources.map((resource, index) => (
                 <TableRow key={resource.item}>
@@ -363,7 +380,7 @@ export function ApplicationVersionPage() {
                   <TableCell><Badge variant={resource.scope === "CLUSTER" ? "destructive" : "outline"}>{resource.scope || "UNKNOWN"}</Badge></TableCell>
                   <TableCell className="font-mono text-xs">{version.resources[index]?.images.length ?? 0}</TableCell>
                   <TableCell className="font-mono text-xs">{version.resources[index]?.secretKeys.join(", ") || "—"}</TableCell>
-                  <TableCell className={TABLE_NOWRAP}>{editable ? <Button variant="link" size="sm" onClick={() => editResource(index)}>{t("appStore.editYaml")}</Button> : "—"}</TableCell>
+                  <TableActionsCell className={TABLE_NOWRAP}>{editable ? <RowActions nowrap detailLabel={t("appStore.editYaml")} moreLabel={t("action.more")} onDetail={() => editResource(index)} actions={[{ key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setResources((current) => current.filter((_, position) => position !== index)) }]} /> : "—"}</TableActionsCell>
                 </TableRow>
               ))}
               {resources.length === 0 ? <TableRow><TableCell colSpan={6} className="text-sm text-muted-foreground">{t("appStore.emptyResources")}</TableCell></TableRow> : null}
@@ -387,6 +404,14 @@ export function ApplicationVersionPage() {
           </div>
         )}
       </div>
+      </div>
+      </div>
+      <ResourceFormDialog
+        key={formOpen ? "open" : "closed"}
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        onSave={appendResource}
+      />
       <YamlResourceDialog
         key={`${yamlOpen}-${yamlIndex}-${yamlKind}`}
         open={yamlOpen}

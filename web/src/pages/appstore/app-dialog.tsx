@@ -106,6 +106,8 @@ export function ApplicationDialog({
             required={!application}
             error={fieldError}
             hint={application ? t("appStore.appNameImmutable") : undefined}
+            description={t("appStore.appNameHelp")}
+            counter={{ value: name.length, max: NAME_MAX }}
           >
             <Input
               id="app-name"
@@ -117,7 +119,7 @@ export function ApplicationDialog({
               onChange={(event) => setName(event.target.value)}
             />
           </FormField>
-          <FormField label={t("appStore.displayName")} htmlFor="app-display-name">
+          <FormField label={t("appStore.displayName")} htmlFor="app-display-name" description={t("appStore.displayNameHelp")}>
             <Input
               id="app-display-name"
               value={displayName}
@@ -126,7 +128,7 @@ export function ApplicationDialog({
               onChange={(event) => setDisplayName(event.target.value)}
             />
           </FormField>
-          <FormField label={t("appStore.category")} htmlFor="app-category">
+          <FormField label={t("appStore.category")} htmlFor="app-category" description={t("appStore.categoryHelp")}>
             <Select value={category} onValueChange={(value) => setCategory(value as ApplicationCategory)}>
               <SelectTrigger id="app-category"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -136,7 +138,7 @@ export function ApplicationDialog({
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label={t("appStore.descriptionLabel")} htmlFor="app-description">
+          <FormField label={t("appStore.descriptionLabel")} htmlFor="app-description" description={t("appStore.descriptionHelp")}>
             <Input
               id="app-description"
               value={description}
@@ -145,7 +147,7 @@ export function ApplicationDialog({
               onChange={(event) => setDescription(event.target.value)}
             />
           </FormField>
-          <FormField label={t("appStore.readme")} htmlFor="app-readme" className="sm:col-span-full">
+          <FormField label={t("appStore.readme")} htmlFor="app-readme" className="sm:col-span-full" description={t("appStore.readmeHelp")}>
             <Textarea
               id="app-readme"
               className="min-h-32"

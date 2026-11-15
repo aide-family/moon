@@ -18,7 +18,10 @@ import type {
   ApplicationVersionItem,
 } from "@/api/application/types"
 import { useSession } from "@/auth/session"
+import { HeaderActionsMenu } from "@/components/header-actions-menu"
 import { PageHeader } from "@/components/page-header"
+import { RowActions } from "@/components/row-actions"
+import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
@@ -169,15 +172,27 @@ export function ApplicationDeploymentPage() {
       >
         <Button variant="outline" onClick={() => navigate("/appstore?tab=deployments")}>{t("action.goBack")}</Button>
         {session.can("release:write") ? <Button variant="outline" onClick={() => void redeploy()}>{t("appStore.redeploy")}</Button> : null}
-        {session.can("release:write") ? <Button variant="outline" onClick={() => { setSelectedVersion(""); setActionOpen("upgrade") }}>{t("appStore.upgrade")}</Button> : null}
-        {session.can("release:write") ? <Button variant="outline" onClick={() => { setSelectedVersion(""); setActionOpen("rollback") }}>{t("appStore.rollback")}</Button> : null}
-        {session.can("release:delete") ? <Button variant="destructive" onClick={() => setUninstallOpen(true)}>{t("appStore.uninstall")}</Button> : null}
+        {session.can("release:write") ? <Button onClick={() => { setSelectedVersion(""); setActionOpen("upgrade") }}>{t("appStore.upgrade")}</Button> : null}
+        {session.can("release:write") || session.can("release:delete") ? (
+          <HeaderActionsMenu
+            label={t("action.more")}
+            actions={[
+              ...(session.can("release:write") ? [{ key: "rollback", label: t("appStore.rollback"), onSelect: () => { setSelectedVersion(""); setActionOpen("rollback") } }] : []),
+              ...(session.can("release:delete") ? [{ key: "uninstall", label: t("appStore.uninstall"), destructive: true, onSelect: () => setUninstallOpen(true) }] : []),
+            ]}
+          />
+        ) : null}
       </PageHeader>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="grid gap-6 pb-2">
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <div className="rounded-xl border border-border/60 bg-card">
-        <div className="border-b border-border px-4 py-3"><h2 className="font-heading text-base font-semibold">{t("appStore.targetClusters")}</h2></div>
-        <Table className={TABLE_MIN_WIDTH.default}>
-          <TableHeader><TableRow><TableHead className="w-10"><Checkbox checked={selectedClusters.length === deployment.clusters.length && deployment.clusters.length > 0} onCheckedChange={(value) => setSelectedClusters(value === true ? deployment.clusters.map((cluster) => cluster.uid) : [])} /></TableHead><TableHead>{t("appStore.cluster")}</TableHead><TableHead>{t("appStore.status")}</TableHead><TableHead>{t("appStore.version")}</TableHead><TableHead>{t("appStore.targetNamespace")}</TableHead><TableHead>{t("appStore.message")}</TableHead><TableHead className="text-right">{t("action.actions")}</TableHead></TableRow></TableHeader>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+          <h2 className="font-heading text-base font-semibold">{t("appStore.targetClusters")}</h2>
+          <span className="text-xs text-muted-foreground">{selectedClusters.length === 0 ? t("appStore.allClustersHint") : t("appStore.selectedClusters", { count: selectedClusters.length })}</span>
+        </div>
+        <Table className={TABLE_MIN_WIDTH.wide}>
+          <TableHeader><TableRow><TableHead className="w-10"><Checkbox checked={selectedClusters.length === deployment.clusters.length && deployment.clusters.length > 0} onCheckedChange={(value) => setSelectedClusters(value === true ? deployment.clusters.map((cluster) => cluster.uid) : [])} /></TableHead><TableHead>{t("appStore.cluster")}</TableHead><TableHead>{t("appStore.status")}</TableHead><TableHead>{t("appStore.version")}</TableHead><TableHead>{t("appStore.targetNamespace")}</TableHead><TableHead>{t("appStore.message")}</TableHead><TableActionsHead>{t("action.actions")}</TableActionsHead></TableRow></TableHeader>
           <TableBody>
             {deployment.clusters.map((cluster) => (
               <TableRow key={cluster.uid}>
@@ -187,7 +202,7 @@ export function ApplicationDeploymentPage() {
                 <TableCell className="font-mono text-xs">{cluster.version || "—"}</TableCell>
                 <TableCell className="font-mono text-xs">{deployment.targetNamespace}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{cluster.message || "—"}</TableCell>
-                <TableCell className="text-right"><Button variant="link" size="sm" disabled={actionPending || cluster.status === "UNINSTALLED"} onClick={() => void redeploy([cluster.uid])}>{t("appStore.retryCluster")}</Button></TableCell>
+                <TableActionsCell><RowActions nowrap detailLabel={t("appStore.retryCluster")} moreLabel={t("action.more")} onDetail={() => void redeploy([cluster.uid])} detailDisabled={actionPending || cluster.status === "UNINSTALLED"} actions={[]} /></TableActionsCell>
               </TableRow>
             ))}
           </TableBody>
@@ -195,7 +210,7 @@ export function ApplicationDeploymentPage() {
       </div>
       <div className="rounded-xl border border-border/60 bg-card">
         <div className="border-b border-border px-4 py-3"><h2 className="font-heading text-base font-semibold">{t("appStore.operations")}</h2></div>
-        <Table className={TABLE_MIN_WIDTH.wide}>
+        <Table className={TABLE_MIN_WIDTH.default}>
           <TableHeader><TableRow><TableHead>{t("appStore.operationAction")}</TableHead><TableHead>{t("appStore.status")}</TableHead><TableHead>{t("appStore.cluster")}</TableHead><TableHead>{t("appStore.message")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("action.createdAt")}</TableHead></TableRow></TableHeader>
           <TableBody>
             {operations.map((operation) => (
@@ -211,11 +226,13 @@ export function ApplicationDeploymentPage() {
           </TableBody>
         </Table>
       </div>
+      </div>
+      </div>
       <Dialog open={actionOpen !== null} onOpenChange={(open) => { if (!open) setActionOpen(null) }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>{actionOpen === "upgrade" ? t("appStore.upgrade") : t("appStore.rollback")}</DialogTitle></DialogHeader>
           <DialogBody className="grid gap-4">
-            <FormField label={t("appStore.version")} htmlFor="target-version" required>
+            <FormField label={t("appStore.version")} htmlFor="target-version" required description={t("appStore.selectVersionHelp")}>
               <Select value={selectedVersion} onValueChange={setSelectedVersion}>
                 <SelectTrigger id="target-version"><SelectValue placeholder={t("appStore.selectVersion")} /></SelectTrigger>
                 <SelectContent>{candidates.map((item) => <SelectItem key={item.uid} value={item.uid}>{item.version} ({item.status})</SelectItem>)}</SelectContent>

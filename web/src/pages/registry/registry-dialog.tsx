@@ -152,6 +152,8 @@ export function RegistryDialog({
             htmlFor="registry-name"
             required
             error={fieldErrors.name}
+            description={t("registry.nameHelp")}
+            counter={{ value: name.length, max: NAME_MAX }}
           >
             <Input
               id="registry-name"
@@ -165,6 +167,7 @@ export function RegistryDialog({
             label={t("registry.driver")}
             htmlFor="registry-driver"
             required
+            description={t("registry.driverHelp")}
           >
             <Select
               value={driver}
@@ -174,8 +177,8 @@ export function RegistryDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="HARBOR">HARBOR</SelectItem>
-                <SelectItem value="DOCKER_V2">DOCKER_V2</SelectItem>
+                <SelectItem value="HARBOR">{t("registry.driverHarbor")}</SelectItem>
+                <SelectItem value="DOCKER_V2">{t("registry.driverDockerV2")}</SelectItem>
               </SelectContent>
             </Select>
           </FormField>
@@ -184,6 +187,7 @@ export function RegistryDialog({
             htmlFor="registry-endpoint"
             required
             error={fieldErrors.endpoint}
+            description={t("registry.endpointHelp")}
             className="sm:col-span-full"
           >
             <Input
@@ -195,7 +199,7 @@ export function RegistryDialog({
               onChange={(event) => setEndpoint(event.target.value)}
             />
           </FormField>
-          <FormField label={t("registry.username")} htmlFor="registry-username">
+          <FormField label={t("registry.username")} htmlFor="registry-username" description={t("registry.usernameHelp")}>
             <Input
               id="registry-username"
               value={username}
@@ -207,6 +211,7 @@ export function RegistryDialog({
             label={t("registry.password")}
             htmlFor="registry-password"
             hint={t("registry.passwordKeepHint")}
+            description={t("registry.passwordHelp")}
           >
             <Input
               id="registry-password"

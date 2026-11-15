@@ -14,6 +14,7 @@ import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions } from "@/components/row-actions"
+import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Field, FieldLabel } from "@/components/ui/field"
@@ -260,7 +261,7 @@ export function RegistryPage() {
                 <TableHead>{t("registry.endpoint")}</TableHead>
                 <TableHead className={TABLE_NOWRAP}>{t("registry.lastChecked")}</TableHead>
                 <TableHead className={TABLE_NOWRAP}>{t("registry.status")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -279,7 +280,7 @@ export function RegistryPage() {
                     ) : null}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{item.driver}</Badge>
+                    <Badge variant="outline">{item.driver === "DOCKER_V2" ? t("registry.driverDockerV2") : t("registry.driverHarbor")}</Badge>
                   </TableCell>
                   <TableCell className="font-mono text-xs break-all">
                     {item.endpoint}
@@ -303,7 +304,7 @@ export function RegistryPage() {
                       <Badge variant="secondary">{t("registry.available")}</Badge>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableActionsCell>
                     <RowActions
                       nowrap
                       detailLabel={t("action.detail")}
@@ -339,7 +340,7 @@ export function RegistryPage() {
                           : []),
                       ]}
                     />
-                  </TableCell>
+                  </TableActionsCell>
                 </TableRow>
               ))}
             </TableBody>

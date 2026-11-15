@@ -21,6 +21,8 @@ import type { FilterChip } from "@/components/filter-chips"
 import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
+import { RowActions } from "@/components/row-actions"
+import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
@@ -268,7 +270,7 @@ export function RegistryDetailPage() {
                 <TableHead>{t("registry.repository")}</TableHead>
                 <TableHead>{t("registry.projects")}</TableHead>
                 <TableHead className={TABLE_NOWRAP}>{t("registry.tagCount")}</TableHead>
-                <TableHead className={`${TABLE_NOWRAP} text-right`}>{t("action.actions")}</TableHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -279,19 +281,19 @@ export function RegistryDetailPage() {
                   <TableCell className={`font-mono text-xs tabular-nums ${TABLE_NOWRAP}`}>
                     {item.tagCount > 0 ? item.tagCount : "—"}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() =>
+                  <TableActionsCell>
+                    <RowActions
+                      nowrap
+                      detailLabel={t("registry.viewTags")}
+                      moreLabel={t("action.more")}
+                      onDetail={() =>
                         navigate(
                           `/registries/${uid}/repository?project=${encodeURIComponent(item.project)}&repository=${encodeURIComponent(item.name)}`
                         )
                       }
-                    >
-                      {t("registry.viewTags")}
-                    </Button>
-                  </TableCell>
+                      actions={[]}
+                    />
+                  </TableActionsCell>
                 </TableRow>
               ))}
             </TableBody>

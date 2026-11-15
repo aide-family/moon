@@ -13,6 +13,10 @@ interface FormFieldProps {
   label: string
   htmlFor?: string
   hint?: string
+  /** 常驻说明：格式、范围、后果，放在控件上方，不依赖 hover。 */
+  description?: ReactNode
+  /** 有长度上限的字段显示当前计数。 */
+  counter?: { value: number; max: number }
   error?: string
   required?: boolean
   className?: string
@@ -26,6 +30,8 @@ export function FormField({
   label,
   htmlFor,
   hint,
+  description,
+  counter,
   error,
   required = false,
   className,
@@ -63,8 +69,16 @@ export function FormField({
             <TooltipContent>{hint}</TooltipContent>
           </Tooltip>
         ) : null}
+        {counter ? (
+          <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
+            {counter.value}/{counter.max}
+          </span>
+        ) : null}
         {actions}
       </div>
+      {description ? (
+        <p className="text-xs leading-5 text-muted-foreground">{description}</p>
+      ) : null}
       {children}
       {error ? (
         <p role="alert" className="text-sm text-destructive">

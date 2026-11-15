@@ -10,6 +10,7 @@ import { useSession } from "@/auth/session"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions } from "@/components/row-actions"
+import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -159,7 +160,7 @@ export function RegistrySyncPage() {
                 <TableHead>{t("registry.architecture")}</TableHead>
                 <TableHead className={TABLE_NOWRAP}>{t("registry.status")}</TableHead>
                 <TableHead className={TABLE_NOWRAP}>{t("registry.createdAt")}</TableHead>
-                <TableHead className={`${TABLE_NOWRAP} text-right`}>{t("action.actions")}</TableHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -201,7 +202,7 @@ export function RegistrySyncPage() {
                       <span>{formatUnixDateTime(item.createdAt) || "—"}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableActionsCell>
                     <RowActions
                       nowrap
                       detailLabel={t("action.detail")}
@@ -216,7 +217,7 @@ export function RegistrySyncPage() {
                           : []),
                       ]}
                     />
-                  </TableCell>
+                  </TableActionsCell>
                 </TableRow>
               ))}
             </TableBody>

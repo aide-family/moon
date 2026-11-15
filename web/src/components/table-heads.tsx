@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-import { TableHead } from "@/components/ui/table"
+import { TableCell, TableHead } from "@/components/ui/table"
 import { cn } from "@/lib/class-names"
 import { TABLE_COLUMN_WIDTH, TABLE_NOWRAP } from "@/lib/table-layout"
 
@@ -25,6 +25,23 @@ export function TableActionsHead({
     >
       {children}
     </TableHead>
+  )
+}
+
+/** 操作列单元格：与 TableActionsHead 同宽、同轴居中。 */
+export function TableActionsCell({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <TableCell
+      className={cn(TABLE_COLUMN_WIDTH.actions, "text-center", className)}
+    >
+      {children}
+    </TableCell>
   )
 }
 

@@ -20,9 +20,11 @@ import { ApiError } from "@/api/http"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions } from "@/components/row-actions"
+import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -33,7 +35,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -345,7 +346,7 @@ export function RegistryRepositoryPage() {
                 <TableHead>{t("registry.architecture")}</TableHead>
                 <TableHead>{t("registry.digest")}</TableHead>
                 <TableHead className={TABLE_NOWRAP}>{t("registry.size")}</TableHead>
-                <TableHead className={`${TABLE_NOWRAP} text-right`}>{t("action.actions")}</TableHead>
+                <TableActionsHead>{t("action.actions")}</TableActionsHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -365,7 +366,7 @@ export function RegistryRepositoryPage() {
                   <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>
                     {formatBytes(item.size)}
                   </TableCell>
-                  <TableCell>
+                  <TableActionsCell>
                     <RowActions
                       nowrap
                       detailLabel={t("action.detail")}
@@ -400,7 +401,7 @@ export function RegistryRepositoryPage() {
                           : []),
                       ]}
                     />
-                  </TableCell>
+                  </TableActionsCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -422,14 +423,12 @@ export function RegistryRepositoryPage() {
           </DialogHeader>
           <DialogBody className="grid gap-4">
             <p className="text-sm text-muted-foreground">{t("registry.copyTagDescription")}</p>
-            <Field>
-              <FieldLabel htmlFor="copy-target-repo">{t("registry.targetRepository")}</FieldLabel>
-              <Input id="copy-target-repo" className="font-mono" value={copyTargetRepository} onChange={(event) => setCopyTargetRepository(event.target.value)} />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="copy-target-tag">{t("registry.targetTag")}</FieldLabel>
-              <Input id="copy-target-tag" className="font-mono" value={copyTargetTag} onChange={(event) => setCopyTargetTag(event.target.value)} />
-            </Field>
+            <FormField label={t("registry.targetRepository")} htmlFor="copy-target-repo" required description={t("registry.copyTargetRepositoryHelp")}>
+              <Input id="copy-target-repo" className="font-mono" value={copyTargetRepository} placeholder={t("registry.targetRepositoryPlaceholder")} onChange={(event) => setCopyTargetRepository(event.target.value)} />
+            </FormField>
+            <FormField label={t("registry.targetTag")} htmlFor="copy-target-tag" required description={t("registry.copyTargetTagHelp")}>
+              <Input id="copy-target-tag" className="font-mono" value={copyTargetTag} placeholder={t("registry.targetTagPlaceholder")} onChange={(event) => setCopyTargetTag(event.target.value)} />
+            </FormField>
             {copyError ? <p className="text-sm text-destructive">{copyError}</p> : null}
           </DialogBody>
           <DialogFooter>

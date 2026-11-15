@@ -46,18 +46,17 @@ export function DeployDialog({ open, applicationUid, versionUid, version, hasClu
       .then((result) => {
         if (!active) return
         setClusters(result.items)
-        if (selected.length === 0 && result.items[0]) {
-          setSelected([result.items[0].uid])
+        if (result.items[0]) {
+          setSelected((current) => current.length > 0 ? current : [result.items[0].uid])
         }
-        if (!name) {
-          setName(`app-${version.replace(/\./g, "-")}`)
-        }
+        setName((current) => current || `app-${version.replace(/\./g, "-")}`)
       })
       .catch(() => undefined)
     return () => {
       active = false
     }
-  }, [open, selected.length, name, version])
+    // 只在对话框打开/版本变化时加载集群并填默认值。
+  }, [open, version])
 
   async function submit() {
     if (selected.length === 0 || selected.length > 20 || !name.trim() || !namespace.trim()) {
@@ -89,7 +88,7 @@ export function DeployDialog({ open, applicationUid, versionUid, version, hasClu
           <DialogTitle>{t("appStore.deployTitle", { version })}</DialogTitle>
         </DialogHeader>
         <DialogBody className="grid gap-4">
-          <FormField label={t("appStore.targetClusters")} required hint={t("appStore.clusterSelectionHint", { count: selected.length })}>
+          <FormField label={t("appStore.targetClusters")} required hint={t("appStore.clusterSelectionHint", { count: selected.length })} description={t("appStore.multiClusterHint")}>
             <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-border/60 p-2">
               {clusters.map((cluster) => {
                 const checked = selected.includes(cluster.uid)
@@ -106,13 +105,12 @@ export function DeployDialog({ open, applicationUid, versionUid, version, hasClu
               {clusters.length === 0 ? <p className="p-2 text-sm text-muted-foreground">{t("appStore.noClusters")}</p> : null}
             </div>
           </FormField>
-          <p className="text-xs text-muted-foreground">{t("appStore.multiClusterHint")}</p>
           {hasClusterScoped ? <p className="rounded-lg border border-warning-border bg-warning-soft p-2 text-xs text-warning">{t("appStore.clusterScopedWarning")}</p> : null}
-          <FormField label={t("appStore.deploymentName")} htmlFor="deploy-name" required>
-            <Input id="deploy-name" className="font-mono" value={name} onChange={(event) => setName(event.target.value)} />
+          <FormField label={t("appStore.deploymentName")} htmlFor="deploy-name" required description={t("appStore.deploymentNameHelp")}>
+            <Input id="deploy-name" className="font-mono" value={name} placeholder="app-prod" onChange={(event) => setName(event.target.value)} />
           </FormField>
-          <FormField label={t("appStore.targetNamespace")} htmlFor="deploy-namespace" required>
-            <Input id="deploy-namespace" className="font-mono" value={namespace} onChange={(event) => setNamespace(event.target.value)} />
+          <FormField label={t("appStore.targetNamespace")} htmlFor="deploy-namespace" required description={t("appStore.targetNamespaceHelp")}>
+            <Input id="deploy-namespace" className="font-mono" value={namespace} placeholder="default" onChange={(event) => setNamespace(event.target.value)} />
           </FormField>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </DialogBody>

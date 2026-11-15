@@ -201,7 +201,7 @@ export function SyncDialog({
             </>
           ) : (
             <>
-              <FormField label={t("registry.sourceImage")} htmlFor="sync-source-image" required className="sm:col-span-full">
+              <FormField label={t("registry.sourceImage")} htmlFor="sync-source-image" required className="sm:col-span-full" description={t("registry.sourceImageHelp")}>
                 <Input id="sync-source-image" className="font-mono" value={sourceImage} placeholder={t("registry.sourceImagePlaceholder")} onChange={(event) => { setSourceImage(event.target.value); setPreview(null) }} />
               </FormField>
               <FormField label={t("registry.sourceUsername")} htmlFor="sync-source-username">
@@ -225,13 +225,13 @@ export function SyncDialog({
             </Select>
           </FormField>
           <div />
-          <FormField label={t("registry.targetRepository")} htmlFor="sync-target-repo" required>
+          <FormField label={t("registry.targetRepository")} htmlFor="sync-target-repo" required description={t("registry.targetRepositoryHelp")}>
             <Input id="sync-target-repo" className="font-mono" value={targetRepository} onChange={(event) => setTargetRepository(event.target.value)} />
           </FormField>
-          <FormField label={t("registry.targetTag")} htmlFor="sync-target-tag" required>
+          <FormField label={t("registry.targetTag")} htmlFor="sync-target-tag" required description={t("registry.targetTagHelp")}>
             <Input id="sync-target-tag" className="font-mono" value={targetTag} onChange={(event) => setTargetTag(event.target.value)} />
           </FormField>
-          <FormField label={t("registry.platforms")} htmlFor="sync-platforms" hint={t("registry.allPlatforms")}>
+          <FormField label={t("registry.platforms")} htmlFor="sync-platforms" description={t("registry.platformsHelp")}>
             <Input id="sync-platforms" className="font-mono" value={platforms} placeholder="linux/amd64, linux/arm64/v8" onChange={(event) => setPlatforms(event.target.value)} />
           </FormField>
           <div className="flex items-center gap-2 pt-6">

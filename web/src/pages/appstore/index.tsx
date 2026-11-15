@@ -15,6 +15,7 @@ import { useSession } from "@/auth/session"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions } from "@/components/row-actions"
+import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -73,20 +74,26 @@ export function AppStorePage() {
   function setTab(next: string) {
     const query = new URLSearchParams(params)
     query.set("tab", next)
+    query.delete("page")
+    query.delete("name")
+    query.delete("status")
     setParams(query)
   }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("appStore.title")} description={t("appStore.description")}>
-        <div className="flex gap-2">
-          <Button variant={tab === "apps" ? "default" : "outline"} onClick={() => setTab("apps")}>{t("appStore.apps")}</Button>
-          <Button variant={tab === "deployments" ? "default" : "outline"} onClick={() => setTab("deployments")}>{t("appStore.deployments")}</Button>
-        </div>
         {tab === "apps" && session.can("application:write") ? (
           <Button onClick={() => setDialogOpen(true)}>{t("appStore.newApp")}</Button>
         ) : null}
       </PageHeader>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex items-center rounded-lg border border-border/70 bg-muted/40 p-1">
+          <Button size="sm" variant={tab === "apps" ? "secondary" : "ghost"} onClick={() => setTab("apps")}>{t("appStore.apps")}</Button>
+          <Button size="sm" variant={tab === "deployments" ? "secondary" : "ghost"} onClick={() => setTab("deployments")}>{t("appStore.deployments")}</Button>
+        </div>
+        <p className="text-sm text-muted-foreground">{tab === "apps" ? t("appStore.appsHint") : t("appStore.deploymentsHint")}</p>
+      </div>
       {tab === "apps" ? <AppsView navigate={navigate} /> : <DeploymentsView navigate={navigate} />}
       <ApplicationDialog
         open={dialogOpen}
@@ -114,7 +121,7 @@ function AppsView({ navigate }: { navigate: (path: string) => void }) {
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full max-w-sm">
+        <div className="relative w-full max-w-[500px]">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-9" value={query.name} placeholder={t("appStore.searchApps")} onChange={(event) => query.update({ name: event.target.value })} />
         </div>
@@ -129,7 +136,7 @@ function AppsView({ navigate }: { navigate: (path: string) => void }) {
         ) : null}
         {!loading && !failed && items.length > 0 ? (
           <Table className={TABLE_MIN_WIDTH.default}>
-            <TableHeader><TableRow><TableHead>{t("appStore.appName")}</TableHead><TableHead>{t("appStore.category")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("appStore.versions")}</TableHead><TableHead>{t("appStore.latestVersion")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("action.createdAt")}</TableHead><TableHead className="text-right">{t("action.actions")}</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>{t("appStore.appName")}</TableHead><TableHead>{t("appStore.category")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("appStore.versions")}</TableHead><TableHead>{t("appStore.latestVersion")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("action.createdAt")}</TableHead><TableActionsHead>{t("action.actions")}</TableActionsHead></TableRow></TableHeader>
             <TableBody>
               {items.map((item) => (
                 <TableRow key={item.uid}>
@@ -138,7 +145,7 @@ function AppsView({ navigate }: { navigate: (path: string) => void }) {
                   <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{item.versionCount}</TableCell>
                   <TableCell className="font-mono text-xs">{item.latestVersion || "—"}</TableCell>
                   <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{formatUnixDateTime(item.createdAt) || "—"}</TableCell>
-                  <TableCell><RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => navigate(`/appstore/apps/${item.uid}`)} actions={[]} /></TableCell>
+                  <TableActionsCell><RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => navigate(`/appstore/apps/${item.uid}`)} actions={[]} /></TableActionsCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -175,7 +182,7 @@ function DeploymentsView({ navigate }: { navigate: (path: string) => void }) {
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full max-w-sm">
+        <div className="relative w-full max-w-[500px]">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-9" value={query.name} placeholder={t("appStore.searchDeployments")} onChange={(event) => query.update({ name: event.target.value })} />
         </div>
@@ -202,7 +209,7 @@ function DeploymentsView({ navigate }: { navigate: (path: string) => void }) {
         {!loading && !failed && items.length === 0 ? <p className="text-sm text-muted-foreground">{t("appStore.emptyDeployments")}</p> : null}
         {!loading && !failed && items.length > 0 ? (
           <Table className={TABLE_MIN_WIDTH.wide}>
-            <TableHeader><TableRow><TableHead>{t("appStore.deploymentName")}</TableHead><TableHead>{t("appStore.applicationVersion")}</TableHead><TableHead>{t("appStore.targetClusters")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("appStore.status")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("action.updatedAt")}</TableHead><TableHead className="text-right">{t("action.actions")}</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>{t("appStore.deploymentName")}</TableHead><TableHead>{t("appStore.applicationVersion")}</TableHead><TableHead>{t("appStore.targetClusters")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("appStore.status")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("action.updatedAt")}</TableHead><TableActionsHead>{t("action.actions")}</TableActionsHead></TableRow></TableHeader>
             <TableBody>
               {items.map((item) => (
                 <TableRow key={item.uid}>
@@ -211,7 +218,7 @@ function DeploymentsView({ navigate }: { navigate: (path: string) => void }) {
                   <TableCell><div className="flex flex-wrap gap-1">{item.clusters.map((cluster) => <Badge key={cluster.uid} variant="outline">{cluster.name}</Badge>)}</div></TableCell>
                   <TableCell>{statusBadge(item.status)}</TableCell>
                   <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{formatUnixDateTime(item.createdAt) || "—"}</TableCell>
-                  <TableCell><RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => navigate(`/appstore/deployments/${item.uid}`)} actions={[]} /></TableCell>
+                  <TableActionsCell><RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => navigate(`/appstore/deployments/${item.uid}`)} actions={[]} /></TableActionsCell>
                 </TableRow>
               ))}
             </TableBody>
