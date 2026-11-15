@@ -1,0 +1,416 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// ApplicationService 管理应用与发布包版本。版本内容是一组任意 Kubernetes 资源
+// 的 YAML/JSON，服务端解析成结构化清单并加密 Secret 值。
+service ApplicationService {
+  rpc CreateApplication(CreateApplicationRequest) returns (CreateApplicationResponse) {
+    option (google.api.http) = {
+      post: "/v1/application"
+      body: "*"
+    };
+  }
+  rpc UpdateApplication(UpdateApplicationRequest) returns (UpdateApplicationResponse) {
+    option (google.api.http) = {
+      put: "/v1/application/{uid}"
+      body: "*"
+    };
+  }
+  rpc DeleteApplication(DeleteApplicationRequest) returns (DeleteApplicationResponse) {
+    option (google.api.http) = {delete: "/v1/application/{uid}"};
+  }
+  rpc GetApplication(GetApplicationRequest) returns (GetApplicationResponse) {
+    option (google.api.http) = {get: "/v1/application/{uid}"};
+  }
+  rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse) {
+    option (google.api.http) = {get: "/v1/applications"};
+  }
+  rpc CreateApplicationVersion(CreateApplicationVersionRequest) returns (CreateApplicationVersionResponse) {
+    option (google.api.http) = {
+      post: "/v1/application/{application_uid}/version"
+      body: "*"
+    };
+  }
+  rpc UpdateApplicationVersion(UpdateApplicationVersionRequest) returns (UpdateApplicationVersionResponse) {
+    option (google.api.http) = {
+      put: "/v1/application/{application_uid}/version/{uid}"
+      body: "*"
+    };
+  }
+  rpc DeleteApplicationVersion(DeleteApplicationVersionRequest) returns (DeleteApplicationVersionResponse) {
+    option (google.api.http) = {delete: "/v1/application/{application_uid}/version/{uid}"};
+  }
+  rpc ValidateApplicationVersion(ValidateApplicationVersionRequest) returns (ValidateApplicationVersionResponse) {
+    option (google.api.http) = {
+      post: "/v1/application/{application_uid}/version/{uid}/validate"
+      body: "*"
+    };
+  }
+  rpc PublishApplicationVersion(PublishApplicationVersionRequest) returns (PublishApplicationVersionResponse) {
+    option (google.api.http) = {
+      post: "/v1/application/{application_uid}/version/{uid}/publish"
+      body: "*"
+    };
+  }
+  rpc DeprecateApplicationVersion(DeprecateApplicationVersionRequest) returns (DeprecateApplicationVersionResponse) {
+    option (google.api.http) = {
+      post: "/v1/application/{application_uid}/version/{uid}/deprecate"
+      body: "*"
+    };
+  }
+  rpc ListApplicationVersions(ListApplicationVersionsRequest) returns (ListApplicationVersionsResponse) {
+    option (google.api.http) = {get: "/v1/application/{application_uid}/versions"};
+  }
+  rpc GetApplicationVersion(GetApplicationVersionRequest) returns (GetApplicationVersionResponse) {
+    option (google.api.http) = {get: "/v1/application/{application_uid}/version/{uid}"};
+  }
+}
+
+// ApplicationDeploymentService 管理部署组与集群实例。
+service ApplicationDeploymentService {
+  rpc CreateApplicationDeployment(CreateApplicationDeploymentRequest) returns (CreateApplicationDeploymentResponse) {
+    option (google.api.http) = {
+      post: "/v1/application-deployments"
+      body: "*"
+    };
+  }
+  rpc ListApplicationDeployments(ListApplicationDeploymentsRequest) returns (ListApplicationDeploymentsResponse) {
+    option (google.api.http) = {get: "/v1/application-deployments"};
+  }
+  rpc GetApplicationDeployment(GetApplicationDeploymentRequest) returns (GetApplicationDeploymentResponse) {
+    option (google.api.http) = {get: "/v1/application-deployments/{uid}"};
+  }
+  rpc UpgradeApplicationDeployment(UpgradeApplicationDeploymentRequest) returns (UpgradeApplicationDeploymentResponse) {
+    option (google.api.http) = {
+      post: "/v1/application-deployments/{uid}/upgrade"
+      body: "*"
+    };
+  }
+  rpc RollbackApplicationDeployment(RollbackApplicationDeploymentRequest) returns (RollbackApplicationDeploymentResponse) {
+    option (google.api.http) = {
+      post: "/v1/application-deployments/{uid}/rollback"
+      body: "*"
+    };
+  }
+  rpc RedeployApplicationDeployment(RedeployApplicationDeploymentRequest) returns (RedeployApplicationDeploymentResponse) {
+    option (google.api.http) = {
+      post: "/v1/application-deployments/{uid}/redeploy"
+      body: "*"
+    };
+  }
+  rpc UninstallApplicationDeployment(UninstallApplicationDeploymentRequest) returns (UninstallApplicationDeploymentResponse) {
+    option (google.api.http) = {
+      post: "/v1/application-deployments/{uid}/uninstall"
+      body: "*"
+    };
+  }
+  rpc ListApplicationReleaseOperations(ListApplicationReleaseOperationsRequest) returns (ListApplicationReleaseOperationsResponse) {
+    option (google.api.http) = {get: "/v1/application-deployments/{uid}/operations"};
+  }
+}
+
+// ApplicationReleaseService 读取单个集群实例与操作记录。
+service ApplicationReleaseService {
+  rpc GetApplicationRelease(GetApplicationReleaseRequest) returns (GetApplicationReleaseResponse) {
+    option (google.api.http) = {get: "/v1/application-releases/{uid}"};
+  }
+  rpc ListApplicationReleaseOperations(ListReleaseOperationsRequest) returns (ListReleaseOperationsResponse) {
+    option (google.api.http) = {get: "/v1/application-releases/{uid}/operations"};
+  }
+  rpc GetApplicationOperation(GetApplicationOperationRequest) returns (GetApplicationOperationResponse) {
+    option (google.api.http) = {get: "/v1/application-release-operations/{uid}"};
+  }
+}
+
+message ApplicationItem {
+  string uid = 1;
+  string name = 2;
+  string display_name = 3 [json_name = "displayName"];
+  string category = 4;
+  string description = 5;
+  string readme = 6;
+  int32 version_count = 7 [json_name = "versionCount"];
+  string latest_version = 8 [json_name = "latestVersion"];
+  int64 created_at = 9 [json_name = "createdAt"];
+}
+message CreateApplicationRequest {
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string display_name = 2 [json_name = "displayName", (buf.validate.field).string = {max_len: 128}];
+  string category = 3 [(buf.validate.field).string = {in: ["DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER"]}];
+  string description = 4 [(buf.validate.field).string = {max_len: 1024}];
+  string readme = 5 [(buf.validate.field).string = {max_len: 65536}];
+}
+message CreateApplicationResponse { ApplicationItem application = 1; }
+message UpdateApplicationRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string display_name = 2 [json_name = "displayName", (buf.validate.field).string = {max_len: 128}];
+  string category = 3 [(buf.validate.field).string = {in: ["DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER"]}];
+  string description = 4 [(buf.validate.field).string = {max_len: 1024}];
+  string readme = 5 [(buf.validate.field).string = {max_len: 65536}];
+}
+message UpdateApplicationResponse { ApplicationItem application = 1; }
+message DeleteApplicationRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message DeleteApplicationResponse {}
+message GetApplicationRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message GetApplicationResponse { ApplicationItem application = 1; }
+message ListApplicationsRequest {
+  int32 page = 1 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+  string category = 4 [(buf.validate.field).string = {in: ["", "DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER"]}];
+}
+message ListApplicationsResponse {
+  repeated ApplicationItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+message ApplicationResource {
+  string item = 1;
+  string manifest = 2;
+  string api_version = 3 [json_name = "apiVersion"];
+  string kind = 4;
+  string name = 5;
+  string namespace = 6;
+  // NAMESPACED / CLUSTER / UNKNOWN。
+  string scope = 7;
+  bool cluster_scoped = 8 [json_name = "clusterScoped"];
+  repeated string images = 9;
+  repeated string secret_keys = 10 [json_name = "secretKeys"];
+}
+message ApplicationResourceInput {
+  string item = 1 [(buf.validate.field).string = {max_len: 64}];
+  string manifest = 2 [(buf.validate.field).string = {min_len: 1, max_len: 524288}];
+}
+message ApplicationVersionImageItem {
+  string resource_item = 1 [json_name = "resourceItem"];
+  string container = 2;
+  string image = 3;
+  string registry_uid = 4 [json_name = "registryUid"];
+  string registry_name = 5 [json_name = "registryName"];
+  string repository = 6;
+  string tag = 7;
+  string digest = 8;
+  repeated string platforms = 9;
+  bool external = 10;
+}
+message ApplicationVersionItem {
+  string uid = 1;
+  string application_uid = 2 [json_name = "applicationUid"];
+  string version = 3;
+  string status = 4;
+  string changelog = 5;
+  repeated ApplicationResource resources = 6;
+  repeated ApplicationVersionImageItem images = 7;
+  int64 published_at = 8 [json_name = "publishedAt"];
+  int64 created_at = 9 [json_name = "createdAt"];
+  string validation = 10;
+}
+message CreateApplicationVersionRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string version = 2 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
+  string changelog = 3 [(buf.validate.field).string = {max_len: 4096}];
+  repeated ApplicationResourceInput resources = 4;
+}
+message CreateApplicationVersionResponse { ApplicationVersionItem version = 1; }
+message UpdateApplicationVersionRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+  string changelog = 3 [(buf.validate.field).string = {max_len: 4096}];
+  repeated ApplicationResourceInput resources = 4;
+}
+message UpdateApplicationVersionResponse { ApplicationVersionItem version = 1; }
+message DeleteApplicationVersionRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+}
+message DeleteApplicationVersionResponse {}
+message ValidateApplicationVersionRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+}
+message ValidateApplicationVersionResponse {
+  ApplicationVersionItem version = 1;
+  repeated string errors = 2;
+  repeated string warnings = 3;
+}
+message PublishApplicationVersionRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+}
+message PublishApplicationVersionResponse { ApplicationVersionItem version = 1; }
+message DeprecateApplicationVersionRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+}
+message DeprecateApplicationVersionResponse { ApplicationVersionItem version = 1; }
+message ListApplicationVersionsRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  int32 page = 2 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 3 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+  string status = 4 [(buf.validate.field).string = {in: ["", "DRAFT", "PUBLISHED", "DEPRECATED"]}];
+}
+message ListApplicationVersionsResponse {
+  repeated ApplicationVersionItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+message GetApplicationVersionRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+}
+message GetApplicationVersionResponse { ApplicationVersionItem version = 1; }
+
+message ApplicationDeployValues {
+  map<string, int32> replicas = 1;
+  map<string, string> image_tags = 2 [json_name = "imageTags"];
+  map<string, string> ingress_hosts = 3 [json_name = "ingressHosts"];
+  map<string, string> secret_values = 4 [json_name = "secretValues"];
+}
+message DeploymentCluster {
+  string uid = 1;
+  string name = 2;
+  string status = 3;
+  string release_uid = 4 [json_name = "releaseUid"];
+  string version = 5;
+  string message = 6;
+}
+message ApplicationReleaseItem {
+  string uid = 1;
+  string deployment_uid = 2 [json_name = "deploymentUid"];
+  string cluster_uid = 3 [json_name = "clusterUid"];
+  string cluster_name = 4 [json_name = "clusterName"];
+  string target_namespace = 5 [json_name = "targetNamespace"];
+  string name = 6;
+  string status = 7;
+  string version_uid = 8 [json_name = "versionUid"];
+  string version = 9;
+  string message = 10;
+  string last_operation_uid = 11 [json_name = "lastOperationUid"];
+  int64 deployed_at = 12 [json_name = "deployedAt"];
+}
+message ApplicationDeploymentItem {
+  string uid = 1;
+  string name = 2;
+  string application_uid = 3 [json_name = "applicationUid"];
+  string application_name = 4 [json_name = "applicationName"];
+  string version_uid = 5 [json_name = "versionUid"];
+  string version = 6;
+  string target_namespace = 7 [json_name = "targetNamespace"];
+  repeated DeploymentCluster clusters = 8;
+  string status = 9;
+  string message = 10;
+  repeated ApplicationReleaseItem releases = 11;
+  int64 created_at = 12 [json_name = "createdAt"];
+  int64 deployed_at = 13 [json_name = "deployedAt"];
+}
+message CreateApplicationDeploymentRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string version_uid = 2 [json_name = "versionUid", (buf.validate.field).string = {min_len: 1}];
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 63}];
+  string target_namespace = 4 [json_name = "targetNamespace", (buf.validate.field).string = {min_len: 1, max_len: 63}];
+  repeated string cluster_uids = 5 [json_name = "clusterUids"];
+  ApplicationDeployValues values = 6;
+}
+message CreateApplicationDeploymentResponse { ApplicationDeploymentItem deployment = 1; }
+message ListApplicationDeploymentsRequest {
+  int32 page = 1 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+  string name = 3 [(buf.validate.field).string = {max_len: 64}];
+  string status = 4 [(buf.validate.field).string = {in: ["", "PENDING", "DEPLOYING", "RUNNING", "PARTIAL", "FAILED", "UNINSTALLING", "UNINSTALLED"]}];
+  string application_uid = 5 [json_name = "applicationUid"];
+  string cluster_uid = 6 [json_name = "clusterUid"];
+}
+message ListApplicationDeploymentsResponse {
+  repeated ApplicationDeploymentItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+message GetApplicationDeploymentRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message GetApplicationDeploymentResponse { ApplicationDeploymentItem deployment = 1; }
+
+message UpgradeApplicationDeploymentRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string version_uid = 2 [json_name = "versionUid", (buf.validate.field).string = {min_len: 1}];
+  repeated string cluster_uids = 3 [json_name = "clusterUids"];
+  ApplicationDeployValues values = 4;
+}
+message UpgradeApplicationDeploymentResponse { ApplicationDeploymentItem deployment = 1; }
+message RollbackApplicationDeploymentRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  string target_version_uid = 2 [json_name = "targetVersionUid", (buf.validate.field).string = {min_len: 1}];
+  repeated string cluster_uids = 3 [json_name = "clusterUids"];
+}
+message RollbackApplicationDeploymentResponse { ApplicationDeploymentItem deployment = 1; }
+message RedeployApplicationDeploymentRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  repeated string cluster_uids = 2 [json_name = "clusterUids"];
+}
+message RedeployApplicationDeploymentResponse { ApplicationDeploymentItem deployment = 1; }
+message UninstallApplicationDeploymentRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  repeated string cluster_uids = 2 [json_name = "clusterUids"];
+  bool keep_persistent_volume_claims = 3 [json_name = "keepPersistentVolumeClaims"];
+  bool delete_cluster_scoped_resources = 4 [json_name = "deleteClusterScopedResources"];
+}
+message UninstallApplicationDeploymentResponse { ApplicationDeploymentItem deployment = 1; }
+
+message ApplicationOperationItem {
+  string uid = 1;
+  string deployment_uid = 2 [json_name = "deploymentUid"];
+  string release_uid = 3 [json_name = "releaseUid"];
+  string cluster_uid = 4 [json_name = "clusterUid"];
+  string cluster_name = 5 [json_name = "clusterName"];
+  string action = 6;
+  string status = 7;
+  string from_version_uid = 8 [json_name = "fromVersionUid"];
+  string to_version_uid = 9 [json_name = "toVersionUid"];
+  string message = 10;
+  string operator_name = 11 [json_name = "operatorName"];
+  int64 started_at = 12 [json_name = "startedAt"];
+  int64 finished_at = 13 [json_name = "finishedAt"];
+  int64 created_at = 14 [json_name = "createdAt"];
+  repeated ResourceRef resources = 15;
+}
+message ResourceRef {
+  string api_version = 1 [json_name = "apiVersion"];
+  string kind = 2;
+  string namespace = 3;
+  string name = 4;
+}
+message ListApplicationReleaseOperationsRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  int32 page = 2 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 3 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+  string release_uid = 4 [json_name = "releaseUid"];
+}
+message ListApplicationReleaseOperationsResponse {
+  repeated ApplicationOperationItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+message GetApplicationReleaseRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message GetApplicationReleaseResponse { ApplicationReleaseItem release = 1; }
+message ListReleaseOperationsRequest {
+  string uid = 1 [(buf.validate.field).string = {min_len: 1}];
+  int32 page = 2 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 3 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+}
+message ListReleaseOperationsResponse {
+  repeated ApplicationOperationItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+message GetApplicationOperationRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
+message GetApplicationOperationResponse { ApplicationOperationItem operation = 1; }

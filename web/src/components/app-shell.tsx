@@ -33,6 +33,7 @@ import {
   ShieldAlert,
   ShieldHalf,
   SlidersHorizontal,
+  Store,
   Target,
   Terminal,
   UserRound,
@@ -451,6 +452,13 @@ const kubeLinks: {
     permission: "registry:read",
     capability: MENU_CAPABILITIES["/registries"],
     icon: Database,
+  },
+  {
+    to: "/appstore",
+    label: "nav.appStore",
+    permission: "application:read",
+    capability: MENU_CAPABILITIES["/appstore"],
+    icon: Store,
   },
 ]
 

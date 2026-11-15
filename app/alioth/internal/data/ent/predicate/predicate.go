@@ -54,6 +54,24 @@ type AlertRuleGroup func(*sql.Selector)
 // AlertRuleLevel is the predicate function for alertrulelevel builders.
 type AlertRuleLevel func(*sql.Selector)
 
+// Application is the predicate function for application builders.
+type Application func(*sql.Selector)
+
+// ApplicationDeployment is the predicate function for applicationdeployment builders.
+type ApplicationDeployment func(*sql.Selector)
+
+// ApplicationRelease is the predicate function for applicationrelease builders.
+type ApplicationRelease func(*sql.Selector)
+
+// ApplicationReleaseOperation is the predicate function for applicationreleaseoperation builders.
+type ApplicationReleaseOperation func(*sql.Selector)
+
+// ApplicationVersion is the predicate function for applicationversion builders.
+type ApplicationVersion func(*sql.Selector)
+
+// ApplicationVersionImage is the predicate function for applicationversionimage builders.
+type ApplicationVersionImage func(*sql.Selector)
+
 // AuthEmailSetting is the predicate function for authemailsetting builders.
 type AuthEmailSetting func(*sql.Selector)
 

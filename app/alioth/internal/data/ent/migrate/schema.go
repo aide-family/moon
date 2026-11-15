@@ -661,6 +661,319 @@ var (
 			},
 		},
 	}
+	// ApplicationsColumns holds the columns for the "applications" table.
+	ApplicationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "display_name", Type: field.TypeString, Default: ""},
+		{Name: "category", Type: field.TypeEnum, Enums: []string{"DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER"}, Default: "OTHER"},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "readme", Type: field.TypeString, Size: 2147483647, Default: ""},
+	}
+	// ApplicationsTable holds the schema information for the "applications" table.
+	ApplicationsTable = &schema.Table{
+		Name:       "applications",
+		Columns:    ApplicationsColumns,
+		PrimaryKey: []*schema.Column{ApplicationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "application_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationsColumns[4]},
+			},
+			{
+				Name:    "application_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationsColumns[5], ApplicationsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "application_namespace_uid_category",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationsColumns[5], ApplicationsColumns[8]},
+			},
+		},
+	}
+	// ApplicationDeploymentsColumns holds the columns for the "application_deployments" table.
+	ApplicationDeploymentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "application_uid", Type: field.TypeString},
+		{Name: "application_name", Type: field.TypeString, Default: ""},
+		{Name: "version_uid", Type: field.TypeString},
+		{Name: "version", Type: field.TypeString, Default: ""},
+		{Name: "target_namespace", Type: field.TypeString},
+		{Name: "clusters", Type: field.TypeString, Size: 2147483647, Default: "[]"},
+		{Name: "values", Type: field.TypeString, Size: 2147483647, Default: "{}"},
+		{Name: "secret_values_cipher", Type: field.TypeString, Default: ""},
+		{Name: "images", Type: field.TypeString, Size: 2147483647, Default: "[]"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "DEPLOYING", "RUNNING", "PARTIAL", "FAILED", "UNINSTALLING", "UNINSTALLED"}, Default: "PENDING"},
+		{Name: "message", Type: field.TypeString, Default: ""},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "deployed_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ApplicationDeploymentsTable holds the schema information for the "application_deployments" table.
+	ApplicationDeploymentsTable = &schema.Table{
+		Name:       "application_deployments",
+		Columns:    ApplicationDeploymentsColumns,
+		PrimaryKey: []*schema.Column{ApplicationDeploymentsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "applicationdeployment_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationDeploymentsColumns[4]},
+			},
+			{
+				Name:    "applicationdeployment_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationDeploymentsColumns[5], ApplicationDeploymentsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "applicationdeployment_namespace_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationDeploymentsColumns[5], ApplicationDeploymentsColumns[1]},
+			},
+			{
+				Name:    "applicationdeployment_status",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationDeploymentsColumns[16]},
+			},
+		},
+	}
+	// ApplicationReleasesColumns holds the columns for the "application_releases" table.
+	ApplicationReleasesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "deployment_uid", Type: field.TypeString},
+		{Name: "cluster_uid", Type: field.TypeString},
+		{Name: "cluster_name", Type: field.TypeString, Default: ""},
+		{Name: "target_namespace", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "application_uid", Type: field.TypeString},
+		{Name: "application_name", Type: field.TypeString, Default: ""},
+		{Name: "version_uid", Type: field.TypeString},
+		{Name: "version", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "DEPLOYING", "RUNNING", "FAILED", "UNINSTALLING", "UNINSTALLED"}, Default: "PENDING"},
+		{Name: "values", Type: field.TypeString, Size: 2147483647, Default: "{}"},
+		{Name: "secret_values_cipher", Type: field.TypeString, Default: ""},
+		{Name: "images", Type: field.TypeString, Size: 2147483647, Default: "[]"},
+		{Name: "message", Type: field.TypeString, Default: ""},
+		{Name: "last_operation_uid", Type: field.TypeString, Default: ""},
+		{Name: "deployed_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ApplicationReleasesTable holds the schema information for the "application_releases" table.
+	ApplicationReleasesTable = &schema.Table{
+		Name:       "application_releases",
+		Columns:    ApplicationReleasesColumns,
+		PrimaryKey: []*schema.Column{ApplicationReleasesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "applicationrelease_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationReleasesColumns[4]},
+			},
+			{
+				Name:    "applicationrelease_deployment_uid_cluster_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationReleasesColumns[6], ApplicationReleasesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "applicationrelease_cluster_uid_target_namespace_name",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationReleasesColumns[7], ApplicationReleasesColumns[9], ApplicationReleasesColumns[10]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL AND status <> 'UNINSTALLED'",
+				},
+			},
+			{
+				Name:    "applicationrelease_namespace_uid_deployment_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationReleasesColumns[5], ApplicationReleasesColumns[6]},
+			},
+			{
+				Name:    "applicationrelease_status",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationReleasesColumns[15]},
+			},
+		},
+	}
+	// ApplicationReleaseOperationsColumns holds the columns for the "application_release_operations" table.
+	ApplicationReleaseOperationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "deployment_uid", Type: field.TypeString},
+		{Name: "release_uid", Type: field.TypeString},
+		{Name: "cluster_name", Type: field.TypeString, Default: ""},
+		{Name: "batch_uid", Type: field.TypeString, Default: ""},
+		{Name: "action", Type: field.TypeEnum, Enums: []string{"INSTALL", "UPGRADE", "ROLLBACK", "UNINSTALL", "REDEPLOY"}, Default: "INSTALL"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED"}, Default: "PENDING"},
+		{Name: "from_version_uid", Type: field.TypeString, Default: ""},
+		{Name: "to_version_uid", Type: field.TypeString, Default: ""},
+		{Name: "values", Type: field.TypeString, Size: 2147483647, Default: "{}"},
+		{Name: "secret_values_cipher", Type: field.TypeString, Default: ""},
+		{Name: "resources", Type: field.TypeString, Size: 2147483647, Default: "[]"},
+		{Name: "diff", Type: field.TypeString, Size: 2147483647, Default: "{}"},
+		{Name: "message", Type: field.TypeString, Default: ""},
+		{Name: "operator_uid", Type: field.TypeString, Default: ""},
+		{Name: "operator_name", Type: field.TypeString, Default: ""},
+		{Name: "lease_owner", Type: field.TypeString, Default: ""},
+		{Name: "lease_until", Type: field.TypeTime, Nullable: true},
+		{Name: "started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ApplicationReleaseOperationsTable holds the schema information for the "application_release_operations" table.
+	ApplicationReleaseOperationsTable = &schema.Table{
+		Name:       "application_release_operations",
+		Columns:    ApplicationReleaseOperationsColumns,
+		PrimaryKey: []*schema.Column{ApplicationReleaseOperationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "applicationreleaseoperation_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[3]},
+			},
+			{
+				Name:    "applicationreleaseoperation_release_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status IN ('PENDING','RUNNING')",
+				},
+			},
+			{
+				Name:    "applicationreleaseoperation_deployment_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[5], ApplicationReleaseOperationsColumns[1]},
+			},
+			{
+				Name:    "applicationreleaseoperation_batch_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[8]},
+			},
+			{
+				Name:    "applicationreleaseoperation_status_lease_until",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[10], ApplicationReleaseOperationsColumns[21]},
+			},
+		},
+	}
+	// ApplicationVersionsColumns holds the columns for the "application_versions" table.
+	ApplicationVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "application_uid", Type: field.TypeString},
+		{Name: "version", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "PUBLISHED", "DEPRECATED"}, Default: "DRAFT"},
+		{Name: "changelog", Type: field.TypeString, Default: ""},
+		{Name: "spec", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "secrets_cipher", Type: field.TypeString, Default: ""},
+		{Name: "validation", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "published_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ApplicationVersionsTable holds the schema information for the "application_versions" table.
+	ApplicationVersionsTable = &schema.Table{
+		Name:       "application_versions",
+		Columns:    ApplicationVersionsColumns,
+		PrimaryKey: []*schema.Column{ApplicationVersionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "applicationversion_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationVersionsColumns[4]},
+			},
+			{
+				Name:    "applicationversion_application_uid_version",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationVersionsColumns[6], ApplicationVersionsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "applicationversion_namespace_uid_application_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationVersionsColumns[5], ApplicationVersionsColumns[6], ApplicationVersionsColumns[8]},
+			},
+		},
+	}
+	// ApplicationVersionImagesColumns holds the columns for the "application_version_images" table.
+	ApplicationVersionImagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "application_uid", Type: field.TypeString},
+		{Name: "version_uid", Type: field.TypeString},
+		{Name: "resource_item", Type: field.TypeString},
+		{Name: "container", Type: field.TypeString, Default: ""},
+		{Name: "image", Type: field.TypeString},
+		{Name: "registry_uid", Type: field.TypeString, Default: ""},
+		{Name: "registry_name", Type: field.TypeString, Default: ""},
+		{Name: "repository", Type: field.TypeString, Default: ""},
+		{Name: "tag", Type: field.TypeString, Default: ""},
+		{Name: "digest", Type: field.TypeString, Default: ""},
+		{Name: "platforms", Type: field.TypeString, Default: "[]"},
+		{Name: "external", Type: field.TypeBool, Default: false},
+		{Name: "resolved_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ApplicationVersionImagesTable holds the schema information for the "application_version_images" table.
+	ApplicationVersionImagesTable = &schema.Table{
+		Name:       "application_version_images",
+		Columns:    ApplicationVersionImagesColumns,
+		PrimaryKey: []*schema.Column{ApplicationVersionImagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "applicationversionimage_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationVersionImagesColumns[3]},
+			},
+			{
+				Name:    "applicationversionimage_version_uid_resource_item_container",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationVersionImagesColumns[6], ApplicationVersionImagesColumns[7], ApplicationVersionImagesColumns[8]},
+			},
+			{
+				Name:    "applicationversionimage_namespace_uid_repository_tag",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationVersionImagesColumns[4], ApplicationVersionImagesColumns[12], ApplicationVersionImagesColumns[13]},
+			},
+			{
+				Name:    "applicationversionimage_registry_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationVersionImagesColumns[10]},
+			},
+		},
+	}
 	// AuthEmailSettingsColumns holds the columns for the "auth_email_settings" table.
 	AuthEmailSettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -3059,6 +3372,12 @@ var (
 		AlertRulesTable,
 		AlertRuleGroupsTable,
 		AlertRuleLevelsTable,
+		ApplicationsTable,
+		ApplicationDeploymentsTable,
+		ApplicationReleasesTable,
+		ApplicationReleaseOperationsTable,
+		ApplicationVersionsTable,
+		ApplicationVersionImagesTable,
 		AuthEmailSettingsTable,
 		AuthLoginSettingsTable,
 		AuthOauthProvidersTable,

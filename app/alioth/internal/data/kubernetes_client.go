@@ -14,6 +14,8 @@ import (
 	kerrors "github.com/go-kratos/kratos/v3/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -37,14 +39,21 @@ const (
 // clusterClients 缓存按集群 UID 建立的 clientset。
 // 更新或删除集群后必须失效，否则后续请求会继续用旧凭据访问旧集群。
 type clusterClients struct {
-	deps   *Dependencies
-	log    *slog.Logger
-	mu     sync.RWMutex
-	cached map[string]kubernetes.Interface
+	deps      *Dependencies
+	log       *slog.Logger
+	mu        sync.RWMutex
+	cached    map[string]kubernetes.Interface
+	dynamic   map[string]dynamic.Interface
+	discovery map[string]discovery.DiscoveryInterface
 }
 
 func newClusterClients(deps *Dependencies, logger *slog.Logger) *clusterClients {
-	return &clusterClients{deps: deps, log: logger, cached: make(map[string]kubernetes.Interface)}
+	return &clusterClients{
+		deps: deps, log: logger,
+		cached:    make(map[string]kubernetes.Interface),
+		dynamic:   make(map[string]dynamic.Interface),
+		discovery: make(map[string]discovery.DiscoveryInterface),
+	}
 }
 
 // client 取集群的 clientset，命中缓存时不再读数据库和 kubeconfig。
@@ -76,6 +85,56 @@ func (clients *clusterClients) client(ctx context.Context, clusterUID string) (k
 		return nil, merr.Invalid("invalid kubeconfig")
 	}
 	clients.cached[clusterUID] = client
+	return client, nil
+}
+
+// dynamicClient 取集群的 dynamic client，供应用商店按任意 GVK apply 资源。
+func (clients *clusterClients) dynamicClient(ctx context.Context, clusterUID string) (dynamic.Interface, error) {
+	clients.mu.RLock()
+	cached, ok := clients.dynamic[clusterUID]
+	clients.mu.RUnlock()
+	if ok {
+		return cached, nil
+	}
+	clients.mu.Lock()
+	defer clients.mu.Unlock()
+	if existing, ok := clients.dynamic[clusterUID]; ok {
+		return existing, nil
+	}
+	restConfig, err := clients.restConfig(ctx, clusterUID)
+	if err != nil {
+		return nil, err
+	}
+	client, err := dynamic.NewForConfig(restConfig)
+	if err != nil {
+		return nil, merr.Invalid("invalid kubeconfig")
+	}
+	clients.dynamic[clusterUID] = client
+	return client, nil
+}
+
+// discoveryClient 取集群的 discovery client，用于 RESTMapper 判定 scope。
+func (clients *clusterClients) discoveryClient(ctx context.Context, clusterUID string) (discovery.DiscoveryInterface, error) {
+	clients.mu.RLock()
+	cached, ok := clients.discovery[clusterUID]
+	clients.mu.RUnlock()
+	if ok {
+		return cached, nil
+	}
+	clients.mu.Lock()
+	defer clients.mu.Unlock()
+	if existing, ok := clients.discovery[clusterUID]; ok {
+		return existing, nil
+	}
+	restConfig, err := clients.restConfig(ctx, clusterUID)
+	if err != nil {
+		return nil, err
+	}
+	client, err := discovery.NewDiscoveryClientForConfig(restConfig)
+	if err != nil {
+		return nil, merr.Invalid("invalid kubeconfig")
+	}
+	clients.discovery[clusterUID] = client
 	return client, nil
 }
 
@@ -117,6 +176,8 @@ func (clients *clusterClients) restConfig(ctx context.Context, clusterUID string
 func (clients *clusterClients) invalidate(clusterUID string) {
 	clients.mu.Lock()
 	delete(clients.cached, clusterUID)
+	delete(clients.dynamic, clusterUID)
+	delete(clients.discovery, clusterUID)
 	clients.mu.Unlock()
 }
 

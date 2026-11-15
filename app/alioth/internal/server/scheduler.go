@@ -10,6 +10,7 @@ import (
 
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertescalation"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertevent"
+	"github.com/aide-family/moon/app/alioth/internal/biz/application"
 	"github.com/aide-family/moon/app/alioth/internal/biz/inspection"
 	"github.com/aide-family/moon/app/alioth/internal/biz/notification"
 	"github.com/aide-family/moon/app/alioth/internal/biz/partition"
@@ -29,6 +30,7 @@ type Scheduler struct {
 	escalation         *alertescalation.Gateway
 	inspections        *inspection.Gateway
 	imageSyncs         *registry.Synchronizer
+	appExecutor        *application.Executor
 	log                *slog.Logger
 	lastCheck          time.Time
 	lastWorkerCleanup  time.Time
@@ -51,11 +53,12 @@ func NewScheduler(
 	escalation *alertescalation.Gateway,
 	inspections *inspection.Gateway,
 	imageSyncs *registry.Synchronizer,
+	appExecutor *application.Executor,
 	logger *slog.Logger,
 ) *Scheduler {
 	return &Scheduler{
 		coordinator: coordinator, center: center, maintainer: maintainer,
-		roster: roster, sla: sla, escalation: escalation, inspections: inspections, imageSyncs: imageSyncs, log: logger,
+		roster: roster, sla: sla, escalation: escalation, inspections: inspections, imageSyncs: imageSyncs, appExecutor: appExecutor, log: logger,
 	}
 }
 
@@ -81,6 +84,9 @@ func (s *Scheduler) Start(context.Context) error {
 	}
 	if s.imageSyncs != nil {
 		go s.runImageSyncs(ctx)
+	}
+	if s.appExecutor != nil {
+		go s.runApplicationOperations(ctx)
 	}
 	return nil
 }
@@ -171,6 +177,22 @@ func (s *Scheduler) pruneImageSyncs(ctx context.Context) {
 	s.lastImageSyncPrune = time.Now()
 	if err := s.imageSyncs.Cleanup(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("prune image sync: %v", err))
+	}
+}
+
+// runApplicationOperations 每 2 秒尝试领取一条应用部署操作。
+func (s *Scheduler) runApplicationOperations(ctx context.Context) {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := s.appExecutor.ExecuteNext(ctx); err != nil {
+				s.log.Error(fmt.Sprintf("execute application operation: %v", err))
+			}
+		}
 	}
 }
 

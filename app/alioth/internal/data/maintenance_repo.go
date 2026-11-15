@@ -91,6 +91,10 @@ var archivedTables = []string{
 	"clusters",
 	// 镜像仓库连接属于配置，密码以密文随迁移包搬。
 	"registries",
+	// 应用与发布包版本属于配置，随迁移包一起搬。
+	"applications",
+	"application_versions",
+	"application_version_images",
 	"agents",
 	"ssh_commands",
 	"ssh_command_audits",
@@ -121,6 +125,9 @@ var runtimeTables = []string{
 	"inspection_reports",
 	"inspection_report_shares",
 	"image_syncs",
+	"application_deployments",
+	"application_releases",
+	"application_release_operations",
 }
 
 var (

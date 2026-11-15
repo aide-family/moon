@@ -28,6 +28,12 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/application"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationdeployment"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationrelease"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationreleaseoperation"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversion"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversionimage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authemailsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authoauthprovider"
@@ -161,6 +167,12 @@ func checkColumn(t, c string) error {
 			alertrule.Table:                     alertrule.ValidColumn,
 			alertrulegroup.Table:                alertrulegroup.ValidColumn,
 			alertrulelevel.Table:                alertrulelevel.ValidColumn,
+			application.Table:                   application.ValidColumn,
+			applicationdeployment.Table:         applicationdeployment.ValidColumn,
+			applicationrelease.Table:            applicationrelease.ValidColumn,
+			applicationreleaseoperation.Table:   applicationreleaseoperation.ValidColumn,
+			applicationversion.Table:            applicationversion.ValidColumn,
+			applicationversionimage.Table:       applicationversionimage.ValidColumn,
 			authemailsetting.Table:              authemailsetting.ValidColumn,
 			authloginsetting.Table:              authloginsetting.ValidColumn,
 			authoauthprovider.Table:             authoauthprovider.ValidColumn,

@@ -170,12 +170,12 @@ func TestSystemRoles(t *testing.T) {
 	}
 }
 
-// TestCapabilityCatalog 确认两级功能模型：69 个能力都挂在 12 个模块下，
+// TestCapabilityCatalog 确认两级功能模型：72 个能力都挂在 12 个模块下，
 // 权限都在租户目录里，菜单权限与能力一一对应。
 func TestCapabilityCatalog(t *testing.T) {
 	items := Capabilities()
-	if len(items) != 69 {
-		t.Fatalf("capabilities = %d, want 69", len(items))
+	if len(items) != 72 {
+		t.Fatalf("capabilities = %d, want 72", len(items))
 	}
 	if items[0].Code != CapabilityAlertRealtime || items[len(items)-1].Code != CapabilityWebShell {
 		t.Fatalf("unexpected capability order: first %s last %s", items[0].Code, items[len(items)-1].Code)
@@ -276,8 +276,8 @@ func TestCapabilityCatalog(t *testing.T) {
 	if got := CapabilityPermissions([]string{CapabilityNotifyChannelSMTP, CapabilityNotifyGroup}); len(got) != 6 {
 		t.Fatalf("notification permissions = %v, want 3 unique", got)
 	}
-	if got := CapabilityCodesOfModule(FeatureCluster); len(got) != 27 {
-		t.Fatalf("cluster capabilities = %d, want 27", len(got))
+	if got := CapabilityCodesOfModule(FeatureCluster); len(got) != 30 {
+		t.Fatalf("cluster capabilities = %d, want 30", len(got))
 	}
 }
 

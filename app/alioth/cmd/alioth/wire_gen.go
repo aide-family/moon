@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertmaintenance"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertpage"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertrule"
+	"github.com/aide-family/moon/app/alioth/internal/biz/application"
 	"github.com/aide-family/moon/app/alioth/internal/biz/auth"
 	"github.com/aide-family/moon/app/alioth/internal/biz/board"
 	"github.com/aide-family/moon/app/alioth/internal/biz/cluster"
@@ -192,11 +193,19 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	imageSyncRepo := data.NewImageSyncRepo(dependencies, logger)
 	synchronizer := registry.NewSynchronizer(registryRepo, imageSyncRepo, imageRegistryRepo, accessChecker, logger)
 	imageSyncService := service.NewImageSyncService(synchronizer)
+	applicationRepo := data.NewApplicationRepo(dependencies, logger)
+	applicationCatalog := application.NewCatalog(applicationRepo, registryRepo, imageRegistryRepo, accessChecker, logger)
+	applicationService := service.NewApplicationService(applicationCatalog)
+	applicationReleaseRepo := data.NewApplicationReleaseRepo(dependencies, logger)
+	applicationApplier := data.NewApplicationApplier(dependencies, logger)
+	applicationDeployer := application.NewDeployer(applicationRepo, applicationReleaseRepo, clusterRepo, registryRepo, imageRegistryRepo, applicationApplier, accessChecker, logger)
+	applicationDeploymentService := service.NewApplicationDeploymentService(applicationDeployer)
+	applicationReleaseService := service.NewApplicationReleaseService(applicationDeployer)
 	clusterExplorer := cluster.NewExplorer(clusterRepo, kubernetesRepo, accessChecker)
 	operator := cluster.NewOperator(clusterRepo, kubernetesRepo, accessChecker)
 	terminal := cluster.NewTerminal(clusterRepo, kubernetesRepo, accessChecker)
 	kubernetesService := service.NewKubernetesService(clusterExplorer, inspector, operator, terminal)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, probeTargetService, metricQueryService, logsQueryService, alertRuleService, boardService, alertMaintenanceService, probeSlaService, statusPageService, inspectionPlanService, inspectionTemplateService, inspectionRunService, siteService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, onCallRotationService, messageLogService, workerService, maintenanceService, alertEscalationPolicyService, agentService, sshCommandService, clusterService, registryService, imageSyncService, kubernetesService, authenticator, logger)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, probeTargetService, metricQueryService, logsQueryService, alertRuleService, boardService, alertMaintenanceService, probeSlaService, statusPageService, inspectionPlanService, inspectionTemplateService, inspectionRunService, siteService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, notificationOnCallService, onCallRotationService, messageLogService, workerService, maintenanceService, alertEscalationPolicyService, agentService, sshCommandService, clusterService, registryService, imageSyncService, applicationService, applicationDeploymentService, applicationReleaseService, kubernetesService, authenticator, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
@@ -212,7 +221,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	}
 	partitionRepo := data.NewPartitionRepo(dependencies, logger)
 	maintainer := partition.NewMaintainer(partitionRepo, client, logger)
-	scheduler := server.NewScheduler(coordinator, center, maintainer, roster, probeslaGateway, alertescalationGateway, inspectionGateway, synchronizer, logger)
+	applicationInspector := application.NewInspector(applicationReleaseRepo, logger)
+	applicationExecutor := application.NewExecutor(applicationRepo, applicationReleaseRepo, applicationApplier, applicationInspector, logger)
+	scheduler := server.NewScheduler(coordinator, center, maintainer, roster, probeslaGateway, alertescalationGateway, inspectionGateway, synchronizer, applicationExecutor, logger)
 	app := newApp(logger, httpServer, grpcServer, scheduler, hub, terminal, dependencies)
 	return app, func() {
 		cleanup2()

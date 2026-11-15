@@ -45,6 +45,9 @@ var ProviderSet = wire.NewSet(
 	NewClusterService,
 	NewRegistryService,
 	NewImageSyncService,
+	NewApplicationService,
+	NewApplicationDeploymentService,
+	NewApplicationReleaseService,
 	NewKubernetesService,
 	NewMaintenanceService,
 )

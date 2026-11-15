@@ -117,6 +117,15 @@ const (
 	RegistrySyncRead    = "registry_sync:read"
 	RegistrySyncWrite   = "registry_sync:write"
 
+	// 应用商店：发布包与部署分别授权；集群级资源单独授权。
+	ApplicationRead   = "application:read"
+	ApplicationWrite  = "application:write"
+	ApplicationDelete = "application:delete"
+	ReleaseRead       = "release:read"
+	ReleaseWrite      = "release:write"
+	ReleaseDelete     = "release:delete"
+	ReleaseCluster    = "release:cluster"
+
 	// Kubernetes 控制台按「资源 + 操作」细分。cluster:* 只保留集群接入与连接：
 	// 列表、详情、测试连通性、修改 kubeconfig 和删除集群；进入控制台仍然要求 cluster:read。
 	// 一个操作一个权限，套餐能力也按操作拆：读、封锁节点、扩缩容、滚动重启、设置镜像、

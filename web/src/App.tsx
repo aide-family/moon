@@ -1,6 +1,10 @@
 import { Route, Routes } from "react-router-dom"
 
 import { AppShell } from "@/components/app-shell"
+import { AppStorePage } from "@/pages/appstore"
+import { ApplicationDetailPage } from "@/pages/appstore/app-detail"
+import { ApplicationVersionPage } from "@/pages/appstore/version"
+import { ApplicationDeploymentPage } from "@/pages/appstore/deployment"
 import { LandingRedirect } from "@/components/landing-redirect"
 import { AgentPage } from "@/pages/agent"
 import { AgentShellPage } from "@/pages/agent/shell"
@@ -160,6 +164,10 @@ export function App() {
         <Route path="/registries/syncs" element={<RegistrySyncPage />} />
         <Route path="/registries/:uid" element={<RegistryDetailPage />} />
         <Route path="/registries/:uid/repository" element={<RegistryRepositoryPage />} />
+        <Route path="/appstore" element={<AppStorePage />} />
+        <Route path="/appstore/apps/:uid" element={<ApplicationDetailPage />} />
+        <Route path="/appstore/apps/:uid/versions/:versionUid" element={<ApplicationVersionPage />} />
+        <Route path="/appstore/deployments/:uid" element={<ApplicationDeploymentPage />} />
         <Route path="/clusters/:uid" element={<ClusterDetailPage />} />
         <Route
           path="/clusters/:uid/pods/:namespace/:name/exec"

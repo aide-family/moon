@@ -62,6 +62,9 @@ func NewHTTPServer(
 	clusters *service.ClusterService,
 	registries *service.RegistryService,
 	imageSyncs *service.ImageSyncService,
+	applications *service.ApplicationService,
+	appDeployments *service.ApplicationDeploymentService,
+	appReleases *service.ApplicationReleaseService,
 	kubeResources *service.KubernetesService,
 	authenticator *auth.Authenticator,
 	logger *slog.Logger,
@@ -144,6 +147,9 @@ func NewHTTPServer(
 	v1.RegisterClusterServiceHTTPServer(srv, clusters)
 	v1.RegisterRegistryServiceHTTPServer(srv, registries)
 	v1.RegisterImageSyncServiceHTTPServer(srv, imageSyncs)
+	v1.RegisterApplicationServiceHTTPServer(srv, applications)
+	v1.RegisterApplicationDeploymentServiceHTTPServer(srv, appDeployments)
+	v1.RegisterApplicationReleaseServiceHTTPServer(srv, appReleases)
 	v1.RegisterKubernetesServiceHTTPServer(srv, kubeResources)
 	srv.HandleFunc("/v1/agent/{uid}/shell", agents.ServeShell)
 	// Pod 终端也走裸 HTTP 处理器：浏览器 WebSocket 无法带 Authorization 头，

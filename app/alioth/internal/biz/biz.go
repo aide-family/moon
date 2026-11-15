@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertmaintenance"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertpage"
 	"github.com/aide-family/moon/app/alioth/internal/biz/alertrule"
+	"github.com/aide-family/moon/app/alioth/internal/biz/application"
 	"github.com/aide-family/moon/app/alioth/internal/biz/auth"
 	"github.com/aide-family/moon/app/alioth/internal/biz/board"
 	"github.com/aide-family/moon/app/alioth/internal/biz/cluster"
@@ -70,6 +71,7 @@ var ProviderSet = wire.NewSet(
 	migration.ProviderSet,
 	cluster.ProviderSet,
 	registry.ProviderSet,
+	application.ProviderSet,
 	board.ProviderSet,
 	wire.Bind(new(auth.AgentTokenLookup), new(*agent.Registry)),
 )

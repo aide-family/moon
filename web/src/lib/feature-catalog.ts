@@ -1,11 +1,11 @@
 // 能力目录（套餐 / 租户功能授权 / 菜单可见性）。
 //
-// 能力 code 与后端 perm.Capabilities() 的 69 项定义保持一致；GET /v1/system/features
+// 能力 code 与后端 perm.Capabilities() 的 72 项定义保持一致；GET /v1/system/features
 // 返回的是同一份目录（code/module/name/description/permissions）。页面用这里的
 // 双语标签，不直接用接口里的 name/description，这样切到 en 时中文名也不会消失，
 // 后端没部署新接口时也能先用本地目录渲染勾选框。
 //
-// 目录分两级：MODULES 是所属菜单模块（12 个），CAPABILITIES 是具体能力（69 个）。
+// 目录分两级：MODULES 是所属菜单模块（12 个），CAPABILITIES 是具体能力（72 个）。
 // 新增 / 删除能力时同步：后端 perm.Capabilities()、本文件、i18n 里的菜单文案。
 
 export type LocalizedLabel = { zh: string; en: string }
@@ -622,6 +622,33 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     },
   },
   {
+    code: "appstore_package",
+    module: "cluster",
+    label: { zh: "发布包管理", en: "Release packages" },
+    description: {
+      zh: "管理应用、任意 Kubernetes 资源发布包与多版本",
+      en: "Manage applications and arbitrary Kubernetes resources across versions",
+    },
+  },
+  {
+    code: "appstore_deploy",
+    module: "cluster",
+    label: { zh: "应用部署", en: "Application deployments" },
+    description: {
+      zh: "部署、升级、回滚、重新部署与卸载",
+      en: "Deploy, upgrade, roll back, redeploy, and uninstall",
+    },
+  },
+  {
+    code: "appstore_cluster_scope",
+    module: "cluster",
+    label: { zh: "集群级资源部署", en: "Cluster-scoped resources" },
+    description: {
+      zh: "部署或删除 CRD、ClusterRole、PV 等集群级资源",
+      en: "Deploy or delete CRDs, ClusterRoles, PVs, and other cluster-scoped resources",
+    },
+  },
+  {
     code: "agent_machine",
     module: "agent",
     label: { zh: "机器", en: "Machines" },
@@ -697,6 +724,7 @@ export const MENU_CAPABILITIES: Record<string, string> = {
   "/boards": "board",
   "/clusters": "cluster_access",
   "/registries": "registry",
+  "/appstore": "appstore",
   "/agents": "agent",
   "/ssh-commands": "ssh_command",
 }
@@ -708,6 +736,7 @@ export const MENU_CAPABILITIES: Record<string, string> = {
 export const MENU_LABELS: Record<string, LocalizedLabel> = {
   datasource: { zh: "数据源", en: "Datasources" },
   registry: { zh: "镜像仓库", en: "Image registry" },
+  appstore: { zh: "应用商店", en: "Application store" },
   alert_maintenance: { zh: "维护窗口", en: "Maintenance windows" },
   alert_escalation: { zh: "升级策略", en: "Escalation policies" },
   probe: { zh: "探测目标", en: "Probe targets" },
@@ -1007,6 +1036,9 @@ const CAPABILITY_MENU_OVERRIDES: Record<string, string[]> = {
   registry_access: ["registry"],
   registry_image: ["registry"],
   registry_sync: ["registry"],
+  appstore_package: ["appstore"],
+  appstore_deploy: ["appstore"],
+  appstore_cluster_scope: ["appstore"],
 }
 
 /** 返回能力开通的菜单编码。 */

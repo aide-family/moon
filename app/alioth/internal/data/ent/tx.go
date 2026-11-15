@@ -44,6 +44,18 @@ type Tx struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
+	// Application is the client for interacting with the Application builders.
+	Application *ApplicationClient
+	// ApplicationDeployment is the client for interacting with the ApplicationDeployment builders.
+	ApplicationDeployment *ApplicationDeploymentClient
+	// ApplicationRelease is the client for interacting with the ApplicationRelease builders.
+	ApplicationRelease *ApplicationReleaseClient
+	// ApplicationReleaseOperation is the client for interacting with the ApplicationReleaseOperation builders.
+	ApplicationReleaseOperation *ApplicationReleaseOperationClient
+	// ApplicationVersion is the client for interacting with the ApplicationVersion builders.
+	ApplicationVersion *ApplicationVersionClient
+	// ApplicationVersionImage is the client for interacting with the ApplicationVersionImage builders.
+	ApplicationVersionImage *ApplicationVersionImageClient
 	// AuthEmailSetting is the client for interacting with the AuthEmailSetting builders.
 	AuthEmailSetting *AuthEmailSettingClient
 	// AuthLoginSetting is the client for interacting with the AuthLoginSetting builders.
@@ -305,6 +317,12 @@ func (tx *Tx) init() {
 	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
 	tx.AlertRuleLevel = NewAlertRuleLevelClient(tx.config)
+	tx.Application = NewApplicationClient(tx.config)
+	tx.ApplicationDeployment = NewApplicationDeploymentClient(tx.config)
+	tx.ApplicationRelease = NewApplicationReleaseClient(tx.config)
+	tx.ApplicationReleaseOperation = NewApplicationReleaseOperationClient(tx.config)
+	tx.ApplicationVersion = NewApplicationVersionClient(tx.config)
+	tx.ApplicationVersionImage = NewApplicationVersionImageClient(tx.config)
 	tx.AuthEmailSetting = NewAuthEmailSettingClient(tx.config)
 	tx.AuthLoginSetting = NewAuthLoginSettingClient(tx.config)
 	tx.AuthOAuthProvider = NewAuthOAuthProviderClient(tx.config)

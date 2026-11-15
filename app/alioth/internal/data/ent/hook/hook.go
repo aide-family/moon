@@ -201,6 +201,78 @@ func (f AlertRuleLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleLevelMutation", m)
 }
 
+// The ApplicationFunc type is an adapter to allow the use of ordinary
+// function as Application mutator.
+type ApplicationFunc func(context.Context, *ent.ApplicationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationMutation", m)
+}
+
+// The ApplicationDeploymentFunc type is an adapter to allow the use of ordinary
+// function as ApplicationDeployment mutator.
+type ApplicationDeploymentFunc func(context.Context, *ent.ApplicationDeploymentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationDeploymentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationDeploymentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationDeploymentMutation", m)
+}
+
+// The ApplicationReleaseFunc type is an adapter to allow the use of ordinary
+// function as ApplicationRelease mutator.
+type ApplicationReleaseFunc func(context.Context, *ent.ApplicationReleaseMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationReleaseFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationReleaseMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationReleaseMutation", m)
+}
+
+// The ApplicationReleaseOperationFunc type is an adapter to allow the use of ordinary
+// function as ApplicationReleaseOperation mutator.
+type ApplicationReleaseOperationFunc func(context.Context, *ent.ApplicationReleaseOperationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationReleaseOperationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationReleaseOperationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationReleaseOperationMutation", m)
+}
+
+// The ApplicationVersionFunc type is an adapter to allow the use of ordinary
+// function as ApplicationVersion mutator.
+type ApplicationVersionFunc func(context.Context, *ent.ApplicationVersionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationVersionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationVersionMutation", m)
+}
+
+// The ApplicationVersionImageFunc type is an adapter to allow the use of ordinary
+// function as ApplicationVersionImage mutator.
+type ApplicationVersionImageFunc func(context.Context, *ent.ApplicationVersionImageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationVersionImageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationVersionImageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationVersionImageMutation", m)
+}
+
 // The AuthEmailSettingFunc type is an adapter to allow the use of ordinary
 // function as AuthEmailSetting mutator.
 type AuthEmailSettingFunc func(context.Context, *ent.AuthEmailSettingMutation) (ent.Value, error)

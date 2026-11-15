@@ -67,6 +67,9 @@ const (
 	CapabilityRegistryAccess      = "registry_access"
 	CapabilityRegistryImage       = "registry_image"
 	CapabilityRegistrySync        = "registry_sync"
+	CapabilityAppstorePackage     = "appstore_package"
+	CapabilityAppstoreDeploy      = "appstore_deploy"
+	CapabilityAppstoreCluster     = "appstore_cluster_scope"
 	CapabilityK8sNodeRead         = "k8s_node_read"
 	CapabilityK8sNodeCordon       = "k8s_node_cordon"
 	CapabilityK8sWorkloadRead     = "k8s_workload_read"
@@ -422,6 +425,21 @@ var capabilitySpecs = []Capability{
 		Code: CapabilityK8sCronJobDelete, Module: FeatureCluster, Name: "删除 CronJob",
 		Description: "删除 CronJob 及它创建的 Job。",
 		Permissions: []string{K8sCronJobDelete},
+	},
+	{
+		Code: CapabilityAppstorePackage, Module: FeatureCluster, Name: "发布包管理",
+		Description: "管理应用、任意 Kubernetes 资源发布包与多版本。",
+		Permissions: []string{ApplicationRead, ApplicationWrite, ApplicationDelete},
+	},
+	{
+		Code: CapabilityAppstoreDeploy, Module: FeatureCluster, Name: "应用部署",
+		Description: "把发布包部署到集群，升级、回滚、重新部署与卸载。",
+		Permissions: []string{ApplicationRead, ReleaseRead, ReleaseWrite, ReleaseDelete},
+	},
+	{
+		Code: CapabilityAppstoreCluster, Module: FeatureCluster, Name: "集群级资源部署",
+		Description: "部署或删除 CRD、ClusterRole、PV 等集群级资源。",
+		Permissions: []string{ReleaseCluster},
 	},
 	{
 		Code: CapabilityRegistryAccess, Module: FeatureCluster, Name: "仓库接入",

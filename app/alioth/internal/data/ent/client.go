@@ -30,6 +30,12 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/application"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationdeployment"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationrelease"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationreleaseoperation"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversion"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversionimage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authemailsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authoauthprovider"
@@ -126,6 +132,18 @@ type Client struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
+	// Application is the client for interacting with the Application builders.
+	Application *ApplicationClient
+	// ApplicationDeployment is the client for interacting with the ApplicationDeployment builders.
+	ApplicationDeployment *ApplicationDeploymentClient
+	// ApplicationRelease is the client for interacting with the ApplicationRelease builders.
+	ApplicationRelease *ApplicationReleaseClient
+	// ApplicationReleaseOperation is the client for interacting with the ApplicationReleaseOperation builders.
+	ApplicationReleaseOperation *ApplicationReleaseOperationClient
+	// ApplicationVersion is the client for interacting with the ApplicationVersion builders.
+	ApplicationVersion *ApplicationVersionClient
+	// ApplicationVersionImage is the client for interacting with the ApplicationVersionImage builders.
+	ApplicationVersionImage *ApplicationVersionImageClient
 	// AuthEmailSetting is the client for interacting with the AuthEmailSetting builders.
 	AuthEmailSetting *AuthEmailSettingClient
 	// AuthLoginSetting is the client for interacting with the AuthLoginSetting builders.
@@ -267,6 +285,12 @@ func (c *Client) init() {
 	c.AlertRule = NewAlertRuleClient(c.config)
 	c.AlertRuleGroup = NewAlertRuleGroupClient(c.config)
 	c.AlertRuleLevel = NewAlertRuleLevelClient(c.config)
+	c.Application = NewApplicationClient(c.config)
+	c.ApplicationDeployment = NewApplicationDeploymentClient(c.config)
+	c.ApplicationRelease = NewApplicationReleaseClient(c.config)
+	c.ApplicationReleaseOperation = NewApplicationReleaseOperationClient(c.config)
+	c.ApplicationVersion = NewApplicationVersionClient(c.config)
+	c.ApplicationVersionImage = NewApplicationVersionImageClient(c.config)
 	c.AuthEmailSetting = NewAuthEmailSettingClient(c.config)
 	c.AuthLoginSetting = NewAuthLoginSettingClient(c.config)
 	c.AuthOAuthProvider = NewAuthOAuthProviderClient(c.config)
@@ -432,6 +456,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		Application:                   NewApplicationClient(cfg),
+		ApplicationDeployment:         NewApplicationDeploymentClient(cfg),
+		ApplicationRelease:            NewApplicationReleaseClient(cfg),
+		ApplicationReleaseOperation:   NewApplicationReleaseOperationClient(cfg),
+		ApplicationVersion:            NewApplicationVersionClient(cfg),
+		ApplicationVersionImage:       NewApplicationVersionImageClient(cfg),
 		AuthEmailSetting:              NewAuthEmailSettingClient(cfg),
 		AuthLoginSetting:              NewAuthLoginSettingClient(cfg),
 		AuthOAuthProvider:             NewAuthOAuthProviderClient(cfg),
@@ -524,6 +554,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		Application:                   NewApplicationClient(cfg),
+		ApplicationDeployment:         NewApplicationDeploymentClient(cfg),
+		ApplicationRelease:            NewApplicationReleaseClient(cfg),
+		ApplicationReleaseOperation:   NewApplicationReleaseOperationClient(cfg),
+		ApplicationVersion:            NewApplicationVersionClient(cfg),
+		ApplicationVersionImage:       NewApplicationVersionImageClient(cfg),
 		AuthEmailSetting:              NewAuthEmailSettingClient(cfg),
 		AuthLoginSetting:              NewAuthLoginSettingClient(cfg),
 		AuthOAuthProvider:             NewAuthOAuthProviderClient(cfg),
@@ -614,8 +650,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction, c.AlertEventColumn,
 		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
-		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
-		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
+		c.AlertRuleLevel, c.Application, c.ApplicationDeployment, c.ApplicationRelease,
+		c.ApplicationReleaseOperation, c.ApplicationVersion, c.ApplicationVersionImage,
+		c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider, c.Board,
+		c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
 		c.FeaturePackage, c.FeaturePackageItem, c.ImageSync, c.InspectionItem,
 		c.InspectionPlan, c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
 		c.InspectionTemplate, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
@@ -641,8 +679,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AlertEvalBatch, c.AlertEvent, c.AlertEventAction, c.AlertEventColumn,
 		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
-		c.AlertRuleLevel, c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider,
-		c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
+		c.AlertRuleLevel, c.Application, c.ApplicationDeployment, c.ApplicationRelease,
+		c.ApplicationReleaseOperation, c.ApplicationVersion, c.ApplicationVersionImage,
+		c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider, c.Board,
+		c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
 		c.FeaturePackage, c.FeaturePackageItem, c.ImageSync, c.InspectionItem,
 		c.InspectionPlan, c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
 		c.InspectionTemplate, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
@@ -695,6 +735,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AlertRuleGroup.mutate(ctx, m)
 	case *AlertRuleLevelMutation:
 		return c.AlertRuleLevel.mutate(ctx, m)
+	case *ApplicationMutation:
+		return c.Application.mutate(ctx, m)
+	case *ApplicationDeploymentMutation:
+		return c.ApplicationDeployment.mutate(ctx, m)
+	case *ApplicationReleaseMutation:
+		return c.ApplicationRelease.mutate(ctx, m)
+	case *ApplicationReleaseOperationMutation:
+		return c.ApplicationReleaseOperation.mutate(ctx, m)
+	case *ApplicationVersionMutation:
+		return c.ApplicationVersion.mutate(ctx, m)
+	case *ApplicationVersionImageMutation:
+		return c.ApplicationVersionImage.mutate(ctx, m)
 	case *AuthEmailSettingMutation:
 		return c.AuthEmailSetting.mutate(ctx, m)
 	case *AuthLoginSettingMutation:
@@ -2939,6 +2991,804 @@ func (c *AlertRuleLevelClient) mutate(ctx context.Context, m *AlertRuleLevelMuta
 		return (&AlertRuleLevelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertRuleLevel mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationClient is a client for the Application schema.
+type ApplicationClient struct {
+	config
+}
+
+// NewApplicationClient returns a client for the Application from the given config.
+func NewApplicationClient(c config) *ApplicationClient {
+	return &ApplicationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `application.Hooks(f(g(h())))`.
+func (c *ApplicationClient) Use(hooks ...Hook) {
+	c.hooks.Application = append(c.hooks.Application, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `application.Intercept(f(g(h())))`.
+func (c *ApplicationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Application = append(c.inters.Application, interceptors...)
+}
+
+// Create returns a builder for creating a Application entity.
+func (c *ApplicationClient) Create() *ApplicationCreate {
+	mutation := newApplicationMutation(c.config, OpCreate)
+	return &ApplicationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Application entities.
+func (c *ApplicationClient) CreateBulk(builders ...*ApplicationCreate) *ApplicationCreateBulk {
+	return &ApplicationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ApplicationClient) MapCreateBulk(slice any, setFunc func(*ApplicationCreate, int)) *ApplicationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ApplicationCreateBulk{err: fmt.Errorf("calling to ApplicationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ApplicationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ApplicationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Application.
+func (c *ApplicationClient) Update() *ApplicationUpdate {
+	mutation := newApplicationMutation(c.config, OpUpdate)
+	return &ApplicationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationClient) UpdateOne(_m *Application) *ApplicationUpdateOne {
+	mutation := newApplicationMutation(c.config, OpUpdateOne, withApplication(_m))
+	return &ApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationClient) UpdateOneID(id int) *ApplicationUpdateOne {
+	mutation := newApplicationMutation(c.config, OpUpdateOne, withApplicationID(id))
+	return &ApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Application.
+func (c *ApplicationClient) Delete() *ApplicationDelete {
+	mutation := newApplicationMutation(c.config, OpDelete)
+	return &ApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationClient) DeleteOne(_m *Application) *ApplicationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationClient) DeleteOneID(id int) *ApplicationDeleteOne {
+	builder := c.Delete().Where(application.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationDeleteOne{builder}
+}
+
+// Query returns a query builder for Application.
+func (c *ApplicationClient) Query() *ApplicationQuery {
+	return &ApplicationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplication},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Application entity by its id.
+func (c *ApplicationClient) Get(ctx context.Context, id int) (*Application, error) {
+	return c.Query().Where(application.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationClient) GetX(ctx context.Context, id int) *Application {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationClient) Hooks() []Hook {
+	return c.hooks.Application
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationClient) Interceptors() []Interceptor {
+	return c.inters.Application
+}
+
+func (c *ApplicationClient) mutate(ctx context.Context, m *ApplicationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Application mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationDeploymentClient is a client for the ApplicationDeployment schema.
+type ApplicationDeploymentClient struct {
+	config
+}
+
+// NewApplicationDeploymentClient returns a client for the ApplicationDeployment from the given config.
+func NewApplicationDeploymentClient(c config) *ApplicationDeploymentClient {
+	return &ApplicationDeploymentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applicationdeployment.Hooks(f(g(h())))`.
+func (c *ApplicationDeploymentClient) Use(hooks ...Hook) {
+	c.hooks.ApplicationDeployment = append(c.hooks.ApplicationDeployment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applicationdeployment.Intercept(f(g(h())))`.
+func (c *ApplicationDeploymentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApplicationDeployment = append(c.inters.ApplicationDeployment, interceptors...)
+}
+
+// Create returns a builder for creating a ApplicationDeployment entity.
+func (c *ApplicationDeploymentClient) Create() *ApplicationDeploymentCreate {
+	mutation := newApplicationDeploymentMutation(c.config, OpCreate)
+	return &ApplicationDeploymentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApplicationDeployment entities.
+func (c *ApplicationDeploymentClient) CreateBulk(builders ...*ApplicationDeploymentCreate) *ApplicationDeploymentCreateBulk {
+	return &ApplicationDeploymentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ApplicationDeploymentClient) MapCreateBulk(slice any, setFunc func(*ApplicationDeploymentCreate, int)) *ApplicationDeploymentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ApplicationDeploymentCreateBulk{err: fmt.Errorf("calling to ApplicationDeploymentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ApplicationDeploymentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ApplicationDeploymentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApplicationDeployment.
+func (c *ApplicationDeploymentClient) Update() *ApplicationDeploymentUpdate {
+	mutation := newApplicationDeploymentMutation(c.config, OpUpdate)
+	return &ApplicationDeploymentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationDeploymentClient) UpdateOne(_m *ApplicationDeployment) *ApplicationDeploymentUpdateOne {
+	mutation := newApplicationDeploymentMutation(c.config, OpUpdateOne, withApplicationDeployment(_m))
+	return &ApplicationDeploymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationDeploymentClient) UpdateOneID(id int) *ApplicationDeploymentUpdateOne {
+	mutation := newApplicationDeploymentMutation(c.config, OpUpdateOne, withApplicationDeploymentID(id))
+	return &ApplicationDeploymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApplicationDeployment.
+func (c *ApplicationDeploymentClient) Delete() *ApplicationDeploymentDelete {
+	mutation := newApplicationDeploymentMutation(c.config, OpDelete)
+	return &ApplicationDeploymentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationDeploymentClient) DeleteOne(_m *ApplicationDeployment) *ApplicationDeploymentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationDeploymentClient) DeleteOneID(id int) *ApplicationDeploymentDeleteOne {
+	builder := c.Delete().Where(applicationdeployment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationDeploymentDeleteOne{builder}
+}
+
+// Query returns a query builder for ApplicationDeployment.
+func (c *ApplicationDeploymentClient) Query() *ApplicationDeploymentQuery {
+	return &ApplicationDeploymentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplicationDeployment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ApplicationDeployment entity by its id.
+func (c *ApplicationDeploymentClient) Get(ctx context.Context, id int) (*ApplicationDeployment, error) {
+	return c.Query().Where(applicationdeployment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationDeploymentClient) GetX(ctx context.Context, id int) *ApplicationDeployment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationDeploymentClient) Hooks() []Hook {
+	return c.hooks.ApplicationDeployment
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationDeploymentClient) Interceptors() []Interceptor {
+	return c.inters.ApplicationDeployment
+}
+
+func (c *ApplicationDeploymentClient) mutate(ctx context.Context, m *ApplicationDeploymentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationDeploymentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationDeploymentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationDeploymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationDeploymentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ApplicationDeployment mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationReleaseClient is a client for the ApplicationRelease schema.
+type ApplicationReleaseClient struct {
+	config
+}
+
+// NewApplicationReleaseClient returns a client for the ApplicationRelease from the given config.
+func NewApplicationReleaseClient(c config) *ApplicationReleaseClient {
+	return &ApplicationReleaseClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applicationrelease.Hooks(f(g(h())))`.
+func (c *ApplicationReleaseClient) Use(hooks ...Hook) {
+	c.hooks.ApplicationRelease = append(c.hooks.ApplicationRelease, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applicationrelease.Intercept(f(g(h())))`.
+func (c *ApplicationReleaseClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApplicationRelease = append(c.inters.ApplicationRelease, interceptors...)
+}
+
+// Create returns a builder for creating a ApplicationRelease entity.
+func (c *ApplicationReleaseClient) Create() *ApplicationReleaseCreate {
+	mutation := newApplicationReleaseMutation(c.config, OpCreate)
+	return &ApplicationReleaseCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApplicationRelease entities.
+func (c *ApplicationReleaseClient) CreateBulk(builders ...*ApplicationReleaseCreate) *ApplicationReleaseCreateBulk {
+	return &ApplicationReleaseCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ApplicationReleaseClient) MapCreateBulk(slice any, setFunc func(*ApplicationReleaseCreate, int)) *ApplicationReleaseCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ApplicationReleaseCreateBulk{err: fmt.Errorf("calling to ApplicationReleaseClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ApplicationReleaseCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ApplicationReleaseCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApplicationRelease.
+func (c *ApplicationReleaseClient) Update() *ApplicationReleaseUpdate {
+	mutation := newApplicationReleaseMutation(c.config, OpUpdate)
+	return &ApplicationReleaseUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationReleaseClient) UpdateOne(_m *ApplicationRelease) *ApplicationReleaseUpdateOne {
+	mutation := newApplicationReleaseMutation(c.config, OpUpdateOne, withApplicationRelease(_m))
+	return &ApplicationReleaseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationReleaseClient) UpdateOneID(id int) *ApplicationReleaseUpdateOne {
+	mutation := newApplicationReleaseMutation(c.config, OpUpdateOne, withApplicationReleaseID(id))
+	return &ApplicationReleaseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApplicationRelease.
+func (c *ApplicationReleaseClient) Delete() *ApplicationReleaseDelete {
+	mutation := newApplicationReleaseMutation(c.config, OpDelete)
+	return &ApplicationReleaseDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationReleaseClient) DeleteOne(_m *ApplicationRelease) *ApplicationReleaseDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationReleaseClient) DeleteOneID(id int) *ApplicationReleaseDeleteOne {
+	builder := c.Delete().Where(applicationrelease.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationReleaseDeleteOne{builder}
+}
+
+// Query returns a query builder for ApplicationRelease.
+func (c *ApplicationReleaseClient) Query() *ApplicationReleaseQuery {
+	return &ApplicationReleaseQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplicationRelease},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ApplicationRelease entity by its id.
+func (c *ApplicationReleaseClient) Get(ctx context.Context, id int) (*ApplicationRelease, error) {
+	return c.Query().Where(applicationrelease.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationReleaseClient) GetX(ctx context.Context, id int) *ApplicationRelease {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationReleaseClient) Hooks() []Hook {
+	return c.hooks.ApplicationRelease
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationReleaseClient) Interceptors() []Interceptor {
+	return c.inters.ApplicationRelease
+}
+
+func (c *ApplicationReleaseClient) mutate(ctx context.Context, m *ApplicationReleaseMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationReleaseCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationReleaseUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationReleaseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationReleaseDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ApplicationRelease mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationReleaseOperationClient is a client for the ApplicationReleaseOperation schema.
+type ApplicationReleaseOperationClient struct {
+	config
+}
+
+// NewApplicationReleaseOperationClient returns a client for the ApplicationReleaseOperation from the given config.
+func NewApplicationReleaseOperationClient(c config) *ApplicationReleaseOperationClient {
+	return &ApplicationReleaseOperationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applicationreleaseoperation.Hooks(f(g(h())))`.
+func (c *ApplicationReleaseOperationClient) Use(hooks ...Hook) {
+	c.hooks.ApplicationReleaseOperation = append(c.hooks.ApplicationReleaseOperation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applicationreleaseoperation.Intercept(f(g(h())))`.
+func (c *ApplicationReleaseOperationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApplicationReleaseOperation = append(c.inters.ApplicationReleaseOperation, interceptors...)
+}
+
+// Create returns a builder for creating a ApplicationReleaseOperation entity.
+func (c *ApplicationReleaseOperationClient) Create() *ApplicationReleaseOperationCreate {
+	mutation := newApplicationReleaseOperationMutation(c.config, OpCreate)
+	return &ApplicationReleaseOperationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApplicationReleaseOperation entities.
+func (c *ApplicationReleaseOperationClient) CreateBulk(builders ...*ApplicationReleaseOperationCreate) *ApplicationReleaseOperationCreateBulk {
+	return &ApplicationReleaseOperationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ApplicationReleaseOperationClient) MapCreateBulk(slice any, setFunc func(*ApplicationReleaseOperationCreate, int)) *ApplicationReleaseOperationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ApplicationReleaseOperationCreateBulk{err: fmt.Errorf("calling to ApplicationReleaseOperationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ApplicationReleaseOperationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ApplicationReleaseOperationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApplicationReleaseOperation.
+func (c *ApplicationReleaseOperationClient) Update() *ApplicationReleaseOperationUpdate {
+	mutation := newApplicationReleaseOperationMutation(c.config, OpUpdate)
+	return &ApplicationReleaseOperationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationReleaseOperationClient) UpdateOne(_m *ApplicationReleaseOperation) *ApplicationReleaseOperationUpdateOne {
+	mutation := newApplicationReleaseOperationMutation(c.config, OpUpdateOne, withApplicationReleaseOperation(_m))
+	return &ApplicationReleaseOperationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationReleaseOperationClient) UpdateOneID(id int) *ApplicationReleaseOperationUpdateOne {
+	mutation := newApplicationReleaseOperationMutation(c.config, OpUpdateOne, withApplicationReleaseOperationID(id))
+	return &ApplicationReleaseOperationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApplicationReleaseOperation.
+func (c *ApplicationReleaseOperationClient) Delete() *ApplicationReleaseOperationDelete {
+	mutation := newApplicationReleaseOperationMutation(c.config, OpDelete)
+	return &ApplicationReleaseOperationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationReleaseOperationClient) DeleteOne(_m *ApplicationReleaseOperation) *ApplicationReleaseOperationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationReleaseOperationClient) DeleteOneID(id int) *ApplicationReleaseOperationDeleteOne {
+	builder := c.Delete().Where(applicationreleaseoperation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationReleaseOperationDeleteOne{builder}
+}
+
+// Query returns a query builder for ApplicationReleaseOperation.
+func (c *ApplicationReleaseOperationClient) Query() *ApplicationReleaseOperationQuery {
+	return &ApplicationReleaseOperationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplicationReleaseOperation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ApplicationReleaseOperation entity by its id.
+func (c *ApplicationReleaseOperationClient) Get(ctx context.Context, id int) (*ApplicationReleaseOperation, error) {
+	return c.Query().Where(applicationreleaseoperation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationReleaseOperationClient) GetX(ctx context.Context, id int) *ApplicationReleaseOperation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationReleaseOperationClient) Hooks() []Hook {
+	return c.hooks.ApplicationReleaseOperation
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationReleaseOperationClient) Interceptors() []Interceptor {
+	return c.inters.ApplicationReleaseOperation
+}
+
+func (c *ApplicationReleaseOperationClient) mutate(ctx context.Context, m *ApplicationReleaseOperationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationReleaseOperationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationReleaseOperationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationReleaseOperationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationReleaseOperationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ApplicationReleaseOperation mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationVersionClient is a client for the ApplicationVersion schema.
+type ApplicationVersionClient struct {
+	config
+}
+
+// NewApplicationVersionClient returns a client for the ApplicationVersion from the given config.
+func NewApplicationVersionClient(c config) *ApplicationVersionClient {
+	return &ApplicationVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applicationversion.Hooks(f(g(h())))`.
+func (c *ApplicationVersionClient) Use(hooks ...Hook) {
+	c.hooks.ApplicationVersion = append(c.hooks.ApplicationVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applicationversion.Intercept(f(g(h())))`.
+func (c *ApplicationVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApplicationVersion = append(c.inters.ApplicationVersion, interceptors...)
+}
+
+// Create returns a builder for creating a ApplicationVersion entity.
+func (c *ApplicationVersionClient) Create() *ApplicationVersionCreate {
+	mutation := newApplicationVersionMutation(c.config, OpCreate)
+	return &ApplicationVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApplicationVersion entities.
+func (c *ApplicationVersionClient) CreateBulk(builders ...*ApplicationVersionCreate) *ApplicationVersionCreateBulk {
+	return &ApplicationVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ApplicationVersionClient) MapCreateBulk(slice any, setFunc func(*ApplicationVersionCreate, int)) *ApplicationVersionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ApplicationVersionCreateBulk{err: fmt.Errorf("calling to ApplicationVersionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ApplicationVersionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ApplicationVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApplicationVersion.
+func (c *ApplicationVersionClient) Update() *ApplicationVersionUpdate {
+	mutation := newApplicationVersionMutation(c.config, OpUpdate)
+	return &ApplicationVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationVersionClient) UpdateOne(_m *ApplicationVersion) *ApplicationVersionUpdateOne {
+	mutation := newApplicationVersionMutation(c.config, OpUpdateOne, withApplicationVersion(_m))
+	return &ApplicationVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationVersionClient) UpdateOneID(id int) *ApplicationVersionUpdateOne {
+	mutation := newApplicationVersionMutation(c.config, OpUpdateOne, withApplicationVersionID(id))
+	return &ApplicationVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApplicationVersion.
+func (c *ApplicationVersionClient) Delete() *ApplicationVersionDelete {
+	mutation := newApplicationVersionMutation(c.config, OpDelete)
+	return &ApplicationVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationVersionClient) DeleteOne(_m *ApplicationVersion) *ApplicationVersionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationVersionClient) DeleteOneID(id int) *ApplicationVersionDeleteOne {
+	builder := c.Delete().Where(applicationversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for ApplicationVersion.
+func (c *ApplicationVersionClient) Query() *ApplicationVersionQuery {
+	return &ApplicationVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplicationVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ApplicationVersion entity by its id.
+func (c *ApplicationVersionClient) Get(ctx context.Context, id int) (*ApplicationVersion, error) {
+	return c.Query().Where(applicationversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationVersionClient) GetX(ctx context.Context, id int) *ApplicationVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationVersionClient) Hooks() []Hook {
+	return c.hooks.ApplicationVersion
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationVersionClient) Interceptors() []Interceptor {
+	return c.inters.ApplicationVersion
+}
+
+func (c *ApplicationVersionClient) mutate(ctx context.Context, m *ApplicationVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ApplicationVersion mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationVersionImageClient is a client for the ApplicationVersionImage schema.
+type ApplicationVersionImageClient struct {
+	config
+}
+
+// NewApplicationVersionImageClient returns a client for the ApplicationVersionImage from the given config.
+func NewApplicationVersionImageClient(c config) *ApplicationVersionImageClient {
+	return &ApplicationVersionImageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applicationversionimage.Hooks(f(g(h())))`.
+func (c *ApplicationVersionImageClient) Use(hooks ...Hook) {
+	c.hooks.ApplicationVersionImage = append(c.hooks.ApplicationVersionImage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applicationversionimage.Intercept(f(g(h())))`.
+func (c *ApplicationVersionImageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApplicationVersionImage = append(c.inters.ApplicationVersionImage, interceptors...)
+}
+
+// Create returns a builder for creating a ApplicationVersionImage entity.
+func (c *ApplicationVersionImageClient) Create() *ApplicationVersionImageCreate {
+	mutation := newApplicationVersionImageMutation(c.config, OpCreate)
+	return &ApplicationVersionImageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApplicationVersionImage entities.
+func (c *ApplicationVersionImageClient) CreateBulk(builders ...*ApplicationVersionImageCreate) *ApplicationVersionImageCreateBulk {
+	return &ApplicationVersionImageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ApplicationVersionImageClient) MapCreateBulk(slice any, setFunc func(*ApplicationVersionImageCreate, int)) *ApplicationVersionImageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ApplicationVersionImageCreateBulk{err: fmt.Errorf("calling to ApplicationVersionImageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ApplicationVersionImageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ApplicationVersionImageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApplicationVersionImage.
+func (c *ApplicationVersionImageClient) Update() *ApplicationVersionImageUpdate {
+	mutation := newApplicationVersionImageMutation(c.config, OpUpdate)
+	return &ApplicationVersionImageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationVersionImageClient) UpdateOne(_m *ApplicationVersionImage) *ApplicationVersionImageUpdateOne {
+	mutation := newApplicationVersionImageMutation(c.config, OpUpdateOne, withApplicationVersionImage(_m))
+	return &ApplicationVersionImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationVersionImageClient) UpdateOneID(id int) *ApplicationVersionImageUpdateOne {
+	mutation := newApplicationVersionImageMutation(c.config, OpUpdateOne, withApplicationVersionImageID(id))
+	return &ApplicationVersionImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApplicationVersionImage.
+func (c *ApplicationVersionImageClient) Delete() *ApplicationVersionImageDelete {
+	mutation := newApplicationVersionImageMutation(c.config, OpDelete)
+	return &ApplicationVersionImageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationVersionImageClient) DeleteOne(_m *ApplicationVersionImage) *ApplicationVersionImageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationVersionImageClient) DeleteOneID(id int) *ApplicationVersionImageDeleteOne {
+	builder := c.Delete().Where(applicationversionimage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationVersionImageDeleteOne{builder}
+}
+
+// Query returns a query builder for ApplicationVersionImage.
+func (c *ApplicationVersionImageClient) Query() *ApplicationVersionImageQuery {
+	return &ApplicationVersionImageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplicationVersionImage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ApplicationVersionImage entity by its id.
+func (c *ApplicationVersionImageClient) Get(ctx context.Context, id int) (*ApplicationVersionImage, error) {
+	return c.Query().Where(applicationversionimage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationVersionImageClient) GetX(ctx context.Context, id int) *ApplicationVersionImage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationVersionImageClient) Hooks() []Hook {
+	return c.hooks.ApplicationVersionImage
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationVersionImageClient) Interceptors() []Interceptor {
+	return c.inters.ApplicationVersionImage
+}
+
+func (c *ApplicationVersionImageClient) mutate(ctx context.Context, m *ApplicationVersionImageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationVersionImageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationVersionImageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationVersionImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationVersionImageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ApplicationVersionImage mutation op: %q", m.Op())
 	}
 }
 
@@ -10530,6 +11380,8 @@ type (
 		AlertEvalBatch, AlertEvent, AlertEventAction, AlertEventColumn,
 		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
+		Application, ApplicationDeployment, ApplicationRelease,
+		ApplicationReleaseOperation, ApplicationVersion, ApplicationVersionImage,
 		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
 		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
 		FeaturePackageItem, ImageSync, InspectionItem, InspectionPlan,
@@ -10549,6 +11401,8 @@ type (
 		AlertEvalBatch, AlertEvent, AlertEventAction, AlertEventColumn,
 		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
+		Application, ApplicationDeployment, ApplicationRelease,
+		ApplicationReleaseOperation, ApplicationVersion, ApplicationVersionImage,
 		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
 		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
 		FeaturePackageItem, ImageSync, InspectionItem, InspectionPlan,

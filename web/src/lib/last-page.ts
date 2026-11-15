@@ -53,6 +53,7 @@ const knownPaths = new Set([
   "/clusters",
   "/registries",
   "/registries/syncs",
+  "/appstore",
   "/agents",
   "/ssh-commands",
 ])
@@ -63,6 +64,9 @@ const knownPatterns = [
   /^\/clusters\/[^/]+$/,
   /^\/registries\/[^/]+$/,
   /^\/registries\/[^/]+\/repository$/,
+  /^\/appstore\/apps\/[^/]+$/,
+  /^\/appstore\/apps\/[^/]+\/versions\/[^/]+$/,
+  /^\/appstore\/deployments\/[^/]+$/,
   /^\/tenants\/[^/]+\/orders$/,
   /^\/agents\/[^/]+\/shell$/,
   /^\/ssh-commands\/[^/]+\/results$/,
