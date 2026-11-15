@@ -22,6 +22,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { SearchableSelect } from "@/components/searchable-select"
+import { useLabelOptions } from "@/hooks/use-label-options"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { usePointerReorder } from "@/hooks/use-flip-reorder"
@@ -128,6 +130,7 @@ export function AlertEscalationPolicyDialog({
   const [labels, setLabels] = useState<LabelPair[]>(() =>
     parseLabelPairs(policy?.labels ?? "{}")
   )
+  const labelOptions = useLabelOptions()
   const [labelPairErrors, setLabelPairErrors] = useState<LabelPairErrors[]>([])
   const [levelUids, setLevelUids] = useState<string[]>(
     () => policy?.levelUids ?? []
@@ -392,27 +395,83 @@ export function AlertEscalationPolicyDialog({
               error={fieldErrors.labels}
             >
               <div className="grid gap-2">
-                {labels.map((pair, index) => (
+                {labels.map((pair, index) => {
+                  const keyOptions = labelOptions.map((option) => ({
+                    value: option.key,
+                    label: option.key,
+                  }))
+                  if (
+                    pair.key !== "" &&
+                    !keyOptions.some((option) => option.value === pair.key)
+                  ) {
+                    keyOptions.push({ value: pair.key, label: pair.key })
+                  }
+                  const values =
+                    labelOptions.find((option) => option.key === pair.key)
+                      ?.values ?? []
+                  const valueOptions = values.map((value) => ({
+                    value,
+                    label: value,
+                  }))
+                  if (pair.value !== "" && !values.includes(pair.value)) {
+                    valueOptions.push({ value: pair.value, label: pair.value })
+                  }
+                  return (
                   <div key={index} className="grid gap-1">
                     <div className="flex items-center gap-2">
-                      <Input
+                      <SearchableSelect
                         value={pair.key}
+                        options={keyOptions}
                         placeholder={t("escalation.labelKey")}
-                        aria-label={t("escalation.labelKey")}
-                        onChange={(event) => {
+                        searchPlaceholder={t(
+                          "alertRule.datasourceLabelKeySearch"
+                        )}
+                        emptyText={t("alertRule.customKeyHint")}
+                        ariaLabel={t("escalation.labelKey")}
+                        allowCustom
+                        customLabel={(value) =>
+                          t("alertRule.customKey", { value })
+                        }
+                        customHint={t("alertRule.customKeyHint")}
+                        clearLabel={t("alertRule.datasourceLabelClear")}
+                        className="min-w-0 flex-1"
+                        onChange={(key) => {
+                          if (key === pair.key) {
+                            return
+                          }
+                          const nextValues =
+                            labelOptions.find((option) => option.key === key)
+                              ?.values ?? []
                           const next = [...labels]
-                          next[index] = { ...pair, key: event.target.value }
+                          next[index] = {
+                            key,
+                            value: nextValues.includes(pair.value)
+                              ? pair.value
+                              : "",
+                          }
                           setLabels(next)
                           setLabelPairErrors([])
                         }}
                       />
-                      <Input
+                      <SearchableSelect
                         value={pair.value}
+                        options={valueOptions}
                         placeholder={t("escalation.labelValue")}
-                        aria-label={t("escalation.labelValue")}
-                        onChange={(event) => {
+                        searchPlaceholder={t(
+                          "alertRule.datasourceLabelValueSearch"
+                        )}
+                        emptyText={t("alertRule.datasourceLabelValueEmpty")}
+                        ariaLabel={t("escalation.labelValue")}
+                        allowCustom
+                        customLabel={(value) =>
+                          t("alertRule.datasourceLabelCustomValue", { value })
+                        }
+                        customHint={t("alertRule.datasourceLabelCustomHint")}
+                        clearLabel={t("alertRule.datasourceLabelClear")}
+                        className="min-w-0 flex-1"
+                        onChange={(value) => {
                           const next = [...labels]
-                          next[index] = { ...pair, value: event.target.value }
+                          next[index] = { ...pair, value }
                           setLabels(next)
                           setLabelPairErrors([])
                         }}
@@ -440,7 +499,8 @@ export function AlertEscalationPolicyDialog({
                       </p>
                     ) : null}
                   </div>
-                ))}
+                  )
+                })}
                 <Button
                   type="button"
                   variant="outline"

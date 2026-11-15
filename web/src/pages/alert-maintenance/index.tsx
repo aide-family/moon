@@ -48,6 +48,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { SearchableSelect } from "@/components/searchable-select"
+import { useLabelOptions } from "@/hooks/use-label-options"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -210,6 +212,7 @@ export function AlertMaintenancePage() {
   const [startsAt, setStartsAt] = useState("")
   const [endsAt, setEndsAt] = useState("")
   const [labels, setLabels] = useState<LabelPair[]>([{ key: "", value: "" }])
+  const labelOptions = useLabelOptions()
   const [labelPairErrors, setLabelPairErrors] = useState<LabelPairErrors[]>([])
   const [levelUids, setLevelUids] = useState<string[]>([])
   const [datasourceUids, setDatasourceUids] = useState<string[]>([])
@@ -941,30 +944,83 @@ export function AlertMaintenancePage() {
                 hint={t("maintenanceWindow.labelsHint")}
               >
                 <div className="grid gap-2">
-                  {labels.map((pair, index) => (
+                  {labels.map((pair, index) => {
+                    const keyOptions = labelOptions.map((option) => ({
+                      value: option.key,
+                      label: option.key,
+                    }))
+                    if (
+                      pair.key !== "" &&
+                      !keyOptions.some((option) => option.value === pair.key)
+                    ) {
+                      keyOptions.push({ value: pair.key, label: pair.key })
+                    }
+                    const values =
+                      labelOptions.find((option) => option.key === pair.key)
+                        ?.values ?? []
+                    const valueOptions = values.map((value) => ({
+                      value,
+                      label: value,
+                    }))
+                    if (pair.value !== "" && !values.includes(pair.value)) {
+                      valueOptions.push({ value: pair.value, label: pair.value })
+                    }
+                    return (
                     <div key={index} className="grid gap-1">
                       <div className="flex items-center gap-2">
-                        <Input
+                        <SearchableSelect
                           value={pair.key}
+                          options={keyOptions}
                           placeholder={t("maintenanceWindow.labelKey")}
-                          aria-label={t("maintenanceWindow.labelKey")}
-                          onChange={(event) => {
+                          searchPlaceholder={t(
+                            "alertRule.datasourceLabelKeySearch"
+                          )}
+                          emptyText={t("alertRule.customKeyHint")}
+                          ariaLabel={t("maintenanceWindow.labelKey")}
+                          allowCustom
+                          customLabel={(value) =>
+                            t("alertRule.customKey", { value })
+                          }
+                          customHint={t("alertRule.customKeyHint")}
+                          clearLabel={t("alertRule.datasourceLabelClear")}
+                          className="min-w-0 flex-1"
+                          onChange={(key) => {
+                            if (key === pair.key) {
+                              return
+                            }
+                            const nextValues =
+                              labelOptions.find((option) => option.key === key)
+                                ?.values ?? []
                             const next = [...labels]
-                            next[index] = { ...pair, key: event.target.value }
+                            next[index] = {
+                              key,
+                              value: nextValues.includes(pair.value)
+                                ? pair.value
+                                : "",
+                            }
                             setLabels(next)
                             setLabelPairErrors([])
                           }}
                         />
-                        <Input
+                        <SearchableSelect
                           value={pair.value}
+                          options={valueOptions}
                           placeholder={t("maintenanceWindow.labelValue")}
-                          aria-label={t("maintenanceWindow.labelValue")}
-                          onChange={(event) => {
+                          searchPlaceholder={t(
+                            "alertRule.datasourceLabelValueSearch"
+                          )}
+                          emptyText={t("alertRule.datasourceLabelValueEmpty")}
+                          ariaLabel={t("maintenanceWindow.labelValue")}
+                          allowCustom
+                          customLabel={(value) =>
+                            t("alertRule.datasourceLabelCustomValue", { value })
+                          }
+                          customHint={t("alertRule.datasourceLabelCustomHint")}
+                          clearLabel={t("alertRule.datasourceLabelClear")}
+                          className="min-w-0 flex-1"
+                          onChange={(value) => {
                             const next = [...labels]
-                            next[index] = {
-                              ...pair,
-                              value: event.target.value,
-                            }
+                            next[index] = { ...pair, value }
                             setLabels(next)
                             setLabelPairErrors([])
                           }}
@@ -992,7 +1048,8 @@ export function AlertMaintenancePage() {
                         </p>
                       ) : null}
                     </div>
-                  ))}
+                    )
+                  })}
                   <Button
                     type="button"
                     variant="outline"
