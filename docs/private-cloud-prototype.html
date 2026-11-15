@@ -416,8 +416,8 @@
             <div class="card">
               <div class="side-head"><span class="side-title">被谁引用</span><span class="badge tone-primary">2 个版本</span></div>
               <div class="side-body">
-                <div class="image-ref"><span class="name">order-gateway · 1.4.0</span><span class="meta"><span class="badge tone-success">PUBLISHED</span><span>1 个部署实例</span></span></div>
-                <div class="image-ref"><span class="name">order-gateway · 1.3.2</span><span class="meta"><span class="badge tone-neutral">DEPRECATED</span><span>0 个部署实例</span></span></div>
+                <div class="image-ref"><span class="name">order-gateway · 1.4.0</span><span class="meta"><span class="badge tone-success">PUBLISHED</span><span>1 个部署组</span></span></div>
+                <div class="image-ref"><span class="name">order-gateway · 1.3.2</span><span class="meta"><span class="badge tone-neutral">DEPRECATED</span><span>0 个部署组</span></span></div>
                 <p class="muted-sm">删除 Tag 前会检查这里；有引用时返回 409 并列出应用版本。</p>
               </div>
             </div>
@@ -455,6 +455,7 @@
           <div class="card-body">
             <div class="filter-grid">
               <select class="select" style="width:170px" aria-label="状态筛选"><option>全部状态</option><option>运行中</option><option>成功</option><option>失败</option><option>已取消</option></select>
+              <select class="select" style="width:150px" aria-label="来源类型"><option>全部来源</option><option>已接入仓库</option><option>外部镜像</option></select>
               <select class="select" style="width:200px" aria-label="源仓库"><option>全部源仓库</option><option>Harbor 私有仓库</option><option>集群内 Registry</option></select>
               <input class="input" placeholder="搜索镜像名" aria-label="搜索镜像名" />
             </div>
@@ -463,12 +464,12 @@
         <div class="card">
           <div class="table-top"><span class="total">共 5 个任务</span><span class="muted-sm">同一源/目标的活动任务不允许重复排队</span></div>
           <div class="tbl-wrap tbl-scroll-lg">
-            <table class="tbl">
-              <colgroup><col /><col /><col style="width:130px" /><col style="width:200px" /><col style="width:150px" /><col style="width:140px" /></colgroup>
+            <table class="tbl" style="table-layout:auto;min-width:1040px">
+              <colgroup><col style="width:420px" /><col style="width:420px" /><col style="width:110px" /><col style="width:180px" /><col style="width:140px" /><col style="width:120px" /></colgroup>
               <thead><tr><th>源镜像</th><th>目标镜像</th><th>架构</th><th>状态 / 进度</th><th>创建人 · 耗时</th><th class="col-actions">操作</th></tr></thead>
               <tbody>
                 <tr>
-                  <td><div class="cell-stack"><span class="cell-name mono">harbor.aide.local/library/nginx:1.27.2</span><span class="cell-sub">源 Harbor 私有仓库</span></div></td>
+                  <td><div class="cell-stack"><span class="cell-name mono">docker.io/library/nginx:1.27.2</span><span class="cell-sub"><span class="badge tone-warning" style="height:18px">外部</span> 匿名拉取 · 任务内临时凭据</span></div></td>
                   <td><div class="cell-stack"><span class="cell-name mono">192.168.10.172:5000/library/nginx:1.27.2</span><span class="cell-sub">集群内 Registry</span></div></td>
                   <td><div class="chip-list" style="flex-wrap:nowrap"><span class="arch-chip">amd64</span><span class="arch-chip">arm64</span></div></td>
                   <td><div class="cell-stack"><span class="badge tone-info"><span class="dot"></span>复制层 7 / 12</span><div class="progress-row"><div class="progress" style="width:100%"><i style="width:58%"></i></div><span>58%</span></div></div></td>
@@ -521,7 +522,7 @@
             <p class="page-desc">把工作负载、Service、Ingress、RBAC、配置与 PVC 打包成发布包版本，部署到集群命名空间。</p>
           </div>
           <div class="page-head-actions">
-            <button class="btn btn-outline" type="button" onclick="goto('releases')">部署实例</button>
+            <button class="btn btn-outline" type="button" onclick="goto('releases')">部署</button>
             <button class="btn btn-primary" type="button" onclick="openDlg('dlg-create-app')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
               新建应用
@@ -531,13 +532,13 @@
         <div class="stat-cards">
           <div class="stat-card"><span class="k">应用</span><span class="v">8<small>个</small></span><span class="delta">覆盖 5 个分类</span></div>
           <div class="stat-card"><span class="k">已发布版本</span><span class="v">21<small>个</small></span><span class="delta up"><span class="dot"></span>本周新增 3 个</span></div>
-          <div class="stat-card brand"><span class="k">运行中实例</span><span class="v">6<small>个</small></span><span class="delta">2 个集群 · 4 个命名空间</span></div>
+          <div class="stat-card brand"><span class="k">运行中部署</span><span class="v">3<small>个</small></span><span class="delta">5 个集群实例 · 2 个命名空间</span></div>
           <div class="stat-card warn"><span class="k">待处理</span><span class="v">3<small>个草稿</small></span><span class="delta" style="color:var(--warning)"><span class="dot"></span>1 个部署失败</span></div>
         </div>
         <div class="tabs-row">
           <div class="segmented" role="group" aria-label="应用商店视图">
             <button type="button" aria-pressed="true" onclick="goto('apps')">应用 <span class="count">8</span></button>
-            <button type="button" aria-pressed="false" onclick="goto('releases')">部署实例 <span class="count">6</span></button>
+            <button type="button" aria-pressed="false" onclick="goto('releases')">部署 <span class="count">5</span></button>
           </div>
           <span class="muted-sm">版本发布后不可变；部署时只允许有限参数覆盖。</span>
         </div>
@@ -554,7 +555,7 @@
           <article class="app-card">
             <div class="app-card-head"><div class="app-icon">OG</div><div style="min-width:0"><div class="app-card-name">order-gateway</div><div class="muted-sm">订单网关</div></div><span class="badge tone-success" style="margin-left:auto">2 版本</span></div>
             <p class="app-card-desc">订单入口网关：Deployment + Service + Ingress + RBAC，支持多版本发布与回滚。</p>
-            <div class="app-kpis"><span>最新 <b>1.4.0</b></span><span>镜像 <b>2</b></span><span>实例 <b>1</b></span></div>
+            <div class="app-kpis"><span>最新 <b>1.4.0</b></span><span>镜像 <b>3</b></span><span>部署组 <b>1</b></span></div>
             <div class="app-card-foot"><span class="badge tone-info">中间件</span><div class="inline"><button class="btn btn-ghost btn-sm" type="button" onclick="goto('app-detail')">详情</button><button class="btn btn-primary btn-sm" type="button" onclick="openDlg('dlg-deploy')">部署</button></div></div>
           </article>
           <article class="app-card">
@@ -609,21 +610,21 @@
             <div class="card">
               <div class="table-top"><span class="total">版本 · 4 个</span><div class="segmented" role="group" aria-label="版本状态"><button type="button" aria-pressed="true">全部</button><button type="button" aria-pressed="false">已发布</button><button type="button" aria-pressed="false">草稿</button></div></div>
               <div class="tbl-wrap tbl-scroll">
-                <table class="tbl">
-                  <colgroup><col /><col style="width:96px" /><col /><col style="width:88px" /><col style="width:130px" /><col style="width:150px" /></colgroup>
-                  <thead><tr><th>版本</th><th>状态</th><th>镜像</th><th>实例</th><th>发布时间</th><th class="col-actions">操作</th></tr></thead>
+                <table class="tbl version-table" style="table-layout:auto;min-width:720px">
+                  <colgroup><col style="width:96px" /><col style="width:96px" /><col /><col style="width:70px" /><col style="width:120px" /><col style="width:140px" /></colgroup>
+                  <thead><tr><th>版本</th><th>状态</th><th>镜像</th><th>部署组</th><th>发布时间</th><th class="col-actions">操作</th></tr></thead>
                   <tbody>
                     <tr>
                       <td><div class="cell-stack"><span class="cell-name mono">1.4.0</span><span class="cell-sub">当前稳定版本</span></div></td>
                       <td><span class="badge tone-success">PUBLISHED</span></td>
-                      <td><div class="chip-list"><span class="arch-chip">gateway:1.4.0</span><span class="arch-chip">redis:7.4.1</span></div></td>
+                      <td><div class="chip-list"><span class="arch-chip">gateway:1.4.0</span><span class="arch-chip">worker:2.8.3</span></div></td>
                       <td class="tnum">1</td><td>2026-11-14 18:20</td>
                       <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('version')">详情</button><button class="link-btn" type="button" onclick="openDlg('dlg-deploy')">部署</button></div></td>
                     </tr>
                     <tr>
                       <td><div class="cell-stack"><span class="cell-name mono">1.3.2</span><span class="cell-sub">上一稳定版本</span></div></td>
                       <td><span class="badge tone-neutral">DEPRECATED</span></td>
-                      <td><div class="chip-list"><span class="arch-chip">gateway:1.3.2</span><span class="arch-chip">redis:7.2.5</span></div></td>
+                      <td><div class="chip-list"><span class="arch-chip">gateway:1.3.2</span><span class="arch-chip">worker:2.7.0</span></div></td>
                       <td class="tnum">0</td><td>2026-10-29 11:02</td>
                       <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('version')">详情</button><button class="link-btn" type="button" onclick="toast('部署','已下架版本仅允许回滚，不允许新部署','warn')">部署</button></div></td>
                     </tr>
@@ -668,22 +669,23 @@
                   <dt>最新版本</dt><dd class="mono-sm">1.4.0</dd>
                   <dt>版本数</dt><dd>4（2 已发布 / 1 草稿 / 1 已下架）</dd>
                   <dt>镜像来源</dt><dd>Harbor 私有仓库</dd>
-                  <dt>部署实例</dt><dd><button class="link-btn" type="button" onclick="goto('releases')">1 个运行中</button></dd>
+                  <dt>部署组</dt><dd><button class="link-btn" type="button" onclick="goto('releases')">1 个运行中（2 个集群）</button></dd>
                 </dl>
               </div>
             </div>
             <div class="card">
-              <div class="side-head"><span class="side-title">镜像</span><span class="badge tone-primary">2 个</span></div>
+              <div class="side-head"><span class="side-title">镜像</span><span class="badge tone-primary">3 个</span></div>
               <div class="side-body">
                 <div class="image-ref"><span class="name">harbor.aide.local/library/gateway:1.4.0</span><span class="meta"><span>sha256:3f9c…a71e</span><span>amd64 · arm64</span></span></div>
-                <div class="image-ref"><span class="name">harbor.aide.local/library/redis:7.4.1</span><span class="meta"><span>sha256:9d21…b3f0</span><span>amd64 · arm64</span></span></div>
+                <div class="image-ref"><span class="name">harbor.aide.local/library/worker:2.8.3</span><span class="meta"><span>sha256:5a2e…c912</span><span>amd64 · arm64</span></span></div>
+                <div class="image-ref"><span class="name">harbor.aide.local/library/fluent-bit:3.1.9</span><span class="meta"><span>sha256:9d21…b3f0</span><span>amd64 · arm64</span></span></div>
               </div>
             </div>
             <div class="card">
               <div class="side-head"><span class="side-title">部署</span></div>
               <div class="side-body">
                 <p class="muted-sm">部署到集群命名空间，可覆盖副本数、镜像 Tag、Ingress Host 与 Secret 值。</p>
-                <button class="btn btn-primary" type="button" onclick="openDlg('dlg-deploy')">新建部署实例</button>
+                <button class="btn btn-primary" type="button" onclick="openDlg('dlg-deploy')">新建部署</button>
               </div>
             </div>
           </aside>
@@ -709,20 +711,21 @@
         </div>
         <div class="meta-bar">
           <span class="item">状态 <span class="badge tone-success" style="height:19px">PUBLISHED</span></span>
-          <span class="item">镜像 <b>2</b></span>
+          <span class="item">镜像 <b>3</b></span>
           <span class="item">工作负载 <b>2</b></span>
-          <span class="item">资源对象 <b>10</b></span>
-          <span class="item">部署实例 <b>1</b></span>
+          <span class="item">资源对象 <b>14</b></span>
+          <span class="item">集群级 <b>1</b></span>
+          <span class="item">部署组 <b>1</b></span>
           <span class="item">变更说明 <b>网关限流与优雅退出</b></span>
         </div>
 
         <div class="editor-layout">
           <nav class="anchor-nav" aria-label="版本分区">
-            <button class="on" type="button" onclick="toast('锚点导航','滚动到概览（原型静态）','info')">概览 <span class="count">9</span></button>
+            <button class="on" type="button" onclick="toast('锚点导航','滚动到概览（原型静态）','info')">概览 <span class="count">14</span></button>
+            <button type="button" onclick="toast('锚点导航','滚动到资源清单（原型静态）','info')">资源清单 <span class="count">14</span></button>
             <button type="button" onclick="toast('锚点导航','滚动到工作负载（原型静态）','info')">工作负载 <span class="count">2</span></button>
             <button type="button" onclick="toast('锚点导航','滚动到服务与路由（原型静态）','info')">服务与路由 <span class="count">2</span></button>
-            <button type="button" onclick="toast('锚点导航','滚动到 RBAC（原型静态）','info')">RBAC <span class="count">3</span></button>
-            <button type="button" onclick="toast('锚点导航','滚动到配置（原型静态）','info')">配置 <span class="count">2</span></button>
+            <button type="button" onclick="toast('锚点导航','滚动到配置（原型静态）','info')">配置与策略 <span class="count">5</span></button>
             <button type="button" onclick="toast('锚点导航','滚动到部署参数（原型静态）','info')">部署参数 <span class="count">4</span></button>
           </nav>
 
@@ -733,12 +736,49 @@
                 <div class="kpi-strip" style="grid-template-columns:repeat(4,minmax(0,1fr))">
                   <div class="cell"><span>工作负载</span><b>2</b></div>
                   <div class="cell"><span>Service / Ingress</span><b>2</b></div>
-                  <div class="cell"><span>RBAC</span><b>3</b></div>
-                  <div class="cell"><span>配置 / PVC</span><b>3</b></div>
+                  <div class="cell"><span>RBAC</span><b>4</b></div>
+                  <div class="cell"><span>配置 / 存储 / 策略</span><b>6</b></div>
                 </div>
+                <div class="inline" style="padding:9px 10px;border-radius:9px;background:var(--warning-soft);border:1px solid var(--warning-border)"><span class="badge tone-warning" style="height:19px">集群级</span><span class="muted-sm" style="color:var(--foreground)">包含 1 个集群级资源（ClusterRole），部署时要求 <span class="mono">release:cluster</span> 权限；另有 1 个自定义资源（ServiceMonitor）在目标集群判定 scope。</span></div>
                 <div class="image-ref"><span class="name">harbor.aide.local/library/gateway:1.4.0</span><span class="meta"><span class="badge tone-success">digest 已校验</span><span>sha256:3f9c…a71e</span><span>linux/amd64 · linux/arm64</span></span></div>
-                <div class="image-ref"><span class="name">harbor.aide.local/library/redis:7.4.1</span><span class="meta"><span class="badge tone-success">digest 已校验</span><span>sha256:9d21…b3f0</span><span>linux/amd64 · linux/arm64</span></span></div>
+                <div class="image-ref"><span class="name">harbor.aide.local/library/worker:2.8.3</span><span class="meta"><span class="badge tone-success">digest 已校验</span><span>sha256:5a2e…c912</span><span>linux/amd64 · linux/arm64</span></span></div>
+                <div class="image-ref"><span class="name">harbor.aide.local/library/fluent-bit:3.1.9</span><span class="meta"><span class="badge tone-success">digest 已校验</span><span>sha256:9d21…b3f0</span><span>linux/amd64 · linux/arm64</span></span></div>
               </div>
+            </div>
+
+
+            <div class="card">
+              <div class="side-head">
+                <span class="side-title">资源清单</span>
+                <span class="inline">
+                  <span class="muted-sm">任意 apiVersion / kind</span>
+                  <button class="btn btn-outline btn-sm" type="button" onclick="openDlg('dlg-add-resource')">添加资源</button>
+                  <button class="btn btn-outline btn-sm" type="button" onclick="toast('导入 YAML','支持多文档 YAML；原型不解析文件','info')">导入</button>
+                </span>
+              </div>
+              <div class="tbl-wrap tbl-scroll-lg">
+                <table class="tbl" style="table-layout:auto;min-width:760px">
+                  <colgroup><col style="width:120px" /><col style="width:150px" /><col style="width:110px" /><col /><col style="width:130px" /></colgroup>
+                  <thead><tr><th>类型</th><th>名称</th><th>作用域</th><th>镜像 / 密钥 / 说明</th><th class="col-actions">操作</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="badge tone-info">Deployment</span></td><td class="mono-sm">gateway</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">2 个容器 · gateway:1.4.0 / fluent-bit:3.1.9</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('表单编辑','常用资源支持表单 + YAML 双模式','info')">编辑</button><button class="link-btn" type="button" onclick="openYaml('Deployment','gateway')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-info">Deployment</span></td><td class="mono-sm">worker</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">1 个容器 · worker:2.8.3</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('表单编辑','常用资源支持表单 + YAML 双模式','info')">编辑</button><button class="link-btn" type="button" onclick="openYaml('Deployment','worker')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-info">Service</span></td><td class="mono-sm">gateway</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">ClusterIP · 80 → 8080</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('Service','gateway')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-info">Ingress</span></td><td class="mono-sm">gateway</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">gateway.example.com · TLS gateway-tls</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('Ingress','gateway')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-neutral">ConfigMap</span></td><td class="mono-sm">gateway-config</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">5 个 key</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('ConfigMap','gateway-config')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-warning">Secret</span></td><td class="mono-sm">gateway-secret</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">3 个 key · 值已加密</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('Secret','gateway-secret')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-neutral">ServiceAccount</span></td><td class="mono-sm">gateway</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">镜像拉取凭据 harbor-pull</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('ServiceAccount','gateway')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-neutral">Role</span></td><td class="mono-sm">gateway-read-config</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">get / list / watch configmaps</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('Role','gateway-read-config')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-neutral">RoleBinding</span></td><td class="mono-sm">gateway-read-config</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">→ ServiceAccount gateway</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('RoleBinding','gateway-read-config')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-neutral">PersistentVolumeClaim</span></td><td class="mono-sm">gateway-cache</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">5Gi · ReadWriteOnce</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('PersistentVolumeClaim','gateway-cache')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-violet">HorizontalPodAutoscaler</span></td><td class="mono-sm">gateway</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">min 2 · max 10 · CPU 70%</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('HorizontalPodAutoscaler','gateway')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-violet">NetworkPolicy</span></td><td class="mono-sm">gateway-allow</td><td><span class="badge tone-neutral">命名空间级</span></td><td class="muted-sm">ingress 仅允许同命名空间</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('NetworkPolicy','gateway-allow')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-warning">ClusterRole</span></td><td class="mono-sm">gateway-metrics</td><td><span class="badge tone-warning">集群级</span></td><td class="muted-sm">metrics.k8s.io 只读 · 需要 release:cluster</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('ClusterRole','gateway-metrics')">YAML</button></div></td></tr>
+                    <tr><td><span class="badge tone-neutral">ServiceMonitor</span></td><td class="mono-sm">gateway</td><td><span class="badge tone-neutral">部署时判定</span></td><td class="muted-sm">自定义资源 · 需要目标集群已安装 CRD</td><td><div class="row-actions"><button class="link-btn" type="button" onclick="openYaml('ServiceMonitor','gateway')">YAML</button></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="list-note">保存时允许任意 kind；Namespace / Node / Event / APIService 等系统资源禁止发布。集群级资源需要 extra 能力，卸载默认保留。</div>
             </div>
 
             <div class="card">
@@ -802,7 +842,7 @@
                   <div class="res-cell"><div class="kind">Role</div><div class="name mono">gateway-read-config</div><div class="state">get / list / watch configmaps</div></div>
                   <div class="res-cell"><div class="kind">RoleBinding</div><div class="name mono">gateway-read-config</div><div class="state">→ ServiceAccount gateway</div></div>
                 </div>
-                <p class="muted-sm">只允许命名空间级 RBAC；不创建 ClusterRole / ClusterRoleBinding。</p>
+                <p class="muted-sm">命名空间级 RBAC 默认可用；ClusterRole / ClusterRoleBinding 属于集群级资源，需要 <span class="mono">release:cluster</span>，并在资源清单里显式标注。</p>
               </div>
             </div>
 
@@ -834,12 +874,12 @@
         </div>
       </section>
 
-      <!-- ========================= 应用商店：部署实例 ========================= -->
+      <!-- ========================= 应用商店：部署 ========================= -->
       <section class="page" id="page-releases" hidden>
         <div class="page-head">
           <div>
-            <h1 class="page-title">部署实例</h1>
-            <p class="page-desc">同一应用版本在不同集群 / 命名空间的安装；升级、回滚、卸载都留操作记录。</p>
+            <h1 class="page-title">部署</h1>
+            <p class="page-desc">一次部署可以选 1–20 个集群；每个集群一个实例与一条操作，组状态聚合展示。</p>
           </div>
           <div class="page-head-actions">
             <button class="btn btn-outline" type="button" onclick="goto('apps')">返回应用</button>
@@ -847,69 +887,74 @@
           </div>
         </div>
         <div class="stat-cards">
-          <div class="stat-card"><span class="k">运行中</span><span class="v">4<small>个实例</small></span><span class="delta up"><span class="dot"></span>全部就绪</span></div>
-          <div class="stat-card"><span class="k">部署中</span><span class="v">1<small>个</small></span><span class="delta">order-gateway-staging</span></div>
-          <div class="stat-card warn"><span class="k">失败</span><span class="v">1<small>个</small></span><span class="delta" style="color:var(--warning)"><span class="dot"></span>可重新部署</span></div>
-          <div class="stat-card"><span class="k">已卸载</span><span class="v">1<small>个</small></span><span class="delta">记录保留</span></div>
+          <div class="stat-card"><span class="k">运行中</span><span class="v">3<small>个部署组</small></span><span class="delta up"><span class="dot"></span>5 个集群实例就绪</span></div>
+          <div class="stat-card"><span class="k">部署中</span><span class="v">1<small>个</small></span><span class="delta">order-gateway-staging · 1 个集群</span></div>
+          <div class="stat-card warn"><span class="k">部分失败</span><span class="v">1<small>个</small></span><span class="delta" style="color:var(--warning)"><span class="dot"></span>可按失败集群重试</span></div>
+          <div class="stat-card"><span class="k">已卸载</span><span class="v">1<small>个</small></span><span class="delta">实例记录保留</span></div>
         </div>
         <div class="tabs-row">
           <div class="segmented" role="group" aria-label="应用商店视图">
             <button type="button" aria-pressed="false" onclick="goto('apps')">应用 <span class="count">8</span></button>
-            <button type="button" aria-pressed="true" onclick="goto('releases')">部署实例 <span class="count">6</span></button>
+            <button type="button" aria-pressed="true" onclick="goto('releases')">部署 <span class="count">5</span></button>
           </div>
-          <span class="muted-sm">同一实例同一时刻只允许一个活动操作。</span>
+          <span class="muted-sm">同一集群实例同一时刻只允许一个活动操作。</span>
         </div>
         <div class="card filter-card"><div class="card-body"><div class="filter-grid">
-          <input class="input" placeholder="搜索实例名称" aria-label="搜索实例名称" />
-          <select class="select" style="width:170px" aria-label="集群"><option>全部集群</option><option>生产集群</option><option>测试集群</option></select>
-          <select class="select" style="width:170px" aria-label="状态"><option>全部状态</option><option>运行中</option><option>部署中</option><option>失败</option><option>已卸载</option></select>
+          <input class="input" placeholder="搜索部署组名称" aria-label="搜索部署组名称" />
+          <select class="select" style="width:170px" aria-label="集群"><option>全部集群</option><option>生产集群</option><option>灾备集群</option><option>测试集群</option></select>
+          <select class="select" style="width:170px" aria-label="状态"><option>全部状态</option><option>运行中</option><option>部署中</option><option>部分失败</option><option>失败</option><option>已卸载</option></select>
         </div></div></div>
         <div class="card">
-          <div class="table-top"><span class="total">共 6 个实例</span><span class="muted-sm">默认隐藏已卸载实例的详情入口</span></div>
+          <div class="table-top"><span class="total">共 5 个部署组</span><span class="muted-sm">列表按组展示；点详情查看集群矩阵</span></div>
           <div class="tbl-wrap tbl-scroll-lg">
-            <table class="tbl">
-              <colgroup><col /><col /><col /><col style="width:104px" /><col style="width:170px" /><col style="width:150px" /></colgroup>
-              <thead><tr><th>实例</th><th>应用 / 版本</th><th>集群 / 命名空间</th><th>状态</th><th>最近操作</th><th class="col-actions">操作</th></tr></thead>
+            <table class="tbl" style="table-layout:auto;min-width:900px">
+              <colgroup><col style="width:180px" /><col style="width:150px" /><col /><col style="width:110px" /><col style="width:110px" /><col style="width:190px" /><col style="width:120px" /></colgroup>
+              <thead><tr><th>部署组</th><th>应用 / 版本</th><th>集群</th><th>命名空间</th><th>状态</th><th>最近操作</th><th class="col-actions">操作</th></tr></thead>
               <tbody>
                 <tr>
                   <td><div class="cell-stack"><span class="cell-name mono">order-gateway-prod</span><span class="cell-sub">创建于 2026-10-30</span></div></td>
                   <td><div class="cell-stack"><span>order-gateway</span><span class="cell-sub mono">1.4.0</span></div></td>
-                  <td><div class="cell-stack"><span>生产集群</span><span class="cell-sub mono">order</span></div></td>
+                  <td><div class="cluster-chips"><span class="cluster-chip">生产集群</span><span class="cluster-chip">灾备集群</span></div><span class="cell-sub" style="margin-top:3px">2 个集群</span></td>
+                  <td class="mono-sm">order</td>
                   <td><span class="badge tone-success"><span class="dot"></span>运行中</span></td>
-                  <td><div class="cell-stack"><span>升级到 1.4.0</span><span class="cell-sub">成功 · 2 小时前 · H</span></div></td>
-                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('release-detail')">详情</button><button class="link-btn" type="button" onclick="toast('更多','升级 / 重新部署 / 卸载','info')">更多</button></div></td>
+                  <td><div class="cell-stack"><span>全部集群 1.4.0 成功</span><span class="cell-sub">2/2 · 2 小时前 · H</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('deployment')">详情</button><button class="link-btn" type="button" onclick="toast('更多','升级 / 重新部署 / 卸载（可选集群）','info')">更多</button></div></td>
                 </tr>
                 <tr>
                   <td><div class="cell-stack"><span class="cell-name mono">order-gateway-staging</span><span class="cell-sub">创建于 2026-11-01</span></div></td>
                   <td><div class="cell-stack"><span>order-gateway</span><span class="cell-sub mono">1.4.0</span></div></td>
-                  <td><div class="cell-stack"><span>测试集群</span><span class="cell-sub mono">order-staging</span></div></td>
+                  <td><div class="cluster-chips"><span class="cluster-chip">测试集群</span></div><span class="cell-sub" style="margin-top:3px">1 个集群</span></td>
+                  <td class="mono-sm">order-staging</td>
                   <td><span class="badge tone-warning"><span class="dot"></span>部署中</span></td>
                   <td><div class="cell-stack"><span>重新部署 1.4.0</span><span class="cell-sub">等待 Deployment 就绪 · 34s</span></div></td>
-                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('部署中','有操作进行中，升级/卸载入口暂不可用','warn')">详情</button></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="goto('deployment')">详情</button></div></td>
                 </tr>
                 <tr>
                   <td><div class="cell-stack"><span class="cell-name mono">redis-ha-prod</span><span class="cell-sub">创建于 2026-10-22</span></div></td>
                   <td><div class="cell-stack"><span>redis-ha</span><span class="cell-sub mono">7.4.1</span></div></td>
-                  <td><div class="cell-stack"><span>生产集群</span><span class="cell-sub mono">data</span></div></td>
+                  <td><div class="cluster-chips"><span class="cluster-chip">生产集群</span></div><span class="cell-sub" style="margin-top:3px">1 个集群</span></td>
+                  <td class="mono-sm">data</td>
                   <td><span class="badge tone-success"><span class="dot"></span>运行中</span></td>
                   <td><div class="cell-stack"><span>安装 7.4.1</span><span class="cell-sub">成功 · 3 天前 · W</span></div></td>
-                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('实例详情','原型只展开 order-gateway-prod','info')">详情</button><button class="link-btn" type="button" onclick="toast('更多','升级 / 重新部署 / 卸载','info')">更多</button></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('部署详情','原型只展开 order-gateway-prod','info')">详情</button><button class="link-btn" type="button" onclick="toast('更多','升级 / 重新部署 / 卸载','info')">更多</button></div></td>
                 </tr>
                 <tr>
                   <td><div class="cell-stack"><span class="cell-name mono">observability-prod</span><span class="cell-sub">创建于 2026-10-18</span></div></td>
                   <td><div class="cell-stack"><span>observability</span><span class="cell-sub mono">3.2.0</span></div></td>
-                  <td><div class="cell-stack"><span>生产集群</span><span class="cell-sub mono">monitoring</span></div></td>
-                  <td><span class="badge tone-danger"><span class="dot"></span>失败</span></td>
-                  <td><div class="cell-stack"><span>升级到 3.2.0</span><span class="cell-sub">超时 · 部分资源已创建</span></div></td>
-                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('实例详情','原型只展开 order-gateway-prod','info')">详情</button><button class="link-btn" type="button" onclick="toast('重新部署','已创建 REDEPLOY 操作','success')">重新部署</button></div></td>
+                  <td><div class="cluster-chips"><span class="cluster-chip">生产集群</span><span class="cluster-chip">灾备集群</span></div><span class="cell-sub" style="margin-top:3px">2 个集群</span></td>
+                  <td class="mono-sm">monitoring</td>
+                  <td><span class="badge tone-warning"><span class="dot"></span>部分失败</span></td>
+                  <td><div class="cell-stack"><span>1/2 成功</span><span class="cell-sub">灾备集群超时 · 可重试</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('部署详情','原型只展开 order-gateway-prod','info')">详情</button><button class="link-btn" type="button" onclick="toast('重试失败集群','已为灾备集群创建 REDEPLOY 操作','success')">重试</button></div></td>
                 </tr>
                 <tr>
                   <td><div class="cell-stack"><span class="cell-name mono">postgres-dev</span><span class="cell-sub">创建于 2026-09-12</span></div></td>
                   <td><div class="cell-stack"><span>postgresql</span><span class="cell-sub mono">16.4</span></div></td>
-                  <td><div class="cell-stack"><span>测试集群</span><span class="cell-sub mono">dev</span></div></td>
+                  <td><div class="cluster-chips"><span class="cluster-chip">测试集群</span></div><span class="cell-sub" style="margin-top:3px">1 个集群</span></td>
+                  <td class="mono-sm">dev</td>
                   <td><span class="badge tone-neutral"><span class="dot"></span>已卸载</span></td>
                   <td><div class="cell-stack"><span>卸载</span><span class="cell-sub">成功 · 1 个月前 · H</span></div></td>
-                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('实例详情','已卸载实例只保留记录','info')">详情</button></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('部署详情','已卸载部署只保留记录','info')">详情</button></div></td>
                 </tr>
               </tbody>
             </table>
@@ -917,68 +962,102 @@
         </div>
       </section>
 
-      <!-- ========================= 应用商店：部署实例详情 ========================= -->
-      <section class="page" id="page-release-detail" hidden>
+      <!-- ========================= 应用商店：部署组详情 ========================= -->
+      <section class="page" id="page-deployment" hidden>
         <div class="breadcrumb">
           <button type="button" onclick="goto('apps')">应用商店</button><span>/</span>
-          <button type="button" onclick="goto('releases')">部署实例</button><span>/</span>
+          <button type="button" onclick="goto('releases')">部署</button><span>/</span>
           <span>order-gateway-prod</span>
         </div>
         <div class="page-head">
           <div>
             <h1 class="page-title">order-gateway-prod</h1>
-            <p class="page-desc">order-gateway 1.4.0 · 生产集群 / order · 最近成功部署 2 小时前</p>
+            <p class="page-desc">order-gateway 1.4.0 · 部署组 · 2 个集群 · 命名空间 order · 最近成功部署 2 小时前</p>
           </div>
           <div class="page-head-actions">
             <button class="btn btn-outline" type="button" onclick="openDlg('dlg-upgrade')">升级</button>
-            <button class="btn btn-outline" type="button" onclick="toast('重新部署','已创建 REDEPLOY 操作（原型）','success')">重新部署</button>
-            <button class="btn btn-danger" type="button" onclick="askUninstall()">卸载</button>
+            <button class="btn btn-outline" type="button" onclick="toast('重新部署','已为选中的生产集群创建 REDEPLOY 操作','success')">重新部署选中</button>
+            <button class="btn btn-danger" type="button" onclick="askUninstall()">卸载选中</button>
           </div>
         </div>
         <div class="meta-bar">
-          <span class="item">状态 <span class="badge tone-success" style="height:19px"><span class="dot"></span>运行中</span></span>
+          <span class="item">组状态 <span class="badge tone-success" style="height:19px"><span class="dot"></span>运行中</span></span>
           <span class="item">应用 <b>order-gateway</b></span>
-          <span class="item">版本 <b class="mono-sm">1.4.0</b></span>
-          <span class="item">集群 <b>生产集群</b></span>
+          <span class="item">目标版本 <b class="mono-sm">1.4.0</b></span>
+          <span class="item">集群 <b>2</b></span>
           <span class="item">命名空间 <b class="mono-sm">order</b></span>
-          <span class="item">最近操作人 <b>H</b></span>
+          <span class="item">集群级资源 <b>1</b>（需要 release:cluster）</span>
         </div>
         <div class="kpi-strip">
-          <div class="cell"><span>资源就绪</span><b>7<small>/ 7</small></b></div>
-          <div class="cell"><span>工作负载 Pod</span><b>5<small>/ 5 Ready</small></b></div>
+          <div class="cell"><span>集群实例</span><b>2<small>/ 2</small></b></div>
+          <div class="cell"><span>资源就绪</span><b>28<small>/ 28</small></b></div>
           <div class="cell"><span>镜像</span><b>3<small>个 digest</small></b></div>
           <div class="cell"><span>最近部署</span><b style="font-size:16px">2 小时前</b></div>
+        </div>
+
+        <div class="card">
+          <div class="side-head"><span class="side-title">集群矩阵</span><span class="inline"><span class="badge tone-success">2/2 成功</span><button class="btn btn-outline btn-sm" type="button" onclick="toast('已刷新','重新读取两个集群的实例与资源状态','success')">刷新</button></span></div>
+          <div class="tbl-wrap">
+            <table class="matrix-table">
+              <thead><tr><th style="width:34px"><input type="checkbox" aria-label="全选集群" /></th><th>集群</th><th>状态</th><th>实际版本</th><th>命名空间</th><th>最近操作</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><input type="checkbox" checked aria-label="选择生产集群" /></td>
+                  <td><div class="cell-stack"><span class="cell-name">生产集群</span><span class="cell-sub mono">cluster-prod-01</span></div></td>
+                  <td><span class="badge tone-success"><span class="dot"></span>运行中</span></td>
+                  <td class="mono-sm">1.4.0</td>
+                  <td class="mono-sm">order</td>
+                  <td><div class="cell-stack"><span>升级 1.4.0 成功</span><span class="cell-sub">2 小时前 · 14 个资源</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('切换集群','原型只展开生产集群面板','info')">查看</button><button class="link-btn" type="button" onclick="askUninstall()">卸载</button></div></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" checked aria-label="选择灾备集群" /></td>
+                  <td><div class="cell-stack"><span class="cell-name">灾备集群</span><span class="cell-sub mono">cluster-dr-01</span></div></td>
+                  <td><span class="badge tone-success"><span class="dot"></span>运行中</span></td>
+                  <td class="mono-sm">1.4.0</td>
+                  <td class="mono-sm">order</td>
+                  <td><div class="cell-stack"><span>升级 1.4.0 成功</span><span class="cell-sub">2 小时前 · 14 个资源</span></div></td>
+                  <td><div class="row-actions"><button class="link-btn" type="button" onclick="toast('切换集群','原型只展开生产集群面板','info')">查看</button><button class="link-btn" type="button" onclick="askUninstall()">卸载</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="list-note">预检 all-or-nothing；执行 per-cluster 独立。部分失败时组状态为 PARTIAL，可按失败集群重新部署。</div>
         </div>
 
         <div class="grid-2 release-detail-layout">
           <div class="col">
             <div class="card">
-              <div class="side-head"><span class="side-title">资源</span><span class="inline"><span class="badge tone-success">实时读取</span><button class="btn btn-outline btn-sm" type="button" onclick="toast('已刷新','按 release label 重新读取集群资源','success')">刷新</button></span></div>
-              <div class="side-body">
-                <div class="res-grid">
-                  <div class="res-cell"><div class="kind">Deployment</div><div class="name mono">gateway</div><div class="state"><span class="status-dot" style="color:var(--success)"></span>3/3 Ready</div></div>
-                  <div class="res-cell"><div class="kind">Deployment</div><div class="name mono">worker</div><div class="state"><span class="status-dot" style="color:var(--success)"></span>2/2 Ready</div></div>
-                  <div class="res-cell"><div class="kind">Service</div><div class="name mono">gateway</div><div class="state">ClusterIP · 10.96.14.22</div></div>
-                  <div class="res-cell"><div class="kind">Ingress</div><div class="name mono">gateway</div><div class="state">gateway.example.com</div></div>
-                  <div class="res-cell"><div class="kind">ConfigMap</div><div class="name mono">gateway-config</div><div class="state">5 keys</div></div>
-                  <div class="res-cell"><div class="kind">Secret</div><div class="name mono">gateway-secret</div><div class="state">3 keys · 值不展示</div></div>
-                  <div class="res-cell"><div class="kind">ServiceAccount</div><div class="name mono">gateway</div><div class="state">harbor-pull</div></div>
-                  <div class="res-cell"><div class="kind">Role / Binding</div><div class="name mono">gateway-read-config</div><div class="state">命名空间级</div></div>
-                  <div class="res-cell"><div class="kind">PVC</div><div class="name mono">gateway-cache</div><div class="state">5Gi · 保留</div></div>
-                </div>
-                <p class="muted-sm">资源状态由实例 label 实时读取；读取失败只显示 — 与 warning，不影响实例本身。</p>
+              <div class="side-head"><span class="side-title">生产集群 · 资源</span><span class="inline"><span class="badge tone-success">实时读取</span><span class="badge tone-warning">1 个集群级</span></span></div>
+              <div class="tbl-wrap">
+                <table class="mini-tbl">
+                  <thead><tr><th>类型</th><th>名称</th><th>作用域</th><th>状态</th></tr></thead>
+                  <tbody>
+                    <tr><td>Deployment</td><td class="mono">gateway</td><td>命名空间级</td><td><span class="badge tone-success">3/3 Ready</span></td></tr>
+                    <tr><td>Deployment</td><td class="mono">worker</td><td>命名空间级</td><td><span class="badge tone-success">2/2 Ready</span></td></tr>
+                    <tr><td>Service</td><td class="mono">gateway</td><td>命名空间级</td><td>ClusterIP · 10.96.14.22</td></tr>
+                    <tr><td>Ingress</td><td class="mono">gateway</td><td>命名空间级</td><td>gateway.example.com</td></tr>
+                    <tr><td>HPA</td><td class="mono">gateway</td><td>命名空间级</td><td>2–10 · CPU 70%</td></tr>
+                    <tr><td>NetworkPolicy</td><td class="mono">gateway-allow</td><td>命名空间级</td><td>已应用</td></tr>
+                    <tr><td>ConfigMap</td><td class="mono">gateway-config</td><td>命名空间级</td><td>5 keys</td></tr>
+                    <tr><td>Secret</td><td class="mono">gateway-secret</td><td>命名空间级</td><td>3 keys · 值不展示</td></tr>
+                    <tr><td>PVC</td><td class="mono">gateway-cache</td><td>命名空间级</td><td>5Gi · 保留</td></tr>
+                    <tr><td>ClusterRole</td><td class="mono">gateway-metrics</td><td><span class="badge tone-warning">集群级</span></td><td>已应用 · 卸载默认保留</td></tr>
+                    <tr><td>ServiceMonitor</td><td class="mono">gateway</td><td>部署时判定</td><td>CRD 已存在 · 已应用</td></tr>
+                  </tbody>
+                </table>
               </div>
+              <div class="list-note">完整资源清单共 14 个；这里展示运行状态。集群级资源删除需要 release:cluster 与二次确认。</div>
             </div>
             <div class="card">
-              <div class="side-head"><span class="side-title">操作记录</span><span class="badge tone-neutral">5 条</span></div>
+              <div class="side-head"><span class="side-title">生产集群 · 操作记录</span><span class="badge tone-neutral">5 条</span></div>
               <div class="side-body">
                 <div class="timeline">
-                  <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot ok"></span><span class="timeline-line"></span></div><div class="timeline-body"><div class="timeline-title">升级 <span class="badge tone-success">SUCCEEDED</span><span class="muted-sm">1.3.2 → 1.4.0</span></div><div class="timeline-meta">2026-11-15 09:42 · H · 耗时 1m 18s · 更新 6 · 新增 1 · 删除 0</div></div></div>
-                  <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot ok"></span><span class="timeline-line"></span></div><div class="timeline-body"><div class="timeline-title">升级 <span class="badge tone-success">SUCCEEDED</span><span class="muted-sm">1.3.1 → 1.3.2</span></div><div class="timeline-meta">2026-10-30 16:05 · W · 耗时 1m 02s · 更新 4 · 新增 0 · 删除 0</div></div></div>
-                  <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot ok"></span><span class="timeline-line"></span></div><div class="timeline-body"><div class="timeline-title">安装 <span class="badge tone-success">SUCCEEDED</span><span class="muted-sm">1.3.1</span></div><div class="timeline-meta">2026-10-30 15:20 · H · 耗时 58s · 创建 8 个资源</div></div></div>
+                  <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot ok"></span><span class="timeline-line"></span></div><div class="timeline-body"><div class="timeline-title">升级 <span class="badge tone-success">SUCCEEDED</span><span class="muted-sm">1.3.2 → 1.4.0</span></div><div class="timeline-meta">2026-11-15 09:42 · H · 耗时 1m 18s · 更新 10 · 新增 4 · 删除 0</div></div></div>
+                  <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot ok"></span><span class="timeline-line"></span></div><div class="timeline-body"><div class="timeline-title">安装 <span class="badge tone-success">SUCCEEDED</span><span class="muted-sm">1.3.2</span></div><div class="timeline-meta">2026-10-30 15:20 · H · 耗时 58s · 创建 12 个资源</div></div></div>
                   <div class="timeline-item"><div class="timeline-rail"><span class="timeline-dot mute"></span></div><div class="timeline-body"><div class="timeline-title">重新部署 <span class="badge tone-neutral">CANCELED</span></div><div class="timeline-meta">2026-11-15 10:10 · H · 未开始执行</div></div></div>
                 </div>
-                <div class="table-pager" style="margin-top:6px"><span class="info">第 1 / 1 页</span><div class="pager"><button class="btn btn-outline btn-sm" type="button" disabled>上一页</button><span>1</span><button class="btn btn-outline btn-sm" type="button" disabled>下一页</button></div></div>
+                <p class="muted-sm">每个集群实例独立记录；同一次批量操作共享 batch_uid，便于排查。</p>
               </div>
             </div>
           </div>
@@ -995,7 +1074,8 @@
               <div class="side-head"><span class="side-title">部署参数</span></div>
               <div class="side-body">
                 <dl class="kv-grid">
-                  <dt>实例名</dt><dd class="mono-sm">order-gateway-prod</dd>
+                  <dt>部署组</dt><dd class="mono-sm">order-gateway-prod</dd>
+                  <dt>集群</dt><dd>生产集群 · 灾备集群</dd>
                   <dt>副本覆盖</dt><dd>gateway=3 · worker=2</dd>
                   <dt>镜像 Tag</dt><dd class="mono-sm">gateway=1.4.0</dd>
                   <dt>Ingress Host</dt><dd class="mono-sm">gateway.example.com</dd>
@@ -1004,10 +1084,16 @@
               </div>
             </div>
             <div class="card">
+              <div class="side-head"><span class="side-title">集群级资源</span><span class="badge tone-warning">默认保留</span></div>
+              <div class="side-body">
+                <p class="muted-sm">本版本包含 1 个 ClusterRole。卸载默认保留；删除需要 <span class="mono">release:cluster</span> 与二次确认。CRD 删除会级联删除全集群 CR，操作前会额外提示。</p>
+              </div>
+            </div>
+            <div class="card">
               <div class="side-head"><span class="side-title">危险操作</span></div>
               <div class="side-body">
-                <p class="muted-sm">卸载会删除实例 label 下的资源；默认保留 PVC。删除 PVC 不可恢复。</p>
-                <button class="btn btn-danger" type="button" onclick="askUninstall()">卸载实例</button>
+                <p class="muted-sm">卸载选中的集群实例；默认保留 PVC 与集群级资源。</p>
+                <button class="btn btn-danger" type="button" onclick="askUninstall()">卸载选中集群</button>
               </div>
             </div>
           </aside>
@@ -1059,13 +1145,31 @@
       <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-sync')">×</button>
     </div>
     <div class="dialog-body">
-      <div class="picked-bar"><div class="grow"><div class="muted-sm">源镜像</div><div class="ref" id="sync-source">harbor.aide.local/library/gateway:1.4.0</div></div><span class="badge tone-violet">HARBOR</span></div>
-      <div class="row2">
-        <div class="field"><label>目标仓库 <span class="req">*</span></label><select class="select"><option>集群内 Registry（192.168.10.172:5000）</option><option>Harbor 私有仓库（harbor.aide.local）</option></select></div>
-        <div class="field"><label>目标 Repository <span class="req">*</span></label><input class="input mono" value="library/gateway" placeholder="library/gateway" /></div>
+      <div class="segmented" role="group" aria-label="同步来源" id="sync-source-tabs">
+        <button type="button" aria-pressed="true" onclick="switchSyncSource('connection')">已接入仓库</button>
+        <button type="button" aria-pressed="false" onclick="switchSyncSource('external')">外部镜像</button>
+      </div>
+      <div id="sync-source-connection">
+        <div class="picked-bar"><div class="grow"><div class="muted-sm">源镜像</div><div class="ref" id="sync-source">harbor.aide.local/library/gateway:1.4.0</div></div><span class="badge tone-violet">HARBOR</span></div>
+      </div>
+      <div id="sync-source-external" hidden>
+        <div class="field"><label>外部镜像引用 <span class="req">*</span></label><input class="input mono" id="external-image" value="docker.io/library/nginx:1.27.2" placeholder="docker.io/library/nginx:1.27.2 或 registry.example.com/team/app:1.0" /><span class="hint">默认 docker.io；官方镜像自动补 library/；支持 digest 引用。</span></div>
+        <div class="row2" style="margin-top:12px">
+          <div class="field"><label>用户名（可选）</label><input class="input" placeholder="匿名拉取可留空" /></div>
+          <div class="field"><label>密码 / Token（可选）</label><input class="input" type="password" placeholder="只以密文保存，终态后清理" /></div>
+        </div>
+        <div class="inline" style="justify-content:space-between;margin-top:10px">
+          <label class="checkbox-row"><input type="checkbox" /> 允许不安全 TLS（仅内部自签仓库）</label>
+          <button class="btn btn-outline btn-sm" type="button" onclick="resolveExternal()">解析镜像</button>
+        </div>
+        <div class="picked-bar" id="external-result" style="margin-top:10px" hidden><div class="grow"><div class="muted-sm">解析结果</div><div class="ref">docker.io/library/nginx:1.27.2</div><div class="muted-sm">sha256:8f3c…a71e · linux/amd64 · linux/arm64</div></div><span class="badge tone-warning">外部</span></div>
       </div>
       <div class="row2">
-        <div class="field"><label>目标 Tag <span class="req">*</span></label><input class="input mono" value="1.4.0" placeholder="例如 1.4.0" /></div>
+        <div class="field"><label>目标仓库 <span class="req">*</span></label><select class="select"><option>集群内 Registry（192.168.10.172:5000）</option><option>Harbor 私有仓库（harbor.aide.local）</option></select></div>
+        <div class="field"><label>目标 Repository <span class="req">*</span></label><input class="input mono" id="sync-target-repo" value="library/gateway" placeholder="library/gateway" /></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>目标 Tag <span class="req">*</span></label><input class="input mono" id="sync-target-tag" value="1.4.0" placeholder="例如 1.4.0" /></div>
         <div class="field"><label>架构</label><div class="pill-select"><button type="button" class="on" onclick="togglePill(this)">全部平台</button><button type="button" onclick="togglePill(this)">linux/amd64</button><button type="button" onclick="togglePill(this)">linux/arm64/v8</button></div><span class="hint">只同步一个平台时，目标 Tag 会变成单架构 manifest。</span></div>
       </div>
       <label class="checkbox-row"><input type="checkbox" /> 目标 Tag 已存在时覆盖（默认关闭；覆盖不可撤销）</label>
@@ -1166,6 +1270,58 @@
   </div>
 </div>
 
+<!-- ========================= 对话框：添加资源 ========================= -->
+<div class="overlay" id="dlg-add-resource" hidden>
+  <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="add-resource-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="add-resource-title">添加 Kubernetes 资源</h2>
+      <p class="dialog-sub">常用资源提供表单 + YAML；任何资源都可以直接写 YAML。保存时服务端解析并校验。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-add-resource')">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="type-list">
+        <button class="type-option" type="button" onclick="pickResourceType('Deployment')"><b>Deployment</b><span>无状态工作负载 · 表单 / YAML</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('StatefulSet')"><b>StatefulSet</b><span>有状态工作负载 · 表单 / YAML</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('CronJob')"><b>CronJob</b><span>定时任务 · 表单 / YAML</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('Service')"><b>Service</b><span>服务发现与端口 · 表单 / YAML</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('Ingress')"><b>Ingress</b><span>七层路由与 TLS · 表单 / YAML</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('ConfigMap')"><b>ConfigMap</b><span>配置键值 · 表单 / YAML</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('Secret')"><b>Secret</b><span>加密值 · 表单 / YAML</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('HorizontalPodAutoscaler')"><b>HPA</b><span>弹性伸缩 · 表单 / YAML</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('NetworkPolicy')"><b>NetworkPolicy</b><span>网络策略 · 表单 / YAML</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('ClusterRole')"><b>ClusterRole</b><span>集群级 RBAC · 需要 release:cluster</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('CustomResourceDefinition')"><b>CRD</b><span>自定义资源定义 · 集群级</span></button>
+        <button class="type-option" type="button" onclick="pickResourceType('CustomResource')"><b>自定义资源 / 其它</b><span>直接写 YAML，支持任意 apiVersion / kind</span></button>
+      </div>
+      <div class="scope-warning"><span class="badge tone-warning" style="height:19px">提示</span><span>Namespace / Node / Event / APIService 等系统资源不允许由应用商店创建；目标命名空间必须预先存在。</span></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-add-resource')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= 对话框：资源 YAML ========================= -->
+<div class="overlay" id="dlg-yaml" hidden>
+  <div class="dialog xl" role="dialog" aria-modal="true" aria-labelledby="yaml-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="yaml-title">编辑资源 YAML</h2>
+      <p class="dialog-sub">保存时解析 YAML、检查重复/禁止类型/命名空间，并抽取 Secret 值；集群级资源需要 release:cluster。</p>
+      <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-yaml')">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="scope-warning" id="yaml-scope-warning" hidden><span class="badge tone-warning" style="height:19px">集群级</span><span>该资源是集群级资源，部署时要求 <span class="mono">release:cluster</span>；卸载默认保留。</span></div>
+      <textarea class="yaml-editor" id="yaml-editor" spellcheck="false" aria-label="资源 YAML"></textarea>
+      <div class="inline" style="justify-content:space-between"><span class="muted-sm">支持标准 Kubernetes YAML；不执行模板函数，不支持 generateName / List。</span><span class="badge tone-success" id="yaml-check" hidden>YAML 结构可解析</span></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-yaml')">取消</button>
+      <button class="btn btn-outline" type="button" onclick="checkYaml()">校验</button>
+      <button class="btn btn-primary" type="button" onclick="saveYaml()">保存资源</button>
+    </div>
+  </div>
+</div>
+
 <!-- ========================= 对话框：部署三步 ========================= -->
 <div class="overlay" id="dlg-deploy" hidden>
   <div class="dialog xl" role="dialog" aria-modal="true" aria-labelledby="deploy-title">
@@ -1181,12 +1337,20 @@
         <span class="step"><b>3</b>预览</span>
       </div>
       <div data-deploy-step="1">
-        <div class="row2">
-          <div class="field"><label>目标集群 <span class="req">*</span></label><select class="select" id="deploy-cluster"><option>生产集群</option><option>测试集群</option></select></div>
-          <div class="field"><label>命名空间 <span class="req">*</span></label><select class="select"><option>order</option><option>order-staging</option><option>data</option><option>monitoring</option></select></div>
+        <div class="field"><label>目标集群 <span class="req">*</span></label>
+          <div class="cluster-picker">
+            <label class="cluster-option"><input type="checkbox" checked onchange="updateClusterCount()" /><span><span class="name">生产集群</span><span class="meta">v1.35.5 · 12 个命名空间</span></span></label>
+            <label class="cluster-option"><input type="checkbox" checked onchange="updateClusterCount()" /><span><span class="name">灾备集群</span><span class="meta">v1.35.4 · 8 个命名空间</span></span></label>
+            <label class="cluster-option"><input type="checkbox" onchange="updateClusterCount()" /><span><span class="name">测试集群</span><span class="meta">v1.34.6 · 6 个命名空间</span></span></label>
+          </div>
+          <span class="hint" id="cluster-count">已选 2 个集群；一次部署会在每个集群创建一个实例，最多 20 个。</span>
         </div>
-        <div class="field" style="margin-top:12px"><label>实例名 <span class="req">*</span></label><input class="input mono" value="order-gateway-prod" placeholder="同一集群同一命名空间内唯一" /></div>
-        <p class="muted-sm" style="margin-top:8px">目标命名空间必须已存在；一期不自动创建命名空间。</p>
+        <div class="row2" style="margin-top:12px">
+          <div class="field"><label>目标命名空间 <span class="req">*</span></label><select class="select"><option>order</option><option>order-staging</option><option>data</option><option>monitoring</option></select><span class="hint">选中的每个集群都必须存在该命名空间；预检失败不会创建操作。</span></div>
+          <div class="field"><label>部署组名 <span class="req">*</span></label><input class="input mono" value="order-gateway-prod" placeholder="租户内唯一" /></div>
+        </div>
+        <div class="scope-warning" style="margin-top:12px"><span class="badge tone-warning" style="height:19px">集群级</span><span>该版本包含 1 个集群级资源（ClusterRole gateway-metrics），需要 <span class="mono">release:cluster</span>；卸载默认保留。</span></div>
+        <p class="muted-sm" style="margin-top:8px">预检 all-or-nothing：任一集群不可达、命名空间不存在或资源校验失败，都不会创建操作。</p>
       </div>
       <div data-deploy-step="2" hidden>
         <div class="row2">
@@ -1200,13 +1364,22 @@
         <div class="field" style="margin-top:12px"><label>Secret 值覆盖</label><div class="secret-row"><span class="mono-sm">ADMIN_TOKEN</span><span class="hideable">••••••••（保持版本值）</span></div><div class="secret-row" style="margin-top:6px"><span class="mono-sm">REDIS_PASSWORD</span><input class="input input-sm" type="password" placeholder="留空表示保持版本值" style="width:200px" /></div></div>
       </div>
       <div data-deploy-step="3" hidden>
-        <div class="inline" style="justify-content:space-between;margin-bottom:8px"><span class="badge tone-success">校验通过</span><span class="muted-sm">镜像 digest 均可解析 · 3 个 Secret key</span></div>
-        <div class="res-grid">
-          <div class="res-cell"><div class="kind">新建</div><div class="name">Deployment gateway / worker</div><div class="state">2 个工作负载</div></div>
-          <div class="res-cell"><div class="kind">新建</div><div class="name">Service / Ingress</div><div class="state">gateway · gateway.example.com</div></div>
-          <div class="res-cell"><div class="kind">新建</div><div class="name">RBAC · Config · Secret</div><div class="state">SA + Role + Binding · 5 + 3 keys</div></div>
+        <div class="inline" style="justify-content:space-between;margin-bottom:8px"><span class="badge tone-success">2 个集群预检通过</span><span class="muted-sm">镜像 digest 均可解析 · 14 个资源 · 1 个集群级</span></div>
+        <div class="tbl-wrap">
+          <table class="mini-tbl">
+            <thead><tr><th>集群</th><th>命名空间</th><th>预检</th><th>资源</th></tr></thead>
+            <tbody>
+              <tr><td>生产集群</td><td class="mono">order</td><td><span class="badge tone-success">通过</span></td><td>14 个 · 含 ClusterRole</td></tr>
+              <tr><td>灾备集群</td><td class="mono">order</td><td><span class="badge tone-success">通过</span></td><td>14 个 · 含 ClusterRole</td></tr>
+            </tbody>
+          </table>
         </div>
-        <p class="muted-sm" style="margin-top:10px">执行顺序：RBAC → 配置 → Service → 工作负载 → Ingress。超时 10 分钟；部分资源可能已创建，失败后可重新部署或回滚。</p>
+        <div class="res-grid" style="margin-top:10px">
+          <div class="res-cell"><div class="kind">新建</div><div class="name">Deployment gateway / worker</div><div class="state">2 个工作负载</div></div>
+          <div class="res-cell"><div class="kind">新建</div><div class="name">Service / Ingress / HPA / NetworkPolicy</div><div class="state">4 个对象</div></div>
+          <div class="res-cell"><div class="kind">新建</div><div class="name">RBAC · Config · Secret · CR</div><div class="state">8 个对象 · 1 个集群级</div></div>
+        </div>
+        <p class="muted-sm" style="margin-top:10px">执行 per-cluster 独立：一个集群失败不阻塞其他集群，组状态变为 PARTIAL，可按失败集群重试。执行顺序：CRD → RBAC → 配置 → Service → 工作负载 → 策略 → Ingress → CR。</p>
       </div>
     </div>
     <div class="dialog-footer">
@@ -1246,7 +1419,13 @@
       <p class="dialog-sub" id="confirm-sub">此操作不可恢复。</p>
       <button class="icon-btn dialog-close" type="button" aria-label="关闭" onclick="closeDlg('dlg-confirm')">×</button>
     </div>
-    <div class="dialog-body"><p class="muted-sm" id="confirm-body">请确认是否继续。</p></div>
+    <div class="dialog-body">
+      <p class="muted-sm" id="confirm-body" style="margin:0 0 10px">请确认是否继续。</p>
+      <div id="confirm-options" hidden style="display:flex;flex-direction:column;gap:8px">
+        <label class="checkbox-row"><input type="checkbox" checked id="confirm-keep-pvc" /> 保留 PVC（推荐）</label>
+        <label class="checkbox-row"><input type="checkbox" id="confirm-delete-cluster-scope" /> 同时删除集群级资源（需要 release:cluster，不可恢复）</label>
+      </div>
+    </div>
     <div class="dialog-footer">
       <button class="btn btn-ghost" type="button" onclick="closeDlg('dlg-confirm')">取消</button>
       <button class="btn btn-danger" type="button" onclick="confirmDanger()">确认</button>
@@ -1286,7 +1465,7 @@
     </div>
     <div>
       <div class="section-title-row" style="margin-bottom:8px"><span class="side-title">引用</span><span class="muted-sm">删除前检查</span></div>
-      <div class="image-ref"><span class="name">order-gateway · 1.4.0</span><span class="meta"><span class="badge tone-success">PUBLISHED</span><span>部署实例 order-gateway-prod</span></span></div>
+      <div class="image-ref"><span class="name">order-gateway · 1.4.0</span><span class="meta"><span class="badge tone-success">PUBLISHED</span><span>部署组 order-gateway-prod</span></span></div>
       <div class="image-ref" style="margin-top:6px"><span class="name">order-gateway · 1.3.2</span><span class="meta"><span class="badge tone-neutral">DEPRECATED</span><span>无活动实例</span></span></div>
     </div>
     <div class="op-actions">
@@ -1309,8 +1488,8 @@ const PAGE_CRUMBS = {
   apps: ["私有云", "应用商店"],
   "app-detail": ["私有云", "应用商店", "order-gateway"],
   version: ["私有云", "应用商店", "order-gateway", "1.4.0"],
-  releases: ["私有云", "应用商店", "部署实例"],
-  "release-detail": ["私有云", "应用商店", "部署实例", "order-gateway-prod"],
+  releases: ["私有云", "应用商店", "部署"],
+  deployment: ["私有云", "应用商店", "部署", "order-gateway-prod"],
 };
 const NAV_FOR_PAGE = {
   clusters: "clusters",
@@ -1322,7 +1501,7 @@ const NAV_FOR_PAGE = {
   "app-detail": "apps",
   version: "apps",
   releases: "apps",
-  "release-detail": "apps",
+  deployment: "apps",
 };
 let currentPage = "registry";
 let pickedImage = null;
@@ -1354,7 +1533,7 @@ function goto(page) {
   });
   document.getElementById("content").scrollTop = 0;
   closeSheet();
-  ["dlg-connect", "dlg-sync", "dlg-picker", "dlg-create-app", "dlg-create-version", "dlg-deploy", "dlg-upgrade", "dlg-confirm"].forEach(closeDlg);
+  ["dlg-connect", "dlg-sync", "dlg-picker", "dlg-create-app", "dlg-create-version", "dlg-add-resource", "dlg-yaml", "dlg-deploy", "dlg-upgrade", "dlg-confirm"].forEach(closeDlg);
 }
 
 function toggleNav() {
@@ -1382,6 +1561,7 @@ function openDlg(id) {
     document.getElementById("picked-arch").textContent = "—";
     pickedImage = null;
   }
+  if (id === "dlg-sync") switchSyncSource("connection");
   if (id === "dlg-deploy") deployStepIndex = 1, renderDeployStep();
 }
 
@@ -1464,6 +1644,205 @@ function confirmPick() {
   toast("镜像已更新", pickedImage.ref, "success");
 }
 
+function switchSyncSource(mode) {
+  const tabs = document.querySelectorAll("#sync-source-tabs button");
+  tabs[0].setAttribute("aria-pressed", String(mode === "connection"));
+  tabs[1].setAttribute("aria-pressed", String(mode === "external"));
+  document.getElementById("sync-source-connection").hidden = mode !== "connection";
+  document.getElementById("sync-source-external").hidden = mode !== "external";
+  document.getElementById("sync-target-repo").value = mode === "external" ? "library/nginx" : "library/gateway";
+  document.getElementById("sync-target-tag").value = mode === "external" ? "1.27.2" : "1.4.0";
+  if (mode === "external") document.getElementById("external-result").hidden = true;
+}
+
+function resolveExternal() {
+  const ref = document.getElementById("external-image").value.trim();
+  if (!ref) {
+    toast("请填写外部镜像引用", "例如 docker.io/library/nginx:1.27.2", "warn");
+    return;
+  }
+  document.getElementById("external-result").hidden = false;
+  toast("外部镜像解析成功", "sha256:8f3c…a71e · linux/amd64 · linux/arm64", "success");
+}
+
+function updateClusterCount() {
+  const count = document.querySelectorAll("#dlg-deploy .cluster-option input:checked").length;
+  const label = document.getElementById("cluster-count");
+  if (label) label.textContent = `已选 ${count} 个集群；一次部署会在每个集群创建一个实例，最多 20 个。`;
+  if (count === 0) toast("至少选择一个集群", "一次部署需要 1–20 个目标集群", "warn");
+}
+
+function pickResourceType(kind) {
+  closeDlg("dlg-add-resource");
+  if (kind === "CustomResource") {
+    openYaml("", "", true);
+    return;
+  }
+  openYaml(kind, "", true);
+}
+
+const YAML_TEMPLATES = {
+  Deployment: `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: ""
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: gateway}
+  template:
+    metadata:
+      labels: {app: gateway}
+    spec:
+      containers:
+        - name: gateway
+          image: harbor.aide.local/library/gateway:1.4.0
+          ports: [{containerPort: 8080}]`,
+  Service: `apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  type: ClusterIP
+  selector: {app: gateway}
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080`,
+  Ingress: `apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 8m
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [gateway.example.com]
+      secretName: gateway-tls
+  rules:
+    - host: gateway.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port: {number: 80}`,
+  ConfigMap: `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+data:
+  LOG_LEVEL: info
+  UPSTREAM_TIMEOUT: 3s`,
+  Secret: `apiVersion: v1
+kind: Secret
+metadata:
+  name: gateway-secret
+type: Opaque
+stringData:
+  ADMIN_TOKEN: "replace-me"
+  REDIS_PASSWORD: "replace-me"`,
+  HorizontalPodAutoscaler: `apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gateway
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gateway
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: 70}`,
+  NetworkPolicy: `apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gateway-allow
+spec:
+  podSelector:
+    matchLabels: {app: gateway}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {}`,
+  ClusterRole: `apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gateway-metrics
+rules:
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]`,
+  CustomResourceDefinition: `apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: servicemonitors.monitoring.coreos.com
+spec:
+  group: monitoring.coreos.com
+  names:
+    kind: ServiceMonitor
+    plural: servicemonitors
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object`,
+  ServiceMonitor: `apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gateway
+spec:
+  selector:
+    matchLabels: {app: gateway}
+  endpoints:
+    - port: http
+      interval: 30s`,
+};
+
+function openYaml(kind, name, isNew) {
+  if (kind === "CustomResourceDefinition" || kind === "ClusterRole") {
+    document.getElementById("yaml-scope-warning").hidden = false;
+  } else {
+    document.getElementById("yaml-scope-warning").hidden = true;
+  }
+  const title = isNew ? "添加资源 YAML" : `编辑资源 YAML · ${kind} ${name}`;
+  document.getElementById("yaml-title").textContent = title;
+  document.getElementById("yaml-editor").value =
+    YAML_TEMPLATES[kind] ||
+    `apiVersion: example.com/v1
+kind: ${kind || "CustomResource"}
+metadata:
+  name: ${name || "example"}`;
+  document.getElementById("yaml-check").hidden = true;
+  openDlg("dlg-yaml");
+}
+
+function checkYaml() {
+  const value = document.getElementById("yaml-editor").value.trim();
+  if (!value.includes("apiVersion:") || !value.includes("kind:") || !value.includes("metadata:")) {
+    toast("YAML 校验失败", "需要 apiVersion / kind / metadata.name", "warn");
+    return;
+  }
+  document.getElementById("yaml-check").hidden = false;
+  toast("YAML 结构可解析", "保存时还会检查重复、禁止类型、scope 与镜像", "success");
+}
+
+function saveYaml() {
+  closeDlg("dlg-yaml");
+  toast("资源已保存到草稿", "集群级资源会在部署时要求 release:cluster", "success");
+}
+
 function submitSync() {
   closeDlg("dlg-sync");
   goto("syncs");
@@ -1475,14 +1854,18 @@ function askDelete(kind, name, extra) {
   document.getElementById("confirm-title").textContent = kind;
   document.getElementById("confirm-sub").textContent = name;
   document.getElementById("confirm-body").textContent = extra || "删除后无法恢复。";
+  document.getElementById("confirm-options").hidden = true;
   openDlg("dlg-confirm");
 }
 
 function askUninstall() {
   confirmKind = "uninstall";
-  document.getElementById("confirm-title").textContent = "卸载 order-gateway-prod？";
-  document.getElementById("confirm-sub").textContent = "将删除实例 label 下的资源，默认保留 PVC。";
-  document.getElementById("confirm-body").textContent = "这是不可逆操作：卸载完成后实例记录保留为 UNINSTALLED，重新安装会创建新实例。勾选删除 PVC 会永久丢失数据。";
+  document.getElementById("confirm-title").textContent = "卸载选中的 2 个集群实例？";
+  document.getElementById("confirm-sub").textContent = "将删除每个实例 label 下的命名空间级资源；默认保留 PVC 与集群级资源。";
+  document.getElementById("confirm-body").textContent = "这是不可逆操作：每个集群独立执行，部分失败时组状态为 PARTIAL。默认保留 PVC 与集群级资源。";
+  document.getElementById("confirm-options").hidden = false;
+  document.getElementById("confirm-keep-pvc").checked = true;
+  document.getElementById("confirm-delete-cluster-scope").checked = false;
   openDlg("dlg-confirm");
 }
 
@@ -1514,13 +1897,17 @@ function renderDeployStep() {
 
 function submitDeploy() {
   closeDlg("dlg-deploy");
-  goto("release-detail");
-  toast("部署任务已创建", "PENDING 操作已落库；执行器认领后应用资源", "success");
+  goto("deployment");
+  toast("部署任务已创建", "已为 2 个集群各创建 1 条 PENDING 操作；执行器认领后并发应用资源", "success");
+}
+
+function openYamlFromResource(kind, name) {
+  openYaml(kind, name, false);
 }
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
-  ["dlg-connect", "dlg-sync", "dlg-picker", "dlg-create-app", "dlg-create-version", "dlg-deploy", "dlg-upgrade", "dlg-confirm"].forEach(closeDlg);
+  ["dlg-connect", "dlg-sync", "dlg-picker", "dlg-create-app", "dlg-create-version", "dlg-add-resource", "dlg-yaml", "dlg-deploy", "dlg-upgrade", "dlg-confirm"].forEach(closeDlg);
   closeSheet();
 });
 </script>

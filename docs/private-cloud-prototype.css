@@ -1266,3 +1266,54 @@
   @media (max-width: 1000px) {
     .repo-layout, .app-detail-layout, .release-detail-layout { grid-template-columns: minmax(0, 1fr); }
   }
+
+  /* 资源清单 / YAML 编辑器 / 多集群选择 */
+  .yaml-editor {
+    width: 100%; min-height: 330px; padding: 12px; border-radius: 9px;
+    border: 1px solid var(--input); background: color-mix(in oklab, var(--muted) 28%, var(--popover));
+    color: var(--foreground); font-family: var(--font-mono); font-size: 11.5px; line-height: 1.7;
+    resize: vertical; white-space: pre; overflow: auto; outline: none;
+  }
+  .yaml-editor:focus { border-color: var(--ring); box-shadow: 0 0 0 3px var(--ring); }
+  .type-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .type-option {
+    display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 10px;
+    border: 1px solid var(--input); border-radius: 10px; background: var(--popover); cursor: pointer;
+  }
+  .type-option:hover { border-color: color-mix(in oklab, var(--primary) 45%, var(--input)); background: var(--primary-soft); }
+  .type-option b { font-family: var(--font-mono); font-size: 11.5px; }
+  .type-option span { font-size: 11px; color: var(--muted-foreground); }
+  .scope-warning {
+    display: flex; align-items: flex-start; gap: 8px; padding: 10px; border-radius: 9px;
+    border: 1px solid var(--warning-border); background: var(--warning-soft);
+    font-size: 12px; line-height: 1.55;
+  }
+  .cluster-picker { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+  .cluster-option {
+    display: flex; align-items: flex-start; gap: 8px; padding: 10px; border: 1px solid var(--input);
+    border-radius: 10px; background: var(--popover); cursor: pointer; min-width: 0;
+  }
+  .cluster-option:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+  .cluster-option input { margin-top: 2px; }
+  .cluster-option .name { font-size: 12.5px; font-weight: 500; word-break: break-all; }
+  .cluster-option .meta { font-size: 10.5px; color: var(--muted-foreground); }
+  .cluster-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cluster-chip { display: inline-flex; align-items: center; gap: 4px; height: 19px; padding: 0 7px; border-radius: 5px; border: 1px solid var(--border); background: color-mix(in oklab, var(--muted) 45%, transparent); font-size: 10.5px; color: var(--muted-foreground); white-space: nowrap; }
+  .matrix-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .matrix-table th { text-align: left; font-weight: 500; color: var(--muted-foreground); font-size: 11.5px; padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .matrix-table td { padding: 9px 8px; border-bottom: 1px solid color-mix(in oklab, var(--border) 55%, transparent); vertical-align: middle; }
+  .matrix-table tr:last-child td { border-bottom: 0; }
+  @media (max-width: 1000px) {
+    .cluster-picker { grid-template-columns: 1fr; }
+  }
+
+  /* 长镜像名允许在单元格内换行，避免覆盖相邻列 */
+  table.tbl td .cell-name, table.matrix-table td .cell-name { overflow-wrap: anywhere; }
+  .sync-table { table-layout: auto; min-width: 1040px; }
+
+  .cluster-option .name { display: block; }
+  .cluster-option .meta { display: block; margin-top: 2px; }
+
+  /* 版本列表中的镜像引用可能很长，允许 chip 内换行，避免压到下一列 */
+  .version-table .arch-chip { height: auto; min-height: 19px; padding: 2px 6px; white-space: normal; overflow-wrap: anywhere; }
+  .version-table .chip-list { min-width: 0; }
