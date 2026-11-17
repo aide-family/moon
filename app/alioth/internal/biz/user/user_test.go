@@ -102,6 +102,7 @@ func TestDeleteUserGuards(t *testing.T) {
 	accounts := func() map[string]bo.Account {
 		return map[string]bo.Account{
 			"actor-1":  {UID: "actor-1", Status: "ACTIVE", SystemRole: perm.SystemRoleSystemAdmin},
+			"admin-2":  {UID: "admin-2", Status: "ACTIVE", SystemRole: perm.SystemRoleSystemAdmin},
 			"super-1":  {UID: "super-1", Status: "ACTIVE", SystemRole: perm.SystemRoleSuperAdmin},
 			"normal-1": {UID: "normal-1", Status: "ACTIVE", SystemRole: perm.SystemRoleUser},
 			"reader-1": {UID: "reader-1", Status: "ACTIVE", SystemRole: perm.SystemRoleReadOnly},
@@ -153,6 +154,46 @@ func TestDeleteUserGuards(t *testing.T) {
 		}
 		if len(users.deleted) != 1 || users.deleted[0] != "normal-1" {
 			t.Fatalf("DeleteUser 调用 = %v, want [normal-1]", users.deleted)
+		}
+	})
+
+	// 系统管理员之间不能互删：和封禁同一道守卫，否则同级管理员可以互相清掉
+	// 对方的平台入口。
+	t.Run("rejects deleting another system admin", func(t *testing.T) {
+		directory, users := newDeleteDirectory(accounts())
+		ctx := actor.WithUser(context.Background(), actorUID)
+		err := directory.DeleteUser(ctx, "admin-2")
+		if kerrors.Reason(err) != merr.ReasonForbidden {
+			t.Fatalf("err = %v, want forbidden", err)
+		}
+		if got := kerrors.FromError(err).Message; got != "cannot delete another system admin" {
+			t.Fatalf("message = %q", got)
+		}
+		if len(users.deleted) != 0 {
+			t.Fatalf("拒绝删除时不应调用仓储: %v", users.deleted)
+		}
+	})
+
+	t.Run("rejects system admin deleting readonly admin", func(t *testing.T) {
+		directory, users := newDeleteDirectory(accounts())
+		ctx := actor.WithUser(context.Background(), actorUID)
+		err := directory.DeleteUser(ctx, "reader-1")
+		if kerrors.Reason(err) != merr.ReasonForbidden {
+			t.Fatalf("err = %v, want forbidden", err)
+		}
+		if len(users.deleted) != 0 {
+			t.Fatalf("拒绝删除时不应调用仓储: %v", users.deleted)
+		}
+	})
+
+	t.Run("super admin deletes system admin", func(t *testing.T) {
+		directory, users := newDeleteDirectory(accounts())
+		ctx := actor.WithUser(context.Background(), "super-1")
+		if err := directory.DeleteUser(ctx, "admin-2"); err != nil {
+			t.Fatalf("DeleteUser: %v", err)
+		}
+		if len(users.deleted) != 1 || users.deleted[0] != "admin-2" {
+			t.Fatalf("DeleteUser 调用 = %v, want [admin-2]", users.deleted)
 		}
 	})
 

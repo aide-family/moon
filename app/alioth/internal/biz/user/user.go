@@ -134,9 +134,11 @@ func (directory *Directory) setStatus(ctx context.Context, uid, status string) (
 	return account, nil
 }
 
-// DeleteUser 删除平台用户，用于清理错误数据。删除自己、平台超级管理员和
-// 仍在负责租户或还有租户订单的用户都会被拒绝；校验通过后由数据层在同一个事务里
-// 软删用户并清理它的第三方绑定、成员关系和个人配置。
+// DeleteUser 删除平台用户，用于清理错误数据。删除自己、平台超级管理员、
+// 其它系统管理员和仍在负责租户或还有租户订单的用户都会被拒绝；校验通过后由数据层
+// 在同一个事务里软删用户并清理它的第三方绑定、成员关系和个人配置。
+// 系统管理员之间不能互删，和封禁同一道守卫：删掉同级管理员等于越权收走对方的
+// 平台入口，事后也没有租户侧流程能补救。
 func (directory *Directory) DeleteUser(ctx context.Context, uid string) error {
 	actorAccount, err := directory.access.RequireSystem(ctx, perm.SystemUserWrite)
 	if err != nil {
@@ -151,6 +153,10 @@ func (directory *Directory) DeleteUser(ctx context.Context, uid string) error {
 	}
 	if target.SystemRole == perm.SystemRoleSuperAdmin {
 		return merr.Forbidden("cannot delete super admin")
+	}
+	if actorAccount.SystemRole != perm.SystemRoleSuperAdmin &&
+		(target.SystemRole == perm.SystemRoleSystemAdmin || target.SystemRole == perm.SystemRoleReadOnly) {
+		return merr.Forbidden("cannot delete another system admin")
 	}
 	return directory.access.Wrap(directory.users.DeleteUser(ctx, uid))
 }
