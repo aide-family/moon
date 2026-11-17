@@ -64,9 +64,10 @@ export function CaptchaField({
           {captcha.image ? (
             <span className="relative block">
               <img
+                key={captcha.image}
                 src={captcha.image}
                 alt={t("form.captcha")}
-                className="h-8 w-auto rounded border"
+                className="h-8 w-auto rounded border transition-opacity duration-150 ease-out motion-reduce:transition-none starting:opacity-0"
               />
               {captcha.loading ? (
                 <span

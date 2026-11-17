@@ -82,14 +82,27 @@ function AuthIntro() {
   const { t } = useTranslation()
   const [api, setApi] = useState<CarouselApi>()
 
+  // 5s 自动轮播是纯装饰动效：系统要求减少动态时停掉，用户阅读时内容不该自己走。
   useEffect(() => {
     if (!api) {
       return
     }
-    const timer = window.setInterval(() => {
-      api.scrollNext()
-    }, 5000)
-    return () => window.clearInterval(timer)
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)")
+    let timer = 0
+    const restart = () => {
+      window.clearInterval(timer)
+      timer = media.matches
+        ? 0
+        : window.setInterval(() => {
+            api.scrollNext()
+          }, 5000)
+    }
+    restart()
+    media.addEventListener("change", restart)
+    return () => {
+      window.clearInterval(timer)
+      media.removeEventListener("change", restart)
+    }
   }, [api])
 
   return (

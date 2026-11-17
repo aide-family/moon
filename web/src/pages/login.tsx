@@ -321,21 +321,27 @@ export function LoginPage() {
             id="oauth-login-panel"
             role="group"
             aria-label={t("login.oauthGroupLabel")}
-            className={cn("grid gap-3", emailPanelOpen && "hidden")}
+            className={cn(
+              "grid gap-3 transition-opacity duration-200 ease-out motion-reduce:transition-none starting:opacity-0",
+              emailPanelOpen && "hidden"
+            )}
           >
             {ready ? (
-              providers.map((provider) => (
-                <OAuthProviderButton
-                  key={provider.provider}
-                  provider={provider}
-                  label={t("login.oauthContinue", {
-                    provider: provider.name || provider.provider,
-                  })}
-                  pending={oauthPending === provider.provider}
-                  disabled={oauthPending !== ""}
-                  onClick={() => startOAuth(provider)}
-                />
-              ))
+              // 骨架换成真实按钮时淡入，避免两排占位直接跳成按钮。
+              <div className="grid gap-3 transition-opacity duration-150 ease-out motion-reduce:transition-none starting:opacity-0">
+                {providers.map((provider) => (
+                  <OAuthProviderButton
+                    key={provider.provider}
+                    provider={provider}
+                    label={t("login.oauthContinue", {
+                      provider: provider.name || provider.provider,
+                    })}
+                    pending={oauthPending === provider.provider}
+                    disabled={oauthPending !== ""}
+                    onClick={() => startOAuth(provider)}
+                  />
+                ))}
+              </div>
             ) : (
               <div className="grid gap-3" aria-hidden="true">
                 <Skeleton className="h-12 rounded-xl" />
@@ -350,7 +356,10 @@ export function LoginPage() {
         {emailEnabled ? (
           <div
             id="email-login-panel"
-            className={cn("grid gap-4", !emailPanelOpen && "hidden")}
+            className={cn(
+              "grid gap-4 transition-opacity duration-200 ease-out motion-reduce:transition-none starting:opacity-0",
+              !emailPanelOpen && "hidden"
+            )}
           >
             <form noValidate className="grid gap-4" onSubmit={onSubmit}>
               <FormField
@@ -437,7 +446,10 @@ export function LoginPage() {
                 {submitting ? t("login.loggingIn") : t("action.login")}
               </Button>
               {error ? (
-                <p role="alert" className="text-sm text-destructive">
+                <p
+                  role="alert"
+                  className="text-sm text-destructive transition-opacity duration-150 ease-out motion-reduce:transition-none starting:opacity-0"
+                >
                   {error}
                 </p>
               ) : null}
