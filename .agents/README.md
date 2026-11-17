@@ -21,6 +21,30 @@
 | `alioth-web-design` | 布局、间距、色板、组件外观（修订记 `revisions.md`） |
 | `alioth-web-review` | 前端改动自检与放行 |
 
+### 前端动效（外部技能）
+
+以下五个技能来自 [emilkowalski/skills](https://github.com/emilkowalski/skills)（Emil Kowalski，
+`sonner` / `vaul` 作者），用 `--copy` 装成仓库内普通目录，只保留 `.agents/skills/` 这一份：
+
+| 技能 | 用于 |
+| --- | --- |
+| `animate` | 从零造一个动效：该不该动、目的是什么、选 CSS / `@starting-style` / WAAPI / Motion、曲线与时长、打断与退出 |
+| `improve-animations` | 全库动效体检，产出分优先级的整改计划（只读，不改代码） |
+| `review-animations` | 审一段动效 diff，按同一套标准挑问题 |
+| `animation-performance` | 掉帧、合成属性、CSS 与 JS 动画的取舍、`will-change` |
+| `animation-vocabulary` | 把"那个弹弹的效果"翻译成准确术语，便于描述给 agent 或设计师 |
+
+动效方案本身用这些技能，落地约束仍归 `alioth-web-design` 与 [web/AGENTS.md](../../web/AGENTS.md)：
+色值走语义 token、对话框结构不许重写、键盘高频操作不留在动画里。
+
+升级上游时按原命令重装，装完删掉 CLI 附带生成的 `.claude/`、`.hermes/`、`.lingma/`、`.trae/`、
+根目录 `skills/` 与 `skills-lock.json`，再看 `git diff .agents/skills` 决定是否提交：
+
+```sh
+npx skills add emilkowalski/skills -s animate -s improve-animations -s review-animations \
+  -s animation-performance -s animation-vocabulary --copy -y
+```
+
 ## rules/
 
 给编辑器与 agent 共用的规则摘要（`.mdc`）：平台边界、后端分层、Web 实现约定、前端设计标准。
