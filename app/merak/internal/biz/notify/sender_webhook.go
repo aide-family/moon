@@ -21,7 +21,10 @@ import (
 
 const maxWebhookResponse = 64 << 10
 
-var webhookClient = &http.Client{Timeout: 30 * time.Second}
+// webhookClient 不设 Client.Timeout：投递截止统一由投递 ctx（notify.timeout）控制。
+// 客户端自带 30s 硬超时会让配置更长的投递超时形同虚设，而且客户端超时时请求
+// 往往已经到达对端，回写失败就等于重复投递。
+var webhookClient = &http.Client{}
 
 type otherSender struct{}
 

@@ -25,9 +25,12 @@ const (
 	renewEvery     = 20 * time.Second
 	pollEvery      = 2 * time.Second
 	heartbeatEvery = 5 * time.Second
-	roundTimeout   = 30 * time.Second
-	backoffMax     = 30 * time.Second
-	pollSpec       = "*/2 * * * * *"
+	// roundOverhead 是轮次里投递之外的开销：claim、抢任务锁、MarkSending。
+	// 轮次截止必须晚于一次投递的最长耗时，否则投递会被轮次提前打断——
+	// 请求已经到了对端，本地却按失败回写，任务重新入队就重复发一遍。
+	roundOverhead = 10 * time.Second
+	backoffMax    = 30 * time.Second
+	pollSpec      = "*/2 * * * * *"
 )
 
 var ProviderSet = wire.NewSet(NewWorker)
@@ -37,10 +40,13 @@ type Worker struct {
 	gateway repository.NotifyGateway
 	locks   repository.Locker
 	timeout time.Duration
-	log     *slog.Logger
-	cancel  context.CancelFunc
-	done    chan struct{}
-	gate    *pkgworker.Gate
+	// roundTimeout 是一轮 poll 的最长耗时，恒大于 timeout：投递超时是唯一的
+	// 投递截止，轮次截止只用来结束这一轮 poll，不能替投递做决定。
+	roundTimeout time.Duration
+	log          *slog.Logger
+	cancel       context.CancelFunc
+	done         chan struct{}
+	gate         *pkgworker.Gate
 
 	mu            sync.RWMutex
 	reportMu      sync.Mutex
@@ -63,7 +69,7 @@ func NewWorker(gateway repository.NotifyGateway, locks repository.Locker, notify
 	}
 	instanceUID := fmt.Sprintf("%s-%d-%d", hostname, os.Getpid(), time.Now().UnixNano())
 	return &Worker{
-		gateway: gateway, locks: locks, timeout: timeout, log: logger,
+		gateway: gateway, locks: locks, timeout: timeout, roundTimeout: timeout + roundOverhead, log: logger,
 		gate: pkgworker.NewGate(pollEvery, backoffMax), instanceUID: instanceUID, hostname: hostname,
 	}
 }
@@ -151,7 +157,7 @@ func (w *Worker) round(ctx context.Context) {
 	if ctx.Err() != nil || !w.gate.Begin() {
 		return
 	}
-	roundCtx, cancel := context.WithTimeout(ctx, roundTimeout)
+	roundCtx, cancel := context.WithTimeout(ctx, w.roundTimeout)
 	done := make(chan struct{})
 	stretch := false
 	go func() {
@@ -253,28 +259,33 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, task bo.TaskS
 	deliverCtx, deliverCancel := context.WithTimeout(ctx, w.timeout)
 	defer deliverCancel()
 	delivery := Deliver(deliverCtx, task)
+	interrupt := ""
 	select {
 	case err := <-renewFailed:
 		w.log.Error(fmt.Sprintf("renew %s: %v", task.UID, err))
-		detail := delivery.Detail
-		if delivery.OK {
-			detail = "lock renew failed"
-		}
-		return w.gateway.Report(context.Background(), bo.NotifyReport{
-			TaskUID: task.UID, OK: false, Detail: detail, Subject: delivery.Subject, Content: delivery.Content,
-		})
+		interrupt = "lock renew failed"
 	default:
 	}
-	if ctx.Err() != nil && delivery.OK {
-		detail := "lock renew failed"
-		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			detail = "round timed out"
+	if interrupt == "" && ctx.Err() != nil {
+		interrupt = "round timed out"
+		if errors.Is(ctx.Err(), context.Canceled) {
+			interrupt = "worker stopped"
 		}
-		return w.gateway.Report(context.Background(), bo.NotifyReport{
-			TaskUID: task.UID, OK: false, Detail: detail, Subject: delivery.Subject, Content: delivery.Content,
-		})
 	}
-	return w.gateway.Report(context.Background(), bo.NotifyReport{
-		TaskUID: task.UID, OK: delivery.OK, Detail: delivery.Detail, Subject: delivery.Subject, Content: delivery.Content,
-	})
+	return w.gateway.Report(context.Background(), reportSettled(task.UID, delivery, interrupt))
+}
+
+// reportSettled 把一次投递尝试落成回写内容。投递成功就是成功：即使轮次截止、
+// 续租失败或进程停机让 ctx 失效，也不能翻成失败——控制面收到失败会把任务退回
+// PENDING 重新派发，已经发出去的邮件和群里消息就会重复一次。
+// interrupt 只在成功时补充说明这次尝试是被什么打断的。
+func reportSettled(taskUID string, delivery DeliveryResult, interrupt string) bo.NotifyReport {
+	detail := delivery.Detail
+	if delivery.OK && interrupt != "" {
+		detail = "sent (" + interrupt + ")"
+	}
+	return bo.NotifyReport{
+		TaskUID: taskUID, OK: delivery.OK, Detail: detail,
+		Subject: delivery.Subject, Content: delivery.Content,
+	}
 }
