@@ -27,9 +27,14 @@ var ProviderSet = wire.NewSet(NewGateway)
 
 const (
 	// ScheduleLockKey 是升级调度锁。15 秒 TTL 且不续期，正好对应一次 tick 的间隔。
-	ScheduleLockKey    = "alioth:lock:schedule:escalation"
-	scheduleLockTTL    = 15 * time.Second
-	escalationLookback = 24 * time.Hour
+	ScheduleLockKey = "alioth:lock:schedule:escalation"
+	scheduleLockTTL = 15 * time.Second
+	// escalationFillWindow 是每轮补行回看的 FIRING 事件窗口。补行一次最多 500
+	// 条事件，原来看 24 小时：窗口里超过 500 条时，最早那批已经补过行的事件会
+	// 一直占住这 500 个名额，后面的事件直到过期都补不到行，升级步骤永远不触发。
+	// 收窄到 1 小时后，超限事件最多迟到 1 小时（到期步骤会立刻补发），不会永久丢失；
+	// 调度停摆超过 1 小时时更早的缺口不再回补，升级本身是时效性动作，宁可少补不误发。
+	escalationFillWindow = time.Hour
 
 	// maxNameRunes 与 proto 校验保持一致。
 	maxNameRunes = 64
@@ -168,7 +173,7 @@ func (gateway *Gateway) Schedule(ctx context.Context) error {
 		gateway.log.Error(fmt.Sprintf("cancel escalation: %v", err))
 		return err
 	}
-	if _, err := gateway.policies.FillPendingEscalations(ctx, now.Add(-escalationLookback), now); err != nil {
+	if _, err := gateway.policies.FillPendingEscalations(ctx, now.Add(-escalationFillWindow), now); err != nil {
 		gateway.log.Error(fmt.Sprintf("fill escalation: %v", err))
 		return err
 	}

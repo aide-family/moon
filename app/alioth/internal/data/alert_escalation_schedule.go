@@ -16,6 +16,7 @@ import (
 )
 
 // escalationFillLimit 是一轮补行最多处理的策略与事件数量，避免一次 tick 拖太久。
+// 两个查询都带确定排序：没有排序时同一批最旧的事件会一直占据名额，后面的永远轮不到。
 const escalationFillLimit = 500
 
 // escalationNotifyEvent 把事件行转成分发任务需要的快照。升级任务没有订阅来源，
@@ -32,10 +33,16 @@ func escalationNotifyEvent(event *ent.AlertEvent) notifyEvent {
 // FillPendingEscalations 给 since 之后开始、仍未认领且未被抑制的 FIRING 事件补齐
 // 命中策略的 PENDING 行。每条策略单独事务，某条策略失败不影响其它策略。
 func (r *alertEscalationRepo) FillPendingEscalations(ctx context.Context, since, now time.Time) (int, error) {
+	return r.fillPendingEscalations(ctx, since, now, escalationFillLimit)
+}
+
+// fillPendingEscalations 是带显式上限的实现：上限同时约束一轮里的策略数和事件数。
+func (r *alertEscalationRepo) fillPendingEscalations(ctx context.Context, since, now time.Time, limit int) (int, error) {
 	policies, err := r.client.AlertEscalationPolicy.Query().Where(
 		alertescalationpolicy.StatusEQ(alertescalationpolicy.StatusACTIVE),
 		alertescalationpolicy.DeletedAtIsNil(),
-	).Limit(escalationFillLimit).All(ctx)
+	).Order(ent.Asc(alertescalationpolicy.FieldCreatedAt), ent.Asc(alertescalationpolicy.FieldUID)).
+		Limit(limit).All(ctx)
 	if err != nil {
 		return 0, r.fail(err)
 	}
@@ -62,7 +69,8 @@ func (r *alertEscalationRepo) FillPendingEscalations(ctx context.Context, since,
 			alertevent.AckedByEQ(""),
 			alertevent.StartsAtGTE(eventSince),
 			alertevent.StartsAtLTE(now),
-		).Limit(escalationFillLimit).All(ctx)
+		).Order(ent.Asc(alertevent.FieldStartsAt), ent.Asc(alertevent.FieldUID)).
+			Limit(limit).All(ctx)
 		if err != nil {
 			return created, r.fail(err)
 		}
