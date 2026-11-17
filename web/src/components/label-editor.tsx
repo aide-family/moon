@@ -1,6 +1,7 @@
 import { Plus, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
+import { useReportFormFieldError } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -173,6 +174,16 @@ export function LabelEditor({
   const validation = validateLabelRows(rows)
   const filled = rows.filter((row) => !isBlankRow(row)).length
   const canAdd = filled < MAX_LABELS
+  // 行内校验结果和外部错误都交给外层 FormField，显示在 label 行右侧，不再压在输入框下方。
+  const rowError = validation.rowErrors.find(
+    (item): item is LabelRowError => item !== undefined
+  )
+  const message = validation.formError
+    ? t(labelErrorKey(validation.formError))
+    : rowError
+      ? t(labelErrorKey(rowError))
+      : (error ?? "")
+  useReportFormFieldError(message)
 
   function updateRow(index: number, patch: Partial<LabelRow>) {
     onChange(rows.map((row, rowIndex) =>
@@ -191,6 +202,15 @@ export function LabelEditor({
   return (
     <div className="grid min-w-0 gap-2">
       <div className="grid min-w-0 gap-2">
+        <div
+          aria-hidden="true"
+          className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"
+        >
+          <span className="min-w-0 flex-1">{t("label.key")}</span>
+          <span className="w-2 shrink-0" />
+          <span className="min-w-0 flex-1">{t("label.value")}</span>
+          <span className="w-7 shrink-0" />
+        </div>
         {rows.map((row, index) => {
           const rowError = validation.rowErrors[index]
           return (
@@ -238,11 +258,6 @@ export function LabelEditor({
                   <X aria-hidden="true" />
                 </Button>
               </div>
-              {rowError ? (
-                <p role="alert" className="text-xs text-destructive">
-                  {t(labelErrorKey(rowError))}
-                </p>
-              ) : null}
             </div>
           )
         })}
@@ -262,16 +277,6 @@ export function LabelEditor({
           {t("label.countHint", { count: filled, max: MAX_LABELS })}
         </span>
       </div>
-      {validation.formError ? (
-        <p role="alert" className="text-sm text-destructive">
-          {t(labelErrorKey(validation.formError))}
-        </p>
-      ) : null}
-      {error ? (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      ) : null}
     </div>
   )
 }

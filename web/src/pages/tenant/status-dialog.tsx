@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 
 import { updateSystemNamespaceStatus } from "@/api/system-namespace"
 import type { SystemNamespaceItem } from "@/api/system-namespace/types"
+import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -117,27 +118,22 @@ export function TenantStatusDialog({
           <DialogBody className="grid gap-3">
             {disabling ? (
               <div className="grid min-w-0 gap-2">
-                <label
+                <FormField
+                  label={t("tenantAdmin.reason")}
                   htmlFor="tenant-disable-reason"
-                  className="flex items-center gap-1 text-sm font-medium"
+                  required
+                  error={fieldError}
                 >
-                  <span aria-hidden="true" className="text-destructive">
-                    *
-                  </span>
-                  {t("tenantAdmin.reason")}
-                </label>
-                <Textarea
-                  id="tenant-disable-reason"
-                  value={reason}
-                  rows={4}
-                  maxLength={REASON_MAX}
-                  placeholder={t("tenantAdmin.reasonPlaceholder")}
-                  aria-invalid={fieldError ? true : undefined}
-                  aria-describedby={
-                    fieldError ? "tenant-disable-reason-error" : undefined
-                  }
-                  onChange={(event) => setReason(event.target.value)}
-                />
+                  <Textarea
+                    id="tenant-disable-reason"
+                    value={reason}
+                    rows={4}
+                    maxLength={REASON_MAX}
+                    placeholder={t("tenantAdmin.reasonPlaceholder")}
+                    aria-invalid={fieldError ? true : undefined}
+                    onChange={(event) => setReason(event.target.value)}
+                  />
+                </FormField>
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span>{t("tenantAdmin.reasonHint", { max: REASON_MAX })}</span>
                   <span className="tabular-nums">
@@ -147,15 +143,6 @@ export function TenantStatusDialog({
                     })}
                   </span>
                 </div>
-                {fieldError ? (
-                  <p
-                    id="tenant-disable-reason-error"
-                    role="alert"
-                    className="text-sm text-destructive"
-                  >
-                    {fieldError}
-                  </p>
-                ) : null}
                 <p className="rounded-lg border border-warning-border bg-warning-soft px-3 py-2 text-xs break-words text-warning">
                   {t("tenantAdmin.disableNotice", {
                     name: tenant.ownerName || tenant.ownerEmail || tenant.name,

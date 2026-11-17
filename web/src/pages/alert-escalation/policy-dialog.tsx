@@ -11,7 +11,7 @@ import type {
   AlertEscalationStepInput,
   SaveAlertEscalationPolicyParams,
 } from "@/api/alert-escalation/types"
-import { FormField } from "@/components/form-field"
+import { FormField, KeyValueRowLabels } from "@/components/form-field"
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select"
 import { Button } from "@/components/ui/button"
 import {
@@ -348,6 +348,11 @@ export function AlertEscalationPolicyDialog({
     }
   }
 
+  // 标签行的具体错误优先于表单级「标签不合法」，统一显示在 label 行右侧。
+  const firstLabelPairError =
+    labelPairErrors.find((item) => item.key)?.key ??
+    labelPairErrors.find((item) => item.value)?.value
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
@@ -392,9 +397,15 @@ export function AlertEscalationPolicyDialog({
             <FormField
               label={t("escalation.labels")}
               hint={t("escalation.labelsHint")}
-              error={fieldErrors.labels}
+              error={firstLabelPairError ?? fieldErrors.labels}
             >
               <div className="grid gap-2">
+                <KeyValueRowLabels
+                  inline
+                  keyLabel={t("escalation.labelKey")}
+                  valueLabel={t("escalation.labelValue")}
+                  trailing={<span aria-hidden="true" className="w-[4.5rem] shrink-0" />}
+                />
                 {labels.map((pair, index) => {
                   const keyOptions = labelOptions.map((option) => ({
                     value: option.key,
@@ -479,6 +490,7 @@ export function AlertEscalationPolicyDialog({
                       <Button
                         type="button"
                         variant="ghost"
+                        className="w-[4.5rem] shrink-0"
                         onClick={() =>
                           setLabels(
                             labels.filter((_, current) => current !== index)
@@ -488,16 +500,6 @@ export function AlertEscalationPolicyDialog({
                         {t("action.delete")}
                       </Button>
                     </div>
-                    {labelPairErrors[index]?.key ? (
-                      <p role="alert" className="text-xs text-destructive">
-                        {labelPairErrors[index].key}
-                      </p>
-                    ) : null}
-                    {labelPairErrors[index]?.value ? (
-                      <p role="alert" className="text-xs text-destructive">
-                        {labelPairErrors[index].value}
-                      </p>
-                    ) : null}
                   </div>
                   )
                 })}
@@ -571,17 +573,11 @@ export function AlertEscalationPolicyDialog({
                 dragKey && "select-none"
               )}
             >
-              <div className="grid gap-1">
-                <p className="text-sm font-medium">{t("escalation.steps")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t("escalation.stepsHint")}
-                </p>
-              </div>
-              {fieldErrors.steps ? (
-                <p role="alert" className="text-sm text-destructive">
-                  {fieldErrors.steps}
-                </p>
-              ) : null}
+              <FormField
+                label={t("escalation.steps")}
+                description={t("escalation.stepsHint")}
+                error={fieldErrors.steps}
+              />
               {steps.map((step, index) => {
                 const row = (
                   <div

@@ -24,6 +24,7 @@ import type { NamespaceItem } from "@/api/namespace/types"
 import { listSelfNamespaces } from "@/api/self"
 import type { UserItem } from "@/api/user/types"
 import { AppearanceMenu } from "@/components/appearance-menu"
+import { FormField } from "@/components/form-field"
 import { LocaleMenu } from "@/components/locale-menu"
 import { Button } from "@/components/ui/button"
 import {
@@ -528,24 +529,29 @@ export function SiteShell({ children }: { children: ReactNode }) {
             {tenantDialog === "pick" ? (
               <>
                 <div className="shrink-0">
-                  <Input
-                    type="search"
-                    value={query}
-                    aria-label={t("site.tenant.search")}
-                    aria-controls={`${prefix}-tenant-list`}
-                    aria-activedescendant={
-                      filteredTenants[highlight]
-                        ? `${prefix}-tenant-${filteredTenants[highlight].uid}`
-                        : undefined
-                    }
-                    placeholder={t("site.tenant.searchPlaceholder")}
-                    autoComplete="off"
-                    onChange={(event) => {
-                      setQuery(event.target.value)
-                      setHighlight(0)
-                    }}
-                    onKeyDown={onSearchKeyDown}
-                  />
+                  <FormField
+                    label={t("site.tenant.search")}
+                    htmlFor={`${prefix}-tenant-search`}
+                  >
+                    <Input
+                      id={`${prefix}-tenant-search`}
+                      type="search"
+                      value={query}
+                      aria-controls={`${prefix}-tenant-list`}
+                      aria-activedescendant={
+                        filteredTenants[highlight]
+                          ? `${prefix}-tenant-${filteredTenants[highlight].uid}`
+                          : undefined
+                      }
+                      placeholder={t("site.tenant.searchPlaceholder")}
+                      autoComplete="off"
+                      onChange={(event) => {
+                        setQuery(event.target.value)
+                        setHighlight(0)
+                      }}
+                      onKeyDown={onSearchKeyDown}
+                    />
+                  </FormField>
                 </div>
                 <DialogBody className="grid content-start gap-1">
                   {filteredTenants.length === 0 ? (

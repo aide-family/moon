@@ -585,7 +585,9 @@ export function AgentPage() {
           </DialogHeader>
           <DialogBody className="grid gap-4">
             <p className="text-sm text-muted-foreground">{t("agent.tokenHint")}</p>
-            <Input readOnly value={token} />
+            <FormField label={t("agent.token")} htmlFor="agent-token">
+              <Input id="agent-token" readOnly value={token} className="font-mono" />
+            </FormField>
           </DialogBody>
           <DialogFooter>
             <Button onClick={() => setTokenOpen(false)}>{t("action.confirm")}</Button>

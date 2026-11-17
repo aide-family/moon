@@ -688,6 +688,11 @@ export function SSHCommandPage() {
                       <p className="text-sm text-destructive">{matchError}</p>
                     ) : null}
                   </div>
+                  <FormField
+                    label={t("ssh.agents")}
+                    required
+                    error={fieldErrors.hosts}
+                  >
                   {matchedHosts.length > 0 ? (
                     <div className="grid gap-2">
                       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -771,11 +776,7 @@ export function SSHCommandPage() {
                       </div>
                     </div>
                   ) : null}
-                  {fieldErrors.hosts ? (
-                    <p role="alert" className="text-sm text-destructive">
-                      {fieldErrors.hosts}
-                    </p>
-                  ) : null}
+                  </FormField>
                   {matchAttempted && matchedHosts.length === 0 && !matchPending && !matchError ? (
                     <p className="text-sm text-muted-foreground">{t("ssh.matchEmpty")}</p>
                   ) : null}

@@ -23,7 +23,7 @@ import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { EnumIcon } from "@/components/enum-icon"
 import type { FilterChip } from "@/components/filter-chips"
-import { FormField } from "@/components/form-field"
+import { FormField, KeyValueRowLabels } from "@/components/form-field"
 import { LabelTags } from "@/components/label-tags"
 import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
@@ -1601,11 +1601,12 @@ export function ProbeTargetPage() {
                     }
                   />
                 </FormField>
-                <div className="grid gap-2 sm:col-span-full">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">
-                      {t("probeTarget.labels")}
-                    </span>
+                <FormField
+                  label={t("probeTarget.labels")}
+                  description={t("probeTarget.labelsHint")}
+                  className="sm:col-span-full"
+                  error={fieldErrors.labels}
+                  actions={
                     <Button
                       type="button"
                       variant="outline"
@@ -1619,13 +1620,16 @@ export function ProbeTargetPage() {
                     >
                       {t("action.add")}
                     </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("probeTarget.labelsHint")}
-                  </p>
+                  }
+                >
+                  <KeyValueRowLabels
+                    keyLabel={t("label.key")}
+                    valueLabel={t("label.value")}
+                  />
                   {form.labels.map((pair, index) => (
                     <div key={index} className="grid gap-2 sm:grid-cols-2">
                       <Input
+                        aria-label={t("label.key")}
                         value={pair.key}
                         placeholder={t("datasource.labelKeyPlaceholder")}
                         onChange={(event) => {
@@ -1635,6 +1639,7 @@ export function ProbeTargetPage() {
                         }}
                       />
                       <Input
+                        aria-label={t("label.value")}
                         value={pair.value}
                         placeholder={t("datasource.labelValuePlaceholder")}
                         onChange={(event) => {
@@ -1648,21 +1653,17 @@ export function ProbeTargetPage() {
                       />
                     </div>
                   ))}
-                  {fieldErrors.labels ? (
-                    <p role="alert" className="text-sm text-destructive">
-                      {fieldErrors.labels}
-                    </p>
-                  ) : null}
-                </div>
+                </FormField>
               </>
             ) : null}
             {formStep === 1 ? (
-              <>
-                <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-full">
-                  <span className="text-sm font-medium">
-                    {t("probeTarget.targetsStep")}
-                  </span>
-                  <div className="flex flex-wrap gap-2">
+              <FormField
+                label={t("probeTarget.targetsStep")}
+                description={t(`probeTarget.targetsHint${formCopySuffix}`)}
+                className="sm:col-span-full"
+                error={fieldErrors.targets}
+                actions={
+                  <>
                     <Button
                       type="button"
                       variant="outline"
@@ -1687,29 +1688,28 @@ export function ProbeTargetPage() {
                     >
                       {t("probeTarget.bulkPaste")}
                     </Button>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground sm:col-span-full">
-                  {t(`probeTarget.targetsHint${formCopySuffix}`)}
-                </p>
+                  </>
+                }
+              >
                 {bulkOpen ? (
                   <div className="grid gap-2 rounded-lg border p-3 sm:col-span-full">
-                    <p className="text-xs text-muted-foreground">
-                      {t(`probeTarget.bulkPasteHint${formCopySuffix}`)}
-                    </p>
-                    <Textarea
-                      value={bulkText}
-                      placeholder={t(
-                        `probeTarget.bulkPastePlaceholder${formCopySuffix}`
+                    <FormField
+                      label={t("probeTarget.bulkPaste")}
+                      htmlFor="probe-bulk-paste"
+                      description={t(
+                        `probeTarget.bulkPasteHint${formCopySuffix}`
                       )}
-                      onChange={(event) => setBulkText(event.target.value)}
-                      aria-label={t("probeTarget.bulkPaste")}
-                    />
-                    {fieldErrors.bulk ? (
-                      <p role="alert" className="text-sm text-destructive">
-                        {fieldErrors.bulk}
-                      </p>
-                    ) : null}
+                      error={fieldErrors.bulk}
+                    >
+                      <Textarea
+                        id="probe-bulk-paste"
+                        value={bulkText}
+                        placeholder={t(
+                          `probeTarget.bulkPastePlaceholder${formCopySuffix}`
+                        )}
+                        onChange={(event) => setBulkText(event.target.value)}
+                      />
+                    </FormField>
                     <div className="flex justify-end gap-2">
                       <Button
                         type="button"
@@ -1778,15 +1778,7 @@ export function ProbeTargetPage() {
                     </div>
                   </FormField>
                 ))}
-                {fieldErrors.targets ? (
-                  <p
-                    role="alert"
-                    className="text-sm text-destructive sm:col-span-full"
-                  >
-                    {fieldErrors.targets}
-                  </p>
-                ) : null}
-              </>
+              </FormField>
             ) : null}
             {formStep === 2 ? (
               <>
@@ -1929,11 +1921,12 @@ export function ProbeTargetPage() {
                         </span>
                       </label>
                     </div>
-                    <div className="grid min-w-0 gap-2 sm:col-span-full">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium">
-                          {t("probeTarget.headers")}
-                        </span>
+                    <FormField
+                      label={t("probeTarget.headers")}
+                      description={t("probeTarget.headersHint")}
+                      className="sm:col-span-full"
+                      error={fieldErrors.headers}
+                      actions={
                         <Button
                           type="button"
                           variant="outline"
@@ -1947,10 +1940,13 @@ export function ProbeTargetPage() {
                         >
                           {t("probeTarget.addHeader")}
                         </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {t("probeTarget.headersHint")}
-                      </p>
+                      }
+                    >
+                      <KeyValueRowLabels
+                        inline
+                        keyLabel={t("label.key")}
+                        valueLabel={t("label.value")}
+                      />
                       {form.headers.map((pair, index) => (
                         <FormField
                           key={index}
@@ -1996,17 +1992,13 @@ export function ProbeTargetPage() {
                           </div>
                         </FormField>
                       ))}
-                      {fieldErrors.headers ? (
-                        <p role="alert" className="text-sm text-destructive">
-                          {fieldErrors.headers}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="grid min-w-0 gap-2 sm:col-span-full">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium">
-                          {t("probeTarget.expectHeaders")}
-                        </span>
+                    </FormField>
+                    <FormField
+                      label={t("probeTarget.expectHeaders")}
+                      description={t("probeTarget.expectHeadersHint")}
+                      className="sm:col-span-full"
+                      error={fieldErrors.expectHeaders}
+                      actions={
                         <Button
                           type="button"
                           variant="outline"
@@ -2023,10 +2015,13 @@ export function ProbeTargetPage() {
                         >
                           {t("probeTarget.addExpectHeader")}
                         </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {t("probeTarget.expectHeadersHint")}
-                      </p>
+                      }
+                    >
+                      <KeyValueRowLabels
+                        inline
+                        keyLabel={t("label.key")}
+                        valueLabel={t("label.value")}
+                      />
                       {form.expectHeaders.map((pair, index) => (
                         <FormField
                           key={index}
@@ -2082,12 +2077,7 @@ export function ProbeTargetPage() {
                           </div>
                         </FormField>
                       ))}
-                      {fieldErrors.expectHeaders ? (
-                        <p role="alert" className="text-sm text-destructive">
-                          {fieldErrors.expectHeaders}
-                        </p>
-                      ) : null}
-                    </div>
+                    </FormField>
                   </>
                 ) : (
                   <>

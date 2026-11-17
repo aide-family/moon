@@ -24,7 +24,7 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { EnumIcon } from "@/components/enum-icon"
 import type { FilterChip } from "@/components/filter-chips"
-import { FormField } from "@/components/form-field"
+import { FormField, KeyValueRowLabels } from "@/components/form-field"
 import { ListFilter } from "@/components/list-filter"
 import { MultiSelect } from "@/components/multi-select"
 import { PageHeader } from "@/components/page-header"
@@ -979,11 +979,10 @@ export function DatasourcePage() {
                     </SelectContent>
                   </Select>
                 </FormField>
-                <div className="grid gap-2 sm:col-span-full">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">
-                      {t("datasource.labels")}
-                    </span>
+                <FormField
+                  label={t("datasource.labels")}
+                  className="sm:col-span-full"
+                  actions={
                     <Button
                       type="button"
                       variant="outline"
@@ -997,10 +996,16 @@ export function DatasourcePage() {
                     >
                       {t("datasource.addLabel")}
                     </Button>
-                  </div>
+                  }
+                >
+                  <KeyValueRowLabels
+                    keyLabel={t("label.key")}
+                    valueLabel={t("label.value")}
+                  />
                   {form.labels.map((pair, index) => (
                     <div key={index} className="grid gap-2 sm:grid-cols-2">
                       <Input
+                        aria-label={t("label.key")}
                         value={pair.key}
                         placeholder={t("datasource.labelKeyPlaceholder")}
                         onChange={(event) => {
@@ -1010,6 +1015,7 @@ export function DatasourcePage() {
                         }}
                       />
                       <Input
+                        aria-label={t("label.value")}
                         value={pair.value}
                         placeholder={t("datasource.labelValuePlaceholder")}
                         onChange={(event) => {
@@ -1020,7 +1026,7 @@ export function DatasourcePage() {
                       />
                     </div>
                   ))}
-                </div>
+                </FormField>
                 <FormField
                   label={t("datasource.remark")}
                   htmlFor="ds-remark"

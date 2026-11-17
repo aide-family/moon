@@ -13,6 +13,7 @@ import {
 } from "@/api/alert-page"
 import type { AlertPageItem, RealtimeAlertTab } from "@/api/alert-page/types"
 import { useSession } from "@/auth/session"
+import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { AlertColumnDialog } from "@/pages/alert/column-dialog"
 import { DEFAULT_REALTIME_COLUMNS } from "@/pages/alert/columns"
@@ -508,13 +509,18 @@ export function AlertRealtimePage() {
                 })}
               </span>
             </div>
-            <Input
+            <FormField
+              label={t("alertEvent.pickerFilter")}
+              htmlFor="alert-page-picker-filter"
               className="max-w-[500px]"
-              value={pickerFilter}
-              placeholder={t("alertEvent.pickerFilterPlaceholder")}
-              aria-label={t("alertEvent.pickerFilterPlaceholder")}
-              onChange={(event) => setPickerFilter(event.target.value)}
-            />
+            >
+              <Input
+                id="alert-page-picker-filter"
+                value={pickerFilter}
+                placeholder={t("alertEvent.pickerFilterPlaceholder")}
+                onChange={(event) => setPickerFilter(event.target.value)}
+              />
+            </FormField>
           </div>
           <DialogBody className="grid content-start gap-3">
             {selectable.length === 0 ? (

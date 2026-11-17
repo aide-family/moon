@@ -825,11 +825,14 @@ export function NotificationGroupPage() {
                       onChange={(event) => setEmailReceivers(event.target.value)}
                     />
                   </FormField>
-                  <Input
-                    value={memberFilter}
-                    placeholder={t("group.memberFilterPlaceholder")}
-                    onChange={(event) => setMemberFilter(event.target.value)}
-                  />
+                  <FormField label={t("group.memberFilter")} htmlFor="group-email-member-filter">
+                    <Input
+                      id="group-email-member-filter"
+                      value={memberFilter}
+                      placeholder={t("group.memberFilterPlaceholder")}
+                      onChange={(event) => setMemberFilter(event.target.value)}
+                    />
+                  </FormField>
                   <div className="flex flex-wrap gap-2">
                     {joinedMembers
                       .filter((item) => {
@@ -874,11 +877,14 @@ export function NotificationGroupPage() {
                       onChange={(event) => setSMSReceivers(event.target.value)}
                     />
                   </FormField>
-                  <Input
-                    value={smsMemberFilter}
-                    placeholder={t("group.memberFilterPlaceholder")}
-                    onChange={(event) => setSMSMemberFilter(event.target.value)}
-                  />
+                  <FormField label={t("group.memberFilter")} htmlFor="group-sms-member-filter">
+                    <Input
+                      id="group-sms-member-filter"
+                      value={smsMemberFilter}
+                      placeholder={t("group.memberFilterPlaceholder")}
+                      onChange={(event) => setSMSMemberFilter(event.target.value)}
+                    />
+                  </FormField>
                   <div className="flex flex-wrap gap-2">
                     {joinedMembers
                       .filter((item) => {

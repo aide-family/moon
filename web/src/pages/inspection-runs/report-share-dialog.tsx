@@ -16,6 +16,7 @@ import type {
   InspectionRun,
 } from "@/api/inspection/types"
 import { useSession } from "@/auth/session"
+import { FormField } from "@/components/form-field"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -187,31 +188,41 @@ export function InspectionReportShareDialog({
               <p className="text-xs text-muted-foreground">
                 {active.title} · {active.format} · {t("inspection.shareDialogDesc")}
               </p>
-              <div className="grid gap-2 rounded-lg border border-border bg-muted/30 p-3 sm:grid-cols-[160px_minmax(0,1fr)_auto]">
-                <Select value={days} onValueChange={setDays}>
-                  <SelectTrigger aria-label={t("inspection.shareExpiry")}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7">{t("inspection.shareDays7")}</SelectItem>
-                    <SelectItem value="30">{t("inspection.shareDays30")}</SelectItem>
-                    <SelectItem value="0">{t("inspection.sharePermanent")}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder={t("inspection.sharePassword")}
-                  aria-label={t("inspection.sharePassword")}
-                />
+              <div className="grid gap-2 rounded-lg border border-border bg-muted/30 p-3 sm:grid-cols-[160px_minmax(0,1fr)_auto] sm:items-end">
+                <FormField
+                  label={t("inspection.shareExpiry")}
+                  htmlFor="inspection-share-expiry"
+                >
+                  <Select value={days} onValueChange={setDays}>
+                    <SelectTrigger id="inspection-share-expiry">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">{t("inspection.shareDays7")}</SelectItem>
+                      <SelectItem value="30">{t("inspection.shareDays30")}</SelectItem>
+                      <SelectItem value="0">{t("inspection.sharePermanent")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormField>
+                <FormField
+                  label={t("inspection.sharePassword")}
+                  htmlFor="inspection-share-password"
+                >
+                  <Input
+                    id="inspection-share-password"
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder={t("inspection.sharePassword")}
+                  />
+                </FormField>
                 <Button type="button" size="sm" onClick={() => void createShare()} disabled={pending}>
                   <Link2 data-icon="inline-start" />
                   {t("inspection.shareGenerate")}
                 </Button>
               </div>
               {token ? (
-                <div className="grid gap-1">
+                <FormField label={t("inspection.shareUrl")} description={t("inspection.shareTokenOnce")}>
                   <div className="flex flex-wrap items-center gap-2">
                     <Input
                       readOnly
@@ -223,8 +234,7 @@ export function InspectionReportShareDialog({
                       {t("inspection.shareCopy")}
                     </Button>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">{t("inspection.shareTokenOnce")}</p>
-                </div>
+                </FormField>
               ) : null}
               <div className="overflow-hidden rounded-lg border border-border">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border bg-muted/30 px-3 py-2">

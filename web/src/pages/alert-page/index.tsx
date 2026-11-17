@@ -14,7 +14,7 @@ import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import type { FilterChip } from "@/components/filter-chips"
-import { FormField } from "@/components/form-field"
+import { FormField, KeyValueRowLabels } from "@/components/form-field"
 import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
@@ -299,9 +299,11 @@ export function AlertPageManagePage() {
                   required
                 />
               </FormField>
-              <div className="grid gap-2 sm:col-span-full">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium">{t("alertPage.labels")}</span>
+              <FormField
+                label={t("alertPage.labels")}
+                description={t("alertPage.labelsHint")}
+                className="sm:col-span-full"
+                actions={
                   <Button
                     type="button"
                     variant="outline"
@@ -310,8 +312,12 @@ export function AlertPageManagePage() {
                   >
                     {t("alertPage.addLabel")}
                   </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">{t("alertPage.labelsHint")}</p>
+                }
+              >
+                <KeyValueRowLabels
+                  keyLabel={t("label.key")}
+                  valueLabel={t("label.value")}
+                />
                 {labels.map((pair, index) => {
                   // 编辑旧数据时，历史键/值可能已不在标签集合里；保留为可选项，保存时不会丢数据。
                   const keyOptions = labelOptions.map(({ key }) => ({
@@ -337,6 +343,7 @@ export function AlertPageManagePage() {
                   return (
                     <div key={index} className="grid gap-2 sm:grid-cols-2">
                       <SearchableSelect
+                        ariaLabel={t("label.key")}
                         value={pair.key}
                         options={keyOptions}
                         placeholder={t("alertPage.labelKeyPlaceholder")}
@@ -368,6 +375,7 @@ export function AlertPageManagePage() {
                         }}
                       />
                       <SearchableSelect
+                        ariaLabel={t("label.value")}
                         value={pair.value}
                         options={valueOptions}
                         placeholder={t("alertPage.labelValuePlaceholder")}
@@ -390,7 +398,7 @@ export function AlertPageManagePage() {
                     </div>
                   )
                 })}
-              </div>
+              </FormField>
               <FormField label={t("alertPage.remark")} htmlFor="alert-page-remark" className="sm:col-span-full">
                 <Input
                   id="alert-page-remark"

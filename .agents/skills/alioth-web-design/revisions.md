@@ -1,3 +1,14 @@
+## 2026-11-17 模态框表单 label 与字段错误位置（用户规则）
+
+适用：`web/src` 下所有 `Dialog` 里的新建/编辑/选择表单，以及共享 `FormField`、`LabelEditor`、`KeyValueRowLabels`。
+
+- 每个字段都必须有可见 label（Input、Select、Textarea、数字、时间等；可选字段也要），不能只靠 placeholder。页面级列表筛选条除外（见 2026-10-27 条）；模态框里的搜索、筛选、选择框同样要有可见 label。
+- 重复键值行（标签、Header、配置项等）用列名标注：`KeyValueRowLabels`（栅格）或 `LabelEditor` 自带的键/值表头，每行不再靠 placeholder 说明是键还是值。
+- 字段级错误统一显示在该字段 label 行的右侧，使用 `FormField` 的错误插槽：危险色文字、最多一行、超出省略号，并带 `title` 便于查看全文。错误行不得换行、不得撑高 label 行、不得把控件往下挤、不得撑宽所在栅格列；未提交或已通过时不渲染。
+- 复合控件（`LabelEditor`、自定义行编辑器）用 `useReportFormFieldError` 或把首个行错误传给外层 `FormField` 的 `error`，不要自己渲染 label 行之外的错误。
+- 字段级错误不再显示在控件下方；表单级提交错误仍放在 `DialogBody` 之外、`DialogFooter` 之上（见 2026-10-28 条）。
+- 实现位置：`web/src/components/form-field.tsx`。不要在每个页面复制 label 行或错误样式。
+
 ## 2026-11-15 清除筛选、标签字典与维护窗口时间
 
 适用：全局列表筛选；告警规则/规则组；告警字典；维护窗口。
@@ -24,7 +35,7 @@
 - 三段式由共享原语保证：`DialogContent` 保持 `flex max-h-[80vh] w-[min(calc(100%-2rem),80vw)] flex-col overflow-hidden`；`DialogHeader` / `DialogFooter` 是 `shrink-0`；只有中间 `DialogBody`（`min-h-0 min-w-0 flex-1 overflow-auto`）滚动。不要在 `DialogContent` 上加 `overflow-y-auto`：外框本身永远不滚动。
 - 页脚可以放在 `<form>` 里，但 `form` 必须是 `flex min-h-0 flex-1 flex-col`，且页脚不能落在 `DialogBody` 或任何滚动容器内；内容再多，「取消/保存」也不能被挤出视口。
 - 宽度上限 `80vw`：宽内容（宽表格、代码、多列栅格）在 `DialogBody` 内横向滚动，不要靠撑大对话框，也不要在祖先上再加第二个横向滚动条；窄屏同样按 80vw 收窄。
-- 表单级提交错误放在 `DialogBody` 之外、页脚之上；字段级错误仍留在对应字段下方（滚动区内）。
+- 表单级提交错误放在 `DialogBody` 之外、页脚之上；字段级错误显示在 label 行右侧（2026-11-17 用户规则，取代原先「留在字段下方」）。
 - 打开对话框时焦点落到第一个可输入控件；没有可输入控件时聚焦内容区本身（原语已实现）。不要手动聚焦提示按钮：否则提示气泡自动展开遮住标题，且第一次 Esc 只关闭气泡。
 - 参考实现：`pages/alert-dictionary/index.tsx` 的新建对话框、`components/step-form.tsx` 的分步表单。`AlertDialog` 确认框保持紧凑原语布局，不强行加滚动内容区。
 
@@ -50,7 +61,7 @@
 适用：全局新建/编辑对话框，以及需要编辑 kubeconfig、YAML/JSON 等配置的字段。
 
 - 对话框固定三段式：`DialogContent` 保持 `flex max-h-[80vh] flex-col overflow-hidden`；`DialogHeader` / `DialogFooter` 加 `shrink-0` 固定，只有中间内容区 `min-h-0 flex-1 overflow-y-auto` 纵向滚动。页脚操作按钮不随内容滚动，内容再多也不能把「取消/保存」挤出视口。
-- 表单级提交错误放在滚动区之外、页脚之上；字段级错误仍留在对应字段下方（滚动区内）。
+- 表单级提交错误放在滚动区之外、页脚之上；字段级错误显示在 label 行右侧（2026-11-17 用户规则，取代原先「留在字段下方」）。
 - 可编辑配置（kubeconfig、YAML/JSON 等）不用 `Textarea`，用共享 `CodeEditor`：GitHub light/dark 配色（与 `CodeBlock` 同一套 `--code-bg` / `--code-fg`）、等宽字体、无行号、无行高亮、无 overview/glyph/folding，内容超出时在编辑器内部滚动；外框沿用 `CodeBlock` 卡片样式（`rounded-lg border border-border/70` + 语言标题栏）。编辑器放 `sm:col-span-full`，随内容区一起滚动。
 
 ## 2026-10-22 顶栏租户切换与项目仓库入口

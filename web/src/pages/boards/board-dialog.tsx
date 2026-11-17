@@ -324,28 +324,17 @@ export function BoardDialog({
                 onChange={(event) => setDescription(event.target.value)}
               />
             </FormField>
-            <div className="grid gap-3">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">
-                    {t("board.form.panels")}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t("board.form.panelsHint", {
-                      count: panels.length,
-                      max: MAX_PANELS,
-                    })}
-                  </p>
-                </div>
-              </div>
+            <FormField
+              label={t("board.form.panels")}
+              description={t("board.form.panelsHint", {
+                count: panels.length,
+                max: MAX_PANELS,
+              })}
+              error={fieldErrors.panels}
+            >
               <p className="rounded-lg border border-border/70 bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
                 {t("board.form.embedHint")}
               </p>
-              {fieldErrors.panels ? (
-                <p role="alert" className="text-sm text-destructive">
-                  {fieldErrors.panels}
-                </p>
-              ) : null}
               {panels.length === 0 ? (
                 <p className="rounded-lg border border-dashed border-border/70 px-3 py-6 text-center text-sm text-muted-foreground">
                   {t("board.form.noPanels")}
@@ -512,7 +501,7 @@ export function BoardDialog({
                 <Plus aria-hidden="true" data-icon="inline-start" />
                 {t("board.form.addPanel")}
               </Button>
-            </div>
+            </FormField>
           </DialogBody>
           {formError ? (
             <p className="text-sm text-destructive">{formError}</p>

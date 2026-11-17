@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Popover,
   PopoverContent,
@@ -202,7 +203,14 @@ export function AlertColumnDialog({
                   <span className="min-w-0 flex-1 truncate font-mono text-xs">
                     {label}
                   </span>
+                  <Label
+                    htmlFor={`alert-column-alias-${index}`}
+                    className="shrink-0 text-xs font-normal text-muted-foreground"
+                  >
+                    {t("alertEvent.columnAliasLabel")}
+                  </Label>
                   <Input
+                    id={`alert-column-alias-${index}`}
                     className="max-w-[14rem]"
                     value={column.label}
                     placeholder={
@@ -210,7 +218,6 @@ export function AlertColumnDialog({
                         ? column.key
                         : t("alertEvent.columnAliasPlaceholder")
                     }
-                    aria-label={t("alertEvent.columnAlias")}
                     onChange={(event) => updateAlias(index, event.target.value)}
                   />
                   <Button

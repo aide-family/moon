@@ -4,6 +4,7 @@ import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 
 import type { AlertEventItem } from "@/api/alert-event/types"
+import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -129,39 +130,48 @@ export function AlertEventSuppressDialog({
             </div>
           </div>
           {preset === "custom" ? (
-            <div className="grid grid-cols-[1fr_8rem] gap-2">
-              <Input
-                type="number"
-                min={1}
-                step={1}
-                inputMode="numeric"
-                value={customValue}
-                placeholder={t("alertEvent.suppressCustomPlaceholder")}
-                aria-label={t("alertEvent.suppressDuration")}
-                onChange={(event) => setCustomValue(event.target.value)}
-              />
-              <Select
-                value={customUnit}
-                onValueChange={(value) => setCustomUnit(value as CustomUnit)}
+            <div className="grid grid-cols-[1fr_8rem] items-start gap-2">
+              <FormField
+                label={t("alertEvent.suppressDuration")}
+                htmlFor="suppress-custom-duration"
+                error={valid ? undefined : t("alertEvent.suppressInvalid")}
               >
-                <SelectTrigger
-                  className="w-full"
-                  aria-label={t("alertEvent.suppressUnit")}
+                <Input
+                  id="suppress-custom-duration"
+                  type="number"
+                  min={1}
+                  step={1}
+                  inputMode="numeric"
+                  value={customValue}
+                  placeholder={t("alertEvent.suppressCustomPlaceholder")}
+                  aria-invalid={valid ? undefined : true}
+                  onChange={(event) => setCustomValue(event.target.value)}
+                />
+              </FormField>
+              <FormField
+                label={t("alertEvent.suppressUnit")}
+                htmlFor="suppress-custom-unit"
+              >
+                <Select
+                  value={customUnit}
+                  onValueChange={(value) => setCustomUnit(value as CustomUnit)}
                 >
-                  <SelectValue placeholder={t("alertEvent.suppressUnit")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MINUTE">
-                    {t("alertEvent.suppressUnitMinute")}
-                  </SelectItem>
-                  <SelectItem value="HOUR">
-                    {t("alertEvent.suppressUnitHour")}
-                  </SelectItem>
-                  <SelectItem value="DAY">
-                    {t("alertEvent.suppressUnitDay")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectTrigger id="suppress-custom-unit" className="w-full">
+                    <SelectValue placeholder={t("alertEvent.suppressUnit")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MINUTE">
+                      {t("alertEvent.suppressUnitMinute")}
+                    </SelectItem>
+                    <SelectItem value="HOUR">
+                      {t("alertEvent.suppressUnitHour")}
+                    </SelectItem>
+                    <SelectItem value="DAY">
+                      {t("alertEvent.suppressUnitDay")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
             </div>
           ) : null}
           <div className="grid gap-1 text-xs text-muted-foreground">
@@ -176,11 +186,7 @@ export function AlertEventSuppressDialog({
                       until: new Date(now + seconds * 1000).toLocaleString(),
                     })}
                   </span>
-                ) : (
-                  <span className="text-destructive">
-                    {t("alertEvent.suppressInvalid")}
-                  </span>
-                )}
+                ) : null}
               </>
             )}
           </div>

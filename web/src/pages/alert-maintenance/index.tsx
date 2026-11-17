@@ -30,7 +30,7 @@ import {
 import { DetailSheet, type DetailSection } from "@/components/detail-sheet"
 import { EnumIcon } from "@/components/enum-icon"
 import type { FilterChip } from "@/components/filter-chips"
-import { FormField } from "@/components/form-field"
+import { FormField, KeyValueRowLabels } from "@/components/form-field"
 import { LabelTags } from "@/components/label-tags"
 import { LevelBadge, StatusBadge } from "@/components/status-badge"
 import { ListFilter } from "@/components/list-filter"
@@ -914,36 +914,38 @@ export function AlertMaintenancePage() {
                   onChange={(event) => setDescription(event.target.value)}
                 />
               </FormField>
-              <FormField label={t("maintenanceWindow.timeRange")} required>
+              <FormField
+                label={t("maintenanceWindow.timeRange")}
+                required
+                error={timeFieldError}
+              >
                 {/* 值由 DateTimeRangePicker 统一给出（本地 YYYY-MM-DDTHH:mm），
                     写回原有的 startsAt / endsAt 状态，提交时再转 RFC3339。
-                    错误信息自己渲染，是为了给控件一个 aria-describedby 的落点。 */}
+                    校验失败的原因显示在 label 行右侧。 */}
                 <DateTimeRangePicker
                   id="maintenance-time-range"
                   ariaLabel={t("maintenanceWindow.timeRange")}
                   from={startsAt}
                   to={endsAt}
                   invalid={Boolean(timeFieldError)}
-                  describedBy={
-                    timeFieldError ? "maintenance-time-range-error" : undefined
-                  }
                   onChange={updateTimeRange}
                 />
-                {timeFieldError ? (
-                  <p
-                    id="maintenance-time-range-error"
-                    role="alert"
-                    className="text-sm text-destructive"
-                  >
-                    {timeFieldError}
-                  </p>
-                ) : null}
               </FormField>
               <FormField
                 label={t("maintenanceWindow.labels")}
                 hint={t("maintenanceWindow.labelsHint")}
+                error={
+                  labelPairErrors.find((item) => item.key)?.key ??
+                  labelPairErrors.find((item) => item.value)?.value
+                }
               >
                 <div className="grid gap-2">
+                  <KeyValueRowLabels
+                    inline
+                    keyLabel={t("escalation.labelKey")}
+                    valueLabel={t("escalation.labelValue")}
+                    trailing={<span aria-hidden="true" className="w-[4.5rem] shrink-0" />}
+                  />
                   {labels.map((pair, index) => {
                     const keyOptions = labelOptions.map((option) => ({
                       value: option.key,
@@ -1028,6 +1030,7 @@ export function AlertMaintenancePage() {
                         <Button
                           type="button"
                           variant="ghost"
+                          className="w-[4.5rem] shrink-0"
                           onClick={() =>
                             setLabels(
                               labels.filter((_, current) => current !== index)
@@ -1037,16 +1040,6 @@ export function AlertMaintenancePage() {
                           {t("action.delete")}
                         </Button>
                       </div>
-                      {labelPairErrors[index]?.key ? (
-                        <p role="alert" className="text-xs text-destructive">
-                          {labelPairErrors[index].key}
-                        </p>
-                      ) : null}
-                      {labelPairErrors[index]?.value ? (
-                        <p role="alert" className="text-xs text-destructive">
-                          {labelPairErrors[index].value}
-                        </p>
-                      ) : null}
                     </div>
                     )
                   })}

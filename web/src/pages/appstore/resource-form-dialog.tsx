@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { FormField } from "@/components/form-field"
+import { FormField, KeyValueRowLabels } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -284,20 +284,28 @@ export function ResourceFormDialog({ open, onOpenChange, onSave }: ResourceFormD
               ) : null}
 
               {kind === "ConfigMap" || kind === "Secret" ? (
-                <div className="grid gap-2 sm:col-span-full">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">{kind === "Secret" ? t("appStore.resourceForm.secretData") : t("appStore.resourceForm.configData")}</p>
+                <FormField
+                  label={kind === "Secret" ? t("appStore.resourceForm.secretData") : t("appStore.resourceForm.configData")}
+                  description={kind === "Secret" ? t("appStore.resourceForm.secretHelp") : t("appStore.resourceForm.configHelp")}
+                  className="sm:col-span-full"
+                  actions={
                     <Button type="button" variant="outline" size="sm" onClick={() => setEntries((current) => [...current, { key: "", value: "" }])}>{t("appStore.resourceForm.addKey")}</Button>
-                  </div>
+                  }
+                >
+                  <KeyValueRowLabels
+                    keyLabel={t("appStore.resourceForm.key")}
+                    valueLabel={t("appStore.resourceForm.value")}
+                    className="sm:grid-cols-[1fr_1.4fr_auto]"
+                    trailing={<span aria-hidden="true" className="hidden w-[4.5rem] sm:block" />}
+                  />
                   {entries.map((entry, index) => (
                     <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
                       <Input aria-label={t("appStore.resourceForm.key")} className="font-mono" value={entry.key} placeholder="KEY" onChange={(event) => setEntries((current) => current.map((item, position) => position === index ? { ...item, key: event.target.value } : item))} />
                       <Input aria-label={t("appStore.resourceForm.value")} className="font-mono" type={kind === "Secret" ? "password" : "text"} value={entry.value} placeholder={kind === "Secret" ? t("appStore.resourceForm.secretValuePlaceholder") : "value"} onChange={(event) => setEntries((current) => current.map((item, position) => position === index ? { ...item, value: event.target.value } : item))} />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setEntries((current) => current.filter((_, position) => position !== index))}>{t("action.delete")}</Button>
+                      <Button type="button" variant="ghost" size="sm" className="w-[4.5rem]" onClick={() => setEntries((current) => current.filter((_, position) => position !== index))}>{t("action.delete")}</Button>
                     </div>
                   ))}
-                  <p className="text-xs text-muted-foreground">{kind === "Secret" ? t("appStore.resourceForm.secretHelp") : t("appStore.resourceForm.configHelp")}</p>
-                </div>
+                </FormField>
               ) : null}
 
               {kind === "Ingress" ? (

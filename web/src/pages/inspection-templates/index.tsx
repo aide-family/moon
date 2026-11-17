@@ -13,6 +13,7 @@ import {
 import type { InspectionTemplate, InspectionTemplateFormat } from "@/api/inspection/types"
 import { useSession } from "@/auth/session"
 import type { FilterChip } from "@/components/filter-chips"
+import { FormField } from "@/components/form-field"
 import { ListFilter } from "@/components/list-filter"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
@@ -96,14 +97,16 @@ function TemplateDialog({
   })
   const [pending, setPending] = useState(false)
   const [error, setError] = useState("")
+  const [nameError, setNameError] = useState("")
   const insertRef = useRef<((text: string) => void) | null>(null)
 
   async function save(event: React.FormEvent) {
     event.preventDefault()
     if (!name.trim()) {
-      setError(t("inspection.nameRequired"))
+      setNameError(t("inspection.nameRequired"))
       return
     }
+    setNameError("")
     setPending(true)
     setError("")
     try {
@@ -137,18 +140,35 @@ function TemplateDialog({
         </DialogHeader>
         <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={save}>
           <DialogBody className="grid gap-3 pb-4">
-            <Input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder={t("inspection.templateName")}
-              aria-label={t("inspection.templateName")}
-            />
-            <Input
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder={t("inspection.templateDescription")}
-              aria-label={t("inspection.templateDescription")}
-            />
+            <FormField
+              label={t("inspection.templateName")}
+              htmlFor="inspection-template-name"
+              required
+              error={nameError}
+            >
+              <Input
+                id="inspection-template-name"
+                value={name}
+                onChange={(event) => {
+                  setName(event.target.value)
+                  if (nameError) {
+                    setNameError("")
+                  }
+                }}
+                placeholder={t("inspection.templateNamePlaceholder")}
+              />
+            </FormField>
+            <FormField
+              label={t("inspection.templateDescription")}
+              htmlFor="inspection-template-description"
+            >
+              <Input
+                id="inspection-template-description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder={t("inspection.templateDescriptionPlaceholder")}
+              />
+            </FormField>
             <div className="grid gap-2 text-sm">
               <span>{t("inspection.templateFormat")}</span>
               {template ? (

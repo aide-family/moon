@@ -47,7 +47,7 @@ import {
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import type { FilterChip } from "@/components/filter-chips"
-import { FormField } from "@/components/form-field"
+import { FormField, KeyValueRowLabels } from "@/components/form-field"
 import {
   LabelEditor,
   labelErrorKey,
@@ -1830,6 +1830,10 @@ export function AlertRulePage() {
                     <p className="text-xs text-muted-foreground">
                       {t("alertRule.probeGroupLabelsHint")}
                     </p>
+                    <KeyValueRowLabels
+                      keyLabel={t("label.key")}
+                      valueLabel={t("label.value")}
+                    />
                     {form.probeGroupLabels.map((pair, index) => {
                       // 编辑旧规则时，历史键/值可能已不在当前候选里；保留为可选项，保存时不会丢数据。
                       const keyOptions =
@@ -2045,6 +2049,10 @@ export function AlertRulePage() {
                   <p className="text-xs text-muted-foreground">
                     {t("alertRule.datasourceLabelsHint")}
                   </p>
+                  <KeyValueRowLabels
+                    keyLabel={t("label.key")}
+                    valueLabel={t("label.value")}
+                  />
                   {form.datasourceLabels.map((pair, index) => {
                     // 编辑旧规则时，历史键/值可能已不在当前候选里；保留为可选项，保存时不会丢数据。
                     const keyOptions =
@@ -2268,11 +2276,12 @@ export function AlertRulePage() {
                     </p>
                   </div>
                 ) : (
-                <div className="grid min-w-0 gap-2 sm:col-span-full">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">
-                      {t("alertRule.variables")}
-                    </span>
+                <FormField
+                  label={t("alertRule.variables")}
+                  description={t("alertRule.variablesHint")}
+                  className="sm:col-span-full"
+                  error={fieldErrors.variables}
+                  actions={
                     <Button
                       type="button"
                       variant="outline"
@@ -2290,18 +2299,11 @@ export function AlertRulePage() {
                     >
                       {t("alertRule.addVariable")}
                     </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("alertRule.variablesHint")}
-                  </p>
+                  }
+                >
                   {variableExample ? (
                     <p className="font-mono text-xs break-all text-muted-foreground">
                       {variableExample}
-                    </p>
-                  ) : null}
-                  {fieldErrors.variables ? (
-                    <p role="alert" className="text-sm text-destructive">
-                      {fieldErrors.variables}
                     </p>
                   ) : null}
                   {form.variables.length === 0 ? (
@@ -2400,7 +2402,7 @@ export function AlertRulePage() {
                       </FormField>
                     </div>
                   ))}
-                </div>
+                </FormField>
                 )}
               </>
             ) : null}
