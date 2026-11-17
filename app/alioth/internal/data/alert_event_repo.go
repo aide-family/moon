@@ -67,19 +67,16 @@ func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, rep
 		if err != nil {
 			return err
 		}
-		if inserted {
-			if err := r.applyAvailabilityFailure(ctx, tx, rule.NamespaceUID, report); err != nil {
-				if errors.Is(err, errAvailabilityRaced) {
-					// 另一副本已经建立事件并提交；本事务回滚即可，错过的通知由那个副本负责。
-					return nil
-				}
-				return err
-			}
-		}
 		if err := tx.Commit(); err != nil {
 			return r.fail(err)
 		}
-		return nil
+		if !inserted {
+			return nil
+		}
+		// 可用性判断单独一个事务：同一数据源的多个副本（或同数据源的不同规则）会抢
+		// 一条 FIRING 占位，冲突方只能回滚自己；放在本事务里会把刚落库的失败批次一起
+		// 回滚，阈值计数就少一次，可用性告警可能永远不触发。
+		return r.applyAvailability(ctx, rule.NamespaceUID, report)
 	}
 
 	// 跳过评测也要走恢复判断：规则从指标改成日志/链路后，旧的 FIRING 不能永久留在实时列表里。
@@ -135,6 +132,27 @@ func (r *alertEventRepo) recordFailedBatch(ctx context.Context, tx *ent.Tx, repo
 		return false, r.fail(err)
 	}
 	return true, nil
+}
+
+// applyAvailability 用一个独立事务跑可用性判断。失败批次已经提交，所以这里
+// 撞上并发占位冲突时只回滚自己，不会连带丢掉已经记账的失败次数。
+func (r *alertEventRepo) applyAvailability(ctx context.Context, namespaceUID string, report bo.EvalReport) error {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if err := r.applyAvailabilityFailure(ctx, tx, namespaceUID, report); err != nil {
+		if errors.Is(err, errAvailabilityRaced) {
+			// 另一副本已经建立事件并提交；本事务回滚即可，错过的通知由那个副本负责。
+			return nil
+		}
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return r.fail(err)
+	}
+	return nil
 }
 
 // applyAvailabilityFailure 按数据源配置的窗口和阈值判断是否触发可用性告警。
