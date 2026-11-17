@@ -11,5 +11,7 @@ alioth:
   grpc:
     # 支持逗号分隔多个控制面副本；Kubernetes 内建议指向无头 Service。
     addr: ${ALKAID_ALIOTH_GRPC_ADDR:127.0.0.1:9000}
-  agent_token: ${ALKAID_AGENT_TOKEN:ag-65cdb4631c20a45210fcd5dd3eeeab9aaa24f637f524b52a}
+  # 机器令牌由控制台创建机器时生成，只能用环境变量注入；这里的默认值不是可用令牌。
+  # 这里曾经内置过一枚真实形态的默认令牌；如果它在任何环境用过，需要在控制台重置。
+  agent_token: ${ALKAID_AGENT_TOKEN:ag-replace-me}
   heartbeat_interval: 15s
