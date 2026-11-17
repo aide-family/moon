@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom"
 
 import { AppShell } from "@/components/app-shell"
+import { AuthRouteTransition } from "@/components/auth-route-transition"
 import { AppStorePage } from "@/pages/appstore"
 import { ApplicationDetailPage } from "@/pages/appstore/app-detail"
 import { ApplicationVersionPage } from "@/pages/appstore/version"
@@ -72,10 +73,40 @@ import { UpgradePage } from "@/pages/upgrade"
 export function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/auth/callback" element={<OAuthCallbackPage />} />
-      <Route path="/invite/:token" element={<InvitePage />} />
+      {/* 认证页与 app 壳共用一对整页换场：登录／注册／回调成功时淡出认证页、淡入 app。
+          两层 key 不同才会 unmount/mount，同类型组件换 props 只会被当成 update。 */}
+      <Route
+        path="/login"
+        element={
+          <AuthRouteTransition key="auth">
+            <LoginPage />
+          </AuthRouteTransition>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <AuthRouteTransition key="auth">
+            <RegisterPage />
+          </AuthRouteTransition>
+        }
+      />
+      <Route
+        path="/auth/callback"
+        element={
+          <AuthRouteTransition key="auth">
+            <OAuthCallbackPage />
+          </AuthRouteTransition>
+        }
+      />
+      <Route
+        path="/invite/:token"
+        element={
+          <AuthRouteTransition key="auth">
+            <InvitePage />
+          </AuthRouteTransition>
+        }
+      />
       {/* 公开官网：免登录、不挂 SessionProvider，独立 SiteShell（页头 + 内容 + 页脚）。 */}
       <Route path="/" element={<SiteHomePage />} />
       <Route path="/p/:slug" element={<SiteDocumentPage />} />
@@ -88,7 +119,13 @@ export function App() {
         path="/share/report/:token"
         element={<PublicInspectionReportPage />}
       />
-      <Route element={<AppShell />}>
+      <Route
+        element={
+          <AuthRouteTransition key="app">
+            <AppShell />
+          </AuthRouteTransition>
+        }
+      >
         {/* 登录后的着陆页：没有租户去租户页，否则回放上次访问的页面。 */}
         <Route path="/app" element={<LandingRedirect />} />
         <Route path="/overview" element={<OverviewPage />} />

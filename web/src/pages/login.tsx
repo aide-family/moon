@@ -1,5 +1,5 @@
 import { KeyRound, Loader2, Mail } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { startTransition, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -273,10 +273,12 @@ export function LoginPage() {
       })
       storeSession(result)
       // readNextPath 已过滤跨站目标；这里再兜一层，避免路由拦截把已登录用户卡在登录页。
+      // 登录成功是整页换场：放进 startTransition 才会触发 <ViewTransition> 的
+      // enter/exit（普通 setState 不触发）；不支持的浏览器只会跳转，不会有过渡。
       try {
-        navigate(next)
+        startTransition(() => navigate(next))
       } catch {
-        navigate("/app", { replace: true })
+        startTransition(() => navigate("/app", { replace: true }))
       }
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))

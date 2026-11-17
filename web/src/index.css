@@ -207,6 +207,41 @@
   }
 }
 
+/* 登录成功 → 进 app 的整页换场：认证页边界 exit、app 壳边界 enter（见
+   components/auth-route-transition.tsx）。只动 opacity —— 快照覆盖整个文档，
+   含固定壳层与浮层，位移会让 fixed 定位在过渡期间错位。退出 150ms、进入 210ms：
+   离开要快，新界面可以稍慢。 */
+@keyframes route-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* root 也一起交代：页面底色与壳外内容由 root 快照承载，默认 250ms 的 UA 曲线会和
+   内容层的 150/210ms 错开，看起来像「先淡内容、再淡背景」。 */
+::view-transition-old(root),
+::view-transition-old(.auth-exit) {
+  animation: route-fade 150ms ease-in reverse both;
+}
+
+::view-transition-new(root),
+::view-transition-new(.auth-enter) {
+  animation: route-fade 210ms ease-out both;
+}
+
+/* 系统要求减少动态时快照直接交换：时长归零，过渡照常完成但不做淡入淡出。 */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) transparent;

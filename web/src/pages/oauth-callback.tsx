@@ -1,5 +1,5 @@
 import { Loader2 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { startTransition, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 
@@ -156,9 +156,11 @@ export function OAuthCallbackPage() {
           clearOAuthRedirect(redirect.state)
           // readNextPath 已过滤跨站目标；再兜一层，避免路由拦截把已登录用户留在回调页。
           try {
-            navigate(readNextPath(redirect.next), { replace: true })
+            startTransition(() =>
+              navigate(readNextPath(redirect.next), { replace: true })
+            )
           } catch {
-            navigate("/app", { replace: true })
+            startTransition(() => navigate("/app", { replace: true }))
           }
           return
         }
@@ -190,9 +192,11 @@ export function OAuthCallbackPage() {
     clearOAuthRedirect(emailBinding.redirect.state)
     // 同 exchange 的成功路径：路由拒绝跨站目标时回落到站内首页，不能停在回调页。
     try {
-      navigate(readNextPath(emailBinding.redirect.next), { replace: true })
+      startTransition(() =>
+        navigate(readNextPath(emailBinding.redirect.next), { replace: true })
+      )
     } catch {
-      navigate("/app", { replace: true })
+      startTransition(() => navigate("/app", { replace: true }))
     }
   }
 
