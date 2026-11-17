@@ -41,19 +41,29 @@ func NewCenter(repo repository.NotificationRepo, members repository.MemberRepo, 
 
 const (
 	reapLockKey = "alioth:lock:schedule:notify-reap"
+	// minStaleAfter 是 SENDING 回收阈值的下限。回收必须晚于 merak 一轮里
+	// 「抢锁 + 投递」的最长耗时，否则会把还在投递中的任务退回重发；merak 的
+	// 投递预算由 notify.timeout 决定，控制面看不到它，只能用 2 分钟兜住默认配置。
+	minStaleAfter = 2 * time.Minute
 )
 
 // staleAfter 读取 SENDING 回收阈值，缺省 2 分钟，可通过环境变量调整。
+// 把 merak 的 notify.timeout 调大时，这里必须一起调大（回收阈值要大于投递预算），
+// 小于下限的配置会被抬回 2 分钟。
 func staleAfter() time.Duration {
 	raw := strings.TrimSpace(os.Getenv("ALIOTH_NOTIFY_STALE_SECONDS"))
 	if raw == "" {
-		return 2 * time.Minute
+		return minStaleAfter
 	}
 	seconds, err := strconv.Atoi(raw)
 	if err != nil || seconds <= 0 {
-		return 2 * time.Minute
+		return minStaleAfter
 	}
-	return time.Duration(seconds) * time.Second
+	configured := time.Duration(seconds) * time.Second
+	if configured < minStaleAfter {
+		return minStaleAfter
+	}
+	return configured
 }
 
 // ReapStale 回收长时间停留在 SENDING 的任务。merak 崩溃后不会回写，只能由控制面兜底。

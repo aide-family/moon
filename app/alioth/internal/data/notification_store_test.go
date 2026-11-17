@@ -249,21 +249,47 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}
 
 	// SENDING 超时回收：模拟 merak 改为 SENDING 后崩溃。
-	if _, err := store.db.ExecContext(ctx,
-		`UPDATE notification_tasks SET status = 'SENDING', updated_at = now() - interval '10 minutes' WHERE uid = $1`,
-		task.UID,
-	); err != nil {
+	seeded, err := store.client.NotificationTask.Query().Where(notificationtask.UIDEQ(task.UID)).Only(ctx)
+	if err != nil {
 		t.Fatal(err)
 	}
+	markStaleSending := func(retriesLeft int) {
+		if _, err := store.db.ExecContext(ctx,
+			`UPDATE notification_tasks SET status = 'SENDING', retries_left = $2, updated_at = now() - interval '10 minutes' WHERE uid = $1`,
+			task.UID, retriesLeft,
+		); err != nil {
+			t.Fatal(err)
+		}
+	}
+	markStaleSending(seeded.RetriesLeft)
 	if _, err := repo.ReapStaleSending(ctx, time.Now().Add(-2*time.Minute), 10); err != nil {
 		t.Fatal(err)
 	}
+	// 还有重试次数：退回 PENDING 并排下一次投递，不能直接判死。
 	stale, err := store.client.NotificationTask.Query().Where(notificationtask.UIDEQ(task.UID)).Only(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if stale.Status != notificationtask.StatusFAILED || stale.LastError != "delivery timed out" {
-		t.Fatalf("stale task = %s / %s", stale.Status, stale.LastError)
+	if stale.Status != notificationtask.StatusPENDING || stale.RetriesLeft != seeded.RetriesLeft-1 {
+		t.Fatalf("stale task = %s / retries=%d, want PENDING / %d", stale.Status, stale.RetriesLeft, seeded.RetriesLeft-1)
+	}
+	if stale.NextAttemptAt == nil {
+		t.Fatal("retried stale task has no next_attempt_at")
+	}
+	if stale.LastError != "delivery timed out" {
+		t.Fatalf("stale task last error = %q", stale.LastError)
+	}
+	// 最后一次重试也超时：落 FAILED，不再排下一次。
+	markStaleSending(1)
+	if _, err := repo.ReapStaleSending(ctx, time.Now().Add(-2*time.Minute), 10); err != nil {
+		t.Fatal(err)
+	}
+	stale, err = store.client.NotificationTask.Query().Where(notificationtask.UIDEQ(task.UID)).Only(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stale.Status != notificationtask.StatusFAILED || stale.RetriesLeft != 0 || stale.NextAttemptAt != nil {
+		t.Fatalf("exhausted stale task = %s / retries=%d / next=%v", stale.Status, stale.RetriesLeft, stale.NextAttemptAt)
 	}
 
 	presets, err := repo.ListPresets(ctx)

@@ -1303,8 +1303,9 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 	return nil
 }
 
-// ReapStaleSending 把长时间停留在 SENDING 的任务标记为失败。
-// merak 在改为 SENDING 后崩溃时不会回写，锁过期也不会自动释放任务。
+// ReapStaleSending 回收长时间停留在 SENDING 的任务：还有重试次数的退回 PENDING，
+// 重试用完的置 FAILED。merak 在改为 SENDING 后崩溃时不会回写，锁过期也不会自动
+// 释放任务；直接置 FAILED 会让一次可达的投递彻底丢掉，也不再走重试。
 func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Time, limit int) (int, error) {
 	rows, err := r.client.NotificationTask.Query().Where(
 		notificationtask.StatusEQ(notificationtask.StatusSENDING),
@@ -1319,16 +1320,34 @@ func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Tim
 		if err != nil {
 			return reaped, r.fail(err)
 		}
-		affected, err := tx.NotificationTask.Update().
+		// 失败回写的重试语义与 ApplyNotifyReport 一致：扣一次重试次数，
+		// 还有余量就排下一次投递，用完才落 FAILED。
+		retries := row.RetriesLeft
+		taskStatus := notificationtask.StatusFAILED
+		if retries > 0 {
+			retries--
+			if retries > 0 {
+				taskStatus = notificationtask.StatusPENDING
+			}
+		}
+		detail := "delivery timed out"
+		update := tx.NotificationTask.Update().
 			Where(
 				notificationtask.UIDEQ(row.UID),
 				notificationtask.StatusEQ(notificationtask.StatusSENDING),
 				notificationtask.UpdatedAtLTE(before),
+				// retries_left 一起做乐观校验：迟到的回写和回收只有一方能推进任务。
+				notificationtask.RetriesLeftEQ(row.RetriesLeft),
 			).
-			SetStatus(notificationtask.StatusFAILED).
-			SetLastError("delivery timed out").
-			ClearNextAttemptAt().
-			Save(ctx)
+			SetStatus(taskStatus).
+			SetRetriesLeft(retries).
+			SetLastError(detail)
+		if taskStatus == notificationtask.StatusPENDING {
+			update.SetNextAttemptAt(time.Now().UTC().Add(retryDelay(retries)))
+		} else {
+			update.ClearNextAttemptAt()
+		}
+		affected, err := update.Save(ctx)
 		if err != nil {
 			_ = tx.Rollback()
 			return reaped, r.fail(err)
@@ -1355,7 +1374,7 @@ func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Tim
 			SetReceivers(row.Receivers).
 			SetSubject(row.Subject).
 			SetContent(content).
-			SetDetail("delivery timed out").
+			SetDetail(detail).
 			SetCreatedAt(logAt).
 			Exec(ctx); err != nil {
 			_ = tx.Rollback()
@@ -1368,7 +1387,7 @@ func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Tim
 			UID: logUID, NamespaceUID: row.NamespaceUID, TaskUID: row.UID, Status: string(messagelog.StatusFAILED),
 			ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Sender: row.Sender,
 			Receivers: row.Receivers, Subject: row.Subject, Content: content,
-			Detail: "delivery timed out", CreatedAt: logAt,
+			Detail: detail, CreatedAt: logAt,
 		})
 		reaped++
 	}

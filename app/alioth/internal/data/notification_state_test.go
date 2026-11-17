@@ -172,7 +172,9 @@ func TestNotificationStateCAS(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if row.Status != notificationtask.StatusFAILED {
+	// 回收按剩余重试次数回 PENDING（这条任务重试过，次数已重置），迟到的成功回写
+	// 只能被丢弃：它既不能把任务改回 SENT，也不能再写一行日志。
+	if row.Status != notificationtask.StatusPENDING {
 		t.Fatalf("late report revived reaped task: %s", row.Status)
 	}
 	if logCount() != 2 {
