@@ -23,26 +23,38 @@
 
 ### 前端动效（外部技能）
 
-以下五个技能来自 [emilkowalski/skills](https://github.com/emilkowalski/skills)（Emil Kowalski，
-`sonner` / `vaul` 作者），用 `--copy` 装成仓库内普通目录，只保留 `.agents/skills/` 这一份：
+七个外部技能，装成仓库内普通目录，`git` 里只有 `.agents/skills/` 这一份：
 
-| 技能 | 用于 |
-| --- | --- |
-| `animate` | 从零造一个动效：该不该动、目的是什么、选 CSS / `@starting-style` / WAAPI / Motion、曲线与时长、打断与退出 |
-| `improve-animations` | 全库动效体检，产出分优先级的整改计划（只读，不改代码） |
-| `review-animations` | 审一段动效 diff，按同一套标准挑问题 |
-| `animation-performance` | 掉帧、合成属性、CSS 与 JS 动画的取舍、`will-change` |
-| `animation-vocabulary` | 把"那个弹弹的效果"翻译成准确术语，便于描述给 agent 或设计师 |
+| 技能 | 来源 | 用于 |
+| --- | --- | --- |
+| `animate` | emilkowalski/skills | 从零造一个动效：该不该动、目的是什么、选 CSS / `@starting-style` / WAAPI / Motion、曲线与时长、打断与退出 |
+| `improve-animations` | emilkowalski/skills | 全库动效体检，产出分优先级的整改计划（只读，不改代码） |
+| `review-animations` | emilkowalski/skills | 审一段动效 diff，按同一套标准挑问题 |
+| `animation-performance` | emilkowalski/skills | 掉帧、合成属性、CSS 与 JS 动画的取舍、`will-change` |
+| `animation-vocabulary` | emilkowalski/skills | 把"那个弹弹的效果"翻译成准确术语，便于描述给 agent 或设计师 |
+| `vercel-react-view-transitions` | vercel-labs/agent-skills | React 19 View Transition API：`<ViewTransition>`、`addTransitionType`、CSS 伪元素，覆盖路由切换、共享元素、列表重排、进出场 |
+| `fixing-motion-performance` | ibelick/ui-skills | 动效性能审计：layout thrashing、合成属性、滚动驱动动画、blur |
+
+`emilkowalski/skills` 出自 Emil Kowalski（`sonner` / `vaul` 作者）。`vercel-react-view-transitions`
+上游目录名是 `react-view-transitions`、frontmatter 的 `name` 才是前者，这里把目录名对齐 `name`，
+并且只留 `SKILL.md` 与 `references/`（`AGENTS.md`、`README.md`、`metadata.json`、`.zip` 是上游打包用的）。
 
 动效方案本身用这些技能，落地约束仍归 `alioth-web-design` 与 [web/AGENTS.md](../../web/AGENTS.md)：
-色值走语义 token、对话框结构不许重写、键盘高频操作不留在动画里。
+色值走语义 token、对话框结构不许重写、键盘高频操作不留在动画里。`vercel-react-view-transitions`
+是 React + `document.startViewTransition` 的方案，不装第三方库；要 springs / layout / exit 动画时
+才需要给 `web/` 加 `motion` 依赖，那是独立改动。
 
-升级上游时按原命令重装，装完删掉 CLI 附带生成的 `.claude/`、`.hermes/`、`.lingma/`、`.trae/`、
-根目录 `skills/` 与 `skills-lock.json`，再看 `git diff .agents/skills` 决定是否提交：
+升级上游时按下面的命令重装，装完删掉 CLI 顺手生成的 `.claude/`、`.hermes/`、`.lingma/`、`.trae/`、
+根目录 `skills/` 与 `skills-lock.json`，再看 `git diff .agents/skills` 决定是否提交。
+本机 `git clone https://github.com` 经常超时，克隆失败时改用 codeload 打包：
+`curl -L https://codeload.github.com/<owner>/<repo>/tar.gz/refs/heads/main`，解压后取对应技能目录。
 
 ```sh
 npx skills add emilkowalski/skills -s animate -s improve-animations -s review-animations \
   -s animation-performance -s animation-vocabulary --copy -y
+
+npx skills add vercel-labs/agent-skills -s react-view-transitions --copy -y
+npx skills add ibelick/ui-skills -s fixing-motion-performance --copy -y
 ```
 
 ## rules/
