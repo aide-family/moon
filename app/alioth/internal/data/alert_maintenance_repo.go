@@ -317,6 +317,7 @@ func windowMatchesEvent(window bo.AlertMaintenanceWindow, labels string, levelUI
 	}
 	matcher := parseLabelMatcher(window.Labels)
 	if len(matcher) == 0 {
+		// 空 matcher 表示不再按标签收窄：只靠级别、数据源和规则条件过滤。
 		return true
 	}
 	actual, err := labelsutil.ParseObject(labels)
@@ -325,7 +326,13 @@ func windowMatchesEvent(window bo.AlertMaintenanceWindow, labels string, levelUI
 	}
 	for key, pattern := range matcher {
 		value, ok := actual[key]
-		if !ok || !regexp.MustCompile("^(?:"+pattern+")$").MatchString(value) {
+		if !ok {
+			return false
+		}
+		// 写入侧已经编译校验；这里仍用 Compile 而不是 MustCompile：历史行可能存着
+		// 校验之前写入的非法正则，匹配链路在调度和回写路径上，panic 会带走整个进程。
+		matched, err := regexp.Compile("^(?:" + pattern + ")$")
+		if err != nil || !matched.MatchString(value) {
 			return false
 		}
 	}

@@ -44,6 +44,9 @@ func TestNormalizeWindowRejectsBadInput(t *testing.T) {
 		{name: "empty name", in: func() bo.AlertMaintenanceWindow { w := validWindow(); w.Name = " "; return w }()},
 		{name: "invalid labels", in: func() bo.AlertMaintenanceWindow { w := validWindow(); w.Labels = "[]"; return w }()},
 		{name: "invalid label value", in: func() bo.AlertMaintenanceWindow { w := validWindow(); w.Labels = `{"env":1}`; return w }()},
+		// 标签值按正则匹配事件标签，非法正则在写入时就要拒绝；否则抑制链路
+		// 在匹配时编译会 panic，把调度和回写一起带走。
+		{name: "invalid label pattern", in: func() bo.AlertMaintenanceWindow { w := validWindow(); w.Labels = `{"env":"("}`; return w }()},
 		{name: "missing start", in: func() bo.AlertMaintenanceWindow { w := validWindow(); w.StartsAt = time.Time{}; return w }()},
 		{name: "end before start", in: func() bo.AlertMaintenanceWindow {
 			w := validWindow()

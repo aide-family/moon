@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
@@ -149,6 +150,8 @@ func normalizeWindow(in *bo.AlertMaintenanceWindow) error {
 
 // normalizeLabelMatcher 把标签匹配器规范成排序后的紧凑 JSON 对象；
 // 空串保存为空对象，非对象或非字符串值拒绝。
+// 值按正则匹配事件标签，所以写入时就编译一次：让非法正则在这里被拒，
+// 而不是等到抑制链路（调度和幂等回调）去编译时炸掉整个进程。
 func normalizeLabelMatcher(raw string) (string, error) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
@@ -163,6 +166,12 @@ func normalizeLabelMatcher(raw string) (string, error) {
 	}
 	if len(matcher) == 0 {
 		return "{}", nil
+	}
+	for key, pattern := range matcher {
+		// 锚定形式与数据层匹配事件标签时保持一致：整串匹配，避免 "prod" 命中 "prod-old"。
+		if _, err := regexp.Compile("^(?:" + pattern + ")$"); err != nil {
+			return "", merr.Invalid("invalid label matcher pattern for label " + key)
+		}
 	}
 	encoded, err := json.Marshal(matcher)
 	if err != nil {
