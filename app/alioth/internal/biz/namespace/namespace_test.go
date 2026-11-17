@@ -60,12 +60,23 @@ func (s *featureRepoStub) ArchiveNamespace(_ context.Context, uid string) error 
 	return nil
 }
 
+// roleRepoStub 只回答成员身份：Current 靠它区分成员和非成员。
+type roleRepoStub struct {
+	repository.RoleRepo
+	members map[string]bool
+}
+
+func (s roleRepoStub) IsMember(_ context.Context, namespaceUID, userUID string) (bool, error) {
+	return s.members[namespaceUID+"/"+userUID], nil
+}
+
 func tenancyFor(systemRole string, namespaces *namespaceRepoStub, features *featureRepoStub) *Tenancy {
 	return &Tenancy{
 		namespaces: namespaces,
 		features:   features,
 		access: access.Checker{
 			Users: userRepoStub{account: &bo.Account{UID: "user-1", Status: "ACTIVE", SystemRole: systemRole}},
+			Roles: roleRepoStub{},
 			Log:   slog.New(slog.DiscardHandler),
 		},
 		mail: &mailer.Sender{},
@@ -155,4 +166,70 @@ func TestArchiveNamespace(t *testing.T) {
 	if err := denied.ArchiveNamespace(platformContext(), "namespace-1"); kerrors.Reason(err) != merr.ReasonForbidden {
 		t.Fatalf("system admin archive namespace: %v", err)
 	}
+}
+
+// TestCurrentHidesForeignNamespace 确认普通用户带上别人的 X-Namespace 时拿不到租户
+// 详情：负责人邮箱、套餐和停用原因都属于跨租户信息，不能靠一个请求头读到。
+func TestCurrentHidesForeignNamespace(t *testing.T) {
+	current := &bo.Namespace{UID: "namespace-1", Name: "别人的租户", OwnerUID: "owner-1", OwnerEmail: "owner@example.com"}
+	withNamespace := func(uid string) context.Context {
+		return actor.WithNamespace(platformContext(), uid)
+	}
+
+	t.Run("non member gets nothing", func(t *testing.T) {
+		tenancy := tenancyFor(perm.SystemRoleUser, &namespaceRepoStub{current: current}, &featureRepoStub{})
+		item, err := tenancy.Current(withNamespace("namespace-1"))
+		if err != nil {
+			t.Fatalf("Current: %v", err)
+		}
+		if item != nil {
+			t.Fatalf("非成员读到了租户详情: %+v", item)
+		}
+	})
+
+	t.Run("member sees namespace", func(t *testing.T) {
+		tenancy := tenancyFor(perm.SystemRoleUser, &namespaceRepoStub{current: current}, &featureRepoStub{})
+		tenancy.access.Roles = roleRepoStub{members: map[string]bool{"namespace-1/user-1": true}}
+		item, err := tenancy.Current(withNamespace("namespace-1"))
+		if err != nil {
+			t.Fatalf("Current: %v", err)
+		}
+		if item == nil || item.UID != "namespace-1" {
+			t.Fatalf("item = %+v, want namespace-1", item)
+		}
+	})
+
+	t.Run("owner sees namespace", func(t *testing.T) {
+		owned := &bo.Namespace{UID: "namespace-1", Name: "自己的租户", OwnerUID: "user-1"}
+		tenancy := tenancyFor(perm.SystemRoleUser, &namespaceRepoStub{current: owned}, &featureRepoStub{})
+		item, err := tenancy.Current(withNamespace("namespace-1"))
+		if err != nil {
+			t.Fatalf("Current: %v", err)
+		}
+		if item == nil || item.UID != "namespace-1" {
+			t.Fatalf("item = %+v, want namespace-1", item)
+		}
+	})
+
+	t.Run("platform admin sees namespace for read only view", func(t *testing.T) {
+		tenancy := tenancyFor(perm.SystemRoleSystemAdmin, &namespaceRepoStub{current: current}, &featureRepoStub{})
+		item, err := tenancy.Current(withNamespace("namespace-1"))
+		if err != nil {
+			t.Fatalf("Current: %v", err)
+		}
+		if item == nil || item.UID != "namespace-1" {
+			t.Fatalf("item = %+v, want namespace-1", item)
+		}
+	})
+
+	t.Run("missing namespace header returns nothing", func(t *testing.T) {
+		tenancy := tenancyFor(perm.SystemRoleUser, &namespaceRepoStub{current: current}, &featureRepoStub{})
+		item, err := tenancy.Current(platformContext())
+		if err != nil {
+			t.Fatalf("Current: %v", err)
+		}
+		if item != nil {
+			t.Fatalf("item = %+v, want nil", item)
+		}
+	})
 }

@@ -242,9 +242,11 @@ func (tenancy *Tenancy) ListMine(ctx context.Context, includeDisabled bool) ([]b
 	return items, tenancy.access.Wrap(err)
 }
 
-// Current 返回 X-Namespace 指定的租户，不校验成员身份。
-// /self/permissions 用它返回当前视角下的租户信息；没有选择租户或租户已删除时返回 nil，
-// 保持该接口在租户失效时仍能返回空权限，由前端重新选择。
+// Current 返回 X-Namespace 指定的租户，但只在调用者看得到它时才返回详情：
+// 负责人、JOINED 成员，或可以跨租户只读的平台角色。普通用户带上别人的
+// X-Namespace 拿到 nil，不返回负责人、套餐和停用原因等跨租户信息。
+// /self/permissions 用它返回当前视角下的租户信息；没有选择租户、租户已删除
+// 或身份不符时都返回 nil，保持该接口在租户失效时仍能返回空权限，由前端重新选择。
 func (tenancy *Tenancy) Current(ctx context.Context) (*bo.Namespace, error) {
 	uid, ok := actor.NamespaceID(ctx)
 	if !ok {
@@ -256,6 +258,13 @@ func (tenancy *Tenancy) Current(ctx context.Context) (*bo.Namespace, error) {
 			return nil, nil
 		}
 		return nil, tenancy.access.Wrap(err)
+	}
+	visible, err := tenancy.access.NamespaceVisible(ctx, item)
+	if err != nil {
+		return nil, err
+	}
+	if !visible {
+		return nil, nil
 	}
 	return item, nil
 }

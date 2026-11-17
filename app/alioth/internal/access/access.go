@@ -308,6 +308,7 @@ func (c Checker) SystemAdmin(ctx context.Context) (bool, error) {
 
 // CurrentNamespace 返回 X-Namespace 指定的租户，不校验成员身份和租户状态。
 // /self/permissions 用它判断租户是否停用或已归档；没有租户头或租户已删除时返回 nil。
+// 要把租户详情返回给调用方时，必须再过一遍 NamespaceVisible。
 func (c Checker) CurrentNamespace(ctx context.Context) (*bo.Namespace, error) {
 	ns, ok := actor.NamespaceID(ctx)
 	if !ok {
@@ -321,6 +322,30 @@ func (c Checker) CurrentNamespace(ctx context.Context) (*bo.Namespace, error) {
 		return nil, c.Wrap(err)
 	}
 	return item, nil
+}
+
+// NamespaceVisible 判断当前登录用户能否看到这个租户的详情：租户负责人和 JOINED
+// 成员可以，可以跨租户只读的平台角色也可以（只读横幅要用租户名和套餐信息）。
+// 普通用户带上别人的 X-Namespace 不属于这两种情况，调用方不能把租户详情回给它。
+func (c Checker) NamespaceVisible(ctx context.Context, item *bo.Namespace) (bool, error) {
+	uid, ok := actor.UserID(ctx)
+	if !ok {
+		return false, merr.Unauthenticated("missing token")
+	}
+	if item == nil {
+		return false, nil
+	}
+	if item.OwnerUID == uid {
+		return true, nil
+	}
+	member, err := c.Roles.IsMember(ctx, item.UID, uid)
+	if err != nil {
+		return false, c.Wrap(err)
+	}
+	if member {
+		return true, nil
+	}
+	return c.SystemAdmin(ctx)
 }
 
 // SameNamespace 要求路径中的租户就是当前租户，避免用一个租户的令牌改另一个租户。
