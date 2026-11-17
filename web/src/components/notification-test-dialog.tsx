@@ -29,8 +29,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { firstInvalidReceiver } from "@/lib/email"
 import {
   collectFieldErrors,
+  formatMessage,
   hasFieldErrors,
-  requireSelected,
+  patternHint,
+  requiredError,
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { readFormError } from "@/lib/form-error"
@@ -72,23 +74,25 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
     const errors = collectFieldErrors([
       [
         "channel",
-        isChannel ? null : requireSelected(channelUid, t("form.required")),
+        isChannel ? null : requiredError(t("template.channel")),
       ],
       [
         "receivers",
         channelType === "SMTP" && !receivers.trim()
-          ? t("form.required")
+          ? requiredError(t("channel.testReceivers"))
           : null,
       ],
       [
         "subject",
         isChannel && channelType === "SMTP" && !subject.trim()
-          ? t("form.required")
+          ? requiredError(t("channel.testSubject"))
           : null,
       ],
       [
         "body",
-        isChannel && !body.trim() ? t("form.required") : null,
+        isChannel && !body.trim()
+          ? requiredError(t("channel.testBody"))
+          : null,
       ],
     ])
     if (
@@ -96,7 +100,10 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
       receivers.trim() &&
       firstInvalidReceiver(receivers)
     ) {
-      errors.receivers = t("form.invalidEmail")
+      errors.receivers = formatMessage(
+        t("channel.testReceivers"),
+        patternHint("email")
+      )
     }
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)

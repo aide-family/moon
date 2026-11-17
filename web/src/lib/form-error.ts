@@ -7,17 +7,17 @@ export interface FormFailure {
 
 export function readFormError(err: unknown, fallback: string): FormFailure {
   if (err instanceof ApiError) {
-    if (err.status === 400) {
-      const mapped = Object.keys(err.fields).length > 0
-      return { form: mapped ? "" : err.message || fallback, fields: err.fields }
-    }
+    // 404/5xx 已经由全局 toast 提示（http.ts 的 notifyStatus），表单里不再重复。
     if (err.status === 404 || err.status >= 500) {
       return { form: "", fields: {} }
     }
-    if (err.status === 409) {
-      return { form: err.message || fallback, fields: {} }
+    // 400 的字段校验、409 的字段冲突都优先落到对应字段的 label 行；
+    // 无法定位到字段时才留到表单级错误区。
+    const mapped = Object.keys(err.fields).length > 0
+    return {
+      form: mapped ? "" : err.message || fallback,
+      fields: err.fields,
     }
-    return { form: err.message || fallback, fields: {} }
   }
   if (err instanceof Error && err.message) {
     return { form: err.message, fields: {} }

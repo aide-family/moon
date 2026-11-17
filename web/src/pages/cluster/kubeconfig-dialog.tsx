@@ -17,10 +17,11 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
+  checkField,
   collectFieldErrors,
+  formatError,
   hasFieldErrors,
-  maxLength,
-  requireTrimmed,
+  requiredError,
   type FieldErrors,
 } from "@/lib/form"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
@@ -74,21 +75,29 @@ export function ClusterKubeconfigDialog({
   function validate(): FieldErrors {
     const trimmedKubeconfig = form.kubeconfig.trim()
     return collectFieldErrors([
-      ["name", requireTrimmed(form.name, t("form.required"))],
-      ["name", maxLength(form.name, 64, t("form.nameTooLong"))],
+      ["name", checkField({ label: t("cluster.name"), value: form.name, required: true, max: 64 })],
       [
         "kubeconfig",
-        cluster
-          ? null
-          : requireTrimmed(form.kubeconfig, t("cluster.kubeconfigRequired")),
+        checkField({
+          label: t("cluster.kubeconfig"),
+          value: form.kubeconfig,
+          required: !cluster,
+        }),
       ],
       [
         "kubeconfig",
         trimmedKubeconfig && !looksLikeKubeconfig(trimmedKubeconfig)
-          ? t("cluster.kubeconfigInvalid")
+          ? formatError(t("cluster.kubeconfig"), t("cluster.kubeconfigFormatHint"))
           : null,
       ],
-      ["remark", maxLength(form.remark, 256, t("cluster.remarkTooLong"))],
+      [
+        "remark",
+        checkField({
+          label: t("cluster.remark"),
+          value: form.remark,
+          max: 256,
+        }),
+      ],
     ])
   }
 
@@ -125,14 +134,14 @@ export function ClusterKubeconfigDialog({
     if (!kubeconfig) {
       setFieldErrors((current) => ({
         ...current,
-        kubeconfig: t("cluster.kubeconfigRequired"),
+        kubeconfig: requiredError(t("cluster.kubeconfig")),
       }))
       return
     }
     if (!looksLikeKubeconfig(kubeconfig)) {
       setFieldErrors((current) => ({
         ...current,
-        kubeconfig: t("cluster.kubeconfigInvalid"),
+        kubeconfig: formatError(t("cluster.kubeconfig"), t("cluster.kubeconfigFormatHint")),
       }))
       return
     }
@@ -213,7 +222,7 @@ export function ClusterKubeconfigDialog({
               hint={
                 editing
                   ? t("cluster.kubeconfigEditHint")
-                  : t("cluster.kubeconfigHint")
+                  : t("cluster.kubeconfigFormatHint")
               }
               error={fieldErrors.kubeconfig}
               className="sm:col-span-full"

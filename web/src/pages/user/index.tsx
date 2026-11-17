@@ -16,7 +16,11 @@ import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { cn } from "@/lib/class-names"
-import { collectFieldErrors, hasFieldErrors, requireSelected } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requiredField,
+} from "@/lib/form"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
@@ -139,7 +143,7 @@ export function UserPage() {
       return
     }
     const errors = collectFieldErrors([
-      ["role", requireSelected(role, t("form.required"))],
+      ["role", requiredField(role, t("user.systemRole"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)

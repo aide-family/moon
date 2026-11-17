@@ -79,9 +79,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  requireTrimmed,
+  requiredError,
+  requiredField,
   type FieldErrors,
 } from "@/lib/form"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
@@ -275,8 +277,16 @@ export function SSHCommandPage() {
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
-      ["command", requireTrimmed(command, t("form.required"))],
+      [
+        "name",
+        checkField({
+          label: t("ssh.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
+      ["command", requiredField(command, t("ssh.command"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -316,14 +326,14 @@ export function SSHCommandPage() {
         return
       }
       if (targetUids.length === 0) {
-        setFieldErrors({ hosts: t("form.required") })
+        setFieldErrors({ hosts: requiredError(t("ssh.agents")) })
         return
       }
     }
     const errors = collectFieldErrors([
       [
         execMode === "machine" ? "agents" : "hosts",
-        targetUids.length === 0 ? t("form.required") : null,
+        targetUids.length === 0 ? requiredError(t("ssh.agents")) : null,
       ],
     ])
     if (hasFieldErrors(errors)) {

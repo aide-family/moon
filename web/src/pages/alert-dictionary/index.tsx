@@ -51,9 +51,11 @@ import {
 } from "@/components/ui/table"
 import { TableActionsHead, TableStatusHead, TableTypeHead } from "@/components/table-heads"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  requireTrimmed,
+  patternError,
+  requiredError,
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
@@ -172,17 +174,39 @@ export function AlertDictionaryPage() {
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const sortValue = Number(sort)
-    const sortInvalid =
-      sort.trim() === "" ||
-      !Number.isInteger(sortValue) ||
-      sortValue < 0 ||
-      sortValue > 10000
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
-      ["sort", sortInvalid ? t("alertDictionary.sortInvalid") : null],
+      [
+        "name",
+        checkField({
+          label: t("alertDictionary.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
+      [
+        "color",
+        patternError(
+          color,
+          /^#?[0-9a-fA-F]{6}$/,
+          t("field.pattern", {
+            label: t("alertDictionary.color"),
+            hint: t("alertDictionary.colorHint"),
+          })
+        ),
+      ],
+      [
+        "sort",
+        checkField({
+          label: t("alertDictionary.sort"),
+          value: sort,
+          required: true,
+          integerRange: [0, 10000],
+        }),
+      ],
       [
         "type",
-        editing ? null : requireTrimmed(levelType, t("form.required")),
+        editing ? null : requiredError(t("datasource.type")),
       ],
     ])
     if (hasFieldErrors(errors)) {

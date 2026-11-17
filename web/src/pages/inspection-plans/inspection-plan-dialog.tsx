@@ -59,6 +59,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { checkField } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
 
 
@@ -146,6 +147,8 @@ export function InspectionPlanDialog({
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null)
   const [pending, setPending] = useState(false)
   const [formError, setFormError] = useState("")
+  const [nameError, setNameError] = useState("")
+  const [cronError, setCronError] = useState("")
 
   useEffect(() => {
     let active = true
@@ -304,24 +307,49 @@ export function InspectionPlanDialog({
     }
   }
 
-  function validate(): string {
-    if (!name.trim()) {
-      return t("inspection.nameRequired")
+  /** 返回表单级错误和需要跳转的步骤；字段级错误直接写进 label 行状态。 */
+  function validate(): { form: string; step: number } {
+    const nextNameError =
+      checkField({
+        label: t("inspection.planName"),
+        value: name,
+        required: true,
+        max: 64,
+      }) ?? ""
+    // 后端只接受 robfig 的 5 段 cron（分 时 日 月 周）；写错时在字段行直接说明。
+    const nextCronError =
+      checkField({
+        label: t("inspection.cron"),
+        value: cron,
+        required: true,
+        pattern: /^[0-9A-Za-z*/,-]+(?:\s+[0-9A-Za-z*/,-]+){4}$/,
+        hint: t("field.hint.cron"),
+      }) ?? ""
+    setNameError(nextNameError)
+    setCronError(nextCronError)
+    if (nextNameError) {
+      return { form: "", step: 0 }
+    }
+    if (nextCronError) {
+      return { form: "", step: 3 }
     }
     if (items.length === 0) {
-      return t("inspection.noItems")
+      return { form: t("inspection.noItems"), step: 1 }
     }
     if (!effectiveTemplateUid) {
-      return t("inspection.template")
+      return { form: t("inspection.template"), step: 2 }
     }
-    return ""
+    return { form: "", step: -1 }
   }
 
   async function save(event: React.FormEvent) {
     event.preventDefault()
-    const error = validate()
-    if (error) {
-      setFormError(error)
+    const validation = validate()
+    if (validation.form || validation.step >= 0) {
+      setFormError(validation.form)
+      if (validation.step >= 0) {
+        setStep(validation.step)
+      }
       return
     }
     const payload: InspectionPlanInput = {
@@ -359,7 +387,18 @@ export function InspectionPlanDialog({
       }
       onSaved()
     } catch (err) {
-      setFormError(readFormError(err, t("state.failed")).form)
+      const failure = readFormError(err, t("state.failed"))
+      const fieldName = failure.fields.name ?? ""
+      const fieldCron = failure.fields.cron ?? ""
+      if (fieldName) {
+        setNameError(fieldName)
+        setStep(0)
+      }
+      if (fieldCron) {
+        setCronError(fieldCron)
+        setStep(3)
+      }
+      setFormError(fieldName || fieldCron ? "" : failure.form)
     } finally {
       setPending(false)
     }
@@ -383,9 +422,18 @@ export function InspectionPlanDialog({
             setStep((value) => Math.max(0, value - 1))
           }}
           onNext={() => {
-            if (step === 0 && !name.trim()) {
-              setFormError(t("inspection.nameRequired"))
-              return
+            if (step === 0) {
+              const error = checkField({
+                label: t("inspection.planName"),
+                value: name,
+                required: true,
+                max: 64,
+              })
+              setNameError(error ?? "")
+              if (error) {
+                setFormError("")
+                return
+              }
             }
             if (step === 1 && items.length === 0) {
               setFormError(t("inspection.noItems"))
@@ -406,11 +454,17 @@ export function InspectionPlanDialog({
                 label={t("inspection.planName")}
                 htmlFor="inspection-plan-name"
                 required
+                error={nameError}
               >
                 <Input
                   id="inspection-plan-name"
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) => {
+                    setName(event.target.value)
+                    if (nameError) {
+                      setNameError("")
+                    }
+                  }}
                   placeholder={zh ? "例如：核心业务每日巡检" : "e.g. Core business daily"}
                 />
               </FormField>
@@ -635,13 +689,19 @@ export function InspectionPlanDialog({
                   </Tooltip>
                 }
                 hint={t("inspection.cronHint")}
+                error={cronError}
               >
                 <Input
                   className={`font-mono text-xs ${cronPreset !== CUSTOM_CRON ? "bg-muted text-muted-foreground" : ""}`}
                   value={cron}
                   readOnly={cronPreset !== CUSTOM_CRON}
                   placeholder={t("inspection.cronPlaceholder")}
-                  onChange={(event) => setCron(event.target.value)}
+                  onChange={(event) => {
+                    setCron(event.target.value)
+                    if (cronError) {
+                      setCronError("")
+                    }
+                  }}
                 />
               </FormField>
               <FormField label={t("inspection.groups")}>

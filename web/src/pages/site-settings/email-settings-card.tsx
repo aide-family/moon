@@ -3,7 +3,6 @@ import { useEffect, useState, type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
-import { ApiError } from "@/api/http"
 import { getEmailSettings, updateEmailSettings } from "@/api/site"
 import type { EmailSettings, SaveEmailSettingsParams } from "@/api/site/types"
 import { FormField } from "@/components/form-field"
@@ -19,7 +18,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { failureMessage } from "@/lib/form-error"
+import {
+  checkField,
+  formatMessage,
+  patternHint,
+  patternError,
+} from "@/lib/form"
+import { readFormError } from "@/lib/form-error"
 
 type EmailField = "host" | "port" | "from"
 type EmailFieldErrors = Partial<Record<EmailField, string>>
@@ -43,13 +48,6 @@ const emptyEmailForm: EmailForm = {
   password: "",
   from: "",
   clearPassword: false,
-}
-
-// 后端校验只返回一条英文原文，没有字段名；按原文把错误放回对应输入框。
-const messageFields: Record<string, EmailField> = {
-  "invalid smtp host": "host",
-  "invalid smtp port": "port",
-  "invalid smtp from": "from",
 }
 
 function toEmailForm(settings: EmailSettings): EmailForm {
@@ -161,21 +159,55 @@ export function EmailSettingsCard({
     const errors: EmailFieldErrors = {}
     const portText = form.port.trim()
     if (portText !== "") {
-      const port = Number(portText)
-      if (!Number.isInteger(port) || port < 1 || port > 65535) {
-        errors.port = t("systemSite.email.portInvalid")
+      const portError = checkField({
+        label: t("systemSite.email.port"),
+        value: portText,
+        integerRange: [1, 65535],
+      })
+      if (portError) {
+        errors.port = portError
       }
     }
     // 启用后后端会立刻用它发验证码与邀请邮件，缺字段必然发信失败，这里先拦一层。
     if (form.enabled) {
-      if (form.host.trim() === "") {
-        errors.host = t("systemSite.email.hostRequired")
+      const hostError = checkField({
+        label: t("systemSite.email.host"),
+        value: form.host,
+        required: true,
+        pattern: /^[A-Za-z0-9._-]+$/,
+        hint: patternHint("host"),
+      })
+      if (hostError) {
+        errors.host = hostError
       }
       if (portText === "") {
-        errors.port = t("systemSite.email.portRequired")
+        errors.port = checkField({
+          label: t("systemSite.email.port"),
+          value: portText,
+          required: true,
+          integerRange: [1, 65535],
+        }) ?? ""
       }
-      if (form.from.trim() === "") {
-        errors.from = t("systemSite.email.fromRequired")
+      const fromError = formatMessage(
+        t("systemSite.email.from"),
+        patternHint("fromEmail")
+      )
+      const fromValue = form.from.trim()
+      if (fromValue === "") {
+        errors.from = checkField({
+          label: t("systemSite.email.from"),
+          value: form.from,
+          required: true,
+        }) ?? ""
+      } else {
+        const invalidFrom = patternError(
+          fromValue,
+          /^(?:[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+|.+\s<[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+>)$/,
+          fromError
+        )
+        if (invalidFrom) {
+          errors.from = invalidFrom
+        }
       }
     }
     if (Object.keys(errors).length > 0) {
@@ -201,13 +233,13 @@ export function EmailSettingsCard({
       setForm(toEmailForm(result.email))
       toast.success(t("systemSite.email.saved"))
     } catch (err) {
-      const message = failureMessage(err, t("state.failed"))
-      const raw = err instanceof ApiError ? err.raw : ""
-      const field = messageFields[raw]
-      if (field) {
-        setFieldErrors({ [field]: message })
+      const failure = readFormError(err, t("state.failed"))
+      const mapped = Object.keys(failure.fields).length > 0
+      if (mapped) {
+        setFieldErrors(failure.fields as EmailFieldErrors)
+        setFormError("")
       } else {
-        setFormError(message)
+        setFormError(failure.form || t("state.failed"))
       }
     } finally {
       setSaving(false)

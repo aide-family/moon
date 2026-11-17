@@ -53,9 +53,10 @@ import {
 } from "@/components/ui/table"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  requireTrimmed,
+  requiredError,
   type FieldErrors,
 } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
@@ -171,15 +172,11 @@ export function NotificationSubscriptionPage() {
   }
 
   function intervalError(): string | null {
-    const trimmed = repeatIntervalMinutes.trim()
-    if (!/^\d+$/.test(trimmed)) {
-      return t("subscription.repeatIntervalInvalid")
-    }
-    const minutes = Number(trimmed)
-    if (minutes > MAX_REPEAT_INTERVAL_MINUTES) {
-      return t("subscription.repeatIntervalInvalid")
-    }
-    return null
+    return checkField({
+      label: t("subscription.repeatInterval"),
+      value: repeatIntervalMinutes,
+      integerRange: [0, MAX_REPEAT_INTERVAL_MINUTES],
+    })
   }
 
   /** 列表和详情把秒数展示为分钟；0 表示该告警不限制重复通知。 */
@@ -223,14 +220,27 @@ export function NotificationSubscriptionPage() {
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
-      ["groups", groupUids.length === 0 ? t("form.required") : null],
+      [
+        "name",
+        checkField({
+          label: t("subscription.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
+      [
+        "groups",
+        groupUids.length === 0
+          ? requiredError(t("subscription.groups"))
+          : null,
+      ],
       [
         "labels",
         labels.some(
           (pair) => pair.key.trim() === "" && pair.value.trim() !== "",
         )
-          ? t("form.required")
+          ? t("label.keyRequired")
           : null,
       ],
       ["repeatIntervalSeconds", intervalError()],

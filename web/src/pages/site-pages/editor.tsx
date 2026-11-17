@@ -53,10 +53,10 @@ import { SitePreviewView } from "@/pages/public-site/site-preview-view"
 import { cn } from "@/lib/class-names"
 import { formatDateTime } from "@/lib/date-time"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  maxLength,
-  requireTrimmed,
+  patternHint,
   type FieldErrors,
 } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
@@ -115,16 +115,6 @@ function formFromDetail(detail: SitePageDetail): PageForm {
   }
 }
 
-function isHTTPURL(value: string): boolean {
-  try {
-    const url = new URL(value)
-    return (
-      (url.protocol === "http:" || url.protocol === "https:") && url.host !== ""
-    )
-  } catch {
-    return false
-  }
-}
 
 function localeLabel(t: (key: string) => string, locale: string): string {
   return locale === "en"
@@ -308,65 +298,78 @@ export function PageEditor({
   }
 
   function validate(): FieldErrors {
-    const sortOrder = Number(form.sortOrder)
     return collectFieldErrors([
-      ["title", requireTrimmed(form.title, t("form.required"))],
-      ["title", maxLength(form.title, TITLE_MAX, t("sitePages.field.tooLong"))],
-      ["slug", creating ? requireTrimmed(form.slug, t("form.required")) : null],
       [
-        "slug",
-        creating &&
-        form.slug.trim() !== "" &&
-        !SLUG_PATTERN.test(form.slug.trim())
-          ? t("error.sitePageSlugInvalid")
-          : null,
+        "title",
+        checkField({
+          label: t("sitePages.field.title"),
+          value: form.title,
+          required: true,
+          max: TITLE_MAX,
+        }),
       ],
       [
         "slug",
-        creating && form.slug.trim().length > SLUG_MAX
-          ? t("sitePages.field.tooLong")
-          : null,
+        checkField({
+          label: t("sitePages.field.slug"),
+          value: form.slug,
+          required: creating,
+          min: creating ? 1 : undefined,
+          max: SLUG_MAX,
+          pattern: SLUG_PATTERN,
+          hint: t("sitePages.field.slugHint"),
+        }),
       ],
       [
         "summary",
-        maxLength(form.summary, SUMMARY_MAX, t("sitePages.field.tooLong")),
+        checkField({
+          label: t("sitePages.field.summary"),
+          value: form.summary,
+          max: SUMMARY_MAX,
+        }),
       ],
       [
         "bodyMd",
-        Array.from(form.bodyMd).length > BODY_MAX
-          ? t("sitePages.field.tooLong")
-          : null,
+        checkField({
+          label: t("sitePages.field.body"),
+          value: form.bodyMd,
+          max: BODY_MAX,
+        }),
       ],
       [
         "coverImageUrl",
-        form.coverImageUrl.trim() !== "" &&
-        !isHTTPURL(form.coverImageUrl.trim())
-          ? t("error.sitePageCoverInvalid")
-          : null,
-      ],
-      [
-        "coverImageUrl",
-        form.coverImageUrl.trim().length > COVER_MAX
-          ? t("sitePages.field.tooLong")
-          : null,
+        checkField({
+          label: t("sitePages.field.cover"),
+          value: form.coverImageUrl,
+          max: COVER_MAX,
+          pattern: /^https?:\/\/\S+$/i,
+          hint: patternHint("url"),
+        }),
       ],
       [
         "seoTitle",
-        maxLength(form.seoTitle, SEO_TITLE_MAX, t("sitePages.field.tooLong")),
+        checkField({
+          label: t("sitePages.field.seoTitle"),
+          value: form.seoTitle,
+          max: SEO_TITLE_MAX,
+        }),
       ],
       [
         "seoDescription",
-        maxLength(
-          form.seoDescription,
-          SEO_DESCRIPTION_MAX,
-          t("sitePages.field.tooLong")
-        ),
+        checkField({
+          label: t("sitePages.field.seoDescription"),
+          value: form.seoDescription,
+          max: SEO_DESCRIPTION_MAX,
+        }),
       ],
       [
         "sortOrder",
-        !/^\d+$/.test(form.sortOrder.trim()) || sortOrder < 0 || sortOrder > 999
-          ? t("error.sitePageSortOrderInvalid")
-          : null,
+        checkField({
+          label: t("sitePages.field.sortOrder"),
+          value: form.sortOrder,
+          required: true,
+          integerRange: [0, 999],
+        }),
       ],
     ])
   }

@@ -61,9 +61,10 @@ import {
 } from "@/components/ui/table"
 import { TableActionsHead, TableStatusHead, TableTypeHead } from "@/components/table-heads"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  requireTrimmed,
+  requiredField,
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
@@ -183,13 +184,21 @@ export function NotificationTemplatePage() {
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
-      ["type", requireTrimmed(type, t("form.required"))],
+      [
+        "name",
+        checkField({
+          label: t("template.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
+      ["type", requiredField(type, t("template.type"))],
       [
         "subject",
-        type === "EMAIL" ? requireTrimmed(subject, t("form.required")) : null,
+        type === "EMAIL" ? requiredField(subject, t("template.subject")) : null,
       ],
-      ["body", requireTrimmed(body, t("form.required"))],
+      ["body", requiredField(body, t("template.body"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)

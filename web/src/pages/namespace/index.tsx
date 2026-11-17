@@ -59,8 +59,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
+  requiredField,
   requireSelected,
   requireTrimmed,
 } from "@/lib/form"
@@ -278,8 +280,16 @@ export function NamespacePage() {
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
-      ["package", requireSelected(packageUid, t("form.required"))],
+      [
+        "name",
+        checkField({
+          label: t("namespace.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
+      ["package", requiredField(packageUid, t("namespace.package"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)

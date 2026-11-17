@@ -57,7 +57,12 @@ import {
 } from "@/components/ui/table"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { Textarea } from "@/components/ui/textarea"
-import { requireTrimmed, collectFieldErrors, hasFieldErrors } from "@/lib/form"
+import {
+  checkField,
+  collectFieldErrors,
+  hasFieldErrors,
+  requiredField,
+} from "@/lib/form"
 import { TABLE_MIN_WIDTH } from "@/lib/table-layout"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
@@ -198,15 +203,39 @@ export function AgentPage() {
     event.preventDefault()
     const labelResult = labelsToJSON(labelRows)
     const entries: Array<[string, string | null]> = [
-      ["name", requireTrimmed(name, t("form.required"))],
+      [
+        "name",
+        checkField({
+          label: t("agent.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
       ["labels", labelResult.error ? t(labelErrorKey(labelResult.error)) : null],
     ]
     const shouldDeploy = !editing && autoDeploy
     if (shouldDeploy) {
       entries.push(
-        ["sshHost", requireTrimmed(sshHost, t("form.required"))],
-        ["sshUser", requireTrimmed(sshUser, t("form.required"))],
-        ["sshPassword", requireTrimmed(sshPassword, t("form.required"))]
+        [
+          "sshHost",
+          checkField({
+            label: t("agent.sshHost"),
+            value: sshHost,
+            required: true,
+            max: 255,
+          }),
+        ],
+        [
+          "sshPort",
+          checkField({
+            label: t("agent.sshPort"),
+            value: sshPort,
+            integerRange: [1, 65535],
+          }),
+        ],
+        ["sshUser", requiredField(sshUser, t("agent.sshUser"))],
+        ["sshPassword", requiredField(sshPassword, t("agent.sshPassword"))]
       )
     }
     const errors = collectFieldErrors(entries)
@@ -523,7 +552,11 @@ export function AgentPage() {
               <FormField label={t("agent.sshHost")} htmlFor="agent-host" error={fieldErrors.sshHost}>
                 <Input id="agent-host" value={sshHost} placeholder={t("agent.sshHostPlaceholder")} onChange={(event) => setSshHost(event.target.value)} />
               </FormField>
-              <FormField label={t("agent.sshPort")} htmlFor="agent-port">
+              <FormField
+                label={t("agent.sshPort")}
+                htmlFor="agent-port"
+                error={fieldErrors.sshPort}
+              >
                 <Input id="agent-port" value={sshPort} placeholder={t("agent.sshPortPlaceholder")} onChange={(event) => setSshPort(event.target.value)} />
               </FormField>
               <FormField label={t("agent.sshUser")} htmlFor="agent-user" error={fieldErrors.sshUser}>

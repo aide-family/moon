@@ -23,9 +23,11 @@ import {
   useSendCodeCooldown,
 } from "@/hooks/use-send-code-cooldown"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  requireTrimmed,
+  patternHint,
+  requiredField,
   type FieldErrors,
 } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
@@ -61,11 +63,13 @@ export function ChangeEmailDialog({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
   function validateEmail(): string | null {
-    const trimmed = requireTrimmed(email, t("form.required"))
-    if (trimmed) {
-      return trimmed
-    }
-    return email.includes("@") ? null : t("form.invalidEmail")
+    return checkField({
+      label: t("profile.changeEmailNew"),
+      value: email,
+      required: true,
+      pattern: /^[^@\s]+@[^@\s]+\.[^@\s]+$/,
+      hint: patternHint("email"),
+    })
   }
 
   async function onSendCode() {
@@ -74,7 +78,7 @@ export function ChangeEmailDialog({
     }
     const errors = collectFieldErrors([
       ["email", validateEmail()],
-      ["captchaCode", requireTrimmed(captchaCode, t("form.required"))],
+      ["captchaCode", requiredField(captchaCode, t("form.captcha"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -121,8 +125,8 @@ export function ChangeEmailDialog({
     }
     const errors = collectFieldErrors([
       ["email", validateEmail()],
-      ["code", requireTrimmed(code, t("form.required"))],
-      ["captchaCode", requireTrimmed(captchaCode, t("form.required"))],
+      ["code", requiredField(code, t("profile.changeEmailCode"))],
+      ["captchaCode", requiredField(captchaCode, t("form.captcha"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)

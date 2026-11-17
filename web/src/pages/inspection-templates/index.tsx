@@ -35,7 +35,8 @@ import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
-import { formErrorMessage } from "@/lib/form-error"
+import { checkField } from "@/lib/form"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 import { InspectionTemplateDetail } from "@/pages/inspection-templates/template-detail"
 import { InspectionTemplateGuide } from "@/pages/inspection-templates/template-guide"
 import {
@@ -102,8 +103,14 @@ function TemplateDialog({
 
   async function save(event: React.FormEvent) {
     event.preventDefault()
-    if (!name.trim()) {
-      setNameError(t("inspection.nameRequired"))
+    const nextNameError = checkField({
+      label: t("inspection.templateName"),
+      value: name,
+      required: true,
+      max: 64,
+    })
+    if (nextNameError) {
+      setNameError(nextNameError)
       return
     }
     setNameError("")
@@ -124,7 +131,14 @@ function TemplateDialog({
       }
       onSaved()
     } catch (err) {
-      setError(formErrorMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      if (failure.fields.name) {
+        setNameError(failure.fields.name)
+        setError("")
+      } else {
+        setNameError("")
+        setError(failure.form || formErrorMessage(err, t("state.failed")))
+      }
     } finally {
       setPending(false)
     }

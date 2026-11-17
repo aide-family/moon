@@ -65,10 +65,11 @@ import {
 import { cn } from "@/lib/class-names"
 import { enumLabel } from "@/lib/enum-label"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  maxLength,
-  requireTrimmed,
+  patternHint,
+  requiredField,
   type FieldErrors,
 } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
@@ -103,19 +104,14 @@ const MAX_AVAILABILITY_WINDOW_MINUTES = 1440
 const MAX_AVAILABILITY_THRESHOLD = 1000
 const MAX_AVAILABILITY_GROUPS = 20
 
-/** 整数范围校验：空值、非整数和越界都返回同一条字段错误。 */
+/** 整数范围校验：错误文案由字段名与闭区间生成，空值/非整数/越界共用一条。 */
 function availabilityCountError(
+  label: string,
   value: string,
   minimum: number,
-  maximum: number,
-  message: string
+  maximum: number
 ): string | null {
-  const trimmed = value.trim()
-  if (!/^\d+$/.test(trimmed)) {
-    return message
-  }
-  const count = Number(trimmed)
-  return count < minimum || count > maximum ? message : null
+  return checkField({ label, value, integerRange: [minimum, maximum] })
 }
 
 interface Draft {
@@ -357,25 +353,28 @@ export function DatasourcePage() {
       [
         "failureWindowMinutes",
         availabilityCountError(
+          t("datasource.failureWindowMinutes"),
           form.failureWindowMinutes,
           minimum,
-          MAX_AVAILABILITY_WINDOW_MINUTES,
-          t("datasource.failureWindowMinutesInvalid")
+          MAX_AVAILABILITY_WINDOW_MINUTES
         ),
       ],
       [
         "failureThreshold",
         availabilityCountError(
+          t("datasource.failureThreshold"),
           form.failureThreshold,
           minimum,
-          MAX_AVAILABILITY_THRESHOLD,
-          t("datasource.failureThresholdInvalid")
+          MAX_AVAILABILITY_THRESHOLD
         ),
       ],
       [
         "notificationGroupUids",
         form.notificationGroupUids.length > MAX_AVAILABILITY_GROUPS
-          ? t("datasource.notificationGroupsTooMany")
+          ? t("datasource.notificationGroupsTooMany", {
+              max: MAX_AVAILABILITY_GROUPS,
+              count: form.notificationGroupUids.length,
+            })
           : null,
       ],
     ])
@@ -384,18 +383,28 @@ export function DatasourcePage() {
   function validateDatasourceStep(step: number): FieldErrors {
     if (step === 0) {
       const errors = collectFieldErrors([
-        ["name", requireTrimmed(form.name, t("form.required"))],
-        ["name", maxLength(form.name, 64, t("form.nameTooLong"))],
-        ["type", requireTrimmed(form.type, t("form.required"))],
-        ["driver", requireTrimmed(form.driver, t("form.required"))],
-        ["endpoint", requireTrimmed(form.endpoint, t("form.required"))],
+        [
+          "name",
+          checkField({
+            label: t("datasource.name"),
+            value: form.name,
+            required: true,
+            max: 64,
+          }),
+        ],
+        ["type", requiredField(form.type, t("datasource.type"))],
+        ["driver", requiredField(form.driver, t("datasource.driver"))],
+        [
+          "endpoint",
+          checkField({
+            label: t("datasource.endpoint"),
+            value: form.endpoint,
+            required: true,
+            pattern: /^https?:\/\/\S+/i,
+            hint: patternHint("endpoint"),
+          }),
+        ],
       ])
-      // 后端只接受 http(s) 根地址；`htp://` 这类拼写错误要在保存时拦住，
-      // 否则要等到查询时才由数据层报一个没有上下文的 invalid request。
-      const endpoint = form.endpoint.trim()
-      if (!errors.endpoint && endpoint && !/^https?:\/\/\S+/i.test(endpoint)) {
-        errors.endpoint = t("form.invalidUrl")
-      }
       return errors
     }
     if (step === 2) {

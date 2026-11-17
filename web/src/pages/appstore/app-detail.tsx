@@ -41,7 +41,8 @@ import {
 } from "@/components/ui/table"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatUnixDateTime } from "@/lib/date-time"
-import { formErrorMessage } from "@/lib/form-error"
+import { checkField } from "@/lib/form"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 import { TABLE_MIN_WIDTH, TABLE_NOWRAP } from "@/lib/table-layout"
 
 import { DeployDialog } from "./deploy-dialog"
@@ -57,6 +58,7 @@ export function ApplicationDetailPage() {
   const [changelog, setChangelog] = useState("")
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState("")
+  const [createFormError, setCreateFormError] = useState("")
   const [deployVersion, setDeployVersion] = useState<ApplicationVersionItem | null>(null)
   const [deleting, setDeleting] = useState<ApplicationVersionItem | null>(null)
   const [actionPending, setActionPending] = useState(false)
@@ -86,19 +88,28 @@ export function ApplicationDetailPage() {
   }
 
   async function createDraft() {
-    if (!version.trim()) {
-      setCreateError(t("form.required"))
+    const versionError = checkField({
+      label: t("appStore.version"),
+      value: version,
+      required: true,
+      max: 32,
+    })
+    if (versionError) {
+      setCreateError(versionError)
       return
     }
     setCreating(true)
     setCreateError("")
+    setCreateFormError("")
     try {
       const result = await createApplicationVersion(uid, { applicationUid: uid, version: version.trim(), changelog: changelog.trim(), resources: [] })
       setVersionDialogOpen(false)
       toast.success(t("appStore.draftCreated"))
       navigate(`/appstore/apps/${uid}/versions/${result.version.uid}`)
     } catch (err) {
-      setCreateError(formErrorMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setCreateError(failure.fields.version ?? failure.fields.name ?? "")
+      setCreateFormError(failure.fields.version ? "" : failure.form)
     } finally {
       setCreating(false)
     }
@@ -211,6 +222,9 @@ export function ApplicationDetailPage() {
               <Textarea id="new-changelog" value={changelog} placeholder={t("appStore.changelogPlaceholder")} onChange={(event) => setChangelog(event.target.value)} />
             </FormField>
           </DialogBody>
+          {createFormError ? (
+            <p className="text-sm text-destructive">{createFormError}</p>
+          ) : null}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setVersionDialogOpen(false)}>{t("action.cancel")}</Button>
             <Button disabled={creating} onClick={() => void createDraft()}>{creating ? t("action.saving") : t("action.create")}</Button>

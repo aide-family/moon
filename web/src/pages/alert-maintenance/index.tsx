@@ -74,10 +74,10 @@ import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  maxLength,
-  requireTrimmed,
+  requiredField,
   type FieldErrors,
 } from "@/lib/form"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
@@ -386,21 +386,25 @@ export function AlertMaintenancePage() {
     const pairErrors = validateLabelPairs(labels)
     const pairInvalid = pairErrors.some((item) => item.key || item.value)
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("maintenanceWindow.nameRequired"))],
-      ["name", maxLength(name, NAME_MAX, t("maintenanceWindow.nameTooLong"))],
+      [
+        "name",
+        checkField({
+          label: t("maintenanceWindow.name"),
+          value: name,
+          required: true,
+          max: NAME_MAX,
+        }),
+      ],
       [
         "description",
-        maxLength(
-          description,
-          DESCRIPTION_MAX,
-          t("maintenanceWindow.descriptionTooLong")
-        ),
+        checkField({
+          label: t("maintenanceWindow.descriptionLabel"),
+          value: description,
+          max: DESCRIPTION_MAX,
+        }),
       ],
-      [
-        "startsAt",
-        requireTrimmed(startsAt, t("maintenanceWindow.startsAtRequired")),
-      ],
-      ["endsAt", requireTrimmed(endsAt, t("maintenanceWindow.endsAtRequired"))],
+      ["startsAt", requiredField(startsAt, t("maintenanceWindow.startsAt"))],
+      ["endsAt", requiredField(endsAt, t("maintenanceWindow.endsAt"))],
       [
         "timeRange",
         startsAtValue && endsAtValue && endsAtValue <= startsAtValue

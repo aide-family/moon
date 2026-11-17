@@ -30,7 +30,7 @@ import { PermissionSummary } from "@/components/permission-summary"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { TABLE_MIN_WIDTH } from "@/lib/table-layout"
-import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
+import { checkField, collectFieldErrors, hasFieldErrors } from "@/lib/form"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/hooks/use-list-query"
@@ -119,14 +119,27 @@ export function RolePage() {
     }
   }, [session.namespaceUid, catalogTick])
 
+  function validateName(value: string): string | null {
+    return checkField({
+      label: t("role.name"),
+      value,
+      required: true,
+      max: 64,
+    })
+  }
+
   function validateRemark(value: string): string | null {
-    return remarkLength(value.trim()) > REMARK_MAX ? t("role.remarkTooLong") : null
+    return checkField({
+      label: t("role.remark"),
+      value,
+      max: REMARK_MAX,
+    })
   }
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
+      ["name", validateName(name)],
       ["remark", validateRemark(remark)],
     ])
     if (hasFieldErrors(errors)) {
@@ -157,7 +170,7 @@ export function RolePage() {
       return
     }
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
+      ["name", validateName(name)],
       ["remark", validateRemark(remark)],
     ])
     if (hasFieldErrors(errors)) {

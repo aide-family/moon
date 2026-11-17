@@ -69,7 +69,12 @@ import {
   defaultCapabilityCodes,
   sortCapabilityCodes,
 } from "@/lib/feature-catalog"
-import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
+import {
+  checkField,
+  collectFieldErrors,
+  hasFieldErrors,
+  patternHint,
+} from "@/lib/form"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 import {
   CURRENCIES,
@@ -303,15 +308,38 @@ export function PackagePage() {
       // 基础套餐名称由后端固定，前端不再校验改名。
       [
         "name",
-        editing?.isBase ? null : requireTrimmed(name, t("form.required")),
+        editing?.isBase
+          ? null
+          : checkField({
+              label: t("packageAdmin.name"),
+              value: name,
+              required: true,
+              max: 64,
+            }),
       ],
       [
         "durationDays",
-        duration === null ? t("packageAdmin.durationInvalid") : null,
+        duration === null
+          ? checkField({
+              label: t("packageAdmin.durationDays"),
+              value: durationDays,
+              required: true,
+              pattern: /^\d+$/,
+              hint: patternHint("nonNegative"),
+            })
+          : null,
       ],
       [
         "maxMembers",
-        members === null ? t("packageAdmin.maxMembersInvalid") : null,
+        members === null
+          ? checkField({
+              label: t("packageAdmin.maxMembers"),
+              value: maxMembers,
+              required: true,
+              pattern: /^\d+$/,
+              hint: patternHint("nonNegative"),
+            })
+          : null,
       ],
       ["price", priceCents === null ? t("packageAdmin.priceInvalid") : null],
     ])

@@ -31,7 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { formErrorMessage } from "@/lib/form-error"
+import { requiredError } from "@/lib/form"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 
 interface SyncDialogProps {
@@ -71,6 +72,7 @@ export function SyncDialog({
   const [previewing, setPreviewing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!open) return
@@ -133,6 +135,34 @@ export function SyncDialog({
   }
 
   async function handleCreate() {
+    const next: Record<string, string> = {}
+    if (sourceKind === "CONNECTION") {
+      if (!sourceRegistryUid) {
+        next.sourceRegistryUid = requiredError(t("registry.sourceRegistry"))
+      }
+      if (!sourceRepositoryValue.trim()) {
+        next.sourceRepository = requiredError(t("registry.repository"))
+      }
+      if (!sourceTagValue.trim()) {
+        next.sourceTag = requiredError(t("registry.tag"))
+      }
+    } else if (!sourceImage.trim()) {
+      next.sourceImage = requiredError(t("registry.sourceImage"))
+    }
+    if (!targetRegistryUid) {
+      next.targetRegistryUid = requiredError(t("registry.targetRegistry"))
+    }
+    if (!targetRepository.trim()) {
+      next.targetRepository = requiredError(t("registry.targetRepository"))
+    }
+    if (!targetTag.trim()) {
+      next.targetTag = requiredError(t("registry.targetTag"))
+    }
+    setFieldErrors(next)
+    if (Object.keys(next).length > 0) {
+      setError("")
+      return
+    }
     setSaving(true)
     setError("")
     try {
@@ -152,7 +182,9 @@ export function SyncDialog({
       }
       onCreated()
     } catch (err) {
-      setError(formErrorMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setSaving(false)
     }
@@ -183,7 +215,7 @@ export function SyncDialog({
           </div>
           {sourceKind === "CONNECTION" ? (
             <>
-              <FormField label={t("registry.sourceRegistry")} htmlFor="sync-source-registry" required>
+              <FormField label={t("registry.sourceRegistry")} htmlFor="sync-source-registry" required error={fieldErrors.sourceRegistryUid}>
                 <Select value={sourceRegistryUid} onValueChange={(value) => { setSourceRegistryUid(value); setPreview(null) }}>
                   <SelectTrigger id="sync-source-registry"><SelectValue placeholder={t("registry.selectRegistry")} /></SelectTrigger>
                   <SelectContent>
@@ -192,16 +224,16 @@ export function SyncDialog({
                 </Select>
               </FormField>
               <div />
-              <FormField label={t("registry.repository")} htmlFor="sync-source-repo" required>
+              <FormField label={t("registry.repository")} htmlFor="sync-source-repo" required error={fieldErrors.sourceRepository}>
                 <Input id="sync-source-repo" className="font-mono" value={sourceRepositoryValue} onChange={(event) => { setSourceRepositoryValue(event.target.value); setPreview(null) }} />
               </FormField>
-              <FormField label={t("registry.tag")} htmlFor="sync-source-tag" required>
+              <FormField label={t("registry.tag")} htmlFor="sync-source-tag" required error={fieldErrors.sourceTag}>
                 <Input id="sync-source-tag" className="font-mono" value={sourceTagValue} onChange={(event) => { setSourceTagValue(event.target.value); setPreview(null) }} />
               </FormField>
             </>
           ) : (
             <>
-              <FormField label={t("registry.sourceImage")} htmlFor="sync-source-image" required className="sm:col-span-full" description={t("registry.sourceImageHelp")}>
+              <FormField label={t("registry.sourceImage")} htmlFor="sync-source-image" required className="sm:col-span-full" description={t("registry.sourceImageHelp")} error={fieldErrors.sourceImage}>
                 <Input id="sync-source-image" className="font-mono" value={sourceImage} placeholder={t("registry.sourceImagePlaceholder")} onChange={(event) => { setSourceImage(event.target.value); setPreview(null) }} />
               </FormField>
               <FormField label={t("registry.sourceUsername")} htmlFor="sync-source-username">
@@ -216,7 +248,7 @@ export function SyncDialog({
               </div>
             </>
           )}
-          <FormField label={t("registry.targetRegistry")} htmlFor="sync-target-registry" required>
+          <FormField label={t("registry.targetRegistry")} htmlFor="sync-target-registry" required error={fieldErrors.targetRegistryUid}>
             <Select value={targetRegistryUid} onValueChange={(value) => { setTargetRegistryUid(value); setPreview(null) }}>
               <SelectTrigger id="sync-target-registry"><SelectValue placeholder={t("registry.selectRegistry")} /></SelectTrigger>
               <SelectContent>
@@ -225,10 +257,10 @@ export function SyncDialog({
             </Select>
           </FormField>
           <div />
-          <FormField label={t("registry.targetRepository")} htmlFor="sync-target-repo" required description={t("registry.targetRepositoryHelp")}>
+          <FormField label={t("registry.targetRepository")} htmlFor="sync-target-repo" required description={t("registry.targetRepositoryHelp")} error={fieldErrors.targetRepository}>
             <Input id="sync-target-repo" className="font-mono" value={targetRepository} onChange={(event) => setTargetRepository(event.target.value)} />
           </FormField>
-          <FormField label={t("registry.targetTag")} htmlFor="sync-target-tag" required description={t("registry.targetTagHelp")}>
+          <FormField label={t("registry.targetTag")} htmlFor="sync-target-tag" required description={t("registry.targetTagHelp")} error={fieldErrors.targetTag}>
             <Input id="sync-target-tag" className="font-mono" value={targetTag} onChange={(event) => setTargetTag(event.target.value)} />
           </FormField>
           <FormField label={t("registry.platforms")} htmlFor="sync-platforms" description={t("registry.platformsHelp")}>

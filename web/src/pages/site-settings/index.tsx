@@ -19,6 +19,8 @@ import type {
 } from "@/api/site/types"
 import { useSession } from "@/auth/session"
 import { FormField } from "@/components/form-field"
+import { formatMessage, patternHint } from "@/lib/form"
+import { readFormError } from "@/lib/form-error"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -51,6 +53,15 @@ type SectionKey = (typeof SECTIONS)[number]["key"]
 type SiteField = keyof SaveSiteSettingsParams
 type SiteFieldErrors = Partial<Record<SiteField, string>>
 
+// URL 字段的本地化名称，校验失败时把字段名带回错误文案。
+const siteUrlFieldKeys: Partial<Record<SiteField, string>> = {
+  logoUrl: "systemSite.fields.logoUrl",
+  faviconUrl: "systemSite.fields.faviconUrl",
+  repositoryUrl: "systemSite.fields.repositoryUrl",
+  filingIcpUrl: "systemSite.fields.filingIcpUrl",
+  filingPoliceUrl: "systemSite.fields.filingPoliceUrl",
+}
+
 const emptySiteForm: SaveSiteSettingsParams = {
   siteName: "",
   logoUrl: "",
@@ -71,15 +82,6 @@ const emptyLoginForm: SaveLoginMethodsParams = {
 }
 
 // 后端校验失败只返回一条英文原文，没有字段名；按原文把错误放回对应输入框。
-const messageFields: Record<string, SiteField> = {
-  "contact email is invalid": "contactEmail",
-  "logo url is invalid": "logoUrl",
-  "favicon url is invalid": "faviconUrl",
-  "repository url is invalid": "repositoryUrl",
-  "filing icp url is invalid": "filingIcpUrl",
-  "filing police url is invalid": "filingPoliceUrl",
-}
-
 function toSiteForm(site: SiteSettings): SaveSiteSettingsParams {
   return {
     siteName: site.siteName,
@@ -303,7 +305,10 @@ export function SiteSettingsPage() {
     const values = trimSiteForm(siteForm)
     const errors: SiteFieldErrors = {}
     if (values.contactEmail && !isEmail(values.contactEmail)) {
-      errors.contactEmail = t("form.invalidEmail")
+      errors.contactEmail = formatMessage(
+        t("systemSite.fields.contactEmail"),
+        patternHint("email")
+      )
     }
     const urls: Array<[SiteField, string]> = [
       ["logoUrl", values.logoUrl],
@@ -314,7 +319,10 @@ export function SiteSettingsPage() {
     ]
     for (const [field, value] of urls) {
       if (value && !isHTTPURL(value)) {
-        errors[field] = t("form.invalidUrl")
+        errors[field] = formatMessage(
+          t(siteUrlFieldKeys[field] ?? "systemSite.fields.logoUrl"),
+          patternHint("url")
+        )
       }
     }
     if (Object.keys(errors).length > 0) {
@@ -331,13 +339,13 @@ export function SiteSettingsPage() {
       setSiteForm(toSiteForm(result.site))
       toast.success(t("systemSite.saved"))
     } catch (err) {
-      const message = readErrorMessage(err, t("state.failed"))
-      const raw = err instanceof ApiError ? err.raw : ""
-      const field = messageFields[raw]
-      if (field) {
-        setSiteFieldErrors({ [field]: message })
+      // 400/409 的字段错误由 http.ts 映射到字段名；定位不到时才落到表单级错误区。
+      const failure = readFormError(err, t("state.failed"))
+      if (Object.keys(failure.fields).length > 0) {
+        setSiteFieldErrors(failure.fields as SiteFieldErrors)
+        setSiteFormError("")
       } else {
-        setSiteFormError(message)
+        setSiteFormError(failure.form)
       }
     } finally {
       setSavingSite(false)

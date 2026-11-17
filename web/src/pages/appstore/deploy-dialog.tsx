@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { formErrorMessage } from "@/lib/form-error"
+import { checkField } from "@/lib/form"
+import { readFormError } from "@/lib/form-error"
 
 interface DeployDialogProps {
   open: boolean
@@ -38,6 +39,7 @@ export function DeployDialog({ open, applicationUid, versionUid, version, hasClu
   const [namespace, setNamespace] = useState("default")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!open) return
@@ -59,8 +61,37 @@ export function DeployDialog({ open, applicationUid, versionUid, version, hasClu
   }, [open, version])
 
   async function submit() {
-    if (selected.length === 0 || selected.length > 20 || !name.trim() || !namespace.trim()) {
-      setError(t("appStore.clusterSelectionInvalid"))
+    const next: Record<string, string> = {}
+    if (selected.length === 0 || selected.length > 20) {
+      next.clusterUids = t("appStore.clusterSelectionInvalid")
+    }
+    // Kubernetes 的 Deployment / Namespace 名都是 DNS-1123 label。
+    const dnsLabel = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/
+    const nameError = checkField({
+      label: t("appStore.deploymentName"),
+      value: name,
+      required: true,
+      max: 63,
+      pattern: dnsLabel,
+      hint: t("appStore.deploymentNameHelp"),
+    })
+    if (nameError) {
+      next.name = nameError
+    }
+    const namespaceError = checkField({
+      label: t("appStore.targetNamespace"),
+      value: namespace,
+      required: true,
+      max: 63,
+      pattern: dnsLabel,
+      hint: t("appStore.targetNamespaceHelp"),
+    })
+    if (namespaceError) {
+      next.namespace = namespaceError
+    }
+    setFieldErrors(next)
+    if (Object.keys(next).length > 0) {
+      setError("")
       return
     }
     setSaving(true)
@@ -75,7 +106,9 @@ export function DeployDialog({ open, applicationUid, versionUid, version, hasClu
       })
       onCreated(result.deployment)
     } catch (err) {
-      setError(formErrorMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setSaving(false)
     }
@@ -88,7 +121,7 @@ export function DeployDialog({ open, applicationUid, versionUid, version, hasClu
           <DialogTitle>{t("appStore.deployTitle", { version })}</DialogTitle>
         </DialogHeader>
         <DialogBody className="grid gap-4">
-          <FormField label={t("appStore.targetClusters")} required hint={t("appStore.clusterSelectionHint", { count: selected.length })} description={t("appStore.multiClusterHint")}>
+          <FormField label={t("appStore.targetClusters")} required hint={t("appStore.clusterSelectionHint", { count: selected.length })} description={t("appStore.multiClusterHint")} error={fieldErrors.clusterUids}>
             <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-border/60 p-2">
               {clusters.map((cluster) => {
                 const checked = selected.includes(cluster.uid)
@@ -106,10 +139,10 @@ export function DeployDialog({ open, applicationUid, versionUid, version, hasClu
             </div>
           </FormField>
           {hasClusterScoped ? <p className="rounded-lg border border-warning-border bg-warning-soft p-2 text-xs text-warning">{t("appStore.clusterScopedWarning")}</p> : null}
-          <FormField label={t("appStore.deploymentName")} htmlFor="deploy-name" required description={t("appStore.deploymentNameHelp")}>
+          <FormField label={t("appStore.deploymentName")} htmlFor="deploy-name" required description={t("appStore.deploymentNameHelp")} error={fieldErrors.name}>
             <Input id="deploy-name" className="font-mono" value={name} placeholder="app-prod" onChange={(event) => setName(event.target.value)} />
           </FormField>
-          <FormField label={t("appStore.targetNamespace")} htmlFor="deploy-namespace" required description={t("appStore.targetNamespaceHelp")}>
+          <FormField label={t("appStore.targetNamespace")} htmlFor="deploy-namespace" required description={t("appStore.targetNamespaceHelp")} error={fieldErrors.namespace}>
             <Input id="deploy-namespace" className="font-mono" value={namespace} placeholder="default" onChange={(event) => setNamespace(event.target.value)} />
           </FormField>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}

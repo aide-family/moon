@@ -85,9 +85,10 @@ import { usePagedList } from "@/hooks/use-paged-list"
 import { formatDateTime } from "@/lib/date-time"
 import { loadAllPagedItems, loadAllSelectItems } from "@/lib/select-pages"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  requireTrimmed,
+  requiredError,
   type FieldErrors,
 } from "@/lib/form"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
@@ -524,14 +525,11 @@ export function NotificationOnCallPage() {
   }
 
   function intervalError(): string | null {
-    const trimmed = repeatIntervalMinutes.trim()
-    if (!/^\d+$/.test(trimmed)) {
-      return t("oncall.repeatIntervalInvalid")
-    }
-    if (Number(trimmed) > MAX_REPEAT_INTERVAL_MINUTES) {
-      return t("oncall.repeatIntervalInvalid")
-    }
-    return null
+    return checkField({
+      label: t("oncall.repeatInterval"),
+      value: repeatIntervalMinutes,
+      integerRange: [0, MAX_REPEAT_INTERVAL_MINUTES],
+    })
   }
 
   /** 列表和详情把秒数展示为分钟；0 表示该告警不限制重复通知。 */
@@ -885,14 +883,25 @@ export function NotificationOnCallPage() {
   async function onSave(event: FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
-      ["groups", bindings.length === 0 ? t("form.required") : null],
+      [
+        "name",
+        checkField({
+          label: t("oncall.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
+      [
+        "groups",
+        bindings.length === 0 ? requiredError(t("oncall.groups")) : null,
+      ],
       [
         "labels",
         labels.some(
           (pair) => pair.key.trim() === "" && pair.value.trim() !== ""
         )
-          ? t("form.required")
+          ? t("label.keyRequired")
           : null,
       ],
       ["windows", windowError()],

@@ -65,10 +65,11 @@ import { formatDateTime } from "@/lib/date-time"
 import { enumLabel } from "@/lib/enum-label"
 import { authorizedProbeDrivers } from "@/lib/feature-catalog"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  maxLength,
-  requireTrimmed,
+  requiredError,
+  requiredField,
   type FieldErrors,
 } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
@@ -863,19 +864,33 @@ export function ProbeTargetPage() {
 
   function validateBasicStep(): FieldErrors {
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(form.name, t("form.required"))],
-      ["name", maxLength(form.name, 64, t("form.nameTooLong"))],
-      ["driver", requireTrimmed(form.driver, t("form.required"))],
+      [
+        "name",
+        checkField({
+          label: t("probeTarget.name"),
+          value: form.name,
+          required: true,
+          max: 64,
+        }),
+      ],
+      ["driver", requiredField(form.driver, t("probeTarget.type"))],
       [
         "labels",
         serializeLabelPairs(form.labels).length > MAX_LABELS
           ? t("probeTarget.labelsTooLong")
           : null,
       ],
-      ["remark", maxLength(form.remark, 200, t("probeTarget.remarkTooLong"))],
+      [
+        "remark",
+        checkField({
+          label: t("probeTarget.remark"),
+          value: form.remark,
+          max: 200,
+        }),
+      ],
     ])
     if (!formDriverChoices.includes(form.driver)) {
-      errors.driver = t("form.required")
+      errors.driver = requiredError(t("probeTarget.type"))
     }
     return errors
   }
@@ -892,7 +907,10 @@ export function ProbeTargetPage() {
     form.targets.forEach((target, index) => {
       const spec = target.spec.trim()
       if (spec === "") {
-        checks.push([`target.${index}.spec`, t("form.required")])
+        checks.push([
+          `target.${index}.spec`,
+          requiredError(t("probeTarget.targetLabel", { index: index + 1 })),
+        ])
         return
       }
       if (spec.length > MAX_TARGET_SPEC) {
@@ -923,7 +941,7 @@ export function ProbeTargetPage() {
     // HTTP 探针校验完整请求参数与断言；其它驱动只校验各自使用的字段。
     if (form.driver === PROBE_HTTP) {
       if (form.method !== "GET" && form.method !== "HEAD") {
-        checks.push(["method", t("form.required")])
+        checks.push(["method", requiredError(t("probeTarget.method"))])
       }
       if (expectStatusInvalid(form.expectStatus)) {
         checks.push(["expectStatus", t("probeTarget.expectStatusInvalid")])
@@ -997,14 +1015,35 @@ export function ProbeTargetPage() {
       }
     }
     if (timeoutInvalid(form.timeoutMs)) {
-      checks.push(["timeoutMs", t("probeTarget.timeoutInvalid")])
+      checks.push([
+        "timeoutMs",
+        checkField({
+          label: t(timeoutLabelKey(form.driver)),
+          value: form.timeoutMs,
+          integerRange: [MIN_TIMEOUT_MS, MAX_TIMEOUT_MS],
+        }),
+      ])
     }
     if (form.driver === PROBE_ICMP) {
       if (intRangeInvalid(form.icmpCount, 0, 10)) {
-        checks.push(["icmpCount", t("probeTarget.icmpCountInvalid")])
+        checks.push([
+          "icmpCount",
+          checkField({
+            label: t("probeTarget.icmpCount"),
+            value: form.icmpCount,
+            integerRange: [0, 10],
+          }),
+        ])
       }
       if (intRangeInvalid(form.icmpPacketSize, 0, 1400)) {
-        checks.push(["icmpPacketSize", t("probeTarget.icmpPacketSizeInvalid")])
+        checks.push([
+          "icmpPacketSize",
+          checkField({
+            label: t("probeTarget.icmpPacketSize"),
+            value: form.icmpPacketSize,
+            integerRange: [0, 1400],
+          }),
+        ])
       }
     }
     if (form.driver === PROBE_DNS) {

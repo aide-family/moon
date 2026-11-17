@@ -161,7 +161,9 @@ export function BoardDialog({
       ],
       [
         "panels",
-        panels.length > MAX_PANELS ? t("board.errors.panelsTooMany") : null,
+        panels.length > MAX_PANELS
+          ? t("board.errors.panelsTooMany", { max: MAX_PANELS })
+          : null,
       ],
     ]
     panels.forEach((panel, index) => {

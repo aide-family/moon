@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { FormField, KeyValueRowLabels } from "@/components/form-field"
+import { checkField } from "@/lib/form"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -190,8 +191,63 @@ export function ResourceFormDialog({ open, onOpenChange, onSave }: ResourceFormD
     if (!validateName(name.trim())) {
       next.name = t("appStore.resourceForm.nameInvalid")
     }
-    if (needsImage && !image.trim()) {
-      next.image = t("form.required")
+    const imageError = checkField({
+      label: t("appStore.resourceForm.image"),
+      value: image,
+      required: needsImage,
+    })
+    if (imageError) {
+      next.image = imageError
+    }
+    const portError = (label: string, value: string) =>
+      checkField({
+        label,
+        value,
+        required: true,
+        integerRange: [1, 65535],
+      })
+    if (kind === "Deployment" || kind === "StatefulSet") {
+      const error = portError(t("appStore.resourceForm.containerPort"), port)
+      if (error) {
+        next.port = error
+      }
+    }
+    if (kind === "Service") {
+      const servicePortError = portError(
+        t("appStore.resourceForm.servicePort"),
+        servicePort
+      )
+      if (servicePortError) {
+        next.servicePort = servicePortError
+      }
+      const targetPortError = portError(
+        t("appStore.resourceForm.targetPort"),
+        targetPort
+      )
+      if (targetPortError) {
+        next.targetPort = targetPortError
+      }
+    }
+    if (kind === "Ingress") {
+      const ingressPortError = portError(
+        t("appStore.resourceForm.backendPort"),
+        ingressPort
+      )
+      if (ingressPortError) {
+        next.ingressPort = ingressPortError
+      }
+    }
+    if (kind === "CronJob") {
+      const scheduleError = checkField({
+        label: t("appStore.resourceForm.schedule"),
+        value: schedule,
+        required: true,
+        pattern: /^[0-9A-Za-z*/,-]+(?:\s+[0-9A-Za-z*/,-]+){4}$/,
+        hint: t("field.hint.cron"),
+      })
+      if (scheduleError) {
+        next.schedule = scheduleError
+      }
     }
     if (yamlOwned) {
       const text = yaml.trim()
@@ -258,7 +314,7 @@ export function ResourceFormDialog({ open, onOpenChange, onSave }: ResourceFormD
                   <FormField label={t("appStore.resourceForm.image")} htmlFor="resource-form-image" required error={errors.image} description={t("appStore.resourceForm.imageHelp")} className="sm:col-span-full">
                     <Input id="resource-form-image" className="font-mono" value={image} placeholder="192.168.10.172:5000/aide-family/demo/app:1.0.0" onChange={(event) => setImage(event.target.value)} />
                   </FormField>
-                  <FormField label={t("appStore.resourceForm.containerPort")} htmlFor="resource-form-port" description={t("appStore.resourceForm.portHelp")}>
+                  <FormField label={t("appStore.resourceForm.containerPort")} htmlFor="resource-form-port" description={t("appStore.resourceForm.portHelp")} error={errors.port}>
                     <Input id="resource-form-port" type="number" min={1} max={65535} value={port} onChange={(event) => setPort(event.target.value)} />
                   </FormField>
                 </>
@@ -274,10 +330,10 @@ export function ResourceFormDialog({ open, onOpenChange, onSave }: ResourceFormD
                       </SelectContent>
                     </Select>
                   </FormField>
-                  <FormField label={t("appStore.resourceForm.servicePort")} htmlFor="resource-form-service-port">
+                  <FormField label={t("appStore.resourceForm.servicePort")} htmlFor="resource-form-service-port" error={errors.servicePort}>
                     <Input id="resource-form-service-port" type="number" min={1} max={65535} value={servicePort} onChange={(event) => setServicePort(event.target.value)} />
                   </FormField>
-                  <FormField label={t("appStore.resourceForm.targetPort")} htmlFor="resource-form-target-port">
+                  <FormField label={t("appStore.resourceForm.targetPort")} htmlFor="resource-form-target-port" error={errors.targetPort}>
                     <Input id="resource-form-target-port" type="number" min={1} max={65535} value={targetPort} onChange={(event) => setTargetPort(event.target.value)} />
                   </FormField>
                 </>
@@ -319,7 +375,7 @@ export function ResourceFormDialog({ open, onOpenChange, onSave }: ResourceFormD
                   <FormField label={t("appStore.resourceForm.backendService")} htmlFor="resource-form-backend">
                     <Input id="resource-form-backend" className="font-mono" value={ingressService} onChange={(event) => setIngressService(event.target.value)} />
                   </FormField>
-                  <FormField label={t("appStore.resourceForm.backendPort")} htmlFor="resource-form-backend-port">
+                  <FormField label={t("appStore.resourceForm.backendPort")} htmlFor="resource-form-backend-port" error={errors.ingressPort}>
                     <Input id="resource-form-backend-port" type="number" min={1} max={65535} value={ingressPort} onChange={(event) => setIngressPort(event.target.value)} />
                   </FormField>
                 </>
@@ -327,7 +383,7 @@ export function ResourceFormDialog({ open, onOpenChange, onSave }: ResourceFormD
 
               {kind === "CronJob" ? (
                 <>
-                  <FormField label={t("appStore.resourceForm.schedule")} htmlFor="resource-form-schedule" required description={t("appStore.resourceForm.scheduleHelp")}>
+                  <FormField label={t("appStore.resourceForm.schedule")} htmlFor="resource-form-schedule" required description={t("appStore.resourceForm.scheduleHelp")} error={errors.schedule}>
                     <Input id="resource-form-schedule" className="font-mono" value={schedule} onChange={(event) => setSchedule(event.target.value)} />
                   </FormField>
                   <FormField label={t("appStore.resourceForm.image")} htmlFor="resource-form-cron-image" required error={errors.image}>

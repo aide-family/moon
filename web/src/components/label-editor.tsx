@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { useReportFormFieldError } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { LABEL_KEY_PATTERN, LABEL_VALUE_PATTERN } from "@/lib/form"
 
 /** 一组待保存的标签键值。空键空值的行视为未填写的占位行。 */
 export interface LabelRow {
@@ -23,10 +24,6 @@ export interface LabelValidation {
   rowErrors: (LabelRowError | undefined)[]
   formError: LabelFormError | undefined
 }
-
-/** 与后端约束一致：键 1–63、值 0–63，只允许字母、数字、点、下划线和连字符。 */
-const KEY_PATTERN = /^[A-Za-z0-9._-]{1,63}$/
-const VALUE_PATTERN = /^[A-Za-z0-9._-]{0,63}$/
 
 const MAX_LABELS = 32
 
@@ -63,13 +60,13 @@ export function validateLabelRows(rows: LabelRow[]): LabelValidation {
     if (row.key === "") {
       return "keyRequired"
     }
-    if (!KEY_PATTERN.test(row.key)) {
+    if (!LABEL_KEY_PATTERN.test(row.key)) {
       return "keyInvalid"
     }
     if ((seen.get(row.key) ?? 0) > 1) {
       return "duplicateKey"
     }
-    if (!VALUE_PATTERN.test(row.value)) {
+    if (!LABEL_VALUE_PATTERN.test(row.value)) {
       return "valueInvalid"
     }
     return undefined

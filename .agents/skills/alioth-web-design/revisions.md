@@ -9,6 +9,15 @@
 - 字段级错误不再显示在控件下方；表单级提交错误仍放在 `DialogBody` 之外、`DialogFooter` 之上（见 2026-10-28 条）。
 - 实现位置：`web/src/components/form-field.tsx`。不要在每个页面复制 label 行或错误样式。
 
+## 2026-11-17 字段错误的定向文案、正则校验与接口错误回显（用户规则）
+
+适用：`web/src` 下所有 `Dialog` 表单，以及共享校验层 `lib/form.ts`、`lib/form-error.ts`、`api/http.ts`。
+
+- 每条字段错误都必须说明「哪个字段 + 期望的格式/范围 + 下一步」，中英文同步；不再使用「必填」「格式不正确」这类没有字段名的泛化文案。统一用 `checkField` / `requiredField` / `requiredError` / `formatError` 生成；`requiredError` 只返回文案，不是校验器，条目里必须用 `requiredField`，字段名取该字段可见 label（`t("...name")`）。
+- 正则校验能力在共享层：`patternError(value, pattern, message)`、`requirePattern(...)`、`checkField({ pattern, hint, integerRange })`；`field.hint.*` 提供可复用的格式说明。proto 有格式/范围约束的字段（名称长度、邮箱、URL/endpoint、端口、时长、Cron、标签键值等）在提交前用同一套规则拦截。
+- 接口错误不能只 toast/表单级提示：`readFormError` 把 400 字段校验与 409 字段冲突放进 `fields`，页面绑定到对应 `FormField` 的 `error`；无法定位到字段时才留在 `DialogBody` 与 `DialogFooter` 之间的表单级错误区。后端没有结构化字段信息时，由 `api/http.ts` 的 `fieldByMessage` / buf.validate 句式映射回字段并本地化。
+- 字段错误展示仍遵循 2026-11-17「label 行右侧」规则；本规则只改文案与错误来源，不移动错误位置。
+
 ## 2026-11-15 清除筛选、标签字典与维护窗口时间
 
 适用：全局列表筛选；告警规则/规则组；告警字典；维护窗口。

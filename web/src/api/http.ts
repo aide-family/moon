@@ -59,6 +59,8 @@ const messageKeys: Record<string, string> = {
   "pod exec unavailable": "error.podExecUnavailable",
   "pod exec is unavailable": "error.podExecUnavailable",
   "invalid labels": "error.invalidLabels",
+  "cron is required": "error.cronRequired",
+  "invalid cron expression": "error.invalidCron",
   // 应用商店。
   "only a published version can be deployed": "error.versionNotPublished",
   "only a published version can be upgraded to": "error.versionNotPublished",
@@ -379,11 +381,158 @@ const reasonKeys: Record<string, string> = {
   SERVER: "error.reason.SERVER",
 }
 
+// 服务端只给整句英文时，按原文把冲突/校验失败定位到表单字段（key 与页面 fieldErrors 一致）。
 const fieldByMessage: Record<string, string> = {
   "captcha is invalid": "captchaCode",
   "email already exists": "email",
   "email is not registered": "email",
   "invalid username": "name",
+  "member already exists": "email",
+  "name already exists": "name",
+  "invalid email address": "email",
+  "contact email is invalid": "contactEmail",
+  "invalid smtp host": "host",
+  "invalid smtp port": "port",
+  "invalid smtp from": "from",
+  "invalid smtp endpoint": "endpoint",
+  "invalid webhook endpoint": "endpoint",
+  "invalid registry endpoint": "endpoint",
+  "registry endpoint must be an http or https URL": "endpoint",
+  "invalid datasource endpoint": "endpoint",
+  "invalid kubeconfig": "kubeconfig",
+  "kubeconfig is empty": "kubeconfig",
+  "kubeconfig is required": "kubeconfig",
+  "invalid labels": "labels",
+  "labels are required": "labels",
+  "too many labels": "labels",
+  "duplicate variable name": "variables",
+  "target tag already exists": "targetTag",
+  "site page slug already exists": "slug",
+  "site page sort order already exists": "sortOrder",
+  "invalid escalation policy name": "name",
+  "invalid maintenance window name": "name",
+  "invalid rotation name": "name",
+  "invalid board name": "name",
+  "invalid status page name": "name",
+  "invalid status page title": "title",
+  "duplicate notification group": "name",
+  "name is too long": "name",
+  "remark is too long": "remark",
+  // on-call / 订阅：窗口与重复间隔的后端校验原文落到对应字段。
+  "invalid on-call timezone": "timezone",
+  "invalid on-call weekday": "windows",
+  "invalid on-call windows": "windows",
+  "on-call window requires at least one weekday": "windows",
+  "on-call window start and end must differ": "windows",
+  "on-call window time must be HH:mm": "windows",
+  "too many on-call filters": "labels",
+  "too many on-call groups": "groups",
+  "too many on-call time windows": "windows",
+  "repeat interval seconds is out of range": "repeatIntervalSeconds",
+  "too many channels": "channels",
+  "too many subscription filters": "labels",
+  "receivers are required": "receivers",
+  // 值班轮换与巡检的字段级原文。
+  "invalid rotation period": "period",
+  "invalid rotation handoff hour": "handoffHour",
+  "rotation starts at is required": "startsAt",
+  "invalid rotation members": "members",
+  "cron is required": "cron",
+  "invalid cron expression": "cron",
+  // 探测、注册表、站点与巡检的格式原文。
+  "probe target must be http or https": "targets",
+  "probe target host is required": "targets",
+  "probe target is required": "targets",
+  "probe timeout out of range": "timeoutMs",
+  "invalid probe interval": "probeIntervalSeconds",
+  "probe header key is required": "headers",
+  "invalid source image": "sourceImage",
+  "invalid hero image url": "heroImageUrl",
+  "invalid secondary cta link": "ctaSecondaryHref",
+  "cover image url is invalid": "coverImageUrl",
+  "logo url is invalid": "logoUrl",
+  "favicon url is invalid": "faviconUrl",
+  "repository url is invalid": "repositoryUrl",
+  "filing icp url is invalid": "filingIcpUrl",
+  "filing police url is invalid": "filingPoliceUrl",
+}
+
+// 服务端字段路径（buf.validate 报错里最后一段）到本地化字段名的映射。
+const fieldLabelKeys: Record<string, string> = {
+  name: "field.label.name",
+  email: "field.label.email",
+  endpoint: "field.label.endpoint",
+  url: "field.label.url",
+  host: "field.label.host",
+  port: "field.label.port",
+  cron: "field.label.cron",
+  slug: "field.label.slug",
+  title: "field.label.title",
+  description: "field.label.description",
+  labels: "field.label.labels",
+  remark: "field.label.remark",
+  username: "field.label.username",
+  password: "field.label.password",
+  phone: "field.label.phone",
+  sortOrder: "field.label.sortOrder",
+  from: "field.label.from",
+  fromAddress: "field.label.from",
+  contactEmail: "field.label.contactEmail",
+  webhookUrl: "field.label.webhookUrl",
+  kubeconfig: "field.label.kubeconfig",
+  variables: "field.label.variables",
+  group: "field.label.group",
+  durationDays: "field.label.durationDays",
+  repeatIntervalSeconds: "field.label.repeatIntervalSeconds",
+  probeIntervalSeconds: "field.label.probeIntervalSeconds",
+  targetTag: "field.label.targetTag",
+}
+
+function localizedFieldLabel(field: string): string {
+  const key = fieldLabelKeys[field]
+  return i18n.t(key ?? "field.label.generic")
+}
+
+/**
+ * 把后端字段错误详情本地化成“字段名 + 期望格式/范围”，而不是把英文校验原文
+ * 直接贴到 label 行。认识 buf.validate 的常见句式，其余走已有 messageKeys。
+ */
+function localizeFieldDetail(field: string, detail: string): string {
+  const label = localizedFieldLabel(field)
+  const text = detail.trim()
+  const lengthAtLeast = /^value length must be at least (\d+) characters?$/i.exec(text)
+  if (lengthAtLeast) {
+    return i18n.t("field.minLength", { label, min: lengthAtLeast[1] })
+  }
+  const lengthAtMost = /^value length must be at most (\d+) characters?$/i.exec(text)
+  if (lengthAtMost) {
+    return i18n.t("field.maxLength", { label, max: lengthAtMost[1] })
+  }
+  const atLeast = /^value must be greater than or equal to (-?\d+(?:\.\d+)?)$/i.exec(text)
+  if (atLeast) {
+    return i18n.t("field.minValue", { label, min: atLeast[1] })
+  }
+  const atMost = /^value must be less than or equal to (-?\d+(?:\.\d+)?)$/i.exec(text)
+  if (atMost) {
+    return i18n.t("field.maxValue", { label, max: atMost[1] })
+  }
+  if (/must be a valid email/i.test(text)) {
+    return i18n.t("field.pattern", { label, hint: i18n.t("field.hint.email") })
+  }
+  if (/must be a valid (http )?url|must be a valid uri/i.test(text)) {
+    return i18n.t("field.pattern", { label, hint: i18n.t("field.hint.url") })
+  }
+  if (/does not match regex pattern/i.test(text)) {
+    return i18n.t("field.pattern", { label, hint: i18n.t("field.hint.format") })
+  }
+  if (/^(value )?is required$|must not be empty/i.test(text)) {
+    return i18n.t("field.required", { label })
+  }
+  const localized = localizeMessage(text)
+  if (localized !== text) {
+    return localized
+  }
+  return i18n.t("field.apiInvalid", { label })
 }
 
 export class ApiError extends Error {
@@ -442,7 +591,7 @@ export function parseFieldErrors(message: string): Record<string, string> {
   const pattern = /invalid\s+[\w.]+\.(\w+)\s*:\s*([^;\n]+)/gi
   for (const match of message.matchAll(pattern)) {
     const name = fieldName(match[1])
-    fields[name] = localizeMessage(match[2].trim())
+    fields[name] = localizeFieldDetail(name, match[2].trim())
   }
   return fields
 }
@@ -637,7 +786,11 @@ function throwResponseError(
   }
   const raw = data.message || `request failed: ${response.status}`
   const message = localizeMessage(raw, data.reason ?? "")
-  const fields = response.status === 400 ? parseFieldErrors(raw) : {}
+  // 400 是字段校验失败，409 里也有能定位到字段的冲突（名称/邮箱重复等）。
+  const fields =
+    response.status === 400 || response.status === 409
+      ? parseFieldErrors(raw)
+      : {}
   if (!options.silent && (response.status === 404 || response.status >= 500)) {
     notifyStatus(response.status, message)
   }

@@ -61,9 +61,11 @@ import {
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { firstInvalidReceiver } from "@/lib/email"
 import {
+  checkField,
   collectFieldErrors,
+  formatMessage,
+  patternHint,
   hasFieldErrors,
-  requireTrimmed,
   type FieldErrors,
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
@@ -369,7 +371,15 @@ export function NotificationGroupPage() {
     event.preventDefault()
     const payload = buildPayload()
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
+      [
+        "name",
+        checkField({
+          label: t("group.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
       [
         "channels",
         payload.channelUids.length === 0 ? t("group.channelRequired") : null,
@@ -396,10 +406,16 @@ export function NotificationGroupPage() {
       ],
     ])
     if (emailChannelUid && emailReceivers.trim() && firstInvalidReceiver(emailReceivers)) {
-      errors.receivers = t("form.invalidEmail")
+      errors.receivers = formatMessage(
+        t("group.receivers"),
+        patternHint("email")
+      )
     }
     if (smsChannelUid && smsReceivers.trim() && firstInvalidPhone(smsReceivers)) {
-      errors.smsReceivers = t("form.invalidPhone")
+      errors.smsReceivers = formatMessage(
+        t("group.smsReceivers"),
+        patternHint("phone")
+      )
     }
     for (const app of selectedWebhookApps()) {
       if (!webhookTemplates[app]) {

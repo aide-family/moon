@@ -20,10 +20,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  maxLength,
-  requireTrimmed,
+  requiredError,
   type FieldErrors,
 } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
@@ -74,31 +74,42 @@ export function StatusPageDialog({
 
   function validate(): FieldErrors {
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("statusPage.errors.nameRequired"))],
-      ["name", maxLength(name, NAME_MAX, t("statusPage.errors.nameTooLong"))],
-      ["title", requireTrimmed(title, t("statusPage.errors.titleRequired"))],
+      [
+        "name",
+        checkField({
+          label: t("statusPage.name"),
+          value: name,
+          required: true,
+          max: NAME_MAX,
+        }),
+      ],
       [
         "title",
-        maxLength(title, TITLE_MAX, t("statusPage.errors.titleTooLong")),
+        checkField({
+          label: t("statusPage.titleLabel"),
+          value: title,
+          required: true,
+          max: TITLE_MAX,
+        }),
       ],
       [
         "description",
-        maxLength(
-          description,
-          DESCRIPTION_MAX,
-          t("statusPage.errors.descriptionTooLong")
-        ),
+        checkField({
+          label: t("statusPage.descriptionLabel"),
+          value: description,
+          max: DESCRIPTION_MAX,
+        }),
       ],
       [
         "targetGroupUids",
         targetGroupUids.length === 0
-          ? t("statusPage.errors.groupsRequired")
+          ? requiredError(t("statusPage.targetGroups"))
           : null,
       ],
       [
         "targetGroupUids",
         targetGroupUids.length > MAX_GROUPS
-          ? t("statusPage.errors.groupsTooMany")
+          ? t("statusPage.errors.groupsTooMany", { max: MAX_GROUPS })
           : null,
       ],
     ])

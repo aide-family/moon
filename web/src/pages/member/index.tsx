@@ -25,10 +25,12 @@ import { RoleRemarkHint } from "@/components/role-remark-hint"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  requireSelected,
-  requireTrimmed,
+  patternHint,
+  requiredError,
+  requiredField,
 } from "@/lib/form"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { usePagedList } from "@/hooks/use-paged-list"
@@ -150,8 +152,17 @@ export function MemberPage() {
   async function onInvite(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
-      ["email", requireTrimmed(email, t("form.required"))],
-      ["role", requireSelected(roleUid, t("form.required"))],
+      [
+        "email",
+        checkField({
+          label: t("member.email"),
+          value: email,
+          required: true,
+          pattern: /^[^@\s]+@[^@\s]+\.[^@\s]+$/,
+          hint: patternHint("email"),
+        }),
+      ],
+      ["role", requiredField(roleUid, t("member.role"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -184,7 +195,10 @@ export function MemberPage() {
       return
     }
     const errors = collectFieldErrors([
-      ["roles", selected.length === 0 ? t("form.required") : null],
+      [
+        "roles",
+        selected.length === 0 ? requiredError(t("member.role")) : null,
+      ],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)

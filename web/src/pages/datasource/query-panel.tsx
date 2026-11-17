@@ -22,6 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/class-names"
+import { requiredError } from "@/lib/form"
 import { failureMessage } from "@/lib/form-error"
 import type { QuerySnapshot } from "@/lib/query-store"
 import {
@@ -226,7 +227,7 @@ function MetricsQueryPanel({ datasource }: { datasource: DatasourceItem }) {
     }
     const trimmed = active.expr.trim()
     if (!trimmed) {
-      setExprError(t("form.required"))
+      setExprError(requiredError(t("datasource.expr")))
       setQueryError("")
       return
     }

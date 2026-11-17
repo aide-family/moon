@@ -16,6 +16,7 @@ import { TemplateEditor } from "@/components/template-editor"
 import { TemplatePreviewDialog } from "@/components/template-preview-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { checkField, requiredError } from "@/lib/form"
 import { failureMessage, readFormError } from "@/lib/form-error"
 import { cn } from "@/lib/class-names"
 
@@ -100,14 +101,20 @@ export function NotificationPresetPage() {
       return
     }
     const errors: Record<string, string> = {}
-    if (!name.trim()) {
-      errors.name = t("form.required")
+    const nameError = checkField({
+      label: t("template.name"),
+      value: name,
+      required: true,
+      max: 64,
+    })
+    if (nameError) {
+      errors.name = nameError
     }
     if (selected.type === "EMAIL" && !subject.trim()) {
-      errors.subject = t("form.required")
+      errors.subject = requiredError(t("template.subject"))
     }
     if (!body.trim()) {
-      errors.body = t("form.required")
+      errors.body = requiredError(t("template.body"))
     }
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)

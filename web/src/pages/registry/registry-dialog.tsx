@@ -29,7 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { formErrorMessage } from "@/lib/form-error"
+import { checkField, patternHint } from "@/lib/form"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 const NAME_MAX = 64
 const ENDPOINT_MAX = 512
@@ -96,13 +97,35 @@ export function RegistryDialog({
 
   async function handleSave() {
     const next: Record<string, string> = {}
-    if (!name.trim()) next.name = t("form.required")
-    if (!endpoint.trim()) next.endpoint = t("form.required")
-    if (name.trim().length > NAME_MAX) next.name = t("form.nameTooLong")
-    if (endpoint.trim().length > ENDPOINT_MAX)
-      next.endpoint = t("form.nameTooLong")
-    if (remark.trim().length > REMARK_MAX)
-      next.remark = t("form.nameTooLong")
+    const nameError = checkField({
+      label: t("registry.name"),
+      value: name,
+      required: true,
+      max: NAME_MAX,
+    })
+    if (nameError) {
+      next.name = nameError
+    }
+    const endpointError =
+      checkField({
+        label: t("registry.endpoint"),
+        value: endpoint,
+        required: true,
+        max: ENDPOINT_MAX,
+        pattern: /^https?:\/\/\S+$/i,
+        hint: patternHint("endpoint"),
+      }) ?? ""
+    if (endpointError) {
+      next.endpoint = endpointError
+    }
+    const remarkError = checkField({
+      label: t("registry.remark"),
+      value: remark,
+      max: REMARK_MAX,
+    })
+    if (remarkError) {
+      next.remark = remarkError
+    }
     setFieldErrors(next)
     if (Object.keys(next).length > 0) return
     setSaving(true)
@@ -132,7 +155,9 @@ export function RegistryDialog({
       }
       onSaved()
     } catch (err) {
-      setError(formErrorMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors((current) => ({ ...current, ...failure.fields }))
+      setError(failure.form)
     } finally {
       setSaving(false)
     }

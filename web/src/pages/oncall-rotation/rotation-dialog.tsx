@@ -330,6 +330,7 @@ export function RotationDialog({
             <FormField
               label={t("rotation.period")}
               htmlFor="rotation-period"
+              error={fieldErrors.period}
               required
             >
               <Select

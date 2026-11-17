@@ -26,7 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { formErrorMessage } from "@/lib/form-error"
+import { checkField } from "@/lib/form"
+import { readFormError } from "@/lib/form-error"
 
 const NAME_MAX = 64
 const DISPLAY_MAX = 128
@@ -65,8 +66,14 @@ export function ApplicationDialog({
   const [fieldError, setFieldError] = useState("")
 
   async function save() {
-    if (!application && !name.trim()) {
-      setFieldError(t("form.required"))
+    const nameError = checkField({
+      label: t("appStore.appName"),
+      value: name,
+      required: !application,
+      max: 64,
+    })
+    if (nameError) {
+      setFieldError(nameError)
       return
     }
     setSaving(true)
@@ -85,7 +92,14 @@ export function ApplicationDialog({
         : await createApplication(body)
       onSaved(result.application)
     } catch (err) {
-      setError(formErrorMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      if (failure.fields.name) {
+        setFieldError(failure.fields.name)
+        setError("")
+      } else {
+        setFieldError("")
+        setError(failure.form)
+      }
     } finally {
       setSaving(false)
     }

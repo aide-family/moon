@@ -53,9 +53,14 @@ import {
 import { TableActionsHead, TableStatusHead, TableTypeHead } from "@/components/table-heads"
 import { isEmail } from "@/lib/email"
 import {
+  checkField,
   collectFieldErrors,
+  formatMessage,
+  patternError,
+  patternHint,
   hasFieldErrors,
-  requireTrimmed,
+  requiredError,
+  requiredField,
   type FieldErrors,
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
@@ -168,33 +173,74 @@ export function NotificationChannelPage() {
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
-      ["type", requireTrimmed(type, t("form.required"))],
-      ["endpoint", requireTrimmed(endpoint, t("form.required"))],
+      [
+        "name",
+        checkField({
+          label: t("channel.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
+      ["type", requiredField(type, t("channel.type"))],
+      [
+        "endpoint",
+        checkField({
+          label: t("channel.endpoint"),
+          value: endpoint,
+          required: true,
+        }),
+      ],
+      [
+        "remark",
+        checkField({
+          label: t("channel.remark"),
+          value: remark,
+          max: 200,
+        }),
+      ],
     ])
     const target = endpoint.trim()
     if (target && type === "SMTP") {
       if (target.includes("://") || /\s/.test(target)) {
-        errors.endpoint = t("form.invalidEndpoint")
+        errors.endpoint = formatMessage(
+          t("channel.endpoint"),
+          patternHint("smtp")
+        )
+      } else {
+        const smtpError = patternError(
+          target,
+          /^[A-Za-z0-9._-]+(:\d{1,5})?$/,
+          formatMessage(t("channel.endpoint"), patternHint("smtp"))
+        )
+        if (smtpError) {
+          errors.endpoint = smtpError
+        }
       }
       if (!fromAddress.trim() && !username.trim()) {
         errors.fromAddress = t("channel.senderRequired")
       }
       if (fromAddress.trim() && !isEmail(fromAddress)) {
-        errors.fromAddress = t("form.invalidEmail")
+        errors.fromAddress = formatMessage(
+          t("channel.fromAddress"),
+          patternHint("email")
+        )
       }
     } else if (target && !/^https?:\/\//.test(target)) {
-      errors.endpoint = t("form.invalidUrl")
+      errors.endpoint = formatMessage(
+        t("channel.endpoint"),
+        patternHint("url")
+      )
     }
     if (target && type === "SMS") {
       if (!username.trim()) {
-        errors.username = t("form.required")
+        errors.username = requiredError(t("channel.accessKeyId"))
       }
       if (!editing && !password.trim()) {
-        errors.password = t("form.required")
+        errors.password = requiredError(t("channel.accessKeySecret"))
       }
       if (!fromAddress.trim()) {
-        errors.fromAddress = t("form.required")
+        errors.fromAddress = requiredError(t("channel.smsSignName"))
       }
     }
     if (hasFieldErrors(errors)) {

@@ -27,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { requiredError } from "@/lib/form"
 import { failureMessage } from "@/lib/form-error"
 import type { QuerySnapshot } from "@/lib/query-store"
 import { DatasourceQueryToolbar } from "@/pages/datasource/components/query-toolbar"
@@ -245,7 +246,7 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
     }
     const trimmed = active.expr.trim()
     if (!trimmed) {
-      setExprError(t("form.required"))
+      setExprError(requiredError(t("datasource.expr")))
       setQueryError("")
       return
     }

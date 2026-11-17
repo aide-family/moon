@@ -107,11 +107,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TableActionsHead, TableStatusHead } from "@/components/table-heads"
 import { enumLabel } from "@/lib/enum-label"
 import {
+  checkField,
   collectFieldErrors,
+  formatError,
   hasFieldErrors,
   maxLength,
-  requireSelected,
-  requireTrimmed,
+  patternHint,
+  requiredError,
+  requiredField,
   type FieldErrors,
 } from "@/lib/form"
 import { failureMessage, readFormError } from "@/lib/form-error"
@@ -842,8 +845,15 @@ export function AlertRulePage() {
     event.preventDefault()
     const labelsResult = labelsToJSON(groupLabels)
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(groupName, t("form.required"))],
-      ["name", maxLength(groupName, 64, t("form.nameTooLong"))],
+      [
+        "name",
+        checkField({
+          label: t("alertRule.group"),
+          value: groupName,
+          required: true,
+          max: 64,
+        }),
+      ],
       [
         "labels",
         labelsResult.error ? t(labelErrorKey(labelsResult.error)) : null,
@@ -888,13 +898,20 @@ export function AlertRulePage() {
   function validateRuleStep(step: number): FieldErrors {
     if (step === 0) {
       const checks: Array<[string, string | null]> = [
-        ["name", requireTrimmed(form.name, t("form.required"))],
-        ["name", maxLength(form.name, 64, t("form.nameTooLong"))],
-        ["driver", requireTrimmed(form.driver, t("form.required"))],
+        [
+          "name",
+          checkField({
+            label: t("alertRule.name"),
+            value: form.name,
+            required: true,
+            max: 64,
+          }),
+        ],
+        ["driver", requiredField(form.driver, t("alertRule.observation"))],
       ]
       // 探测规则没有查询表达式，改为匹配目标组；查询规则仍要求表达式。
       if (!isProbe) {
-        checks.push(["expr", requireTrimmed(form.expr, t("form.required"))])
+        checks.push(["expr", requiredField(form.expr, t("alertRule.expr"))])
       }
       const labelsError = labelsToJSON(form.labels).error
       checks.push([
@@ -907,11 +924,19 @@ export function AlertRulePage() {
       const checks: Array<[string, string | null]> = [
         [
           "summary",
-          maxLength(form.summary, 2000, t("alertRule.templateTooLong")),
+          checkField({
+            label: t("alertRule.summary"),
+            value: form.summary,
+            max: 2000,
+          }),
         ],
         [
           "description",
-          maxLength(form.description, 2000, t("alertRule.templateTooLong")),
+          checkField({
+            label: t("alertRule.descriptionField"),
+            value: form.description,
+            max: 2000,
+          }),
         ],
       ]
       // 探测规则隐藏自定义变量，跳过变量相关的全部校验。
@@ -937,7 +962,7 @@ export function AlertRulePage() {
           checks.push(
             [
               `variable.${index}.name`,
-              requireTrimmed(variable.name, t("form.required")),
+              requiredField(name, t("alertRule.variableName")),
             ],
             [
               `variable.${index}.name`,
@@ -953,7 +978,7 @@ export function AlertRulePage() {
             ],
             [
               `variable.${index}.expr`,
-              requireTrimmed(variable.expr, t("form.required")),
+              requiredField(variable.expr, t("alertRule.variableExpr")),
             ],
             [
               `variable.${index}.expr`,
@@ -984,34 +1009,43 @@ export function AlertRulePage() {
       const checks: Array<[string, string | null]> = []
       // 探测规则必须选择观测指标；查询规则的指标由表达式隐式决定。
       if (isProbe && !formProbeMetrics.includes(form.probeMetric)) {
-        checks.push(["probeMetric", t("alertRule.probeMetricRequired")])
+        checks.push([
+          "probeMetric",
+          requiredError(t("alertRule.probeMetric")),
+        ])
       }
       if (form.levels.length === 0) {
-        checks.push(["levels", t("form.required")])
+        checks.push(["levels", requiredError(t("alertRule.levels"))])
         return collectFieldErrors(checks)
       }
       form.levels.forEach((level, index) => {
         checks.push(
           [
             `level.${index}.levelUid`,
-            requireSelected(level.levelUid, t("form.required")),
+            level.levelUid.trim() === "" || level.levelUid === "NONE"
+              ? requiredError(t("alertRule.levelLabel"))
+              : null,
           ],
           [
             `level.${index}.condition`,
-            requireSelected(level.condition, t("form.required")),
+            level.condition.trim() === "" || level.condition === "NONE"
+              ? requiredError(t("alertRule.condition"))
+              : null,
           ],
           [
             `level.${index}.threshold`,
-            requireTrimmed(level.threshold, t("form.required")),
+            requiredField(level.threshold, t("alertRule.threshold")),
           ],
           [
             `level.${index}.sample`,
-            requireSelected(level.sample, t("form.required")),
+            level.sample.trim() === "" || level.sample === "NONE"
+              ? requiredError(t("alertRule.sample"))
+              : null,
           ],
           [
             `level.${index}.forSeconds`,
             !Number.isFinite(level.forSeconds) || level.forSeconds < 0
-              ? t("form.required")
+              ? formatError(t("alertRule.forSeconds"), patternHint("seconds"))
               : null,
           ]
         )
@@ -1969,6 +2003,7 @@ export function AlertRulePage() {
                       <FormField
                         label={t("alertRule.probeInterval")}
                         hint={t("alertRule.probeIntervalHint")}
+                        error={fieldErrors.probeIntervalSeconds}
                       >
                         <Select
                           value={String(form.probeIntervalSeconds)}

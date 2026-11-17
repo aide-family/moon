@@ -43,9 +43,9 @@ import {
 } from "@/components/ui/table"
 import { TableActionsHead } from "@/components/table-heads"
 import {
+  checkField,
   collectFieldErrors,
   hasFieldErrors,
-  requireTrimmed,
 } from "@/lib/form"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
@@ -105,7 +105,15 @@ export function AlertPageManagePage() {
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
+      [
+        "name",
+        checkField({
+          label: t("alertPage.name"),
+          value: name,
+          required: true,
+          max: 64,
+        }),
+      ],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 
 import { CodeBlock } from "@/components/code-block"
 import { FormField } from "@/components/form-field"
+import { checkField } from "@/lib/form"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -45,8 +46,14 @@ export function SaveTemplateDialog({
 
   function submit() {
     const trimmed = name.trim()
-    if (!trimmed) {
-      setError(t("form.required"))
+    const nameError = checkField({
+      label: t("datasource.query.templateName"),
+      value: name,
+      required: true,
+      max: MAX_NAME,
+    })
+    if (nameError) {
+      setError(nameError)
       return
     }
     onSubmit({ name: trimmed, description: description.trim() })
