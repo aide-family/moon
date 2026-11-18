@@ -27,7 +27,7 @@ import {
 import { useSiteConfig } from "@/hooks/use-site-config"
 import { cn } from "@/lib/class-names"
 import type { FieldErrors } from "@/lib/form"
-import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
+import { collectFieldErrors, hasFieldErrors, requiredField } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
 import { readNextPath } from "@/lib/redirect"
 import { AuthShell } from "@/pages/auth-shell"
@@ -188,8 +188,8 @@ export function LoginPage() {
       return
     }
     const errors = collectFieldErrors([
-      ["email", requireTrimmed(email, t("form.required"))],
-      ["captchaCode", requireTrimmed(captchaCode, t("form.required"))],
+      ["email", requiredField(email, t("login.emailLabel"))],
+      ["captchaCode", requiredField(captchaCode, t("form.captcha"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -246,9 +246,9 @@ export function LoginPage() {
       return
     }
     const errors = collectFieldErrors([
-      ["email", requireTrimmed(email, t("form.required"))],
-      ["code", requireTrimmed(code, t("form.required"))],
-      ["captchaCode", requireTrimmed(captchaCode, t("form.required"))],
+      ["email", requiredField(email, t("login.emailLabel"))],
+      ["code", requiredField(code, t("login.codeLabel"))],
+      ["captchaCode", requiredField(captchaCode, t("form.captcha"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)

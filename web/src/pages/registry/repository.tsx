@@ -176,8 +176,12 @@ export function RegistryRepositoryPage() {
 
   async function submitCopy() {
     if (!copying) return
-    if (!copyTargetRepository.trim() || !copyTargetTag.trim()) {
-      setCopyError(t("form.required"))
+    if (!copyTargetRepository.trim()) {
+      setCopyError(t("field.required", { label: t("registry.targetRepository") }))
+      return
+    }
+    if (!copyTargetTag.trim()) {
+      setCopyError(t("field.required", { label: t("registry.targetTag") }))
       return
     }
     setCopyPending(true)

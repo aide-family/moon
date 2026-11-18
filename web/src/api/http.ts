@@ -490,7 +490,8 @@ const fieldLabelKeys: Record<string, string> = {
 
 function localizedFieldLabel(field: string): string {
   const key = fieldLabelKeys[field]
-  return i18n.t(key ?? "field.label.generic")
+  // 没有本地化名称时保留服务端字段名：宁可显示具体字段，也不要退回“该字段”。
+  return key ? i18n.t(key) : field
 }
 
 /**
@@ -508,6 +509,14 @@ function localizeFieldDetail(field: string, detail: string): string {
   if (lengthAtMost) {
     return i18n.t("field.maxLength", { label, max: lengthAtMost[1] })
   }
+  const lengthBetween = /^value length must be between (\d+) and (\d+) characters?$/i.exec(text)
+  if (lengthBetween) {
+    return i18n.t("field.length", {
+      label,
+      min: lengthBetween[1],
+      max: lengthBetween[2],
+    })
+  }
   const atLeast = /^value must be greater than or equal to (-?\d+(?:\.\d+)?)$/i.exec(text)
   if (atLeast) {
     return i18n.t("field.minValue", { label, min: atLeast[1] })
@@ -522,8 +531,24 @@ function localizeFieldDetail(field: string, detail: string): string {
   if (/must be a valid (http )?url|must be a valid uri/i.test(text)) {
     return i18n.t("field.pattern", { label, hint: i18n.t("field.hint.url") })
   }
+  const regexPattern = /does not match regex pattern "?([^"]+?)"?\.?$/i.exec(text)
+  if (regexPattern) {
+    return i18n.t("field.pattern", {
+      label,
+      hint: i18n.t("field.hint.regex", { pattern: regexPattern[1] }),
+    })
+  }
   if (/does not match regex pattern/i.test(text)) {
     return i18n.t("field.pattern", { label, hint: i18n.t("field.hint.format") })
+  }
+  const oneOf = /^value must be one of \[(.+)\]$/i.exec(text)
+  if (oneOf) {
+    const values = oneOf[1]
+      .split(/[,\s]+/)
+      .map((item) => item.replace(/^["']|["']$/g, ""))
+      .filter(Boolean)
+      .join(" / ")
+    return i18n.t("field.oneOf", { label, values })
   }
   if (/^(value )?is required$|must not be empty/i.test(text)) {
     return i18n.t("field.required", { label })

@@ -17,7 +17,7 @@ import {
   SEND_CODE_COOLDOWN_SECONDS,
   useSendCodeCooldown,
 } from "@/hooks/use-send-code-cooldown"
-import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
+import { collectFieldErrors, hasFieldErrors, requiredField } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
 import { readNextPath } from "@/lib/redirect"
 import { USERNAME_MAX_LENGTH, usernameError } from "@/lib/username"
@@ -62,8 +62,8 @@ export function RegisterPage() {
       return
     }
     const errors = collectFieldErrors([
-      ["email", requireTrimmed(email, t("form.required"))],
-      ["captchaCode", requireTrimmed(captchaCode, t("form.required"))],
+      ["email", requiredField(email, t("login.emailLabel"))],
+      ["captchaCode", requiredField(captchaCode, t("form.captcha"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -118,9 +118,9 @@ export function RegisterPage() {
       return
     }
     const errors = collectFieldErrors([
-      ["email", requireTrimmed(email, t("form.required"))],
-      ["code", requireTrimmed(code, t("form.required"))],
-      ["captchaCode", requireTrimmed(captchaCode, t("form.required"))],
+      ["email", requiredField(email, t("login.emailLabel"))],
+      ["code", requiredField(code, t("login.codeLabel"))],
+      ["captchaCode", requiredField(captchaCode, t("form.captcha"))],
       ["name", usernameError(name, t("register.usernameInvalid"))],
     ])
     if (hasFieldErrors(errors)) {

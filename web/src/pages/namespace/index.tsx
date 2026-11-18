@@ -63,8 +63,6 @@ import {
   collectFieldErrors,
   hasFieldErrors,
   requiredField,
-  requireSelected,
-  requireTrimmed,
 } from "@/lib/form"
 import { useFilterDraft } from "@/hooks/use-filter-draft"
 import { useListQuery } from "@/hooks/use-list-query"
@@ -341,7 +339,7 @@ export function NamespacePage() {
       return
     }
     const errors = collectFieldErrors([
-      ["name", requireTrimmed(name, t("form.required"))],
+      ["name", requiredField(name, t("namespace.name"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
@@ -408,7 +406,7 @@ export function NamespacePage() {
       return
     }
     const errors = collectFieldErrors([
-      ["target", requireSelected(target, t("form.required"))],
+      ["target", requiredField(target, t("member.email"))],
     ])
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
