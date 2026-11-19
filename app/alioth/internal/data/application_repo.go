@@ -188,6 +188,21 @@ func (r *applicationRepo) CreateVersion(ctx context.Context, in bo.ApplicationVe
 	return r.GetVersion(ctx, in.NamespaceUID, in.ApplicationUID, versionUID)
 }
 
+func (r *applicationRepo) UpdateVersionChangelog(ctx context.Context, namespaceUID, applicationUID, uid, changelog string) (*bo.ApplicationVersion, error) {
+	n, err := r.client.ApplicationVersion.Update().
+		Where(
+			applicationversion.UIDEQ(uid), applicationversion.NamespaceUIDEQ(namespaceUID),
+			applicationversion.ApplicationUIDEQ(applicationUID), applicationversion.DeletedAtIsNil(),
+		).SetChangelog(changelog).Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if n == 0 {
+		return nil, merr.NotFound("version not found")
+	}
+	return r.GetVersion(ctx, namespaceUID, applicationUID, uid)
+}
+
 func (r *applicationRepo) UpdateVersion(ctx context.Context, in bo.ApplicationVersion) (*bo.ApplicationVersion, error) {
 	row, err := r.client.ApplicationVersion.Query().Where(
 		applicationversion.UIDEQ(in.UID), applicationversion.NamespaceUIDEQ(in.NamespaceUID),

@@ -20,6 +20,8 @@ type ApplicationRepo interface {
 	ListApplications(ctx context.Context, namespaceUID string, filter bo.ApplicationListFilter, page, pageSize int) ([]bo.Application, int, error)
 
 	CreateVersion(ctx context.Context, in bo.ApplicationVersion) (*bo.ApplicationVersion, error)
+	// UpdateVersionChangelog 只改版本备注，不改内容，因此不受上架不可变限制。
+	UpdateVersionChangelog(ctx context.Context, namespaceUID, applicationUID, uid, changelog string) (*bo.ApplicationVersion, error)
 	// UpdateVersion 只允许改 changelog；未归一化的旧版本仍允许整体替换 resources。
 	UpdateVersion(ctx context.Context, in bo.ApplicationVersion) (*bo.ApplicationVersion, error)
 	// SaveVersionContent 在事务里锁定版本、校验 DRAFT 与 revision，整体替换组件/

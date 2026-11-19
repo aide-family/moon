@@ -65,8 +65,18 @@ func (catalog *Catalog) UpdateApplication(ctx context.Context, in bo.Application
 		return nil, err
 	}
 	in.NamespaceUID = ns
-	if err := normalizeApplication(&in); err != nil {
-		return nil, err
+	// 应用名不可改，编辑只校验可写字段，避免旧客户端把空 name 带进来被误判为必填。
+	in.DisplayName = strings.TrimSpace(in.DisplayName)
+	in.Description = strings.TrimSpace(in.Description)
+	in.Category = strings.TrimSpace(in.Category)
+	if in.Category == "" {
+		in.Category = "OTHER"
+	}
+	if len([]rune(in.Category)) > 32 {
+		return nil, merr.Invalid("category must not exceed 32 characters")
+	}
+	if len([]rune(in.Description)) > 1024 {
+		return nil, merr.Invalid("description is too long")
 	}
 	item, err := catalog.apps.UpdateApplication(ctx, in)
 	return item, catalog.access.Wrap(err)
@@ -175,6 +185,15 @@ func (catalog *Catalog) UpdateVersion(ctx context.Context, applicationUID string
 	existing, err := catalog.apps.GetVersion(ctx, ns, applicationUID, version.UID)
 	if err != nil {
 		return nil, catalog.access.Wrap(err)
+	}
+	// 备注（changelog）属于元数据，不改变已上架版本的内容，因此任何状态都可编辑。
+	if len(version.Resources) == 0 {
+		item, err := catalog.apps.UpdateVersionChangelog(ctx, ns, applicationUID, version.UID, version.Changelog)
+		if err != nil {
+			return nil, catalog.access.Wrap(err)
+		}
+		catalog.decorate(item)
+		return item, nil
 	}
 	if existing.Status != draftVersionStatus {
 		return nil, merr.Conflict("published version is immutable")
