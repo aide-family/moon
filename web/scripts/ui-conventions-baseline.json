@@ -1,6 +1,6 @@
 [
   "components/channel-logo.tsx|palette-class",
-  "components/code-editor.tsx|color-literal",
+  "components/monaco-runtime.ts|color-literal",
   "components/copy-button.tsx|palette-class",
   "components/date-range-picker.tsx|palette-class",
   "components/detail-values.tsx|palette-class",

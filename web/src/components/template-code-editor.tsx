@@ -1,34 +1,10 @@
 import Editor, { loader, type Monaco } from "@monaco-editor/react"
 import { useEffect } from "react"
-import * as monacoEditor from "monaco-editor"
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
-import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
-import htmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker"
 
+import { ensureMonacoRuntime } from "@/components/monaco-runtime"
 import { useTheme } from "@/components/theme-provider"
 
-let ready = false
-
-function ensureMonaco() {
-  if (ready) {
-    return
-  }
-  ready = true
-  window.MonacoEnvironment = {
-    getWorker(_workerId, label) {
-      if (label === "json") {
-        return new jsonWorker()
-      }
-      if (label === "html" || label === "markdown") {
-        return new htmlWorker()
-      }
-      return new editorWorker()
-    },
-  }
-  loader.config({ monaco: monacoEditor })
-}
-
-ensureMonaco()
+ensureMonacoRuntime()
 
 interface TemplateCodeEditorProps {
   value: string

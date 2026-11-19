@@ -1,40 +1,31 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Navigate, useNavigate, useParams } from "react-router-dom"
+import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import {
   deleteApplicationVersion,
+  deleteApplicationVersionResource,
+  deprecateApplicationVersion,
   getApplicationVersion,
   publishApplicationVersion,
-  updateApplicationVersion,
+  saveApplicationVersionResource,
   validateApplicationVersion,
 } from "@/api/application"
-import type { ApplicationVersionItem } from "@/api/application/types"
+import type {
+  ApplicationDeploymentItem,
+  ApplicationResource,
+  ApplicationVersionComponent,
+  ApplicationVersionItem,
+} from "@/api/application/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
-import { HeaderActionsMenu } from "@/components/header-actions-menu"
+import { HeaderActionsMenu, type HeaderAction } from "@/components/header-actions-menu"
 import { PageHeader } from "@/components/page-header"
 import { RowActions } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { FormField } from "@/components/form-field"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -43,147 +34,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  buildVersionComponents,
+  canRunVersionAction,
+  listVersionResources,
+} from "@/lib/application-version"
+import { formatUnixDateTime } from "@/lib/date-time"
+import { enumLabel } from "@/lib/enum-label"
 import { formErrorMessage } from "@/lib/form-error"
 import { TABLE_MIN_WIDTH, TABLE_NOWRAP } from "@/lib/table-layout"
 
-import { ResourceFormDialog } from "./resource-form-dialog"
+import { ApplicationComponentDialog } from "./application-component-dialog"
+import { ApplicationDuplicateVersionDialog } from "./duplicate-version-dialog"
+import { ApplicationReleaseDialog } from "./release-dialog"
+import { ApplicationResourceDetailSheet } from "./application-resource-detail-sheet"
+import { ApplicationResourceFormDialog } from "./application-resource-form-dialog"
+import { ApplicationServicesTab } from "./application-services-tab"
 
-const KINDS = ["Deployment", "StatefulSet", "DaemonSet", "CronJob", "Service", "Ingress", "ConfigMap", "Secret", "HorizontalPodAutoscaler", "NetworkPolicy", "ClusterRole", "CustomResourceDefinition", "CustomResource"]
+const TABS = ["services", "resources", "images"] as const
+type VersionTab = (typeof TABS)[number]
 
-const TEMPLATES: Record<string, string> = {
-  Deployment: `apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: app
-spec:
-  replicas: 1
-  selector:
-    matchLabels: {app: app}
-  template:
-    metadata:
-      labels: {app: app}
-    spec:
-      containers:
-        - name: app
-          image: nginx:1.27.2
-          ports: [{containerPort: 80}]`,
-  Service: `apiVersion: v1
-kind: Service
-metadata:
-  name: app
-spec:
-  selector: {app: app}
-  ports: [{port: 80, targetPort: 80}]`,
-  ConfigMap: `apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config
-data:
-  KEY: value`,
-  Secret: `apiVersion: v1
-kind: Secret
-metadata:
-  name: app-secret
-stringData:
-  PASSWORD: change-me`,
-  Ingress: `apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: app
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: app.example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: app
-                port: {number: 80}`,
-  ClusterRole: `apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: app-reader
-rules:
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "list"]`,
-  CustomResourceDefinition: `apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  name: examples.example.com
-spec:
-  group: example.com
-  names:
-    kind: Example
-    plural: examples
-  scope: Namespaced
-  versions:
-    - name: v1
-      served: true
-      storage: true
-      schema:
-        openAPIV3Schema:
-          type: object`,
-  CustomResource: `apiVersion: example.com/v1
-kind: Example
-metadata:
-  name: example`,
-}
+const RESOURCE_TABLE_COLUMNS = 7
 
-interface ResourceDraft {
-  item: string
-  manifest: string
-  kind?: string
-  name?: string
-  scope?: string
-}
-
-function inspectManifest(manifest: string): { kind?: string; name?: string; scope?: string } {
-  const kind = manifest.match(/^kind:\s*([A-Za-z0-9]+)/m)?.[1]
-  const name = manifest.match(/^\s*name:\s*([A-Za-z0-9.-]+)/m)?.[1]
-  const clusterScoped = ["ClusterRole", "ClusterRoleBinding", "CustomResourceDefinition", "PersistentVolume", "StorageClass", "PriorityClass", "IngressClass"].includes(kind || "")
-  return { kind, name, scope: clusterScoped ? "CLUSTER" : kind ? "NAMESPACED" : undefined }
-}
-
-interface YamlDialogProps {
-  open: boolean
-  title: string
-  initialKind: string
-  initialManifest: string
-  onOpenChange: (open: boolean) => void
-  onSave: (manifest: string) => void
-}
-
-function YamlResourceDialog({ open, title, initialKind, initialManifest, onOpenChange, onSave }: YamlDialogProps) {
-  const { t } = useTranslation()
-  const [kind, setKind] = useState(initialKind || "Deployment")
-  const [manifest, setManifest] = useState(initialManifest || TEMPLATES[initialKind] || TEMPLATES.Deployment)
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
-        <DialogBody className="grid gap-4">
-          <FormField label={t("appStore.resourceKind")} htmlFor="resource-kind" description={t("appStore.resourceForm.kindHelp")}>
-            <Select value={kind} onValueChange={(value) => { setKind(value); setManifest(TEMPLATES[value] || TEMPLATES.CustomResource) }}>
-              <SelectTrigger id="resource-kind"><SelectValue /></SelectTrigger>
-              <SelectContent>{KINDS.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
-            </Select>
-          </FormField>
-          <FormField label={t("appStore.resourceYaml")} htmlFor="resource-yaml" description={t("appStore.resourceForm.yamlHelp")}>
-            <Textarea id="resource-yaml" className="min-h-[360px] font-mono text-xs" value={manifest} onChange={(event) => setManifest(event.target.value)} />
-          </FormField>
-        </DialogBody>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("action.cancel")}</Button>
-          <Button onClick={() => { onSave(manifest); onOpenChange(false) }}>{t("action.save")}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
+interface ResourceDialogState {
+  mode: "create" | "edit"
+  component: string
+  resource: ApplicationResource | null
 }
 
 export function ApplicationVersionPage() {
@@ -191,28 +68,32 @@ export function ApplicationVersionPage() {
   const session = useSession()
   const navigate = useNavigate()
   const { uid = "", versionUid = "" } = useParams()
+  const [params, setParams] = useSearchParams()
+  const tabParam = params.get("tab")
+  const tab: VersionTab = TABS.includes(tabParam as VersionTab) ? (tabParam as VersionTab) : "services"
   const [version, setVersion] = useState<ApplicationVersionItem | null>(null)
-  const [resources, setResources] = useState<ResourceDraft[]>([])
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [actionPending, setActionPending] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [validationWarnings, setValidationWarnings] = useState<string[]>([])
-  const [formOpen, setFormOpen] = useState(false)
-  const [yamlOpen, setYamlOpen] = useState(false)
-  const [yamlIndex, setYamlIndex] = useState(-1)
-  const [yamlKind, setYamlKind] = useState("Deployment")
-  const [yamlManifest, setYamlManifest] = useState("")
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [deletePending, setDeletePending] = useState(false)
+  const [resourceDialog, setResourceDialog] = useState<ResourceDialogState | null>(null)
+  const [detailResource, setDetailResource] = useState<ApplicationResource | null>(null)
+  const [deletingResource, setDeletingResource] = useState<ApplicationResource | null>(null)
+  const [deleteResourceError, setDeleteResourceError] = useState("")
+  const [deleteVersionOpen, setDeleteVersionOpen] = useState(false)
+  const [duplicateOpen, setDuplicateOpen] = useState(false)
+  const [releaseOpen, setReleaseOpen] = useState(false)
+  const [renameComponent, setRenameComponent] = useState<ApplicationVersionComponent | null>(null)
+  const [deleteComponent, setDeleteComponent] = useState<ApplicationVersionComponent | null>(null)
+  const [componentPending, setComponentPending] = useState(false)
+  const [componentError, setComponentError] = useState("")
 
   useEffect(() => {
     let active = true
     void getApplicationVersion(uid, versionUid)
       .then((result) => {
-        if (!active) return
-        setVersion(result.version)
-        setResources(result.version.resources.map((item) => ({ item: item.item, manifest: item.manifest, kind: item.kind, name: item.name, scope: item.scope })))
+        if (active) setVersion(result.version)
       })
       .catch((err) => {
         if (active) setError(formErrorMessage(err, t("state.failed")))
@@ -225,211 +106,478 @@ export function ApplicationVersionPage() {
     }
   }, [uid, versionUid, t])
 
+  const components = useMemo(() => buildVersionComponents(version), [version])
+  const resources = useMemo(() => listVersionResources(version), [version])
+
   if (!session.loading && !session.can("application:read")) {
     return <Navigate to="/forbidden" replace />
   }
   if (!version) {
-    return <section className="flex min-h-0 flex-1 flex-col gap-6"><PageHeader title={t("appStore.version")} description={loading ? t("state.loading") : error} /></section>
-  }
-  const editable = version.status === "DRAFT" && session.can("application:write")
-
-  function localizedWarning(warning: string): string {
-    const external = warning.match(/^image (.+) is external and is not digest-pinned$/)
-    if (external) return t("appStore.externalImageWarning", { image: external[1] })
-    const unresolved = warning.match(/^image (.+) could not be resolved and is treated as external$/)
-    if (unresolved) return t("appStore.externalImageUnresolved", { image: unresolved[1] })
-    if (warning.includes("image registry list is unavailable")) return t("appStore.registryListUnavailable")
-    return warning
+    return (
+      <section className="flex min-h-0 flex-1 flex-col gap-6">
+        <PageHeader title={t("appStore.version")} description={loading ? t("state.loading") : error} />
+      </section>
+    )
   }
 
-  async function saveDraft() {
-    if (!version) return false
-    setSaving(true)
-    setError("")
-    try {
-      const result = await updateApplicationVersion(uid, version.uid, {
-        applicationUid: uid,
-        changelog: version?.changelog ?? "",
-        resources: resources.map((item) => ({ item: item.item, manifest: item.manifest })),
-      })
-      setVersion(result.version)
-      setResources(result.version.resources.map((item) => ({ item: item.item, manifest: item.manifest, kind: item.kind, name: item.name, scope: item.scope })))
-      toast.success(t("state.saved"))
-      return true
-    } catch (err) {
-      setError(formErrorMessage(err, t("state.failed")))
-      return false
-    } finally {
-      setSaving(false)
-    }
+  const writable = session.can("application:write")
+  const releasable = session.can("release:write")
+  const editable = version.status === "DRAFT" && writable
+  const copyable = writable && canRunVersionAction(version, "COPY")
+  const headerActions: HeaderAction[] = [
+    ...(writable && canRunVersionAction(version, "DEPRECATE")
+      ? [{
+          key: "deprecate",
+          label: t("appStore.deprecate"),
+          onSelect: () => {
+            setActionPending(true)
+            void deprecateApplicationVersion(uid, versionUid)
+              .then((result) => {
+                setVersion(result.version)
+                toast.success(t("appStore.deprecated"))
+              })
+              .catch((err) => {
+                setError(formErrorMessage(err, t("state.failed")))
+              })
+              .finally(() => setActionPending(false))
+          },
+        }]
+      : []),
+    ...(copyable ? [{ key: "copy", label: t("appStore.copyVersion"), onSelect: () => setDuplicateOpen(true) }] : []),
+    ...(version.status === "DRAFT" ? [{ key: "validate", label: t("appStore.validate"), onSelect: () => void validate() }] : []),
+    ...(writable && canRunVersionAction(version, "DELETE")
+      ? [{ key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setDeleteVersionOpen(true) }]
+      : []),
+  ]
+  const readOnlyHint = editable
+    ? undefined
+    : version.status === "DRAFT"
+      ? t("appStore.readOnlyNoPermission")
+      : t("appStore.readOnlyVersionHint")
+
+  function setTab(next: string) {
+    const query = new URLSearchParams(params)
+    query.set("tab", next)
+    setParams(query)
   }
 
-  async function validate() {
-    setValidationErrors([])
-    setValidationWarnings([])
-    if (editable) {
-      const saved = await saveDraft()
-      if (!saved) return
-    }
-    try {
-      const result = await validateApplicationVersion(uid, versionUid)
-      setValidationErrors(result.errors)
-      setValidationWarnings(result.warnings.map(localizedWarning))
-      if (result.version) setVersion(result.version)
-      if (result.errors.length === 0) toast.success(t("appStore.validationPassed"))
-    } catch (err) {
-      setValidationErrors([formErrorMessage(err, t("state.failed"))])
-    }
+  function openCreateResource(component?: string) {
+    setResourceDialog({ mode: "create", component: component ?? "", resource: null })
+  }
+
+  function openEditResource(resource: ApplicationResource) {
+    setDetailResource(null)
+    setResourceDialog({ mode: "edit", component: resource.component || "default", resource })
+  }
+
+  function applyVersion(next: ApplicationVersionItem) {
+    setVersion(next)
   }
 
   async function publish() {
-    setSaving(true)
+    setActionPending(true)
     setError("")
     try {
-      if (editable) {
-        await updateApplicationVersion(uid, versionUid, {
-          applicationUid: uid,
-          changelog: version?.changelog ?? "",
-          resources: resources.map((item) => ({ item: item.item, manifest: item.manifest })),
-        })
-      }
       const result = await publishApplicationVersion(uid, versionUid)
       setVersion(result.version)
       toast.success(t("appStore.published"))
     } catch (err) {
       setError(formErrorMessage(err, t("state.failed")))
     } finally {
-      setSaving(false)
+      setActionPending(false)
     }
   }
 
-  async function removeDraft() {
-    setDeletePending(true)
+  async function validate() {
+    setActionPending(true)
+    setValidationErrors([])
+    setValidationWarnings([])
+    try {
+      const result = await validateApplicationVersion(uid, versionUid)
+      setValidationErrors(result.errors)
+      setValidationWarnings(result.warnings)
+      if (result.version) setVersion(result.version)
+      if (result.errors.length === 0) toast.success(t("appStore.validationPassed"))
+    } catch (err) {
+      setValidationErrors([formErrorMessage(err, t("state.failed"))])
+    } finally {
+      setActionPending(false)
+    }
+  }
+
+  async function removeVersion() {
+    setActionPending(true)
+    setError("")
     try {
       await deleteApplicationVersion(uid, versionUid)
+      toast.success(t("appStore.versionDeleted"))
       navigate(`/appstore/apps/${uid}`)
     } catch (err) {
       setError(formErrorMessage(err, t("state.failed")))
-    } finally {
-      setDeletePending(false)
+      setActionPending(false)
     }
   }
 
-  function editResource(index: number) {
-    setYamlIndex(index)
-    setYamlKind(resources[index]?.kind || "Deployment")
-    setYamlManifest(resources[index]?.manifest || "")
-    setYamlOpen(true)
+  async function removeResource() {
+    if (!deletingResource || !version) return
+    setActionPending(true)
+    setDeleteResourceError("")
+    try {
+      const result = await deleteApplicationVersionResource({
+        applicationUid: uid,
+        uid: versionUid,
+        resourceUid: deletingResource.uid,
+        expectedRevision: version.revision,
+      })
+      setVersion(result.version)
+      setDeletingResource(null)
+      toast.success(t("appStore.resourceDeleted"))
+    } catch (err) {
+      setDeleteResourceError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setActionPending(false)
+    }
   }
 
-  function addResource() {
-    setFormOpen(true)
+  async function renameService(nextName: string) {
+    if (!renameComponent || !version) return
+    const target = renameComponent
+    setComponentPending(true)
+    setComponentError("")
+    try {
+      let current = version
+      for (const resource of target.resources) {
+        const result = await saveApplicationVersionResource({
+          applicationUid: uid,
+          uid: versionUid,
+          resourceUid: resource.uid,
+          component: nextName,
+          manifest: resource.manifest,
+          expectedRevision: current.revision,
+        })
+        current = result.version
+      }
+      setVersion(current)
+      setRenameComponent(null)
+      toast.success(t("appStore.services.renamed"))
+    } catch (err) {
+      setComponentError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setComponentPending(false)
+    }
   }
 
-  function appendResource(manifest: string) {
-    const inspected = inspectManifest(manifest)
-    setResources((current) => [...current, { item: `r-${Date.now()}`, manifest, ...inspected }])
-  }
-
-  function saveResource(manifest: string) {
-    const inspected = inspectManifest(manifest)
-    if (yamlIndex >= 0) {
-      setResources((current) => current.map((item, index) => index === yamlIndex ? { ...item, manifest, ...inspected } : item))
-    } else {
-      setResources((current) => [...current, { item: `r-${Date.now()}`, manifest, ...inspected }])
+  async function deleteService() {
+    if (!deleteComponent || !version) return
+    const target = deleteComponent
+    setComponentPending(true)
+    setComponentError("")
+    try {
+      let current = version
+      for (const resource of target.resources) {
+        const result = await deleteApplicationVersionResource({
+          applicationUid: uid,
+          uid: versionUid,
+          resourceUid: resource.uid,
+          expectedRevision: current.revision,
+        })
+        current = result.version
+      }
+      setVersion(current)
+      setDeleteComponent(null)
+      toast.success(t("appStore.services.deleted"))
+    } catch (err) {
+      setComponentError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setComponentPending(false)
     }
   }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
-        title={`${version.version}`}
-        description={t("appStore.versionDescription", { status: version.status, resources: resources.length, images: version.images.length })}
+        title={version.version}
+        description={t("appStore.versionDescription", {
+          status: enumLabel(t, version.status),
+          components: version.componentCount ?? components.length,
+          resources: version.resourceCount ?? resources.length,
+          images: version.images.length,
+        })}
+        titleAccessory={<StatusBadge value={version.status} />}
       >
         <Button variant="outline" onClick={() => navigate(`/appstore/apps/${uid}`)}>{t("action.goBack")}</Button>
-        {editable ? <Button variant="outline" disabled={saving} onClick={() => void saveDraft()}>{t("appStore.saveDraft")}</Button> : null}
-        {editable ? <Button disabled={saving} onClick={() => void publish()}>{t("appStore.publish")}</Button> : null}
-        {editable ? (
-          <HeaderActionsMenu
-            label={t("action.more")}
-            actions={[
-              { key: "validate", label: t("appStore.validate"), onSelect: () => void validate() },
-              { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setDeleteOpen(true) },
-            ]}
-          />
+        {editable && canRunVersionAction(version, "PUBLISH") ? (
+          <Button disabled={actionPending} onClick={() => void publish()}>{t("appStore.publish")}</Button>
+        ) : null}
+        {releasable && canRunVersionAction(version, "RELEASE") ? (
+          <Button variant="secondary" onClick={() => setReleaseOpen(true)}>{t("appStore.releaseAction")}</Button>
+        ) : null}
+        {headerActions.length > 0 ? (
+          <HeaderActionsMenu label={t("action.more")} actions={headerActions} />
         ) : null}
       </PageHeader>
-      <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="grid gap-6 pb-2">
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      {validationErrors.length > 0 ? <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"><ul className="list-disc pl-5">{validationErrors.map((item) => <li key={item}>{item}</li>)}</ul></div> : null}
-      {validationWarnings.length > 0 ? <div className="rounded-lg border border-warning-border bg-warning-soft p-3 text-sm text-warning"><ul className="list-disc pl-5">{validationWarnings.map((item) => <li key={item}>{item}</li>)}</ul></div> : null}
-      <div className="rounded-xl border border-border/60 bg-card">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="font-heading text-base font-semibold">{t("appStore.resourceList")}</h2>
-          {editable ? <Button variant="outline" size="sm" onClick={addResource}>{t("appStore.addResource")}</Button> : null}
-        </div>
-        <div className="p-4">
-          <Table className={TABLE_MIN_WIDTH.wide}>
-            <TableHeader><TableRow><TableHead>{t("appStore.resourceKind")}</TableHead><TableHead>{t("appStore.resourceName")}</TableHead><TableHead>{t("appStore.resourceScope")}</TableHead><TableHead>{t("appStore.images")}</TableHead><TableHead>{t("appStore.secretKeys")}</TableHead><TableActionsHead>{t("action.actions")}</TableActionsHead></TableRow></TableHeader>
-            <TableBody>
-              {resources.map((resource, index) => (
-                <TableRow key={resource.item}>
-                  <TableCell className="font-mono text-xs">{resource.kind || "—"}</TableCell>
-                  <TableCell className="font-mono text-xs">{resource.name || "—"}</TableCell>
-                  <TableCell><Badge variant={resource.scope === "CLUSTER" ? "destructive" : "outline"}>{resource.scope || "UNKNOWN"}</Badge></TableCell>
-                  <TableCell className="font-mono text-xs">{version.resources[index]?.images.length ?? 0}</TableCell>
-                  <TableCell className="font-mono text-xs">{version.resources[index]?.secretKeys.join(", ") || "—"}</TableCell>
-                  <TableActionsCell className={TABLE_NOWRAP}>{editable ? <RowActions nowrap detailLabel={t("appStore.editYaml")} moreLabel={t("action.more")} onDetail={() => editResource(index)} actions={[{ key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setResources((current) => current.filter((_, position) => position !== index)) }]} /> : "—"}</TableActionsCell>
-                </TableRow>
-              ))}
-              {resources.length === 0 ? <TableRow><TableCell colSpan={6} className="text-sm text-muted-foreground">{t("appStore.emptyResources")}</TableCell></TableRow> : null}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-      <div className="rounded-xl border border-border/60 bg-card p-4">
-        <h2 className="mb-2 font-heading text-base font-semibold">{t("appStore.images")}</h2>
-        {version.images.length === 0 ? <p className="text-sm text-muted-foreground">—</p> : (
-          <div className="grid gap-2">
-            {version.images.map((image) => (
-              <div key={`${image.resourceItem}-${image.image}`} className="rounded-lg border border-border/60 p-2 text-sm">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-xs break-all">{image.image}</span>
-                  <Badge variant={image.external ? "destructive" : "secondary"}>{image.external ? "EXTERNAL" : image.registryName}</Badge>
-                </div>
-                <p className="mt-1 font-mono text-xs text-muted-foreground">{image.digest || "—"} · {image.platforms.join(" · ") || "—"}</p>
-              </div>
-            ))}
+
+      <div className="grid gap-2">
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {validationErrors.length > 0 ? (
+          <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+            <p className="mb-1 font-medium">{t("appStore.validationErrors")}</p>
+            <ul className="list-disc pl-5 break-words">{validationErrors.map((item) => <li key={item}>{item}</li>)}</ul>
           </div>
-        )}
+        ) : null}
+        {validationWarnings.length > 0 ? (
+          <div className="rounded-lg border border-warning-border bg-warning-soft p-3 text-sm text-warning">
+            <p className="mb-1 font-medium">{t("appStore.validationWarnings")}</p>
+            <ul className="list-disc pl-5 break-words">{validationWarnings.map((item) => <li key={item}>{item}</li>)}</ul>
+          </div>
+        ) : null}
       </div>
-      </div>
-      </div>
-      <ResourceFormDialog
-        key={formOpen ? "open" : "closed"}
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        onSave={appendResource}
+
+      <Tabs value={tab} onValueChange={setTab} className="min-h-0 flex-1">
+        <TabsList className="shrink-0">
+          <TabsTrigger value="services">{t("appStore.tabs.services")}</TabsTrigger>
+          <TabsTrigger value="resources">{t("appStore.tabs.resources")}</TabsTrigger>
+          <TabsTrigger value="images">{t("appStore.tabs.images")}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="services" className="min-h-0 flex-1 overflow-y-auto pb-2">
+          <ApplicationServicesTab
+            version={version}
+            components={components}
+            editable={editable}
+            readOnlyHint={readOnlyHint}
+            onAddResource={(component) => openCreateResource(component)}
+            onEditService={(component) => {
+              setComponentError("")
+              setRenameComponent(component)
+            }}
+            onDeleteService={(component) => {
+              setComponentError("")
+              setDeleteComponent(component)
+            }}
+            onOpenResource={(resource) => setDetailResource(resource)}
+          />
+        </TabsContent>
+
+        <TabsContent value="resources" className="min-h-0 flex-1 overflow-y-auto pb-2">
+          <div className="grid gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-heading text-base font-semibold">{t("appStore.resourceList")}</h2>
+              {editable ? <Button variant="outline" size="sm" onClick={() => openCreateResource()}>{t("appStore.addResource")}</Button> : null}
+            </div>
+            <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
+              <Table className={TABLE_MIN_WIDTH.wide}>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("appStore.resourceKind")}</TableHead>
+                    <TableHead>{t("appStore.resourceName")}</TableHead>
+                    <TableHead>{t("appStore.services.component")}</TableHead>
+                    <TableHead>{t("appStore.resourceScope")}</TableHead>
+                    <TableHead>{t("appStore.images")}</TableHead>
+                    <TableHead>{t("appStore.secretKeys")}</TableHead>
+                    <TableActionsHead>{t("action.actions")}</TableActionsHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {resources.map((resource) => (
+                    <TableRow key={resource.uid || `${resource.kind}-${resource.name}`}>
+                      <TableCell className="font-mono text-xs">{resource.kind || "—"}</TableCell>
+                      <TableCell className="font-mono text-xs">{resource.name || "—"}</TableCell>
+                      <TableCell className="font-mono text-xs">{resource.component || t("appStore.services.defaultComponent")}</TableCell>
+                      <TableCell><StatusBadge value={resource.scope} /></TableCell>
+                      <TableCell className="font-mono text-xs">{resource.images?.length ?? 0}</TableCell>
+                      <TableCell className="font-mono text-xs">{resource.secretKeys?.join(", ") || "—"}</TableCell>
+                      <TableActionsCell className={TABLE_NOWRAP}>
+                        <RowActions
+                          nowrap
+                          detailLabel={t("action.detail")}
+                          moreLabel={t("action.more")}
+                          onDetail={() => setDetailResource(resource)}
+                          actions={editable ? [
+                            { key: "edit", label: t("appStore.editResource"), onSelect: () => openEditResource(resource) },
+                            { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => { setDeleteResourceError(""); setDeletingResource(resource) } },
+                          ] : []}
+                        />
+                      </TableActionsCell>
+                    </TableRow>
+                  ))}
+                  {resources.length === 0 ? (
+                    <TableRow><TableCell colSpan={RESOURCE_TABLE_COLUMNS} className="text-sm text-muted-foreground">{t("appStore.emptyResources")}</TableCell></TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="grid gap-2 rounded-xl border border-border/60 bg-card p-4">
+              <h2 className="font-heading text-base font-semibold">{t("appStore.changelog")}</h2>
+              <p className="text-sm whitespace-pre-wrap text-foreground/90">{version.changelog || "—"}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("appStore.versionMeta", {
+                  revision: version.revision,
+                  createdAt: formatUnixDateTime(version.createdAt) || "—",
+                  publishedAt: formatUnixDateTime(version.publishedAt) || "—",
+                })}
+              </p>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="images" className="min-h-0 flex-1 overflow-y-auto pb-2">
+          <div className="grid gap-3">
+            {components.map((component) => {
+              const images = version.images.filter(
+                (image) => (image.component || "default") === component.name,
+              )
+              return (
+                <div key={component.uid || component.name} className="grid gap-2 rounded-xl border border-border/60 bg-card p-4">
+                  <h3 className="font-heading text-sm font-semibold">
+                    {component.name}
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">
+                      {t("appStore.services.resourceCount", { count: component.resourceCount || component.resources.length })}
+                    </span>
+                  </h3>
+                  {images.length === 0 ? <p className="text-sm text-muted-foreground">—</p> : (
+                    <ul className="grid gap-2">
+                      {images.map((image) => (
+                        <li key={`${image.containerPath}-${image.image}`} className="grid gap-1 rounded-lg border border-border/60 p-2">
+                          <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            <span className="min-w-0 font-mono text-xs break-all">{image.image}</span>
+                            <StatusBadge
+                              value={image.external || image.source === "EXTERNAL" ? "EXTERNAL" : "REGISTRY"}
+                              label={image.external || image.source === "EXTERNAL" ? t("appStore.services.externalImage") : image.registryName || [image.project, image.repository].filter(Boolean).join("/") || t("enum.REGISTRY")}
+                            />
+                          </div>
+                          <p className="font-mono text-xs text-muted-foreground break-all">
+                            {image.resolvedImage || image.image}
+                          </p>
+                          <p className="font-mono text-xs text-muted-foreground">
+                            {image.digest || t("appStore.imagePicker.digestUnpinned")} · {image.platforms.join(" · ") || "—"}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )
+            })}
+            {components.length === 0 ? <p className="text-sm text-muted-foreground">{t("appStore.noImages")}</p> : null}
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {resourceDialog ? (
+        <ApplicationResourceFormDialog
+          key={`${resourceDialog.mode}-${resourceDialog.resource?.uid ?? "new"}-${version.revision}`}
+          open
+          mode={resourceDialog.mode}
+          applicationUid={uid}
+          versionUid={versionUid}
+          revision={version.revision}
+          initialComponent={resourceDialog.component}
+          components={components.map((component) => component.name)}
+          resource={resourceDialog.resource}
+          onOpenChange={(open) => { if (!open) setResourceDialog(null) }}
+          onSaved={(next) => {
+            applyVersion(next)
+            setResourceDialog(null)
+            toast.success(t("state.saved"))
+          }}
+        />
+      ) : null}
+
+      <ApplicationResourceDetailSheet
+        open={detailResource !== null}
+        applicationUid={uid}
+        versionUid={versionUid}
+        resource={detailResource}
+        images={version.images}
+        editable={editable}
+        onEdit={() => { if (detailResource) openEditResource(detailResource) }}
+        onDelete={() => {
+          if (!detailResource) return
+          setDetailResource(null)
+          setDeleteResourceError("")
+          setDeletingResource(detailResource)
+        }}
+        onOpenChange={(open) => { if (!open) setDetailResource(null) }}
       />
-      <YamlResourceDialog
-        key={`${yamlOpen}-${yamlIndex}-${yamlKind}`}
-        open={yamlOpen}
-        title={yamlIndex >= 0 ? t("appStore.editYaml") : t("appStore.addResource")}
-        initialKind={yamlKind}
-        initialManifest={yamlManifest}
-        onOpenChange={setYamlOpen}
-        onSave={saveResource}
+
+      <ApplicationDuplicateVersionDialog
+        open={duplicateOpen}
+        applicationUid={uid}
+        source={version}
+        onOpenChange={setDuplicateOpen}
+        onDuplicated={(next) => {
+          setDuplicateOpen(false)
+          toast.success(t("appStore.versionCopied", { version: next.version }))
+          navigate(`/appstore/apps/${uid}/versions/${next.uid}`)
+        }}
       />
+
+      <ApplicationReleaseDialog
+        key={`release-${version.uid}-${releaseOpen ? "open" : "closed"}`}
+        open={releaseOpen}
+        applicationUid={uid}
+        initialVersionUid={version.uid}
+        onOpenChange={setReleaseOpen}
+        onReleased={(deployment: ApplicationDeploymentItem | null) => {
+          setReleaseOpen(false)
+          toast.success(t("appStore.operationSubmitted"))
+          if (deployment) {
+            navigate(`/appstore/deployments/${deployment.uid}`)
+          }
+        }}
+      />
+
+      <ApplicationComponentDialog
+        key={renameComponent ? `rename-${renameComponent.uid || renameComponent.name}` : "rename"}
+        open={renameComponent !== null}
+        mode="rename"
+        initialName={renameComponent?.name ?? ""}
+        pending={componentPending}
+        error={componentError}
+        onOpenChange={(open) => { if (!open) setRenameComponent(null) }}
+        onSave={(next) => void renameService(next)}
+      />
+
       <ConfirmAction
-        open={deleteOpen}
+        open={deleteVersionOpen}
         title={t("appStore.deleteVersionTitle")}
         description={t("appStore.deleteVersionDescription")}
         confirmLabel={t("action.delete")}
+        pendingLabel={t("action.saving")}
         cancelLabel={t("action.cancel")}
-        pending={deletePending}
-        onOpenChange={setDeleteOpen}
-        onConfirm={() => void removeDraft()}
+        pending={actionPending}
+        onOpenChange={setDeleteVersionOpen}
+        onConfirm={() => void removeVersion()}
+      />
+
+      <ConfirmAction
+        open={deletingResource !== null}
+        title={t("appStore.deleteResourceTitle")}
+        description={t("appStore.deleteResourceDescription", { name: deletingResource?.name ?? "" })}
+        confirmLabel={t("action.delete")}
+        pendingLabel={t("action.saving")}
+        cancelLabel={t("action.cancel")}
+        pending={actionPending}
+        error={deleteResourceError}
+        onOpenChange={(open) => { if (!open) setDeletingResource(null) }}
+        onConfirm={() => void removeResource()}
+      />
+
+      <ConfirmAction
+        open={deleteComponent !== null}
+        title={t("appStore.services.deleteTitle")}
+        description={t("appStore.services.deleteDescription", {
+          name: deleteComponent?.name ?? "",
+          count: deleteComponent?.resources.length ?? 0,
+        })}
+        confirmLabel={t("action.delete")}
+        pendingLabel={t("action.saving")}
+        cancelLabel={t("action.cancel")}
+        pending={componentPending}
+        error={componentError}
+        onOpenChange={(open) => { if (!open) setDeleteComponent(null) }}
+        onConfirm={() => void deleteService()}
       />
     </section>
   )

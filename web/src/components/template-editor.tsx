@@ -1,13 +1,14 @@
-import Editor, { loader, type Monaco, type OnMount } from "@monaco-editor/react"
+import Editor, { type Monaco, type OnMount } from "@monaco-editor/react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import * as monacoEditor from "monaco-editor"
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 
 import { fetchDatasourceLabelKeys } from "@/components/datasource-label-keys"
+import { ensureMonacoRuntime } from "@/components/monaco-runtime"
 import { useTheme } from "@/components/theme-provider"
 import { useMonacoOverflowNode } from "@/hooks/use-monaco-overflow-node"
 
-let monacoReady = false
+ensureMonacoRuntime()
+
 let templateLanguageReady = false
 
 // 编辑器文字与 placeholder 覆盖层共用这套字体/字号/行高/内边距，保证两者像素级对齐。
@@ -17,21 +18,6 @@ const LINE_HEIGHT = 20
 const EDITOR_PADDING_Y = 8
 // 与容器上的 px-2.5 一致（0.625rem）；Monaco 内容区从容器内边距内侧开始。
 const EDITOR_PADDING_X = "0.625rem"
-
-function ensureMonaco() {
-  if (monacoReady) {
-    return
-  }
-  monacoReady = true
-  window.MonacoEnvironment = {
-    getWorker() {
-      return new editorWorker()
-    },
-  }
-  loader.config({ monaco: monacoEditor })
-}
-
-ensureMonaco()
 
 interface TemplateField {
   label: string

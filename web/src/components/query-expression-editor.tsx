@@ -1,16 +1,16 @@
-import Editor, { loader, type Monaco, type OnMount } from "@monaco-editor/react"
+import Editor, { type Monaco, type OnMount } from "@monaco-editor/react"
 import { promLanguageDefinition } from "monaco-promql"
 import { useEffect, useMemo, useRef, useState } from "react"
 import * as monacoEditor from "monaco-editor"
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
-import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
 
+import { ensureMonacoRuntime } from "@/components/monaco-runtime"
 import { listDatasourceMetrics } from "@/api/datasource"
 import { proxyQuery } from "@/api/metric-query"
 import { useMonacoOverflowNode } from "@/hooks/use-monaco-overflow-node"
 import { useTheme } from "@/components/theme-provider"
 
-let monacoReady = false
+ensureMonacoRuntime()
+
 let promqlLanguageReady = false
 let logqlLanguageReady = false
 let logsqlLanguageReady = false
@@ -24,21 +24,6 @@ const EDITOR_PADDING_Y = 8
 const EDITOR_PADDING_X = "0.625rem"
 const MIN_HEIGHT = LINE_HEIGHT + EDITOR_PADDING_Y * 2
 const MAX_HEIGHT = 180
-
-function ensureMonaco() {
-  if (monacoReady) {
-    return
-  }
-  monacoReady = true
-  window.MonacoEnvironment = {
-    getWorker(_workerId, label) {
-      return label === "json" ? new jsonWorker() : new editorWorker()
-    },
-  }
-  loader.config({ monaco: monacoEditor })
-}
-
-ensureMonaco()
 
 function setupPromqlLanguage(monaco: Monaco) {
   if (promqlLanguageReady) {

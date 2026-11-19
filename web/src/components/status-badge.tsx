@@ -37,6 +37,11 @@ const successValues = new Set([
   "JOINED",
   "RECOVERED",
   "ONLINE",
+  // 应用商店：运行中与已上架的版本都是稳定态。
+  "RUNNING",
+  "PUBLISHED",
+  "SUCCEEDED",
+  "IN_SYNC",
 ])
 
 const warningValues = new Set([
@@ -46,6 +51,11 @@ const warningValues = new Set([
   "BUSY",
   "WORKING",
   "SUPPRESSED",
+  // 应用商店：已下架版本、部分成功、部署中与集群不同步都需要关注。
+  "DEPRECATED",
+  "PARTIAL",
+  "DEPLOYING",
+  "OUT_OF_SYNC",
 ])
 
 const dangerValues = new Set([
@@ -65,6 +75,7 @@ const infoValues = new Set([
   "CANCELLED",
   "OFFLINE",
   "IDLE",
+  "UNINSTALLING",
 ])
 
 const typeTones: Record<string, BadgeTone> = {
@@ -103,6 +114,14 @@ const typeTones: Record<string, BadgeTone> = {
   DATASOURCE: "info",
   PUBLIC: "success",
   PRIVATE: "neutral",
+  // 应用商店：集群级资源需要额外权限，用告警色；命名空间级保持中性。
+  CLUSTER: "warning",
+  NAMESPACED: "neutral",
+  UNKNOWN: "neutral",
+  REGISTRY: "info",
+  EXTERNAL: "warning",
+  DRAFT: "neutral",
+  UNINSTALLED: "neutral",
 }
 
 /** statusTone 把后端状态/类型枚举映射成一致的标签颜色。 */

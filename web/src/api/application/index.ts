@@ -5,9 +5,16 @@ import type {
   ApplicationItem,
   ApplicationOperationItem,
   ApplicationReleaseItem,
+  ApplicationResource,
   ApplicationVersionItem,
   ApplicationDeployValues,
+  CreateApplicationVersionParams,
+  CreateApplicationVersionResourceParams,
   CreateDeploymentParams,
+  DeleteApplicationVersionResourceParams,
+  DuplicateApplicationVersionParams,
+  ListApplicationReleasesParams,
+  ListApplicationReleasesResult,
   ListApplicationsParams,
   ListApplicationsResult,
   ListApplicationVersionsParams,
@@ -16,8 +23,11 @@ import type {
   ListDeploymentsResult,
   ListOperationsResult,
   SaveApplicationParams,
-  SaveApplicationVersionParams,
+  SaveApplicationVersionResourceParams,
   UpdateApplicationParams,
+  UpdateApplicationVersionParams,
+  ValidateApplicationVersionResourceParams,
+  ValidateApplicationVersionResourceResult,
   ValidateApplicationVersionResult,
 } from "./types"
 
@@ -55,12 +65,12 @@ export function getApplicationVersion(uid: string, versionUid: string): Promise<
   return get<{ version: ApplicationVersionItem }>(`/application/${segment(uid)}/version/${segment(versionUid)}`)
 }
 /** POST /v1/application/{uid}/version */
-export function createApplicationVersion(uid: string, body: SaveApplicationVersionParams): Promise<{ version: ApplicationVersionItem }> {
-  return post<{ version: ApplicationVersionItem }>(`/application/${segment(uid)}/version`, body)
+export function createApplicationVersion(body: CreateApplicationVersionParams): Promise<{ version: ApplicationVersionItem }> {
+  return post<{ version: ApplicationVersionItem }>(`/application/${segment(body.applicationUid)}/version`, body)
 }
 /** PUT /v1/application/{uid}/version/{versionUid} */
-export function updateApplicationVersion(uid: string, versionUid: string, body: SaveApplicationVersionParams): Promise<{ version: ApplicationVersionItem }> {
-  return put<{ version: ApplicationVersionItem }>(`/application/${segment(uid)}/version/${segment(versionUid)}`, { ...body, uid: versionUid })
+export function updateApplicationVersion(body: UpdateApplicationVersionParams): Promise<{ version: ApplicationVersionItem }> {
+  return put<{ version: ApplicationVersionItem }>(`/application/${segment(body.applicationUid)}/version/${segment(body.uid)}`, body)
 }
 /** DELETE /v1/application/{uid}/version/{versionUid} */
 export function deleteApplicationVersion(uid: string, versionUid: string): Promise<Record<string, never>> {
@@ -77,6 +87,40 @@ export function publishApplicationVersion(uid: string, versionUid: string): Prom
 /** POST /v1/application/{uid}/version/{versionUid}/deprecate */
 export function deprecateApplicationVersion(uid: string, versionUid: string): Promise<{ version: ApplicationVersionItem }> {
   return post<{ version: ApplicationVersionItem }>(`/application/${segment(uid)}/version/${segment(versionUid)}/deprecate`)
+}
+/** POST /v1/application/{uid}/version/{versionUid}/copy */
+export function duplicateApplicationVersion(body: DuplicateApplicationVersionParams): Promise<{ version: ApplicationVersionItem }> {
+  return post<{ version: ApplicationVersionItem }>(`/application/${segment(body.applicationUid)}/version/${segment(body.uid)}/copy`, body)
+}
+
+/** POST /v1/application/{uid}/version/{versionUid}/resource */
+export function createApplicationVersionResource(body: CreateApplicationVersionResourceParams): Promise<{ version: ApplicationVersionItem }> {
+  return post<{ version: ApplicationVersionItem }>(`/application/${segment(body.applicationUid)}/version/${segment(body.uid)}/resource`, body)
+}
+/** GET /v1/application/{uid}/version/{versionUid}/resource/{resourceUid} */
+export function getApplicationVersionResource(uid: string, versionUid: string, resourceUid: string): Promise<{ resource: ApplicationResource }> {
+  return get<{ resource: ApplicationResource }>(`/application/${segment(uid)}/version/${segment(versionUid)}/resource/${segment(resourceUid)}`)
+}
+/** PUT /v1/application/{uid}/version/{versionUid}/resource/{resourceUid} */
+export function saveApplicationVersionResource(body: SaveApplicationVersionResourceParams): Promise<{ version: ApplicationVersionItem }> {
+  return put<{ version: ApplicationVersionItem }>(
+    `/application/${segment(body.applicationUid)}/version/${segment(body.uid)}/resource/${segment(body.resourceUid)}`,
+    body,
+  )
+}
+/** DELETE /v1/application/{uid}/version/{versionUid}/resource/{resourceUid} */
+export function deleteApplicationVersionResource(body: DeleteApplicationVersionResourceParams): Promise<{ version: ApplicationVersionItem }> {
+  // DELETE 没有请求体：expectedRevision 按查询参数绑定（与 proto 字段名一致）。
+  return del<{ version: ApplicationVersionItem }>(
+    `/application/${segment(body.applicationUid)}/version/${segment(body.uid)}/resource/${segment(body.resourceUid)}?expectedRevision=${body.expectedRevision}`,
+  )
+}
+/** POST /v1/application/{uid}/version/{versionUid}/resource/validate */
+export function validateApplicationVersionResource(body: ValidateApplicationVersionResourceParams): Promise<ValidateApplicationVersionResourceResult> {
+  return post<ValidateApplicationVersionResourceResult>(
+    `/application/${segment(body.applicationUid)}/version/${segment(body.uid)}/resource/validate`,
+    body,
+  )
 }
 
 /** GET /v1/application-deployments */
@@ -105,6 +149,10 @@ export function uninstallApplicationDeployment(uid: string, clusterUids: string[
 }
 export function listApplicationDeploymentOperations(uid: string, params: { page?: number; pageSize?: number } = {}): Promise<ListOperationsResult> {
   return get<ListOperationsResult>(`/application-deployments/${segment(uid)}/operations`, params)
+}
+/** GET /v1/application-releases */
+export function listApplicationReleases(params: ListApplicationReleasesParams = {}): Promise<ListApplicationReleasesResult> {
+  return get<ListApplicationReleasesResult>("/application-releases", params)
 }
 export function getApplicationRelease(uid: string): Promise<{ release: ApplicationReleaseItem }> {
   return get<{ release: ApplicationReleaseItem }>(`/application-releases/${segment(uid)}`)

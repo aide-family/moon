@@ -1,15 +1,12 @@
-import Editor, { loader, type Monaco, type OnMount } from "@monaco-editor/react"
+import Editor, { type Monaco, type OnMount } from "@monaco-editor/react"
 import { useEffect, useRef } from "react"
-import * as monacoEditor from "monaco-editor"
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
-import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
 
+import { ensureMonacoRuntime, setupMonaco } from "@/components/monaco-runtime"
 import { useTheme } from "@/components/theme-provider"
 import { useMonacoOverflowNode } from "@/hooks/use-monaco-overflow-node"
 import { cn } from "@/lib/class-names"
 
-let monacoReady = false
-let themesReady = false
+ensureMonacoRuntime()
 
 // 编辑器文字与 placeholder 覆盖层共用这套字体/字号/行高/内边距，保证两者像素级对齐。
 const FONT_FAMILY = 'JetBrains Mono, Menlo, Monaco, "Courier New", monospace'
@@ -18,124 +15,6 @@ const LINE_HEIGHT = 20
 const EDITOR_PADDING_Y = 8
 // 与容器上的 px-2.5 一致（0.625rem）；Monaco 内容区从容器内边距内侧开始。
 const EDITOR_PADDING_X = "0.625rem"
-
-function ensureMonaco() {
-  if (monacoReady) {
-    return
-  }
-  monacoReady = true
-  window.MonacoEnvironment = {
-    getWorker(_workerId, label) {
-      return label === "json" ? new jsonWorker() : new editorWorker()
-    },
-  }
-  loader.config({ monaco: monacoEditor })
-}
-
-ensureMonaco()
-
-// 配色直接取自 Shiki 的 github-light / github-dark，与 CodeBlock 的
-// --code-bg / --code-fg 是同一套 GitHub 主题，代码块和编辑器在明暗主题下保持一致。
-const githubLightRules = [
-  { token: "comment", foreground: "6a737d" },
-  { token: "string", foreground: "032f62" },
-  { token: "string.key", foreground: "005cc5" },
-  { token: "string.value", foreground: "032f62" },
-  { token: "constant", foreground: "005cc5" },
-  { token: "keyword", foreground: "d73a49" },
-  { token: "number", foreground: "005cc5" },
-  { token: "type", foreground: "22863a" },
-  { token: "tag", foreground: "22863a" },
-  { token: "attribute", foreground: "6f42c1" },
-  { token: "variable", foreground: "e36209" },
-  { token: "operator", foreground: "24292e" },
-  { token: "operators", foreground: "24292e" },
-  { token: "delimiter", foreground: "24292e" },
-  { token: "meta", foreground: "6a737d" },
-  { token: "anchor", foreground: "005cc5" },
-  { token: "invalid", foreground: "b31d28" },
-]
-
-const githubDarkRules = [
-  { token: "comment", foreground: "6a737d" },
-  { token: "string", foreground: "9ecbff" },
-  { token: "string.key", foreground: "79b8ff" },
-  { token: "string.value", foreground: "9ecbff" },
-  { token: "constant", foreground: "79b8ff" },
-  { token: "keyword", foreground: "f97583" },
-  { token: "number", foreground: "79b8ff" },
-  { token: "type", foreground: "85e89d" },
-  { token: "tag", foreground: "85e89d" },
-  { token: "attribute", foreground: "b392f0" },
-  { token: "variable", foreground: "ffab70" },
-  { token: "operator", foreground: "e1e4e8" },
-  { token: "operators", foreground: "e1e4e8" },
-  { token: "delimiter", foreground: "e1e4e8" },
-  { token: "meta", foreground: "6a737d" },
-  { token: "anchor", foreground: "79b8ff" },
-  { token: "invalid", foreground: "fdaeb7" },
-]
-
-function setupGithubThemes(monaco: Monaco) {
-  if (themesReady) {
-    return
-  }
-  themesReady = true
-  monaco.editor.defineTheme("github-light", {
-    base: "vs",
-    inherit: true,
-    rules: githubLightRules,
-    colors: {
-      "editor.background": "#ffffff",
-      "editor.foreground": "#24292e",
-      "editorCursor.foreground": "#044289",
-      "editor.lineHighlightBackground": "#f6f8fa",
-      "editor.selectionBackground": "#0366d625",
-      "editor.inactiveSelectionBackground": "#0366d611",
-      "editorIndentGuide.background1": "#eff2f6",
-      "editorIndentGuide.activeBackground1": "#d7dbe0",
-      "editorWidget.background": "#f6f8fa",
-      "editorWidget.border": "#d1d5da",
-      "editorSuggestWidget.background": "#f6f8fa",
-      "editorSuggestWidget.border": "#d1d5da",
-      "editorSuggestWidget.foreground": "#24292e",
-      "editorSuggestWidget.selectedBackground": "#e2e5e9",
-      "editorHoverWidget.background": "#f6f8fa",
-      "editorHoverWidget.border": "#d1d5da",
-      "scrollbarSlider.background": "#959da533",
-      "scrollbarSlider.hoverBackground": "#959da544",
-      "scrollbarSlider.activeBackground": "#959da555",
-      "editorOverviewRuler.border": "#ffffff",
-    },
-  })
-  monaco.editor.defineTheme("github-dark", {
-    base: "vs-dark",
-    inherit: true,
-    rules: githubDarkRules,
-    colors: {
-      "editor.background": "#24292e",
-      "editor.foreground": "#e1e4e8",
-      "editorCursor.foreground": "#c8e1ff",
-      "editor.lineHighlightBackground": "#2b3036",
-      "editor.selectionBackground": "#3392ff44",
-      "editor.inactiveSelectionBackground": "#3392ff22",
-      "editorIndentGuide.background1": "#2f363d",
-      "editorIndentGuide.activeBackground1": "#444d56",
-      "editorWidget.background": "#1f2428",
-      "editorWidget.border": "#444d56",
-      "editorSuggestWidget.background": "#1f2428",
-      "editorSuggestWidget.border": "#444d56",
-      "editorSuggestWidget.foreground": "#e1e4e8",
-      "editorSuggestWidget.selectedBackground": "#39414a",
-      "editorHoverWidget.background": "#1f2428",
-      "editorHoverWidget.border": "#444d56",
-      "scrollbarSlider.background": "#6a737d33",
-      "scrollbarSlider.hoverBackground": "#6a737d44",
-      "scrollbarSlider.activeBackground": "#6a737d55",
-      "editorOverviewRuler.border": "#24292e",
-    },
-  })
-}
 
 export interface CodeEditorProps {
   value: string
@@ -150,6 +29,15 @@ export interface CodeEditorProps {
   placeholder?: string
   ariaLabel?: string
   className?: string
+  /**
+   * Monaco 模型的 URI。同一路径的多个编辑器会共享同一个文本模型，
+   * 因此需要独立内容的编辑器必须传唯一路径（例如带实例前缀的文件名）。
+   */
+  path?: string
+  /** 打开 schema 补全/悬浮提示；默认关闭，YAML 编辑器按需打开。 */
+  enableSuggestions?: boolean
+  /** 编辑器挂载完成后的回调，用于订阅 marker（校验错误）等能力。 */
+  onMount?: (editor: Parameters<OnMount>[0], monaco: Monaco) => void
 }
 
 /**
@@ -167,14 +55,22 @@ export function CodeEditor({
   placeholder,
   ariaLabel,
   className,
+  path,
+  enableSuggestions = false,
+  onMount,
 }: CodeEditorProps) {
   const { theme } = useTheme()
   const onChangeRef = useRef(onChange)
+  const onMountRef = useRef(onMount)
   const overflowWidgetsDomNode = useMonacoOverflowNode()
 
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
+
+  useEffect(() => {
+    onMountRef.current = onMount
+  }, [onMount])
 
   const dark =
     theme === "dark" ||
@@ -182,8 +78,9 @@ export function CodeEditor({
       window.matchMedia("(prefers-color-scheme: dark)").matches)
   const editorTheme = dark ? "github-dark" : "github-light"
 
-  const onMount: OnMount = (editor) => {
+  const handleMount: OnMount = (editor, monaco) => {
     editor.layout()
+    onMountRef.current?.(editor, monaco)
   }
 
   return (
@@ -223,10 +120,11 @@ export function CodeEditor({
         <Editor
           height={height}
           language={language}
+          path={path}
           theme={editorTheme}
           value={value}
-          beforeMount={setupGithubThemes}
-          onMount={onMount}
+          beforeMount={setupMonaco}
+          onMount={handleMount}
           onChange={(next) => onChangeRef.current(next ?? "")}
           options={{
             fixedOverflowWidgets: true,
@@ -258,8 +156,8 @@ export function CodeEditor({
             guides: { indentation: false },
             renderWhitespace: "none",
             contextmenu: false,
-            quickSuggestions: false,
-            suggestOnTriggerCharacters: false,
+            quickSuggestions: enableSuggestions,
+            suggestOnTriggerCharacters: enableSuggestions,
           }}
         />
       </div>

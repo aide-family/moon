@@ -1,6 +1,14 @@
 export type ApplicationCategory = "DATABASE" | "MIDDLEWARE" | "OBSERVABILITY" | "TOOLING" | "OTHER"
 export type ApplicationVersionStatus = "DRAFT" | "PUBLISHED" | "DEPRECATED"
 
+/** 服务端按版本状态计算的可执行动作，前端不自行推断。 */
+export type ApplicationVersionAction =
+  | "PUBLISH"
+  | "DEPRECATE"
+  | "COPY"
+  | "DELETE"
+  | "RELEASE"
+
 export interface ApplicationItem {
   uid: string
   name: string
@@ -39,6 +47,7 @@ export interface ListApplicationsResult {
 }
 
 export interface ApplicationResource {
+  /** 资源在版本内的展示标识（历史字段，向后兼容）。 */
   item: string
   manifest: string
   apiVersion: string
@@ -49,11 +58,19 @@ export interface ApplicationResource {
   clusterScoped: boolean
   images: string[]
   secretKeys: string[]
+  /** 资源在版本内的稳定标识，编辑与删除使用。 */
+  uid: string
+  /** 资源所属的服务（组件）名。 */
+  component: string
+  /** 资源内容的 sha256，用于并发编辑提示。 */
+  contentHash: string
 }
 
 export interface ApplicationResourceInput {
   item: string
   manifest: string
+  /** 资源所属的服务（组件）名；为空时归入默认服务。 */
+  component?: string
 }
 
 export interface ApplicationVersionImage {
@@ -67,6 +84,25 @@ export interface ApplicationVersionImage {
   digest: string
   platforms: string[]
   external: boolean
+  component: string
+  resourceUid: string
+  /** 容器在清单里的 JSON 路径。 */
+  containerPath: string
+  project: string
+  /** REGISTRY / EXTERNAL。 */
+  source: string
+  /** 上架时固定的实际部署引用。 */
+  resolvedImage: string
+}
+
+/** 版本内的一个服务，由若干 Kubernetes 资源组成。 */
+export interface ApplicationVersionComponent {
+  uid: string
+  name: string
+  displayName: string
+  sortOrder: number
+  resources: ApplicationResource[]
+  resourceCount: number
 }
 
 export interface ApplicationVersionItem {
@@ -75,11 +111,22 @@ export interface ApplicationVersionItem {
   version: string
   status: ApplicationVersionStatus
   changelog: string
+  /** 扁平视图，保留给旧客户端；新界面使用 components。 */
   resources: ApplicationResource[]
   images: ApplicationVersionImage[]
   publishedAt: number | string
   createdAt: number | string
   validation: string
+  components: ApplicationVersionComponent[]
+  /** 版本内容的乐观锁版本号，每次内容变更 +1。 */
+  revision: number
+  /** 服务端计算的当前可执行动作。 */
+  allowedActions: ApplicationVersionAction[]
+  componentCount: number
+  resourceCount: number
+  statusChangedAt: number | string
+  deprecatedAt: number | string
+  copiedFromVersionUid: string
 }
 
 export interface ListApplicationVersionsParams {
@@ -94,15 +141,68 @@ export interface ListApplicationVersionsResult {
   pageSize: number
 }
 
-export interface SaveApplicationVersionParams {
+export interface CreateApplicationVersionParams {
   applicationUid: string
-  version?: string
+  version: string
   changelog: string
   resources: ApplicationResourceInput[]
 }
 
+export interface UpdateApplicationVersionParams {
+  applicationUid: string
+  uid: string
+  changelog: string
+  resources: ApplicationResourceInput[]
+  /** 客户端读取到的版本内容版本号；不一致时返回冲突。 */
+  revision: number
+}
+
+export interface DuplicateApplicationVersionParams {
+  applicationUid: string
+  uid: string
+  version: string
+  changelog: string
+}
+
+export interface CreateApplicationVersionResourceParams {
+  applicationUid: string
+  uid: string
+  resource: ApplicationResourceInput
+  expectedRevision: number
+}
+
+export interface SaveApplicationVersionResourceParams {
+  applicationUid: string
+  uid: string
+  resourceUid: string
+  component: string
+  manifest: string
+  secretValues?: Record<string, string>
+  clearSecretKeys?: string[]
+  expectedRevision: number
+}
+
+export interface DeleteApplicationVersionResourceParams {
+  applicationUid: string
+  uid: string
+  resourceUid: string
+  expectedRevision: number
+}
+
+export interface ValidateApplicationVersionResourceParams {
+  applicationUid: string
+  uid: string
+  component: string
+  manifest: string
+}
+
 export interface ValidateApplicationVersionResult {
   version?: ApplicationVersionItem
+  errors: string[]
+  warnings: string[]
+}
+
+export interface ValidateApplicationVersionResourceResult {
   errors: string[]
   warnings: string[]
 }
@@ -121,8 +221,14 @@ export interface DeploymentCluster {
   name: string
   status: string
   releaseUid: string
+  /** 部署组期望版本。 */
   version: string
   message: string
+  /** 集群当前实际运行的版本（最后一次成功的发布）。 */
+  currentVersion: string
+  currentVersionUid: string
+  /** 集群当前版本与部署组期望版本一致。 */
+  inSync: boolean
 }
 
 export interface ApplicationReleaseItem {
@@ -138,6 +244,8 @@ export interface ApplicationReleaseItem {
   message: string
   lastOperationUid: string
   deployedAt: number | string
+  applicationUid: string
+  applicationName: string
 }
 
 export interface ApplicationDeploymentItem {
@@ -187,10 +295,25 @@ export interface CreateDeploymentParams {
   values?: ApplicationDeployValues
 }
 
+export interface ListApplicationReleasesParams {
+  page?: number
+  pageSize?: number
+  applicationUid?: string
+  clusterUid?: string
+  status?: DeploymentStatus | ""
+}
+export interface ListApplicationReleasesResult {
+  items: ApplicationReleaseItem[]
+  total: number
+  page: number
+  pageSize: number
+}
+
 export interface ApplicationOperationItem {
   uid: string
   deploymentUid: string
   releaseUid: string
+  clusterUid: string
   clusterName: string
   action: string
   status: string

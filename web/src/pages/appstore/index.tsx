@@ -15,6 +15,7 @@ import { useSession } from "@/auth/session"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { TableActionsCell, TableActionsHead } from "@/components/table-heads"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -37,6 +38,7 @@ import {
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { formatUnixDateTime } from "@/lib/date-time"
+import { enumLabel } from "@/lib/enum-label"
 import { TABLE_MIN_WIDTH, TABLE_NOWRAP } from "@/lib/table-layout"
 
 import { ApplicationDialog } from "./app-dialog"
@@ -44,19 +46,15 @@ import { ApplicationDialog } from "./app-dialog"
 const ALL = "ALL"
 const STATUSES: DeploymentStatus[] = ["PENDING", "DEPLOYING", "RUNNING", "PARTIAL", "FAILED", "UNINSTALLING", "UNINSTALLED"]
 
-function statusBadge(status: string) {
-  switch (status) {
-    case "RUNNING":
-      return <Badge variant="secondary">{status}</Badge>
-    case "FAILED":
-      return <Badge variant="destructive">{status}</Badge>
-    case "PARTIAL":
-      return <Badge variant="outline">{status}</Badge>
-    case "UNINSTALLED":
-      return <Badge variant="outline">{status}</Badge>
-    default:
-      return <Badge>{status}</Badge>
+/** 部署组内各集群的当前版本（去重），用于列表的「集群当前版本」列。 */
+function clusterCurrentVersions(item: ApplicationDeploymentItem): string[] {
+  const versions = new Set<string>()
+  for (const cluster of item.clusters ?? []) {
+    if (cluster.currentVersion) {
+      versions.add(cluster.currentVersion)
+    }
   }
+  return [...versions]
 }
 
 export function AppStorePage() {
@@ -96,6 +94,7 @@ export function AppStorePage() {
       </div>
       {tab === "apps" ? <AppsView navigate={navigate} /> : <DeploymentsView navigate={navigate} />}
       <ApplicationDialog
+        key={dialogOpen ? "app-create" : "app-create-closed"}
         open={dialogOpen}
         application={null}
         onOpenChange={setDialogOpen}
@@ -187,10 +186,10 @@ function DeploymentsView({ navigate }: { navigate: (path: string) => void }) {
           <Input className="pl-9" value={query.name} placeholder={t("appStore.searchDeployments")} onChange={(event) => query.update({ name: event.target.value })} />
         </div>
         <Select value={status || ALL} onValueChange={(value) => query.update({ status: value === ALL ? "" : value })}>
-          <SelectTrigger className="w-44"><SelectValue>{status || t("appStore.allStatuses")}</SelectValue></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue>{status ? enumLabel(t, status) : t("appStore.allStatuses")}</SelectValue></SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>{t("appStore.allStatuses")}</SelectItem>
-            {STATUSES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+            {STATUSES.map((item) => <SelectItem key={item} value={item}>{enumLabel(t, item)}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={query.clusterUid || ALL} onValueChange={(value) => query.update({ clusterUid: value === ALL ? "" : value })}>
@@ -209,18 +208,36 @@ function DeploymentsView({ navigate }: { navigate: (path: string) => void }) {
         {!loading && !failed && items.length === 0 ? <p className="text-sm text-muted-foreground">{t("appStore.emptyDeployments")}</p> : null}
         {!loading && !failed && items.length > 0 ? (
           <Table className={TABLE_MIN_WIDTH.wide}>
-            <TableHeader><TableRow><TableHead>{t("appStore.deploymentName")}</TableHead><TableHead>{t("appStore.applicationVersion")}</TableHead><TableHead>{t("appStore.targetClusters")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("appStore.status")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("action.updatedAt")}</TableHead><TableActionsHead>{t("action.actions")}</TableActionsHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>{t("appStore.deploymentName")}</TableHead><TableHead>{t("appStore.applicationVersion")}</TableHead><TableHead>{t("appStore.targetClusters")}</TableHead><TableHead>{t("appStore.clusterCurrentVersion")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("appStore.status")}</TableHead><TableHead className={TABLE_NOWRAP}>{t("action.updatedAt")}</TableHead><TableActionsHead>{t("action.actions")}</TableActionsHead></TableRow></TableHeader>
             <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.uid}>
-                  <TableCell><button type="button" className="text-left font-medium underline-offset-4 hover:underline" onClick={() => navigate(`/appstore/deployments/${item.uid}`)}>{item.name}</button><p className="text-xs text-muted-foreground">{item.targetNamespace}</p></TableCell>
-                  <TableCell><div className="grid gap-1"><span>{item.applicationName}</span><span className="font-mono text-xs text-muted-foreground">{item.version}</span></div></TableCell>
-                  <TableCell><div className="flex flex-wrap gap-1">{item.clusters.map((cluster) => <Badge key={cluster.uid} variant="outline">{cluster.name}</Badge>)}</div></TableCell>
-                  <TableCell>{statusBadge(item.status)}</TableCell>
-                  <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{formatUnixDateTime(item.createdAt) || "—"}</TableCell>
-                  <TableActionsCell><RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => navigate(`/appstore/deployments/${item.uid}`)} actions={[]} /></TableActionsCell>
-                </TableRow>
-              ))}
+              {items.map((item) => {
+                const currentVersions = clusterCurrentVersions(item)
+                const allInSync = item.clusters.length > 0 && item.clusters.every((cluster) => cluster.inSync)
+                return (
+                  <TableRow key={item.uid}>
+                    <TableCell><button type="button" className="text-left font-medium underline-offset-4 hover:underline" onClick={() => navigate(`/appstore/deployments/${item.uid}`)}>{item.name}</button><p className="text-xs text-muted-foreground">{item.targetNamespace}</p></TableCell>
+                    <TableCell><div className="grid gap-1"><span>{item.applicationName}</span><span className="font-mono text-xs text-muted-foreground">{item.version}</span></div></TableCell>
+                    <TableCell><div className="flex flex-wrap gap-1">{item.clusters.map((cluster) => <Badge key={cluster.uid} variant="outline">{cluster.name}</Badge>)}</div></TableCell>
+                    <TableCell>
+                      <div className="grid gap-1">
+                        <span className="font-mono text-xs">
+                          {currentVersions.length === 0 ? "—" : currentVersions.slice(0, 2).join(", ")}
+                          {currentVersions.length > 2 ? ` +${currentVersions.length - 2}` : ""}
+                        </span>
+                        {currentVersions.length > 0 ? (
+                          <StatusBadge
+                            value={allInSync ? "IN_SYNC" : "OUT_OF_SYNC"}
+                            label={allInSync ? t("appStore.inSyncYes") : t("appStore.inSyncNo")}
+                          />
+                        ) : null}
+                      </div>
+                    </TableCell>
+                    <TableCell><StatusBadge value={item.status} /></TableCell>
+                    <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{formatUnixDateTime(item.createdAt) || "—"}</TableCell>
+                    <TableActionsCell><RowActions nowrap detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => navigate(`/appstore/deployments/${item.uid}`)} actions={[]} /></TableActionsCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         ) : null}
