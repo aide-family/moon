@@ -90,6 +90,34 @@ func (_u *ApplicationVersionImageUpdate) SetNillableResourceItem(v *string) *App
 	return _u
 }
 
+// SetResourceUID sets the "resource_uid" field.
+func (_u *ApplicationVersionImageUpdate) SetResourceUID(v string) *ApplicationVersionImageUpdate {
+	_u.mutation.SetResourceUID(v)
+	return _u
+}
+
+// SetNillableResourceUID sets the "resource_uid" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdate) SetNillableResourceUID(v *string) *ApplicationVersionImageUpdate {
+	if v != nil {
+		_u.SetResourceUID(*v)
+	}
+	return _u
+}
+
+// SetComponent sets the "component" field.
+func (_u *ApplicationVersionImageUpdate) SetComponent(v string) *ApplicationVersionImageUpdate {
+	_u.mutation.SetComponent(v)
+	return _u
+}
+
+// SetNillableComponent sets the "component" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdate) SetNillableComponent(v *string) *ApplicationVersionImageUpdate {
+	if v != nil {
+		_u.SetComponent(*v)
+	}
+	return _u
+}
+
 // SetContainer sets the "container" field.
 func (_u *ApplicationVersionImageUpdate) SetContainer(v string) *ApplicationVersionImageUpdate {
 	_u.mutation.SetContainer(v)
@@ -100,6 +128,20 @@ func (_u *ApplicationVersionImageUpdate) SetContainer(v string) *ApplicationVers
 func (_u *ApplicationVersionImageUpdate) SetNillableContainer(v *string) *ApplicationVersionImageUpdate {
 	if v != nil {
 		_u.SetContainer(*v)
+	}
+	return _u
+}
+
+// SetContainerPath sets the "container_path" field.
+func (_u *ApplicationVersionImageUpdate) SetContainerPath(v string) *ApplicationVersionImageUpdate {
+	_u.mutation.SetContainerPath(v)
+	return _u
+}
+
+// SetNillableContainerPath sets the "container_path" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdate) SetNillableContainerPath(v *string) *ApplicationVersionImageUpdate {
+	if v != nil {
+		_u.SetContainerPath(*v)
 	}
 	return _u
 }
@@ -184,6 +226,48 @@ func (_u *ApplicationVersionImageUpdate) SetDigest(v string) *ApplicationVersion
 func (_u *ApplicationVersionImageUpdate) SetNillableDigest(v *string) *ApplicationVersionImageUpdate {
 	if v != nil {
 		_u.SetDigest(*v)
+	}
+	return _u
+}
+
+// SetProject sets the "project" field.
+func (_u *ApplicationVersionImageUpdate) SetProject(v string) *ApplicationVersionImageUpdate {
+	_u.mutation.SetProject(v)
+	return _u
+}
+
+// SetNillableProject sets the "project" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdate) SetNillableProject(v *string) *ApplicationVersionImageUpdate {
+	if v != nil {
+		_u.SetProject(*v)
+	}
+	return _u
+}
+
+// SetSource sets the "source" field.
+func (_u *ApplicationVersionImageUpdate) SetSource(v string) *ApplicationVersionImageUpdate {
+	_u.mutation.SetSource(v)
+	return _u
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdate) SetNillableSource(v *string) *ApplicationVersionImageUpdate {
+	if v != nil {
+		_u.SetSource(*v)
+	}
+	return _u
+}
+
+// SetResolvedImage sets the "resolved_image" field.
+func (_u *ApplicationVersionImageUpdate) SetResolvedImage(v string) *ApplicationVersionImageUpdate {
+	_u.mutation.SetResolvedImage(v)
+	return _u
+}
+
+// SetNillableResolvedImage sets the "resolved_image" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdate) SetNillableResolvedImage(v *string) *ApplicationVersionImageUpdate {
+	if v != nil {
+		_u.SetResolvedImage(*v)
 	}
 	return _u
 }
@@ -334,8 +418,17 @@ func (_u *ApplicationVersionImageUpdate) sqlSave(ctx context.Context) (_node int
 	if value, ok := _u.mutation.ResourceItem(); ok {
 		_spec.SetField(applicationversionimage.FieldResourceItem, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.ResourceUID(); ok {
+		_spec.SetField(applicationversionimage.FieldResourceUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Component(); ok {
+		_spec.SetField(applicationversionimage.FieldComponent, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Container(); ok {
 		_spec.SetField(applicationversionimage.FieldContainer, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ContainerPath(); ok {
+		_spec.SetField(applicationversionimage.FieldContainerPath, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Image(); ok {
 		_spec.SetField(applicationversionimage.FieldImage, field.TypeString, value)
@@ -354,6 +447,15 @@ func (_u *ApplicationVersionImageUpdate) sqlSave(ctx context.Context) (_node int
 	}
 	if value, ok := _u.mutation.Digest(); ok {
 		_spec.SetField(applicationversionimage.FieldDigest, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Project(); ok {
+		_spec.SetField(applicationversionimage.FieldProject, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Source(); ok {
+		_spec.SetField(applicationversionimage.FieldSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ResolvedImage(); ok {
+		_spec.SetField(applicationversionimage.FieldResolvedImage, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Platforms(); ok {
 		_spec.SetField(applicationversionimage.FieldPlatforms, field.TypeString, value)
@@ -449,6 +551,34 @@ func (_u *ApplicationVersionImageUpdateOne) SetNillableResourceItem(v *string) *
 	return _u
 }
 
+// SetResourceUID sets the "resource_uid" field.
+func (_u *ApplicationVersionImageUpdateOne) SetResourceUID(v string) *ApplicationVersionImageUpdateOne {
+	_u.mutation.SetResourceUID(v)
+	return _u
+}
+
+// SetNillableResourceUID sets the "resource_uid" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdateOne) SetNillableResourceUID(v *string) *ApplicationVersionImageUpdateOne {
+	if v != nil {
+		_u.SetResourceUID(*v)
+	}
+	return _u
+}
+
+// SetComponent sets the "component" field.
+func (_u *ApplicationVersionImageUpdateOne) SetComponent(v string) *ApplicationVersionImageUpdateOne {
+	_u.mutation.SetComponent(v)
+	return _u
+}
+
+// SetNillableComponent sets the "component" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdateOne) SetNillableComponent(v *string) *ApplicationVersionImageUpdateOne {
+	if v != nil {
+		_u.SetComponent(*v)
+	}
+	return _u
+}
+
 // SetContainer sets the "container" field.
 func (_u *ApplicationVersionImageUpdateOne) SetContainer(v string) *ApplicationVersionImageUpdateOne {
 	_u.mutation.SetContainer(v)
@@ -459,6 +589,20 @@ func (_u *ApplicationVersionImageUpdateOne) SetContainer(v string) *ApplicationV
 func (_u *ApplicationVersionImageUpdateOne) SetNillableContainer(v *string) *ApplicationVersionImageUpdateOne {
 	if v != nil {
 		_u.SetContainer(*v)
+	}
+	return _u
+}
+
+// SetContainerPath sets the "container_path" field.
+func (_u *ApplicationVersionImageUpdateOne) SetContainerPath(v string) *ApplicationVersionImageUpdateOne {
+	_u.mutation.SetContainerPath(v)
+	return _u
+}
+
+// SetNillableContainerPath sets the "container_path" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdateOne) SetNillableContainerPath(v *string) *ApplicationVersionImageUpdateOne {
+	if v != nil {
+		_u.SetContainerPath(*v)
 	}
 	return _u
 }
@@ -543,6 +687,48 @@ func (_u *ApplicationVersionImageUpdateOne) SetDigest(v string) *ApplicationVers
 func (_u *ApplicationVersionImageUpdateOne) SetNillableDigest(v *string) *ApplicationVersionImageUpdateOne {
 	if v != nil {
 		_u.SetDigest(*v)
+	}
+	return _u
+}
+
+// SetProject sets the "project" field.
+func (_u *ApplicationVersionImageUpdateOne) SetProject(v string) *ApplicationVersionImageUpdateOne {
+	_u.mutation.SetProject(v)
+	return _u
+}
+
+// SetNillableProject sets the "project" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdateOne) SetNillableProject(v *string) *ApplicationVersionImageUpdateOne {
+	if v != nil {
+		_u.SetProject(*v)
+	}
+	return _u
+}
+
+// SetSource sets the "source" field.
+func (_u *ApplicationVersionImageUpdateOne) SetSource(v string) *ApplicationVersionImageUpdateOne {
+	_u.mutation.SetSource(v)
+	return _u
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdateOne) SetNillableSource(v *string) *ApplicationVersionImageUpdateOne {
+	if v != nil {
+		_u.SetSource(*v)
+	}
+	return _u
+}
+
+// SetResolvedImage sets the "resolved_image" field.
+func (_u *ApplicationVersionImageUpdateOne) SetResolvedImage(v string) *ApplicationVersionImageUpdateOne {
+	_u.mutation.SetResolvedImage(v)
+	return _u
+}
+
+// SetNillableResolvedImage sets the "resolved_image" field if the given value is not nil.
+func (_u *ApplicationVersionImageUpdateOne) SetNillableResolvedImage(v *string) *ApplicationVersionImageUpdateOne {
+	if v != nil {
+		_u.SetResolvedImage(*v)
 	}
 	return _u
 }
@@ -723,8 +909,17 @@ func (_u *ApplicationVersionImageUpdateOne) sqlSave(ctx context.Context) (_node 
 	if value, ok := _u.mutation.ResourceItem(); ok {
 		_spec.SetField(applicationversionimage.FieldResourceItem, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.ResourceUID(); ok {
+		_spec.SetField(applicationversionimage.FieldResourceUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Component(); ok {
+		_spec.SetField(applicationversionimage.FieldComponent, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Container(); ok {
 		_spec.SetField(applicationversionimage.FieldContainer, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ContainerPath(); ok {
+		_spec.SetField(applicationversionimage.FieldContainerPath, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Image(); ok {
 		_spec.SetField(applicationversionimage.FieldImage, field.TypeString, value)
@@ -743,6 +938,15 @@ func (_u *ApplicationVersionImageUpdateOne) sqlSave(ctx context.Context) (_node 
 	}
 	if value, ok := _u.mutation.Digest(); ok {
 		_spec.SetField(applicationversionimage.FieldDigest, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Project(); ok {
+		_spec.SetField(applicationversionimage.FieldProject, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Source(); ok {
+		_spec.SetField(applicationversionimage.FieldSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ResolvedImage(); ok {
+		_spec.SetField(applicationversionimage.FieldResolvedImage, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Platforms(); ok {
 		_spec.SetField(applicationversionimage.FieldPlatforms, field.TypeString, value)

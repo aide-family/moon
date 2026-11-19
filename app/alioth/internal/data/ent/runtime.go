@@ -26,7 +26,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationrelease"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationreleaseoperation"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversion"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversioncomponent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversionimage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversionresource"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authemailsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authoauthprovider"
@@ -977,68 +979,76 @@ func init() {
 	applicationreleaseoperationDescNamespaceUID := applicationreleaseoperationFields[1].Descriptor()
 	// applicationreleaseoperation.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
 	applicationreleaseoperation.NamespaceUIDValidator = applicationreleaseoperationDescNamespaceUID.Validators[0].(func(string) error)
+	// applicationreleaseoperationDescApplicationUID is the schema descriptor for application_uid field.
+	applicationreleaseoperationDescApplicationUID := applicationreleaseoperationFields[2].Descriptor()
+	// applicationreleaseoperation.DefaultApplicationUID holds the default value on creation for the application_uid field.
+	applicationreleaseoperation.DefaultApplicationUID = applicationreleaseoperationDescApplicationUID.Default.(string)
 	// applicationreleaseoperationDescDeploymentUID is the schema descriptor for deployment_uid field.
-	applicationreleaseoperationDescDeploymentUID := applicationreleaseoperationFields[2].Descriptor()
+	applicationreleaseoperationDescDeploymentUID := applicationreleaseoperationFields[3].Descriptor()
 	// applicationreleaseoperation.DeploymentUIDValidator is a validator for the "deployment_uid" field. It is called by the builders before save.
 	applicationreleaseoperation.DeploymentUIDValidator = applicationreleaseoperationDescDeploymentUID.Validators[0].(func(string) error)
 	// applicationreleaseoperationDescReleaseUID is the schema descriptor for release_uid field.
-	applicationreleaseoperationDescReleaseUID := applicationreleaseoperationFields[3].Descriptor()
+	applicationreleaseoperationDescReleaseUID := applicationreleaseoperationFields[4].Descriptor()
 	// applicationreleaseoperation.ReleaseUIDValidator is a validator for the "release_uid" field. It is called by the builders before save.
 	applicationreleaseoperation.ReleaseUIDValidator = applicationreleaseoperationDescReleaseUID.Validators[0].(func(string) error)
+	// applicationreleaseoperationDescClusterUID is the schema descriptor for cluster_uid field.
+	applicationreleaseoperationDescClusterUID := applicationreleaseoperationFields[5].Descriptor()
+	// applicationreleaseoperation.DefaultClusterUID holds the default value on creation for the cluster_uid field.
+	applicationreleaseoperation.DefaultClusterUID = applicationreleaseoperationDescClusterUID.Default.(string)
 	// applicationreleaseoperationDescClusterName is the schema descriptor for cluster_name field.
-	applicationreleaseoperationDescClusterName := applicationreleaseoperationFields[4].Descriptor()
+	applicationreleaseoperationDescClusterName := applicationreleaseoperationFields[6].Descriptor()
 	// applicationreleaseoperation.DefaultClusterName holds the default value on creation for the cluster_name field.
 	applicationreleaseoperation.DefaultClusterName = applicationreleaseoperationDescClusterName.Default.(string)
 	// applicationreleaseoperationDescBatchUID is the schema descriptor for batch_uid field.
-	applicationreleaseoperationDescBatchUID := applicationreleaseoperationFields[5].Descriptor()
+	applicationreleaseoperationDescBatchUID := applicationreleaseoperationFields[7].Descriptor()
 	// applicationreleaseoperation.DefaultBatchUID holds the default value on creation for the batch_uid field.
 	applicationreleaseoperation.DefaultBatchUID = applicationreleaseoperationDescBatchUID.Default.(string)
 	// applicationreleaseoperationDescFromVersionUID is the schema descriptor for from_version_uid field.
-	applicationreleaseoperationDescFromVersionUID := applicationreleaseoperationFields[8].Descriptor()
+	applicationreleaseoperationDescFromVersionUID := applicationreleaseoperationFields[10].Descriptor()
 	// applicationreleaseoperation.DefaultFromVersionUID holds the default value on creation for the from_version_uid field.
 	applicationreleaseoperation.DefaultFromVersionUID = applicationreleaseoperationDescFromVersionUID.Default.(string)
 	// applicationreleaseoperationDescToVersionUID is the schema descriptor for to_version_uid field.
-	applicationreleaseoperationDescToVersionUID := applicationreleaseoperationFields[9].Descriptor()
+	applicationreleaseoperationDescToVersionUID := applicationreleaseoperationFields[11].Descriptor()
 	// applicationreleaseoperation.DefaultToVersionUID holds the default value on creation for the to_version_uid field.
 	applicationreleaseoperation.DefaultToVersionUID = applicationreleaseoperationDescToVersionUID.Default.(string)
 	// applicationreleaseoperationDescValues is the schema descriptor for values field.
-	applicationreleaseoperationDescValues := applicationreleaseoperationFields[10].Descriptor()
+	applicationreleaseoperationDescValues := applicationreleaseoperationFields[12].Descriptor()
 	// applicationreleaseoperation.DefaultValues holds the default value on creation for the values field.
 	applicationreleaseoperation.DefaultValues = applicationreleaseoperationDescValues.Default.(string)
 	// applicationreleaseoperationDescSecretValuesCipher is the schema descriptor for secret_values_cipher field.
-	applicationreleaseoperationDescSecretValuesCipher := applicationreleaseoperationFields[11].Descriptor()
+	applicationreleaseoperationDescSecretValuesCipher := applicationreleaseoperationFields[13].Descriptor()
 	// applicationreleaseoperation.DefaultSecretValuesCipher holds the default value on creation for the secret_values_cipher field.
 	applicationreleaseoperation.DefaultSecretValuesCipher = applicationreleaseoperationDescSecretValuesCipher.Default.(string)
 	// applicationreleaseoperationDescResources is the schema descriptor for resources field.
-	applicationreleaseoperationDescResources := applicationreleaseoperationFields[12].Descriptor()
+	applicationreleaseoperationDescResources := applicationreleaseoperationFields[14].Descriptor()
 	// applicationreleaseoperation.DefaultResources holds the default value on creation for the resources field.
 	applicationreleaseoperation.DefaultResources = applicationreleaseoperationDescResources.Default.(string)
 	// applicationreleaseoperationDescDiff is the schema descriptor for diff field.
-	applicationreleaseoperationDescDiff := applicationreleaseoperationFields[13].Descriptor()
+	applicationreleaseoperationDescDiff := applicationreleaseoperationFields[15].Descriptor()
 	// applicationreleaseoperation.DefaultDiff holds the default value on creation for the diff field.
 	applicationreleaseoperation.DefaultDiff = applicationreleaseoperationDescDiff.Default.(string)
 	// applicationreleaseoperationDescMessage is the schema descriptor for message field.
-	applicationreleaseoperationDescMessage := applicationreleaseoperationFields[14].Descriptor()
+	applicationreleaseoperationDescMessage := applicationreleaseoperationFields[16].Descriptor()
 	// applicationreleaseoperation.DefaultMessage holds the default value on creation for the message field.
 	applicationreleaseoperation.DefaultMessage = applicationreleaseoperationDescMessage.Default.(string)
 	// applicationreleaseoperationDescOperatorUID is the schema descriptor for operator_uid field.
-	applicationreleaseoperationDescOperatorUID := applicationreleaseoperationFields[15].Descriptor()
+	applicationreleaseoperationDescOperatorUID := applicationreleaseoperationFields[17].Descriptor()
 	// applicationreleaseoperation.DefaultOperatorUID holds the default value on creation for the operator_uid field.
 	applicationreleaseoperation.DefaultOperatorUID = applicationreleaseoperationDescOperatorUID.Default.(string)
 	// applicationreleaseoperationDescOperatorName is the schema descriptor for operator_name field.
-	applicationreleaseoperationDescOperatorName := applicationreleaseoperationFields[16].Descriptor()
+	applicationreleaseoperationDescOperatorName := applicationreleaseoperationFields[18].Descriptor()
 	// applicationreleaseoperation.DefaultOperatorName holds the default value on creation for the operator_name field.
 	applicationreleaseoperation.DefaultOperatorName = applicationreleaseoperationDescOperatorName.Default.(string)
 	// applicationreleaseoperationDescKeepPersistentVolumeClaims is the schema descriptor for keep_persistent_volume_claims field.
-	applicationreleaseoperationDescKeepPersistentVolumeClaims := applicationreleaseoperationFields[17].Descriptor()
+	applicationreleaseoperationDescKeepPersistentVolumeClaims := applicationreleaseoperationFields[19].Descriptor()
 	// applicationreleaseoperation.DefaultKeepPersistentVolumeClaims holds the default value on creation for the keep_persistent_volume_claims field.
 	applicationreleaseoperation.DefaultKeepPersistentVolumeClaims = applicationreleaseoperationDescKeepPersistentVolumeClaims.Default.(bool)
 	// applicationreleaseoperationDescDeleteClusterScopedResources is the schema descriptor for delete_cluster_scoped_resources field.
-	applicationreleaseoperationDescDeleteClusterScopedResources := applicationreleaseoperationFields[18].Descriptor()
+	applicationreleaseoperationDescDeleteClusterScopedResources := applicationreleaseoperationFields[20].Descriptor()
 	// applicationreleaseoperation.DefaultDeleteClusterScopedResources holds the default value on creation for the delete_cluster_scoped_resources field.
 	applicationreleaseoperation.DefaultDeleteClusterScopedResources = applicationreleaseoperationDescDeleteClusterScopedResources.Default.(bool)
 	// applicationreleaseoperationDescLeaseOwner is the schema descriptor for lease_owner field.
-	applicationreleaseoperationDescLeaseOwner := applicationreleaseoperationFields[19].Descriptor()
+	applicationreleaseoperationDescLeaseOwner := applicationreleaseoperationFields[21].Descriptor()
 	// applicationreleaseoperation.DefaultLeaseOwner holds the default value on creation for the lease_owner field.
 	applicationreleaseoperation.DefaultLeaseOwner = applicationreleaseoperationDescLeaseOwner.Default.(string)
 	applicationversionMixin := schema.ApplicationVersion{}.Mixin()
@@ -1088,6 +1098,61 @@ func init() {
 	applicationversionDescValidation := applicationversionFields[8].Descriptor()
 	// applicationversion.DefaultValidation holds the default value on creation for the validation field.
 	applicationversion.DefaultValidation = applicationversionDescValidation.Default.(string)
+	// applicationversionDescRevision is the schema descriptor for revision field.
+	applicationversionDescRevision := applicationversionFields[10].Descriptor()
+	// applicationversion.DefaultRevision holds the default value on creation for the revision field.
+	applicationversion.DefaultRevision = applicationversionDescRevision.Default.(int)
+	// applicationversionDescCompositionVersion is the schema descriptor for composition_version field.
+	applicationversionDescCompositionVersion := applicationversionFields[11].Descriptor()
+	// applicationversion.DefaultCompositionVersion holds the default value on creation for the composition_version field.
+	applicationversion.DefaultCompositionVersion = applicationversionDescCompositionVersion.Default.(int)
+	// applicationversionDescCopiedFromVersionUID is the schema descriptor for copied_from_version_uid field.
+	applicationversionDescCopiedFromVersionUID := applicationversionFields[14].Descriptor()
+	// applicationversion.DefaultCopiedFromVersionUID holds the default value on creation for the copied_from_version_uid field.
+	applicationversion.DefaultCopiedFromVersionUID = applicationversionDescCopiedFromVersionUID.Default.(string)
+	applicationversioncomponentMixin := schema.ApplicationVersionComponent{}.Mixin()
+	applicationversioncomponentMixinFields0 := applicationversioncomponentMixin[0].Fields()
+	_ = applicationversioncomponentMixinFields0
+	applicationversioncomponentFields := schema.ApplicationVersionComponent{}.Fields()
+	_ = applicationversioncomponentFields
+	// applicationversioncomponentDescCreatedAt is the schema descriptor for created_at field.
+	applicationversioncomponentDescCreatedAt := applicationversioncomponentMixinFields0[0].Descriptor()
+	// applicationversioncomponent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	applicationversioncomponent.DefaultCreatedAt = applicationversioncomponentDescCreatedAt.Default.(func() time.Time)
+	// applicationversioncomponentDescUpdatedAt is the schema descriptor for updated_at field.
+	applicationversioncomponentDescUpdatedAt := applicationversioncomponentMixinFields0[1].Descriptor()
+	// applicationversioncomponent.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	applicationversioncomponent.DefaultUpdatedAt = applicationversioncomponentDescUpdatedAt.Default.(func() time.Time)
+	// applicationversioncomponent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	applicationversioncomponent.UpdateDefaultUpdatedAt = applicationversioncomponentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// applicationversioncomponentDescUID is the schema descriptor for uid field.
+	applicationversioncomponentDescUID := applicationversioncomponentFields[0].Descriptor()
+	// applicationversioncomponent.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	applicationversioncomponent.UIDValidator = applicationversioncomponentDescUID.Validators[0].(func(string) error)
+	// applicationversioncomponentDescNamespaceUID is the schema descriptor for namespace_uid field.
+	applicationversioncomponentDescNamespaceUID := applicationversioncomponentFields[1].Descriptor()
+	// applicationversioncomponent.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	applicationversioncomponent.NamespaceUIDValidator = applicationversioncomponentDescNamespaceUID.Validators[0].(func(string) error)
+	// applicationversioncomponentDescApplicationUID is the schema descriptor for application_uid field.
+	applicationversioncomponentDescApplicationUID := applicationversioncomponentFields[2].Descriptor()
+	// applicationversioncomponent.ApplicationUIDValidator is a validator for the "application_uid" field. It is called by the builders before save.
+	applicationversioncomponent.ApplicationUIDValidator = applicationversioncomponentDescApplicationUID.Validators[0].(func(string) error)
+	// applicationversioncomponentDescVersionUID is the schema descriptor for version_uid field.
+	applicationversioncomponentDescVersionUID := applicationversioncomponentFields[3].Descriptor()
+	// applicationversioncomponent.VersionUIDValidator is a validator for the "version_uid" field. It is called by the builders before save.
+	applicationversioncomponent.VersionUIDValidator = applicationversioncomponentDescVersionUID.Validators[0].(func(string) error)
+	// applicationversioncomponentDescName is the schema descriptor for name field.
+	applicationversioncomponentDescName := applicationversioncomponentFields[4].Descriptor()
+	// applicationversioncomponent.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	applicationversioncomponent.NameValidator = applicationversioncomponentDescName.Validators[0].(func(string) error)
+	// applicationversioncomponentDescDisplayName is the schema descriptor for display_name field.
+	applicationversioncomponentDescDisplayName := applicationversioncomponentFields[5].Descriptor()
+	// applicationversioncomponent.DefaultDisplayName holds the default value on creation for the display_name field.
+	applicationversioncomponent.DefaultDisplayName = applicationversioncomponentDescDisplayName.Default.(string)
+	// applicationversioncomponentDescSortOrder is the schema descriptor for sort_order field.
+	applicationversioncomponentDescSortOrder := applicationversioncomponentFields[6].Descriptor()
+	// applicationversioncomponent.DefaultSortOrder holds the default value on creation for the sort_order field.
+	applicationversioncomponent.DefaultSortOrder = applicationversioncomponentDescSortOrder.Default.(int)
 	applicationversionimageMixin := schema.ApplicationVersionImage{}.Mixin()
 	applicationversionimageMixinFields0 := applicationversionimageMixin[0].Fields()
 	_ = applicationversionimageMixinFields0
@@ -1123,42 +1188,153 @@ func init() {
 	applicationversionimageDescResourceItem := applicationversionimageFields[4].Descriptor()
 	// applicationversionimage.ResourceItemValidator is a validator for the "resource_item" field. It is called by the builders before save.
 	applicationversionimage.ResourceItemValidator = applicationversionimageDescResourceItem.Validators[0].(func(string) error)
+	// applicationversionimageDescResourceUID is the schema descriptor for resource_uid field.
+	applicationversionimageDescResourceUID := applicationversionimageFields[5].Descriptor()
+	// applicationversionimage.DefaultResourceUID holds the default value on creation for the resource_uid field.
+	applicationversionimage.DefaultResourceUID = applicationversionimageDescResourceUID.Default.(string)
+	// applicationversionimageDescComponent is the schema descriptor for component field.
+	applicationversionimageDescComponent := applicationversionimageFields[6].Descriptor()
+	// applicationversionimage.DefaultComponent holds the default value on creation for the component field.
+	applicationversionimage.DefaultComponent = applicationversionimageDescComponent.Default.(string)
 	// applicationversionimageDescContainer is the schema descriptor for container field.
-	applicationversionimageDescContainer := applicationversionimageFields[5].Descriptor()
+	applicationversionimageDescContainer := applicationversionimageFields[7].Descriptor()
 	// applicationversionimage.DefaultContainer holds the default value on creation for the container field.
 	applicationversionimage.DefaultContainer = applicationversionimageDescContainer.Default.(string)
+	// applicationversionimageDescContainerPath is the schema descriptor for container_path field.
+	applicationversionimageDescContainerPath := applicationversionimageFields[8].Descriptor()
+	// applicationversionimage.DefaultContainerPath holds the default value on creation for the container_path field.
+	applicationversionimage.DefaultContainerPath = applicationversionimageDescContainerPath.Default.(string)
 	// applicationversionimageDescImage is the schema descriptor for image field.
-	applicationversionimageDescImage := applicationversionimageFields[6].Descriptor()
+	applicationversionimageDescImage := applicationversionimageFields[9].Descriptor()
 	// applicationversionimage.ImageValidator is a validator for the "image" field. It is called by the builders before save.
 	applicationversionimage.ImageValidator = applicationversionimageDescImage.Validators[0].(func(string) error)
 	// applicationversionimageDescRegistryUID is the schema descriptor for registry_uid field.
-	applicationversionimageDescRegistryUID := applicationversionimageFields[7].Descriptor()
+	applicationversionimageDescRegistryUID := applicationversionimageFields[10].Descriptor()
 	// applicationversionimage.DefaultRegistryUID holds the default value on creation for the registry_uid field.
 	applicationversionimage.DefaultRegistryUID = applicationversionimageDescRegistryUID.Default.(string)
 	// applicationversionimageDescRegistryName is the schema descriptor for registry_name field.
-	applicationversionimageDescRegistryName := applicationversionimageFields[8].Descriptor()
+	applicationversionimageDescRegistryName := applicationversionimageFields[11].Descriptor()
 	// applicationversionimage.DefaultRegistryName holds the default value on creation for the registry_name field.
 	applicationversionimage.DefaultRegistryName = applicationversionimageDescRegistryName.Default.(string)
 	// applicationversionimageDescRepository is the schema descriptor for repository field.
-	applicationversionimageDescRepository := applicationversionimageFields[9].Descriptor()
+	applicationversionimageDescRepository := applicationversionimageFields[12].Descriptor()
 	// applicationversionimage.DefaultRepository holds the default value on creation for the repository field.
 	applicationversionimage.DefaultRepository = applicationversionimageDescRepository.Default.(string)
 	// applicationversionimageDescTag is the schema descriptor for tag field.
-	applicationversionimageDescTag := applicationversionimageFields[10].Descriptor()
+	applicationversionimageDescTag := applicationversionimageFields[13].Descriptor()
 	// applicationversionimage.DefaultTag holds the default value on creation for the tag field.
 	applicationversionimage.DefaultTag = applicationversionimageDescTag.Default.(string)
 	// applicationversionimageDescDigest is the schema descriptor for digest field.
-	applicationversionimageDescDigest := applicationversionimageFields[11].Descriptor()
+	applicationversionimageDescDigest := applicationversionimageFields[14].Descriptor()
 	// applicationversionimage.DefaultDigest holds the default value on creation for the digest field.
 	applicationversionimage.DefaultDigest = applicationversionimageDescDigest.Default.(string)
+	// applicationversionimageDescProject is the schema descriptor for project field.
+	applicationversionimageDescProject := applicationversionimageFields[15].Descriptor()
+	// applicationversionimage.DefaultProject holds the default value on creation for the project field.
+	applicationversionimage.DefaultProject = applicationversionimageDescProject.Default.(string)
+	// applicationversionimageDescSource is the schema descriptor for source field.
+	applicationversionimageDescSource := applicationversionimageFields[16].Descriptor()
+	// applicationversionimage.DefaultSource holds the default value on creation for the source field.
+	applicationversionimage.DefaultSource = applicationversionimageDescSource.Default.(string)
+	// applicationversionimageDescResolvedImage is the schema descriptor for resolved_image field.
+	applicationversionimageDescResolvedImage := applicationversionimageFields[17].Descriptor()
+	// applicationversionimage.DefaultResolvedImage holds the default value on creation for the resolved_image field.
+	applicationversionimage.DefaultResolvedImage = applicationversionimageDescResolvedImage.Default.(string)
 	// applicationversionimageDescPlatforms is the schema descriptor for platforms field.
-	applicationversionimageDescPlatforms := applicationversionimageFields[12].Descriptor()
+	applicationversionimageDescPlatforms := applicationversionimageFields[18].Descriptor()
 	// applicationversionimage.DefaultPlatforms holds the default value on creation for the platforms field.
 	applicationversionimage.DefaultPlatforms = applicationversionimageDescPlatforms.Default.(string)
 	// applicationversionimageDescExternal is the schema descriptor for external field.
-	applicationversionimageDescExternal := applicationversionimageFields[13].Descriptor()
+	applicationversionimageDescExternal := applicationversionimageFields[19].Descriptor()
 	// applicationversionimage.DefaultExternal holds the default value on creation for the external field.
 	applicationversionimage.DefaultExternal = applicationversionimageDescExternal.Default.(bool)
+	applicationversionresourceMixin := schema.ApplicationVersionResource{}.Mixin()
+	applicationversionresourceMixinFields0 := applicationversionresourceMixin[0].Fields()
+	_ = applicationversionresourceMixinFields0
+	applicationversionresourceFields := schema.ApplicationVersionResource{}.Fields()
+	_ = applicationversionresourceFields
+	// applicationversionresourceDescCreatedAt is the schema descriptor for created_at field.
+	applicationversionresourceDescCreatedAt := applicationversionresourceMixinFields0[0].Descriptor()
+	// applicationversionresource.DefaultCreatedAt holds the default value on creation for the created_at field.
+	applicationversionresource.DefaultCreatedAt = applicationversionresourceDescCreatedAt.Default.(func() time.Time)
+	// applicationversionresourceDescUpdatedAt is the schema descriptor for updated_at field.
+	applicationversionresourceDescUpdatedAt := applicationversionresourceMixinFields0[1].Descriptor()
+	// applicationversionresource.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	applicationversionresource.DefaultUpdatedAt = applicationversionresourceDescUpdatedAt.Default.(func() time.Time)
+	// applicationversionresource.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	applicationversionresource.UpdateDefaultUpdatedAt = applicationversionresourceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// applicationversionresourceDescUID is the schema descriptor for uid field.
+	applicationversionresourceDescUID := applicationversionresourceFields[0].Descriptor()
+	// applicationversionresource.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	applicationversionresource.UIDValidator = applicationversionresourceDescUID.Validators[0].(func(string) error)
+	// applicationversionresourceDescNamespaceUID is the schema descriptor for namespace_uid field.
+	applicationversionresourceDescNamespaceUID := applicationversionresourceFields[1].Descriptor()
+	// applicationversionresource.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	applicationversionresource.NamespaceUIDValidator = applicationversionresourceDescNamespaceUID.Validators[0].(func(string) error)
+	// applicationversionresourceDescApplicationUID is the schema descriptor for application_uid field.
+	applicationversionresourceDescApplicationUID := applicationversionresourceFields[2].Descriptor()
+	// applicationversionresource.ApplicationUIDValidator is a validator for the "application_uid" field. It is called by the builders before save.
+	applicationversionresource.ApplicationUIDValidator = applicationversionresourceDescApplicationUID.Validators[0].(func(string) error)
+	// applicationversionresourceDescVersionUID is the schema descriptor for version_uid field.
+	applicationversionresourceDescVersionUID := applicationversionresourceFields[3].Descriptor()
+	// applicationversionresource.VersionUIDValidator is a validator for the "version_uid" field. It is called by the builders before save.
+	applicationversionresource.VersionUIDValidator = applicationversionresourceDescVersionUID.Validators[0].(func(string) error)
+	// applicationversionresourceDescComponentUID is the schema descriptor for component_uid field.
+	applicationversionresourceDescComponentUID := applicationversionresourceFields[4].Descriptor()
+	// applicationversionresource.ComponentUIDValidator is a validator for the "component_uid" field. It is called by the builders before save.
+	applicationversionresource.ComponentUIDValidator = applicationversionresourceDescComponentUID.Validators[0].(func(string) error)
+	// applicationversionresourceDescComponent is the schema descriptor for component field.
+	applicationversionresourceDescComponent := applicationversionresourceFields[5].Descriptor()
+	// applicationversionresource.ComponentValidator is a validator for the "component" field. It is called by the builders before save.
+	applicationversionresource.ComponentValidator = applicationversionresourceDescComponent.Validators[0].(func(string) error)
+	// applicationversionresourceDescItem is the schema descriptor for item field.
+	applicationversionresourceDescItem := applicationversionresourceFields[6].Descriptor()
+	// applicationversionresource.ItemValidator is a validator for the "item" field. It is called by the builders before save.
+	applicationversionresource.ItemValidator = applicationversionresourceDescItem.Validators[0].(func(string) error)
+	// applicationversionresourceDescManifest is the schema descriptor for manifest field.
+	applicationversionresourceDescManifest := applicationversionresourceFields[7].Descriptor()
+	// applicationversionresource.DefaultManifest holds the default value on creation for the manifest field.
+	applicationversionresource.DefaultManifest = applicationversionresourceDescManifest.Default.(string)
+	// applicationversionresourceDescAPIVersion is the schema descriptor for api_version field.
+	applicationversionresourceDescAPIVersion := applicationversionresourceFields[8].Descriptor()
+	// applicationversionresource.DefaultAPIVersion holds the default value on creation for the api_version field.
+	applicationversionresource.DefaultAPIVersion = applicationversionresourceDescAPIVersion.Default.(string)
+	// applicationversionresourceDescKind is the schema descriptor for kind field.
+	applicationversionresourceDescKind := applicationversionresourceFields[9].Descriptor()
+	// applicationversionresource.DefaultKind holds the default value on creation for the kind field.
+	applicationversionresource.DefaultKind = applicationversionresourceDescKind.Default.(string)
+	// applicationversionresourceDescName is the schema descriptor for name field.
+	applicationversionresourceDescName := applicationversionresourceFields[10].Descriptor()
+	// applicationversionresource.DefaultName holds the default value on creation for the name field.
+	applicationversionresource.DefaultName = applicationversionresourceDescName.Default.(string)
+	// applicationversionresourceDescNamespace is the schema descriptor for namespace field.
+	applicationversionresourceDescNamespace := applicationversionresourceFields[11].Descriptor()
+	// applicationversionresource.DefaultNamespace holds the default value on creation for the namespace field.
+	applicationversionresource.DefaultNamespace = applicationversionresourceDescNamespace.Default.(string)
+	// applicationversionresourceDescScope is the schema descriptor for scope field.
+	applicationversionresourceDescScope := applicationversionresourceFields[12].Descriptor()
+	// applicationversionresource.DefaultScope holds the default value on creation for the scope field.
+	applicationversionresource.DefaultScope = applicationversionresourceDescScope.Default.(string)
+	// applicationversionresourceDescClusterScoped is the schema descriptor for cluster_scoped field.
+	applicationversionresourceDescClusterScoped := applicationversionresourceFields[13].Descriptor()
+	// applicationversionresource.DefaultClusterScoped holds the default value on creation for the cluster_scoped field.
+	applicationversionresource.DefaultClusterScoped = applicationversionresourceDescClusterScoped.Default.(bool)
+	// applicationversionresourceDescImages is the schema descriptor for images field.
+	applicationversionresourceDescImages := applicationversionresourceFields[14].Descriptor()
+	// applicationversionresource.DefaultImages holds the default value on creation for the images field.
+	applicationversionresource.DefaultImages = applicationversionresourceDescImages.Default.(string)
+	// applicationversionresourceDescSecretKeys is the schema descriptor for secret_keys field.
+	applicationversionresourceDescSecretKeys := applicationversionresourceFields[15].Descriptor()
+	// applicationversionresource.DefaultSecretKeys holds the default value on creation for the secret_keys field.
+	applicationversionresource.DefaultSecretKeys = applicationversionresourceDescSecretKeys.Default.(string)
+	// applicationversionresourceDescContentHash is the schema descriptor for content_hash field.
+	applicationversionresourceDescContentHash := applicationversionresourceFields[16].Descriptor()
+	// applicationversionresource.DefaultContentHash holds the default value on creation for the content_hash field.
+	applicationversionresource.DefaultContentHash = applicationversionresourceDescContentHash.Default.(string)
+	// applicationversionresourceDescSortOrder is the schema descriptor for sort_order field.
+	applicationversionresourceDescSortOrder := applicationversionresourceFields[17].Descriptor()
+	// applicationversionresource.DefaultSortOrder holds the default value on creation for the sort_order field.
+	applicationversionresource.DefaultSortOrder = applicationversionresourceDescSortOrder.Default.(int)
 	authemailsettingMixin := schema.AuthEmailSetting{}.Mixin()
 	authemailsettingMixinFields0 := authemailsettingMixin[0].Fields()
 	_ = authemailsettingMixinFields0

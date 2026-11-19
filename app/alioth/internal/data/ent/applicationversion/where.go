@@ -114,6 +114,31 @@ func PublishedAt(v time.Time) predicate.ApplicationVersion {
 	return predicate.ApplicationVersion(sql.FieldEQ(FieldPublishedAt, v))
 }
 
+// Revision applies equality check predicate on the "revision" field. It's identical to RevisionEQ.
+func Revision(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldRevision, v))
+}
+
+// CompositionVersion applies equality check predicate on the "composition_version" field. It's identical to CompositionVersionEQ.
+func CompositionVersion(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldCompositionVersion, v))
+}
+
+// StatusChangedAt applies equality check predicate on the "status_changed_at" field. It's identical to StatusChangedAtEQ.
+func StatusChangedAt(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldStatusChangedAt, v))
+}
+
+// DeprecatedAt applies equality check predicate on the "deprecated_at" field. It's identical to DeprecatedAtEQ.
+func DeprecatedAt(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldDeprecatedAt, v))
+}
+
+// CopiedFromVersionUID applies equality check predicate on the "copied_from_version_uid" field. It's identical to CopiedFromVersionUIDEQ.
+func CopiedFromVersionUID(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldCopiedFromVersionUID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.ApplicationVersion {
 	return predicate.ApplicationVersion(sql.FieldEQ(FieldCreatedAt, v))
@@ -832,6 +857,251 @@ func PublishedAtIsNil() predicate.ApplicationVersion {
 // PublishedAtNotNil applies the NotNil predicate on the "published_at" field.
 func PublishedAtNotNil() predicate.ApplicationVersion {
 	return predicate.ApplicationVersion(sql.FieldNotNull(FieldPublishedAt))
+}
+
+// RevisionEQ applies the EQ predicate on the "revision" field.
+func RevisionEQ(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldRevision, v))
+}
+
+// RevisionNEQ applies the NEQ predicate on the "revision" field.
+func RevisionNEQ(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNEQ(FieldRevision, v))
+}
+
+// RevisionIn applies the In predicate on the "revision" field.
+func RevisionIn(vs ...int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldIn(FieldRevision, vs...))
+}
+
+// RevisionNotIn applies the NotIn predicate on the "revision" field.
+func RevisionNotIn(vs ...int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNotIn(FieldRevision, vs...))
+}
+
+// RevisionGT applies the GT predicate on the "revision" field.
+func RevisionGT(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGT(FieldRevision, v))
+}
+
+// RevisionGTE applies the GTE predicate on the "revision" field.
+func RevisionGTE(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGTE(FieldRevision, v))
+}
+
+// RevisionLT applies the LT predicate on the "revision" field.
+func RevisionLT(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLT(FieldRevision, v))
+}
+
+// RevisionLTE applies the LTE predicate on the "revision" field.
+func RevisionLTE(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLTE(FieldRevision, v))
+}
+
+// CompositionVersionEQ applies the EQ predicate on the "composition_version" field.
+func CompositionVersionEQ(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldCompositionVersion, v))
+}
+
+// CompositionVersionNEQ applies the NEQ predicate on the "composition_version" field.
+func CompositionVersionNEQ(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNEQ(FieldCompositionVersion, v))
+}
+
+// CompositionVersionIn applies the In predicate on the "composition_version" field.
+func CompositionVersionIn(vs ...int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldIn(FieldCompositionVersion, vs...))
+}
+
+// CompositionVersionNotIn applies the NotIn predicate on the "composition_version" field.
+func CompositionVersionNotIn(vs ...int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNotIn(FieldCompositionVersion, vs...))
+}
+
+// CompositionVersionGT applies the GT predicate on the "composition_version" field.
+func CompositionVersionGT(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGT(FieldCompositionVersion, v))
+}
+
+// CompositionVersionGTE applies the GTE predicate on the "composition_version" field.
+func CompositionVersionGTE(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGTE(FieldCompositionVersion, v))
+}
+
+// CompositionVersionLT applies the LT predicate on the "composition_version" field.
+func CompositionVersionLT(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLT(FieldCompositionVersion, v))
+}
+
+// CompositionVersionLTE applies the LTE predicate on the "composition_version" field.
+func CompositionVersionLTE(v int) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLTE(FieldCompositionVersion, v))
+}
+
+// StatusChangedAtEQ applies the EQ predicate on the "status_changed_at" field.
+func StatusChangedAtEQ(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldStatusChangedAt, v))
+}
+
+// StatusChangedAtNEQ applies the NEQ predicate on the "status_changed_at" field.
+func StatusChangedAtNEQ(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNEQ(FieldStatusChangedAt, v))
+}
+
+// StatusChangedAtIn applies the In predicate on the "status_changed_at" field.
+func StatusChangedAtIn(vs ...time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldIn(FieldStatusChangedAt, vs...))
+}
+
+// StatusChangedAtNotIn applies the NotIn predicate on the "status_changed_at" field.
+func StatusChangedAtNotIn(vs ...time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNotIn(FieldStatusChangedAt, vs...))
+}
+
+// StatusChangedAtGT applies the GT predicate on the "status_changed_at" field.
+func StatusChangedAtGT(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGT(FieldStatusChangedAt, v))
+}
+
+// StatusChangedAtGTE applies the GTE predicate on the "status_changed_at" field.
+func StatusChangedAtGTE(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGTE(FieldStatusChangedAt, v))
+}
+
+// StatusChangedAtLT applies the LT predicate on the "status_changed_at" field.
+func StatusChangedAtLT(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLT(FieldStatusChangedAt, v))
+}
+
+// StatusChangedAtLTE applies the LTE predicate on the "status_changed_at" field.
+func StatusChangedAtLTE(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLTE(FieldStatusChangedAt, v))
+}
+
+// StatusChangedAtIsNil applies the IsNil predicate on the "status_changed_at" field.
+func StatusChangedAtIsNil() predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldIsNull(FieldStatusChangedAt))
+}
+
+// StatusChangedAtNotNil applies the NotNil predicate on the "status_changed_at" field.
+func StatusChangedAtNotNil() predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNotNull(FieldStatusChangedAt))
+}
+
+// DeprecatedAtEQ applies the EQ predicate on the "deprecated_at" field.
+func DeprecatedAtEQ(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldDeprecatedAt, v))
+}
+
+// DeprecatedAtNEQ applies the NEQ predicate on the "deprecated_at" field.
+func DeprecatedAtNEQ(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNEQ(FieldDeprecatedAt, v))
+}
+
+// DeprecatedAtIn applies the In predicate on the "deprecated_at" field.
+func DeprecatedAtIn(vs ...time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldIn(FieldDeprecatedAt, vs...))
+}
+
+// DeprecatedAtNotIn applies the NotIn predicate on the "deprecated_at" field.
+func DeprecatedAtNotIn(vs ...time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNotIn(FieldDeprecatedAt, vs...))
+}
+
+// DeprecatedAtGT applies the GT predicate on the "deprecated_at" field.
+func DeprecatedAtGT(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGT(FieldDeprecatedAt, v))
+}
+
+// DeprecatedAtGTE applies the GTE predicate on the "deprecated_at" field.
+func DeprecatedAtGTE(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGTE(FieldDeprecatedAt, v))
+}
+
+// DeprecatedAtLT applies the LT predicate on the "deprecated_at" field.
+func DeprecatedAtLT(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLT(FieldDeprecatedAt, v))
+}
+
+// DeprecatedAtLTE applies the LTE predicate on the "deprecated_at" field.
+func DeprecatedAtLTE(v time.Time) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLTE(FieldDeprecatedAt, v))
+}
+
+// DeprecatedAtIsNil applies the IsNil predicate on the "deprecated_at" field.
+func DeprecatedAtIsNil() predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldIsNull(FieldDeprecatedAt))
+}
+
+// DeprecatedAtNotNil applies the NotNil predicate on the "deprecated_at" field.
+func DeprecatedAtNotNil() predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNotNull(FieldDeprecatedAt))
+}
+
+// CopiedFromVersionUIDEQ applies the EQ predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDEQ(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEQ(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDNEQ applies the NEQ predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDNEQ(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNEQ(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDIn applies the In predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDIn(vs ...string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldIn(FieldCopiedFromVersionUID, vs...))
+}
+
+// CopiedFromVersionUIDNotIn applies the NotIn predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDNotIn(vs ...string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldNotIn(FieldCopiedFromVersionUID, vs...))
+}
+
+// CopiedFromVersionUIDGT applies the GT predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDGT(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGT(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDGTE applies the GTE predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDGTE(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldGTE(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDLT applies the LT predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDLT(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLT(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDLTE applies the LTE predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDLTE(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldLTE(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDContains applies the Contains predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDContains(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldContains(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDHasPrefix applies the HasPrefix predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDHasPrefix(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldHasPrefix(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDHasSuffix applies the HasSuffix predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDHasSuffix(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldHasSuffix(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDEqualFold applies the EqualFold predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDEqualFold(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldEqualFold(FieldCopiedFromVersionUID, v))
+}
+
+// CopiedFromVersionUIDContainsFold applies the ContainsFold predicate on the "copied_from_version_uid" field.
+func CopiedFromVersionUIDContainsFold(v string) predicate.ApplicationVersion {
+	return predicate.ApplicationVersion(sql.FieldContainsFold(FieldCopiedFromVersionUID, v))
 }
 
 // And groups predicates with the AND operator between them.

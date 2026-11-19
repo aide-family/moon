@@ -19,32 +19,50 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationApplicationServiceCreateApplication = "/alioth.v1.ApplicationService/CreateApplication"
 const OperationApplicationServiceCreateApplicationVersion = "/alioth.v1.ApplicationService/CreateApplicationVersion"
+const OperationApplicationServiceCreateApplicationVersionResource = "/alioth.v1.ApplicationService/CreateApplicationVersionResource"
 const OperationApplicationServiceDeleteApplication = "/alioth.v1.ApplicationService/DeleteApplication"
 const OperationApplicationServiceDeleteApplicationVersion = "/alioth.v1.ApplicationService/DeleteApplicationVersion"
+const OperationApplicationServiceDeleteApplicationVersionResource = "/alioth.v1.ApplicationService/DeleteApplicationVersionResource"
 const OperationApplicationServiceDeprecateApplicationVersion = "/alioth.v1.ApplicationService/DeprecateApplicationVersion"
+const OperationApplicationServiceDuplicateApplicationVersion = "/alioth.v1.ApplicationService/DuplicateApplicationVersion"
 const OperationApplicationServiceGetApplication = "/alioth.v1.ApplicationService/GetApplication"
 const OperationApplicationServiceGetApplicationVersion = "/alioth.v1.ApplicationService/GetApplicationVersion"
+const OperationApplicationServiceGetApplicationVersionResource = "/alioth.v1.ApplicationService/GetApplicationVersionResource"
 const OperationApplicationServiceListApplicationVersions = "/alioth.v1.ApplicationService/ListApplicationVersions"
 const OperationApplicationServiceListApplications = "/alioth.v1.ApplicationService/ListApplications"
 const OperationApplicationServicePublishApplicationVersion = "/alioth.v1.ApplicationService/PublishApplicationVersion"
+const OperationApplicationServiceSaveApplicationVersionResource = "/alioth.v1.ApplicationService/SaveApplicationVersionResource"
 const OperationApplicationServiceUpdateApplication = "/alioth.v1.ApplicationService/UpdateApplication"
 const OperationApplicationServiceUpdateApplicationVersion = "/alioth.v1.ApplicationService/UpdateApplicationVersion"
 const OperationApplicationServiceValidateApplicationVersion = "/alioth.v1.ApplicationService/ValidateApplicationVersion"
+const OperationApplicationServiceValidateApplicationVersionResource = "/alioth.v1.ApplicationService/ValidateApplicationVersionResource"
 
 type ApplicationServiceHTTPServer interface {
 	CreateApplication(context.Context, *CreateApplicationRequest) (*CreateApplicationResponse, error)
 	CreateApplicationVersion(context.Context, *CreateApplicationVersionRequest) (*CreateApplicationVersionResponse, error)
+	// CreateApplicationVersionResource CreateApplicationVersionResource 在草稿版本里新增一个 Kubernetes 资源。
+	CreateApplicationVersionResource(context.Context, *CreateApplicationVersionResourceRequest) (*CreateApplicationVersionResourceResponse, error)
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationResponse, error)
 	DeleteApplicationVersion(context.Context, *DeleteApplicationVersionRequest) (*DeleteApplicationVersionResponse, error)
+	// DeleteApplicationVersionResource DeleteApplicationVersionResource 删除草稿版本里的单个资源。
+	DeleteApplicationVersionResource(context.Context, *DeleteApplicationVersionResourceRequest) (*DeleteApplicationVersionResourceResponse, error)
 	DeprecateApplicationVersion(context.Context, *DeprecateApplicationVersionRequest) (*DeprecateApplicationVersionResponse, error)
+	// DuplicateApplicationVersion DuplicateApplicationVersion 复制一个版本的内容为新的草稿版本。
+	DuplicateApplicationVersion(context.Context, *DuplicateApplicationVersionRequest) (*DuplicateApplicationVersionResponse, error)
 	GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error)
 	GetApplicationVersion(context.Context, *GetApplicationVersionRequest) (*GetApplicationVersionResponse, error)
+	// GetApplicationVersionResource GetApplicationVersionResource 读取单个资源详情。
+	GetApplicationVersionResource(context.Context, *GetApplicationVersionResourceRequest) (*GetApplicationVersionResourceResponse, error)
 	ListApplicationVersions(context.Context, *ListApplicationVersionsRequest) (*ListApplicationVersionsResponse, error)
 	ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error)
 	PublishApplicationVersion(context.Context, *PublishApplicationVersionRequest) (*PublishApplicationVersionResponse, error)
+	// SaveApplicationVersionResource SaveApplicationVersionResource 编辑草稿版本里的单个资源。
+	SaveApplicationVersionResource(context.Context, *SaveApplicationVersionResourceRequest) (*SaveApplicationVersionResourceResponse, error)
 	UpdateApplication(context.Context, *UpdateApplicationRequest) (*UpdateApplicationResponse, error)
 	UpdateApplicationVersion(context.Context, *UpdateApplicationVersionRequest) (*UpdateApplicationVersionResponse, error)
 	ValidateApplicationVersion(context.Context, *ValidateApplicationVersionRequest) (*ValidateApplicationVersionResponse, error)
+	// ValidateApplicationVersionResource ValidateApplicationVersionResource 只校验一段资源 YAML，不写入版本。
+	ValidateApplicationVersionResource(context.Context, *ValidateApplicationVersionResourceRequest) (*ValidateApplicationVersionResourceResponse, error)
 }
 
 func RegisterApplicationServiceHTTPServer(s *http.Server, srv ApplicationServiceHTTPServer) {
@@ -62,6 +80,12 @@ func RegisterApplicationServiceHTTPServer(s *http.Server, srv ApplicationService
 	r.Handle("POST", "/v1/application/{application_uid}/version/{uid}/deprecate", _ApplicationService_DeprecateApplicationVersion0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/application/{application_uid}/versions", _ApplicationService_ListApplicationVersions0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/application/{application_uid}/version/{uid}", _ApplicationService_GetApplicationVersion0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/application/{application_uid}/version/{uid}/copy", _ApplicationService_DuplicateApplicationVersion0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/application/{application_uid}/version/{uid}/resource", _ApplicationService_CreateApplicationVersionResource0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}", _ApplicationService_GetApplicationVersionResource0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}", _ApplicationService_SaveApplicationVersionResource0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}", _ApplicationService_DeleteApplicationVersionResource0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/application/{application_uid}/version/{uid}/resource/validate", _ApplicationService_ValidateApplicationVersionResource0_HTTP_Handler(srv))
 }
 
 func _ApplicationService_CreateApplication0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
@@ -344,20 +368,164 @@ func _ApplicationService_GetApplicationVersion0_HTTP_Handler(srv ApplicationServ
 	}
 }
 
+func _ApplicationService_DuplicateApplicationVersion0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DuplicateApplicationVersionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApplicationServiceDuplicateApplicationVersion)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DuplicateApplicationVersion(ctx, req.(*DuplicateApplicationVersionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DuplicateApplicationVersionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ApplicationService_CreateApplicationVersionResource0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateApplicationVersionResourceRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApplicationServiceCreateApplicationVersionResource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateApplicationVersionResource(ctx, req.(*CreateApplicationVersionResourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateApplicationVersionResourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ApplicationService_GetApplicationVersionResource0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetApplicationVersionResourceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApplicationServiceGetApplicationVersionResource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetApplicationVersionResource(ctx, req.(*GetApplicationVersionResourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetApplicationVersionResourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ApplicationService_SaveApplicationVersionResource0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SaveApplicationVersionResourceRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApplicationServiceSaveApplicationVersionResource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SaveApplicationVersionResource(ctx, req.(*SaveApplicationVersionResourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SaveApplicationVersionResourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ApplicationService_DeleteApplicationVersionResource0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteApplicationVersionResourceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApplicationServiceDeleteApplicationVersionResource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteApplicationVersionResource(ctx, req.(*DeleteApplicationVersionResourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteApplicationVersionResourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ApplicationService_ValidateApplicationVersionResource0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ValidateApplicationVersionResourceRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApplicationServiceValidateApplicationVersionResource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ValidateApplicationVersionResource(ctx, req.(*ValidateApplicationVersionResourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ValidateApplicationVersionResourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ApplicationServiceHTTPClient interface {
 	CreateApplication(ctx context.Context, req *CreateApplicationRequest, opts ...http.CallOption) (rsp *CreateApplicationResponse, err error)
 	CreateApplicationVersion(ctx context.Context, req *CreateApplicationVersionRequest, opts ...http.CallOption) (rsp *CreateApplicationVersionResponse, err error)
+	// CreateApplicationVersionResource CreateApplicationVersionResource 在草稿版本里新增一个 Kubernetes 资源。
+	CreateApplicationVersionResource(ctx context.Context, req *CreateApplicationVersionResourceRequest, opts ...http.CallOption) (rsp *CreateApplicationVersionResourceResponse, err error)
 	DeleteApplication(ctx context.Context, req *DeleteApplicationRequest, opts ...http.CallOption) (rsp *DeleteApplicationResponse, err error)
 	DeleteApplicationVersion(ctx context.Context, req *DeleteApplicationVersionRequest, opts ...http.CallOption) (rsp *DeleteApplicationVersionResponse, err error)
+	// DeleteApplicationVersionResource DeleteApplicationVersionResource 删除草稿版本里的单个资源。
+	DeleteApplicationVersionResource(ctx context.Context, req *DeleteApplicationVersionResourceRequest, opts ...http.CallOption) (rsp *DeleteApplicationVersionResourceResponse, err error)
 	DeprecateApplicationVersion(ctx context.Context, req *DeprecateApplicationVersionRequest, opts ...http.CallOption) (rsp *DeprecateApplicationVersionResponse, err error)
+	// DuplicateApplicationVersion DuplicateApplicationVersion 复制一个版本的内容为新的草稿版本。
+	DuplicateApplicationVersion(ctx context.Context, req *DuplicateApplicationVersionRequest, opts ...http.CallOption) (rsp *DuplicateApplicationVersionResponse, err error)
 	GetApplication(ctx context.Context, req *GetApplicationRequest, opts ...http.CallOption) (rsp *GetApplicationResponse, err error)
 	GetApplicationVersion(ctx context.Context, req *GetApplicationVersionRequest, opts ...http.CallOption) (rsp *GetApplicationVersionResponse, err error)
+	// GetApplicationVersionResource GetApplicationVersionResource 读取单个资源详情。
+	GetApplicationVersionResource(ctx context.Context, req *GetApplicationVersionResourceRequest, opts ...http.CallOption) (rsp *GetApplicationVersionResourceResponse, err error)
 	ListApplicationVersions(ctx context.Context, req *ListApplicationVersionsRequest, opts ...http.CallOption) (rsp *ListApplicationVersionsResponse, err error)
 	ListApplications(ctx context.Context, req *ListApplicationsRequest, opts ...http.CallOption) (rsp *ListApplicationsResponse, err error)
 	PublishApplicationVersion(ctx context.Context, req *PublishApplicationVersionRequest, opts ...http.CallOption) (rsp *PublishApplicationVersionResponse, err error)
+	// SaveApplicationVersionResource SaveApplicationVersionResource 编辑草稿版本里的单个资源。
+	SaveApplicationVersionResource(ctx context.Context, req *SaveApplicationVersionResourceRequest, opts ...http.CallOption) (rsp *SaveApplicationVersionResourceResponse, err error)
 	UpdateApplication(ctx context.Context, req *UpdateApplicationRequest, opts ...http.CallOption) (rsp *UpdateApplicationResponse, err error)
 	UpdateApplicationVersion(ctx context.Context, req *UpdateApplicationVersionRequest, opts ...http.CallOption) (rsp *UpdateApplicationVersionResponse, err error)
 	ValidateApplicationVersion(ctx context.Context, req *ValidateApplicationVersionRequest, opts ...http.CallOption) (rsp *ValidateApplicationVersionResponse, err error)
+	// ValidateApplicationVersionResource ValidateApplicationVersionResource 只校验一段资源 YAML，不写入版本。
+	ValidateApplicationVersionResource(ctx context.Context, req *ValidateApplicationVersionResourceRequest, opts ...http.CallOption) (rsp *ValidateApplicationVersionResourceResponse, err error)
 }
 
 type ApplicationServiceHTTPClientImpl struct {
@@ -402,6 +570,24 @@ func (c *ApplicationServiceHTTPClientImpl) CreateApplicationVersion(ctx context.
 	return &out, nil
 }
 
+// CreateApplicationVersionResource CreateApplicationVersionResource 在草稿版本里新增一个 Kubernetes 资源。
+func (c *ApplicationServiceHTTPClientImpl) CreateApplicationVersionResource(ctx context.Context, in *CreateApplicationVersionResourceRequest, opts ...http.CallOption) (*CreateApplicationVersionResourceResponse, error) {
+	var out CreateApplicationVersionResourceResponse
+	pattern := "/v1/application/{application_uid}/version/{uid}/resource"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationApplicationServiceCreateApplicationVersionResource),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *ApplicationServiceHTTPClientImpl) DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...http.CallOption) (*DeleteApplicationResponse, error) {
 	var out DeleteApplicationResponse
 	pattern := "/v1/application/{uid}"
@@ -434,6 +620,23 @@ func (c *ApplicationServiceHTTPClientImpl) DeleteApplicationVersion(ctx context.
 	return &out, nil
 }
 
+// DeleteApplicationVersionResource DeleteApplicationVersionResource 删除草稿版本里的单个资源。
+func (c *ApplicationServiceHTTPClientImpl) DeleteApplicationVersionResource(ctx context.Context, in *DeleteApplicationVersionResourceRequest, opts ...http.CallOption) (*DeleteApplicationVersionResourceResponse, error) {
+	var out DeleteApplicationVersionResourceResponse
+	pattern := "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationApplicationServiceDeleteApplicationVersionResource),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *ApplicationServiceHTTPClientImpl) DeprecateApplicationVersion(ctx context.Context, in *DeprecateApplicationVersionRequest, opts ...http.CallOption) (*DeprecateApplicationVersionResponse, error) {
 	var out DeprecateApplicationVersionResponse
 	pattern := "/v1/application/{application_uid}/version/{uid}/deprecate"
@@ -442,6 +645,24 @@ func (c *ApplicationServiceHTTPClientImpl) DeprecateApplicationVersion(ctx conte
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationApplicationServiceDeprecateApplicationVersion),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DuplicateApplicationVersion DuplicateApplicationVersion 复制一个版本的内容为新的草稿版本。
+func (c *ApplicationServiceHTTPClientImpl) DuplicateApplicationVersion(ctx context.Context, in *DuplicateApplicationVersionRequest, opts ...http.CallOption) (*DuplicateApplicationVersionResponse, error) {
+	var out DuplicateApplicationVersionResponse
+	pattern := "/v1/application/{application_uid}/version/{uid}/copy"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationApplicationServiceDuplicateApplicationVersion),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -474,6 +695,23 @@ func (c *ApplicationServiceHTTPClientImpl) GetApplicationVersion(ctx context.Con
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationApplicationServiceGetApplicationVersion),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetApplicationVersionResource GetApplicationVersionResource 读取单个资源详情。
+func (c *ApplicationServiceHTTPClientImpl) GetApplicationVersionResource(ctx context.Context, in *GetApplicationVersionResourceRequest, opts ...http.CallOption) (*GetApplicationVersionResourceResponse, error) {
+	var out GetApplicationVersionResourceResponse
+	pattern := "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationApplicationServiceGetApplicationVersionResource),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -532,6 +770,24 @@ func (c *ApplicationServiceHTTPClientImpl) PublishApplicationVersion(ctx context
 	return &out, nil
 }
 
+// SaveApplicationVersionResource SaveApplicationVersionResource 编辑草稿版本里的单个资源。
+func (c *ApplicationServiceHTTPClientImpl) SaveApplicationVersionResource(ctx context.Context, in *SaveApplicationVersionResourceRequest, opts ...http.CallOption) (*SaveApplicationVersionResourceResponse, error) {
+	var out SaveApplicationVersionResourceResponse
+	pattern := "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationApplicationServiceSaveApplicationVersionResource),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *ApplicationServiceHTTPClientImpl) UpdateApplication(ctx context.Context, in *UpdateApplicationRequest, opts ...http.CallOption) (*UpdateApplicationResponse, error) {
 	var out UpdateApplicationResponse
 	pattern := "/v1/application/{uid}"
@@ -574,6 +830,24 @@ func (c *ApplicationServiceHTTPClientImpl) ValidateApplicationVersion(ctx contex
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationApplicationServiceValidateApplicationVersion),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ValidateApplicationVersionResource ValidateApplicationVersionResource 只校验一段资源 YAML，不写入版本。
+func (c *ApplicationServiceHTTPClientImpl) ValidateApplicationVersionResource(ctx context.Context, in *ValidateApplicationVersionResourceRequest, opts ...http.CallOption) (*ValidateApplicationVersionResourceResponse, error) {
+	var out ValidateApplicationVersionResourceResponse
+	pattern := "/v1/application/{application_uid}/version/{uid}/resource/validate"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationApplicationServiceValidateApplicationVersionResource),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -940,16 +1214,20 @@ func (c *ApplicationDeploymentServiceHTTPClientImpl) UpgradeApplicationDeploymen
 const OperationApplicationReleaseServiceGetApplicationOperation = "/alioth.v1.ApplicationReleaseService/GetApplicationOperation"
 const OperationApplicationReleaseServiceGetApplicationRelease = "/alioth.v1.ApplicationReleaseService/GetApplicationRelease"
 const OperationApplicationReleaseServiceListApplicationReleaseOperations = "/alioth.v1.ApplicationReleaseService/ListApplicationReleaseOperations"
+const OperationApplicationReleaseServiceListApplicationReleases = "/alioth.v1.ApplicationReleaseService/ListApplicationReleases"
 
 type ApplicationReleaseServiceHTTPServer interface {
 	GetApplicationOperation(context.Context, *GetApplicationOperationRequest) (*GetApplicationOperationResponse, error)
 	GetApplicationRelease(context.Context, *GetApplicationReleaseRequest) (*GetApplicationReleaseResponse, error)
 	ListApplicationReleaseOperations(context.Context, *ListReleaseOperationsRequest) (*ListReleaseOperationsResponse, error)
+	// ListApplicationReleases ListApplicationReleases 按应用或集群查询集群实例（含当前发布版本）。
+	ListApplicationReleases(context.Context, *ListApplicationReleasesRequest) (*ListApplicationReleasesResponse, error)
 }
 
 func RegisterApplicationReleaseServiceHTTPServer(s *http.Server, srv ApplicationReleaseServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/v1/application-releases/{uid}", _ApplicationReleaseService_GetApplicationRelease0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/application-releases", _ApplicationReleaseService_ListApplicationReleases0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/application-releases/{uid}/operations", _ApplicationReleaseService_ListApplicationReleaseOperations1_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/application-release-operations/{uid}", _ApplicationReleaseService_GetApplicationOperation0_HTTP_Handler(srv))
 }
@@ -972,6 +1250,25 @@ func _ApplicationReleaseService_GetApplicationRelease0_HTTP_Handler(srv Applicat
 			return err
 		}
 		reply := out.(*GetApplicationReleaseResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ApplicationReleaseService_ListApplicationReleases0_HTTP_Handler(srv ApplicationReleaseServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListApplicationReleasesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApplicationReleaseServiceListApplicationReleases)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListApplicationReleases(ctx, req.(*ListApplicationReleasesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListApplicationReleasesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1024,6 +1321,8 @@ type ApplicationReleaseServiceHTTPClient interface {
 	GetApplicationOperation(ctx context.Context, req *GetApplicationOperationRequest, opts ...http.CallOption) (rsp *GetApplicationOperationResponse, err error)
 	GetApplicationRelease(ctx context.Context, req *GetApplicationReleaseRequest, opts ...http.CallOption) (rsp *GetApplicationReleaseResponse, err error)
 	ListApplicationReleaseOperations(ctx context.Context, req *ListReleaseOperationsRequest, opts ...http.CallOption) (rsp *ListReleaseOperationsResponse, err error)
+	// ListApplicationReleases ListApplicationReleases 按应用或集群查询集群实例（含当前发布版本）。
+	ListApplicationReleases(ctx context.Context, req *ListApplicationReleasesRequest, opts ...http.CallOption) (rsp *ListApplicationReleasesResponse, err error)
 }
 
 type ApplicationReleaseServiceHTTPClientImpl struct {
@@ -1073,6 +1372,23 @@ func (c *ApplicationReleaseServiceHTTPClientImpl) ListApplicationReleaseOperatio
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationApplicationReleaseServiceListApplicationReleaseOperations),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListApplicationReleases ListApplicationReleases 按应用或集群查询集群实例（含当前发布版本）。
+func (c *ApplicationReleaseServiceHTTPClientImpl) ListApplicationReleases(ctx context.Context, in *ListApplicationReleasesRequest, opts ...http.CallOption) (*ListApplicationReleasesResponse, error) {
+	var out ListApplicationReleasesResponse
+	pattern := "/v1/application-releases"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationApplicationReleaseServiceListApplicationReleases),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

@@ -149,6 +149,59 @@ func (s *ApplicationService) GetApplicationVersion(ctx context.Context, req *v1.
 	return &v1.GetApplicationVersionResponse{Version: applicationVersionItem(*item)}, nil
 }
 
+func (s *ApplicationService) DuplicateApplicationVersion(ctx context.Context, req *v1.DuplicateApplicationVersionRequest) (*v1.DuplicateApplicationVersionResponse, error) {
+	item, err := s.catalog.DuplicateVersion(ctx, req.GetApplicationUid(), req.GetUid(), req.GetVersion(), req.GetChangelog())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DuplicateApplicationVersionResponse{Version: applicationVersionItem(*item)}, nil
+}
+
+func (s *ApplicationService) CreateApplicationVersionResource(ctx context.Context, req *v1.CreateApplicationVersionResourceRequest) (*v1.CreateApplicationVersionResourceResponse, error) {
+	input := bo.ApplicationResource{
+		Item: req.GetResource().GetItem(), Component: req.GetResource().GetComponent(),
+		Manifest: req.GetResource().GetManifest(),
+	}
+	item, err := s.catalog.CreateVersionResource(ctx, req.GetApplicationUid(), req.GetUid(), input, req.GetExpectedRevision())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateApplicationVersionResourceResponse{Version: applicationVersionItem(*item)}, nil
+}
+
+func (s *ApplicationService) GetApplicationVersionResource(ctx context.Context, req *v1.GetApplicationVersionResourceRequest) (*v1.GetApplicationVersionResourceResponse, error) {
+	resource, err := s.catalog.GetVersionResource(ctx, req.GetApplicationUid(), req.GetUid(), req.GetResourceUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetApplicationVersionResourceResponse{Resource: applicationResourceItem(*resource)}, nil
+}
+
+func (s *ApplicationService) SaveApplicationVersionResource(ctx context.Context, req *v1.SaveApplicationVersionResourceRequest) (*v1.SaveApplicationVersionResourceResponse, error) {
+	item, err := s.catalog.SaveVersionResource(ctx, req.GetApplicationUid(), req.GetUid(), req.GetResourceUid(),
+		req.GetComponent(), req.GetManifest(), req.GetSecretValues(), req.GetClearSecretKeys(), req.GetExpectedRevision())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SaveApplicationVersionResourceResponse{Version: applicationVersionItem(*item)}, nil
+}
+
+func (s *ApplicationService) DeleteApplicationVersionResource(ctx context.Context, req *v1.DeleteApplicationVersionResourceRequest) (*v1.DeleteApplicationVersionResourceResponse, error) {
+	item, err := s.catalog.DeleteVersionResource(ctx, req.GetApplicationUid(), req.GetUid(), req.GetResourceUid(), req.GetExpectedRevision())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DeleteApplicationVersionResourceResponse{Version: applicationVersionItem(*item)}, nil
+}
+
+func (s *ApplicationService) ValidateApplicationVersionResource(ctx context.Context, req *v1.ValidateApplicationVersionResourceRequest) (*v1.ValidateApplicationVersionResourceResponse, error) {
+	errs, warnings, err := s.catalog.ValidateVersionResource(ctx, req.GetApplicationUid(), req.GetUid(), req.GetComponent(), req.GetManifest())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ValidateApplicationVersionResourceResponse{Errors: errs, Warnings: warnings}, nil
+}
+
 // ApplicationDeploymentService 把部署组请求转成用例入参。
 type ApplicationDeploymentService struct {
 	v1.UnimplementedApplicationDeploymentServiceServer
@@ -251,6 +304,20 @@ func (s *ApplicationReleaseService) GetApplicationRelease(ctx context.Context, r
 	return &v1.GetApplicationReleaseResponse{Release: applicationReleaseItem(*item)}, nil
 }
 
+func (s *ApplicationReleaseService) ListApplicationReleases(ctx context.Context, req *v1.ListApplicationReleasesRequest) (*v1.ListApplicationReleasesResponse, error) {
+	items, total, page, pageSize, err := s.deployer.ListReleases(ctx, req.GetPage(), req.GetPageSize(), bo.ApplicationReleaseFilter{
+		ApplicationUID: req.GetApplicationUid(), ClusterUID: req.GetClusterUid(), Status: req.GetStatus(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.ApplicationReleaseItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, applicationReleaseItem(item))
+	}
+	return &v1.ListApplicationReleasesResponse{Items: out, Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}, nil
+}
+
 func (s *ApplicationReleaseService) ListApplicationReleaseOperations(ctx context.Context, req *v1.ListReleaseOperationsRequest) (*v1.ListReleaseOperationsResponse, error) {
 	items, total, page, pageSize, err := s.deployer.ListOperations(ctx, "", req.GetUid(), req.GetPage(), req.GetPageSize())
 	if err != nil {
@@ -282,25 +349,41 @@ func applicationItem(item bo.Application) *v1.ApplicationItem {
 func applicationVersionItem(item bo.ApplicationVersion) *v1.ApplicationVersionItem {
 	out := &v1.ApplicationVersionItem{
 		Uid: item.UID, ApplicationUid: item.ApplicationUID, Version: item.Version, Status: item.Status,
-		Changelog: item.Changelog, CreatedAt: item.CreatedAt.Unix(),
+		Changelog: item.Changelog, CreatedAt: item.CreatedAt.Unix(), Revision: item.Revision,
+		ComponentCount: item.ComponentCount, ResourceCount: item.ResourceCount,
+		AllowedActions: item.AllowedActions, CopiedFromVersionUid: item.CopiedFromVersionUID,
 	}
 	for _, resource := range item.Resources {
-		out.Resources = append(out.Resources, &v1.ApplicationResource{
-			Item: resource.Item, Manifest: resource.Manifest, ApiVersion: resource.APIVersion,
-			Kind: resource.Kind, Name: resource.Name, Namespace: resource.Namespace, Scope: resource.Scope,
-			ClusterScoped: resource.ClusterScoped, Images: resource.Images, SecretKeys: resource.SecretKeys,
-		})
+		out.Resources = append(out.Resources, applicationResourceItem(resource))
+	}
+	for _, component := range item.Components {
+		mapped := &v1.ApplicationVersionComponent{
+			Uid: component.UID, Name: component.Name, DisplayName: component.DisplayName,
+			SortOrder: component.SortOrder, ResourceCount: component.ResourceCount,
+		}
+		for _, resource := range component.Resources {
+			mapped.Resources = append(mapped.Resources, applicationResourceItem(resource))
+		}
+		out.Components = append(out.Components, mapped)
 	}
 	for _, image := range item.Images {
 		out.Images = append(out.Images, &v1.ApplicationVersionImageItem{
 			ResourceItem: image.ResourceItem, Container: image.Container, Image: image.Image,
 			RegistryUid: image.RegistryUID, RegistryName: image.RegistryName,
 			Repository: image.Repository, Tag: image.Tag, Digest: image.Digest,
-			Platforms: image.Platforms, External: image.External,
+			Platforms: image.Platforms, External: image.External, Component: image.Component,
+			ResourceUid: image.ResourceUID, ContainerPath: image.ContainerPath, Project: image.Project,
+			Source: image.Source, ResolvedImage: image.ResolvedImage,
 		})
 	}
 	if item.PublishedAt != nil {
 		out.PublishedAt = item.PublishedAt.Unix()
+	}
+	if item.StatusChangedAt != nil {
+		out.StatusChangedAt = item.StatusChangedAt.Unix()
+	}
+	if item.DeprecatedAt != nil {
+		out.DeprecatedAt = item.DeprecatedAt.Unix()
 	}
 	if raw, err := json.Marshal(item.Validation); err == nil {
 		out.Validation = string(raw)
@@ -308,10 +391,21 @@ func applicationVersionItem(item bo.ApplicationVersion) *v1.ApplicationVersionIt
 	return out
 }
 
+func applicationResourceItem(resource bo.ApplicationResource) *v1.ApplicationResource {
+	return &v1.ApplicationResource{
+		Item: resource.Item, Manifest: resource.Manifest, ApiVersion: resource.APIVersion,
+		Kind: resource.Kind, Name: resource.Name, Namespace: resource.Namespace, Scope: resource.Scope,
+		ClusterScoped: resource.ClusterScoped, Images: resource.Images, SecretKeys: resource.SecretKeys,
+		Uid: resource.UID, Component: resource.Component, ContentHash: resource.ContentHash,
+	}
+}
+
 func versionResourceInputs(items []*v1.ApplicationResourceInput) []bo.ApplicationResource {
 	out := make([]bo.ApplicationResource, 0, len(items))
 	for _, item := range items {
-		out = append(out, bo.ApplicationResource{Item: item.GetItem(), Manifest: item.GetManifest()})
+		out = append(out, bo.ApplicationResource{
+			Item: item.GetItem(), Component: item.GetComponent(), Manifest: item.GetManifest(),
+		})
 	}
 	return out
 }
@@ -330,6 +424,8 @@ func applicationDeploymentItem(item bo.ApplicationDeployment) *v1.ApplicationDep
 		out.Clusters = append(out.Clusters, &v1.DeploymentCluster{
 			Uid: cluster.UID, Name: cluster.Name, Status: cluster.Status,
 			ReleaseUid: cluster.ReleaseUID, Version: cluster.Version, Message: cluster.Message,
+			CurrentVersion: cluster.CurrentVersion, CurrentVersionUid: cluster.CurrentVersionUID,
+			InSync: cluster.InSync,
 		})
 	}
 	for _, release := range item.Releases {
@@ -343,7 +439,8 @@ func applicationReleaseItem(item bo.ApplicationRelease) *v1.ApplicationReleaseIt
 		Uid: item.UID, DeploymentUid: item.DeploymentUID, ClusterUid: item.ClusterUID,
 		ClusterName: item.ClusterName, TargetNamespace: item.TargetNamespace, Name: item.Name,
 		Status: item.Status, VersionUid: item.VersionUID, Version: item.Version, Message: item.Message,
-		LastOperationUid: item.LastOperationUID,
+		LastOperationUid: item.LastOperationUID, ApplicationUid: item.ApplicationUID,
+		ApplicationName: item.ApplicationName,
 	}
 	if item.DeployedAt != nil {
 		out.DeployedAt = item.DeployedAt.Unix()
@@ -354,7 +451,7 @@ func applicationReleaseItem(item bo.ApplicationRelease) *v1.ApplicationReleaseIt
 func applicationOperationItem(item bo.ApplicationOperation) *v1.ApplicationOperationItem {
 	out := &v1.ApplicationOperationItem{
 		Uid: item.UID, DeploymentUid: item.DeploymentUID, ReleaseUid: item.ReleaseUID,
-		ClusterName: item.ClusterName, Action: item.Action, Status: item.Status,
+		ClusterUid: item.ClusterUID, ClusterName: item.ClusterName, Action: item.Action, Status: item.Status,
 		FromVersionUid: item.FromVersionUID, ToVersionUid: item.ToVersionUID, Message: item.Message,
 		OperatorName: item.OperatorName, CreatedAt: item.CreatedAt.Unix(),
 	}

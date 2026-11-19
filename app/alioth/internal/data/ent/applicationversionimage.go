@@ -31,8 +31,14 @@ type ApplicationVersionImage struct {
 	VersionUID string `json:"version_uid,omitempty"`
 	// ResourceItem holds the value of the "resource_item" field.
 	ResourceItem string `json:"resource_item,omitempty"`
+	// ResourceUID holds the value of the "resource_uid" field.
+	ResourceUID string `json:"resource_uid,omitempty"`
+	// Component holds the value of the "component" field.
+	Component string `json:"component,omitempty"`
 	// Container holds the value of the "container" field.
 	Container string `json:"container,omitempty"`
+	// ContainerPath holds the value of the "container_path" field.
+	ContainerPath string `json:"container_path,omitempty"`
 	// Image holds the value of the "image" field.
 	Image string `json:"image,omitempty"`
 	// RegistryUID holds the value of the "registry_uid" field.
@@ -45,6 +51,12 @@ type ApplicationVersionImage struct {
 	Tag string `json:"tag,omitempty"`
 	// Digest holds the value of the "digest" field.
 	Digest string `json:"digest,omitempty"`
+	// Project holds the value of the "project" field.
+	Project string `json:"project,omitempty"`
+	// Source holds the value of the "source" field.
+	Source string `json:"source,omitempty"`
+	// ResolvedImage holds the value of the "resolved_image" field.
+	ResolvedImage string `json:"resolved_image,omitempty"`
 	// Platforms holds the value of the "platforms" field.
 	Platforms string `json:"platforms,omitempty"`
 	// External holds the value of the "external" field.
@@ -63,7 +75,7 @@ func (*ApplicationVersionImage) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case applicationversionimage.FieldID:
 			values[i] = new(sql.NullInt64)
-		case applicationversionimage.FieldUID, applicationversionimage.FieldNamespaceUID, applicationversionimage.FieldApplicationUID, applicationversionimage.FieldVersionUID, applicationversionimage.FieldResourceItem, applicationversionimage.FieldContainer, applicationversionimage.FieldImage, applicationversionimage.FieldRegistryUID, applicationversionimage.FieldRegistryName, applicationversionimage.FieldRepository, applicationversionimage.FieldTag, applicationversionimage.FieldDigest, applicationversionimage.FieldPlatforms:
+		case applicationversionimage.FieldUID, applicationversionimage.FieldNamespaceUID, applicationversionimage.FieldApplicationUID, applicationversionimage.FieldVersionUID, applicationversionimage.FieldResourceItem, applicationversionimage.FieldResourceUID, applicationversionimage.FieldComponent, applicationversionimage.FieldContainer, applicationversionimage.FieldContainerPath, applicationversionimage.FieldImage, applicationversionimage.FieldRegistryUID, applicationversionimage.FieldRegistryName, applicationversionimage.FieldRepository, applicationversionimage.FieldTag, applicationversionimage.FieldDigest, applicationversionimage.FieldProject, applicationversionimage.FieldSource, applicationversionimage.FieldResolvedImage, applicationversionimage.FieldPlatforms:
 			values[i] = new(sql.NullString)
 		case applicationversionimage.FieldCreatedAt, applicationversionimage.FieldUpdatedAt, applicationversionimage.FieldResolvedAt:
 			values[i] = new(sql.NullTime)
@@ -130,11 +142,29 @@ func (_m *ApplicationVersionImage) assignValues(columns []string, values []any) 
 			} else if value.Valid {
 				_m.ResourceItem = value.String
 			}
+		case applicationversionimage.FieldResourceUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field resource_uid", values[i])
+			} else if value.Valid {
+				_m.ResourceUID = value.String
+			}
+		case applicationversionimage.FieldComponent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field component", values[i])
+			} else if value.Valid {
+				_m.Component = value.String
+			}
 		case applicationversionimage.FieldContainer:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field container", values[i])
 			} else if value.Valid {
 				_m.Container = value.String
+			}
+		case applicationversionimage.FieldContainerPath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field container_path", values[i])
+			} else if value.Valid {
+				_m.ContainerPath = value.String
 			}
 		case applicationversionimage.FieldImage:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -171,6 +201,24 @@ func (_m *ApplicationVersionImage) assignValues(columns []string, values []any) 
 				return fmt.Errorf("unexpected type %T for field digest", values[i])
 			} else if value.Valid {
 				_m.Digest = value.String
+			}
+		case applicationversionimage.FieldProject:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field project", values[i])
+			} else if value.Valid {
+				_m.Project = value.String
+			}
+		case applicationversionimage.FieldSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source", values[i])
+			} else if value.Valid {
+				_m.Source = value.String
+			}
+		case applicationversionimage.FieldResolvedImage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field resolved_image", values[i])
+			} else if value.Valid {
+				_m.ResolvedImage = value.String
 			}
 		case applicationversionimage.FieldPlatforms:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -248,8 +296,17 @@ func (_m *ApplicationVersionImage) String() string {
 	builder.WriteString("resource_item=")
 	builder.WriteString(_m.ResourceItem)
 	builder.WriteString(", ")
+	builder.WriteString("resource_uid=")
+	builder.WriteString(_m.ResourceUID)
+	builder.WriteString(", ")
+	builder.WriteString("component=")
+	builder.WriteString(_m.Component)
+	builder.WriteString(", ")
 	builder.WriteString("container=")
 	builder.WriteString(_m.Container)
+	builder.WriteString(", ")
+	builder.WriteString("container_path=")
+	builder.WriteString(_m.ContainerPath)
 	builder.WriteString(", ")
 	builder.WriteString("image=")
 	builder.WriteString(_m.Image)
@@ -268,6 +325,15 @@ func (_m *ApplicationVersionImage) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("digest=")
 	builder.WriteString(_m.Digest)
+	builder.WriteString(", ")
+	builder.WriteString("project=")
+	builder.WriteString(_m.Project)
+	builder.WriteString(", ")
+	builder.WriteString("source=")
+	builder.WriteString(_m.Source)
+	builder.WriteString(", ")
+	builder.WriteString("resolved_image=")
+	builder.WriteString(_m.ResolvedImage)
 	builder.WriteString(", ")
 	builder.WriteString("platforms=")
 	builder.WriteString(_m.Platforms)

@@ -69,8 +69,14 @@ type ApplicationReleaseOperation func(*sql.Selector)
 // ApplicationVersion is the predicate function for applicationversion builders.
 type ApplicationVersion func(*sql.Selector)
 
+// ApplicationVersionComponent is the predicate function for applicationversioncomponent builders.
+type ApplicationVersionComponent func(*sql.Selector)
+
 // ApplicationVersionImage is the predicate function for applicationversionimage builders.
 type ApplicationVersionImage func(*sql.Selector)
+
+// ApplicationVersionResource is the predicate function for applicationversionresource builders.
+type ApplicationVersionResource func(*sql.Selector)
 
 // AuthEmailSetting is the predicate function for authemailsetting builders.
 type AuthEmailSetting func(*sql.Selector)

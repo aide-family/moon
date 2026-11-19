@@ -74,6 +74,11 @@ func NamespaceUID(v string) predicate.ApplicationReleaseOperation {
 	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldNamespaceUID, v))
 }
 
+// ApplicationUID applies equality check predicate on the "application_uid" field. It's identical to ApplicationUIDEQ.
+func ApplicationUID(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldApplicationUID, v))
+}
+
 // DeploymentUID applies equality check predicate on the "deployment_uid" field. It's identical to DeploymentUIDEQ.
 func DeploymentUID(v string) predicate.ApplicationReleaseOperation {
 	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldDeploymentUID, v))
@@ -82,6 +87,11 @@ func DeploymentUID(v string) predicate.ApplicationReleaseOperation {
 // ReleaseUID applies equality check predicate on the "release_uid" field. It's identical to ReleaseUIDEQ.
 func ReleaseUID(v string) predicate.ApplicationReleaseOperation {
 	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldReleaseUID, v))
+}
+
+// ClusterUID applies equality check predicate on the "cluster_uid" field. It's identical to ClusterUIDEQ.
+func ClusterUID(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldClusterUID, v))
 }
 
 // ClusterName applies equality check predicate on the "cluster_name" field. It's identical to ClusterNameEQ.
@@ -379,6 +389,71 @@ func NamespaceUIDContainsFold(v string) predicate.ApplicationReleaseOperation {
 	return predicate.ApplicationReleaseOperation(sql.FieldContainsFold(FieldNamespaceUID, v))
 }
 
+// ApplicationUIDEQ applies the EQ predicate on the "application_uid" field.
+func ApplicationUIDEQ(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldApplicationUID, v))
+}
+
+// ApplicationUIDNEQ applies the NEQ predicate on the "application_uid" field.
+func ApplicationUIDNEQ(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldNEQ(FieldApplicationUID, v))
+}
+
+// ApplicationUIDIn applies the In predicate on the "application_uid" field.
+func ApplicationUIDIn(vs ...string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldIn(FieldApplicationUID, vs...))
+}
+
+// ApplicationUIDNotIn applies the NotIn predicate on the "application_uid" field.
+func ApplicationUIDNotIn(vs ...string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldNotIn(FieldApplicationUID, vs...))
+}
+
+// ApplicationUIDGT applies the GT predicate on the "application_uid" field.
+func ApplicationUIDGT(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldGT(FieldApplicationUID, v))
+}
+
+// ApplicationUIDGTE applies the GTE predicate on the "application_uid" field.
+func ApplicationUIDGTE(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldGTE(FieldApplicationUID, v))
+}
+
+// ApplicationUIDLT applies the LT predicate on the "application_uid" field.
+func ApplicationUIDLT(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldLT(FieldApplicationUID, v))
+}
+
+// ApplicationUIDLTE applies the LTE predicate on the "application_uid" field.
+func ApplicationUIDLTE(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldLTE(FieldApplicationUID, v))
+}
+
+// ApplicationUIDContains applies the Contains predicate on the "application_uid" field.
+func ApplicationUIDContains(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldContains(FieldApplicationUID, v))
+}
+
+// ApplicationUIDHasPrefix applies the HasPrefix predicate on the "application_uid" field.
+func ApplicationUIDHasPrefix(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldHasPrefix(FieldApplicationUID, v))
+}
+
+// ApplicationUIDHasSuffix applies the HasSuffix predicate on the "application_uid" field.
+func ApplicationUIDHasSuffix(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldHasSuffix(FieldApplicationUID, v))
+}
+
+// ApplicationUIDEqualFold applies the EqualFold predicate on the "application_uid" field.
+func ApplicationUIDEqualFold(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEqualFold(FieldApplicationUID, v))
+}
+
+// ApplicationUIDContainsFold applies the ContainsFold predicate on the "application_uid" field.
+func ApplicationUIDContainsFold(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldContainsFold(FieldApplicationUID, v))
+}
+
 // DeploymentUIDEQ applies the EQ predicate on the "deployment_uid" field.
 func DeploymentUIDEQ(v string) predicate.ApplicationReleaseOperation {
 	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldDeploymentUID, v))
@@ -507,6 +582,71 @@ func ReleaseUIDEqualFold(v string) predicate.ApplicationReleaseOperation {
 // ReleaseUIDContainsFold applies the ContainsFold predicate on the "release_uid" field.
 func ReleaseUIDContainsFold(v string) predicate.ApplicationReleaseOperation {
 	return predicate.ApplicationReleaseOperation(sql.FieldContainsFold(FieldReleaseUID, v))
+}
+
+// ClusterUIDEQ applies the EQ predicate on the "cluster_uid" field.
+func ClusterUIDEQ(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEQ(FieldClusterUID, v))
+}
+
+// ClusterUIDNEQ applies the NEQ predicate on the "cluster_uid" field.
+func ClusterUIDNEQ(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldNEQ(FieldClusterUID, v))
+}
+
+// ClusterUIDIn applies the In predicate on the "cluster_uid" field.
+func ClusterUIDIn(vs ...string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldIn(FieldClusterUID, vs...))
+}
+
+// ClusterUIDNotIn applies the NotIn predicate on the "cluster_uid" field.
+func ClusterUIDNotIn(vs ...string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldNotIn(FieldClusterUID, vs...))
+}
+
+// ClusterUIDGT applies the GT predicate on the "cluster_uid" field.
+func ClusterUIDGT(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldGT(FieldClusterUID, v))
+}
+
+// ClusterUIDGTE applies the GTE predicate on the "cluster_uid" field.
+func ClusterUIDGTE(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldGTE(FieldClusterUID, v))
+}
+
+// ClusterUIDLT applies the LT predicate on the "cluster_uid" field.
+func ClusterUIDLT(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldLT(FieldClusterUID, v))
+}
+
+// ClusterUIDLTE applies the LTE predicate on the "cluster_uid" field.
+func ClusterUIDLTE(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldLTE(FieldClusterUID, v))
+}
+
+// ClusterUIDContains applies the Contains predicate on the "cluster_uid" field.
+func ClusterUIDContains(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldContains(FieldClusterUID, v))
+}
+
+// ClusterUIDHasPrefix applies the HasPrefix predicate on the "cluster_uid" field.
+func ClusterUIDHasPrefix(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldHasPrefix(FieldClusterUID, v))
+}
+
+// ClusterUIDHasSuffix applies the HasSuffix predicate on the "cluster_uid" field.
+func ClusterUIDHasSuffix(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldHasSuffix(FieldClusterUID, v))
+}
+
+// ClusterUIDEqualFold applies the EqualFold predicate on the "cluster_uid" field.
+func ClusterUIDEqualFold(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldEqualFold(FieldClusterUID, v))
+}
+
+// ClusterUIDContainsFold applies the ContainsFold predicate on the "cluster_uid" field.
+func ClusterUIDContainsFold(v string) predicate.ApplicationReleaseOperation {
+	return predicate.ApplicationReleaseOperation(sql.FieldContainsFold(FieldClusterUID, v))
 }
 
 // ClusterNameEQ applies the EQ predicate on the "cluster_name" field.

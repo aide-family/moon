@@ -35,7 +35,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationrelease"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationreleaseoperation"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversion"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversioncomponent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversionimage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversionresource"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authemailsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authoauthprovider"
@@ -142,8 +144,12 @@ type Client struct {
 	ApplicationReleaseOperation *ApplicationReleaseOperationClient
 	// ApplicationVersion is the client for interacting with the ApplicationVersion builders.
 	ApplicationVersion *ApplicationVersionClient
+	// ApplicationVersionComponent is the client for interacting with the ApplicationVersionComponent builders.
+	ApplicationVersionComponent *ApplicationVersionComponentClient
 	// ApplicationVersionImage is the client for interacting with the ApplicationVersionImage builders.
 	ApplicationVersionImage *ApplicationVersionImageClient
+	// ApplicationVersionResource is the client for interacting with the ApplicationVersionResource builders.
+	ApplicationVersionResource *ApplicationVersionResourceClient
 	// AuthEmailSetting is the client for interacting with the AuthEmailSetting builders.
 	AuthEmailSetting *AuthEmailSettingClient
 	// AuthLoginSetting is the client for interacting with the AuthLoginSetting builders.
@@ -290,7 +296,9 @@ func (c *Client) init() {
 	c.ApplicationRelease = NewApplicationReleaseClient(c.config)
 	c.ApplicationReleaseOperation = NewApplicationReleaseOperationClient(c.config)
 	c.ApplicationVersion = NewApplicationVersionClient(c.config)
+	c.ApplicationVersionComponent = NewApplicationVersionComponentClient(c.config)
 	c.ApplicationVersionImage = NewApplicationVersionImageClient(c.config)
+	c.ApplicationVersionResource = NewApplicationVersionResourceClient(c.config)
 	c.AuthEmailSetting = NewAuthEmailSettingClient(c.config)
 	c.AuthLoginSetting = NewAuthLoginSettingClient(c.config)
 	c.AuthOAuthProvider = NewAuthOAuthProviderClient(c.config)
@@ -461,7 +469,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ApplicationRelease:            NewApplicationReleaseClient(cfg),
 		ApplicationReleaseOperation:   NewApplicationReleaseOperationClient(cfg),
 		ApplicationVersion:            NewApplicationVersionClient(cfg),
+		ApplicationVersionComponent:   NewApplicationVersionComponentClient(cfg),
 		ApplicationVersionImage:       NewApplicationVersionImageClient(cfg),
+		ApplicationVersionResource:    NewApplicationVersionResourceClient(cfg),
 		AuthEmailSetting:              NewAuthEmailSettingClient(cfg),
 		AuthLoginSetting:              NewAuthLoginSettingClient(cfg),
 		AuthOAuthProvider:             NewAuthOAuthProviderClient(cfg),
@@ -559,7 +569,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ApplicationRelease:            NewApplicationReleaseClient(cfg),
 		ApplicationReleaseOperation:   NewApplicationReleaseOperationClient(cfg),
 		ApplicationVersion:            NewApplicationVersionClient(cfg),
+		ApplicationVersionComponent:   NewApplicationVersionComponentClient(cfg),
 		ApplicationVersionImage:       NewApplicationVersionImageClient(cfg),
+		ApplicationVersionResource:    NewApplicationVersionResourceClient(cfg),
 		AuthEmailSetting:              NewAuthEmailSettingClient(cfg),
 		AuthLoginSetting:              NewAuthLoginSettingClient(cfg),
 		AuthOAuthProvider:             NewAuthOAuthProviderClient(cfg),
@@ -651,15 +663,17 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
 		c.AlertRuleLevel, c.Application, c.ApplicationDeployment, c.ApplicationRelease,
-		c.ApplicationReleaseOperation, c.ApplicationVersion, c.ApplicationVersionImage,
-		c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider, c.Board,
-		c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
-		c.FeaturePackage, c.FeaturePackageItem, c.ImageSync, c.InspectionItem,
-		c.InspectionPlan, c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
-		c.InspectionTemplate, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
-		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
-		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
-		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
+		c.ApplicationReleaseOperation, c.ApplicationVersion,
+		c.ApplicationVersionComponent, c.ApplicationVersionImage,
+		c.ApplicationVersionResource, c.AuthEmailSetting, c.AuthLoginSetting,
+		c.AuthOAuthProvider, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
+		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.ImageSync,
+		c.InspectionItem, c.InspectionPlan, c.InspectionReport,
+		c.InspectionReportShare, c.InspectionRun, c.InspectionTemplate, c.Member,
+		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
+		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
+		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
+		c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
 		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Registry, c.Role,
@@ -680,15 +694,17 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AlertEventEscalation, c.AlertEventFiring, c.AlertHistoryEvent,
 		c.AlertMaintenanceWindow, c.AlertPage, c.AlertRule, c.AlertRuleGroup,
 		c.AlertRuleLevel, c.Application, c.ApplicationDeployment, c.ApplicationRelease,
-		c.ApplicationReleaseOperation, c.ApplicationVersion, c.ApplicationVersionImage,
-		c.AuthEmailSetting, c.AuthLoginSetting, c.AuthOAuthProvider, c.Board,
-		c.BoardPanel, c.Captcha, c.Cluster, c.Datasource, c.EmailLoginCode,
-		c.FeaturePackage, c.FeaturePackageItem, c.ImageSync, c.InspectionItem,
-		c.InspectionPlan, c.InspectionReport, c.InspectionReportShare, c.InspectionRun,
-		c.InspectionTemplate, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
-		c.MessageLogShard, c.Namespace, c.NamespaceFeature, c.NamespaceOrder,
-		c.NotificationChannel, c.NotificationGroup, c.NotificationOnCall,
-		c.NotificationOnCallGroup, c.NotificationPreset, c.NotificationSubscription,
+		c.ApplicationReleaseOperation, c.ApplicationVersion,
+		c.ApplicationVersionComponent, c.ApplicationVersionImage,
+		c.ApplicationVersionResource, c.AuthEmailSetting, c.AuthLoginSetting,
+		c.AuthOAuthProvider, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
+		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.ImageSync,
+		c.InspectionItem, c.InspectionPlan, c.InspectionReport,
+		c.InspectionReportShare, c.InspectionRun, c.InspectionTemplate, c.Member,
+		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
+		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
+		c.NotificationGroup, c.NotificationOnCall, c.NotificationOnCallGroup,
+		c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.OnCallRotation, c.OnCallRotationMember, c.Permission, c.ProbeResult,
 		c.ProbeSlaDaily, c.ProbeTarget, c.ProbeTargetGroup, c.Registry, c.Role,
@@ -745,8 +761,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ApplicationReleaseOperation.mutate(ctx, m)
 	case *ApplicationVersionMutation:
 		return c.ApplicationVersion.mutate(ctx, m)
+	case *ApplicationVersionComponentMutation:
+		return c.ApplicationVersionComponent.mutate(ctx, m)
 	case *ApplicationVersionImageMutation:
 		return c.ApplicationVersionImage.mutate(ctx, m)
+	case *ApplicationVersionResourceMutation:
+		return c.ApplicationVersionResource.mutate(ctx, m)
 	case *AuthEmailSettingMutation:
 		return c.AuthEmailSetting.mutate(ctx, m)
 	case *AuthLoginSettingMutation:
@@ -3659,6 +3679,139 @@ func (c *ApplicationVersionClient) mutate(ctx context.Context, m *ApplicationVer
 	}
 }
 
+// ApplicationVersionComponentClient is a client for the ApplicationVersionComponent schema.
+type ApplicationVersionComponentClient struct {
+	config
+}
+
+// NewApplicationVersionComponentClient returns a client for the ApplicationVersionComponent from the given config.
+func NewApplicationVersionComponentClient(c config) *ApplicationVersionComponentClient {
+	return &ApplicationVersionComponentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applicationversioncomponent.Hooks(f(g(h())))`.
+func (c *ApplicationVersionComponentClient) Use(hooks ...Hook) {
+	c.hooks.ApplicationVersionComponent = append(c.hooks.ApplicationVersionComponent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applicationversioncomponent.Intercept(f(g(h())))`.
+func (c *ApplicationVersionComponentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApplicationVersionComponent = append(c.inters.ApplicationVersionComponent, interceptors...)
+}
+
+// Create returns a builder for creating a ApplicationVersionComponent entity.
+func (c *ApplicationVersionComponentClient) Create() *ApplicationVersionComponentCreate {
+	mutation := newApplicationVersionComponentMutation(c.config, OpCreate)
+	return &ApplicationVersionComponentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApplicationVersionComponent entities.
+func (c *ApplicationVersionComponentClient) CreateBulk(builders ...*ApplicationVersionComponentCreate) *ApplicationVersionComponentCreateBulk {
+	return &ApplicationVersionComponentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ApplicationVersionComponentClient) MapCreateBulk(slice any, setFunc func(*ApplicationVersionComponentCreate, int)) *ApplicationVersionComponentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ApplicationVersionComponentCreateBulk{err: fmt.Errorf("calling to ApplicationVersionComponentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ApplicationVersionComponentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ApplicationVersionComponentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApplicationVersionComponent.
+func (c *ApplicationVersionComponentClient) Update() *ApplicationVersionComponentUpdate {
+	mutation := newApplicationVersionComponentMutation(c.config, OpUpdate)
+	return &ApplicationVersionComponentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationVersionComponentClient) UpdateOne(_m *ApplicationVersionComponent) *ApplicationVersionComponentUpdateOne {
+	mutation := newApplicationVersionComponentMutation(c.config, OpUpdateOne, withApplicationVersionComponent(_m))
+	return &ApplicationVersionComponentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationVersionComponentClient) UpdateOneID(id int) *ApplicationVersionComponentUpdateOne {
+	mutation := newApplicationVersionComponentMutation(c.config, OpUpdateOne, withApplicationVersionComponentID(id))
+	return &ApplicationVersionComponentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApplicationVersionComponent.
+func (c *ApplicationVersionComponentClient) Delete() *ApplicationVersionComponentDelete {
+	mutation := newApplicationVersionComponentMutation(c.config, OpDelete)
+	return &ApplicationVersionComponentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationVersionComponentClient) DeleteOne(_m *ApplicationVersionComponent) *ApplicationVersionComponentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationVersionComponentClient) DeleteOneID(id int) *ApplicationVersionComponentDeleteOne {
+	builder := c.Delete().Where(applicationversioncomponent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationVersionComponentDeleteOne{builder}
+}
+
+// Query returns a query builder for ApplicationVersionComponent.
+func (c *ApplicationVersionComponentClient) Query() *ApplicationVersionComponentQuery {
+	return &ApplicationVersionComponentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplicationVersionComponent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ApplicationVersionComponent entity by its id.
+func (c *ApplicationVersionComponentClient) Get(ctx context.Context, id int) (*ApplicationVersionComponent, error) {
+	return c.Query().Where(applicationversioncomponent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationVersionComponentClient) GetX(ctx context.Context, id int) *ApplicationVersionComponent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationVersionComponentClient) Hooks() []Hook {
+	return c.hooks.ApplicationVersionComponent
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationVersionComponentClient) Interceptors() []Interceptor {
+	return c.inters.ApplicationVersionComponent
+}
+
+func (c *ApplicationVersionComponentClient) mutate(ctx context.Context, m *ApplicationVersionComponentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationVersionComponentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationVersionComponentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationVersionComponentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationVersionComponentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ApplicationVersionComponent mutation op: %q", m.Op())
+	}
+}
+
 // ApplicationVersionImageClient is a client for the ApplicationVersionImage schema.
 type ApplicationVersionImageClient struct {
 	config
@@ -3789,6 +3942,139 @@ func (c *ApplicationVersionImageClient) mutate(ctx context.Context, m *Applicati
 		return (&ApplicationVersionImageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ApplicationVersionImage mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationVersionResourceClient is a client for the ApplicationVersionResource schema.
+type ApplicationVersionResourceClient struct {
+	config
+}
+
+// NewApplicationVersionResourceClient returns a client for the ApplicationVersionResource from the given config.
+func NewApplicationVersionResourceClient(c config) *ApplicationVersionResourceClient {
+	return &ApplicationVersionResourceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applicationversionresource.Hooks(f(g(h())))`.
+func (c *ApplicationVersionResourceClient) Use(hooks ...Hook) {
+	c.hooks.ApplicationVersionResource = append(c.hooks.ApplicationVersionResource, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applicationversionresource.Intercept(f(g(h())))`.
+func (c *ApplicationVersionResourceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApplicationVersionResource = append(c.inters.ApplicationVersionResource, interceptors...)
+}
+
+// Create returns a builder for creating a ApplicationVersionResource entity.
+func (c *ApplicationVersionResourceClient) Create() *ApplicationVersionResourceCreate {
+	mutation := newApplicationVersionResourceMutation(c.config, OpCreate)
+	return &ApplicationVersionResourceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApplicationVersionResource entities.
+func (c *ApplicationVersionResourceClient) CreateBulk(builders ...*ApplicationVersionResourceCreate) *ApplicationVersionResourceCreateBulk {
+	return &ApplicationVersionResourceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ApplicationVersionResourceClient) MapCreateBulk(slice any, setFunc func(*ApplicationVersionResourceCreate, int)) *ApplicationVersionResourceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ApplicationVersionResourceCreateBulk{err: fmt.Errorf("calling to ApplicationVersionResourceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ApplicationVersionResourceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ApplicationVersionResourceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApplicationVersionResource.
+func (c *ApplicationVersionResourceClient) Update() *ApplicationVersionResourceUpdate {
+	mutation := newApplicationVersionResourceMutation(c.config, OpUpdate)
+	return &ApplicationVersionResourceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationVersionResourceClient) UpdateOne(_m *ApplicationVersionResource) *ApplicationVersionResourceUpdateOne {
+	mutation := newApplicationVersionResourceMutation(c.config, OpUpdateOne, withApplicationVersionResource(_m))
+	return &ApplicationVersionResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationVersionResourceClient) UpdateOneID(id int) *ApplicationVersionResourceUpdateOne {
+	mutation := newApplicationVersionResourceMutation(c.config, OpUpdateOne, withApplicationVersionResourceID(id))
+	return &ApplicationVersionResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApplicationVersionResource.
+func (c *ApplicationVersionResourceClient) Delete() *ApplicationVersionResourceDelete {
+	mutation := newApplicationVersionResourceMutation(c.config, OpDelete)
+	return &ApplicationVersionResourceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationVersionResourceClient) DeleteOne(_m *ApplicationVersionResource) *ApplicationVersionResourceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationVersionResourceClient) DeleteOneID(id int) *ApplicationVersionResourceDeleteOne {
+	builder := c.Delete().Where(applicationversionresource.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationVersionResourceDeleteOne{builder}
+}
+
+// Query returns a query builder for ApplicationVersionResource.
+func (c *ApplicationVersionResourceClient) Query() *ApplicationVersionResourceQuery {
+	return &ApplicationVersionResourceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplicationVersionResource},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ApplicationVersionResource entity by its id.
+func (c *ApplicationVersionResourceClient) Get(ctx context.Context, id int) (*ApplicationVersionResource, error) {
+	return c.Query().Where(applicationversionresource.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationVersionResourceClient) GetX(ctx context.Context, id int) *ApplicationVersionResource {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationVersionResourceClient) Hooks() []Hook {
+	return c.hooks.ApplicationVersionResource
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationVersionResourceClient) Interceptors() []Interceptor {
+	return c.inters.ApplicationVersionResource
+}
+
+func (c *ApplicationVersionResourceClient) mutate(ctx context.Context, m *ApplicationVersionResourceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationVersionResourceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationVersionResourceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationVersionResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationVersionResourceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ApplicationVersionResource mutation op: %q", m.Op())
 	}
 }
 
@@ -11381,20 +11667,21 @@ type (
 		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
 		Application, ApplicationDeployment, ApplicationRelease,
-		ApplicationReleaseOperation, ApplicationVersion, ApplicationVersionImage,
-		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
-		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
-		FeaturePackageItem, ImageSync, InspectionItem, InspectionPlan,
-		InspectionReport, InspectionReportShare, InspectionRun, InspectionTemplate,
-		Member, MemberInvite, MemberRole, MessageLog, MessageLogShard, Namespace,
-		NamespaceFeature, NamespaceOrder, NotificationChannel, NotificationGroup,
-		NotificationOnCall, NotificationOnCallGroup, NotificationPreset,
-		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
-		NotificationTemplate, OnCallRotation, OnCallRotationMember, Permission,
-		ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Registry, Role,
-		RolePermission, SSHCommand, SSHCommandAudit, SiteFeature, SiteHomeContent,
-		SitePage, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
-		UserOAuth, WorkerInstance []ent.Hook
+		ApplicationReleaseOperation, ApplicationVersion, ApplicationVersionComponent,
+		ApplicationVersionImage, ApplicationVersionResource, AuthEmailSetting,
+		AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel, Captcha, Cluster,
+		Datasource, EmailLoginCode, FeaturePackage, FeaturePackageItem, ImageSync,
+		InspectionItem, InspectionPlan, InspectionReport, InspectionReportShare,
+		InspectionRun, InspectionTemplate, Member, MemberInvite, MemberRole,
+		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		NotificationChannel, NotificationGroup, NotificationOnCall,
+		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
+		ProbeTarget, ProbeTargetGroup, Registry, Role, RolePermission, SSHCommand,
+		SSHCommandAudit, SiteFeature, SiteHomeContent, SitePage, SiteSetting,
+		StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEscalationPolicy, AlertEscalationStep,
@@ -11402,19 +11689,20 @@ type (
 		AlertEventEscalation, AlertEventFiring, AlertHistoryEvent,
 		AlertMaintenanceWindow, AlertPage, AlertRule, AlertRuleGroup, AlertRuleLevel,
 		Application, ApplicationDeployment, ApplicationRelease,
-		ApplicationReleaseOperation, ApplicationVersion, ApplicationVersionImage,
-		AuthEmailSetting, AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel,
-		Captcha, Cluster, Datasource, EmailLoginCode, FeaturePackage,
-		FeaturePackageItem, ImageSync, InspectionItem, InspectionPlan,
-		InspectionReport, InspectionReportShare, InspectionRun, InspectionTemplate,
-		Member, MemberInvite, MemberRole, MessageLog, MessageLogShard, Namespace,
-		NamespaceFeature, NamespaceOrder, NotificationChannel, NotificationGroup,
-		NotificationOnCall, NotificationOnCallGroup, NotificationPreset,
-		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
-		NotificationTemplate, OnCallRotation, OnCallRotationMember, Permission,
-		ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Registry, Role,
-		RolePermission, SSHCommand, SSHCommandAudit, SiteFeature, SiteHomeContent,
-		SitePage, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
-		UserOAuth, WorkerInstance []ent.Interceptor
+		ApplicationReleaseOperation, ApplicationVersion, ApplicationVersionComponent,
+		ApplicationVersionImage, ApplicationVersionResource, AuthEmailSetting,
+		AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel, Captcha, Cluster,
+		Datasource, EmailLoginCode, FeaturePackage, FeaturePackageItem, ImageSync,
+		InspectionItem, InspectionPlan, InspectionReport, InspectionReportShare,
+		InspectionRun, InspectionTemplate, Member, MemberInvite, MemberRole,
+		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
+		NotificationChannel, NotificationGroup, NotificationOnCall,
+		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
+		ProbeTarget, ProbeTargetGroup, Registry, Role, RolePermission, SSHCommand,
+		SSHCommandAudit, SiteFeature, SiteHomeContent, SitePage, SiteSetting,
+		StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Interceptor
 	}
 )

@@ -94,6 +94,8 @@ var archivedTables = []string{
 	// 应用与发布包版本属于配置，随迁移包一起搬。
 	"applications",
 	"application_versions",
+	"application_version_components",
+	"application_version_resources",
 	"application_version_images",
 	"agents",
 	"ssh_commands",

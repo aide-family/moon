@@ -48,6 +48,20 @@ func (_u *ApplicationReleaseOperationUpdate) SetNillableNamespaceUID(v *string) 
 	return _u
 }
 
+// SetApplicationUID sets the "application_uid" field.
+func (_u *ApplicationReleaseOperationUpdate) SetApplicationUID(v string) *ApplicationReleaseOperationUpdate {
+	_u.mutation.SetApplicationUID(v)
+	return _u
+}
+
+// SetNillableApplicationUID sets the "application_uid" field if the given value is not nil.
+func (_u *ApplicationReleaseOperationUpdate) SetNillableApplicationUID(v *string) *ApplicationReleaseOperationUpdate {
+	if v != nil {
+		_u.SetApplicationUID(*v)
+	}
+	return _u
+}
+
 // SetDeploymentUID sets the "deployment_uid" field.
 func (_u *ApplicationReleaseOperationUpdate) SetDeploymentUID(v string) *ApplicationReleaseOperationUpdate {
 	_u.mutation.SetDeploymentUID(v)
@@ -72,6 +86,20 @@ func (_u *ApplicationReleaseOperationUpdate) SetReleaseUID(v string) *Applicatio
 func (_u *ApplicationReleaseOperationUpdate) SetNillableReleaseUID(v *string) *ApplicationReleaseOperationUpdate {
 	if v != nil {
 		_u.SetReleaseUID(*v)
+	}
+	return _u
+}
+
+// SetClusterUID sets the "cluster_uid" field.
+func (_u *ApplicationReleaseOperationUpdate) SetClusterUID(v string) *ApplicationReleaseOperationUpdate {
+	_u.mutation.SetClusterUID(v)
+	return _u
+}
+
+// SetNillableClusterUID sets the "cluster_uid" field if the given value is not nil.
+func (_u *ApplicationReleaseOperationUpdate) SetNillableClusterUID(v *string) *ApplicationReleaseOperationUpdate {
+	if v != nil {
+		_u.SetClusterUID(*v)
 	}
 	return _u
 }
@@ -449,11 +477,17 @@ func (_u *ApplicationReleaseOperationUpdate) sqlSave(ctx context.Context) (_node
 	if value, ok := _u.mutation.NamespaceUID(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldNamespaceUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.ApplicationUID(); ok {
+		_spec.SetField(applicationreleaseoperation.FieldApplicationUID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.DeploymentUID(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldDeploymentUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ReleaseUID(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldReleaseUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClusterUID(); ok {
+		_spec.SetField(applicationreleaseoperation.FieldClusterUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ClusterName(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldClusterName, field.TypeString, value)
@@ -561,6 +595,20 @@ func (_u *ApplicationReleaseOperationUpdateOne) SetNillableNamespaceUID(v *strin
 	return _u
 }
 
+// SetApplicationUID sets the "application_uid" field.
+func (_u *ApplicationReleaseOperationUpdateOne) SetApplicationUID(v string) *ApplicationReleaseOperationUpdateOne {
+	_u.mutation.SetApplicationUID(v)
+	return _u
+}
+
+// SetNillableApplicationUID sets the "application_uid" field if the given value is not nil.
+func (_u *ApplicationReleaseOperationUpdateOne) SetNillableApplicationUID(v *string) *ApplicationReleaseOperationUpdateOne {
+	if v != nil {
+		_u.SetApplicationUID(*v)
+	}
+	return _u
+}
+
 // SetDeploymentUID sets the "deployment_uid" field.
 func (_u *ApplicationReleaseOperationUpdateOne) SetDeploymentUID(v string) *ApplicationReleaseOperationUpdateOne {
 	_u.mutation.SetDeploymentUID(v)
@@ -585,6 +633,20 @@ func (_u *ApplicationReleaseOperationUpdateOne) SetReleaseUID(v string) *Applica
 func (_u *ApplicationReleaseOperationUpdateOne) SetNillableReleaseUID(v *string) *ApplicationReleaseOperationUpdateOne {
 	if v != nil {
 		_u.SetReleaseUID(*v)
+	}
+	return _u
+}
+
+// SetClusterUID sets the "cluster_uid" field.
+func (_u *ApplicationReleaseOperationUpdateOne) SetClusterUID(v string) *ApplicationReleaseOperationUpdateOne {
+	_u.mutation.SetClusterUID(v)
+	return _u
+}
+
+// SetNillableClusterUID sets the "cluster_uid" field if the given value is not nil.
+func (_u *ApplicationReleaseOperationUpdateOne) SetNillableClusterUID(v *string) *ApplicationReleaseOperationUpdateOne {
+	if v != nil {
+		_u.SetClusterUID(*v)
 	}
 	return _u
 }
@@ -992,11 +1054,17 @@ func (_u *ApplicationReleaseOperationUpdateOne) sqlSave(ctx context.Context) (_n
 	if value, ok := _u.mutation.NamespaceUID(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldNamespaceUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.ApplicationUID(); ok {
+		_spec.SetField(applicationreleaseoperation.FieldApplicationUID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.DeploymentUID(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldDeploymentUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ReleaseUID(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldReleaseUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClusterUID(); ok {
+		_spec.SetField(applicationreleaseoperation.FieldClusterUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ClusterName(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldClusterName, field.TypeString, value)

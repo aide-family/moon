@@ -22,10 +22,14 @@ const (
 	FieldUID = "uid"
 	// FieldNamespaceUID holds the string denoting the namespace_uid field in the database.
 	FieldNamespaceUID = "namespace_uid"
+	// FieldApplicationUID holds the string denoting the application_uid field in the database.
+	FieldApplicationUID = "application_uid"
 	// FieldDeploymentUID holds the string denoting the deployment_uid field in the database.
 	FieldDeploymentUID = "deployment_uid"
 	// FieldReleaseUID holds the string denoting the release_uid field in the database.
 	FieldReleaseUID = "release_uid"
+	// FieldClusterUID holds the string denoting the cluster_uid field in the database.
+	FieldClusterUID = "cluster_uid"
 	// FieldClusterName holds the string denoting the cluster_name field in the database.
 	FieldClusterName = "cluster_name"
 	// FieldBatchUID holds the string denoting the batch_uid field in the database.
@@ -75,8 +79,10 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldUID,
 	FieldNamespaceUID,
+	FieldApplicationUID,
 	FieldDeploymentUID,
 	FieldReleaseUID,
+	FieldClusterUID,
 	FieldClusterName,
 	FieldBatchUID,
 	FieldAction,
@@ -119,10 +125,14 @@ var (
 	UIDValidator func(string) error
 	// NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
 	NamespaceUIDValidator func(string) error
+	// DefaultApplicationUID holds the default value on creation for the "application_uid" field.
+	DefaultApplicationUID string
 	// DeploymentUIDValidator is a validator for the "deployment_uid" field. It is called by the builders before save.
 	DeploymentUIDValidator func(string) error
 	// ReleaseUIDValidator is a validator for the "release_uid" field. It is called by the builders before save.
 	ReleaseUIDValidator func(string) error
+	// DefaultClusterUID holds the default value on creation for the "cluster_uid" field.
+	DefaultClusterUID string
 	// DefaultClusterName holds the default value on creation for the "cluster_name" field.
 	DefaultClusterName string
 	// DefaultBatchUID holds the default value on creation for the "batch_uid" field.
@@ -239,6 +249,11 @@ func ByNamespaceUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNamespaceUID, opts...).ToFunc()
 }
 
+// ByApplicationUID orders the results by the application_uid field.
+func ByApplicationUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApplicationUID, opts...).ToFunc()
+}
+
 // ByDeploymentUID orders the results by the deployment_uid field.
 func ByDeploymentUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDeploymentUID, opts...).ToFunc()
@@ -247,6 +262,11 @@ func ByDeploymentUID(opts ...sql.OrderTermOption) OrderOption {
 // ByReleaseUID orders the results by the release_uid field.
 func ByReleaseUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReleaseUID, opts...).ToFunc()
+}
+
+// ByClusterUID orders the results by the cluster_uid field.
+func ByClusterUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClusterUID, opts...).ToFunc()
 }
 
 // ByClusterName orders the results by the cluster_name field.

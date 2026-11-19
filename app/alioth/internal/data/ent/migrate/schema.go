@@ -826,8 +826,10 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "uid", Type: field.TypeString},
 		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "application_uid", Type: field.TypeString, Default: ""},
 		{Name: "deployment_uid", Type: field.TypeString},
 		{Name: "release_uid", Type: field.TypeString},
+		{Name: "cluster_uid", Type: field.TypeString, Default: ""},
 		{Name: "cluster_name", Type: field.TypeString, Default: ""},
 		{Name: "batch_uid", Type: field.TypeString, Default: ""},
 		{Name: "action", Type: field.TypeEnum, Enums: []string{"INSTALL", "UPGRADE", "ROLLBACK", "UNINSTALL", "REDEPLOY"}, Default: "INSTALL"},
@@ -862,7 +864,7 @@ var (
 			{
 				Name:    "applicationreleaseoperation_release_uid",
 				Unique:  true,
-				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[6]},
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[7]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status IN ('PENDING','RUNNING')",
 				},
@@ -870,17 +872,17 @@ var (
 			{
 				Name:    "applicationreleaseoperation_deployment_uid_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[5], ApplicationReleaseOperationsColumns[1]},
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[6], ApplicationReleaseOperationsColumns[1]},
 			},
 			{
 				Name:    "applicationreleaseoperation_batch_uid",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[8]},
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[10]},
 			},
 			{
 				Name:    "applicationreleaseoperation_status_lease_until",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[10], ApplicationReleaseOperationsColumns[23]},
+				Columns: []*schema.Column{ApplicationReleaseOperationsColumns[12], ApplicationReleaseOperationsColumns[25]},
 			},
 		},
 	}
@@ -900,6 +902,11 @@ var (
 		{Name: "secrets_cipher", Type: field.TypeString, Default: ""},
 		{Name: "validation", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "published_at", Type: field.TypeTime, Nullable: true},
+		{Name: "revision", Type: field.TypeInt, Default: 1},
+		{Name: "composition_version", Type: field.TypeInt, Default: 0},
+		{Name: "status_changed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deprecated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "copied_from_version_uid", Type: field.TypeString, Default: ""},
 	}
 	// ApplicationVersionsTable holds the schema information for the "application_versions" table.
 	ApplicationVersionsTable = &schema.Table{
@@ -927,6 +934,42 @@ var (
 			},
 		},
 	}
+	// ApplicationVersionComponentsColumns holds the columns for the "application_version_components" table.
+	ApplicationVersionComponentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "application_uid", Type: field.TypeString},
+		{Name: "version_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "display_name", Type: field.TypeString, Default: ""},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+	}
+	// ApplicationVersionComponentsTable holds the schema information for the "application_version_components" table.
+	ApplicationVersionComponentsTable = &schema.Table{
+		Name:       "application_version_components",
+		Columns:    ApplicationVersionComponentsColumns,
+		PrimaryKey: []*schema.Column{ApplicationVersionComponentsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "applicationversioncomponent_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationVersionComponentsColumns[3]},
+			},
+			{
+				Name:    "applicationversioncomponent_version_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationVersionComponentsColumns[6], ApplicationVersionComponentsColumns[7]},
+			},
+			{
+				Name:    "applicationversioncomponent_namespace_uid_version_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationVersionComponentsColumns[4], ApplicationVersionComponentsColumns[6]},
+			},
+		},
+	}
 	// ApplicationVersionImagesColumns holds the columns for the "application_version_images" table.
 	ApplicationVersionImagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -937,13 +980,19 @@ var (
 		{Name: "application_uid", Type: field.TypeString},
 		{Name: "version_uid", Type: field.TypeString},
 		{Name: "resource_item", Type: field.TypeString},
+		{Name: "resource_uid", Type: field.TypeString, Default: ""},
+		{Name: "component", Type: field.TypeString, Default: ""},
 		{Name: "container", Type: field.TypeString, Default: ""},
+		{Name: "container_path", Type: field.TypeString, Default: ""},
 		{Name: "image", Type: field.TypeString},
 		{Name: "registry_uid", Type: field.TypeString, Default: ""},
 		{Name: "registry_name", Type: field.TypeString, Default: ""},
 		{Name: "repository", Type: field.TypeString, Default: ""},
 		{Name: "tag", Type: field.TypeString, Default: ""},
 		{Name: "digest", Type: field.TypeString, Default: ""},
+		{Name: "project", Type: field.TypeString, Default: ""},
+		{Name: "source", Type: field.TypeString, Default: ""},
+		{Name: "resolved_image", Type: field.TypeString, Default: ""},
 		{Name: "platforms", Type: field.TypeString, Default: "[]"},
 		{Name: "external", Type: field.TypeBool, Default: false},
 		{Name: "resolved_at", Type: field.TypeTime, Nullable: true},
@@ -962,17 +1011,69 @@ var (
 			{
 				Name:    "applicationversionimage_version_uid_resource_item_container",
 				Unique:  true,
-				Columns: []*schema.Column{ApplicationVersionImagesColumns[6], ApplicationVersionImagesColumns[7], ApplicationVersionImagesColumns[8]},
+				Columns: []*schema.Column{ApplicationVersionImagesColumns[6], ApplicationVersionImagesColumns[7], ApplicationVersionImagesColumns[10]},
 			},
 			{
 				Name:    "applicationversionimage_namespace_uid_repository_tag",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationVersionImagesColumns[4], ApplicationVersionImagesColumns[12], ApplicationVersionImagesColumns[13]},
+				Columns: []*schema.Column{ApplicationVersionImagesColumns[4], ApplicationVersionImagesColumns[15], ApplicationVersionImagesColumns[16]},
 			},
 			{
 				Name:    "applicationversionimage_registry_uid",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationVersionImagesColumns[10]},
+				Columns: []*schema.Column{ApplicationVersionImagesColumns[13]},
+			},
+		},
+	}
+	// ApplicationVersionResourcesColumns holds the columns for the "application_version_resources" table.
+	ApplicationVersionResourcesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "application_uid", Type: field.TypeString},
+		{Name: "version_uid", Type: field.TypeString},
+		{Name: "component_uid", Type: field.TypeString},
+		{Name: "component", Type: field.TypeString},
+		{Name: "item", Type: field.TypeString},
+		{Name: "manifest", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "api_version", Type: field.TypeString, Default: ""},
+		{Name: "kind", Type: field.TypeString, Default: ""},
+		{Name: "name", Type: field.TypeString, Default: ""},
+		{Name: "namespace", Type: field.TypeString, Default: ""},
+		{Name: "scope", Type: field.TypeString, Default: "UNKNOWN"},
+		{Name: "cluster_scoped", Type: field.TypeBool, Default: false},
+		{Name: "images", Type: field.TypeString, Size: 2147483647, Default: "[]"},
+		{Name: "secret_keys", Type: field.TypeString, Size: 2147483647, Default: "[]"},
+		{Name: "content_hash", Type: field.TypeString, Default: ""},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+	}
+	// ApplicationVersionResourcesTable holds the schema information for the "application_version_resources" table.
+	ApplicationVersionResourcesTable = &schema.Table{
+		Name:       "application_version_resources",
+		Columns:    ApplicationVersionResourcesColumns,
+		PrimaryKey: []*schema.Column{ApplicationVersionResourcesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "applicationversionresource_uid",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationVersionResourcesColumns[3]},
+			},
+			{
+				Name:    "applicationversionresource_version_uid_item",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationVersionResourcesColumns[6], ApplicationVersionResourcesColumns[9]},
+			},
+			{
+				Name:    "applicationversionresource_namespace_uid_version_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationVersionResourcesColumns[4], ApplicationVersionResourcesColumns[6]},
+			},
+			{
+				Name:    "applicationversionresource_component_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationVersionResourcesColumns[7]},
 			},
 		},
 	}
@@ -3379,7 +3480,9 @@ var (
 		ApplicationReleasesTable,
 		ApplicationReleaseOperationsTable,
 		ApplicationVersionsTable,
+		ApplicationVersionComponentsTable,
 		ApplicationVersionImagesTable,
+		ApplicationVersionResourcesTable,
 		AuthEmailSettingsTable,
 		AuthLoginSettingsTable,
 		AuthOauthProvidersTable,

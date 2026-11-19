@@ -88,8 +88,10 @@ func (r *applicationReleaseRepo) CreateDeployment(ctx context.Context, deploymen
 			return nil, err
 		}
 		if _, err := tx.ApplicationReleaseOperation.Create().
-			SetUID(id.New()).SetNamespaceUID(operation.NamespaceUID).SetDeploymentUID(deploymentUID).
-			SetReleaseUID(releaseUIDs[operation.ClusterUID]).SetClusterName(operation.ClusterName).
+			SetUID(id.New()).SetNamespaceUID(operation.NamespaceUID).
+			SetApplicationUID(operation.ApplicationUID).SetDeploymentUID(deploymentUID).
+			SetReleaseUID(releaseUIDs[operation.ClusterUID]).SetClusterUID(operation.ClusterUID).
+			SetClusterName(operation.ClusterName).
 			SetBatchUID(operation.BatchUID).SetAction(applicationreleaseoperation.Action(operation.Action)).
 			SetStatus(applicationreleaseoperation.StatusPENDING).SetToVersionUID(operation.ToVersionUID).
 			SetValues(string(opValues)).SetSecretValuesCipher(opCipher).SetResources(string(opResources)).
@@ -118,7 +120,7 @@ func (r *applicationReleaseRepo) GetDeployment(ctx context.Context, namespaceUID
 		return nil, err
 	}
 	item.Releases = releases
-	item.Clusters = clusterMatrix(item.Clusters, releases)
+	item.Clusters = clusterMatrix(item.Clusters, releases, item.VersionUID)
 	return &item, nil
 }
 
@@ -165,7 +167,7 @@ func (r *applicationReleaseRepo) ListDeployments(ctx context.Context, namespaceU
 			return nil, 0, err
 		}
 		item.Releases = releases
-		item.Clusters = clusterMatrix(item.Clusters, releases)
+		item.Clusters = clusterMatrix(item.Clusters, releases, item.VersionUID)
 		items = append(items, item)
 	}
 	return items, total, nil
@@ -199,6 +201,34 @@ func (r *applicationReleaseRepo) GetRelease(ctx context.Context, namespaceUID, u
 	return &item, nil
 }
 
+func (r *applicationReleaseRepo) ListReleases(ctx context.Context, namespaceUID string, filter bo.ApplicationReleaseFilter, page, pageSize int) ([]bo.ApplicationRelease, int, error) {
+	query := r.client.ApplicationRelease.Query().Where(
+		applicationrelease.NamespaceUIDEQ(namespaceUID), applicationrelease.DeletedAtIsNil(),
+	)
+	if filter.ApplicationUID != "" {
+		query.Where(applicationrelease.ApplicationUIDEQ(filter.ApplicationUID))
+	}
+	if filter.ClusterUID != "" {
+		query.Where(applicationrelease.ClusterUIDEQ(filter.ClusterUID))
+	}
+	if filter.Status != "" {
+		query.Where(applicationrelease.StatusEQ(applicationrelease.Status(filter.Status)))
+	}
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, r.fail(err)
+	}
+	rows, err := query.Order(ent.Desc(applicationrelease.FieldCreatedAt)).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if err != nil {
+		return nil, 0, r.fail(err)
+	}
+	items := make([]bo.ApplicationRelease, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, toRelease(row))
+	}
+	return items, total, nil
+}
+
 func (r *applicationReleaseRepo) UpdateRelease(ctx context.Context, in bo.ApplicationRelease) error {
 	values, _ := json.Marshal(nonSecretValues(in.Values))
 	images, _ := json.Marshal(in.Images)
@@ -223,8 +253,9 @@ func (r *applicationReleaseRepo) CreateOperation(ctx context.Context, in bo.Appl
 		return nil, err
 	}
 	row, err := r.client.ApplicationReleaseOperation.Create().
-		SetUID(id.New()).SetNamespaceUID(in.NamespaceUID).SetDeploymentUID(in.DeploymentUID).
-		SetReleaseUID(in.ReleaseUID).SetClusterName(in.ClusterName).SetBatchUID(in.BatchUID).
+		SetUID(id.New()).SetNamespaceUID(in.NamespaceUID).SetApplicationUID(in.ApplicationUID).
+		SetDeploymentUID(in.DeploymentUID).SetReleaseUID(in.ReleaseUID).
+		SetClusterUID(in.ClusterUID).SetClusterName(in.ClusterName).SetBatchUID(in.BatchUID).
 		SetAction(applicationreleaseoperation.Action(in.Action)).
 		SetStatus(applicationreleaseoperation.Status(in.Status)).
 		SetFromVersionUID(in.FromVersionUID).SetToVersionUID(in.ToVersionUID).
@@ -378,7 +409,7 @@ func readValues(raw string) bo.ApplicationDeployValues {
 	return bo.ApplicationDeployValues{Replicas: stored.Replicas, ImageTags: stored.ImageTags, IngressHosts: stored.IngressHosts}
 }
 
-func clusterMatrix(clusters []bo.DeploymentCluster, releases []bo.ApplicationRelease) []bo.DeploymentCluster {
+func clusterMatrix(clusters []bo.DeploymentCluster, releases []bo.ApplicationRelease, desiredVersionUID string) []bo.DeploymentCluster {
 	index := make(map[string]bo.ApplicationRelease, len(releases))
 	for _, release := range releases {
 		index[release.ClusterUID] = release
@@ -389,6 +420,13 @@ func clusterMatrix(clusters []bo.DeploymentCluster, releases []bo.ApplicationRel
 			clusters[position].ReleaseUID = release.UID
 			clusters[position].Version = release.Version
 			clusters[position].Message = release.Message
+			// 只有出现过成功操作后，release 上的版本才是集群实际运行的版本。
+			if release.LastOperationUID != "" {
+				clusters[position].CurrentVersionUID = release.VersionUID
+				clusters[position].CurrentVersion = release.Version
+			}
+			clusters[position].InSync = clusters[position].CurrentVersionUID != "" &&
+				clusters[position].CurrentVersionUID == desiredVersionUID
 		}
 	}
 	return clusters
@@ -422,8 +460,9 @@ func toRelease(row *ent.ApplicationRelease) bo.ApplicationRelease {
 
 func toOperation(row *ent.ApplicationReleaseOperation) bo.ApplicationOperation {
 	item := bo.ApplicationOperation{
-		UID: row.UID, NamespaceUID: row.NamespaceUID, DeploymentUID: row.DeploymentUID,
-		ReleaseUID: row.ReleaseUID, ClusterName: row.ClusterName, BatchUID: row.BatchUID,
+		UID: row.UID, NamespaceUID: row.NamespaceUID, ApplicationUID: row.ApplicationUID,
+		DeploymentUID: row.DeploymentUID, ReleaseUID: row.ReleaseUID,
+		ClusterUID: row.ClusterUID, ClusterName: row.ClusterName, BatchUID: row.BatchUID,
 		Action: string(row.Action), Status: string(row.Status),
 		FromVersionUID: row.FromVersionUID, ToVersionUID: row.ToVersionUID,
 		Message: row.Message, OperatorUID: row.OperatorUID, OperatorName: row.OperatorName,
@@ -442,6 +481,31 @@ func (r *applicationReleaseRepo) HasActiveDeploymentsForApplication(ctx context.
 		applicationdeployment.ApplicationUIDEQ(applicationUID),
 		applicationdeployment.DeletedAtIsNil(),
 		applicationdeployment.StatusNEQ(applicationdeployment.StatusUNINSTALLED),
+	).Exist(ctx)
+	if err != nil {
+		return false, r.fail(err)
+	}
+	return ok, nil
+}
+
+func (r *applicationReleaseRepo) ReleaseUsedVersion(ctx context.Context, namespaceUID, releaseUID, versionUID string) (bool, error) {
+	release, err := r.client.ApplicationRelease.Query().Where(
+		applicationrelease.UIDEQ(releaseUID), applicationrelease.NamespaceUIDEQ(namespaceUID),
+		applicationrelease.DeletedAtIsNil(),
+	).Only(ctx)
+	if err != nil {
+		return false, r.fail(err)
+	}
+	if release.VersionUID == versionUID {
+		return true, nil
+	}
+	ok, err := r.client.ApplicationReleaseOperation.Query().Where(
+		applicationreleaseoperation.NamespaceUIDEQ(namespaceUID),
+		applicationreleaseoperation.ReleaseUIDEQ(releaseUID),
+		applicationreleaseoperation.Or(
+			applicationreleaseoperation.FromVersionUIDEQ(versionUID),
+			applicationreleaseoperation.ToVersionUIDEQ(versionUID),
+		),
 	).Exist(ctx)
 	if err != nil {
 		return false, r.fail(err)

@@ -53,6 +53,17 @@ func (deployer *Deployer) List(ctx context.Context, pageNo, pageSize int32, filt
 	return items, total, p, s, deployer.access.Wrap(err)
 }
 
+// ListReleases 按应用/集群/状态分页读取集群实例，供发布记录页使用。
+func (deployer *Deployer) ListReleases(ctx context.Context, pageNo, pageSize int32, filter bo.ApplicationReleaseFilter) ([]bo.ApplicationRelease, int, int, int, error) {
+	ns, err := deployer.access.Allow(ctx, perm.ReleaseRead)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	p, s := page.Normalize(pageNo, pageSize)
+	items, total, err := deployer.releases.ListReleases(ctx, ns, filter, p, s)
+	return items, total, p, s, deployer.access.Wrap(err)
+}
+
 func (deployer *Deployer) Get(ctx context.Context, uid string) (*bo.ApplicationDeployment, error) {
 	ns, err := deployer.access.Allow(ctx, perm.ReleaseRead)
 	if err != nil {
@@ -150,7 +161,8 @@ func (deployer *Deployer) Create(ctx context.Context, applicationUID, versionUID
 			Status: "PENDING", Values: values, Images: version.Images,
 		})
 		operations = append(operations, bo.ApplicationOperation{
-			NamespaceUID: ns, BatchUID: batchUID, ClusterUID: cluster.UID, ClusterName: cluster.Name,
+			NamespaceUID: ns, ApplicationUID: app.UID, BatchUID: batchUID,
+			ClusterUID: cluster.UID, ClusterName: cluster.Name,
 			Action: "INSTALL", Status: "PENDING", ToVersionUID: version.UID,
 			Values: values, OperatorUID: operator, OperatorName: operator, KeepPVC: true,
 		})
@@ -194,6 +206,21 @@ func (deployer *Deployer) Rollback(ctx context.Context, uid, versionUID string, 
 	if err != nil {
 		return nil, deployer.access.Wrap(err)
 	}
+	// 回滚目标只允许已发布版本，或当前集群实例历史上运行过的已下架版本。
+	if version.Status != "PUBLISHED" {
+		if version.Status != "DEPRECATED" {
+			return nil, merr.Conflict("only a published or previously deployed version can be rolled back to")
+		}
+		for _, release := range selectReleases(deployment.Releases, clusterUIDs) {
+			used, err := deployer.releases.ReleaseUsedVersion(ctx, ns, release.UID, version.UID)
+			if err != nil {
+				return nil, deployer.access.Wrap(err)
+			}
+			if !used {
+				return nil, merr.Conflict("deprecated version is not in this release history")
+			}
+		}
+	}
 	return deployer.createOperations(ctx, deployment, version, clusterUIDs, deployment.Values, "ROLLBACK")
 }
 
@@ -209,6 +236,9 @@ func (deployer *Deployer) Redeploy(ctx context.Context, uid string, clusterUIDs 
 	version, err := deployer.apps.GetVersion(ctx, ns, deployment.ApplicationUID, deployment.VersionUID)
 	if err != nil {
 		return nil, deployer.access.Wrap(err)
+	}
+	if version.Status != "PUBLISHED" && version.Status != "DEPRECATED" {
+		return nil, merr.Conflict("draft version cannot be redeployed")
 	}
 	return deployer.createOperations(ctx, deployment, version, clusterUIDs, deployment.Values, "REDEPLOY")
 }
@@ -242,7 +272,8 @@ func (deployer *Deployer) Uninstall(ctx context.Context, uid string, clusterUIDs
 			return nil, merr.Conflict("a cluster release already has an active operation")
 		}
 		if _, err := deployer.releases.CreateOperation(ctx, bo.ApplicationOperation{
-			NamespaceUID: ns, DeploymentUID: deployment.UID, ReleaseUID: release.UID,
+			NamespaceUID: ns, ApplicationUID: deployment.ApplicationUID, DeploymentUID: deployment.UID,
+			ReleaseUID: release.UID, ClusterUID: release.ClusterUID,
 			BatchUID: batchUID, ClusterName: release.ClusterName, Action: "UNINSTALL",
 			Status: "PENDING", FromVersionUID: release.VersionUID, ToVersionUID: release.VersionUID,
 			Values: release.Values, OperatorUID: operator, OperatorName: operator,
@@ -281,7 +312,8 @@ func (deployer *Deployer) createOperations(ctx context.Context, deployment *bo.A
 			return nil, merr.Conflict("a cluster release already has an active operation")
 		}
 		if _, err := deployer.releases.CreateOperation(ctx, bo.ApplicationOperation{
-			NamespaceUID: deployment.NamespaceUID, DeploymentUID: deployment.UID, ReleaseUID: release.UID,
+			NamespaceUID: deployment.NamespaceUID, ApplicationUID: deployment.ApplicationUID,
+			DeploymentUID: deployment.UID, ReleaseUID: release.UID, ClusterUID: release.ClusterUID,
 			BatchUID: batchUID, ClusterName: release.ClusterName, Action: action,
 			Status: "PENDING", FromVersionUID: release.VersionUID, ToVersionUID: version.UID,
 			Values: values, OperatorUID: operator, OperatorName: operator, KeepPVC: true,

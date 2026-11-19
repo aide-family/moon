@@ -20,8 +20,10 @@ func (ApplicationReleaseOperation) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("uid").NotEmpty().Immutable(),
 		field.String("namespace_uid").NotEmpty(),
+		field.String("application_uid").Default(""),
 		field.String("deployment_uid").NotEmpty(),
 		field.String("release_uid").NotEmpty(),
+		field.String("cluster_uid").Default(""),
 		field.String("cluster_name").Default(""),
 		field.String("batch_uid").Default(""),
 		field.Enum("action").Values("INSTALL", "UPGRADE", "ROLLBACK", "UNINSTALL", "REDEPLOY").Default("INSTALL"),

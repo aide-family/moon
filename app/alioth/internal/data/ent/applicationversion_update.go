@@ -186,6 +186,102 @@ func (_u *ApplicationVersionUpdate) ClearPublishedAt() *ApplicationVersionUpdate
 	return _u
 }
 
+// SetRevision sets the "revision" field.
+func (_u *ApplicationVersionUpdate) SetRevision(v int) *ApplicationVersionUpdate {
+	_u.mutation.ResetRevision()
+	_u.mutation.SetRevision(v)
+	return _u
+}
+
+// SetNillableRevision sets the "revision" field if the given value is not nil.
+func (_u *ApplicationVersionUpdate) SetNillableRevision(v *int) *ApplicationVersionUpdate {
+	if v != nil {
+		_u.SetRevision(*v)
+	}
+	return _u
+}
+
+// AddRevision adds value to the "revision" field.
+func (_u *ApplicationVersionUpdate) AddRevision(v int) *ApplicationVersionUpdate {
+	_u.mutation.AddRevision(v)
+	return _u
+}
+
+// SetCompositionVersion sets the "composition_version" field.
+func (_u *ApplicationVersionUpdate) SetCompositionVersion(v int) *ApplicationVersionUpdate {
+	_u.mutation.ResetCompositionVersion()
+	_u.mutation.SetCompositionVersion(v)
+	return _u
+}
+
+// SetNillableCompositionVersion sets the "composition_version" field if the given value is not nil.
+func (_u *ApplicationVersionUpdate) SetNillableCompositionVersion(v *int) *ApplicationVersionUpdate {
+	if v != nil {
+		_u.SetCompositionVersion(*v)
+	}
+	return _u
+}
+
+// AddCompositionVersion adds value to the "composition_version" field.
+func (_u *ApplicationVersionUpdate) AddCompositionVersion(v int) *ApplicationVersionUpdate {
+	_u.mutation.AddCompositionVersion(v)
+	return _u
+}
+
+// SetStatusChangedAt sets the "status_changed_at" field.
+func (_u *ApplicationVersionUpdate) SetStatusChangedAt(v time.Time) *ApplicationVersionUpdate {
+	_u.mutation.SetStatusChangedAt(v)
+	return _u
+}
+
+// SetNillableStatusChangedAt sets the "status_changed_at" field if the given value is not nil.
+func (_u *ApplicationVersionUpdate) SetNillableStatusChangedAt(v *time.Time) *ApplicationVersionUpdate {
+	if v != nil {
+		_u.SetStatusChangedAt(*v)
+	}
+	return _u
+}
+
+// ClearStatusChangedAt clears the value of the "status_changed_at" field.
+func (_u *ApplicationVersionUpdate) ClearStatusChangedAt() *ApplicationVersionUpdate {
+	_u.mutation.ClearStatusChangedAt()
+	return _u
+}
+
+// SetDeprecatedAt sets the "deprecated_at" field.
+func (_u *ApplicationVersionUpdate) SetDeprecatedAt(v time.Time) *ApplicationVersionUpdate {
+	_u.mutation.SetDeprecatedAt(v)
+	return _u
+}
+
+// SetNillableDeprecatedAt sets the "deprecated_at" field if the given value is not nil.
+func (_u *ApplicationVersionUpdate) SetNillableDeprecatedAt(v *time.Time) *ApplicationVersionUpdate {
+	if v != nil {
+		_u.SetDeprecatedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeprecatedAt clears the value of the "deprecated_at" field.
+func (_u *ApplicationVersionUpdate) ClearDeprecatedAt() *ApplicationVersionUpdate {
+	_u.mutation.ClearDeprecatedAt()
+	return _u
+}
+
+// SetCopiedFromVersionUID sets the "copied_from_version_uid" field.
+func (_u *ApplicationVersionUpdate) SetCopiedFromVersionUID(v string) *ApplicationVersionUpdate {
+	_u.mutation.SetCopiedFromVersionUID(v)
+	return _u
+}
+
+// SetNillableCopiedFromVersionUID sets the "copied_from_version_uid" field if the given value is not nil.
+func (_u *ApplicationVersionUpdate) SetNillableCopiedFromVersionUID(v *string) *ApplicationVersionUpdate {
+	if v != nil {
+		_u.SetCopiedFromVersionUID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the ApplicationVersionMutation object of the builder.
 func (_u *ApplicationVersionUpdate) Mutation() *ApplicationVersionMutation {
 	return _u.mutation
@@ -302,6 +398,33 @@ func (_u *ApplicationVersionUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if _u.mutation.PublishedAtCleared() {
 		_spec.ClearField(applicationversion.FieldPublishedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Revision(); ok {
+		_spec.SetField(applicationversion.FieldRevision, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRevision(); ok {
+		_spec.AddField(applicationversion.FieldRevision, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.CompositionVersion(); ok {
+		_spec.SetField(applicationversion.FieldCompositionVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCompositionVersion(); ok {
+		_spec.AddField(applicationversion.FieldCompositionVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.StatusChangedAt(); ok {
+		_spec.SetField(applicationversion.FieldStatusChangedAt, field.TypeTime, value)
+	}
+	if _u.mutation.StatusChangedAtCleared() {
+		_spec.ClearField(applicationversion.FieldStatusChangedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.DeprecatedAt(); ok {
+		_spec.SetField(applicationversion.FieldDeprecatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeprecatedAtCleared() {
+		_spec.ClearField(applicationversion.FieldDeprecatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.CopiedFromVersionUID(); ok {
+		_spec.SetField(applicationversion.FieldCopiedFromVersionUID, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -481,6 +604,102 @@ func (_u *ApplicationVersionUpdateOne) ClearPublishedAt() *ApplicationVersionUpd
 	return _u
 }
 
+// SetRevision sets the "revision" field.
+func (_u *ApplicationVersionUpdateOne) SetRevision(v int) *ApplicationVersionUpdateOne {
+	_u.mutation.ResetRevision()
+	_u.mutation.SetRevision(v)
+	return _u
+}
+
+// SetNillableRevision sets the "revision" field if the given value is not nil.
+func (_u *ApplicationVersionUpdateOne) SetNillableRevision(v *int) *ApplicationVersionUpdateOne {
+	if v != nil {
+		_u.SetRevision(*v)
+	}
+	return _u
+}
+
+// AddRevision adds value to the "revision" field.
+func (_u *ApplicationVersionUpdateOne) AddRevision(v int) *ApplicationVersionUpdateOne {
+	_u.mutation.AddRevision(v)
+	return _u
+}
+
+// SetCompositionVersion sets the "composition_version" field.
+func (_u *ApplicationVersionUpdateOne) SetCompositionVersion(v int) *ApplicationVersionUpdateOne {
+	_u.mutation.ResetCompositionVersion()
+	_u.mutation.SetCompositionVersion(v)
+	return _u
+}
+
+// SetNillableCompositionVersion sets the "composition_version" field if the given value is not nil.
+func (_u *ApplicationVersionUpdateOne) SetNillableCompositionVersion(v *int) *ApplicationVersionUpdateOne {
+	if v != nil {
+		_u.SetCompositionVersion(*v)
+	}
+	return _u
+}
+
+// AddCompositionVersion adds value to the "composition_version" field.
+func (_u *ApplicationVersionUpdateOne) AddCompositionVersion(v int) *ApplicationVersionUpdateOne {
+	_u.mutation.AddCompositionVersion(v)
+	return _u
+}
+
+// SetStatusChangedAt sets the "status_changed_at" field.
+func (_u *ApplicationVersionUpdateOne) SetStatusChangedAt(v time.Time) *ApplicationVersionUpdateOne {
+	_u.mutation.SetStatusChangedAt(v)
+	return _u
+}
+
+// SetNillableStatusChangedAt sets the "status_changed_at" field if the given value is not nil.
+func (_u *ApplicationVersionUpdateOne) SetNillableStatusChangedAt(v *time.Time) *ApplicationVersionUpdateOne {
+	if v != nil {
+		_u.SetStatusChangedAt(*v)
+	}
+	return _u
+}
+
+// ClearStatusChangedAt clears the value of the "status_changed_at" field.
+func (_u *ApplicationVersionUpdateOne) ClearStatusChangedAt() *ApplicationVersionUpdateOne {
+	_u.mutation.ClearStatusChangedAt()
+	return _u
+}
+
+// SetDeprecatedAt sets the "deprecated_at" field.
+func (_u *ApplicationVersionUpdateOne) SetDeprecatedAt(v time.Time) *ApplicationVersionUpdateOne {
+	_u.mutation.SetDeprecatedAt(v)
+	return _u
+}
+
+// SetNillableDeprecatedAt sets the "deprecated_at" field if the given value is not nil.
+func (_u *ApplicationVersionUpdateOne) SetNillableDeprecatedAt(v *time.Time) *ApplicationVersionUpdateOne {
+	if v != nil {
+		_u.SetDeprecatedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeprecatedAt clears the value of the "deprecated_at" field.
+func (_u *ApplicationVersionUpdateOne) ClearDeprecatedAt() *ApplicationVersionUpdateOne {
+	_u.mutation.ClearDeprecatedAt()
+	return _u
+}
+
+// SetCopiedFromVersionUID sets the "copied_from_version_uid" field.
+func (_u *ApplicationVersionUpdateOne) SetCopiedFromVersionUID(v string) *ApplicationVersionUpdateOne {
+	_u.mutation.SetCopiedFromVersionUID(v)
+	return _u
+}
+
+// SetNillableCopiedFromVersionUID sets the "copied_from_version_uid" field if the given value is not nil.
+func (_u *ApplicationVersionUpdateOne) SetNillableCopiedFromVersionUID(v *string) *ApplicationVersionUpdateOne {
+	if v != nil {
+		_u.SetCopiedFromVersionUID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the ApplicationVersionMutation object of the builder.
 func (_u *ApplicationVersionUpdateOne) Mutation() *ApplicationVersionMutation {
 	return _u.mutation
@@ -627,6 +846,33 @@ func (_u *ApplicationVersionUpdateOne) sqlSave(ctx context.Context) (_node *Appl
 	}
 	if _u.mutation.PublishedAtCleared() {
 		_spec.ClearField(applicationversion.FieldPublishedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Revision(); ok {
+		_spec.SetField(applicationversion.FieldRevision, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRevision(); ok {
+		_spec.AddField(applicationversion.FieldRevision, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.CompositionVersion(); ok {
+		_spec.SetField(applicationversion.FieldCompositionVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCompositionVersion(); ok {
+		_spec.AddField(applicationversion.FieldCompositionVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.StatusChangedAt(); ok {
+		_spec.SetField(applicationversion.FieldStatusChangedAt, field.TypeTime, value)
+	}
+	if _u.mutation.StatusChangedAtCleared() {
+		_spec.ClearField(applicationversion.FieldStatusChangedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.DeprecatedAt(); ok {
+		_spec.SetField(applicationversion.FieldDeprecatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeprecatedAtCleared() {
+		_spec.ClearField(applicationversion.FieldDeprecatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.CopiedFromVersionUID(); ok {
+		_spec.SetField(applicationversion.FieldCopiedFromVersionUID, field.TypeString, value)
 	}
 	_node = &ApplicationVersion{config: _u.config}
 	_spec.Assign = _node.assignValues

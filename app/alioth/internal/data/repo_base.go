@@ -39,6 +39,12 @@ func constraintMessage(err error) string {
 		strings.Contains(message, "oncall_uid") &&
 		strings.Contains(message, "group_uid"):
 		return "notification group is already bound to this on-call"
+	case strings.Contains(message, "applicationversioncomponent"):
+		return "component name already exists"
+	case strings.Contains(message, "applicationversionresource"):
+		return "resource item already exists"
+	case strings.Contains(message, "applicationversion"):
+		return "version already exists"
 	case strings.Contains(message, "users_email"):
 		return "email already exists"
 	case strings.Contains(message, "member"):

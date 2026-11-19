@@ -25,10 +25,14 @@ type ApplicationReleaseOperation struct {
 	UID string `json:"uid,omitempty"`
 	// NamespaceUID holds the value of the "namespace_uid" field.
 	NamespaceUID string `json:"namespace_uid,omitempty"`
+	// ApplicationUID holds the value of the "application_uid" field.
+	ApplicationUID string `json:"application_uid,omitempty"`
 	// DeploymentUID holds the value of the "deployment_uid" field.
 	DeploymentUID string `json:"deployment_uid,omitempty"`
 	// ReleaseUID holds the value of the "release_uid" field.
 	ReleaseUID string `json:"release_uid,omitempty"`
+	// ClusterUID holds the value of the "cluster_uid" field.
+	ClusterUID string `json:"cluster_uid,omitempty"`
 	// ClusterName holds the value of the "cluster_name" field.
 	ClusterName string `json:"cluster_name,omitempty"`
 	// BatchUID holds the value of the "batch_uid" field.
@@ -79,7 +83,7 @@ func (*ApplicationReleaseOperation) scanValues(columns []string) ([]any, error) 
 			values[i] = new(sql.NullBool)
 		case applicationreleaseoperation.FieldID:
 			values[i] = new(sql.NullInt64)
-		case applicationreleaseoperation.FieldUID, applicationreleaseoperation.FieldNamespaceUID, applicationreleaseoperation.FieldDeploymentUID, applicationreleaseoperation.FieldReleaseUID, applicationreleaseoperation.FieldClusterName, applicationreleaseoperation.FieldBatchUID, applicationreleaseoperation.FieldAction, applicationreleaseoperation.FieldStatus, applicationreleaseoperation.FieldFromVersionUID, applicationreleaseoperation.FieldToVersionUID, applicationreleaseoperation.FieldValues, applicationreleaseoperation.FieldSecretValuesCipher, applicationreleaseoperation.FieldResources, applicationreleaseoperation.FieldDiff, applicationreleaseoperation.FieldMessage, applicationreleaseoperation.FieldOperatorUID, applicationreleaseoperation.FieldOperatorName, applicationreleaseoperation.FieldLeaseOwner:
+		case applicationreleaseoperation.FieldUID, applicationreleaseoperation.FieldNamespaceUID, applicationreleaseoperation.FieldApplicationUID, applicationreleaseoperation.FieldDeploymentUID, applicationreleaseoperation.FieldReleaseUID, applicationreleaseoperation.FieldClusterUID, applicationreleaseoperation.FieldClusterName, applicationreleaseoperation.FieldBatchUID, applicationreleaseoperation.FieldAction, applicationreleaseoperation.FieldStatus, applicationreleaseoperation.FieldFromVersionUID, applicationreleaseoperation.FieldToVersionUID, applicationreleaseoperation.FieldValues, applicationreleaseoperation.FieldSecretValuesCipher, applicationreleaseoperation.FieldResources, applicationreleaseoperation.FieldDiff, applicationreleaseoperation.FieldMessage, applicationreleaseoperation.FieldOperatorUID, applicationreleaseoperation.FieldOperatorName, applicationreleaseoperation.FieldLeaseOwner:
 			values[i] = new(sql.NullString)
 		case applicationreleaseoperation.FieldCreatedAt, applicationreleaseoperation.FieldUpdatedAt, applicationreleaseoperation.FieldLeaseUntil, applicationreleaseoperation.FieldStartedAt, applicationreleaseoperation.FieldFinishedAt:
 			values[i] = new(sql.NullTime)
@@ -128,6 +132,12 @@ func (_m *ApplicationReleaseOperation) assignValues(columns []string, values []a
 			} else if value.Valid {
 				_m.NamespaceUID = value.String
 			}
+		case applicationreleaseoperation.FieldApplicationUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field application_uid", values[i])
+			} else if value.Valid {
+				_m.ApplicationUID = value.String
+			}
 		case applicationreleaseoperation.FieldDeploymentUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field deployment_uid", values[i])
@@ -139,6 +149,12 @@ func (_m *ApplicationReleaseOperation) assignValues(columns []string, values []a
 				return fmt.Errorf("unexpected type %T for field release_uid", values[i])
 			} else if value.Valid {
 				_m.ReleaseUID = value.String
+			}
+		case applicationreleaseoperation.FieldClusterUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cluster_uid", values[i])
+			} else if value.Valid {
+				_m.ClusterUID = value.String
 			}
 		case applicationreleaseoperation.FieldClusterName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -305,11 +321,17 @@ func (_m *ApplicationReleaseOperation) String() string {
 	builder.WriteString("namespace_uid=")
 	builder.WriteString(_m.NamespaceUID)
 	builder.WriteString(", ")
+	builder.WriteString("application_uid=")
+	builder.WriteString(_m.ApplicationUID)
+	builder.WriteString(", ")
 	builder.WriteString("deployment_uid=")
 	builder.WriteString(_m.DeploymentUID)
 	builder.WriteString(", ")
 	builder.WriteString("release_uid=")
 	builder.WriteString(_m.ReleaseUID)
+	builder.WriteString(", ")
+	builder.WriteString("cluster_uid=")
+	builder.WriteString(_m.ClusterUID)
 	builder.WriteString(", ")
 	builder.WriteString("cluster_name=")
 	builder.WriteString(_m.ClusterName)

@@ -27,8 +27,14 @@ const (
 	FieldVersionUID = "version_uid"
 	// FieldResourceItem holds the string denoting the resource_item field in the database.
 	FieldResourceItem = "resource_item"
+	// FieldResourceUID holds the string denoting the resource_uid field in the database.
+	FieldResourceUID = "resource_uid"
+	// FieldComponent holds the string denoting the component field in the database.
+	FieldComponent = "component"
 	// FieldContainer holds the string denoting the container field in the database.
 	FieldContainer = "container"
+	// FieldContainerPath holds the string denoting the container_path field in the database.
+	FieldContainerPath = "container_path"
 	// FieldImage holds the string denoting the image field in the database.
 	FieldImage = "image"
 	// FieldRegistryUID holds the string denoting the registry_uid field in the database.
@@ -41,6 +47,12 @@ const (
 	FieldTag = "tag"
 	// FieldDigest holds the string denoting the digest field in the database.
 	FieldDigest = "digest"
+	// FieldProject holds the string denoting the project field in the database.
+	FieldProject = "project"
+	// FieldSource holds the string denoting the source field in the database.
+	FieldSource = "source"
+	// FieldResolvedImage holds the string denoting the resolved_image field in the database.
+	FieldResolvedImage = "resolved_image"
 	// FieldPlatforms holds the string denoting the platforms field in the database.
 	FieldPlatforms = "platforms"
 	// FieldExternal holds the string denoting the external field in the database.
@@ -61,13 +73,19 @@ var Columns = []string{
 	FieldApplicationUID,
 	FieldVersionUID,
 	FieldResourceItem,
+	FieldResourceUID,
+	FieldComponent,
 	FieldContainer,
+	FieldContainerPath,
 	FieldImage,
 	FieldRegistryUID,
 	FieldRegistryName,
 	FieldRepository,
 	FieldTag,
 	FieldDigest,
+	FieldProject,
+	FieldSource,
+	FieldResolvedImage,
 	FieldPlatforms,
 	FieldExternal,
 	FieldResolvedAt,
@@ -100,8 +118,14 @@ var (
 	VersionUIDValidator func(string) error
 	// ResourceItemValidator is a validator for the "resource_item" field. It is called by the builders before save.
 	ResourceItemValidator func(string) error
+	// DefaultResourceUID holds the default value on creation for the "resource_uid" field.
+	DefaultResourceUID string
+	// DefaultComponent holds the default value on creation for the "component" field.
+	DefaultComponent string
 	// DefaultContainer holds the default value on creation for the "container" field.
 	DefaultContainer string
+	// DefaultContainerPath holds the default value on creation for the "container_path" field.
+	DefaultContainerPath string
 	// ImageValidator is a validator for the "image" field. It is called by the builders before save.
 	ImageValidator func(string) error
 	// DefaultRegistryUID holds the default value on creation for the "registry_uid" field.
@@ -114,6 +138,12 @@ var (
 	DefaultTag string
 	// DefaultDigest holds the default value on creation for the "digest" field.
 	DefaultDigest string
+	// DefaultProject holds the default value on creation for the "project" field.
+	DefaultProject string
+	// DefaultSource holds the default value on creation for the "source" field.
+	DefaultSource string
+	// DefaultResolvedImage holds the default value on creation for the "resolved_image" field.
+	DefaultResolvedImage string
 	// DefaultPlatforms holds the default value on creation for the "platforms" field.
 	DefaultPlatforms string
 	// DefaultExternal holds the default value on creation for the "external" field.
@@ -163,9 +193,24 @@ func ByResourceItem(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldResourceItem, opts...).ToFunc()
 }
 
+// ByResourceUID orders the results by the resource_uid field.
+func ByResourceUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResourceUID, opts...).ToFunc()
+}
+
+// ByComponent orders the results by the component field.
+func ByComponent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldComponent, opts...).ToFunc()
+}
+
 // ByContainer orders the results by the container field.
 func ByContainer(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContainer, opts...).ToFunc()
+}
+
+// ByContainerPath orders the results by the container_path field.
+func ByContainerPath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContainerPath, opts...).ToFunc()
 }
 
 // ByImage orders the results by the image field.
@@ -196,6 +241,21 @@ func ByTag(opts ...sql.OrderTermOption) OrderOption {
 // ByDigest orders the results by the digest field.
 func ByDigest(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDigest, opts...).ToFunc()
+}
+
+// ByProject orders the results by the project field.
+func ByProject(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProject, opts...).ToFunc()
+}
+
+// BySource orders the results by the source field.
+func BySource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSource, opts...).ToFunc()
+}
+
+// ByResolvedImage orders the results by the resolved_image field.
+func ByResolvedImage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResolvedImage, opts...).ToFunc()
 }
 
 // ByPlatforms orders the results by the platforms field.

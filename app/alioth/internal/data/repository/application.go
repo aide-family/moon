@@ -8,6 +8,10 @@ import (
 )
 
 // ApplicationRepo 管理应用、发布包版本与镜像快照。
+//
+// 版本内容有两套存储：composition_version 为 1 的版本读 application_version_components
+// / application_version_resources；旧版本回退 application_versions.spec。写入归一化
+// 内容的接口都要在事务里锁版本行并校验状态与 revision。
 type ApplicationRepo interface {
 	CreateApplication(ctx context.Context, in bo.Application) (*bo.Application, error)
 	UpdateApplication(ctx context.Context, in bo.Application) (*bo.Application, error)
@@ -16,20 +20,26 @@ type ApplicationRepo interface {
 	ListApplications(ctx context.Context, namespaceUID string, filter bo.ApplicationListFilter, page, pageSize int) ([]bo.Application, int, error)
 
 	CreateVersion(ctx context.Context, in bo.ApplicationVersion) (*bo.ApplicationVersion, error)
-	// UpdateVersion 只允许草稿；整体替换资源与镜像快照。
+	// UpdateVersion 只允许改 changelog；未归一化的旧版本仍允许整体替换 resources。
 	UpdateVersion(ctx context.Context, in bo.ApplicationVersion) (*bo.ApplicationVersion, error)
+	// SaveVersionContent 在事务里锁定版本、校验 DRAFT 与 revision，整体替换组件/
+	// 资源/镜像，合并或保留版本级密文，并把 revision +1。
+	SaveVersionContent(ctx context.Context, in bo.ApplicationVersion, expectedRevision int32) (*bo.ApplicationVersion, error)
+	// SaveVersionResource 在事务里写入单个资源的完整组件视图，并按 change 合并密文。
+	SaveVersionResource(ctx context.Context, in bo.ApplicationVersion, change bo.ApplicationResourceChange) (*bo.ApplicationVersion, error)
+	// DeleteVersionResource 在事务里按期望组件视图删除单个资源及其镜像，并清理版本级密文。
+	DeleteVersionResource(ctx context.Context, in bo.ApplicationVersion, resourceUID string, expectedRevision int32) (*bo.ApplicationVersion, error)
+	GetVersionResource(ctx context.Context, namespaceUID, applicationUID, versionUID, resourceUID string) (*bo.ApplicationResource, error)
+	// DuplicateVersion 复制一个版本为新草稿，复制组件/资源/镜像/密文。
+	DuplicateVersion(ctx context.Context, in bo.ApplicationVersionCopy) (*bo.ApplicationVersion, error)
 	DeleteVersion(ctx context.Context, namespaceUID, applicationUID, uid string) error
 	GetVersion(ctx context.Context, namespaceUID, applicationUID, uid string) (*bo.ApplicationVersion, error)
 	ListVersions(ctx context.Context, namespaceUID, applicationUID string, filter bo.ApplicationVersionFilter, page, pageSize int) ([]bo.ApplicationVersion, int, error)
 	UpdateVersionStatus(ctx context.Context, namespaceUID, applicationUID, uid, status string) (*bo.ApplicationVersion, error)
-	// ReplaceVersionImages 在事务里替换某个版本的镜像快照。
-	ReplaceVersionImages(ctx context.Context, namespaceUID, versionUID string, images []bo.ApplicationVersionImage) error
-	// ListVersionImages 供镜像引用反查。
-	ListVersionImages(ctx context.Context, namespaceUID, versionUID string) ([]bo.ApplicationVersionImage, error)
 	// GetVersionSecrets 解密版本里保存的 Secret 值，仅供执行器使用。
 	GetVersionSecrets(ctx context.Context, namespaceUID, versionUID string) (map[string]string, error)
-	// HasNonDraftVersions 判断应用是否有已发布/已下架版本（删除应用时保护）。
-	HasNonDraftVersions(ctx context.Context, namespaceUID, applicationUID string) (bool, error)
+	// HasPublishedVersions 判断应用是否有已发布版本（删除应用时保护）。
+	HasPublishedVersions(ctx context.Context, namespaceUID, applicationUID string) (bool, error)
 	// FindImageReferences 查询引用指定镜像的所有发布包版本。
 	FindImageReferences(ctx context.Context, namespaceUID, registryUID, repository, tag string) ([]bo.ApplicationImageReference, error)
 	// HasImageReferencesForRegistry 判断是否有任何版本镜像引用该仓库连接。
@@ -56,6 +66,7 @@ type ApplicationReleaseRepo interface {
 	UpdateDeployment(ctx context.Context, in bo.ApplicationDeployment) error
 
 	GetRelease(ctx context.Context, namespaceUID, uid string) (*bo.ApplicationRelease, error)
+	ListReleases(ctx context.Context, namespaceUID string, filter bo.ApplicationReleaseFilter, page, pageSize int) ([]bo.ApplicationRelease, int, error)
 	UpdateRelease(ctx context.Context, in bo.ApplicationRelease) error
 
 	CreateOperation(ctx context.Context, in bo.ApplicationOperation) (*bo.ApplicationOperation, error)
@@ -71,4 +82,6 @@ type ApplicationReleaseRepo interface {
 	HasActiveDeploymentsForApplication(ctx context.Context, namespaceUID, applicationUID string) (bool, error)
 	// HasDeploymentsForVersion 判断版本是否仍被未卸载的集群实例引用。
 	HasDeploymentsForVersion(ctx context.Context, namespaceUID, versionUID string) (bool, error)
+	// ReleaseUsedVersion 判断版本是否出现在该集群实例的历史（当前版本或任一次操作）。
+	ReleaseUsedVersion(ctx context.Context, namespaceUID, releaseUID, versionUID string) (bool, error)
 }

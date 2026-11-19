@@ -261,6 +261,18 @@ func (f ApplicationVersionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationVersionMutation", m)
 }
 
+// The ApplicationVersionComponentFunc type is an adapter to allow the use of ordinary
+// function as ApplicationVersionComponent mutator.
+type ApplicationVersionComponentFunc func(context.Context, *ent.ApplicationVersionComponentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationVersionComponentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationVersionComponentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationVersionComponentMutation", m)
+}
+
 // The ApplicationVersionImageFunc type is an adapter to allow the use of ordinary
 // function as ApplicationVersionImage mutator.
 type ApplicationVersionImageFunc func(context.Context, *ent.ApplicationVersionImageMutation) (ent.Value, error)
@@ -271,6 +283,18 @@ func (f ApplicationVersionImageFunc) Mutate(ctx context.Context, m ent.Mutation)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationVersionImageMutation", m)
+}
+
+// The ApplicationVersionResourceFunc type is an adapter to allow the use of ordinary
+// function as ApplicationVersionResource mutator.
+type ApplicationVersionResourceFunc func(context.Context, *ent.ApplicationVersionResourceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationVersionResourceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationVersionResourceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationVersionResourceMutation", m)
 }
 
 // The AuthEmailSettingFunc type is an adapter to allow the use of ordinary

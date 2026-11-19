@@ -7,8 +7,9 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
 
-// ApplicationService 管理应用与发布包版本。版本内容是一组任意 Kubernetes 资源
-// 的 YAML/JSON，服务端解析成结构化清单并加密 Secret 值。
+// ApplicationService 管理应用与发布包版本。应用是多个服务的合集，每个版本由
+// 一组服务（组件）组成，每个服务包含若干 Kubernetes 资源。版本内容由服务端
+// 解析成结构化清单并加密 Secret 值。
 service ApplicationService {
   rpc CreateApplication(CreateApplicationRequest) returns (CreateApplicationResponse) {
     option (google.api.http) = {
@@ -70,6 +71,42 @@ service ApplicationService {
   rpc GetApplicationVersion(GetApplicationVersionRequest) returns (GetApplicationVersionResponse) {
     option (google.api.http) = {get: "/v1/application/{application_uid}/version/{uid}"};
   }
+  // DuplicateApplicationVersion 复制一个版本的内容为新的草稿版本。
+  rpc DuplicateApplicationVersion(DuplicateApplicationVersionRequest) returns (DuplicateApplicationVersionResponse) {
+    option (google.api.http) = {
+      post: "/v1/application/{application_uid}/version/{uid}/copy"
+      body: "*"
+    };
+  }
+  // CreateApplicationVersionResource 在草稿版本里新增一个 Kubernetes 资源。
+  rpc CreateApplicationVersionResource(CreateApplicationVersionResourceRequest) returns (CreateApplicationVersionResourceResponse) {
+    option (google.api.http) = {
+      post: "/v1/application/{application_uid}/version/{uid}/resource"
+      body: "*"
+    };
+  }
+  // GetApplicationVersionResource 读取单个资源详情。
+  rpc GetApplicationVersionResource(GetApplicationVersionResourceRequest) returns (GetApplicationVersionResourceResponse) {
+    option (google.api.http) = {get: "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}"};
+  }
+  // SaveApplicationVersionResource 编辑草稿版本里的单个资源。
+  rpc SaveApplicationVersionResource(SaveApplicationVersionResourceRequest) returns (SaveApplicationVersionResourceResponse) {
+    option (google.api.http) = {
+      put: "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}"
+      body: "*"
+    };
+  }
+  // DeleteApplicationVersionResource 删除草稿版本里的单个资源。
+  rpc DeleteApplicationVersionResource(DeleteApplicationVersionResourceRequest) returns (DeleteApplicationVersionResourceResponse) {
+    option (google.api.http) = {delete: "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}"};
+  }
+  // ValidateApplicationVersionResource 只校验一段资源 YAML，不写入版本。
+  rpc ValidateApplicationVersionResource(ValidateApplicationVersionResourceRequest) returns (ValidateApplicationVersionResourceResponse) {
+    option (google.api.http) = {
+      post: "/v1/application/{application_uid}/version/{uid}/resource/validate"
+      body: "*"
+    };
+  }
 }
 
 // ApplicationDeploymentService 管理部署组与集群实例。
@@ -115,10 +152,14 @@ service ApplicationDeploymentService {
   }
 }
 
-// ApplicationReleaseService 读取单个集群实例与操作记录。
+// ApplicationReleaseService 读取集群实例、发布记录与操作记录。
 service ApplicationReleaseService {
   rpc GetApplicationRelease(GetApplicationReleaseRequest) returns (GetApplicationReleaseResponse) {
     option (google.api.http) = {get: "/v1/application-releases/{uid}"};
+  }
+  // ListApplicationReleases 按应用或集群查询集群实例（含当前发布版本）。
+  rpc ListApplicationReleases(ListApplicationReleasesRequest) returns (ListApplicationReleasesResponse) {
+    option (google.api.http) = {get: "/v1/application-releases"};
   }
   rpc ListApplicationReleaseOperations(ListReleaseOperationsRequest) returns (ListReleaseOperationsResponse) {
     option (google.api.http) = {get: "/v1/application-releases/{uid}/operations"};
@@ -184,10 +225,18 @@ message ApplicationResource {
   bool cluster_scoped = 8 [json_name = "clusterScoped"];
   repeated string images = 9;
   repeated string secret_keys = 10 [json_name = "secretKeys"];
+  // uid 是资源在版本内的稳定标识，编辑与删除使用。
+  string uid = 11;
+  // component 是资源所属的服务（组件）名。
+  string component = 12;
+  // content_hash 是资源内容的 sha256，用于并发编辑提示。
+  string content_hash = 13 [json_name = "contentHash"];
 }
 message ApplicationResourceInput {
   string item = 1 [(buf.validate.field).string = {max_len: 64}];
   string manifest = 2 [(buf.validate.field).string = {min_len: 1, max_len: 524288}];
+  // component 是资源所属的服务（组件）名；为空时归入默认服务。
+  string component = 3 [(buf.validate.field).string = {max_len: 63}];
 }
 message ApplicationVersionImageItem {
   string resource_item = 1 [json_name = "resourceItem"];
@@ -200,6 +249,25 @@ message ApplicationVersionImageItem {
   string digest = 8;
   repeated string platforms = 9;
   bool external = 10;
+  // component 是镜像所属的服务（组件）名。
+  string component = 11;
+  string resource_uid = 12 [json_name = "resourceUid"];
+  // container_path 是容器在清单里的 JSON 路径。
+  string container_path = 13 [json_name = "containerPath"];
+  string project = 14;
+  // REGISTRY / EXTERNAL。
+  string source = 15;
+  // resolved_image 是上架时固定的实际部署引用。
+  string resolved_image = 16 [json_name = "resolvedImage"];
+}
+// ApplicationVersionComponent 是版本内的一个服务，由若干 Kubernetes 资源组成。
+message ApplicationVersionComponent {
+  string uid = 1;
+  string name = 2;
+  string display_name = 3 [json_name = "displayName"];
+  int32 sort_order = 4 [json_name = "sortOrder"];
+  repeated ApplicationResource resources = 5;
+  int32 resource_count = 6 [json_name = "resourceCount"];
 }
 message ApplicationVersionItem {
   string uid = 1;
@@ -207,11 +275,22 @@ message ApplicationVersionItem {
   string version = 3;
   string status = 4;
   string changelog = 5;
+  // resources 是扁平视图，保留给旧客户端；新客户端使用 components。
   repeated ApplicationResource resources = 6;
   repeated ApplicationVersionImageItem images = 7;
   int64 published_at = 8 [json_name = "publishedAt"];
   int64 created_at = 9 [json_name = "createdAt"];
   string validation = 10;
+  repeated ApplicationVersionComponent components = 11;
+  // revision 是版本内容的乐观锁版本号，每次内容变更 +1。
+  int32 revision = 12;
+  // allowed_actions 是服务端计算的当前可执行动作：PUBLISH / DEPRECATE / COPY / DELETE / RELEASE。
+  repeated string allowed_actions = 13 [json_name = "allowedActions"];
+  int32 component_count = 14 [json_name = "componentCount"];
+  int32 resource_count = 15 [json_name = "resourceCount"];
+  int64 status_changed_at = 16 [json_name = "statusChangedAt"];
+  int64 deprecated_at = 17 [json_name = "deprecatedAt"];
+  string copied_from_version_uid = 18 [json_name = "copiedFromVersionUid"];
 }
 message CreateApplicationVersionRequest {
   string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
@@ -225,6 +304,8 @@ message UpdateApplicationVersionRequest {
   string uid = 2 [(buf.validate.field).string = {min_len: 1}];
   string changelog = 3 [(buf.validate.field).string = {max_len: 4096}];
   repeated ApplicationResourceInput resources = 4;
+  // revision 是客户端读取到的版本内容版本号；不一致时返回冲突。
+  int32 revision = 5;
 }
 message UpdateApplicationVersionResponse { ApplicationVersionItem version = 1; }
 message DeleteApplicationVersionRequest {
@@ -269,6 +350,56 @@ message GetApplicationVersionRequest {
 }
 message GetApplicationVersionResponse { ApplicationVersionItem version = 1; }
 
+message DuplicateApplicationVersionRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+  string version = 3 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
+  string changelog = 4 [(buf.validate.field).string = {max_len: 4096}];
+}
+message DuplicateApplicationVersionResponse { ApplicationVersionItem version = 1; }
+
+message CreateApplicationVersionResourceRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+  ApplicationResourceInput resource = 3;
+  int32 expected_revision = 4 [json_name = "expectedRevision"];
+}
+message CreateApplicationVersionResourceResponse { ApplicationVersionItem version = 1; }
+message GetApplicationVersionResourceRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+  string resource_uid = 3 [json_name = "resourceUid", (buf.validate.field).string = {min_len: 1}];
+}
+message GetApplicationVersionResourceResponse { ApplicationResource resource = 1; }
+message SaveApplicationVersionResourceRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+  string resource_uid = 3 [json_name = "resourceUid", (buf.validate.field).string = {min_len: 1}];
+  string component = 4 [(buf.validate.field).string = {max_len: 63}];
+  string manifest = 5 [(buf.validate.field).string = {min_len: 1, max_len: 524288}];
+  map<string, string> secret_values = 6 [json_name = "secretValues"];
+  repeated string clear_secret_keys = 7 [json_name = "clearSecretKeys"];
+  int32 expected_revision = 8 [json_name = "expectedRevision"];
+}
+message SaveApplicationVersionResourceResponse { ApplicationVersionItem version = 1; }
+message DeleteApplicationVersionResourceRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+  string resource_uid = 3 [json_name = "resourceUid", (buf.validate.field).string = {min_len: 1}];
+  int32 expected_revision = 4 [json_name = "expectedRevision"];
+}
+message DeleteApplicationVersionResourceResponse { ApplicationVersionItem version = 1; }
+message ValidateApplicationVersionResourceRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+  string component = 3 [(buf.validate.field).string = {max_len: 63}];
+  string manifest = 4 [(buf.validate.field).string = {min_len: 1, max_len: 524288}];
+}
+message ValidateApplicationVersionResourceResponse {
+  repeated string errors = 1;
+  repeated string warnings = 2;
+}
+
 message ApplicationDeployValues {
   map<string, int32> replicas = 1;
   map<string, string> image_tags = 2 [json_name = "imageTags"];
@@ -282,6 +413,11 @@ message DeploymentCluster {
   string release_uid = 4 [json_name = "releaseUid"];
   string version = 5;
   string message = 6;
+  // current_version 是集群当前实际运行的版本（最后一次成功的发布）。
+  string current_version = 7 [json_name = "currentVersion"];
+  string current_version_uid = 8 [json_name = "currentVersionUid"];
+  // in_sync 表示集群当前版本与部署组期望版本一致。
+  bool in_sync = 9 [json_name = "inSync"];
 }
 message ApplicationReleaseItem {
   string uid = 1;
@@ -296,6 +432,8 @@ message ApplicationReleaseItem {
   string message = 10;
   string last_operation_uid = 11 [json_name = "lastOperationUid"];
   int64 deployed_at = 12 [json_name = "deployedAt"];
+  string application_uid = 13 [json_name = "applicationUid"];
+  string application_name = 14 [json_name = "applicationName"];
 }
 message ApplicationDeploymentItem {
   string uid = 1;
@@ -401,6 +539,19 @@ message ListApplicationReleaseOperationsResponse {
 }
 message GetApplicationReleaseRequest { string uid = 1 [(buf.validate.field).string = {min_len: 1}]; }
 message GetApplicationReleaseResponse { ApplicationReleaseItem release = 1; }
+message ListApplicationReleasesRequest {
+  int32 page = 1 [(buf.validate.field).int32 = {gte: 0}];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
+  string application_uid = 3 [json_name = "applicationUid"];
+  string cluster_uid = 4 [json_name = "clusterUid"];
+  string status = 5 [(buf.validate.field).string = {in: ["", "PENDING", "DEPLOYING", "RUNNING", "PARTIAL", "FAILED", "UNINSTALLING", "UNINSTALLED"]}];
+}
+message ListApplicationReleasesResponse {
+  repeated ApplicationReleaseItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
 message ListReleaseOperationsRequest {
   string uid = 1 [(buf.validate.field).string = {min_len: 1}];
   int32 page = 2 [(buf.validate.field).int32 = {gte: 0}];

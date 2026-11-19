@@ -89,9 +89,24 @@ func ResourceItem(v string) predicate.ApplicationVersionImage {
 	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldResourceItem, v))
 }
 
+// ResourceUID applies equality check predicate on the "resource_uid" field. It's identical to ResourceUIDEQ.
+func ResourceUID(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldResourceUID, v))
+}
+
+// Component applies equality check predicate on the "component" field. It's identical to ComponentEQ.
+func Component(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldComponent, v))
+}
+
 // Container applies equality check predicate on the "container" field. It's identical to ContainerEQ.
 func Container(v string) predicate.ApplicationVersionImage {
 	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldContainer, v))
+}
+
+// ContainerPath applies equality check predicate on the "container_path" field. It's identical to ContainerPathEQ.
+func ContainerPath(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldContainerPath, v))
 }
 
 // Image applies equality check predicate on the "image" field. It's identical to ImageEQ.
@@ -122,6 +137,21 @@ func Tag(v string) predicate.ApplicationVersionImage {
 // Digest applies equality check predicate on the "digest" field. It's identical to DigestEQ.
 func Digest(v string) predicate.ApplicationVersionImage {
 	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldDigest, v))
+}
+
+// Project applies equality check predicate on the "project" field. It's identical to ProjectEQ.
+func Project(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldProject, v))
+}
+
+// Source applies equality check predicate on the "source" field. It's identical to SourceEQ.
+func Source(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldSource, v))
+}
+
+// ResolvedImage applies equality check predicate on the "resolved_image" field. It's identical to ResolvedImageEQ.
+func ResolvedImage(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldResolvedImage, v))
 }
 
 // Platforms applies equality check predicate on the "platforms" field. It's identical to PlatformsEQ.
@@ -544,6 +574,136 @@ func ResourceItemContainsFold(v string) predicate.ApplicationVersionImage {
 	return predicate.ApplicationVersionImage(sql.FieldContainsFold(FieldResourceItem, v))
 }
 
+// ResourceUIDEQ applies the EQ predicate on the "resource_uid" field.
+func ResourceUIDEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldResourceUID, v))
+}
+
+// ResourceUIDNEQ applies the NEQ predicate on the "resource_uid" field.
+func ResourceUIDNEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNEQ(FieldResourceUID, v))
+}
+
+// ResourceUIDIn applies the In predicate on the "resource_uid" field.
+func ResourceUIDIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldIn(FieldResourceUID, vs...))
+}
+
+// ResourceUIDNotIn applies the NotIn predicate on the "resource_uid" field.
+func ResourceUIDNotIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNotIn(FieldResourceUID, vs...))
+}
+
+// ResourceUIDGT applies the GT predicate on the "resource_uid" field.
+func ResourceUIDGT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGT(FieldResourceUID, v))
+}
+
+// ResourceUIDGTE applies the GTE predicate on the "resource_uid" field.
+func ResourceUIDGTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGTE(FieldResourceUID, v))
+}
+
+// ResourceUIDLT applies the LT predicate on the "resource_uid" field.
+func ResourceUIDLT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLT(FieldResourceUID, v))
+}
+
+// ResourceUIDLTE applies the LTE predicate on the "resource_uid" field.
+func ResourceUIDLTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLTE(FieldResourceUID, v))
+}
+
+// ResourceUIDContains applies the Contains predicate on the "resource_uid" field.
+func ResourceUIDContains(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContains(FieldResourceUID, v))
+}
+
+// ResourceUIDHasPrefix applies the HasPrefix predicate on the "resource_uid" field.
+func ResourceUIDHasPrefix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasPrefix(FieldResourceUID, v))
+}
+
+// ResourceUIDHasSuffix applies the HasSuffix predicate on the "resource_uid" field.
+func ResourceUIDHasSuffix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasSuffix(FieldResourceUID, v))
+}
+
+// ResourceUIDEqualFold applies the EqualFold predicate on the "resource_uid" field.
+func ResourceUIDEqualFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEqualFold(FieldResourceUID, v))
+}
+
+// ResourceUIDContainsFold applies the ContainsFold predicate on the "resource_uid" field.
+func ResourceUIDContainsFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContainsFold(FieldResourceUID, v))
+}
+
+// ComponentEQ applies the EQ predicate on the "component" field.
+func ComponentEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldComponent, v))
+}
+
+// ComponentNEQ applies the NEQ predicate on the "component" field.
+func ComponentNEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNEQ(FieldComponent, v))
+}
+
+// ComponentIn applies the In predicate on the "component" field.
+func ComponentIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldIn(FieldComponent, vs...))
+}
+
+// ComponentNotIn applies the NotIn predicate on the "component" field.
+func ComponentNotIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNotIn(FieldComponent, vs...))
+}
+
+// ComponentGT applies the GT predicate on the "component" field.
+func ComponentGT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGT(FieldComponent, v))
+}
+
+// ComponentGTE applies the GTE predicate on the "component" field.
+func ComponentGTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGTE(FieldComponent, v))
+}
+
+// ComponentLT applies the LT predicate on the "component" field.
+func ComponentLT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLT(FieldComponent, v))
+}
+
+// ComponentLTE applies the LTE predicate on the "component" field.
+func ComponentLTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLTE(FieldComponent, v))
+}
+
+// ComponentContains applies the Contains predicate on the "component" field.
+func ComponentContains(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContains(FieldComponent, v))
+}
+
+// ComponentHasPrefix applies the HasPrefix predicate on the "component" field.
+func ComponentHasPrefix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasPrefix(FieldComponent, v))
+}
+
+// ComponentHasSuffix applies the HasSuffix predicate on the "component" field.
+func ComponentHasSuffix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasSuffix(FieldComponent, v))
+}
+
+// ComponentEqualFold applies the EqualFold predicate on the "component" field.
+func ComponentEqualFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEqualFold(FieldComponent, v))
+}
+
+// ComponentContainsFold applies the ContainsFold predicate on the "component" field.
+func ComponentContainsFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContainsFold(FieldComponent, v))
+}
+
 // ContainerEQ applies the EQ predicate on the "container" field.
 func ContainerEQ(v string) predicate.ApplicationVersionImage {
 	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldContainer, v))
@@ -607,6 +767,71 @@ func ContainerEqualFold(v string) predicate.ApplicationVersionImage {
 // ContainerContainsFold applies the ContainsFold predicate on the "container" field.
 func ContainerContainsFold(v string) predicate.ApplicationVersionImage {
 	return predicate.ApplicationVersionImage(sql.FieldContainsFold(FieldContainer, v))
+}
+
+// ContainerPathEQ applies the EQ predicate on the "container_path" field.
+func ContainerPathEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldContainerPath, v))
+}
+
+// ContainerPathNEQ applies the NEQ predicate on the "container_path" field.
+func ContainerPathNEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNEQ(FieldContainerPath, v))
+}
+
+// ContainerPathIn applies the In predicate on the "container_path" field.
+func ContainerPathIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldIn(FieldContainerPath, vs...))
+}
+
+// ContainerPathNotIn applies the NotIn predicate on the "container_path" field.
+func ContainerPathNotIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNotIn(FieldContainerPath, vs...))
+}
+
+// ContainerPathGT applies the GT predicate on the "container_path" field.
+func ContainerPathGT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGT(FieldContainerPath, v))
+}
+
+// ContainerPathGTE applies the GTE predicate on the "container_path" field.
+func ContainerPathGTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGTE(FieldContainerPath, v))
+}
+
+// ContainerPathLT applies the LT predicate on the "container_path" field.
+func ContainerPathLT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLT(FieldContainerPath, v))
+}
+
+// ContainerPathLTE applies the LTE predicate on the "container_path" field.
+func ContainerPathLTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLTE(FieldContainerPath, v))
+}
+
+// ContainerPathContains applies the Contains predicate on the "container_path" field.
+func ContainerPathContains(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContains(FieldContainerPath, v))
+}
+
+// ContainerPathHasPrefix applies the HasPrefix predicate on the "container_path" field.
+func ContainerPathHasPrefix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasPrefix(FieldContainerPath, v))
+}
+
+// ContainerPathHasSuffix applies the HasSuffix predicate on the "container_path" field.
+func ContainerPathHasSuffix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasSuffix(FieldContainerPath, v))
+}
+
+// ContainerPathEqualFold applies the EqualFold predicate on the "container_path" field.
+func ContainerPathEqualFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEqualFold(FieldContainerPath, v))
+}
+
+// ContainerPathContainsFold applies the ContainsFold predicate on the "container_path" field.
+func ContainerPathContainsFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContainsFold(FieldContainerPath, v))
 }
 
 // ImageEQ applies the EQ predicate on the "image" field.
@@ -997,6 +1222,201 @@ func DigestEqualFold(v string) predicate.ApplicationVersionImage {
 // DigestContainsFold applies the ContainsFold predicate on the "digest" field.
 func DigestContainsFold(v string) predicate.ApplicationVersionImage {
 	return predicate.ApplicationVersionImage(sql.FieldContainsFold(FieldDigest, v))
+}
+
+// ProjectEQ applies the EQ predicate on the "project" field.
+func ProjectEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldProject, v))
+}
+
+// ProjectNEQ applies the NEQ predicate on the "project" field.
+func ProjectNEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNEQ(FieldProject, v))
+}
+
+// ProjectIn applies the In predicate on the "project" field.
+func ProjectIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldIn(FieldProject, vs...))
+}
+
+// ProjectNotIn applies the NotIn predicate on the "project" field.
+func ProjectNotIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNotIn(FieldProject, vs...))
+}
+
+// ProjectGT applies the GT predicate on the "project" field.
+func ProjectGT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGT(FieldProject, v))
+}
+
+// ProjectGTE applies the GTE predicate on the "project" field.
+func ProjectGTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGTE(FieldProject, v))
+}
+
+// ProjectLT applies the LT predicate on the "project" field.
+func ProjectLT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLT(FieldProject, v))
+}
+
+// ProjectLTE applies the LTE predicate on the "project" field.
+func ProjectLTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLTE(FieldProject, v))
+}
+
+// ProjectContains applies the Contains predicate on the "project" field.
+func ProjectContains(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContains(FieldProject, v))
+}
+
+// ProjectHasPrefix applies the HasPrefix predicate on the "project" field.
+func ProjectHasPrefix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasPrefix(FieldProject, v))
+}
+
+// ProjectHasSuffix applies the HasSuffix predicate on the "project" field.
+func ProjectHasSuffix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasSuffix(FieldProject, v))
+}
+
+// ProjectEqualFold applies the EqualFold predicate on the "project" field.
+func ProjectEqualFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEqualFold(FieldProject, v))
+}
+
+// ProjectContainsFold applies the ContainsFold predicate on the "project" field.
+func ProjectContainsFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContainsFold(FieldProject, v))
+}
+
+// SourceEQ applies the EQ predicate on the "source" field.
+func SourceEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldSource, v))
+}
+
+// SourceNEQ applies the NEQ predicate on the "source" field.
+func SourceNEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNEQ(FieldSource, v))
+}
+
+// SourceIn applies the In predicate on the "source" field.
+func SourceIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldIn(FieldSource, vs...))
+}
+
+// SourceNotIn applies the NotIn predicate on the "source" field.
+func SourceNotIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNotIn(FieldSource, vs...))
+}
+
+// SourceGT applies the GT predicate on the "source" field.
+func SourceGT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGT(FieldSource, v))
+}
+
+// SourceGTE applies the GTE predicate on the "source" field.
+func SourceGTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGTE(FieldSource, v))
+}
+
+// SourceLT applies the LT predicate on the "source" field.
+func SourceLT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLT(FieldSource, v))
+}
+
+// SourceLTE applies the LTE predicate on the "source" field.
+func SourceLTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLTE(FieldSource, v))
+}
+
+// SourceContains applies the Contains predicate on the "source" field.
+func SourceContains(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContains(FieldSource, v))
+}
+
+// SourceHasPrefix applies the HasPrefix predicate on the "source" field.
+func SourceHasPrefix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasPrefix(FieldSource, v))
+}
+
+// SourceHasSuffix applies the HasSuffix predicate on the "source" field.
+func SourceHasSuffix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasSuffix(FieldSource, v))
+}
+
+// SourceEqualFold applies the EqualFold predicate on the "source" field.
+func SourceEqualFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEqualFold(FieldSource, v))
+}
+
+// SourceContainsFold applies the ContainsFold predicate on the "source" field.
+func SourceContainsFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContainsFold(FieldSource, v))
+}
+
+// ResolvedImageEQ applies the EQ predicate on the "resolved_image" field.
+func ResolvedImageEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEQ(FieldResolvedImage, v))
+}
+
+// ResolvedImageNEQ applies the NEQ predicate on the "resolved_image" field.
+func ResolvedImageNEQ(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNEQ(FieldResolvedImage, v))
+}
+
+// ResolvedImageIn applies the In predicate on the "resolved_image" field.
+func ResolvedImageIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldIn(FieldResolvedImage, vs...))
+}
+
+// ResolvedImageNotIn applies the NotIn predicate on the "resolved_image" field.
+func ResolvedImageNotIn(vs ...string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldNotIn(FieldResolvedImage, vs...))
+}
+
+// ResolvedImageGT applies the GT predicate on the "resolved_image" field.
+func ResolvedImageGT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGT(FieldResolvedImage, v))
+}
+
+// ResolvedImageGTE applies the GTE predicate on the "resolved_image" field.
+func ResolvedImageGTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldGTE(FieldResolvedImage, v))
+}
+
+// ResolvedImageLT applies the LT predicate on the "resolved_image" field.
+func ResolvedImageLT(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLT(FieldResolvedImage, v))
+}
+
+// ResolvedImageLTE applies the LTE predicate on the "resolved_image" field.
+func ResolvedImageLTE(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldLTE(FieldResolvedImage, v))
+}
+
+// ResolvedImageContains applies the Contains predicate on the "resolved_image" field.
+func ResolvedImageContains(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContains(FieldResolvedImage, v))
+}
+
+// ResolvedImageHasPrefix applies the HasPrefix predicate on the "resolved_image" field.
+func ResolvedImageHasPrefix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasPrefix(FieldResolvedImage, v))
+}
+
+// ResolvedImageHasSuffix applies the HasSuffix predicate on the "resolved_image" field.
+func ResolvedImageHasSuffix(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldHasSuffix(FieldResolvedImage, v))
+}
+
+// ResolvedImageEqualFold applies the EqualFold predicate on the "resolved_image" field.
+func ResolvedImageEqualFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldEqualFold(FieldResolvedImage, v))
+}
+
+// ResolvedImageContainsFold applies the ContainsFold predicate on the "resolved_image" field.
+func ResolvedImageContainsFold(v string) predicate.ApplicationVersionImage {
+	return predicate.ApplicationVersionImage(sql.FieldContainsFold(FieldResolvedImage, v))
 }
 
 // PlatformsEQ applies the EQ predicate on the "platforms" field.

@@ -60,6 +60,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := prepareWorkerInstanceColumns(ctx, db); err != nil {
 		return err
 	}
+	if err := prepareApplicationCompositionColumns(ctx, db); err != nil {
+		return err
+	}
 	opts := []entschema.MigrateOption{}
 	for _, name := range partitionedTables {
 		kind, err := relationKind(ctx, db, name)
@@ -79,6 +82,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 		return databaseErr(slog.Default(), err)
 	}
 	if err := dropStalePermissions(ctx, client); err != nil {
+		return err
+	}
+	if err := backfillApplicationComposition(ctx, client); err != nil {
 		return err
 	}
 	if err := backfillNotificationGroupTargets(ctx, client); err != nil {

@@ -42,8 +42,18 @@ type ApplicationVersion struct {
 	// Validation holds the value of the "validation" field.
 	Validation string `json:"validation,omitempty"`
 	// PublishedAt holds the value of the "published_at" field.
-	PublishedAt  *time.Time `json:"published_at,omitempty"`
-	selectValues sql.SelectValues
+	PublishedAt *time.Time `json:"published_at,omitempty"`
+	// Revision holds the value of the "revision" field.
+	Revision int `json:"revision,omitempty"`
+	// CompositionVersion holds the value of the "composition_version" field.
+	CompositionVersion int `json:"composition_version,omitempty"`
+	// StatusChangedAt holds the value of the "status_changed_at" field.
+	StatusChangedAt *time.Time `json:"status_changed_at,omitempty"`
+	// DeprecatedAt holds the value of the "deprecated_at" field.
+	DeprecatedAt *time.Time `json:"deprecated_at,omitempty"`
+	// CopiedFromVersionUID holds the value of the "copied_from_version_uid" field.
+	CopiedFromVersionUID string `json:"copied_from_version_uid,omitempty"`
+	selectValues         sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -51,11 +61,11 @@ func (*ApplicationVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case applicationversion.FieldID:
+		case applicationversion.FieldID, applicationversion.FieldRevision, applicationversion.FieldCompositionVersion:
 			values[i] = new(sql.NullInt64)
-		case applicationversion.FieldUID, applicationversion.FieldNamespaceUID, applicationversion.FieldApplicationUID, applicationversion.FieldVersion, applicationversion.FieldStatus, applicationversion.FieldChangelog, applicationversion.FieldSpec, applicationversion.FieldSecretsCipher, applicationversion.FieldValidation:
+		case applicationversion.FieldUID, applicationversion.FieldNamespaceUID, applicationversion.FieldApplicationUID, applicationversion.FieldVersion, applicationversion.FieldStatus, applicationversion.FieldChangelog, applicationversion.FieldSpec, applicationversion.FieldSecretsCipher, applicationversion.FieldValidation, applicationversion.FieldCopiedFromVersionUID:
 			values[i] = new(sql.NullString)
-		case applicationversion.FieldCreatedAt, applicationversion.FieldUpdatedAt, applicationversion.FieldDeletedAt, applicationversion.FieldPublishedAt:
+		case applicationversion.FieldCreatedAt, applicationversion.FieldUpdatedAt, applicationversion.FieldDeletedAt, applicationversion.FieldPublishedAt, applicationversion.FieldStatusChangedAt, applicationversion.FieldDeprecatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -158,6 +168,38 @@ func (_m *ApplicationVersion) assignValues(columns []string, values []any) error
 				_m.PublishedAt = new(time.Time)
 				*_m.PublishedAt = value.Time
 			}
+		case applicationversion.FieldRevision:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field revision", values[i])
+			} else if value.Valid {
+				_m.Revision = int(value.Int64)
+			}
+		case applicationversion.FieldCompositionVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field composition_version", values[i])
+			} else if value.Valid {
+				_m.CompositionVersion = int(value.Int64)
+			}
+		case applicationversion.FieldStatusChangedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field status_changed_at", values[i])
+			} else if value.Valid {
+				_m.StatusChangedAt = new(time.Time)
+				*_m.StatusChangedAt = value.Time
+			}
+		case applicationversion.FieldDeprecatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deprecated_at", values[i])
+			} else if value.Valid {
+				_m.DeprecatedAt = new(time.Time)
+				*_m.DeprecatedAt = value.Time
+			}
+		case applicationversion.FieldCopiedFromVersionUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field copied_from_version_uid", values[i])
+			} else if value.Valid {
+				_m.CopiedFromVersionUID = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -235,6 +277,25 @@ func (_m *ApplicationVersion) String() string {
 		builder.WriteString("published_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("revision=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Revision))
+	builder.WriteString(", ")
+	builder.WriteString("composition_version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CompositionVersion))
+	builder.WriteString(", ")
+	if v := _m.StatusChangedAt; v != nil {
+		builder.WriteString("status_changed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.DeprecatedAt; v != nil {
+		builder.WriteString("deprecated_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("copied_from_version_uid=")
+	builder.WriteString(_m.CopiedFromVersionUID)
 	builder.WriteByte(')')
 	return builder.String()
 }

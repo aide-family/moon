@@ -60,6 +60,20 @@ func (_c *ApplicationReleaseOperationCreate) SetNamespaceUID(v string) *Applicat
 	return _c
 }
 
+// SetApplicationUID sets the "application_uid" field.
+func (_c *ApplicationReleaseOperationCreate) SetApplicationUID(v string) *ApplicationReleaseOperationCreate {
+	_c.mutation.SetApplicationUID(v)
+	return _c
+}
+
+// SetNillableApplicationUID sets the "application_uid" field if the given value is not nil.
+func (_c *ApplicationReleaseOperationCreate) SetNillableApplicationUID(v *string) *ApplicationReleaseOperationCreate {
+	if v != nil {
+		_c.SetApplicationUID(*v)
+	}
+	return _c
+}
+
 // SetDeploymentUID sets the "deployment_uid" field.
 func (_c *ApplicationReleaseOperationCreate) SetDeploymentUID(v string) *ApplicationReleaseOperationCreate {
 	_c.mutation.SetDeploymentUID(v)
@@ -69,6 +83,20 @@ func (_c *ApplicationReleaseOperationCreate) SetDeploymentUID(v string) *Applica
 // SetReleaseUID sets the "release_uid" field.
 func (_c *ApplicationReleaseOperationCreate) SetReleaseUID(v string) *ApplicationReleaseOperationCreate {
 	_c.mutation.SetReleaseUID(v)
+	return _c
+}
+
+// SetClusterUID sets the "cluster_uid" field.
+func (_c *ApplicationReleaseOperationCreate) SetClusterUID(v string) *ApplicationReleaseOperationCreate {
+	_c.mutation.SetClusterUID(v)
+	return _c
+}
+
+// SetNillableClusterUID sets the "cluster_uid" field if the given value is not nil.
+func (_c *ApplicationReleaseOperationCreate) SetNillableClusterUID(v *string) *ApplicationReleaseOperationCreate {
+	if v != nil {
+		_c.SetClusterUID(*v)
+	}
 	return _c
 }
 
@@ -381,6 +409,14 @@ func (_c *ApplicationReleaseOperationCreate) defaults() {
 		v := applicationreleaseoperation.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.ApplicationUID(); !ok {
+		v := applicationreleaseoperation.DefaultApplicationUID
+		_c.mutation.SetApplicationUID(v)
+	}
+	if _, ok := _c.mutation.ClusterUID(); !ok {
+		v := applicationreleaseoperation.DefaultClusterUID
+		_c.mutation.SetClusterUID(v)
+	}
 	if _, ok := _c.mutation.ClusterName(); !ok {
 		v := applicationreleaseoperation.DefaultClusterName
 		_c.mutation.SetClusterName(v)
@@ -471,6 +507,9 @@ func (_c *ApplicationReleaseOperationCreate) check() error {
 			return &ValidationError{Name: "namespace_uid", err: fmt.Errorf(`ent: validator failed for field "ApplicationReleaseOperation.namespace_uid": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.ApplicationUID(); !ok {
+		return &ValidationError{Name: "application_uid", err: errors.New(`ent: missing required field "ApplicationReleaseOperation.application_uid"`)}
+	}
 	if _, ok := _c.mutation.DeploymentUID(); !ok {
 		return &ValidationError{Name: "deployment_uid", err: errors.New(`ent: missing required field "ApplicationReleaseOperation.deployment_uid"`)}
 	}
@@ -486,6 +525,9 @@ func (_c *ApplicationReleaseOperationCreate) check() error {
 		if err := applicationreleaseoperation.ReleaseUIDValidator(v); err != nil {
 			return &ValidationError{Name: "release_uid", err: fmt.Errorf(`ent: validator failed for field "ApplicationReleaseOperation.release_uid": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.ClusterUID(); !ok {
+		return &ValidationError{Name: "cluster_uid", err: errors.New(`ent: missing required field "ApplicationReleaseOperation.cluster_uid"`)}
 	}
 	if _, ok := _c.mutation.ClusterName(); !ok {
 		return &ValidationError{Name: "cluster_name", err: errors.New(`ent: missing required field "ApplicationReleaseOperation.cluster_name"`)}
@@ -587,6 +629,10 @@ func (_c *ApplicationReleaseOperationCreate) createSpec() (*ApplicationReleaseOp
 		_spec.SetField(applicationreleaseoperation.FieldNamespaceUID, field.TypeString, value)
 		_node.NamespaceUID = value
 	}
+	if value, ok := _c.mutation.ApplicationUID(); ok {
+		_spec.SetField(applicationreleaseoperation.FieldApplicationUID, field.TypeString, value)
+		_node.ApplicationUID = value
+	}
 	if value, ok := _c.mutation.DeploymentUID(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldDeploymentUID, field.TypeString, value)
 		_node.DeploymentUID = value
@@ -594,6 +640,10 @@ func (_c *ApplicationReleaseOperationCreate) createSpec() (*ApplicationReleaseOp
 	if value, ok := _c.mutation.ReleaseUID(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldReleaseUID, field.TypeString, value)
 		_node.ReleaseUID = value
+	}
+	if value, ok := _c.mutation.ClusterUID(); ok {
+		_spec.SetField(applicationreleaseoperation.FieldClusterUID, field.TypeString, value)
+		_node.ClusterUID = value
 	}
 	if value, ok := _c.mutation.ClusterName(); ok {
 		_spec.SetField(applicationreleaseoperation.FieldClusterName, field.TypeString, value)

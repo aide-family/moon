@@ -19,27 +19,34 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ApplicationService_CreateApplication_FullMethodName           = "/alioth.v1.ApplicationService/CreateApplication"
-	ApplicationService_UpdateApplication_FullMethodName           = "/alioth.v1.ApplicationService/UpdateApplication"
-	ApplicationService_DeleteApplication_FullMethodName           = "/alioth.v1.ApplicationService/DeleteApplication"
-	ApplicationService_GetApplication_FullMethodName              = "/alioth.v1.ApplicationService/GetApplication"
-	ApplicationService_ListApplications_FullMethodName            = "/alioth.v1.ApplicationService/ListApplications"
-	ApplicationService_CreateApplicationVersion_FullMethodName    = "/alioth.v1.ApplicationService/CreateApplicationVersion"
-	ApplicationService_UpdateApplicationVersion_FullMethodName    = "/alioth.v1.ApplicationService/UpdateApplicationVersion"
-	ApplicationService_DeleteApplicationVersion_FullMethodName    = "/alioth.v1.ApplicationService/DeleteApplicationVersion"
-	ApplicationService_ValidateApplicationVersion_FullMethodName  = "/alioth.v1.ApplicationService/ValidateApplicationVersion"
-	ApplicationService_PublishApplicationVersion_FullMethodName   = "/alioth.v1.ApplicationService/PublishApplicationVersion"
-	ApplicationService_DeprecateApplicationVersion_FullMethodName = "/alioth.v1.ApplicationService/DeprecateApplicationVersion"
-	ApplicationService_ListApplicationVersions_FullMethodName     = "/alioth.v1.ApplicationService/ListApplicationVersions"
-	ApplicationService_GetApplicationVersion_FullMethodName       = "/alioth.v1.ApplicationService/GetApplicationVersion"
+	ApplicationService_CreateApplication_FullMethodName                  = "/alioth.v1.ApplicationService/CreateApplication"
+	ApplicationService_UpdateApplication_FullMethodName                  = "/alioth.v1.ApplicationService/UpdateApplication"
+	ApplicationService_DeleteApplication_FullMethodName                  = "/alioth.v1.ApplicationService/DeleteApplication"
+	ApplicationService_GetApplication_FullMethodName                     = "/alioth.v1.ApplicationService/GetApplication"
+	ApplicationService_ListApplications_FullMethodName                   = "/alioth.v1.ApplicationService/ListApplications"
+	ApplicationService_CreateApplicationVersion_FullMethodName           = "/alioth.v1.ApplicationService/CreateApplicationVersion"
+	ApplicationService_UpdateApplicationVersion_FullMethodName           = "/alioth.v1.ApplicationService/UpdateApplicationVersion"
+	ApplicationService_DeleteApplicationVersion_FullMethodName           = "/alioth.v1.ApplicationService/DeleteApplicationVersion"
+	ApplicationService_ValidateApplicationVersion_FullMethodName         = "/alioth.v1.ApplicationService/ValidateApplicationVersion"
+	ApplicationService_PublishApplicationVersion_FullMethodName          = "/alioth.v1.ApplicationService/PublishApplicationVersion"
+	ApplicationService_DeprecateApplicationVersion_FullMethodName        = "/alioth.v1.ApplicationService/DeprecateApplicationVersion"
+	ApplicationService_ListApplicationVersions_FullMethodName            = "/alioth.v1.ApplicationService/ListApplicationVersions"
+	ApplicationService_GetApplicationVersion_FullMethodName              = "/alioth.v1.ApplicationService/GetApplicationVersion"
+	ApplicationService_DuplicateApplicationVersion_FullMethodName        = "/alioth.v1.ApplicationService/DuplicateApplicationVersion"
+	ApplicationService_CreateApplicationVersionResource_FullMethodName   = "/alioth.v1.ApplicationService/CreateApplicationVersionResource"
+	ApplicationService_GetApplicationVersionResource_FullMethodName      = "/alioth.v1.ApplicationService/GetApplicationVersionResource"
+	ApplicationService_SaveApplicationVersionResource_FullMethodName     = "/alioth.v1.ApplicationService/SaveApplicationVersionResource"
+	ApplicationService_DeleteApplicationVersionResource_FullMethodName   = "/alioth.v1.ApplicationService/DeleteApplicationVersionResource"
+	ApplicationService_ValidateApplicationVersionResource_FullMethodName = "/alioth.v1.ApplicationService/ValidateApplicationVersionResource"
 )
 
 // ApplicationServiceClient is the client API for ApplicationService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// ApplicationService 管理应用与发布包版本。版本内容是一组任意 Kubernetes 资源
-// 的 YAML/JSON，服务端解析成结构化清单并加密 Secret 值。
+// ApplicationService 管理应用与发布包版本。应用是多个服务的合集，每个版本由
+// 一组服务（组件）组成，每个服务包含若干 Kubernetes 资源。版本内容由服务端
+// 解析成结构化清单并加密 Secret 值。
 type ApplicationServiceClient interface {
 	CreateApplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*CreateApplicationResponse, error)
 	UpdateApplication(ctx context.Context, in *UpdateApplicationRequest, opts ...grpc.CallOption) (*UpdateApplicationResponse, error)
@@ -54,6 +61,18 @@ type ApplicationServiceClient interface {
 	DeprecateApplicationVersion(ctx context.Context, in *DeprecateApplicationVersionRequest, opts ...grpc.CallOption) (*DeprecateApplicationVersionResponse, error)
 	ListApplicationVersions(ctx context.Context, in *ListApplicationVersionsRequest, opts ...grpc.CallOption) (*ListApplicationVersionsResponse, error)
 	GetApplicationVersion(ctx context.Context, in *GetApplicationVersionRequest, opts ...grpc.CallOption) (*GetApplicationVersionResponse, error)
+	// DuplicateApplicationVersion 复制一个版本的内容为新的草稿版本。
+	DuplicateApplicationVersion(ctx context.Context, in *DuplicateApplicationVersionRequest, opts ...grpc.CallOption) (*DuplicateApplicationVersionResponse, error)
+	// CreateApplicationVersionResource 在草稿版本里新增一个 Kubernetes 资源。
+	CreateApplicationVersionResource(ctx context.Context, in *CreateApplicationVersionResourceRequest, opts ...grpc.CallOption) (*CreateApplicationVersionResourceResponse, error)
+	// GetApplicationVersionResource 读取单个资源详情。
+	GetApplicationVersionResource(ctx context.Context, in *GetApplicationVersionResourceRequest, opts ...grpc.CallOption) (*GetApplicationVersionResourceResponse, error)
+	// SaveApplicationVersionResource 编辑草稿版本里的单个资源。
+	SaveApplicationVersionResource(ctx context.Context, in *SaveApplicationVersionResourceRequest, opts ...grpc.CallOption) (*SaveApplicationVersionResourceResponse, error)
+	// DeleteApplicationVersionResource 删除草稿版本里的单个资源。
+	DeleteApplicationVersionResource(ctx context.Context, in *DeleteApplicationVersionResourceRequest, opts ...grpc.CallOption) (*DeleteApplicationVersionResourceResponse, error)
+	// ValidateApplicationVersionResource 只校验一段资源 YAML，不写入版本。
+	ValidateApplicationVersionResource(ctx context.Context, in *ValidateApplicationVersionResourceRequest, opts ...grpc.CallOption) (*ValidateApplicationVersionResourceResponse, error)
 }
 
 type applicationServiceClient struct {
@@ -194,12 +213,73 @@ func (c *applicationServiceClient) GetApplicationVersion(ctx context.Context, in
 	return out, nil
 }
 
+func (c *applicationServiceClient) DuplicateApplicationVersion(ctx context.Context, in *DuplicateApplicationVersionRequest, opts ...grpc.CallOption) (*DuplicateApplicationVersionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DuplicateApplicationVersionResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_DuplicateApplicationVersion_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) CreateApplicationVersionResource(ctx context.Context, in *CreateApplicationVersionResourceRequest, opts ...grpc.CallOption) (*CreateApplicationVersionResourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateApplicationVersionResourceResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_CreateApplicationVersionResource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) GetApplicationVersionResource(ctx context.Context, in *GetApplicationVersionResourceRequest, opts ...grpc.CallOption) (*GetApplicationVersionResourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetApplicationVersionResourceResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_GetApplicationVersionResource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) SaveApplicationVersionResource(ctx context.Context, in *SaveApplicationVersionResourceRequest, opts ...grpc.CallOption) (*SaveApplicationVersionResourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveApplicationVersionResourceResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_SaveApplicationVersionResource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) DeleteApplicationVersionResource(ctx context.Context, in *DeleteApplicationVersionResourceRequest, opts ...grpc.CallOption) (*DeleteApplicationVersionResourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteApplicationVersionResourceResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_DeleteApplicationVersionResource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) ValidateApplicationVersionResource(ctx context.Context, in *ValidateApplicationVersionResourceRequest, opts ...grpc.CallOption) (*ValidateApplicationVersionResourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateApplicationVersionResourceResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_ValidateApplicationVersionResource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationServiceServer is the server API for ApplicationService service.
 // All implementations must embed UnimplementedApplicationServiceServer
 // for forward compatibility.
 //
-// ApplicationService 管理应用与发布包版本。版本内容是一组任意 Kubernetes 资源
-// 的 YAML/JSON，服务端解析成结构化清单并加密 Secret 值。
+// ApplicationService 管理应用与发布包版本。应用是多个服务的合集，每个版本由
+// 一组服务（组件）组成，每个服务包含若干 Kubernetes 资源。版本内容由服务端
+// 解析成结构化清单并加密 Secret 值。
 type ApplicationServiceServer interface {
 	CreateApplication(context.Context, *CreateApplicationRequest) (*CreateApplicationResponse, error)
 	UpdateApplication(context.Context, *UpdateApplicationRequest) (*UpdateApplicationResponse, error)
@@ -214,6 +294,18 @@ type ApplicationServiceServer interface {
 	DeprecateApplicationVersion(context.Context, *DeprecateApplicationVersionRequest) (*DeprecateApplicationVersionResponse, error)
 	ListApplicationVersions(context.Context, *ListApplicationVersionsRequest) (*ListApplicationVersionsResponse, error)
 	GetApplicationVersion(context.Context, *GetApplicationVersionRequest) (*GetApplicationVersionResponse, error)
+	// DuplicateApplicationVersion 复制一个版本的内容为新的草稿版本。
+	DuplicateApplicationVersion(context.Context, *DuplicateApplicationVersionRequest) (*DuplicateApplicationVersionResponse, error)
+	// CreateApplicationVersionResource 在草稿版本里新增一个 Kubernetes 资源。
+	CreateApplicationVersionResource(context.Context, *CreateApplicationVersionResourceRequest) (*CreateApplicationVersionResourceResponse, error)
+	// GetApplicationVersionResource 读取单个资源详情。
+	GetApplicationVersionResource(context.Context, *GetApplicationVersionResourceRequest) (*GetApplicationVersionResourceResponse, error)
+	// SaveApplicationVersionResource 编辑草稿版本里的单个资源。
+	SaveApplicationVersionResource(context.Context, *SaveApplicationVersionResourceRequest) (*SaveApplicationVersionResourceResponse, error)
+	// DeleteApplicationVersionResource 删除草稿版本里的单个资源。
+	DeleteApplicationVersionResource(context.Context, *DeleteApplicationVersionResourceRequest) (*DeleteApplicationVersionResourceResponse, error)
+	// ValidateApplicationVersionResource 只校验一段资源 YAML，不写入版本。
+	ValidateApplicationVersionResource(context.Context, *ValidateApplicationVersionResourceRequest) (*ValidateApplicationVersionResourceResponse, error)
 	mustEmbedUnimplementedApplicationServiceServer()
 }
 
@@ -262,6 +354,24 @@ func (UnimplementedApplicationServiceServer) ListApplicationVersions(context.Con
 }
 func (UnimplementedApplicationServiceServer) GetApplicationVersion(context.Context, *GetApplicationVersionRequest) (*GetApplicationVersionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetApplicationVersion not implemented")
+}
+func (UnimplementedApplicationServiceServer) DuplicateApplicationVersion(context.Context, *DuplicateApplicationVersionRequest) (*DuplicateApplicationVersionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DuplicateApplicationVersion not implemented")
+}
+func (UnimplementedApplicationServiceServer) CreateApplicationVersionResource(context.Context, *CreateApplicationVersionResourceRequest) (*CreateApplicationVersionResourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateApplicationVersionResource not implemented")
+}
+func (UnimplementedApplicationServiceServer) GetApplicationVersionResource(context.Context, *GetApplicationVersionResourceRequest) (*GetApplicationVersionResourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetApplicationVersionResource not implemented")
+}
+func (UnimplementedApplicationServiceServer) SaveApplicationVersionResource(context.Context, *SaveApplicationVersionResourceRequest) (*SaveApplicationVersionResourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveApplicationVersionResource not implemented")
+}
+func (UnimplementedApplicationServiceServer) DeleteApplicationVersionResource(context.Context, *DeleteApplicationVersionResourceRequest) (*DeleteApplicationVersionResourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteApplicationVersionResource not implemented")
+}
+func (UnimplementedApplicationServiceServer) ValidateApplicationVersionResource(context.Context, *ValidateApplicationVersionResourceRequest) (*ValidateApplicationVersionResourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ValidateApplicationVersionResource not implemented")
 }
 func (UnimplementedApplicationServiceServer) mustEmbedUnimplementedApplicationServiceServer() {}
 func (UnimplementedApplicationServiceServer) testEmbeddedByValue()                            {}
@@ -518,6 +628,114 @@ func _ApplicationService_GetApplicationVersion_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ApplicationService_DuplicateApplicationVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DuplicateApplicationVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).DuplicateApplicationVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_DuplicateApplicationVersion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).DuplicateApplicationVersion(ctx, req.(*DuplicateApplicationVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_CreateApplicationVersionResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateApplicationVersionResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).CreateApplicationVersionResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_CreateApplicationVersionResource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).CreateApplicationVersionResource(ctx, req.(*CreateApplicationVersionResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_GetApplicationVersionResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetApplicationVersionResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).GetApplicationVersionResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_GetApplicationVersionResource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).GetApplicationVersionResource(ctx, req.(*GetApplicationVersionResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_SaveApplicationVersionResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveApplicationVersionResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).SaveApplicationVersionResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_SaveApplicationVersionResource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).SaveApplicationVersionResource(ctx, req.(*SaveApplicationVersionResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_DeleteApplicationVersionResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteApplicationVersionResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).DeleteApplicationVersionResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_DeleteApplicationVersionResource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).DeleteApplicationVersionResource(ctx, req.(*DeleteApplicationVersionResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_ValidateApplicationVersionResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateApplicationVersionResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).ValidateApplicationVersionResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_ValidateApplicationVersionResource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).ValidateApplicationVersionResource(ctx, req.(*ValidateApplicationVersionResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ApplicationService_ServiceDesc is the grpc.ServiceDesc for ApplicationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -576,6 +794,30 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetApplicationVersion",
 			Handler:    _ApplicationService_GetApplicationVersion_Handler,
+		},
+		{
+			MethodName: "DuplicateApplicationVersion",
+			Handler:    _ApplicationService_DuplicateApplicationVersion_Handler,
+		},
+		{
+			MethodName: "CreateApplicationVersionResource",
+			Handler:    _ApplicationService_CreateApplicationVersionResource_Handler,
+		},
+		{
+			MethodName: "GetApplicationVersionResource",
+			Handler:    _ApplicationService_GetApplicationVersionResource_Handler,
+		},
+		{
+			MethodName: "SaveApplicationVersionResource",
+			Handler:    _ApplicationService_SaveApplicationVersionResource_Handler,
+		},
+		{
+			MethodName: "DeleteApplicationVersionResource",
+			Handler:    _ApplicationService_DeleteApplicationVersionResource_Handler,
+		},
+		{
+			MethodName: "ValidateApplicationVersionResource",
+			Handler:    _ApplicationService_ValidateApplicationVersionResource_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -957,6 +1199,7 @@ var ApplicationDeploymentService_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	ApplicationReleaseService_GetApplicationRelease_FullMethodName            = "/alioth.v1.ApplicationReleaseService/GetApplicationRelease"
+	ApplicationReleaseService_ListApplicationReleases_FullMethodName          = "/alioth.v1.ApplicationReleaseService/ListApplicationReleases"
 	ApplicationReleaseService_ListApplicationReleaseOperations_FullMethodName = "/alioth.v1.ApplicationReleaseService/ListApplicationReleaseOperations"
 	ApplicationReleaseService_GetApplicationOperation_FullMethodName          = "/alioth.v1.ApplicationReleaseService/GetApplicationOperation"
 )
@@ -965,9 +1208,11 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// ApplicationReleaseService 读取单个集群实例与操作记录。
+// ApplicationReleaseService 读取集群实例、发布记录与操作记录。
 type ApplicationReleaseServiceClient interface {
 	GetApplicationRelease(ctx context.Context, in *GetApplicationReleaseRequest, opts ...grpc.CallOption) (*GetApplicationReleaseResponse, error)
+	// ListApplicationReleases 按应用或集群查询集群实例（含当前发布版本）。
+	ListApplicationReleases(ctx context.Context, in *ListApplicationReleasesRequest, opts ...grpc.CallOption) (*ListApplicationReleasesResponse, error)
 	ListApplicationReleaseOperations(ctx context.Context, in *ListReleaseOperationsRequest, opts ...grpc.CallOption) (*ListReleaseOperationsResponse, error)
 	GetApplicationOperation(ctx context.Context, in *GetApplicationOperationRequest, opts ...grpc.CallOption) (*GetApplicationOperationResponse, error)
 }
@@ -984,6 +1229,16 @@ func (c *applicationReleaseServiceClient) GetApplicationRelease(ctx context.Cont
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetApplicationReleaseResponse)
 	err := c.cc.Invoke(ctx, ApplicationReleaseService_GetApplicationRelease_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationReleaseServiceClient) ListApplicationReleases(ctx context.Context, in *ListApplicationReleasesRequest, opts ...grpc.CallOption) (*ListApplicationReleasesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListApplicationReleasesResponse)
+	err := c.cc.Invoke(ctx, ApplicationReleaseService_ListApplicationReleases_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1014,9 +1269,11 @@ func (c *applicationReleaseServiceClient) GetApplicationOperation(ctx context.Co
 // All implementations must embed UnimplementedApplicationReleaseServiceServer
 // for forward compatibility.
 //
-// ApplicationReleaseService 读取单个集群实例与操作记录。
+// ApplicationReleaseService 读取集群实例、发布记录与操作记录。
 type ApplicationReleaseServiceServer interface {
 	GetApplicationRelease(context.Context, *GetApplicationReleaseRequest) (*GetApplicationReleaseResponse, error)
+	// ListApplicationReleases 按应用或集群查询集群实例（含当前发布版本）。
+	ListApplicationReleases(context.Context, *ListApplicationReleasesRequest) (*ListApplicationReleasesResponse, error)
 	ListApplicationReleaseOperations(context.Context, *ListReleaseOperationsRequest) (*ListReleaseOperationsResponse, error)
 	GetApplicationOperation(context.Context, *GetApplicationOperationRequest) (*GetApplicationOperationResponse, error)
 	mustEmbedUnimplementedApplicationReleaseServiceServer()
@@ -1031,6 +1288,9 @@ type UnimplementedApplicationReleaseServiceServer struct{}
 
 func (UnimplementedApplicationReleaseServiceServer) GetApplicationRelease(context.Context, *GetApplicationReleaseRequest) (*GetApplicationReleaseResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetApplicationRelease not implemented")
+}
+func (UnimplementedApplicationReleaseServiceServer) ListApplicationReleases(context.Context, *ListApplicationReleasesRequest) (*ListApplicationReleasesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListApplicationReleases not implemented")
 }
 func (UnimplementedApplicationReleaseServiceServer) ListApplicationReleaseOperations(context.Context, *ListReleaseOperationsRequest) (*ListReleaseOperationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListApplicationReleaseOperations not implemented")
@@ -1074,6 +1334,24 @@ func _ApplicationReleaseService_GetApplicationRelease_Handler(srv interface{}, c
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationReleaseServiceServer).GetApplicationRelease(ctx, req.(*GetApplicationReleaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationReleaseService_ListApplicationReleases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListApplicationReleasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationReleaseServiceServer).ListApplicationReleases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationReleaseService_ListApplicationReleases_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationReleaseServiceServer).ListApplicationReleases(ctx, req.(*ListApplicationReleasesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1124,6 +1402,10 @@ var ApplicationReleaseService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetApplicationRelease",
 			Handler:    _ApplicationReleaseService_GetApplicationRelease_Handler,
+		},
+		{
+			MethodName: "ListApplicationReleases",
+			Handler:    _ApplicationReleaseService_ListApplicationReleases_Handler,
 		},
 		{
 			MethodName: "ListApplicationReleaseOperations",

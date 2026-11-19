@@ -40,6 +40,16 @@ const (
 	FieldValidation = "validation"
 	// FieldPublishedAt holds the string denoting the published_at field in the database.
 	FieldPublishedAt = "published_at"
+	// FieldRevision holds the string denoting the revision field in the database.
+	FieldRevision = "revision"
+	// FieldCompositionVersion holds the string denoting the composition_version field in the database.
+	FieldCompositionVersion = "composition_version"
+	// FieldStatusChangedAt holds the string denoting the status_changed_at field in the database.
+	FieldStatusChangedAt = "status_changed_at"
+	// FieldDeprecatedAt holds the string denoting the deprecated_at field in the database.
+	FieldDeprecatedAt = "deprecated_at"
+	// FieldCopiedFromVersionUID holds the string denoting the copied_from_version_uid field in the database.
+	FieldCopiedFromVersionUID = "copied_from_version_uid"
 	// Table holds the table name of the applicationversion in the database.
 	Table = "application_versions"
 )
@@ -60,6 +70,11 @@ var Columns = []string{
 	FieldSecretsCipher,
 	FieldValidation,
 	FieldPublishedAt,
+	FieldRevision,
+	FieldCompositionVersion,
+	FieldStatusChangedAt,
+	FieldDeprecatedAt,
+	FieldCopiedFromVersionUID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -95,6 +110,12 @@ var (
 	DefaultSecretsCipher string
 	// DefaultValidation holds the default value on creation for the "validation" field.
 	DefaultValidation string
+	// DefaultRevision holds the default value on creation for the "revision" field.
+	DefaultRevision int
+	// DefaultCompositionVersion holds the default value on creation for the "composition_version" field.
+	DefaultCompositionVersion int
+	// DefaultCopiedFromVersionUID holds the default value on creation for the "copied_from_version_uid" field.
+	DefaultCopiedFromVersionUID string
 )
 
 // Status defines the type for the "status" enum field.
@@ -195,4 +216,29 @@ func ByValidation(opts ...sql.OrderTermOption) OrderOption {
 // ByPublishedAt orders the results by the published_at field.
 func ByPublishedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPublishedAt, opts...).ToFunc()
+}
+
+// ByRevision orders the results by the revision field.
+func ByRevision(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevision, opts...).ToFunc()
+}
+
+// ByCompositionVersion orders the results by the composition_version field.
+func ByCompositionVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCompositionVersion, opts...).ToFunc()
+}
+
+// ByStatusChangedAt orders the results by the status_changed_at field.
+func ByStatusChangedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatusChangedAt, opts...).ToFunc()
+}
+
+// ByDeprecatedAt orders the results by the deprecated_at field.
+func ByDeprecatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeprecatedAt, opts...).ToFunc()
+}
+
+// ByCopiedFromVersionUID orders the results by the copied_from_version_uid field.
+func ByCopiedFromVersionUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCopiedFromVersionUID, opts...).ToFunc()
 }

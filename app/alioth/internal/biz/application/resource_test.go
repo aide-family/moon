@@ -44,6 +44,15 @@ spec:
 	if len(resources[0].SecretKeys) != 1 || resources[0].SecretKeys[0] != "password" {
 		t.Fatalf("secret keys = %v", resources[0].SecretKeys)
 	}
+	if len(resources[1].ImageRefs) != 1 {
+		t.Fatalf("image refs = %+v", resources[1].ImageRefs)
+	}
+	if ref := resources[1].ImageRefs[0]; ref.Container != "app" || ref.ContainerPath != "spec.template.spec.containers[0].image" {
+		t.Fatalf("image ref = %+v", ref)
+	}
+	if resources[1].ContentHash == "" || resources[1].ContentHash != bo.ApplicationManifestHash(resources[1].Manifest) {
+		t.Fatalf("content hash = %q", resources[1].ContentHash)
+	}
 }
 
 func TestParseResourcesRejectsBlockedKindAndDuplicate(t *testing.T) {

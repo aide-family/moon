@@ -54,8 +54,12 @@ type Tx struct {
 	ApplicationReleaseOperation *ApplicationReleaseOperationClient
 	// ApplicationVersion is the client for interacting with the ApplicationVersion builders.
 	ApplicationVersion *ApplicationVersionClient
+	// ApplicationVersionComponent is the client for interacting with the ApplicationVersionComponent builders.
+	ApplicationVersionComponent *ApplicationVersionComponentClient
 	// ApplicationVersionImage is the client for interacting with the ApplicationVersionImage builders.
 	ApplicationVersionImage *ApplicationVersionImageClient
+	// ApplicationVersionResource is the client for interacting with the ApplicationVersionResource builders.
+	ApplicationVersionResource *ApplicationVersionResourceClient
 	// AuthEmailSetting is the client for interacting with the AuthEmailSetting builders.
 	AuthEmailSetting *AuthEmailSettingClient
 	// AuthLoginSetting is the client for interacting with the AuthLoginSetting builders.
@@ -322,7 +326,9 @@ func (tx *Tx) init() {
 	tx.ApplicationRelease = NewApplicationReleaseClient(tx.config)
 	tx.ApplicationReleaseOperation = NewApplicationReleaseOperationClient(tx.config)
 	tx.ApplicationVersion = NewApplicationVersionClient(tx.config)
+	tx.ApplicationVersionComponent = NewApplicationVersionComponentClient(tx.config)
 	tx.ApplicationVersionImage = NewApplicationVersionImageClient(tx.config)
+	tx.ApplicationVersionResource = NewApplicationVersionResourceClient(tx.config)
 	tx.AuthEmailSetting = NewAuthEmailSettingClient(tx.config)
 	tx.AuthLoginSetting = NewAuthLoginSettingClient(tx.config)
 	tx.AuthOAuthProvider = NewAuthOAuthProviderClient(tx.config)

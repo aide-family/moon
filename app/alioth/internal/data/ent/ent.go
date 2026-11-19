@@ -33,7 +33,9 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationrelease"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationreleaseoperation"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversion"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversioncomponent"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversionimage"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/applicationversionresource"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authemailsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authloginsetting"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/authoauthprovider"
@@ -172,7 +174,9 @@ func checkColumn(t, c string) error {
 			applicationrelease.Table:            applicationrelease.ValidColumn,
 			applicationreleaseoperation.Table:   applicationreleaseoperation.ValidColumn,
 			applicationversion.Table:            applicationversion.ValidColumn,
+			applicationversioncomponent.Table:   applicationversioncomponent.ValidColumn,
 			applicationversionimage.Table:       applicationversionimage.ValidColumn,
+			applicationversionresource.Table:    applicationversionresource.ValidColumn,
 			authemailsetting.Table:              authemailsetting.ValidColumn,
 			authloginsetting.Table:              authloginsetting.ValidColumn,
 			authoauthprovider.Table:             authoauthprovider.ValidColumn,

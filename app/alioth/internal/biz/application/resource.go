@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"sigs.k8s.io/yaml"
+
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/pkg/merr"
-	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -46,10 +47,21 @@ func ParseResources(inputs []bo.ApplicationResource) ([]bo.ApplicationResource, 
 	errors := []string{}
 	warnings := []string{}
 	seen := map[string]struct{}{}
+	seenItems := map[string]struct{}{}
 	for index, input := range inputs {
 		item := strings.TrimSpace(input.Item)
 		if item == "" {
 			item = fmt.Sprintf("r-%d", index+1)
+		}
+		if _, ok := seenItems[item]; ok {
+			errors = append(errors, fmt.Sprintf("%s: duplicate resource item", item))
+			continue
+		}
+		seenItems[item] = struct{}{}
+		component := strings.TrimSpace(input.Component)
+		if len([]rune(component)) > 63 {
+			errors = append(errors, fmt.Sprintf("%s: component name is too long", item))
+			continue
 		}
 		if len(input.Manifest) > maxResourceBytes {
 			errors = append(errors, fmt.Sprintf("%s: resource is too large", item))
@@ -108,11 +120,16 @@ func ParseResources(inputs []bo.ApplicationResource) ([]bo.ApplicationResource, 
 				secrets[item+"/"+key] = value
 			}
 		}
-		images := scanImages(manifest)
+		imageRefs := scanImageRefs(manifest)
+		images := make([]string, 0, len(imageRefs))
+		for _, ref := range imageRefs {
+			images = append(images, ref.Image)
+		}
 		resource := bo.ApplicationResource{
-			Item: item, APIVersion: apiVersion, Kind: kind, Name: name, Namespace: namespace,
-			Scope: scope, ClusterScoped: scope == "CLUSTER", Images: images,
-			SecretKeys: secretKeys(item, secrets),
+			UID: input.UID, Item: item, Component: component,
+			APIVersion: apiVersion, Kind: kind, Name: name, Namespace: namespace,
+			Scope: scope, ClusterScoped: scope == "CLUSTER", Images: unique(images),
+			SecretKeys: mergeSecretKeys(input.SecretKeys, secretKeys(item, secrets)), ImageRefs: imageRefs,
 		}
 		raw, err := yaml.Marshal(manifest)
 		if err != nil {
@@ -120,6 +137,7 @@ func ParseResources(inputs []bo.ApplicationResource) ([]bo.ApplicationResource, 
 			continue
 		}
 		resource.Manifest = string(raw)
+		resource.ContentHash = bo.ApplicationManifestHash(resource.Manifest)
 		resources = append(resources, resource)
 	}
 	if len(errors) > 0 {
@@ -164,6 +182,25 @@ func extractSecretValues(item string, manifest map[string]any) map[string]string
 	return values
 }
 
+// mergeSecretKeys 保留调用方已有的 Secret 键：发布时资源已去掉 Secret 值，
+// 重新解析不能把已保存的键名清空。
+func mergeSecretKeys(existing, parsed []string) []string {
+	merged := append([]string(nil), parsed...)
+	for _, key := range existing {
+		found := false
+		for _, value := range merged {
+			if value == key {
+				found = true
+				break
+			}
+		}
+		if !found {
+			merged = append(merged, key)
+		}
+	}
+	return merged
+}
+
 func secretKeys(item string, secrets map[string]string) []string {
 	prefix := item + "/"
 	keys := make([]string, 0)
@@ -175,26 +212,38 @@ func secretKeys(item string, secrets map[string]string) []string {
 	return keys
 }
 
-func scanImages(manifest map[string]any) []string {
-	images := make([]string, 0)
-	var walk func(value any)
-	walk = func(value any) {
+// scanImageRefs 扫描清单里的容器镜像，记录容器名与镜像字段的 JSON 路径。
+func scanImageRefs(manifest map[string]any) []bo.ApplicationImageRef {
+	refs := make([]bo.ApplicationImageRef, 0)
+	var walk func(value any, path string)
+	walk = func(value any, path string) {
 		switch typed := value.(type) {
 		case map[string]any:
 			if image, ok := typed["image"].(string); ok && strings.TrimSpace(image) != "" {
-				images = append(images, strings.TrimSpace(image))
+				container, _ := typed["name"].(string)
+				refs = append(refs, bo.ApplicationImageRef{
+					Image: strings.TrimSpace(image), Container: strings.TrimSpace(container),
+					ContainerPath: joinJSONPath(path, "image"),
+				})
 			}
-			for _, child := range typed {
-				walk(child)
+			for key, child := range typed {
+				walk(child, joinJSONPath(path, key))
 			}
 		case []any:
-			for _, child := range typed {
-				walk(child)
+			for index, child := range typed {
+				walk(child, fmt.Sprintf("%s[%d]", path, index))
 			}
 		}
 	}
-	walk(manifest)
-	return unique(images)
+	walk(manifest, "")
+	return refs
+}
+
+func joinJSONPath(parent, key string) string {
+	if parent == "" {
+		return key
+	}
+	return parent + "." + key
 }
 
 func unique(values []string) []string {

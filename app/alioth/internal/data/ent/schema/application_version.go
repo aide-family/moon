@@ -7,8 +7,9 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// ApplicationVersion 是一个不可变的发布包版本。spec 存任意 Kubernetes 资源清单
-// 的 canonical JSON；Secret 值单独加密在 secrets_cipher。
+// ApplicationVersion 是发布包版本。草稿可编辑，上架后内容不可变；内容按服务
+// （组件）拆分到 application_version_components/resources。spec 保留为旧客户端
+// 兼容的 canonical JSON，Secret 值单独加密在 secrets_cipher。
 type ApplicationVersion struct {
 	ent.Schema
 }
@@ -30,6 +31,14 @@ func (ApplicationVersion) Fields() []ent.Field {
 		field.String("secrets_cipher").Sensitive().Default(""),
 		field.Text("validation").Default(""),
 		field.Time("published_at").Optional().Nillable(),
+		// revision 是版本内容的乐观锁版本号；composition_version 为 1 时组件与
+		// 资源来自 application_version_components / application_version_resources，
+		// 否则读 spec 兼容旧数据。
+		field.Int("revision").Default(1),
+		field.Int("composition_version").Default(0),
+		field.Time("status_changed_at").Optional().Nillable(),
+		field.Time("deprecated_at").Optional().Nillable(),
+		field.String("copied_from_version_uid").Default(""),
 	}
 }
 

@@ -78,6 +78,34 @@ func (_c *ApplicationVersionImageCreate) SetResourceItem(v string) *ApplicationV
 	return _c
 }
 
+// SetResourceUID sets the "resource_uid" field.
+func (_c *ApplicationVersionImageCreate) SetResourceUID(v string) *ApplicationVersionImageCreate {
+	_c.mutation.SetResourceUID(v)
+	return _c
+}
+
+// SetNillableResourceUID sets the "resource_uid" field if the given value is not nil.
+func (_c *ApplicationVersionImageCreate) SetNillableResourceUID(v *string) *ApplicationVersionImageCreate {
+	if v != nil {
+		_c.SetResourceUID(*v)
+	}
+	return _c
+}
+
+// SetComponent sets the "component" field.
+func (_c *ApplicationVersionImageCreate) SetComponent(v string) *ApplicationVersionImageCreate {
+	_c.mutation.SetComponent(v)
+	return _c
+}
+
+// SetNillableComponent sets the "component" field if the given value is not nil.
+func (_c *ApplicationVersionImageCreate) SetNillableComponent(v *string) *ApplicationVersionImageCreate {
+	if v != nil {
+		_c.SetComponent(*v)
+	}
+	return _c
+}
+
 // SetContainer sets the "container" field.
 func (_c *ApplicationVersionImageCreate) SetContainer(v string) *ApplicationVersionImageCreate {
 	_c.mutation.SetContainer(v)
@@ -88,6 +116,20 @@ func (_c *ApplicationVersionImageCreate) SetContainer(v string) *ApplicationVers
 func (_c *ApplicationVersionImageCreate) SetNillableContainer(v *string) *ApplicationVersionImageCreate {
 	if v != nil {
 		_c.SetContainer(*v)
+	}
+	return _c
+}
+
+// SetContainerPath sets the "container_path" field.
+func (_c *ApplicationVersionImageCreate) SetContainerPath(v string) *ApplicationVersionImageCreate {
+	_c.mutation.SetContainerPath(v)
+	return _c
+}
+
+// SetNillableContainerPath sets the "container_path" field if the given value is not nil.
+func (_c *ApplicationVersionImageCreate) SetNillableContainerPath(v *string) *ApplicationVersionImageCreate {
+	if v != nil {
+		_c.SetContainerPath(*v)
 	}
 	return _c
 }
@@ -164,6 +206,48 @@ func (_c *ApplicationVersionImageCreate) SetDigest(v string) *ApplicationVersion
 func (_c *ApplicationVersionImageCreate) SetNillableDigest(v *string) *ApplicationVersionImageCreate {
 	if v != nil {
 		_c.SetDigest(*v)
+	}
+	return _c
+}
+
+// SetProject sets the "project" field.
+func (_c *ApplicationVersionImageCreate) SetProject(v string) *ApplicationVersionImageCreate {
+	_c.mutation.SetProject(v)
+	return _c
+}
+
+// SetNillableProject sets the "project" field if the given value is not nil.
+func (_c *ApplicationVersionImageCreate) SetNillableProject(v *string) *ApplicationVersionImageCreate {
+	if v != nil {
+		_c.SetProject(*v)
+	}
+	return _c
+}
+
+// SetSource sets the "source" field.
+func (_c *ApplicationVersionImageCreate) SetSource(v string) *ApplicationVersionImageCreate {
+	_c.mutation.SetSource(v)
+	return _c
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (_c *ApplicationVersionImageCreate) SetNillableSource(v *string) *ApplicationVersionImageCreate {
+	if v != nil {
+		_c.SetSource(*v)
+	}
+	return _c
+}
+
+// SetResolvedImage sets the "resolved_image" field.
+func (_c *ApplicationVersionImageCreate) SetResolvedImage(v string) *ApplicationVersionImageCreate {
+	_c.mutation.SetResolvedImage(v)
+	return _c
+}
+
+// SetNillableResolvedImage sets the "resolved_image" field if the given value is not nil.
+func (_c *ApplicationVersionImageCreate) SetNillableResolvedImage(v *string) *ApplicationVersionImageCreate {
+	if v != nil {
+		_c.SetResolvedImage(*v)
 	}
 	return _c
 }
@@ -253,9 +337,21 @@ func (_c *ApplicationVersionImageCreate) defaults() {
 		v := applicationversionimage.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.ResourceUID(); !ok {
+		v := applicationversionimage.DefaultResourceUID
+		_c.mutation.SetResourceUID(v)
+	}
+	if _, ok := _c.mutation.Component(); !ok {
+		v := applicationversionimage.DefaultComponent
+		_c.mutation.SetComponent(v)
+	}
 	if _, ok := _c.mutation.Container(); !ok {
 		v := applicationversionimage.DefaultContainer
 		_c.mutation.SetContainer(v)
+	}
+	if _, ok := _c.mutation.ContainerPath(); !ok {
+		v := applicationversionimage.DefaultContainerPath
+		_c.mutation.SetContainerPath(v)
 	}
 	if _, ok := _c.mutation.RegistryUID(); !ok {
 		v := applicationversionimage.DefaultRegistryUID
@@ -276,6 +372,18 @@ func (_c *ApplicationVersionImageCreate) defaults() {
 	if _, ok := _c.mutation.Digest(); !ok {
 		v := applicationversionimage.DefaultDigest
 		_c.mutation.SetDigest(v)
+	}
+	if _, ok := _c.mutation.Project(); !ok {
+		v := applicationversionimage.DefaultProject
+		_c.mutation.SetProject(v)
+	}
+	if _, ok := _c.mutation.Source(); !ok {
+		v := applicationversionimage.DefaultSource
+		_c.mutation.SetSource(v)
+	}
+	if _, ok := _c.mutation.ResolvedImage(); !ok {
+		v := applicationversionimage.DefaultResolvedImage
+		_c.mutation.SetResolvedImage(v)
 	}
 	if _, ok := _c.mutation.Platforms(); !ok {
 		v := applicationversionimage.DefaultPlatforms
@@ -335,8 +443,17 @@ func (_c *ApplicationVersionImageCreate) check() error {
 			return &ValidationError{Name: "resource_item", err: fmt.Errorf(`ent: validator failed for field "ApplicationVersionImage.resource_item": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.ResourceUID(); !ok {
+		return &ValidationError{Name: "resource_uid", err: errors.New(`ent: missing required field "ApplicationVersionImage.resource_uid"`)}
+	}
+	if _, ok := _c.mutation.Component(); !ok {
+		return &ValidationError{Name: "component", err: errors.New(`ent: missing required field "ApplicationVersionImage.component"`)}
+	}
 	if _, ok := _c.mutation.Container(); !ok {
 		return &ValidationError{Name: "container", err: errors.New(`ent: missing required field "ApplicationVersionImage.container"`)}
+	}
+	if _, ok := _c.mutation.ContainerPath(); !ok {
+		return &ValidationError{Name: "container_path", err: errors.New(`ent: missing required field "ApplicationVersionImage.container_path"`)}
 	}
 	if _, ok := _c.mutation.Image(); !ok {
 		return &ValidationError{Name: "image", err: errors.New(`ent: missing required field "ApplicationVersionImage.image"`)}
@@ -360,6 +477,15 @@ func (_c *ApplicationVersionImageCreate) check() error {
 	}
 	if _, ok := _c.mutation.Digest(); !ok {
 		return &ValidationError{Name: "digest", err: errors.New(`ent: missing required field "ApplicationVersionImage.digest"`)}
+	}
+	if _, ok := _c.mutation.Project(); !ok {
+		return &ValidationError{Name: "project", err: errors.New(`ent: missing required field "ApplicationVersionImage.project"`)}
+	}
+	if _, ok := _c.mutation.Source(); !ok {
+		return &ValidationError{Name: "source", err: errors.New(`ent: missing required field "ApplicationVersionImage.source"`)}
+	}
+	if _, ok := _c.mutation.ResolvedImage(); !ok {
+		return &ValidationError{Name: "resolved_image", err: errors.New(`ent: missing required field "ApplicationVersionImage.resolved_image"`)}
 	}
 	if _, ok := _c.mutation.Platforms(); !ok {
 		return &ValidationError{Name: "platforms", err: errors.New(`ent: missing required field "ApplicationVersionImage.platforms"`)}
@@ -421,9 +547,21 @@ func (_c *ApplicationVersionImageCreate) createSpec() (*ApplicationVersionImage,
 		_spec.SetField(applicationversionimage.FieldResourceItem, field.TypeString, value)
 		_node.ResourceItem = value
 	}
+	if value, ok := _c.mutation.ResourceUID(); ok {
+		_spec.SetField(applicationversionimage.FieldResourceUID, field.TypeString, value)
+		_node.ResourceUID = value
+	}
+	if value, ok := _c.mutation.Component(); ok {
+		_spec.SetField(applicationversionimage.FieldComponent, field.TypeString, value)
+		_node.Component = value
+	}
 	if value, ok := _c.mutation.Container(); ok {
 		_spec.SetField(applicationversionimage.FieldContainer, field.TypeString, value)
 		_node.Container = value
+	}
+	if value, ok := _c.mutation.ContainerPath(); ok {
+		_spec.SetField(applicationversionimage.FieldContainerPath, field.TypeString, value)
+		_node.ContainerPath = value
 	}
 	if value, ok := _c.mutation.Image(); ok {
 		_spec.SetField(applicationversionimage.FieldImage, field.TypeString, value)
@@ -448,6 +586,18 @@ func (_c *ApplicationVersionImageCreate) createSpec() (*ApplicationVersionImage,
 	if value, ok := _c.mutation.Digest(); ok {
 		_spec.SetField(applicationversionimage.FieldDigest, field.TypeString, value)
 		_node.Digest = value
+	}
+	if value, ok := _c.mutation.Project(); ok {
+		_spec.SetField(applicationversionimage.FieldProject, field.TypeString, value)
+		_node.Project = value
+	}
+	if value, ok := _c.mutation.Source(); ok {
+		_spec.SetField(applicationversionimage.FieldSource, field.TypeString, value)
+		_node.Source = value
+	}
+	if value, ok := _c.mutation.ResolvedImage(); ok {
+		_spec.SetField(applicationversionimage.FieldResolvedImage, field.TypeString, value)
+		_node.ResolvedImage = value
 	}
 	if value, ok := _c.mutation.Platforms(); ok {
 		_spec.SetField(applicationversionimage.FieldPlatforms, field.TypeString, value)

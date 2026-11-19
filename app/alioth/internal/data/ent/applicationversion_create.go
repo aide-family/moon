@@ -170,6 +170,76 @@ func (_c *ApplicationVersionCreate) SetNillablePublishedAt(v *time.Time) *Applic
 	return _c
 }
 
+// SetRevision sets the "revision" field.
+func (_c *ApplicationVersionCreate) SetRevision(v int) *ApplicationVersionCreate {
+	_c.mutation.SetRevision(v)
+	return _c
+}
+
+// SetNillableRevision sets the "revision" field if the given value is not nil.
+func (_c *ApplicationVersionCreate) SetNillableRevision(v *int) *ApplicationVersionCreate {
+	if v != nil {
+		_c.SetRevision(*v)
+	}
+	return _c
+}
+
+// SetCompositionVersion sets the "composition_version" field.
+func (_c *ApplicationVersionCreate) SetCompositionVersion(v int) *ApplicationVersionCreate {
+	_c.mutation.SetCompositionVersion(v)
+	return _c
+}
+
+// SetNillableCompositionVersion sets the "composition_version" field if the given value is not nil.
+func (_c *ApplicationVersionCreate) SetNillableCompositionVersion(v *int) *ApplicationVersionCreate {
+	if v != nil {
+		_c.SetCompositionVersion(*v)
+	}
+	return _c
+}
+
+// SetStatusChangedAt sets the "status_changed_at" field.
+func (_c *ApplicationVersionCreate) SetStatusChangedAt(v time.Time) *ApplicationVersionCreate {
+	_c.mutation.SetStatusChangedAt(v)
+	return _c
+}
+
+// SetNillableStatusChangedAt sets the "status_changed_at" field if the given value is not nil.
+func (_c *ApplicationVersionCreate) SetNillableStatusChangedAt(v *time.Time) *ApplicationVersionCreate {
+	if v != nil {
+		_c.SetStatusChangedAt(*v)
+	}
+	return _c
+}
+
+// SetDeprecatedAt sets the "deprecated_at" field.
+func (_c *ApplicationVersionCreate) SetDeprecatedAt(v time.Time) *ApplicationVersionCreate {
+	_c.mutation.SetDeprecatedAt(v)
+	return _c
+}
+
+// SetNillableDeprecatedAt sets the "deprecated_at" field if the given value is not nil.
+func (_c *ApplicationVersionCreate) SetNillableDeprecatedAt(v *time.Time) *ApplicationVersionCreate {
+	if v != nil {
+		_c.SetDeprecatedAt(*v)
+	}
+	return _c
+}
+
+// SetCopiedFromVersionUID sets the "copied_from_version_uid" field.
+func (_c *ApplicationVersionCreate) SetCopiedFromVersionUID(v string) *ApplicationVersionCreate {
+	_c.mutation.SetCopiedFromVersionUID(v)
+	return _c
+}
+
+// SetNillableCopiedFromVersionUID sets the "copied_from_version_uid" field if the given value is not nil.
+func (_c *ApplicationVersionCreate) SetNillableCopiedFromVersionUID(v *string) *ApplicationVersionCreate {
+	if v != nil {
+		_c.SetCopiedFromVersionUID(*v)
+	}
+	return _c
+}
+
 // Mutation returns the ApplicationVersionMutation object of the builder.
 func (_c *ApplicationVersionCreate) Mutation() *ApplicationVersionMutation {
 	return _c.mutation
@@ -233,6 +303,18 @@ func (_c *ApplicationVersionCreate) defaults() {
 		v := applicationversion.DefaultValidation
 		_c.mutation.SetValidation(v)
 	}
+	if _, ok := _c.mutation.Revision(); !ok {
+		v := applicationversion.DefaultRevision
+		_c.mutation.SetRevision(v)
+	}
+	if _, ok := _c.mutation.CompositionVersion(); !ok {
+		v := applicationversion.DefaultCompositionVersion
+		_c.mutation.SetCompositionVersion(v)
+	}
+	if _, ok := _c.mutation.CopiedFromVersionUID(); !ok {
+		v := applicationversion.DefaultCopiedFromVersionUID
+		_c.mutation.SetCopiedFromVersionUID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -294,6 +376,15 @@ func (_c *ApplicationVersionCreate) check() error {
 	}
 	if _, ok := _c.mutation.Validation(); !ok {
 		return &ValidationError{Name: "validation", err: errors.New(`ent: missing required field "ApplicationVersion.validation"`)}
+	}
+	if _, ok := _c.mutation.Revision(); !ok {
+		return &ValidationError{Name: "revision", err: errors.New(`ent: missing required field "ApplicationVersion.revision"`)}
+	}
+	if _, ok := _c.mutation.CompositionVersion(); !ok {
+		return &ValidationError{Name: "composition_version", err: errors.New(`ent: missing required field "ApplicationVersion.composition_version"`)}
+	}
+	if _, ok := _c.mutation.CopiedFromVersionUID(); !ok {
+		return &ValidationError{Name: "copied_from_version_uid", err: errors.New(`ent: missing required field "ApplicationVersion.copied_from_version_uid"`)}
 	}
 	return nil
 }
@@ -372,6 +463,26 @@ func (_c *ApplicationVersionCreate) createSpec() (*ApplicationVersion, *sqlgraph
 	if value, ok := _c.mutation.PublishedAt(); ok {
 		_spec.SetField(applicationversion.FieldPublishedAt, field.TypeTime, value)
 		_node.PublishedAt = &value
+	}
+	if value, ok := _c.mutation.Revision(); ok {
+		_spec.SetField(applicationversion.FieldRevision, field.TypeInt, value)
+		_node.Revision = value
+	}
+	if value, ok := _c.mutation.CompositionVersion(); ok {
+		_spec.SetField(applicationversion.FieldCompositionVersion, field.TypeInt, value)
+		_node.CompositionVersion = value
+	}
+	if value, ok := _c.mutation.StatusChangedAt(); ok {
+		_spec.SetField(applicationversion.FieldStatusChangedAt, field.TypeTime, value)
+		_node.StatusChangedAt = &value
+	}
+	if value, ok := _c.mutation.DeprecatedAt(); ok {
+		_spec.SetField(applicationversion.FieldDeprecatedAt, field.TypeTime, value)
+		_node.DeprecatedAt = &value
+	}
+	if value, ok := _c.mutation.CopiedFromVersionUID(); ok {
+		_spec.SetField(applicationversion.FieldCopiedFromVersionUID, field.TypeString, value)
+		_node.CopiedFromVersionUID = value
 	}
 	return _node, _spec
 }

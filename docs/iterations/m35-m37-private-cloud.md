@@ -45,6 +45,16 @@
 - `/v1/application-deployments`、`/{uid}/upgrade|rollback|redeploy|uninstall|operations`
 - `/v1/application-releases/{uid}`、`/v1/application-release-operations/{uid}`
 
+### 2026-11-19 增补：版本内服务模型
+
+- 模型从 `Application → Version → Resource` 扩为 `Application → Version → Component（服务）→ Resource → Image`：一个版本由多个服务组成，每个服务包含若干 Kubernetes 资源，界面以服务卡片展示。
+- 新增 `application_version_components`、`application_version_resources` 两张表；`application_versions` 增加 `revision`、`composition_version`、`status_changed_at`、`deprecated_at`、`copied_from_version_uid`；`application_version_images` 增加 `component/resource_uid/container_path/project/source/resolved_image`。
+- 兼容：迁移时按旧 `spec` 回填一个 `default` 服务与资源行并标记 `composition_version=1`；新写入继续双写 `spec` 与版本级 Secret 密文，读取优先归一化表，回填失败回退 `spec`。
+- 版本状态机：`DRAFT → PUBLISHED → DEPRECATED`（可重新上架）。只有草稿可增删改资源；上架要求每个服务至少一个资源并把镜像固定到 digest；已上架版本只读，改为「复制为新版本」。
+- 新接口：资源级 `Create/Get/Save/Delete/Validate ApplicationVersionResource`（带 `expectedRevision` 乐观锁）、`DuplicateApplicationVersion`、`ListApplicationReleases`（按应用/集群查发布记录与集群当前版本）。
+- 发布规则：首次发布与升级只接受 `PUBLISHED`；回滚接受 `PUBLISHED` 或曾部署过该 release 的 `DEPRECATED`；重新部署要求当前版本非草稿。部署组详情的集群矩阵同时返回期望版本、集群当前版本与 `inSync`。
+- Web：版本页默认「服务」Tab；资源详情 Sheet、表单/YAML 双 Tab 编辑、镜像仓库级联选择；YAML 编辑器接入 monaco-yaml 与内置 K8s schema；发布记录、集群版本列与复制版本弹窗。
+
 ## M37 多集群与集群级资源
 
 ### 已交付
